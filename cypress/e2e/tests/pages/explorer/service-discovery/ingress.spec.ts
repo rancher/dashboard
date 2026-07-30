@@ -96,8 +96,10 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressName);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .toggle();
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .clickOptionWithLabel(namespace);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().description()
         .set(`${ ingressName } description`);
@@ -246,8 +248,10 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressHeadlessName);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .toggle();
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .clickOptionWithLabel(namespace);
 
       ingressCreatePagePo.setRuleRequestHostValue(0, 'example-headless.com');

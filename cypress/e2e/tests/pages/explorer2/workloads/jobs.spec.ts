@@ -38,8 +38,10 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         // create view jobs
         const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo(localCluster);
 
-        workloadsJobDetailsPage.selectNamespaceOption(1);
-        workloadsJobDetailsPage.namespace().set(namespaceName);
+        const namespaceField = workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().namespace();
+
+        namespaceField.selectCreateNew('Create a new Namespace');
+        namespaceField.createInput().set(namespaceName);
         workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
           .set(jobName);
         workloadsJobDetailsPage.containerImage().set(containerImageName);
@@ -79,8 +81,10 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         // create view jobs
         const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo('local');
 
-        workloadsJobDetailsPage.selectNamespaceOption(1);
-        workloadsJobDetailsPage.namespace().set(namespaceName);
+        const namespaceField = workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().namespace();
+
+        namespaceField.selectCreateNew('Create a new Namespace');
+        namespaceField.createInput().set(namespaceName);
         workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
           .set(jobName2);
         workloadsJobDetailsPage.containerImage().set(containerImageName);

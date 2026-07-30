@@ -3,14 +3,12 @@ import { computed, ref, toRef, watch } from 'vue';
 import { mapActions, useStore } from 'vuex';
 
 import { get, set } from '@shell/utils/object';
-import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import NamespaceSelect from '@shell/components/form/NamespaceSelect';
 import { normalizeName } from '@shell/utils/kube';
-import { useI18n } from '@shell/composables/useI18n';
 
 export default {
   name: 'NameNsDescription',
@@ -19,7 +17,7 @@ export default {
 
   components: {
     LabeledInput,
-    LabeledSelect,
+    NamespaceSelect,
   },
 
   props: {
@@ -191,13 +189,9 @@ export default {
     }
   },
 
-  data() {
-    return { createNamespace: false };
-  },
-
   setup(props, { emit }) {
     const v = toRef(props.value);
-    const metadata = v.value.metadata;
+    const metadata = v.value?.metadata;
     const namespace = ref(null);
     const name = ref(null);
     const description = ref(null);
@@ -226,100 +220,10 @@ export default {
     });
 
     const store = useStore();
-    const { t } = useI18n(store);
-    const allowedNamespaces = computed(() => store.getters.allowedNamespaces());
-    const storeNamespaces = computed(() => store.getters.namespaces());
-    const currentCluster = computed(() => store.getters.currentCluster);
-
-    const inStore = computed(() => {
-      return store.getters['currentStore']();
-    });
-
-    const nsSchema = computed(() => {
-      return store.getters[`${ inStore.value }/schemaFor`](NAMESPACE);
-    });
-
-    const canCreateNamespace = computed(() => {
-      // Check if user can push to namespaces... and as the ns is outside of a project restrict to admins and cluster owners
-      return (nsSchema.value?.collectionMethods || []).includes('POST') && currentCluster.value?.canUpdate;
-    });
-
-    /**
-     * Map namespaces from the store to options, adding divider and create button
-     */
-    const options = computed(() => {
-      let namespaces;
-
-      if (props.namespacesOverride) {
-        // Use the resources provided
-        namespaces = props.namespacesOverride;
-      } else {
-        if (props.namespaceOptions) {
-          // Use the namespaces provided
-          namespaces = (props.namespaceOptions.map((ns) => ns.name) || []).sort();
-        } else {
-          // Determine the namespaces
-          const namespaceObjs = isCreate.value ? allowedNamespaces.value : storeNamespaces.value;
-
-          namespaces = Object.keys(namespaceObjs);
-        }
-      }
-
-      const options = namespaces
-        .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
-        .map(props.namespaceMapper || ((obj) => ({
-          label: obj.nameDisplay,
-          value: obj.id,
-        })));
-
-      const sortedByLabel = sortBy(options, 'label');
-
-      if (props.forceNamespace) {
-        sortedByLabel.unshift({
-          label: props.forceNamespace,
-          value: props.forceNamespace,
-        });
-      }
-
-      const createButton = {
-        label: t('namespace.createNamespace'),
-        value: '',
-        kind:  'highlighted'
-      };
-      const divider = {
-        label:    'divider',
-        disabled: true,
-        kind:     'divider'
-      };
-
-      const createOverhead = canCreateNamespace.value || props.createNamespaceOverride ? [createButton, divider] : [];
-
-      return [
-        ...createOverhead,
-        ...sortedByLabel
-      ];
-    });
-
-    const updateNamespace = (val) => {
-      if (props.forceNamespace) {
-        val = props.forceNamespace;
-      }
-
-      if (props.namespaced) {
-        emit('isNamespaceNew', !val || (options.value && !options.value.find((n) => n.value === val)));
-      }
-
-      if (props.namespaceKey) {
-        set(props.value, props.namespaceKey, val);
-      } else {
-        props.value.metadata.namespace = val;
-      }
-    };
 
     if (props.namespaced) {
       if (props.forceNamespace) {
         namespace.value = props.forceNamespace;
-        updateNamespace(namespace.value);
       } else if (props.namespaceKey) {
         namespace.value = get(v.value, props.namespaceKey);
       } else {
@@ -345,8 +249,6 @@ export default {
       name,
       description,
       isCreate,
-      options,
-      updateNamespace,
     };
   },
 
@@ -386,7 +288,11 @@ export default {
 
   watch: {
     namespace(val) {
-      this.updateNamespace(val);
+      if (this.namespaceKey) {
+        set(this.value, this.namespaceKey, val);
+      } else {
+        this.value.metadata.namespace = val;
+      }
       this.$emit('update:value', this.value);
     },
 
@@ -414,30 +320,8 @@ export default {
       this.namespace = e.selected;
     },
 
-    cancelCreateNamespace(e) {
-      this.createNamespace = false;
-      this.$parent.$emit('createNamespace', false);
-      // In practice we should always have a defaultNamespace... unless we're in non-kube extension world,  so fall back on options
-      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find((o) => !!o.value)?.value;
-    },
-
-    selectNamespace(e) {
-      if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
-        this.createNamespace = true;
-        this.$store.dispatch(
-          'cru-resource/setCreateNamespace',
-          true,
-        );
-        this.$emit('isNamespaceNew', true);
-        this.$nextTick(() => this.$refs.namespaceInput.focus());
-      } else {
-        this.createNamespace = false;
-        this.$store.dispatch(
-          'cru-resource/setCreateNamespace',
-          false,
-        );
-        this.$emit('isNamespaceNew', false);
-      }
+    onNamespaceChange(val) {
+      this.namespace = val;
     },
   },
 };
@@ -447,52 +331,29 @@ export default {
   <div :class="['row', { 'mb-20': !noBottomMargin }]">
     <slot name="project-selector" />
     <div
-      v-if="namespaced && !nameNsHidden && createNamespace"
-      :data-testid="componentTestid + '-namespace-create'"
-      class="col span-3"
-    >
-      <LabeledInput
-        ref="namespaceInput"
-        v-model:value="namespace"
-        :name="namespaceFieldName"
-        :label="t('namespace.label')"
-        :placeholder="t('namespace.createNamespace')"
-        :disabled="namespaceReallyDisabled"
-        :mode="mode"
-        :min-height="30"
-        :required="nameRequired"
-        :rules="rules.namespace"
-      />
-      <button
-        :aria-label="t('namespace.cancelCreateAriaLabel')"
-        @click="cancelCreateNamespace"
-      >
-        <i
-          v-clean-tooltip="t('generic.cancel')"
-          class="icon icon-close align-value"
-        />
-      </button>
-    </div>
-    <div
-      v-if="namespaced && !nameNsHidden && !createNamespace"
+      v-if="namespaced && !nameNsHidden"
       :data-testid="componentTestid + '-namespace'"
       class="col span-3"
     >
-      <LabeledSelect
-        v-show="!createNamespace"
-        v-model:value="namespace"
+      <NamespaceSelect
+        :value="namespace"
         :name="namespaceFieldName"
-        :clearable="true"
-        :options="options"
-        :disabled="namespaceReallyDisabled"
-        :searchable="true"
         :mode="mode"
-        :multiple="false"
-        :label="t('namespace.label')"
-        :placeholder="t('namespace.selectOrCreate')"
+        :disabled="namespaceDisabled"
+        :force-namespace="forceNamespace"
+        :no-default-namespace="noDefaultNamespace"
+        :override="namespacesOverride"
+        :options="namespaceOptions"
+        :mapper="namespaceMapper"
+        :create-namespace-override="createNamespaceOverride"
+        :placeholder="namespacePlaceholder"
         :rules="rules.namespace"
-        required
-        @selecting="selectNamespace"
+        :field-name="namespaceFieldName"
+        :label-key="namespaceLabel"
+        :append-to-body="false"
+        :required="true"
+        @update:value="onNamespaceChange"
+        @is-namespace-new="$emit('isNamespaceNew', $event)"
       />
     </div>
 
