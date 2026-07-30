@@ -49,19 +49,6 @@ export function guardExtensionRoute(to, from, next, { store }) {
     return next();
   }
 
-  // VirtualType is registered but has no conditions — allow
-  const hasConditions = !!(
-    matchingVirtualType.ifHave ||
-    matchingVirtualType.ifFeature ||
-    matchingVirtualType.ifHaveType ||
-    matchingVirtualType.ifHaveSubTypes ||
-    typeof matchingVirtualType.ifRancherCluster !== 'undefined'
-  );
-
-  if (!hasConditions) {
-    return next();
-  }
-
   // allTypes already evaluates every condition; if the virtualType is absent from
   // its output the conditions are not met and the route should not be accessible.
   const allTypes = store.getters['type-map/allTypes'](owningProductName);

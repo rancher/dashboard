@@ -83,13 +83,15 @@ describe('navigation-guards/extension-route-guard', () => {
   });
 
   describe('extension routes with a matching virtualType but no conditions', () => {
-    it('allows unconditional virtualType routes', async() => {
+    it('allows unconditional virtualType routes because allTypes always includes them', async() => {
       const next = jest.fn();
-      const store = makeStore();
+      // allTypes always includes virtualTypes with no conditions — simulate that here
+      const store = makeStore({ allTypesResult: { all: { 'my-open-type': openVirtualType } } });
 
       await guardExtensionRoute(makeRoute(OPEN_ROUTE, { _extensionRoute: true }), {}, next, { store } as any);
 
       expect(next).toHaveBeenCalledWith();
+      expect(next).not.toHaveBeenCalledWith(expect.objectContaining({ name: '404' }));
     });
   });
 
