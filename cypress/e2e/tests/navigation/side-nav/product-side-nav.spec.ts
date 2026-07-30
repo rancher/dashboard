@@ -38,7 +38,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Can open second menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
+    productNavPo.groups().not('.expanded').eq(0)
       .as('closedGroup');
     cy.get('@closedGroup').should('be.visible').click();
     cy.get('@closedGroup').find('ul').should('have.length.gt', 0);
@@ -52,7 +52,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     // alias here: in Cypress 12+ `cy.get('@alias')` re-runs the query, so after the
     // click it would resolve to the newly-opened group instead of the original one.
     productNavPo.expandedGroup().first().then(($openGroup) => {
-      productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
+      productNavPo.groups().not('.expanded').eq(0)
         .should('be.visible')
         .click();
 
@@ -63,7 +63,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Should flag second menu group as active on navigation', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
+    productNavPo.groups().not('.expanded').eq(0)
       .as('closedGroup');
     cy.get('@closedGroup').should('be.visible').click();
     // Wait for the group to expand and then click the first visible link
