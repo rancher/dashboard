@@ -4,9 +4,8 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
 /**
  * PO for the LabeledSelectWithCreate component - a LabeledSelect that swaps
- * to a LabeledInput (with confirm/cancel buttons) when the user picks the
- * "Create new" option
- */
+ * to a LabeledInput (with a cancel button) when the user picks the "Create
+ * new" option.
 export default class LabeledSelectWithCreatePo extends ComponentPo {
   /**
    * The underlying select, shown when not creating a new value
@@ -19,11 +18,11 @@ export default class LabeledSelectWithCreatePo extends ComponentPo {
    * The new-value input, shown while creating a new value
    */
   createInput(): LabeledInputPo {
-    return new LabeledInputPo(this.self().find('.create-input-row input'));
+    return new LabeledInputPo(this.self().find('.create-input input'));
   }
 
   isCreating(): Cypress.Chainable<boolean> {
-    return this.self().then(($el) => $el.find('.create-input-row').length > 0);
+    return this.self().then(($el) => $el.find('.create-input').length > 0);
   }
 
   /**
@@ -34,11 +33,7 @@ export default class LabeledSelectWithCreatePo extends ComponentPo {
     this.select().clickOptionWithLabel(createLabel);
   }
 
-  confirmCreate() {
-    return this.self().find('.confirm-create').click();
-  }
-
   cancelCreate() {
-    return this.self().find('.cancel-create').click();
+    return this.self().find('.create-input button').click();
   }
 }
