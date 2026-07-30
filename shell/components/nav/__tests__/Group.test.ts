@@ -280,4 +280,76 @@ describe('component: Group', () => {
       });
     });
   });
+
+  describe('toggle icon dynamic aria-label (issue #15883)', () => {
+    const group = {
+      name:     'workloads',
+      label:    'Workloads',
+      children: [{ route: { name: 'child-route', params: {} } }],
+    };
+
+    const tStub = (key: string, vals?: Record<string, string>) => (vals ? `${ key }:${ vals.group }` : key);
+
+    const mountGroupForIcon = (extraProps: Record<string, unknown> = {}) => shallowMount(Group as any, {
+      props: {
+        group,
+        canCollapse: true,
+        idPrefix:    '',
+        ...extraProps,
+      },
+      global: {
+        mocks: {
+          $route: {
+            params: {}, path: '/test', fullPath: '/test', matched: [],
+          },
+          $router: {
+            resolve:   jest.fn().mockReturnValue({ path: '/test', fullPath: '/test' }),
+            getRoutes: jest.fn().mockReturnValue([]),
+          },
+          t: tStub,
+        },
+      },
+    });
+
+    it('uses the collapse translation key when the group is expanded', async() => {
+      const wrapper = mountGroupForIcon();
+
+      (wrapper.vm as any).isExpanded = true;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('.toggle-accordion').attributes('aria-label')).toBe('nav.ariaLabel.collapse:Workloads');
+    });
+
+    it('uses the expand translation key when the group is collapsed', async() => {
+      const wrapper = mountGroupForIcon();
+
+      (wrapper.vm as any).isExpanded = false;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('.toggle-accordion').attributes('aria-label')).toBe('nav.ariaLabel.expand:Workloads');
+    });
+
+    it('prefers labelDisplay over label in the aria-label', async() => {
+      const groupWithDisplayLabel = { ...group, labelDisplay: 'Workloads Display' };
+      const wrapper = shallowMount(Group as any, {
+        props: {
+          group: groupWithDisplayLabel, canCollapse: true, idPrefix: '',
+        },
+        global: {
+          mocks: {
+            $route: {
+              params: {}, path: '/test', fullPath: '/test', matched: [],
+            },
+            $router: { resolve: jest.fn().mockReturnValue({ path: '/test', fullPath: '/test' }), getRoutes: jest.fn().mockReturnValue([]) },
+            t:       tStub,
+          },
+        },
+      });
+
+      (wrapper.vm as any).isExpanded = false;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('.toggle-accordion').attributes('aria-label')).toBe('nav.ariaLabel.expand:Workloads Display');
+    });
+  });
 });
