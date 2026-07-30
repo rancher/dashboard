@@ -77,6 +77,21 @@ declare global {
       RancherPrime?: string;
     }
 
+    /**
+     * Tag support provided at runtime by @cypress/grep (`describe`/`it` config `tags`).
+     *
+     * Declared locally rather than via a tsconfig `types: ['@cypress/grep']` entry:
+     * @cypress/grep v6 is exports-only (no top-level "types"/"main" field), so a `types`
+     * entry no longer resolves and fails with TS2688.
+     */
+    interface SuiteConfigOverrides {
+      tags?: string | string[];
+    }
+
+    interface TestConfigOverrides {
+      tags?: string | string[];
+    }
+
     interface Chainable {
       setupWebSocket: any;
       hideElementBySelector(...selectors: string[]): Chainable<void>;

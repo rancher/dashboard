@@ -5,11 +5,14 @@ import './commands/chainable';
 import './commands/rancher-api-commands';
 import './commands/accessiblity';
 
-import registerCypressGrep from '@cypress/grep/src/support';
 import 'cypress-mochawesome-reporter/register';
 import '@percy/cypress';
 import 'cypress-axe';
 const { addCustomCommand } = require('cypress-delete-downloads-folder');
+// @cypress/grep v6 renamed the support export to `register` and is exports-only, which this
+// project's classic TS module resolution can't follow, so require it (resolved correctly at
+// runtime by Node/webpack). Its `tags` types are declared in cypress/globals.d.ts.
+const { register: registerCypressGrep } = require('@cypress/grep');
 
 registerCypressGrep();
 addCustomCommand();

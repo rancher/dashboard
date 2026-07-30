@@ -117,10 +117,13 @@ const baseConfig = defineConfig({
     runMode:  2,
     openMode: 0
   },
-  env: {
+  // `expose` (Cypress 15.10+) is read via `Cypress.expose()`. Both @cypress/grep v6 and
+  // @cypress/code-coverage v4 read their settings from here and NOT from `env` — the grep
+  // plugin silently no-ops if `config.expose` is absent, so these must not live in `env`.
+  expose: {
     grepFilterSpecs:  true,
     grepOmitFiltered: true,
-    baseUrl,
+    grepTags:         process.env.GREP_TAGS,
     coverage:         hasCoverage,
     codeCoverage:     {
       exclude: [
@@ -137,11 +140,13 @@ const baseConfig = defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
+  },
+  env: {
+    baseUrl,
     api:                      apiUrl,
     username,
     password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:        process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    grepTags:                 process.env.GREP_TAGS,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:             process.env.AWS_ACCESS_KEY_ID,
     awsSecretKey:             process.env.AWS_SECRET_ACCESS_KEY,
@@ -168,7 +173,9 @@ const baseConfig = defineConfig({
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
-      require('@cypress/grep/src/plugin')(config);
+      // @cypress/grep v6 moved the plugin to `@cypress/grep/plugin` and exports it as a
+      // named `plugin` function (the old `@cypress/grep/src/plugin` path is gone).
+      require('@cypress/grep/plugin').plugin(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
       // On CI runners Chrome can crash between specs (small /dev/shm) or be too
