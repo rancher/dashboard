@@ -16,7 +16,7 @@
   resolved "https://registry.yarnpkg.com/@babel/compat-data/-/compat-data-7.29.7.tgz#6f0237f0f36d2e51c0570a636faed9d2d0efe629"
   integrity sha512-locTkQyKvwIEgBzVrn8693ebc97F2U8ZHjbXwDXJ5Fn2TCpNwTlKcaKLkdHop5c/icOFE7qt7Q9JC5hnKNa6Gg==
 
-"@babel/core@7.29.7", "@babel/core@^7.7.5":
+"@babel/core@^7.7.5":
   version "7.29.7"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.29.7.tgz#80c10b17248082968b57a857b91640971f2070f7"
   integrity sha512-RgHBCvtjbOK2gXSNBNIkNoEc9qoVEtau3hj8gEqKQuL3HZAibKarWFEI3Lfm6EYKkLalOh8eSrj9b+ch9H/VBA==
@@ -1452,9 +1452,9 @@ bluebird@^3.7.2:
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
 
 body-parser@~1.20.5:
-  version "1.20.5"
-  resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.20.5.tgz#303c8c34423d1d6fa799bc764e93c1e4dc6ebf64"
-  integrity sha512-3grm+/2tUOvu2cjJkvsIxrv/wVpfXQW4PsQHYm7yk4vfpu7Ekl6nEsYBoJUL6qDwZUx8wUhQ8tR2qz+ad9c9OA==
+  version "1.20.6"
+  resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.20.6.tgz#60c789c78e0992d906da0a29d71ae01d15c1ed76"
+  integrity sha512-p5tAzS57i5MV9fZFDj9LeIiTZEufbSe2eDozP+ElheSUq1m74CRq1jI4mYNDdVs9vQztXFLuk/Gd6BWTdwRJ5g==
   dependencies:
     bytes "~3.1.2"
     content-type "~1.0.5"
@@ -1483,9 +1483,9 @@ boolbase@^1.0.0:
   integrity sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==
 
 brace-expansion@^1.1.7:
-  version "1.1.15"
-  resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.15.tgz#a6d90d54067236e5f42570a3b7378d594d9b7738"
-  integrity sha512-EwOCDEex4quD37XhqM3omwtMoJjr//isUZz1JopUNWms+4Z2ViyM/k1YIRePpoVNnQhENnxtFjLaxNHrT7xIUg==
+  version "1.1.18"
+  resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.18.tgz#3ce74d89885136be1535341f8c3d4425c29a5cab"
+  integrity sha512-Edep/X9fGqVNmzKBVsDYIOtD+z1tuezV70LBjdCst9Tqu76lsnvRiZ6oTic1n+/BIwX6QDGAO94PN4N2SADvtw==
   dependencies:
     balanced-match "^1.0.0"
     concat-map "0.0.1"
@@ -2657,9 +2657,9 @@ fast-printf@^1.6.9:
   integrity sha512-GwTgG9O4FVIdShhbVF3JxOgSBY2+ePGsu2V/UONgoCPzF9VY6ZdBMKsHKCYQHZwNk3qNouUolRDsgVxcVA5G1w==
 
 fast-uri@^3.0.1:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.1.2.tgz#8af3d4fc9d3e71b11572cc2673b514a7d1a8c8ec"
-  integrity sha512-rVjf7ArG3LTk+FS6Yw81V1DLuZl1bRbNrev6Tmd/9RaroeeRRJhAt7jg/6YFxbvAQXUCavSoZhPPj6oOx+5KjQ==
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.1.4.tgz#3b3daf9ce68f41f956df0b505132c0cfce9ec7af"
+  integrity sha512-8JnbkQ4juDyvYs4mgFGQqg4yCYtFDtUtmp2QIQq11ZZe5CFQ5wcqm1rqDgAh/QdMySuBnPzMUiJUNZG5N/AiQw==
 
 fastq@^1.6.0:
   version "1.20.1"
@@ -4665,9 +4665,9 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.3.1:
   integrity sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA==
 
 picomatch@^4.0.4:
-  version "4.0.4"
-  resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-4.0.4.tgz#fd6f5e00a143086e074dffe4c924b8fb293b0589"
-  integrity sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-4.0.5.tgz#51ea57a17d86f605f81039595fbc40ed06a55fab"
+  integrity sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==
 
 pify@^2.2.0:
   version "2.3.0"
@@ -5274,9 +5274,9 @@ shebang-regex@^3.0.0:
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
 
 shell-quote@^1.8.4:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.9.0.tgz#e108b1a136586d5964edb3300016d4bedba0fe57"
-  integrity sha512-Iov+JwFv/2HcTpcwNMKd8+IWNb8tboQJNQTkAY/LLVK7gGH9jy+LGkVqPxfekHl+yMmiqXszdGWXgkfml7hjqA==
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.10.0.tgz#482033e192e4f5c07151521ffa03400ec71b1b0f"
+  integrity sha512-w1aiOKwKuRgtwAReIIj89puqg+I7GvX4IbLrvmhXbzQsj1+Zwi4VO3+fa6ZF91TWSjIxoEkKnMeHcLEODK5ZXA==
 
 side-channel-list@^1.0.1:
   version "1.0.1"
