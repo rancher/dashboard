@@ -70,8 +70,9 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       workloadsJobDetailsPage.containerImage().set(containerImageName);
       workloadsJobDetailsPage.resourceDetail().createEditView().save();
 
-      // Navigate back to the list page and wait for it to load
-      workloadsJobsListPage.goTo();
+      // Saving returns the user to the list page (create-edit-view `done()` does a
+      // router.replace to `doneRoute`), so just wait for that navigation to settle
+      // before querying the table.
       workloadsJobsListPage.waitForPage();
       workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
         .should('exist');
@@ -87,8 +88,9 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       cloneJobDetailsPage.resourceDetail().createEditView().save();
       cloneJobDetailsPage.errorBanner().should('not.exist');
 
-      // Navigate back to the list page and wait for it to load
-      workloadsJobsListPage.goTo();
+      // Saving returns the user to the list page (create-edit-view `done()` does a
+      // router.replace to `doneRoute`), so just wait for that navigation to settle
+      // before querying the table.
       workloadsJobsListPage.waitForPage();
       workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNameClone)
         .should('exist');
