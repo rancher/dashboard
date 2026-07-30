@@ -45,12 +45,22 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     productNavPo.groups().get('expanded').should('not.be.instanceOf', Array);
   });
 
-  it('Can close first menu groups on click', () => {
+  it('Opening another menu group keeps already-open groups expanded', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().get('.expanded').as('openGroup');
-    productNavPo.groups().not('.expanded').eq(0).should('be.visible')
-      .click();
+    productNavPo.groups().filter('.expanded').its('length').then((expandedCount) => {
+      // Opening a different, collapsed group must not collapse the open one(s)
+      productNavPo.groups().not('.expanded').eq(0).should('be.visible')
+        .click();
+      productNavPo.groups().filter('.expanded').should('have.length', expandedCount + 1);
+    });
+  });
+
+  it('Can collapse an expanded menu group via its chevron', () => {
+    const productNavPo = new ProductNavPo();
+
+    productNavPo.groups().filter('.expanded').first().as('openGroup');
+    cy.get('@openGroup').find('i.toggle-accordion').first().click();
     cy.get('@openGroup').find('ul').should('have.length', 0);
   });
 
