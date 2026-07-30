@@ -111,7 +111,7 @@ export function init(store) {
     namespaced: false,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-driver-kontainerdriver' },
-    exact:      true
+    exact:      false
   });
   virtualType({
     labelKey:   'drivers.node.title',
@@ -120,7 +120,7 @@ export function init(store) {
     namespaced: false,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-driver-nodedriver' },
-    exact:      true
+    exact:      false
   });
 
   virtualType({
