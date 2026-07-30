@@ -7,6 +7,7 @@ const fs = require('fs-extra');
 const targets = {
   dev:   'NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve',
   build: './node_modules/.bin/vue-cli-service build',
+  lint:  './node_modules/@rancher/shell/scripts/lint --ext .js,.ts,.vue .',
   clean: './node_modules/@rancher/shell/scripts/clean'
 };
 
@@ -14,8 +15,7 @@ const files = [
   'tsconfig.json',
   'vue.config.js',
   'gitignore',
-  '.eslintignore',
-  '.eslintrc.js',
+  'eslint.config.mjs',
   '.nvmrc',
   '.yarnrc',
   'babel.config.js',
