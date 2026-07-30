@@ -319,6 +319,67 @@ describe('oidc.vue', () => {
       expect(emailClaim.exists()).toBe(false);
     });
 
+    describe('required scopes', () => {
+      it('computes requiredScopes from BASE_SCOPES for genericoidc', async() => {
+        await flushPromises();
+
+        expect(wrapper.vm.requiredScopes).toStrictEqual(['openid', 'profile', 'email']);
+      });
+
+      it('computes requiredScopes for keycloakoidc', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'keycloakoidc' } });
+        await flushPromises();
+
+        expect(wrapper.vm.requiredScopes).toStrictEqual(['openid', 'profile', 'email']);
+      });
+
+      it('computes requiredScopes for cognito', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'cognito' } });
+        await flushPromises();
+
+        expect(wrapper.vm.requiredScopes).toStrictEqual(['openid', 'email']);
+      });
+
+      it('returns empty requiredScopes for azuread', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'azuread' } });
+        await flushPromises();
+
+        expect(wrapper.vm.requiredScopes).toStrictEqual([]);
+      });
+
+      it('disables Enable button when a required scope is removed', async() => {
+        wrapper.setData({ oidcScope: ['profile', 'email'] });
+        await wrapper.vm.validateAllFields();
+        await flushPromises();
+
+        const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+        expect(saveButton.disabled).toBe(true);
+      });
+
+      it('disables Enable button when all required scopes are removed', async() => {
+        wrapper.setData({ oidcScope: ['custom-scope'] });
+        await wrapper.vm.validateAllFields();
+        await flushPromises();
+
+        const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+        expect(saveButton.disabled).toBe(true);
+      });
+
+      it('enables Enable button when all required scopes are present', async() => {
+        wrapper.setData({
+          oidcUrls:  { url: validUrl, realm: validRealm },
+          oidcScope: ['openid', 'profile', 'email', 'custom-scope'],
+        });
+        await nextTick();
+
+        const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+        expect(saveButton.disabled).toBe(false);
+      });
+    });
+
     describe('clientAuthenticatedSearch checkbox', () => {
       it('is not rendered for genericoidc', async() => {
         const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');

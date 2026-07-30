@@ -131,6 +131,7 @@ export default {
       requiresCert,
       requiresAuthEndpoint,
       sloEndSessionEndpointUiEnabled,
+      requiredScopes,
     };
   },
 
@@ -696,7 +697,20 @@ export default {
               :value-placeholder="t('authConfig.oidc.scope.placeholder')"
               :protip="t('authConfig.oidc.scope.protip', {}, true)"
               @update:value="updateScope"
-            />
+            >
+              <template #remove-button="{ row, remove, i }">
+                <button
+                  v-if="!requiredScopes.includes(row.value)"
+                  type="button"
+                  class="btn role-link"
+                  :data-testid="`array-list-remove-item-${i}`"
+                  role="button"
+                  @click="remove"
+                >
+                  {{ t('generic.remove') }}
+                </button>
+              </template>
+            </ArrayList>
           </div>
         </div>
 
