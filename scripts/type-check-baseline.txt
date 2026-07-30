@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 1771
+# Total errors: 1770
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
@@ -635,7 +635,6 @@ pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS257
 pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
 pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
 pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-prime/config/navigation.ts: error TS2305: Module '"@shell/store/type-map"' has no exported member 'IF_HAVE'.
 pkg/rancher-prime/config/navigation.ts: error TS2353: Object literal may only specify known properties, and 'ifFeature' does not exist in type 'ConfigureVirtualTypeOptions'.
 pkg/rancher-prime/pages/Registration.test.ts: error TS2445: Property 'isDisabled' is protected and only accessible within class 'BaseWrapper<ElementType>' and its subclasses.
 pkg/rancher-prime/pages/Registration.test.ts: error TS2445: Property 'isDisabled' is protected and only accessible within class 'BaseWrapper<ElementType>' and its subclasses.
