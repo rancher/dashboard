@@ -247,4 +247,47 @@ describe('component: Header', () => {
       expect((wrapper.vm as any).showFilter).toBe(true);
     });
   });
+
+  describe('extensionHeaderActionsAriaExpanded', () => {
+    it('returns undefined for an action with no ariaExpanded', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [{ label: 'Test', invoke: jest.fn() }];
+
+      expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([undefined]);
+    });
+
+    it('returns the boolean value when ariaExpanded is a boolean', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label:        'Open',
+          invoke:       jest.fn(),
+          ariaExpanded: true
+        },
+        {
+          label:        'Closed',
+          invoke:       jest.fn(),
+          ariaExpanded: false
+        },
+      ];
+
+      expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([true, false]);
+    });
+
+    it('calls ariaExpanded and returns its result when it is a function', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label:        'Dynamic',
+          invoke:       jest.fn(),
+          ariaExpanded: () => true
+        },
+      ];
+
+      expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([true]);
+    });
+  });
 });

@@ -141,7 +141,7 @@ export default {
             class="field-type field-expander"
             tabindex="0"
             role="button"
-            :aria-expanded="expanded[field.name]"
+            :aria-expanded="!!expanded[field.name]"
             @click="expand(field.name)"
             @keyup.enter.space="expand(field.name)"
           >
