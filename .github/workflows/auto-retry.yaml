@@ -174,8 +174,10 @@ jobs:
 
           if [ -n "$COMMENT_ID" ]; then
             echo "Appending to the existing Auto-Retry comment $COMMENT_ID on PR #$PR_NUMBER"
-            gh api "/repos/$REPO/issues/comments/$COMMENT_ID" --jq '.body' > "$BODY_FILE"
-            printf '%s\n' "$ROW" >> "$BODY_FILE"
+            # Command substitution strips the trailing newlines the API and `jq`
+            # each add, which would otherwise break the table with a blank line.
+            EXISTING=$(gh api "/repos/$REPO/issues/comments/$COMMENT_ID" --jq '.body')
+            printf '%s\n%s\n' "$EXISTING" "$ROW" > "$BODY_FILE"
             gh api --method PATCH "/repos/$REPO/issues/comments/$COMMENT_ID" \
               -F body=@"$BODY_FILE" --silent
           else
