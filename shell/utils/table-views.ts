@@ -92,35 +92,34 @@ export function fieldValue(row: any, field: ViewField): any {
     }
   }
 
-  const paths: string[] = [];
+  // Only the first path is used. `sort` is often an array whose later entries are tie
+  // breakers (commonly metadata.name), which would give the column a nonsense value
+  let path = null;
 
   if (typeof header.value === 'string') {
-    paths.push(header.value);
+    path = header.value;
+  } else if (typeof header.sort === 'string') {
+    path = header.sort.split(':')[0];
+  } else if (Array.isArray(header.sort) && typeof header.sort[0] === 'string') {
+    path = header.sort[0].split(':')[0];
+  } else if (typeof header.search === 'string') {
+    path = header.search;
+  } else if (header.name) {
+    path = header.name;
   }
 
-  if (typeof header.sort === 'string') {
-    paths.push(header.sort.split(':')[0]);
-  } else if (Array.isArray(header.sort)) {
-    header.sort.forEach((s: any) => {
-      if (typeof s === 'string') {
-        paths.push(s.split(':')[0]);
-      }
-    });
+  const out = path ? safeGet(row, path) : undefined;
+
+  if (out !== undefined && out !== null && out !== '') {
+    return out;
   }
 
-  if (typeof header.search === 'string') {
-    paths.push(header.search);
-  }
-
-  if (header.name) {
-    paths.push(header.name);
-  }
-
-  for (const path of paths) {
-    const out = safeGet(row, path);
-
-    if (out !== undefined && out !== null && out !== '') {
-      return out;
+  // Some columns compute their value rather than reading a path
+  if (typeof header.getValue === 'function') {
+    try {
+      return header.getValue(row) ?? '';
+    } catch (e) {
+      return '';
     }
   }
 
