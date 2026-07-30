@@ -6,6 +6,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
  * PO for the LabeledSelectWithCreate component - a LabeledSelect that swaps
  * to a LabeledInput (with a cancel button) when the user picks the "Create
  * new" option.
+ */
 export default class LabeledSelectWithCreatePo extends ComponentPo {
   /**
    * The underlying select, shown when not creating a new value
