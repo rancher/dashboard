@@ -1,4 +1,4 @@
-import { DirectiveBinding, Directive } from 'vue';
+import { DirectiveBinding, Directive, nextTick } from 'vue';
 import { destroyTooltip, createTooltip } from 'floating-vue';
 import { purifyHTML } from '@shell/plugins/clean-html';
 
@@ -57,6 +57,19 @@ function showSingletonTooltip(target: HTMLElement, options: TooltipOptions) {
 
   singleton.show();
   currentTarget = target;
+
+  // floating-vue does not set role="tooltip" on the popper element it creates
+  nextTick(() => {
+    const popperId = target.getAttribute('aria-describedby');
+
+    if (popperId) {
+      const popperEl = document.getElementById(popperId);
+
+      if (popperEl) {
+        popperEl.setAttribute('role', 'tooltip');
+      }
+    }
+  });
 }
 
 /**
