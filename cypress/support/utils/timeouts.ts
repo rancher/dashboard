@@ -18,4 +18,6 @@ export const RESTART_TIMEOUT_OPT = { timeout: 120000 };
  */
 export const MEDIUM_TIMEOUT_OPT = { timeout: 30000 };
 
+export const GROWL_DISMISS_TIMEOUT_OPT = { timeout: 10000 };
+
 export const VERY_LONG_TIMEOUT_OPT = { timeout: 700000 };
