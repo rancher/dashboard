@@ -102,6 +102,8 @@ export const FAVORITE_TYPES = create('fav-type', [], { parseJSON });
 export const PINNED_CLUSTERS = create('pinned-clusters', [], { parseJSON });
 export const RECENT_CLUSTERS = create('recent-clusters', [], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
+// Saved resource table views, keyed by resource type -> SavedView[] (see @shell/utils/table-views)
+export const TABLE_VIEWS = create('table-views', {}, { parseJSON });
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
 export const THEME = create('theme', 'auto', {
   options:     ['light', 'auto', 'dark'],
