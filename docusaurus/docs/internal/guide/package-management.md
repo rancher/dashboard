@@ -9,8 +9,39 @@ Changes to `./yarn.lock` should be reviewed carefully, specifically to ensure no
 ## Pinning
 All dependencies in any `package.json` should be pinned to a specific patch version
 
+Note that `yarn add` and `yarn up` default to writing a caret range (`^1.2.3`), which would break this rule. Always pass `--exact` (`-E`):
+
+```sh
+yarn add -E <package>
+yarn up -E <package>
+```
+
 ## Restrictions
 
-CI runs `yarn install --immutable` (Yarn Berry). The `--immutable` flag fails the install if `package.json` and `yarn.lock` are out of step, which ensures no malicious or unexpected dependency bump is installed/used in cases where a dependency does not pin to a specific version.
+### Immutable installs
 
-Locally, `yarn install`, `yarn add ...` and `yarn up ...` update `yarn.lock` as needed. Commit the resulting `yarn.lock` changes and review them carefully.
+Every `.yarnrc.yml` in the repository sets `enableImmutableInstalls: true` to apply immutable installs by default everywhere, rather than only in CI. Without it Yarn allows local developer installs to rewrite `yarn.lock`. Immutable installs ensure that malicious or unexpected dependency bumps are not installed/used in cases where a dependency does not pin to a specific version.
+
+Under an immutable install Yarn regenerates the lockfile in memory, compares it against the one on disk, and aborts with a diff of the difference if they do not match. It also aborts if the lockfile does not exist.
+
+Immutability applies only to `yarn install`. `yarn add ...` and `yarn up ...` are unaffected and update `yarn.lock` as normal.
+
+For the rare case where `yarn install` must rebuild the lockfile, use one of the following:
+
+```sh
+yarn install --no-immutable
+YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+```
+
+Do not use these to work around a failing install in this repository. A failure means `package.json` and `yarn.lock` have drifted, and the fix is to make the intended change with `yarn add`/`yarn up` and commit the lockfile.
+
+### Minimum release age
+
+Every `.yarnrc.yml` also sets:
+
+```yaml
+npmMinimalAgeGate: 7d
+```
+
+Yarn will not resolve to a package version published within the last 7 days, which reduces exposure to compromised releases. This mirrors the `cooldown.default-days: 7` setting used in `.github/dependabot.yml`.
+
