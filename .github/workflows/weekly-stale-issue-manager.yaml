@@ -34,7 +34,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           # The stalebot only manages issues carrying one of these labels (comma-separated).
-          STALE_TARGET_LABELS: kind/enhancement
+          STALE_TARGET_LABELS: kind/enhancement,kind/tech-debt
           # Max mark-or-close actions per run (closes first); the rest wait for next run.
           STALE_MAX_ACTIONS: "20"
         run: node .github/workflows/scripts/weekly-stale-issue-manager.js
