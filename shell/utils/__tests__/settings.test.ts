@@ -1,7 +1,8 @@
-import { getPerformanceSetting, isProviderEnabled } from '../settings';
+import { getPerformanceSetting, isProviderEnabled, isSuseAppCollectionEnabled } from '../settings';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { MANAGEMENT } from '@shell/config/types';
 import { ClusterProvisionerContext } from '@shell/core/types';
+import { Store } from 'vuex';
 
 const makeMockRootGetters = (settingValue?: string) => {
   return {
@@ -136,5 +137,45 @@ describe('isProviderEnabled', () => {
     const context = makeMockContext('not-valid-json{{{');
 
     expect(() => isProviderEnabled(context, 'eks')).toThrow('Unexpected token');
+  });
+});
+
+describe('isSuseAppCollectionEnabled', () => {
+  const makeMockStore = (settingValue?: string): Store<any> => {
+    return {
+      getters: {
+        'management/byId': (type: string, id: string) => {
+          if (type === MANAGEMENT.SETTING && id === SETTING.SUSE_APP_COLLECTION) {
+            return settingValue !== undefined ? { value: settingValue } : undefined;
+          }
+
+          return undefined;
+        },
+      },
+    } as unknown as Store<any>;
+  };
+
+  it('returns true when the setting does not exist (default enabled)', () => {
+    const store = makeMockStore();
+
+    expect(isSuseAppCollectionEnabled(store)).toBe(true);
+  });
+
+  it('returns false only when the setting value is explicitly "false"', () => {
+    const store = makeMockStore('false');
+
+    expect(isSuseAppCollectionEnabled(store)).toBe(false);
+  });
+
+  it.each([
+    ['true', true],
+    ['', true],
+    ['anything', true],
+    ['False', true],
+    ['0', true],
+  ])('returns %s -> %s (only exact "false" disables)', (value, expected) => {
+    const store = makeMockStore(value);
+
+    expect(isSuseAppCollectionEnabled(store)).toBe(expected);
   });
 });

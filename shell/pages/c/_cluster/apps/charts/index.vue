@@ -29,6 +29,7 @@ import SubtleLink from '@shell/components/SubtleLink.vue';
 import { getLatestCompatibleVersion } from '@shell/utils/chart';
 import Select from '@shell/components/form/Select';
 import { getVersionData } from '@shell/config/version';
+import { isSuseAppCollectionEnabled } from '@shell/utils/settings';
 
 const createInitialFilters = () => ({
   repos:      [],
@@ -166,7 +167,11 @@ export default {
     },
 
     showAppCollectionBannerLogic() {
-      return !this.hasSuseAppCollectionRepo && this.canCreateRepos && this.showAppCollectionBanner && !this.hideBannerPref & this.isPrime;
+      return !this.hasSuseAppCollectionRepo && this.canCreateRepos && this.showAppCollectionBanner && !this.hideBannerPref & this.isPrime && this.suseAppCollectionEnabled;
+    },
+
+    suseAppCollectionEnabled() {
+      return isSuseAppCollectionEnabled(this.$store);
     },
 
     hasSuseAppCollectionRepo() {
