@@ -18,7 +18,12 @@ describe('component: Masthead/index', () => {
       resourceTypeLabel: 'ConfigMap',
       resourceName:      'test-resource'
     },
-    metadataProps: { items: [] }
+    metadataProps: {
+      resource:                mockResource,
+      identifyingInformation:  [],
+      labels:                  [],
+      annotations:             []
+    }
   };
 
   const globalStubs = {
@@ -69,7 +74,15 @@ describe('component: Masthead/index', () => {
 
   it('should not render TitleBar when titleBarProps is undefined', () => {
     const wrapper = mount(Masthead, {
-      props:  { titleBarProps: undefined, metadataProps: { items: [] } },
+      props: {
+        titleBarProps: undefined,
+        metadataProps: {
+          resource:                mockResource,
+          identifyingInformation:  [],
+          labels:                  [],
+          annotations:             []
+        }
+      },
       global: globalStubs
     });
 
