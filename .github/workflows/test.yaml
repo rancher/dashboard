@@ -339,15 +339,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
-      - name: Enable Corepack
-        run: corepack enable
-
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
 
       - name: Install packages
-        run: yarn install --immutable
+        run: npm run install:ci
 
       - name: Run i18n string check
         run: |
@@ -360,15 +357,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
-      - name: Enable Corepack
-        run: corepack enable
-
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
 
       - name: Install packages
-        run: yarn install --immutable
+        run: npm run install:ci
 
       - name: Run check of all http links in the i18n files (broken link check)
         run: |
@@ -420,16 +414,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
-      - name: Enable Corepack
-        run: corepack enable
-
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
       - name: Verify Cypress build
         working-directory: ./cypress
         run: |
-          yarn install --immutable
+          npm run install:ci
           yarn build-pkg --verify
 
   # Store the PR number in an artifact for use in TestHub registration since workflow_run triggered by PRs doesn't include the PR number in the head branch or commit message

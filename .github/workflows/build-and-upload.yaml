@@ -27,7 +27,9 @@ jobs:
         with:
           fetch-depth: 1
 
-        # Note - Cannot use the setup action here as it uses a different yarn install arg
+        # Note - Cannot use the setup action here, the build script below performs its own install
+        # Corepack must be enabled before setup-node: `cache: yarn` resolves the cache
+        # directory by shelling out to `yarn --version`
       - name: Enable Corepack
         run: corepack enable
 
@@ -77,7 +79,9 @@ jobs:
         with:
           fetch-depth: 1
 
-        # Note - Cannot use the setup action here as it uses a different yarn install arg
+        # Note - Cannot use the setup action here, the build script below performs its own install
+        # Corepack must be enabled before setup-node: `cache: yarn` resolves the cache
+        # directory by shelling out to `yarn --version`
       - name: Enable Corepack
         run: corepack enable
 

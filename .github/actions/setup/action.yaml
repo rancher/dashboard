@@ -15,4 +15,4 @@ runs:
 
     - name: Install packages
       shell: bash
-      run: yarn install --immutable
+      run: npm run install:ci

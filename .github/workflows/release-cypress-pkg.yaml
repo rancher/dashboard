@@ -45,7 +45,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install packages
-        run: yarn install --immutable
+        run: npm run install:ci
 
       - name: Build Cypress Package
         run: yarn build-pkg

@@ -503,14 +503,12 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
-      - name: Enable Corepack
-        run: corepack enable
       - name: Setup env
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
       - name: Install packages
-        run: yarn install --immutable
+        run: npm run install:ci
       - name: Run Rancher
         run: "# Same as .github/workflows/test.yaml -> yarn e2e:docker -> scripts/e2e-docker-start\n# Port 8080 is reserved by the MCP Gateway, so we use 9080/9443 for Rancher\nRANCHER_HOST_HTTP_PORT=9080 RANCHER_HOST_HTTPS_PORT=9443 RANCHER_CONTAINER_NAME=rancher RANCHER_VERSION_E2E=head yarn e2e:docker\n"
       - name: Bootstrap Rancher (first-login setup)
