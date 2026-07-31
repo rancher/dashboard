@@ -1,4 +1,5 @@
 import { mount, VueWrapper } from '@vue/test-utils';
+import { _EDIT } from '@shell/config/query-params';
 import KnownHostsEditDialog from '@shell/dialog/KnownHostsEditDialog.vue';
 import CodeMirror from '@shell/components/CodeMirror.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
@@ -21,7 +22,7 @@ describe('component: KnownHostsEditDialog', () => {
     wrapper = mount(KnownHostsEditDialog, {
       attachTo: document.body,
       props:    {
-        mode:   'edit',
+        mode:   _EDIT,
         value:  'line1\nline2\n',
         closed: closedMock
       },

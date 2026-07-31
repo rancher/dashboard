@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization.vue';
 import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
-
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 const mockStore = { getters: { 'i18n/t': jest.fn().mockImplementation((key: string) => key) } };
 
@@ -11,7 +11,7 @@ const createWrapper = (propsData: any = {}) => {
     propsData: {
       type:       AGENT_CONFIGURATION_TYPES.CLUSTER,
       feature:    true,
-      mode:       'create',
+      mode:       _CREATE,
       defaultPC:  { value: 100, preemptionPolicy: 'PreemptLowerPriority' },
       defaultPDB: { maxUnavailable: 1 },
       ...propsData
@@ -90,7 +90,7 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
       wrapper = createWrapper({
         value,
         defaultPC: { value: 100, preemptionPolicy: 'PreemptLowerPriority' },
-        mode:      'edit'
+        mode:      _EDIT
       });
 
       expect(wrapper.vm.settingMissmatch).toBe(true);
@@ -105,7 +105,7 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
       wrapper = createWrapper({
         value,
         defaultPC: { value: 100, preemptionPolicy: 'PreemptLowerPriority' },
-        mode:      'edit'
+        mode:      _EDIT
       });
 
       expect(wrapper.vm.settingMissmatch).toBe(true);
@@ -120,7 +120,7 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
       wrapper = createWrapper({
         value,
         defaultPDB: { maxUnavailable: 1 },
-        mode:       'edit'
+        mode:       _EDIT
       });
 
       expect(wrapper.vm.settingMissmatch).toBe(true);
@@ -135,7 +135,7 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
       wrapper = createWrapper({
         value,
         defaultPDB: { minAvailable: 1 },
-        mode:       'edit'
+        mode:       _EDIT
       });
 
       expect(wrapper.vm.settingMissmatch).toBe(true);
@@ -151,7 +151,7 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
         value,
         defaultPC:  { value: 100, preemptionPolicy: 'PreemptLowerPriority' },
         defaultPDB: { maxUnavailable: 1 },
-        mode:       'edit'
+        mode:       _EDIT
       });
 
       expect(wrapper.vm.settingMissmatch).toBe(false);
@@ -160,7 +160,7 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
     it('should not detect mismatch when no value is provided', () => {
       wrapper = createWrapper({
         value: undefined,
-        mode:  'edit'
+        mode:  _EDIT
       });
 
       expect(wrapper.vm.settingMissmatch).toBe(false);
@@ -186,13 +186,13 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
     });
 
     it('should detect edit mode correctly', () => {
-      wrapper = createWrapper({ mode: 'edit' });
+      wrapper = createWrapper({ mode: _EDIT });
 
       expect(wrapper.vm.isEdit).toBe(true);
     });
 
     it('should detect create mode correctly', () => {
-      wrapper = createWrapper({ mode: 'create' });
+      wrapper = createWrapper({ mode: _CREATE });
 
       expect(wrapper.vm.isEdit).toBe(false);
     });
@@ -208,7 +208,7 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
       wrapper = createWrapper({
         value,
         defaultPC: { value: 100, preemptionPolicy: 'PreemptLowerPriority' },
-        mode:      'edit',
+        mode:      _EDIT,
         feature:   true
       });
 
@@ -229,7 +229,7 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
       wrapper = createWrapper({
         value,
         defaultPC: { value: 100, preemptionPolicy: 'PreemptLowerPriority' },
-        mode:      'create',
+        mode:      _CREATE,
         feature:   true
       });
 

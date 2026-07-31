@@ -1,13 +1,13 @@
 import { mount } from '@vue/test-utils';
 import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
-
+import { _CREATE } from '@shell/config/query-params';
 import { nextTick } from 'vue';
 
 describe('component: MatchExpressions', () => {
   it('should display all the inputs', () => {
     const wrapper = mount(MatchExpressions, {
       props: {
-        mode:  'create',
+        mode:  _CREATE,
         value: [
           {
             id:       '123',
@@ -30,7 +30,7 @@ describe('component: MatchExpressions', () => {
   ])('should emit an update on %p input', async(field) => {
     const wrapper = mount(MatchExpressions, {
       props: {
-        mode:  'create',
+        mode:  _CREATE,
         value: [
           {
             id:       '123',
@@ -58,7 +58,7 @@ describe('component: MatchExpressions', () => {
       {
         attachTo: document.body,
         props:    {
-          mode:  'create',
+          mode:  _CREATE,
           value: [
             {
               id:       '123',

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Probe from '@shell/components/form/Probe.vue';
+import { _EDIT } from '@shell/config/query-params';
 
 describe('component: Probe', () => {
   describe.each([
@@ -14,7 +15,7 @@ describe('component: Probe', () => {
     ])('should emit an update on %p input', (field) => {
       const wrapper = mount(Probe, {
         props: {
-          mode: 'edit',
+          mode: _EDIT,
           value,
         },
       });
@@ -33,7 +34,7 @@ describe('component: Probe', () => {
     ])('should emit an update on %p input and blur', (field) => {
       const wrapper = mount(Probe, {
         props: {
-          mode: 'edit',
+          mode: _EDIT,
           value
         },
       });
@@ -50,7 +51,7 @@ describe('component: Probe', () => {
   it.each([
     'kind',
   ])('should emit an update on %p selection change', async(field) => {
-    const wrapper = mount(Probe, { props: { mode: 'edit' } });
+    const wrapper = mount(Probe, { props: { mode: _EDIT } });
 
     const select = wrapper.find(`[data-testid="input-probe-${ field }"]`);
 
@@ -62,7 +63,7 @@ describe('component: Probe', () => {
   });
 
   it('should emit an update when http headers are modified', () => {
-    const wrapper = mount(Probe, { props: { mode: 'edit', value: { httpGet: { scheme: 'https' } } } });
+    const wrapper = mount(Probe, { props: { mode: _EDIT, value: { httpGet: { scheme: 'https' } } } });
 
     const httpHeaders = wrapper.getComponent('[data-testid="input-probe-http-headers"]');
 
