@@ -9008,6 +9008,7 @@ advancedSettings:
     'system-default-registry-pull-secrets': 'List of image pull secrets to authenticate into registry from which Rancher System Container Images are pulled. By default, these secrets will be copied into each Rancher chart namespace. Secrets must be in the `cattle-system` namespace. The first valid secret listed here will be used.'
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-dashboard-index setting. The `Dynamic` option will use local assets in production builds of {appName}.'
+    'ui-suse-app-collection': 'Controls whether the SUSE Application Collection integration is enabled. When disabled, the App Bundle install wizard entry points in Continuous Delivery and Charts are hidden.'
     'ui-pl': 'Private-Label company name.'
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
