@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import ArrayList from '@shell/components/form/ArrayList.vue';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 jest.mock('lodash/debounce', () => jest.fn((fn) => fn));
 
@@ -8,7 +9,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value: [],
-        mode:  'edit'
+        mode:  _EDIT
       },
     });
     const elements = wrapper.findAll('[data-testid^="array-list-box"]');
@@ -20,7 +21,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value:           [],
-        mode:            'edit',
+        mode:            _EDIT,
         initialEmptyRow: true
       },
     });
@@ -33,7 +34,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value: [],
-        mode:  'edit',
+        mode:  _EDIT,
       },
     });
 
@@ -50,7 +51,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value: ['string 0', 'string 1', 'string 2'],
-        mode:  'edit',
+        mode:  _EDIT,
       },
     });
 
@@ -69,7 +70,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value: ['read-only example'],
-        mode:  'view',
+        mode:  _VIEW,
       },
     });
     const arrayListButtons = wrapper.findAll('[data-testid="array-list-button"]');
@@ -83,7 +84,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value:      ['string 0', 'string 1', 'string 2'],
-        mode:       'edit',
+        mode:       _EDIT,
         showHeader: true,
         a11yLabel:  'some-a11y-label',
         title:      'some-title'
