@@ -359,6 +359,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(undefined, 'installed');
+    extensionsPo.loading().should('not.exist');
+
+    // Ensure the extension card is visible and loaded before trying to upgrade
+    extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
 
     // click on update button on card
     extensionsPo.extensionCardUpgradeClick(EXTENSION_NAME);
@@ -411,10 +415,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.loading().should('not.exist');
 
-    // Wait for the large-extension card to appear before interacting
-    extensionsPo.extensionCard(DISABLED_CACHE_EXTENSION_NAME, { timeout: 30000 }).self().should('be.visible');
-
     // click on install button on card
+    // (clickAction waits for the card to render before interacting)
     extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.installModal().checkVisible();
 
@@ -538,6 +540,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(undefined, 'installed');
 
     // click on uninstall button on card
+    // (clickAction waits for the card to render before interacting)
     extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModalUninstallClick();

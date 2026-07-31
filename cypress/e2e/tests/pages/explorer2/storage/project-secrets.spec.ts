@@ -10,7 +10,7 @@ const projectScopedSecretName = 'e2e-project-scoped-secret-name';
 const username = 'test';
 const password = 'test-password';
 
-describe('Project Secrets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Project Secrets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
 

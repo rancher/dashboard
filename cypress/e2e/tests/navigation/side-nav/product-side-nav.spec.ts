@@ -38,35 +38,53 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Can open second menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
+    // `type: 'static'` is required, not optional. A default alias is re-queried on every
+    // `cy.get('@closedGroup')`, and clicking a group collapses its siblings — so the
+    // re-run of `.not('.expanded').eq(0)` would then resolve to a *different* group than
+    // the one we clicked, which has no `ul`/`li.nav-type>a` because it isn't expanded.
     productNavPo.groups().not('.expanded').eq(0)
-      .as('closedGroup');
+      .as('closedGroup', { type: 'static' });
     cy.get('@closedGroup').should('be.visible').click();
     cy.get('@closedGroup').find('ul').should('have.length.gt', 0);
-    productNavPo.groups().get('expanded').should('not.be.instanceOf', Array);
+    productNavPo.expandedGroup().should('have.length.gte', 1);
   });
 
   it('Can close first menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().get('.expanded').as('openGroup');
-    productNavPo.groups().not('.expanded').eq(0).should('be.visible')
-      .click();
-    cy.get('@openGroup').find('ul').should('have.length', 0);
+    // Capture a static reference to the currently open group. We can't use a DOM
+    // alias here: in Cypress 12+ `cy.get('@alias')` re-runs the query, so after the
+    // click it would resolve to the newly-opened group instead of the original one.
+    productNavPo.expandedGroup().first().then(($openGroup) => {
+      productNavPo.groups().not('.expanded').eq(0)
+        .should('be.visible')
+        .click();
+
+      cy.wrap($openGroup).should('not.have.class', 'expanded');
+    });
   });
 
   it('Should flag second menu group as active on navigation', () => {
     const productNavPo = new ProductNavPo();
 
+    // `type: 'static'` is required, not optional. A default alias is re-queried on every
+    // `cy.get('@closedGroup')`, and clicking a group collapses its siblings — so the
+    // re-run of `.not('.expanded').eq(0)` would then resolve to a *different* group than
+    // the one we clicked, which has no `ul`/`li.nav-type>a` because it isn't expanded.
     productNavPo.groups().not('.expanded').eq(0)
-      .as('closedGroup');
+      .as('closedGroup', { type: 'static' });
     cy.get('@closedGroup').should('be.visible').click();
+    // Wait for the group to expand and then click the first visible link
+    cy.get('@closedGroup').find('li.nav-type>a').should('have.length.gt', 0).first()
+      .click();
+    // Now verify the clicked link is active
     cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
   });
 
   it('Going into resource detail should keep relevant group active', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().get('.expanded').as('openGroup');
+    productNavPo.expandedGroup().first().as('openGroup');
 
     productNavPo.visibleNavTypes().eq(1).should('be.visible').click(); // Go into Workloads
 

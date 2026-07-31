@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/jobs/jobs-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
 
   before(() => {
@@ -70,6 +70,10 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsJobDetailsPage.containerImage().set(containerImageName);
       workloadsJobDetailsPage.resourceDetail().createEditView().save();
 
+      // Saving returns the user to the list page (create-edit-view `done()` does a
+      // router.replace to `doneRoute`), so just wait for that navigation to settle
+      // before querying the table.
+      workloadsJobsListPage.waitForPage();
       workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
         .should('exist');
 
@@ -84,6 +88,10 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       cloneJobDetailsPage.resourceDetail().createEditView().save();
       cloneJobDetailsPage.errorBanner().should('not.exist');
 
+      // Saving returns the user to the list page (create-edit-view `done()` does a
+      // router.replace to `doneRoute`), so just wait for that navigation to settle
+      // before querying the table.
+      workloadsJobsListPage.waitForPage();
       workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNameClone)
         .should('exist');
     });
