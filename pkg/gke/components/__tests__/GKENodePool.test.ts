@@ -1,6 +1,10 @@
 import { shallowMount } from '@vue/test-utils';
 
-import GKENodePool from '@pkg/gke/components/GKENodePool.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import Taints from '@shell/components/form/Taints.vue';
+import GKENodePool from '../GKENodePool.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 // const mockedValidationMixin = {
@@ -45,14 +49,16 @@ describe('gke node pool', () => {
 
     const serviceAccountOptions = [{ label: 'default', value: null }, { label: 'abc', value: 'abc@abc.com' }, { label: 'abc1', value: 'abc1@abc.com' }];
     const wrapper = shallowMount(GKENodePool, {
-      propsData: {
+      props: {
         serviceAccountOptions,
-        serviceAccount: null,
+        // `serviceAccount` is declared `type: String` but defaults to `null`, and null is the value that
+        // selects the default service account - so the declared type is narrower than reality.
+        serviceAccount: null as unknown as string,
       },
       ...setup
     });
 
-    const serviceAccountSelect = wrapper.getComponent('[data-testid="gke-service-account-select"]');
+    const serviceAccountSelect = wrapper.getComponent<typeof LabeledSelect>('[data-testid="gke-service-account-select"]');
 
     expect(serviceAccountSelect.props().value).toStrictEqual(serviceAccountOptions[0]);
 
@@ -62,7 +68,7 @@ describe('gke node pool', () => {
 
     expect(serviceAccountSelect.props().value).toStrictEqual(serviceAccountOptions[1]);
 
-    wrapper.setProps({ serviceAccount: null });
+    wrapper.setProps({ serviceAccount: null as unknown as string });
 
     await wrapper.vm.$nextTick();
 
@@ -72,28 +78,28 @@ describe('gke node pool', () => {
   it('should show a disabled input with k8s version matching cluster k8s version on create', async() => {
     const setup = requiredSetup();
     const wrapper = shallowMount(GKENodePool, {
-      propsData: {
+      props: {
         clusterKubernetesVersion: '1.23.4',
         version:                  '1.23.4'
       },
       ...setup
     });
 
-    const versionDisplay = wrapper.findComponent('[data-testid="gke-k8s-display"]');
+    const versionDisplay = wrapper.findComponent<typeof LabeledInput>('[data-testid="gke-k8s-display"]');
 
     expect(versionDisplay.exists()).toBe(true);
 
     wrapper.setProps({ clusterKubernetesVersion: '5.67.8' });
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted()?.['update:version']?.[1]?.[0]).toBe('5.67.8');
-    expect(wrapper.emitted()?.['update:version']).toHaveLength(2);
+    expect(wrapper.emitted('update:version')?.[1]?.[0]).toBe('5.67.8');
+    expect(wrapper.emitted('update:version')).toHaveLength(2);
   });
 
   it('should offer a checkbox to upgrade the node pool version to match the cluster version if the cluster version is ahead of nodepool version', async() => {
     const setup = requiredSetup();
     const wrapper = shallowMount(GKENodePool, {
-      propsData: {
+      props: {
         clusterKubernetesVersion: '1.23.4',
         version:                  '1.20.4',
         mode:                     _EDIT
@@ -101,11 +107,11 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.findComponent('[data-testid="gke-k8s-display"]');
+    const versionDisplay = wrapper.findComponent<typeof LabeledInput>('[data-testid="gke-k8s-display"]');
 
     expect(versionDisplay.exists()).toBe(false);
 
-    const versionUpgradeCheckbox = wrapper.findComponent('[data-testid="gke-k8s-upgrade-checkbox"]');
+    const versionUpgradeCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="gke-k8s-upgrade-checkbox"]');
 
     expect(versionUpgradeCheckbox.exists()).toBe(true);
 
@@ -121,7 +127,7 @@ describe('gke node pool', () => {
   it('should update the nodepool version to match cluster version when the upgrade checkbox is checked', async() => {
     const setup = requiredSetup();
     const wrapper = shallowMount(GKENodePool, {
-      propsData: {
+      props: {
         clusterKubernetesVersion: '1.23.4',
         version:                  '1.20.4',
         mode:                     _EDIT
@@ -129,23 +135,23 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    const versionUpgradeCheckbox = wrapper.getComponent('[data-testid="gke-k8s-upgrade-checkbox"]');
+    const versionUpgradeCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="gke-k8s-upgrade-checkbox"]');
 
     versionUpgradeCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted()?.['update:version']?.[0][0]).toBe('1.23.4');
+    expect(wrapper.emitted('update:version')?.[0]?.[0]).toBe('1.23.4');
 
     versionUpgradeCheckbox.vm.$emit('update:value', false);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted()?.['update:version']?.[1][0]).toBe('1.20.4');
+    expect(wrapper.emitted('update:version')?.[1]?.[0]).toBe('1.20.4');
   });
 
   it('should use NO_SCHEDULE, PREFER_NO_SCHEDULE, and NO_EXECUTE for taint values', async() => {
     const setup = requiredSetup();
     const wrapper = shallowMount(GKENodePool, {
-      propsData: {
+      props: {
         clusterKubernetesVersion: '1.23.4',
         version:                  '1.20.4',
         mode:                     _EDIT
@@ -153,7 +159,7 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    const taints = wrapper.getComponent('[data-testid="gke-taints-comp"]');
+    const taints = wrapper.getComponent<typeof Taints>('[data-testid="gke-taints-comp"]');
 
     // the effectValues prop functionality is tested in the Taints component's unit tests
     expect(taints.props().effectValues).toStrictEqual({
@@ -164,11 +170,11 @@ describe('gke node pool', () => {
   it('should disable the pod constraint input when editing existing pools', async() => {
     const setup = requiredSetup();
     const wrapper = shallowMount(GKENodePool, {
-      propsData: { isNew: false },
+      props: { isNew: false },
       ...setup
     });
 
-    let maxPodInput = wrapper.findComponent('[data-testid="gke-max-pod-constraint-input"]');
+    let maxPodInput = wrapper.findComponent<typeof LabeledInput>('[data-testid="gke-max-pod-constraint-input"]');
 
     expect(maxPodInput.exists()).toBe(true);
 
@@ -177,7 +183,7 @@ describe('gke node pool', () => {
     wrapper.setProps({ isNew: true });
     await wrapper.vm.$nextTick();
 
-    maxPodInput = wrapper.findComponent('[data-testid="gke-max-pod-constraint-input"]');
+    maxPodInput = wrapper.findComponent<typeof LabeledInput>('[data-testid="gke-max-pod-constraint-input"]');
 
     expect(maxPodInput.exists()).toBe(true);
 

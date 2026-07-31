@@ -1,4 +1,4 @@
-import { getValueFromGKEOauthScopes, addGKEAuthScope } from '@pkg/gke/util/oauth';
+import { getValueFromGKEOauthScopes, addGKEAuthScope } from '../oauth';
 
 const defaultScopes = [
   'https://www.googleapis.com/auth/devstorage.read_only',
