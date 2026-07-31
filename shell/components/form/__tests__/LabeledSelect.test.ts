@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils';
+import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { defineComponent } from 'vue';
 

@@ -3,7 +3,7 @@ import YamlTab from '@shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue';
 import { createStore } from 'vuex';
 
 import Tab from '@shell/components/Tabbed/Tab.vue';
-import { _VIEW } from '@shell/config/query-params.js';
+import { _VIEW } from '@shell/config/query-params';
 import ResourceYaml from '@shell/components/ResourceYaml.vue';
 import { nextTick } from 'vue';
 
