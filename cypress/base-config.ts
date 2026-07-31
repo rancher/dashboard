@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
+import { FailedAttempt, formatFailedAttempt } from './support/utils/retry-logging';
 import path from 'path';
 import * as os from 'os';
 const { removeDirectory } = require('cypress-delete-downloads-folder');
@@ -208,6 +209,14 @@ const baseConfig = defineConfig({
             processCpu: `${ cpuUsage.toFixed(2) }%`,
           };
         },
+        // Prints a retried test's failure to the terminal. Without this only the last
+        // attempt's error is shown, see `support/utils/retry-logging.ts`.
+        logFailedAttempt: (failure: FailedAttempt) => {
+          console.log(formatFailedAttempt(failure));
+
+          // Cypress tasks must not return undefined
+          return null;
+        },
       });
       // Signals to the shared `afterEach` in `support/e2e.ts` that the `getHostStats`
       // task has been registered by this config. Consumers of `@rancher/cypress` that
@@ -215,6 +224,8 @@ const baseConfig = defineConfig({
       // flag, so the `afterEach` will skip calling the task and avoid failing the
       // hook (which would skip all remaining tests in the spec).
       config.env.hasHostStats = true;
+      // Same again for the `logFailedAttempt` task
+      config.env.hasRetryLogging = true;
       websocketTasks(on, config);
 
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
