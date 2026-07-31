@@ -2,6 +2,13 @@ import { mount } from '@vue/test-utils';
 import Command from '@shell/components/form/Command.vue';
 import { _EDIT } from '@shell/config/query-params';
 
+/**
+ * A bare string selector picks the `getComponent<T extends never>` overload, which
+ * returns a `WrapperLike` with no `vm`. The runtime object is a full component
+ * wrapper, so expose just the emitter these tests drive.
+ */
+const emitterOf = (wrapper: unknown) => (wrapper as { vm: { $emit(event: string, ...args: unknown[]): void } }).vm;
+
 describe('component: Command', () => {
   it('should display all the inputs', () => {
     const wrapper = mount(Command, {
@@ -24,7 +31,7 @@ describe('component: Command', () => {
 
     const newValue = ['123'];
 
-    inputComponent.vm.$emit('update:value', newValue);
+    emitterOf(inputComponent).$emit('update:value', newValue);
 
     expect(wrapper.emitted('update:value')).toHaveLength(1);
   });

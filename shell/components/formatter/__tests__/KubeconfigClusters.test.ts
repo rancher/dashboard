@@ -1,11 +1,20 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import KubeconfigClusters from '@shell/components/formatter/KubeconfigClusters.vue';
 
-interface ClusterReference {
+interface MockClusterReference {
   label: string;
   /** The component declares `location?: object`; the tests also exercise an explicit `null`. */
   location?: object | null;
 }
+
+type RowProp = InstanceType<typeof KubeconfigClusters>['$props']['row'];
+
+/**
+ * `KubeconfigClusters` declares `location?: object`, which excludes the explicit
+ * `null` a deleted cluster produces and which the template already handles. Build
+ * the fixtures against the shape the tests need and coerce at the prop boundary.
+ */
+const asRow = (clusters: MockClusterReference[]): RowProp => ({ id: 'test-row', sortedReferencedClusters: clusters }) as RowProp;
 
 /**
  * `allClusters` and `remainingCount` are `<script setup>` bindings that are not
@@ -13,7 +22,7 @@ interface ClusterReference {
  * instance type even though @vue/test-utils surfaces them on `wrapper.vm`.
  */
 interface KubeconfigClustersInternals {
-  allClusters: ClusterReference[];
+  allClusters: MockClusterReference[];
   remainingCount: number;
 }
 
@@ -22,7 +31,7 @@ const internalsOf = (wrapper: { vm: unknown }): KubeconfigClustersInternals => w
 describe('component: KubeconfigClusters', () => {
   const MAX_DISPLAY = 25;
 
-  const createCluster = (label: string, hasLocation = true): ClusterReference => ({
+  const createCluster = (label: string, hasLocation = true): MockClusterReference => ({
     label,
     location: hasLocation ? { name: 'cluster-detail', params: { cluster: label } } : null
   });
@@ -33,9 +42,9 @@ describe('component: KubeconfigClusters', () => {
 
   const defaultMocks = { t: (key: string, args: Record<string, unknown>) => `+ ${ args.remainingCount } more` };
 
-  const mountComponent = (clusters: ClusterReference[] = [], mocks = defaultMocks) => {
+  const mountComponent = (clusters: MockClusterReference[] = [], mocks = defaultMocks) => {
     return mount(KubeconfigClusters, {
-      props:  { row: { id: 'test-row', sortedReferencedClusters: clusters } },
+      props:  { row: asRow(clusters) },
       global: {
         mocks,
         stubs: { 'router-link': RouterLinkStub }

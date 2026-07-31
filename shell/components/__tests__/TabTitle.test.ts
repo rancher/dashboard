@@ -17,7 +17,8 @@ describe('component: TabTitle', () => {
       withFallback:        null,
       vendor:              'Vendor',
       child:               'Child',
-      updatePageTitleArgs: null
+      // Populated by the `updatePageTitle` spy below; `null` alone infers as `null`
+      updatePageTitleArgs: null as unknown[] | null
     };
 
     jest.spyOn(privateLabel, 'getVendor').mockReturnValue(mocks.vendor);

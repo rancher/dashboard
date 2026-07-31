@@ -1,9 +1,15 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Taints from '@shell/components/form/Taints.vue';
-import Select from '@shell/components/form/Select.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import type { ComponentPublicInstance } from 'vue';
+
+/**
+ * `Select` takes its value through the `labeledFormElement` mixin, so `modelValue`
+ * — the name @vue/test-utils reports for the v-model binding — is absent from its
+ * typed props; a bare string selector additionally yields a `WrapperLike`, which
+ * has no `props()` at all.
+ */
+const modelValueOf = (wrapper: unknown): unknown => (wrapper as { props(): { modelValue: unknown } }).props().modelValue;
 
 describe('component: Taints', () => {
   it('should accept custom effect values', async() => {
@@ -16,11 +22,11 @@ describe('component: Taints', () => {
       }
     });
 
-    const firstEffectInput = wrapper.findComponent<typeof Select>('[data-testid="taints-effect-row-0"]');
+    const firstEffectInput = wrapper.findComponent('[data-testid="taints-effect-row-0"]');
 
     expect(firstEffectInput.exists()).toBe(true);
 
-    expect(firstEffectInput.props().modelValue).toBe('FOO_EFFECT');
+    expect(modelValueOf(firstEffectInput)).toBe('FOO_EFFECT');
     expect(wrapper.vm.effectOptions).toStrictEqual([{ value: 'FOO_EFFECT', label: 'foo' }, { value: 'BAR_EFFECT', label: 'bar' }]);
 
     const taintKV = wrapper.findComponent<typeof KeyValue>('[data-testid="taints-keyvalue"]');
@@ -28,11 +34,11 @@ describe('component: Taints', () => {
     taintKV.vm.add();
     await nextTick();
 
-    const secondEffectInput = wrapper.findComponent<typeof Select>('[data-testid="taints-effect-row-1"]');
+    const secondEffectInput = wrapper.findComponent('[data-testid="taints-effect-row-1"]');
 
     expect(secondEffectInput.exists()).toBe(true);
 
-    expect(secondEffectInput.props().modelValue).toBe('FOO_EFFECT');
+    expect(modelValueOf(secondEffectInput)).toBe('FOO_EFFECT');
     expect(wrapper.vm.defaultAddData).toStrictEqual({ effect: 'FOO_EFFECT' });
   });
 
@@ -51,7 +57,7 @@ describe('component: Taints', () => {
 
     expect(firstEffectInput.exists()).toBe(true);
 
-    expect(firstEffectInput.props().modelValue).toBe('');
+    expect(modelValueOf(firstEffectInput)).toBe('');
     expect(wrapper.vm.effectOptions).toStrictEqual(expectedEffectOptions);
   });
 
@@ -63,11 +69,11 @@ describe('component: Taints', () => {
     taintKV.vm.add();
     await nextTick();
 
-    const effectInput = wrapper.findComponent<typeof Select>('[data-testid="taints-effect-row-0"]');
+    const effectInput = wrapper.findComponent('[data-testid="taints-effect-row-0"]');
 
     expect(effectInput.exists()).toBe(true);
 
-    expect(effectInput.props().modelValue).toStrictEqual('NoSchedule');
+    expect(modelValueOf(effectInput)).toStrictEqual('NoSchedule');
 
     expect(wrapper.vm.defaultAddData).toStrictEqual({ effect: 'NoSchedule' });
   });
