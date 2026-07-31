@@ -5,6 +5,17 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 const SelectComponent = Select as ReturnType<typeof defineComponent>;
 
+/**
+ * `Select.vue` is a plain-JS SFC, so `vue-tsc` cannot infer its `methods` block and
+ * `focusSearch` is missing from the public instance type. This returns the very same
+ * object as `wrapper.vm`, so spying through it still patches the component instance.
+ */
+interface SelectInstance {
+  focusSearch(): void;
+}
+
+const asSelect = (wrapper: { vm: unknown }): SelectInstance => wrapper.vm as SelectInstance;
+
 describe('select.vue', () => {
   let consoleWarn: any;
 
@@ -84,7 +95,7 @@ describe('select.vue', () => {
     });
 
     const mockEvent = { preventDefault: jest.fn() };
-    const spyFocus = jest.spyOn(wrapper.vm, 'focusSearch');
+    const spyFocus = jest.spyOn(asSelect(wrapper), 'focusSearch');
     const spyPreventDefault = jest.spyOn(mockEvent, 'preventDefault');
 
     const input = wrapper.find('.unlabeled-select');

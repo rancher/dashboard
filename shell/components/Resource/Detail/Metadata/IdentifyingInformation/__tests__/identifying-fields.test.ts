@@ -4,6 +4,20 @@ import {
 import { NAMESPACE, FLEET, MANAGEMENT } from '@shell/config/types';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 
+/**
+ * `Row.valueOverride.props` (see `IdentifyingInformation/index.vue`) is declared
+ * as the bare `Object` type, which carries no index signature, so its members
+ * cannot be read. These composables always populate it with a `ResourcePopover`
+ * prop bag, so read it through that shape.
+ */
+interface ResourcePopoverProps {
+  type: string;
+  id: string;
+  detailLocation?: unknown;
+}
+
+const popoverProps = (props?: Object): ResourcePopoverProps => props as ResourcePopoverProps;
+
 const mockStore = {
   getters: {
     productId:             'PRODUCT_ID',
@@ -42,9 +56,8 @@ describe('composables: IdentifyingFields', () => {
       const resource = { namespace: 'NAMESPACE' };
       const result = useNamespace(resource);
 
-      expect(result?.value.valueOverride?.props).toBeDefined();
-      expect((result?.value.valueOverride?.props as any).type).toStrictEqual(NAMESPACE);
-      expect((result?.value.valueOverride?.props as any).id).toStrictEqual(resource.namespace);
+      expect(popoverProps(result?.value.valueOverride?.props).type).toStrictEqual(NAMESPACE);
+      expect(popoverProps(result?.value.valueOverride?.props).id).toStrictEqual(resource.namespace);
       expect(result?.value.value).toStrictEqual(resource.namespace);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.namespace');
       expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-namespace');
@@ -155,9 +168,8 @@ describe('composables: IdentifyingFields', () => {
       };
       const result = useProject(resource);
 
-      expect(result?.value.valueOverride?.props).toBeDefined();
-      expect((result?.value.valueOverride?.props as any).type).toStrictEqual(MANAGEMENT.PROJECT);
-      expect((result?.value.valueOverride?.props as any).id).toStrictEqual(resource.project.id);
+      expect(popoverProps(result?.value.valueOverride?.props).type).toStrictEqual(MANAGEMENT.PROJECT);
+      expect(popoverProps(result?.value.valueOverride?.props).id).toStrictEqual(resource.project.id);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.project');
     });
   });

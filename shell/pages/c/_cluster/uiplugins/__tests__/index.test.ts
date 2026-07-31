@@ -7,6 +7,35 @@ import {
 } from '@shell/config/uiplugins';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
+/**
+ * `rancherVersion` and `kubeVersion` are `data()` members of `uiplugins/index.vue`
+ * initialised to `null`, so `vue-tsc` infers their type as exactly `null` and
+ * rejects the version strings these tests seed them with.
+ */
+interface ChartVersionContext {
+  rancherVersion: string | null;
+  kubeVersion: string | null;
+}
+
+const versionContextOf = (wrapper: { vm: unknown }): ChartVersionContext => wrapper.vm as ChartVersionContext;
+
+/**
+ * `mapChartToPluginItem` (see `uiplugins/index.vue`) returns an object literal and
+ * only then adds the version and certification members to it via `Object.assign`,
+ * so those members are absent from the return type `vue-tsc` infers. Describe just
+ * the ones these assertions read.
+ */
+interface MappedPluginItem {
+  displayVersion?: string;
+  displayVersionLabel?: string;
+  installing?: string;
+  primeOnly?: boolean;
+  experimental?: boolean;
+  certified?: boolean;
+}
+
+const assignedFieldsOf = (item: object): MappedPluginItem => item as MappedPluginItem;
+
 const t = (key: string, args?: object, raw?: boolean) => {
   if (args) {
     return `${ key } with ${ JSON.stringify(args) }`;
@@ -756,9 +785,9 @@ describe('page: UI plugins/Extensions', () => {
         }
       });
 
-      (w.vm as any).rancherVersion = '2.9.0';
-      (w.vm as any).kubeVersion = '1.28.0';
-      (w.vm as any).installing = {};
+      versionContextOf(w).rancherVersion = '2.9.0';
+      versionContextOf(w).kubeVersion = '1.28.0';
+      w.vm.installing = {};
 
       return w;
     };
@@ -793,8 +822,8 @@ describe('page: UI plugins/Extensions', () => {
       expect(result.builtin).toBe(false);
       expect(result.chart).toBe(chart);
       expect(result.versions).toHaveLength(1);
-      expect(result.displayVersion).toBe('1.0.0');
-      expect(result.displayVersionLabel).toBe('1.0.0');
+      expect(assignedFieldsOf(result).displayVersion).toBe('1.0.0');
+      expect(assignedFieldsOf(result).displayVersionLabel).toBe('1.0.0');
     });
 
     it('should use chart annotation DISPLAY_NAME as label when present', () => {
@@ -831,7 +860,7 @@ describe('page: UI plugins/Extensions', () => {
 
       const result = w.vm.mapChartToPluginItem(chart);
 
-      expect(result.installing).toBe('install');
+      expect(assignedFieldsOf(result).installing).toBe('install');
     });
 
     it('should extract certification flags from compatible version', () => {
@@ -854,9 +883,9 @@ describe('page: UI plugins/Extensions', () => {
 
       const result = w.vm.mapChartToPluginItem(chart);
 
-      expect(result.primeOnly).toBe(true);
-      expect(result.experimental).toBe(false);
-      expect(result.certified).toBe(true);
+      expect(assignedFieldsOf(result).primeOnly).toBe(true);
+      expect(assignedFieldsOf(result).experimental).toBe(false);
+      expect(assignedFieldsOf(result).certified).toBe(true);
     });
   });
 
