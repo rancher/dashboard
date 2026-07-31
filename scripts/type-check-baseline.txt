@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 1977
+# Total errors: 1982
 pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
 pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
@@ -1359,9 +1359,14 @@ shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: 
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: This expression is not callable.
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: This expression is not callable.
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: This expression is not callable.
+shell/edit/provisioning.cattle.io.cluster/__tests__/subtype-detection.test.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member 'SUB_TYPE'.
 shell/edit/provisioning.cattle.io.cluster/ingress/IngressCards.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
 shell/edit/provisioning.cattle.io.cluster/ingress/IngressCards.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
 shell/edit/provisioning.cattle.io.cluster/ingress/IngressConfiguration.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/edit/provisioning.cattle.io.cluster/subtype-detection.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member 'SUB_TYPE'.
+shell/edit/provisioning.cattle.io.cluster/subtype-detection.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CONFIG'.
+shell/edit/provisioning.cattle.io.cluster/subtype-detection.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/edit/provisioning.cattle.io.cluster/subtype-detection.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
 shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
 shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
 shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
