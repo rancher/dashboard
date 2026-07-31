@@ -54,6 +54,12 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/catalog.cattle.io.clusterr
 
 #./node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store
 
+# Drop transitively-emitted declarations we do not want to publish
+rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/getters.d.ts
+rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/mutations.d.ts
+rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/model-loader.d.ts
+rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/model-loader-require.d.ts
+
 # Go through all of the folders and combine by wrapping with 'declare module'
 
 echo "Contents of ${SHELL_DIR}/tmp after tsc commands:"
