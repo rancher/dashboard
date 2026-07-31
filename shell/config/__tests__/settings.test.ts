@@ -22,6 +22,20 @@ describe('Settings Configuration', () => {
     });
   });
 
+  describe('SYSTEM_CATALOG', () => {
+    it('should be defined in SETTING constants', () => {
+      expect(SETTING.SYSTEM_CATALOG).toBe('system-catalog');
+    });
+
+    it('should NOT be included in ALLOWED_SETTINGS (read-only, backend-managed)', () => {
+      expect(ALLOWED_SETTINGS).not.toHaveProperty(SETTING.SYSTEM_CATALOG);
+    });
+
+    it('should not be included in PROVISIONING_SETTINGS', () => {
+      expect(PROVISIONING_SETTINGS).not.toContain(SETTING.SYSTEM_CATALOG);
+    });
+  });
+
   describe('PROVISIONING_SETTINGS array', () => {
     it('should contain all expected provisioning-related settings', () => {
       const expectedSettings = [
