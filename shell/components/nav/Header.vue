@@ -735,7 +735,7 @@ export default {
           role="button"
           tabindex="0"
           :aria-label="action.labelKey ? t(action.labelKey) : action.label"
-          :aria-expanded="extensionHeaderActionsAriaExpanded[i]"
+          :aria-expanded="typeof extensionHeaderActionsAriaExpanded[i] === 'boolean' ? extensionHeaderActionsAriaExpanded[i] : undefined"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
