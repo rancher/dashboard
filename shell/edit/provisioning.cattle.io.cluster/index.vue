@@ -5,13 +5,13 @@ import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import {
-  CHART, FROM_CLUSTER, SUB_TYPE, RKE_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW, _CREATE
+  CHART, FROM_CLUSTER, SUB_TYPE, RKE_TYPE, _EDIT, _IMPORT, _CREATE
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
 import { PROVISIONER, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
-import { CATALOG, CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { CATALOG } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
@@ -20,6 +20,7 @@ import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config
 import { KONTAINER_TO_DRIVER } from '@shell/models/management.cattle.io.kontainerdriver';
 import Rke2Config from './rke2';
 import { requireAsset } from '@shell/utils/require-asset';
+import { resolveSubType } from './subtype-detection';
 
 const SORT_GROUPS = {
   template:  1,
@@ -33,8 +34,6 @@ const SORT_GROUPS = {
 
 // uSed to proxy stylesheets for custom drivers that provide custom UI (RKE1)
 const PROXY_ENDPOINT = '/meta/proxy';
-const IMPORTED = 'imported';
-const LOCAL = 'local';
 
 export default {
   name: 'CruCluster',
@@ -154,58 +153,13 @@ export default {
 
     this.extensions = this.$extension.getProviders(context);
 
-    // At this point, we know we definitely have the mgmt cluster, so we can access `isImported` and `isLocal`
-    let subType = null;
-
-    subType = this.$route.query[SUB_TYPE] || null;
-    if ( this.$route.query[SUB_TYPE]) {
-      subType = this.$route.query[SUB_TYPE];
-    } else if (this.value.isImported) {
-      // Default imported clusters to the generic imported subType.
-      // Imported hosted clusters (e.g. AKS, EKS, GKE) that have an extension-provided
-      // component will be overridden below to load the correct custom form.
-      subType = IMPORTED;
-    } else if (this.value.isLocal) {
-      subType = LOCAL;
-    }
-
-    // For imported hosted clusters, check if the provisioner has a matching extension
-    // component and override the subType so the correct custom form loads instead of
-    // the generic imported configuration page.
-    if (subType === IMPORTED && this.value?.id && this.value.provisioner) {
-      const provisionerLower = this.value.provisioner.toLowerCase();
-      const hasExtension = this.extensions.some((ext) => ext.id === provisionerLower);
-
-      if (hasExtension) {
-        subType = provisionerLower;
-      }
-    }
-
-    // Auto-detect subType for existing clusters being edited
-    if ( !subType && this.value?.id ) {
-      // Check for extension annotation first
-      const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
-
-      if (fromAnnotation) {
-        subType = fromAnnotation;
-      } else if ( this.value.isRke2 ) {
-        // For custom RKE2 clusters
-        if ( this.value.isCustom && (this.realMode === _EDIT || (this.as === _CONFIG && this.realMode === _VIEW)) ) {
-          subType = 'custom';
-        } else if ( this.value.machineProvider ) {
-          // For RKE2/K3s clusters provisioned in Rancher, use the machine pool provisioner
-          subType = this.value.machineProvider;
-        }
-      } else if ( this.value.provisioner ) {
-        // For non-RKE2 clusters, try to match against extension-provided subtypes
-        const provisionerLower = this.value.provisioner.toLowerCase();
-
-        // This will be checked against available subtypes after they're computed
-        subType = provisionerLower;
-      }
-    }
-
-    this.subType = subType;
+    this.subType = resolveSubType({
+      query:      this.$route.query,
+      value:      this.value,
+      extensions: this.extensions,
+      realMode:   this.realMode,
+      as:         this.as,
+    });
   },
 
   data() {
