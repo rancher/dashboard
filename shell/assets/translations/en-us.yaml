@@ -3409,6 +3409,9 @@ fleet:
     chart:
       title: Charts
       loadError: Chart not found or has no available versions.
+  gitRepoRestriction:
+    migrationDocsUrl: https://fleet.rancher.io/next/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction
+    deprecationWarning: 'GitRepoRestriction is deprecated and will be removed in a future Fleet release. Use <a href="{url}" target="_blank" rel="noopener noreferrer nofollow">Fleet Policy</a> instead.'
   helmOp:
     intro:
       add: Create Helm Op
