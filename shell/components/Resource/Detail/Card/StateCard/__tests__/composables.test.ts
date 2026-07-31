@@ -1,4 +1,5 @@
 import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import type { StateColor } from '@shell/utils/style';
 
 describe('useResourceCardRow', () => {
   describe('with default keys', () => {
@@ -44,9 +45,9 @@ describe('useResourceCardRow', () => {
 
       const result = useResourceCardRow('Pods', resources);
 
-      expect(result.counts![0].color).toBe('error');
-      expect(result.counts![1].color).toBe('warning');
-      expect(result.counts![2].color).toBe('success');
+      expect((result.counts![0] as unknown as { color: StateColor }).color).toBe('error');
+      expect((result.counts![1] as unknown as { color: StateColor }).color).toBe('warning');
+      expect((result.counts![2] as unknown as { color: StateColor }).color).toBe('success');
     });
 
     it('should sort by count when colors are equal', () => {
@@ -203,9 +204,9 @@ describe('useResourceCardRowFromRelationships', () => {
 
     const result = useResourceCardRowFromRelationships('Refers to', rels);
 
-    expect(result.counts![0].color).toBe('error');
-    expect(result.counts![1].color).toBe('warning');
-    expect(result.counts![2].color).toBe('success');
+    expect((result.counts![0] as unknown as { color: StateColor }).color).toBe('error');
+    expect((result.counts![1] as unknown as { color: StateColor }).color).toBe('warning');
+    expect((result.counts![2] as unknown as { color: StateColor }).color).toBe('success');
   });
 
   it('should pass the to parameter through', () => {

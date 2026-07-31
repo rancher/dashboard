@@ -3,7 +3,7 @@ import ConfigTab from '@shell/components/Drawer/ResourceDetailDrawer/ConfigTab.v
 import { createStore } from 'vuex';
 import { defineComponent, markRaw } from 'vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
-import { _VIEW } from '@shell/config/query-params';
+import { _VIEW } from '@shell/config/query-params.js';
 
 const DynamicComponent = defineComponent({
   template: '<div>DynamicComponent</div>',
