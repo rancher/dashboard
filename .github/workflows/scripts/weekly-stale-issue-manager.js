@@ -349,7 +349,7 @@ async function main() {
 
   console.log(`Candidates: ${ candidates.length }`);
 
-  const counts = { labeled: 0, unlabeled: 0, closed: 0, skipped: 0 };
+  const counts = { labeled: 0, unlabeled: 0, closed: 0, skipped: 0, failed: 0 };
 
   // First pass: classify. Reviving and skipping are unbudgeted, so they happen
   // now; closing and marking are queued and run under MAX_ACTIONS below.
@@ -361,6 +361,7 @@ async function main() {
 
     const labels = labelNames(candidate);
     const hasStale = labels.includes(STALE_LABEL);
+    const hasClosed = labels.includes(CLOSED_LABEL);
 
     // Never touch customer-originated JIRA issues.
     if (labels.includes(JIRA_LABEL)) {
@@ -380,10 +381,11 @@ async function main() {
           await removeLabel(owner, repo, number, STALE_LABEL);
           counts.unlabeled++;
         } catch (e) {
+          counts.failed++;
           console.error(`#${ number }: failed to remove stale label: ${ e.message }`);
         }
       } else if (staleLabelAddedDate && daysAgo(staleLabelAddedDate) >= CLOSE_AFTER_DAYS) {
-        toClose.push({ number, staleLabelAddedDate });
+        toClose.push({ number, staleLabelAddedDate, hasClosed });
       } else {
         const waited = staleLabelAddedDate ? Math.floor(daysAgo(staleLabelAddedDate)) : 'unknown';
 
@@ -399,16 +401,20 @@ async function main() {
   // Second pass: spend the action budget. Closes first, then marks.
   const { closes, marks, deferred } = planActions(toClose, toMark, MAX_ACTIONS);
 
-  for (const { number, staleLabelAddedDate } of closes) {
+  for (const { number, staleLabelAddedDate, hasClosed } of closes) {
     console.log(`#${ number }: stale for ${ Math.floor(daysAgo(staleLabelAddedDate)) } days, closing`);
-    // Close first: if it fails we throw before commenting, so a failed run never
-    // leaves a close comment on a still-open issue (which would duplicate next run).
+    // Label + comment first so a closed issue always carries them. Skip both if
+    // the closed label is already present (a previous run added them but the
+    // close call failed) — that keeps a retry from posting a duplicate comment.
     try {
+      if (!hasClosed) {
+        await addLabels(owner, repo, number, [CLOSED_LABEL]);
+        await addComment(owner, repo, number, CLOSE_COMMENT);
+      }
       await closeIssue(owner, repo, number);
-      await addLabels(owner, repo, number, [CLOSED_LABEL]);
-      await addComment(owner, repo, number, CLOSE_COMMENT);
       counts.closed++;
     } catch (e) {
+      counts.failed++;
       console.error(`#${ number }: close failed, will retry next run: ${ e.message }`);
     }
   }
@@ -420,6 +426,7 @@ async function main() {
       await addComment(owner, repo, number, STALE_COMMENT);
       counts.labeled++;
     } catch (e) {
+      counts.failed++;
       console.error(`#${ number }: mark failed, will retry next run: ${ e.message }`);
     }
   }
@@ -430,7 +437,7 @@ async function main() {
 
   console.log('======');
   console.log(`Done. labeled=${ counts.labeled } unlabeled=${ counts.unlabeled } ` +
-    `closed=${ counts.closed } skipped=${ counts.skipped } deferred=${ deferred }`);
+    `closed=${ counts.closed } skipped=${ counts.skipped } failed=${ counts.failed } deferred=${ deferred }`);
 
   // Job summary.
   if (process.env.GITHUB_STEP_SUMMARY) {
@@ -441,6 +448,7 @@ async function main() {
       `- Unlabeled (revived): ${ counts.unlabeled }\n` +
       `- Closed: ${ counts.closed }\n` +
       `- Skipped: ${ counts.skipped }\n` +
+      `- Failed (will retry next run): ${ counts.failed }\n` +
       `- Deferred (over ${ MAX_ACTIONS }-action budget): ${ deferred }\n`);
   }
 }
