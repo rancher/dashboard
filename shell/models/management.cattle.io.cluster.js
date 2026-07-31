@@ -683,6 +683,11 @@ export default class MgmtCluster extends SteveModel {
   async generateKubeConfig(clusters = [this.id]) {
     // The backend rejects a request with no clusters when the default entry is excluded
     if (!clusters.length) {
+      this.$dispatch('growl/error', {
+        title:   this.t('cluster.kubeConfig.error.title'),
+        message: this.t('cluster.kubeConfig.error.noClusters'),
+      }, { root: true });
+
       return;
     }
 

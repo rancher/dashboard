@@ -179,7 +179,12 @@ describe('class MgmtCluster', () => {
     let mockDispatch: jest.Mock;
 
     const makeCluster = (id = 'cluster-1') => {
-      return new MgmtCluster({ id, metadata: { name: id } }, { dispatch: mockDispatch }) as any;
+      const ctx = {
+        dispatch:    mockDispatch,
+        rootGetters: { 'i18n/t': (key: string) => key }
+      };
+
+      return new MgmtCluster({ id, metadata: { name: id } }, ctx) as any;
     };
 
     beforeEach(() => {
@@ -217,8 +222,19 @@ describe('class MgmtCluster', () => {
 
       const res = await cluster.generateKubeConfig([]);
 
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith('management/create', expect.anything(), expect.anything());
       expect(res).toBeUndefined();
+    });
+
+    it('should growl an error when there are no clusters', async() => {
+      const cluster = makeCluster();
+
+      await cluster.generateKubeConfig([]);
+
+      expect(mockDispatch).toHaveBeenCalledWith('growl/error', {
+        title:   'cluster.kubeConfig.error.title',
+        message: 'cluster.kubeConfig.error.noClusters',
+      }, { root: true });
     });
 
     it('should return undefined when the response has no value', async() => {
