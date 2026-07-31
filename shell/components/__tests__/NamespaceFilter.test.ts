@@ -86,7 +86,7 @@ describe('component: NamespaceFilter', () => {
         ]
       };
 
-      jest.spyOn(NamespaceFilter.computed.value, 'set');
+      jest.spyOn(NamespaceFilter.computed!.value, 'set');
       const wrapper = mount(NamespaceFilter, {
         computed: {
           filtered: () => [],
@@ -205,7 +205,7 @@ describe('component: NamespaceFilter', () => {
       const actionName = 'switchNamespaces';
       const action = jest.fn();
 
-      jest.spyOn(NamespaceFilter.computed.value, 'get').mockReturnValue([]);
+      jest.spyOn(NamespaceFilter.computed!.value, 'get').mockReturnValue([]);
 
       const wrapper = mount(NamespaceFilter, {
         computed: {

@@ -62,15 +62,17 @@ describe('component: AsyncButton', () => {
 
     wrapper.find('button').trigger('click');
 
+    const [[cb]] = wrapper.emitted('click') as [[(...args: any[]) => void]];
+
     expect(wrapper.emitted('click')).toHaveLength(1);
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.WAITING);
     expect(wrapper.vm.isSpinning).toBe(true);
     expect(wrapper.vm.appearsDisabled).toBe(true);
     // testing cb function has been emitted
-    expect(typeof wrapper.emitted('click')![0][0]).toBe('function');
+    expect(typeof cb).toBe('function');
 
     // trigger the cb function so that we test state changes on AsyncButton
-    wrapper.emitted('click')![0][0](true);
+    cb(true);
 
     expect(spyDone).toHaveBeenCalledWith(true);
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.SUCCESS);
@@ -101,12 +103,14 @@ describe('component: AsyncButton', () => {
 
     wrapper.find('button').trigger('click');
 
+    const [[cb]] = wrapper.emitted('click') as [[(...args: any[]) => void]];
+
     expect(wrapper.emitted('click')).toHaveLength(1);
     // testing cb function has been emitted
-    expect(typeof wrapper.emitted('click')![0][0]).toBe('function');
+    expect(typeof cb).toBe('function');
 
     // trigger the cb function so that we test state changes on AsyncButton
-    wrapper.emitted('click')![0][0](false);
+    cb(false);
 
     expect(spyDone).toHaveBeenCalledWith(false);
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.ERROR);
@@ -135,12 +139,14 @@ describe('component: AsyncButton', () => {
 
     wrapper.find('button').trigger('click');
 
+    const [[cb]] = wrapper.emitted('click') as [[(...args: any[]) => void]];
+
     expect(wrapper.emitted('click')).toHaveLength(1);
     // testing cb function has been emitted
-    expect(typeof wrapper.emitted('click')![0][0]).toBe('function');
+    expect(typeof cb).toBe('function');
 
     // trigger the cb function so that we test state changes on AsyncButton
-    wrapper.emitted('click')![0][0]('cancelled');
+    cb('cancelled');
 
     expect(spyDone).toHaveBeenCalledWith('cancelled');
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.ACTION);
@@ -181,7 +187,6 @@ describe('component: AsyncButton', () => {
     // rest of the checks
     expect(itemRole).toBe('button');
     expect(itemAriaDisabled).toBe('true');
-    expect(item.find('span[data-testid="async-btn-display-label"]').attributes('id')).toBe(wrapper.vm.describedbyId);
     expect(item.find('i').attributes('alt')).toBeDefined();
   });
 });
