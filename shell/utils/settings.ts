@@ -124,3 +124,17 @@ export const isProviderEnabled = (context: ClusterProvisionerContext, provider: 
   // We want to have providers enabled by default unless they are turned off by a setting
   return true;
 };
+
+/**
+ * Whether the SUSE Application Collection integration (App Bundle install wizard entry points in
+ * Continuous Delivery and Charts) is enabled.
+ *
+ * Gated on Rancher's catalog mode: when `system-catalog` is `bundle` (airgap / bundled charts only,
+ * `CATTLE_SYSTEM_CATALOG=bundle`) there's no external catalog access, so the integration is hidden.
+ * Any other value (or an absent setting) leaves it enabled.
+ */
+export const isSuseAppCollectionEnabled = (store: Store<any>): boolean => {
+  const setting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_CATALOG);
+
+  return setting?.value !== 'bundle';
+};
