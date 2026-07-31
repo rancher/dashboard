@@ -1,7 +1,7 @@
 import { shallowMount, mount } from '@vue/test-utils';
 import { defineComponent } from 'vue';
 import Select from '@shell/components/form/Select.vue';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+
 
 const SelectComponent = Select as ReturnType<typeof defineComponent>;
 
@@ -84,7 +84,7 @@ describe('select.vue', () => {
     });
 
     const mockEvent = { preventDefault: jest.fn() };
-    const spyFocus = jest.spyOn(wrapper.vm, 'focusSearch');
+    const spyFocus = jest.spyOn(wrapper.vm as any, 'focusSearch');
     const spyPreventDefault = jest.spyOn(mockEvent, 'preventDefault');
 
     const input = wrapper.find('.unlabeled-select');
@@ -112,7 +112,7 @@ describe('select.vue', () => {
           options:  [{ label, value }],
           disabled: false,
           loading:  false,
-          mode:     _EDIT
+          mode:     'edit'
         }
       });
 
@@ -133,7 +133,7 @@ describe('select.vue', () => {
           options:  [{ label, value }],
           disabled: true,
           loading:  false,
-          mode:     _EDIT
+          mode:     'edit'
         }
       });
 
@@ -154,7 +154,7 @@ describe('select.vue', () => {
           options:  [{ label, value }],
           disabled: false,
           loading:  true,
-          mode:     _EDIT
+          mode:     'edit'
         }
       });
 
@@ -166,7 +166,7 @@ describe('select.vue', () => {
       expect(wrapper.vm.isOpen).toBe(false);
     });
 
-    it('should not open dropdown when mode is _VIEW', async() => {
+    it('should not open dropdown when mode is 'view'', async() => {
       const label = 'Foo';
       const value = 'foo';
       const wrapper = mount(Select, {
@@ -175,7 +175,7 @@ describe('select.vue', () => {
           options:  [{ label, value }],
           disabled: false,
           loading:  false,
-          mode:     _VIEW
+          mode:     'view'
         }
       });
 
@@ -196,7 +196,7 @@ describe('select.vue', () => {
           options:  [{ label, value }],
           multiple: true,
           disabled: true,
-          mode:     _EDIT
+          mode:     'edit'
         }
       });
 
@@ -219,7 +219,7 @@ describe('select.vue', () => {
           value,
           options:  [{ label, value }],
           multiple: true,
-          mode:     _EDIT
+          mode:     'edit'
         }
       });
 

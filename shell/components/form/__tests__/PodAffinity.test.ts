@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import PodAffinity from '@shell/components/form/PodAffinity.vue';
-import { _CREATE } from '@shell/config/query-params';
+
 
 const requiredSetup = () => {
   return {
@@ -31,7 +31,7 @@ describe('component: PodAffinity', () => {
     };
     const wrapper = mount(PodAffinity, {
       props: {
-        mode: _CREATE, field: 'overrideAffinity', value: { overrideAffinity: { podAffinity } }
+        mode: 'create', field: 'overrideAffinity', value: { overrideAffinity: { podAffinity } }
       },
       ...requiredSetup()
     });
@@ -50,7 +50,7 @@ describe('component: PodAffinity', () => {
 
     const wrapper = mount(PodAffinity, {
       props: {
-        mode: _CREATE, field: 'overrideAffinity', value: { overrideAffinity: { podAffinity } }
+        mode: 'create', field: 'overrideAffinity', value: { overrideAffinity: { podAffinity } }
       },
       ...requiredSetup()
     });

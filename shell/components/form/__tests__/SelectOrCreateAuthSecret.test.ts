@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { _EDIT } from '@shell/config/query-params';
+
 import { AUTH_TYPE } from '@shell/config/types';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 
@@ -16,7 +16,7 @@ describe('component: SelectOrCreateAuthSecret', () => {
     const wrapper = mount(SelectOrCreateAuthSecret, {
       ...requiredSetup(),
       props: {
-        mode:               _EDIT,
+        mode:               'edit',
         namespace:          'default',
         value:              {},
         showSshKnownHosts,
@@ -40,7 +40,7 @@ describe('component: SelectOrCreateAuthSecret', () => {
     const wrapper = mount(SelectOrCreateAuthSecret, {
       ...requiredSetup(),
       props: {
-        mode:               _EDIT,
+        mode:               'edit',
         namespace:          'default',
         value:              {},
         isGithubDotComRepository,
@@ -71,7 +71,7 @@ describe('component: SelectOrCreateAuthSecret', () => {
     const githubAppSetup = () => mount(SelectOrCreateAuthSecret, {
       ...requiredSetup(),
       props: {
-        mode:               _EDIT,
+        mode:               'edit',
         namespace:          'default',
         value:              {},
         allowGithubApp:     true,
@@ -136,7 +136,7 @@ describe('component: SelectOrCreateAuthSecret', () => {
       const wrapper = mount(SelectOrCreateAuthSecret, {
         ...requiredSetup(),
         props: {
-          mode:               _EDIT,
+          mode:               'edit',
           namespace:          'default',
           value:              {},
           allowGithubApp,
@@ -171,7 +171,7 @@ describe('component: SelectOrCreateAuthSecret', () => {
       const wrapper = mount(SelectOrCreateAuthSecret, {
         ...requiredSetup(),
         props: {
-          mode:               _EDIT,
+          mode:               'edit',
           namespace:          'default',
           value:              {},
           allowGithubApp:     true,

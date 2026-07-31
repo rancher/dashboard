@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import NodeScheduling from '@shell/components/form/NodeScheduling.vue';
-import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+
 import { createStore } from 'vuex';
 
 const requiredSetup = () => {
@@ -36,9 +36,9 @@ describe('component: NodeScheduling', () => {
   const value = { nodeName: 'node-1' };
 
   it.each([
-    _VIEW,
-    _CREATE,
-    _EDIT
+    'view',
+    'create',
+    'edit'
   ])('should show NodeName option', (mode) => {
     const wrapper = mount(
       NodeScheduling,

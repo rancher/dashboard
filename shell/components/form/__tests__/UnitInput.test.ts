@@ -42,7 +42,7 @@ describe('component: UnitInput', () => {
     input.trigger(event);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')[1]).toStrictEqual([4]);
+    expect(wrapper.emitted('update:value')![1]).toStrictEqual([4]);
   });
 
   it.each([
@@ -206,7 +206,7 @@ describe('component: UnitInput', () => {
     input.trigger('blur');
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')[0][0]).toBe(value);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
   });
 
   describe.each([

@@ -1,8 +1,5 @@
 import { mount } from '@vue/test-utils';
 import ArrayList from '@shell/components/form/ArrayList.vue';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { ExtendedVue, Vue } from 'vue/types/vue';
-import { DefaultProps } from 'vue/types/options';
 
 jest.mock('lodash/debounce', () => jest.fn((fn) => fn));
 
@@ -11,7 +8,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value: [],
-        mode:  _EDIT
+        mode:  'edit'
       },
     });
     const elements = wrapper.findAll('[data-testid^="array-list-box"]');
@@ -23,7 +20,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value:           [],
-        mode:            _EDIT,
+        mode:            'edit',
         initialEmptyRow: true
       },
     });
@@ -36,7 +33,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value: [],
-        mode:  _EDIT,
+        mode:  'edit',
       },
     });
 
@@ -53,7 +50,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value: ['string 0', 'string 1', 'string 2'],
-        mode:  _EDIT,
+        mode:  'edit',
       },
     });
 
@@ -72,7 +69,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value: ['read-only example'],
-        mode:  _VIEW,
+        mode:  'view',
       },
     });
     const arrayListButtons = wrapper.findAll('[data-testid="array-list-button"]');
@@ -86,7 +83,7 @@ describe('the ArrayList', () => {
     const wrapper = mount(ArrayList, {
       props: {
         value:      ['string 0', 'string 1', 'string 2'],
-        mode:       _EDIT,
+        mode:       'edit',
         showHeader: true,
         a11yLabel:  'some-a11y-label',
         title:      'some-title'
@@ -116,10 +113,7 @@ describe('the ArrayList', () => {
     it('should emit value with updated row text', () => {
       const text = 'test';
       const expectation = [text];
-      const wrapper = mount(
-        ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
-        { props: { value: [''] } }
-      );
+      const wrapper = mount(ArrayList, { props: { value: [''] } });
       const event = { preventDefault: jest.fn(), clipboardData: { getData: jest.fn().mockReturnValue(text) } } as any;
 
       wrapper.vm.onPaste(0, event);
@@ -128,7 +122,7 @@ describe('the ArrayList', () => {
     });
 
     it('should emit value with multiple rows', () => {
-      const wrapper = mount(ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { value: [''] } });
+      const wrapper = mount(ArrayList, { props: { value: [''] } });
       const text = `multiline
       rows`;
       const expectation = ['multiline', 'rows'];
@@ -140,7 +134,7 @@ describe('the ArrayList', () => {
     });
 
     it('should allow emit multiline pasted values if enabled', () => {
-      const wrapper = mount(ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
+      const wrapper = mount(ArrayList, {
         props: {
           value:          [''],
           valueMultiline: true,
