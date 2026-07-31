@@ -2,6 +2,13 @@ import { mount } from '@vue/test-utils';
 import Probe from '@shell/components/form/Probe.vue';
 import { _EDIT } from '@shell/config/query-params';
 
+/**
+ * A bare string selector picks the `getComponent<T extends never>` overload, which
+ * returns a `WrapperLike` with no `vm`. The runtime object is a full component
+ * wrapper, so expose just the emitter this test drives.
+ */
+const emitterOf = (wrapper: unknown) => (wrapper as { vm: { $emit(event: string, ...args: unknown[]): void } }).vm;
+
 describe('component: Probe', () => {
   describe.each([
     [{ httpGet: { scheme: 'https' } }, ['port', 'path']],
@@ -67,7 +74,7 @@ describe('component: Probe', () => {
 
     const httpHeaders = wrapper.getComponent('[data-testid="input-probe-http-headers"]');
 
-    httpHeaders.vm.$emit('update:value', [{ name: 'abc', value: 'def' }]);
+    emitterOf(httpHeaders).$emit('update:value', [{ name: 'abc', value: 'def' }]);
 
     const [[emittedValue]] = wrapper.emitted('update:value') as [[any]];
 

@@ -1,6 +1,14 @@
 import { mount } from '@vue/test-utils';
 import LazyImage from '@shell/components/LazyImage.vue';
 
+/**
+ * `IntersectionObserverCallback` is declared as `(entries, observer) => void`, but
+ * `LazyImage` only reads the entries, so these tests call it with one argument and
+ * with a partial entry. Describe that narrower signature rather than fabricating an
+ * observer and a full `IntersectionObserverEntry`.
+ */
+const asEntriesOnly = (callback: unknown) => callback as (entries: Partial<IntersectionObserverEntry>[]) => void;
+
 describe('component: LazyImage.vue', () => {
   const initialSrc = 'initial.jpg';
   const src = 'test.jpg';
@@ -37,7 +45,7 @@ describe('component: LazyImage.vue', () => {
     const callback = jest.mocked(window.IntersectionObserver).mock.calls[0][0];
 
     // eslint-disable-next-line node/no-callback-literal
-    callback([{ isIntersecting: false }]);
+    asEntriesOnly(callback)([{ isIntersecting: false }]);
     await wrapper.vm.$nextTick();
 
     const img = wrapper.find('img');
@@ -58,7 +66,7 @@ describe('component: LazyImage.vue', () => {
     const callback = jest.mocked(window.IntersectionObserver).mock.calls[0][0];
 
     // eslint-disable-next-line node/no-callback-literal
-    callback([{ isIntersecting: true }]);
+    asEntriesOnly(callback)([{ isIntersecting: true }]);
 
     await wrapper.vm.$nextTick();
 
@@ -80,7 +88,7 @@ describe('component: LazyImage.vue', () => {
     const callback = jest.mocked(window.IntersectionObserver).mock.calls[0][0];
 
     // eslint-disable-next-line node/no-callback-literal
-    callback([{ isIntersecting: true }]);
+    asEntriesOnly(callback)([{ isIntersecting: true }]);
 
     await wrapper.vm.$nextTick();
 
@@ -106,7 +114,7 @@ describe('component: LazyImage.vue', () => {
     const callback = jest.mocked(window.IntersectionObserver).mock.calls[0][0];
 
     // eslint-disable-next-line node/no-callback-literal
-    callback([{ isIntersecting: true }]);
+    asEntriesOnly(callback)([{ isIntersecting: true }]);
 
     await wrapper.vm.$nextTick();
 
