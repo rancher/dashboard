@@ -64,7 +64,7 @@ export default class WorkloadDashboardPagePo extends PagePo {
     }).as('emptySummary');
   }
 
-  waitForEmptySummaries() {
+  waitForEmptySummaries(): Cypress.Chainable {
     return cy.wait('@emptySummary');
   }
 

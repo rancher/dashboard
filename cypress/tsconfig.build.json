@@ -1,10 +1,44 @@
 {
-  "extends": "./tsconfig.json",
+  // Deliberately standalone rather than extending `./tsconfig.json`.
+  //
+  // The two are compiled by different TypeScript versions. Specs are compiled by Cypress,
+  // which picks up the repo's TypeScript (6.x), while this package is built by `tsc` from
+  // this directory, which resolves the `typescript` this package depends on (5.x). The two
+  // versions disagree about `ignoreDeprecations`, which spec compilation needs and 5.x
+  // rejects with `TS5103`, so `tsconfig.json` cannot be shared with this build.
   "include": [
     "tmp/**/*"
   ],
   "exclude": ["dist", "node_modules"],
   "compilerOptions": {
+    // Keep these in step with `./tsconfig.json`.
+    "module": "node16",
+    "moduleResolution": "node16",
+    "strict": false,
+    "esModuleInterop": true,
+    "types": [
+      "cypress",
+      "@cypress/grep",
+      "cypress-axe"
+    ],
+    "paths": {
+      "~/*": [
+        "../*"
+      ],
+      "@/*": [
+        "../*"
+      ],
+      "@shell/*": [
+        "../shell/*"
+      ],
+      "@pkg/*": [
+        "../shell/pkg/*"
+      ],
+      "@components/*": [
+        "../pkg/rancher-components/src/components/*"
+      ]
+    },
+
     "outDir": "dist",
     "rootDir": "tmp",
     "declaration": true,

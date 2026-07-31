@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "paths": {
+      "vuex": [
+        "../node_modules/vuex/types/index.d.ts"
+      ],
       "@components/*": [
         "./rancher-components/*",
         "../pkg/rancher-components/src/components/*"

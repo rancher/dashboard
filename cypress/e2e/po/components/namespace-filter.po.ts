@@ -17,7 +17,7 @@ export class NamespaceFilterPo extends ComponentPo {
     return this.getOptions().contains( new RegExp(` ${ label } `)).click();
   }
 
-  clickOptionByLabelAndWaitForRequest(label: string) {
+  clickOptionByLabelAndWaitForRequest(label: string): Cypress.Chainable {
     cy.intercept('PUT', 'v1/userpreferences/*').as('updatePref');
     this.clickOptionByLabel(label);
 

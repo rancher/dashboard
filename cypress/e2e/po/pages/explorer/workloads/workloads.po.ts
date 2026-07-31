@@ -207,7 +207,7 @@ export class WorkloadsListPageBasePo extends BaseListPagePo {
     promptRemove.remove();
   }
 
-  deleteAndWaitForRequest(name: string) {
+  deleteAndWaitForRequest(name: string): Cypress.Chainable {
     cy.intercept('DELETE', 'v1/apps.deployments/**').as('deleteDeployment');
     this.deleteItemWithUI(name);
 
