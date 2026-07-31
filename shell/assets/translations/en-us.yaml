@@ -7908,6 +7908,7 @@ workload:
   validation:
     containers: Containers
     containerImage: Container {name} - "Container Image" is required.
+    containerName: Container - "Container Name" is required.
     localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
