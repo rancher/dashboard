@@ -3,9 +3,6 @@
  * This replicates essential exports from shell modules to avoid cypress dependencies on the main shell directory
  */
 
-// From @shell/config/version.js
-export const CURRENT_RANCHER_VERSION = '2.15';
-
 // From @shell/store/store-types.js
 export const STORE = {
   CLUSTER:    'cluster',

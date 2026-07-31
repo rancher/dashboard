@@ -31,9 +31,26 @@ env:
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
 jobs:
+  extract-rancher-version:
+    runs-on: ubuntu-latest
+    outputs:
+      rancher-version: ${{ steps.extract.outputs.rancher-version }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 1
+      - name: Extract Rancher version
+        id: extract
+        run: |
+          VERSION=$(bash scripts/decode-rancher-version.sh '${{ github.base_ref || github.ref_name }}' | xargs)
+          echo "rancher-version=$VERSION" >> "$GITHUB_OUTPUT"
+
   e2e-ui-build:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: extract-rancher-version
     runs-on: ubuntu-latest
+    outputs:
+      rancher-version: ${{ needs.extract-rancher-version.outputs.rancher-version }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
@@ -114,6 +131,7 @@ jobs:
         run: |
           yarn e2e:prod
         env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.rancher-version }}
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
@@ -122,6 +140,7 @@ jobs:
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.rancher-version }}
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
@@ -185,6 +204,7 @@ jobs:
         run: |
           yarn e2e:prod
         env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.rancher-version }}
           GREP_TAGS: "@adminUserSetup+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_ONLY: setup
@@ -193,6 +213,7 @@ jobs:
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.rancher-version }}
           TEST_SKIP: setup
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
