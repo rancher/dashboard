@@ -15,13 +15,11 @@ if [ -z "$TARGET_BRANCH" ]; then
   exit 1
 fi
 
-# Read branches-metadata.json and extract version
-# Format: v2.16.0 or v2.15.0-head, etc.
-VERSION=$(jq -r ".branches[\"$TARGET_BRANCH\"].milestone.version // .branches.master.milestone.version // \"v99.0.0\"" branches-metadata.json)
+# Read branches-metadata.json and extract version from e2e.rancher-version
+# Falls back to milestone.version, then to master, then to default
+VERSION=$(jq -r ".branches[\"$TARGET_BRANCH\"].e2e[\"rancher-version\"] // .branches[\"$TARGET_BRANCH\"].milestone.version // .branches.master.e2e[\"rancher-version\"] // \"99.0.0\"" branches-metadata.json)
 
-# Parse version: remove 'v' prefix
-# v2.16.0 -> 2.16.0
-# v2.15.0-head -> 2.15.0-head (keep pre-release)
+# Remove 'v' prefix if present
 PARSED_VERSION="${VERSION#v}"
 
 echo "$PARSED_VERSION"

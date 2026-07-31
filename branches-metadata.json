@@ -16,6 +16,7 @@
           "name": "rancher-agent",
           "tag": "head"
         },
+        "rancher-version": "2.15.0",
         "helm": {
           "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.15"
         },
