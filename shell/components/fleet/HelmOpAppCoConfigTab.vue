@@ -8,6 +8,7 @@ import { ZERO_TIME } from '@shell/config/types';
 import { FLEET_APPCO_AUTH_GENERATE_NAME, IMAGE_PULL_SECRET_SUFFIX } from '@shell/utils/fleet-appco';
 import dayjs from 'dayjs';
 import LazyImage from '@shell/components/LazyImage';
+import { RcIcon } from '@components/RcIcon';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import Labels from '@shell/components/form/Labels';
@@ -32,6 +33,7 @@ const props = withDefaults(defineProps<{
   mode: string;
   realMode: string;
   appCoChartEntries?: Record<string, ChartEntry[]>;
+  appCoChartDeprecated?: boolean;
   appCoChartsLoading?: boolean;
   chartValues?: string;
   chartValuesInit?: string;
@@ -53,6 +55,7 @@ const props = withDefaults(defineProps<{
   nameRules?: ((val: any) => string | undefined)[];
 }>(), {
   appCoChartEntries:        () => ({} as Record<string, ChartEntry[]>),
+  appCoChartDeprecated:     false,
   appCoChartsLoading:       false,
   chartValues:              '',
   chartValuesInit:          '',
@@ -137,6 +140,9 @@ const chartIcon = computed(() => {
   // Icon is chart-level, not version-specific — use the first (latest) entry which always carries it
   return entries?.[0]?.icon || '';
 });
+
+// Chart-level deprecated flag, resolved from the catalog chart model in the parent
+const isDeprecated = computed(() => props.appCoChartDeprecated);
 
 const chartSubHeaderItems = computed(() => {
   const items = [];
@@ -243,9 +249,21 @@ defineExpose({ refreshYamlEditor });
           </div>
         </div>
         <div class="chart-header-info">
-          <h3 class="chart-header-title">
-            {{ selectedChartName }}
-          </h3>
+          <div class="chart-header-title-row">
+            <h3 class="chart-header-title">
+              {{ selectedChartName }}
+            </h3>
+            <RcIcon
+              v-if="isDeprecated"
+              v-clean-tooltip="t('generic.deprecated')"
+              type="alert-alt"
+              size="medium"
+              status="error"
+              role="img"
+              :aria-hidden="false"
+              :aria-label="t('generic.deprecated')"
+            />
+          </div>
           <AppChartCardSubHeader
             :items="chartSubHeaderItems"
             :remove-margin-bottom="true"
@@ -586,6 +604,12 @@ defineExpose({ refreshYamlEditor });
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.chart-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .chart-header-title {

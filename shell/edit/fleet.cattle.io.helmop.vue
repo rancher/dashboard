@@ -119,8 +119,10 @@ export default {
 
       // Raw chart index entries from the ClusterRepo, keyed by chart name
       appCoChartEntries:  {},
+      // Chart-level deprecated flag from the catalog chart model
+      appCoChartDeprecated: false,
       // True while fetching the chart index from the ClusterRepo
-      appCoChartsLoading: false,
+      appCoChartsLoading:   false,
     };
   },
 
@@ -318,6 +320,7 @@ export default {
         mode:                     this.mode,
         realMode:                 this.realMode,
         appCoChartEntries:        this.appCoChartEntries,
+        appCoChartDeprecated:     this.appCoChartDeprecated,
         appCoChartsLoading:       this.appCoChartsLoading,
         chartValues:              this.chartValues,
         chartValuesInit:          this.chartValuesInit,
@@ -729,15 +732,19 @@ export default {
         await this.$store.dispatch('catalog/loadRepo', { repoName });
 
         const chartName = this.value.spec.helm.chart;
-        const catalogChart = chartName ? this.$store.getters['catalog/chart']({
+        // The `catalog/chart` getter filters on an exact `deprecated` match, defaulting to non-deprecated charts.
+        // The App Collection catalog also lists deprecated charts, so fall back to including them to avoid missing one.
+        const chartQuery = {
           repoType:      'cluster',
           repoName,
           chartName,
           includeHidden: true,
-        }) : null;
+        };
+        const catalogChart = chartName ? (this.$store.getters['catalog/chart'](chartQuery) || this.$store.getters['catalog/chart']({ ...chartQuery, showDeprecated: true })) : null;
 
         if (catalogChart?.versions?.length) {
           this.appCoChartEntries = { [chartName]: catalogChart.versions };
+          this.appCoChartDeprecated = !!catalogChart.deprecated;
         }
       } catch (e) {
         console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
