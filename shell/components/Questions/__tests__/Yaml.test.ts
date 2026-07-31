@@ -1,6 +1,6 @@
 import Questions from '@shell/components/Questions/index.vue';
 import { mount } from '@vue/test-utils';
-import { _EDIT } from '@shell/config/query-params.js';
+import { _EDIT } from '@shell/config/query-params';
 import defaults from './utils/questions-defaults';
 
 describe('the yaml Component', () => {
