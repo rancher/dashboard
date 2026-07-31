@@ -143,41 +143,6 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
     return new LabeledSelectPo('[data-testid="fleet-target-cluster-group-selector"]');
   }
 
-  /**
-   * Add a "cluster selector" (match expressions block) in the target step.
-   * testing: https://github.com/rancher/dashboard/pull/14525
-   */
-  addClusterSelector() {
-    return this.self().contains('button', 'Add cluster selector').click();
-  }
-
-  /**
-   * Set a single match expression rule (key / operator / values) for the rule at
-   * `ruleIndex`. `operatorLabel` is the visible option text (e.g. "in list" for the
-   * `In` operator, "not in list" for `NotIn`). Values are typed comma-separated,
-   * matching the single control input rendered for In / NotIn operators.
-   */
-  setMatchExpression(ruleIndex: number, key: string, operatorLabel: string, values: string[] = []) {
-    // The key control renders either as a select (with options) or a plain input;
-    // both expose an <input>, so typing + enter covers either variant.
-    this.self().find(`[data-testid="input-match-expression-key-${ ruleIndex }"] input`).first()
-      .clear()
-      .type(`${ key }{enter}`, { parseSpecialCharSequences: true });
-
-    // operator is a vue-select
-    const operatorSelect = new LabeledSelectPo(`[data-testid="input-match-expression-operator-control-${ ruleIndex }"]`);
-
-    operatorSelect.toggle();
-    operatorSelect.clickOptionWithLabel(operatorLabel);
-
-    // values is a single comma-separated input (only rendered for In / NotIn)
-    if (values.length) {
-      this.self().find(`[data-testid="input-match-expression-values-control-${ ruleIndex }"]`).first()
-        .clear()
-        .type(values.join(','));
-    }
-  }
-
   gitRepoPaths() {
     return new ArrayListPo('[data-testid="gitRepo-paths"]');
   }

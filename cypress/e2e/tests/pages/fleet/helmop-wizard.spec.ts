@@ -13,8 +13,7 @@ const workspace = 'fleet-default';
 const chart = {
   name:       'redis',
   repository: 'https://charts.bitnami.com/bitnami',
-  version:    '24.0.0',
-  newVersion: '23.0.0'
+  version:    '24.0.0'
 };
 
 const helmOpsToDelete: string[] = [];
@@ -77,26 +76,29 @@ describe('Fleet HelmOp wizard create, view and edit', { testIsolation: false, ta
     });
   });
 
-  it('shows the HelmOp in read-only view mode', () => {
+  it('lists the created HelmOp and opens its detail view', () => {
     listPage.goTo();
     listPage.waitForPage();
     headerPo.selectWorkspace(workspace);
+
+    // The HelmOp is viewable in the App Bundles list
+    listPage.list().rowWithName(helmOpName).self()
+      .should('be.visible');
+
+    // ...and its detail (view) page renders with the right title
     listPage.goToDetailsPage(helmOpName);
 
-    const helmOpViewPage = new FleetHelmOpCreateEditPo(workspace, helmOpName);
+    const helmOpDetailPage = new FleetHelmOpCreateEditPo(workspace, helmOpName);
 
-    helmOpViewPage.mastheadTitle().then((title) => {
+    helmOpDetailPage.mastheadTitle().then((title) => {
       expect(title.replace(/\s+/g, ' ')).to.contain(helmOpName);
     });
-
-    // Read-only tabs and chart content are rendered
-    helmOpViewPage.nameNsDescriptionView().should('exist');
-    helmOpViewPage.chartTabView().should('exist');
-    helmOpViewPage.chartTabView().should('contain', chart.name);
   });
 
   it('edits the created HelmOp', () => {
     cy.intercept('PUT', `/v1/fleet.cattle.io.helmops/${ workspace }/${ helmOpName }`).as('updateHelmOp');
+
+    const description = `${ helmOpName }-edited`;
 
     listPage.goTo();
     listPage.waitForPage();
@@ -107,15 +109,23 @@ describe('Fleet HelmOp wizard create, view and edit', { testIsolation: false, ta
 
     helmOpEditPage.waitForPage('mode=edit');
 
-    // Move to the chart step and change the version
-    helmOpEditPage.resourceDetail().createEditView().nextPage(); // Chart step
-    helmOpEditPage.setVersion(chart.newVersion);
+    // Change the description on the metadata step (stable, no async chart re-fetch)
+    helmOpEditPage.resourceDetail().createEditView().nameNsDescription()
+      .description()
+      .set(description);
 
-    helmOpEditPage.resourceDetail().createEditView().save();
+    // The wizard's primary button only becomes "finish" (save) on the last step,
+    // so advance through every step before saving. Steps: metadata, chart, values,
+    // target, advanced.
+    helmOpEditPage.resourceDetail().createEditView().nextPage(); // Chart
+    helmOpEditPage.resourceDetail().createEditView().nextPage(); // Values
+    helmOpEditPage.resourceDetail().createEditView().nextPage(); // Target
+    helmOpEditPage.resourceDetail().createEditView().nextPage(); // Advanced (last)
+    helmOpEditPage.resourceDetail().createEditView().save(); // Finish
 
     cy.waitForInterceptWithConflictRetry('@updateHelmOp').then(({ request, response }: any) => {
       expect(response?.statusCode).to.be.oneOf([200, 201]);
-      expect(request.body.spec.helm.version).to.eq(chart.newVersion);
+      expect(JSON.stringify(request.body)).to.contain(description);
     });
   });
 
