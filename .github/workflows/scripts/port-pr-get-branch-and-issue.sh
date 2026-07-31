@@ -48,6 +48,9 @@ else # Fallback on branch given milestone in branches-metadata
     exit 1
   }
   TARGET_BRANCH=$(echo "$METADATA_JSON" | jq -r --arg milestone "$TARGET_MILESTONE" '.branches | to_entries[] | select(.value.milestone.version == $milestone) | .key')
+  if [ -z "$TARGET_BRANCH" ]; then
+    echo "No branch found for milestone ${TARGET_MILESTONE} in branches-metadata.json"
+  fi
 fi
 
 # Confirm target branch exists
@@ -72,3 +75,11 @@ target_branch=${TARGET_BRANCH}
 issue_number=${ISSUE_NUMBER}
 target_branch_exists=${TARGET_BRANCH_EXISTS}
 EOF
+
+# Stop the workflow if the target branch does not exist
+if [ "$TARGET_BRANCH_EXISTS" != "true" ]; then
+  if [ -n "$ORIGINAL_ISSUE_NUMBER" ]; then
+    gh issue comment -R "${GITHUB_REPOSITORY}" "${ORIGINAL_ISSUE_NUMBER}" --body "Not creating port PR, target branch ${TARGET_BRANCH} does not exist"
+  fi
+  exit 1
+fi
