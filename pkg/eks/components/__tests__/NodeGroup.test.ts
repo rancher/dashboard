@@ -1,7 +1,12 @@
 
 /* eslint-disable jest/no-mocks-import */
 import { shallowMount } from '@vue/test-utils';
-import NodeGroup from '@pkg/eks/components/NodeGroup.vue';
+import Banner from '@components/Banner/Banner.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import NodeGroup from '../NodeGroup.vue';
 import describeLaunchTemplateVersionsResponseData from '../__mocks__/describeLaunchTemplateVersions.js';
 
 const mockedValidationMixin = {
@@ -51,7 +56,7 @@ describe('eKS Node Groups: create', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate: {
           id: 'lt-123123', name: 'test-template', version: 4
         },
@@ -66,7 +71,7 @@ describe('eKS Node Groups: create', () => {
 
     await wrapper.vm.$nextTick();
 
-    const instanceType = wrapper.getComponent('[data-testid="eks-instance-type-dropdown"]');
+    const instanceType = wrapper.getComponent<typeof LabeledSelect>('[data-testid="eks-instance-type-dropdown"]');
 
     expect(instanceType.vm.value).toBeDefined();
   });
@@ -75,7 +80,7 @@ describe('eKS Node Groups: create', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate: {
           id: 'lt-123123', name: 'test-template', version: 4
         },
@@ -89,7 +94,7 @@ describe('eKS Node Groups: create', () => {
     });
 
     await wrapper.vm.$nextTick();
-    const imageId = wrapper.getComponent('[data-testid="eks-image-id-input"]');
+    const imageId = wrapper.getComponent<typeof LabeledInput>('[data-testid="eks-image-id-input"]');
 
     expect(imageId.vm.disabled).toBe(true);
   });
@@ -98,7 +103,7 @@ describe('eKS Node Groups: create', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate: {
           id: 'lt-123123', name: 'test-template', version: 4
         },
@@ -113,7 +118,7 @@ describe('eKS Node Groups: create', () => {
 
     wrapper.setProps({ requestSpotInstances: true });
     await wrapper.vm.$nextTick();
-    const banner = wrapper.findComponent('[data-testid="eks-spot-instance-banner"]');
+    const banner = wrapper.findComponent<typeof Banner>('[data-testid="eks-spot-instance-banner"]');
 
     expect(banner.exists()).toBe(true);
 
@@ -126,7 +131,7 @@ describe('eKS Node Groups: create', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate: {
           id: 'lt-123123', name: 'test-template', version: 4
         },
@@ -143,7 +148,7 @@ describe('eKS Node Groups: create', () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
 
-    const gpuInput = wrapper.getComponent('[data-testid="eks-gpu-input"]');
+    const gpuInput = wrapper.getComponent<typeof Checkbox>('[data-testid="eks-gpu-input"]');
 
     expect(gpuInput.vm.disabled).toBe(true);
   });
@@ -152,7 +157,7 @@ describe('eKS Node Groups: create', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -162,14 +167,14 @@ describe('eKS Node Groups: create', () => {
 
     wrapper.setProps({ requestSpotInstances: true });
     await wrapper.vm.$nextTick();
-    const instanceType = wrapper.findComponent('[data-testid="eks-instance-type-dropdown"]');
+    const instanceType = wrapper.findComponent<typeof LabeledSelect>('[data-testid="eks-instance-type-dropdown"]');
 
     expect(instanceType.exists()).toBe(false);
 
     wrapper.setProps({ requestSpotInstances: false });
     await wrapper.vm.$nextTick();
 
-    const instanceTypeAfterDisabledSpot = wrapper.getComponent('[data-testid="eks-instance-type-dropdown"]');
+    const instanceTypeAfterDisabledSpot = wrapper.findComponent<typeof LabeledSelect>('[data-testid="eks-instance-type-dropdown"]');
 
     expect(instanceTypeAfterDisabledSpot.exists()).toBe(true);
   });
@@ -178,7 +183,7 @@ describe('eKS Node Groups: create', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -188,7 +193,7 @@ describe('eKS Node Groups: create', () => {
 
     wrapper.setProps({ requestSpotInstances: true });
     await wrapper.vm.$nextTick();
-    const spotInstanceType = wrapper.findComponent('[data-testid="eks-spot-instance-type-dropdown"]');
+    const spotInstanceType = wrapper.findComponent<typeof LabeledSelect>('[data-testid="eks-spot-instance-type-dropdown"]');
 
     expect(spotInstanceType.exists()).toBe(true);
 
@@ -202,7 +207,7 @@ describe('eKS Node Groups: create', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate: {
           id: 'lt-123123', name: 'test-template', version: 4
         },
@@ -234,7 +239,7 @@ describe('eKS Node Groups: create', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -244,9 +249,9 @@ describe('eKS Node Groups: create', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.findComponent('[data-testid="eks-version-display"]');
-    const upgradeVersionBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-banner"]');
-    const upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
+    const versionDisplay = wrapper.findComponent<typeof LabeledInput>('[data-testid="eks-version-display"]');
+    const upgradeVersionBanner = wrapper.findComponent<typeof Banner>('[data-testid="eks-version-upgrade-banner"]');
+    const upgradeVersionCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="eks-version-upgrade-checkbox"]');
 
     expect(versionDisplay.isVisible()).toBe(true);
     expect(versionDisplay.props().value).toBe('1.23');
@@ -258,7 +263,7 @@ describe('eKS Node Groups: create', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -266,7 +271,7 @@ describe('eKS Node Groups: create', () => {
       ...setup
     });
 
-    const tagsInput = wrapper.getComponent('[data-testid="eks-resource-tags-input"]');
+    const tagsInput = wrapper.getComponent<typeof KeyValue>('[data-testid="eks-resource-tags-input"]');
 
     expect(tagsInput.props().value).toStrictEqual({});
 
@@ -289,7 +294,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -301,9 +306,9 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.findComponent('[data-testid="eks-version-display"]');
-    let upgradeVersionBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-banner"]');
-    let upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
+    const versionDisplay = wrapper.findComponent<typeof LabeledInput>('[data-testid="eks-version-display"]');
+    let upgradeVersionBanner = wrapper.findComponent<typeof Banner>('[data-testid="eks-version-upgrade-banner"]');
+    let upgradeVersionCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="eks-version-upgrade-checkbox"]');
 
     expect(versionDisplay.isVisible()).toBe(true);
     expect(upgradeVersionBanner.exists()).toBe(false);
@@ -313,8 +318,8 @@ describe('eks node groups: edit', () => {
 
     await wrapper.vm.$nextTick();
 
-    upgradeVersionBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-banner"]');
-    upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
+    upgradeVersionBanner = wrapper.findComponent<typeof Banner>('[data-testid="eks-version-upgrade-banner"]');
+    upgradeVersionCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="eks-version-upgrade-checkbox"]');
 
     expect(versionDisplay.isVisible()).toBe(true);
     expect(versionDisplay.props().value).toBe('1.23');
@@ -327,7 +332,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -339,9 +344,9 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.findComponent('[data-testid="eks-version-display"]');
-    const upgradeVersionBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-banner"]');
-    const upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
+    const versionDisplay = wrapper.findComponent<typeof LabeledInput>('[data-testid="eks-version-display"]');
+    const upgradeVersionBanner = wrapper.findComponent<typeof Banner>('[data-testid="eks-version-upgrade-banner"]');
+    const upgradeVersionCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="eks-version-upgrade-checkbox"]');
 
     expect(versionDisplay.exists()).toBe(false);
     expect(upgradeVersionBanner.exists()).toBe(false);
@@ -352,7 +357,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -364,7 +369,7 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
+    const upgradeVersionCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="eks-version-upgrade-checkbox"]');
 
     upgradeVersionCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
@@ -376,7 +381,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -390,7 +395,7 @@ describe('eks node groups: edit', () => {
 
     expect(wrapper.emitted('update:poolIsUpgrading')).toBeUndefined();
 
-    const upgradeVersionCheckbox = wrapper.getComponent('[data-testid="eks-version-upgrade-checkbox"]');
+    const upgradeVersionCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="eks-version-upgrade-checkbox"]');
 
     upgradeVersionCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
@@ -402,7 +407,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -416,7 +421,7 @@ describe('eks node groups: edit', () => {
 
     expect(wrapper.emitted('update:poolIsUpgrading')).toBeUndefined();
 
-    const upgradeVersionCheckbox = wrapper.getComponent('[data-testid="eks-version-upgrade-checkbox"]');
+    const upgradeVersionCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="eks-version-upgrade-checkbox"]');
 
     wrapper.setProps({ version: '1.24' });
     await wrapper.vm.$nextTick();
@@ -433,7 +438,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -445,7 +450,7 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const upgradeVersionCheckbox = wrapper.getComponent('[data-testid="eks-version-upgrade-checkbox"]');
+    const upgradeVersionCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="eks-version-upgrade-checkbox"]');
 
     wrapper.setProps({ version: '1.24' });
     await wrapper.vm.$nextTick();
@@ -463,7 +468,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -473,7 +478,7 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const nameInput = wrapper.getComponent('[data-testid="eks-nodegroup-name"]');
+    const nameInput = wrapper.getComponent<typeof LabeledInput>('[data-testid="eks-nodegroup-name"]');
 
     expect(nameInput.props().disabled).toBe(false);
   });
@@ -482,7 +487,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -492,7 +497,7 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const nameInput = wrapper.getComponent('[data-testid="eks-nodegroup-name"]');
+    const nameInput = wrapper.getComponent<typeof LabeledInput>('[data-testid="eks-nodegroup-name"]');
 
     expect(nameInput.props().disabled).toBe(true);
   });
@@ -501,7 +506,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -511,7 +516,7 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const ec2KeyDropdown = wrapper.findComponent('[data-testid="eks-nodegroup-ec2-key-select"]');
+    const ec2KeyDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="eks-nodegroup-ec2-key-select"]');
 
     expect(ec2KeyDropdown.exists()).toBe(true);
     expect(ec2KeyDropdown.props().options).toHaveLength(0);
@@ -529,7 +534,7 @@ describe('eks node groups: edit', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -578,7 +583,7 @@ describe('eks node groups: architecture', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -587,24 +592,24 @@ describe('eks node groups: architecture', () => {
       ...setup
     });
 
-    let instanceTypeDropdown = wrapper.findComponent('[data-testid="eks-instance-type-dropdown"]');
+    let instanceTypeDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="eks-instance-type-dropdown"]');
 
     expect(instanceTypeDropdown.props().options).toHaveLength(2);
 
     wrapper.setData({ architecture: 'arm64' });
     await wrapper.vm.$nextTick();
 
-    instanceTypeDropdown = wrapper.findComponent('[data-testid="eks-instance-type-dropdown"]');
+    instanceTypeDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="eks-instance-type-dropdown"]');
 
     expect(instanceTypeDropdown.props().options).toHaveLength(2);
-    expect(instanceTypeDropdown.props().options[1].value).toBe('t4g.medium');
+    expect((instanceTypeDropdown.props().options as { value?: string }[])[1].value).toBe('t4g.medium');
   });
 
   it('should update the instance type when the architecture changes', async() => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -623,7 +628,7 @@ describe('eks node groups: architecture', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -644,7 +649,7 @@ describe('eks node groups: architecture', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate: {
           id: 'lt-123123', name: 'test-template', version: 4
         },
@@ -670,7 +675,7 @@ describe('eks node groups: architecture', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -689,7 +694,7 @@ describe('eks node groups: architecture', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:          {},
         region:                  'foo',
         amazonCredentialSecret:  'bar',
@@ -710,7 +715,7 @@ describe('eks node groups: architecture', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',
@@ -734,7 +739,7 @@ describe('eks node groups: architecture', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
-      propsData: {
+      props: {
         launchTemplate:         {},
         region:                 'foo',
         amazonCredentialSecret: 'bar',

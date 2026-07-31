@@ -2,11 +2,22 @@
 /* eslint-disable jest/no-mocks-import */
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { shallowMount } from '@vue/test-utils';
+import ArrayList from '@shell/components/form/ArrayList.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import Networking from '../Networking.vue';
 
 import SecurityGroupData from '../__mocks__/describeSecurityGroups.js';
 import SubnetData from '../__mocks__/describeSubnets';
 import VpcData from '../__mocks__/describeVpcs';
+
+// LabeledSelect declares `options` as a bare `Array`, so reads come back untyped
+type SubnetOption = {
+  label?: string;
+  value?: string;
+  kind?: string;
+  disabled?: boolean;
+};
 
 // const mockedValidationMixin = {
 //   computed: {
@@ -46,11 +57,11 @@ describe('eKS Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {},
+      props: {},
       ...setup
     });
 
-    const publicAccessSources = wrapper.getComponent('[data-testid="eks-public-access-sources"]');
+    const publicAccessSources = wrapper.getComponent<typeof ArrayList>('[data-testid="eks-public-access-sources"]');
 
     expect(publicAccessSources.vm.addAllowed).toBe(false);
 
@@ -63,13 +74,13 @@ describe('eKS Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: { mode: _CREATE },
+      props: { mode: _CREATE },
       ...setup
     });
 
     wrapper.setData({ chooseSubnet: true });
     await wrapper.vm.$nextTick();
-    const subnetDropdown = wrapper.findComponent('[data-testid="eks-subnets-dropdown"]');
+    const subnetDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="eks-subnets-dropdown"]');
 
     expect(subnetDropdown.exists()).toBe(true);
 
@@ -82,7 +93,7 @@ describe('eKS Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         mode: _EDIT, subnets: [], statusSubnets: ['bc', 'def']
       },
       ...setup
@@ -90,7 +101,7 @@ describe('eKS Networking', () => {
 
     await wrapper.vm.$nextTick();
 
-    const subnetDropdown = wrapper.findComponent('[data-testid="eks-subnets-dropdown"]');
+    const subnetDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="eks-subnets-dropdown"]');
 
     expect(subnetDropdown.exists()).toBe(true);
 
@@ -102,13 +113,13 @@ describe('eKS Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: { mode: _CREATE },
+      props: { mode: _CREATE },
       ...setup
     });
 
     wrapper.setData({ chooseSubnet: true });
     await wrapper.vm.$nextTick();
-    const sgDropDown = wrapper.findComponent('[data-testid="eks-security-groups-dropdown"]');
+    const sgDropDown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="eks-security-groups-dropdown"]');
 
     expect(sgDropDown.exists()).toBe(true);
 
@@ -123,16 +134,16 @@ describe('eKS Networking', () => {
     // eslint-disable-next-line prefer-const
     let wrapper: any;
 
-    const fetchGroupsSpy = jest.spyOn(Networking.methods, 'fetchSecurityGroups').mockImplementation(() => {
+    const fetchGroupsSpy = jest.spyOn(Networking.methods!, 'fetchSecurityGroups').mockImplementation(async() => {
       wrapper.setData({ securityGroupInfo: SecurityGroupData });
     });
 
-    const fetchVpcsSpy = jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
+    const fetchVpcsSpy = jest.spyOn(Networking.methods!, 'fetchVpcs').mockImplementation(async() => {
       wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
     });
 
     wrapper = shallowMount(Networking, {
-      propsData: { mode: _CREATE },
+      props: { mode: _CREATE },
       ...setup
     });
 
@@ -155,16 +166,16 @@ describe('eKS Networking', () => {
     // eslint-disable-next-line prefer-const
     let wrapper: any;
 
-    jest.spyOn(Networking.methods, 'fetchSecurityGroups').mockImplementation(() => {
+    jest.spyOn(Networking.methods!, 'fetchSecurityGroups').mockImplementation(async() => {
       wrapper.setData({ securityGroupInfo: SecurityGroupData });
     });
 
-    jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
+    jest.spyOn(Networking.methods!, 'fetchVpcs').mockImplementation(async() => {
       wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
     });
 
     wrapper = shallowMount(Networking, {
-      propsData: { mode: _CREATE },
+      props: { mode: _CREATE },
       ...setup
     });
 
@@ -192,16 +203,16 @@ describe('eKS Networking', () => {
     // eslint-disable-next-line prefer-const
     let wrapper: any;
 
-    jest.spyOn(Networking.methods, 'fetchSecurityGroups').mockImplementation(() => {
+    jest.spyOn(Networking.methods!, 'fetchSecurityGroups').mockImplementation(async() => {
       wrapper.setData({ securityGroupInfo: SecurityGroupData });
     });
 
-    jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
+    jest.spyOn(Networking.methods!, 'fetchVpcs').mockImplementation(async() => {
       wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
     });
 
     wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         mode: _CREATE, subnets: ['subnet-1234'], securityGroups: ['group0-id']
       },
       ...setup
@@ -225,16 +236,16 @@ describe('eKS Networking', () => {
     // eslint-disable-next-line prefer-const
     let wrapper: any;
 
-    jest.spyOn(Networking.methods, 'fetchSecurityGroups').mockImplementation(() => {
+    jest.spyOn(Networking.methods!, 'fetchSecurityGroups').mockImplementation(async() => {
       wrapper.setData({ securityGroupInfo: SecurityGroupData });
     });
 
-    jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
+    jest.spyOn(Networking.methods!, 'fetchVpcs').mockImplementation(async() => {
       wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
     });
 
     wrapper = shallowMount(Networking, {
-      propsData: { mode: _CREATE, subnets: ['subnet-1234'] },
+      props: { mode: _CREATE, subnets: ['subnet-1234'] },
       ...setup
     });
 
@@ -246,38 +257,38 @@ describe('eKS Networking', () => {
 
     let subnetOpts = subnetDropdown.props().options;
 
-    expect(subnetOpts.filter((opt) => !opt.disabled && opt.kind !== 'group')).toHaveLength(2);
+    expect(subnetOpts.filter((opt: SubnetOption) => !opt.disabled && opt.kind !== 'group')).toHaveLength(2);
 
     // check that adding a subnet in the same vpc doesnt change the selectable subnet options
     wrapper.setProps({ subnets: ['subnet-4321', 'subnet-1234'] });
     await wrapper.vm.$nextTick();
 
     subnetOpts = subnetDropdown.props().options;
-    expect(subnetOpts.filter((opt) => !opt.disabled && opt.kind !== 'group')).toHaveLength(2);
+    expect(subnetOpts.filter((opt: SubnetOption) => !opt.disabled && opt.kind !== 'group')).toHaveLength(2);
 
     // check that when subnets are empty, no options are disabled
     wrapper.setProps({ subnets: [] });
     await wrapper.vm.$nextTick();
 
     subnetOpts = subnetDropdown.props().options;
-    expect(subnetOpts.filter((opt) => opt.disabled && opt.kind !== 'group')).toHaveLength(0);
+    expect(subnetOpts.filter((opt: SubnetOption) => opt.disabled && opt.kind !== 'group')).toHaveLength(0);
 
     // check that selecting a subnet in a different vpc changes which options are disabled
     wrapper.setProps({ subnets: ['subnet-12'] });
     await wrapper.vm.$nextTick();
 
     subnetOpts = subnetDropdown.props().options;
-    expect(subnetOpts.filter((opt) => opt.disabled && opt.kind !== 'group')).toHaveLength(5);
+    expect(subnetOpts.filter((opt: SubnetOption) => opt.disabled && opt.kind !== 'group')).toHaveLength(5);
   });
 
   it('should emit update:ipFamily when the radio selection changes', async() => {
     const setup = requiredSetup();
     const wrapper = shallowMount(Networking, {
-      propsData: { mode: _CREATE },
+      props: { mode: _CREATE },
       ...setup
     });
 
-    const ipFamilyRadio = wrapper.findComponent('[data-testid="eks-ip-family-radio"]');
+    const ipFamilyRadio = wrapper.findComponent<typeof RadioGroup>('[data-testid="eks-ip-family-radio"]');
 
     expect(ipFamilyRadio.exists()).toBe(true);
 
@@ -291,11 +302,11 @@ describe('eKS Networking', () => {
   it('should enable ipFamily selection when isNewOrUnprovisioned is true', async() => {
     const setup = requiredSetup();
     const wrapper = shallowMount(Networking, {
-      propsData: { mode: _CREATE, isNewOrUnprovisioned: true },
+      props: { mode: _CREATE, isNewOrUnprovisioned: true },
       ...setup
     });
 
-    const ipFamilyRadio = wrapper.findComponent('[data-testid="eks-ip-family-radio"]');
+    const ipFamilyRadio = wrapper.findComponent<typeof RadioGroup>('[data-testid="eks-ip-family-radio"]');
 
     expect(ipFamilyRadio.props().disabled).toBe(false);
   });
@@ -303,11 +314,11 @@ describe('eKS Networking', () => {
   it('should disable ipFamily selection when isNewOrUnprovisioned is false', async() => {
     const setup = requiredSetup();
     const wrapper = shallowMount(Networking, {
-      propsData: { mode: _CREATE, isNewOrUnprovisioned: false },
+      props: { mode: _CREATE, isNewOrUnprovisioned: false },
       ...setup
     });
 
-    const ipFamilyRadio = wrapper.findComponent('[data-testid="eks-ip-family-radio"]');
+    const ipFamilyRadio = wrapper.findComponent<typeof RadioGroup>('[data-testid="eks-ip-family-radio"]');
 
     expect(ipFamilyRadio.props().disabled).toBe(true);
   });
@@ -318,12 +329,12 @@ describe('eKS Networking', () => {
     // eslint-disable-next-line prefer-const
     let wrapper: any;
 
-    jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
+    jest.spyOn(Networking.methods!, 'fetchVpcs').mockImplementation(async() => {
       wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
     });
 
     wrapper = shallowMount(Networking, {
-      propsData: { mode: _CREATE, subnets: ['subnet-1234'] },
+      props: { mode: _CREATE, subnets: ['subnet-1234'] },
       ...setup
     });
 
