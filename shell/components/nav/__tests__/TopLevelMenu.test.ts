@@ -1,5 +1,5 @@
 import TopLevelMenu from '@shell/components/nav/TopLevelMenu.vue';
-import { mount, Wrapper } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
 import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { nextTick } from 'vue';
@@ -80,7 +80,7 @@ describe('topLevelMenu', () => {
       id:   'an-id1',
       mgmt: { id: 'an-id1' },
     }];
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -99,7 +99,7 @@ describe('topLevelMenu', () => {
   });
 
   it('should show local cluster always on top of the list of clusters (unpinned and ready clusters)', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -182,7 +182,7 @@ describe('topLevelMenu', () => {
       },
     ];
 
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -201,7 +201,7 @@ describe('topLevelMenu', () => {
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and ready clusters)', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -256,7 +256,7 @@ describe('topLevelMenu', () => {
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and mix ready/unready clusters)', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       data: () => {
         return { hasProvCluster: true, showPinClusters: true };
       },
@@ -315,7 +315,7 @@ describe('topLevelMenu', () => {
   });
 
   it('should show description if it is available on the prov cluster', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -379,7 +379,7 @@ describe('topLevelMenu', () => {
   });
 
   it('should show description if it is available on the mgmt cluster (relevant for RKE1/ember world)', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -445,7 +445,7 @@ describe('topLevelMenu', () => {
   describe('searching a term', () => {
     describe('should displays a no results message if have clusters but', () => {
       it('given no matching clusters', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: {},
@@ -474,7 +474,7 @@ describe('topLevelMenu', () => {
       });
 
       it('given no matched pinned clusters', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           data: () => ({ clusterFilter: 'whatever' }),
 
           global: {
@@ -507,7 +507,7 @@ describe('topLevelMenu', () => {
     describe('should not displays a no results message', () => {
       it('given matching clusters', async() => {
         const search = 'you found me';
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           data: () => ({ clusterFilter: search }),
 
           global: {
@@ -538,7 +538,7 @@ describe('topLevelMenu', () => {
 
       it('given clusters with status pinned', async() => {
         const search = 'you found me';
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: {},
@@ -717,7 +717,7 @@ describe('topLevelMenu', () => {
   describe('computed properties', () => {
     describe('routeComboActive', () => {
       it('should be true when routeCombo is true and there are multiple ready clusters', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
@@ -749,7 +749,7 @@ describe('topLevelMenu', () => {
       });
 
       it('should be false when routeCombo is false', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: {},
@@ -792,7 +792,7 @@ describe('topLevelMenu', () => {
 
         store.getters.clusterId = 'an-id1' as any;
 
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: {},
@@ -820,7 +820,7 @@ describe('topLevelMenu', () => {
 
         store.getters.clusterId = 'some-other-cluster-id' as any;
 
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
@@ -839,7 +839,7 @@ describe('topLevelMenu', () => {
 
     describe('handleKeyComboClick', () => {
       it('should not toggle routeCombo when route is a non-explorer c-cluster route', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route:  { name: 'c-cluster-fleet', params: { cluster: 'local', product: 'fleet' } },
@@ -858,7 +858,7 @@ describe('topLevelMenu', () => {
       });
 
       it('should toggle routeCombo when route is cluster explorer', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route:  { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
@@ -962,7 +962,7 @@ describe('topLevelMenu', () => {
           }
         ];
 
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route:  { name: 'c-cluster-fleet', params: { cluster: 'local', product: 'fleet' } },
@@ -998,7 +998,7 @@ describe('topLevelMenu', () => {
           }
         ];
 
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route:  { name: 'fleet-management', params: {} },

@@ -88,7 +88,7 @@ describe('component: FleetClusters', () => {
 
     it('should configure reposReady column correctly', () => {
       const wrapper = createWrapper();
-      const reposReady = wrapper.vm.headers.find((h: any) => h.name === 'reposReady');
+      const reposReady = wrapper.vm.headers.find((h: any) => h.name === 'reposReady') as any;
 
       expect(reposReady?.labelKey).toBe('tableHeaders.reposReady');
       expect(reposReady?.value).toBe('status.readyGitRepos');
@@ -97,7 +97,7 @@ describe('component: FleetClusters', () => {
 
     it('should configure helmOpsReady column correctly', () => {
       const wrapper = createWrapper();
-      const helmOpsReady = wrapper.vm.headers.find((h: any) => h.name === 'helmOpsReady');
+      const helmOpsReady = wrapper.vm.headers.find((h: any) => h.name === 'helmOpsReady') as any;
 
       expect(helmOpsReady?.labelKey).toBe('tableHeaders.helmOpsReady');
       expect(helmOpsReady?.value).toBe('status.readyHelmOps');
@@ -106,7 +106,7 @@ describe('component: FleetClusters', () => {
 
     it('should configure bundlesReady column correctly', () => {
       const wrapper = createWrapper();
-      const bundlesReady = wrapper.vm.headers.find((h: any) => h.name === 'bundlesReady');
+      const bundlesReady = wrapper.vm.headers.find((h: any) => h.name === 'bundlesReady') as any;
 
       expect(bundlesReady?.labelKey).toBe('tableHeaders.bundlesReady');
       expect(bundlesReady?.value).toBe('status.display.readyBundles');
@@ -115,7 +115,7 @@ describe('component: FleetClusters', () => {
 
     it('should configure lastSeen column with LiveDate formatter', () => {
       const wrapper = createWrapper();
-      const lastSeen = wrapper.vm.headers.find((h: any) => h.name === 'lastSeen');
+      const lastSeen = wrapper.vm.headers.find((h: any) => h.name === 'lastSeen') as any;
 
       expect(lastSeen?.formatter).toBe('LiveDate');
       expect(lastSeen?.formatterOpts).toStrictEqual({ addSuffix: true });

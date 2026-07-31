@@ -1,4 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import ClusterSelectionFields from '@shell/components/fleet/FleetClusterTargets/ClusterSelectionFields.vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -27,7 +28,7 @@ describe('component: ClusterSelectionFields', () => {
   it('should emit select-clusters on cluster selection', () => {
     const wrapper = shallowMount(ClusterSelectionFields, { props: defaultProps });
 
-    wrapper.findComponent('[data-testid="fleet-target-cluster-name-selector"]').vm.$emit('update:value', ['cluster-2']);
+    wrapper.findComponent<ComponentPublicInstance>('[data-testid="fleet-target-cluster-name-selector"]').vm.$emit('update:value', ['cluster-2']);
 
     expect(wrapper.emitted('select-clusters')?.[0]).toStrictEqual([['cluster-2']]);
   });
@@ -35,7 +36,7 @@ describe('component: ClusterSelectionFields', () => {
   it('should emit select-cluster-groups on group selection', () => {
     const wrapper = shallowMount(ClusterSelectionFields, { props: defaultProps });
 
-    wrapper.findComponent('[data-testid="fleet-target-cluster-group-selector"]').vm.$emit('update:value', ['group-1']);
+    wrapper.findComponent<ComponentPublicInstance>('[data-testid="fleet-target-cluster-group-selector"]').vm.$emit('update:value', ['group-1']);
 
     expect(wrapper.emitted('select-cluster-groups')?.[0]).toStrictEqual([['group-1']]);
   });

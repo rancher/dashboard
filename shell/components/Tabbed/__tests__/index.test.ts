@@ -1,6 +1,7 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
+import { h } from 'vue';
 
 jest.mock('@shell/components/form/ResourceTabs/composable', () => ({ useTabCountWatcher: () => ({}) }));
 
@@ -24,7 +25,7 @@ describe('component: Tabbed', () => {
 
   it('should display tab navigation for a single tab when hideSingleTab is false (default)', async() => {
     const wrapper = mount(Tabbed, {
-      slots:  { default: { components: { Tab }, template: '<Tab name="tab1" label="Tab 1" />' } },
+      slots: { default: () => h(Tab, { name: 'tab1', label: 'Tab 1' }) },
       global: { ...defaultGlobalMountOptions },
     });
 
@@ -36,13 +37,10 @@ describe('component: Tabbed', () => {
   it('should display tab navigation for multiple tabs when hideSingleTab is false (default)', async() => {
     const wrapper = mount(Tabbed, {
       slots: {
-        default: {
-          components: { Tab },
-          template:   `
-            <Tab name="tab1" label="Tab 1" />
-            <Tab name="tab2" label="Tab 2" />
-          `,
-        },
+        default: () => [
+          h(Tab, { name: 'tab1', label: 'Tab 1' }),
+          h(Tab, { name: 'tab2', label: 'Tab 2' })
+        ]
       },
       global: { ...defaultGlobalMountOptions },
     });
@@ -54,8 +52,8 @@ describe('component: Tabbed', () => {
 
   it('should NOT display tab navigation for a single tab when hideSingleTab is true', async() => {
     const wrapper = mount(Tabbed, {
-      props:  { hideSingleTab: true },
-      slots:  { default: { components: { Tab }, template: '<Tab name="tab1" label="Tab 1" />' } },
+      props: { hideSingleTab: true },
+      slots: { default: () => h(Tab, { name: 'tab1', label: 'Tab 1' }) },
       global: { ...defaultGlobalMountOptions },
     });
 
@@ -68,13 +66,10 @@ describe('component: Tabbed', () => {
     const wrapper = mount(Tabbed, {
       props: { hideSingleTab: true },
       slots: {
-        default: {
-          components: { Tab },
-          template:   `
-            <Tab name="tab1" label="Tab 1" />
-            <Tab name="tab2" label="Tab 2" />
-          `,
-        },
+        default: () => [
+          h(Tab, { name: 'tab1', label: 'Tab 1' }),
+          h(Tab, { name: 'tab2', label: 'Tab 2' })
+        ]
       },
       global: { ...defaultGlobalMountOptions },
     });
