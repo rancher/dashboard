@@ -5,7 +5,7 @@ import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 describe('component: Certificates', () => {
   it('show correct \'expiring\' banner', async() => {
     const wrapper = shallowMount(Certificates, {
-      data() {
+      data(): any {
         return {
           schema: {},
           certs:  [{ certState: STATES_ENUM.EXPIRING }]

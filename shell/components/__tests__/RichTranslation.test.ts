@@ -7,7 +7,7 @@ import { h } from 'vue';
 const mockI18nStore = createStore({
   getters: {
     'i18n/t': () => (key: string, args: any, noMarkup: boolean) => {
-      const translations: Record<string, string> = {
+      const translations: Record<string, string | number> = {
         'test.simple':   'Hello World',
         'test.html':     'This is <b>bold</b> and <i>italic</i>.',
         'test.custom':   'This has a <customLink>link</customLink> and <anotherTag/>.',

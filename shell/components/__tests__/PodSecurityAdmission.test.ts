@@ -29,12 +29,12 @@ describe('component: PodSecurityAdmission', () => {
       const wrapper = mount(PodSecurityAdmission, { props: { mode: 'edit' } });
 
       const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);
-      let element;
+      let element: HTMLInputElement;
 
       if (inputId === 'version') {
-        element = input.element;
+        element = input.element as HTMLInputElement;
       } else {
-        element = input.find('input').element;
+        element = input.find('input').element as HTMLInputElement;
       }
 
       expect(element.value).toStrictEqual(value);
@@ -138,15 +138,17 @@ describe('component: PodSecurityAdmission', () => {
               labelsPrefix: prefix
             },
             // Unable to toggle the checkbox, so we enforce the data
-            data: () => ({
-              psaControls: {
-                enforce: {
-                  active:  true,
-                  level:   '',
-                  version: ''
+            data(): any {
+              return {
+                psaControls: {
+                  enforce: {
+                    active:  true,
+                    level:   '',
+                    version: ''
+                  }
                 }
-              }
-            }),
+              };
+            },
           });
 
           // Unable to toggle the checkbox, so we use the input
@@ -171,15 +173,17 @@ describe('component: PodSecurityAdmission', () => {
               labelsPrefix: prefix
             },
             // Unable to toggle the checkbox, so we enforce the data
-            data: () => ({
-              psaControls: {
-                enforce: {
-                  active:  true,
-                  level:   '',
-                  version: ''
+            data(): any {
+              return {
+                psaControls: {
+                  enforce: {
+                    active:  true,
+                    level:   '',
+                    version: ''
+                  }
                 }
-              }
-            }),
+              };
+            },
           });
 
           // Unable to toggle the checkbox, so we enforce the data
@@ -207,15 +211,17 @@ describe('component: PodSecurityAdmission', () => {
               labelsPrefix: prefix
             },
             // Unable to toggle the checkbox, so we enforce the data
-            data: () => ({
-              psaControls: {
-                enforce: {
-                  active:  true,
-                  level:   '',
-                  version: ''
+            data(): any {
+              return {
+                psaControls: {
+                  enforce: {
+                    active:  true,
+                    level:   '',
+                    version: ''
+                  }
                 }
-              }
-            }),
+              };
+            },
           });
           const newLabels = {
             [`${ prefix }enforce`]:         'privileged',
@@ -301,15 +307,17 @@ describe('component: PodSecurityAdmission', () => {
       it('given disabled active status', () => {
         const wrapper = mount(PodSecurityAdmission, {
           props: { mode: 'edit' },
-          data:  () => ({
-            psaControls: {
-              enforce: {
-                active:  false,
-                level:   '',
-                version: ''
+          data(): any {
+            return {
+              psaControls: {
+                enforce: {
+                  active:  false,
+                  level:   '',
+                  version: ''
+                }
               }
-            }
-          }),
+            };
+          },
         });
 
         const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);
