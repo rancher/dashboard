@@ -5429,7 +5429,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vue/cli-overlay@npm:^5.0.8, @vue/cli-overlay@npm:^5.0.9":
+"@vue/cli-overlay@npm:^5.0.9":
   version: 5.0.9
   resolution: "@vue/cli-overlay@npm:5.0.9"
   checksum: 10c0/d5fe59cd6743ae534d8639574b5f5c5da11a6d9bb6a317fbacde27aab16b108cb49996535a6912ec0ec22e886a2a4e445cd70dba33fe6d6fa7e10831fdf18d5b
@@ -5452,7 +5452,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vue/cli-plugin-router@npm:^5.0.8, @vue/cli-plugin-router@npm:^5.0.9":
+"@vue/cli-plugin-router@npm:^5.0.9":
   version: 5.0.9
   resolution: "@vue/cli-plugin-router@npm:5.0.9"
   dependencies:
@@ -5491,97 +5491,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vue/cli-plugin-vuex@npm:^5.0.8, @vue/cli-plugin-vuex@npm:^5.0.9":
+"@vue/cli-plugin-vuex@npm:^5.0.9":
   version: 5.0.9
   resolution: "@vue/cli-plugin-vuex@npm:5.0.9"
   peerDependencies:
     "@vue/cli-service": ^3.0.0 || ^4.0.0 || ^5.0.0-0
   checksum: 10c0/7023fc13a43d674610454ca45bd37fc8e3f325a0f0d5568fa1f975c4a632a82470b5667ee3a3aa5673ff3394b6b3a58535bccd5c0cfe2d5470c9e71f38f1c1a9
-  languageName: node
-  linkType: hard
-
-"@vue/cli-service@npm:5.0.8":
-  version: 5.0.8
-  resolution: "@vue/cli-service@npm:5.0.8"
-  dependencies:
-    "@babel/helper-compilation-targets": "npm:^7.12.16"
-    "@soda/friendly-errors-webpack-plugin": "npm:^1.8.0"
-    "@soda/get-current-script": "npm:^1.0.2"
-    "@types/minimist": "npm:^1.2.0"
-    "@vue/cli-overlay": "npm:^5.0.8"
-    "@vue/cli-plugin-router": "npm:^5.0.8"
-    "@vue/cli-plugin-vuex": "npm:^5.0.8"
-    "@vue/cli-shared-utils": "npm:^5.0.8"
-    "@vue/component-compiler-utils": "npm:^3.3.0"
-    "@vue/vue-loader-v15": "npm:vue-loader@^15.9.7"
-    "@vue/web-component-wrapper": "npm:^1.3.0"
-    acorn: "npm:^8.0.5"
-    acorn-walk: "npm:^8.0.2"
-    address: "npm:^1.1.2"
-    autoprefixer: "npm:^10.2.4"
-    browserslist: "npm:^4.16.3"
-    case-sensitive-paths-webpack-plugin: "npm:^2.3.0"
-    cli-highlight: "npm:^2.1.10"
-    clipboardy: "npm:^2.3.0"
-    cliui: "npm:^7.0.4"
-    copy-webpack-plugin: "npm:^9.0.1"
-    css-loader: "npm:^6.5.0"
-    css-minimizer-webpack-plugin: "npm:^3.0.2"
-    cssnano: "npm:^5.0.0"
-    debug: "npm:^4.1.1"
-    default-gateway: "npm:^6.0.3"
-    dotenv: "npm:^10.0.0"
-    dotenv-expand: "npm:^5.1.0"
-    fs-extra: "npm:^9.1.0"
-    globby: "npm:^11.0.2"
-    hash-sum: "npm:^2.0.0"
-    html-webpack-plugin: "npm:^5.1.0"
-    is-file-esm: "npm:^1.0.0"
-    launch-editor-middleware: "npm:^2.2.1"
-    lodash.defaultsdeep: "npm:^4.6.1"
-    lodash.mapvalues: "npm:^4.6.0"
-    mini-css-extract-plugin: "npm:^2.5.3"
-    minimist: "npm:^1.2.5"
-    module-alias: "npm:^2.2.2"
-    portfinder: "npm:^1.0.26"
-    postcss: "npm:^8.2.6"
-    postcss-loader: "npm:^6.1.1"
-    progress-webpack-plugin: "npm:^1.0.12"
-    ssri: "npm:^8.0.1"
-    terser-webpack-plugin: "npm:^5.1.1"
-    thread-loader: "npm:^3.0.0"
-    vue-loader: "npm:^17.0.0"
-    vue-style-loader: "npm:^4.1.3"
-    webpack: "npm:^5.54.0"
-    webpack-bundle-analyzer: "npm:^4.4.0"
-    webpack-chain: "npm:^6.5.1"
-    webpack-dev-server: "npm:^4.7.3"
-    webpack-merge: "npm:^5.7.3"
-    webpack-virtual-modules: "npm:^0.4.2"
-    whatwg-fetch: "npm:^3.6.2"
-  peerDependencies:
-    vue-template-compiler: ^2.0.0
-    webpack-sources: "*"
-  peerDependenciesMeta:
-    cache-loader:
-      optional: true
-    less-loader:
-      optional: true
-    pug-plain-loader:
-      optional: true
-    raw-loader:
-      optional: true
-    sass-loader:
-      optional: true
-    stylus-loader:
-      optional: true
-    vue-template-compiler:
-      optional: true
-    webpack-sources:
-      optional: true
-  bin:
-    vue-cli-service: bin/vue-cli-service.js
-  checksum: 10c0/5c4a29770ced1374b1a9440bda1e3518509d2b6df26ef1ddace010b94d24130ffe2c2c2feeae37e3118419625f6cbdd9be5964f8b58766e8c2b6d5983411ae8f
   languageName: node
   linkType: hard
 
@@ -5670,7 +5585,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vue/cli-shared-utils@npm:^5.0.8, @vue/cli-shared-utils@npm:^5.0.9":
+"@vue/cli-shared-utils@npm:^5.0.9":
   version: 5.0.9
   resolution: "@vue/cli-shared-utils@npm:5.0.9"
   dependencies:
@@ -9402,7 +9317,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:8.62.0"
     "@vee-validate/zod": "npm:4.15.0"
     "@vue/cli-plugin-babel": "npm:5.0.9"
-    "@vue/cli-service": "npm:5.0.8"
+    "@vue/cli-service": "npm:5.0.9"
     "@vue/test-utils": "npm:2.4.6"
     "@vue/vue3-jest": "npm:29.2.6"
     "@xterm/addon-canvas": "npm:0.7.0"
