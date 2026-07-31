@@ -289,5 +289,35 @@ describe('component: Header', () => {
 
       expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([true]);
     });
+
+    it('does not render aria-expanded attribute when value is undefined', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [{ label: 'Test', invoke: jest.fn() }];
+
+      await wrapper.vm.$nextTick();
+
+      const button = wrapper.find('[data-testid="extension-header-action-Test"]');
+
+      expect(button.attributes('aria-expanded')).toBeUndefined();
+    });
+
+    it('renders aria-expanded attribute when value is a boolean', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label:        'Open',
+          invoke:       jest.fn(),
+          ariaExpanded: true
+        },
+      ];
+
+      await wrapper.vm.$nextTick();
+
+      const button = wrapper.find('[data-testid="extension-header-action-Open"]');
+
+      expect(button.attributes('aria-expanded')).toBe('true');
+    });
   });
 });

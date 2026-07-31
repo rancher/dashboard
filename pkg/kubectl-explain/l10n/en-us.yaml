@@ -8,7 +8,7 @@ kubectl-explain:
   navigateToBreadcrumb: Navigate to breadcrumb {breadcrumb}
   scrollToTop: Scroll to top
   close: Close Describe Resource
-  action: "Describe Resource"
+  action: Describe Resource
   errors:
     load: Could not load the Open API data from the cluster
     notFound: Could not find OpenAPI definition for this resource
