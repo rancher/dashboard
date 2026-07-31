@@ -1,8 +1,13 @@
 
 import { mount, shallowMount } from '@vue/test-utils';
-import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
+import Banner from '@components/Banner/Banner.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
 import { randomStr } from '@shell/utils/string';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import AksNodePool from '../AksNodePool.vue';
+import Taint from '../Taint.vue';
 
 const mockedValidationMixin = {
   computed: {
@@ -56,13 +61,13 @@ describe('aks node pool component', () => {
   ])('on cluster create, or if this is a new node pool during edit, should show a disabled input for orchestratorVersion', (mode: string) => {
     const clusterVersion = '1.23.4';
     const wrapper = shallowMount(AksNodePool, {
-      propsData: {
+      props: {
         pool: { ...defaultPool, orchestratorVersion: clusterVersion }, mode, clusterVersion
       },
       ...requiredSetup()
     });
 
-    const versionDisplay = wrapper.getComponent('[data-testid="aks-pool-version-display"]');
+    const versionDisplay = wrapper.getComponent<typeof LabeledInput>('[data-testid="aks-pool-version-display"]');
 
     expect(versionDisplay.props().value).toBe(clusterVersion);
     expect(versionDisplay.props().disabled).toBe(true);
@@ -71,7 +76,7 @@ describe('aks node pool component', () => {
   it('on edit, if the cluster version matches the node pool orchestrator version, show the same disabled input as on create', () => {
     const clusterVersion = '1.23.4';
     const wrapper = shallowMount(AksNodePool, {
-      propsData: {
+      props: {
         pool: {
           ...defaultPool, orchestratorVersion: clusterVersion, _isNewOrUnprovisioned: false
         },
@@ -80,7 +85,7 @@ describe('aks node pool component', () => {
       ...requiredSetup()
 
     });
-    const versionDisplay = wrapper.getComponent('[data-testid="aks-pool-version-display"]');
+    const versionDisplay = wrapper.getComponent<typeof LabeledInput>('[data-testid="aks-pool-version-display"]');
 
     expect(versionDisplay.props().value).toBe(clusterVersion);
     expect(versionDisplay.props().disabled).toBe(true);
@@ -90,7 +95,7 @@ describe('aks node pool component', () => {
     const clusterVersion = '1.23.4';
     const originalClusterVersion = '1.20.0';
     const wrapper = shallowMount(AksNodePool, {
-      propsData: {
+      props: {
         pool: {
           ...defaultPool, orchestratorVersion: originalClusterVersion, _isNewOrUnprovisioned: false
         },
@@ -101,8 +106,8 @@ describe('aks node pool component', () => {
       ...requiredSetup()
 
     });
-    const versionDisplay = wrapper.getComponent('[data-testid="aks-pool-version-display"]');
-    const upgradeBanner = wrapper.getComponent('[data-testid="aks-pool-upgrade-banner"]');
+    const versionDisplay = wrapper.getComponent<typeof LabeledInput>('[data-testid="aks-pool-version-display"]');
+    const upgradeBanner = wrapper.getComponent<typeof Banner>('[data-testid="aks-pool-upgrade-banner"]');
 
     expect(versionDisplay.props().value).toBe(originalClusterVersion);
     expect(versionDisplay.props().disabled).toBe(true);
@@ -114,7 +119,7 @@ describe('aks node pool component', () => {
     const clusterVersion = '1.23.4';
     const originalOrchestratorVersion = '1.20.0';
     const wrapper = shallowMount(AksNodePool, {
-      propsData: {
+      props: {
         pool: {
           ...defaultPool, orchestratorVersion: originalOrchestratorVersion, _isNewOrUnprovisioned: false
         },
@@ -139,7 +144,7 @@ describe('aks node pool component', () => {
     const clusterVersion = '1.23.4';
     const originalOrchestratorVersion = '1.20.0';
     const wrapper = shallowMount(AksNodePool, {
-      propsData: {
+      props: {
         pool: {
           ...defaultPool, orchestratorVersion: originalOrchestratorVersion, _isNewOrUnprovisioned: false
         },
@@ -162,7 +167,7 @@ describe('aks node pool component', () => {
     const clusterVersion = '1.23.4';
     const originalOrchestratorVersion = '1.20.0';
     const wrapper = mount(AksNodePool, {
-      propsData: {
+      props: {
         pool: {
           ...defaultPool, orchestratorVersion: originalOrchestratorVersion, _isNewOrUnprovisioned: false
         },
@@ -174,7 +179,7 @@ describe('aks node pool component', () => {
 
     });
 
-    const upgradeCheckbox = wrapper.getComponent('[data-testid="aks-pool-upgrade-checkbox"]');
+    const upgradeCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="aks-pool-upgrade-checkbox"]');
 
     expect(upgradeCheckbox.props().label).toContain(clusterVersion);
   });
@@ -182,7 +187,7 @@ describe('aks node pool component', () => {
   it('should remove taints from the pool spec when the remove button is pressed', async() => {
     const initialTaints = ['key0=val0:PreferNoSchedule', 'key1=val1:PreferNoSchedule'];
     const wrapper = mount(AksNodePool, {
-      propsData: {
+      props: {
         pool: { ...defaultPool, nodeTaints: [...initialTaints] },
 
         mode: _EDIT
@@ -191,8 +196,10 @@ describe('aks node pool component', () => {
 
     });
 
-    const firstTaintRow = wrapper.getComponent('[data-testid="aks-pool-taint-0"]');
-    const secondTaintRow = wrapper.getComponent('[data-testid="aks-pool-taint-1"]');
+    const firstTaintRow = wrapper.getComponent<typeof Taint>('[data-testid="aks-pool-taint-0"]');
+    // findComponent, not getComponent: the second row is expected to disappear later in this
+    // test, and getComponent's return type deliberately omits `exists`
+    const secondTaintRow = wrapper.findComponent<typeof Taint>('[data-testid="aks-pool-taint-1"]');
 
     expect(secondTaintRow.exists()).toBe(true);
     firstTaintRow.vm.$emit('remove', 0);
@@ -210,7 +217,7 @@ describe('aks node pool component', () => {
     const labels = { abc: 'def', efg: 'hij' };
     const newLabels = { abc: 'def' };
     const wrapper = mount(AksNodePool, {
-      propsData: {
+      props: {
         pool: { ...defaultPool, nodeLabels: { ...labels } },
 
         mode: _EDIT
@@ -218,7 +225,7 @@ describe('aks node pool component', () => {
       ...requiredSetup()
 
     });
-    const labelInput = wrapper.getComponent('[data-testid="aks-node-labels-input"]');
+    const labelInput = wrapper.getComponent<typeof KeyValue>('[data-testid="aks-node-labels-input"]');
 
     expect(labelInput.props().value).toStrictEqual(labels);
 
@@ -232,7 +239,7 @@ describe('aks node pool component', () => {
     const countValidator = jest.fn();
 
     mount(AksNodePool, {
-      propsData: {
+      props: {
         pool:            { ...defaultPool, count: -1 },
         validationRules: { count: [countValidator] }
       },
@@ -250,7 +257,7 @@ describe('aks node pool component', () => {
     const countValidator = jest.fn();
 
     mount(AksNodePool, {
-      propsData: {
+      props: {
         pool: {
           ...defaultPool, count: -1, mode
         },

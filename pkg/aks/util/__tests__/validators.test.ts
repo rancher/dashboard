@@ -1,9 +1,13 @@
-import * as validators from '@pkg/aks/util/validators';
-import { AKSNodePool } from 'types';
+import * as validators from '../validators';
+import { AKSNodePool } from '../../types/index';
 
-validators.requiredTranslation = (ctx, label) => `${ label } is required.`;
+// TypeScript treats an `import * as` namespace as read-only, but ts-jest compiles this module
+// to CJS where the exports object really is writable - which is how these two helpers are stubbed.
+const stubbedValidators = validators as { -readonly [K in keyof typeof validators]: typeof validators[K] };
 
-validators.needsValidation = () => true;
+stubbedValidators.requiredTranslation = (ctx: any, label = 'Value') => `${ label } is required.`;
+
+stubbedValidators.needsValidation = () => true;
 
 const MOCK_TRANSLATION = 'abc';
 
@@ -108,7 +112,9 @@ describe('fx: nodePoolNames', () => {
     const ctx = { ...mockCtx, nodePools: [{ name: 'abcdefghijklm', _validation: {} }, { name: 'abcdefghijkl', _validation: {} }] as unknown as AKSNodePool[] };
     const validator = validators.nodePoolNames(ctx);
 
-    validator();
+    // `nodePoolNames` supports being called with no pool name - that is the code path which
+    // validates every pool in the context - but its signature declares `poolName` as required.
+    (validator as () => string | undefined)();
     expect(ctx.nodePools[0]?._validation?._validName).toStrictEqual(false);
 
     expect(ctx.nodePools[1]?._validation?._validName).toStrictEqual(true);
