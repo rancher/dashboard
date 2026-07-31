@@ -15,6 +15,9 @@ export const STORE = {
 
 export const BLANK_CLUSTER = '_';
 
+// From @shell/utils/pagination-utils.ts
+export const PAGINATION_UTILS = { defaultPageSize: 100000 };
+
 // From @shell/types/fleet.d.ts
 export type WorkloadType = 'workload' | 'pods' | 'apps.deployments' | 'replicasets' | 'daemonsets' | 'statefulsets' | 'jobs' | 'cronjobs';
 
