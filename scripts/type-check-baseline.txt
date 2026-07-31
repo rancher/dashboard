@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 1977
+# Total errors: 2039
 pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
 pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
@@ -727,14 +727,70 @@ pkg/rancher-prime/pages/Registration.vue: error TS2307: Cannot find module '@she
 pkg/rancher-prime/pages/Registration.vue: error TS2307: Cannot find module '@shell/components/form/FileSelector' or its corresponding type declarations.
 pkg/rancher-prime/pages/registration.composable.ts: error TS2339: Property 'message' does not exist on type '{}'.
 scripts/__tests__/cypress.test.ts: error TS2307: Cannot find module '@/scripts/cypress' or its corresponding type declarations.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2339: Property 'linkFor' does not exist on type '{}'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2339: Property 'linkFor' does not exist on type '{}'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '(type: string, id: string) => any' is not assignable to parameter of type 'UnknownFunction'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'never[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'never[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ cleanForSave: Mock<any>; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ cleanForSave: Mock<any>; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ data: { metadata: { name: string; }; }[]; pagination: { page: number; pageSize: number; total: number; }; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ data: { metadata: { name: string; }; }[]; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; labels: { app: string; }; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; labels: { app: string; }; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; namespace: string; }; spec: { data: string; }; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; namespace: string; }; spec: { replicas: number; }; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; namespace: string; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; data: { key: string; }; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; status: { conditions: never[]; }; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ metadata: { resourceVersion: string; name: string; namespace: string; }; type: string; data: { key: string; }; }' is not assignable to parameter of type 'never'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2345: Argument of type '{ type: string; metadata: { name: string; namespace: string; }; }' is not assignable to parameter of type 'never'.
 shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2352: Conversion of type 'ActionFindPageTransientResponse<ResourceInstance<Record<string, any>>>' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
 shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2352: Conversion of type 'ActionFindPageTransientResponse<ResourceInstance<Record<string, any>>>' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2558: Expected 0-1 type arguments, but got 2.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2558: Expected 0-1 type arguments, but got 2.
+shell/apis/shell/__tests__/notifications.test.ts: error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type 'never[]' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ data: never[]; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ data: string[]; paging: { next: null; }; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ data: string[]; paging: { next: string; }; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ items: string[]; links: { pages: { next: null; }; }; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ items: string[]; links: { pages: { next: string; }; }; }' is not assignable to parameter of type 'never'.
 shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ items: string[]; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ items: string[]; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ items: string[]; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ metadata: { name: string; }; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ save: Mock<UnknownFunction>; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ save: Mock<UnknownFunction>; }' is not assignable to parameter of type 'never'.
 shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ spec: { routes: never[]; }; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ spec: { routes: { domain: string; }[]; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ spec: { routes: { domain: string; }[]; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ spec: { routes: { domain: string; }[]; }; }[]' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ spec: {}; }[]' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ status: number; message: string; }' is not assignable to parameter of type 'never'.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ status: number; }' is not assignable to parameter of type 'never'.
 shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{}' is not assignable to parameter of type 'never'.
-shell/apis/shell/__tests__/proxy.test.ts: error TS2352: Conversion of type 'Mock<unknown, unknown[]>' to type 'Mock<any, any, any>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{}' is not assignable to parameter of type 'never'.
 shell/apis/shell/__tests__/slide-in.test.ts: error TS2554: Expected 1 arguments, but got 0.
-shell/apis/shell/__tests__/slide-in.test.ts: error TS2741: Property 'withImplementation' is missing in type 'SpyInstance<void, any[]>' but required in type 'SpyInstance<any, any, any>'.
+shell/apis/shell/__tests__/slide-in.test.ts: error TS2694: Namespace 'jest' has no exported member 'SpyInstance'.
 shell/apis/shell/__tests__/system.test.ts: error TS2305: Module '"@shell/config/version"' has no exported member 'isRancherPrime'.
 shell/apis/shell/__tests__/system.test.ts: error TS2724: '"@shell/config/version"' has no exported member named 'getKubeVersionData'. Did you mean 'getVersionData'?
 shell/apis/shell/index.ts: error TS2459: Module '"@shell/apis/intf/shell"' declares 'ProxyApi' locally, but it is not exported.
@@ -1359,9 +1415,14 @@ shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: 
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: This expression is not callable.
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: This expression is not callable.
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: This expression is not callable.
+shell/edit/provisioning.cattle.io.cluster/__tests__/subtype-detection.test.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member 'SUB_TYPE'.
 shell/edit/provisioning.cattle.io.cluster/ingress/IngressCards.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
 shell/edit/provisioning.cattle.io.cluster/ingress/IngressCards.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
 shell/edit/provisioning.cattle.io.cluster/ingress/IngressConfiguration.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/edit/provisioning.cattle.io.cluster/subtype-detection.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member 'SUB_TYPE'.
+shell/edit/provisioning.cattle.io.cluster/subtype-detection.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CONFIG'.
+shell/edit/provisioning.cattle.io.cluster/subtype-detection.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/edit/provisioning.cattle.io.cluster/subtype-detection.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
 shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
 shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
 shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
@@ -1744,6 +1805,7 @@ shell/plugins/steve/__tests__/mutations.test.ts: error TS2339: Property 'podsByN
 shell/plugins/steve/__tests__/mutations.test.ts: error TS2339: Property 'podsByNamespace' does not exist on type '{ types: { pod: any; }; ctx?: undefined; type?: undefined; data?: undefined; } | { ctx: { rootGetters: { 'type-map/optionsFor': (type: string) => {}; }; getters: { classify: (resource: any) => typeof Resource; cleanResource: (existing: Resource, resource: any) => any; keyFieldForType: () => string; }; }; type: strin...'.
 shell/plugins/steve/__tests__/mutations.test.ts: error TS2532: Object is possibly 'undefined'.
 shell/plugins/steve/__tests__/resource-utils.test.ts: error TS2554: Expected 1-2 arguments, but got 0.
+shell/plugins/steve/__tests__/steve-class-resource-api.test.ts: error TS2558: Expected 0-1 type arguments, but got 2.
 shell/plugins/steve/__tests__/steve-class-resource-api.test.ts: error TS2578: Unused '@ts-expect-error' directive.
 shell/plugins/steve/__tests__/steve-pagination-utils.test.ts: error TS2341: Property 'convertPaginationParams' is private and only accessible within class 'StevePaginationUtils'.
 shell/plugins/steve/__tests__/steve-pagination-utils.test.ts: error TS2445: Property 'combineNsProjectFilterResults' is protected and only accessible within class 'NamespaceProjectFilters' and its subclasses.
