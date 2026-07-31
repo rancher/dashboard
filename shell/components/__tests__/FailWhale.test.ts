@@ -1,6 +1,17 @@
 import { shallowMount } from '@vue/test-utils';
 import FailWhale from '@shell/components/FailWhale.vue';
 
+/**
+ * `FailWhale`'s `error` prop is declared as `{ status?, statusText?, data? }`.
+ * Every member is optional, which makes it a TypeScript "weak type": a plain
+ * `Error` shares none of those members and so is not assignable, even though
+ * the component explicitly documents and handles that case. Route the `Error`
+ * fixtures through the prop's own declared type rather than widening it.
+ */
+type FailWhaleErrorProp = NonNullable<InstanceType<typeof FailWhale>['$props']['error']>;
+
+const asFailWhaleError = (error: Error): FailWhaleErrorProp => error as FailWhaleErrorProp;
+
 const createWrapper = (props: any = {}) => {
   return shallowMount(FailWhale, {
     props,
@@ -21,7 +32,7 @@ const createWrapper = (props: any = {}) => {
 describe('component: FailWhale', () => {
   it('renders a generic error title when the error has no status', () => {
     const wrapper = shallowMount(FailWhale, {
-      props:  { error: new Error('boom') as any },
+      props:  { error: asFailWhaleError(new Error('boom')) },
       global: { stubs: { BrandImage: true } },
     });
 
@@ -48,7 +59,7 @@ describe('component: FailWhale', () => {
 
   it('renders content supplied via the actions slot', () => {
     const wrapper = shallowMount(FailWhale, {
-      props:  { error: new Error('boom') as any },
+      props:  { error: asFailWhaleError(new Error('boom')) },
       slots:  { actions: '<button class="my-action">Home</button>' },
       global: { stubs: { BrandImage: true } },
     });
@@ -80,7 +91,7 @@ describe('component: FailWhale', () => {
   });
 
   it('does not render a suggestion when none is supplied', () => {
-    const wrapper = createWrapper({ error: new Error('boom') as any });
+    const wrapper = createWrapper({ error: asFailWhaleError(new Error('boom')) });
 
     expect(wrapper.find('[data-testid="fail-whale-suggestion"]').exists()).toBe(false);
   });
