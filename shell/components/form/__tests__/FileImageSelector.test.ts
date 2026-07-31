@@ -1,7 +1,7 @@
 /* eslint-disable jest/no-hooks */
-import FileImageSelector from '@shell/components/form/FileImageSelector';
+import FileImageSelector from '@shell/components/form/FileImageSelector.vue';
 import { mount } from '@vue/test-utils';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelector from '@shell/components/form/FileSelector.vue';
 
 describe('component: FileImageSelector', () => {
   let wrapper: any;

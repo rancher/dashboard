@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils';
 import Labels, { Factory } from '@shell/components/form/Labels.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 const mockT = jest.fn((key: string) => key);
 
@@ -194,7 +193,7 @@ describe('component: Labels', () => {
     const wrapper = mount(Labels, {
       props: {
         value: mockValue,
-        mode:  _VIEW,
+        mode:  'view',
       },
       global: { mocks: { t: mockT } },
     });
@@ -210,7 +209,7 @@ describe('component: Labels', () => {
     const wrapper = mount(Labels, {
       props: {
         value: mockValue,
-        mode:  _EDIT,
+        mode:  'edit',
       },
       global: { mocks: { t: mockT } },
     });
@@ -232,7 +231,7 @@ describe('component: Labels', () => {
     const wrapper = mount(Labels, {
       props: {
         value: mockValueNoProtected,
-        mode:  _VIEW,
+        mode:  'view',
       },
       global: { mocks: { t: mockT } },
     });
@@ -245,7 +244,7 @@ describe('component: Labels', () => {
     const wrapper = mount(Labels, {
       props: {
         value: mockValue,
-        mode:  _VIEW,
+        mode:  'view',
       },
       global: { mocks: { t: mockT } },
     });
@@ -266,7 +265,7 @@ describe('component: Labels', () => {
     const wrapper = mount(Labels, {
       props: {
         value: mockValue,
-        mode:  _VIEW,
+        mode:  'view',
       },
       global: { mocks: { t: mockT } },
     });

@@ -412,7 +412,7 @@ describe('privateRegistry', () => {
         value:   'registry.example.com',
         context: PRIVATE_REGISTRY_CONTEXT.CHARTS
       });
-      const skipCheckbox = wrapper.findComponent('[data-testid="registry-skip-pull-secrets-checkbox"]');
+      const skipCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
       await skipCheckbox.vm.$emit('update:value', true);
       await wrapper.vm.$nextTick();
@@ -425,7 +425,7 @@ describe('privateRegistry', () => {
         value:   'registry.example.com',
         context: PRIVATE_REGISTRY_CONTEXT.CHARTS
       });
-      const skipCheckbox = wrapper.findComponent('[data-testid="registry-skip-pull-secrets-checkbox"]');
+      const skipCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
       await skipCheckbox.vm.$emit('update:value', true);
       await wrapper.vm.$nextTick();
@@ -439,7 +439,7 @@ describe('privateRegistry', () => {
         value:   'registry.example.com',
         context: PRIVATE_REGISTRY_CONTEXT.CHARTS
       });
-      const skipCheckbox = wrapper.findComponent('[data-testid="registry-skip-pull-secrets-checkbox"]');
+      const skipCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
       await skipCheckbox.vm.$emit('update:value', true);
       await wrapper.vm.$nextTick();
@@ -475,7 +475,7 @@ describe('privateRegistry', () => {
 
       expect(bannersBefore.length).toBeGreaterThanOrEqual(2);
 
-      const skipCheckbox = wrapper.findComponent('[data-testid="registry-skip-pull-secrets-checkbox"]');
+      const skipCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
       await skipCheckbox.vm.$emit('update:value', true);
       await wrapper.vm.$nextTick();

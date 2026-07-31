@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+
 import SSHKnownHosts from '@shell/components/form/SSHKnownHosts/index.vue';
 import { createStore } from 'vuex';
 
@@ -25,7 +25,7 @@ describe('component: SSHKnownHosts', () => {
   ])('mode view: summary should be: %p', (_, value, entities) => {
     const wrapper = mount(SSHKnownHosts, {
       props: {
-        mode: _VIEW,
+        mode: 'view',
         value,
       }
     });
@@ -41,7 +41,7 @@ describe('component: SSHKnownHosts', () => {
   it('mode edit: should display summary and edit button', () => {
     const wrapper = mount(SSHKnownHosts, {
       props: {
-        mode:  _EDIT,
+        mode:  'edit',
         value: 'line1\nline2\n',
       }
     });
@@ -58,7 +58,7 @@ describe('component: SSHKnownHosts', () => {
 
     const wrapper = mount(SSHKnownHosts, {
       props: {
-        mode:  _EDIT,
+        mode:  'edit',
         value: '',
       },
       global: {

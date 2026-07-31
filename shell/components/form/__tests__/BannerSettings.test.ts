@@ -49,6 +49,6 @@ describe('view: management.cattle.io.setting should', () => {
 
     const colorInputPreview = wrapper.find('[data-testid="color-input-color-input_preview-container"]');
 
-    expect(colorInputPreview.element.style.display).not.toBe('flex');
+    expect((colorInputPreview.element as HTMLElement).style.display).not.toBe('flex');
   });
 });
