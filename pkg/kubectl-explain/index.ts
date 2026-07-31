@@ -22,7 +22,7 @@ export default function(plugin: IPlugin, internal: IInternal): void {
       'logging'
     ]
   }, {
-    labelKey:    'kubectl-explain.title',
+    labelKey:    'kubectl-explain.action',
     tooltipKey:  'kubectl-explain.tooltip',
     svg:         require('./explain.svg'),
     ariaExpanded: () => isExplainPanelOpen.value,
