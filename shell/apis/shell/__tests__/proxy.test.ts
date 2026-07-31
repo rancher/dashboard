@@ -1,8 +1,5 @@
 // proxy.test.ts
 
-import {
-  describe, it, expect, jest, beforeEach
-} from '@jest/globals';
 import { ProxyApiImpl, createDepaginator } from '../proxy';
 import { Store } from 'vuex';
 
@@ -14,7 +11,7 @@ describe('proxyApiImpl', () => {
   let proxyApi: ProxyApiImpl;
 
   beforeEach(() => {
-    mockDispatch = jest.fn() as any;
+    mockDispatch = jest.fn();
     mockStore = { dispatch: mockDispatch } as any;
     proxyApi = new ProxyApiImpl(mockStore);
   });
