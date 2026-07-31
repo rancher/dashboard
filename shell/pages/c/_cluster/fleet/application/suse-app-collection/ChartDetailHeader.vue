@@ -60,6 +60,7 @@ const { t } = useI18n(store);
         <RcIcon
           v-if="deprecated"
           v-clean-tooltip="t('generic.deprecated')"
+          data-testid="appco-chart-deprecated-badge"
           type="alert-alt"
           size="large"
           status="error"

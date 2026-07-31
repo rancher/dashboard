@@ -256,6 +256,7 @@ defineExpose({ refreshYamlEditor });
             <RcIcon
               v-if="isDeprecated"
               v-clean-tooltip="t('generic.deprecated')"
+              data-testid="appco-config-deprecated-badge"
               type="alert-alt"
               size="medium"
               status="error"
