@@ -49,13 +49,10 @@ describe('page: cluster dashboard', () => {
     ])('should show %p status', (status, iconClass, name, conditions) => {
       const options = createMountOptions();
 
-      options.global.mocks.$store.getters.currentCluster.status = {
-        provider:          'provider',
-        componentStatuses: [{
-          name,
-          conditions
-        }],
-      };
+      (options.global.mocks.$store.getters.currentCluster.status as any).componentStatuses = [{
+        name,
+        conditions
+      }];
 
       const wrapper = shallowMount(Dashboard, options);
 
@@ -100,7 +97,7 @@ describe('page: cluster dashboard', () => {
     it.each(statuses)('should NOT show %p status due to missing canList permissions', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
       const options = createMountOptions();
 
-      options.global.mocks.$store.getters.currentCluster.isLocal = isLocal;
+      (options.global.mocks.$store.getters.currentCluster as any).isLocal = isLocal;
 
       const resources = agentResources.reduce((acc, r) => {
         const agent = {
@@ -168,11 +165,11 @@ describe('page: cluster dashboard', () => {
 
       const options = createMountOptions();
 
-      options.global.mocks.$store.getters.currentCluster.isLocal = isLocal;
+      (options.global.mocks.$store.getters.currentCluster as any).isLocal = isLocal;
 
-      options.global.mocks.$store.getters['cluster/canList'] = (type: string) => !!(type === WORKLOAD_TYPES.DEPLOYMENT) || !!(type === WORKLOAD_TYPES.STATEFUL_SET);
+      options.global.mocks.$store.getters['cluster/canList'] = jest.fn((type: string) => !!(type === WORKLOAD_TYPES.DEPLOYMENT) || !!(type === WORKLOAD_TYPES.STATEFUL_SET));
 
-      options.global.mocks.$router = {
+      (options.global.mocks as any).$router = {
         push: (route: any) => {
           agentRoute = route;
         }
@@ -221,7 +218,7 @@ describe('page: cluster dashboard', () => {
   it('local cluster - cattle agent health box - should be hidden', () => {
     const options = createMountOptions();
 
-    options.global.mocks.$store.getters.currentCluster.isLocal = true;
+    (options.global.mocks.$store.getters.currentCluster as any).isLocal = true;
 
     const wrapper = shallowMount(Dashboard, {
       ...options,
@@ -250,7 +247,7 @@ describe('page: cluster dashboard', () => {
 
       const currentCluster = options.global.mocks.$store.getters['currentCluster'];
 
-      options.global.mocks.$store.getters['currentCluster'] = mgmtCluster ? mergeWithReplace(currentCluster, mgmtCluster) : currentCluster; // eslint-disable-line jest/no-conditional-in-test
+      options.global.mocks.$store.getters['currentCluster'] = mgmtCluster ? mergeWithReplace(currentCluster, mgmtCluster) as any : currentCluster; // eslint-disable-line jest/no-conditional-in-test
 
       const wrapper = shallowMount(Dashboard, options);
 

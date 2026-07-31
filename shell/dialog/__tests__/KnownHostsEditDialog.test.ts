@@ -1,10 +1,10 @@
 import { mount, VueWrapper } from '@vue/test-utils';
-import { _EDIT } from '@shell/config/query-params';
 import KnownHostsEditDialog from '@shell/dialog/KnownHostsEditDialog.vue';
 import CodeMirror from '@shell/components/CodeMirror.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 
 let wrapper: VueWrapper<InstanceType<typeof KnownHostsEditDialog>>;
+let closedMock: jest.Mock;
 
 const mockedStore = () => {
   return { getters: { 'prefs/get': () => jest.fn() } };
@@ -16,12 +16,14 @@ const requiredSetup = () => {
 
 describe('component: KnownHostsEditDialog', () => {
   beforeEach(() => {
+    closedMock = jest.fn();
     document.body.innerHTML = '<div id="modals"></div>';
     wrapper = mount(KnownHostsEditDialog, {
       attachTo: document.body,
       props:    {
-        mode:  _EDIT,
-        value: 'line1\nline2\n'
+        mode:   'edit',
+        value:  'line1\nline2\n',
+        closed: closedMock
       },
       ...requiredSetup(),
     });
@@ -63,8 +65,6 @@ describe('component: KnownHostsEditDialog', () => {
   });
 
   it('should save changes and close dialog', async() => {
-    const closed = jest.spyOn(wrapper.vm, 'closed');
-
     await wrapper.setData({ text: 'foo' });
 
     expect(wrapper.vm.value).toBe('line1\nline2\n');
@@ -72,15 +72,13 @@ describe('component: KnownHostsEditDialog', () => {
 
     await wrapper.vm.closeDialog(true);
 
-    expect(closed).toHaveBeenCalledWith({
+    expect(closedMock).toHaveBeenCalledWith({
       success: true,
       value:   'foo'
     });
   });
 
   it('should discard changes and close dialog', async() => {
-    const closed = jest.spyOn(wrapper.vm, 'closed');
-
     await wrapper.setData({ text: 'foo' });
 
     expect(wrapper.vm.value).toBe('line1\nline2\n');
@@ -88,7 +86,7 @@ describe('component: KnownHostsEditDialog', () => {
 
     await wrapper.vm.closeDialog(false);
 
-    expect(closed).toHaveBeenCalledWith({
+    expect(closedMock).toHaveBeenCalledWith({
       success: false,
       value:   'line1\nline2\n'
     });

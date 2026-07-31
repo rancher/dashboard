@@ -43,21 +43,20 @@ const createResource = (overrides: Record<string, any> = {}) => {
 };
 
 describe('component: ScaleMachineDownDialog', () => {
-  const createWrapper = (propsData: { resources?: any[] } = {}, mocks = {}) => {
-    const resources = propsData.resources || [createResource()];
+  const createWrapper = (props: { resources?: ReturnType<typeof createResource>[] } = {}, mocks = {}) => {
+    const resources = props.resources || [createResource()];
 
     return shallowMount(ScaleMachineDownDialog, {
-      propsData: {
+      props: {
         resources,
-        ...propsData
+        ...props
       },
       global: {
         mocks: {
           ...defaultMocks,
           ...mocks
         },
-        stubs:      defaultStubs,
-        directives: { 'clean-html': true }
+        stubs: defaultStubs,
       }
     });
   };

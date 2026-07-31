@@ -756,9 +756,9 @@ describe('page: UI plugins/Extensions', () => {
         }
       });
 
-      w.vm.rancherVersion = '2.9.0';
-      w.vm.kubeVersion = '1.28.0';
-      w.vm.installing = {};
+      (w.vm as any).rancherVersion = '2.9.0';
+      (w.vm as any).kubeVersion = '1.28.0';
+      (w.vm as any).installing = {};
 
       return w;
     };

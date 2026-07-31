@@ -10,7 +10,7 @@ describe('component: RotateEncryptionKeyDialog', () => {
 
   const createWrapper = (cluster: any, dispatch = jest.fn()) => {
     return shallowMount(RotateEncryptionKeyDialog, {
-      propsData: { cluster },
+      props: { cluster },
       global:    {
         mocks: {
           t,
@@ -22,7 +22,6 @@ describe('component: RotateEncryptionKeyDialog', () => {
             }
           },
         },
-        directives: { 'clean-html': true }
       }
     });
   };
