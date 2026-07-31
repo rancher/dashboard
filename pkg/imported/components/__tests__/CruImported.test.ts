@@ -1,9 +1,9 @@
 import { shallowMount } from '@vue/test-utils';
-import CruImported from '@pkg/imported/components/CruImported.vue';
+import CruImported from '../CruImported.vue';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { MANAGEMENT } from '@shell/config/types';
-import { DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared.ts';
+import { DAY_2_OPS_DEFAULT } from '../../util/shared';
 import { SETTING } from '@shell/config/settings';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 
@@ -54,7 +54,7 @@ describe('cruImported component', () => {
   describe('networking tab visibility', () => {
     it('should show the networking tab when not in create mode, not RKE1, and not local', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: {
             id:                'cluster-id',
@@ -73,7 +73,7 @@ describe('cruImported component', () => {
 
     it('should hide the networking tab in create mode', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _CREATE,
           value: {
             isRke1:  false,
@@ -90,7 +90,7 @@ describe('cruImported component', () => {
 
     it('should show the networking tab when not in create mode, not RKE1, is local, and enableNetworkPolicySupported is true', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: {
             id:                'cluster-id',
@@ -111,7 +111,7 @@ describe('cruImported component', () => {
 
     it('should hide the networking tab when not in create mode, not RKE1, is local, and enableNetworkPolicySupported is false', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: {
             id:                'cluster-id',
@@ -132,7 +132,7 @@ describe('cruImported component', () => {
 
     it('should hide the networking tab for local RKE2 clusters detected via mgmt status provider', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: {
             id:                'cluster-id',
@@ -153,7 +153,7 @@ describe('cruImported component', () => {
     });
     it('should hide the networking tab for local special RKE2 clusters detected via mgmt status provider', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: {
             id:                'cluster-id',
@@ -174,7 +174,7 @@ describe('cruImported component', () => {
     });
     it('should hide the networking tab for local K3s clusters', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: {
             id:                'cluster-id',
@@ -195,7 +195,7 @@ describe('cruImported component', () => {
 
     it('should not display the ACE component if cluster is local', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: {
             id:                'cluster-id',
@@ -213,7 +213,7 @@ describe('cruImported component', () => {
     });
     it('should display the ACE component if cluster is not local', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: {
             id:                'cluster-id',
@@ -234,7 +234,7 @@ describe('cruImported component', () => {
   describe('day two ops', () => {
     it('should return default day two ops value when annotation is not set', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: { isRke1: false, isLocal: false }
         },
@@ -248,7 +248,7 @@ describe('cruImported component', () => {
 
     it('should return annotation value when day two ops annotation is set', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: { isRke1: false, isLocal: false }
         },
@@ -262,7 +262,7 @@ describe('cruImported component', () => {
 
     it('should set day two ops annotation', () => {
       const wrapper = shallowMount(CruImported, {
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: { isRke1: false, isLocal: false }
         },
@@ -279,7 +279,7 @@ describe('cruImported component', () => {
       const byId = jest.fn().mockReturnValue({ value: 'true' });
       const wrapper = shallowMount(CruImported, {
         ...defaultSetup,
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: { isRke1: false, isLocal: false }
         },
@@ -317,7 +317,7 @@ describe('cruImported component', () => {
       const dispatch = jest.fn().mockRejectedValue(new Error('not found'));
       const wrapper = shallowMount(CruImported, {
         ...defaultSetup,
-        propsData: {
+        props: {
           mode:  _EDIT,
           value: { isRke1: false, isLocal: false }
         },
