@@ -78,7 +78,7 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: npm run install:ci
 
       - name: Parse Extension Name
         if: github.ref_type == 'tag' || inputs.is_test == 'true'

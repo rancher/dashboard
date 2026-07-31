@@ -13,15 +13,12 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
-      - name: Enable Corepack
-        run: corepack enable
-
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: '.nvmrc'
-      
+
       - name: Install packages
-        run: yarn install --immutable
+        run: npm run install:ci
 
       - name: Verify build
         run: yarn build:lib
@@ -32,15 +29,12 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
-      - name: Enable Corepack
-        run: corepack enable
-
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: '.nvmrc'
-      
+
       - name: Install packages
-        run: yarn install --immutable
+        run: npm run install:ci
       
       - name: Run linters
         run: yarn lint:lib

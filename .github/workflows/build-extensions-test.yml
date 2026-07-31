@@ -135,7 +135,7 @@ jobs:
       - name: Install Dependencies
         if: ${{ matrix.folder != '_skip_' }}
         shell: bash
-        run: yarn install --immutable
+        run: npm run install:ci
 
       - name: "Build extension: ${{ matrix.folder }}"
         if: ${{ matrix.folder != '_skip_' }}
