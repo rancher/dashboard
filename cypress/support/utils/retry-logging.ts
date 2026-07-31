@@ -9,7 +9,7 @@
  * `logFailedAttempt` task registered in `cypress/base-config.ts`, which prints it with the
  * formatter below.
  */
-export interface FailedAttempt {
+export interface CypressFailedAttempt {
   /** Spec file the test belongs to, relative to the project root */
   spec: string;
   /** Full title of the test, including the enclosing describe blocks */
@@ -37,7 +37,7 @@ const indent = (text: string, prefix: string): string => text
 /**
  * Format a single failed attempt as a block of terminal output
  */
-export const formatFailedAttempt = (failure: FailedAttempt): string => {
+export const formatFailedCypressAttempt = (failure: CypressFailedAttempt): string => {
   const {
     spec, title, attempt, totalAttempts, name, message, stack
   } = failure;

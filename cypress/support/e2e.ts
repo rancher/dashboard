@@ -5,7 +5,7 @@ import './commands/chainable';
 import './commands/rancher-api-commands';
 import './commands/accessiblity';
 
-import { FailedAttempt } from './utils/retry-logging';
+import { CypressFailedAttempt } from './utils/retry-logging';
 import 'cypress-mochawesome-reporter/register';
 import '@percy/cypress';
 import 'cypress-axe';
@@ -72,7 +72,7 @@ afterEach(function() {
     return;
   }
 
-  let failure: FailedAttempt;
+  let failure: CypressFailedAttempt;
 
   try {
     const test = this.currentTest as unknown as RetryableTest;

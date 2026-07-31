@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
-import { FailedAttempt, formatFailedAttempt } from './support/utils/retry-logging';
+import { CypressFailedAttempt, formatFailedCypressAttempt } from './support/utils/retry-logging';
 import path from 'path';
 import * as os from 'os';
 const { removeDirectory } = require('cypress-delete-downloads-folder');
@@ -211,8 +211,8 @@ const baseConfig = defineConfig({
         },
         // Prints a retried test's failure to the terminal. Without this only the last
         // attempt's error is shown, see `support/utils/retry-logging.ts`.
-        logFailedAttempt: (failure: FailedAttempt) => {
-          console.log(formatFailedAttempt(failure));
+        logFailedAttempt: (failure: CypressFailedAttempt) => {
+          console.log(formatFailedCypressAttempt(failure));
 
           // Cypress tasks must not return undefined
           return null;
