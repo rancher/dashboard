@@ -263,7 +263,7 @@ describe('component: Group', () => {
       t: (key: string) => key,
     };
 
-    const mountGroupWithMocks = (group: any, extraProps: Record<string, unknown> = {}, stubs: Record<string, unknown> = {}) => shallowMount(Group as any, {
+    const mountGroupWithMocks = (group: any, extraProps: Record<string, unknown> = {}, stubs: any = {}) => shallowMount(Group as any, {
       props: {
         group,
         canCollapse: true,

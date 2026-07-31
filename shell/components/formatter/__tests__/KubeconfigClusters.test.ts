@@ -1,12 +1,17 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import KubeconfigClusters from '@shell/components/formatter/KubeconfigClusters.vue';
 
+interface ClusterReference {
+  label: string;
+  location?: object;
+}
+
 describe('component: KubeconfigClusters', () => {
   const MAX_DISPLAY = 25;
 
-  const createCluster = (label: string, hasLocation = true) => ({
+  const createCluster = (label: string, hasLocation = true): ClusterReference => ({
     label,
-    location: hasLocation ? { name: 'cluster-detail', params: { cluster: label } } : null
+    location: hasLocation ? { name: 'cluster-detail', params: { cluster: label } } : undefined
   });
 
   const createClusters = (count: number, hasLocation = true) => {
@@ -15,9 +20,9 @@ describe('component: KubeconfigClusters', () => {
 
   const defaultMocks = { t: (key: string, args: Record<string, unknown>) => `+ ${ args.remainingCount } more` };
 
-  const mountComponent = (clusters: unknown[] = [], mocks = defaultMocks) => {
+  const mountComponent = (clusters: ClusterReference[] = [], mocks = defaultMocks) => {
     return mount(KubeconfigClusters, {
-      props:  { row: { id: 'test-row', sortedReferencedClusters: clusters } },
+      props:  { row: { id: 'test-row', sortedReferencedClusters: clusters }, value: clusters },
       global: {
         mocks,
         stubs: { 'router-link': RouterLinkStub }
@@ -105,21 +110,21 @@ describe('component: KubeconfigClusters', () => {
         }
       });
 
-      expect(wrapper.vm.allClusters).toStrictEqual([]);
+      expect((wrapper.vm as any).allClusters).toStrictEqual([]);
     });
 
     it('should calculate remainingCount as 0 when clusters are at or below limit', () => {
       const clusters = createClusters(MAX_DISPLAY);
       const wrapper = mountComponent(clusters);
 
-      expect(wrapper.vm.remainingCount).toBe(0);
+      expect((wrapper.vm as any).remainingCount).toBe(0);
     });
 
     it('should calculate correct remainingCount when clusters exceed limit', () => {
       const clusters = createClusters(MAX_DISPLAY + 15);
       const wrapper = mountComponent(clusters);
 
-      expect(wrapper.vm.remainingCount).toBe(15);
+      expect((wrapper.vm as any).remainingCount).toBe(15);
     });
   });
 });
