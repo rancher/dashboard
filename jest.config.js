@@ -50,8 +50,12 @@ module.exports = {
   transform: {
     '^.+\\.js$':   '<rootDir>/node_modules/babel-jest', // process js with `babel-jest`
     '^.+\\.mjs$':  '<rootDir>/node_modules/babel-jest', // process mjs (e.g. vee-validate ESM) with `babel-jest`
-    '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue3-jest', // process `*.vue` files with `vue-jest`
-    '^.+\\.vue$':  './vue3JestRegisterTs.js', // point to a  different transformer than vue-jest and call registerTs before exporting vue-jest
+    // `*.vue` goes through the local wrapper, which re-exports `@vue/vue3-jest` after
+    // registering TypeScript with `@vue/compiler-sfc` and repairing its template
+    // transform (see the file). A second `.*\.(vue)$` entry pointing straight at
+    // `@vue/vue3-jest` used to sit above this one and shadowed it - Jest takes the first
+    // matching pattern - so the wrapper never ran.
+    '^.+\\.vue$':  './vue3JestRegisterTs.js',
     '^.+\\.tsx?$': 'ts-jest', // process `*.ts` files with `ts-jest`
     '^.+\\.svg$':  '<rootDir>/svgTransform.js' // to mock `*.svg` files
   },

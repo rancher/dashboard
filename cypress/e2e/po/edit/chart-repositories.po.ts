@@ -87,7 +87,7 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
     return new LabeledInputPo('[data-testid="clusterrepo-refresh-interval-input"]');
   }
 
-  saveAndWaitForRequests(method: string, url: string) {
+  saveAndWaitForRequests(method: string, url: string): Cypress.Chainable {
     cy.intercept(method, url).as('request');
     this.saveCreateForm().click();
 

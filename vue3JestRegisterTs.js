@@ -12,4 +12,28 @@
  * SEE: https://github.com/vuejs/core/issues/8301
  */
 require('@vue/compiler-sfc').registerTS(() => require('typescript'));
+
+/**
+ * Hand `@vue/vue3-jest` a corrected TypeScript, so that the compiled `<template>` of a
+ * TypeScript SFC is emitted as CommonJS rather than ESM. See `jestTypescriptProxy.js` for
+ * what is wrong and why it only surfaced with TypeScript 6.
+ *
+ * The redirect is scoped to `@vue/vue3-jest`: everything else in the Jest process keeps the
+ * real `typescript`.
+ */
+const Module = require('module');
+const path = require('path');
+
+const proxyPath = require.resolve('./jestTypescriptProxy');
+const vueJestDir = path.dirname(require.resolve('@vue/vue3-jest/package.json'));
+const originalResolveFilename = Module._resolveFilename;
+
+Module._resolveFilename = function resolveFilename(request, parent, ...rest) {
+  if (request === 'typescript' && parent && parent.filename && parent.filename.startsWith(vueJestDir)) {
+    return proxyPath;
+  }
+
+  return originalResolveFilename.call(this, request, parent, ...rest);
+};
+
 module.exports = require('@vue/vue3-jest');

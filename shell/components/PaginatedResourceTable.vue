@@ -127,7 +127,10 @@ export default defineComponent({
     safeHeaders(): any[] {
       const customHeaders: any[] = this.canPaginate ? this.paginationHeaders : this.headers;
 
-      const $store = this.$store as VuexStore;
+      // `this.$store` is only narrowed to `VuexStore` where shell's `vue-shim` augmentation
+      // is loaded. It is not in the extension build, where `this` comes from Vue's own
+      // types, so go through `unknown` rather than fail the build with TS2352.
+      const $store = this.$store as unknown as VuexStore;
 
       return customHeaders || $store.getters['type-map/headersFor'](this.schema, this.canPaginate);
     }

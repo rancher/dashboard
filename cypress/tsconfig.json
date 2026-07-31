@@ -1,19 +1,39 @@
 {
-  "target": "ES2018",
-  "module": "ES2020",
-  "moduleResolution": "Node",
-  "lib": [
-    "ES2020",
-    "ES2020.AsyncIterable",
-    "DOM"
-  ],
-  "allowJs": true,
-  "sourceMap": true,
-  "strict": true,
-  "noEmit": false,
+  // `target`, `module`, `moduleResolution`, `lib`, `allowJs`, `sourceMap`, `strict` and
+  // `noEmit` used to sit here, outside `compilerOptions`, where TypeScript ignores them.
+  // They never applied, so they are removed rather than nested: switching them on changes
+  // what this project compiles. `allowJs` in particular pulls `shell/**/*.js` into the
+  // program through the path aliases and breaks the package build (TS5055/TS6059), and the
+  // specs do not compile under `strict`. Adopting them is separate work.
   "compilerOptions": {
+    // Cypress compiles specs with its own bundled `webpack-batteries-included-preprocessor`,
+    // which hardcodes `downlevelIteration: true` into `ts-loader` and merges it over this
+    // file. TypeScript 6 deprecated that option, so every spec fails to compile with
+    // `TS5101` before a single test runs. The preprocessor is inside the Cypress binary and
+    // takes no option to change this, so silence the deprecation for spec compilation.
+    // Nothing in this repo sets `downlevelIteration` itself.
+    "ignoreDeprecations": "6.0",
+    // Cypress 11 bundles webpack 4, whose parser predates optional chaining. TypeScript 6
+    // defaults to a target new enough to emit `?.` untouched, and the spec bundle then dies
+    // with `Module parse failed: Unexpected token`. Pin the target so it is downlevelled.
+    "target": "ES2018",
+    // `ES2020.AsyncIterable` used to be listed here too. It is not a real lib - the async
+    // iterable lib is `ES2018.AsyncIterable`, and `ES2020` already includes it - and it only
+    // went unnoticed because these options sat outside `compilerOptions` and never applied.
+    // Nested, it fails the spec build with TS6046.
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
+    // `node16` drops the `node10` resolution deprecated in TypeScript 6 and removed in 7,
+    // while keeping the CommonJS emit this published package relies on: cypress/package.json
+    // declares no `"type": "module"`.
+    "module": "node16",
+    "moduleResolution": "node16",
+    // TypeScript 6 enables `strict` by default. It was never in effect here and the specs
+    // do not compile under it, so keep the behaviour this code was written against.
+    "strict": false,
     "esModuleInterop": true,
-    "baseUrl": "..",
     // NOTE: "@cypress/grep" is deliberately not listed here. v6 is exports-only (no
     // top-level "types"/"main" field), so a `types` entry fails to resolve (TS2688).
     // Its global `tags` augmentation is picked up from the `@cypress/grep` import in
@@ -22,6 +42,12 @@
       "cypress",
       "cypress-axe"
     ],
+    // `baseUrl` is deprecated in TypeScript 6, and TypeScript itself resolves `paths`
+    // without it. Cypress does not: it resolves these aliases for the spec bundle with
+    // `TsconfigPathsPlugin`, and `tsconfig-paths` still requires `baseUrl` - without it, it
+    // logs "Missing baseUrl in compilerOptions. tsconfig-paths will be skipped" and every
+    // `@/...` import fails to resolve. Keep it, and keep the paths relative to it.
+    "baseUrl": "..",
     "paths": {
       "~/*": [
         "*"
