@@ -358,13 +358,13 @@ export default {
                 </slot>
               </div>
             </div>
-            <div class="step-sequence">
-              <ul
+            <nav
+              class="step-sequence"
+              :aria-label="t('wizard.stepList')"
+            >
+              <ol
                 v-if="showSteps"
                 class="steps"
-                tabindex="0"
-                @keyup.right.stop="selectNext(1)"
-                @keyup.left.stop="selectNext(-1)"
               >
                 <template
                   v-for="(step, idx ) in visibleSteps"
@@ -374,14 +374,13 @@ export default {
 
                     :id="step.name"
                     :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
-                    role="presentation"
                   >
-                    <span
-                      :aria-controls="'step-container-' + step.name"
-                      :aria-selected="step.name === activeStep.name"
-                      role="tab"
+                    <button
+                      type="button"
                       class="controls"
-                      @click.prevent="goToStep(idx+1, true)"
+                      :aria-current="step.name === activeStep.name ? 'step' : null"
+                      :disabled="!isAvailable(step)"
+                      @click="goToStep(idx+1, true)"
                     >
                       <span
                         class="icon icon-lg"
@@ -390,16 +389,17 @@ export default {
                       <span>
                         {{ step.label }}
                       </span>
-                    </span>
+                    </button>
                   </li>
                   <li
                     v-if="idx!==visibleSteps.length-1"
                     :key="step.name"
                     class="divider"
+                    aria-hidden="true"
                   />
                 </template>
-              </ul>
-            </div>
+              </ol>
+            </nav>
           </div>
         </div>
         <slot
@@ -415,7 +415,6 @@ export default {
               v-if="step.name === activeStep.name || step.hidden"
               :id="'step-container-' + step.name"
               :key="step.name"
-              role="tabpanel"
               class="step-container__step"
               :class="{'hide': step.name !== activeStep.name && step.hidden}"
             >
@@ -558,11 +557,6 @@ $spacer: 10px;
       list-style-type:none;
       padding: 0;
 
-      &:focus{
-          outline:none;
-          box-shadow: none;
-      }
-
       & li.step{
         display: flex;
         flex-direction: row;
@@ -578,6 +572,12 @@ $spacer: 10px;
         }
 
         & .controls {
+          // A step is a button so it can be reached and pressed from the
+          // keyboard; it still has to look like the plain marker it was.
+          background: none;
+          border: none;
+          color: inherit;
+          font: inherit;
           display: flex;
           flex-direction: column;
           align-items: center;

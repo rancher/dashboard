@@ -7507,6 +7507,7 @@ wizard:
   finish: Finish
   next: Next
   step: "Step {number}"
+  stepList: Wizard steps
   edit: Edit
   create: Create
   view: View
