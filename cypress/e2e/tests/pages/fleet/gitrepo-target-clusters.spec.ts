@@ -21,6 +21,14 @@ const repoInfo = {
   paths:   'simple'
 };
 
+// A genuine user label selector. Note: a `provider.cattle.io NotIn [harvester]`
+// expression is the built-in "exclude Harvester" sentinel that the form strips and
+// reads back as "all clusters", so it must NOT be used to exercise clusters mode.
+const matchExpression = {
+ key: 'env', operator: 'In', values: ['prod']
+};
+const customTargets = [{ clusterSelector: { matchExpressions: [matchExpression] } }];
+
 let repoName = '';
 const reposToDelete: string[] = [];
 
@@ -35,7 +43,7 @@ describe('Fleet GitRepo target clusters via match expressions', { testIsolation:
     // in `before` (not inside the test) so a test retry never re-POSTs the name.
     cy.createE2EResourceName('git-repo-target-me').then((name) => {
       repoName = name;
-      cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, name, repoInfo.repoUrl, repoInfo.branch, repoInfo.paths)).then(() => {
+      cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, name, repoInfo.repoUrl, repoInfo.branch, repoInfo.paths, customTargets)).then(() => {
         reposToDelete.push(`${ workspace }/${ name }`);
       });
     });
@@ -70,10 +78,12 @@ describe('Fleet GitRepo target clusters via match expressions', { testIsolation:
     cy.waitForInterceptWithConflictRetry('@updateGitRepo').then(({ request, response }: any) => {
       expect(response?.statusCode).to.be.oneOf([200, 201]);
 
-      const withSelector = request.body.spec.targets.find((t: any) => t.clusterSelector?.matchExpressions?.length);
+      const rules = (request.body.spec.targets || []).flatMap((t: any) => t.clusterSelector?.matchExpressions || []);
+      const envRule = rules.find((r: any) => r.key === matchExpression.key);
 
-      expect(withSelector, 'match expression preserved after edit').to.not.be.undefined;
-      expect(withSelector.clusterSelector.matchExpressions[0].key).to.eq('provider.cattle.io');
+      expect(envRule, 'user match expression preserved after edit').to.not.be.undefined;
+      expect(envRule.operator).to.eq(matchExpression.operator);
+      expect(envRule.values).to.include(matchExpression.values[0]);
     });
   });
 
