@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 2039
+# Total errors: 2040
 pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
 pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
@@ -2037,6 +2037,7 @@ shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabl
 shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
 shell/utils/unit-tests/pagination-utils.spec.ts: error TS2345: Argument of type 'undefined' is not assignable to parameter of type '(string[] | (({ rootGetters, $extension }: any, enabledFor: PaginationResourceContext) => boolean) | { (ctx: any): PaginationSettingsStores; (serverPagination: PaginationSettings): PaginationSettingsStores; } | ... 11 more ... | (({ rootGetters }: any) => number | undefined)) & void'.
 shell/utils/unit-tests/pagination-utils.spec.ts: error TS2769: No overload matches this call.
+shell/utils/validators/__tests__/zod-helpers.test.ts: error TS2345: Argument of type '(key: string, args?: Record<string, unknown>) => string' is not assignable to parameter of type '(key: string, args?: unknown, raw?: boolean) => string'.
 shell/utils/validators/private-registry.ts: error TS2307: Cannot find module 'types/store/vuex' or its corresponding type declarations.
 shell/utils/versions.ts: error TS2724: '"@shell/config/version"' has no exported member named 'setKubeVersionData'. Did you mean 'getVersionData'?
 shell/utils/versions.ts: error TS2724: '"@shell/config/version"' has no exported member named 'setVersionData'. Did you mean 'getVersionData'?
