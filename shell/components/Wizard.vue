@@ -362,6 +362,7 @@ export default {
               <ul
                 v-if="showSteps"
                 class="steps"
+                role="tablist"
                 tabindex="0"
                 @keyup.right.stop="selectNext(1)"
                 @keyup.left.stop="selectNext(-1)"
@@ -396,6 +397,7 @@ export default {
                     v-if="idx!==visibleSteps.length-1"
                     :key="step.name"
                     class="divider"
+                    role="presentation"
                   />
                 </template>
               </ul>

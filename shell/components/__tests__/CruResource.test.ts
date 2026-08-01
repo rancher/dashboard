@@ -249,4 +249,79 @@ describe('component: CruResource', () => {
 
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
+
+  describe('with steps', () => {
+    const steps = [
+      {
+        name: 'stepOne', label: 'One', ready: true
+      },
+      {
+        name: 'stepTwo', label: 'Two', ready: false
+      },
+    ];
+
+    const mountWithSteps = () => mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _CREATE,
+        resource: {},
+        steps,
+      },
+
+      slots: {
+        stepOne: '<div class="step-one-content" />',
+        stepTwo: '<div class="step-two-content" />',
+      },
+
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: {} },
+          $router: { applyQuery: jest.fn() },
+        },
+      },
+    });
+
+    it('should render the step content of the active step', () => {
+      const wrapper = mountWithSteps();
+
+      expect(wrapper.find('.step-one-content').exists()).toBe(true);
+      expect(wrapper.find('.step-two-content').exists()).toBe(false);
+    });
+
+    it('should point the active step tab at the panel holding its content', () => {
+      const wrapper = mountWithSteps();
+
+      const tab = wrapper.find('[role="tab"][aria-selected="true"]');
+      const panel = wrapper.find(`#${ tab.attributes('aria-controls') }`);
+
+      expect(panel.exists()).toBe(true);
+      expect(panel.attributes('role')).toBe('tabpanel');
+      expect(panel.find('.step-one-content').exists()).toBe(true);
+    });
+
+    it('should only hold tabs and presentational elements in the tablist', () => {
+      const wrapper = mountWithSteps();
+      const tablist = wrapper.find('[role="tablist"]');
+
+      expect(tablist.exists()).toBe(true);
+
+      // A tablist may only own tabs, so the list items around them (the step
+      // wrappers and the dividers between them) have to be presentational.
+      const unexpected = Array.from(tablist.element.children)
+        .filter((el) => !['tab', 'presentation', 'none'].includes(el.getAttribute('role') || ''))
+        .map((el) => el.outerHTML);
+
+      expect(unexpected).toStrictEqual([]);
+    });
+  });
 });
