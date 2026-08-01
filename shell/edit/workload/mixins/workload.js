@@ -313,6 +313,18 @@ export default {
         }];
     },
 
+    containerNameRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.container.containerName') });
+
+      return [required];
+    },
+
+    containerImageRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.container.image') });
+
+      return [required];
+    },
+
     tabErrors() {
       const tabErrors = { podSecurityContext: this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0 };
 
@@ -492,14 +504,13 @@ export default {
           return each;
         }),
       ].map((container) => {
-        const containerImageRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).containerImage;
-        const localhostProfileRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).localhostProfile;
-
-        const imageError = containerImageRule(container);
-        const localhostProfileError = localhostProfileRule(container);
+        const rules = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name });
+        const imageError = rules.containerImage(container);
+        const nameError = rules.containerName(container);
+        const localhostProfileError = rules.localhostProfile(container);
 
         container.error = {
-          general:          imageError,
+          general:          nameError || imageError,
           localhostProfile: localhostProfileError
         };
 

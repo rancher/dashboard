@@ -373,6 +373,35 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  it('"containerName" : returns undefined when valid container with name is supplied', () => {
+    const testValue = { name: 'testName' };
+    const formRuleResult = formRules.containerName(testValue);
+
+    expect(formRuleResult).toBeUndefined();
+  });
+
+  it('"containerName" : returns correct message when container without name is supplied', () => {
+    const testValue = { image: 'nginx' };
+    const formRuleResult = formRules.containerName(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'workload.validation.containerName',
+      name:    undefined
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"containerName" : returns correct message when container name is empty string', () => {
+    const testValue = { name: '' };
+    const formRuleResult = formRules.containerName(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'workload.validation.containerName',
+      name:    ''
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
   it('"containerImage" : returns undefined when valid container with image is supplied', () => {
     const testValue = { image: 'imageName' };
     const formRuleResult = formRules.containerImage(testValue);
