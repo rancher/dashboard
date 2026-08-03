@@ -4,13 +4,16 @@ import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
+import { RcButton } from '@components/RcButton';
 import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS } from '@shell/utils/auth';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
 
 export default {
   name:       'AuthConfigCreate',
-  components: { SelectIconGrid, Loading },
+  components: {
+    SelectIconGrid, Loading, RcButton
+  },
 
   async fetch() {
     this.allConfigs = await this.$store.dispatch('management/findAll', { type: resource });
@@ -68,21 +71,25 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header>
-      <router-link
-        :to="listLocation"
-        class="auth-config-back"
-      >
-        <i class="icon icon-chevron-left" />
-        {{ t('authConfig.list.title') }}
-      </router-link>
+    <div class="auth-config-masthead">
       <h1 class="m-0">
         {{ t('authConfig.create.title') }}
       </h1>
+      <rc-button
+        variant="link"
+        class="auth-config-back"
+        :to="listLocation"
+        data-testid="auth-config-back"
+      >
+        <template #before>
+          <i class="icon icon-chevron-left" />
+        </template>
+        {{ t('authConfig.create.back') }}
+      </rc-button>
       <p class="text-muted mt-10">
         {{ t('authConfig.create.description') }}
       </p>
-    </header>
+    </div>
 
     <SelectIconGrid
       :rows="rows"
@@ -95,9 +102,11 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.auth-config-back {
-  align-items: center;
-  display: inline-flex;
-  margin-bottom: 10px;
+.auth-config-masthead {
+  margin-bottom: 20px;
+}
+
+a.rc-button.variant-link.auth-config-back {
+  padding: 0; // left-align the link with the heading above it
 }
 </style>

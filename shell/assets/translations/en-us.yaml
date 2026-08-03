@@ -501,6 +501,7 @@ authConfig:
     category: Type
   create:
     title: Add an Authentication Provider
+    back: Authentication Providers
     description: Select the provider you want to configure.
   slo:
     sloTitle: Log Out behavior
