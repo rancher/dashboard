@@ -151,7 +151,7 @@ export default defineComponent({
      */
     clearButtonLabel: {
       type:    String,
-      default: ''
+      default: undefined
     }
   },
 
