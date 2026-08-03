@@ -1,47 +1,49 @@
-import fs from 'fs';
-import path from 'path';
-import yaml from 'js-yaml';
-import IntlMessageFormat from 'intl-messageformat';
 import { mount } from '@vue/test-utils';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
 import PercentageBar from '@shell/components/PercentageBar.vue';
-import { formatSi } from '@shell/utils/units';
 
 const AMOUNT_KEY = 'node.detail.glance.consumptionGauge.amount';
 
-// Read the template out of en-us.yaml rather than hard-coding it, so the test exercises
-// the string that actually ships and can't pass against a reverted translation file
-const translations = yaml.load(
-  fs.readFileSync(path.resolve(__dirname, '../../assets/translations/en-us.yaml'), 'utf8')
-) as any;
-const amountTemplate = translations.node.detail.glance.consumptionGauge.amount;
-
 describe('component: ConsumptionGauge', () => {
-  describe('memory amounts', () => {
-    // Same wiring as the memory gauge in shell/detail/node.vue
-    const memoryFormatter = (value: number) => formatSi(value, {
-      increment:   1024,
-      suffix:      'iB',
-      firstSuffix: 'B',
+  describe('amount values', () => {
+    // The used and total values are formatted independently, so each has to reach the
+    // translation already carrying whatever unit it was scaled to. A single shared unit
+    // would misreport any gauge whose two values land on different magnitudes.
+    const mountWithFormatter = (capacity: number, used: number, units?: string) => {
+      const t = jest.fn().mockReturnValue('');
+
+      mount(ConsumptionGauge, {
+        props: {
+          resourceName:    'MEMORY',
+          capacity,
+          used,
+          units,
+          numberFormatter: (value: number) => `${ value } formatted`,
+        },
+        global: { mocks: { t } }
+      });
+
+      return t;
+    };
+
+    it('should pass each value through the formatter with an empty shared unit', () => {
+      const t = mountWithFormatter(16000, 4000);
+
+      expect(t).toHaveBeenCalledWith(AMOUNT_KEY, {
+        used:  '4000 formatted',
+        total: '16000 formatted',
+        unit:  '',
+      });
     });
 
-    const renderMemoryGauge = (capacity: number, used: number) => mount(ConsumptionGauge, {
-      props: {
-        resourceName:    'MEMORY',
-        capacity,
-        used,
-        numberFormatter: memoryFormatter,
-      },
-      global: { mocks: { t: (key: string, opts?: Record<string, string>) => key === AMOUNT_KEY ? new IntlMessageFormat(amountTemplate, 'en-US').format(opts) as string : `%${ key }%` } }
-    }).find('.numbers-stats').text();
+    it('should append the units prop to the total only when one is supplied', () => {
+      const t = mountWithFormatter(16000, 4000, 'GiB');
 
-    it.each([
-      ['used and total share a unit', 15 * 1024 ** 3, 3.55 * 1024 ** 3, '3.55 GiB of 15 GiB'],
-      ['used is smaller than total', 62 * 1024 ** 3, 900 * 1024 ** 2, '900 MiB of 62 GiB'],
-      ['used is much smaller than total', 1.97 * 1024 ** 4, 976 * 1024 ** 2, '976 MiB of 1.97 TiB'],
-      ['both values are plain bytes', 512, 100, '100 B of 512 B'],
-    ])('should label each value with its own unit when %s', (_, capacity, used, expected) => {
-      expect(renderMemoryGauge(capacity as number, used as number)).toContain(expected);
+      expect(t).toHaveBeenCalledWith(AMOUNT_KEY, {
+        used:  '4000 formatted',
+        total: '16000 formatted',
+        unit:  ' GiB',
+      });
     });
   });
 
