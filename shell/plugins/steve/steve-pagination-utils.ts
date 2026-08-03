@@ -558,6 +558,25 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     state.checked.push(field);
 
+    if (this.isValidPaginationField(schema, field)) {
+      return;
+    }
+
+    state.invalid.push(field);
+  }
+
+  /**
+   * Is the given field one the pagination (vai cache) API can filter/sort by?
+   *
+   * A field is valid when it's in the hardcoded {@link StevePaginationUtils.VALID_FIELDS}
+   * list (global or type specific) or is one of the schema's attribute columns. A missing
+   * field is treated as valid (nothing to reject).
+   */
+  isValidPaginationField(schema?: Schema, field?: string): boolean {
+    if (!field) {
+      return true; // no field, so not invalid
+    }
+
     // First check in our hardcoded list of supported filters
     if (
       !!schema &&
@@ -574,7 +593,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         }
       }))
     ) {
-      return;
+      return true;
     }
 
     // Then check in schema (the api automatically supports these)
@@ -582,10 +601,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       // This isn't the most performant, but the string is tiny
       (at) => at.field.replace('$.', '').replace('[', '.').replace(']', '') === field
     )) {
-      return;
+      return true;
     }
 
-    state.invalid.push(field);
+    return false;
   }
 
   /**
