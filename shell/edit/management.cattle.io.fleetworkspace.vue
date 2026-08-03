@@ -19,6 +19,8 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
+import { getVersionData } from '@shell/config/version';
+import { getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
 
 export default {
   name: 'FleetCruWorkspace',
@@ -139,6 +141,16 @@ export default {
   computed: {
     ...mapState(['allWorkspaces', 'workspace']),
 
+    // Version-aware link to the Fleet migration guide, which documents how to replace
+    // allowedTargetNamespaces (no Policy equivalent) with downstream ServiceAccount RBAC.
+    restrictionsMigrationLearnMore() {
+      return this.t(
+        'fleet.restrictions.learnMoreMigration',
+        { url: getGitRepoRestrictionMigrationDocsUrl(getVersionData()?.Version) },
+        true,
+      );
+    },
+
     allowedTargetNamespaces: {
       get() {
         return this.workSpaceRestriction?.allowedTargetNamespaces || [];
@@ -220,6 +232,20 @@ export default {
         label-key="fleet.workspaces.tabs.restrictions"
         :weight="3"
       >
+        <Banner
+          color="warning"
+          data-testid="fleet-workspace-restriction-deprecation-banner"
+        >
+          <div>
+            <div>{{ t('fleet.restrictions.deprecationWarning') }}</div>
+            <div
+              v-clean-html="restrictionsMigrationLearnMore"
+              data-testid="fleet-workspace-restriction-learn-more"
+              class="mt-5"
+            />
+          </div>
+        </Banner>
+
         <Banner
           color="info"
         >

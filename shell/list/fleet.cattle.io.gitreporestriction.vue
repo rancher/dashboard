@@ -3,6 +3,8 @@ import { useStore } from 'vuex';
 import { Banner } from '@components/Banner';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import { getVersionData } from '@shell/config/version';
+import { getContinuousDeliveryPoliciesDocsUrl, getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
 
 withDefaults(defineProps<{
   schema: Record<string, any>;
@@ -12,9 +14,19 @@ withDefaults(defineProps<{
 const store = useStore();
 const { t } = useI18n(store);
 
+const rancherVersion = getVersionData()?.Version;
+
+// Version-aware link to the Fleet docs section on migrating from GitRepoRestriction.
 const deprecationWarning = t(
   'fleet.gitRepoRestriction.deprecationWarning',
-  { url: t('fleet.gitRepoRestriction.migrationDocsUrl') },
+  { url: getGitRepoRestrictionMigrationDocsUrl(rancherVersion) },
+  true,
+);
+
+// Version-aware link to the Fleet "Policy" reference docs (the successor to GitRepoRestriction).
+const learnMorePolicies = t(
+  'fleet.gitRepoRestriction.learnMorePolicies',
+  { url: getContinuousDeliveryPoliciesDocsUrl(rancherVersion) },
   true,
 );
 </script>
@@ -25,7 +37,16 @@ const deprecationWarning = t(
       color="warning"
       data-testid="git-repo-restriction-deprecation-banner"
     >
-      <span v-clean-html="deprecationWarning" />
+      <!-- Single wrapper so the Banner's flex row treats this as one item and the
+           two lines stack vertically rather than sitting side by side. -->
+      <div>
+        <div v-clean-html="deprecationWarning" />
+        <div
+          v-clean-html="learnMorePolicies"
+          data-testid="git-repo-restriction-learn-more-policies"
+          class="mt-5"
+        />
+      </div>
     </Banner>
     <PaginatedResourceTable
       :schema="schema"
