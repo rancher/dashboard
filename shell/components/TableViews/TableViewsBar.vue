@@ -516,7 +516,6 @@ export default {
             <!-- Columns → its own nested dropdown -->
             <v-dropdown
               placement="right-start"
-              :container="false"
             >
               <button
                 type="button"
@@ -576,7 +575,6 @@ export default {
             <!-- Group by → its own nested dropdown -->
             <v-dropdown
               placement="right-start"
-              :container="false"
             >
               <button
                 type="button"
