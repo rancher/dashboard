@@ -333,6 +333,7 @@ export default {
                   <i
                     v-clean-tooltip="{content: t('workload.container.ports.toolTip'), triggers: ['hover', 'touch', 'focus'] }"
                     :aria-label="t('generic.moreInfo')"
+                    role="button"
                     class="icon icon-info"
                     tabindex="0"
                   />
