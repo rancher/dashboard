@@ -4,7 +4,7 @@ import FormPo from '@/cypress/e2e/po/components/form.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 
 export class RancherSetupLoginPagePo extends PagePo {
-  static url = '/auth/login'
+  static url = '/auth/login';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(RancherSetupLoginPagePo.url);
   }

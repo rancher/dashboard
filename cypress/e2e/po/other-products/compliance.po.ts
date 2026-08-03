@@ -40,33 +40,33 @@ export class ComplianceListPo extends PagePo {
 }
 
 export class CompliancePo extends PagePo {
-    static url: string;
+  static url: string;
 
-    private static createPath( clusterId: string, name: string ) {
-      const urlStr = `/c/${ clusterId }/compliance/compliance.cattle.io.clusterscan/${ name }`;
+  private static createPath( clusterId: string, name: string ) {
+    const urlStr = `/c/${ clusterId }/compliance/compliance.cattle.io.clusterscan/${ name }`;
 
-      return urlStr;
-    }
+    return urlStr;
+  }
 
-    static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-      return super.goTo(this.url);
-    }
+  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(this.url);
+  }
 
-    constructor(clusterId = 'local', name = 'create') {
-      super(CompliancePo.createPath(clusterId, name));
+  constructor(clusterId = 'local', name = 'create') {
+    super(CompliancePo.createPath(clusterId, name));
 
-      CompliancePo.url = CompliancePo.createPath(clusterId, name);
-    }
+    CompliancePo.url = CompliancePo.createPath(clusterId, name);
+  }
 
-    cruResource() {
-      return new CruResourcePo(this.self());
-    }
+  cruResource() {
+    return new CruResourcePo(this.self());
+  }
 
-    nameNsDescription() {
-      return new NameNsDescription(this.self());
-    }
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
+  }
 
-    yamlEditor(): CodeMirrorPo {
-      return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
-    }
+  yamlEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
+  }
 }

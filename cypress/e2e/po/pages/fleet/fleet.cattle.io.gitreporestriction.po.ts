@@ -4,7 +4,7 @@ import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 
 export class FleetGitRepoRestrictionListPagePo extends BaseListPagePo {
-  static url = `/c/_/fleet/fleet.cattle.io.gitreporestriction`
+  static url = `/c/_/fleet/fleet.cattle.io.gitreporestriction`;
 
   constructor() {
     super(FleetGitRepoRestrictionListPagePo.url);

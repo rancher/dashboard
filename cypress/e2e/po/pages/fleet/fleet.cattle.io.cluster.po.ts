@@ -7,38 +7,38 @@ import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
 export class FleetClusterListPagePo extends BaseListPagePo {
-    static url = `/c/_/fleet/fleet.cattle.io.cluster`
+  static url = `/c/_/fleet/fleet.cattle.io.cluster`;
 
-    constructor() {
-      super(FleetClusterListPagePo.url);
-    }
+  constructor() {
+    super(FleetClusterListPagePo.url);
+  }
 
-    goTo() {
-      return cy.visit(FleetClusterListPagePo.url);
-    }
+  goTo() {
+    return cy.visit(FleetClusterListPagePo.url);
+  }
 
-    static navTo() {
-      const fleetDashboardPage = new FleetDashboardListPagePo('_');
+  static navTo() {
+    const fleetDashboardPage = new FleetDashboardListPagePo('_');
 
-      FleetDashboardListPagePo.navTo();
-      fleetDashboardPage.waitForPage();
+    FleetDashboardListPagePo.navTo();
+    fleetDashboardPage.waitForPage();
 
-      const sideNav = new ProductNavPo();
+    const sideNav = new ProductNavPo();
 
-      sideNav.navToSideMenuEntryByLabel('Clusters');
-    }
+    sideNav.navToSideMenuEntryByLabel('Clusters');
+  }
 
-    selectWorkspace(workspaceName = 'fleet-local') {
-      return this.header().selectWorkspace(workspaceName);
-    }
+  selectWorkspace(workspaceName = 'fleet-local') {
+    return this.header().selectWorkspace(workspaceName);
+  }
 
-    editFleetCluster(workspace: string, clusterName: string): FleetClusterEditPo {
-      return new FleetClusterEditPo(workspace, clusterName);
-    }
+  editFleetCluster(workspace: string, clusterName: string): FleetClusterEditPo {
+    return new FleetClusterEditPo(workspace, clusterName);
+  }
 
-    changeWorkspaceForm(): AssignToDialogPo {
-      return new AssignToDialogPo();
-    }
+  changeWorkspaceForm(): AssignToDialogPo {
+    return new AssignToDialogPo();
+  }
 }
 
 export class FleetClusterDetailsPo extends BaseDetailPagePo {

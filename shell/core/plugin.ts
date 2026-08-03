@@ -69,7 +69,7 @@ export class Plugin implements IPlugin {
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
 
-  public _validators: {[key:string]: Function } = {}
+  public _validators: {[key:string]: Function } = {};
 
   // Is this a built-in plugin (bundled with the application)
   public builtin = false;

@@ -3,7 +3,7 @@ import { getPerformanceSetting } from '@shell/utils/settings';
 import { ActionFindAllArgs } from '@shell/types/store/dashboard-store.types';
 
 class ProjectAndNamespaceFiltering {
-  static param = 'projectsornamespaces'
+  static param = 'projectsornamespaces';
 
   /**
    * Does the request `opt` definition require resources are fetched from a specific set namespaces/projects?

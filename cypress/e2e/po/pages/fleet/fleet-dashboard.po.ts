@@ -5,54 +5,54 @@ import ButtonGroupPo from '@/cypress/e2e/po/components/button-group.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class FleetDashboardListPagePo extends BaseListPagePo {
-    static url: string;
+  static url: string;
 
-    private static createPath(
-      clusterId: string,
-      queryParams?: Record<string, string>
-    ) {
-      const urlStr = `/c/${ clusterId }/fleet`;
+  private static createPath(
+    clusterId: string,
+    queryParams?: Record<string, string>
+  ) {
+    const urlStr = `/c/${ clusterId }/fleet`;
 
-      if (!queryParams) {
-        return urlStr;
-      }
-
-      const params = new URLSearchParams(queryParams);
-
-      return `${ urlStr }?${ params.toString() }`;
+    if (!queryParams) {
+      return urlStr;
     }
 
-    static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
-      return super.goTo(FleetDashboardListPagePo.createPath(clusterId));
-    }
+    const params = new URLSearchParams(queryParams);
 
-    static navTo() {
-      BurgerMenuPo.toggle();
-      // Give extra time to ensure fleet comes up
-      BurgerMenuPo.burgerMenuNavToMenubyLabel('Continuous Delivery', LONG_TIMEOUT_OPT);
-    }
+    return `${ urlStr }?${ params.toString() }`;
+  }
 
-    constructor(clusterId: string) {
-      super(FleetDashboardListPagePo.createPath(clusterId));
-    }
+  static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(FleetDashboardListPagePo.createPath(clusterId));
+  }
 
-    workspaceCard(name) {
-      return new FleetDashboardWorkspaceCardPo(name);
-    }
+  static navTo() {
+    BurgerMenuPo.toggle();
+    // Give extra time to ensure fleet comes up
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Continuous Delivery', LONG_TIMEOUT_OPT);
+  }
 
-    slideInPanel() {
-      return cy.get('[data-testid="slide-in-panel-component"]');
-    }
+  constructor(clusterId: string) {
+    super(FleetDashboardListPagePo.createPath(clusterId));
+  }
 
-    fleetDashboardEmptyState() {
-      return this.self().get('.fleet-empty-dashboard');
-    }
+  workspaceCard(name) {
+    return new FleetDashboardWorkspaceCardPo(name);
+  }
 
-    getStartedButton() {
-      return this.self().get('.btn').contains('Get started');
-    }
+  slideInPanel() {
+    return cy.get('[data-testid="slide-in-panel-component"]');
+  }
 
-    viewModeButton() {
-      return new ButtonGroupPo('[data-testid="view-button"]', this.self());
-    }
+  fleetDashboardEmptyState() {
+    return this.self().get('.fleet-empty-dashboard');
+  }
+
+  getStartedButton() {
+    return this.self().get('.btn').contains('Get started');
+  }
+
+  viewModeButton() {
+    return new ButtonGroupPo('[data-testid="view-button"]', this.self());
+  }
 }

@@ -6,7 +6,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 export class LoginPagePo extends PagePo {
-  static url = '/auth/login'
+  static url = '/auth/login';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(LoginPagePo.url);
   }

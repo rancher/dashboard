@@ -12,7 +12,7 @@ import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
 const burgerMenu = new BurgerMenuPo();
 
 export default class HomePagePo extends PagePo {
-  static url = '/home'
+  static url = '/home';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(HomePagePo.url);
   }
