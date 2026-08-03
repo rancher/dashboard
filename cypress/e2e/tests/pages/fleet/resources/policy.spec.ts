@@ -2,7 +2,7 @@ import { FleetPolicyListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle
 import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
-describe('Fleet Policy', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetPolicyListPage = new FleetPolicyListPagePo();
 
   before(() => {
