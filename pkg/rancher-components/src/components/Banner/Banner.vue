@@ -70,9 +70,10 @@ export default defineComponent({
       default: false
     },
     /**
-     * ARIA live region role for persistent banners whose live-region responsibility is not
-     * handled by a wrapper element. Use 'alert' for error announcements (assertive) and
-     * 'status' for polite notifications. Omit when the wrapper div owns the live region.
+     * ARIA live region role. Assistive technology announces the banner when it is
+     * inserted into the page. Use 'alert' for errors, which interrupts the current
+     * announcement, and 'status' for informational messages, which waits for a pause.
+     * Omit for decorative or purely visual banners.
      * @values alert, status
      */
     role: {

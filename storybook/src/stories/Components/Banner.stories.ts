@@ -10,7 +10,7 @@ const meta: Meta<typeof Banner> = {
     role:     {
       control:     'select',
       options:     [null, 'alert', 'status'],
-      description: 'ARIA live-region role. Use "alert" for assertive error announcements and "status" for polite notifications. Omit when a wrapper element owns the live region.',
+      description: 'ARIA live-region role. Assistive technology announces the banner when it is inserted into the page. Use "alert" for errors (assertive) and "status" for informational messages (polite). Omit for decorative or purely visual banners.',
     },
   },
 };
