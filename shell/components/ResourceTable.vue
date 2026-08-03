@@ -925,13 +925,16 @@ export default {
         :rows="filteredRows"
         :match-count="viewRows.length"
         :resource-type="schema ? schema.id : ''"
+        :view-mode="group"
+        :view-mode-options="showGrouping ? _groupOptions : []"
         @update:view="view = $event"
+        @update:view-mode="group = $event"
         @export="handleExport"
       />
     </template>
 
     <template
-      v-if="showGrouping && _groupOptions.length > 1"
+      v-if="showGrouping && _groupOptions.length > 1 && !showTableViews"
       #header-middle
     >
       <slot name="more-header-middle" />

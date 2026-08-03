@@ -7257,6 +7257,17 @@ tableViews:
   tabs:
     all: All
     unsaved: Unsaved view
+    newView: New view
+  view:
+    label: View
+    display: Display
+  tab:
+    menu: View options
+    rename: Rename view
+    renameSave: Rename
+    saveChanges: Save changes to this view
+    delete: Delete view
+    copyLink: Copy link to this view
   query:
     placeholder: 'Filter by field, eg state:error namespace:default'
     inUse: "{count} in use"
@@ -7268,6 +7279,7 @@ tableViews:
     reset: Reset to defaults
   group:
     label: 'Group: {field}'
+    byLabel: Group by
     none: None
     empty: (none)
   export:

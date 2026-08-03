@@ -45,6 +45,21 @@ export default {
       return this.availableActions.map((aa) => aa.action);
     },
 
+    // The single "delete" bulk action, split out into its own icon button in the masthead.
+    // Prefer Rancher's standard promptRemove, then fall back to a trash icon or a delete/remove named action.
+    bulkDeleteAction() {
+      return this.availableActions.find((act) => act.action === 'promptRemove') ||
+        this.availableActions.find((act) => (act.icon && `${ act.icon }`.includes('icon-trash')) || /delete|remove/i.test(act.action || '')) ||
+        null;
+    },
+
+    // Every bulk action except the delete one - these go under the gear dropdown in the masthead.
+    bulkMenuActions() {
+      const del = this.bulkDeleteAction;
+
+      return this.availableActions.filter((act) => !del || act.action !== del.action);
+    },
+
     selectedRowsText() {
       if (!this.selectedRows.length) {
         return null;

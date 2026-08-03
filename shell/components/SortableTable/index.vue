@@ -26,7 +26,6 @@ import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
-import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
 import { RcButton } from '@components/RcButton';
 import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
@@ -67,7 +66,6 @@ export default {
     LabeledInput,
     ButtonMultiAction,
     ActionMenu,
-    ActionDropdownShell,
     RcButton,
   },
 
@@ -1150,83 +1148,72 @@ export default {
         >
           <slot name="header-left">
             <template v-if="tableActions">
+              <!-- Gear dropdown: every bulk action EXCEPT delete, icon-only trigger -->
+              <ActionDropdown
+                :class="bulkActionsDropdownClass"
+                class="bulk-actions-dropdown"
+                :disable-button="!selectedRows.length"
+                size="sm"
+              >
+                <template #button-content="{ buttonSize }">
+                  <button
+                    ref="actionDropDown"
+                    v-clean-tooltip="t('sortableTable.bulkActions.collapsed.label')"
+                    type="button"
+                    class="btn bg-primary mr-0 bulk-action-gear"
+                    :class="buttonSize"
+                    :disabled="!selectedRows.length"
+                    :aria-label="t('sortableTable.bulkActions.collapsed.label')"
+                    :data-testid="componentTestid + '-bulk-actions'"
+                  >
+                    <i class="icon icon-gear" />
+                    <i class="icon icon-chevron-down" />
+                  </button>
+                </template>
+                <template #popover-content>
+                  <ul class="list-unstyled menu">
+                    <li
+                      v-for="(act, i) in bulkMenuActions"
+                      :key="i"
+                      v-close-popper
+                      v-clean-tooltip="{
+                        content: actionTooltip,
+                        placement: 'right'
+                      }"
+                      :class="{ disabled: !act.enabled }"
+                      :data-testid="componentTestid + '-bulk-menu-' + act.action"
+                      @click="applyTableAction(act, null, $event)"
+                      @mouseover="setBulkActionOfInterest(act)"
+                      @mouseleave="setBulkActionOfInterest(null)"
+                    >
+                      <i
+                        v-if="act.icon"
+                        :class="act.icon"
+                      />
+                      <span v-clean-html="act.label" />
+                    </li>
+                  </ul>
+                </template>
+              </ActionDropdown>
+
+              <!-- Delete split out as its own icon-only button -->
               <RcButton
-                v-for="(act) in availableActions"
-                :id="act.action"
-                :key="act.action"
-                v-clean-tooltip="actionTooltip"
+                v-if="bulkDeleteAction"
+                v-clean-tooltip="actionTooltip || bulkDeleteAction.label"
                 type="button"
                 variant="primary"
-                :class="{[bulkActionClass]:true}"
-                :disabled="!act.enabled"
-                :data-testid="componentTestid + '-' + act.action"
-                :aria-label="act.label"
-                @click="applyTableAction(act, null, $event)"
+                class="bulk-action-delete"
+                :disabled="!selectedRows.length || !bulkDeleteAction.enabled"
+                :data-testid="componentTestid + '-' + bulkDeleteAction.action"
+                :aria-label="bulkDeleteAction.label"
+                @click="applyTableAction(bulkDeleteAction, null, $event)"
                 @keydown.enter.stop
-                @mouseover="setBulkActionOfInterest(act)"
+                @mouseover="setBulkActionOfInterest(bulkDeleteAction)"
                 @mouseleave="setBulkActionOfInterest(null)"
               >
-                <i
-                  v-if="act.icon"
-                  :class="act.icon"
-                />
-                <span v-clean-html="act.label" />
+                <i :class="bulkDeleteAction.icon || 'icon icon-trash'" />
               </RcButton>
-              <template v-if="featureDropdownMenu">
-                <ActionDropdownShell
-                  :disabled="!selectedRows.length"
-                  :hidden-actions="hiddenActions"
-                  :action-tooltip="actionTooltip"
-                  size="medium"
-                  @click="applyTableAction"
-                  @mouseover="setBulkActionOfInterest"
-                  @mouseleave="setBulkActionOfInterest"
-                />
-              </template>
-              <template v-else>
-                <ActionDropdown
-                  :class="bulkActionsDropdownClass"
-                  class="bulk-actions-dropdown"
-                  :disable-button="!selectedRows.length"
-                  size="sm"
-                >
-                  <template #button-content="{ buttonSize }">
-                    <button
-                      ref="actionDropDown"
-                      class="btn bg-primary mr-0"
-                      :class="buttonSize"
-                      :disabled="!selectedRows.length"
-                    >
-                      <i class="icon icon-gear" />
-                      <span>{{ t('sortableTable.bulkActions.collapsed.label') }}</span>
-                      <i class="ml-10 icon icon-chevron-down" />
-                    </button>
-                  </template>
-                  <template #popover-content>
-                    <ul class="list-unstyled menu">
-                      <li
-                        v-for="(act, i) in hiddenActions"
-                        :key="i"
-                        v-close-popper
-                        v-clean-tooltip="{
-                          content: actionTooltip,
-                          placement: 'right'
-                        }"
-                        :class="{ disabled: !act.enabled }"
-                        @click="applyTableAction(act, null, $event)"
-                        @mouseover="setBulkActionOfInterest(act)"
-                        @mouseleave="setBulkActionOfInterest(null)"
-                      >
-                        <i
-                          v-if="act.icon"
-                          :class="act.icon"
-                        />
-                        <span v-clean-html="act.label" />
-                      </li>
-                    </ul>
-                  </template>
-                </ActionDropdown>
-              </template>
+
               <label
                 v-if="selectedRowsText"
                 :class="bulkActionAvailabilityClass"
