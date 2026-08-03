@@ -31,10 +31,10 @@ env:
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
 jobs:
-  extract-rancher-version:
+  extract-e2e-runtime-rancher-version:
     runs-on: ubuntu-latest
     outputs:
-      rancher-version: ${{ steps.extract.outputs.rancher-version }}
+      runtime-rancher-version: ${{ steps.extract.outputs.runtime-rancher-version }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
@@ -42,18 +42,18 @@ jobs:
       - name: Extract Rancher version
         id: extract
         run: |
-          VERSION=$(jq -r ".branches[\"${{ github.base_ref || github.ref_name }}\"].e2e[\"rancher-version\"]" branches-metadata.json)
+          VERSION=$(jq -r ".branches[\"${{ github.base_ref || github.ref_name }}\"].e2e[\"runtime-rancher-version\"]" branches-metadata.json)
           if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-            echo "Warning: Rancher version not found for branch '${{ github.base_ref || github.ref_name }}', rancher-version will be empty."
+            echo "Warning: Rancher version not found for branch '${{ github.base_ref || github.ref_name }}', runtime-rancher-version will be empty."
           fi
-          echo "rancher-version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "runtime-rancher-version=$VERSION" >> "$GITHUB_OUTPUT"
 
   e2e-ui-build:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    needs: extract-rancher-version
+    needs: extract-e2e-runtime-rancher-version
     runs-on: ubuntu-latest
     outputs:
-      rancher-version: ${{ needs.extract-rancher-version.outputs.rancher-version }}
+      runtime-rancher-version: ${{ needs.extract-e2e-runtime-rancher-version.outputs.runtime-rancher-version }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
@@ -134,7 +134,7 @@ jobs:
         run: |
           yarn e2e:prod
         env: 
-          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.rancher-version }}
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
@@ -143,7 +143,7 @@ jobs:
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.rancher-version }}
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
@@ -207,7 +207,7 @@ jobs:
         run: |
           yarn e2e:prod
         env: 
-          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.rancher-version }}
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           GREP_TAGS: "@adminUserSetup+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_ONLY: setup
@@ -216,7 +216,7 @@ jobs:
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.rancher-version }}
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           TEST_SKIP: setup
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
