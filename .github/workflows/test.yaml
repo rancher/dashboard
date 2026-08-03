@@ -42,7 +42,10 @@ jobs:
       - name: Extract Rancher version
         id: extract
         run: |
-          VERSION=$(bash scripts/decode-rancher-version.sh '${{ github.base_ref || github.ref_name }}' | xargs)
+          VERSION=$(jq -r ".branches[\"${{ github.base_ref || github.ref_name }}\"].e2e[\"rancher-version\"]" branches-metadata.json)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Warning: Rancher version not found for branch '${{ github.base_ref || github.ref_name }}', rancher-version will be empty."
+          fi
           echo "rancher-version=$VERSION" >> "$GITHUB_OUTPUT"
 
   e2e-ui-build:
