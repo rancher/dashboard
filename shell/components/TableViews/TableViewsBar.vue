@@ -490,10 +490,6 @@ export default {
         >
           <i class="icon icon-gear" />
           {{ t('tableViews.view.label') }}
-          <span
-            v-if="hiddenColumnCount || view.labelColumns.length"
-            class="badge"
-          >{{ view.labelColumns.length ? `+${view.labelColumns.length}` : `-${hiddenColumnCount}` }}</span>
           <i class="icon icon-chevron-down" />
         </button>
         <template #popper>
