@@ -285,15 +285,74 @@ export default {
     data-testid="table-views-bar"
   >
     <div class="view-tabs">
-      <button
-        type="button"
-        class="view-tab"
+      <!-- All (built-in default): gets a caret dropdown too, but only the options that apply to it
+           (Copy link + Export) — it can't be renamed, updated or deleted. -->
+      <div
+        class="view-tab-wrap"
         :class="{ active: !activeViewId && !isDirty }"
-        data-testid="table-views-tab-all"
-        @click="applyView(null)"
       >
-        {{ t('tableViews.tabs.all') }}
-      </button>
+        <button
+          type="button"
+          class="view-tab in-wrap"
+          :class="{ active: !activeViewId && !isDirty }"
+          data-testid="table-views-tab-all"
+          @click="applyView(null)"
+        >
+          {{ t('tableViews.tabs.all') }}
+        </button>
+        <v-dropdown
+          placement="bottom-start"
+          :container="false"
+        >
+          <button
+            type="button"
+            class="view-tab-caret"
+            :aria-label="t('tableViews.tab.menu')"
+            data-testid="table-views-tab-menu-all"
+            @click.stop
+          >
+            <i class="icon icon-chevron-down" />
+          </button>
+          <template #popper>
+            <div class="view-menu">
+              <button
+                type="button"
+                class="menu-item"
+                data-testid="table-views-copy-link-all"
+                @click="copyShareUrl"
+              >
+                <i class="icon icon-copy" />
+                {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
+              </button>
+
+              <div class="menu-title">
+                {{ t('tableViews.export.label') }}
+              </div>
+              <template
+                v-for="scope in ['selection', 'page', 'all']"
+                :key="scope"
+              >
+                <div class="menu-subtitle">
+                  {{ t(`tableViews.export.scope.${scope}`) }}
+                </div>
+                <div class="export-row">
+                  <button
+                    v-for="format in ['csv', 'json']"
+                    :key="`${scope}-${format}`"
+                    v-close-popper
+                    type="button"
+                    class="btn btn-sm role-secondary"
+                    :data-testid="`table-views-export-all-${scope}-${format}`"
+                    @click="doExport(format, scope)"
+                  >
+                    {{ t(`tableViews.export.format.${format}`) }}
+                  </button>
+                </div>
+              </template>
+            </div>
+          </template>
+        </v-dropdown>
+      </div>
 
       <!-- Saved views: each tab carries its own caret dropdown (rename / save / delete / export / share) -->
       <div
