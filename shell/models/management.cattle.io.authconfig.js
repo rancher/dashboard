@@ -3,32 +3,44 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { requireAsset } from '@shell/utils/require-asset';
 
 /**
- * MISSING:
- *             "_type": "oidcConfig",
+ * Normalises a provider identifier to a stable key.
+ */
+export const providerKey = (type) => `${ type || '' }`.toLowerCase().replace(/(config|provider)$/, '');
+
+/**
+ * Auth provider categories, keyed by `providerKey()` so that either naming works.
  */
 export const configType = {
-  activeDirectoryProvider: 'ldap',
-  azureADProvider:         'oauth',
-  openLdapProvider:        'ldap',
-  freeIpaProvider:         'ldap',
-  pingProvider:            'saml',
-  adfsProvider:            'saml',
-  keyCloakProvider:        'saml',
-  oktaProvider:            'saml',
-  shibbolethProvider:      'saml',
-  googleOauthProvider:     'oauth',
-  localProvider:           '',
-  githubProvider:          'oauth',
-  githubAppProvider:       'oauth',
-  keyCloakOIDCProvider:    'oidc',
-  genericOIDCProvider:     'oidc',
-  cognitoProvider:         'oidc',
+  activedirectory: 'ldap',
+  openldap:        'ldap',
+  freeipa:         'ldap',
+  azuread:         'oauth',
+  googleoauth:     'oauth',
+  github:          'oauth',
+  githubapp:       'oauth',
+  adfs:            'saml',
+  keycloak:        'saml',
+  okta:            'saml',
+  ping:            'saml',
+  shibboleth:      'saml',
+  genericsaml:     'saml',
+  cognito:         'oidc',
+  genericoidc:     'oidc',
+  keycloakoidc:    'oidc',
+  oidc:            'oidc',
+  local:           '',
 };
 
+/**
+ * Look up a category from any provider identifier, e.g. `keyCloakOIDCProvider`.
+ */
+export const configTypeForProvider = (type) => configType[providerKey(type)];
+
 const imageOverrides = {
-  azureADProvider: 'entraid',
-  keyCloakOIDCProvider: 'keycloak',
-  genericOIDCProvider: 'openid',
+  azuread:      'entraid',
+  genericoidc:  'openid',
+  keycloakoidc: 'keycloak',
+  oidc:         'openid',
 };
 
 export default class AuthConfig extends SteveModel {
@@ -52,11 +64,13 @@ export default class AuthConfig extends SteveModel {
   }
 
   get provider() {
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.id }"`, null, this.id);
+    // Keyed off `_type` rather than `id` so that several configs of the same
+    // provider (each with its own arbitrary name) all resolve to one label.
+    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ providerKey(this._type) }"`, null, this.id);
   }
 
   get configType() {
-    return configType[this.type];
+    return configTypeForProvider(this._type);
   }
 
   get sideLabel() {
@@ -65,7 +79,9 @@ export default class AuthConfig extends SteveModel {
 
   get icon() {
     try {
-      return requireAsset(`~shell/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
+      const key = providerKey(this._type);
+
+      return requireAsset(`~shell/assets/images/vendor/${ imageOverrides[key] || key }.svg`);
     } catch (e) {
       return '';
     }

@@ -14,7 +14,7 @@ import {
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
 import { sortBy } from '@shell/utils/sort';
-import { configType } from '@shell/models/management.cattle.io.authconfig';
+import { configTypeForProvider, providerKey } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { markRaw } from 'vue';
 import { MANAGEMENT, NORMAN, EXT } from '@shell/config/types';
@@ -195,7 +195,7 @@ export default {
     this.username = this.firstLogin ? 'admin' : this.username;
 
     this.providerComponents = this.providers.map((x) => {
-      return markRaw(this.$store.getters['type-map/importLogin'](configType[x.type] || x.type));
+      return markRaw(this.$store.getters['type-map/importLogin'](configTypeForProvider(x.type) || x.type));
     });
 
     this.$nextTick(() => {
@@ -249,9 +249,7 @@ export default {
     },
 
     displayName(provider) {
-      const translationKey = provider.replace('Provider', '');
-
-      return this.t(`model.authConfig.provider.${ translationKey }`);
+      return this.t(`model.authConfig.provider.${ providerKey(provider) }`);
     },
 
     toggleLocal() {
