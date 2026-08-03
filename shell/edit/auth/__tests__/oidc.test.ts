@@ -4,7 +4,7 @@ import { mount, type VueWrapper, flushPromises } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 
 import oidc from '@shell/edit/auth/oidc.vue';
-import ArrayList from '@shell/components/form/ArrayList';
+import ArrayList from '@shell/components/form/ArrayList.vue';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
