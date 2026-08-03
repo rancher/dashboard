@@ -3,7 +3,7 @@
  * This replicates essential exports from shell modules to avoid cypress dependencies on the main shell directory
  */
 
-// From @shell/store/store-types.js
+// ============ @shell/store/store-types.js ============
 export const STORE = {
   CLUSTER:    'cluster',
   RANCHER:    'rancher',
@@ -11,17 +11,21 @@ export const STORE = {
 };
 
 export const BLANK_CLUSTER = '_';
+// ============ @shell/store/store-types.js ============
 
-// From @shell/utils/pagination-utils.ts
+// ============ @shell/utils/pagination-utils.ts ============
 export const PAGINATION_UTILS = { defaultPageSize: 100000 };
+// ============ @shell/utils/pagination-utils.ts ============
 
-// From @shell/types/fleet.d.ts
+// ============ @shell/types/fleet.d.ts ============
 export type WorkloadType = 'workload' | 'pods' | 'apps.deployments' | 'replicasets' | 'daemonsets' | 'statefulsets' | 'jobs' | 'cronjobs';
+// ============ @shell/types/fleet.d.ts ============
 
-// From @shell/config/types.js
+// ============ @shell/config/types.js ============
 export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
+// ============ @shell/config/types.js ============
 
-// From @shell/utils/crypto/index.js
+// ============ @shell/utils/crypto/index.js ============
 const NORMAL = 'normal';
 const URL = 'url';
 
@@ -63,3 +67,4 @@ export function base64Decode(string: string | null | undefined): string | null |
 
   return '';
 }
+// ============ @shell/utils/crypto/index.js ============
