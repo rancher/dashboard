@@ -1,74 +1,48 @@
+import fs from 'fs';
+import path from 'path';
+import yaml from 'js-yaml';
+import IntlMessageFormat from 'intl-messageformat';
 import { mount } from '@vue/test-utils';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
 import PercentageBar from '@shell/components/PercentageBar.vue';
+import { formatSi } from '@shell/utils/units';
+
+const AMOUNT_KEY = 'node.detail.glance.consumptionGauge.amount';
+
+// Read the template out of en-us.yaml rather than hard-coding it, so the test exercises
+// the string that actually ships and can't pass against a reverted translation file
+const translations = yaml.load(
+  fs.readFileSync(path.resolve(__dirname, '../../assets/translations/en-us.yaml'), 'utf8')
+) as any;
+const amountTemplate = translations.node.detail.glance.consumptionGauge.amount;
 
 describe('component: ConsumptionGauge', () => {
-  it('amountTemplateValues should include unit for both used and total', () => {
-    const wrapper = mount(ConsumptionGauge, {
+  describe('memory amounts', () => {
+    // Same wiring as the memory gauge in shell/detail/node.vue
+    const memoryFormatter = (value: number) => formatSi(value, {
+      increment:   1024,
+      suffix:      'iB',
+      firstSuffix: 'B',
+    });
+
+    const renderMemoryGauge = (capacity: number, used: number) => mount(ConsumptionGauge, {
       props: {
-        resourceName: 'MEMORY',
-        capacity:     16000,
-        used:         4000,
-        units:        'GiB',
+        resourceName:    'MEMORY',
+        capacity,
+        used,
+        numberFormatter: memoryFormatter,
       },
+      global: { mocks: { t: (key: string, opts?: Record<string, string>) => key === AMOUNT_KEY ? new IntlMessageFormat(amountTemplate, 'en-US').format(opts) as string : `%${ key }%` } }
+    }).find('.numbers-stats').text();
+
+    it.each([
+      ['used and total share a unit', 15 * 1024 ** 3, 3.55 * 1024 ** 3, '3.55 GiB of 15 GiB'],
+      ['used is smaller than total', 62 * 1024 ** 3, 900 * 1024 ** 2, '900 MiB of 62 GiB'],
+      ['used is much smaller than total', 1.97 * 1024 ** 4, 976 * 1024 ** 2, '976 MiB of 1.97 TiB'],
+      ['both values are plain bytes', 512, 100, '100 B of 512 B'],
+    ])('should label each value with its own unit when %s', (_, capacity, used, expected) => {
+      expect(renderMemoryGauge(capacity as number, used as number)).toContain(expected);
     });
-
-    const values = (wrapper.vm as any).amountTemplateValues;
-
-    expect(values).toStrictEqual({
-      used:  4000,
-      total: 16000,
-      unit:  ' GiB',
-    });
-  });
-
-  it('amountTemplateValues should have empty unit when units prop is not provided', () => {
-    const wrapper = mount(ConsumptionGauge, {
-      props: {
-        resourceName: 'CPU',
-        capacity:     4,
-        used:         2,
-      },
-    });
-
-    const values = (wrapper.vm as any).amountTemplateValues;
-
-    expect(values).toStrictEqual({
-      used:  2,
-      total: 4,
-      unit:  '',
-    });
-  });
-
-  it('should render the amount string with units on both used and total values', () => {
-    const amountTemplate = '{used}{unit} of {total}{unit}';
-
-    const wrapper = mount(ConsumptionGauge, {
-      props: {
-        resourceName: 'MEMORY',
-        capacity:     16000,
-        used:         4000,
-        units:        'GiB',
-      },
-      global: {
-        mocks: {
-          t: (key: string, opts?: Record<string, string>) => {
-            if (key === 'node.detail.glance.consumptionGauge.amount' && opts) {
-              return amountTemplate
-                .replace('{used}', opts.used)
-                .replace('{total}', opts.total)
-                .replace(/\{unit\}/g, opts.unit);
-            }
-
-            return `%${ key }%`;
-          }
-        }
-      }
-    });
-
-    const statsText = wrapper.find('.numbers-stats').text();
-
-    expect(statsText).toContain('4000 GiB of 16000 GiB');
   });
 
   it('should render component with the correct data applied', () => {

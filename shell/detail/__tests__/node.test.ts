@@ -80,4 +80,30 @@ describe('view: node detail', () => {
     expect(memoryGauge).toBeDefined();
     expect(memoryGauge!.attributes('usedlabel')).toBeUndefined();
   });
+
+  describe('memory ConsumptionGauge', () => {
+    // The gauge renders a single unit label, taken from the total. The used and total values are
+    // scaled independently, so a shared label misreports any node whose usage is orders of
+    // magnitude below its capacity - 900MiB of 62GiB would read "900 GiB of 62 GiB".
+    it('should NOT pass a shared units label', () => {
+      const wrapper = createWrapper();
+
+      const memoryGauge = findGaugeByResource(wrapper, 'consumptionGauge.memory');
+
+      expect(memoryGauge!.props('units')).toBe('');
+    });
+
+    it.each([
+      ['scales each value on its own', 900 * 1024 ** 2, '900 MiB'],
+      ['keeps used and total in step when they share a unit', 3.55 * 1024 ** 3, '3.55 GiB'],
+      ['reads plain bytes as B rather than iB', 512, '512 B'],
+    ])('should pass a numberFormatter that %s', (_, value, expected) => {
+      const wrapper = createWrapper();
+
+      const memoryGauge = findGaugeByResource(wrapper, 'consumptionGauge.memory');
+      const numberFormatter = memoryGauge!.props('numberFormatter') as (v: number) => string;
+
+      expect(numberFormatter(value as number)).toBe(expected);
+    });
+  });
 });
