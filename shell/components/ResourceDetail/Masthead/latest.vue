@@ -46,28 +46,25 @@ const store = useStore();
 <template>
   <div>
     <TitleBar v-bind="titleBarProps" />
-    <div
+    <!-- `role="status"` sits on the banner rather than on a wrapper element, so the
+         layout is unchanged. Assistive tech announces it when it is inserted. -->
+    <Banner
+      v-if="bannerProps"
+      v-ui-context="{
+        store: store,
+        icon: 'icon-info',
+        hookable: true,
+        value: {
+          bannerProps,
+          resource: uiCtxResource
+        },
+        tag: '__details-state-banner',
+        description: 'Status Message'
+      }"
+      class="new state-banner"
+      v-bind="bannerProps"
       role="status"
-      aria-atomic="true"
-      style="display: contents"
-    >
-      <Banner
-        v-if="bannerProps"
-        v-ui-context="{
-          store: store,
-          icon: 'icon-info',
-          hookable: true,
-          value: {
-            bannerProps,
-            resource: uiCtxResource
-          },
-          tag: '__details-state-banner',
-          description: 'Status Message'
-        }"
-        class="new state-banner"
-        v-bind="bannerProps"
-      />
-    </div>
+    />
     <Metadata
       v-bind="metadataProps"
       class="metadata-section"

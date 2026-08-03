@@ -1117,29 +1117,26 @@ export default {
       />
     </div>
     <div v-else>
-      <div
+      <!-- `role="status"` sits on the banner rather than on a wrapper element, so the
+           layout is unchanged. Assistive tech announces it when it is inserted. -->
+      <Banner
+        v-if="!loading && showAddReposBanner"
+        color="warning"
         role="status"
-        aria-atomic="true"
-        style="display: contents"
+        class="add-repos-banner mb-20"
+        data-testid="extensions-new-repos-banner"
       >
-        <Banner
-          v-if="!loading && showAddReposBanner"
-          color="warning"
-          class="add-repos-banner mb-20"
-          data-testid="extensions-new-repos-banner"
+        <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
+        <button
+          class="ml-10 btn btn-sm role-primary"
+          data-testid="extensions-new-repos-banner-action-btn"
+          role="button"
+          :aria-label="t('plugins.addRepos.bannerBtn')"
+          @click="showAddExtensionReposDialog()"
         >
-          <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
-          <button
-            class="ml-10 btn btn-sm role-primary"
-            data-testid="extensions-new-repos-banner-action-btn"
-            role="button"
-            :aria-label="t('plugins.addRepos.bannerBtn')"
-            @click="showAddExtensionReposDialog()"
-          >
-            {{ t('plugins.addRepos.bannerBtn') }}
-          </button>
-        </Banner>
-      </div>
+          {{ t('plugins.addRepos.bannerBtn') }}
+        </button>
+      </Banner>
 
       <Tabbed
         v-if="!loading"

@@ -404,31 +404,24 @@ export default {
                 />
               </p>
               <div class="mt-20">
-                <div
+                <!-- The live-region roles sit on the banners rather than on wrapper
+                     elements, so the layout is unchanged. Assistive tech announces them
+                     when they are inserted. -->
+                <Banner
+                  v-if="showLocalhostWarning"
+                  color="warning"
                   role="status"
-                  aria-atomic="true"
-                  style="display: contents"
-                >
-                  <Banner
-                    v-if="showLocalhostWarning"
-                    color="warning"
-                    :label="t('validation.setting.serverUrl.localhost')"
-                    data-testid="setup-serverurl-localhost-warning"
-                  />
-                </div>
-                <div
+                  :label="t('validation.setting.serverUrl.localhost')"
+                  data-testid="setup-serverurl-localhost-warning"
+                />
+                <Banner
+                  v-for="(err, i) in fvGetPathErrors(['serverUrl'])"
+                  :key="i"
+                  color="error"
                   role="alert"
-                  aria-live="assertive"
-                  style="display: contents"
-                >
-                  <Banner
-                    v-for="(err, i) in fvGetPathErrors(['serverUrl'])"
-                    :key="i"
-                    color="error"
-                    :label="err"
-                    data-testid="setup-error-banner"
-                  />
-                </div>
+                  :label="err"
+                  data-testid="setup-error-banner"
+                />
                 <LabeledInput
                   v-model:value="serverUrl"
                   :label="t('setup.serverUrl.label')"

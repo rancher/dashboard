@@ -327,22 +327,21 @@ export default {
         <p>
           {{ t(`plugins.${ buttonMode }.prompt`) }}
         </p>
-        <div
+        <!-- `role="status"` sits on each banner rather than on a wrapper element, so
+             the layout is unchanged. Assistive tech announces the notification when it
+             is inserted. -->
+        <Banner
+          v-if="chartVersionLoadsWithoutAuth"
+          color="warning"
           role="status"
-          aria-atomic="true"
-          style="display: contents"
-        >
-          <Banner
-            v-if="chartVersionLoadsWithoutAuth"
-            color="warning"
-            :label="t('plugins.warnNoAuth')"
-          />
-          <Banner
-            v-if="!plugin?.certified"
-            color="warning"
-            :label="t('plugins.install.warnNotCertified')"
-          />
-        </div>
+          :label="t('plugins.warnNoAuth')"
+        />
+        <Banner
+          v-if="!plugin?.certified"
+          color="warning"
+          role="status"
+          :label="t('plugins.install.warnNotCertified')"
+        />
         <LabeledSelect
           v-if="showVersionSelector"
           v-model:value="version"

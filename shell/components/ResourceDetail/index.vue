@@ -39,6 +39,14 @@ async function getYaml(store, model) {
   return model.cleanForDownload(yaml);
 }
 
+/**
+ * NOTE: the template must keep a single root node - the `v-if` / `v-else-if` / `v-else`
+ * chain counts as one. Adding an unconditional sibling (or a root-level comment) turns
+ * this into a fragment component, and Vue then drops the `outlet` class that
+ * `shell/components/templates/default.vue` passes down from `<router-view class="outlet" />`
+ * as a fallthrough attribute. That class supplies the padding, flex layout and min-height
+ * for every resource detail / create / edit page.
+ */
 export default {
   emits: ['input'],
 
@@ -300,6 +308,9 @@ export default {
 
       return null;
     },
+    hasErrors() {
+      return this.errors?.length && Array.isArray(this.errors);
+    },
     mappedErrors() {
       return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
         ...acc,
@@ -407,24 +418,6 @@ export default {
 </script>
 
 <template>
-  <div
-    id="resource-detail-errors"
-    class="cru__errors"
-    role="alert"
-    aria-live="assertive"
-    aria-atomic="true"
-  >
-    <Banner
-      v-for="(err, i) in errors"
-      :key="i"
-      color="error"
-      :data-testid="`error-banner${i}`"
-      :label="stringify(mappedErrors[err].message)"
-      :icon="mappedErrors[err].icon"
-      :closable="true"
-      @close="closeError(i)"
-    />
-  </div>
   <Loading v-if="$fetchState.pending || notFound" />
   <component
     :is="showComponent"
@@ -464,6 +457,29 @@ export default {
         :value="liveModel"
       />
     </Masthead>
+
+    <!-- `role="alert"` sits on the container that already exists rather than on a
+         persistent wrapper, so the layout is unchanged. Assistive tech announces an
+         alert when it is inserted, which is exactly when an error appears. -->
+    <div
+      v-if="hasErrors"
+      id="cru-errors"
+      class="cru__errors"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+    >
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :data-testid="`error-banner${i}`"
+        :label="stringify(mappedErrors[err].message)"
+        :icon="mappedErrors[err].icon"
+        :closable="true"
+        @close="closeError(i)"
+      />
+    </div>
 
     <ResourceYaml
       v-if="isYaml"

@@ -55,22 +55,20 @@ export default defineComponent({
   <div v-if="!isView">
     <div class="spacer-small" />
 
+    <!-- `role="alert"` sits on each banner rather than on a wrapper element, so the
+         layout is unchanged. Assistive tech announces an alert when it is inserted,
+         which is exactly when an error appears. -->
     <div
-      role="alert"
-      aria-live="assertive"
-      style="display: contents"
+      v-for="(err,idx) in errors"
+      :key="idx"
     >
-      <div
-        v-for="(err,idx) in errors"
-        :key="idx"
-      >
-        <Banner
-          color="error"
-          :label="err"
-          :closable="true"
-          @close="closeError(idx)"
-        />
-      </div>
+      <Banner
+        color="error"
+        role="alert"
+        :label="err"
+        :closable="true"
+        @close="closeError(idx)"
+      />
     </div>
     <div class="buttons">
       <div class="left">

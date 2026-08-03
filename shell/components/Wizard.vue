@@ -440,23 +440,23 @@ export default {
         :cancel="cancel"
         :activeStep="activeStep"
       >
+        <!-- No wrapping live region here: the parent is a flex column with
+             `justify-content: space-between`, so an always-present wrapper
+             would become a third item and redistribute the spacing.
+             `role="alert"` sits on each banner instead - assistive tech
+             announces an alert when it is inserted. -->
         <div
-          role="alert"
-          aria-live="assertive"
-          style="display: contents"
+          v-for="(err,idx) in errorStrings"
+          :key="idx"
         >
-          <div
-            v-for="(err,idx) in errorStrings"
-            :key="idx"
-          >
-            <Banner
-              color="error"
-              :label="err"
-              :closable="true"
-              class="footer-error"
-              @close="errors.splice(idx, 1)"
-            />
-          </div>
+          <Banner
+            color="error"
+            role="alert"
+            :label="err"
+            :closable="true"
+            class="footer-error"
+            @close="errors.splice(idx, 1)"
+          />
         </div>
         <div
           id="wizard-footer-controls"

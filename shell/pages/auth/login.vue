@@ -377,30 +377,31 @@ export default {
         <h1 class="text-center login-welcome">
           {{ t(customizations.welcomeLabelKey, {vendor}) }}
         </h1>
+        <!-- `.login-messages` is always rendered and exists solely to hold these
+             messages, so it is the live region itself. An inner wrapper would
+             re-parent the banner and break `.login-messages .banner { max-width: 80% }`,
+             which resolves against the flex item. -->
         <div
           class="login-messages"
           data-testid="login__messages"
           :class="{'login-messages--hasContent': hasLoginMessage}"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
         >
-          <div
-            role="alert"
-            aria-atomic="true"
-            style="display: contents"
-          >
-            <Banner
-              v-if="errorToDisplay"
-              :label="errorToDisplay"
-              color="error"
-            />
-          </div>
+          <Banner
+            v-if="errorToDisplay"
+            :label="errorToDisplay"
+            color="error"
+          />
           <h4
-            v-if="!errorToDisplay && loggedOut"
+            v-else-if="loggedOut"
             class="text-success text-center"
           >
             {{ loggedOutSuccessMsg }}
           </h4>
           <h4
-            v-if="!errorToDisplay && !loggedOut && timedOut"
+            v-else-if="timedOut"
             class="text-error text-center"
           >
             {{ t('login.loginAgain') }}

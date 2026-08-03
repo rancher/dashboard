@@ -290,6 +290,13 @@ export default {
     ...mapActions('cru-resource', ['setCreateNamespace']),
 
     /**
+     * Prevent issues for malformed types injection
+     */
+    hasErrors() {
+      return this.errors?.length && Array.isArray(this.errors);
+    },
+
+    /**
      * Replace returned string with new picked value and icon
      */
     mappedErrors() {
@@ -676,7 +683,13 @@ export default {
       @submit.prevent
       @keydown.enter="onPressEnter($event)"
     >
+      <!-- `role="alert"` sits on the container that already exists rather than on a
+           persistent wrapper: this element is a grid cell under `.show-toc` and a
+           flex item otherwise, so an extra box would change the layout. Assistive
+           tech announces an alert when it is inserted, which is exactly when an
+           error appears. -->
       <div
+        v-if="hasErrors"
         id="cru-errors"
         class="cru__errors"
         role="alert"

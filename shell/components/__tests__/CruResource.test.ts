@@ -68,6 +68,75 @@ describe('component: CruResource', () => {
     expect(node.text()).toContain(errors[1]);
   });
 
+  it('should announce the errors container as an assertive live region', () => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _EDIT,
+        resource: {},
+        errors:   ['mistake!']
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: _YAML } },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    const node = wrapper.find('#cru-errors');
+
+    // The role lives on the existing container rather than on a persistent wrapper -
+    // an extra element would claim a grid cell under `.show-toc`. Assistive tech
+    // announces an alert when it is inserted, which is when an error appears.
+    expect(node.attributes('role')).toStrictEqual('alert');
+    expect(node.attributes('aria-live')).toStrictEqual('assertive');
+  });
+
+  it.each([
+    ['no errors prop', undefined],
+    ['an empty errors array', []],
+  ])('should not render the errors container given %s', (_label, errors) => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _EDIT,
+        resource: {},
+        errors
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: _YAML } },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    // The container must not render when there is nothing to show, otherwise consumers
+    // cannot tell "no errors" from "errors" and it occupies a grid cell for nothing.
+    expect(wrapper.find('#cru-errors').exists()).toStrictEqual(false);
+  });
+
   it.each([
     ['error', 'error'],
     [{
