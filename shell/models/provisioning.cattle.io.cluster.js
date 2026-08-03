@@ -37,6 +37,39 @@ const AUTOSCALER_STATUS = {
  * @extends SteveModel
  */
 export default class ProvCluster extends SteveModel {
+  get annotations() {
+    // HybridModel.annotations filters out all cattle.io/ keys via ANNOTATIONS_TO_IGNORE_REGEX.
+    // We re-expose the management-cluster-name annotation so users can set it during creation
+    // and view it on existing clusters via the standard Labels & Annotations UI.
+    const base = super.annotations;
+    const raw = this.metadata?.annotations || {};
+
+    if (raw[CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME]) {
+      return { ...base, [CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME]: raw[CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME] };
+    }
+
+    return base;
+  }
+
+  get allowedSystemAnnotationKeys() {
+    // Allow this annotation to bypass the cattle.io/ regex protection in the Labels UI
+    // so that users can set it during cluster creation
+    if (!this.id) {
+      return [CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME];
+    }
+
+    return [];
+  }
+
+  get readOnlyAnnotationKeys() {
+    // On edit, show the annotation with a warning that changes will not be persisted
+    if (this.id && this.metadata?.annotations?.[CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME]) {
+      return [CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME];
+    }
+
+    return [];
+  }
+
   get details() {
     const out = [
       {

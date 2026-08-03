@@ -4194,6 +4194,7 @@ labels:
   addTaint: Add Taint
   addAnnotation: Add Annotation
   protectedWarning: This key is protected and will be discarded
+  readOnlyWarning: This key is read-only and changes will not be persisted
   labels:
     title: Labels
     description: Key/value pairs that are attached to objects which specify identifying attributes.
