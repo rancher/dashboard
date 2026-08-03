@@ -83,11 +83,24 @@ export default {
       newViewName: '',
       copied:      false,
       renameNames: {},
+      viewPanel:   null,   // View popup drill-down: null (main list) | 'columns' | 'group'
     };
   },
 
   computed: {
     allSavedViews: mapPref(TABLE_VIEWS),
+
+    // Short summary of the column selection shown on the "Columns" row of the View menu
+    columnsSummary() {
+      const total = this.columnFields.length;
+      const labels = this.view.labelColumns?.length || 0;
+
+      if (!this.hiddenColumnCount && !labels) {
+        return this.t('tableViews.view.allColumns');
+      }
+
+      return this.t('tableViews.view.someColumns', { count: total - this.hiddenColumnCount + labels });
+    },
 
     savedViews() {
       return this.allSavedViews?.[this.resourceType] || [];
@@ -465,10 +478,12 @@ export default {
         {{ t('tableViews.matches', { count: matchCount }) }}
       </span>
 
-      <!-- Single "View" popup: display/view-mode toggle + Columns + Group by -->
+      <!-- Single "View" popup — GitHub-style drill-down: a main list of summary rows, each opening
+           its own sub-panel, rather than every control stacked inline. -->
       <v-dropdown
         placement="bottom-end"
         :container="false"
+        @apply-hide="viewPanel = null"
       >
         <button
           type="button"
@@ -485,76 +500,120 @@ export default {
         </button>
         <template #popper>
           <div class="view-menu view-popup">
-            <template v-if="viewModeOptions.length > 1">
-              <div class="menu-title">
-                {{ t('tableViews.view.display') }}
-              </div>
-              <div class="view-mode-row">
-                <ButtonGroup
-                  :value="viewMode"
-                  :options="viewModeOptions"
-                  size="medium"
-                  data-testid="table-views-view-mode"
-                  @update:value="setViewMode"
-                />
-              </div>
+            <!-- MAIN PANEL: display toggle + one summary row per control -->
+            <template v-if="!viewPanel">
+              <template v-if="viewModeOptions.length > 1">
+                <div class="menu-title">
+                  {{ t('tableViews.view.display') }}
+                </div>
+                <div class="view-mode-row">
+                  <ButtonGroup
+                    :value="viewMode"
+                    :options="viewModeOptions"
+                    size="medium"
+                    data-testid="table-views-view-mode"
+                    @update:value="setViewMode"
+                  />
+                </div>
+              </template>
+
+              <button
+                type="button"
+                class="menu-nav"
+                data-testid="table-views-view-columns"
+                @click="viewPanel = 'columns'"
+              >
+                <span class="menu-nav-label">{{ t('tableViews.columns.label') }}</span>
+                <span class="menu-nav-value">{{ columnsSummary }}</span>
+                <i class="icon icon-chevron-right" />
+              </button>
+
+              <button
+                type="button"
+                class="menu-nav"
+                data-testid="table-views-view-group"
+                @click="viewPanel = 'group'"
+              >
+                <span class="menu-nav-label">{{ t('tableViews.group.byLabel') }}</span>
+                <span class="menu-nav-value">{{ groupLabel }}</span>
+                <i class="icon icon-chevron-right" />
+              </button>
             </template>
 
-            <div class="menu-title">
-              {{ t('tableViews.columns.tableColumns') }}
-            </div>
-            <label
-              v-for="field in columnFields"
-              :key="field.id"
-              class="menu-check"
-            >
-              <input
-                type="checkbox"
-                :checked="isColumnVisible(field)"
-                @change="toggleColumn(field)"
+            <!-- COLUMNS SUB-PANEL -->
+            <template v-else-if="viewPanel === 'columns'">
+              <button
+                type="button"
+                class="menu-back"
+                @click="viewPanel = null"
               >
-              <span>{{ field.label }}</span>
-            </label>
-            <template v-if="labelFields.length">
+                <i class="icon icon-chevron-left" />
+                {{ t('tableViews.columns.label') }}
+              </button>
               <div class="menu-title">
-                {{ t('tableViews.columns.labelColumns') }}
+                {{ t('tableViews.columns.tableColumns') }}
               </div>
               <label
-                v-for="field in labelFields"
+                v-for="field in columnFields"
                 :key="field.id"
                 class="menu-check"
-                :data-testid="`table-views-label-col-${field.labelKey}`"
               >
                 <input
                   type="checkbox"
-                  :checked="view.labelColumns.includes(field.labelKey)"
-                  @change="toggleLabelColumn(field)"
+                  :checked="isColumnVisible(field)"
+                  @change="toggleColumn(field)"
                 >
                 <span>{{ field.label }}</span>
               </label>
+              <template v-if="labelFields.length">
+                <div class="menu-title">
+                  {{ t('tableViews.columns.labelColumns') }}
+                </div>
+                <label
+                  v-for="field in labelFields"
+                  :key="field.id"
+                  class="menu-check"
+                  :data-testid="`table-views-label-col-${field.labelKey}`"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="view.labelColumns.includes(field.labelKey)"
+                    @change="toggleLabelColumn(field)"
+                  >
+                  <span>{{ field.label }}</span>
+                </label>
+              </template>
+              <button
+                type="button"
+                class="btn btn-sm role-link menu-reset"
+                @click="resetColumns"
+              >
+                {{ t('tableViews.columns.reset') }}
+              </button>
             </template>
-            <button
-              type="button"
-              class="btn btn-sm role-link menu-reset"
-              @click="resetColumns"
-            >
-              {{ t('tableViews.columns.reset') }}
-            </button>
 
-            <div class="menu-title">
-              {{ t('tableViews.group.byLabel') }}
-            </div>
-            <button
-              v-for="option in groupOptions"
-              :key="option.id || 'none'"
-              type="button"
-              class="menu-item"
-              :class="{ selected: option.id === view.groupBy }"
-              :data-testid="`table-views-group-${option.id || 'none'}`"
-              @click="setGroupBy(option.id)"
-            >
-              {{ option.label }}
-            </button>
+            <!-- GROUP-BY SUB-PANEL -->
+            <template v-else-if="viewPanel === 'group'">
+              <button
+                type="button"
+                class="menu-back"
+                @click="viewPanel = null"
+              >
+                <i class="icon icon-chevron-left" />
+                {{ t('tableViews.group.byLabel') }}
+              </button>
+              <button
+                v-for="option in groupOptions"
+                :key="option.id || 'none'"
+                type="button"
+                class="menu-item"
+                :class="{ selected: option.id === view.groupBy }"
+                :data-testid="`table-views-group-${option.id || 'none'}`"
+                @click="setGroupBy(option.id); viewPanel = null"
+              >
+                {{ option.label }}
+              </button>
+            </template>
           </div>
         </template>
       </v-dropdown>
@@ -745,6 +804,54 @@ export default {
 
   .view-mode-row {
     padding: 4px 12px 8px 12px;
+  }
+
+  // GitHub-style drill-down rows in the View popup: label (left) + current value + chevron (right)
+  .menu-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--body-text);
+    text-align: left;
+
+    &:hover {
+      background: var(--dropdown-hover-bg);
+      color: var(--dropdown-hover-text);
+    }
+
+    .menu-nav-label { font-weight: 500; }
+    .menu-nav-value {
+      margin-left: auto;
+      opacity: 0.7;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .icon-chevron-right { opacity: 0.6; }
+  }
+
+  // "Back" header at the top of a sub-panel
+  .menu-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    color: var(--body-text);
+    font-weight: 600;
+    text-align: left;
+
+    &:hover { color: var(--link); }
   }
 
   &.view-popup {
