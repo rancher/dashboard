@@ -353,6 +353,11 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/config/index.vue')),
         name:      'c-cluster-auth-config'
       }, {
+        // Must be registered before `/c/:cluster/auth/config/:id`, which would match `create`
+        path:      '/c/:cluster/auth/config/create',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/auth/config/create.vue')),
+        name:      'c-cluster-auth-config-create'
+      }, {
         path:      '/c/:cluster/auth/roles',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/roles/index.vue')),
         name:      'c-cluster-auth-roles'

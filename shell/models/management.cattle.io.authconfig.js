@@ -59,6 +59,21 @@ export default class AuthConfig extends SteveModel {
     return out;
   }
 
+  /**
+   * Auth configs are edited through their own route rather than the generic
+   * resource detail page, so the inherited action menu (`goToEdit`, `goToViewConfig`)
+   * and any detail links need pointing at it.
+   */
+  get detailLocation() {
+    return {
+      name:   'c-cluster-auth-config-id',
+      params: {
+        cluster: this.$rootGetters['clusterId'],
+        id:      this.id,
+      },
+    };
+  }
+
   get nameDisplay() {
     return this.$rootGetters['i18n/withFallback'](`model.authConfig.name."${ this.id }"`, null, this.provider);
   }
