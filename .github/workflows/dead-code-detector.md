@@ -3,6 +3,17 @@ name: Dead Code Detector
 description: Identifies dead and unused code across the codebase and suggests safe removal opportunities
 on:
   workflow_dispatch:
+    inputs:
+      # Declared explicitly so gh-aw does not inject a free-text version of it.
+      # A single-option choice renders as a fixed dropdown, which stops an
+      # invalid value reaching the fromJSON() calls in the activation job.
+      aw_context:
+        description: "Ignore this input, required for gh-aw"
+        required: false
+        default: "{}"
+        type: choice
+        options:
+          - "{}"
   schedule: daily
 
 if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_DEAD_CODE_DETECTOR != 'true'
