@@ -169,6 +169,7 @@ export default defineComponent({
       :external-pagination-result="paginationResult"
 
       @pagination-changed="paginationChanged"
+      @view-filters-changed="setTableViewFilters"
     >
       <!-- Pass down templates provided by the caller -->
       <template

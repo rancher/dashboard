@@ -1,6 +1,8 @@
 <script>
 import { mapGetters } from 'vuex';
+import debounce from 'lodash/debounce';
 import { get } from '@shell/utils/object';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
@@ -27,6 +29,7 @@ import {
   rowsToCsv,
   rowsToJson,
   stringifyValue,
+  termsToServerFilters,
 } from '@shell/utils/table-views';
 
 // Default group-by in the case the group stored in the preference does not apply
@@ -61,7 +64,7 @@ export default {
 
   name: 'ResourceTable',
 
-  emits: ['clickedActionButton'],
+  emits: ['clickedActionButton', 'view-filters-changed'],
 
   components: {
     ButtonGroup, SortableTable, TableViewsBar, ToggleSwitch
@@ -274,6 +277,11 @@ export default {
       sortGeneration:               undefined,
       listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
       hasSearchFilter:              false,
+      // Debounced emit of the server-side view filters (see serverViewFilters watcher)
+      debouncedEmitViewFilters:     debounce((filters) => this.$emit('view-filters-changed', filters), 200),
+      // Serialized form of the last emitted filters, to skip redundant emits. Starts as
+      // the empty state so an initial empty query doesn't fire (matches the fallback path)
+      lastViewFiltersKey:           '[]',
     };
   },
 
@@ -289,6 +297,27 @@ export default {
         }
       },
       immediate: true
+    },
+
+    /**
+     * When the server-side view filters change, tell the owning list to re-fetch. Compare
+     * by serialized value so we don't emit on unrelated re-renders. Only fires while
+     * server-side table views are active - the client-side fallback never emits.
+     */
+    'serverViewFilters.filters'(neu) {
+      if (!this.serverSideTableViews) {
+        return;
+      }
+
+      const filters = neu || [];
+      const key = JSON.stringify(filters);
+
+      if (key === this.lastViewFiltersKey) {
+        return;
+      }
+
+      this.lastViewFiltersKey = key;
+      this.debouncedEmitViewFilters(filters.length ? filters : []);
     },
 
   },
@@ -535,14 +564,54 @@ export default {
     },
 
     /**
-     * Rows left once the view's query has been applied
+     * Should the toolbar filter run server-side (through the pagination `filter=` params)
+     * rather than client-side? Only when the table is externally paginated and we know the
+     * resource type (so we can validate fields against its schema)
+     */
+    serverSideTableViews() {
+      return this.showTableViews && this.externalPaginationEnabled && !!this.schema;
+    },
+
+    /**
+     * The view's query converted into steve/vai server filters (plus the terms that have
+     * no server-side path). Empty when not running server-side
+     */
+    serverViewFilters() {
+      if (!this.serverSideTableViews) {
+        return { filters: [], unsupported: [] };
+      }
+
+      return termsToServerFilters(this.viewTerms, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
+    },
+
+    /**
+     * Rows left once the view's query has been applied.
+     *
+     * Server-side: the rows are already filtered by the API, so pass them through. Client
+     * side: apply the query in the browser.
      */
     viewRows() {
+      if (this.serverSideTableViews) {
+        return this.filteredRows;
+      }
+
       if (!this.showTableViews || !this.viewTerms.length) {
         return this.filteredRows;
       }
 
       return applyQuery(this.filteredRows, this.viewTerms, this.viewFields);
+    },
+
+    /**
+     * The number shown in the match-count pill. Server-side this is the server's total
+     * count (across all pages), client-side it's the number of filtered rows
+     */
+    viewMatchCount() {
+      if (this.serverSideTableViews) {
+        return this.externalPaginationResult?.count ?? this.filteredRows.length;
+      }
+
+      return this.viewRows.length;
     },
 
     viewGroupField() {
@@ -925,7 +994,7 @@ export default {
         :view="view"
         :fields="viewFields"
         :rows="filteredRows"
-        :match-count="viewRows.length"
+        :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"
         :view-mode="group"
         :view-mode-options="showGrouping ? _groupOptions : []"
@@ -960,7 +1029,7 @@ export default {
         :view="view"
         :fields="viewFields"
         :rows="filteredRows"
-        :match-count="viewRows.length"
+        :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"
         :view-mode="group"
         :view-mode-options="showGrouping ? _groupOptions : []"

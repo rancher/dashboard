@@ -413,6 +413,7 @@ export default {
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
       @pagination-changed="paginationChanged"
+      @view-filters-changed="setTableViewFilters"
     />
   </div>
 </template>
