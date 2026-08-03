@@ -1,5 +1,7 @@
 import r from 'jsrsasign';
-import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_CLUSTER, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import {
+ CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_CLUSTER, UI_PROJECT_SECRET_COPY
+} from '@shell/config/labels-annotations';
 import { GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
@@ -53,7 +55,7 @@ const certExpiringPeriod = 1000 * 60 * 60 * 24 * 8;
  *    - Annotations
  *        - "management.cattle.io/project-scoped-secret-copy": "true",
  *
- * VAI connects a secret (created by PSS) to it's project and allows sort/filter on it's projects spec.clusterName (cluster's human name) and spec.displayName (projects human name)
+ * VAI connects a secret (created by PSS) to it's project and allows sort/filter on it's projects spec.clusterName (cluster's id) and spec.displayName (projects human name)
  * This allows us to show a cluster's Project Scoped Secrets (filter on spec.clusterName) and Secret (created by PSS) project information easily
  */
 
@@ -617,8 +619,7 @@ export default class Secret extends SteveModel {
       // Try to fetch the project.
       // Note: The management store might not have the project loaded if we haven't visited the cluster list or project list.
       // However, if we are in the dashboard, we usually have projects loaded.
-      const project =
-        this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, projectIdWithCluster) ||
+      const project = this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, projectIdWithCluster) ||
         this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, projectId);
 
       return project;

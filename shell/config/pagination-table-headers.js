@@ -96,16 +96,15 @@ export const STEVE_LIST_GROUPS = [{
 export const STEVE_SECRET_ORIGIN = {
   ...SECRET_ORIGIN,
   // We would like to sort on
-  // 1. if this is a project scoped secret
-  //   - Normally achieved by sorting on metadata.labels[management.cattle.io/project-scoped-secret]
-  //   - However this covers both project scoped secrets, and secrets it creates in namespaces in that project
-  //   - To help we first sort by created secrets in that ns, which does lead to an odd experience....
-  // 2. if this is a project scoped secret
-  //   - we do this by sorting on the project scoped secrets's associated project's name
-  //   - the BE connects secret label to project id and exposes project human name via spec.displayName
+  // 1. if this is a project scoped secret copy
+  // 2. if this is a project scoped secret on it's clusters mgmt id
+  //   - field not shown in response but allowed to sort/filter via vai
+  // 3. if this is a project scoped secret on it's project's human name
+  //   - field not shown in response but allowed to sort/filter via vai
   sort: [
-    `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`,
-    `spec.displayName`
+    `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`,
+    `spec.clusterName:desc`,
+    `spec.displayName`,
   ],
 };
 

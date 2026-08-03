@@ -41,7 +41,6 @@ export default {
 
         return this.t('secret.projectScoped.tooltip.source', { project: projectName, cluster: clusterName });
       } else if (this.row.isProjectSecretCopy) {
-
         const projectName = this.row.project?.nameDisplay || this.row.projectSecretCopyProjectName;
 
         return this.t('secret.projectScoped.tooltip.copy', { secret: this.row.nameDisplay, project: projectName });
