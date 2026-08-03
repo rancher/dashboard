@@ -6,7 +6,9 @@ export function formatSi(inValue, {
   addSuffix = true,
   addSuffixSpace = true,
   suffix = '',
-  firstSuffix = null,
+  // The `null` default would otherwise be inferred as the only allowed type, so
+  // every caller passing a real suffix (chart.js, Si.vue, node.vue) fails type-check
+  firstSuffix = /** @type {string | null} */ (null),
   startingExponent = 0,
   minExponent = 0,
   maxExponent = 99,
