@@ -1,6 +1,6 @@
 import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
-const mockT = (key: string, args?: Record<string, unknown>): string => {
+const mockT = (key: string, args?: unknown): string => {
   if (args) {
     return `${ key }[${ Object.values(args).join(',') }]`;
   }
