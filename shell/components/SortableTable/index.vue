@@ -8,7 +8,7 @@ import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
-import ActionDropdown from '@shell/components/ActionDropdown';
+import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
@@ -26,7 +26,6 @@ import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
-import { RcButton } from '@components/RcButton';
 import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
@@ -61,12 +60,11 @@ export default {
     THead,
     Checkbox,
     AsyncButton,
-    ActionDropdown,
+    ActionDropdownShell,
     LabeledSelect,
     LabeledInput,
     ButtonMultiAction,
     ActionMenu,
-    RcButton,
   },
 
   mixins: [
@@ -1148,71 +1146,38 @@ export default {
         >
           <slot name="header-left">
             <template v-if="tableActions">
-              <!-- Gear dropdown: every bulk action EXCEPT delete, icon-only trigger -->
-              <ActionDropdown
-                :class="bulkActionsDropdownClass"
-                class="bulk-actions-dropdown"
-                :disable-button="!selectedRows.length"
-                size="sm"
-              >
-                <template #button-content="{ buttonSize }">
-                  <button
-                    ref="actionDropDown"
-                    v-clean-tooltip="t('sortableTable.bulkActions.collapsed.label')"
-                    type="button"
-                    class="btn bg-primary mr-0 bulk-action-gear"
-                    :class="buttonSize"
-                    :disabled="!selectedRows.length"
-                    :aria-label="t('sortableTable.bulkActions.collapsed.label')"
-                    :data-testid="componentTestid + '-bulk-actions'"
-                  >
-                    <i class="icon icon-gear" />
-                    <i class="icon icon-chevron-down" />
-                  </button>
-                </template>
-                <template #popover-content>
-                  <ul class="list-unstyled menu">
-                    <li
-                      v-for="(act, i) in bulkMenuActions"
-                      :key="i"
-                      v-close-popper
-                      v-clean-tooltip="{
-                        content: actionTooltip,
-                        placement: 'right'
-                      }"
-                      :class="{ disabled: !act.enabled }"
-                      :data-testid="componentTestid + '-bulk-menu-' + act.action"
-                      @click="applyTableAction(act, null, $event)"
-                      @mouseover="setBulkActionOfInterest(act)"
-                      @mouseleave="setBulkActionOfInterest(null)"
-                    >
-                      <i
-                        v-if="act.icon"
-                        :class="act.icon"
-                      />
-                      <span v-clean-html="act.label" />
-                    </li>
-                  </ul>
-                </template>
-              </ActionDropdown>
+              <!-- Bulk actions (every action EXCEPT delete) — icon-only cog dropdown.
+                   ActionDropdownShell is the component that actually renders on v2.11+
+                   (featureDropdownMenu); the legacy ActionDropdown did not, which is why these
+                   had gone fully missing. The label is hidden via CSS so the trigger is cog-only. -->
+              <ActionDropdownShell
+                v-if="bulkMenuActions.length"
+                class="bulk-action-menu"
+                :disabled="!selectedRows.length"
+                :hidden-actions="bulkMenuActions"
+                :action-tooltip="actionTooltip"
+                size="medium"
+                :data-testid="componentTestid + '-bulk-actions'"
+                @click="applyTableAction"
+                @mouseover="setBulkActionOfInterest"
+                @mouseleave="setBulkActionOfInterest"
+              />
 
-              <!-- Delete split out as its own icon-only button -->
-              <RcButton
+              <!-- Delete — its own icon-only button (plain <button>, subtle with a red hover) -->
+              <button
                 v-if="bulkDeleteAction"
-                v-clean-tooltip="actionTooltip || bulkDeleteAction.label"
+                v-clean-tooltip="bulkDeleteAction.label"
                 type="button"
-                variant="primary"
-                class="bulk-action-delete"
+                class="btn role-tertiary bulk-action-delete"
                 :disabled="!selectedRows.length || !bulkDeleteAction.enabled"
                 :data-testid="componentTestid + '-' + bulkDeleteAction.action"
                 :aria-label="bulkDeleteAction.label"
                 @click="applyTableAction(bulkDeleteAction, null, $event)"
-                @keydown.enter.stop
                 @mouseover="setBulkActionOfInterest(bulkDeleteAction)"
                 @mouseleave="setBulkActionOfInterest(null)"
               >
-                <i :class="bulkDeleteAction.icon || 'icon icon-trash'" />
-              </RcButton>
+                <i :class="bulkDeleteAction.icon || 'icon icon-delete'" />
+              </button>
 
               <label
                 v-if="selectedRowsText"
@@ -2196,6 +2161,29 @@ export default {
 
       & > BUTTON:not(:last-of-type) {
         margin-right: $gap;
+      }
+
+      // New bulk-action model: a cog dropdown (all non-delete actions) + a standalone delete icon,
+      // both ALWAYS visible (disabled when nothing is selected). The legacy responsive-overflow JS
+      // (protectedUpdateHiddenBulkActions) hides the .bulk-actions-dropdown when there are no
+      // individually-rendered .bulk-action buttons, and `.bulk > BUTTON { display:none }` hides the
+      // plain delete button — so force them visible here (beats the JS's inline styles).
+      align-items: center;
+
+      .bulk-actions-dropdown { display: inline-flex !important; }   // the cog trigger
+
+      // cog-only: hide the "Bulk actions" text label in the trigger, keep the gear + chevron icons
+      .bulk-action-menu .bulk-actions-dropdown span { display: none; }
+
+      & > .bulk-action-delete {
+        display: inline-flex !important;
+        align-items: center;
+        margin-left: $gap;
+        color: var(--body-text);
+
+        i { font-size: 18px; }
+        &:hover:not(:disabled) { color: var(--error); border-color: var(--error); }
+        &:disabled { opacity: 0.4; cursor: default; }
       }
 
       .action-availability {
