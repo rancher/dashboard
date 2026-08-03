@@ -42,9 +42,10 @@ jobs:
       - name: Extract Rancher version
         id: extract
         run: |
-          VERSION=$(jq -r ".branches[\"${{ github.base_ref || github.ref_name }}\"].e2e[\"runtime-rancher-version\"]" branches-metadata.json)
+          BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${{ github.base_ref || github.ref_name }} --local 2>/dev/null)
+          VERSION=$(echo "$BRANCH_DATA" | jq -r '.e2e["runtime-rancher-version"]')
           if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-            echo "Warning: Rancher version not found for branch '${{ github.base_ref || github.ref_name }}', runtime-rancher-version will be empty."
+            echo "Warning: Rancher version not found for branch '${{ github.base_ref || github.ref_name }}', 'runtime-rancher-version' will be empty."
           fi
           echo "runtime-rancher-version=$VERSION" >> "$GITHUB_OUTPUT"
 
