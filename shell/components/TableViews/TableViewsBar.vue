@@ -83,7 +83,6 @@ export default {
       newViewName: '',
       copied:      false,
       renameNames: {},
-      viewPanel:   null,   // View popup drill-down: null (main list) | 'columns' | 'group'
     };
   },
 
@@ -478,12 +477,11 @@ export default {
         {{ t('tableViews.matches', { count: matchCount }) }}
       </span>
 
-      <!-- Single "View" popup — GitHub-style drill-down: a main list of summary rows, each opening
-           its own sub-panel, rather than every control stacked inline. -->
+      <!-- Single "View" popup — a compact list; Columns / Group by each open their OWN nested
+           dropdown (a cascading submenu) beside the row, GitHub-style. -->
       <v-dropdown
         placement="bottom-end"
         :container="false"
-        @apply-hide="viewPanel = null"
       >
         <button
           type="button"
@@ -500,120 +498,112 @@ export default {
         </button>
         <template #popper>
           <div class="view-menu view-popup">
-            <!-- MAIN PANEL: display toggle + one summary row per control -->
-            <template v-if="!viewPanel">
-              <template v-if="viewModeOptions.length > 1">
-                <div class="menu-title">
-                  {{ t('tableViews.view.display') }}
-                </div>
-                <div class="view-mode-row">
-                  <ButtonGroup
-                    :value="viewMode"
-                    :options="viewModeOptions"
-                    size="medium"
-                    data-testid="table-views-view-mode"
-                    @update:value="setViewMode"
-                  />
-                </div>
-              </template>
+            <template v-if="viewModeOptions.length > 1">
+              <div class="menu-title">
+                {{ t('tableViews.view.display') }}
+              </div>
+              <div class="view-mode-row">
+                <ButtonGroup
+                  :value="viewMode"
+                  :options="viewModeOptions"
+                  size="medium"
+                  data-testid="table-views-view-mode"
+                  @update:value="setViewMode"
+                />
+              </div>
+            </template>
 
+            <!-- Columns → its own nested dropdown -->
+            <v-dropdown
+              placement="right-start"
+              :container="false"
+            >
               <button
                 type="button"
                 class="menu-nav"
                 data-testid="table-views-view-columns"
-                @click="viewPanel = 'columns'"
               >
                 <span class="menu-nav-label">{{ t('tableViews.columns.label') }}</span>
                 <span class="menu-nav-value">{{ columnsSummary }}</span>
                 <i class="icon icon-chevron-right" />
               </button>
+              <template #popper>
+                <div class="view-menu">
+                  <div class="menu-title">
+                    {{ t('tableViews.columns.tableColumns') }}
+                  </div>
+                  <label
+                    v-for="field in columnFields"
+                    :key="field.id"
+                    class="menu-check"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="isColumnVisible(field)"
+                      @change="toggleColumn(field)"
+                    >
+                    <span>{{ field.label }}</span>
+                  </label>
+                  <template v-if="labelFields.length">
+                    <div class="menu-title">
+                      {{ t('tableViews.columns.labelColumns') }}
+                    </div>
+                    <label
+                      v-for="field in labelFields"
+                      :key="field.id"
+                      class="menu-check"
+                      :data-testid="`table-views-label-col-${field.labelKey}`"
+                    >
+                      <input
+                        type="checkbox"
+                        :checked="view.labelColumns.includes(field.labelKey)"
+                        @change="toggleLabelColumn(field)"
+                      >
+                      <span>{{ field.label }}</span>
+                    </label>
+                  </template>
+                  <button
+                    type="button"
+                    class="btn btn-sm role-link menu-reset"
+                    @click="resetColumns"
+                  >
+                    {{ t('tableViews.columns.reset') }}
+                  </button>
+                </div>
+              </template>
+            </v-dropdown>
 
+            <!-- Group by → its own nested dropdown -->
+            <v-dropdown
+              placement="right-start"
+              :container="false"
+            >
               <button
                 type="button"
                 class="menu-nav"
                 data-testid="table-views-view-group"
-                @click="viewPanel = 'group'"
               >
                 <span class="menu-nav-label">{{ t('tableViews.group.byLabel') }}</span>
                 <span class="menu-nav-value">{{ groupLabel }}</span>
                 <i class="icon icon-chevron-right" />
               </button>
-            </template>
-
-            <!-- COLUMNS SUB-PANEL -->
-            <template v-else-if="viewPanel === 'columns'">
-              <button
-                type="button"
-                class="menu-back"
-                @click="viewPanel = null"
-              >
-                <i class="icon icon-chevron-left" />
-                {{ t('tableViews.columns.label') }}
-              </button>
-              <div class="menu-title">
-                {{ t('tableViews.columns.tableColumns') }}
-              </div>
-              <label
-                v-for="field in columnFields"
-                :key="field.id"
-                class="menu-check"
-              >
-                <input
-                  type="checkbox"
-                  :checked="isColumnVisible(field)"
-                  @change="toggleColumn(field)"
-                >
-                <span>{{ field.label }}</span>
-              </label>
-              <template v-if="labelFields.length">
-                <div class="menu-title">
-                  {{ t('tableViews.columns.labelColumns') }}
-                </div>
-                <label
-                  v-for="field in labelFields"
-                  :key="field.id"
-                  class="menu-check"
-                  :data-testid="`table-views-label-col-${field.labelKey}`"
-                >
-                  <input
-                    type="checkbox"
-                    :checked="view.labelColumns.includes(field.labelKey)"
-                    @change="toggleLabelColumn(field)"
+              <template #popper>
+                <div class="view-menu">
+                  <button
+                    v-for="option in groupOptions"
+                    :key="option.id || 'none'"
+                    v-close-popper
+                    type="button"
+                    class="menu-item"
+                    :class="{ selected: option.id === view.groupBy }"
+                    :data-testid="`table-views-group-${option.id || 'none'}`"
+                    @click="setGroupBy(option.id)"
                   >
-                  <span>{{ field.label }}</span>
-                </label>
+                    {{ option.label }}
+                  </button>
+                </div>
               </template>
-              <button
-                type="button"
-                class="btn btn-sm role-link menu-reset"
-                @click="resetColumns"
-              >
-                {{ t('tableViews.columns.reset') }}
-              </button>
-            </template>
-
-            <!-- GROUP-BY SUB-PANEL -->
-            <template v-else-if="viewPanel === 'group'">
-              <button
-                type="button"
-                class="menu-back"
-                @click="viewPanel = null"
-              >
-                <i class="icon icon-chevron-left" />
-                {{ t('tableViews.group.byLabel') }}
-              </button>
-              <button
-                v-for="option in groupOptions"
-                :key="option.id || 'none'"
-                type="button"
-                class="menu-item"
-                :class="{ selected: option.id === view.groupBy }"
-                :data-testid="`table-views-group-${option.id || 'none'}`"
-                @click="setGroupBy(option.id); viewPanel = null"
-              >
-                {{ option.label }}
-              </button>
-            </template>
+            </v-dropdown>
           </div>
         </template>
       </v-dropdown>
