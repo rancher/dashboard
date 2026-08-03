@@ -545,16 +545,9 @@ export default {
         :value="view.query"
         :fields="fields"
         :rows="rows"
+        :match-count="matchCount"
         @update:value="update({ query: $event })"
       />
-
-      <span
-        v-if="view.query"
-        class="match-count"
-        data-testid="table-views-match-count"
-      >
-        {{ t('tableViews.matches', { count: matchCount }) }}
-      </span>
 
       <!-- Single "View" popup — a compact list; Columns / Group by each open their OWN nested
            dropdown (a cascading submenu) beside the row, GitHub-style. -->
