@@ -3394,8 +3394,8 @@ fleet:
       title: Charts
       loadError: Chart not found or has no available versions.
   gitRepoRestriction:
-    migrationDocsUrl: https://fleet.rancher.io/next/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction
-    deprecationWarning: 'GitRepoRestriction is deprecated and will be removed in a future Fleet release. Use <a href="{url}" target="_blank" rel="noopener noreferrer nofollow">Fleet Policy</a> instead.'
+    deprecationWarning: 'GitRepoRestriction is deprecated and will be removed in a future Fleet release. Use <a href="{url}" target="_blank" rel="noopener noreferrer nofollow">Policies</a> instead.'
+    learnMorePolicies: 'Learn more about <a href="{url}" target="_blank" rel="noopener noreferrer nofollow">SUSE Continuous Delivery Policies</a>'
   helmOp:
     intro:
       add: Create Helm Op
@@ -3622,6 +3622,8 @@ fleet:
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
+    deprecationWarning: 'GitRepoRestriction is deprecated and will be removed in a future release. Restricting allowed target namespaces relies on GitRepoRestriction and has no equivalent in SUSE Continuous Delivery Policies.'
+    learnMoreMigration: 'Learn more about <a href="{url}" target="_blank" rel="noopener noreferrer nofollow">migrating from GitRepoRestriction</a>'
     banner: "{count, plural,
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
