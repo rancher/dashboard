@@ -76,6 +76,19 @@ export default {
       type:    Array,
       default: () => []
     },
+
+    /**
+     * Which part of the bar to render:
+     *  - 'all'      (default) both the view tabs and the filter/View controls (backward compatible)
+     *  - 'tabs'     only the view tabs row
+     *  - 'controls' only the filter + single "View" popup, laid out to fill one toolbar line
+     * Two instances (tabs + controls) stay in sync because all state comes from props and the
+     * shared TABLE_VIEWS preference.
+     */
+    part: {
+      type:    String,
+      default: 'all'
+    },
   },
 
   data() {
@@ -282,9 +295,13 @@ export default {
 <template>
   <div
     class="table-views"
+    :class="{ 'part-controls': part === 'controls', 'part-tabs': part === 'tabs' }"
     data-testid="table-views-bar"
   >
-    <div class="view-tabs">
+    <div
+      v-if="part !== 'controls'"
+      class="view-tabs"
+    >
       <!-- All (built-in default): gets a caret dropdown too, but only the options that apply to it
            (Copy link + Export) — it can't be renamed, updated or deleted. -->
       <div
@@ -519,7 +536,10 @@ export default {
       </span>
     </div>
 
-    <div class="view-controls">
+    <div
+      v-if="part !== 'tabs'"
+      class="view-controls"
+    >
       <TableViewQueryInput
         class="query-grow"
         :value="view.query"
@@ -670,6 +690,21 @@ export default {
   flex-direction: column;
   gap: 8px;
   margin-bottom: 12px;
+
+  // 'controls' instance lives inside the core masthead's search cell — no vertical
+  // margin/gap, and it fills the width so the filter grows and the View button sits
+  // at the far right, all on a single line.
+  &.part-controls {
+    margin-bottom: 0;
+    gap: 0;
+    width: 100%;
+    flex: 1 1 auto;
+
+    .view-controls {
+      flex-wrap: nowrap;
+      width: 100%;
+    }
+  }
 
   .view-tabs {
     display: flex;
