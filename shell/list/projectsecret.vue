@@ -1,9 +1,9 @@
 <script lang="ts">
-import Masthead from '@shell/components/ResourceList/Masthead';
+import Masthead from '@shell/components/ResourceList/Masthead.vue';
 import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { SECRET, VIRTUAL_TYPES } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
-import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import Secret from '@shell/models/secret';
 import { TableColumn } from '@shell/types/store/type-map';
@@ -88,9 +88,8 @@ export default {
         name:  'project',
         label: this.t('tableHeaders.project'),
         value: 'project.nameDisplay',
-        // blocked on https://github.com/rancher/rancher/issues/51001
-        // search: `metadata.labels[${ UI_PROJECT_SECRET }]`,
-        sort:  `metadata.labels[${ UI_PROJECT_SECRET }]`,
+        search: `metadata.labels[${ UI_PROJECT_SECRET }]`,
+        sort:  `spec.displayName`,
       }, {
         ...SUB_TYPE,
         value:  'metadata.fields.1',
@@ -179,7 +178,6 @@ export default {
       });
 
       // Filter in the current clusters pss
-      // TODO: RC CURRENTLY BROKEN GIVEN https://github.com/rancher/rancher/issues/52810
       const nsFields: PaginationFilterField[] = [{
         field:  'spec.clusterName',
         value:  this.currentCluster.id,

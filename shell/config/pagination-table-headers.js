@@ -100,9 +100,13 @@ export const STEVE_SECRET_ORIGIN = {
   //   - Normally achieved by sorting on metadata.labels[management.cattle.io/project-scoped-secret]
   //   - However this covers both project scoped secrets, and secrets it creates in namespaces in that project
   //   - To help we first sort by created secrets in that ns, which does lead to an odd experience....
-  // 2. the human name of the project it's associated with
-  //   - the BE connects the label to the project and exposes sorting on it via spec.displayName
-  sort: [`metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`, `spec.displayName:desc`],
+  // 2. if this is a project scoped secret
+  //   - we do this by sorting on the project scoped secrets's associated project's name
+  //   - the BE connects secret label to project id and exposes project human name via spec.displayName
+  sort: [
+    `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`,
+    `spec.displayName`
+  ],
 };
 
 export const STEVE_WORKLOAD_HEALTH_SCALE = {

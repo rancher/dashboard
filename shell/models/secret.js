@@ -1,5 +1,5 @@
 import r from 'jsrsasign';
-import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_CLUSTER, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
@@ -33,6 +33,29 @@ export const TYPES = {
 
 /** Class a cert as expiring if in eight days */
 const certExpiringPeriod = 1000 * 60 * 60 * 24 * 8;
+
+/**
+ * Project Scoped Secret Information
+ *
+ * There's lots of different weirdnesses with these.
+ *
+ * A project scoped secret is a secret in the upstream cluster with special annotations/labels
+ * A project scoped secret creates secrets in all namespaces in the associated project. These have special annotations/labels
+ *
+ * - Secret (PSS)
+ *   - Labels
+ *       - "management.cattle.io/project-scoped-secret": "<project metadata name>”,
+ *       - "management.cattle.io/project-scoped-secret-cluster": <cluster id>"
+ * - Secret (created by PSS)
+ *    - Labels
+ *       - "management.cattle.io/project-scoped-secret": "<project metadata name>”,
+ *       - "management.cattle.io/project-scoped-secret-cluster": <cluster id>"
+ *    - Annotations
+ *        - "management.cattle.io/project-scoped-secret-copy": "true",
+ *
+ * VAI connects a secret (created by PSS) to it's project and allows sort/filter on it's projects spec.clusterName (cluster's human name) and spec.displayName (projects human name)
+ * This allows us to show a cluster's Project Scoped Secrets (filter on spec.clusterName) and Secret (created by PSS) project information easily
+ */
 
 export default class Secret extends SteveModel {
   _cachedCertInfo;
@@ -512,52 +535,10 @@ export default class Secret extends SteveModel {
   }
 
   /**
-   * Is this a project scoped secret?
+   * is this a project scoped secret
    */
   get isProjectScoped() {
     return !!this.projectScopedProjectName && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
-  }
-
-  // TODO: RC
-  /*
-   * is this a project scoped secret
-   */
-  // get isProjectScoped() {
-  //   /**
-  //    * is this a project scoped secret .... or also a cloned project scoped secret
-  //    */
-  //   const isProjectScopedRelated = !!this.metadata.labels?.[UI_PROJECT_SECRET];
-
-  //   return isProjectScopedRelated && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
-  // }
-
-  /**
-   * If this is a project scoped secret, return the cluster id the project is in
-   */
-  get projectScopedClusterId() {
-    if (!this.projectScopedProjectName || this.isProjectSecretCopy) {
-      return undefined;
-    }
-
-    // The easiest way to determine the cluster this secret is in is via it's namespace, however the format does not work on legacy systems or for default/system projects
-    // metadata.namespace in legacy systems (2.9?) and current `System` + `Default` projects = `<project metadata.name>`. e.g `p-5ndcp`
-    // metadata.namespace in current systems (from 2.12?) = `<cluster-id>-<project metadata.name>`. e.g `c-n22rm-p-5ndcp` or `c-n22rm-my-custom-metadata-name`
-
-    // First try the easy way, clusterId from the secret's namespace
-    if (this.metadata.namespace.length > this.projectScopedProjectName.length) {
-      const clusterId = this.metadata.namespace.replace(`-${ this.projectScopedProjectName }`, '');
-
-      if (clusterId.length) {
-        return clusterId;
-      }
-    }
-
-    // Second try to find the cluster id from the project itself
-    if (this.project?.spec.clusterName) {
-      return this.project?.spec.clusterName;
-    }
-
-    return '';
   }
 
   /**
@@ -570,10 +551,10 @@ export default class Secret extends SteveModel {
   }
 
   /**
-   * Is this a secret created by a project scoped secret?
+   * If this is a project scoped secret, return the cluster id the project is in
    */
-  get isProjectSecretCopy() {
-    return this.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] === 'true';
+  get projectScopedClusterId() {
+    return this.metadata?.labels?.[UI_PROJECT_SECRET_CLUSTER];
   }
 
   /**
@@ -587,42 +568,63 @@ export default class Secret extends SteveModel {
     return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.CLUSTER, this.projectScopedClusterId);
   }
 
-  _projectScopedProjectId = null;
   /**
-   * If this is a project scoped secret, return it's project
+   * Is this a secret created by a project scoped secret?
+   */
+  get isProjectSecretCopy() {
+    return this.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] === 'true';
+  }
+
+  /**
+   * If this is a secret created by a project scoped secret, return the Project's metadata.name
    *
-   * (this should be called projectSecretsProject)
+   * It's metadata.name as that's what the backend supplies. If can be anything the user wants if the project was created outside the UI
+   */
+  get projectSecretCopyProjectName() {
+    return this.metadata.labels?.[UI_PROJECT_SECRET];
+  }
+
+  /**
+   * If this is a secret created by a project scoped secret, return the cluster id the project is in
+   */
+  get projectSecretCopyClusterId() {
+    return this.metadata?.labels?.[UI_PROJECT_SECRET_CLUSTER];
+  }
+
+  /**
+   * If this is a project scoped secret, or a project scoped secrets's cloned secret, return it's project
+   *
    */
   get project() {
-    if (!this.isProjectScoped ) {
-      return undefined;
+    let clusterId;
+    let projectName;
+
+    if (this.isProjectSecretCopy) {
+      clusterId = this.projectSecretCopyClusterId;
+      projectName = this.projectSecretCopyProjectName;
     }
 
-    // A secret's project id won't change, so once we have it don't determine again
-    if (this._projectScopedProjectId === null) {
-      // The below process kinda matches projectScopedClusterId, but to avoid chicken and egg scenario part is duplicated here
-      // See comment in projectScopedClusterId why we do it this way
-
-      // First try to construct the id via the cluster and project's metadata.name
-      if (this.metadata.namespace.length > this.projectScopedProjectName.length) {
-        const clusterId = this.metadata.namespace.replace(`-${ this.projectScopedProjectName }`, '');
-
-        if (clusterId.length) {
-          this._projectScopedProjectId = `${ clusterId }/${ this.projectScopedProjectName }`;
-        }
-      }
-
-      // Second try to find the project from the current cluster's project list
-      if (this._projectScopedProjectId === null) {
-        const projects = this.$rootGetters[`${ STORE.MANAGEMENT }/all`](MANAGEMENT.PROJECT); // Only the projects in the current cluster, which helps when multiple clusters have projects with the same metadata.name
-        const project = projects?.find((project) => project.metadata.name === this.projectScopedProjectName);
-
-        this._projectScopedProjectId = project?.id;
-      }
+    if (this.isProjectScoped ) {
+      clusterId = this.projectScopedClusterId;
+      projectName = this.projectScopedProjectName;
     }
 
-    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, this._projectScopedProjectId);
+    if (projectName) {
+      const projectIdWithCluster = `${ clusterId }/${ projectName }`;
+      const projectId = projectName;
+
+
+      // Try to fetch the project.
+      // Note: The management store might not have the project loaded if we haven't visited the cluster list or project list.
+      // However, if we are in the dashboard, we usually have projects loaded.
+      const project =
+        this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, projectIdWithCluster) ||
+        this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, projectId);
+
+      return project;
+    }
   }
+
 
   get detailLocation() {
     if (this.isProjectScoped) {

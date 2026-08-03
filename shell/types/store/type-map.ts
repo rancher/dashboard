@@ -272,7 +272,7 @@ export interface TypeMapVirtualType {
 export interface TableColumn {
   name: string,
   label?: string,
-  value: any,
+  value?: any,
   sort?: string | string[],
   formatter?: string,
   formatterOpts?: any,
