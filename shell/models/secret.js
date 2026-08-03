@@ -615,7 +615,6 @@ export default class Secret extends SteveModel {
       const projectIdWithCluster = `${ clusterId }/${ projectName }`;
       const projectId = projectName;
 
-
       // Try to fetch the project.
       // Note: The management store might not have the project loaded if we haven't visited the cluster list or project list.
       // However, if we are in the dashboard, we usually have projects loaded.
@@ -624,6 +623,8 @@ export default class Secret extends SteveModel {
 
       return project;
     }
+
+    return undefined;
   }
 
 
