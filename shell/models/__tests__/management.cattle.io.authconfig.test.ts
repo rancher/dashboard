@@ -12,7 +12,7 @@ const makeConfig = (data: Object) => new AuthConfig(data, { rootGetters } as any
 describe('fx: providerKey', () => {
   // Rancher names the same provider two ways, and the casing isn't consistent
   // between them -- `googleOauthConfig` becomes `googleOAuthProvider`.
-  const cases = [
+  const cases: [string | null | undefined, string][] = [
     ['activeDirectoryConfig', 'activedirectory'],
     ['activeDirectoryProvider', 'activedirectory'],
     ['githubConfig', 'github'],
@@ -27,13 +27,13 @@ describe('fx: providerKey', () => {
     [null, ''],
   ];
 
-  it.each(cases)('should normalise %p to %p', (input: any, expected: any) => {
+  it.each(cases)('should normalise %p to %p', (input, expected) => {
     expect(providerKey(input)).toBe(expected);
   });
 });
 
 describe('fx: configTypeForProvider', () => {
-  const cases = [
+  const cases: [string | undefined, string | undefined][] = [
     ['activeDirectoryProvider', 'ldap'],
     ['githubProvider', 'oauth'],
     ['githubAppProvider', 'oauth'],
@@ -46,7 +46,7 @@ describe('fx: configTypeForProvider', () => {
     [undefined, undefined],
   ];
 
-  it.each(cases)('should resolve %p to %p', (input: any, expected: any) => {
+  it.each(cases)('should resolve %p to %p', (input, expected) => {
     expect(configTypeForProvider(input)).toBe(expected);
   });
 
