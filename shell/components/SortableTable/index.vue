@@ -1153,7 +1153,7 @@ export default {
               <ActionDropdownShell
                 v-if="bulkMenuActions.length"
                 class="bulk-action-menu"
-                :disabled="!selectedRows.length"
+                :disabled="false"
                 :hidden-actions="bulkMenuActions"
                 :action-tooltip="actionTooltip"
                 size="medium"
