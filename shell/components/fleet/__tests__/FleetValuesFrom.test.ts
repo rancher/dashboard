@@ -50,6 +50,50 @@ const allSecrets = [
 ];
 
 describe('component: FleetValuesFrom', () => {
+  describe('compact prop', () => {
+    it('should render h2 heading when compact is false', async() => {
+      const wrapper = mount(FleetValuesFrom, {
+        ...requiredSetup(),
+        props: {
+          value:     [],
+          namespace: 'fleet-default',
+          mode:      _CREATE,
+          compact:   false,
+        },
+        data: () => ({ allSecrets, allConfigMaps })
+      });
+
+      await flushPromises();
+
+      const h2 = wrapper.find('[data-testid="fleet-values-from-list"] h2');
+      const h4 = wrapper.find('[data-testid="fleet-values-from-list"] h4');
+
+      expect(h2.exists()).toBe(true);
+      expect(h4.exists()).toBe(false);
+    });
+
+    it('should render h4 heading when compact is true', async() => {
+      const wrapper = mount(FleetValuesFrom, {
+        ...requiredSetup(),
+        props: {
+          value:     [],
+          namespace: 'fleet-default',
+          mode:      _CREATE,
+          compact:   true,
+        },
+        data: () => ({ allSecrets, allConfigMaps })
+      });
+
+      await flushPromises();
+
+      const h4 = wrapper.find('[data-testid="fleet-values-from-list"] h4');
+      const h2 = wrapper.find('[data-testid="fleet-values-from-list"] h2');
+
+      expect(h4.exists()).toBe(true);
+      expect(h2.exists()).toBe(false);
+    });
+  });
+
   describe.each([
     _CREATE,
     _EDIT

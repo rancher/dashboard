@@ -103,6 +103,14 @@ export default defineComponent({
     row: {
       type:    Boolean,
       default: false
+    },
+
+    /**
+     * Use body text color for the label instead of the default input-label color.
+     */
+    useBodyTextColor: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -303,6 +311,7 @@ export default defineComponent({
             :disabled="isDisabled"
             :data-testid="`radio-button-${i}`"
             :mode="mode"
+            :use-body-text-color="useBodyTextColor"
             :prevent-focus-on-radio-groups="true"
             @update:value="$emit('update:value', $event)"
           />

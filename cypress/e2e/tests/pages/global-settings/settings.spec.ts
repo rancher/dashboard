@@ -16,19 +16,19 @@ const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const userMenu = new UserMenuPo();
 const BANNER_TEXT = "Typical users will not need to change these. Proceed with caution, incorrect values can break your Explorer installation. Settings which have been customized from default settings are tagged 'Modified'.";
-const settingsOriginal = {};
-const resetSettings = [];
+const settingsOriginal: { [id: string]: any} = {};
+const resetSettings: string[] = [];
 
-describe('Settings', { testIsolation: 'off' }, () => {
+describe('Settings', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
 
     // get settings server-url response data
-    cy.getRancherResource('v1', 'management.cattle.io.settings', undefined, null).then((resp: Cypress.Response<any>) => {
+    cy.getRancherResource('v1', 'management.cattle.io.settings').then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
-      body.data.forEach((s: any) => {
+      body.data.forEach((s: { id: string }) => {
         settingsOriginal[s.id] = s;
       });
     });

@@ -31,7 +31,7 @@ class ManagementClusterUtils {
     }
 
     const existingFilters = pagination.filters;
-    const requiredFilters = paginationFilterClusters($store, false);
+    const requiredFilters = paginationFilterClusters($store);
 
     for (let i = 0; i < requiredFilters.length; i++) {
       let found = false;

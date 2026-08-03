@@ -52,4 +52,97 @@ describe('page: Charts Index', () => {
       expect(hasExtensionCategory).toBe(false);
     });
   });
+
+  describe('method: loadMore', () => {
+    const createContext = (overrides: Record<string, any> = {}) => ({
+      isLoadingMore:             false,
+      visibleChartsCount:        30,
+      initialVisibleChartsCount: 30,
+      filteredCharts:            new Array(100),
+      _loadMoreTimer:            null,
+      $nextTick:                 (cb: () => void) => cb(),
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should set isLoadingMore, then increment visibleChartsCount and clear the flag after the delay', () => {
+      const ctx = createContext();
+
+      (Charts.methods!.loadMore as () => void).call(ctx);
+
+      expect(ctx.isLoadingMore).toBe(true);
+      expect(ctx.visibleChartsCount).toBe(30);
+      expect(ctx._loadMoreTimer).not.toBeNull();
+
+      jest.runAllTimers();
+
+      expect(ctx.visibleChartsCount).toBe(60);
+      expect(ctx.isLoadingMore).toBe(false);
+      expect(ctx._loadMoreTimer).toBeNull();
+    });
+
+    it('should do nothing when already loading', () => {
+      const ctx = createContext({ isLoadingMore: true });
+
+      (Charts.methods!.loadMore as () => void).call(ctx);
+
+      expect(ctx._loadMoreTimer).toBeNull();
+      expect(ctx.visibleChartsCount).toBe(30);
+    });
+
+    it('should do nothing when all charts are already visible', () => {
+      const ctx = createContext({ visibleChartsCount: 100 });
+
+      (Charts.methods!.loadMore as () => void).call(ctx);
+
+      expect(ctx.isLoadingMore).toBe(false);
+      expect(ctx._loadMoreTimer).toBeNull();
+    });
+  });
+
+  describe('method: resetLazyLoadState', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should reset state and cancel a pending loadMore so visibleChartsCount is not incremented after reset', () => {
+      const ctx: Record<string, any> = {
+        isLoadingMore:             false,
+        visibleChartsCount:        30,
+        initialVisibleChartsCount: 30,
+        observerInitialized:       true,
+        hasOverflow:               true,
+        filteredCharts:            new Array(100),
+        _loadMoreTimer:            null,
+        $nextTick:                 (cb: () => void) => cb(),
+      };
+
+      (Charts.methods!.loadMore as () => void).call(ctx);
+      expect(ctx._loadMoreTimer).not.toBeNull();
+
+      (Charts.methods!.resetLazyLoadState as () => void).call(ctx);
+
+      expect(ctx.visibleChartsCount).toBe(30);
+      expect(ctx.observerInitialized).toBe(false);
+      expect(ctx.hasOverflow).toBe(false);
+      expect(ctx.isLoadingMore).toBe(false);
+      expect(ctx._loadMoreTimer).toBeNull();
+
+      jest.runAllTimers();
+
+      // The cancelled timer must not have fired — count stays at the reset value.
+      expect(ctx.visibleChartsCount).toBe(30);
+    });
+  });
 });

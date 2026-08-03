@@ -322,19 +322,15 @@ export default {
       this.selectedCard = selected;
 
       this.$shell.slideIn.open(ResourceDetails, {
-        showHeader: false,
-        props:      {
+        props: {
           value,
           statePanel,
           workspace
         },
-        width:              '73%',
-        // We want this to be full viewport height top to bottom
-        height:             '100vh',
-        top:                '0',
-        'z-index':          101, // We want this to be above the main side menu
-        closeOnRouteChange: ['name', 'params', 'query'], // We want to ignore hash changes, tables in extensions can trigger the drawer to close while opening
-        triggerFocusTrap:   false,
+        width:              'wide',
+        height:             'full',
+        closeOnRouteChange: ['name', 'params', 'query'],
+        disableFocusTrap:   true,
       });
     },
 
@@ -775,7 +771,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: end;
-  gap: 16px;
+  gap: var(--gap-md);
 
   .collapse-all-btn {
     width: 105px;
@@ -977,7 +973,7 @@ export default {
           .resource-cards-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 16px;
+            gap: var(--gap-md);
             min-height: 100%;
 
             .resource-card {

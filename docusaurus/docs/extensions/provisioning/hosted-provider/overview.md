@@ -56,6 +56,6 @@ You can restrict which Rancher your extension is compatible with by setting a ["
 3. Cloud credentials can be shared between hosted providers and node drivers. If the provider for which you are creating an extension already has a cloud credential defined, you do not need to add a new one to your extension. If the name of the cloud credential doesn't match your provisioner id, you can map it inside provisioner.ts
 ```ts
   constructor(private context: ClusterProvisionerContext) {
-    mapDriver(this.id, '<exisiting-credential-id>' );
+    context.dispatch('plugins/mapDriver', { name: this.id, to: '<existing-credential-id>' }, { root: true });
   }
 ```

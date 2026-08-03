@@ -10,7 +10,6 @@ import {
 import { SETTING } from '@shell/config/settings';
 import { getVersionData } from '@shell/config/version';
 import { SettingsInfo } from '@shell/utils/dynamic-content/types';
-import { STEVE_CACHE } from '@shell/store/features';
 
 const QS_VERSION = 'v1'; // Include a version number in the query string in case we want to version the set of params we are sending
 const UNKNOWN = 'unknown';
@@ -24,7 +23,8 @@ const SUSE_EXTENSIONS = [
   'neuvector-ui-ext',
   'observability',
   'supportability-review-app',
-  'virtual-clusters'
+  'virtual-clusters',
+  'rancher-ai-ui'
 ];
 
 type FeatureFlagInfos = {
@@ -43,12 +43,7 @@ type FeatureFlagInfos = {
 /**
  * Explicit ff's to send
  */
-const ffs: FeatureFlagInfos = {
-  [STEVE_CACHE]: {
-    param: 'usc',
-    value: '',
-  }
-};
+const ffs: FeatureFlagInfos = { };
 
 /**
  * System information that is collected and which can then be encoded into a query string in the dyanmic content request

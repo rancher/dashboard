@@ -2,14 +2,14 @@ import { LeasesPagePo } from '@/cypress/e2e/po/pages/explorer/coordination.k8s.i
 
 const leasesPage = new LeasesPagePo();
 
-describe('No Custom Form Resource', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('No Custom Form Resource', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
   describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}', { delay: true });
     });
 
     it(`can create a resource using the 'Create from YAML' button`, () => {

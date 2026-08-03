@@ -58,8 +58,8 @@ plugin.addTableColumn(where: String, when: LocationConfig, column: TableColumn, 
 |`value`| String | Object property to obtain the value from |
 |`getValue`| Function | Same as "value", but it can be a function. Will supersede "value" |
 |`width`| Int | Column width (in `px`). Optional |
-|`sort`| boolean,string,Array | Object properties to be bound to the table sorting. Optional |
-|`search`| boolean,string,Array | Object properties to be bound to the table search. Optional |
+|`sort`| string, string[] | Object properties to be bound to the table sorting. Optional |
+|`search`| boolean (false to disable), string, string[] | Object properties to be bound to the table search. Optional |
 | `formatter`| string | Name of a `formatter` component used to render the cell. Components should be in the extension `formatters` folder
 | `formatterOpts`| any | Provide additional values to the `formatter` component via a `formatterOpts` component param
 

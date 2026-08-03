@@ -118,7 +118,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(extensionName);
     extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.uninstallModalUninstallClick();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');

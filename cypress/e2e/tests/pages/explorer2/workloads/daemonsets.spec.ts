@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateDaemonSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/daemonsets/daemonsets-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
 
   before(() => {
@@ -64,7 +64,7 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const daemonSetsListPage = new WorkloadsDaemonsetsListPagePo(localCluster);
 
     let uniqueDaemonSet = SortableTablePo.firstByDefaultName('daemonset');
@@ -117,7 +117,7 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
           uniqueDaemonSet = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
     });
 

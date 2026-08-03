@@ -3,7 +3,7 @@ import MachinesPagePo from '@/cypress/e2e/po/pages/cluster-manager/machines.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
-describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Machines', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const machinesPage = new MachinesPagePo();
   const nsName = 'default';
   let resourceVersion = '';
@@ -118,14 +118,6 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
     promptRemove.remove();
     cy.wait('@deleteCloudCred');
     machinesPage.waitForPage();
-
-    cy.getRancherResource('v1', 'cluster.x-k8s.io.machines', `${ machineName }`, 200).then((resp) => {
-      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
-      const resource = resp.body;
-
-      delete resource.metadata.finalizers;
-      cy.setRancherResource('v1', 'cluster.x-k8s.io.machines', `${ machineName }`, resource);
-    });
 
     // check list details
     cy.contains(this.machineName).should('not.exist');

@@ -6,7 +6,9 @@ import SortableTable from '@shell/components/SortableTable';
 import CopyCode from '@shell/components/CopyCode';
 import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
-import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
+import {
+  CAPI, MANAGEMENT, NORMAN, SNAPSHOT, OPERATION
+} from '@shell/config/types';
 import {
   STATE, NAME as NAME_COL, AGE, INTERNAL_EXTERNAL_IP, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME,
 } from '@shell/config/table-headers';
@@ -32,9 +34,11 @@ import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeploym
 import { isAlternate } from '@shell/utils/platform';
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
-import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
 import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
+import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
+import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resource/Detail/Metadata/composables';
+import { computed } from 'vue';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -88,7 +92,29 @@ export default {
   },
 
   setup(props) {
-    return { defaultMastheadProps: useDefaultMastheadProps(props.value) };
+    const titleBarProps = useDefaultTitleBarProps(props.value);
+    const metadataProps = useDefaultMetadataForLegacyPagesProps(props.value);
+
+    const customMastheadProps = computed(() => {
+      const resource = props.value.mgmt || props.value;
+
+      return {
+        titleBarProps: {
+          ...titleBarProps.value,
+          // Show the mgmt cluster state instead of provisioning state
+          // This now matches the prov list where we show mgmt cluster state
+          // (mgmt cluster is the single-source of truth)
+          // `badge` is of type @Badge
+          badge: {
+            color: resource?.stateBackground,
+            label: resource?.stateDisplay,
+          },
+        },
+        metadataProps: metadataProps.value,
+      };
+    });
+
+    return { customMastheadProps };
   },
 
   async fetch() {
@@ -147,6 +173,21 @@ export default {
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
       fetchOne.snapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+    }
+
+    // Fetch operation CRDs for clusters with day 2 ops enabled
+    if ( this.value.isImportedWithDayTwoOps ) {
+      const operationTypes = [
+        OPERATION.ETCD_SNAPSHOT,
+        OPERATION.ETCD_SNAPSHOT_RESTORE,
+        OPERATION.ENCRYPTION_KEY_ROTATE,
+      ];
+
+      for (const opType of operationTypes) {
+        if (this.$store.getters['management/canList'](opType)) {
+          fetchOne[`operations_${ opType }`] = this.$store.dispatch('management/findAll', { type: opType });
+        }
+      }
     }
 
     if ( this.value.isImported || this.value.isCustom || this.value.isHostedKubernetesProvider ) {
@@ -210,9 +251,7 @@ export default {
     if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE) ) {
       this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE });
     }
-  },
 
-  created() {
     if ( this.showLog ) {
       this.connectLog();
     }
@@ -292,6 +331,7 @@ export default {
         registration: true, // in this component
         snapshots:    true, // in this component
         autoscaler:   true, // in this component
+        operations:   true, // in this component
         related:      true, // in ResourceTabs
         events:       true, // in ResourceTabs
         conditions:   true, // in ResourceTabs
@@ -477,11 +517,52 @@ export default {
     showSnapshots() {
       if (this.value.isRke1) {
         return false;
-      } else if (this.value.isRke2) {
+      } else if (this.value.isRke2 || (this.value.isImported && this.value.isDayTwoOpsEnabled)) {
         return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
       }
 
       return false;
+    },
+
+    showOperations() {
+      return this.value.isImportedWithDayTwoOps && this.extDetailTabs.operations;
+    },
+
+    clusterOperations() {
+      if (!this.value.isImportedWithDayTwoOps) {
+        return [];
+      }
+
+      const mgmtId = this.value.mgmt?.id;
+      const operationTypes = [
+        OPERATION.ETCD_SNAPSHOT,
+        OPERATION.ETCD_SNAPSHOT_RESTORE,
+        OPERATION.ENCRYPTION_KEY_ROTATE,
+      ];
+
+      const allOps = [];
+
+      for (const opType of operationTypes) {
+        const resources = this.$store.getters['management/all'](opType) || [];
+
+        allOps.push(...resources.filter((op) => op.spec?.clusterRef?.name === mgmtId));
+      }
+
+      return allOps;
+    },
+
+    operationHeaders() {
+      return [
+        STATE,
+        NAME,
+        {
+          name:     'type',
+          labelKey: 'tableHeaders.type',
+          value:    'type',
+          sort:     'type',
+        },
+        AGE,
+      ];
     },
 
     isRke1() {
@@ -566,7 +647,10 @@ export default {
         {
           ...STATE_NORMAN, value: 'snapshotFile.status', formatterOpts: { arbitrary: true }
         },
-        NAME,
+        {
+          ...NAME,
+          formatter: 'EtcdSnapshotName',
+        },
         {
           name:      'size',
           labelKey:  'tableHeaders.size',
@@ -798,7 +882,7 @@ export default {
 <template>
   <DetailPage :loading="$fetchState.pending">
     <template #top-area>
-      <Masthead v-bind="defaultMastheadProps">
+      <Masthead v-bind="customMastheadProps">
         <template #additional-actions>
           <button
             data-testid="detail-explore-button"
@@ -1149,6 +1233,20 @@ export default {
                 </div>
               </template>
             </SortableTable>
+          </Tab>
+          <Tab
+            v-if="showOperations"
+            name="operations"
+            :label="t('cluster.tabs.operations')"
+            :weight="0"
+          >
+            <SortableTable
+              :headers="operationHeaders"
+              default-sort-by="age"
+              :table-actions="false"
+              :rows="clusterOperations"
+              :search="false"
+            />
           </Tab>
           <AutoscalerTab
             v-if="showAutoScalerTab"

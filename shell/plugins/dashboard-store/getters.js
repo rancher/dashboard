@@ -278,7 +278,6 @@ export default {
     const schemas = state.types[SCHEMA];
 
     type = getters.normalizeType(type);
-
     if ( !schemas ) {
       if ( allowThrow ) {
         throw new Error("Schemas aren't loaded yet");
@@ -549,7 +548,7 @@ export default {
    */
   paginationEnabled: (state, getters, rootState, rootGetters) => (args) => {
     if (!args) {
-      return paginationUtils.isSteveCacheEnabled({ rootGetters });
+      return true;
     }
     const id = typeof args === 'object' ? args.id : args;
     const context = typeof args === 'object' ? args.context : undefined;
@@ -566,13 +565,6 @@ export default {
    * Can be used to change behaviour given steve api
    */
   isSteveUrl: (state) => () => false,
-
-  /**
-   * Is the url path a rancher steve one AND the steve cache is enabled?
-   *
-   * Can be used to change behaviour given steve cache api functionality
-   */
-  isSteveCacheUrl: (state) => () => false,
 
   /**
    * Get the saved count for the given name

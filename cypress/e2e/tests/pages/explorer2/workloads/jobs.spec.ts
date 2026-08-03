@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/jobs/jobs-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
 
   before(() => {
@@ -56,6 +56,8 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       const workloadsJobsListPage = new WorkloadsJobsListPagePo('local');
 
       workloadsJobsListPage.goTo();
+      workloadsJobsListPage.waitForPage();
+      workloadsJobsListPage.baseResourceList().checkVisible();
       workloadsJobsListPage.baseResourceList().masthead().create();
 
       // create view jobs
@@ -68,6 +70,10 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsJobDetailsPage.containerImage().set(containerImageName);
       workloadsJobDetailsPage.resourceDetail().createEditView().save();
 
+      // Saving returns the user to the list page (create-edit-view `done()` does a
+      // router.replace to `doneRoute`), so just wait for that navigation to settle
+      // before querying the table.
+      workloadsJobsListPage.waitForPage();
       workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
         .should('exist');
 
@@ -82,6 +88,10 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       cloneJobDetailsPage.resourceDetail().createEditView().save();
       cloneJobDetailsPage.errorBanner().should('not.exist');
 
+      // Saving returns the user to the list page (create-edit-view `done()` does a
+      // router.replace to `doneRoute`), so just wait for that navigation to settle
+      // before querying the table.
+      workloadsJobsListPage.waitForPage();
       workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNameClone)
         .should('exist');
     });
@@ -92,11 +102,11 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const jobsListPage = new WorkloadsJobsListPagePo(localCluster);
 
     let uniqueJob = SortableTablePo.firstByDefaultName('job');
-    let jobNamesList = [];
+    let jobNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -150,7 +160,7 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
           uniqueJob = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
     });
 

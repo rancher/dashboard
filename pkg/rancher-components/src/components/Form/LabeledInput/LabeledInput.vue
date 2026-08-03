@@ -29,7 +29,11 @@ export default defineComponent({
     ...labeledFormElementProps,
     /**
      * The type of the Labeled Input.
-     * @values text, cron, multiline, multiline-password
+     *
+     * Any native HTML input type is passed through to the underlying input
+     * (e.g. text, password, number, email). A few custom values change the
+     * rendering or behaviour:
+     * @values cron (renders as text), multiline, multiline-password, integer (renders as text with inputmode="numeric", blocks non-integer input)
      */
     type: {
       type:    String,
@@ -150,6 +154,23 @@ export default defineComponent({
     });
 
     const effectiveStatus = computed(() => props.status);
+    const isInteger = computed(() => props.type === 'integer');
+    const nativeType = computed(() => {
+      if (props.type === 'cron') {
+        return 'text';
+      }
+
+      if (props.type === 'integer') {
+        return 'text';
+      }
+
+      return props.type;
+    });
+
+    // Hints the mobile keyboard to show a numeric layout, since the
+    // integer type renders as type="text" to avoid browser number
+    // formatting quirks (e.g. scientific notation for large values).
+    const inputMode = computed(() => (isInteger.value ? 'numeric' : undefined));
 
     return {
       focused,
@@ -163,6 +184,9 @@ export default defineComponent({
       veeHandleBlur,
       veeValidate,
       effectiveStatus,
+      isInteger,
+      nativeType,
+      inputMode,
     };
   },
 
@@ -325,6 +349,59 @@ export default defineComponent({
       }
     },
 
+    isValidIntegerInput(inputValue: string): boolean {
+      const integer = /^-?[0-9]*$/;
+      const nonNegativeInteger = /^[0-9]*$/;
+      const pattern = Number(this.$attrs.min) >= 0 ? nonNegativeInteger : integer;
+
+      if (!pattern.test(inputValue)) {
+        return false;
+      }
+
+      const numeric = Number(inputValue);
+
+      // Safe integer is primarily here to validate that the number fits in the datatype
+      // used for numbers in the browser, if we exceed this safe number the browser automatically converts the number to scientific notation.
+      if (inputValue !== '' && inputValue !== '-' && !Number.isSafeInteger(numeric)) {
+        return false;
+      }
+
+      return true;
+    },
+
+    prospectiveValue(input: HTMLInputElement, inserted: string): string {
+      const start = input.selectionStart ?? 0;
+      const end = input.selectionEnd ?? 0;
+
+      return input.value.slice(0, start) + inserted + input.value.slice(end);
+    },
+
+    onKeydown(event: KeyboardEvent): void {
+      // Skip named keys (Backspace, Arrow, etc.) and modifier shortcuts (Ctrl+A, Cmd+C).
+      if (!this.isInteger || event.key.length !== 1 || event.ctrlKey || event.metaKey) {
+        return;
+      }
+
+      const next = this.prospectiveValue(event.target as HTMLInputElement, event.key);
+
+      if (!this.isValidIntegerInput(next)) {
+        event.preventDefault();
+      }
+    },
+
+    onPaste(event: ClipboardEvent): void {
+      if (!this.isInteger) {
+        return;
+      }
+
+      const paste = event.clipboardData?.getData('text/plain') ?? '';
+      const next = this.prospectiveValue(event.target as HTMLInputElement, paste);
+
+      if (!this.isValidIntegerInput(next)) {
+        event.preventDefault();
+      }
+    },
+
     /**
      * Emit on input change
      */
@@ -435,14 +512,15 @@ export default defineComponent({
         :id="inputId"
         ref="value"
         v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
-        :role="type === 'number' ? undefined : 'textbox'"
+        :role="nativeType === 'number' ? undefined : 'textbox'"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
         :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
-        :type="type === 'cron' ? 'text' : type"
+        :type="nativeType"
+        :inputmode="inputMode"
         :value="value"
         :placeholder="_placeholder"
         autocomplete="off"
@@ -451,6 +529,8 @@ export default defineComponent({
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
         @input="onInput"
+        @keydown="onKeydown"
+        @paste="onPaste"
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"

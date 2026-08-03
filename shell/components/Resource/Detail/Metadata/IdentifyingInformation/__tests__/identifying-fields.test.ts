@@ -59,6 +59,15 @@ describe('composables: IdentifyingFields', () => {
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.namespace');
       expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-namespace');
     });
+
+    it('should return a plain text namespace row when the resource signals namespaceLocation is unreachable', () => {
+      mockStore.getters['cluster/canList'] = () => true;
+      const resource = { namespace: 'NAMESPACE', namespaceLocation: null };
+      const result = useNamespace(resource);
+
+      expect(result?.value.valueOverride).toBeUndefined();
+      expect(result?.value.value).toStrictEqual(resource.namespace);
+    });
   });
 
   describe('useWorkspace', () => {

@@ -126,7 +126,7 @@ After the Helm assets have been built, you will need to commit them into a publi
 This method requires a few tools to be installed:
 
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [nodejs](https://nodejs.org/en/download) ( >= `12.0.0` < `17.0.0` )
+- [nodejs](https://nodejs.org/en/download) ( `v24` )
 - [yarn](https://yarnpkg.com/getting-started/install)
 - [jq](https://stedolan.github.io/jq/)
 - [yq](https://github.com/mikefarah/yq/#install) ( >= `4.0.0` )
@@ -242,7 +242,7 @@ This method also requires a few tools to be installed:
 - [make](https://www.gnu.org/software/make/)
 - [docker](https://docs.docker.com/get-docker/)
 - [go](https://go.dev/dl/)
-- [nodejs](https://nodejs.org/en/download) ( >= `12.0.0` < `17.0.0` )
+- [nodejs](https://nodejs.org/en/download) ( `v24` )
 - [yarn](https://yarnpkg.com/getting-started/install)
 - [jq](https://stedolan.github.io/jq/)
 - [yq](https://github.com/mikefarah/yq/#install) ( >= `4.0.0` )
@@ -294,27 +294,12 @@ When building an extension that will be housed in a GitLab repository or hosted 
 This pipeline will build an ECI and publish it to container registry (`registry.gitlab.com` by default) to allow for importing into Rancher Manager.
 The actual pipeline jobs are defined in the [Dashboard repo](https://github.com/rancher/dashboard/blob/master/shell/scripts/.gitlab/workflows/build-extension-catalog.gitlab-ci.yml) to allow for proper versioning and to apply any updates to the pipeline without any additional work from the Extension developer.
 
-> **_WARNING:_** Ensure the branch of `rancher/dashboard` in the `remote` url containing the reusable workflow matches the release version of your `@rancher/shell` npm dependency. For example:
-> - If building for the latest version of Rancher:
+> **_WARNING:_** The `remote` url in your `.gitlab-ci.yml` must point to the `master` branch of `rancher/dashboard`:
 > ```yaml
 > #.gitlab-ci.yml
 > ...
 > include:
 > - remote: 'https://raw.githubusercontent.com/rancher/dashboard/master/shell/scripts/.gitlab/workflows/build-extension-catalog.gitlab-ci.yml'
-> ```
-> - If building for Rancher `v2.9`:
-> ```yaml
-> #.gitlab-ci.yml
-> ...
-> include:
-> - remote: 'https://raw.githubusercontent.com/rancher/dashboard/release-2.9/shell/scripts/.gitlab/workflows/build-extension-catalog.gitlab-ci.yml'
-> ```
-> - If building for Rancher `v2.8`:
-> ```yaml
-> #.gitlab-ci.yml
-> ...
-> include:
-> - remote: 'https://raw.githubusercontent.com/rancher/dashboard/release-2.8/shell/scripts/.gitlab/workflows/build-extension-catalog.gitlab-ci.yml'
 > ```
 
 ### Pipeline Configuration

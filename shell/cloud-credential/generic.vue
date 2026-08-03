@@ -5,13 +5,24 @@ import { Banner } from '@components/Banner';
 import { simplify, iffyFields, likelyFields } from '@shell/store/plugins';
 import Loading from '@shell/components/Loading';
 import { SCHEMA } from '@shell/config/types';
+import { LabeledInput } from '@components/Form/LabeledInput';
+
+export const INPUT_TYPES = [
+  'number',
+  'password',
+  'text',
+];
 
 export default {
   emits: ['validationChanged'],
 
   components: {
-    KeyValue, Banner, Loading
+    KeyValue,
+    Banner,
+    Loading,
+    LabeledInput
   },
+
   mixins: [CreateEditView],
 
   props: {
@@ -60,6 +71,7 @@ export default {
     return {
       errors:       null,
       normanSchema: null,
+      keyOptions:   [],
     };
   },
 
@@ -72,7 +84,14 @@ export default {
   methods: {
     update(val) {
       this.value.setData(val);
-    }
+    },
+
+    typeForField(fieldName = '') {
+      const fieldSchema = this.normanSchema?.resourceFields?.[fieldName] || {};
+      const fieldType = fieldSchema.type || '';
+
+      return INPUT_TYPES.includes(fieldType) ? fieldType : 'text';
+    },
   },
 
   computed: {
@@ -103,6 +122,17 @@ export default {
       :remove-allowed="!hasSupport"
       :initial-empty-row="true"
       @update:value="update"
-    />
+    >
+      <template #value="{row, mode, queueUpdate}">
+        <LabeledInput
+          v-model:value="row.value"
+          :mode="mode"
+          :type="typeForField(row.key)"
+          :aria-label="row.key || t('generic.value')"
+          placeholder-key="keyValue.valuePlaceholder"
+          @update:value="queueUpdate"
+        />
+      </template>
+    </KeyValue>
   </div>
 </template>

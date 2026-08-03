@@ -4,7 +4,16 @@ import { mount } from '@vue/test-utils';
 describe('component: AuthProviderWarningBanners.vue', () => {
   const wrapper = mount(AuthProviderWarningBanners, {
     props:  { tArgs: { provider: 'Any Provider', username: 'username' } },
-    global: { mocks: { $store: { getters: { 'i18n/t': (text: string) => text } } } }
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            'i18n/t':       (text: string) => text,
+            'features/get': () => false,
+          }
+        }
+      }
+    }
   });
 
   it('should render properly', () => {

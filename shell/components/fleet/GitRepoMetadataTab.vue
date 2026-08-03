@@ -14,6 +14,10 @@ defineProps({
   isView: {
     type:    Boolean,
     default: false
+  },
+  nameRules: {
+    type:    Array,
+    default: () => []
   }
 });
 
@@ -31,6 +35,7 @@ const updateValue = (event) => {
       :value="value"
       :namespaced="false"
       :mode="mode"
+      :rules="{ name: nameRules }"
       @update:value="updateValue"
     />
     <Labels

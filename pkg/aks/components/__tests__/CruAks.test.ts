@@ -35,7 +35,7 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
         $route:      mockedRoute,
         $fetchState: {},
       },
-      stubs: { CruResource: false, Accordion: false }
+      stubs: { CruResource: { template: '<div><slot /></div>' } }
     }
   };
 };
@@ -99,7 +99,7 @@ describe('aks provisioning form', () => {
           $route:      { query: { mode: 'import' } },
           $fetchState: {},
         },
-        stubs: { CruResource: false, Accordion: false }
+        stubs: { CruResource: { template: '<div><slot /></div>' } }
       }
     };
     const wrapper = shallowMount(CruAks, {

@@ -581,5 +581,99 @@ describe('chartMixin', () => {
         '0.0.1'
       ]);
     });
+
+    it('should correctly format current version when it is Linux-only', () => {
+      const versions = [
+        {
+          version:     '1.0.0',
+          created:     '2026-01-01',
+          annotations: { 'catalog.cattle.io/permits-os': 'linux' }
+        }
+      ];
+
+      const mockStore = {
+        dispatch: jest.fn(() => Promise.resolve()),
+        getters:  {
+          currentCluster:  () => ({ workerOSs: ['linux'] }),
+          isRancher:       () => true,
+          'catalog/repo':  () => () => 'repo',
+          'catalog/chart': () => ({ versions }),
+          'prefs/get':     () => () => true,
+          'i18n/t':        () => jest.fn()
+        }
+      };
+
+      const DummyComponent = {
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+      };
+
+      const wrapper = mount(
+        DummyComponent,
+        {
+          data: () => ({
+            chart:    { versions },
+            existing: { spec: { chart: { metadata: { version: '1.0.0' } } } }
+          }),
+          global: {
+            mocks: {
+              $store: mockStore,
+              $route: { query: { version: '1.0.0' } },
+              t:      (key: string, args: any) => `${ args?.ver } (Current, Linux-only)`
+            }
+          }
+        });
+
+      const result = (wrapper.vm as any).mappedVersions;
+
+      expect(result[0].label).toBe('1.0.0 (Current, Linux-only)');
+    });
+
+    it('should correctly format current version when it is not OS-restricted', () => {
+      const versions = [
+        {
+          version:     '1.0.0',
+          created:     '2026-01-01',
+          annotations: {}
+        }
+      ];
+
+      const mockStore = {
+        dispatch: jest.fn(() => Promise.resolve()),
+        getters:  {
+          currentCluster:  () => ({ workerOSs: ['linux'] }),
+          isRancher:       () => true,
+          'catalog/repo':  () => () => 'repo',
+          'catalog/chart': () => ({ versions }),
+          'prefs/get':     () => () => true,
+          'i18n/t':        () => jest.fn()
+        }
+      };
+
+      const DummyComponent = {
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+      };
+
+      const wrapper = mount(
+        DummyComponent,
+        {
+          data: () => ({
+            chart:    { versions },
+            existing: { spec: { chart: { metadata: { version: '1.0.0' } } } }
+          }),
+          global: {
+            mocks: {
+              $store: mockStore,
+              $route: { query: { version: '1.0.0' } },
+              t:      (key: string, args: any) => `${ args?.ver } (Current)`
+            }
+          }
+        });
+
+      const result = (wrapper.vm as any).mappedVersions;
+
+      expect(result[0].label).toBe('1.0.0 (Current)');
+    });
   });
 });

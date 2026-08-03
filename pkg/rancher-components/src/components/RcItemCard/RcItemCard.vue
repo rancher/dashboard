@@ -208,7 +208,7 @@ const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
                   size="xxlarge"
                 />
               </template>
-              <template v-else-if="image.src">
+              <template v-else>
                 <LazyImage
                   :src="image.src"
                   :alt="imageAlt"
@@ -255,7 +255,7 @@ const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
                       size="xlarge"
                     />
                   </template>
-                  <template v-else-if="image.src">
+                  <template v-else>
                     <LazyImage
                       :src="image.src"
                       :alt="imageAlt"

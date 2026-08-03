@@ -26,6 +26,10 @@ const meta: Meta<typeof RcButton> = {
       control:     { type: 'select' },
       description: 'Icon to display on the right side of the button text.'
     },
+    disabled: {
+      control:     { type: 'boolean' },
+      description: 'When true, the button is visually muted and non-interactive.'
+    },
     to: {
       control:     { type: 'text' },
       description: 'When provided, renders the button as a RouterLink for client-side navigation instead of a plain button element.'
@@ -45,8 +49,9 @@ export const Default: Story = {
     template: '<RcButton v-bind="args">Button Text</RcButton>',
   }),
   args: {
-    variant: 'primary',
-    size:    'medium',
+    variant:  'primary',
+    size:     'medium',
+    disabled: false,
   },
 };
 
@@ -75,6 +80,37 @@ export const AllVariants: Story = {
 <RcButton variant="link">Link</RcButton>
 <RcButton variant="multiAction">MultiAction</RcButton>
 <RcButton variant="ghost">Ghost</RcButton>`,
+        language: 'html',
+      }
+    }
+  },
+};
+
+export const DisabledVariants: Story = {
+  render: () => ({
+    components: { RcButton },
+    setup() {
+      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
+
+      return { variants };
+    },
+    template: `<div style="display: flex; flex-direction: column; gap: 20px; max-width: 800px;">
+      <div v-for="variant in variants" :key="variant" style="display: flex; align-items: center; gap: 20px;">
+        <div style="min-width: 120px; font-weight: bold;">{{ variant }}</div>
+        <RcButton :variant="variant" size="medium" :disabled="true">{{ variant }}</RcButton>
+      </div>
+    </div>`,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      source: {
+        code: `<RcButton variant="primary" :disabled="true">Primary</RcButton>
+<RcButton variant="secondary" :disabled="true">Secondary</RcButton>
+<RcButton variant="tertiary" :disabled="true">Tertiary</RcButton>
+<RcButton variant="link" :disabled="true">Link</RcButton>
+<RcButton variant="multiAction" :disabled="true">MultiAction</RcButton>
+<RcButton variant="ghost" :disabled="true">Ghost</RcButton>`,
         language: 'html',
       }
     }

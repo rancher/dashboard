@@ -77,6 +77,16 @@ export default defineComponent({
     disabled: {
       type:    Boolean,
       default: false
+    },
+
+    /**
+     * Recalculate the height when the value is changed programmatically (e.g.
+     * populated from a file) and when the window is resized, not just on user
+     * input. Opt-in to avoid changing the behaviour of existing usages.
+     */
+    resizeOnValueChangeAndResizeWindow: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -117,6 +127,14 @@ export default defineComponent({
   },
 
   watch: {
+    // Recalculate the height when the value is changed programmatically (e.g.
+    // populated from a file), not just on user input. Opt-in via resizeOnValueChangeAndResizeWindow.
+    value() {
+      if (this.resizeOnValueChangeAndResizeWindow) {
+        this.queueResize();
+      }
+    },
+
     $attrs: {
       deep: true,
       handler() {
@@ -134,6 +152,18 @@ export default defineComponent({
     this.$nextTick(() => {
       this.autoSize();
     });
+
+    // Width changes alter text wrapping, so the required height can change when
+    // the window is resized. Opt-in via resizeOnValueChangeAndResizeWindow.
+    if (this.resizeOnValueChangeAndResizeWindow) {
+      window.addEventListener('resize', this.queueResize);
+    }
+  },
+
+  beforeUnmount() {
+    if (this.resizeOnValueChangeAndResizeWindow) {
+      window.removeEventListener('resize', this.queueResize);
+    }
   },
 
   methods: {

@@ -5,11 +5,14 @@ import './commands/chainable';
 import './commands/rancher-api-commands';
 import './commands/accessiblity';
 
-import registerCypressGrep from '@cypress/grep/src/support';
 import 'cypress-mochawesome-reporter/register';
 import '@percy/cypress';
 import 'cypress-axe';
 const { addCustomCommand } = require('cypress-delete-downloads-folder');
+// @cypress/grep v6 renamed the support export to `register` and is exports-only, which this
+// project's classic TS module resolution can't follow, so require it (resolved correctly at
+// runtime by Node/webpack). Its `tags` types are declared in cypress/globals.d.ts.
+const { register: registerCypressGrep } = require('@cypress/grep');
 
 registerCypressGrep();
 addCustomCommand();
@@ -27,4 +30,20 @@ require('cypress-terminal-report/src/installLogsCollector')({
   collectTypes:            ['cons:log', 'cons:info', 'cons:warn', 'cons:error', 'cy:log', 'cy:request', 'cy:xhr'],
   // Enable logging of before and after all
   enableExtendedCollector: true
+});
+
+/**
+ * if the test failed, print host cpu and memory to cy.log
+ */
+afterEach(function() {
+  // We use a regular function to have access to `this.currentTest`.
+  if (this.currentTest?.state === 'failed' && Cypress.env('hasHostStats')) {
+    cy.task<{ processCpu: string; memory: string }>('getHostStats').then((stats) => {
+      cy.log('**Host Stats on Failure**');
+      cy.log(`Process CPU: ${ stats.processCpu }`);
+      cy.log(`Memory Usage: ${ stats.memory }`);
+      // Pause so the video has time to catch up and show this...
+      cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+    });
+  }
 });

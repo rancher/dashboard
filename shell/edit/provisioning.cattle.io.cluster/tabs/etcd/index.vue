@@ -40,7 +40,6 @@ export default {
       type:     Function,
       required: true,
     },
-
   },
 
   computed: {

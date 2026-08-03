@@ -5,7 +5,7 @@ import SlideInPanelManager from '@shell/components/SlideInPanelManager.vue';
 
 const MockComponent = {
   template: '<div data-testid="slide-in-panel-component">Mock Panel Content</div>',
-  props:    ['width', 'title', 'extraProp']
+  props:    ['title', 'extraProp']
 };
 
 describe('slideInPanelManager.vue with Teleport', () => {
@@ -23,7 +23,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
       'slideInPanel/isOpen':         () => true,
       'slideInPanel/component':      () => MockComponent,
       'slideInPanel/componentProps': () => ({
-        width: '40%', title: 'Test Title', extraProp: 'extra'
+        width: 'default', title: 'Test Title', extraProp: 'extra'
       })
     };
 
@@ -61,15 +61,14 @@ describe('slideInPanelManager.vue with Teleport', () => {
 
     const styleAttr = slidePanel.getAttribute('style') || '';
 
-    expect(styleAttr).toContain('width: 40%');
+    expect(styleAttr).toContain('width: 33%');
     expect(styleAttr).toContain('top: 55px');
     expect(styleAttr).toContain('height: calc(100vh - 55px)');
     expect(styleAttr).toContain('right: 0');
   });
 
-  it('renders default panel title when no title is provided', async() => {
-    // Update getter so that no title is provided
-    getters['slideInPanel/componentProps'] = () => ({ width: '40%' });
+  it('hides header when no title is provided', async() => {
+    getters['slideInPanel/componentProps'] = () => ({});
     store = createStore({
       getters,
       mutations: { 'slideInPanel/close': jest.fn() }
@@ -77,9 +76,9 @@ describe('slideInPanelManager.vue with Teleport', () => {
     factory();
     await nextTick();
 
-    const headerTitle = document.querySelector('#slides #slide-in-panel-manager .header .title') as HTMLElement;
+    const header = document.querySelector('#slides #slide-in-panel-manager .header') as HTMLElement;
 
-    expect(headerTitle.textContent?.trim()).toBe('Details');
+    expect(header).toBeNull();
   });
 
   it('computes panelTop correctly when a banner exists', async() => {
@@ -122,8 +121,8 @@ describe('slideInPanelManager.vue with Teleport', () => {
     const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
     const styleAttr = slidePanel.getAttribute('style') || '';
 
-    // With currentProps width "40%", panelRight should be "-40%" when closed.
-    expect(styleAttr).toContain('right: -40%');
+    // With default width preset (33%), panelRight should be "-33%" when closed.
+    expect(styleAttr).toContain('right: -33%');
   });
 
   it('calls store commit when clicking on the slide-in glass overlay', async() => {
@@ -162,5 +161,149 @@ describe('slideInPanelManager.vue with Teleport', () => {
     await nextTick();
 
     expect(closeMutation).toHaveBeenCalledWith({}, undefined);
+  });
+
+  describe('width preset', () => {
+    it('resolves width "wide" to 73%', async() => {
+      getters['slideInPanel/componentProps'] = () => ({ width: 'wide', title: 'Test' });
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
+      const styleAttr = slidePanel.getAttribute('style') || '';
+
+      expect(styleAttr).toContain('width: 73%');
+    });
+
+    it('defaults to 33% when no width config is provided', async() => {
+      getters['slideInPanel/componentProps'] = () => ({ title: 'Test' });
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
+      const styleAttr = slidePanel.getAttribute('style') || '';
+
+      expect(styleAttr).toContain('width: 33%');
+    });
+  });
+
+  describe('height preset', () => {
+    it('resolves height "full" to 100vh with top 0', async() => {
+      getters['slideInPanel/componentProps'] = () => ({ height: 'full', title: 'Test' });
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
+      const styleAttr = slidePanel.getAttribute('style') || '';
+
+      expect(styleAttr).toContain('height: 100vh');
+      expect(styleAttr).toContain('top: 0');
+    });
+
+    it('applies elevated z-index when panelHeight is "full"', async() => {
+      getters['slideInPanel/componentProps'] = () => ({ height: 'full', title: 'Test' });
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
+      const styleAttr = slidePanel.getAttribute('style') || '';
+
+      expect(styleAttr).toContain('z-index: 102');
+
+      const slideGlass = document.querySelector('[data-testid="slide-in-glass"]') as HTMLElement;
+      const glassStyle = slideGlass.getAttribute('style') || '';
+
+      expect(glassStyle).toContain('z-index: 101');
+    });
+
+    it('does not apply elevated z-index for default panelHeight', async() => {
+      getters['slideInPanel/componentProps'] = () => ({ title: 'Test' });
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
+      const styleAttr = slidePanel.getAttribute('style') || '';
+
+      expect(styleAttr).not.toContain('z-index: 102');
+    });
+  });
+
+  describe('showHeader inferred from title', () => {
+    it('shows header when title is provided', async() => {
+      getters['slideInPanel/componentProps'] = () => ({ title: 'My Panel' });
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const header = document.querySelector('#slides .slide-in .header') as HTMLElement;
+
+      expect(header).toBeTruthy();
+      expect(header.textContent?.trim()).toContain('My Panel');
+    });
+
+    it('hides header when no title is provided', async() => {
+      getters['slideInPanel/componentProps'] = () => ({});
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const header = document.querySelector('#slides .slide-in .header') as HTMLElement;
+
+      expect(header).toBeNull();
+    });
+
+    it('respects deprecated showHeader=true even without title', async() => {
+      getters['slideInPanel/componentProps'] = () => ({ showHeader: true });
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const header = document.querySelector('#slides .slide-in .header') as HTMLElement;
+
+      expect(header).toBeTruthy();
+    });
+
+    it('respects deprecated showHeader=false even with title', async() => {
+      getters['slideInPanel/componentProps'] = () => ({ showHeader: false, title: 'Should Not Show' });
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const header = document.querySelector('#slides .slide-in .header') as HTMLElement;
+
+      expect(header).toBeNull();
+    });
   });
 });

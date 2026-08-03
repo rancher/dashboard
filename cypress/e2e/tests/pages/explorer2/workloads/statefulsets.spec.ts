@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateStatefulSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/statefulsets/statefulsets-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
   const statefulSetListPage = new WorkloadsStatefulSetsListPagePo(localCluster);
 
@@ -13,9 +13,9 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let uniqueStatefulSet = SortableTablePo.firstByDefaultName('statefulset');
-    let statefulSetNamesList = [];
+    let statefulSetNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -68,7 +68,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
           uniqueStatefulSet = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
     });
 

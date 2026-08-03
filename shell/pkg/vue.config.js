@@ -72,11 +72,18 @@ module.exports = function(dir) {
         resource.request = fs.existsSync(pkgModelLoaderRequire) ? pkgModelLoaderRequire : path.join(__dirname, fileName);
       });
 
+      // Prevent require.context('@shell/assets') from bundling all shell images into extensions.
+      // The stub delegates to the host dashboard's asset resolver at runtime via window.__shell_requireAsset.
+      const requireAssetOverride = new webpack.NormalModuleReplacementPlugin(/require-asset$/, (resource) => {
+        resource.request = path.join(__dirname, 'require-asset.lib.js');
+      });
+
       // Auto-generate module to import the types (model, detail, edit etc)
       const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@rancher/auto-import': generateTypeImport('@pkg', dir) });
 
       config.plugins.unshift(dynamicImporterOverride);
       config.plugins.unshift(modelLoaderImporterOverride);
+      config.plugins.unshift(requireAssetOverride);
       config.plugins.unshift(autoImportPlugin);
       config.plugins.unshift(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
       // config.plugins.unshift(debug);
@@ -84,9 +91,10 @@ module.exports = function(dir) {
       // These modules will be externalised and not included with the build of a package library
       // This helps reduce the package size, but these dependencies must be provided by the hosting application
       config.externals = {
-        jquery:    '$',
-        jszip:     '__jszip',
-        'js-yaml': '__jsyaml'
+        jquery:       '$',
+        jszip:        '__jszip',
+        'js-yaml':    '__jsyaml',
+        'vue-router': '__vueRouter'
       };
 
       // Prevent warning in log with the md files in the content folder

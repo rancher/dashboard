@@ -2,6 +2,7 @@ export const NORMAN_NAME = 'field.cattle.io/name';
 export const DESCRIPTION = 'field.cattle.io/description';
 export const HOSTNAME = 'kubernetes.io/hostname';
 export const TIMESTAMP = 'cattle.io/timestamp';
+export const KUBECTL_RESTARTED_AT = 'kubectl.kubernetes.io/restartedAt';
 export const SYSTEM_NAMESPACE = 'management.cattle.io/system-namespace';
 export const PROJECT = 'field.cattle.io/projectId';
 export const DEFAULT_PROJECT = 'authz.management.cattle.io/default-project';
@@ -20,6 +21,7 @@ export const IMPORTED_CLUSTER_VERSION_MANAGEMENT = 'rancher.io/imported-cluster-
 export const UI_PROJECT_SECRET = 'management.cattle.io/project-scoped-secret';
 export const UI_PROJECT_SECRET_COPY = 'management.cattle.io/project-scoped-secret-copy';
 export const SERVICE_LINKS = 'ui.rancher/service-links';
+export const NODE_DRIVER_FIELD_HINTS = 'io.cattle.nodedriver/ui-field-hints';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
@@ -149,6 +151,8 @@ export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
 
 export const SNAPSHOT = { CLUSTER_NAME: 'rke.cattle.io/cluster-name' };
+
+export const OPERATION_ANNOTATIONS = { ENABLED: 'rancher.io/operations-enabled' };
 
 export const ISTIO = { AUTO_INJECTION: 'istio-injection' };
 

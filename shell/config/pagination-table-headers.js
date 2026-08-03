@@ -37,7 +37,7 @@ export const STEVE_STATE_COL = {
   // Note, we're show the 'state' as per model, not the 'metadata.state.name' that's available in the model to remotely sort/filter
   // Need to investigate whether we should 'dumb down' the state we show to the native one (tracked via https://github.com/rancher/dashboard/issues/8527)
   // This means we'll show something different to what we sort and filter on.
-  sort:   ['metadata.state.name'],
+  sort:   ['metadata.state.name', 'metadata.name'],
   search: 'metadata.state.name',
 };
 
@@ -95,9 +95,14 @@ export const STEVE_LIST_GROUPS = [{
 
 export const STEVE_SECRET_ORIGIN = {
   ...SECRET_ORIGIN,
-  // We can't sort by the 'UI_PROJECT_SECRET' label (management.cattle.io/project-scoped-secret) due to backend limitations.
-  // So we sort by the 'UI_PROJECT_SECRET_COPY' annotation (management.cattle.io/project-scoped-secret-copy) which at least groups the copies.
-  sort: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`,
+  // We would like to sort on
+  // 1. if this is a project scoped secret
+  //   - Normally achieved by sorting on metadata.labels[management.cattle.io/project-scoped-secret]
+  //   - However this covers both project scoped secrets, and secrets it creates in namespaces in that project
+  //   - To help we first sort by created secrets in that ns, which does lead to an odd experience....
+  // 2. the human name of the project it's associated with
+  //   - the BE connects the label to the project and exposes sorting on it via spec.displayName
+  sort: [`metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`, `spec.displayName:desc`],
 };
 
 export const STEVE_WORKLOAD_HEALTH_SCALE = {
@@ -120,14 +125,7 @@ export const STEVE_AUTOSCALER_ENABLED = {
   search: false,
 };
 
-export const STEVE_SECRET_PROJECT_SCOPED = {
-  ...SECRET_PROJECT_SCOPED,
-  // We would like to sort on
-  // 1. if this is a project scoped secret
-  //   - Normally achieved by sorting on metadata.labels[management.cattle.io/project-scoped-secret]
-  //   - However this covers both project scoped secrets, and secrets it creates in namespaces in that project
-  //   - To help we first sort by created secrets in that ns, which does lead to an odd experience....
-  // 2. the human name of the project it's associated with
-  //   - the BE connects the label to the project and exposes sorting on it via spec.displayName
-  sort: [`metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`, `spec.displayName:desc`],
+export const STEVE_MGMT_STATE_COL = {
+  ...STEVE_STATE_COL,
+  sort: ['metadata.state.name', 'spec.displayName']
 };

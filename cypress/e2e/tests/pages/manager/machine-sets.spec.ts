@@ -3,7 +3,7 @@ import MachineSetsPagePo from '@/cypress/e2e/po/pages/cluster-manager/machine-se
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
-describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -25,7 +25,7 @@ describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUse
     cy.percySnapshot('machineSets Page');
   });
 });
-describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('MachineSets', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const machineSetsPage = new MachineSetsPagePo();
   const nsName = 'default';
   let resourceVersion = '';
@@ -165,14 +165,6 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     cy.wait('@deleteMachineSet');
     machineSetsPage.waitForPage();
 
-    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinesets', `${ name }`, 200).then((resp) => {
-      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
-      const resource = resp.body;
-
-      delete resource.metadata.finalizers;
-      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinesets', `${ name }`, resource);
-    });
-
     // check list details
     cy.contains(`${ this.machineSetName }-clone`).should('not.exist');
   });
@@ -184,7 +176,6 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     // delete original MachineSet
     machineSetsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(this.machineSetName)
       .set();
-    machineSetsPage.list().openBulkActionDropdown();
 
     const name = `${ nsName }/${ this.machineSetName }`;
 
@@ -196,14 +187,6 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     promptRemove.remove();
     cy.wait('@deleteMachineSet');
     machineSetsPage.waitForPage();
-
-    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinesets', `${ name }`, 200).then((resp) => {
-      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
-      const resource = resp.body;
-
-      delete resource.metadata.finalizers;
-      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinesets', `${ name }`, resource);
-    });
 
     // check list details
     cy.contains(this.machineSetName).should('not.exist');

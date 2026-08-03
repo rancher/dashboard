@@ -180,7 +180,7 @@ export type ActionFindPageTransientResponse<T = any> = {
  *
  * If the request was not transient this will just be the array of resources
  */
-export type ActionFindPageResponse<T = any> = ActionFindPageTransientResponse | T[];
+export type ActionFindPageResponse<T = Record<string, any>> = ActionFindPageTransientResponse<T> | T[];
 
 /**
  * Args used for findMatching action
@@ -221,7 +221,7 @@ export interface ActionFindMatchingArgs extends ActionCoreFindOptions {
  * @internal
  * Response to the findMatching action
  */
-export type ActionFindMatchingResponse<T = any> = ActionFindPageResponse<T>
+export type ActionFindMatchingResponse<T = any> = T[]
 
 /**
  * @internal

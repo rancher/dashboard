@@ -1,20 +1,24 @@
 import { shallowMount } from '@vue/test-utils';
 import ProvisioningCattleIoCluster from '@shell/detail/provisioning.cattle.io.cluster.vue';
-import * as MastheadComposable from '@shell/components/Resource/Detail/Masthead/composable';
+import * as TitleBarComposables from '@shell/components/Resource/Detail/TitleBar/composables';
+import * as MetadataComposables from '@shell/components/Resource/Detail/Metadata/composables';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
 });
 
-jest.mock('@shell/components/Resource/Detail/Masthead/composable');
+jest.mock('@shell/components/Resource/Detail/TitleBar/composables');
+jest.mock('@shell/components/Resource/Detail/Metadata/composables');
 
 describe('view: provisioning.cattle.io.cluster', () => {
-  const useDefaultMastheadPropsSpy = jest.spyOn(MastheadComposable, 'useDefaultMastheadProps');
+  const useDefaultTitleBarPropsSpy = jest.spyOn(TitleBarComposables, 'useDefaultTitleBarProps');
+  const useDefaultMetadataForLegacyPagesPropsSpy = jest.spyOn(MetadataComposables, 'useDefaultMetadataForLegacyPagesProps');
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    useDefaultMastheadPropsSpy.mockReturnValue({} as any);
+    useDefaultTitleBarPropsSpy.mockReturnValue({ value: {} } as any);
+    useDefaultMetadataForLegacyPagesPropsSpy.mockReturnValue({ value: {} } as any);
   });
 
   const mockStore = {
@@ -239,6 +243,125 @@ describe('view: provisioning.cattle.io.cluster', () => {
       });
 
       expect(wrapper.vm.fakeMachines).toHaveLength(0);
+    });
+  });
+
+  describe('computed: showLog', () => {
+    it('returns true when mgmt has a log link and extDetailTabs.logs is enabled', async() => {
+      const value = { mgmt: { hasLink: (link: string) => link === 'log' } };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      await wrapper.setData({ extDetailTabs: { logs: true } });
+
+      expect(wrapper.vm.showLog).toStrictEqual(true);
+    });
+
+    it('returns false when mgmt does not have a log link', async() => {
+      const value = { mgmt: { hasLink: () => false } };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      await wrapper.setData({ extDetailTabs: { logs: true } });
+
+      expect(wrapper.vm.showLog).toStrictEqual(false);
+    });
+
+    it('returns false when mgmt has a log link but extDetailTabs.logs is disabled', async() => {
+      const value = { mgmt: { hasLink: (link: string) => link === 'log' } };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      await wrapper.setData({ extDetailTabs: { logs: false } });
+
+      expect(wrapper.vm.showLog).toStrictEqual(false);
+    });
+
+    it('returns false when mgmt is undefined', async() => {
+      const value = {};
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      expect(wrapper.vm.showLog).toBeFalsy();
+    });
+  });
+
+  describe('setup: customMastheadProps', () => {
+    const titleBarProps = {
+      resourceTypeLabel: 'Cluster',
+      resourceName:      'my-cluster',
+      badge:             { color: 'bg-info', label: 'Provisioning State' },
+    };
+    const metadataProps = { resource: { some: 'resource' } };
+
+    beforeEach(() => {
+      useDefaultTitleBarPropsSpy.mockReturnValue({ value: titleBarProps } as any);
+      useDefaultMetadataForLegacyPagesPropsSpy.mockReturnValue({ value: metadataProps } as any);
+    });
+
+    it('uses the mgmt cluster state for the header badge when mgmt exists', () => {
+      const value = {
+        stateBackground: 'bg-error',
+        stateDisplay:    'Prov Error',
+        mgmt:            {
+          stateBackground: 'bg-success',
+          stateDisplay:    'Active',
+        },
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      expect(wrapper.vm.customMastheadProps.titleBarProps.badge).toStrictEqual({
+        color: 'bg-success',
+        label: 'Active',
+      });
+    });
+
+    it('falls back to the provisioning cluster state for the header badge when mgmt is undefined', () => {
+      const value = {
+        stateBackground: 'bg-error',
+        stateDisplay:    'Prov Error',
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      expect(wrapper.vm.customMastheadProps.titleBarProps.badge).toStrictEqual({
+        color: 'bg-error',
+        label: 'Prov Error',
+      });
+    });
+
+    it('preserves the other default title bar props and passes through the metadata props', () => {
+      const value = { mgmt: { stateBackground: 'bg-success', stateDisplay: 'Active' } };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      const result = wrapper.vm.customMastheadProps;
+
+      expect(result.titleBarProps.resourceTypeLabel).toStrictEqual('Cluster');
+      expect(result.titleBarProps.resourceName).toStrictEqual('my-cluster');
+      expect(result.metadataProps).toStrictEqual(metadataProps);
     });
   });
 });

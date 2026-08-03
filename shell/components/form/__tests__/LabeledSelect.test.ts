@@ -292,6 +292,29 @@ describe('component: LabeledSelect', () => {
     expect(spyPreventDefault).not.toHaveBeenCalled();
   });
 
+  describe('size prop', () => {
+    it.each([
+      ['small'],
+      ['medium'],
+      ['large'],
+    ])('should apply ls-%s class to root element when size is "%s"', (size) => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          options: ['Option1'],
+          size,
+        }
+      });
+
+      expect(wrapper.find('.labeled-select').classes()).toContain(`ls-${ size }`);
+    });
+
+    it('should default to ls-large class when no size prop is provided', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      expect(wrapper.find('.labeled-select').classes()).toContain('ls-large');
+    });
+  });
+
   describe('function: clickSelect', () => {
     it('should open dropdown when clickSelect is called and not disabled', async() => {
       const label = 'Foo';

@@ -12,7 +12,7 @@ let removeToken = false;
 const tokenNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Cluster Registration Tokens', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetTokensListPage = new FleetClusterRegistrationTokenListPagePo();
 
   const headerPo = new HeaderPo();
@@ -180,7 +180,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

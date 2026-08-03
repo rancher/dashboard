@@ -1,6 +1,6 @@
-name: Kubewarden
+name: SUSE Security Admission Controller
 author: SUSE
 authorUrl: https://www.rancher.com/products/rancher-platform
-description: SUSE's universal policy engine for Kubernetes
+description: Automates policy enforcement and security validation for cluster-wide admission requests
 url: https://www.kubewarden.io
 icon: https://raw.githubusercontent.com/rancher/kubewarden-ui/refs/heads/main/pkg/kubewarden/assets/icon-kubewarden.svg

@@ -17,6 +17,7 @@ export const RcDropdownItem: DefineComponent;
 export const RcDropdownSeparator: DefineComponent;
 export const RcDropdownTrigger: DefineComponent;
 export const RcItemCard: DefineComponent;
+export const RcSeparator: DefineComponent;
 
 type ArrayListRow = {
     value: string;

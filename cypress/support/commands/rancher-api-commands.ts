@@ -1,6 +1,5 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams, UserPreferences } from '@/cypress/globals';
-import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
 import { MEDIUM_API_DELAY } from '@/cypress/support/utils/api-endpoints';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
@@ -22,15 +21,21 @@ Cypress.Commands.add('login', (
   acceptConfirmation = '', // Use when we expect the confirmation dialog to be present (expected button text)
 ) => {
   const login = () => {
-    cy.intercept('POST', '/v1-public/login*').as('loginReq');
+    // Note - `loginReq` has been used outside here....
+    const loginReqAlias = cacheSession ? `loginReq_${ Date.now() }` : 'loginReq';
+
+    cy.intercept('POST', '/v1-public/login*').as(loginReqAlias);
 
     if (!skipNavigation) {
       LoginPagePo.goTo(); // Needs to happen before the page element is created/located
     }
     const loginPage = new LoginPagePo();
 
-    loginPage
-      .checkIsCurrentPage(!skipNavigation);
+    loginPage.checkIsCurrentPage(!skipNavigation);
+
+    if (!skipNavigation) {
+      loginPage.isWelcomeMessage();
+    }
 
     if (!!acceptConfirmation) {
       loginPage.confirmationAcceptButton().shouldContainText(acceptConfirmation);
@@ -52,7 +57,7 @@ Cypress.Commands.add('login', (
       .should('eq', true);
     loginPage.submit();
 
-    cy.wait('@loginReq').its('request.body')
+    cy.wait(`@${ loginReqAlias }`).its('request.body')
       .should(
         'deep.equal',
         {
@@ -515,7 +520,7 @@ Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, e
         expect(resp.status).to.eq(expectedStatusCode);
       }
 
-      return resp;
+      return cy.wrap(resp);
     });
 });
 
@@ -541,8 +546,11 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 
 /**
  * delete a v3 / v1 resource
- */
-Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true) => {
+ *
+ * @param failOnStatusCode true to fail on anything other than 2XX and 3XX
+ * @param config.explicitFailOnStatusCodes Array of explicit status codes to assert against when failOnStatusCode is false
+*/
+Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true, { explicitFailOnStatusCodes } = { explicitFailOnStatusCodes: undefined }) => {
   return cy.request({
     method:  'DELETE',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
@@ -555,6 +563,10 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId,
     .then((resp) => {
       if (failOnStatusCode) {
         expect(resp.status).to.be.oneOf([200, 204]);
+      }
+
+      if (explicitFailOnStatusCodes?.length) {
+        expect(resp.status).to.be.oneOf(explicitFailOnStatusCodes);
       }
     });
 });
@@ -581,10 +593,10 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body, failO
     });
 });
 
-Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20, config) => {
+Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20, config): Cypress.Chainable => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
 
-  const retry = () => {
+  const retry = (): Cypress.Chainable => {
     cy.log('waitForRancherResource: ', retries, url);
 
     return cy.request({
@@ -611,37 +623,42 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
           return retry();
         }
 
-        return Promise.resolve(true);
+        return Promise.resolve(config?.returnResource ? resp : true);
       });
   };
 
   return retry();
 });
 
-Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan = undefined) => {
+Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan = undefined, config = { requestTimeout: MEDIUM_TIMEOUT_OPT.timeout }): Cypress.Chainable => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
   let retries = 20;
 
-  const retry = () => {
+  let _token: { value: string };
+
+  const retry = (): Cypress.Chainable => {
+    cy.log('Using Token: ', _token);
+
     return cy.request({
       method:  'GET',
       url,
       headers: {
-        'x-api-csrf': token.value,
+        'x-api-csrf': _token.value,
         Accept:       'application/json'
       },
+      timeout: config?.requestTimeout
     })
       .then((resp) => {
         if (greaterThan) {
           if (resp.body.count > expectedResourcesTotal) {
-            return resp;
+            return Promise.resolve(resp);
           }
         } else if (resp.body.count === expectedResourcesTotal) {
-          return resp;
+          return Promise.resolve(resp);
         }
 
         retries = retries - 1;
-        if (retries === 0) return resp;
+        if (retries === 0) return Promise.resolve(resp);
         // eslint-disable-next-line cypress/no-unnecessary-waiting
         cy.wait(1000);
 
@@ -649,14 +666,22 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
       });
   };
 
-  return retry();
+  return cy.getCookie('CSRF').then((c) => {
+    cy.log('Original Token: ', token);
+    cy.log('Current Token: ', c);
+    _token = token || c;
+
+    return retry();
+  });
 });
 
 /**
  * Wait for an intercepted request to complete with the expected status code.
  * If the response is a 409 Conflict (or another retryable status), waits for one automatic retry before asserting success.
  */
-Cypress.Commands.add('waitForInterceptWithConflictRetry', (alias: string, successStatusCode = 200, retryStatusCodes = [409], options = MEDIUM_TIMEOUT_OPT) => {
+// `alias` is typed as `@${string}` (not plain `string`) because Cypress 15.10+ narrowed
+// the `cy.wait()` alias overload to that template literal type.
+Cypress.Commands.add('waitForInterceptWithConflictRetry', (alias: `@${ string }`, successStatusCode = 200, retryStatusCodes = [409], options = MEDIUM_TIMEOUT_OPT) => {
   return cy.wait(alias).then((interception) => {
     const statusCode = interception.response?.statusCode;
 
@@ -707,10 +732,10 @@ Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, 
 /**
  * delete a node template
  */
-Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, failOnStatusCode = false) => {
+Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, failOnStatusCode = false): Cypress.Chainable => {
   let retries = 10;
 
-  const retry = () => {
+  const retry = (): Cypress.Chainable => {
     return cy.request({
       method:  'DELETE',
       url:     `${ Cypress.env('api') }/v3/nodetemplate/${ nodeTemplateId }`,
@@ -1026,66 +1051,125 @@ Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, 
     });
 });
 
-// update resource list view preference
-Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, iteration = 0) => {
-  return cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
-    const userId = resp.body.status.userID;
+/**
+ * Update existing preferences
+ */
+const updateUserPreferences = ({
+  preferences = {},
+  logName,
+  iteration = 0,
+  verify = true,
+  retries = 3,
+  waits = 5,
+  delay = false,
+}: {
+   preferences: Partial<UserPreferences>,
+   logName: string,
+   iteration?: number
+   /**
+    * whether to check the end result matches the desired result
+    */
+   verify?: boolean,
+   /**
+    * how many times shall we retry the setting
+    */
+   retries?: number,
+   /**
+    * how many iterations should we wait for desired result to be true
+    */
+   waits?: number,
+   /**
+    * Is this command immediately following cy.login?
+    */
+   delay?: boolean,
+}): Cypress.Chainable<any> => {
+  if (delay) {
+    // There's some kind of strangeness with k3s --> login --> changing a preference
+    // In theory updateUserPreferences should wait for an API response containing the required changes
+    // However afterwards when loading a page it doesn't apply
+    // There's a better solution than this, but not in the timeframe
+    cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+  }
 
-    const payload = groupByPayload(userId, clusterName, groupBy, namespaceFilter);
+  return cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
+    const payload = resp.body.data[0];
 
-    cy.log(`updateNamespaceFilter: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
+    payload.data = {
+      ...payload.data,
+      ...preferences
+    };
 
-    cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
-      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload), 5)
+    delete payload.links;
+
+    cy.log(`${ logName }: /v1/userpreferences. Payload: ${ JSON.stringify(payload) }`);
+
+    return cy.setRancherResource('v1', 'userpreferences', payload.id, payload).then((resp: Cypress.Response<any>) => {
+      if (!verify) {
+        return cy.wrap(resp);
+      }
+
+      return cy.waitForRancherResource('v1', 'userpreferences', payload.id, (resp: any) => {
+        const actual = resp?.body.data;
+        const expected = payload.data;
+
+        const res = Object.entries(expected).every(([key, value]) => {
+          const expected = actual[key];
+
+          return String(expected) === String(value);
+        });
+
+        if (res) {
+          cy.log(`${ logName }: Compare Succeeded: Result: Expected Sub-state ${ JSON.stringify(expected) }`);
+        } else {
+          cy.log(`${ logName }: Compare Failed: Result: Actual State ${ JSON.stringify(actual) }`);
+          cy.log(`${ logName }: Compare Failed: Result: Expected Sub-state ${ JSON.stringify(expected) }`);
+        }
+
+        return res;
+      }, waits)
         .then((res) => {
           if (res) {
-            cy.log(`updateNamespaceFilter: Success!`);
-          } else {
-            if (iteration < 3) {
-              cy.log(`updateNamespaceFilter: Failed! Going to retry...`);
+            cy.log(`${ logName }: Success!`);
 
-              return cy.updateNamespaceFilter(clusterName, groupBy, namespaceFilter, iteration + 1);
+            return cy.wrap(resp);
+          } else {
+            if (iteration < retries) {
+              cy.log(`${ logName }: Failed! Going to retry...`);
+
+              return updateUserPreferences({
+                preferences,
+                logName,
+                iteration: iteration + 1,
+                retries,
+                waits,
+                verify,
+                delay:     false,
+              });
             }
 
-            cy.log(`updateNamespaceFilter: Failed! Giving up...`);
+            cy.log(`${ logName }: Failed! Giving up...`);
 
-            return Promise.reject(new Error('updateNamespaceFilter failed'));
+            return Promise.reject(new Error(`${ logName } failed`));
           }
         });
     });
   });
-});
-
-const compare = (core, subset) => {
-  const entries = Object.entries(subset);
-  let result = true;
-
-  for (let i = 0; i < entries.length; i++) {
-    const [key, subsetValue] = entries[i];
-    const coreValue = core[key];
-
-    if (typeof subsetValue === 'object') {
-      if (!compare(coreValue, subsetValue)) {
-        cy.log(`Compare Failed: Key: "${ key }"`);
-
-        result = false;
-        break;
-      }
-    } else if (subsetValue !== coreValue) {
-      cy.log(`Compare Failed: Key: "${ key }". Comparison "${ subsetValue }" !== "` + `${ coreValue }"`);
-
-      result = false;
-      break;
-    }
-  }
-
-  if (!result) {
-    cy.log(`Compare Failed: Result: Actual State ${ JSON.stringify(core) }`);
-    cy.log(`Compare Failed: Result: Expected Sub-state ${ JSON.stringify(subset) }`);
-  }
-
-  return result;
 };
+
+/**
+ * update resource list view preference
+ */
+Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, config = { delay: false }): Cypress.Chainable<any> => {
+  return updateUserPreferences({
+    logName:     'updateNamespaceFilter',
+    preferences: {
+      cluster:         clusterName,
+      'group-by':      groupBy,
+      'ns-by-cluster': namespaceFilter,
+    },
+    delay: config?.delay || false
+  });
+});
 
 /**
  * Create token (API Keys)
@@ -1193,104 +1277,40 @@ Cypress.Commands.add('fetchRevision', () => {
     });
 });
 
-/**
- * Check if the vai FF is enabled
- */
-Cypress.Commands.add('isVaiCacheEnabled', () => {
-  return cy.getRancherResource('v1', 'management.cattle.io.features', 'ui-sql-cache', 200)
-    .then((res) => {
-      // copy of shell/models/management.cattle.io.feature.js enabled
-
-      if (res?.body?.status?.lockedValue !== null && res?.body?.status?.lockedValue !== undefined) {
-        return res.body.status.lockedValue;
-      }
-
-      return (res?.body?.spec?.value !== null && res?.body?.spec?.value !== undefined) ? res.body.spec.value : res?.body?.status?.default;
-    });
-});
-
-Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration = 0) => {
+Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, config?: { delay: boolean }) => {
   const {
     clusterName, groupBy, namespaceFilter, allNamespaces
   } = preferences;
 
-  return cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
-    const userId = resp.body.status.userID;
-    const payload = {
-      id:   `${ userId }`,
-      type: 'userpreference',
-      data: {
-        cluster:          clusterName,
-        'per-page':       `${ rows }`,
-        'group-by':       groupBy,
-        'ns-by-cluster':  namespaceFilter,
-        'all-namespaces': allNamespaces,
-      }
-    };
-
-    cy.log(`tableRowsPerPageAndPreferences: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
-
-    cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
-      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload))
-        .then((res) => {
-          if (res) {
-            cy.log(`tableRowsPerPageAndPreferences: Success!`);
-          } else {
-            if (iteration < 3) {
-              cy.log(`tableRowsPerPageAndPreferences: Failed! Going to retry...`);
-
-              return cy.tableRowsPerPageAndPreferences(rows, preferences, iteration + 1);
-            }
-
-            cy.log(`tableRowsPerPageAndPreferences: Failed! Giving up...`);
-
-            return Promise.reject(new Error('tableRowsPerPageAndPreferences failed'));
-          }
-        });
-    });
+  return updateUserPreferences({
+    logName:     'tableRowsPerPageAndPreferences',
+    preferences: {
+      cluster:          clusterName,
+      'per-page':       `${ rows }`,
+      'group-by':       groupBy,
+      'ns-by-cluster':  namespaceFilter,
+      'all-namespaces': allNamespaces,
+    },
+    delay: config?.delay || false
   });
 });
 
-Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
+Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string, config?: { delay: boolean }) => {
   return cy.tableRowsPerPageAndPreferences(rows, {
     clusterName, groupBy, namespaceFilter
-  });
+  }, { delay: config?.delay || false });
 });
 
-// Update the user preferences by over-writing the given preference
-// If verify is true, the command will wait for the preferences to be updated and verify that the values are correct
+/**
+ * Update the user preferences by over-writing the given preference
+ * If verify is true, the command will wait for the preferences to be updated and verify that the values are correct
+ */
 Cypress.Commands.add('setUserPreference', (prefs: any, verify = false, retries = 5) => {
-  return cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
-    const update = resp.body.data[0];
-
-    update.data = {
-      ...update.data,
-      ...prefs
-    };
-
-    delete update.links;
-
-    return cy.setRancherResource('v1', 'userpreferences', update.id, update)
-      .then((putResp: Cypress.Response<any>) => {
-        if (!verify) {
-          return putResp;
-        }
-
-        return cy.waitForRancherResource('v1', 'userpreferences', update.id, (getResp: any) => {
-          const responseData = getResp?.body?.data ?? getResp?.body ?? {};
-
-          return Object.entries(prefs).every(([key, value]) => {
-            const actual = responseData[key];
-
-            return String(actual) === String(value);
-          });
-        }, retries)
-          .then((success) => {
-            const msg = success ? `Successfully verified preferences ${ JSON.stringify(prefs) }` : `Failed to verify preferences ${ JSON.stringify(prefs) } after ${ retries } retries (non-fatal)`;
-
-            return cy.log(`setUserPreference: ${ msg }`).then(() => putResp);
-          });
-      });
+  return updateUserPreferences({
+    logName:     'setUserPreference',
+    preferences: prefs,
+    verify,
+    waits:       retries // yes this is intentional, someone messed up the plumbing before this refactor
   });
 });
 
@@ -1413,6 +1433,12 @@ Cypress.Commands.add('createManyNamespacedResources', ({
 Cypress.Commands.add('deleteNamespace', (namespaces: string[]) => {
   for (let i = 0; i < namespaces.length; i++) {
     const ns = namespaces[i];
+
+    if (!ns) {
+      cy.log('deleteNamespace command supplied an undefined namespace, skipping');
+
+      return;
+    }
 
     cy.deleteRancherResource('v1', 'namespaces', ns);
     cy.waitForRancherResource('v1', 'namespaces', ns, (resp) => resp.status === 404, 20, { failOnStatusCode: false });

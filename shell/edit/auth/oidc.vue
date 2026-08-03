@@ -21,6 +21,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import { RcSeparator } from '@components/RcSeparator';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 const PKCE_S256 = 'S256';
 
@@ -39,6 +41,7 @@ export default {
     RadioGroup,
     Checkbox,
     CopyToClipboardText,
+    RcSeparator,
   },
 
   emits: ['validationChanged'],
@@ -68,29 +71,24 @@ export default {
     const requiresAuthEndpoint = computed(() => ['genericoidc', 'keycloakoidc'].includes(modelId.value));
     const sloEndSessionEndpointUiEnabled = computed(() => [SLO_OPTION_VALUES.all, SLO_OPTION_VALUES.both].includes(sloTypeRef.value));
 
-    // z.preprocess coerces null/undefined to '' before validation. This
-    // prevents the raw "Expected string, received null" zod message.
-    const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
-    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
-    const requiredUrlField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })).url(t('validation.genericUrl')));
-    const optionalField = coerce(z.string());
+    const { field } = zodValidators(t);
 
     // Reactive schema uses computed to reshape when provider or endpoint mode
     // changes.
     const validationSchema = computed(() => toTypedSchema(
       z.object({
-        clientId:     requiredField('authConfig.oidc.clientId'),
-        clientSecret: requiredField('authConfig.oidc.clientSecret'),
+        clientId:     field('authConfig.oidc.clientId').required(),
+        clientSecret: field('authConfig.oidc.clientSecret').required(),
 
-        url:   !customEndpointEnabled.value && !isAmazonCognito.value ? requiredUrlField('authConfig.oidc.url') : optionalField,
-        realm: !customEndpointEnabled.value && !isAmazonCognito.value ? requiredField('authConfig.oidc.realm') : optionalField,
+        url:   !customEndpointEnabled.value && !isAmazonCognito.value ? field('authConfig.oidc.url').required().url() : field(),
+        realm: !customEndpointEnabled.value && !isAmazonCognito.value ? field('authConfig.oidc.realm').required() : field(),
 
-        rancherUrl: customEndpointEnabled.value && !isAmazonCognito.value ? requiredField('authConfig.oidc.rancherUrl') : optionalField,
-        issuer:     customEndpointEnabled.value || isAmazonCognito.value ? requiredField('authConfig.oidc.issuer') : optionalField,
+        rancherUrl: customEndpointEnabled.value && !isAmazonCognito.value ? field('authConfig.oidc.rancherUrl').required() : field(),
+        issuer:     customEndpointEnabled.value || isAmazonCognito.value ? field('authConfig.oidc.issuer').required() : field(),
 
-        authEndpoint: requiresAuthEndpoint.value ? requiredUrlField('authConfig.oidc.authEndpoint') : optionalField,
+        authEndpoint: requiresAuthEndpoint.value ? field('authConfig.oidc.authEndpoint').required().url() : field(),
 
-        endSessionEndpoint: sloEndSessionEndpointUiEnabled.value ? requiredUrlField('authConfig.oidc.endSessionEndpoint.title') : optionalField,
+        endSessionEndpoint: sloEndSessionEndpointUiEnabled.value ? field('authConfig.oidc.endSessionEndpoint.title').required().url() : field(),
 
         scope: z.preprocess(
           (v) => (Array.isArray(v) ? v : []),
@@ -268,7 +266,6 @@ export default {
       case SLO_OPTION_VALUES.rancher:
         this.model.logoutAllEnabled = false;
         this.model.logoutAllForced = false;
-        this.model.endSessionEndpoint = '';
         break;
       case SLO_OPTION_VALUES.all:
         this.model.logoutAllEnabled = true;
@@ -374,7 +371,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           :provider="NAME"

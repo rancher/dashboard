@@ -118,4 +118,60 @@ describe('component: ButtonGroup', () => {
     expect(wrapper.emitted('update:value')).toHaveLength(1);
     expect(wrapper.emitted('update:value')![0][0]).toBe('val1');
   });
+
+  it.each([
+    ['small', 'btn-sm'],
+    ['medium', 'btn-md'],
+  ])('should apply the size class to each button when size is %s', (size, sizeClass) => {
+    const options = [
+      {
+        label: 'label1',
+        value: 'val1'
+      },
+      {
+        label: 'label2',
+        value: 'val2'
+      },
+    ];
+
+    const wrapper = shallowMount(ButtonGroup, {
+      props: {
+        options,
+        value: 'val1',
+        size
+      }
+    });
+
+    const buttons = wrapper.findAll('button');
+
+    expect(buttons).toHaveLength(2);
+    buttons.forEach((button) => {
+      expect(button.classes()).toContain(sizeClass);
+    });
+  });
+
+  it.each([
+    [undefined],
+    ['large'],
+  ])('should not apply a size class when size is %s', (size) => {
+    const options = [
+      {
+        label: 'label1',
+        value: 'val1'
+      },
+    ];
+
+    const wrapper = shallowMount(ButtonGroup, {
+      props: {
+        options,
+        value: 'val1',
+        ...(size ? { size } : {})
+      }
+    });
+
+    const button = wrapper.find('button');
+
+    expect(button.classes()).not.toContain('btn-sm');
+    expect(button.classes()).not.toContain('btn-md');
+  });
 });

@@ -3,7 +3,7 @@ import MachineDeploymentsPagePo from '@/cypress/e2e/po/pages/cluster-manager/mac
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
-describe('Visual testing MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Visual testing MachineDeployments', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const machineDeploymentsPage = new MachineDeploymentsPagePo();
 
   before(() => {
@@ -25,7 +25,7 @@ describe('Visual testing MachineDeployments', { testIsolation: 'off', tags: ['@m
   });
 });
 
-describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('MachineDeployments', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const machineDeploymentsPage = new MachineDeploymentsPagePo();
   const nsName = 'default';
   let resourceVersion = '';
@@ -167,14 +167,6 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.wait('@deleteMachineSet');
     machineDeploymentsPage.waitForPage();
 
-    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ nsName }/${ cloneName }`, 200).then((resp) => {
-      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
-      const resource = resp.body;
-
-      delete resource.metadata.finalizers;
-      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ nsName }/${ cloneName }`, resource);
-    });
-
     // check list details
     cy.contains(cloneName).should('not.exist');
   });
@@ -186,7 +178,6 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     // delete original MachineSet
     machineDeploymentsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.machineDeploymentsName }`)
       .set();
-    machineDeploymentsPage.list().openBulkActionDropdown();
 
     const machineName = `${ nsName }/${ this.machineDeploymentsName }`;
 
@@ -198,14 +189,6 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     promptRemove.remove();
     cy.wait('@deleteMachineSet');
     machineDeploymentsPage.waitForPage();
-
-    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ machineName }`, 200).then((resp) => {
-      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
-      const resource = resp.body;
-
-      delete resource.metadata.finalizers;
-      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ machineName }`, resource);
-    });
 
     // check list details
     cy.contains(this.machineDeploymentsName).should('not.exist');

@@ -36,7 +36,8 @@ export default {
       nodes:        fetchNodesForServiceTargets({
         $store:  this.$store,
         inStore: this.$store.getters['currentStore']()
-      })
+      }),
+      summaries: this.value.fetchSummaries()
     };
 
     if (this.podSchema) {
@@ -71,7 +72,6 @@ export default {
         this.showProjectMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.WORKLOAD_PROJECT_METRICS_DETAIL_URL, this.WORKLOAD_PROJECT_METRICS_SUMMARY_URL], 'cluster', projectId);
       }
     }
-    this.findMatchingIngresses();
   },
 
   async unmounted() {
@@ -82,8 +82,6 @@ export default {
 
   data() {
     return {
-      allIngresses:                    [],
-      matchingIngresses:               [],
       WORKLOAD_METRICS_DETAIL_URL,
       WORKLOAD_METRICS_SUMMARY_URL,
       POD_PROJECT_METRICS_DETAIL_URL:  '',
@@ -122,6 +120,10 @@ export default {
 
     serviceSchema() {
       return this.$store.getters['cluster/schemaFor'](SERVICE);
+    },
+
+    relatedServices() {
+      return this.value.relatedServices;
     },
 
     podTemplateSpec() {
@@ -205,51 +207,6 @@ export default {
       const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
 
       return !jobGauges.find((jg) => jg.count === total);
-    }
-  },
-
-  methods: {
-    findMatchingIngresses() {
-      if (!this.ingressSchema) {
-        return [];
-      }
-
-      // Find Ingresses that forward traffic to Services
-      // that select this workload.
-      const matchingIngresses = this.allIngresses.filter((ingress) => {
-        try {
-          const rules = ingress.spec.rules;
-
-          if (!rules || !Array.isArray(rules)) return false;
-
-          for (let i = 0; i < rules.length; i++) {
-            const paths = rules[i]?.http?.paths;
-
-            if (!paths || !Array.isArray(paths)) continue;
-            // For each Ingress, check if any Services that match
-            // this workload are also target backends for the Ingress.
-            for (let j = 0; j < paths.length; j++) {
-              const pathData = paths[j];
-              const targetServiceName = pathData?.backend?.service?.name;
-
-              if (!targetServiceName) continue;
-
-              for (let k = 0; k < this.value.relatedServices.length; k++) {
-                const service = this.value.relatedServices[k];
-                const matchingServiceName = service?.metadata?.name;
-
-                if (ingress.metadata?.namespace === this.value.metadata?.namespace && matchingServiceName === targetServiceName) {
-                  return true;
-                }
-              }
-            }
-          }
-        } catch (err) {
-          return false;
-        }
-      });
-
-      this.matchingIngresses = matchingIngresses;
     }
   },
 
@@ -348,7 +305,7 @@ export default {
           {{ t('workload.detail.cannotViewServices') }}
         </p>
         <p
-          v-else-if="value.relatedServices.length === 0"
+          v-else-if="relatedServices.length === 0"
           class="caption"
         >
           {{ t('workload.detail.cannotFindServices') }}
@@ -360,8 +317,8 @@ export default {
           {{ t('workload.detail.serviceListCaption') }}
         </p>
         <ResourceTable
-          v-if="serviceSchema && value.relatedServices.length > 0"
-          :rows="value.relatedServices"
+          v-if="serviceSchema && relatedServices.length > 0"
+          :rows="relatedServices"
           :headers="serviceHeaders"
           key-field="id"
           :schema="serviceSchema"
@@ -390,7 +347,7 @@ export default {
           {{ t('workload.detail.cannotViewIngresses') }}
         </p>
         <p
-          v-else-if="matchingIngresses.length === 0"
+          v-else-if="value.matchingIngresses.length === 0"
           class="caption"
         >
           {{ t('workload.detail.cannotFindIngresses') }}
@@ -402,8 +359,8 @@ export default {
           {{ t('workload.detail.ingressListCaption') }}
         </p>
         <ResourceTable
-          v-if="ingressSchema && matchingIngresses.length > 0"
-          :rows="matchingIngresses"
+          v-if="ingressSchema && value.matchingIngresses.length > 0"
+          :rows="value.matchingIngresses"
           :headers="ingressHeaders"
           key-field="id"
           :schema="ingressSchema"

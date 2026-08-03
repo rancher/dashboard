@@ -6,14 +6,14 @@ import { qase } from '@/cypress/support/qase';
 const cluster = 'local';
 const persistentVolumeClaimsPage = new PersistentVolumeClaimsPagePo();
 
-describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+describe('PersistentVolumeClaims', { testIsolation: false, tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });
 
     qase(4102, it('validate persistent volume claims table in empty state', () => {

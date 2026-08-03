@@ -5,8 +5,13 @@ import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
 import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 
 export default class WorkloadService extends SteveModel {
+  get stateDisplay() {
+    return stateDisplay(this.state, true);
+  }
+
   async getPortsWithServiceType() {
     const ports = [];
 
@@ -124,13 +129,10 @@ export default class WorkloadService extends SteveModel {
       return containers;
     }
 
-    if ( this.spec.containers ) {
-      return this.spec.containers;
-    }
-
-    const { spec:{ template:{ spec:{ containers } } } } = this;
-
-    return containers;
+    // A standalone Pod stores containers natively (spec.containers); workloads
+    // nest them under spec.template.spec. Optional chaining keeps a native Pod
+    // that has no `template` from blowing up.
+    return this.spec?.containers ?? this.spec?.template?.spec?.containers;
   }
 
   get initContainers() {
@@ -141,13 +143,8 @@ export default class WorkloadService extends SteveModel {
       return initContainers;
     }
 
-    if (this.spec.initContainers) {
-      return this.spec.initContainers;
-    }
-
-    const { spec:{ template:{ spec:{ initContainers } } } } = this;
-
-    return initContainers;
+    // See `containers` above - a native Pod has no spec.template to fall back to.
+    return this.spec?.initContainers ?? this.spec?.template?.spec?.initContainers;
   }
 
   get workloadSelector() {

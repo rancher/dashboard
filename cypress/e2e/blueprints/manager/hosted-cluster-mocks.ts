@@ -503,7 +503,7 @@ export const managementClusters = [
     },
     status: {
       agentFeatures: {
-        fleet: false, 'managed-system-upgrade-controller': false, 'multi-cluster-management': false, 'multi-cluster-management-agent': true, provisioningprebootstrap: false, provisioningv2: false, rke2: false, turtles: false, 'ui-sql-cache': true
+        fleet: false, 'managed-system-upgrade-controller': false, 'multi-cluster-management': false, 'multi-cluster-management-agent': true, provisioningprebootstrap: false, provisioningv2: false, rke2: false, turtles: false
       },
       agentImage: 'rancher/rancher-agent:v2.14-b186acea1a528215f3c08569584157f83b4041a9-head',
       aksStatus:  {
@@ -764,7 +764,7 @@ export const managementClusters = [
     },
     status: {
       agentFeatures: {
-        fleet: false, 'managed-system-upgrade-controller': false, 'multi-cluster-management': false, 'multi-cluster-management-agent': true, provisioningprebootstrap: false, provisioningv2: false, rke2: false, turtles: false, 'ui-sql-cache': true
+        fleet: false, 'managed-system-upgrade-controller': false, 'multi-cluster-management': false, 'multi-cluster-management-agent': true, provisioningprebootstrap: false, provisioningv2: false, rke2: false, turtles: false
       },
       agentImage: 'rancher/rancher-agent:v2.14-b186acea1a528215f3c08569584157f83b4041a9-head',
       aksStatus:  {
@@ -1021,7 +1021,7 @@ export const managementClusters = [
     },
     status: {
       agentFeatures: {
-        fleet: false, 'managed-system-upgrade-controller': false, 'multi-cluster-management': false, 'multi-cluster-management-agent': true, provisioningprebootstrap: false, provisioningv2: false, rke2: false, turtles: false, 'ui-sql-cache': true
+        fleet: false, 'managed-system-upgrade-controller': false, 'multi-cluster-management': false, 'multi-cluster-management-agent': true, provisioningprebootstrap: false, provisioningv2: false, rke2: false, turtles: false
       },
       agentImage: 'rancher/rancher-agent:v2.14-b186acea1a528215f3c08569584157f83b4041a9-head',
       aksStatus:  {
@@ -1262,7 +1262,7 @@ export const managementClusters = [
     },
     status: {
       agentFeatures: {
-        fleet: false, 'managed-system-upgrade-controller': true, 'multi-cluster-management': false, 'multi-cluster-management-agent': true, provisioningprebootstrap: false, provisioningv2: false, rke2: false, turtles: false, 'ui-sql-cache': true
+        fleet: false, 'managed-system-upgrade-controller': true, 'multi-cluster-management': false, 'multi-cluster-management-agent': true, provisioningprebootstrap: false, provisioningv2: false, rke2: false, turtles: false
       },
       agentImage: 'rancher/rancher-agent:v2.14-b186acea1a528215f3c08569584157f83b4041a9-head',
       aksStatus:  {

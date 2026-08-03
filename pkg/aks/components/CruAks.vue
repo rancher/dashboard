@@ -23,6 +23,7 @@ import Config from './Config.vue';
 import Import from './Import.vue';
 
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
@@ -91,7 +92,7 @@ const defaultCluster = {
   labels:                  {},
   annotations:             {},
   windowsPreferedCluster:  false,
-  importedConfig:          { privateRegistryURL: null },
+  importedConfig:          {},
 };
 
 export const NETWORKING_AUTH_MODES = {
@@ -180,7 +181,7 @@ export default defineComponent({
         this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
     }
-    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
+    if (this.value?.id && !this.normanCluster.importedConfig) {
       this.normanCluster.importedConfig = {};
     }
     this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
@@ -212,6 +213,7 @@ export default defineComponent({
 
     return {
       NETWORKING_AUTH_MODES,
+      PRIVATE_REGISTRY_CONTEXT,
       normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as any,
       nodePools:              [] as AKSNodePool[],
       config:                 { } as AKSConfig,
@@ -261,6 +263,21 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    pullSecrets: {
+      get() {
+        const secrets = this.normanCluster?.importedConfig?.privateRegistryPullSecrets;
+
+        return secrets?.[0] ?? undefined;
+      },
+      set(val) {
+        if (val) {
+          this.normanCluster.importedConfig.privateRegistryPullSecrets = [val];
+        } else if (this.normanCluster.importedConfig.privateRegistryPullSecrets) {
+          delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
+        }
+      }
+    },
 
     isImport() {
       return this.$route?.query?.mode === _IMPORT;
@@ -550,16 +567,18 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="isImportedCluster"
         class="mb-20"
         title-key="cluster.tabs.registry"
         data-testid="registries-accordion"
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
+          :register-before-hook="registerBeforeHook"
         />
       </Accordion>
     </div>

@@ -5,6 +5,8 @@ export const waitFor = (testFn: Function, msg = '', timeoutMs = 3000000, interva
     if (testFn()) {
       gatedLog('Wait for', msg || 'unknown', 'done immediately');
       resolve(this);
+
+      return;
     }
     const timeout = setTimeout(() => {
       gatedLog('Wait for', msg, 'timed out');

@@ -13,13 +13,13 @@ export const STEVE_RESPONSE_CODE = {
 /**
  * Steve API JSON response for GET requests
  */
-export interface SteveGetResponse extends KubeGetResponse {
+export type SteveGetResponse<T = Record<string, any>> = T & KubeGetResponse & {
   // Rancher specific properties (there are more)
   id: string,
 
   // Bucket for everything else (hopefully to remove once above populated)
   [key: string]: any
-}
+};
 
 /**
  * Steve API JSON response for LIST requests

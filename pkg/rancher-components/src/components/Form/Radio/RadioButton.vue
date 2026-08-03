@@ -81,6 +81,14 @@ export default defineComponent({
     },
 
     /**
+     * Use body text color for the label instead of the default input-label color.
+     */
+    useBodyTextColor: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
      * Radio option Id - used to link to aria-activedescendant
      * when using inside of the context of a Radio Group
      */
@@ -189,7 +197,11 @@ export default defineComponent({
     />
     <div class="labeling">
       <label
-        :class="[ muteLabel ? 'text-muted' : '', 'radio-label', 'm-0']"
+        class="radio-label m-0"
+        :class="{
+          'text-muted': muteLabel,
+          'body-text-color': useBodyTextColor
+        }"
         :for="name"
       >
         <slot
@@ -314,6 +326,10 @@ $fontColor: var(--input-label);
     flex-direction: column;
 
     margin: 3px 10px 0px 5px;
+
+    .body-text-color {
+      color: var(--body-text);
+    }
   }
 }
 

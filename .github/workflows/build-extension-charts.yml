@@ -39,7 +39,6 @@ jobs:
     name: Build extension artifact
     runs-on: ubuntu-latest
     permissions:
-      actions: write
       contents: read
     outputs:
       build-status: ${{ job.status }}
@@ -117,10 +116,8 @@ jobs:
     needs: build-extension-artifact
     runs-on: ubuntu-latest
     permissions:
-      actions: write
       contents: write
-      deployments: write
-      pages: write
+      pull-requests: write
     outputs:
       release-status: ${{ job.status }}
     steps:

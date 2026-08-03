@@ -2,12 +2,15 @@ import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
 import {
   PROJECT, SYSTEM_NAMESPACE, ISTIO as ISTIO_LABELS, FLEET, RESOURCE_QUOTA
 } from '@shell/config/labels-annotations';
-import { ISTIO, MANAGEMENT } from '@shell/config/types';
+import { ISTIO, MANAGEMENT, LOCAL_CLUSTER } from '@shell/config/types';
 
 import { get, set } from '@shell/utils/object';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { NAME as MANAGER } from '@shell/config/product/manager';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
 import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
@@ -188,7 +191,14 @@ export default class Namespace extends SteveModel {
   }
 
   get listLocation() {
-    const listLocation = { name: this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-resource' };
+    const productId = this.$rootGetters['productId'];
+    const isManagerProduct = productId === MANAGER;
+    const cluster = isManagerProduct ? LOCAL_CLUSTER : this.$rootGetters['clusterId'];
+
+    const listLocation = {
+      name:   this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-resource',
+      params: { cluster, product: EXPLORER },
+    };
 
     // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
@@ -201,6 +211,12 @@ export default class Namespace extends SteveModel {
 
   get _detailLocation() {
     const _detailLocation = super._detailLocation;
+
+    // Namespace detail pages belong to the local cluster's explorer, not Cluster Management
+    if (this.$rootGetters['productId'] === MANAGER) {
+      _detailLocation.params.cluster = LOCAL_CLUSTER;
+      _detailLocation.params.product = EXPLORER;
+    }
 
     return _detailLocation;
   }
@@ -283,6 +299,22 @@ export default class Namespace extends SteveModel {
 
     if (namespaceIndex > -1) {
       glance.splice(namespaceIndex, 1, this.projectGlance);
+    }
+
+    // In Cluster Management, the type link points to the local cluster's explorer.
+    // If the user cannot access the local cluster, show type as plain text.
+    const productId = this.$rootGetters['productId'];
+
+    if (productId === MANAGER) {
+      const hasLocalCluster = sideNavService.helper.clustersPinned.some((c) => c.id === LOCAL_CLUSTER) ||
+        sideNavService.helper.clustersOthers.some((c) => c.id === LOCAL_CLUSTER);
+      const typeIndex = glance.findIndex((item) => item.name === 'type');
+
+      if (!hasLocalCluster && typeIndex > -1) {
+        glance[typeIndex] = {
+          ...glance[typeIndex], formatter: undefined, formatterOpts: undefined
+        };
+      }
     }
 
     // projectGlance could be undefined

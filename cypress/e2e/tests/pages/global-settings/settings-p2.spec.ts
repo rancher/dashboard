@@ -19,7 +19,7 @@ const settingsOriginal = {};
 let removeServerUrl = false;
 const resetSettings = [];
 
-describe('Settings', { testIsolation: 'off' }, () => {
+describe('Settings', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

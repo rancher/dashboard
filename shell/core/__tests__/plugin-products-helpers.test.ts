@@ -1,6 +1,8 @@
+import {
+  ProductChild, ProductChildGroup, ProductChildCustomPage, ProductChildResourcePage, ProductChildPage
+} from '@shell/core/plugin-products-external';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
-import { ProductChildPage, ProductChildGroup } from '@shell/core/plugin-types';
 
 const gatherChildrenOrdering = pluginProductsHelpers.gatherChildrenOrdering.bind(pluginProductsHelpers);
 const generateTopLevelExtensionSimpleBaseRoute = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute.bind(pluginProductsHelpers);
@@ -12,23 +14,23 @@ describe('plugin-products-helpers', () => {
   // ============= gatherChildrenOrdering tests =============
   describe('gatherChildrenOrdering', () => {
     it('should sort children by weight descending', () => {
-      const children = [
+      const children: ProductChildCustomPage[] = [
         {
-          name: 'a', label: 'A', weight: 10, children: []
+          name: 'a', label: 'A', component: {}, sideMenu: { weight: 10 },
         },
         {
-          name: 'b', label: 'B', weight: 30, children: []
+          name: 'b', label: 'B', component: {}, sideMenu: { weight: 30 },
         },
         {
-          name: 'c', label: 'C', weight: 20, children: []
+          name: 'c', label: 'C', component: {}, sideMenu: { weight: 20 },
         },
       ];
 
       const result = gatherChildrenOrdering(children);
 
-      expect(result[0].name).toBe('b'); // 30
-      expect(result[1].name).toBe('c'); // 20
-      expect(result[2].name).toBe('a'); // 10
+      expect(result[0].label).toBe('B'); // 30
+      expect(result[1].label).toBe('C'); // 20
+      expect(result[2].label).toBe('A'); // 10
       // Verify original array is not mutated
       expect(children[0].name).toBe('a');
       expect(children[1].name).toBe('b');
@@ -36,35 +38,35 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should assign weights to items missing them', () => {
-      const children = [
+      const children: ProductChild[] = [
         {
-          name: 'a', label: 'A', weight: 50, children: []
+          name: 'a', label: 'A', component: {}, sideMenu: { weight: 50 },
         },
         {
-          name: 'b', label: 'B', children: []
+          name: 'b', label: 'B', component: {}
         },
         {
-          name: 'c', label: 'C', children: []
+          name: 'c', label: 'C', component: {}
         },
       ];
 
       const result = gatherChildrenOrdering(children);
 
-      expect(result[0].weight).toBe(50);
-      expect(result[1].weight!).toBeLessThan(50); // 49
-      expect(result[2].weight!).toBeLessThan(result[1].weight!); // 48
+      expect(result[0].sideMenu?.weight).toBe(50);
+      expect(result[1].sideMenu?.weight).toBeLessThan(50); // 49
+      expect(result[2].sideMenu?.weight).toBeLessThan(result[1].sideMenu?.weight); // 48
     });
 
     it('should use 999 as minWeight when no explicit weights are provided', () => {
-      const children = [
+      const children: ProductChildPage[] = [
         {
-          name: 'a', label: 'A', children: []
+          name: 'a', label: 'A', component: {}
         },
         {
-          name: 'b', label: 'B', children: []
+          name: 'b', label: 'B', component: {}
         },
         {
-          name: 'c', label: 'C', children: []
+          name: 'c', label: 'C', component: {}
         },
       ];
 
@@ -72,36 +74,38 @@ describe('plugin-products-helpers', () => {
 
       // minWeight starts at 999, then each item gets minWeight - (index + 1)
       // so: 999 - 1 = 998, 999 - 2 = 997, 999 - 3 = 996
-      expect(result[0].weight).toBe(998);
-      expect(result[1].weight).toBe(997);
-      expect(result[2].weight).toBe(996);
+      expect(result[0].sideMenu?.weight).toBe(998);
+      expect(result[1].sideMenu?.weight).toBe(997);
+      expect(result[2].sideMenu?.weight).toBe(996);
     });
 
     it('should recursively apply ordering to nested children', () => {
-      const children = [
+      const children: ProductChildGroup[] = [
         {
           name:     'group',
           label:    'Group',
-          weight:   50,
-          children: [
-            {
-              name: 'nested-a', label: 'Nested A', weight: 20, children: []
-            },
-            {
-              name: 'nested-b', label: 'Nested B', weight: 10, children: []
-            },
-            {
-              name: 'nested-c', label: 'Nested C', children: []
-            }, // no weight
-          ],
+          sideMenu: {
+            weight:   50,
+            children: [
+              {
+                name: 'nested-a', label: 'Nested A', component: {}, sideMenu: { weight: 20 }
+              },
+              {
+                name: 'nested-b', label: 'Nested B', component: {}, sideMenu: { weight: 10 }
+              },
+              {
+                name: 'nested-c', label: 'Nested C', component: {}
+              }, // no weight
+            ],
+          }
         },
       ];
 
       const result = gatherChildrenOrdering(children);
 
-      expect(result[0].children[0].name).toBe('nested-a'); // 20
-      expect(result[0].children[1].name).toBe('nested-b'); // 10
-      expect(result[0].children[2].name).toBe('nested-c'); // auto-assigned 9
+      expect(result[0].sideMenu.children[0].name).toBe('nested-a'); // 20
+      expect(result[0].sideMenu.children[1].name).toBe('nested-b'); // 10
+      expect(result[0].sideMenu.children[2].name).toBe('nested-c'); // auto-assigned 9
     });
 
     it('should handle empty children array', () => {
@@ -112,15 +116,15 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should not mutate order when weights are not provided for all items', () => {
-      const children = [
+      const children: ProductChildPage[] = [
         {
-          name: 'first', label: 'First', children: []
+          name: 'first', label: 'First', component: {}
         },
         {
-          name: 'second', label: 'Second', weight: 100, children: []
+          name: 'second', label: 'Second', component: {}, sideMenu: { weight: 100 },
         },
         {
-          name: 'third', label: 'Third', children: []
+          name: 'third', label: 'Third', component: {}
         },
       ];
 
@@ -180,7 +184,7 @@ describe('plugin-products-helpers', () => {
         component: () => Promise.resolve({ default: {} }),
       };
 
-      const route = generateVirtualTypeRoute('my-product', page);
+      const route = generateVirtualTypeRoute('my-product', page.name);
 
       expect(route.name).toBe('my-product-c-cluster-overview');
       expect(route.path).toBe('my-product/c/:cluster/overview');
@@ -201,7 +205,7 @@ describe('plugin-products-helpers', () => {
         component: () => Promise.resolve({ default: {} }),
       };
 
-      const route = generateVirtualTypeRoute('my-product', page, { extendProduct: true });
+      const route = generateVirtualTypeRoute('my-product', page.name, { extendProduct: true });
 
       expect(route.name).toBe('c-cluster-my-product-overview');
       expect(route.path).toBe('c/:cluster/my-product/overview');
@@ -223,7 +227,7 @@ describe('plugin-products-helpers', () => {
         component: () => Promise.resolve({ default: {} }),
       };
 
-      const route = generateVirtualTypeRoute('my-product', page, { omitPath: true });
+      const route = generateVirtualTypeRoute('my-product', page.name, { omitPath: true });
 
       expect(route.path).toBeUndefined();
       expect(route.name).toBe('my-product-c-cluster-settings');
@@ -276,9 +280,7 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should handle pages without a type gracefully', () => {
-      const page: Partial<ProductChildPage> = { name: 'clusters' };
-
-      const route = generateConfigureTypeRoute('my-product', page as ProductChildPage);
+      const route = generateConfigureTypeRoute('my-product', undefined);
 
       expect(route.name).toBe('my-product-c-cluster-resource');
       expect(route.params?.resource).toBeUndefined();
@@ -389,66 +391,67 @@ describe('plugin-products-helpers', () => {
   // ============= Integration-like tests =============
   describe('integration: complex product structure', () => {
     it('should handle a complete product config ordering and route generation', () => {
-      const config = [
+      const config: ProductChild[] = [
         {
-          name: 'overview', label: 'Overview', weight: 10, children: []
+          name: 'overview', label: 'Overview', component: {}, sideMenu: { weight: 10 },
         },
         {
-          name: 'settings', label: 'Settings', weight: 5, type: 'core.v1.configmap'
+          name: 'settings', label: 'Settings', sideMenu: { weight: 5 }, type: 'core.v1.configmap'
         },
         {
-          name:   'resources',
-          label:  'Resources',
-          type:   'core.v1.pod',
-          weight: 15,
-        },
-      ];
-
-      const ordered = gatherChildrenOrdering(config as ProductChildGroup[]);
-
-      // Should be sorted by weight descending: 15, 10, 5
-      expect(ordered[0].weight).toBe(15);
-      expect(ordered[0].name).toBe('resources');
-      expect(ordered[1].weight).toBe(10);
-      expect(ordered[1].name).toBe('overview');
-      expect(ordered[2].weight).toBe(5);
-      expect(ordered[2].name).toBe('settings');
-
-      // Test route generation for each
-      const overviewRoute = generateVirtualTypeRoute('my-product', ordered[1] as ProductChildPage);
-
-      expect(overviewRoute.name).toContain('overview');
-
-      const resourceRoute = generateConfigureTypeRoute('my-product', ordered[0] as ProductChildPage);
-
-      expect(resourceRoute.path).toContain('resource');
-    });
-
-    it('should handle nested group ordering', () => {
-      const config = [
-        {
-          name:     'main',
-          label:    'Main',
-          weight:   50,
-          children: [
-            {
-              name: 'page1', label: 'Page 1', weight: 100, children: []
-            },
-            {
-              name: 'page2', label: 'Page 2', children: []
-            },
-            {
-              name: 'page3', label: 'Page 3', weight: 50, children: []
-            },
-          ],
+          name:     'resources',
+          label:    'Resources',
+          type:     'core.v1.pod',
+          sideMenu: { weight: 15 },
         },
       ];
 
       const ordered = gatherChildrenOrdering(config);
 
-      expect(ordered[0].children[0].name).toBe('page1'); // 100
-      expect(ordered[0].children[1].name).toBe('page3'); // 50
-      expect(ordered[0].children[2].name).toBe('page2'); // auto 49
+      // Should be sorted by weight descending: 15, 10, 5
+      expect(ordered[0].sideMenu?.weight).toBe(15);
+      expect(ordered[0].name).toBe('resources');
+      expect(ordered[1].sideMenu?.weight).toBe(10);
+      expect(ordered[1].name).toBe('overview');
+      expect(ordered[2].sideMenu?.weight).toBe(5);
+      expect(ordered[2].name).toBe('settings');
+
+      // Test route generation for each
+      const overviewRoute = generateVirtualTypeRoute('my-product', ordered[1].name);
+
+      expect(overviewRoute.name).toContain('overview');
+
+      const resourceRoute = generateConfigureTypeRoute('my-product', ordered[0] as ProductChildResourcePage);
+
+      expect(resourceRoute.path).toContain('resource');
+    });
+
+    it('should handle nested group ordering', () => {
+      const config: ProductChildGroup[] = [
+        {
+          name:     'main',
+          label:    'Main',
+          sideMenu: {
+            weight:   50,
+            children: [
+              {
+                name: 'page1', label: 'Page 1', component: {}, sideMenu: { weight: 100 }
+              },
+              {
+                name: 'page2', label: 'Page 2', component: {}
+              },
+              {
+                name: 'page3', label: 'Page 3', component: {}, sideMenu: { weight: 50 }
+              },
+            ],
+          }
+        },
+      ];
+      const ordered = gatherChildrenOrdering(config);
+
+      expect(ordered[0].sideMenu?.children[0].name).toBe('page1'); // 100
+      expect(ordered[0].sideMenu?.children[1].name).toBe('page3'); // 50
+      expect(ordered[0].sideMenu?.children[2].name).toBe('page2'); // auto 49
     });
   });
 });

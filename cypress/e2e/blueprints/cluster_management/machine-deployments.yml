@@ -7,7 +7,8 @@ metadata:
 #  labels:  key: string
 spec:
   selector:
-    matchLabels:#  key: string
+    matchLabels:
+#  key: string
 #    matchExpressions:
 #      - key: string
 #        operator: string
@@ -15,7 +16,8 @@ spec:
 #          - string
   template:
     metadata:
-      labels:#  key: string
+      labels:
+#  key: string
 #      annotations:  key: string
 #      generateName: string
 #      name: string

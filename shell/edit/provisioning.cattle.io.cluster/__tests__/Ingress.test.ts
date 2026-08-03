@@ -8,6 +8,30 @@ jest.mock('vuex', () => ({
   mapGetters: () => ({ t: (key: string) => key })
 }));
 
+jest.mock('@components/Banner', () => ({
+  Banner: {
+    name:     'Banner',
+    template: '<div class="banner-stub"></div>',
+    props:    ['color', 'labelKey']
+  }
+}));
+
+jest.mock('@shell/components/YamlEditor', () => {
+  const EDITOR_MODES = { VIEW_CODE: 'VIEW_CODE', EDIT_CODE: 'EDIT_CODE' };
+  const YamlEditor = {
+    name:     'YamlEditor',
+    template: '<div class="yaml-editor-stub"></div>',
+    props:    ['value', 'mode', 'scrolling', 'asObject', 'editorMode', 'hidePreviewButtons'],
+    methods:  { updateValue: jest.fn() }
+  };
+
+  YamlEditor.EDITOR_MODES = EDITOR_MODES;
+
+  return {
+    __esModule: true, default: YamlEditor, EDITOR_MODES
+  };
+});
+
 jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
 
   INGRESS_NGINX:   'ingress-nginx',
@@ -63,10 +87,8 @@ describe('ingress.vue', () => {
     global: {
       stubs: {
         Checkbox:             true,
-        Banner:               true,
         IngressCards:         true,
         IngressConfiguration: true,
-        YamlEditor:           true,
         RichTranslation:      true
       }
     }
@@ -172,5 +194,146 @@ describe('ingress.vue', () => {
     const yamlEditor = wrapper.find('[data-testid="traefik-yaml-editor"]');
 
     expect(yamlEditor.exists()).toBe(true);
+  });
+
+  describe('traefikNginxKey', () => {
+    it('uses kubernetesIngressNginx when traefik chart version is below 40.0.0', () => {
+      const wrapper = createWrapper({
+        value:       TRAEFIK,
+        versionInfo: {
+          'rancher-ingress-nginx': { values: {} },
+          traefik:                 { chart: { version: '34.2.002' }, values: { providers: {} } }
+        }
+      });
+      const ingressCards = wrapper.findComponent({ name: 'IngressCards' });
+
+      ingressCards.vm.$emit('select', INGRESS_DUAL);
+
+      const emitted = wrapper.emitted('update-values');
+
+      expect(emitted).toBeTruthy();
+      const traefikValues = emitted?.find((e: any) => e[0] === 'traefik')?.[1] as any;
+
+      expect(traefikValues?.providers?.kubernetesIngressNginx).toBeDefined();
+      expect(traefikValues?.providers?.kubernetesIngressNGINX).toBeUndefined();
+    });
+
+    it('uses kubernetesIngressNGINX when traefik chart version is 40.0.0 or above', () => {
+      const wrapper = createWrapper({
+        value:       TRAEFIK,
+        versionInfo: {
+          'rancher-ingress-nginx': { values: {} },
+          traefik:                 { chart: { version: '40.1.003' }, values: { providers: {} } }
+        }
+      });
+      const ingressCards = wrapper.findComponent({ name: 'IngressCards' });
+
+      ingressCards.vm.$emit('select', INGRESS_DUAL);
+
+      const emitted = wrapper.emitted('update-values');
+
+      expect(emitted).toBeTruthy();
+      const traefikValues = emitted?.find((e: any) => e[0] === 'traefik')?.[1] as any;
+
+      expect(traefikValues?.providers?.kubernetesIngressNGINX).toBeDefined();
+      expect(traefikValues?.providers?.kubernetesIngressNginx).toBeUndefined();
+    });
+
+    it('defaults to kubernetesIngressNGINX when no chart version is available', () => {
+      const wrapper = createWrapper({
+        value:       TRAEFIK,
+        versionInfo: {
+          'rancher-ingress-nginx': { values: {} },
+          traefik:                 { values: { providers: {} } }
+        }
+      });
+      const ingressCards = wrapper.findComponent({ name: 'IngressCards' });
+
+      ingressCards.vm.$emit('select', INGRESS_DUAL);
+
+      const emitted = wrapper.emitted('update-values');
+
+      expect(emitted).toBeTruthy();
+      const traefikValues = emitted?.find((e: any) => e[0] === 'traefik')?.[1] as any;
+
+      expect(traefikValues?.providers?.kubernetesIngressNGINX).toBeDefined();
+      expect(traefikValues?.providers?.kubernetesIngressNginx).toBeUndefined();
+    });
+
+    it('migrates values from kubernetesIngressNginx to kubernetesIngressNGINX when version changes from below v40 to above v40', async() => {
+      const wrapper = createWrapper({
+        value:           TRAEFIK,
+        userChartValues: { traefik: { providers: { kubernetesIngressNginx: { enabled: true, ingressClass: 'test' } } } },
+        versionInfo:     {
+          'rancher-ingress-nginx': { values: {} },
+          traefik:                 { chart: { version: '34.2.002' }, values: { providers: { kubernetesIngressNginx: { enabled: true, ingressClass: 'test' } } } }
+        }
+      });
+
+      // Now update versionInfo to a version >= 40.0.0
+      await wrapper.setProps({
+        versionInfo: {
+          'rancher-ingress-nginx': { values: {} },
+          traefik:                 { chart: { version: '40.1.003' }, values: { providers: {} } }
+        }
+      });
+
+      // Watcher migrates key and emits because userChartValues had saved values under the old key
+      const emitted = wrapper.emitted('update-values') as any[];
+      const lastEmit = emitted[emitted.length - 1];
+
+      expect(lastEmit[0]).toBe('traefik');
+      expect(lastEmit[1]?.providers?.kubernetesIngressNGINX).toBeDefined();
+      expect(lastEmit[1]?.providers?.kubernetesIngressNginx).toBeUndefined();
+    });
+
+    it('migrates values from kubernetesIngressNGINX to kubernetesIngressNginx when version changes from above v40 to below v40', async() => {
+      const wrapper = createWrapper({
+        value:           TRAEFIK,
+        userChartValues: { traefik: { providers: { kubernetesIngressNGINX: { enabled: true, ingressClass: 'test' } } } },
+        versionInfo:     {
+          'rancher-ingress-nginx': { values: {} },
+          traefik:                 { chart: { version: '40.1.003' }, values: { providers: { kubernetesIngressNGINX: { enabled: true, ingressClass: 'test' } } } }
+        }
+      });
+
+      // Now update versionInfo to a version < 40.0.0
+      await wrapper.setProps({
+        versionInfo: {
+          'rancher-ingress-nginx': { values: {} },
+          traefik:                 { chart: { version: '34.2.002' }, values: { providers: {} } }
+        }
+      });
+
+      // Watcher migrates key and emits because userChartValues had saved values under the old key
+      const emitted = wrapper.emitted('update-values') as any[];
+      const lastEmit = emitted[emitted.length - 1];
+
+      expect(lastEmit[0]).toBe('traefik');
+      expect(lastEmit[1]?.providers?.kubernetesIngressNginx).toBeDefined();
+      expect(lastEmit[1]?.providers?.kubernetesIngressNGINX).toBeUndefined();
+    });
+
+    it('does not emit update-values when version changes but no saved user values exist under the old key', async() => {
+      const wrapper = createWrapper({
+        value:       TRAEFIK,
+        versionInfo: {
+          'rancher-ingress-nginx': { values: {} },
+          traefik:                 { chart: { version: '40.1.003' }, values: { providers: {} } }
+        }
+      });
+
+      // Switch to older version - no userChartValues saved, so watcher should NOT emit
+      await wrapper.setProps({
+        versionInfo: {
+          'rancher-ingress-nginx': { values: {} },
+          traefik:                 { chart: { version: '34.2.002' }, values: { providers: {} } }
+        }
+      });
+
+      const emitted = wrapper.emitted('update-values');
+
+      expect(emitted).toBeFalsy();
+    });
   });
 });

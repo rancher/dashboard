@@ -1,7 +1,7 @@
 import { IExtension } from '@shell/core/types';
-import { ProductChild, StandardProductName } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
+import { ProductChild, StandardProductName } from '@shell/core/plugin-products-external';
 
 /**
  * Represents extending an existing standard product

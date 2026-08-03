@@ -47,6 +47,7 @@ export const API_GROUP = 'apiGroups';
 export const API_SERVICE = 'apiregistration.k8s.io.apiservice';
 export const CONFIG_MAP = 'configmap';
 export const COUNT = 'count';
+export const CRD = 'apiextensions.k8s.io.customresourcedefinition';
 export const EVENT = 'event';
 export const ENDPOINTS = 'endpoints';
 export const HPA = 'autoscaling.horizontalpodautoscaler';
@@ -81,6 +82,7 @@ export const RBAC = {
 };
 
 export const WORKLOAD = 'workload';
+export const WORKLOAD_DASHBOARD = 'workload-dashboard';
 
 /**
  * Rancher Workload types
@@ -218,6 +220,12 @@ export const LONGHORN_VERSION_V2 = 'LonghornV2';
 
 export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
 
+export const OPERATION = {
+  ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshotsave',
+  ETCD_SNAPSHOT_RESTORE: 'operation.cattle.io.etcdsnapshotrestore',
+  ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotation',
+};
+
 // --------------------------------------
 // 2. Only if Rancher is installed
 // --------------------------------------
@@ -296,6 +304,7 @@ export const FLEET = {
   DASHBOARD:                'fleet.cattle.io.dashboard',
   GIT_REPO:                 'fleet.cattle.io.gitrepo',
   HELM_OP:                  'fleet.cattle.io.helmop',
+  SUSE_APP_COLLECTION:      'suse-application-collection',
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
@@ -398,6 +407,7 @@ export const AUTH_TYPE = {
   _S3:                '_S3',
   _RKE:               '_RKE',
   _IMAGE_PULL_SECRET: '_IPS',
+  _GITHUB_APP:        '_GITHUB_APP',
 };
 
 export const LOCAL_CLUSTER = 'local';
@@ -420,6 +430,12 @@ export const CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME = 'clusterrepo-appco-auth-';
  * for standard repositories.
  */
 export const CLUSTER_REPO_AUTH_GENERATE_NAME = 'clusterrepo-auth-';
+
+/**
+ * The `generateName` prefix used when creating Helm Op authentication secrets
+ * for standard Helm sources.
+ */
+export const AUTH_GENERATE_NAME = 'auth-';
 
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
 

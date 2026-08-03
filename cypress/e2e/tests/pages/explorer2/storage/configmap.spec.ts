@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const configMapListPage = new ConfigMapListPagePo('local');
 const localCluster = 'local';
 
-describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('ConfigMap', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -104,7 +104,7 @@ skipGeometric=true`;
       .and('be.visible');
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const uniqueConfigMap = SortableTablePo.firstByDefaultName('cm');
     let cmNamesList = [];
     let nsName1: string;
@@ -141,7 +141,7 @@ skipGeometric=true`;
           cmNamesList.push(workloadNames[0]);
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
     });
 

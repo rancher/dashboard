@@ -7,6 +7,9 @@ export default class UnitInputPo extends ComponentPo {
   }
 
   clear() {
-    return this.self().clear();
+    // Target the inner <input>, not the wrapper element. Cypress 12's stricter
+    // action-command element resolution no-ops .clear() on the wrapper, which
+    // stops @update:value('') from firing (see UnitInputPo.setValue above).
+    return this.self().find('input').clear();
   }
 }

@@ -5,16 +5,18 @@ import { MgmtApi } from '@shell/apis/intf/resources-api/mgmt-api';
 export * from '@shell/apis/intf/resources-api/resources-api';
 export * from '@shell/apis/intf/resources-api/cluster-api';
 export * from '@shell/apis/intf/resources-api/mgmt-api';
-export {
-  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
-  FindFilteredPageResponse, FindFilteredLabelSelectorResponse
+export type {
+  ResourceType, CreateResourceData, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
+  FindFilteredPageResponse, FindFilteredLabelSelectorResponse, SteveResource, SteveList
 } from '@shell/apis/intf/resources-api/resource-base';
 export * from '@shell/apis/intf/resources-api/resource-constants';
 
-export { SteveGetResponse, SteveListResponse } from '@shell/types/rancher/steve.api';
-export { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
+export * from '@shell/apis/intf/resources-api/resource-instance';
+
+export type { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
+export type { PaginationSort } from '@shell/types/store/pagination.types';
 export {
-  PaginationSort, PaginationParamFilter, PaginationParamProjectOrNamespace, PaginationFilterField
+  PaginationParamFilter, PaginationParamProjectOrNamespace, PaginationFilterField
 } from '@shell/types/store/pagination.types';
 
 /**

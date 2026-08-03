@@ -8,7 +8,7 @@ $btn-sm-height: 30px;
 // -----------------------------------------------------------------------------
 .btn,
 button,
-[class^='btn-'] {
+[class^='btn-']:not(.btn-group) {
   align-items: center;
   display: inline-flex;
   text-align: center;

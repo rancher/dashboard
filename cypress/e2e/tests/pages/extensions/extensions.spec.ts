@@ -6,6 +6,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const namespaceFilter = new NamespaceFilterPo();
 const cluster = 'local';
@@ -30,16 +31,16 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // With no extensions installed, should default to "Available"
     extensionsPo.goTo();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
 
     // Preserve active tab on reload
     cy.setUserPreference({ 'plugin-developer': true });
     extensionsPo.goTo(); // reload to get pref
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.extensionTabBuiltinClick();
-    extensionsPo.waitForPage(null, 'builtin');
+    extensionsPo.waitForPage(undefined, 'builtin');
     cy.reload();
-    extensionsPo.waitForPage(null, 'builtin');
+    extensionsPo.waitForPage(undefined, 'builtin');
     cy.setUserPreference({ 'plugin-developer': false });
   });
 
@@ -49,7 +50,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     cy.setUserPreference({ 'plugin-developer': false });
     extensionsPo.goTo();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
 
     // Should not be able to see the built-in tab
     extensionsPo.extensionTabBuiltin().checkNotExists();
@@ -57,13 +58,13 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // Set the preference
     cy.setUserPreference({ 'plugin-developer': true });
     extensionsPo.goTo();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
 
     // Reload
     extensionsPo.extensionTabBuiltin().checkExists();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.extensionTabBuiltinClick();
-    extensionsPo.waitForPage(null, 'builtin');
+    extensionsPo.waitForPage(undefined, 'builtin');
 
     // AKS Provisioning
     extensionsPo.extensionCardVersion('AKS Provisioning').should('contain', pluginVersion);
@@ -111,7 +112,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@prime' }, () => {
-    cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
+    cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', undefined).then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === '';
 
@@ -188,7 +189,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.goTo();
 
-    // check if burguer menu nav is highlighted correctly for extensions
+    // check if burger menu nav is highlighted correctly for extensions
     // https://github.com/rancher/dashboard/issues/10010
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Extensions');
 
@@ -196,6 +197,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted(cluster, false);
 
     // go to "add rancher repositories"
+    extensionsPo.waitForTabs(); // Do this before opening the menu, as tab content can cause change in window size which closes the menu before the click happens
     extensionsPo.extensionMenuToggle();
     extensionsPo.addRepositoriesClick();
 
@@ -212,7 +214,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
-    cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
+    cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner').then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === 'true';
 
@@ -275,7 +277,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
 
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
 
     // we should be on the extensions page
     extensionsPo.waitForTitle();
@@ -308,7 +310,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
@@ -324,7 +326,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionReloadClick();
 
     // make sure we land on the installed tab by default
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
 
     // make sure extension card is in the installed tab
     extensionsPo.extensionCardClick(EXTENSION_NAME);
@@ -339,12 +341,12 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // check for installed extension in "installed" tab
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
     extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
 
     // check for installed extension in "available" tab
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
     cy.contains(`[data-testid="extension-card-${ EXTENSION_NAME }"]`).should('not.exist');
   });
 
@@ -356,7 +358,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
+    extensionsPo.loading().should('not.exist');
+
+    // Ensure the extension card is visible and loaded before trying to upgrade
+    extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
 
     // click on update button on card
     extensionsPo.extensionCardUpgradeClick(EXTENSION_NAME);
@@ -370,7 +376,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // make sure extension card is still on the installed tab
     // since we installed the latest version
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
     extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
   });
 
@@ -381,7 +387,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
 
     // click on the downgrade button on card
     // this will downgrade to the immediate previous version
@@ -394,7 +400,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is on the installed tab and is visible
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
     extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
   });
 
@@ -406,13 +412,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.loading().should('not.exist');
 
-    // Wait for the large-extension card to appear before interacting
-    extensionsPo.extensionCard(DISABLED_CACHE_EXTENSION_NAME, { timeout: 30000 }).self().should('be.visible');
-
     // click on install button on card
+    // (clickAction waits for the card to render before interacting)
     extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.installModal().checkVisible();
 
@@ -425,7 +429,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the installed tab
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
@@ -458,7 +462,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.loading().should('not.exist');
 
     // Install unauthenticated extension
@@ -469,7 +473,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
     extensionsPo.loading().should('not.exist');
 
     // make sure both extensions have been imported
@@ -489,7 +493,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // make sure both extensions have been imported after logging in again
     cy.login(undefined, undefined, false);
     extensionsPo.goTo();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed', MEDIUM_TIMEOUT_OPT);
     extensionsPo.loading().should('not.exist');
     extensionsPo.waitForTitle();
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
@@ -505,12 +509,12 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
 
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.uninstallModalUninstallClick();
     extensionsPo.extensionReloadBanner().should('be.visible');
 
     // let's check the extension reload banner and reload the page
@@ -519,7 +523,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
   });
@@ -533,12 +537,13 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
 
     // click on uninstall button on card
+    // (clickAction waits for the card to render before interacting)
     extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.uninstallModalUninstallClick();
     extensionsPo.extensionReloadBanner().should('be.visible');
 
     // let's check the extension reload banner and reload the page
@@ -547,7 +552,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.extensionCardClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', UNAUTHENTICATED_EXTENSION_NAME);
   });
@@ -561,12 +566,12 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed');
 
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.uninstallModalUninstallClick();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -574,7 +579,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
   });

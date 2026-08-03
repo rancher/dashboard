@@ -75,6 +75,15 @@ if [[ -z ${ORG} ]] || [[ -z ${REPO} ]] || [[ -z ${TAG} ]]; then
     exit 1
 fi
 
+echo "Chart values:"
+echo "  name    : ${REPO}"
+echo "  version : ${TAG}"
+echo "  registry: ${REGISTRY:-<dockerhub>}"
+echo "  org     : ${ORG}"
+if [[ -n "${DESCRIPTION}" && "${DESCRIPTION}" != "null" ]]; then echo "  desc    : ${DESCRIPTION}"; fi
+if [[ -n "${ICON}" && "${ICON}" != "null" ]]; then echo "  icon    : ${ICON}"; fi
+if [[ -n "${HOME}" && "${HOME}" != "null" ]]; then echo "  home    : ${HOME}"; fi
+
 # Edit Chart information to match plugin using yq
 yq -i eval ".name = \"${REPO}\"" $CHART/Chart.yaml
 yq -i eval ".appVersion = \"${TAG}\"" $CHART/Chart.yaml

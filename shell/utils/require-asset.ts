@@ -88,6 +88,13 @@ export function requireJson(path: string): object {
   return mod.default || mod;
 }
 
+// Expose asset resolvers on window so extension builds (which use a stub
+// instead of require.context) can delegate to the host dashboard at runtime.
+if (typeof window !== 'undefined') {
+  (window as any).__shell_requireAsset = requireAsset;
+  (window as any).__shell_requireJson = requireJson;
+}
+
 // Exported for testing — allows injecting mock contexts
 export function _setContexts(img: WebpackRequireContext | null, json: WebpackRequireContext | null): void {
   imgCtx = img;

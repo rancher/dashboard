@@ -170,6 +170,81 @@ describe('component: NameNsDescription', () => {
     expect(nameInput.element.value).toBe('Default');
   });
 
+  it('should set namespace to a plain string when forceNamespace prop is provided', () => {
+    const forcedNs = 'cert-manager';
+    const store = createStore({
+      getters: {
+        allowedNamespaces:   () => () => ({}),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn()
+      }
+    });
+
+    const wrapper = mount(NameNsDescription, {
+      props: {
+        value: {
+          setAnnotation: jest.fn(),
+          metadata:      { namespace: '' }
+        },
+        mode:           'create',
+        forceNamespace: forcedNs,
+      },
+      global: {
+        provide: { store },
+        mocks:   {
+          $store: {
+            dispatch: jest.fn(),
+            getters:  {
+              namespaces: jest.fn(),
+              'i18n/t':   jest.fn(),
+            },
+          },
+        },
+      },
+    });
+
+    expect(typeof (wrapper.vm as any).namespace).toBe('string');
+    expect((wrapper.vm as any).namespace).toBe(forcedNs);
+  });
+
+  it('should set metadata.namespace to a plain string when falling back to defaultNamespace', () => {
+    const defaultNs = 'default';
+    const metadata: Record<string, unknown> = {};
+    const store = createStore({
+      getters: {
+        allowedNamespaces:   () => () => ({}),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn(),
+        defaultNamespace:    () => defaultNs,
+      }
+    });
+
+    mount(NameNsDescription, {
+      props: {
+        value: {
+          setAnnotation: jest.fn(),
+          metadata,
+        },
+        mode: 'create',
+      },
+      global: {
+        provide: { store },
+        mocks:   {
+          $store: {
+            dispatch: jest.fn(),
+            getters:  {
+              namespaces: jest.fn(),
+              'i18n/t':   jest.fn(),
+            },
+          },
+        },
+      },
+    });
+
+    expect(typeof metadata.namespace).toBe('string');
+    expect(metadata.namespace).toBe(defaultNs);
+  });
+
   it('sets the name using the nameKey prop', () => {
     const namespaceName = 'test';
     const store = createStore({

@@ -10,7 +10,7 @@ import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
  *  Running this test will delete all Amazon cloud credentials from the target cluster
  ******/
 
-describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins', '@provisioning'] }, () => {
+describe('Create AKS cluster', { testIsolation: false, tags: ['@manager', '@adminUser', '@jenkins', '@provisioning'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -72,7 +72,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     clusterList.createCluster();
     createAKSClusterPage.selectKubeProvider(1);
     loadingPo.checkNotExists();
-    createAKSClusterPage.rke2PageTitle().should('include', 'Create Azure AKS');
+    createAKSClusterPage.rke2PageTitle().should('include', 'Create AKS');
     createAKSClusterPage.waitForPage('type=aks&rkeType=rke2');
 
     // create azure cloud credential
@@ -129,7 +129,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     clusterList.createCluster();
     createAKSClusterPage.selectKubeProvider(1);
     loadingPo.checkNotExists();
-    createAKSClusterPage.rke2PageTitle().should('include', 'Create Azure AKS');
+    createAKSClusterPage.rke2PageTitle().should('include', 'Create AKS');
     cy.intercept('GET', '**/meta/aksVersions*').as('getAksVersions');
     createAKSClusterPage.waitForPage('type=aks&rkeType=rke2');
 

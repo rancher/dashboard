@@ -1,5 +1,24 @@
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
+import { OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { SETTING } from '@shell/config/settings';
+import { MANAGEMENT, OPERATION, LOCAL_CLUSTER, NAMESPACE } from '@shell/config/types';
+import { createOperationCR } from '@shell/utils/operation-cr';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
+
+jest.mock('@shell/utils/operation-cr', () => ({ createOperationCR: jest.fn() }));
+
+jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
+  __esModule: true,
+  default:    {
+    helper: {
+      clustersPinned: [],
+      clustersOthers: []
+    }
+  }
+}));
 
 jest.mock('@shell/utils/provider', () => ({
   isHostedProvider: jest.fn().mockImplementation((context, provider) => {
@@ -439,6 +458,253 @@ describe('class ProvCluster', () => {
 
       expect(cluster.isCapiWithoutExtension).toStrictEqual(expected);
       jest.clearAllMocks();
+    });
+  });
+  describe('day 2 operations', () => {
+    const createContext = ({
+      byId = jest.fn(),
+      all = jest.fn(() => []),
+      schemaFor = jest.fn(() => ({})),
+    } = {}) => {
+      return {
+        getters:     { schemaFor },
+        rootGetters: {
+          'management/byId': byId,
+          'management/all':  all,
+        }
+      };
+    };
+
+    it('should return true when the day 2 operations feature is enabled', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.FEATURE && id === IMPORTED_DAY_2_OPS) {
+          return { enabled: true };
+        }
+
+        return undefined;
+      });
+      const cluster = new ProvCluster({}, createContext({ byId }));
+
+      expect(cluster.isDayTwoOpsFeatureEnabled).toBe(true);
+    });
+
+    it('should return true for imported RKE2 day 2 operations when the annotation is enabled', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.FEATURE && id === IMPORTED_DAY_2_OPS) {
+          return { enabled: true };
+        }
+
+        return undefined;
+      });
+      const cluster = new ProvCluster({}, createContext({ byId }));
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: { [OPERATION_ANNOTATIONS.ENABLED]: 'true' } } });
+      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
+
+      expect(cluster.isImportedWithDayTwoOps).toBe(true);
+    });
+
+    it('should return true for imported RKE2 day 2 operations when the global setting is enabled', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.FEATURE && id === IMPORTED_DAY_2_OPS) {
+          return { enabled: true };
+        }
+
+        if (type === MANAGEMENT.SETTING && id === SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT) {
+          return { value: 'true' };
+        }
+
+        return undefined;
+      });
+      const cluster = new ProvCluster({}, createContext({ byId }));
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: {} } });
+      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
+
+      expect(cluster.isImportedWithDayTwoOps).toBe(true);
+    });
+
+    it('should return false for imported RKE2 day 2 operations when the feature is disabled', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.SETTING && id === SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT) {
+          return { value: 'true' };
+        }
+
+        return undefined;
+      });
+      const cluster = new ProvCluster({}, createContext({ byId }));
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: { [OPERATION_ANNOTATIONS.ENABLED]: 'true' } } });
+      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
+
+      expect(cluster.isImportedWithDayTwoOps).toBeFalsy();
+    });
+
+    it('should return false for imported RKE2 day 2 operations when operation schema is missing', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.FEATURE && id === IMPORTED_DAY_2_OPS) {
+          return { enabled: true };
+        }
+
+        if (type === MANAGEMENT.SETTING && id === SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT) {
+          return { value: 'true' };
+        }
+
+        return undefined;
+      });
+      const schemaFor = jest.fn().mockReturnValue(undefined);
+      const cluster = new ProvCluster({}, createContext({ byId, schemaFor }));
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: { [OPERATION_ANNOTATIONS.ENABLED]: 'true' } } });
+      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
+
+      expect(cluster.isImportedWithDayTwoOps).toBeFalsy();
+    });
+
+    it('should filter etcd snapshots by management cluster fields for imported day 2 operations clusters', () => {
+      const snapshots = [
+        {
+          metadata: { namespace: 'c-m-1' },
+          spec:     { clusterName: 'imported-cluster' }
+        },
+        {
+          metadata: { namespace: 'c-m-1' },
+          spec:     { clusterName: 'other-cluster' }
+        },
+        {
+          metadata: { namespace: 'c-m-2' },
+          spec:     { clusterName: 'imported-cluster' }
+        }
+      ];
+      const all = jest.fn().mockReturnValue(snapshots);
+      const cluster = new ProvCluster({}, createContext({ all }));
+
+      jest.spyOn(cluster, 'isImportedWithDayTwoOps', 'get').mockReturnValue(true);
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ id: 'c-m-1', metadata: { name: 'imported-cluster' } });
+
+      expect(cluster.etcdSnapshots).toStrictEqual([snapshots[0]]);
+    });
+
+    it('should create an operation CR when taking a snapshot on an imported RKE2 or K3s cluster', () => {
+      const cluster = new ProvCluster({}, createContext());
+
+      (createOperationCR as jest.Mock).mockResolvedValue(undefined);
+
+      jest.spyOn(cluster, 'isRke1', 'get').mockReturnValue(false);
+      jest.spyOn(cluster, 'isImportedWithDayTwoOps', 'get').mockReturnValue(true);
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ id: 'c-m-1', metadata: { name: 'imported-cluster' } });
+
+      cluster.takeSnapshot();
+
+      expect(createOperationCR).toHaveBeenCalledTimes(1);
+      expect((createOperationCR as jest.Mock).mock.calls[0][1]).toBe(OPERATION.ETCD_SNAPSHOT);
+      expect((createOperationCR as jest.Mock).mock.calls[0][2]).toStrictEqual({
+        clusterRef: {
+          apiVersion: 'management.cattle.io/v3',
+          kind:       'Cluster',
+          name:       'c-m-1',
+        }
+      });
+      expect((createOperationCR as jest.Mock).mock.calls[0][3]).toBe('c-m-1');
+      expect((createOperationCR as jest.Mock).mock.calls[0][4]).toBe('imported-cluster');
+    });
+  });
+
+  describe('namespaceLocation', () => {
+    const setLocalClusterAccess = ({ pinned, others }: { pinned: boolean, others: boolean }) => {
+      sideNavService.helper.clustersPinned.length = 0;
+      sideNavService.helper.clustersOthers.length = 0;
+
+      if (pinned) {
+        sideNavService.helper.clustersPinned.push({ id: LOCAL_CLUSTER } as any);
+      }
+      if (others) {
+        sideNavService.helper.clustersOthers.push({ id: LOCAL_CLUSTER } as any);
+      }
+    };
+
+    it('should route to the local cluster explorer when local is in the pinned side-nav clusters', () => {
+      setLocalClusterAccess({ pinned: true, others: false });
+      const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
+
+      expect(cluster.namespaceLocation).toStrictEqual({
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  LOCAL_CLUSTER,
+          product:  EXPLORER,
+          resource: NAMESPACE,
+          id:       'fleet-default',
+        },
+      });
+    });
+
+    it('should route to the local cluster explorer when local is in the unpinned side-nav clusters', () => {
+      setLocalClusterAccess({ pinned: false, others: true });
+      const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
+
+      expect(cluster.namespaceLocation?.params.cluster).toBe(LOCAL_CLUSTER);
+      expect(cluster.namespaceLocation?.params.product).toBe(EXPLORER);
+    });
+
+    it('should return null when the user has no access to the local cluster', () => {
+      setLocalClusterAccess({ pinned: false, others: false });
+      const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
+
+      expect(cluster.namespaceLocation).toBeNull();
+    });
+  });
+
+  describe('copyKubeConfigBulk', () => {
+    it('should delegate to mgmt cluster copyKubeConfigBulk method', async() => {
+      const mockCopyKubeConfigBulk = jest.fn().mockResolvedValue(undefined);
+      const mgmtCluster = new MgmtCluster({});
+
+      mgmtCluster.copyKubeConfigBulk = mockCopyKubeConfigBulk;
+
+      const cluster = new ProvCluster({});
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmtCluster);
+
+      const items = [
+        { id: 'cluster-1', mgmt: { id: 'mgmt-cluster-1' } },
+        { id: 'cluster-2', mgmt: { id: 'mgmt-cluster-2' } }
+      ];
+
+      await cluster.copyKubeConfigBulk(items);
+
+      expect(mockCopyKubeConfigBulk).toHaveBeenCalledWith(items);
+    });
+
+    it('should handle when mgmt cluster is undefined', () => {
+      const cluster = new ProvCluster({});
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(undefined);
+
+      const items = [{ id: 'cluster-1' }];
+
+      expect(cluster.copyKubeConfigBulk(items)).toBeUndefined();
+    });
+
+    it('should pass through all items to mgmt cluster', async() => {
+      const mockCopyKubeConfigBulk = jest.fn().mockResolvedValue(undefined);
+      const mgmtCluster = new MgmtCluster({});
+
+      mgmtCluster.copyKubeConfigBulk = mockCopyKubeConfigBulk;
+
+      const cluster = new ProvCluster({});
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmtCluster);
+
+      const items = [
+        { id: 'rke2-cluster', mgmt: { id: 'c-m-1' } },
+        { id: 'k3s-cluster', mgmt: { id: 'c-m-2' } },
+        { id: 'eks-cluster', mgmt: { id: 'c-m-3' } }
+      ];
+
+      await cluster.copyKubeConfigBulk(items);
+
+      expect(mockCopyKubeConfigBulk).toHaveBeenCalledWith(items);
+      expect(mockCopyKubeConfigBulk).toHaveBeenCalledTimes(1);
     });
   });
 });

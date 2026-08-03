@@ -91,4 +91,47 @@ export default class SteveModel extends HybridModel {
       }
     }
   }
+
+  /**
+   * RESOURCES API - ResourceInstance update method to send a PATCH request
+   */
+  async update(data) {
+    if (!this.canEdit) {
+      throw new Error(`ResourceInstance API error - ${ this.type }/${ this.id } - Cannot patch: permission denied`);
+    }
+
+    console.error('Updating instance with data:', data); // eslint-disable-line no-console
+
+    await this.save({
+      data,
+      method:  'patch',
+      headers: { 'content-type': 'application/strategic-merge-patch+json' }
+    });
+
+    return this;
+  }
+
+  /**
+   * RESOURCES API - ResourceInstance update method to send a PUT request
+   */
+  async replace() {
+    if (!this.canEdit) {
+      throw new Error(`ResourceInstance API error - ${ this.type }/${ this.id } - Cannot update: permission denied`);
+    }
+
+    await this.save();
+
+    return this;
+  }
+
+  /**
+   * RESOURCES API - ResourceInstance delete method to send a DELETE request
+   */
+  async delete() {
+    if (!this.canDelete) {
+      throw new Error(`ResourceInstance API error - ${ this.type }/${ this.id } - Cannot delete: permission denied`);
+    }
+
+    await this.remove();
+  }
 }

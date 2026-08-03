@@ -27,10 +27,14 @@ export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
     const currentStore = store.getters['currentStore'](NAMESPACE);
     const canList = store.getters[`${ currentStore }/canList`](NAMESPACE);
 
+    // A resource that explicitly returns null from namespaceLocation is signaling that
+    // the namespace lives in a cluster the user can't reach (mirrors legacy.vue's hideNamespaceLocation)
+    const hasReachableLocation = resourceValue.namespaceLocation !== null;
+
     const label = i18n.t('component.resource.detail.metadata.identifyingInformation.namespace');
     const value = resourceValue.namespace;
     const valueDataTestid = 'masthead-subheader-namespace';
-    const valueOverride = canList ? {
+    const valueOverride = canList && hasReachableLocation ? {
       component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
       props:     {
         type:           NAMESPACE,

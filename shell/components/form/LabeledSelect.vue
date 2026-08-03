@@ -14,13 +14,14 @@ import { useLabeledFormElement, labeledFormElementProps } from '@shell/composabl
 import { useLabeledSelect } from '@shell/composables/useLabeledSelect';
 import { ref, toRef } from 'vue';
 import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   name: 'LabeledSelect',
 
   inheritAttrs: false,
 
-  components: { LabeledTooltip },
+  components: { LabeledTooltip, RcSeparator },
   mixins:     [
     CompactInput,
     VueSelectOverrides,
@@ -116,6 +117,15 @@ export default {
     noOptionsLabelKey: {
       type:    String,
       default: 'labelSelect.noOptions.empty'
+    },
+    lockedOptions: {
+      type:    Array,
+      default: () => []
+    },
+    size: {
+      type:      String,
+      default:   'large',
+      validator: (value) => ['small', 'medium', 'large'].includes(value)
     },
 
     name: {
@@ -382,7 +392,17 @@ export default {
       }
 
       return this.getOptionLabel(opt);
-    }
+    },
+
+    isOptionLocked(option) {
+      if (!this.lockedOptions.length) {
+        return false;
+      }
+
+      const label = this.getOptionLabel(option);
+
+      return this.lockedOptions.includes(typeof label === 'string' ? label.trim() : String(label));
+    },
   },
 };
 </script>
@@ -403,7 +423,8 @@ export default {
         taggable: $attrs.multiple,
         hoverable: hoverTooltip,
         'compact-input': isCompact,
-        'no-label': !hasLabel
+        'no-label': !hasLabel,
+        [`ls-${size}`]: true
       }
     ]"
     :tabindex="isView || disabled ? -1 : 0"
@@ -493,7 +514,7 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr role="none">
+          <RcSeparator />
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">
@@ -512,6 +533,14 @@ export default {
             style="font-size: 20px;"
           />
         </div>
+      </template>
+      <template
+        v-if="lockedOptions.length"
+        #selected-option="option"
+      >
+        <span :data-locked="isOptionLocked(option) || undefined">
+          {{ getOptionLabel(option) }}
+        </span>
       </template>
       <!-- Pass down templates provided by the caller -->
       <template
@@ -614,6 +643,48 @@ export default {
     }
   }
 
+  &.no-label.ls-medium {
+    height: $labeled-select-height-medium;
+    padding: 0;
+
+    .labeled-container {
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    :deep(.vs__dropdown-toggle) {
+      height: 100%;
+      box-sizing: border-box;
+      border: none;
+      padding: 0 $input-padding-sm;
+      align-items: center;
+    }
+
+    :deep(.vs__actions) {
+      &:after {
+        // reset large-mode sizing hacks (height, padding-top, top:-10px) so flexbox centers the icon
+        height: auto;
+        padding-top: 0;
+        line-height: 1;
+        top: 0;
+      }
+    }
+
+    :deep(.vs__selected-options) {
+      margin-top: 0; // reset global -5px
+    }
+
+    :deep(.vs__selected) {
+      margin-top: 0;
+      margin-left: 0;
+    }
+
+    :deep(.vs__search) {
+      margin-left: 0; // prevent text shift on open
+    }
+  }
+
   .icon-spinner {
     position: absolute;
     left: calc(50% - .5em);
@@ -676,6 +747,14 @@ export default {
         min-height: unset !important;
         padding: 0 0 0 7px !important;
 
+        &:has([data-locked]) {
+          padding: 0 7px 0 7px !important;
+
+          .vs__deselect {
+            display: none;
+          }
+        }
+
         > button {
           height: 20px;
           line-height: 14px;
@@ -689,6 +768,14 @@ export default {
             color: #fff;
           }
         }
+      }
+    }
+
+    :deep() .vs--disabled .vs__selected-options .vs__selected {
+      padding: 0 7px 0 7px !important;
+
+      .vs__deselect {
+        display: none;
       }
     }
   }

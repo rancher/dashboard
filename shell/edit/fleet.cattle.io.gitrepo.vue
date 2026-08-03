@@ -8,7 +8,7 @@ import Loading from '@shell/components/Loading';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
-import { SECRET_TYPES } from '@shell/config/secret';
+import { SECRET_TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import FormValidation from '@shell/mixins/form-validation';
 import { toSeconds } from '@shell/utils/duration';
 import Tab from '@shell/components/Tabbed/Tab.vue';
@@ -97,10 +97,19 @@ export default {
       refValue,
       displayHelmRepoUrlRegex: false,
       targetsCreated:          '',
-      fvFormRuleSets:          [{
-        path:  'spec.repo',
-        rules: ['urlRepository'],
-      }],
+      fvFormRuleSets:          [
+        {
+          step:           'stepMetadata',
+          path:           'metadata.name',
+          rules:          ['subDomain'],
+          translationKey: 'nameNsDescription.name.label'
+        },
+        {
+          step:  'stepRepo',
+          path:  'spec.repo',
+          rules: ['urlRepository'],
+        },
+      ],
       touched: null,
     };
   },
@@ -129,7 +138,7 @@ export default {
           label:          this.t('fleet.gitRepo.add.steps.metadata.label'),
           subtext:        this.t('fleet.gitRepo.add.steps.metadata.subtext'),
           descriptionKey: 'fleet.gitRepo.add.steps.metadata.description',
-          ready:          this.isView || !!this.value.metadata.name,
+          ready:          this.isView || (!!this.value.metadata.name && this.stepPathErrors('stepMetadata').length === 0),
           weight:         1
         },
         {
@@ -206,6 +215,15 @@ export default {
   },
 
   methods: {
+    stepPathErrors(stepName) {
+      // Helper is used to check which validations is for each step
+      const paths = this.fvFormRuleSets
+        .filter((rule) => rule.step === stepName)
+        .map((rule) => rule.path);
+
+      return this.fvGetPathErrors(paths);
+    },
+
     updatePaths(value) {
       const { paths, bundles } = value;
 
@@ -283,10 +301,13 @@ export default {
         selected,
         publicKey,
         privateKey,
-        sshKnownHosts
+        sshKnownHosts,
+        githubAppId,
+        githubAppInstallationId,
+        githubAppPrivateKey,
       } = credentials;
 
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(selected) ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._GITHUB_APP].includes(selected) ) {
         return;
       }
 
@@ -323,19 +344,31 @@ export default {
           publicField = 'username';
           privateField = 'password';
           break;
+        case AUTH_TYPE._GITHUB_APP:
+          type = SECRET_TYPES.OPAQUE;
+          break;
         default:
           throw new Error('Unknown type');
         }
 
         secret._type = type;
-        secret.data = {
-          [publicField]:  base64Encode(publicKey),
-          [privateField]: base64Encode(privateKey),
-        };
 
-        // Add ssh known hosts
-        if (selected === AUTH_TYPE._SSH && sshKnownHosts) {
-          secret.data.known_hosts = base64Encode(sshKnownHosts);
+        if (selected === AUTH_TYPE._GITHUB_APP) {
+          secret.data = {
+            [GITHUB_APP_SECRET_KEYS.APP_ID]:          base64Encode(githubAppId),
+            [GITHUB_APP_SECRET_KEYS.INSTALLATION_ID]: base64Encode(githubAppInstallationId),
+            [GITHUB_APP_SECRET_KEYS.PRIVATE_KEY]:     base64Encode(githubAppPrivateKey),
+          };
+        } else {
+          secret.data = {
+            [publicField]:  base64Encode(publicKey),
+            [privateField]: base64Encode(privateKey),
+          };
+
+          // Add ssh known hosts
+          if (selected === AUTH_TYPE._SSH && sshKnownHosts) {
+            secret.data.known_hosts = base64Encode(sshKnownHosts);
+          }
         }
       }
 
@@ -413,6 +446,25 @@ export default {
       }
     },
 
+    async beforeNext(activeStep) {
+      if (activeStep.name !== 'stepMetadata' || !this.isCreate) {
+        return;
+      }
+
+      await this.value.dryRunCreate({
+        type:     this.value.type,
+        metadata: {
+          name:      this.value.metadata.name,
+          namespace: this.value.metadata.namespace,
+        },
+        spec: {
+          repo:   'https://example.com/placeholder',
+          branch: 'master',
+          paths:  [],
+        }
+      });
+    },
+
     durationSeconds(value) {
       return `${ value }s`;
     }
@@ -432,6 +484,7 @@ export default {
     :errors="errors"
     :steps="!isView ? steps : undefined"
     :finish-mode="'finish'"
+    :before-next="beforeNext"
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"
@@ -442,6 +495,7 @@ export default {
         :value="value"
         :mode="mode"
         :is-view="isView"
+        :name-rules="fvGetAndReportPathRules('metadata.name')"
         @input="$emit('input', $event)"
       />
     </template>

@@ -38,7 +38,7 @@ export default {
       const projectId = namespace?.metadata?.labels[PROJECT];
 
       if (projectId) {
-        this.POD_PROJECT_METRICS_DETAIL_URL = `/api/v1/namespaces/cattle-project-${ projectId }-monitoring/services/http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1'`;
+        this.POD_PROJECT_METRICS_DETAIL_URL = `/api/v1/namespaces/cattle-project-${ projectId }-monitoring/services/http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1`;
         this.POD_PROJECT_METRICS_SUMMARY_URL = `/api/v1/namespaces/cattle-project-${ projectId }-monitoring/services/http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-pod?orgId=1`;
 
         this.showProjectMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.POD_PROJECT_METRICS_DETAIL_URL, this.POD_PROJECT_METRICS_SUMMARY_URL], 'cluster', projectId);

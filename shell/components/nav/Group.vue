@@ -1,10 +1,12 @@
 <script>
 import Type from '@shell/components/nav/Type';
-import { filterLocationValidParams } from '@shell/utils/router';
+import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
+import { RcSeparator } from '@components/RcSeparator';
+
 export default {
   name: 'Group',
 
-  components: { Type },
+  components: { Type, RcSeparator },
 
   emits: ['expand', 'close'],
 
@@ -205,14 +207,23 @@ export default {
         } else if (item.route) {
           const navLevels = ['cluster', 'product', 'resource'];
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
+
+          // Keep the group open wherever the child itself is highlighted, otherwise pages nested under a
+          // child's route (its create/detail pages) would collapse the group out from under it
+          if (matchesNavLevel || isNavItemActive(this.$router, this.$route, item)) {
+            return true;
+          }
+
+          if (!parentPath) {
+            continue;
+          }
+
           const validItemRoute = filterLocationValidParams(this.$router, item.route);
 
           // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
           const itemPath = this.$router.resolve(validItemRoute).path;
 
-          if (matchesNavLevel || itemPath === this.$route.path) {
-            return true;
-          } else if (parentPath && itemPath === parentPath) {
+          if (itemPath === parentPath) {
             return true;
           }
         }
@@ -260,11 +271,11 @@ export default {
         v-if="showHeader"
         class="header"
         :class="{'active': highlightRoute && isOverview, 'noHover': !canCollapse || fixedOpen}"
-        role="button"
-        :tabindex="fixedOpen ? -1 : 0"
-        :aria-label="group.labelDisplay || group.label || ''"
-        :aria-expanded="!canCollapse || isExpanded"
-        :aria-controls="!canCollapse ? null : `group-${id}`"
+        :role="hasChildren && !hasOverview ? 'button' : undefined"
+        :tabindex="hasChildren && !hasOverview ? (fixedOpen ? -1 : 0) : undefined"
+        :aria-label="hasChildren && !hasOverview ? (group.labelDisplay || group.label || '') : undefined"
+        :aria-expanded="hasChildren && !hasOverview ? (!canCollapse || isExpanded) : undefined"
+        :aria-controls="hasChildren && !hasOverview ? (!canCollapse ? null : `group-${id}`) : undefined"
         @click="groupSelected()"
         @keyup.enter="groupSelected()"
         @keyup.space="groupSelected()"
@@ -275,7 +286,6 @@ export default {
             v-if="hasOverview && hasChildren"
             :to="headerRoute"
             :exact="group.children[0].exact"
-            :tabindex="-1"
           >
             <h6>
               <span v-clean-html="group.labelDisplay || group.label" />
@@ -311,7 +321,7 @@ export default {
         :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
         role="button"
         tabindex="0"
-        :aria-label="t('nav.ariaLabel.collapseExpand')"
+        :aria-label="isExpanded ? t('nav.ariaLabel.collapse', { group: group.labelDisplay || group.label }) : t('nav.ariaLabel.expand', { group: group.labelDisplay || group.label })"
         :aria-expanded="isExpanded"
         :aria-controls="`group-${id}`"
         @click="peek($event, true)"
@@ -333,7 +343,7 @@ export default {
           v-if="child.divider"
           :key="idx"
         >
-          <hr role="none">
+          <RcSeparator />
         </li>
         <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
           HIDDEN
@@ -384,13 +394,11 @@ export default {
       user-select: none;
       text-transform: none;
       font-size: 14px;
+      height: 100%;
+      padding: 8px 0 8px 16px;
+      display: inline-flex;
+      align-items: center;
     }
-
-    > H6 {
-        text-transform: none;
-        height: 100%;
-        padding: 8px 0 8px 16px;
-      }
 
     > A {
       display: block;
@@ -402,10 +410,10 @@ export default {
       }
       &:focus{
         outline:none;
-      }
-      > H6 {
-        text-transform: none;
-        padding: 8px 0 8px 16px;
+
+        h6 span {
+          @include focus-outline;
+        }
       }
     }
   }
@@ -574,6 +582,7 @@ export default {
       padding-left: 24px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
     A:focus {

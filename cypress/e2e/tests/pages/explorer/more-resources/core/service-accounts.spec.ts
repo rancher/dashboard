@@ -5,14 +5,14 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const cluster = 'local';
 const serviceAccountsPagePo = new ServiceAccountsPagePo();
 
-describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Service Accounts', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}', { delay: true });
     });
 
     it('validate services table in empty state', () => {

@@ -22,8 +22,14 @@ export class PluginRoutes {
     });
   }
 
+  private tagRoute(route: RouteRecordRaw): void {
+    route.meta = { ...route.meta, _extensionRoute: true };
+    route.children?.forEach((child) => this.tagRoute(child));
+  }
+
   public addRoutes(newRouteInfos: RouteInfo[]) {
     newRouteInfos.forEach((routeInfo) => {
+      this.tagRoute(routeInfo.route);
       if (routeInfo.parent) {
         this.router.addRoute(routeInfo.parent, routeInfo.route);
       } else {

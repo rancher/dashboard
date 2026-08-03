@@ -30,6 +30,29 @@ describe('component: FileSelector', () => {
     expect(uploadButton.exists()).toBeTruthy();
   });
 
+  it('should render a small, secondary RcButton when asRcButton is set', () => {
+    wrapper = mount(FileSelector, {
+      props:  { label: 'upload', asRcButton: true },
+      global: { mocks: {} },
+    });
+
+    const rcButton = wrapper.findComponent({ name: 'RcButton' });
+
+    expect(rcButton.exists()).toBe(true);
+    expect(rcButton.props('variant')).toBe('secondary');
+    expect(rcButton.props('size')).toBe('small');
+  });
+
+  it('should render a plain button by default (asRcButton not set)', () => {
+    wrapper = mount(FileSelector, {
+      props:  { label: 'upload' },
+      global: { mocks: {} },
+    });
+
+    expect(wrapper.findComponent({ name: 'RcButton' }).exists()).toBe(false);
+    expect(wrapper.find('[data-testid="file-selector__uploader-button"]').exists()).toBe(true);
+  });
+
   it('should succeed when loading an image', async() => {
     wrapper = mount(FileSelector, {
       props:   { label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml' },

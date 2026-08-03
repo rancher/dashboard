@@ -13,6 +13,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR,
 } from '@shell/utils/socket';
+import { readTextFromClipboard } from '@shell/utils/clipboard';
 import Window from './Window';
 import dayjs from 'dayjs';
 
@@ -24,6 +25,9 @@ const commands = {
   ],
   windows: ['cmd']
 };
+
+// Button number for the middle button with a mousedown event
+const MIDDLE_BUTTON = 1;
 
 export default {
   components: { Window, Select },
@@ -80,6 +84,7 @@ export default {
       fitAddon:          null,
       searchAddon:       null,
       webglAddon:        null,
+      canvasAddon:       null,
       isOpen:            false,
       isOpening:         false,
       backlog:           [],
@@ -90,7 +95,8 @@ export default {
       os:                undefined,
       retries:           0,
       currFocusedElem:   undefined,
-      xtermContainerRef: undefined
+      xtermContainerRef: undefined,
+      isUnmounted:       false
     };
   },
 
@@ -149,9 +155,14 @@ export default {
   },
 
   beforeUnmount() {
+    this.isUnmounted = true;
+
     document.removeEventListener('keyup', this.handleKeyPress);
     this.$refs?.containerShell?.$el?.removeEventListener('focusin', this.focusInHandler);
     this.$refs?.xterm.removeEventListener('focusout', this.focusOutHandler);
+
+    document.removeEventListener('mousedown', this.handleMouseDown);
+    document.removeEventListener('copy', this.handleCopyEvent);
 
     clearInterval(this.keepAliveTimer);
     this.cleanup();
@@ -161,6 +172,8 @@ export default {
     document.addEventListener('keyup', this.handleKeyPress);
     this.$refs?.containerShell?.$el?.addEventListener('focusin', this.focusInHandler);
     this.$refs?.xterm.addEventListener('focusout', this.focusOutHandler);
+    document.addEventListener('mousedown', this.handleMouseDown);
+    document.addEventListener('copy', this.handleCopyEvent);
 
     const nodeId = this.pod.spec?.nodeName;
 
@@ -195,6 +208,20 @@ export default {
       this.currFocusedElem = undefined;
     },
 
+    handleMouseDown(ev) {
+      // Paste from clipboard on middle click if the xterm is focused. This is a common behavior in Linux terminals.
+      if (this.isXtermFocused && ev.button === MIDDLE_BUTTON) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        readTextFromClipboard().then((text) => {
+          if (text) {
+            this.terminal.paste(text);
+          }
+        });
+      }
+    },
+
     handleKeyPress(ev) {
       ev.preventDefault();
       ev.stopPropagation();
@@ -212,6 +239,17 @@ export default {
       }
     },
 
+    // Copy the selected text from the terminal to the clipboard when the user uses the browser copy
+    handleCopyEvent(ev) {
+      if (this.isXtermFocused && this.terminal?.hasSelection()) {
+        const txt = this.terminal.getSelection();
+
+        ev.clipboardData.setData('text/plain', txt);
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+    },
+
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ '@xterm/xterm');
@@ -221,6 +259,7 @@ export default {
         webgl:    import(/* webpackChunkName: "xterm" */ '@xterm/addon-webgl'),
         weblinks: import(/* webpackChunkName: "xterm" */ '@xterm/addon-web-links'),
         search:   import(/* webpackChunkName: "xterm" */ '@xterm/addon-search'),
+        canvas:   import(/* webpackChunkName: "xterm" */ '@xterm/addon-canvas'),
       });
 
       const terminal = new xterm.Terminal({
@@ -240,26 +279,38 @@ export default {
       terminal.loadAddon(new addons.weblinks.WebLinksAddon());
       terminal.open(this.$refs.xterm);
 
-      // if user is using Safari with webGPU disabled, webglAddon will silently fail
-      // and we do not have a way to detect that.
-      // To avoid it, default to DOM rendering for Safari browsers
+      // The webgl renderer can fail without throwing: the context may be lost
+      // mid-session, or it can attach but silently never paint, leaving the
+      // terminal's helper textarea at 0x0. Detect both cases and fall back to the
+      // canvas renderer so the terminal stays interactive.
       try {
-        const ua = window.navigator.userAgent.toLowerCase();
-        const isSafari = ua.includes('safari') &&
-           !ua.includes('crios') && // Chrome iOS
-           !ua.includes('fxios') && // Firefox iOS
-           !ua.includes('edgios') && // Edge iOS
-           !ua.includes('opr'); // Opera
+        this.webglAddon = new addons.webgl.WebglAddon();
 
-        if (!isSafari) {
-          this.webglAddon = new addons.webgl.WebglAddon();
-          terminal.loadAddon(this.webglAddon);
-        }
+        this.webglAddon.onContextLoss(() => {
+          if (!this.isUnmounted && this.terminal) {
+            this.fallbackToCanvas(terminal, addons);
+          }
+        });
+
+        terminal.loadAddon(this.webglAddon);
+
+        // Detect the silent "attaches but never paints" failure after a render frame.
+        requestAnimationFrame(() => {
+          if (this.isUnmounted || !this.terminal) {
+            return;
+          }
+
+          const textarea = this.$refs.xterm?.querySelector('.xterm-helper-textarea');
+          const hasPainted = textarea && textarea.getBoundingClientRect().height > 0;
+
+          if (this.webglAddon && !hasPainted) {
+            this.fallbackToCanvas(terminal, addons);
+            this.fit();
+          }
+        });
       } catch (e) {
-        // Some browsers (Safari) don't support the webgl renderer, so don't use it.
-        this.webglAddon = null;
-        this.canvasAddon = new addons.canvas.CanvasAddon();
-        terminal.loadAddon(this.canvasAddon);
+        // Some browsers (e.g. Safari) don't support the webgl renderer, so don't use it.
+        this.fallbackToCanvas(terminal, addons);
       }
       this.fit();
       this.flush();
@@ -271,6 +322,23 @@ export default {
       });
 
       this.terminal = terminal;
+    },
+
+    // Dispose the webgl renderer (if any) and switch to the canvas renderer.
+    // Used when webgl fails to construct, loses its context, or silently never paints.
+    fallbackToCanvas(terminal, addons) {
+      if (this.isUnmounted) {
+        return;
+      }
+
+      this.webglAddon?.dispose();
+      this.webglAddon = null;
+
+      if (!this.canvasAddon) {
+        this.canvasAddon = new addons.canvas.CanvasAddon();
+        terminal.loadAddon(this.canvasAddon);
+      }
+      this.fit();
     },
 
     write(msg) {
@@ -444,6 +512,13 @@ export default {
         this.socket.disconnect();
         this.socket = null;
       }
+
+      // Dispose the renderer addons before the terminal. This is needed to avoid xterm throwing an error
+      this.webglAddon?.dispose();
+      this.webglAddon = null;
+
+      this.canvasAddon?.dispose();
+      this.canvasAddon = null;
 
       if (this.terminal) {
         this.terminal.dispose();

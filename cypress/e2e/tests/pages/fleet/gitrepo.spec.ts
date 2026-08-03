@@ -1,4 +1,4 @@
-import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import { FleetApplicationCreatePo, FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
@@ -19,14 +19,15 @@ const repoInfo = {
 };
 
 const workspace = 'fleet-default';
-let editRepoName = null;
+let editRepoName: string | null = null;
 let adminUserId = '';
 
-const reposToDelete = [];
+const reposToDelete: string[] = [];
 
-describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const listPage = new FleetApplicationListPagePo();
   const headerPo = new HeaderPo();
+  const createPage = new FleetApplicationCreatePo();
 
   before(() => {
     cy.login();
@@ -64,8 +65,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       listPage.goTo();
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
+      listPage.create();
+      createPage.createGitRepo();
 
-      gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
 
       const { name } = gitRepoCreateRequest.metadata;
@@ -88,6 +90,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       // Target selection step
       gitRepoCreatePage.targetClusterOptions().set(1);
+      // The "Manually selected clusters" option only renders once the async fleet-cluster
+      // data has loaded; wait for it before selecting to avoid flaking on slow fetches.
+      gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
       gitRepoCreatePage.targetClusterOptions().set(2);
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
@@ -206,7 +211,74 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       });
     });
 
-    it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, function() {
+    it('Can create a GitRepo with GitHub App git authentication', () => {
+      // generate a fake cluster that can be usable in fleet
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
+
+      cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
+
+      const appId = '12345';
+      const installationId = '67890';
+      const privateKey = '-----BEGIN RSA PRIVATE KEY-----\nFAKEKEYCONTENT\n-----END RSA PRIVATE KEY-----';
+
+      // Select the workspace from the list page before navigating to create
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
+      gitRepoCreatePage.goTo();
+      gitRepoCreatePage.waitForPage();
+
+      // Use a unique name for this create: the shared '@gitRepo' name is already
+      // created by the `before()` hook, and the new dryRunCreate step validation
+      // would reject it with a 409 (name already exists), blocking navigation.
+      cy.createE2EResourceName('git-repo-github-app').then((name) => {
+        // Metadata step
+        gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
+          .name()
+          .set(name);
+        gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+        // Repository details step
+        gitRepoCreatePage.setGitRepoUrl(repoInfo.repoUrl);
+        gitRepoCreatePage.setBranchName(repoInfo.branch);
+        gitRepoCreatePage.setGitRepoPath(repoInfo.paths);
+        gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+        // Target selection step
+        gitRepoCreatePage.targetClusterOptions().set(1);
+        // The "Manually selected clusters" option only renders once the async fleet-cluster
+        // data has loaded; wait for it before selecting to avoid flaking on slow fetches.
+        gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
+        gitRepoCreatePage.targetClusterOptions().set(2);
+        gitRepoCreatePage.targetCluster().toggle();
+        gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
+        gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+        // Wait for secrets fetch to initialize Secret selectors
+        cy.wait('@getSecretsInitialLoad').its('response.statusCode').should('eq', 200);
+
+        // Advanced step - create a GitHub App secret for the git authentication
+        gitRepoCreatePage.gitAuthSelectOrCreate().createGitHubAppAuth(appId, installationId, privateKey);
+
+        gitRepoCreatePage.resourceDetail().createEditView().create()
+          .then(() => {
+            reposToDelete.push(`${ workspace }/${ name }`);
+          });
+
+        // Only the git GitHub App secret should be created (helm auth left as None)
+        cy.wait('@interceptSecret').then(({ request, response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(request.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+          expect(request.body.data).to.have.property('github_app_id', btoa(appId));
+          expect(request.body.data).to.have.property('github_app_installation_id', btoa(installationId));
+          expect(request.body.data).to.have.property('github_app_private_key', btoa(privateKey));
+        });
+      });
+    });
+
+    it('check table headers are available in list and details view', { tags: ['@adminUser'] }, function() {
       // go to fleet gitrepo
       listPage.goTo();
       listPage.waitForPage();

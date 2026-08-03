@@ -13,11 +13,11 @@ let removeBundle = false;
 const bundlesNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetBundlesListPage = new FleetBundlesListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before(() => {
       cy.login();
     });
@@ -136,6 +136,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       });
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(customBundleName).checkVisible();
+      // Does the bundle deployment have `1` Deployment
       fleetBundlesListPage.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
@@ -207,6 +208,13 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       });
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();
+
+      // Workaround - there may be a timing issue where the cloned Bundle's Deployments count does not update and needs refresh
+      fleetBundlesListPage.goTo();
+      fleetBundlesListPage.waitForPage();
+      fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();
+
+      // Does the bundle deployment have `1` Deployment
       fleetBundlesListPage.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 

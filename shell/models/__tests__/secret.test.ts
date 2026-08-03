@@ -1,7 +1,8 @@
 import Secret from '@shell/models/secret';
-import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import { SECRET_TYPES as TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { VIRTUAL_TYPES } from '@shell/config/types';
 import { UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
+import { base64Encode } from '@shell/utils/crypto';
 
 describe('class Secret', () => {
   describe('detailLocation', () => {
@@ -130,6 +131,72 @@ ${ part }`;
       const result = secret.supportsSshKnownHosts;
 
       expect(result).toBe(supported);
+    });
+  });
+
+  describe('isGithubApp', () => {
+    const githubAppData = {
+      github_app_id:              'MTI=',
+      github_app_installation_id: 'MzQ=',
+      github_app_private_key:     'a2V5',
+    };
+
+    it.each([
+      [
+        false,
+        'type is not Opaque',
+        TYPES.SSH,
+        githubAppData,
+      ],
+      [
+        false,
+        'data is null',
+        TYPES.OPAQUE,
+        null,
+      ],
+      [
+        false,
+        'Opaque but missing a GitHub App key',
+        TYPES.OPAQUE,
+        { github_app_id: 'MTI=', github_app_installation_id: 'MzQ=' },
+      ],
+      [
+        true,
+        'Opaque with all GitHub App keys',
+        TYPES.OPAQUE,
+        githubAppData,
+      ],
+    ])('is %p if %p', (
+      expected,
+      descr,
+      _type,
+      data
+    ) => {
+      const secret = new Secret({ _type, data });
+
+      expect(secret.isGithubApp).toBe(expected);
+    });
+  });
+
+  describe('GitHub App display', () => {
+    const githubAppData = {
+      [GITHUB_APP_SECRET_KEYS.APP_ID]:          base64Encode('12345'),
+      [GITHUB_APP_SECRET_KEYS.INSTALLATION_ID]: base64Encode('67890'),
+      [GITHUB_APP_SECRET_KEYS.PRIVATE_KEY]:     base64Encode('a-private-key'),
+    };
+
+    const ctx = { rootGetters: { 'i18n/withFallback': (_key: string, _args: any, fallback: string) => fallback } };
+
+    it('dataPreview should show the decoded App ID and Installation ID', () => {
+      const secret = new Secret({ _type: TYPES.OPAQUE, data: githubAppData }, ctx);
+
+      expect(secret.dataPreview).toBe('12345 / 67890');
+    });
+
+    it('subTypeDisplay should resolve to the GitHub App label', () => {
+      const secret = new Secret({ _type: TYPES.OPAQUE, data: githubAppData }, ctx);
+
+      expect(secret.subTypeDisplay).toBe('GitHub App');
     });
   });
 });

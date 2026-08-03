@@ -30,6 +30,7 @@ import {
   RcDropdownTrigger
 } from '@components/RcDropdown';
 import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
+import { CLUSTER_SHELL } from '@shell/store/features';
 
 export default {
 
@@ -147,8 +148,14 @@ export default {
       return true;
     },
 
+    // Does the user have permissions to use the shell
     shellEnabled() {
       return !!this.currentCluster?.links?.shell;
+    },
+
+    // Is the feature flag enabled for cluster shell access?
+    shellFeatureEnabled() {
+      return !!this.$store.getters['features/get'](CLUSTER_SHELL);
     },
 
     showKubeShell() {
@@ -207,6 +214,10 @@ export default {
 
       // Disable on create pages (route names end with '-create')
       if (this.$route?.name?.endsWith('-create')) {
+        return true;
+      }
+
+      if (this.$route?.meta?.disableWorkspaceSwitcher) {
         return true;
       }
 
@@ -625,7 +636,7 @@ export default {
           </button>
 
           <button
-            v-if="showKubeShell"
+            v-if="showKubeShell && shellFeatureEnabled"
             id="btn-kubectl"
             v-clean-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
             v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"

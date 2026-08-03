@@ -9,7 +9,7 @@ import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/w
 
 const localCluster = 'local';
 
-describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -19,11 +19,11 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     const deploymentsCreatePage = new WorkloadsDeploymentsCreatePagePo(localCluster);
     const deploymentEditConfigPage = new WorkloadsDeploymentsCreatePagePo();
     const { namespace } = createDeploymentBlueprint.metadata;
-    let deploymentId;
-    let volumeDeploymentId;
-    let scaleTestDeploymentId;
-    let scaleTestDeploymentName;
-    let scaleTestNamespace; // Dynamic namespace for scale test
+    let deploymentId: string;
+    let volumeDeploymentId: string;
+    let scaleTestDeploymentId: string;
+    let scaleTestDeploymentName: string;
+    let scaleTestNamespace: string; // Dynamic namespace for scale test
 
     const createTestDeployment = (baseName: string) => {
       const deployment = structuredClone(createDeploymentBlueprint);
@@ -74,11 +74,26 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
           cy.createRancherResource('v1', 'apps.deployments', JSON.stringify(scaleDeployment), false);
         });
       });
+    });
 
-      cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
+    it('should show a translated field name in the required validation message when the name input is left empty', () => {
+      deploymentsCreatePage.goTo();
+      deploymentsCreatePage.waitForPage();
+
+      const nameInput = deploymentsCreatePage.resourceDetail().createEditView().nameNsDescription().name();
+
+      // Focus the name input then blur it to trigger inline validation
+      nameInput.self().focus();
+      deploymentsCreatePage.containerImage().self().focus();
+
+      // Validation error on the name input should use translated key "Name", not default "Value"
+      nameInput.validationMessage()
+        .should('contain', '"Name" is required')
+        .and('not.contain', '"Value" is required');
     });
 
     it('should be able to create a new deployment with basic options', () => {
+      cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
       deploymentCreateRequest.metadata.name = deploymentId;
       const { namespace } = deploymentCreateRequest.metadata;
       const containerImage = 'nginx';
@@ -312,11 +327,11 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
 
     let uniqueDeployment = SortableTablePo.firstByDefaultName('deployment');
-    let deploymentNamesList = [];
+    let deploymentNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -366,7 +381,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
           uniqueDeployment = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
     });
 

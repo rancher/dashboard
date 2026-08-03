@@ -1,11 +1,16 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Banner } from '@components/Banner';
+import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
 
 export default defineComponent({
   name: 'AuthProviderWarningBanners',
 
   components: { Banner },
+
+  data() {
+    return { disableLocalAuth: this.$store.getters['features/get'](HIDE_LOCAL_AUTH_PROVIDER) };
+  },
 
   props: {
     tArgs: {
@@ -24,6 +29,13 @@ export default defineComponent({
       color="warning"
       data-testid="auth-provider-disabled-warning-banner"
     />
+    <Banner
+      v-if="disableLocalAuth"
+      color="warning"
+      data-testid="auth-provider-disable-local-auth-banner"
+    >
+      <span v-clean-html="t('authConfig.bannerEnableAuthProvider', {}, true)" />
+    </Banner>
     <Banner
       color="warning"
       data-testid="auth-provider-admin-permissions-warning-banner"

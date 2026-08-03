@@ -1,7 +1,11 @@
 import { shallowMount } from '@vue/test-utils';
 import CruImported from '@pkg/imported/components/CruImported.vue';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
-import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
+import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { MANAGEMENT } from '@shell/config/types';
+import { DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared.ts';
+import { SETTING } from '@shell/config/settings';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 
 describe('cruImported component', () => {
   const defaultSetup = {
@@ -224,6 +228,120 @@ describe('cruImported component', () => {
       const ace = wrapper.findComponent({ name: 'ACE' });
 
       expect(ace.exists()).toBe(true);
+    });
+  });
+
+  describe('day two ops', () => {
+    it('should return default day two ops value when annotation is not set', () => {
+      const wrapper = shallowMount(CruImported, {
+        propsData: {
+          mode:  _EDIT,
+          value: { isRke1: false, isLocal: false }
+        },
+        ...defaultSetup
+      });
+
+      delete wrapper.vm.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
+
+      expect(wrapper.vm.dayTwoOps).toBe(DAY_2_OPS_DEFAULT);
+    });
+
+    it('should return annotation value when day two ops annotation is set', () => {
+      const wrapper = shallowMount(CruImported, {
+        propsData: {
+          mode:  _EDIT,
+          value: { isRke1: false, isLocal: false }
+        },
+        ...defaultSetup
+      });
+
+      wrapper.vm.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'true';
+
+      expect(wrapper.vm.dayTwoOps).toBe('true');
+    });
+
+    it('should set day two ops annotation', () => {
+      const wrapper = shallowMount(CruImported, {
+        propsData: {
+          mode:  _EDIT,
+          value: { isRke1: false, isLocal: false }
+        },
+        ...defaultSetup
+      });
+
+      wrapper.vm.dayTwoOps = 'false';
+
+      expect(wrapper.vm.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED]).toBe('false');
+    });
+
+    it('should initialize day two ops settings from feature and global setting', async() => {
+      const dispatch = jest.fn().mockResolvedValue({ enabled: true });
+      const byId = jest.fn().mockReturnValue({ value: 'true' });
+      const wrapper = shallowMount(CruImported, {
+        ...defaultSetup,
+        propsData: {
+          mode:  _EDIT,
+          value: { isRke1: false, isLocal: false }
+        },
+        global: {
+          ...defaultSetup.global,
+          mocks: {
+            ...defaultSetup.global.mocks,
+            $store: {
+              ...defaultSetup.global.mocks.$store,
+              dispatch,
+              getters: {
+                ...defaultSetup.global.mocks.$store.getters,
+                'management/byId': byId,
+              }
+            }
+          }
+        },
+      });
+
+      wrapper.vm.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'true';
+
+      await wrapper.vm.initDayTwoOps();
+
+      expect(dispatch).toHaveBeenCalledWith('management/find', {
+        type: MANAGEMENT.FEATURE,
+        id:   IMPORTED_DAY_2_OPS
+      });
+      expect(byId).toHaveBeenCalledWith(MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT);
+      expect(wrapper.vm.dayTwoOpsFlagEnabled).toBe(true);
+      expect(wrapper.vm.dayTwoOpsGlobalSetting).toBe(true);
+      expect(wrapper.vm.dayTwoOpsOld).toBe('true');
+    });
+
+    it('should set day two ops feature flag to false when feature lookup fails', async() => {
+      const dispatch = jest.fn().mockRejectedValue(new Error('not found'));
+      const wrapper = shallowMount(CruImported, {
+        ...defaultSetup,
+        propsData: {
+          mode:  _EDIT,
+          value: { isRke1: false, isLocal: false }
+        },
+        global: {
+          ...defaultSetup.global,
+          mocks: {
+            ...defaultSetup.global.mocks,
+            $store: {
+              ...defaultSetup.global.mocks.$store,
+              dispatch,
+              getters: {
+                ...defaultSetup.global.mocks.$store.getters,
+                'management/byId': () => ({ value: 'false' }),
+              }
+            }
+          }
+        },
+      });
+
+      await wrapper.vm.initDayTwoOps();
+
+      expect(wrapper.vm.dayTwoOpsFlagEnabled).toBe(false);
+      expect(wrapper.vm.dayTwoOpsGlobalSetting).toBe(false);
+      expect(wrapper.vm.dayTwoOpsOld).toBe(DAY_2_OPS_DEFAULT);
     });
   });
 });

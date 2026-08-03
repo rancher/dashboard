@@ -134,7 +134,11 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowElementWithName(name: string, options?: GetOptions) {
-    return this.self().contains('tbody tr', new RegExp(`${ name }`), options);
+    // Assert the container exists before .contains() runs. Under Cypress 12's
+    // grouped-query retries, a transiently empty container (e.g. during SPA
+    // navigation) would otherwise flow an empty jQuery{0} subject into
+    // .contains(), which rejects it ("requires a DOM element").
+    return this.self().should('exist').contains('tbody tr', new RegExp(`${ name }`), options);
   }
 
   rowElementWithPartialName(name: string) {
@@ -219,10 +223,10 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * Check row element count on sortable table
    * @param isEmpty true if empty state expected (empty state message should display on row 1)
-   * @param expected number of rows shown
+   * @param expected number of rows shown (empty state still provides 1 row)
    * @returns
    */
-  checkRowCount(isEmpty: boolean, expected: number, options?, hasFilter = false) {
+  checkRowCount(isEmpty: boolean, expected: number, options?: any, hasFilter = false) {
     return this.rowElements(options).should((el) => {
       if (isEmpty) {
         expect(el).to.have.length(expected);

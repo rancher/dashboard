@@ -52,9 +52,11 @@ export default class RolesPo extends ClusterPage {
 
   listCreate(label: string) {
     const baseResourceList = new BaseResourceList(this.self());
+    const button = baseResourceList.masthead().actions().contains(label);
 
-    return baseResourceList.masthead().actions().contains(label)
-      .click();
+    button.should('be.visible');
+
+    return button.click();
   }
 
   /**

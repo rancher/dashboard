@@ -1125,7 +1125,6 @@ export default {
                 v-clean-tooltip="actionTooltip"
                 type="button"
                 variant="primary"
-                size="large"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
@@ -1146,6 +1145,7 @@ export default {
                   :disabled="!selectedRows.length"
                   :hidden-actions="hiddenActions"
                   :action-tooltip="actionTooltip"
+                  size="medium"
                   @click="applyTableAction"
                   @mouseover="setBulkActionOfInterest"
                   @mouseleave="setBulkActionOfInterest"
@@ -1158,10 +1158,11 @@ export default {
                   :disable-button="!selectedRows.length"
                   size="sm"
                 >
-                  <template #button-content>
+                  <template #button-content="{ buttonSize }">
                     <button
                       ref="actionDropDown"
                       class="btn bg-primary mr-0"
+                      :class="buttonSize"
                       :disabled="!selectedRows.length"
                     >
                       <i class="icon icon-gear" />
@@ -1874,7 +1875,7 @@ export default {
   }
 
   .search-box {
-    height: 40px;
+    height: 32px;
     margin-left: 10px;
     min-width: 180px;
   }

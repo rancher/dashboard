@@ -235,9 +235,12 @@ defineExpose({ focus });
     }
 
     &:disabled {
-      background: var(--primary);
-      color: var(--primary-text);
-      opacity: 0.5;
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
     }
   }
 
@@ -260,6 +263,15 @@ defineExpose({ focus });
       @include focus-outline;
       outline-offset: 2px;
     }
+
+    &:disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
+    }
   }
 
   &.variant-tertiary {
@@ -280,6 +292,15 @@ defineExpose({ focus });
     &:focus-visible {
       @include focus-outline;
       outline-offset: 2px;
+    }
+
+    &:disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
     }
   }
 

@@ -63,6 +63,22 @@ describe('component: FleetSecretSelector.vue', () => {
     ]);
   });
 
+  it('should accept lockedOptions prop', () => {
+    const lockedOptions = ['locked-secret-1', 'locked-secret-2'];
+    const wrapper = shallowMount(FleetSecretSelector, {
+      props: { ...props, lockedOptions },
+      global
+    });
+
+    expect((wrapper.vm as any).lockedOptions).toStrictEqual(lockedOptions);
+  });
+
+  it('should default lockedOptions to empty array', () => {
+    const wrapper = shallowMount(FleetSecretSelector, { props, global });
+
+    expect((wrapper.vm as any).lockedOptions).toStrictEqual([]);
+  });
+
   it('should return correct filter structure from paginatePageOptions', () => {
     const wrapper = shallowMount(FleetSecretSelector, { props, global });
 

@@ -11,7 +11,7 @@ let removeRestriction = false;
 const restrictionNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetRestrictionsListPage = new FleetGitRepoRestrictionListPagePo();
   const headerPo = new HeaderPo();
 

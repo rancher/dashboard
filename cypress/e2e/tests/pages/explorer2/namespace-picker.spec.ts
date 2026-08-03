@@ -5,7 +5,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const namespacePicker = new NamespaceFilterPo();
 
-describe('Namespace picker', { testIsolation: 'off' }, () => {
+describe('Namespace picker', { testIsolation: false }, () => {
   let removeProjectAndNs = false;
   let projectId: string;
   const projName = `project${ +new Date() }`;
@@ -278,7 +278,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   after('clean up', () => {
-    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}', { delay: true });
 
     if (removeProjectAndNs) {
       // delete project and ns

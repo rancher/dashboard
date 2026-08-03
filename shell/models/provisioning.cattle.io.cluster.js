@@ -1,13 +1,18 @@
 import {
   CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
   CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
-  EVENT
+  EVENT, OPERATION
 } from '@shell/config/types';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
 import { compare } from '@shell/utils/version';
-import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
+import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { SETTING } from '@shell/config/settings';
+import { createOperationCR } from '@shell/utils/operation-cr';
 import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
@@ -122,9 +127,8 @@ export default class ProvCluster extends SteveModel {
     }
     const ready = this.mgmt?.isReady;
 
+    const canDayTwoOps = ready && this.isDayTwoOpsEnabled && this.canUpdate;
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
-
-    const canSnapshot = ready && this.isRke2 && this.canUpdate;
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -142,23 +146,24 @@ export default class ProvCluster extends SteveModel {
         bulkable:   true,
         enabled:    this.mgmt?.canCreateKubeconfig,
       }, {
-        action:   'copyKubeConfig',
-        label:    this.t('cluster.copyConfig'),
-        bulkable: false,
-        enabled:  this.mgmt?.canCreateKubeconfig,
-        icon:     'icon icon-copy',
+        action:     'copyKubeConfig',
+        bulkAction: 'copyKubeConfigBulk',
+        label:      this.t('cluster.copyConfig'),
+        bulkable:   true,
+        enabled:    this.mgmt?.canCreateKubeconfig,
+        icon:       'icon icon-copy',
       }, {
         action:     'snapshotAction',
         label:      this.$rootGetters['i18n/t']('nav.takeSnapshot'),
         icon:       'icon icon-snapshot',
         bulkAction: 'snapshotBulk',
         bulkable:   true,
-        enabled:    canSnapshot,
+        enabled:    canDayTwoOps,
       }, {
         action:  'restoreSnapshotAction',
         label:   this.$rootGetters['i18n/t']('nav.restoreSnapshot'),
         icon:    'icon icon-backup-restore',
-        enabled: canSnapshot,
+        enabled: canDayTwoOps,
       }, {
         action:  'rotateCertificates',
         label:   this.$rootGetters['i18n/t']('nav.rotateCertificates'),
@@ -168,7 +173,7 @@ export default class ProvCluster extends SteveModel {
         action:  'rotateEncryptionKey',
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:    'icon icon-refresh',
-        enabled: canEditRKE2cluster
+        enabled: canDayTwoOps
       },
       {
         action:  'toggleAutoscalerRunner',
@@ -299,6 +304,35 @@ export default class ProvCluster extends SteveModel {
 
   get isImportedRke2() {
     return this.mgmt?.isImportedRke2;
+  }
+
+  get isImportedRke2K3s() {
+    return this.isImportedRke2 || this.isImportedK3s;
+  }
+
+  /**
+   * Whether day 2 operations (snapshot, restore, cert rotation, encryption key rotation)
+   * are enabled for this cluster.
+   */
+  get isDayTwoOpsEnabled() {
+    return !!(this.isRke2 || this.isImportedWithDayTwoOps);
+  }
+
+  get isDayTwoOpsFeatureEnabled() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.FEATURE, IMPORTED_DAY_2_OPS)?.enabled || false;
+  }
+
+  /**
+   * Whether this is an imported RKE2/K3s cluster with day 2 operations enabled.
+   */
+  get isImportedWithDayTwoOps() {
+    const annotationExists = typeof this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
+    const annotationEnabled = this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+    const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+    const annotationOrGlobalEnabled = annotationEnabled || (!annotationExists && globalDefaultIsTrue);
+    const canGetOpSchema = this.$getters['schemaFor'](OPERATION.ETCD_SNAPSHOT);
+
+    return !this.isLocal && canGetOpSchema && this.isDayTwoOpsFeatureEnabled && this.isImportedRke2K3s && annotationOrGlobalEnabled;
   }
 
   get isK3s() {
@@ -520,6 +554,10 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.downloadKubeConfigBulk(items);
   }
 
+  copyKubeConfigBulk(items) {
+    return this.mgmt?.copyKubeConfigBulk(items);
+  }
+
   async snapshotAction() {
     try {
       await this.takeSnapshot();
@@ -565,6 +603,21 @@ export default class ProvCluster extends SteveModel {
         url:    `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
         method: 'post',
       }, { root: true });
+    } else if ( this.isImportedWithDayTwoOps ) {
+      // For imported clusters with day 2 ops, create an operation CRD
+      const namespace = this.mgmt?.id;
+      const safePrefix = this.mgmt?.metadata?.name || this.mgmt?.id;
+      const spec = {
+        clusterRef: {
+          apiVersion: 'management.cattle.io/v3',
+          kind:       'Cluster',
+          name:       this.mgmt?.id,
+        }
+      };
+
+      return createOperationCR(this.$dispatch, OPERATION.ETCD_SNAPSHOT, spec, namespace, safePrefix);
+    } else if (this.isImportedRke2K3s && !this.isDayTwoOpsFeatureEnabled) {
+      throw new Error(this.$rootGetters['i18n/t']('cluster.snapshot.day2OpsNotEnabled'));
     } else {
       const now = this.spec?.rkeConfig?.etcdSnapshotCreate?.generation || 0;
       const args = { generation: now + 1 };
@@ -582,6 +635,11 @@ export default class ProvCluster extends SteveModel {
   get etcdSnapshots() {
     const allSnapshots = this.$rootGetters['management/all']({ type: SNAPSHOT });
 
+    if (this.isImportedWithDayTwoOps) {
+      return allSnapshots
+        .filter((s) => s.metadata.namespace === this.mgmt?.id && s.spec?.clusterName === this.mgmt?.metadata?.name );
+    }
+
     return allSnapshots
       .filter((s) => s.metadata.namespace === this.namespace && s.clusterName === this.name );
   }
@@ -593,8 +651,7 @@ export default class ProvCluster extends SteveModel {
   rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
-
-      component: 'RotateCertificatesDialog'
+      component:      'RotateCertificatesDialog'
     });
   }
 
@@ -738,21 +795,26 @@ export default class ProvCluster extends SteveModel {
   }
 
   get namespaceLocation() {
-    const localCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
+    // Check side nav for local cluster access — `management/byId` only reflects what's
+    // currently cached, which on a downstream detail page is just the downstream cluster
+    // (so admins would falsely look like they have no local access). The side nav reflects
+    // permission, not cache state, so it's accurate for both admins and downstream-only users.
+    const hasLocalCluster = sideNavService.helper.clustersPinned.some((c) => c.id === LOCAL_CLUSTER) ||
+      sideNavService.helper.clustersOthers.some((c) => c.id === LOCAL_CLUSTER);
 
-    if (localCluster) {
-      return {
-        name:   'c-cluster-product-resource-id',
-        params: {
-          cluster:  localCluster.id,
-          product:  this.$rootGetters['productId'],
-          resource: NAMESPACE,
-          id:       this.namespace
-        }
-      };
+    if (!hasLocalCluster) {
+      return null;
     }
 
-    return null;
+    return {
+      name:   'c-cluster-product-resource-id',
+      params: {
+        cluster:  LOCAL_CLUSTER,
+        product:  EXPLORER,
+        resource: NAMESPACE,
+        id:       this.namespace
+      }
+    };
   }
 
   /**

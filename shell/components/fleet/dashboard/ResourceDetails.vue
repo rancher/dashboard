@@ -9,6 +9,8 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Drawer from '@shell/components/Drawer/Chrome.vue';
 import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import suseAppCoLogo from '@shell/assets/images/content/suse.svg';
+import suseAppCoLogoDark from '@shell/assets/images/content/dark/suse.svg';
 
 export default {
   name: 'FleetDashboardResourceDetails',
@@ -62,6 +64,18 @@ export default {
 
     clusterSchema() {
       return this.$store.getters['management/schemaFor'](FLEET.CLUSTER);
+    },
+
+    /**
+     * SUSE Application Collection bundles use the SUSE AppCo logo instead of the
+     * default resource icon font glyph.
+     */
+    isSuseAppCollection() {
+      return !!this.value.isSuseAppCollectionFromUI;
+    },
+
+    suseAppCoIcon() {
+      return this.$store.getters['prefs/theme'] === 'dark' ? suseAppCoLogoDark : suseAppCoLogo;
     }
 
   },
@@ -84,7 +98,14 @@ export default {
       #title
       :data-testid="'fleet-dashboard-resource-details-header'"
     >
+      <img
+        v-if="isSuseAppCollection"
+        class="suse-appco-icon mmr-3"
+        :src="suseAppCoIcon"
+        :alt="value.nameDisplay"
+      >
       <i
+        v-else
         class="icon-lg mmr-3"
         :class="value.dashboardIcon"
       />
@@ -163,5 +184,12 @@ export default {
 <style lang="scss" scoped>
   .icon-lg {
     font-size: 24px;
+  }
+
+  .suse-appco-icon {
+    height: 30px;
+    width: 30px;
+    object-fit: contain;
+    vertical-align: middle;
   }
 </style>

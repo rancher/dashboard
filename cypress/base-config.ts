@@ -2,6 +2,7 @@
 import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
 import path from 'path';
+import * as os from 'os';
 const { removeDirectory } = require('cypress-delete-downloads-folder');
 const { beforeRunHook, afterRunHook } = require('cypress-mochawesome-reporter/lib');
 
@@ -27,6 +28,28 @@ const getSpecPattern = (dirs: string[], envs: NodeJS.ProcessEnv): string[] => {
   }
 
   return paths;
+};
+
+// Helper function to calculate CPU usage
+const getCpuUsage = (): Promise<number> => {
+  return new Promise((resolve) => {
+    const startUsage = process.cpuUsage();
+    const startTime = Date.now();
+
+    setTimeout(() => {
+      const endUsage = process.cpuUsage();
+      const endTime = Date.now();
+      const elapsedTime = (endTime - startTime) * 1000; // microseconds
+
+      const userTime = endUsage.user - startUsage.user;
+      const systemTime = endUsage.system - startUsage.system;
+
+      const totalCpuTime = (userTime + systemTime) / elapsedTime;
+      const cpuPercentage = totalCpuTime * 100;
+
+      resolve(cpuPercentage);
+    }, 100); // Sample over 100ms
+  });
 };
 
 /**
@@ -85,14 +108,22 @@ const baseConfig = defineConfig({
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
+  // Don't retain per-test DOM snapshots across the run. On Cypress 11 (no
+  // experimentalMemoryManagement, which needs 11.4+) these accumulate over a 24-spec
+  // run until the runner is memory-starved and Chrome can't relaunch between specs,
+  // crashing with "Missing browserCriClient in connectToNewSpec". 0 = keep none.
+  numTestsKeptInMemory:  0,
   retries:               {
     runMode:  2,
     openMode: 0
   },
-  env: {
+  // `expose` (Cypress 15.10+) is read via `Cypress.expose()`. Both @cypress/grep v6 and
+  // @cypress/code-coverage v4 read their settings from here and NOT from `env` — the grep
+  // plugin silently no-ops if `config.expose` is absent, so these must not live in `env`.
+  expose: {
     grepFilterSpecs:  true,
     grepOmitFiltered: true,
-    baseUrl,
+    grepTags:         process.env.GREP_TAGS,
     coverage:         hasCoverage,
     codeCoverage:     {
       exclude: [
@@ -109,12 +140,13 @@ const baseConfig = defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
+  },
+  env: {
+    baseUrl,
     api:                      apiUrl,
     username,
     password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:        process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    grepTags:                 process.env.GREP_TAGS,
-    VAI_ENABLED:              process.env.VAI_ENABLED,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:             process.env.AWS_ACCESS_KEY_ID,
     awsSecretKey:             process.env.AWS_SECRET_ACCESS_KEY,
@@ -141,10 +173,48 @@ const baseConfig = defineConfig({
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
-      require('@cypress/grep/src/plugin')(config);
+      // @cypress/grep v6 moved the plugin to `@cypress/grep/plugin` and exports it as a
+      // named `plugin` function (the old `@cypress/grep/src/plugin` path is gone).
+      require('@cypress/grep/plugin').plugin(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
-      on('task', { removeDirectory });
+      // On CI runners Chrome can crash between specs (small /dev/shm) or be too
+      // slow to connect on first launch under CPU contention, both surfacing as
+      // "Timed out waiting for the browser to connect" / "Missing browserCriClient
+      // in connectToNewSpec". Point shared memory at /tmp (disk), and drop the GPU
+      // + sandbox startup work Chrome can't use headless so it launches faster and
+      // connects within Cypress' fixed 60s window.
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          launchOptions.args.push('--disable-dev-shm-usage');
+          launchOptions.args.push('--disable-gpu');
+          launchOptions.args.push('--no-sandbox');
+        }
+
+        return launchOptions;
+      });
+
+      on('task', {
+        removeDirectory,
+        getHostStats: async() => {
+          const totalMem = os.totalmem();
+          const freeMem = os.freemem();
+          const usedMem = totalMem - freeMem;
+          const memUsagePercent = (usedMem / totalMem) * 100;
+          const cpuUsage = await getCpuUsage();
+
+          return {
+            memory:     `${ (usedMem / 1024 / 1024).toFixed(2) }MB (${ memUsagePercent.toFixed(2) }%)`,
+            processCpu: `${ cpuUsage.toFixed(2) }%`,
+          };
+        },
+      });
+      // Signals to the shared `afterEach` in `support/e2e.ts` that the `getHostStats`
+      // task has been registered by this config. Consumers of `@rancher/cypress` that
+      // supply their own `setupNodeEvents` (e.g. Jenkins runners) won't set this
+      // flag, so the `afterEach` will skip calling the task and avoid failing the
+      // hook (which would skip all remaining tests in the spec).
+      config.env.hasHostStats = true;
       websocketTasks(on, config);
 
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
@@ -178,12 +248,10 @@ const baseConfig = defineConfig({
 
       return config;
     },
-    experimentalSessionAndOrigin: true,
-    specPattern:                  getSpecPattern(testDirs, process.env),
+    specPattern: getSpecPattern(testDirs, process.env),
     baseUrl
   },
   videoCompression:       15,
-  videoUploadOnPasses:    false,
   screenshotOnRunFailure: process.env.TEST_NO_SCREENSHOTS !== 'true',
   video:                  process.env.TEST_NO_VIDEOS !== 'true'
 });

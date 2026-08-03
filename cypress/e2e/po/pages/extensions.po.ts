@@ -150,7 +150,6 @@ export default class ExtensionsPagePo extends PagePo {
    * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
    * @param branch - The git branch to target
    * @param name - A name for the repository
-   * @returns {Cypress.Chainable}
    */
   addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true) {
     const appRepoList = new RepositoriesPagePo('local', 'apps');
@@ -180,9 +179,16 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   private clickAction(extensionTitle: string, actionLabel: string) {
-    const actionMenu = this.extensionCard(extensionTitle).openActionMenu();
+    // The card list renders asynchronously (chart-repo fetch then render), so wait
+    // for loading to finish and the target card to be visible before opening its
+    // action menu. Otherwise the lookup outruns the default retry window under CI
+    // load, which is the main source of flakiness on these tests.
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
 
-    return actionMenu.getMenuItem(actionLabel).click();
+    card.self().should('be.visible');
+
+    return card.openActionMenu().getMenuItem(actionLabel).click();
   }
 
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
@@ -232,7 +238,7 @@ export default class ExtensionsPagePo extends PagePo {
     return this.extensionUninstallModal().getId('uninstall-ext-modal-cancel-btn').click();
   }
 
-  uninstallModaluninstallClick(): Cypress.Chainable {
+  uninstallModalUninstallClick(): Cypress.Chainable {
     return this.extensionUninstallModal().getId('uninstall-ext-modal-uninstall-btn').click();
   }
 
@@ -259,10 +265,17 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension tabs ------------------
   extensionTabInstalledClick(): Cypress.Chainable {
+    // Wait for the tab to render before clicking it. The tabs load asynchronously,
+    // and unlike the 'Available' tab this one had no guard, so it would flake when
+    // the tab button hadn't rendered within the default retry window.
+    this.extensionTabs.allTabs().contains('Installed', MEDIUM_TIMEOUT_OPT).should('be.visible');
+
     return this.extensionTabs.clickTabWithName('installed');
   }
 
   extensionTabAvailableClick(): Cypress.Chainable {
+    this.extensionTabs.allTabs().contains('Available', MEDIUM_TIMEOUT_OPT).should('be.visible');
+
     return this.extensionTabs.clickTabWithName('available');
   }
 

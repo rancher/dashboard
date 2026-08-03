@@ -18,13 +18,15 @@ import Pinned from '@shell/components/nav/Pinned';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   components: {
     BrandImage,
     ClusterIconMenu,
     IconOrSvg,
-    Pinned
+    Pinned,
+    RcSeparator,
   },
 
   data() {
@@ -774,7 +776,7 @@ export default {
                   v-if="clustersFiltered.length > 0"
                   class="category-title"
                 >
-                  <hr role="none">
+                  <RcSeparator />
                 </div>
               </div>
 
@@ -888,7 +890,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr role="none">
+                <RcSeparator />
                 <span>
                   {{ t('nav.categories.multiCluster') }}
                 </span>
@@ -921,7 +923,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr role="none">
+                <RcSeparator />
                 <span>
                   {{ t('nav.categories.configuration') }}
                 </span>
@@ -955,19 +957,6 @@ export default {
         <div
           class="footer"
         >
-          <div
-            v-if="canEditSettings"
-            class="support"
-            @click="hide()"
-          >
-            <router-link
-              :to="{name: 'support'}"
-              role="link"
-              :aria-label="t('nav.ariaLabel.support')"
-            >
-              {{ t('nav.support', {hasSupport}) }}
-            </router-link>
-          </div>
           <div
             class="version"
             :class="{'version-small': largeAboutText}"
@@ -1574,10 +1563,6 @@ export default {
         margin: 20px 10px;
         width: 50px;
 
-        .support {
-          display: none;
-        }
-
         .version{
           text-align: center;
 
@@ -1597,19 +1582,7 @@ export default {
       > * {
         flex: 1;
         color: var(--link);
-
-        &:first-child {
-          text-align: left;
-        }
-        &:last-child {
-          text-align: right;
-        }
-        text-align: center;
-      }
-
-      .support a:focus-visible {
-        @include focus-outline;
-        outline-offset: 4px;
+        text-align: left;
       }
 
       .version {

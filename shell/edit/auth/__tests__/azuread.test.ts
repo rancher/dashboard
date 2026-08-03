@@ -52,6 +52,7 @@ const requiredSetup = (modelOverrides = {}) => ({
           'current_store/all':       jest.fn(),
           'i18n/t':                  (val: string) => val,
           'i18n/exists':             jest.fn(),
+          'features/get':            () => false,
         },
         dispatch: jest.fn()
       },
@@ -405,7 +406,7 @@ describe('edit: azureAD SSO logout should', () => {
 
     expect(wrapper.vm.model.logoutAllEnabled).toBe(false);
     expect(wrapper.vm.model.logoutAllForced).toBe(false);
-    expect(wrapper.vm.model.endSessionEndpoint).toBe('');
+    expect(wrapper.vm.model.endSessionEndpoint).toBe(undefined);
   });
 
   it('sets logoutAllEnabled=true and logoutAllForced=true when sloType changes to all', async() => {

@@ -11,14 +11,14 @@ import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/w
 
 const localCluster = 'local';
 
-describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo(localCluster);
 
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
     let podNamesList = [];
     let nsName1: string;
@@ -55,7 +55,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
           uniquePod = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
     });
 

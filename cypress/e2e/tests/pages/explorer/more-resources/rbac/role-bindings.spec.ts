@@ -3,14 +3,14 @@ import { generateRoleBindingDataSmall, roleBindingNoData } from '@/cypress/e2e/b
 
 const roleBindingsPage = new RoleBindingsPagePo();
 
-describe('RoleBindings', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('RoleBindings', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });
 
     it('validate role bindings table in empty state', () => {

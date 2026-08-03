@@ -30,6 +30,10 @@ function normalizeStateCounts(data) {
 }
 
 export default class FleetApplication extends SteveModel {
+  get applicationType() {
+    return this.kind;
+  }
+
   async getCurrentUser() {
     const user = this.$rootGetters['auth/user'];
 

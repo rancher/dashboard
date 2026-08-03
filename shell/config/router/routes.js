@@ -7,6 +7,7 @@ import { NAME as AUTH } from '@shell/config/product/auth';
 
 // All these imports are related to the install-redirect.js navigation guard.
 import { installRedirectRouteMeta } from '@shell/config/router/navigation-guards/install-redirect';
+import { INVALID_RESOURCE_IN_CONTEXT } from '@shell/utils/resource';
 import { NAME as BACKUP_NAME, CHART_NAME as BACKUP_CHART_NAME } from '@shell/config/product/backup';
 import { NAME as COMPLIANCE_NAME, CHART_NAME as COMPLIANCE_CHART_NAME } from '@shell/config/product/compliance';
 import { NAME as GATEKEEPER_NAME, CHART_NAME as GATEKEEPER_CHART_NAME } from '@shell/config/product/gatekeeper';
@@ -234,6 +235,21 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/create.vue')),
         name:      'c-cluster-fleet-application-create',
       }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/credentials',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/credentials.vue')),
+        name:      'c-cluster-fleet-application-appco-credentials',
+        meta:      { disableWorkspaceSwitcher: true },
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/charts',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue')),
+        name:      'c-cluster-fleet-application-appco-charts',
+        meta:      { disableWorkspaceSwitcher: true },
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/chart',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue')),
+        name:      'c-cluster-fleet-application-appco-chart',
+        meta:      { disableWorkspaceSwitcher: true },
+      }, {
         path:      '/c/:cluster/fleet/application/:resource/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_resource/create.vue')),
         name:      'c-cluster-fleet-application-resource-create',
@@ -344,6 +360,10 @@ export default [
         path:      '/c/:cluster/explorer/explorer-utils',
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/explorer-utils.js')),
         name:      'c-cluster-explorer-explorer-utils'
+      }, {
+        path:      '/c/:cluster/explorer/workload-dashboard',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/workload-dashboard/index.vue')),
+        name:      'c-cluster-explorer-workload-dashboard'
       }, {
         path:      '/c/:cluster/explorer/tools',
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/tools/index.vue')),
@@ -496,7 +516,10 @@ export default [
       }, {
         path:      '/c/:cluster/:product/:resource',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/index.vue')),
-        name:      'c-cluster-product-resource'
+        name:      'c-cluster-product-resource',
+        // Show an unknown resource error in-context (in place of the list), retaining the cluster
+        // context, rather than redirecting to the global fail whale page. See `validateResource`.
+        meta:      { [INVALID_RESOURCE_IN_CONTEXT]: true }
       }, {
         path:      '/c/:cluster/:product/:resource/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/create.vue')),

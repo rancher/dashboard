@@ -2,7 +2,7 @@
   "branches": {
     "master": {
       "milestone": {
-        "version": "v2.15.0",
+        "version": "v2.16.0",
         "codeFreeze": false
       },
       "e2e": {
@@ -10,6 +10,17 @@
           "namespace": "rancher",
           "name": "rancher",
           "tag": "head"
+        },
+        "rancher-agent": {
+          "namespace": "rancher",
+          "name": "rancher-agent",
+          "tag": "head"
+        },
+        "helm": {
+          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.15"
+        },
+        "kube": {
+          "version": "v1.35.2+k3s1"
         }
       },
       "rancher-rancher-repo": {
@@ -18,10 +29,39 @@
         "ui-index": "https://releases.rancher.com/ui/latest2/index.html"
       }
     },
+    "release-2.15": {
+      "milestone": {
+        "version": "v2.15.1",
+        "codeFreeze": false
+      },
+      "e2e": {
+        "rancher-image": {
+          "namespace": "rancher",
+          "name": "rancher",
+          "tag": "v2.15-head"
+        },
+        "rancher-agent": {
+          "namespace": "rancher",
+          "name": "rancher-agent",
+          "tag": "v2.15-head"
+        },
+        "helm": {
+          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.15"
+        },
+        "kube": {
+          "version": "v1.35.2+k3s1"
+        }
+      },
+      "rancher-rancher-repo": {
+        "branch": "release/v2.15",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.15/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.15/index.html"
+      }
+    },
     "release-2.14": {
       "milestone": {
-        "version": "v2.14.3",
-        "codeFreeze": true
+        "version": "v2.14.5",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {
@@ -38,8 +78,8 @@
     },
     "release-2.13": {
       "milestone": {
-        "version": "v2.13.7",
-        "codeFreeze": true
+        "version": "v2.13.9",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {
@@ -57,8 +97,8 @@
     },
     "release-2.12": {
       "milestone": {
-        "version": "v2.12.11",
-        "codeFreeze": true
+        "version": "v2.12.13",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {
@@ -76,8 +116,8 @@
     },
     "release-2.11": {
       "milestone": {
-        "version": "v2.11.15",
-        "codeFreeze": true
+        "version": "v2.11.17",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {

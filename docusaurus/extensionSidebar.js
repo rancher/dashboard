@@ -80,19 +80,13 @@ const sidebars = {
       },
       items: [
         'introduction',
-        {
-          type:  'category',
-          label: 'Changelog',
-          link:  {
-            type: 'doc',
-            id:   'changelog',
-          },
-          items: ['rancher-2.9-support', 'rancher-2.10-support']
-        },
+        'changelog',
         'support-matrix',
         'extensions-getting-started',
         'folder-structure',
         'configuration',
+        'unit-testing',
+        'linting',
         {
           type:  'category',
           label: 'Performance',
@@ -250,6 +244,7 @@ const sidebars = {
           ]
         },
         'publishing',
+        'troubleshooting',
         'catalog',
         {
           type:  'category',
@@ -270,7 +265,6 @@ const sidebars = {
             },
           ]
         },
-        'known-issues',
       ]
     },
   ]

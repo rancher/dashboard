@@ -1,6 +1,6 @@
 // Helpers for determining if V2 or v1 Monitoring are installed
 
-import { SCHEMA, MONITORING, ENDPOINTS } from '@shell/config/types';
+import { SCHEMA, MONITORING, ENDPOINTS, CATALOG } from '@shell/config/types';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { findBy } from '@shell/utils/array';
 import { isEmpty } from '@shell/utils/object';
@@ -29,6 +29,43 @@ export function haveV2Monitoring(getters) {
 }
 
 export const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
+
+/**
+ * Look up the installed Rancher monitoring app, preferring the new
+ * `rancher-monitoring-dashboards` chart and falling back to the legacy
+ * `rancher-monitoring`. Returns null if the user lacks permission, neither
+ * chart is installed, or any lookup fails.
+ */
+export async function fetchMonitoringApp(store, storeName) {
+  if (!store.getters[`${ storeName }/canList`](CATALOG.APP)) {
+    return null;
+  }
+
+  const ids = [
+    `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-dashboards`,
+    `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring`,
+  ];
+
+  for (const id of ids) {
+    try {
+      const res = await store.dispatch(`${ storeName }/find`, { type: CATALOG.APP, id });
+
+      if (res) {
+        return res;
+      }
+    } catch (err) {
+      // Try the next id; both failing means nothing is installed.
+    }
+  }
+
+  return null;
+}
+
+export async function fetchMonitoringVersion(store, storeName) {
+  const app = await fetchMonitoringApp(store, storeName);
+
+  return app?.currentVersion || '';
+}
 
 async function hasEndpointSubsets(store, id) {
   if (store.getters['cluster/schemaFor'](ENDPOINTS)) {

@@ -36,6 +36,24 @@ describe('rcItemCard', () => {
     expect(wrapper.findAll(`[data-testid="item-card-header-statuses-status"]`)).toHaveLength(2);
   });
 
+  // Regression: when image.src is falsy, LazyImage must still render so its own
+  // empty-src fallback (generic catalog icon) is shown. Previously the template
+  // was gated by `v-else-if="image.src"` and showed an empty box for missing icons.
+  it.each(['medium', 'small'] as const)('renders LazyImage with an empty src when image.src is falsy (%s variant)', (variant) => {
+    const wrapper = mount(RcItemCard, {
+      props: {
+        ...baseProps,
+        variant,
+        image: { src: '', alt: { text: 'Logo' } },
+      }
+    });
+
+    const lazy = wrapper.findComponent({ name: 'LazyImage' });
+
+    expect(lazy.exists()).toBe(true);
+    expect(lazy.props('src')).toBe('');
+  });
+
   it('renders pill only in medium variant', () => {
     const wrapper = mount(RcItemCard, {
       props: {

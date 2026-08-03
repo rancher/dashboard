@@ -10,6 +10,7 @@ import {
   HCI,
   MANAGEMENT,
   SNAPSHOT,
+  OPERATION,
   VIRTUAL_TYPES,
   HOSTED_PROVIDER,
   SAVED_COUNTS
@@ -19,7 +20,7 @@ import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
 import {
-  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAMESPACE_COL, STEVE_STATE_COL
+  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_MGMT_STATE_COL, STEVE_NAMESPACE_COL
 } from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
@@ -80,6 +81,11 @@ export function init(store) {
   configureType(SNAPSHOT, { depaginate: true });
   configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 
+  // Day 2 operation CRDs - read-only, not user-creatable or editable
+  configureType(OPERATION.ETCD_SNAPSHOT, { isCreatable: false, isEditable: false });
+  configureType(OPERATION.ETCD_SNAPSHOT_RESTORE, { isCreatable: false, isEditable: false });
+  configureType(OPERATION.ENCRYPTION_KEY_ROTATE, { isCreatable: false, isEditable: false });
+
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
   });
@@ -105,7 +111,7 @@ export function init(store) {
     namespaced: false,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-driver-kontainerdriver' },
-    exact:      true
+    exact:      false
   });
   virtualType({
     labelKey:   'drivers.node.title',
@@ -114,7 +120,7 @@ export function init(store) {
     namespaced: false,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-driver-nodedriver' },
-    exact:      true
+    exact:      false
   });
 
   virtualType({
@@ -195,7 +201,7 @@ export function init(store) {
     AGE,
     EXPLORER,
   ], [
-    STEVE_STATE_COL,
+    STEVE_MGMT_STATE_COL,
     {
       name:          'name',
       labelKey:      'tableHeaders.name',

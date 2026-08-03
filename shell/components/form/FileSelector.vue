@@ -1,6 +1,7 @@
 <script>
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { set } from '@shell/utils/object';
+import { RcButton } from '@components/RcButton';
 
 export function createOnSelected(field) {
   return function(contents) {
@@ -10,6 +11,8 @@ export function createOnSelected(field) {
 
 export default {
   emits: ['error', 'selected'],
+
+  components: { RcButton },
 
   props: {
     label: {
@@ -70,6 +73,15 @@ export default {
     class: {
       type:    [String, Array],
       default: () => [],
+    },
+
+    /**
+     * Render the trigger as a small, secondary RcButton instead of the default
+     * plain button.
+     */
+    asRcButton: {
+      type:    Boolean,
+      default: false,
     }
 
   },
@@ -81,6 +93,11 @@ export default {
 
     customClass() {
       return ['file-selector', 'btn', ...(Array.isArray(this.class) ? this.class : [this.class])];
+    },
+
+    // RcButton provides its own `btn` class, so we omit it here to avoid clashing styles
+    rcButtonClass() {
+      return ['file-selector', ...(Array.isArray(this.class) ? this.class : [this.class])];
     },
   },
 
@@ -154,8 +171,29 @@ export default {
 </script>
 
 <template>
+  <RcButton
+    v-if="!isView && asRcButton"
+    variant="secondary"
+    size="small"
+    :disabled="disabled"
+    :aria-label="label"
+    :class="rcButtonClass"
+    data-testid="file-selector__uploader-button"
+    @click="selectFile"
+  >
+    <span>{{ label }}</span>
+    <input
+      ref="uploader"
+      type="file"
+      class="hide"
+      :multiple="multiple"
+      :webkitdirectory="directory"
+      :accept="accept"
+      @change="fileChange"
+    >
+  </RcButton>
   <button
-    v-if="!isView"
+    v-else-if="!isView"
     :disabled="disabled"
     :aria-label="label"
     type="button"

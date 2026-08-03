@@ -22,6 +22,7 @@ import {
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
+import { RcSeparator } from '@components/RcSeparator';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
@@ -37,7 +38,8 @@ export default {
     CruResourceFooter,
     ResourceYaml,
     Wizard,
-    TableOfContents
+    TableOfContents,
+    RcSeparator,
   },
 
   props: {
@@ -127,6 +129,12 @@ export default {
       default: () => []
     },
 
+    // Used to be called before going to the next step in the wizard.
+    beforeNext: {
+      type:    Function,
+      default: null
+    },
+
     stepsOptions: {
       type:    Object,
       default: () => ({ editFirstStep: true })
@@ -200,6 +208,7 @@ export default {
       tocContainerHeight:                 0,
       mainLayoutEl:                       null,
       throttledComputeTocContainerHeight: null,
+      nextValidating:                     false,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
@@ -488,6 +497,47 @@ export default {
       return slot !== 'default' && typeof this.$slots[slot] === 'function';
     },
 
+    async wizardBeforeGoToStep(fromStep, toStep) {
+      if (!this.beforeNext) {
+        return;
+      }
+
+      const fromIdx = this.steps.findIndex((s) => s.name === fromStep.name);
+      const toIdx = this.steps.findIndex((s) => s.name === toStep.name);
+
+      if (toIdx <= fromIdx) {
+        return;
+      }
+
+      try {
+        await this.beforeNext(fromStep);
+        this.$emit('error', []);
+      } catch (err) {
+        this.$emit('error', exceptionToErrorsArray(err));
+        throw err;
+      }
+    },
+
+    async handleNext(nextFn, activeStep) {
+      if (!this.beforeNext) {
+        nextFn();
+
+        return;
+      }
+
+      this.nextValidating = true;
+
+      try {
+        await this.beforeNext(activeStep);
+        this.$emit('error', []);
+        nextFn();
+      } catch (err) {
+        this.$emit('error', exceptionToErrorsArray(err));
+      } finally {
+        this.nextValidating = false;
+      }
+    },
+
     formatError(err) {
       if ( typeof err === 'string') {
         return err;
@@ -717,10 +767,7 @@ export default {
                       class="flex-right"
                     >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
                   </div>
-                  <hr
-                    v-if="subtype.description"
-                    role="none"
-                  >
+                  <RcSeparator v-if="subtype.description" />
                   <div
                     v-if="subtype.description"
                     class="description"
@@ -751,6 +798,7 @@ export default {
             :edit-first-step="stepsOptions.editFirstStep"
             :errors="errors"
             :finish-mode="finishMode"
+            :before-go-to-step="wizardBeforeGoToStep"
             class="wizard"
             @error="e=>errors = e"
           >
@@ -834,10 +882,10 @@ export default {
                     name="next"
                   >
                     <button
-                      :disabled="!canNext"
+                      :disabled="!canNext || nextValidating"
                       type="button"
                       class="btn role-primary"
-                      @click="next()"
+                      @click="handleNext(next, activeStep)"
                     >
                       <t k="wizard.next" />
                     </button>

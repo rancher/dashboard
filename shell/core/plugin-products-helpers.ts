@@ -1,20 +1,21 @@
-import {
-  RouteRecordRawWithParams, ProductChildGroup, ProductChild,
-  ProductChildCustomPage, ProductChildResourcePage, ProductRegistrationRouteGenerationOptions,
-  OverviewPageRoutingMetadata
-} from '@shell/core/plugin-types';
+import { ProductChild, ProductChildCustomPage, ProductChildResourcePage } from '@shell/core/plugin-products-external';
+import { ProductRegistrationRouteGenerationOptions } from '@shell/core/plugin-products-internal';
+import { isProductChildGroup } from '@shell/core/plugin-products-type-guards';
+import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
-function isProductChildGroup(child: ProductChild): child is ProductChildGroup {
-  return 'children' in child && Array.isArray(child.children);
-}
-
 class PluginProductsHelpers {
+  private weightFromProductChild(item: ProductChild): number | undefined {
+    return (item as ProductChildCustomPage).sideMenu?.weight || (item as ProductChildResourcePage).sideMenu?.weight;
+  }
+
   gatherChildrenOrdering(children: ProductChild[]): ProductChild[] {
     let minWeight = children.reduce((min, item) => {
-      if (typeof item.weight !== 'number') return min;
+      const weight = this.weightFromProductChild(item);
 
-      return item.weight < min ? item.weight : min;
+      if (typeof weight !== 'number') return min;
+
+      return weight < min ? weight : min;
     }, Infinity);
 
     if (minWeight === Infinity) {
@@ -27,18 +28,21 @@ class PluginProductsHelpers {
     children.forEach((child: ProductChild, index) => {
       const processedChild = { ...child };
 
-      if (processedChild.weight === undefined || processedChild.weight === null) {
-        processedChild.weight = minWeight - (index + 1);
+      if (processedChild.sideMenu?.weight === undefined || processedChild.sideMenu?.weight === null) {
+        if (!processedChild.sideMenu) {
+          processedChild.sideMenu = {};
+        }
+        processedChild.sideMenu.weight = minWeight - (index + 1);
       }
 
       if (isProductChildGroup(processedChild)) {
-        processedChild.children = this.gatherChildrenOrdering(processedChild.children);
+        processedChild.sideMenu.children = this.gatherChildrenOrdering(processedChild.sideMenu.children);
       }
 
       processedChildren.push(processedChild);
     });
 
-    return processedChildren.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
+    return processedChildren.sort((a, b) => (b.sideMenu?.weight ?? 0) - (a.sideMenu?.weight ?? 0));
   }
 
   generateTopLevelExtensionSimpleBaseRoute(parentName: string, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
@@ -63,19 +67,19 @@ class PluginProductsHelpers {
   }
 
   // VIRTUAL TYPE ROUTES
-  generateVirtualTypeRoute(parentName: string, pageChild: ProductChildCustomPage | OverviewPageRoutingMetadata | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  generateVirtualTypeRoute(parentName: string, childName: string | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     if (options.extendProduct) {
-      return this.generateVirtualTypeRouteForExistingProduct(parentName, pageChild, options);
+      return this.generateVirtualTypeRouteForExistingProduct(parentName, childName, options);
     } else {
-      return this.generateVirtualTypeRouteForNewProduct(parentName, pageChild, options);
+      return this.generateVirtualTypeRouteForNewProduct(parentName, childName, options);
     }
   }
 
   // VIRTUAL TYPE ROUTES - CLUSTER LEVEL EXTENSION
-  private generateVirtualTypeRouteForExistingProduct(parentName: string, pageChild: ProductChildCustomPage | OverviewPageRoutingMetadata | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateVirtualTypeRouteForExistingProduct(parentName: string, childName: string | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
-    const name = pageChild ? `c-cluster-${ parentName }-${ pageChild.name }` : `c-cluster-${ parentName }`;
-    const path = pageChild ? `c/:cluster/${ parentName }/${ pageChild.name }` : `c/:cluster/${ parentName }`;
+    const name = childName ? `c-cluster-${ parentName }-${ childName }` : `c-cluster-${ parentName }`;
+    const path = childName ? `c/:cluster/${ parentName }/${ childName }` : `c/:cluster/${ parentName }`;
 
     const route: RouteRecordRawWithParams = {
       name,
@@ -96,10 +100,10 @@ class PluginProductsHelpers {
   }
 
   // VIRTUAL TYPE ROUTES - TOP LEVEL EXTENSION
-  private generateVirtualTypeRouteForNewProduct(parentName: string, pageChild: ProductChildCustomPage | OverviewPageRoutingMetadata | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateVirtualTypeRouteForNewProduct(parentName: string, childName: string | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
-    const name = pageChild ? `${ parentName }-c-cluster-${ pageChild.name }` : `${ parentName }-c-cluster`;
-    const path = pageChild ? `${ parentName }/c/:cluster/${ pageChild.name }` : `${ parentName }/c/:cluster`;
+    const name = childName ? `${ parentName }-c-cluster-${ childName }` : `${ parentName }-c-cluster`;
+    const path = childName ? `${ parentName }/c/:cluster/${ childName }` : `${ parentName }/c/:cluster`;
 
     const route: RouteRecordRawWithParams = {
       name,

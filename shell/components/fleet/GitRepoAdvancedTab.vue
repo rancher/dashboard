@@ -157,6 +157,7 @@ const validatePollingInterval = () => {
       label-key="fleet.gitRepo.auth.git"
       :cache-secrets="true"
       :show-ssh-known-hosts="true"
+      :allow-github-app="true"
       :is-github-dot-com-repository="isGithubDotComRepository"
       @update:value="updateAuth($event, 'clientSecretName')"
       @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"

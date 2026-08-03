@@ -8,6 +8,8 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 import { isAdminUser } from '@shell/store/type-map';
 import TableDataUserIcon from '@shell/components/TableDataUserIcon';
 import { RcButton } from '@components/RcButton';
+import { allHash } from '@shell/utils/promise';
+import Loading from '@shell/components/Loading.vue';
 
 export default {
   components: {
@@ -15,7 +17,8 @@ export default {
     ResourceTable,
     Masthead,
     TableDataUserIcon,
-    RcButton
+    RcButton,
+    Loading
   },
   mixins: [ResourceFetch],
   props:  {
@@ -40,9 +43,16 @@ export default {
     }
   },
   async fetch() {
-    await this.$fetchType(this.resource);
+    const promises = {
+      resources:                 this.$fetchType(this.resource),
+      localProviderEnabled:      this.$store.dispatch('auth/getLocalProviderEnabled'),
+      membershipRefreshRequests: this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS }),
+    };
 
-    this.membershipRefreshRequests = await this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
+    const res = await allHash(promises);
+
+    this.localProviderEnabled = res.localProviderEnabled;
+    this.membershipRefreshRequests = res.membershipRefreshRequests;
     this.canRefreshMemberships = !!this.membershipRefreshRequests?.canRefreshMemberships;
   },
 
@@ -87,7 +97,14 @@ export default {
 
     isAdmin() {
       return isAdminUser(this.$store.getters);
-    }
+    },
+
+    canCreateUsers() {
+      const userCan = !!this.schema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+      const systemCan = this.localProviderEnabled;
+
+      return userCan && systemCan;
+    },
   },
 
   methods: {
@@ -107,13 +124,15 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <Masthead
       :schema="schema"
       :resource="resource"
       :show-incremental-loading-indicator="incrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
+      :is-creatable="canCreateUsers"
     >
       <template #extraActions>
         <AsyncButton

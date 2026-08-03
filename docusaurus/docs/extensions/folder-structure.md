@@ -1,6 +1,8 @@
 # Folder Structure
 
-Follow instructions [here](./extensions-getting-started.md) to scaffold your extension. This will assist you in the creation of an extension as a top-level product inside Rancher Dashboard.
+Follow instructions [here](./extensions-getting-started.md) to scaffold your extension. This will assist you in the creation of an extension as a top-level product inside Rancher Dashboard. With the Getting Started example, the expected folder structure is as follows:
+
+![Folder Structure](./screenshots/folder-structure.png)
 
 Once you've done so, there are some initialization steps specific to extensions. Beyond that, extensions largely work the same as the rest of the dashboard. There are a set of top-level folders that can be defined and used as they are in the dashboard: `chart`, `cloud-credential`, `content`, `detail`, `edit`, `list`, `machine-config`, `models`, `promptRemove`, `l10n`, `windowComponents`, `dialog`, and `formatters`. 
 
@@ -32,7 +34,7 @@ Machine configs are used to add provider-specific UI to the rke2/k3s provisionin
 `detail`, `edit`, and `list` folders are used to create custom CRUD views for kubernetes resources, and components in each should be given the same name as the targeted resource.
 
 ## models
-Kubernetes resources loaded through the dashboard store are, by default, instances of the resource class found here: `plugins/dashboard-store/resource-class.js`. Add a file with the name of the resource to the `models` directory to expand on that functionality. Generally, models should be an extension of the Steve class (Norman resources should not, but they are primarily used around auth functionality):
+Kubernetes resources loaded through the dashboard store are, by default, instances of the resource class found here: `plugins/dashboard-store/resource-class`. Add a file with the name of the resource to the `models` directory to expand on that functionality. Generally, models should be an extension of the Steve class (Norman resources should not, but they are primarily used around auth functionality):
 ```
 import SteveModel from '@shell/plugins/steve/steve-class';
 
@@ -56,8 +58,6 @@ Extension translation strings are merged with those already present in `shell/as
 
 ## Extension Package Metadata
 
-Each extension package has the ability to customize certain aspects when it comes to compatibility with Rancher Manager/Kubernetes or displaying extension names. These are determined by the `rancher.annotations` object applied to the `package.json` of an extension package.
+Each extension package exposes metadata through the `rancher.annotations` object in its `package.json`. This controls version compatibility (Rancher, Kubernetes, Extensions API) and the display name shown in the Extensions page.
 
-These annotations allow you to specify compatibility with Kubernetes, Rancher Manager, the Extensions API, and the Rancher UI version by relying on [semver ranges](https://www.npmjs.com/package/semver/v/6.3.0#ranges). As well as version compatibility, you can also specify a Display Name for the Extension package as it appears on the "Extensions" page within the UI.
-
-
+See [Configuration](./configuration.md) for the full annotations reference and an example `package.json`.

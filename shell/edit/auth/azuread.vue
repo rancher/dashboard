@@ -19,6 +19,7 @@ import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBann
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import { useFormValidation } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
+import { RcSeparator } from '@components/RcSeparator';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
@@ -68,7 +69,8 @@ export default {
     CopyToClipboardText,
     AllowedPrincipals,
     AuthBanner,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -266,7 +268,6 @@ export default {
         case SLO_OPTION_VALUES.rancher:
           this.model.logoutAllEnabled = false;
           this.model.logoutAllForced = false;
-          this.model.endSessionEndpoint = '';
           break;
         case SLO_OPTION_VALUES.all:
           this.model.logoutAllEnabled = true;
@@ -456,7 +457,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           provider="azuread"

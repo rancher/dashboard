@@ -20,8 +20,12 @@ export class HeaderPo extends ComponentPo {
     this.projectNamespaceFilter().toggle();
   }
 
+  workspaceSwitcher() {
+    return new WorkspaceSwitcherPo();
+  }
+
   selectWorkspace(name: string) {
-    const wsFilter = new WorkspaceSwitcherPo();
+    const wsFilter = this.workspaceSwitcher();
 
     wsFilter.toggle();
 
@@ -29,7 +33,7 @@ export class HeaderPo extends ComponentPo {
   }
 
   checkCurrentWorkspace(name: string) {
-    const wsFilter = new WorkspaceSwitcherPo();
+    const wsFilter = this.workspaceSwitcher();
 
     return wsFilter.checkOptionSelected(name);
   }

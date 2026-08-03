@@ -8,7 +8,7 @@ const homePage = new HomePagePo();
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
 
-describe('Home Links', { testIsolation: 'off' }, () => {
+describe('Home Links', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

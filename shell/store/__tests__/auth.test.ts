@@ -134,3 +134,21 @@ describe('action: test', () => {
     });
   });
 });
+
+describe('action: getLocalProviderEnabled', () => {
+  it('should return true if local auth provider exists', async() => {
+    const dispatch = jest.fn().mockResolvedValue({ id: 'local' });
+    const result = await actions.getLocalProviderEnabled({ dispatch } as any);
+
+    expect(dispatch).toHaveBeenCalledWith('getAuthProvider', 'local');
+    expect(result).toBe(true);
+  });
+
+  it('should return false if local auth provider does not exist', async() => {
+    const dispatch = jest.fn().mockResolvedValue(undefined);
+    const result = await actions.getLocalProviderEnabled({ dispatch } as any);
+
+    expect(dispatch).toHaveBeenCalledWith('getAuthProvider', 'local');
+    expect(result).toBe(false);
+  });
+});

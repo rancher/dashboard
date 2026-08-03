@@ -4,8 +4,8 @@ import Metadata, { MetadataProps } from '@shell/components/Resource/Detail/Metad
 import Cards from '@shell/components/Resource/Detail/Cards.vue';
 
 export interface MastheadProps {
-  titleBarProps: TitleBarProps;
-  metadataProps: MetadataProps;
+  titleBarProps?: TitleBarProps;
+  metadataProps?: MetadataProps;
 }
 </script>
 
@@ -15,7 +15,10 @@ const props = defineProps<MastheadProps>();
 </script>
 <template>
   <div class="masthead">
-    <TitleBar v-bind="props.titleBarProps">
+    <TitleBar
+      v-if="props.titleBarProps"
+      v-bind="props.titleBarProps"
+    >
       <template
         v-if="$slots['additional-actions']"
         #additional-actions
@@ -24,10 +27,12 @@ const props = defineProps<MastheadProps>();
       </template>
     </TitleBar>
     <Metadata
+      v-if="props.metadataProps"
       class="metadata-section"
       v-bind="props.metadataProps"
     />
     <Cards
+      v-if="props.titleBarProps"
       class="cards-section"
       :resource="props.titleBarProps.resource"
     />

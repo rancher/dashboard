@@ -332,25 +332,25 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { testIsolation: false, tags: ['@adminUser'] }, () => {
     let uniqueUserName = SortableTablePo.firstByDefaultName('user');
 
-    const userIdsList = [];
-    let initialCount;
+    const userIdsList: string[] = [];
+    let initialCount: number;
 
     before('set up', () => {
       cy.login();
       cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
         // we need to filter out system users here, as they are not shown in the UI
-        const filteredUsersNotSystem = resp.body.data.filter((item) => {
-          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+        const filteredUsersNotSystem = resp.body.data.filter((item: any) => {
+          const res = item.principalIds.filter((fp: string) => fp.startsWith('system://'));
 
           return res.length === 0;
         });
 
         initialCount = filteredUsersNotSystem.length - 1;
       });
-      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}', { delay: true });
 
       // create users
       let i = 0;
@@ -377,20 +377,29 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('pagination is visible and user is able to navigate through users data', () => {
-      usersPo.goTo(); // This is needed for the @noVai only world
+      usersPo.goTo();
       usersPo.waitForPage();
       const count = initialCount + 26;
 
       // check users count
       cy.waitForRancherResources('v1', 'management.cattle.io.users', count).then((resp: Cypress.Response<any>) => {
         // we need to filter out system users here, as they are not shown in the UI
-        const filteredUsersNotSystem = resp.body.data.filter((item) => {
-          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+        const filteredUsersNotSystem = resp.body.data.filter((item: any) => {
+          const res = item.principalIds.filter((fp: string) => fp.startsWith('system://'));
 
           return res.length === 0;
         });
 
         const count = filteredUsersNotSystem.length;
+
+        cy.get('tbody tr:last-of-type').scrollIntoView();
+
+        cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
+          cy.log('User Preferences: ', JSON.stringify(resp.body.data[0].data));
+        });
+
+        cy.log('All User Count:', resp.body.data.length);
+        cy.log('Filtered User Count:', count);
 
         // pagination is visible
         usersPo.list().resourceTable().sortableTable().pagination()

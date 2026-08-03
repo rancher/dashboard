@@ -25,6 +25,7 @@ import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCard
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
 import RichTranslation from '@shell/components/RichTranslation.vue';
+import SubtleLink from '@shell/components/SubtleLink.vue';
 import { getLatestCompatibleVersion } from '@shell/utils/chart';
 import Select from '@shell/components/form/Select';
 import { getVersionData } from '@shell/config/version';
@@ -35,6 +36,8 @@ const createInitialFilters = () => ({
   statuses:   [],
   tags:       []
 });
+
+const LOAD_MORE_DELAY_MS = 500;
 
 export default {
   name:       'Charts',
@@ -47,7 +50,8 @@ export default {
     AppChartCardSubHeader,
     AppChartCardFooter,
     Select,
-    RichTranslation
+    RichTranslation,
+    SubtleLink,
   },
 
   async fetch() {
@@ -83,6 +87,10 @@ export default {
   beforeUnmount() {
     if (this.observer) {
       this.observer.disconnect();
+    }
+    if (this._loadMoreTimer) {
+      clearTimeout(this._loadMoreTimer);
+      this._loadMoreTimer = null;
     }
   },
 
@@ -145,6 +153,7 @@ export default {
       canCreateRepos:            false,
       showAppCollectionBanner:   true,
       isPrime:                   getVersionData().RancherPrime === 'true',
+      isLoadingMore:             false,
     };
   },
 
@@ -482,6 +491,11 @@ export default {
       this.visibleChartsCount = this.initialVisibleChartsCount;
       this.observerInitialized = false;
       this.hasOverflow = false;
+      this.isLoadingMore = false;
+      if (this._loadMoreTimer) {
+        clearTimeout(this._loadMoreTimer);
+        this._loadMoreTimer = null;
+      }
     },
 
     // The lazy loading implementation has two parts
@@ -529,10 +543,17 @@ export default {
     },
 
     loadMore() {
-      if (this.visibleChartsCount >= this.filteredCharts.length) {
+      if (this.isLoadingMore || this.visibleChartsCount >= this.filteredCharts.length) {
         return;
       }
-      this.visibleChartsCount += this.initialVisibleChartsCount;
+      this.isLoadingMore = true;
+      this._loadMoreTimer = setTimeout(() => {
+        this._loadMoreTimer = null;
+        this.visibleChartsCount += this.initialVisibleChartsCount;
+        this.$nextTick(() => {
+          this.isLoadingMore = false;
+        });
+      }, LOAD_MORE_DELAY_MS);
     },
 
     initIntersectionObserver() {
@@ -683,16 +704,13 @@ export default {
             tag="span"
           >
             <template #docsUrl="{ content }">
-              <a
+              <SubtleLink
                 :href="`${DOCS_BASE}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
-                class="secondary-text-link"
-                tabindex="0"
                 target="_blank"
-                rel="noopener noreferrer nofollow"
+                :open-in-new-tab-label="t('generic.opensInNewTab')"
               >
-                <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
-                {{ content }} <i class="icon icon-external-link" />
-              </a>
+                {{ content }}
+              </SubtleLink>
             </template>
           </RichTranslation>
         </div>
@@ -786,6 +804,16 @@ export default {
           </rc-item-card>
         </div>
         <div
+          v-if="isLoadingMore"
+          class="loading-more"
+          role="status"
+          aria-live="polite"
+          data-testid="charts-loading-more"
+        >
+          <i class="icon icon-spinner icon-spin" />
+          {{ t('catalog.charts.loadingMore') }}
+        </div>
+        <div
           ref="sentinel"
           class="sentinel-charts"
           data-testid="charts-lazy-load-sentinel"
@@ -837,6 +865,16 @@ export default {
 
   .sentinel-charts {
     height: 1px;
+  }
+
+  .loading-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap);
+    padding: 16px;
+    font-size: 14px;
+    color: var(--muted);
   }
 }
 
