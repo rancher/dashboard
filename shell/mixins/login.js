@@ -1,3 +1,5 @@
+import { providerKey } from '@shell/models/management.cattle.io.authconfig';
+
 export default {
   props: {
     focusOnMount: {
@@ -18,8 +20,7 @@ export default {
 
   computed: {
     displayName() {
-      const translationKey = this.type.replace('Provider', '');
-      const providerString = this.t(`model.authConfig.provider.${ translationKey }`);
+      const providerString = this.t(`model.authConfig.provider.${ providerKey(this.type) }`);
 
       return `${ providerString }: ${ this.name }`;
     }
