@@ -88,6 +88,7 @@ const redactionLabel = computed(() => {
                 {{ t("auditPolicy.additionalRedactions.paths.title") }}                  <i
                   v-clean-tooltip="{content: t('auditPolicy.additionalRedactions.paths.tooltip'), triggers: ['hover', 'touch', 'focus'] }"
                   :aria-label="t('generic.moreInfo')"
+                  role="button"
                   class="icon icon-info"
                   tabindex="0"
                 />

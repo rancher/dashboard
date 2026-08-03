@@ -40,6 +40,13 @@ export default defineComponent({
     iconClass(): string {
       return this.status === 'error' ? 'icon-warning' : 'icon-info';
     },
+    iconAriaLabel(): string {
+      if ((this.status === 'error' || this.status === 'warning') && this.value) {
+        return this.isObject(this.value) ? this.value.content as string : this.value as string;
+      }
+
+      return this.t('generic.moreInfo');
+    },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tooltipContent(): {[key: string]: any} | string {
       if (this.isObject(this.value)) {
@@ -68,9 +75,10 @@ export default defineComponent({
     <template v-if="hover">
       <i
         v-clean-tooltip="tooltipContent"
-        v-stripped-aria-label="status === 'error' || status === 'warning' ? (isObject(value) ? value.content : value) : t('generic.moreInfo')"
+        :aria-label="iconAriaLabel"
         :class="{'hover':!value, [iconClass]: true}"
         class="icon status-icon"
+        role="button"
         tabindex="0"
         :data-testid="componentTestid"
       />
