@@ -133,7 +133,7 @@ export default {
       :rows="rows"
       :headers="headers"
       :table-actions="false"
-      :row-actions="true"
+      :row-actions="false"
       key-field="id"
       default-sort-by="provider"
     >
