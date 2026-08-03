@@ -4,6 +4,7 @@ import { mount, type VueWrapper, flushPromises } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 
 import oidc from '@shell/edit/auth/oidc.vue';
+import ArrayList from '@shell/components/form/ArrayList';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -319,67 +320,6 @@ describe('oidc.vue', () => {
       expect(emailClaim.exists()).toBe(false);
     });
 
-    describe('required scopes', () => {
-      it('computes requiredScopes from BASE_SCOPES for genericoidc', async() => {
-        await flushPromises();
-
-        expect(wrapper.vm.requiredScopes).toStrictEqual(['openid', 'profile', 'email']);
-      });
-
-      it('computes requiredScopes for keycloakoidc', async() => {
-        await wrapper.setData({ model: { ...mockModel, id: 'keycloakoidc' } });
-        await flushPromises();
-
-        expect(wrapper.vm.requiredScopes).toStrictEqual(['openid', 'profile', 'email']);
-      });
-
-      it('computes requiredScopes for cognito', async() => {
-        await wrapper.setData({ model: { ...mockModel, id: 'cognito' } });
-        await flushPromises();
-
-        expect(wrapper.vm.requiredScopes).toStrictEqual(['openid', 'email']);
-      });
-
-      it('returns empty requiredScopes for azuread', async() => {
-        await wrapper.setData({ model: { ...mockModel, id: 'azuread' } });
-        await flushPromises();
-
-        expect(wrapper.vm.requiredScopes).toStrictEqual([]);
-      });
-
-      it('disables Enable button when a required scope is removed', async() => {
-        wrapper.setData({ oidcScope: ['profile', 'email'] });
-        await wrapper.vm.validateAllFields();
-        await flushPromises();
-
-        const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
-
-        expect(saveButton.disabled).toBe(true);
-      });
-
-      it('disables Enable button when all required scopes are removed', async() => {
-        wrapper.setData({ oidcScope: ['custom-scope'] });
-        await wrapper.vm.validateAllFields();
-        await flushPromises();
-
-        const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
-
-        expect(saveButton.disabled).toBe(true);
-      });
-
-      it('enables Enable button when all required scopes are present', async() => {
-        wrapper.setData({
-          oidcUrls:  { url: validUrl, realm: validRealm },
-          oidcScope: ['openid', 'profile', 'email', 'custom-scope'],
-        });
-        await nextTick();
-
-        const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
-
-        expect(saveButton.disabled).toBe(false);
-      });
-    });
-
     describe('clientAuthenticatedSearch checkbox', () => {
       it('is not rendered for genericoidc', async() => {
         const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');
@@ -431,6 +371,26 @@ describe('oidc.vue', () => {
         });
 
         expect(wrapper.vm.model.clientAuthenticatedSearch).toBe(true);
+      });
+    });
+
+    describe('required scopes', () => {
+      it('passes the required scopes to the scope list so they cannot be removed', async() => {
+        await flushPromises();
+
+        const scopeList = wrapper.findComponent(ArrayList);
+
+        expect(scopeList.exists()).toBe(true);
+        expect(scopeList.props('disabledList')).toStrictEqual(['openid', 'profile', 'email']);
+      });
+
+      it('updates the protected scopes when the provider changes', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'cognito' } });
+        await flushPromises();
+
+        const scopeList = wrapper.findComponent(ArrayList);
+
+        expect(scopeList.props('disabledList')).toStrictEqual(['openid', 'email']);
       });
     });
   });
