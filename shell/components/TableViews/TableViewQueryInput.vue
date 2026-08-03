@@ -35,6 +35,14 @@ export default {
       type:    Array,
       default: () => []
     },
+
+    /**
+     * How many rows the current query matches — shown as a small pill inside the input.
+     */
+    matchCount: {
+      type:    Number,
+      default: 0
+    },
   },
 
   data() {
@@ -204,6 +212,11 @@ export default {
       @focus="focused = true"
       @blur="onBlur"
     >
+    <span
+      v-if="value"
+      class="match-pill"
+      data-testid="table-views-match-count"
+    >{{ matchCount }}</span>
     <i
       v-if="value"
       class="icon icon-close clear"
@@ -258,6 +271,20 @@ export default {
     }
   }
 
+  // Match-count pill inside the input — just the number, our usual rounded count pill
+  .match-pill {
+    flex: none;
+    padding: 1px 8px;
+    margin: 0 4px;
+    border-radius: 10px;
+    background: var(--disabled-bg);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    white-space: nowrap;
+  }
+
   .clear {
     cursor: pointer;
     opacity: 0.6;
@@ -271,7 +298,9 @@ export default {
     position: absolute;
     top: calc(100% + 2px);
     left: 0;
-    right: 0;
+    right: auto;
+    min-width: 260px;
+    max-width: 380px;
     z-index: 100;
     margin: 0;
     padding: 4px 0;
