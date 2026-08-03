@@ -1,4 +1,9 @@
 import { get } from '@shell/utils/object';
+import {
+  PaginationParamFilter,
+  PaginationFilterField,
+  PaginationFilterEquality,
+} from '@shell/types/store/pagination.types';
 
 /**
  * Table Views - the query/column/group/export engine behind the GitHub Projects style
@@ -394,6 +399,241 @@ export function applyQuery(rows: any[], terms: ViewTerm[], fields: ViewField[]):
 
     return true;
   });
+}
+
+/**
+ * Well known field ids whose server-side path we know for certain, regardless of how the
+ * table header happens to be configured. Overlaid on top of the header-derived path so a
+ * mis-configured header can't send us to a path the vai cache can't filter on.
+ */
+const SERVER_PATH_SAFETY_NET: Record<string, string> = {
+  state:     'metadata.state.name',
+  name:      'metadata.name',
+  namespace: 'metadata.namespace',
+  image:     'spec.containers.image',
+  node:      'spec.nodeName',
+};
+
+/**
+ * The steve/vai server-side path(s) to filter a field on, or null when the field has no
+ * server-side representation.
+ *
+ * Mirrors the server-searchable rule used when building headers in ResourceTable (a column
+ * is server searchable when it has a string/array `search`, or a string `value`/`sort`).
+ */
+export function serverPathFor(field: ViewField): string | string[] | null {
+  if (!field) {
+    return null;
+  }
+
+  if (field.isLabel) {
+    return field.labelKey ? `metadata.labels[${ field.labelKey }]` : null;
+  }
+
+  // Safety net wins for the handful of ids we know the canonical path for
+  if (SERVER_PATH_SAFETY_NET[field.id]) {
+    return SERVER_PATH_SAFETY_NET[field.id];
+  }
+
+  const header = field.header;
+
+  if (!header) {
+    return null;
+  }
+
+  if (typeof header.search === 'string') {
+    return header.search;
+  }
+
+  if (Array.isArray(header.search)) {
+    return header.search;
+  }
+
+  if (typeof header.value === 'string') {
+    return header.value;
+  }
+
+  if (typeof header.sort === 'string') {
+    // `sort` can carry a `:desc` style suffix, only the path is useful for filtering
+    return header.sort.split(':')[0];
+  }
+
+  return null;
+}
+
+export interface ServerFilterResult {
+  filters: PaginationParamFilter[];
+  unsupported: ViewTerm[];
+}
+
+/** Values with these chars break the `filter=field IN (a,b)` serializer (verbatim insert) */
+function breaksInSerializer(value: string): boolean {
+  return /[,()"]/.test(value);
+}
+
+/**
+ * Convert parsed view terms into steve/vai `filter=` params.
+ *
+ * - A field with a single value becomes a partial CONTAINS (`~`) match
+ * - The same field with multiple values becomes an `IN (...)` match
+ * - Different fields are AND'd (each wrapped in its own PaginationParamFilter)
+ * - Free text tokens CONTAINS-match across every server-searchable column (OR within a
+ *   token, AND across tokens)
+ *
+ * Terms whose field has no server-side path (or fails `opts.isAllowed`) are routed to
+ * `unsupported` and are NOT applied - they are dropped server-side for v1.
+ */
+export function termsToServerFilters(
+  terms: ViewTerm[],
+  fields: ViewField[],
+  opts: { isAllowed: (path: string) => boolean }
+): ServerFilterResult {
+  const filters: PaginationParamFilter[] = [];
+  const unsupported: ViewTerm[] = [];
+
+  if (!terms || !terms.length) {
+    return { filters, unsupported };
+  }
+
+  const isAllowed = opts && typeof opts.isAllowed === 'function' ? opts.isAllowed : () => false;
+
+  // Resolve a field id to the set of allowed server paths (or null if none are allowed)
+  const allowedPathsFor = (fieldId: string): string[] | null => {
+    const field = findField(fields, fieldId);
+
+    if (!field) {
+      return null;
+    }
+
+    const raw = serverPathFor(field);
+
+    if (!raw) {
+      return null;
+    }
+
+    const paths = (Array.isArray(raw) ? raw : [raw]).filter((p) => typeof p === 'string' && isAllowed(p));
+
+    return paths.length ? paths : null;
+  };
+
+  // Every server-searchable path, for free-text tokens to OR across
+  const freeTextPaths: string[] = [];
+  const seenPath: Record<string, boolean> = {};
+
+  fields.forEach((field) => {
+    const raw = serverPathFor(field);
+
+    if (!raw) {
+      return;
+    }
+
+    (Array.isArray(raw) ? raw : [raw]).forEach((p) => {
+      if (typeof p === 'string' && isAllowed(p) && !seenPath[p]) {
+        seenPath[p] = true;
+        freeTextPaths.push(p);
+      }
+    });
+  });
+
+  // Group by field id + negation (like applyQuery, but positive/negative kept per field)
+  const groups: Record<string, ViewTerm[]> = {};
+  const order: string[] = [];
+  const freeText: ViewTerm[] = [];
+
+  terms.forEach((term) => {
+    if (term.field === null || term.field === undefined) {
+      freeText.push(term);
+
+      return;
+    }
+
+    const key = `${ term.negated ? '!' : '' }${ term.field }`;
+
+    if (!groups[key]) {
+      groups[key] = [];
+      order.push(key);
+    }
+
+    groups[key].push(term);
+  });
+
+  order.forEach((key) => {
+    const group = groups[key];
+    const { negated } = group[0];
+    const fieldId = group[0].field as string;
+    const paths = allowedPathsFor(fieldId);
+
+    if (!paths) {
+      unsupported.push(...group);
+
+      return;
+    }
+
+    const values = group.map((t) => t.value);
+
+    if (paths.length === 1) {
+      const path = paths[0];
+
+      if (values.length > 1) {
+        if (values.some(breaksInSerializer)) {
+          // IN serializer inserts values verbatim, so fall back to CONTAINS
+          if (negated) {
+            // NOT: row must satisfy all of them -> AND (one param each)
+            values.forEach((value) => {
+              filters.push(new PaginationParamFilter({ fields: [new PaginationFilterField({ field: path, value, equality: PaginationFilterEquality.NOT_CONTAINS })] }));
+            });
+          } else {
+            // OR within one param
+            filters.push(new PaginationParamFilter({ fields: values.map((value) => new PaginationFilterField({ field: path, value, equality: PaginationFilterEquality.CONTAINS })) }));
+          }
+        } else {
+          filters.push(new PaginationParamFilter({
+            fields: [new PaginationFilterField({
+              field: path, value: values.join(','), equality: negated ? PaginationFilterEquality.NOT_IN : PaginationFilterEquality.IN
+            })]
+          }));
+        }
+      } else {
+        filters.push(new PaginationParamFilter({
+          fields: [new PaginationFilterField({
+            field: path, value: values[0], equality: negated ? PaginationFilterEquality.NOT_CONTAINS : PaginationFilterEquality.CONTAINS
+          })]
+        }));
+      }
+    } else if (negated) {
+      // Multiple columns, negated: row must not match in ANY column -> AND (one param each)
+      values.forEach((value) => {
+        paths.forEach((path) => {
+          filters.push(new PaginationParamFilter({ fields: [new PaginationFilterField({ field: path, value, equality: PaginationFilterEquality.NOT_CONTAINS })] }));
+        });
+      });
+    } else {
+      // Multiple columns, positive: OR every (value x column) within one param
+      const oredFields: PaginationFilterField[] = [];
+
+      values.forEach((value) => {
+        paths.forEach((path) => {
+          oredFields.push(new PaginationFilterField({ field: path, value, equality: PaginationFilterEquality.CONTAINS }));
+        });
+      });
+
+      filters.push(new PaginationParamFilter({ fields: oredFields }));
+    }
+  });
+
+  // Free text: one param per token, CONTAINS across every searchable column (OR)
+  freeText.forEach((term) => {
+    // Negated free text (OR of NOT across columns) can't be expressed server-side, drop it
+    if (term.negated || !freeTextPaths.length) {
+      unsupported.push(term);
+
+      return;
+    }
+
+    filters.push(new PaginationParamFilter({ fields: freeTextPaths.map((path) => new PaginationFilterField({ field: path, value: term.value, equality: PaginationFilterEquality.CONTAINS })) }));
+  });
+
+  return { filters, unsupported };
 }
 
 export interface ValueSuggestion {

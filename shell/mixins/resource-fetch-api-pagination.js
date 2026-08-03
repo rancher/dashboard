@@ -63,6 +63,8 @@ export default {
       requestFilters: {
         filters:              [],
         projectsOrNamespaces: [],
+        // Filters from the table views toolbar (server-side). These are PaginationParamFilter[]
+        tableView:            [],
       },
 
       paginationFromList: null,
@@ -112,6 +114,7 @@ export default {
           new PaginationParamFilter({ fields: searchFilters }),
           new PaginationParamFilter({ fields: stateFilters }),
           ...this.requestFilters.filters, // Apply the additional filters. these aren't from the user but from ns filtering
+          ...this.requestFilters.tableView, // Table views toolbar filters (AND'd with everything else)
         ]
       });
 
@@ -133,6 +136,23 @@ export default {
       }
 
       return false;
+    },
+
+    /**
+     * Apply the table views toolbar filters (server-side). Resets to page 1 so a stricter
+     * filter doesn't strand the user on a now out-of-range page.
+     *
+     * @param {PaginationParamFilter[]} filters
+     */
+    setTableViewFilters(filters) {
+      this.requestFilters.tableView = filters || [];
+
+      if (this.paginationFromList) {
+        this.paginationFromList = {
+          ...this.paginationFromList,
+          page: 1,
+        };
+      }
     },
 
     calcCanPaginate() {
@@ -311,6 +331,10 @@ export default {
     },
 
     'requestFilters.projectsOrNamespaces'() {
+      this.paginationChanged(this.paginationFromList);
+    },
+
+    'requestFilters.tableView'() {
       this.paginationChanged(this.paginationFromList);
     },
 
