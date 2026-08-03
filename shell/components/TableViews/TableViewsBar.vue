@@ -3,6 +3,7 @@ import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
 import { randomStr } from '@shell/utils/string';
 import { LABEL_FIELD_PREFIX, encodeView } from '@shell/utils/table-views';
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
+import ButtonGroup from '@shell/components/ButtonGroup';
 
 /**
  * The toolbar above a resource table - filter query, column picker, group by, export and
@@ -14,9 +15,9 @@ import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInpu
 export default {
   name: 'TableViewsBar',
 
-  emits: ['update:view', 'export'],
+  emits: ['update:view', 'export', 'update:viewMode'],
 
-  components: { TableViewQueryInput },
+  components: { TableViewQueryInput, ButtonGroup },
 
   props: {
     /**
@@ -58,12 +59,30 @@ export default {
       type:    String,
       default: ''
     },
+
+    /**
+     * The core table display / view-mode (flat list / grouped / detail), folded into
+     * the "View" popup. Mirrors the ButtonGroup the core table would otherwise render.
+     */
+    viewMode: {
+      type:    [String, Number, Boolean, Object],
+      default: null
+    },
+
+    /**
+     * ButtonGroup options for the display/view-mode toggle
+     */
+    viewModeOptions: {
+      type:    Array,
+      default: () => []
+    },
   },
 
   data() {
     return {
       newViewName: '',
       copied:      false,
+      renameNames: {},
     };
   },
 
@@ -196,6 +215,21 @@ export default {
       this.newViewName = '';
     },
 
+    renameView(saved) {
+      const name = (this.renameNames[saved.id] ?? saved.name ?? '').trim();
+
+      if (!name || name === saved.name) {
+        return;
+      }
+
+      this.persist(this.savedViews.map((v) => (v.id === saved.id ? { ...v, name } : v)));
+      this.renameNames[saved.id] = '';
+    },
+
+    setViewMode(value) {
+      this.$emit('update:viewMode', value);
+    },
+
     updateView(saved) {
       this.persist(this.savedViews.map((v) => (v.id === saved.id ? {
         ...v,
@@ -248,22 +282,163 @@ export default {
       >
         {{ t('tableViews.tabs.all') }}
       </button>
-      <button
+
+      <!-- Saved views: each tab carries its own caret dropdown (rename / save / delete / export / share) -->
+      <div
         v-for="saved in savedViews"
         :key="saved.id"
-        type="button"
-        class="view-tab"
+        class="view-tab-wrap"
         :class="{ active: activeViewId === saved.id }"
-        :data-testid="`table-views-tab-${saved.id}`"
-        @click="applyView(saved)"
       >
-        {{ saved.name }}
-        <i
-          class="icon icon-close remove"
-          :aria-label="t('tableViews.save.delete')"
-          @click.stop="deleteView(saved)"
-        />
-      </button>
+        <button
+          type="button"
+          class="view-tab in-wrap"
+          :class="{ active: activeViewId === saved.id }"
+          :data-testid="`table-views-tab-${saved.id}`"
+          @click="applyView(saved)"
+        >
+          {{ saved.name }}
+        </button>
+        <v-dropdown
+          placement="bottom-start"
+          :container="false"
+        >
+          <button
+            type="button"
+            class="view-tab-caret"
+            :aria-label="t('tableViews.tab.menu')"
+            :data-testid="`table-views-tab-menu-${saved.id}`"
+            @click.stop
+          >
+            <i class="icon icon-chevron-down" />
+          </button>
+          <template #popper>
+            <div class="view-menu">
+              <div class="menu-title">
+                {{ t('tableViews.tab.rename') }}
+              </div>
+              <div class="save-row">
+                <input
+                  :value="renameNames[saved.id] ?? saved.name"
+                  type="text"
+                  class="input-sm"
+                  :data-testid="`table-views-rename-${saved.id}`"
+                  :placeholder="saved.name"
+                  @input="renameNames[saved.id] = $event.target.value"
+                  @keydown.enter="renameView(saved)"
+                >
+                <button
+                  v-close-popper
+                  type="button"
+                  class="btn btn-sm role-primary"
+                  :data-testid="`table-views-rename-submit-${saved.id}`"
+                  @click="renameView(saved)"
+                >
+                  {{ t('tableViews.tab.renameSave') }}
+                </button>
+              </div>
+
+              <button
+                v-close-popper
+                type="button"
+                class="menu-item"
+                :data-testid="`table-views-update-${saved.id}`"
+                @click="updateView(saved)"
+              >
+                <i class="icon icon-pin" />
+                {{ t('tableViews.tab.saveChanges') }}
+              </button>
+              <button
+                v-close-popper
+                type="button"
+                class="menu-item"
+                :data-testid="`table-views-delete-${saved.id}`"
+                @click="deleteView(saved)"
+              >
+                <i class="icon icon-trash" />
+                {{ t('tableViews.tab.delete') }}
+              </button>
+              <button
+                type="button"
+                class="menu-item"
+                :data-testid="`table-views-copy-link-${saved.id}`"
+                @click="copyShareUrl"
+              >
+                <i class="icon icon-copy" />
+                {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
+              </button>
+
+              <div class="menu-title">
+                {{ t('tableViews.export.label') }}
+              </div>
+              <template
+                v-for="scope in ['selection', 'page', 'all']"
+                :key="scope"
+              >
+                <div class="menu-subtitle">
+                  {{ t(`tableViews.export.scope.${scope}`) }}
+                </div>
+                <div class="export-row">
+                  <button
+                    v-for="format in ['csv', 'json']"
+                    :key="`${scope}-${format}`"
+                    v-close-popper
+                    type="button"
+                    class="btn btn-sm role-secondary"
+                    :data-testid="`table-views-export-${saved.id}-${scope}-${format}`"
+                    @click="doExport(format, scope)"
+                  >
+                    {{ t(`tableViews.export.format.${format}`) }}
+                  </button>
+                </div>
+              </template>
+            </div>
+          </template>
+        </v-dropdown>
+      </div>
+
+      <!-- + New View: name and save the current config as a new saved view -->
+      <v-dropdown
+        placement="bottom-start"
+        :container="false"
+      >
+        <button
+          type="button"
+          class="view-tab new-view-tab"
+          data-testid="table-views-new-tab"
+        >
+          <i class="icon icon-plus" />
+          {{ t('tableViews.tabs.newView') }}
+        </button>
+        <template #popper>
+          <div class="view-menu save-menu">
+            <div class="menu-title">
+              {{ t('tableViews.save.newView') }}
+            </div>
+            <div class="save-row">
+              <input
+                v-model="newViewName"
+                type="text"
+                class="input-sm"
+                data-testid="table-views-save-name"
+                :placeholder="t('tableViews.save.namePlaceholder')"
+                @keydown.enter="saveView"
+              >
+              <button
+                v-close-popper
+                type="button"
+                class="btn btn-sm role-primary"
+                :disabled="!newViewName.trim()"
+                data-testid="table-views-save-submit"
+                @click="saveView"
+              >
+                {{ t('tableViews.save.save') }}
+              </button>
+            </div>
+          </div>
+        </template>
+      </v-dropdown>
+
       <span
         v-if="isDirty"
         class="view-tab dirty"
@@ -275,6 +450,7 @@ export default {
 
     <div class="view-controls">
       <TableViewQueryInput
+        class="query-grow"
         :value="view.query"
         :fields="fields"
         :rows="rows"
@@ -289,6 +465,7 @@ export default {
         {{ t('tableViews.matches', { count: matchCount }) }}
       </span>
 
+      <!-- Single "View" popup: display/view-mode toggle + Columns + Group by -->
       <v-dropdown
         placement="bottom-end"
         :container="false"
@@ -296,10 +473,10 @@ export default {
         <button
           type="button"
           class="btn role-tertiary view-control-btn"
-          data-testid="table-views-columns"
+          data-testid="table-views-view-menu"
         >
-          <i class="icon icon-list-flat" />
-          {{ t('tableViews.columns.label') }}
+          <i class="icon icon-gear" />
+          {{ t('tableViews.view.label') }}
           <span
             v-if="hiddenColumnCount || view.labelColumns.length"
             class="badge"
@@ -307,7 +484,22 @@ export default {
           <i class="icon icon-chevron-down" />
         </button>
         <template #popper>
-          <div class="view-menu">
+          <div class="view-menu view-popup">
+            <template v-if="viewModeOptions.length > 1">
+              <div class="menu-title">
+                {{ t('tableViews.view.display') }}
+              </div>
+              <div class="view-mode-row">
+                <ButtonGroup
+                  :value="viewMode"
+                  :options="viewModeOptions"
+                  size="medium"
+                  data-testid="table-views-view-mode"
+                  @update:value="setViewMode"
+                />
+              </div>
+            </template>
+
             <div class="menu-title">
               {{ t('tableViews.columns.tableColumns') }}
             </div>
@@ -348,29 +540,13 @@ export default {
             >
               {{ t('tableViews.columns.reset') }}
             </button>
-          </div>
-        </template>
-      </v-dropdown>
 
-      <v-dropdown
-        placement="bottom-end"
-        :container="false"
-      >
-        <button
-          type="button"
-          class="btn role-tertiary view-control-btn"
-          data-testid="table-views-group"
-        >
-          <i class="icon icon-list-grouped" />
-          {{ t('tableViews.group.label', { field: groupLabel }) }}
-          <i class="icon icon-chevron-down" />
-        </button>
-        <template #popper>
-          <div class="view-menu">
+            <div class="menu-title">
+              {{ t('tableViews.group.byLabel') }}
+            </div>
             <button
               v-for="option in groupOptions"
               :key="option.id || 'none'"
-              v-close-popper
               type="button"
               class="menu-item"
               :class="{ selected: option.id === view.groupBy }"
@@ -378,112 +554,6 @@ export default {
               @click="setGroupBy(option.id)"
             >
               {{ option.label }}
-            </button>
-          </div>
-        </template>
-      </v-dropdown>
-
-      <v-dropdown
-        placement="bottom-end"
-        :container="false"
-      >
-        <button
-          type="button"
-          class="btn role-tertiary view-control-btn"
-          data-testid="table-views-export"
-        >
-          <i class="icon icon-download" />
-          {{ t('tableViews.export.label') }}
-          <i class="icon icon-chevron-down" />
-        </button>
-        <template #popper>
-          <div class="view-menu">
-            <template
-              v-for="scope in ['selection', 'page', 'all']"
-              :key="scope"
-            >
-              <div class="menu-title">
-                {{ t(`tableViews.export.scope.${scope}`) }}
-              </div>
-              <button
-                v-for="format in ['csv', 'json']"
-                :key="`${scope}-${format}`"
-                v-close-popper
-                type="button"
-                class="menu-item"
-                :data-testid="`table-views-export-${scope}-${format}`"
-                @click="doExport(format, scope)"
-              >
-                {{ t(`tableViews.export.format.${format}`) }}
-              </button>
-            </template>
-          </div>
-        </template>
-      </v-dropdown>
-
-      <v-dropdown
-        placement="bottom-end"
-        :container="false"
-      >
-        <button
-          type="button"
-          class="btn role-tertiary view-control-btn"
-          data-testid="table-views-save"
-        >
-          <i class="icon icon-pin" />
-          {{ t('tableViews.save.label') }}
-          <i class="icon icon-chevron-down" />
-        </button>
-        <template #popper>
-          <div class="view-menu save-menu">
-            <div class="menu-title">
-              {{ t('tableViews.save.newView') }}
-            </div>
-            <div class="save-row">
-              <input
-                v-model="newViewName"
-                type="text"
-                class="input-sm"
-                data-testid="table-views-save-name"
-                :placeholder="t('tableViews.save.namePlaceholder')"
-                @keydown.enter="saveView"
-              >
-              <button
-                type="button"
-                class="btn btn-sm role-primary"
-                :disabled="!newViewName.trim()"
-                data-testid="table-views-save-submit"
-                @click="saveView"
-              >
-                {{ t('tableViews.save.save') }}
-              </button>
-            </div>
-            <template v-if="savedViews.length">
-              <div class="menu-title">
-                {{ t('tableViews.save.updateExisting') }}
-              </div>
-              <button
-                v-for="saved in savedViews"
-                :key="saved.id"
-                v-close-popper
-                type="button"
-                class="menu-item"
-                @click="updateView(saved)"
-              >
-                {{ saved.name }}
-              </button>
-            </template>
-            <div class="menu-title">
-              {{ t('tableViews.save.share') }}
-            </div>
-            <button
-              type="button"
-              class="menu-item"
-              data-testid="table-views-copy-link"
-              @click="copyShareUrl"
-            >
-              <i class="icon icon-copy" />
-              {{ copied ? t('tableViews.save.copied') : t('tableViews.save.copyLink') }}
             </button>
           </div>
         </template>
@@ -526,14 +596,55 @@ export default {
       cursor: default;
     }
 
-    .remove {
-      font-size: 11px;
-      opacity: 0;
-      margin-left: 4px;
+    &.in-wrap {
+      padding-right: 2px;
     }
 
-    &:hover .remove {
-      opacity: 0.6;
+    &.new-view-tab {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.8;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  // A saved-view tab plus its caret menu, sharing one active underline
+  .view-tab-wrap {
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid transparent;
+
+    &.active {
+      border-bottom-color: var(--primary);
+
+      .view-tab {
+        font-weight: 600;
+      }
+    }
+
+    .view-tab {
+      border-bottom: none;
+    }
+  }
+
+  .view-tab-caret {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--body-text);
+    padding: 6px 6px 6px 0;
+    opacity: 0.5;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    .icon {
+      font-size: 12px;
     }
   }
 
@@ -542,6 +653,10 @@ export default {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+  }
+
+  .query-grow {
+    flex: 1 1 auto;
   }
 
   .match-count {
@@ -605,15 +720,35 @@ export default {
     }
   }
 
+  .menu-subtitle {
+    padding: 4px 12px 2px 12px;
+    font-size: 11px;
+    opacity: 0.6;
+  }
+
   .menu-reset {
     align-self: flex-start;
     padding: 6px 12px;
   }
 
-  &.save-menu .save-row {
+  .save-row {
     display: flex;
     gap: 6px;
     padding: 4px 12px 8px 12px;
+  }
+
+  .export-row {
+    display: flex;
+    gap: 6px;
+    padding: 2px 12px 6px 12px;
+  }
+
+  .view-mode-row {
+    padding: 4px 12px 8px 12px;
+  }
+
+  &.view-popup {
+    min-width: 240px;
   }
 }
 </style>
