@@ -156,4 +156,111 @@ describe('the ArrayList', () => {
       expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
   });
+
+  describe('disabledList', () => {
+    it('does not disable any row by default', () => {
+      const wrapper = mount(ArrayList, {
+        props: {
+          value: ['string 0', 'string 1'],
+          mode:  _EDIT,
+        },
+      });
+
+      expect(wrapper.vm.disabledIndexList).toBeUndefined();
+      expect((wrapper.find('[data-testid="array-list-input-0"]').element as HTMLInputElement).disabled).toBe(false);
+      expect((wrapper.find('[data-testid="array-list-input-1"]').element as HTMLInputElement).disabled).toBe(false);
+      expect(wrapper.find('[data-testid="array-list-remove-item-0"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="array-list-remove-item-1"]').exists()).toBe(true);
+    });
+
+    it('computes the row index for each value in disabledList', () => {
+      const wrapper = mount(ArrayList, {
+        props: {
+          value:        ['openid', 'profile', 'email', 'custom'],
+          mode:         _EDIT,
+          disabledList: ['email', 'openid'],
+        },
+      });
+
+      // Maps each disabled value to the index of its matching row, in disabledList order
+      expect(wrapper.vm.disabledIndexList).toStrictEqual([2, 0]);
+    });
+
+    it('disables the input of rows in disabledList and leaves the others editable', () => {
+      const wrapper = mount(ArrayList, {
+        props: {
+          value:        ['openid', 'profile', 'email', 'custom'],
+          mode:         _EDIT,
+          disabledList: ['openid', 'email'],
+        },
+      });
+
+      expect((wrapper.find('[data-testid="array-list-input-0"]').element as HTMLInputElement).disabled).toBe(true);
+      expect((wrapper.find('[data-testid="array-list-input-1"]').element as HTMLInputElement).disabled).toBe(false);
+      expect((wrapper.find('[data-testid="array-list-input-2"]').element as HTMLInputElement).disabled).toBe(true);
+      expect((wrapper.find('[data-testid="array-list-input-3"]').element as HTMLInputElement).disabled).toBe(false);
+    });
+
+    it('hides the remove button of rows in disabledList and keeps it for the others', () => {
+      const wrapper = mount(ArrayList, {
+        props: {
+          value:        ['openid', 'profile', 'email', 'custom'],
+          mode:         _EDIT,
+          disabledList: ['openid', 'email'],
+        },
+      });
+
+      expect(wrapper.find('[data-testid="array-list-remove-item-0"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="array-list-remove-item-1"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="array-list-remove-item-2"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="array-list-remove-item-3"]').exists()).toBe(true);
+    });
+
+    it('only disables the first occurrence when a disabled value is duplicated', () => {
+      const wrapper = mount(ArrayList, {
+        props: {
+          value:        ['openid', 'profile', 'openid'],
+          mode:         _EDIT,
+          disabledList: ['openid'],
+        },
+      });
+
+      expect(wrapper.vm.disabledIndexList).toStrictEqual([0]);
+      expect((wrapper.find('[data-testid="array-list-input-0"]').element as HTMLInputElement).disabled).toBe(true);
+      expect((wrapper.find('[data-testid="array-list-input-2"]').element as HTMLInputElement).disabled).toBe(false);
+      expect(wrapper.find('[data-testid="array-list-remove-item-0"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="array-list-remove-item-2"]').exists()).toBe(true);
+    });
+
+    it('disables nothing when a disabled value is not present in the rows', () => {
+      const wrapper = mount(ArrayList, {
+        props: {
+          value:        ['openid', 'profile'],
+          mode:         _EDIT,
+          disabledList: ['not-a-scope'],
+        },
+      });
+
+      // findIndex returns -1 for a missing value, which never matches a real row index
+      expect(wrapper.vm.disabledIndexList).toStrictEqual([-1]);
+      expect((wrapper.find('[data-testid="array-list-input-0"]').element as HTMLInputElement).disabled).toBe(false);
+      expect((wrapper.find('[data-testid="array-list-input-1"]').element as HTMLInputElement).disabled).toBe(false);
+      expect(wrapper.find('[data-testid="array-list-remove-item-0"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="array-list-remove-item-1"]').exists()).toBe(true);
+    });
+
+    it('returns an empty index list when disabledList is empty', () => {
+      const wrapper = mount(ArrayList, {
+        props: {
+          value:        ['openid', 'profile'],
+          mode:         _EDIT,
+          disabledList: [],
+        },
+      });
+
+      expect(wrapper.vm.disabledIndexList).toStrictEqual([]);
+      expect(wrapper.find('[data-testid="array-list-remove-item-0"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="array-list-remove-item-1"]').exists()).toBe(true);
+    });
+  });
 });
