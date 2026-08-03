@@ -889,6 +889,7 @@ export default {
     :group="group"
     :group-options="_groupOptions"
     :search="showTableViews ? false : search"
+    :header-right-fill="showTableViews"
     :paging="true"
     :paging-params="parsedPagingParams"
     :paging-label="pagingLabel"
@@ -920,6 +921,7 @@ export default {
       #table-views
     >
       <TableViewsBar
+        part="tabs"
         :view="view"
         :fields="viewFields"
         :rows="filteredRows"
@@ -947,9 +949,25 @@ export default {
     </template>
 
     <template
-      v-if="showGrouping"
+      v-if="showGrouping || showTableViews"
       #header-right
     >
+      <!-- In table-views mode the filter + single "View" popup live in the core masthead's
+           search/right cell so they share the .fixed-header-actions grid row with .bulk. -->
+      <TableViewsBar
+        v-if="showTableViews"
+        part="controls"
+        :view="view"
+        :fields="viewFields"
+        :rows="filteredRows"
+        :match-count="viewRows.length"
+        :resource-type="schema ? schema.id : ''"
+        :view-mode="group"
+        :view-mode-options="showGrouping ? _groupOptions : []"
+        @update:view="view = $event"
+        @update:view-mode="group = $event"
+        @export="handleExport"
+      />
       <slot
         name="header-right"
       />
