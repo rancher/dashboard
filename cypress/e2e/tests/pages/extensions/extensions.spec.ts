@@ -595,20 +595,37 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
+    extensionsPo.waitForTabs();
 
-    extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(undefined, 'installed');
+    // Idempotent across retries: large-extension is the last installed extension by
+    // this point (clock and uk-locale were uninstalled by the previous tests), so once
+    // an attempt uninstalls it the Installed tab disappears and a retry can never
+    // re-open it. Only run the uninstall flow when it is still installed.
+    extensionsPo.checkForExtensionTab('installed').then((installedTabRendered) => {
+      if (!installedTabRendered) {
+        return;
+      }
 
-    // click on uninstall button on card
-    extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
-    extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModalUninstallClick();
+      extensionsPo.extensionTabInstalledClick();
+      extensionsPo.waitForPage(undefined, 'installed');
+      extensionsPo.checkForExtensionCardWithName(DISABLED_CACHE_EXTENSION_NAME).then((isInstalled) => {
+        if (!isInstalled) {
+          return;
+        }
 
-    // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
+        // click on uninstall button on card
+        extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
+        extensionsPo.extensionUninstallModal().should('be.visible');
+        extensionsPo.uninstallModalUninstallClick();
 
-    // make sure extension card is in the available tab
+        // let's check the extension reload banner and reload the page
+        extensionsPo.extensionReloadBanner().should('be.visible');
+        extensionsPo.extensionReloadClick();
+      });
+    });
+
+    // make sure extension card is in the available tab (end state, whether this attempt
+    // performed the uninstall or a previous one already did)
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
