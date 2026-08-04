@@ -73,8 +73,12 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
         const jod = findJob(resp);
         const jobName = jod.metadata.name;
 
+        // Require a Running pod: with the deterministic cronjob name and testIsolation
+        // off, a retry can still see a previous attempt's pod terminating, and picking
+        // that one makes the "Running" assertions below flake. Waiting for a Running pod
+        // ensures we target this run's freshly-created pod.
         const findPod = (resp: any) => {
-          return resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName));
+          return resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName) && pod.status?.phase === 'Running');
         };
 
         cy.waitForRancherResource<any>('v1', 'pods', `${ defaultNamespace }`, findPod, 20, { returnResource: true }).then((resp) => {

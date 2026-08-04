@@ -3,7 +3,10 @@ export const RANCHER_PAGE_EXCEPTIONS = [
   'TenantFeatures',
   'DomainData',
   'ResizeObserver loop',
-  'cross origin page'
+  'cross origin page',
+  // Third-party telemetry pixel (cdn.vector.co) loaded by the Rancher Prime / SUSE
+  // pages intermittently throws this; it is not a dashboard error.
+  'No visitor ID available'
 ];
 
 /**
