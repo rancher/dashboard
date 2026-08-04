@@ -115,6 +115,13 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
   // testing https://github.com/rancher/dashboard/issues/4849
   it('can uninstall both chart and crd at once', function() {
     runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
+      // Reset the namespace filter to the suite's intended state before listing the
+      // installed apps. The preceding test navigates through cattle-logging-system
+      // resources and can leave the filter scoped to a namespace that hides the
+      // installed charts, which made the installed-apps list come up empty
+      // (persistently, across retries, since testIsolation is off).
+      cy.updateNamespaceFilter('local', 'none', '{"local":[]}', { delay: true });
+
       cy.intercept('GET', `${ CLUSTER_APPS_BASE_URL }?*`).as('getCharts');
 
       const clusterTools = new ClusterToolsPagePo('local');
