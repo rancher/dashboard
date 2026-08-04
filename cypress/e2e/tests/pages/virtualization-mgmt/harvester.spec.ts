@@ -74,6 +74,13 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }?action=install`).as('installHarvesterExtension');
       cy.intercept('POST', '/v3/clusters').as('createHarvesterCluster');
 
+      // Idempotent across retries: the cluster name is deterministic within a run, and
+      // a failed earlier attempt leaves the cluster on the server (its cleanup runs
+      // inline only when the test succeeds), so the re-create returns 422 instead of
+      // 201. Remove any leftover before starting - the extension install below gives
+      // the async delete plenty of time to complete before the create.
+      cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterName }`, false);
+
       // verify install button and message displays
       harvesterPo.goTo();
       harvesterPo.waitForPage();
