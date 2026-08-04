@@ -610,7 +610,7 @@ defineExpose({ refreshYamlEditor });
 .chart-header-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--gap);
 }
 
 .chart-header-title {
