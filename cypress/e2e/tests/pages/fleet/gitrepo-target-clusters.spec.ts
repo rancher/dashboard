@@ -20,7 +20,7 @@ const workspace = FLEET_DEFAULT_WORKSPACE;
 // expression is the built-in "exclude Harvester" sentinel that the form strips and
 // reads back as "all clusters", so it must NOT be used to exercise clusters mode.
 const matchExpression = {
- key: 'env', operator: 'In', values: ['prod']
+  key: 'env', operator: 'In', values: ['prod']
 };
 const customTargets = [{ clusterSelector: { matchExpressions: [matchExpression] } }];
 
