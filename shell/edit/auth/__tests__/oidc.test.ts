@@ -4,6 +4,7 @@ import { mount, type VueWrapper, flushPromises } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 
 import oidc from '@shell/edit/auth/oidc.vue';
+import ArrayList from '@shell/components/form/ArrayList.vue';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -370,6 +371,26 @@ describe('oidc.vue', () => {
         });
 
         expect(wrapper.vm.model.clientAuthenticatedSearch).toBe(true);
+      });
+    });
+
+    describe('required scopes', () => {
+      it('passes the required scopes to the scope list so they cannot be removed', async() => {
+        await flushPromises();
+
+        const scopeList = wrapper.findComponent(ArrayList);
+
+        expect(scopeList.exists()).toBe(true);
+        expect(scopeList.props('disabledList')).toStrictEqual(['openid', 'profile', 'email']);
+      });
+
+      it('updates the protected scopes when the provider changes', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'cognito' } });
+        await flushPromises();
+
+        const scopeList = wrapper.findComponent(ArrayList);
+
+        expect(scopeList.props('disabledList')).toStrictEqual(['openid', 'email']);
       });
     });
   });
