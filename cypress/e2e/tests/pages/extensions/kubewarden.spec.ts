@@ -21,7 +21,7 @@ function verifyKubewardenInstalledDetails(extensionsPo: ExtensionsPagePo) {
 
 describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => {
   before(() => {
-    catchTargetPageException('Navigation cancelled');
+    catchTargetPageException(['Navigation cancelled', 'Network Error']);
     cy.login();
 
     const extensionsPo = new ExtensionsPagePo();

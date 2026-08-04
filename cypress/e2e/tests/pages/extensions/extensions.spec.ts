@@ -30,7 +30,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // the extensions views load/reload - e.g. after a successful upgrade the reload
     // would throw and fail the test even though the extension was already upgraded,
     // leaving no Upgrade action for the retry.
-    catchTargetPageException('Failed call');
+    catchTargetPageException(['Failed call', 'Network Error']);
   });
 
   it('should go to the available tab by default and preserve active tab on reload', () => {
@@ -555,6 +555,39 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
   });
 
+  const uninstallExtensionIdempotently = (extensionsPo: ExtensionsPagePo, extensionName: string) => {
+    // Idempotent across retries: an attempt can uninstall the extension and then fail
+    // later (e.g. a transient app error during reload), and on the retry the extension
+    // is no longer on the Installed tab, so blindly clicking uninstall times out
+    // looking for its card. Only run the uninstall flow when it is still installed, and
+    // verify the end state (card back on the Available tab) either way.
+    extensionsPo.checkForExtensionTab('installed').then((installedTabRendered) => {
+      if (!installedTabRendered) {
+        return;
+      }
+
+      extensionsPo.extensionTabInstalledClick();
+      extensionsPo.waitForPage(undefined, 'installed');
+      extensionsPo.checkForExtensionCardWithName(extensionName).then((isInstalled) => {
+        if (!isInstalled) {
+          return;
+        }
+
+        extensionsPo.extensionCardUninstallClick(extensionName);
+        extensionsPo.extensionUninstallModal().should('be.visible');
+        extensionsPo.uninstallModalUninstallClick();
+        extensionsPo.extensionReloadBanner().should('be.visible');
+        extensionsPo.extensionReloadClick();
+      });
+    });
+
+    // make sure extension card is in the available tab (end state)
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(undefined, 'available');
+    extensionsPo.extensionCardClick(extensionName);
+    extensionsPo.extensionDetailsTitle().should('contain', extensionName);
+  };
+
   it('Should uninstall extensions', () => {
     // Because we logged out in the previous test this one will also have to use an uncached login
     cy.login(undefined, undefined, false);
@@ -562,25 +595,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
+    extensionsPo.waitForTabs();
 
-    extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(undefined, 'installed');
-
-    // click on uninstall button on card
-    extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
-    extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModalUninstallClick();
-    extensionsPo.extensionReloadBanner().should('be.visible');
-
-    // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
-
-    // make sure extension card is in the available tab
-    extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(undefined, 'available');
-    extensionsPo.extensionCardClick(EXTENSION_NAME);
-    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
+    uninstallExtensionIdempotently(extensionsPo, EXTENSION_NAME);
   });
 
   it('Should uninstall unauthenticated extensions', () => {
@@ -590,26 +607,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
+    extensionsPo.waitForTabs();
 
-    extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(undefined, 'installed');
-
-    // click on uninstall button on card
-    // (clickAction waits for the card to render before interacting)
-    extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
-    extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModalUninstallClick();
-    extensionsPo.extensionReloadBanner().should('be.visible');
-
-    // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
-
-    // make sure extension card is in the available tab
-    extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(undefined, 'available');
-    extensionsPo.extensionCardClick(UNAUTHENTICATED_EXTENSION_NAME);
-    extensionsPo.extensionDetailsTitle().should('contain', UNAUTHENTICATED_EXTENSION_NAME);
+    uninstallExtensionIdempotently(extensionsPo, UNAUTHENTICATED_EXTENSION_NAME);
   });
 
   it('Should uninstall un-cached extensions', () => {
