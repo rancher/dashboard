@@ -116,13 +116,6 @@ const baseConfig = defineConfig({
   // between specs, crashing with "Missing browserCriClient in connectToNewSpec".
   // 0 = keep none.
   numTestsKeptInMemory:  0,
-  // Let Cypress reclaim renderer/browser memory during the run instead of letting it
-  // grow unbounded. When the browser process runs out of memory mid-run it is
-  // OOM-killed and the next spec fails to load its compiled bundle - surfacing as an
-  // "uncaught error outside a test" with "Fetching resource at '/__cypress/tests?p=...'
-  // failed" (xhr.onerror), i.e. the spec reports 0 passing having never run. Available
-  // since Cypress 11.4; the suite now runs on 15.x.
-  experimentalMemoryManagement: true,
   retries:               {
     runMode:  2,
     openMode: 0
