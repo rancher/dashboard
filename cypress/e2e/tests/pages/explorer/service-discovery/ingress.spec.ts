@@ -155,6 +155,10 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
+      // Force a fresh list query: the ingress created by the previous test can be
+      // missing from the rendered list (steve/VAI list lag), leaving the row absent.
+      cy.reload();
+      ingressListPagePo.waitForPage();
       ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
         .checkVisible();
       ingressListPagePo.list().actionMenu(ingressName).getMenuItem('Edit Config').click();
