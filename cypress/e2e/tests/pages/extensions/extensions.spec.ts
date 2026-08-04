@@ -410,22 +410,46 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
+    extensionsPo.waitForTabs();
 
-    extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(undefined, 'available');
-    extensionsPo.loading().should('not.exist');
+    const install = () => {
+      extensionsPo.extensionTabAvailableClick();
+      extensionsPo.waitForPage(undefined, 'available');
+      extensionsPo.loading().should('not.exist');
 
-    // click on install button on card
-    // (clickAction waits for the card to render before interacting)
-    extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
-    extensionsPo.installModal().checkVisible();
+      // click on install button on card
+      // (clickAction waits for the card to render before interacting)
+      extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
+      extensionsPo.installModal().checkVisible();
 
-    // click install
-    extensionsPo.installModal().installButton().click();
+      // click install
+      extensionsPo.installModal().installButton().click();
 
-    // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
+      // let's check the extension reload banner and reload the page
+      extensionsPo.extensionReloadBanner().should('be.visible');
+      extensionsPo.extensionReloadClick();
+    };
+
+    // Idempotent across retries: installing this large extension can fail late with
+    // a transient app-side error (SURE-9177) after the extension is already
+    // installed. On the retry its card has moved from Available to Installed, so
+    // blindly re-running the install flow times out looking for it in Available.
+    // Only install when it is not already installed; either way verify the end state.
+    extensionsPo.checkForExtensionTab('installed').then((installedTabRendered) => {
+      if (!installedTabRendered) {
+        install();
+
+        return;
+      }
+
+      extensionsPo.extensionTabInstalledClick();
+      extensionsPo.waitForPage(undefined, 'installed');
+      extensionsPo.checkForExtensionCardWithName(DISABLED_CACHE_EXTENSION_NAME).then((alreadyInstalled) => {
+        if (!alreadyInstalled) {
+          install();
+        }
+      });
+    });
 
     // make sure extension card is in the installed tab
     extensionsPo.extensionTabInstalledClick();
