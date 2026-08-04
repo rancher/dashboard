@@ -310,32 +310,56 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('Should install an extension', () => {
-    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=install`).as('installExtension');
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
+    extensionsPo.waitForTabs();
 
-    extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(undefined, 'available');
+    const install = () => {
+      cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=install`).as('installExtension');
 
-    // click on install button on card
-    extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
-    extensionsPo.installModal().checkVisible();
+      extensionsPo.extensionTabAvailableClick();
+      extensionsPo.waitForPage(undefined, 'available');
 
-    // select version and click install
-    extensionsPo.installModal().selectVersionClick(2);
-    extensionsPo.installModal().installButton().click();
-    cy.wait('@installExtension').its('response.statusCode').should('eq', 201);
+      // click on install button on card
+      extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
+      extensionsPo.installModal().checkVisible();
 
-    // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
+      // select version and click install
+      extensionsPo.installModal().selectVersionClick(2);
+      extensionsPo.installModal().installButton().click();
+      cy.wait('@installExtension').its('response.statusCode').should('eq', 201);
 
-    // make sure we land on the installed tab by default
+      // let's check the extension reload banner and reload the page
+      extensionsPo.extensionReloadBanner().should('be.visible');
+      extensionsPo.extensionReloadClick();
+    };
+
+    // Idempotent across retries: the install succeeds but the test can still fail
+    // afterwards (e.g. the post-install reload lands on the Available tab instead of
+    // Installed), and on the retry the extension is already installed so it is no
+    // longer on the Available tab. Only install when it is not already installed.
+    extensionsPo.checkForExtensionTab('installed').then((installedTabRendered) => {
+      if (!installedTabRendered) {
+        install();
+
+        return;
+      }
+
+      extensionsPo.extensionTabInstalledClick();
+      extensionsPo.waitForPage(undefined, 'installed');
+      extensionsPo.checkForExtensionCardWithName(EXTENSION_NAME).then((alreadyInstalled) => {
+        if (!alreadyInstalled) {
+          install();
+        }
+      });
+    });
+
+    // make sure extension card is in the installed tab (end state, whether this
+    // attempt installed it or a previous one did)
+    extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(undefined, 'installed');
-
-    // make sure extension card is in the installed tab
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
