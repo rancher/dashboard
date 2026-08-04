@@ -1,38 +1,44 @@
 import { ProjectSecretsListPagePo, ProjectSecretsCreateEditPo } from '@/cypress/e2e/po/pages/explorer/project-secrets.po';
-import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import { qase } from '@/cypress/support/qase';
 
-const projectSecretsListPage = new ProjectSecretsListPagePo('local');
-const namespaceFilter = new NamespaceFilterPo();
+const cluster_id = 'local';
+const projectSecretsListPage = new ProjectSecretsListPagePo(cluster_id);
 const targetProject = {
   name: 'default', label: 'Default', namespace: ''
 };
-const projectScopedSecretName = 'e2e-project-scoped-secret-name';
+let projectScopedSecretName: string;
 const username = 'test';
 const password = 'test-password';
 
-describe('Project Secrets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Project Secrets', { tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
 
+    cy.createE2EResourceName('project-scoped-secret').then((name) => {
+      projectScopedSecretName = name;
+    });
+
     cy.getRancherResource('v1', 'management.cattle.io.projects').then((resp: Cypress.Response<any>) => {
-      targetProject.namespace = resp.body.data.find((item: any) => item.spec.displayName === 'Default').status.backingNamespace;
+      // Scope by clusterName in addition to displayName: multiple clusters can each have their
+      // own "Default" project, and an unscoped find() can resolve to the wrong cluster's project
+      // (mismatching the namespace the UI actually uses for the "local" cluster's secret).
+      targetProject.namespace = resp.body.data.find((item: any) => item.spec.displayName === targetProject.label && item.spec.clusterName === cluster_id).status.backingNamespace;
     });
 
     cy.intercept('POST', '/v1/secrets?exclude=metadata.managedFields').as('createProjectScopedSecret');
   });
 
-  it('has the correct title', () => {
+  qase(24277, it('has the correct title', () => {
     projectSecretsListPage.goTo();
     projectSecretsListPage.title().should('include', 'Project Secrets');
 
     cy.title().should('eq', 'Rancher - local - Project Secrets');
-  });
+  }));
 
-  it('creates a project-scoped secret and displays it in the list', () => {
-    namespaceFilter.toggle();
-    namespaceFilter.clickOptionByLabel('All Namespaces');
-    namespaceFilter.closeDropdown();
-    const secretCreatePage = new ProjectSecretsCreateEditPo('local');
+  qase(27179, it('creates a project-scoped secret and displays it in the list', () => {
+    cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
+
+    const secretCreatePage = new ProjectSecretsCreateEditPo(cluster_id);
 
     projectSecretsListPage.goTo();
 
@@ -56,8 +62,11 @@ describe('Project Secrets', { testIsolation: false, tags: ['@explorer2', '@admin
       expect(payload.metadata.labels['management.cattle.io/project-scoped-secret']).to.eq(targetProject.namespace);
       expect(payload.metadata.name).to.eq(projectScopedSecretName);
     });
+  }));
 
+  after(() => {
     cy.deleteRancherResource('v1', `secrets/${ targetProject.name }`, projectScopedSecretName, true);
     cy.deleteRancherResource('v1', `secrets/${ targetProject.namespace }`, projectScopedSecretName, true);
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });
