@@ -15,7 +15,7 @@ describe('Nodes list', { tags: ['@explorer2', '@adminUser'], testIsolation: fals
     // fails asserting the list contains it.
     cy.deleteRancherResource('v1', 'nodes', dummyNode.metadata.name, false);
     cy.createRancherResource('v1', 'nodes', JSON.stringify(dummyNode));
-    cy.waitForRancherResource('v1', 'nodes', dummyNode.metadata.name);
+    cy.waitForRancherResource('v1', 'nodes', dummyNode.metadata.name, (resp: any) => resp.status === 200, 20, { failOnStatusCode: false });
   });
 
   after(() => {
