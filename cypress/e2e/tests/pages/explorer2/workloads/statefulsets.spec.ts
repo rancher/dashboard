@@ -102,10 +102,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text before navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } StatefulSets`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
 
         // navigate to next page - right button
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
@@ -114,10 +111,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text and buttons after navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } StatefulSets`);
-          });
+          .checkPaginationTextEquals(`11 - 20 of ${ count } StatefulSets`);
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -132,10 +126,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text and buttons after navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } StatefulSets`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -158,10 +149,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text after navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } StatefulSets`);
-          });
+          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } StatefulSets`);
 
         // navigate to first page - beginning button
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
@@ -170,10 +158,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text and buttons after navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } StatefulSets`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
