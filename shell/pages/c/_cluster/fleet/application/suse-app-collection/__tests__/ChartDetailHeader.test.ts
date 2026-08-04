@@ -6,8 +6,8 @@ describe('component: ChartDetailHeader', () => {
     props:  { chartName: 'apache-apisix-dashboard', deprecated },
     global: {
       stubs: {
-        RcIcon:               true,
-        LazyImage:            true,
+        RcIcon:                true,
+        LazyImage:             true,
         AppChartCardSubHeader: true,
       }
     }

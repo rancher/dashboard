@@ -118,7 +118,7 @@ export default {
       fvFormRuleSets:   [],
 
       // Raw chart index entries from the ClusterRepo, keyed by chart name
-      appCoChartEntries:  {},
+      appCoChartEntries:    {},
       // Chart-level deprecated flag from the catalog chart model
       appCoChartDeprecated: false,
       // True while fetching the chart index from the ClusterRepo
