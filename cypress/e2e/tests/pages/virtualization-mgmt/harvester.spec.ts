@@ -80,6 +80,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // 201. Remove any leftover before starting - the extension install below gives
       // the async delete plenty of time to complete before the create.
       cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterName }`, false);
+      // Wait for the leftover to be fully gone (cluster deletion is async with
+      // finalizers) so the re-create does not collide with a still-terminating cluster.
+      // On a clean first attempt the GET is a 404 straight away.
+      cy.waitForRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterName }`, (resp: any) => resp.status === 404, 40, { failOnStatusCode: false });
 
       // verify install button and message displays
       harvesterPo.goTo();
@@ -129,6 +133,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
         // navigate to harvester list page and verify the logo and tagline do not display after cluster created
         HarvesterClusterPagePo.navTo();
+        harvesterPo.waitForPage();
+        // Force a fresh list query: the just-created cluster can be missing from the
+        // rendered list (steve/VAI list lag), leaving the table container absent.
+        cy.reload();
         harvesterPo.waitForPage();
         harvesterPo.list().resourceTable().sortableTable().rowWithName(harvesterClusterName)
           .checkVisible();
