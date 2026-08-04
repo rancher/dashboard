@@ -4,6 +4,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateDaemonSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/daemonsets/daemonsets-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -45,14 +46,24 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable()
       .rowElementWithName(daemonsetName)
       .should('be.visible');
-    workloadsDaemonsetsListPage.list().actionMenu(daemonsetName).getMenuItem('Edit Config')
-      .click();
+
+    // Navigate straight to the edit form and wait for the daemonset fetch before
+    // interacting. Opening the form via the list action menu intermittently landed
+    // on a form whose tabs never rendered (a load race, not a slow render, so a
+    // longer wait did not help). A direct navigation plus a data-ready gate is
+    // reliable and mirrors the jobs clone test.
+    cy.intercept('GET', `/v1/apps.daemonsets/default/${ daemonsetName }?*`).as('getDaemonset');
+
+    const daemonsetEditPage = new WorkLoadsDaemonsetsEditPagePo(daemonsetName, { mode: 'edit' }, localCluster, 'default');
+
+    daemonsetEditPage.goTo();
+    cy.wait('@getDaemonset', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
 
     // edit daemonset
-    workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
-    workloadsDaemonsetsEditPage.clickTab('#upgrading');
-    workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
-    workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
+    daemonsetEditPage.clickTab('#DaemonSet');
+    daemonsetEditPage.clickTab('#upgrading');
+    daemonsetEditPage.ScalingUpgradePolicyRadioBtn().set(1);
+    daemonsetEditPage.resourceDetail().cruResource().saveOrCreate()
       .click();
 
     workloadsDaemonsetsListPage.baseResourceList().resourceTable().sortableTable()
