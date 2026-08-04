@@ -211,10 +211,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text before navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
 
         // navigate to next page - right button
         jobsListPage.list().resourceTable().sortableTable().pagination()
@@ -223,10 +220,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } Jobs`);
-          });
+          .checkPaginationTextEquals(`11 - 20 of ${ count } Jobs`);
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -241,10 +235,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -267,10 +258,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
-          });
+          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
 
         // navigate to first page - beginning button
         jobsListPage.list().resourceTable().sortableTable().pagination()
@@ -279,10 +267,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
