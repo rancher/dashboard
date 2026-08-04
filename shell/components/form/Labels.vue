@@ -79,8 +79,9 @@ export class Factory {
     const neu = value || {};
 
     callbackFn({
-      ...this.omitProtected(neu),
+      ...omitBy(this.omitProtected(neu), (_, key) => this.isReadOnly(key)), //remove new labels/annotations that are readOnly
       ...this.pickProtected(this.initValue),
+      ...pickBy(this.initValue, (_, key) => this.isReadOnly(key)), // add in initial labels/annotations that are readOnly
     });
 
     this.value = neu;

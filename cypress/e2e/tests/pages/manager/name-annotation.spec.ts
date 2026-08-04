@@ -102,6 +102,8 @@ describe('Management Cluster Name Annotation', { testIsolation: false, tags: ['@
   it('shows the annotation as read-only with an error icon when editing the cluster', () => {
     const editClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, clusterName);
 
+    cy.intercept('PUT', `/v1/${ type }s/${ namespace }/${ clusterName }`).as('updateRequest');
+
     clusterList.goTo();
     clusterList.waitForPage();
     clusterList.sortableTable().rowElementWithName(clusterName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
@@ -114,10 +116,25 @@ describe('Management Cluster Name Annotation', { testIsolation: false, tags: ['@
 
     const labelsAnnotations = new LabelsAnnotationsPo('[data-testid="tabbed-block"]');
 
-
     // The management-cluster-name annotation should have an error/warning icon (read-only indicator)
     labelsAnnotations.annotations().keyInput(0).should('have.value', MANAGEMENT_CLUSTER_NAME_ANNOTATION);
     labelsAnnotations.annotations().keyWarningIcon(0).should('exist');
+
+    // Attempt to change the annotation value
+    labelsAnnotations.annotations().setValueAtIndex('modified-value', 0);
+
+    // Save the cluster
+    editClusterPage.save();
+
+    // Verify the PUT request preserves the original annotation value, not the modified one
+    cy.wait('@updateRequest', { requestTimeout: LONG_TIMEOUT_OPT.timeout }).then((intercept) => {
+      expect(intercept.response?.statusCode, 'Cluster update PUT status').to.be.oneOf([200, 201]);
+
+      // The original annotation value should be preserved
+      expect(intercept.request.body.metadata.annotations).to.have.property(
+        MANAGEMENT_CLUSTER_NAME_ANNOTATION, mgmtClusterNameValue
+      );
+    });
   });
 
   it('displays the annotation in the detail page masthead annotations section', () => {

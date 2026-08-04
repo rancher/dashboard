@@ -35,11 +35,11 @@ export default class KeyValuePo extends ComponentPo {
   }
 
   setKeyAtIndex(key: string, index: number) {
-    return this.keyInput(index).type(key);
+    return this.keyInput(index).clear().type(key);
   }
 
   setValueAtIndex(value: string, index: number) {
-    return this.valueInput(index).type(value);
+    return this.valueInput(index).clear().type(value);
   }
 
   keyAtIndex(index: number) {
