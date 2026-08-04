@@ -79,7 +79,7 @@ export class Factory {
     const neu = value || {};
 
     callbackFn({
-      ...omitBy(this.omitProtected(neu), (_, key) => this.isReadOnly(key)), //remove new labels/annotations that are readOnly
+      ...omitBy(this.omitProtected(neu), (_, key) => this.isReadOnly(key)), // remove new labels/annotations that are readOnly
       ...this.pickProtected(this.initValue),
       ...pickBy(this.initValue, (_, key) => this.isReadOnly(key)), // add in initial labels/annotations that are readOnly
     });
@@ -183,7 +183,7 @@ export default {
         this.value.readOnlyAnnotationKeys,
         readOnlyWarning
       ),
-      toggler:     false
+      toggler: false
     };
   },
 

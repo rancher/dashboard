@@ -96,7 +96,6 @@ describe('Management Cluster Name Annotation', { testIsolation: false, tags: ['@
         MANAGEMENT_CLUSTER_NAME_ANNOTATION, mgmtClusterNameValue
       );
     });
-
   });
 
   it('shows the annotation as read-only with an error icon when editing the cluster', () => {
