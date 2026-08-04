@@ -182,6 +182,12 @@ const baseConfig = defineConfig({
           };
         },
       });
+      // Signals to the shared `afterEach` in `support/e2e.ts` that the `getHostStats`
+      // task has been registered by this config. Consumers of `@rancher/cypress` that
+      // supply their own `setupNodeEvents` (e.g. Jenkins runners) won't set this
+      // flag, so the `afterEach` will skip calling the task and avoid failing the
+      // hook (which would skip all remaining tests in the spec).
+      config.env.hasHostStats = true;
       websocketTasks(on, config);
 
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
