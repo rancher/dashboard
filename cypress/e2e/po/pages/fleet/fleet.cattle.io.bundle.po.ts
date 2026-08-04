@@ -6,7 +6,7 @@ import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 export class FleetBundlesListPagePo extends BaseListPagePo {
-  static url = `/c/_/fleet/fleet.cattle.io.bundle`
+  static url = `/c/_/fleet/fleet.cattle.io.bundle`;
 
   constructor() {
     super(FleetBundlesListPagePo.url);

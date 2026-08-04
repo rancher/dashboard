@@ -5,7 +5,7 @@ import PasswordPo from '@/cypress/e2e/po/components/password.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 export default class AccountPagePo extends PagePo {
-  static url = '/account'
+  static url = '/account';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(AccountPagePo.url);
   }

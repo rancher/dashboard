@@ -212,6 +212,20 @@ export const eslintConfigBase = [
       'template-tag-spacing':   ['error', 'never'],
       'yield-star-spacing':     ['warn', 'both'],
 
+      // --- Restored formatting rules (issue #18506) ---
+      // `indent`, `semi` and `key-spacing` were dropped during the eslint 7 -> flat-config/v10
+      // migration. The legacy `--ext .js,.ts,.vue` scope plus eslint 7's behaviour left some
+      // files effectively unchecked, so enabling these under v10's wider/updated checking
+      // surfaced pre-existing violations and they were removed to keep the migration green with
+      // zero source changes. Re-added here verbatim from the pre-migration `.eslintrc.default.js`.
+      indent:        ['warn', 2],
+      'key-spacing': ['warn', {
+        align:     { beforeColon: false, afterColon: true, on: 'value', mode: 'strict' },
+        multiLine: { beforeColon: false, afterColon: true },
+      }],
+      semi:          ['warn', 'always'],
+      // --- end restored formatting rules ---
+
       'vue/one-component-per-file':       'off',
       'vue/no-deprecated-slot-attribute': 'off',
       'vue/require-explicit-emits':       'error',

@@ -8,7 +8,7 @@ import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class RancherSetupConfigurePage extends PagePo {
-  static url = '/auth/setup'
+  static url = '/auth/setup';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(RancherSetupConfigurePage.url);
   }

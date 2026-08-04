@@ -154,7 +154,7 @@ const rawExtensionEslintConfig = [
       indent:                        ['warn', 2],
       semi:                          ['warn', 'always'],
       'key-spacing':                 ['warn', {
-        align:     { beforeColon: false, afterColon: true, on: 'value', mode: 'minimum' },
+        align:     { beforeColon: false, afterColon: true, on: 'value', mode: 'strict' },
         multiLine: { beforeColon: false, afterColon: true },
       }],
       'array-bracket-spacing':       ['warn', 'never'],

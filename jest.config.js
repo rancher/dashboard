@@ -1,14 +1,14 @@
 process.env.TZ = 'UTC';
 
 module.exports = {
-  preset:             'ts-jest',
-  testEnvironment:    'jsdom',
+  preset:                 'ts-jest',
+  testEnvironment:        'jsdom',
   // Jest 28+ (jest-environment-jsdom) defaults package resolution to the "browser" export
   // condition, which makes packages like @vue/test-utils resolve their browser (global-Vue)
   // build and throw "Vue is not defined". Pin to node conditions to restore Jest 27 behaviour.
   testEnvironmentOptions: { customExportConditions: ['node', 'node-addons'] },
   setupFilesAfterEnv:     ['./jest.setup.js'],
-  watchman:           false,
+  watchman:               false,
 
   // tell Jest to handle `*.vue` files
   moduleFileExtensions: ['js', 'mjs', 'json', 'vue', 'ts'],
