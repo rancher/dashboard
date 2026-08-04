@@ -1,0 +1,89 @@
+name: Extension Compatibility Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      rancher_version:
+        description: "Test a specific version only (e.g., v2.14-head). Leave empty for all."
+        required: false
+        type: string
+        default: ""
+  # schedule:
+  #   - cron: "17 6 * * 1" # Weekly on Monday at 6:17am UTC
+
+jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+    strategy:
+      fail-fast: false
+      max-parallel: 1 # Sequential to avoid rate limits. Set to 5 for parallel on main branch.
+      matrix:
+        include:
+          - rancher_version: "v2.11-head"
+            rancher_registry: "stgregistry.suse.com"
+            version_label: "2.11"
+            skip_shell_api_tests: "true"
+            skip_tab_resource_detail_page: "true"
+            skip_table_hook: "true"
+            skip_about_top: "true"
+            skip_cluster_create_rke2: "true"
+          - rancher_version: "v2.12-head"
+            rancher_registry: "stgregistry.suse.com"
+            version_label: "2.12"
+            skip_shell_api_tests: "true"
+            skip_tab_resource_detail_page: "false"
+            skip_table_hook: "true"
+            skip_about_top: "true"
+            skip_cluster_create_rke2: "true"
+          - rancher_version: "v2.13-head"
+            rancher_registry: "stgregistry.suse.com"
+            version_label: "2.13"
+            skip_shell_api_tests: "true"
+            skip_tab_resource_detail_page: "false"
+            skip_table_hook: "true"
+            skip_about_top: "false"
+            skip_cluster_create_rke2: "false"
+          - rancher_version: "v2.14-head"
+            rancher_registry: ""
+            version_label: "2.14"
+            skip_shell_api_tests: "false"
+            skip_tab_resource_detail_page: "false"
+            skip_table_hook: "false"
+            skip_about_top: "false"
+            skip_cluster_create_rke2: "false"
+          - rancher_version: "head"
+            rancher_registry: ""
+            version_label: "latest"
+            skip_shell_api_tests: "false"
+            skip_tab_resource_detail_page: "false"
+            skip_table_hook: "false"
+            skip_about_top: "false"
+            skip_cluster_create_rke2: "false"
+    steps:
+      - name: Skip non-matching versions (single-version mode)
+        if: >-
+          github.event.inputs.rancher_version != ''
+          && github.event.inputs.rancher_version != matrix.rancher_version
+        run: |
+          echo "Skipping ${{ matrix.version_label }} (only testing ${{ github.event.inputs.rancher_version }})"
+          exit 0
+
+      - name: Dispatch extension-test-runner
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Dispatching extension-test-runner for Rancher ${{ matrix.version_label }} (${{ matrix.rancher_version }})"
+          gh workflow run extension-test-runner.lock.yml \
+            --repo "${{ github.repository }}" \
+            -f rancher_version="${{ matrix.rancher_version }}" \
+            -f rancher_registry="${{ matrix.rancher_registry }}" \
+            -f version_label="${{ matrix.version_label }}" \
+            -f skip_shell_api_tests="${{ matrix.skip_shell_api_tests }}" \
+            -f skip_tab_resource_detail_page="${{ matrix.skip_tab_resource_detail_page }}" \
+            -f skip_table_hook="${{ matrix.skip_table_hook }}" \
+            -f skip_about_top="${{ matrix.skip_about_top }}" \
+            -f skip_cluster_create_rke2="${{ matrix.skip_cluster_create_rke2 }}"

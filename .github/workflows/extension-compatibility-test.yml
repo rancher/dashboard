@@ -1,0 +1,462 @@
+name: Extension Compatibility Test (Cypress)
+
+on:
+  workflow_dispatch:
+    inputs:
+      rancher_version:
+        description: "Test a specific version only (e.g., v2.14-head). Leave empty for all."
+        required: false
+        type: string
+        default: ""
+      extension_repo:
+        description: "Test extension git repo URL"
+        required: false
+        type: string
+        default: "https://github.com/aalves08/elemental-ui.git"
+      extension_branch:
+        description: "Test extension git branch or tag"
+        required: false
+        type: string
+        default: "compatibility-tests-version"
+  schedule:
+    - cron: "17 6 * * 1-5" # Every weekday (Mon-Fri) at 6:17am UTC
+
+env:
+  CATTLE_BOOTSTRAP_PASSWORD: password
+  # sslip.io magic domain - Rancher (via Helm) is served through the k3s Traefik
+  # ingress on 443, so we address it by hostname over TLS instead of raw 127.0.0.1.
+  RANCHER_URL: "https://127.0.0.1.sslip.io"
+  # The k3s Traefik ingress owns host ports 80/443, so the extension catalog server
+  # (developer load) is served on a non-conflicting port.
+  EXTENSION_SERVER_PORT: "8080"
+
+jobs:
+  test-matrix:
+    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'rancher' || github.repository_owner == 'marcelofukumoto' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      # Each matrix row installs its own k3s on its own runner, so the rows are independent.
+      # Capped at 3 (rather than 6) to leave runner headroom for other workflows and to avoid
+      # 6 concurrent multi-GB Rancher image pulls against the registries.
+      max-parallel: 3
+      matrix:
+        include:
+          # NOTE: For this phase we test 2.10, 2.11, 2.12, 2.13, 2.14 and `latest` (Rancher head=2.15).
+          #
+          # Version differences are expressed through skip_* flags (and a couple of version-gated
+          # `if`s in the spec). Per the test spec's version notes and what works in practice:
+          #   - Shell API tests and the table hook are v2.14.0+ (skipped on 2.10-2.13)
+          #   - The new RESOURCE_* tabs render from 2.13 in practice (skipped on 2.10-2.12)
+          #   - ABOUT_TOP and CLUSTER_CREATE_RKE2 are v2.13.0+ (skipped on 2.10-2.12)
+          #   - The legacy RESOURCE_DETAIL tab is "up until v2.14.0" (run on 2.10-2.14, skip on 2.15)
+          # NOTE: kube_version below is the exact k3s version bundled in each Rancher
+          # version's all-in-one Docker image (what the Docker-based test ran against),
+          # read via `docker run --entrypoint k3s rancher/rancher:<tag> --version`.
+          # helm_repo / rancher_registry encode each version's chart channel and registry.
+          - rancher_version: "v2.10-head"
+            rancher_registry: ""
+            kube_version: "v1.31.1+k3s1"
+            helm_repo: "https://charts.optimus.rancher.io/server-charts/release-2.10"
+            version_label: "2.10"
+            # Same unsupported set as 2.11/2.12: only the v2.7.2+ extension points run on 2.10.
+            skip_shell_api_tests: "true"
+            skip_tab_resource_detail_page: "true"
+            skip_table_hook: "true"
+            skip_about_top: "true"
+            skip_cluster_create_rke2: "true"
+            # Legacy RESOURCE_DETAIL tab still works on 2.10
+            skip_resource_detail_legacy: "false"
+          - rancher_version: "v2.11-head"
+            rancher_registry: "stgregistry.suse.com"
+            kube_version: "v1.32.13+k3s1"
+            helm_repo: "https://charts.optimus.rancher.io/server-charts/release-2.11"
+            version_label: "2.11"
+            # Same unsupported set as 2.12: new tabs (group 2), RKE2 (2.5), ABOUT_TOP (4.4),
+            # table hook (6.1) and Shell API (group 7) are all absent on 2.11.
+            skip_shell_api_tests: "true"
+            skip_tab_resource_detail_page: "true"
+            skip_table_hook: "true"
+            skip_about_top: "true"
+            skip_cluster_create_rke2: "true"
+            # Legacy RESOURCE_DETAIL tab still works on 2.11
+            skip_resource_detail_legacy: "false"
+          - rancher_version: "v2.12-head"
+            rancher_registry: "stgregistry.suse.com"
+            kube_version: "v1.33.12+k3s1"
+            helm_repo: "https://charts.optimus.rancher.io/server-charts/release-2.12"
+            version_label: "2.12"
+            # Shell API (group 7) and the table hook (6.1) are v2.14.0+; ABOUT_TOP (4.4) and
+            # CLUSTER_CREATE_RKE2 (2.5) are v2.13.0+ - none present on 2.12.
+            # The new RESOURCE_* tabs (group 2) don't render on 2.12 either (the extension marks them
+            # as 2.14+ TabLocations; they work from 2.13 in practice) - skip group 2 here.
+            skip_shell_api_tests: "true"
+            skip_tab_resource_detail_page: "true"
+            skip_table_hook: "true"
+            skip_about_top: "true"
+            skip_cluster_create_rke2: "true"
+            # Legacy RESOURCE_DETAIL tab still works on 2.12
+            skip_resource_detail_legacy: "false"
+          - rancher_version: "v2.13-head"
+            rancher_registry: "stgregistry.suse.com"
+            kube_version: "v1.34.8+k3s1"
+            helm_repo: "https://charts.optimus.rancher.io/server-charts/release-2.13"
+            version_label: "2.13"
+            # Shell API (group 7) and the table hook (6.1) are v2.14.0+ - not present on 2.13
+            skip_shell_api_tests: "true"
+            skip_tab_resource_detail_page: "false"
+            skip_table_hook: "true"
+            skip_about_top: "false"
+            skip_cluster_create_rke2: "false"
+            # Legacy RESOURCE_DETAIL tab still works on 2.13
+            skip_resource_detail_legacy: "false"
+          - rancher_version: "v2.14-head"
+            rancher_registry: ""
+            kube_version: "v1.35.5+k3s1"
+            helm_repo: "https://charts.optimus.rancher.io/server-charts/release-2.14"
+            version_label: "2.14"
+            skip_shell_api_tests: "false"
+            skip_tab_resource_detail_page: "false"
+            skip_table_hook: "false"
+            skip_about_top: "false"
+            skip_cluster_create_rke2: "false"
+            # Legacy RESOURCE_DETAIL tab is native to 2.14 - exercise it here
+            skip_resource_detail_legacy: "false"
+          - rancher_version: "head"
+            rancher_registry: ""
+            kube_version: "v1.36.1+k3s1"
+            helm_repo: "https://charts.optimus.rancher.io/server-charts/release-2.15"
+            version_label: "latest"
+            skip_shell_api_tests: "false"
+            skip_tab_resource_detail_page: "false"
+            skip_table_hook: "false"
+            skip_about_top: "false"
+            skip_cluster_create_rke2: "false"
+            # Legacy RESOURCE_DETAIL tab is "up until v2.14" per the test spec - skip on 2.15
+            skip_resource_detail_legacy: "true"
+
+    name: "Rancher ${{ matrix.version_label }}"
+
+    steps:
+      - name: Skip non-matching versions (single-version mode)
+        if: >-
+          github.event.inputs.rancher_version != ''
+          && github.event.inputs.rancher_version != matrix.rancher_version
+        run: |
+          echo "Skipping ${{ matrix.version_label }} (only testing ${{ github.event.inputs.rancher_version }})"
+          exit 0
+
+      - name: Checkout
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Setup Node.js
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install packages
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        run: yarn install --frozen-lockfile --ignore-engines
+
+      - name: Install and start Verdaccio
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        run: |
+          which verdaccio > /dev/null 2>&1 || npm install -g verdaccio
+          verdaccio > verdaccio.log 2>&1 &
+          sleep 10
+          if [ -f ~/.config/verdaccio/htpasswd ]; then
+            sed -i '/^admin:/d' ~/.config/verdaccio/htpasswd
+          fi
+          curl -XPUT -H "Content-type: application/json" \
+            -d '{ "name": "admin", "password": "admin" }' \
+            'http://localhost:4873/-/user/admin' > login.json
+          TOKEN=$(jq -r .token login.json)
+          rm login.json
+          cat > ~/.npmrc << EOF
+          //127.0.0.1:4873/:_authToken="$TOKEN"
+          //localhost:4873/:_authToken="$TOKEN"
+          EOF
+
+      - name: Publish shell to Verdaccio
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        run: |
+          SHELL_VERSION="99.99.99"
+          VERDACCIO_NPM_REGISTRY="http://localhost:4873"
+          sed -i "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" shell/package.json
+          sed -i "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" pkg/rancher-components/package.json
+          sed -i "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" creators/extension/package.json
+          export NPM_REGISTRY=${VERDACCIO_NPM_REGISTRY}
+          export TAG="shell-pkg-v${SHELL_VERSION}"
+          shell/scripts/publish-shell.sh
+          export TAG="creators-pkg-v${SHELL_VERSION}"
+          shell/scripts/publish-shell.sh
+          yarn build:lib
+          npm set registry ${VERDACCIO_NPM_REGISTRY}
+          yarn config set registry ${VERDACCIO_NPM_REGISTRY}
+          yarn publish:lib
+
+      - name: Clone and build test extension
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        run: |
+          SHELL_VERSION="99.99.99"
+          DEFAULT_NPM_REGISTRY="https://registry.npmjs.org/"
+          VERDACCIO_NPM_REGISTRY="http://localhost:4873"
+          yarn config set registry ${DEFAULT_NPM_REGISTRY}
+          git clone --depth 1 --branch ${{ github.event.inputs.extension_branch || 'compatibility-tests-version' }} \
+            ${{ github.event.inputs.extension_repo || 'https://github.com/aalves08/elemental-ui.git' }} /tmp/elemental-ui
+          cd /tmp/elemental-ui
+          # Switch to the Node version required by the extension (from its .nvmrc)
+          export NVM_DIR="$HOME/.nvm"
+          if [ ! -d "$NVM_DIR" ]; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+          fi
+          . "$NVM_DIR/nvm.sh"
+          if [ -f .nvmrc ]; then
+            nvm install
+            echo "Building extension with Node $(node -v) (from extension .nvmrc)"
+          else
+            echo "No .nvmrc found in extension repo, using current Node $(node -v)"
+          fi
+          sed -i 's/\("version": "[0-9]*\.[0-9]*\.[0-9]*\)-[^"]*"/\1"/g' pkg/elemental/package.json
+          yarn install
+          yarn config set registry ${VERDACCIO_NPM_REGISTRY}
+          sed -i "s/\"\@rancher\/shell\": \"[0-9]*.[0-9]*.[0-9]*\",/\"\@rancher\/shell\": \"${SHELL_VERSION}\",/g" package.json
+          yarn add @rancher/shell@${SHELL_VERSION} -W
+          # Patch source for backward compatibility: guard methods that don't exist in older Rancher versions
+          sed -i 's/\$plugin\.addTableHook(/typeof \$plugin.addTableHook === "function" \&\& \$plugin.addTableHook(/g' pkg/elemental/index.ts
+          yarn build-pkg elemental
+          cp -r dist-pkg ${{ github.workspace }}/dist-pkg
+          yarn config set registry ${DEFAULT_NPM_REGISTRY}
+          nvm use default
+
+      - name: Start extension server
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        run: |
+          PORT=${{ env.EXTENSION_SERVER_PORT }} nohup node shell/scripts/serve-pkgs > serve-pkgs.log 2>&1 &
+          sleep 3
+          echo "Extension server catalog:"
+          curl -s http://127.0.0.1:${{ env.EXTENSION_SERVER_PORT }}/ | head -20
+
+      - name: Start Rancher (Helm on k3s)
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        env:
+          # Per-matrix Rancher version. The stock UI shipped with each version is
+          # tested as-is (the script never overrides the dashboard UI).
+          RANCHER_IMG_REGISTRY: ${{ matrix.rancher_registry }}
+          RANCHER_IMG_TAG: ${{ matrix.rancher_version }}
+          RANCHER_AGENT_IMG_TAG: ${{ matrix.rancher_version }}
+          KUBE_VERSION: ${{ matrix.kube_version }}
+          RANCHER_HELM_REPO_URL: ${{ matrix.helm_repo }}
+          TEST_BASE_URL: ${{ env.RANCHER_URL }}
+        run: |
+          ./scripts/e2e-extension-k3s-start.sh
+
+      - name: Bootstrap Rancher
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        run: |
+          RANCHER_URL="${{ env.RANCHER_URL }}"
+          # Retry login - the rancher-webhook can briefly be unavailable right after boot,
+          # causing login to return no token (and KeyError under `bash -e`).
+          TOKEN=""
+          for i in $(seq 1 60); do
+            TOKEN=$(curl -sk -X POST "${RANCHER_URL}/v3-public/localProviders/local?action=login" \
+              -H "Content-Type: application/json" \
+              -d '{"username":"admin","password":"${{ env.CATTLE_BOOTSTRAP_PASSWORD }}"}' \
+              | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null || echo "")
+            if [ -n "$TOKEN" ]; then
+              echo "Logged in after $i attempt(s)"
+              break
+            fi
+            echo "  Login not ready yet... ($i/60)"
+            sleep 5
+          done
+          if [ -z "$TOKEN" ]; then
+            echo "Failed to obtain an admin token"
+            exit 1
+          fi
+          curl -sk -X PUT "${RANCHER_URL}/v3/settings/server-url" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"server-url","value":"'"${RANCHER_URL}"'"}'
+          curl -sk -X PUT "${RANCHER_URL}/v3/settings/eula-agreed" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"eula-agreed","value":"'"$(date +%Y-%m-%dT%H:%M:%S.000Z)"'"}'
+          curl -sk -X PUT "${RANCHER_URL}/v3/settings/first-login" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"first-login","value":"false"}'
+
+      - name: Wait for cluster API schemas
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        run: |
+          RANCHER_URL="${{ env.RANCHER_URL }}"
+          # Cluster (core) resources are served by the *cluster-scoped* Steve API, and core-group
+          # schema ids carry no group prefix - see shell/config/types.js (`SERVICE = 'service'`).
+          # The old probe used `/v1/schemas/core.v1.service`, which 404s on every Rancher version.
+          SCHEMA_URL="${RANCHER_URL}/k8s/clusters/local/v1/schemas/service"
+          echo "Waiting for local cluster API schemas (up to 5 minutes)..."
+          echo "  probing ${SCHEMA_URL}"
+          CODE=""
+          RESP=""
+          for i in $(seq 1 60); do
+            # Re-login each iteration - token endpoint and schemas both come up asynchronously.
+            TOKEN=$(curl -sk -X POST "${RANCHER_URL}/v3-public/localProviders/local?action=login" \
+              -H "Content-Type: application/json" \
+              -d "{\"username\":\"admin\",\"password\":\"${CATTLE_BOOTSTRAP_PASSWORD}\"}" \
+              | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null || echo "")
+            if [ -n "$TOKEN" ]; then
+              OUT=$(curl -sk -w $'\n%{http_code}' -H "Authorization: Bearer ${TOKEN}" "$SCHEMA_URL" 2>/dev/null || echo)
+              CODE=$(printf '%s' "$OUT" | tail -n1)
+              RESP=$(printf '%s' "$OUT" | sed '$d')
+              if [ "$CODE" = "200" ]; then
+                echo "Cluster API schemas are ready!"
+                exit 0
+              fi
+            fi
+            echo "  Waiting... ($i/60) token=${TOKEN:+yes} schema_http=${CODE:-none}"
+            sleep 5
+          done
+          echo "::error::Cluster API schemas never became ready (last HTTP ${CODE:-none} from ${SCHEMA_URL})"
+          echo "Last response body:"
+          printf '%s\n' "$RESP" | head -20
+          exit 1
+
+      - name: Wait for UI login and active local cluster
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        run: |
+          RANCHER_URL="${{ env.RANCHER_URL }}"
+          # The Cypress suite logs in through the UI (POST /v1-public/login) and immediately uses the
+          # local cluster (side-nav / explorer). After the API schemas are up there can still be a
+          # window where the UI login endpoint 401s or the local cluster isn't 'active' yet, which
+          # flakes the (already retried) test setup. Gate on both being ready before starting Cypress.
+          #
+          # /v1-public/login only exists from Rancher 2.13 (see extension-compatibility.spec.ts), so a
+          # 404 means "not applicable on this version" rather than "not ready". Any other non-200
+          # (401/500/000) is a genuine not-ready signal and keeps us waiting.
+          echo "Waiting for UI login endpoint + active local cluster (up to 5 minutes)..."
+          for i in $(seq 1 60); do
+            LOGIN_CODE=$(curl -sk -o /dev/null -w "%{http_code}" -X POST "${RANCHER_URL}/v1-public/login" \
+              -H "Content-Type: application/json" \
+              -d "{\"username\":\"admin\",\"password\":\"${CATTLE_BOOTSTRAP_PASSWORD}\",\"description\":\"UI session\",\"type\":\"localProvider\",\"responseType\":\"cookie\"}" 2>/dev/null || echo "000")
+            TOKEN=$(curl -sk -X POST "${RANCHER_URL}/v3-public/localProviders/local?action=login" \
+              -H "Content-Type: application/json" \
+              -d "{\"username\":\"admin\",\"password\":\"${CATTLE_BOOTSTRAP_PASSWORD}\"}" \
+              | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null || echo "")
+            STATE=""
+            if [ -n "$TOKEN" ]; then
+              STATE=$(curl -sk -H "Authorization: Bearer ${TOKEN}" "${RANCHER_URL}/v3/clusters/local" 2>/dev/null \
+                | python3 -c "import sys,json; print(json.load(sys.stdin).get('state',''))" 2>/dev/null || echo "")
+            fi
+            if { [ "$LOGIN_CODE" = "200" ] || [ "$LOGIN_CODE" = "404" ]; } && [ "$STATE" = "active" ]; then
+              if [ "$LOGIN_CODE" = "404" ]; then
+                echo "Local cluster is active (/v1-public/login absent on this Rancher version)"
+              else
+                echo "UI login works and local cluster is active!"
+              fi
+              exit 0
+            fi
+            echo "  Waiting... ($i/60) login=${LOGIN_CODE} cluster=${STATE:-unknown}"
+            sleep 5
+          done
+          echo "::error::UI login / local cluster never became ready (login=${LOGIN_CODE} cluster=${STATE:-unknown})"
+          exit 1
+
+      - name: Run Cypress extension compatibility tests
+        if: >-
+          github.event.inputs.rancher_version == ''
+          || github.event.inputs.rancher_version == matrix.rancher_version
+        env:
+          TEST_BASE_URL: ${{ env.RANCHER_URL }}/dashboard
+          TEST_USERNAME: admin
+          TEST_PASSWORD: ${{ env.CATTLE_BOOTSTRAP_PASSWORD }}
+          CYPRESS_extension_server_url: http://127.0.0.1:${{ env.EXTENSION_SERVER_PORT }}
+          CYPRESS_skip_shell_api_tests: ${{ matrix.skip_shell_api_tests }}
+          CYPRESS_skip_tab_resource_detail_page: ${{ matrix.skip_tab_resource_detail_page }}
+          CYPRESS_skip_table_hook: ${{ matrix.skip_table_hook }}
+          CYPRESS_skip_about_top: ${{ matrix.skip_about_top }}
+          CYPRESS_skip_cluster_create_rke2: ${{ matrix.skip_cluster_create_rke2 }}
+          CYPRESS_skip_resource_detail_legacy: ${{ matrix.skip_resource_detail_legacy }}
+          CYPRESS_rancher_version: ${{ matrix.version_label }}
+        run: |
+          yarn cy:run --spec cypress/e2e/tests/pages/extensions/extension-compatibility.spec.ts
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cypress-screenshots-${{ matrix.version_label }}
+          path: cypress/screenshots/
+          retention-days: 7
+
+      - name: Upload videos
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cypress-videos-${{ matrix.version_label }}
+          path: cypress/videos/
+          retention-days: 7
+
+      - name: Cluster diagnostics on failure
+        if: failure()
+        run: |
+          echo "===================== ALL PODS ====================="
+          kubectl get pods -A -o wide || true
+
+          echo "===================== NOT-READY PODS (describe) ====================="
+          # Anything not fully-ready and not Completed - e.g. ImagePullBackOff / CrashLoopBackOff for
+          # the elemental-operator install (test 8.1) surfaces here. Columns: NAMESPACE NAME READY
+          # STATUS ...; keep a pod only if it's a genuine problem (Running but n/m ready, or any
+          # non-Running/Completed phase).
+          NOTREADY=$(kubectl get pods -A --no-headers 2>/dev/null | awk '
+            { split($3, r, "/"); status=$4 }
+            status=="Completed" || status=="Succeeded" { next }
+            status=="Running" && r[1]==r[2] { next }
+            { print }')
+          echo "$NOTREADY"
+          echo "$NOTREADY" | awk '{print $1" "$2}' | while read -r ns pod; do
+            [ -n "$pod" ] || continue
+            echo "----- describe $ns/$pod -----"
+            kubectl -n "$ns" describe pod "$pod" | sed -n '/Events:/,$p' || true
+          done
+
+          echo "===================== ELEMENTAL / OPERATOR NAMESPACES ====================="
+          for ns in cattle-elemental-system cattle-fleet-system cattle-provisioning-capi-system; do
+            echo "----- $ns -----"
+            kubectl -n "$ns" get pods,deploy,jobs -o wide 2>/dev/null || echo "  (namespace absent)"
+          done
+
+          echo "===================== HELM RELEASES ====================="
+          helm list -A 2>/dev/null || true
+
+          echo "===================== RECENT WARNING EVENTS ====================="
+          kubectl get events -A --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -60 || true
+
+          echo "===================== RANCHER LOGS ====================="
+          kubectl -n cattle-system get pods || true
+          kubectl -n cattle-system logs -l app=rancher --tail 100 --all-containers || true
