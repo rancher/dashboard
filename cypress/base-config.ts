@@ -63,6 +63,7 @@ const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(
 const DEFAULT_USERNAME = 'admin';
 const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
+const rancherVersion = process.env.RANCHER_VERSION;
 
 if (process.env.TEST_A11Y) {
   testDirs = ['accessibility'];
@@ -93,6 +94,7 @@ if (skipSetup && !process.env.TEST_PASSWORD) {
 console.log(`    Setup tests will ${ skipSetup ? 'NOT' : '' } be run`);
 console.log(`    Dashboard URL: ${ baseUrl }`);
 console.log(`    Rancher API URL: ${ apiUrl }`);
+console.log(`    Rancher version: ${ rancherVersion || 'not provided' }`);
 
 // Check API - sometimes in dev, you might have API set to a different system to the base url - this won't work
 // as the login cookie will be for the base url and any API requests will fail as not authenticated
@@ -144,6 +146,7 @@ const baseConfig = defineConfig({
   },
   env: {
     baseUrl,
+    rancherVersion,
     api:                      apiUrl,
     username,
     password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,

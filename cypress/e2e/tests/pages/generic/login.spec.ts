@@ -1,7 +1,7 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
-import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
+import { PAGINATION_UTILS } from '@/cypress/support/utils/shell';
 
 const successStatusCode = 200;
 
@@ -19,7 +19,7 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
 
     // First request will fetch a partial list of settings
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).lessThan(
+      expect(interception.response?.body.count).lessThan(
         PARTIAL_SETTING_THRESHOLD
       );
     });
@@ -37,7 +37,7 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
 
     // Second request (after user is logged in) will return the full list
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).greaterThan(
+      expect(interception.response?.body.count).greaterThan(
         PARTIAL_SETTING_THRESHOLD
       );
     });

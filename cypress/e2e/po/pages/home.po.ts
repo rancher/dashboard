@@ -7,7 +7,7 @@ import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
+import { PAGINATION_UTILS } from '@/cypress/support/utils/shell';
 
 const burgerMenu = new BurgerMenuPo();
 

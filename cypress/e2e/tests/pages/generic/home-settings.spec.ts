@@ -1,7 +1,7 @@
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { qase } from '@/cypress/support/qase';
-import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
+import { PAGINATION_UTILS } from '@/cypress/support/utils/shell';
 
 describe('Home Page Settings', () => {
   const homePage = new HomePagePo();
@@ -14,7 +14,7 @@ describe('Home Page Settings', () => {
     homePage.goTo();
 
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).greaterThan(PARTIAL_SETTING_THRESHOLD);
+      expect(interception.response?.body.count).greaterThan(PARTIAL_SETTING_THRESHOLD);
     });
     // Yes this is bad, but want to ensure no other settings requests are made.
     cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting

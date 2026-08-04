@@ -4,7 +4,7 @@ import MachineDeploymentsCreateEditPo from '@/cypress/e2e/po/edit/machine-deploy
 import MachineDeploymentsListPo from '@/cypress/e2e/po/lists/machine-deployments-list.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { BLANK_CLUSTER } from '@/cypress/support/utils/shell';
 
 export default class MachineDeploymentsPagePo extends PagePo {
   private static createPath(clusterId: string = BLANK_CLUSTER) {

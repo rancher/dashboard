@@ -1,4 +1,4 @@
-import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
+import { CURRENT_RANCHER_VERSION } from '@/cypress/support/utils/version';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import * as path from 'path';
@@ -6,7 +6,7 @@ import * as jsyaml from 'js-yaml';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
-const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
+const chartBranch = `release-${ CURRENT_RANCHER_VERSION }`;
 const gitRepoUrl = 'https://github.com/rancher/charts';
 
 describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
