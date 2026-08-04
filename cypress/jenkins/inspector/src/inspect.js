@@ -58,10 +58,24 @@ async function groupAndCreateIssues(failures) {
   const existingIssues = await githubClient.fetchExistingIssues();
 
   console.log(`  Found ${ existingIssues.size } existing tracked issues`);
+
+  // Fetch project board members to detect open issues missing from the board
+  try {
+    const projectNodeIds = await githubClient.fetchProjectIssueNodeIds();
+
+    for (const issue of existingIssues.values()) {
+      if (issue.state === 'open' && !projectNodeIds.has(issue.nodeId)) {
+        issue.boardAssignmentFailed = true;
+      }
+    }
+  } catch (e) {
+    console.warn(`  Warning: could not fetch project board members — board retry check skipped: ${ e.message }`);
+  }
   console.log('');
 
   let created = 0; let reopened = 0; let skipped = 0; let errors = 0;
   const issueUrls = [];
+  const boardAssignmentFailures = [];
 
   for (const failure of grouped.values()) {
     try {
@@ -69,11 +83,22 @@ async function groupAndCreateIssues(failures) {
       const existing = existingIssues.get(issueTitle);
 
       if (existing?.state === 'open') {
-        console.log(`  SKIP  #${ existing.id } already open: ${ failure.testTitle }`);
+        // Retry board assignment if the issue is open but was never successfully added to the board.
+        // This handles the case where creation or reopen succeeded but addToProject failed previously.
+        if (existing.boardAssignmentFailed) {
+          try {
+            await githubClient.addToProject(existing.nodeId);
+            console.log(`  RETRY board add #${ existing.id }: ${ failure.testTitle }`);
+          } catch (e) {
+            console.error(`  Warning: retry board add failed for #${ existing.id }: ${ e.message }`);
+            boardAssignmentFailures.push({ id: existing.id, url: existing.url });
+          }
+        } else {
+          console.log(`  SKIP  #${ existing.id } already open: ${ failure.testTitle }`);
+        }
         skipped++;
         continue;
       }
-
       if (existing?.state === 'closed') {
         // Test was fixed but is failing again — reopen and move back to Backlog.
         // Always call addToProject on reopen: addProjectV2ItemById is idempotent so it's safe
@@ -83,6 +108,7 @@ async function groupAndCreateIssues(failures) {
           await githubClient.addToProject(existing.nodeId);
         } catch (e) {
           console.error(`  Warning: could not add #${ existing.id } to project: ${ e.message }`);
+          boardAssignmentFailures.push({ id: existing.id, url: existing.url });
         }
         console.log(`  REOPEN #${ existing.id }: ${ failure.testTitle }`);
         issueUrls.push(existing.url);
@@ -98,6 +124,7 @@ async function groupAndCreateIssues(failures) {
         await githubClient.addToProject(task.nodeId);
       } catch (e) {
         console.error(`  Warning: could not add #${ task.id } to project: ${ e.message }`);
+        boardAssignmentFailures.push({ id: task.id, url: task.url });
       }
       console.log(`  CREATE #${ task.id }: ${ failure.testTitle }`);
       issueUrls.push(task.url);
@@ -109,7 +136,7 @@ async function groupAndCreateIssues(failures) {
   }
 
   return {
-    totalUnique: grouped.size, created, reopened, skipped, errors, issueUrls
+    totalUnique: grouped.size, created, reopened, skipped, errors, issueUrls, boardAssignmentFailures
   };
 }
 
@@ -178,7 +205,12 @@ async function main() {
     result.issueUrls.forEach((u) => console.log(`  ${ u }`));
   }
 
-  if (result.errors > 0) process.exit(1);
+  if (result.boardAssignmentFailures.length > 0) {
+    console.error(`\n${ result.boardAssignmentFailures.length } issue(s) failed board assignment — please add them to the project manually:`);
+    result.boardAssignmentFailures.forEach((issue) => console.error(`  #${ issue.id }: ${ issue.url }`));
+  }
+
+  if (result.errors > 0 || result.boardAssignmentFailures.length > 0) process.exit(1);
 }
 
 main().catch((err) => {

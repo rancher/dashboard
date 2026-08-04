@@ -176,6 +176,48 @@ ${ failure.stacktrace || 'No stack trace available' }
     return this._projectId;
   }
 
+  async fetchProjectIssueNodeIds() {
+    // Fetch all issue node IDs currently on the project board.
+    // Used to detect open issues that were never successfully added to the board.
+    const projectId = await this._getProjectId();
+    const nodeIds = new Set();
+    let cursor = null;
+
+    do {
+      const res = await this._post('/graphql', {
+        query: `
+          query($projectId: ID!, $cursor: String) {
+            node(id: $projectId) {
+              ... on ProjectV2 {
+                items(first: 100, after: $cursor) {
+                  pageInfo { hasNextPage endCursor }
+                  nodes {
+                    content {
+                      ... on Issue { id }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `,
+        variables: { projectId, cursor }
+      });
+
+      if (res.errors) throw new Error(res.errors[0].message);
+
+      const items = res.data?.node?.items;
+
+      for (const node of items?.nodes || []) {
+        if (node.content?.id) nodeIds.add(node.content.id);
+      }
+
+      cursor = items?.pageInfo?.hasNextPage ? items.pageInfo.endCursor : null;
+    } while (cursor);
+
+    return nodeIds;
+  }
+
   async addToProject(issueNodeId) {
     try {
       const projectId = await this._getProjectId();
