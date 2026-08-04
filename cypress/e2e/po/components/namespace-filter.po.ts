@@ -25,8 +25,13 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   isChecked(label: string) {
-    return this.getOptions().contains( new RegExp(` ${ label } `)).find('i')
-      .then(($el) => expect($el).have.class('icon-checkmark'));
+    // Assert the option's checkmark icon is present, retrying until it appears.
+    // Match `.icon-checkmark` specifically: project options also render an
+    // `.icon-folder`, so a bare `find('i')` can resolve to the folder icon and the
+    // one-shot `.then` assertion then flakes (seen as "expected <i.icon-folder> to
+    // have class icon-checkmark").
+    return this.getOptions().contains( new RegExp(` ${ label } `)).find('i.icon-checkmark')
+      .should('exist');
   }
 
   checkIcon() {
