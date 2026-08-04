@@ -176,10 +176,7 @@ skipGeometric=true`;
 
         // check text before navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } ConfigMaps`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } ConfigMaps`);
 
         // navigate to next page - right button
         configMapListPage.list().resourceTable().sortableTable().pagination()
@@ -188,10 +185,7 @@ skipGeometric=true`;
 
         // check text and buttons after navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } ConfigMaps`);
-          });
+          .checkPaginationTextEquals(`11 - 20 of ${ count } ConfigMaps`);
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -206,10 +200,7 @@ skipGeometric=true`;
 
         // check text and buttons after navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } ConfigMaps`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } ConfigMaps`);
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -232,10 +223,7 @@ skipGeometric=true`;
 
         // check text after navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } ConfigMaps`);
-          });
+          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } ConfigMaps`);
 
         // navigate to first page - beginning button
         configMapListPage.list().resourceTable().sortableTable().pagination()
@@ -244,10 +232,7 @@ skipGeometric=true`;
 
         // check text and buttons after navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } ConfigMaps`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } ConfigMaps`);
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
