@@ -94,7 +94,7 @@ export default {
       default: false,
     },
     disabledList: {
-      type: Array,
+      type:    Array,
       default: null
     },
     required: {
