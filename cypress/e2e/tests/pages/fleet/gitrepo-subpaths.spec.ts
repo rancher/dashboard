@@ -1,5 +1,6 @@
 import { FleetApplicationCreatePo, FleetApplicationListPagePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import { gitRepoInfo as repoInfo, FLEET_DEFAULT_WORKSPACE } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 
 // Covers issue https://github.com/rancher/dashboard/issues/14546
 // "GitRepo Subpaths" - related change:
@@ -9,11 +10,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 // subpaths (config file locations), which the form serialises into `spec.bundles`
 // while the plain paths remain in `spec.paths`.
 
-const workspace = 'fleet-default';
-const repoInfo = {
-  repoUrl: 'https://github.com/rancher/fleet-examples.git',
-  branch:  'master'
-};
+const workspace = FLEET_DEFAULT_WORKSPACE;
 
 const reposToDelete: string[] = [];
 

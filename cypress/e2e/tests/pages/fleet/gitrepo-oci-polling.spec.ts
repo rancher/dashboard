@@ -2,6 +2,7 @@ import { FleetApplicationCreatePo, FleetApplicationListPagePo, FleetGitRepoCreat
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import { gitRepoInfo as repoInfo, FLEET_DEFAULT_WORKSPACE } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 
 // Covers issue https://github.com/rancher/dashboard/issues/14546
 // "GitRepo OCI registry and polling interval" - related change:
@@ -10,12 +11,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 const fakeProvClusterId = 'oci-fake-cluster-id';
 const fakeMgmtClusterId = 'oci-fake-mgmt-id';
 
-const workspace = 'fleet-default';
-const repoInfo = {
-  repoUrl: 'https://github.com/rancher/fleet-examples.git',
-  branch:  'master',
-  paths:   'simple'
-};
+const workspace = FLEET_DEFAULT_WORKSPACE;
 
 // OCI storage secrets are plain Secrets with this specific type. The GitRepo
 // Advanced step only lists secrets whose `_type` matches (and that are not the

@@ -1,5 +1,5 @@
 import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
-import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
+import { gitRepoTargetAllClustersRequest, gitRepoInfo as repoInfo, FLEET_DEFAULT_WORKSPACE } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 
@@ -14,12 +14,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 const fakeProvClusterId = 'target-fake-cluster-id';
 const fakeMgmtClusterId = 'target-fake-mgmt-id';
 
-const workspace = 'fleet-default';
-const repoInfo = {
-  repoUrl: 'https://github.com/rancher/fleet-examples.git',
-  branch:  'master',
-  paths:   'simple'
-};
+const workspace = FLEET_DEFAULT_WORKSPACE;
 
 // A genuine user label selector. Note: a `provider.cattle.io NotIn [harvester]`
 // expression is the built-in "exclude Harvester" sentinel that the form strips and
