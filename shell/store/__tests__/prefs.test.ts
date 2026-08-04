@@ -700,8 +700,8 @@ describe('prefs store', () => {
 
         await expect(
           actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, val: 'test' })
+            dispatch, commit, rootGetters, state: s
+          } as any, { key: CLUSTER, val: 'test' })
         ).rejects.toThrow('Use value, not val');
       });
 
@@ -712,8 +712,8 @@ describe('prefs store', () => {
         const dispatch = jest.fn();
 
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'my-cluster' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'my-cluster' });
 
         expect(commit).toHaveBeenCalledWith('load', { key: CLUSTER, value: 'my-cluster' });
       });
@@ -725,8 +725,8 @@ describe('prefs store', () => {
         const rootGetters = { 'auth/loggedIn': false };
 
         const result = await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'test-cluster' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'test-cluster' });
 
         expect(result).toBeUndefined();
         // dispatch should not have been called for loadServer since we returned early
@@ -740,8 +740,8 @@ describe('prefs store', () => {
         const rootGetters = { 'auth/loggedIn': true };
 
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: THEME, value: 'dark' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: THEME, value: 'dark' });
 
         const cookieSetCall = commit.mock.calls.find(([name]: [string]) => name === 'cookies/set');
 
@@ -756,8 +756,8 @@ describe('prefs store', () => {
         const rootGetters = { 'auth/loggedIn': true };
 
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'my-cluster' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'my-cluster' });
 
         const cookieSetCall = commit.mock.calls.find(([name]: [string]) => name === 'cookies/set');
 
@@ -773,8 +773,8 @@ describe('prefs store', () => {
 
         // ROWS_PER_PAGE: asUserPreference defaults to true, not mutated by other tests
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: ROWS_PER_PAGE, value: 25 });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: ROWS_PER_PAGE, value: 25 });
 
         expect(dispatch).toHaveBeenCalledWith('loadServer', ROWS_PER_PAGE);
       });
@@ -789,8 +789,8 @@ describe('prefs store', () => {
 
         // THEME has mangleWrite: (x) => `ui-${x}` AND parseJSON:true, so stored as JSON.stringify('ui-light')
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: THEME, value: 'light' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: THEME, value: 'light' });
 
         expect(serverData[THEME]).toStrictEqual('"ui-light"');
       });
@@ -805,8 +805,8 @@ describe('prefs store', () => {
 
         // ROWS_PER_PAGE has parseJSON: true, no mangleWrite
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: ROWS_PER_PAGE, value: 50 });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: ROWS_PER_PAGE, value: 50 });
 
         expect(serverData[ROWS_PER_PAGE]).toStrictEqual('50');
       });
@@ -820,8 +820,8 @@ describe('prefs store', () => {
 
         // ROWS_PER_PAGE: asUserPreference defaults to true
         const result = await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: ROWS_PER_PAGE, value: 25 });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: ROWS_PER_PAGE, value: 25 });
 
         expect(result).toStrictEqual({ type: 'ServerError', status: 503 });
       });
