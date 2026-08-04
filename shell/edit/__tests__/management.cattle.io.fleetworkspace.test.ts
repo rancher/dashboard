@@ -15,9 +15,9 @@ describe('edit: management.cattle.io.fleetworkspace', () => {
     getters:  {
       'i18n/t':               (key: string) => key,
       'i18n/exists':          () => true,
-      'management/schemaFor':  () => null,
-      'type-map/optionsFor':   () => ({}),
-      'prefs/get':             () => undefined,
+      'management/schemaFor': () => null,
+      'type-map/optionsFor':  () => ({}),
+      'prefs/get':            () => undefined,
       currentProduct:         { name: FLEET_NAME },
     },
     state: { allWorkspaces: [], workspace: 'fleet-default' },
