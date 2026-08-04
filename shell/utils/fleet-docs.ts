@@ -25,7 +25,7 @@ interface FleetDoc {
  * pages were added at different times, so their minimums may diverge in future releases.
  */
 export const FLEET_DOCS = {
-  downstreamResources: { path: 'downstream-resources', minRancherMinor: 15 },
+  downstreamResources:         { path: 'downstream-resources', minRancherMinor: 15 },
   policies:                    { path: 'reference/ref-policy', minRancherMinor: 15 },
   gitRepoRestrictionMigration: { path: 'how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction', minRancherMinor: 15 },
 } as const satisfies Record<string, FleetDoc>;
