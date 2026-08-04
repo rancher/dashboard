@@ -90,7 +90,6 @@ describe('Management Cluster Name Annotation', { testIsolation: false, tags: ['@
         MANAGEMENT_CLUSTER_NAME_ANNOTATION, mgmtClusterNameValue
       );
 
-
       // Response should also include the annotation
       expect(intercept.response?.body.metadata.annotations).to.have.property(
         MANAGEMENT_CLUSTER_NAME_ANNOTATION, mgmtClusterNameValue
