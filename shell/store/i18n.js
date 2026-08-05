@@ -17,6 +17,22 @@ export const I18N_GLOBAL_TYPE = 'l10n-global';
 const GLOBAL_PATTERN = /(\\?)\[\[([^\]]+)\]\]/g;
 
 /**
+ * Look up an i18n global value registered via
+ * `extension.register('l10n-global', name, value)`. Values may be registered as
+ * a function, in which case they are invoked to produce the current value.
+ *
+ * @param {string} name
+ * @param {any} $extension
+ * @returns {string | undefined}
+ */
+export function lookupGlobal(name, $extension) {
+  const registered = $extension?.getDynamic?.(I18N_GLOBAL_TYPE, name);
+  const value = typeof registered === 'function' ? registered() : registered;
+
+  return value !== undefined && value !== null ? String(value) : undefined;
+}
+
+/**
  * Replace [[name]] tokens with values registered as i18n globals via
  * `extension.register('i18n-global', name, value)`. If the token is not
  * registered, the name itself is used as the value. Use `\[[` to include a
@@ -37,10 +53,9 @@ export function substituteGlobals(msg, $extension) {
       return `[[${ name }]]`;
     }
 
-    const registered = $extension?.getDynamic?.(I18N_GLOBAL_TYPE, name);
-    const value = typeof registered === 'function' ? registered() : registered;
+    const value = lookupGlobal(name, $extension);
 
-    return value !== undefined && value !== null ? String(value) : name;
+    return value !== undefined ? value : name;
   });
 }
 
@@ -152,6 +167,10 @@ export const getters = {
     } else {
       return '?';
     }
+  },
+
+  global: (_state, _getters, rootState) => (name) => {
+    return lookupGlobal(name, rootState?.$extension);
   },
 
   exists: (state) => (key, language) => {
