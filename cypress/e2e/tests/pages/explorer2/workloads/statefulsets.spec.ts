@@ -78,10 +78,14 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       WorkloadsStatefulSetsListPagePo.navTo();
       statefulSetListPage.waitForPage();
 
-      // check statefulsets count
-      const count = statefulSetNamesList.length + 1;
+      cy.waitForRancherResources('v1', 'apps.statefulset', statefulSetNamesList.length, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of statefulsets in the two filtered namespaces
+        // instead of assuming exactly statefulSetNamesList.length + 1; the cluster
+        // can briefly hold an extra resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (ss: any) => [nsName1, nsName2].includes(ss.metadata?.namespace)
+        ).length;
 
-      cy.waitForRancherResources('v1', 'apps.statefulset', count - 1, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();

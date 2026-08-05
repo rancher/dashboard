@@ -391,11 +391,15 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       WorkloadsDeploymentsListPagePo.navTo();
       deploymentsListPage.waitForPage();
 
-      // check deployments count
-      const count = deploymentNamesList.length + 1;
+      cy.waitForRancherResources('v1', 'apps.deployment', deploymentNamesList.length, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of deployments in the two filtered namespaces
+        // instead of assuming exactly deploymentNamesList.length + 1; the cluster
+        // can briefly hold an extra resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (dep: any) => [nsName1, nsName2].includes(dep.metadata?.namespace)
+        ).length;
 
-      cy.waitForRancherResources('v1', 'apps.deployment', count - 1, true).then((resp: Cypress.Response<any>) => {
-      // pagination is visible
+        // pagination is visible
         deploymentsListPage.sortableTable().pagination().checkVisible();
 
         // basic checks on navigation buttons
