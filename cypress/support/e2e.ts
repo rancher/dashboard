@@ -25,6 +25,14 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   if (err.message.includes('navigation guard')) {
     return false;
   }
+  // Lazy-loaded webpack chunks intermittently fail to fetch while the app is starting
+  // up (ChunkLoadError). It is transient - the chunk loads on the next attempt - but
+  // Cypress fails the test on the uncaught rejection. Ignore it so it does not abort a
+  // test mid-flow (notably the first-login setup, where a mid-test failure leaves the
+  // admin password changed and makes every retry 401 on the bootstrap login).
+  if (err.message.includes('ChunkLoadError') || err.message.includes('Loading chunk')) {
+    return false;
+  }
 });
 
 require('cypress-terminal-report/src/installLogsCollector')({
