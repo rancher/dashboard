@@ -72,7 +72,7 @@ describe('fleet-appco utils', () => {
   });
 
   describe('getDownstreamResourcesDocsUrl', () => {
-    describe('when running past the release that introduced the docs (current channel)', () => {
+    describe('when running a later release than the one that introduced the docs (current channel)', () => {
       beforeEach(() => mockRunningVersion('v2.15.1'));
 
       it('should use the community docs at the root when not Prime', () => {
@@ -86,9 +86,15 @@ describe('fleet-appco utils', () => {
       it('should use the latest SUSE docs when Prime', () => {
         expect(getDownstreamResourcesDocsUrl(true)).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/how-tos-for-users/downstream-resource-propagation.html');
       });
+
+      it('should also use the current docs on a later minor', () => {
+        mockRunningVersion('v2.16.0');
+        expect(getDownstreamResourcesDocsUrl(false)).toStrictEqual('https://fleet.rancher.io/how-tos-for-users/downstream-resource-propagation');
+        expect(getDownstreamResourcesDocsUrl(true)).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/how-tos-for-users/downstream-resource-propagation.html');
+      });
     });
 
-    describe('when running the release that introduced the docs (next channel)', () => {
+    describe('when running the exact release that introduced the docs (next channel)', () => {
       beforeEach(() => mockRunningVersion('v2.15.0'));
 
       it('should use the community "next" docs when not Prime', () => {
@@ -111,7 +117,7 @@ describe('fleet-appco utils', () => {
   });
 
   describe('getBundleDeploymentOptionsDocsUrl', () => {
-    describe('when running past the release that introduced the docs (current channel)', () => {
+    describe('when running a later release than the one that introduced the docs (current channel)', () => {
       beforeEach(() => mockRunningVersion('v2.15.1'));
 
       it('should use the community CRD reference (with anchor) at the root when not Prime', () => {
@@ -127,7 +133,7 @@ describe('fleet-appco utils', () => {
       });
     });
 
-    describe('when running the release that introduced the docs (next channel)', () => {
+    describe('when running the exact release that introduced the docs (next channel)', () => {
       beforeEach(() => mockRunningVersion('v2.15.0'));
 
       it('should use the community "next" CRD reference (with anchor) when not Prime', () => {
