@@ -9,7 +9,6 @@ import { RcSection } from '@components/RcSection';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 import { RcIcon } from '@components/RcIcon';
-import { getVersionData } from '@shell/config/version';
 import { getDownstreamResourcesDocsUrl } from '@shell/utils/fleet-appco';
 
 const props = withDefaults(defineProps<{
@@ -30,7 +29,7 @@ const emit = defineEmits<{
 const store = useStore();
 const { t } = useI18n(store);
 
-const DOCS_URL = getDownstreamResourcesDocsUrl(getVersionData()?.Version);
+const DOCS_URL = getDownstreamResourcesDocsUrl();
 
 const { updateCorrectDrift, updateSecrets, updateDownstreamResources } = useHelmOpResources(emit, toRef(props, 'lockedSecrets'));
 </script>
