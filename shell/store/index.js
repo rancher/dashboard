@@ -1063,7 +1063,8 @@ export const actions = {
         console.warn('Cluster is not ready, cannot load it:', cluster.nameDisplay); // eslint-disable-line no-console
         throw new Error('Unready cluster');
       }
-    } catch {
+    } catch (e) {
+      console.warn('Failed to find cluster, or cluster is not ready. Cluster:', id, '.Error: ', e) // eslint-disable-line no-console
       commit('clusterId', null);
       commit('cluster/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);

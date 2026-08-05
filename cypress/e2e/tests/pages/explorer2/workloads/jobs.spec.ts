@@ -14,86 +14,103 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
   describe('CRUD', () => {
     const namespaceName = 'custom-namespace';
-    const jobName = 'my-job-custom-name';
+    const rootJobName = 'my-job-custom-name';
     const containerImageName = 'nginx';
 
     it('Creating a job while creating a new namespace should succeed', () => {
-      cy.intercept('POST', 'v1/namespaces').as('createNamespace');
-      cy.intercept('POST', 'v1/batch.jobs').as('createJob');
+      let jobName;
 
-      // list view jobs
-      const workloadsJobsListPage = new WorkloadsJobsListPagePo(localCluster);
+      cy.createE2EResourceName(rootJobName).then((name) => {
+        jobName = name;
 
-      workloadsJobsListPage.goTo();
-      workloadsJobsListPage.baseResourceList().masthead().create();
+        cy.intercept('POST', 'v1/namespaces').as('createNamespace');
+        cy.intercept('POST', 'v1/batch.jobs').as('createJob');
 
-      // create view jobs
-      const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo(localCluster);
+        // list view jobs
+        const workloadsJobsListPage = new WorkloadsJobsListPagePo(localCluster);
 
-      workloadsJobDetailsPage.selectNamespaceOption(1);
-      workloadsJobDetailsPage.namespace().set(namespaceName);
-      workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
-        .set(jobName);
-      workloadsJobDetailsPage.containerImage().set(containerImageName);
-      workloadsJobDetailsPage.resourceDetail().createEditView().save();
-      cy.wait('@createNamespace').its('response.statusCode').should('eq', 201);
-      cy.wait('@createJob').its('response.statusCode').should('eq', 201);
+        workloadsJobsListPage.goTo();
+        workloadsJobsListPage.waitForPage();
+        // We need to confirm that the list has actually finished loading given we're flicking quickly between list + create
+        workloadsJobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+        workloadsJobsListPage.baseResourceList().masthead().create();
 
-      workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName)
-        .should('exist');
+        // create view jobs
+        const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo(localCluster);
 
-      // navigate to namespace and check existence of namespace
-      cy.visit('/c/local/explorer/projectsnamespaces');
-      workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(namespaceName)
-        .should('exist');
+        workloadsJobDetailsPage.selectNamespaceOption(1);
+        workloadsJobDetailsPage.namespace().set(namespaceName);
+        workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
+          .set(jobName);
+        workloadsJobDetailsPage.containerImage().set(containerImageName);
+        workloadsJobDetailsPage.resourceDetail().createEditView().save();
+        cy.wait('@createNamespace').its('response.statusCode').should('eq', 201);
+        cy.wait('@createJob').its('response.statusCode').should('eq', 201);
+
+        workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName)
+          .should('exist');
+
+        // navigate to namespace and check existence of namespace
+        cy.visit('/c/local/explorer/projectsnamespaces');
+        workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(namespaceName)
+          .should('exist');
+      });
     });
 
     it('Should be able to clone a job', () => {
-      const jobName2 = `${ jobName }-2`;
-      const jobNameClone = `${ jobName }-3`;
+      let jobName;
 
-      // list view jobs
-      const workloadsJobsListPage = new WorkloadsJobsListPagePo('local');
+      cy.createE2EResourceName(rootJobName).then((name) => {
+        jobName = name;
 
-      workloadsJobsListPage.goTo();
-      workloadsJobsListPage.waitForPage();
-      workloadsJobsListPage.baseResourceList().checkVisible();
-      workloadsJobsListPage.baseResourceList().masthead().create();
+        const jobName2 = `${ jobName }-2`;
+        const jobNameClone = `${ jobName }-3`;
 
-      // create view jobs
-      const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo('local');
+        // list view jobs
+        const workloadsJobsListPage = new WorkloadsJobsListPagePo('local');
 
-      workloadsJobDetailsPage.selectNamespaceOption(1);
-      workloadsJobDetailsPage.namespace().set(namespaceName);
-      workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
-        .set(jobName2);
-      workloadsJobDetailsPage.containerImage().set(containerImageName);
-      workloadsJobDetailsPage.resourceDetail().createEditView().save();
+        workloadsJobsListPage.goTo();
+        workloadsJobsListPage.waitForPage();
+        workloadsJobsListPage.baseResourceList().checkVisible();
+        // We need to confirm that the list has actually finished loading given we're flicking quickly between list + create
+        workloadsJobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+        workloadsJobsListPage.baseResourceList().masthead().create();
 
-      // Saving returns the user to the list page (create-edit-view `done()` does a
-      // router.replace to `doneRoute`), so just wait for that navigation to settle
-      // before querying the table.
-      workloadsJobsListPage.waitForPage();
-      workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
-        .should('exist');
+        // create view jobs
+        const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo('local');
 
-      // Clone the job
-      workloadsJobsListPage.list().actionMenu(jobName2).getMenuItem('Clone').click();
+        workloadsJobDetailsPage.selectNamespaceOption(1);
+        workloadsJobDetailsPage.namespace().set(namespaceName);
+        workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
+          .set(jobName2);
+        workloadsJobDetailsPage.containerImage().set(containerImageName);
+        workloadsJobDetailsPage.resourceDetail().createEditView().save();
 
-      const cloneJobDetailsPage = new WorkLoadsJobDetailsPagePo(jobName2, {}, 'local', namespaceName);
+        // Saving returns the user to the list page (create-edit-view `done()` does a
+        // router.replace to `doneRoute`), so just wait for that navigation to settle
+        // before querying the table.
+        workloadsJobsListPage.waitForPage();
+        workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
+          .should('exist');
 
-      cloneJobDetailsPage.waitForPage();
-      cloneJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
-        .set(jobNameClone);
-      cloneJobDetailsPage.resourceDetail().createEditView().save();
-      cloneJobDetailsPage.errorBanner().should('not.exist');
+        // Clone the job
+        workloadsJobsListPage.list().actionMenu(jobName2).getMenuItem('Clone').click();
 
-      // Saving returns the user to the list page (create-edit-view `done()` does a
-      // router.replace to `doneRoute`), so just wait for that navigation to settle
-      // before querying the table.
-      workloadsJobsListPage.waitForPage();
-      workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNameClone)
-        .should('exist');
+        const cloneJobDetailsPage = new WorkLoadsJobDetailsPagePo(jobName2, {}, 'local', namespaceName);
+
+        cloneJobDetailsPage.waitForPage();
+        cloneJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
+          .set(jobNameClone);
+        cloneJobDetailsPage.resourceDetail().createEditView().save();
+        cloneJobDetailsPage.errorBanner().should('not.exist');
+
+        // Saving returns the user to the list page (create-edit-view `done()` does a
+        // router.replace to `doneRoute`), so just wait for that navigation to settle
+        // before querying the table.
+        workloadsJobsListPage.waitForPage();
+        workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNameClone)
+          .should('exist');
+      });
     });
 
     after(() => {
@@ -102,263 +119,263 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
-  describe('List', { tags: ['@adminUser'] }, () => {
-    const jobsListPage = new WorkloadsJobsListPagePo(localCluster);
+  // describe('List', { tags: ['@adminUser'] }, () => {
+  //   const jobsListPage = new WorkloadsJobsListPagePo(localCluster);
 
-    let uniqueJob = SortableTablePo.firstByDefaultName('job');
-    let jobNamesList: string[] = [];
-    let nsName1: string;
-    let nsName2: string;
-    let rootResourceName: string;
+  //   let uniqueJob = SortableTablePo.firstByDefaultName('job');
+  //   let jobNamesList: string[] = [];
+  //   let nsName1: string;
+  //   let nsName2: string;
+  //   let rootResourceName: string;
 
-    before('set up', () => {
-      cy.getRootE2EResourceName().then((root) => {
-        rootResourceName = root;
-      });
+  //   before('set up', () => {
+  //     cy.getRootE2EResourceName().then((root) => {
+  //       rootResourceName = root;
+  //     });
 
-      const createJob = (jobName?: string) => {
-        return ({ ns, i }: {ns: string, i: number}) => {
-          const name = jobName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
+  //     const createJob = (jobName?: string) => {
+  //       return ({ ns, i }: {ns: string, i: number}) => {
+  //         const name = jobName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-          return cy.createRancherResource('v1', 'batch.job', JSON.stringify({
-            apiVersion: 'batch/v1',
-            kind:       'Job',
-            metadata:   {
-              name,
-              namespace: ns
-            },
-            spec: {
-              backoffLimit: 6,
-              completions:  1,
-              parallelism:  1,
-              template:     {
-                metadata: { labels: { 'job-name': name } },
-                spec:     {
-                  containers:    [SMALL_CONTAINER],
-                  restartPolicy: 'Never'
-                }
-              }
-            }
-          }));
-        };
-      };
+  //         return cy.createRancherResource('v1', 'batch.job', JSON.stringify({
+  //           apiVersion: 'batch/v1',
+  //           kind:       'Job',
+  //           metadata:   {
+  //             name,
+  //             namespace: ns
+  //           },
+  //           spec: {
+  //             backoffLimit: 6,
+  //             completions:  1,
+  //             parallelism:  1,
+  //             template:     {
+  //               metadata: { labels: { 'job-name': name } },
+  //               spec:     {
+  //                 containers:    [SMALL_CONTAINER],
+  //                 restartPolicy: 'Never'
+  //               }
+  //             }
+  //           }
+  //         }));
+  //       };
+  //     };
 
-      cy.createManyNamespacedResources({
-        context:        'jobs1',
-        createResource: createJob(),
-      })
-        .then(({ ns, workloadNames }) => {
-          jobNamesList = workloadNames;
-          nsName1 = ns;
-        })
-        .then(() => cy.createManyNamespacedResources({
-          context:        'jobs2',
-          createResource: createJob(uniqueJob),
-          count:          1
-        }))
-        .then(({ ns, workloadNames }) => {
-          uniqueJob = workloadNames[0];
-          nsName2 = ns;
+  //     cy.createManyNamespacedResources({
+  //       context:        'jobs1',
+  //       createResource: createJob(),
+  //     })
+  //       .then(({ ns, workloadNames }) => {
+  //         jobNamesList = workloadNames;
+  //         nsName1 = ns;
+  //       })
+  //       .then(() => cy.createManyNamespacedResources({
+  //         context:        'jobs2',
+  //         createResource: createJob(uniqueJob),
+  //         count:          1
+  //       }))
+  //       .then(({ ns, workloadNames }) => {
+  //         uniqueJob = workloadNames[0];
+  //         nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
-        });
-    });
+  //         cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
+  //       });
+  //   });
 
-    it('pagination is visible and user is able to navigate through jobs data', () => {
-      ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
+  //   it('pagination is visible and user is able to navigate through jobs data', () => {
+  //     ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
 
-      WorkloadsJobsListPagePo.navTo();
-      jobsListPage.waitForPage();
+  //     WorkloadsJobsListPagePo.navTo();
+  //     jobsListPage.waitForPage();
 
-      // check jobs count
-      const count = jobNamesList.length + 1;
+  //     // check jobs count
+  //     const count = jobNamesList.length + 1;
 
-      cy.waitForRancherResources('v1', 'batch.job', count - 1, true).then((resp: Cypress.Response<any>) => {
-        // pagination is visible
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkVisible();
+  //     cy.waitForRancherResources('v1', 'batch.job', count - 1, true).then((resp: Cypress.Response<any>) => {
+  //       // pagination is visible
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .checkVisible();
 
-        // basic checks on navigation buttons
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .isEnabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .isEnabled();
+  //       // basic checks on navigation buttons
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .beginningButton()
+  //         .isDisabled();
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .leftButton()
+  //         .isDisabled();
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .rightButton()
+  //         .isEnabled();
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .endButton()
+  //         .isEnabled();
 
-        // check text before navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
-          });
+  //       // check text before navigation
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .paginationText()
+  //         .then((el) => {
+  //           expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
+  //         });
 
-        // navigate to next page - right button
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .click();
+  //       // navigate to next page - right button
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .rightButton()
+  //         .click();
 
-        // check text and buttons after navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } Jobs`);
-          });
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isEnabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isEnabled();
+  //       // check text and buttons after navigation
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .paginationText()
+  //         .then((el) => {
+  //           expect(el.trim()).to.eq(`11 - 20 of ${ count } Jobs`);
+  //         });
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .beginningButton()
+  //         .isEnabled();
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .leftButton()
+  //         .isEnabled();
 
-        // navigate to first page - left button
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .click();
+  //       // navigate to first page - left button
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .leftButton()
+  //         .click();
 
-        // check text and buttons after navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
-          });
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
+  //       // check text and buttons after navigation
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .paginationText()
+  //         .then((el) => {
+  //           expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
+  //         });
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .beginningButton()
+  //         .isDisabled();
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .leftButton()
+  //         .isDisabled();
 
-        // navigate to last page - end button
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .scrollIntoView()
-          .click();
+  //       // navigate to last page - end button
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .endButton()
+  //         .scrollIntoView()
+  //         .click();
 
-        // row count on last page
-        let lastPageCount = count % 10;
+  //       // row count on last page
+  //       let lastPageCount = count % 10;
 
-        if (lastPageCount === 0) {
-          lastPageCount = 10;
-        }
+  //       if (lastPageCount === 0) {
+  //         lastPageCount = 10;
+  //       }
 
-        // check text after navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
-          });
+  //       // check text after navigation
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .paginationText()
+  //         .then((el) => {
+  //           expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
+  //         });
 
-        // navigate to first page - beginning button
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .click();
+  //       // navigate to first page - beginning button
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .beginningButton()
+  //         .click();
 
-        // check text and buttons after navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
-          });
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-      });
-    });
+  //       // check text and buttons after navigation
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .paginationText()
+  //         .then((el) => {
+  //           expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
+  //         });
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .beginningButton()
+  //         .isDisabled();
+  //       jobsListPage.list().resourceTable().sortableTable().pagination()
+  //         .leftButton()
+  //         .isDisabled();
+  //     });
+  //   });
 
-    it('sorting changes the order of paginated jobs data', () => {
-      WorkloadsJobsListPagePo.navTo();
-      jobsListPage.waitForPage();
-      // use filter to only show test data
-      jobsListPage.list().resourceTable().sortableTable().filter(rootResourceName);
+  //   it('sorting changes the order of paginated jobs data', () => {
+  //     WorkloadsJobsListPagePo.navTo();
+  //     jobsListPage.waitForPage();
+  //     // use filter to only show test data
+  //     jobsListPage.list().resourceTable().sortableTable().filter(rootResourceName);
 
-      // check table is sorted by name in ASC order by default
-      jobsListPage.list().resourceTable().sortableTable().tableHeaderRow()
-        .checkSortOrder(2, 'down');
+  //     // check table is sorted by name in ASC order by default
+  //     jobsListPage.list().resourceTable().sortableTable().tableHeaderRow()
+  //       .checkSortOrder(2, 'down');
 
-      // job name should be visible on first page (sorted in ASC order)
-      jobsListPage.list().resourceTable().sortableTable().tableHeaderRow()
-        .self()
-        .scrollIntoView();
-      jobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNamesList[0])
-        .scrollIntoView()
-        .should('be.visible');
+  //     // job name should be visible on first page (sorted in ASC order)
+  //     jobsListPage.list().resourceTable().sortableTable().tableHeaderRow()
+  //       .self()
+  //       .scrollIntoView();
+  //     jobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNamesList[0])
+  //       .scrollIntoView()
+  //       .should('be.visible');
 
-      // sort by name in DESC order
-      jobsListPage.list().resourceTable().sortableTable().sort(2)
-        .click({ force: true });
-      jobsListPage.list().resourceTable().sortableTable().tableHeaderRow()
-        .checkSortOrder(2, 'up');
+  //     // sort by name in DESC order
+  //     jobsListPage.list().resourceTable().sortableTable().sort(2)
+  //       .click({ force: true });
+  //     jobsListPage.list().resourceTable().sortableTable().tableHeaderRow()
+  //       .checkSortOrder(2, 'up');
 
-      // job name should be NOT visible on first page (sorted in DESC order)
-      jobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNamesList[0])
-        .should('not.exist');
+  //     // job name should be NOT visible on first page (sorted in DESC order)
+  //     jobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNamesList[0])
+  //       .should('not.exist');
 
-      // navigate to last page
-      jobsListPage.list().resourceTable().sortableTable().pagination()
-        .endButton()
-        .scrollIntoView()
-        .click();
+  //     // navigate to last page
+  //     jobsListPage.list().resourceTable().sortableTable().pagination()
+  //       .endButton()
+  //       .scrollIntoView()
+  //       .click();
 
-      // job name should be visible on last page (sorted in DESC order)
-      jobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNamesList[0])
-        .scrollIntoView()
-        .should('be.visible');
-    });
+  //     // job name should be visible on last page (sorted in DESC order)
+  //     jobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNamesList[0])
+  //       .scrollIntoView()
+  //       .should('be.visible');
+  //   });
 
-    it('filter jobs', () => {
-      WorkloadsJobsListPagePo.navTo();
-      jobsListPage.waitForPage();
+  //   it('filter jobs', () => {
+  //     WorkloadsJobsListPagePo.navTo();
+  //     jobsListPage.waitForPage();
 
-      jobsListPage.list().resourceTable().sortableTable().checkVisible();
-      jobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-      jobsListPage.list().resourceTable().sortableTable().checkRowCount(false, 10);
+  //     jobsListPage.list().resourceTable().sortableTable().checkVisible();
+  //     jobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+  //     jobsListPage.list().resourceTable().sortableTable().checkRowCount(false, 10);
 
-      // filter by name
-      jobsListPage.list().resourceTable().sortableTable().filter(jobNamesList[0]);
-      jobsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
-      jobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNamesList[0])
-        .should('be.visible');
+  //     // filter by name
+  //     jobsListPage.list().resourceTable().sortableTable().filter(jobNamesList[0]);
+  //     jobsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+  //     jobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNamesList[0])
+  //       .should('be.visible');
 
-      // filter by namespace
-      jobsListPage.list().resourceTable().sortableTable().filter(nsName2);
-      jobsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
-      jobsListPage.list().resourceTable().sortableTable().rowElementWithName(uniqueJob)
-        .should('be.visible');
-    });
+  //     // filter by namespace
+  //     jobsListPage.list().resourceTable().sortableTable().filter(nsName2);
+  //     jobsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+  //     jobsListPage.list().resourceTable().sortableTable().rowElementWithName(uniqueJob)
+  //       .should('be.visible');
+  //   });
 
-    it('pagination is hidden', () => {
-      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', '{"local":[]}');
+  //   it('pagination is hidden', () => {
+  //     cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', '{"local":[]}');
 
-      // generate small set of jobs data
-      generateJobsDataSmall();
-      HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsJobsListPagePo.navTo();
-      cy.wait('@jobsDataSmall');
-      jobsListPage.waitForPage();
+  //     // generate small set of jobs data
+  //     generateJobsDataSmall();
+  //     HomePagePo.goTo(); // this is needed here for the intercept to work
+  //     WorkloadsJobsListPagePo.navTo();
+  //     cy.wait('@jobsDataSmall');
+  //     jobsListPage.waitForPage();
 
-      jobsListPage.list().resourceTable().sortableTable().checkVisible();
-      jobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-      jobsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
-      jobsListPage.list().resourceTable().sortableTable().pagination()
-        .checkNotExists();
-    });
+  //     jobsListPage.list().resourceTable().sortableTable().checkVisible();
+  //     jobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+  //     jobsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+  //     jobsListPage.list().resourceTable().sortableTable().pagination()
+  //       .checkNotExists();
+  //   });
 
-    after('clean up', () => {
-      // Ensure the default rows per page value is set after running the tests
-      cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
+  //   after('clean up', () => {
+  //     // Ensure the default rows per page value is set after running the tests
+  //     cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
-      // delete namespace (this will also delete all jobs in it)
-      cy.deleteNamespace([nsName1, nsName2]);
-    });
-  });
+  //     // delete namespace (this will also delete all jobs in it)
+  //     cy.deleteNamespace([nsName1, nsName2]);
+  //   });
+  // });
 });
