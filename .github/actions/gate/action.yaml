@@ -1,0 +1,45 @@
+name: 'Aggregate gate'
+description: >-
+  Evaluate the results of a job's `needs` and fail unless every dependency is
+  acceptable. Used by the aggregator jobs that are this repository's required
+  status checks: ci-gate, plugins-gate and docs-gate.
+
+  Background: GitHub evaluates required status checks twice under a merge queue —
+  once on the pull request to enter the queue, and again on the merge group to
+  merge — using the same context names. A `skipped` job does NOT count as success
+  for a required check, so expensive PR-only jobs cannot simply be skipped on
+  `merge_group` if they are individually required. Aggregating them behind one
+  always-running job is what lets the merge queue run a reduced check set.
+
+  The calling job must set `if: always()`, otherwise the gate is itself skipped
+  when a dependency fails and the queue stalls waiting for a status that never
+  arrives.
+
+inputs:
+  needs:
+    description: 'The calling job''s `needs` context, passed as `${{ toJSON(needs) }}`.'
+    required: true
+  skippable:
+    description: >-
+      Space-separated job ids allowed to report `skipped` (because they are
+      PR-only, or gated behind a `ci/skip-*` label). A `failure` from one of
+      these is still fatal.
+    required: false
+    default: ''
+  soft:
+    description: >-
+      Space-separated job ids whose failure warns instead of blocking. Escape
+      hatch for promoting a check to required before it is trusted.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Evaluate dependency results
+      shell: bash
+      env:
+        NEEDS: ${{ inputs.needs }}
+        SKIPPABLE: ${{ inputs.skippable }}
+        SOFT: ${{ inputs.soft }}
+      run: ${{ github.action_path }}/evaluate-gate.sh
