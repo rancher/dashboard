@@ -117,6 +117,13 @@ A match on a candidate's name is not automatically a usage:
 Static search cannot see any of the following. Check each one explicitly, and state in the issue that you did:
 
 - **`require.context` auto-registration.** Run `grep -rn "require.context" shell pkg --include=*.js --include=*.ts` and check whether the candidate's directory is covered by one of the resulting globs. Re-run the grep rather than trusting a remembered list — at time of writing it covers `shell/components/formatter/*.vue` (`shell/plugins/formatters.js`, `shell/plugins/global-formatters.js`) and `shell/config/product/*` (`shell/utils/dynamic-importer.js`)
+  - **CRITICAL for formatters**: All Vue components in `shell/components/formatter/` matching `/[A-Z]\w+\.(vue)$/` are **automatically registered globally** by `require.context` in two places:
+    1. `shell/plugins/formatters.js` — adds them to the `FORMATTERS` object cache used by `SortableTable`
+    2. `shell/plugins/global-formatters.js` — registers them as global Vue components
+  - This means formatters ARE available at runtime via string-based references (e.g., `formatter: 'ComponentName'` in table configs) even without explicit imports
+  - To verify a formatter is unused, you must search for **string-based references**: `grep -r "'FormatterName'\|\"FormatterName\"" shell/config pkg` and check table header definitions in `shell/config/table-headers.js` and all `pkg/*/config/` directories
+  - Also search the entire git history: `git log -p --all -S "FormatterName" -- "shell/config/" "pkg/"` to see if it was ever used and later replaced
+  - Even if no current references exist, note in the issue that the component is part of the auto-registration system and could theoretically be referenced by external UI extensions via string name
 - **Convention directories resolved from a Kubernetes resource type at runtime**: `shell/models/`, `shell/detail/`, `shell/edit/`, `shell/list/`, `shell/chart/`, `shell/cloud-credential/`, `shell/machine-config/`, `shell/promptRemove/`, `shell/dialog/`, and the `pkg/*/` equivalents. A file named after a resource type (e.g. `provisioning.cattle.io.cluster.vue`) is loaded by name, so no import statement will ever exist. Never report a file in these directories as an orphaned file
 - **`defineAsyncComponent`, `resolveComponent`, `<component :is="...">` with a computed name, and template-literal import paths**
 
@@ -148,6 +155,14 @@ Cheap to gather, and the strongest available signal that code was abandoned rath
 
 Include both in the issue. A component whose last consumer was deleted years ago is a far safer removal than one added last month, and the dates let a reviewer judge that without repeating the work.
 
+**Historical Context Patterns** — different removal patterns indicate different confidence levels:
+
+- **Explicit replacement**: Search git history for the component name in config files: `git log -p --all -S "ComponentName" -- "shell/config/" "pkg/"`. If you find a commit that changed `formatter: 'OldComponent'` to `formatter: 'NewComponent'`, that's **very high confidence** — the old component was intentionally replaced.
+
+- **Orphaned by package removal**: Check if the component was part of a removed package: `git log --all --oneline -- "**/ComponentName.vue"` then check if its parent directory/package was deleted. Example: `git log -p --all -S "ComponentName" -- "pkg/removed-package/"`. If the only usage was in a package that was later removed, that's **high confidence** with clear provenance.
+
+- **Never used**: If git history shows no usage in config files (`git log -p --all -S "ComponentName" -- "shell/config/" "pkg/"`returns empty), the component may have been speculative, incomplete, or migrated from another codebase. This is **medium confidence** — safe to remove but requires runtime testing to confirm no dynamic string-based references exist.
+
 #### Check claims, do not infer them
 
 Every statement in the issue must be something determined, not something that seemed likely:
@@ -170,6 +185,10 @@ Assess findings to distinguish true dead code from intentional or dynamically-re
 
 **Assessment Criteria**:
 - **Confidence**: How certain you are the code is truly unreferenced (only report high-confidence findings)
+  - **Very High (95%+)**: Git history shows explicit replacement (old component → new component in same config file)
+  - **High (85-95%)**: Component was only used in a package/feature that was later removed (verifiable via git history)
+  - **Medium (70-85%)**: No references found anywhere (current code or git history), but component could theoretically be used via dynamic string resolution or external extensions
+  - **Low (<70%)**: Component has unclear provenance, recent changes, or potential dynamic resolution patterns — DO NOT report these
 - **Severity**: Amount of dead code (lines, number of symbols/files)
 - **Impact**: Maintenance burden and codebase bloat removed by deletion
 - **Safety**: Whether removal is safe — dynamic resolution ruled out, transitive closure complete, and the published `@shell/*` surface accounted for
@@ -221,6 +240,54 @@ Create separate issues for each distinct category or cluster of dead code found 
 - **Closure**: Follow the imports of confirmed-dead files to find the rest of the cluster, rather than reporting only the leaves
 - **Historical Context**: Use `git log` to establish whether the code was recently added (possibly not yet wired up) or genuinely abandoned, and include the dates as evidence
 
+### Example Analysis: Formatter Components
+
+Real-world example demonstrating the verification patterns (from issue #19):
+
+**Component: `DelayedValue.vue`** (Very High Confidence)
+```bash
+# Check current usage
+grep -r "DelayedValue" shell/config pkg --include="*.js" --include="*.ts"
+# Result: No matches
+
+# Check git history for usage
+git log -p --all -S "DelayedValue" -- "shell/config/table-headers.js"
+# Result: Shows it was added in June 2022 (commit cab999d02f) as formatter for Pod Restarts
+# Result: Shows it was REPLACED in July 2022 (commit 609f73918d):
+#   -  formatter:    'DelayedValue',
+#   +  formatter:    'LivePodRestarts',
+# Conclusion: Very high confidence — explicitly replaced, safe to remove
+```
+
+**Component: `ImagePercentageBar.vue`** (High Confidence)
+```bash
+# Check current usage
+grep -r "ImagePercentageBar" shell/config pkg --include="*.js" --include="*.ts"
+# Result: No matches
+
+# Check git history
+git log -p --all -S "ImagePercentageBar" -- "pkg/"
+# Result: Used in pkg/harvester/config/table-headers.js for IMAGE_PROGRESS formatter
+# Result: Entire pkg/harvester/ directory was removed in commit 34cbd6d66a (Jan 2024)
+# Conclusion: High confidence — orphaned by Harvester package removal
+```
+
+**Component: `LinkDetailImage.vue`** (Medium Confidence)
+```bash
+# Check current usage
+grep -r "LinkDetailImage" shell/config pkg --include="*.js" --include="*.ts"
+# Result: No matches
+
+# Check git history
+git log -p --all -S "LinkDetailImage" -- "shell/config/" "pkg/"
+# Result: No usage found in any config file in entire git history
+# Conclusion: Medium confidence — never used, but could be referenced via string name
+# Note: Component is auto-registered via require.context, could be used by external extensions
+# Recommendation: Remove but include runtime testing in removal checklist
+```
+
+**Key Takeaway**: Even components that are auto-registered globally (via `require.context`) can be dead code if they're never referenced by name in any config file, template, or external integration point. Use git history to distinguish between "never used" (medium confidence) vs "explicitly replaced" (very high confidence) vs "orphaned by removal" (high confidence).
+
 ## Issue Template
 
 For each distinct dead-code cluster found, create a separate issue using this structure:
@@ -255,6 +322,18 @@ For each distinct dead-code cluster found, create a separate issue using this st
 - Last changed: [date + commit, per file]
 - Last usage removed in: [commit that deleted the final consumer, or "not identifiable"]
 - Files remaining in the affected directories: [names + who uses them, or "none"]
+
+## Historical Context
+
+For each component, document its provenance to justify confidence level:
+
+- **Replacement pattern** (if applicable): Show git commit where `ComponentName` was replaced by another component in config files. Example: `git show abc123 -- shell/config/table-headers.js` showing `formatter: 'Old'` → `formatter: 'New'`. This indicates **very high confidence** for removal.
+
+- **Orphaned by removal** (if applicable): Show that the component was only used in a package/directory that was later deleted. Example: Component was in `pkg/harvester/config/table-headers.js` using `formatter: 'ImagePercentageBar'`, then `pkg/harvester/` was removed in commit `34cbd6d66a` (January 2024). This indicates **high confidence** with clear audit trail.
+
+- **Never used** (if applicable): Git history search `git log -p --all -S "ComponentName" -- "shell/config/" "pkg/"` returns no usage in config files. Component may have been speculative, incomplete, or migrated without usage. This indicates **medium confidence** — removal is likely safe but requires runtime testing.
+
+Include the specific git commands run and their outputs to support the confidence assessment.
 
 ## Impact Analysis
 
