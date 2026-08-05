@@ -42,6 +42,7 @@ interface ChartData {
   icon: string;
   versions: CatalogVersion[];
   repoNameDisplay: string;
+  deprecated: boolean;
 }
 
 interface MappedVersion {
@@ -218,12 +219,16 @@ const fetchChartData = async(versionOverride?: string) => {
 
     repoObj.value = store.getters[`${ inStore }/byId`](CATALOG_TYPES.CLUSTER_REPO, query.value.repoName);
 
-    const catalogChart = store.getters['catalog/chart']({
+    // The `catalog/chart` getter filters on an exact `deprecated` match, defaulting to non-deprecated charts.
+    // The App Collection catalog also lists deprecated charts, so fall back to including them to avoid a spurious
+    // "chart not found" error when opening one (e.g. apache-apisix-dashboard).
+    const chartQuery = {
       repoType:      query.value.repoType,
       repoName:      query.value.repoName,
       chartName:     query.value.chartName,
       includeHidden: true,
-    });
+    };
+    const catalogChart = store.getters['catalog/chart'](chartQuery) || store.getters['catalog/chart']({ ...chartQuery, showDeprecated: true });
 
     const chartVersions = catalogChart?.versions as CatalogVersion[] | undefined;
 
@@ -238,6 +243,7 @@ const fetchChartData = async(versionOverride?: string) => {
       icon:             catalogChart.icon || chartVersions[0]?.icon || '',
       versions:         chartVersions,
       repoNameDisplay:  repoObj.value?.nameDisplay || query.value.repoName,
+      deprecated:       !!catalogChart.deprecated,
     };
 
     let versionName = versionOverride || query.value.versionName;
@@ -324,12 +330,13 @@ onMounted(() => fetchChartData());
       v-if="chart"
       :icon="chart.icon"
       :chart-name="chart.chartNameDisplay"
+      :deprecated="chart.deprecated"
       :sub-header-items="headerSubItems"
       :description="version && version.description ? version.description : ''"
     >
       <template #back-link>
         <router-link :to="{ name: 'c-cluster-fleet-application-appco-charts', params: { cluster: route.params.cluster }, query: { secret: secretName } }">
-          {{ t('fleet.appCo.chart.title') }}
+          {{ t('fleet.appCo.chart.title') }}:
         </router-link>
       </template>
       <template #action>
