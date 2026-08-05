@@ -200,6 +200,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   });
 
   it('can create a repository with SSH key', function() {
+    // Idempotent across retries (mirrors the plain create test): remove any leftover SSH
+    // repo so the retry's re-create does not 409 and strand the list render.
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, false);
+
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.create();
@@ -210,12 +214,20 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
     repositoriesPage.waitForPage();
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active').should('be.visible');
+    // The rancher/charts clone is large and slow in CI (~30s for the plain repo, and
+    // slower here with several repos downloading). The default 10s Active check is too
+    // short, so wait for the download to finish at the API level and force a fresh list
+    // query before asserting Active with the long timeout - the same pattern the plain
+    // create test uses.
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, 40);
+    cy.reload();
+    repositoriesPage.waitForPage();
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can delete repositories via bulk actions', function() {
