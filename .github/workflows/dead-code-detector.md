@@ -46,7 +46,8 @@ Detect and report dead code by:
 
 1. **Analyzing Recent Commits**: Review changes in the latest commits to focus the analysis
 2. **Detecting Dead Code**: Identify unused exports, unreferenced components, orphaned files, dead routes, and unused i18n keys
-3. **Reporting Findings**: Create a detailed issue if significant dead code is detected (threshold below)
+3. **Verifying Candidates**: Rule out dynamic resolution, follow the dead-code chain to its full extent, and check every claim before making it
+4. **Reporting Findings**: Create a detailed issue if significant dead code is detected (threshold below)
 
 ## Context
 
@@ -79,7 +80,7 @@ Apply the following strategies to find dead code. For each candidate, you MUST v
 **Orphaned Vue components**:
 - Components in `shell/components/`, `shell/pages/`, or `pkg/**/` that are never referenced in any template, route definition, or dynamic import
 - Check both PascalCase (`<MyComponent>`) and kebab-case (`<my-component>`) usage in templates
-- Account for components resolved dynamically (e.g. via `resolveComponent`, `defineAsyncComponent`, string-keyed lookups, or the Rancher model/registry mechanisms)
+- Account for components resolved dynamically (e.g. via `resolveComponent`, `defineAsyncComponent`, string-keyed lookups, or the Rancher model/registry mechanisms) — see the dynamic resolution checks in section 3
 
 **Unreferenced utility functions**:
 - Functions in `shell/utils/` (and equivalent util directories) with no callers anywhere in the codebase
@@ -91,7 +92,72 @@ Apply the following strategies to find dead code. For each candidate, you MUST v
 - Keys in locale files (e.g. `shell/assets/translations/en-us.yaml`) that are never referenced in templates or JS/TS via `t('...')`, `i18n-t`, `v-t`, or similar
 - Be conservative: keys may be constructed dynamically (string concatenation, interpolation). Only report keys with a static, obviously-unused prefix path
 
-### 3. Dead Code Evaluation
+### 3. Candidate Verification
+
+Every candidate must pass all of the checks below before it can be reported. Each check exists because skipping it has already produced a wrong, overstated or incomplete finding.
+
+#### Search breadth
+
+A missed reference is a false positive, so cast the net wider than the source extensions:
+
+- Search `.vue`, `.ts`, `.js`, `.json`, `.scss`, `.md` and `.yaml`
+- Search the whole repository, not only `shell/` and `pkg/`. `cypress/`, `storybook/`, `docusaurus/` and `creators/` all reference code under `shell/`
+- Search for the import path as well as the symbol name. `graph/Circle` finds `import GraphCircle from '@shell/components/graph/Circle'` — a search for `Circle` alone buries it in noise, and a search for `Circle.vue` misses it entirely because the extension is usually omitted
+- Search for the local alias too: a component is frequently imported under a name that differs from its filename
+
+#### Name collisions are not references
+
+A match on a candidate's name is not automatically a usage:
+
+- A CSS class (`.count-gauge`) or an unrelated identifier that merely contains the name (`totalCountGaugeInput`) does not reference `CountGauge.vue`. Read every match before counting it as a consumer
+- The reverse case matters too: a stylesheet rule left behind for a component you are removing is itself dead code. List it in the removal steps instead of letting it scare you off the finding
+
+#### Dynamic resolution
+
+Static search cannot see any of the following. Check each one explicitly, and state in the issue that you did:
+
+- **`require.context` auto-registration.** Run `grep -rn "require.context" shell pkg --include=*.js --include=*.ts` and check whether the candidate's directory is covered by one of the resulting globs. Re-run the grep rather than trusting a remembered list — at time of writing it covers `shell/components/formatter/*.vue` (`shell/plugins/formatters.js`, `shell/plugins/global-formatters.js`) and `shell/config/product/*` (`shell/utils/dynamic-importer.js`)
+- **Convention directories resolved from a Kubernetes resource type at runtime**: `shell/models/`, `shell/detail/`, `shell/edit/`, `shell/list/`, `shell/chart/`, `shell/cloud-credential/`, `shell/machine-config/`, `shell/promptRemove/`, `shell/dialog/`, and the `pkg/*/` equivalents. A file named after a resource type (e.g. `provisioning.cattle.io.cluster.vue`) is loaded by name, so no import statement will ever exist. Never report a file in these directories as an orphaned file
+- **`defineAsyncComponent`, `resolveComponent`, `<component :is="...">` with a computed name, and template-literal import paths**
+
+#### Published package surface
+
+`shell/package.json` publishes `@rancher/shell` with `"files": ["**/*"]`. Every file under `shell/` ships to npm and can be imported by an out-of-tree UI extension as `@shell/...`. A repository-wide search cannot prove those consumers do not exist.
+
+- Do not write "not part of any public extension API" about a file under `shell/`
+- Instead state that the file is unreferenced *in this repository*, and that removing it changes the published `@shell/*` surface
+- This is not a reason to skip the finding — a component abandoned for years is still worth removing — it is a reason to describe it accurately and to add a release-note item to the removal steps
+
+#### Transitive closure
+
+Dead code arrives in chains, and reporting only the leaves understates the cluster:
+
+1. Read the imports of each confirmed-dead file
+2. For every in-repo module it imports, re-run the reference check while treating the already-confirmed-dead files as if they had been deleted
+3. Anything whose only remaining consumers are dead is dead too — add it to the cluster, then repeat until the set stops growing
+4. Work upwards as well: if a candidate's only importer is itself unreferenced, that importer belongs in the same cluster
+
+A previous run reported four orphaned components under `shell/components/graph/`. One of them imported a sibling whose only other consumer was itself unreferenced, and that consumer pulled in two more files. The real cluster was eight files, not four.
+
+#### Age evidence
+
+Cheap to gather, and the strongest available signal that code was abandoned rather than added recently and not yet wired up:
+
+- `git log -1 --format="%ad %h %s" --date=short -- <file>` for the last change to each file
+- `git log --oneline -S "<symbol>" -- .` to find the commit where the last usage disappeared
+
+Include both in the issue. A component whose last consumer was deleted years ago is a far safer removal than one added last month, and the dates let a reviewer judge that without repeating the work.
+
+#### Check claims, do not infer them
+
+Every statement in the issue must be something determined, not something that seemed likely:
+
+- Before saying a directory becomes empty, `ls` it and list the files that remain along with who uses them
+- Before quoting a line count, run `wc -l`
+- Never write a conditional instruction ("check whether X, and if so do Y") into the removal steps. Resolve it — that check *is* the analysis being asked for
+- Anything genuinely undeterminable belongs in the issue as an explicit open question, not as an assumption
+
+### 4. Dead Code Evaluation
 
 Assess findings to distinguish true dead code from intentional or dynamically-referenced code:
 
@@ -106,9 +172,9 @@ Assess findings to distinguish true dead code from intentional or dynamically-re
 - **Confidence**: How certain you are the code is truly unreferenced (only report high-confidence findings)
 - **Severity**: Amount of dead code (lines, number of symbols/files)
 - **Impact**: Maintenance burden and codebase bloat removed by deletion
-- **Safety**: Whether removal is safe (no dynamic references, no public/extension API surface)
+- **Safety**: Whether removal is safe — dynamic resolution ruled out, transitive closure complete, and the published `@shell/*` surface accounted for
 
-### 4. Issue Reporting
+### 5. Issue Reporting
 
 Create separate issues for each distinct category or cluster of dead code found (maximum 3 per run). Each issue should be focused enough to enable a clean removal PR.
 
@@ -152,7 +218,8 @@ Create separate issues for each distinct category or cluster of dead code found 
 - **Primary Focus**: Files changed in recent commits (excluding test and workflow files)
 - **Secondary Analysis**: Cross-reference candidates against the entire repository to confirm they are unreferenced
 - **Cross-Reference**: Check barrel files, re-exports, and dynamic resolution before concluding code is dead
-- **Historical Context**: Consider whether the code was recently added (possibly not yet wired up) versus genuinely abandoned
+- **Closure**: Follow the imports of confirmed-dead files to find the rest of the cluster, rather than reporting only the leaves
+- **Historical Context**: Use `git log` to establish whether the code was recently added (possibly not yet wired up) or genuinely abandoned, and include the dates as evidence
 
 ## Issue Template
 
@@ -183,12 +250,17 @@ For each distinct dead-code cluster found, create a separate issue using this st
 
 - Searched for references with: `[command used]`
 - Result: [no importers / no template references / etc.]
+- Dynamic resolution ruled out: [`require.context` globs checked, convention directories checked, async/`:is` lookups checked — and why none apply]
+- Transitive closure: [files added by following the imports of the confirmed-dead files, or "none — all candidates are leaves"]
+- Last changed: [date + commit, per file]
+- Last usage removed in: [commit that deleted the final consumer, or "not identifiable"]
+- Files remaining in the affected directories: [names + who uses them, or "none"]
 
 ## Impact Analysis
 
 - **Maintainability**: [How removal reduces maintenance burden]
-- **Code Bloat**: [Lines/files removed]
-- **Safety**: [Why removal is safe — no dynamic references, not public API]
+- **Code Bloat**: [Lines/files removed, from `wc -l`]
+- **Safety**: [Why removal is safe — dynamic resolution ruled out, closure complete. For files under `shell/`, note that they are part of the published `@rancher/shell` package and that out-of-tree extension consumers cannot be ruled out by search]
 
 ## Removal Recommendations
 
@@ -204,7 +276,9 @@ For each distinct dead-code cluster found, create a separate issue using this st
 
 - [ ] Re-verify each item is still unreferenced
 - [ ] Remove dead code and any now-empty files
+- [ ] Remove orphaned styles and assets left behind by the removed code
 - [ ] Update barrel files / re-exports
+- [ ] Add a release note if any removed file was under `shell/` (published `@rancher/shell` surface)
 - [ ] Run lint and unit tests (`yarn lint`, `yarn test:ci`)
 - [ ] Verify no functionality broken
 
@@ -230,9 +304,12 @@ For each distinct dead-code cluster found, create a separate issue using this st
 
 ### Accuracy
 - **False positives are worse than misses** — only report dead code you have verified is unreferenced with high confidence
-- Account for dynamic references, re-exports, barrel files, and extension/public API surface
-- Consider Vue and Rancher-specific idioms (model/registry auto-registration, dynamic component resolution)
+- Run every check in section 3 before reporting; do not substitute plausibility for verification
+- Account for dynamic references, re-exports, barrel files, and the published `@rancher/shell` surface
+- Consider Vue and Rancher-specific idioms (model/registry auto-registration, `require.context`, resource-type-derived file resolution)
 - Provide the exact search evidence that proves each item is dead
+- An understated cluster is also a defect: report the full transitive closure, not just the files that first caught your attention
+- Prefer saying "could not determine" over asserting something convenient
 
 ### Issue Creation
 - Create **one issue per distinct dead-code cluster** — do NOT bundle unrelated findings in a single issue
