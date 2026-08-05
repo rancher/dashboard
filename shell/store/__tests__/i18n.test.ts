@@ -5,7 +5,6 @@ import {
   getters,
   mutations,
   actions,
-  substituteGlobals,
   I18N_GLOBAL_TYPE,
 } from '@shell/store/i18n';
 
