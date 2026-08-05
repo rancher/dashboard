@@ -237,6 +237,10 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
           type: 'ClusterIP'
         }
       });
+      // Ensure the service is queryable before the ingress form loads, so its target-service
+      // dropdown lists it. Otherwise the selection silently no-ops and the submitted rule comes
+      // back with no http backend/paths (spec.rules[0].http missing).
+      cy.waitForRancherResource('v1', 'services', `${ namespace }/${ headlessServiceName }`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();

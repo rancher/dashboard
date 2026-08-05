@@ -76,8 +76,12 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
       ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } });
 
       clusterDashboard.waitForPage(undefined, 'cluster-events');
+      // Capture the count from the list's OWN request. Events churn constantly (they GC/expire),
+      // so a separately-read API count can already disagree with what the list rendered.
+      countHelper.setupCount();
       EventsPageListPo.navTo();
       events.waitForPage();
+      countHelper.handleCount();
 
       cy.getRancherResource('v1', 'events')
         .then((resp: Cypress.Response<any>) => {
@@ -108,15 +112,18 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
             .endButton()
             .isEnabled();
 
-          // check text before navigation
+          // check text before navigation - assert against the count the list actually rendered
+          // (initialCount from the separate API read above can already be stale for volatile events).
           events.list().resourceTable().sortableTable().pagination()
             .self()
             .scrollIntoView();
-          events.list().resourceTable().sortableTable().pagination()
-            .paginationText()
-            .then((el) => {
-              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ initialCount } Events`);
-            });
+          countHelper.getCount().then((count) => {
+            return events.list().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
+              });
+          });
 
           // navigate to next page - right button
           countHelper.setupCount();
