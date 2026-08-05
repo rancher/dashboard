@@ -19,7 +19,6 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
-import { getVersionData } from '@shell/config/version';
 import { getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
 
 export default {
@@ -146,7 +145,7 @@ export default {
     restrictionsMigrationLearnMore() {
       return this.t(
         'fleet.restrictions.learnMoreMigration',
-        { url: getGitRepoRestrictionMigrationDocsUrl(getVersionData()?.Version) },
+        { url: getGitRepoRestrictionMigrationDocsUrl() },
         true,
       );
     },

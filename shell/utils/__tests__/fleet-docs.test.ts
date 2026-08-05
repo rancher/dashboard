@@ -1,71 +1,93 @@
-import {
-  getDownstreamResourcesDocsUrl, FLEET_DOWNSTREAM_RESOURCES_DOCS_FALLBACK_URL, getContinuousDeliveryPoliciesDocsUrl, FLEET_CD_POLICIES_DOCS_FALLBACK_URL, getGitRepoRestrictionMigrationDocsUrl, FLEET_GITREPORESTRICTION_MIGRATION_DOCS_FALLBACK_URL
-} from '@shell/utils/fleet-docs';
+import { getDownstreamResourcesDocsUrl, getBundleDeploymentOptionsDocsUrl, getContinuousDeliveryPoliciesDocsUrl, getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
+import { getVersionData } from '@shell/config/version';
+
+// The docs URLs depend on the running Rancher version and whether it's a Prime install, both
+// read from the server version data, so mock it. CURRENT_RANCHER_VERSION is the fallback used
+// for dev/head builds that don't report a clean X.Y.Z.
+jest.mock('@shell/config/version', () => ({
+  getVersionData:          jest.fn(() => ({ Version: 'v2.15.1', RancherPrime: 'false' })),
+  CURRENT_RANCHER_VERSION: '2.15',
+}));
+
+const mockVersionData = (version: string, isPrime = false) => (getVersionData as jest.Mock)
+  .mockReturnValue({ Version: version, RancherPrime: isPrime ? 'true' : 'false' });
 
 describe('fleet-docs utils', () => {
-  describe('getDownstreamResourcesDocsUrl', () => {
-    it.each([
-      ['v2.15.0', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['2.15.0', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['v2.16.3', 'https://fleet.rancher.io/0.17/downstream-resources'],
-      ['v2.15.0-rc1', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['v2.15-head', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['v2.20.0', 'https://fleet.rancher.io/0.21/downstream-resources'],
-    ])('should map Rancher %s to Fleet docs %s', (version, expected) => {
-      expect(getDownstreamResourcesDocsUrl(version)).toStrictEqual(expected);
+  describe('getDownstreamResourcesDocsUrl (AppCo, Prime-aware)', () => {
+    it('should use the community docs at the root on a later release when not Prime', () => {
+      mockVersionData('v2.15.1', false);
+      expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://fleet.rancher.io/how-tos-for-users/downstream-resource-propagation');
     });
 
-    it.each([
-      ['v2.14.0'],
-      ['v2.9.0'],
-      ['dev'],
-      [''],
-      [undefined],
-    ])('should fall back to the unversioned docs for %s', (version) => {
-      expect(getDownstreamResourcesDocsUrl(version)).toStrictEqual(FLEET_DOWNSTREAM_RESOURCES_DOCS_FALLBACK_URL);
-    });
-  });
-
-  describe('getContinuousDeliveryPoliciesDocsUrl', () => {
-    it.each([
-      ['v2.15.0', 'https://fleet.rancher.io/0.16/reference/ref-policy'],
-      ['2.15.0', 'https://fleet.rancher.io/0.16/reference/ref-policy'],
-      ['v2.16.3', 'https://fleet.rancher.io/0.17/reference/ref-policy'],
-      ['v2.15.0-rc1', 'https://fleet.rancher.io/0.16/reference/ref-policy'],
-      ['v2.15-head', 'https://fleet.rancher.io/0.16/reference/ref-policy'],
-      ['v2.20.0', 'https://fleet.rancher.io/0.21/reference/ref-policy'],
-    ])('should map Rancher %s to Fleet Policy docs %s', (version, expected) => {
-      expect(getContinuousDeliveryPoliciesDocsUrl(version)).toStrictEqual(expected);
+    it('should use the community "next" docs on the release that introduced them', () => {
+      mockVersionData('v2.15.0', false);
+      expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/how-tos-for-users/downstream-resource-propagation');
     });
 
-    it.each([
-      ['v2.14.0'],
-      ['v2.9.0'],
-      ['dev'],
-      [''],
-      [undefined],
-    ])('should fall back to the unversioned Policy docs for %s', (version) => {
-      expect(getContinuousDeliveryPoliciesDocsUrl(version)).toStrictEqual(FLEET_CD_POLICIES_DOCS_FALLBACK_URL);
+    it('should use the latest SUSE docs on a later release when Prime', () => {
+      mockVersionData('v2.15.1', true);
+      expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/how-tos-for-users/downstream-resource-propagation.html');
+    });
+
+    it('should use the SUSE "next" docs on the introducing release when Prime', () => {
+      mockVersionData('v2.15.0', true);
+      expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/how-tos-for-users/downstream-resource-propagation.html');
+    });
+
+    it('should fall back to the community "next" docs for dev/head builds', () => {
+      mockVersionData('master-head', false);
+      expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/how-tos-for-users/downstream-resource-propagation');
     });
   });
 
-  describe('getGitRepoRestrictionMigrationDocsUrl', () => {
-    it.each([
-      ['v2.15.0', 'https://fleet.rancher.io/0.16/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction'],
-      ['2.15.0', 'https://fleet.rancher.io/0.16/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction'],
-      ['v2.16.3', 'https://fleet.rancher.io/0.17/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction'],
-      ['v2.20.0', 'https://fleet.rancher.io/0.21/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction'],
-    ])('should map Rancher %s to Fleet migration docs %s', (version, expected) => {
-      expect(getGitRepoRestrictionMigrationDocsUrl(version)).toStrictEqual(expected);
+  describe('getBundleDeploymentOptionsDocsUrl (AppCo, Prime-aware, with anchor)', () => {
+    it('should use the community CRD reference (with anchor) at the root on a later release when not Prime', () => {
+      mockVersionData('v2.15.1', false);
+      expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://fleet.rancher.io/reference/ref-crds#_bundledeploymentoptions');
     });
 
-    it.each([
-      ['v2.14.0'],
-      ['dev'],
-      [''],
-      [undefined],
-    ])('should fall back to the unversioned migration docs for %s', (version) => {
-      expect(getGitRepoRestrictionMigrationDocsUrl(version)).toStrictEqual(FLEET_GITREPORESTRICTION_MIGRATION_DOCS_FALLBACK_URL);
+    it('should use the community "next" CRD reference (with anchor) on the release that introduced them', () => {
+      mockVersionData('v2.15.0', false);
+      expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/reference/ref-crds#_bundledeploymentoptions');
+    });
+
+    it('should use the latest SUSE CRD reference (with anchor) on a later release when Prime', () => {
+      mockVersionData('v2.15.1', true);
+      expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/reference/ref-crds.html#_bundledeploymentoptions');
+    });
+  });
+
+  describe('getContinuousDeliveryPoliciesDocsUrl (community-only)', () => {
+    it('should use the community docs at the root on a later release', () => {
+      mockVersionData('v2.15.1', false);
+      expect(getContinuousDeliveryPoliciesDocsUrl()).toStrictEqual('https://fleet.rancher.io/reference/ref-policy');
+    });
+
+    it('should use the community "next" docs on the release that introduced them', () => {
+      mockVersionData('v2.15.0', false);
+      expect(getContinuousDeliveryPoliciesDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/reference/ref-policy');
+    });
+
+    it('should stay on the community docs even on a Prime install', () => {
+      mockVersionData('v2.15.1', true);
+      expect(getContinuousDeliveryPoliciesDocsUrl()).toStrictEqual('https://fleet.rancher.io/reference/ref-policy');
+    });
+  });
+
+  describe('getGitRepoRestrictionMigrationDocsUrl (community-only, with anchor)', () => {
+    it('should use the community docs (with anchor) at the root on a later release', () => {
+      mockVersionData('v2.15.1', false);
+      expect(getGitRepoRestrictionMigrationDocsUrl()).toStrictEqual('https://fleet.rancher.io/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction');
+    });
+
+    it('should use the community "next" docs (with anchor) on the release that introduced them', () => {
+      mockVersionData('v2.15.0', false);
+      expect(getGitRepoRestrictionMigrationDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction');
+    });
+
+    it('should stay on the community docs even on a Prime install', () => {
+      mockVersionData('v2.15.1', true);
+      expect(getGitRepoRestrictionMigrationDocsUrl()).toStrictEqual('https://fleet.rancher.io/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction');
     });
   });
 });

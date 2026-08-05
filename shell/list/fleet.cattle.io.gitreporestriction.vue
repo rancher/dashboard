@@ -3,7 +3,6 @@ import { useStore } from 'vuex';
 import { Banner } from '@components/Banner';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import { getVersionData } from '@shell/config/version';
 import { getContinuousDeliveryPoliciesDocsUrl, getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
 
 withDefaults(defineProps<{
@@ -14,19 +13,17 @@ withDefaults(defineProps<{
 const store = useStore();
 const { t } = useI18n(store);
 
-const rancherVersion = getVersionData()?.Version;
-
-// Version-aware link to the Fleet docs section on migrating from GitRepoRestriction.
+// Version- and edition-aware link to the Fleet docs section on migrating from GitRepoRestriction.
 const deprecationWarning = t(
   'fleet.gitRepoRestriction.deprecationWarning',
-  { url: getGitRepoRestrictionMigrationDocsUrl(rancherVersion) },
+  { url: getGitRepoRestrictionMigrationDocsUrl() },
   true,
 );
 
-// Version-aware link to the Fleet "Policy" reference docs (the successor to GitRepoRestriction).
+// Version- and edition-aware link to the Fleet "Policy" reference docs (the successor to GitRepoRestriction).
 const learnMorePolicies = t(
   'fleet.gitRepoRestriction.learnMorePolicies',
-  { url: getContinuousDeliveryPoliciesDocsUrl(rancherVersion) },
+  { url: getContinuousDeliveryPoliciesDocsUrl() },
   true,
 );
 </script>
