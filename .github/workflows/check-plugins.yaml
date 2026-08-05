@@ -3,11 +3,24 @@ on:
   pull_request:
     branches:
       - master
+  # `plugins-gate` is a required status check, so it must also report on the merge
+  # group — a required check that never reports stalls the queue.
+  merge_group:
+    types: [checks_requested]
 env:
   TEST_PERSIST_BUILD: true
+
+concurrency:
+  group: check-plugins-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-validate-plugins')"
+    # PR-only. The plugin build system is slow and unaffected by the cross-PR
+    # interactions the merge queue exists to catch; `plugins-gate` allows the skip.
+    if: >-
+      github.event_name != 'merge_group' &&
+      !contains(github.event.pull_request.labels.*.name, 'ci/skip-validate-plugins')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,3 +50,23 @@ jobs:
             !/tmp/tmp.**/test-app/node_modules/
             !/tmp/tmp.**/test-app/pkg/test-pkg/node_modules/
           retention-days: 2
+
+  # Required status check for this workflow. Replaces `validate`, which cannot be
+  # required directly because it must be absent from the merge group. See the
+  # header comment in .github/actions/gate/action.yaml.
+  plugins-gate:
+    name: plugins-gate
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 1
+
+      - name: Evaluate results
+        uses: ./.github/actions/gate
+        with:
+          needs: ${{ toJSON(needs) }}
+          skippable: validate

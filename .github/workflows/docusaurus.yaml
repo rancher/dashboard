@@ -7,9 +7,23 @@ on:
   pull_request:
     branches:
       - master
+  # `docs-gate` is a required status check, so it must also report on the merge
+  # group — a required check that never reports stalls the queue.
+  merge_group:
+    types: [checks_requested]
+
+# Never cancel in progress here: the push path deploys to GitHub Pages, and a
+# cancelled merge-group run reads as a failure to the merge queue.
+concurrency:
+  group: docusaurus-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build
+    # PR and push only. A docs build cannot be broken by the cross-PR interactions
+    # the merge queue exists to catch; `docs-gate` allows the skip.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -52,3 +66,23 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # Required status check for this workflow, replacing the `Build` context. `deploy`
+  # is deliberately not a dependency — it only runs on push to master, so gating on
+  # it would make every pull request wait for a job that never runs.
+  docs-gate:
+    name: docs-gate
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 1
+
+      - name: Evaluate results
+        uses: ./.github/actions/gate
+        with:
+          needs: ${{ toJSON(needs) }}
+          skippable: build
