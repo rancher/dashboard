@@ -8,42 +8,52 @@ export const FLEET_APPCO_AUTH_GENERATE_NAME = 'fleet-appco-auth-';
 export const IMAGE_PULL_SECRET_SUFFIX = '-image-pull-secret';
 export const SUSE_APPCO_DISPLAY_NAME = 'SUSE AppCo';
 
-const FLEET_DOWNSTREAM_RESOURCES_DOC_PATH = 'how-tos-for-users/downstream-resource-propagation';
-
-// Community (fleet.rancher.io) docs are unversioned: the previous `0.X` deep links no
-// longer resolve after the docs restructure, so we link the current, unversioned page.
-export const FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL = `https://fleet.rancher.io/${ FLEET_DOWNSTREAM_RESOURCES_DOC_PATH }`;
-
-// Rancher Prime docs live on documentation.suse.com and ARE versioned. Used when the
-// version can't be parsed (e.g. dev builds), pointing at the latest published docs.
+const FLEET_COMMUNITY_DOCS_BASE = 'https://fleet.rancher.io';
 const FLEET_PRIME_DOCS_BASE = 'https://documentation.suse.com/cloudnative/continuous-delivery';
 
-export const FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_FALLBACK_URL = `${ FLEET_PRIME_DOCS_BASE }/latest/en/${ FLEET_DOWNSTREAM_RESOURCES_DOC_PATH }.html`;
+const FLEET_DOWNSTREAM_RESOURCES_DOC_PATH = 'how-tos-for-users/downstream-resource-propagation';
+const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH = 'reference/ref-crds';
+const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR = '_bundledeploymentoptions';
 
 /**
- * Build the URL to the Fleet "downstream resources" docs.
+ * Build a Fleet docs URL, choosing between the community and Rancher Prime docs.
  *
- * - Community: the unversioned fleet.rancher.io page (the old `0.X/downstream-resources`
- *   deep links 404 after the docs were restructured).
- * - Prime: the versioned documentation.suse.com page. Rancher `2.X` ships Fleet `0.(X+1)`,
- *   so we map to `v0.<minor + 1>`; older or unparseable versions fall back to `latest`.
+ * - Community (fleet.rancher.io): the unversioned page. The old `0.X` deep links 404
+ *   after the docs were restructured, so we always link the current page.
+ * - Prime (documentation.suse.com): the versioned page. Rancher `2.X` ships Fleet
+ *   `0.(X+1)`, so we map to `v0.<minor + 1>`; older or unparseable versions fall back
+ *   to `latest`. Harcoded to `2.X`, so fragile if that correlation changes.
  */
-export function getDownstreamResourcesDocsUrl(rancherVersion?: string, isPrime = false): string {
+function fleetDocsUrl(path: string, { rancherVersion, isPrime, anchor = '' }: { rancherVersion?: string; isPrime?: boolean; anchor?: string }): string {
+  const hash = anchor ? `#${ anchor }` : '';
+
   if (!isPrime) {
-    return FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL;
+    return `${ FLEET_COMMUNITY_DOCS_BASE }/${ path }${ hash }`;
   }
 
-  // Harcoded to 2.X.0, it is fragile because if the version changes it will break.
-  // Ideally it would require a correlation between versions, but we have the fallback in place.
   const match = /^v?2\.(\d+)/.exec(rancherVersion || '');
   const minor = match ? parseInt(match[1], 10) : NaN;
+  const version = !isNaN(minor) && minor >= 15 ? `v0.${ minor + 1 }` : 'latest';
 
-  // Downstream-resource docs exist from Fleet 0.16 (Rancher 2.15) onwards.
-  if (!isNaN(minor) && minor >= 15) {
-    return `${ FLEET_PRIME_DOCS_BASE }/v0.${ minor + 1 }/en/${ FLEET_DOWNSTREAM_RESOURCES_DOC_PATH }.html`;
-  }
+  return `${ FLEET_PRIME_DOCS_BASE }/${ version }/en/${ path }.html${ hash }`;
+}
 
-  return FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_FALLBACK_URL;
+// Fleet "downstream resources" docs.
+export const FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL = fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, { isPrime: false });
+export const FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_FALLBACK_URL = fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, { isPrime: true });
+
+export function getDownstreamResourcesDocsUrl(rancherVersion?: string, isPrime = false): string {
+  return fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, { rancherVersion, isPrime });
+}
+
+// Fleet "BundleDeploymentOptions" (CRD reference) docs.
+export const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_COMMUNITY_URL = fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, { isPrime: false, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR });
+export const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_PRIME_FALLBACK_URL = fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, { isPrime: true, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR });
+
+export function getBundleDeploymentOptionsDocsUrl(rancherVersion?: string, isPrime = false): string {
+  return fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, {
+    rancherVersion, isPrime, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR
+  });
 }
 
 interface AuthCredentials {
