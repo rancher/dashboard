@@ -9,7 +9,7 @@ import { RcSection } from '@components/RcSection';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 import { RcIcon } from '@components/RcIcon';
-import { getVersionData, isRancherPrime } from '@shell/config/version';
+import { isRancherPrime } from '@shell/config/version';
 import { getDownstreamResourcesDocsUrl } from '@shell/utils/fleet-appco';
 
 const props = withDefaults(defineProps<{
@@ -30,7 +30,7 @@ const emit = defineEmits<{
 const store = useStore();
 const { t } = useI18n(store);
 
-const DOCS_URL = getDownstreamResourcesDocsUrl(getVersionData()?.Version, isRancherPrime());
+const DOCS_URL = getDownstreamResourcesDocsUrl(isRancherPrime());
 
 const { updateCorrectDrift, updateSecrets, updateDownstreamResources } = useHelmOpResources(emit, toRef(props, 'lockedSecrets'));
 </script>

@@ -16,44 +16,38 @@ const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH = 'reference/ref-crds';
 const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR = '_bundledeploymentoptions';
 
 /**
- * Build a Fleet docs URL, choosing between the community and Rancher Prime docs.
+ * Build a Fleet docs URL, choosing between the community and Rancher Prime docs. Both point
+ * at the *current* docs rather than a pinned version:
  *
- * - Community (fleet.rancher.io): the unversioned page. The old `0.X` deep links 404
- *   after the docs were restructured, so we always link the current page.
- * - Prime (documentation.suse.com): the versioned page. Rancher `2.X` ships Fleet
- *   `0.(X+1)`, so we map to `v0.<minor + 1>`; older or unparseable versions fall back
- *   to `latest`. Harcoded to `2.X`, so fragile if that correlation changes.
+ * - Community (fleet.rancher.io): the unversioned page. The current release is served at the
+ *   root; versioned `0.X` deep links don't exist for it.
+ * - Prime (documentation.suse.com): the `latest` page. There is no unversioned SUSE path, and
+ *   a specific `v0.X` 404s until that release's docs are published, whereas `latest` always
+ *   resolves.
+ *
+ * Because both link the current docs, a brand-new page only resolves once it ships in the
+ * current release — verify a path exists before wiring it up.
  */
-function fleetDocsUrl(path: string, { rancherVersion, isPrime, anchor = '' }: { rancherVersion?: string; isPrime?: boolean; anchor?: string }): string {
+function fleetDocsUrl(path: string, { isPrime, anchor = '' }: { isPrime?: boolean; anchor?: string }): string {
   const hash = anchor ? `#${ anchor }` : '';
 
-  if (!isPrime) {
-    return `${ FLEET_COMMUNITY_DOCS_BASE }/${ path }${ hash }`;
-  }
-
-  const match = /^v?2\.(\d+)/.exec(rancherVersion || '');
-  const minor = match ? parseInt(match[1], 10) : NaN;
-  const version = !isNaN(minor) && minor >= 15 ? `v0.${ minor + 1 }` : 'latest';
-
-  return `${ FLEET_PRIME_DOCS_BASE }/${ version }/en/${ path }.html${ hash }`;
+  return isPrime ? `${ FLEET_PRIME_DOCS_BASE }/latest/en/${ path }.html${ hash }` : `${ FLEET_COMMUNITY_DOCS_BASE }/${ path }${ hash }`;
 }
 
 // Fleet "downstream resources" docs.
 export const FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL = fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, { isPrime: false });
-export const FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_FALLBACK_URL = fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, { isPrime: true });
+export const FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_URL = fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, { isPrime: true });
 
-export function getDownstreamResourcesDocsUrl(rancherVersion?: string, isPrime = false): string {
-  return fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, { rancherVersion, isPrime });
+export function getDownstreamResourcesDocsUrl(isPrime = false): string {
+  return isPrime ? FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_URL : FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL;
 }
 
 // Fleet "BundleDeploymentOptions" (CRD reference) docs.
 export const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_COMMUNITY_URL = fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, { isPrime: false, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR });
-export const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_PRIME_FALLBACK_URL = fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, { isPrime: true, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR });
+export const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_PRIME_URL = fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, { isPrime: true, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR });
 
-export function getBundleDeploymentOptionsDocsUrl(rancherVersion?: string, isPrime = false): string {
-  return fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, {
-    rancherVersion, isPrime, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR
-  });
+export function getBundleDeploymentOptionsDocsUrl(isPrime = false): string {
+  return isPrime ? FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_PRIME_URL : FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_COMMUNITY_URL;
 }
 
 interface AuthCredentials {
