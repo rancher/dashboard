@@ -49,13 +49,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   });
 
   it('can create a repository', function() {
-    // Idempotent across retries: the VAI-backed list intermittently omits the
-    // freshly-created repo from its rendered rows (it exists and is counted - see
-    // https://github.com/rancher/dashboard/issues/17554), which flakes the first
-    // attempt. With the deterministic repo name, the re-create then returns 409 and
-    // the retry can never recover, so remove any leftover before starting.
-    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName, false);
-
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
@@ -74,20 +67,11 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
     // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
-    // The VAI-backed list can drop the just-created repo from its rendered rows even
-    // though it exists and is counted; reload to force a fresh server-side query so the
-    // row is reliably present before asserting its state.
-    cy.reload();
-    repositoriesPage.waitForPage();
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can edit a repository', function() {
     ChartRepositoriesPagePo.navTo();
-    repositoriesPage.waitForPage();
-    // Force a fresh server-side query - the VAI-backed list can otherwise reuse a
-    // stale cached page that omits the repo created above (see issue 17554).
-    cy.reload();
     repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
@@ -103,10 +87,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can clone a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    // Force a fresh server-side query - the VAI-backed list can otherwise reuse a
-    // stale cached page that omits the repo created above (see issue 17554).
-    cy.reload();
-    repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Clone').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=clone');
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }-clone`);
@@ -120,10 +100,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
   it('can download YAML', function() {
     ChartRepositoriesPagePo.navTo();
-    repositoriesPage.waitForPage();
-    // Force a fresh server-side query - the VAI-backed list can otherwise reuse a
-    // stale cached page that omits the repo created above (see issue 17554).
-    cy.reload();
     repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
 
@@ -154,10 +130,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
   it('can delete a repository', function() {
     ChartRepositoriesPagePo.navTo();
-    repositoriesPage.waitForPage();
-    // Force a fresh server-side query - the VAI-backed list can otherwise reuse a
-    // stale cached page that omits the cloned repo (see issue 17554).
-    cy.reload();
     repositoriesPage.waitForPage();
 
     // delete cloned Repository
@@ -196,9 +168,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
     repositoriesPage.waitForPage();
 
-    // Force a fresh list query - the created repo can be missing from the steve/VAI list.
-    cy.reload();
-    repositoriesPage.waitForPage();
     // check list details
     repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
     repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
@@ -305,9 +274,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
     repositoriesPage.waitForPage();
 
-    // Force a fresh list query - the created repo can be missing from the steve/VAI list.
-    cy.reload();
-    repositoriesPage.waitForPage();
     // check list details
     repositoriesPage.list().details(this.ociRepoName, 2).should('be.visible');
 
@@ -363,9 +329,7 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
   it('refresh menu item is not displayed for disabled repository', () => {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    // The state badge can take longer than the default timeout to settle to 'Disabled'
-    // on a fresh list load, so allow the longer timeout (matches the 'can enable' test).
-    repositoriesPage.list().details(repoName, 1).contains('Disabled', MEDIUM_TIMEOUT_OPT).should('be.visible');
+    repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
 
     // Open the action menu and verify refresh is not displayed for disabled repo
     const actionMenu = repositoriesPage.list().actionMenu(repoName);
