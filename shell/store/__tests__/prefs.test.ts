@@ -608,242 +608,6 @@ describe('prefs store', () => {
       });
     });
 
-    describe('set', () => {
-      beforeEach(() => {
-        // The setDefinition mutation test overwrites CLUSTER in the shared module-level
-        // definitions object. Re-register it here so set action tests see correct asUserPreference.
-        create(CLUSTER, '');
-      });
-
-      it('throws when opt.val is provided instead of opt.value', async() => {
-        const s = state();
-        const dispatch = jest.fn();
-        const commit = jest.fn();
-        const rootGetters = { 'auth/loggedIn': false };
-
-        await expect(
-          actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: THEME, val: 'dark' })
-        ).rejects.toThrow('Use value, not val');
-      });
-
-      it('commits load immediately', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const dispatch = jest.fn();
-        // Use PREFERS_SCHEME (asUserPreference: false, asCookie: true) to avoid polluting prefsBeforeLogin
-        const rootGetters = { 'auth/loggedIn': false };
-
-        await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: PREFERS_SCHEME, value: 'dark' });
-
-        expect(commit).toHaveBeenCalledWith('load', { key: PREFERS_SCHEME, value: 'dark' });
-      });
-
-      it('commits cookies/set for cookie-based prefs', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const dispatch = jest.fn();
-        const rootGetters = { 'auth/loggedIn': false };
-
-        await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: THEME, value: 'dark' });
-
-        expect(commit).toHaveBeenCalledWith(
-          'cookies/set',
-          expect.objectContaining({ key: 'R_THEME', value: 'dark' }),
-          { root: true }
-        );
-      });
-
-      it('stores value in prefsBeforeLogin when not logged in and asUserPreference', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const dispatch = jest.fn();
-        const rootGetters = { 'auth/loggedIn': false };
-
-        // CLUSTER has asUserPreference=true and is not a cookie pref
-        await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'my-cluster' });
-
-        // dispatch(loadServer) should NOT be called since not logged in
-        expect(dispatch).not.toHaveBeenCalled();
-
-        // Drain prefsBeforeLogin to avoid polluting subsequent tests
-        const mockServer = { data: {}, save: jest.fn().mockResolvedValue(undefined) };
-        const drainDispatch = jest.fn().mockResolvedValue([mockServer]);
-
-        await actions.loadServer({
- state: s, dispatch: drainDispatch, commit, rootState: {}, rootGetters: {}
-} as any, undefined);
-      });
-
-      it('dispatches loadServer and saves when logged in', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const mockServer = { data: {}, save: jest.fn().mockResolvedValue(undefined) };
-        const dispatch = jest.fn().mockResolvedValue(mockServer);
-        const rootGetters = { 'auth/loggedIn': true };
-
-        await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'new-cluster' });
-
-        expect(dispatch).toHaveBeenCalledWith('loadServer', CLUSTER);
-        expect(mockServer.save).toHaveBeenCalledWith({ redirectUnauthorized: false });
-        expect(mockServer.data[CLUSTER]).toStrictEqual('new-cluster');
-      });
-
-      it('JSON-stringifies values for parseJSON prefs when saving', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const mockServer = { data: {}, save: jest.fn().mockResolvedValue(undefined) };
-        const dispatch = jest.fn().mockResolvedValue(mockServer);
-        const rootGetters = { 'auth/loggedIn': true };
-
-        await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: EXPANDED_GROUPS, value: ['workload'] });
-
-        expect(mockServer.data[EXPANDED_GROUPS]).toStrictEqual(JSON.stringify(['workload']));
-      });
-
-      it('returns error info when save throws', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const mockServer = {
-          data: {},
-          save: jest.fn().mockRejectedValue({ type: 'error', status: 500 }),
-        };
-        const dispatch = jest.fn().mockResolvedValue(mockServer);
-        const rootGetters = { 'auth/loggedIn': true };
-
-        const result = await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'fail' });
-
-        expect(result).toStrictEqual({ type: 'error', status: 500 });
-      });
-
-      it('returns undefined when loadServer returns undefined', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const dispatch = jest.fn().mockResolvedValue(undefined);
-        const rootGetters = { 'auth/loggedIn': true };
-
-        const result = await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'x' });
-
-        expect(result).toBeUndefined();
-      });
-    });
-
-    describe('loadServer', () => {
-      it('returns undefined when findAll throws', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const dispatch = jest.fn().mockRejectedValue(new Error('network error'));
-        const rootState = {};
-        const rootGetters = {};
-
-        const result = await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
-
-        expect(result).toBeUndefined();
-      });
-
-      it('returns undefined when server has no data', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const dispatch = jest.fn().mockResolvedValue([{ }]); // no data field
-        const rootState = {};
-        const rootGetters = {};
-
-        const result = await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
-
-        expect(result).toBeUndefined();
-      });
-
-      it('commits load for each known pref key present in server data', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const serverData = { [CLUSTER]: 'remote-cluster' };
-        const mockServer = { data: serverData, save: jest.fn() };
-        const dispatch = jest.fn().mockResolvedValue([mockServer]);
-        const rootState = {};
-        const rootGetters = {};
-
-        await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
-
-        const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
-
-        expect(loadCalls.some(([, payload]: [string, { key: string; value: string }]) => payload.key === CLUSTER && payload.value === 'remote-cluster')).toBe(true);
-      });
-
-      it('skips ignored key', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const serverData = { [CLUSTER]: 'remote-cluster', [THEME]: 'dark' };
-        const mockServer = { data: serverData, save: jest.fn() };
-        const dispatch = jest.fn().mockResolvedValue([mockServer]);
-        const rootState = {};
-        const rootGetters = {};
-
-        await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, CLUSTER);
-
-        const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
-        const clusterLoaded = loadCalls.some(([, payload]: [string, { key: string }]) => payload.key === CLUSTER);
-
-        expect(clusterLoaded).toBe(false);
-      });
-
-      it('JSON-parses values for parseJSON pref keys', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const serverData = { [EXPANDED_GROUPS]: JSON.stringify(['custom-group']) };
-        const mockServer = { data: serverData, save: jest.fn() };
-        const dispatch = jest.fn().mockResolvedValue([mockServer]);
-        const rootState = {};
-        const rootGetters = {};
-
-        await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
-
-        const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
-        const expandedCall = loadCalls.find(([, payload]: [string, { key: string }]) => payload.key === EXPANDED_GROUPS);
-
-        expect(expandedCall?.[1].value).toStrictEqual(['custom-group']);
-      });
-
-      it('returns the server object', async() => {
-        const s = state();
-        const commit = jest.fn();
-        const mockServer = { data: {}, save: jest.fn() };
-        const dispatch = jest.fn().mockResolvedValue([mockServer]);
-        const rootState = {};
-        const rootGetters = {};
-
-        const result = await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
-
-        expect(result).toBe(mockServer);
-      });
-    });
-
     describe('loadCookies', () => {
       it('returns early when cookiesLoaded is already true', () => {
         const s = state();
@@ -928,6 +692,24 @@ describe('prefs store', () => {
     });
 
     describe('set', () => {
+      beforeEach(() => {
+        // The setDefinition mutation test overwrites CLUSTER in the shared module-level
+        // definitions object. Re-register it here so set action tests see correct asUserPreference.
+        create(CLUSTER, '');
+      });
+
+      afterEach(async() => {
+        // `set` populates the module-level `prefsBeforeLogin` when called while
+        // logged out. Drain it via a mock loadServer so it does not leak into
+        // subsequent loadServer tests (which would then try to call server.save).
+        const mockServer = { data: {}, save: jest.fn().mockResolvedValue(undefined) };
+        const drainDispatch = jest.fn().mockResolvedValue([mockServer]);
+
+        await actions.loadServer({
+          state: state(), dispatch: drainDispatch, commit: jest.fn(), rootState: {}, rootGetters: {}
+        } as any, undefined);
+      });
+
       it('throws when opt.val is used instead of opt.value', async() => {
         const commit = jest.fn();
         const dispatch = jest.fn();
@@ -1061,6 +843,36 @@ describe('prefs store', () => {
 
         expect(result).toStrictEqual({ type: 'ServerError', status: 503 });
       });
+
+      it('returns error info when server save throws', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const mockServer = {
+          data: {},
+          save: jest.fn().mockRejectedValue({ type: 'error', status: 500 }),
+        };
+        const dispatch = jest.fn().mockResolvedValue(mockServer);
+        const rootGetters = { 'auth/loggedIn': true };
+
+        const result = await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'fail' });
+
+        expect(result).toStrictEqual({ type: 'error', status: 500 });
+      });
+
+      it('returns undefined when loadServer returns undefined', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const dispatch = jest.fn().mockResolvedValue(undefined);
+        const rootGetters = { 'auth/loggedIn': true };
+
+        const result = await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'x' });
+
+        expect(result).toBeUndefined();
+      });
     });
 
     describe('loadServer', () => {
@@ -1082,6 +894,20 @@ describe('prefs store', () => {
         const s = state();
         const commit = jest.fn();
         const dispatch = jest.fn().mockResolvedValue([]);
+        const rootState = {};
+        const rootGetters = {};
+
+        const result = await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        expect(result).toBeUndefined();
+      });
+
+      it('returns undefined when server object has no data field', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const dispatch = jest.fn().mockResolvedValue([{ }]);
         const rootState = {};
         const rootGetters = {};
 
