@@ -85,8 +85,6 @@ The features are folder name based and can be found in `cypress/e2e/tests/pages`
 
 ### Self-hosted: Sorry Cypress
 
-Link to the dashboard: http://139.59.134.103:8080/
-
 E2E tests can be added and displayed in a dashboard by defining the project ID with the env var `TEST_PROJECT_ID`, then run the script:
 
 ```bash
