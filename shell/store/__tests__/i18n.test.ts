@@ -33,8 +33,17 @@ function makeTranslations() {
   };
 }
 
-function makeState(overrides?: Partial<ReturnType<typeof state>>): ReturnType<typeof state> {
-  const base = state();
+type I18nState = ReturnType<typeof state>;
+type TestI18nState = Omit<I18nState, 'selected' | 'previous' | 'default' | 'available' | 'translations'> & {
+  selected: string | null;
+  previous: string | null;
+  default: string;
+  available: string[];
+  translations: Record<string, any>;
+};
+
+function makeState(overrides?: Partial<TestI18nState>): TestI18nState {
+  const base = state() as TestI18nState;
 
   base.translations = makeTranslations() as any;
   base.selected = 'en-us';
@@ -46,7 +55,7 @@ function makeState(overrides?: Partial<ReturnType<typeof state>>): ReturnType<ty
 
 // ----- helpers to build mock getters (for testing getters.withFallback / multiWithFallback) -----
 
-function makeMockGetters(st: ReturnType<typeof state>) {
+function makeMockGetters(st: TestI18nState) {
   const g: Record<string, any> = {};
 
   g.t = getters.t(st);
