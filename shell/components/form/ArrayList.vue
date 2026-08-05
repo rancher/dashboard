@@ -115,6 +115,10 @@ export default {
       type:    String,
       default: 'array-list',
     },
+    rowKey: {
+      type:    Function,
+      default: null,
+    },
 
     /**
      * Field name for vee-validate integration. When provided, the component
@@ -361,7 +365,7 @@ export default {
         </div>
         <div
           v-for="(row, idx) in rows"
-          :key="idx"
+          :key="rowKey ? rowKey(row.value, idx) : idx"
           :data-testid="`${componentTestid}-box${ idx }`"
           class="box"
           :class="{'hide-remove-is-view': isView}"
