@@ -119,7 +119,7 @@ export default {
           </a>
         </div>
         <div
-          v-if="field.type && field.type !== 'array'"
+          v-if="field.type && field.type !== 'array' && !field.$$ref"
           class="field-type"
         >
           <div>
@@ -137,7 +137,7 @@ export default {
             []
           </span>
           <div
-            v-if="field.$refName"
+            v-if="field.$$ref"
             class="field-type field-expander"
             tabindex="0"
             role="button"
@@ -145,7 +145,7 @@ export default {
             @click="expand(field.name)"
             @keyup.enter.space="expand(field.name)"
           >
-            {{ field.$refNameShort }}
+            {{ field.$refNameShort || field.type || t('kubectl-explain.object') }}
             <i
               v-if="!expanded[field.name]"
               class="icon icon-chevron-down"
@@ -171,7 +171,7 @@ export default {
           v-model:value="field.description"
         />
         <div
-          v-if="expanded[field.name]"
+          v-if="expanded[field.name] && field.$refName"
           class="sub-name"
         >
           <a
