@@ -14,7 +14,7 @@ describe('component: KeyValue', () => {
       },
     });
 
-    const inputValue = wrapper.find('textarea').element as HTMLInputElement;
+    const inputValue = wrapper.find('textarea').element as HTMLTextAreaElement;
 
     expect(inputValue.value).toBe(value);
   });
@@ -82,8 +82,8 @@ describe('component: KeyValue', () => {
 
     const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
 
-    expect(firstKeyInput.element.value).toBe('testkey');
-    expect(firstValueInput.element.value).toBe('testvalue');
+    expect((firstKeyInput.element as HTMLInputElement).value).toBe('testkey');
+    expect((firstValueInput.element as HTMLInputElement).value).toBe('testvalue');
 
     let secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
 
@@ -102,8 +102,8 @@ describe('component: KeyValue', () => {
 
     expect(secondKeyInput.exists()).toBe(true);
 
-    expect(secondKeyInput.element.value).toBe('testkey1');
-    expect(secondValueInput.element.value).toBe('testvalue1');
+    expect((secondKeyInput.element as HTMLInputElement).value).toBe('testkey1');
+    expect((secondValueInput.element as HTMLInputElement).value).toBe('testvalue1');
   });
 
   it.each([
@@ -173,8 +173,8 @@ describe('component: KeyValue', () => {
 
     const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
 
-    expect(firstKeyInput.element.value).toBe('testkey1');
-    expect(firstValueInput.element.value).toBe('testvalue1');
+    expect((firstKeyInput.element as HTMLInputElement).value).toBe('testkey1');
+    expect((firstValueInput.element as HTMLInputElement).value).toBe('testvalue1');
   });
 
   describe('valueConcealed', () => {
@@ -277,5 +277,70 @@ describe('component: KeyValue', () => {
     expect(rowRemove.attributes('aria-label')).toBe('%generic.ariaLabel.remove%');
     expect(rowAdd.attributes('aria-label')).toBe('%generic.ariaLabel.addKeyValue%');
     expect(readKeyValueFromFile.attributes('aria-label')).toBe('%generic.ariaLabel.readKeyValue%');
+  });
+
+  describe('disabledKeys', () => {
+    it('should disable key and value inputs for rows with keys in disabledKeys', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { protectedKey: 'protectedValue', normalKey: 'normalValue' },
+          mode:           'edit',
+          asMap:          true,
+          valueMultiline: false,
+          disabledKeys:   ['protectedKey'],
+        },
+
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+      });
+
+      const protectedKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]').element as HTMLInputElement;
+      const protectedValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]').element as HTMLInputElement;
+      const normalKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]').element as HTMLInputElement;
+      const normalValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]').element as HTMLInputElement;
+
+      expect(protectedKeyInput.disabled).toBe(true);
+      expect(protectedValueInput.disabled).toBe(true);
+      expect(normalKeyInput.disabled).toBe(false);
+      expect(normalValueInput.disabled).toBe(false);
+    });
+
+    it('should hide the remove button for rows with keys in disabledKeys', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { protectedKey: 'protectedValue', normalKey: 'normalValue' },
+          mode:           'edit',
+          asMap:          true,
+          valueMultiline: false,
+          disabledKeys:   ['protectedKey'],
+        },
+
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+      });
+
+      const protectedRemove = wrapper.find('[data-testid="remove-column-0"]');
+      const normalRemove = wrapper.find('[data-testid="remove-column-1"]');
+
+      expect(protectedRemove.exists()).toBe(false);
+      expect(normalRemove.exists()).toBe(true);
+    });
+
+    it('should disable value textarea when valueMultiline is true and key is in disabledKeys', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { protectedKey: 'protectedValue' },
+          mode:           'edit',
+          asMap:          true,
+          valueMultiline: true,
+          disabledKeys:   ['protectedKey'],
+        },
+
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+      });
+
+      const textarea = wrapper.find('[data-testid="value-multiline"]');
+
+      expect(textarea.exists()).toBe(true);
+      expect(textarea.attributes('disabled')).toBeDefined();
+    });
   });
 });

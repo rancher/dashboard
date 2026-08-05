@@ -1,10 +1,15 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import { CypressChainable } from '@/cypress/e2e/po/po.types';
 
 export default class KeyValuePo extends ComponentPo {
   private multiline: boolean;
 
-  constructor(self: any, multiline = false) {
-    super(self);
+  constructor(self: any, parent?: CypressChainable, multiline = false) {
+    if (typeof self === 'string' && parent) {
+      super(self, parent);
+    } else {
+      super(self);
+    }
     this.multiline = multiline;
   }
 
@@ -56,5 +61,9 @@ export default class KeyValuePo extends ComponentPo {
 
   valueWarningIcon(index: number) {
     return this.valueInput(index).parents('.kv-item.value').find('.icon-warning');
+  }
+
+  removeButton(index: number) {
+    return this.self().find(`[data-testid="remove-column-${ index }"]`);
   }
 }

@@ -4,7 +4,6 @@ import ClusterManagerDetailRke2CustomPagePo from '@/cypress/e2e/po/detail/provis
 import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
 import LabelsAnnotationsPo from '@/cypress/e2e/po/components/labels-annotations.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const MANAGEMENT_CLUSTER_NAME_ANNOTATION = 'provisioning.cattle.io/management-cluster-name';
@@ -24,26 +23,19 @@ describe('Management Cluster Name Annotation', { testIsolation: false, tags: ['@
   const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
   let clusterName: string;
+  let removedClusterName: string;
 
   before(() => {
     cy.login();
     clusterName = createClusterTestName('name-annotation');
+    removedClusterName = createClusterTestName('name-annotation-removed');
   });
 
   after(() => {
-    // Clean up: delete the cluster
-    cy.intercept('DELETE', `/v1/provisioning.cattle.io.clusters/${ namespace }/${ clusterName }`).as('deleteCluster');
-
-    clusterList.goTo();
-    clusterList.waitForPage();
-    clusterList.sortableTable().rowElementWithName(clusterName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
-    clusterList.list().actionMenu(clusterName).getMenuItem('Delete').click({ force: true });
-
-    const promptRemove = new PromptRemove();
-
-    promptRemove.confirm(clusterName);
-    promptRemove.remove();
-    cy.wait('@deleteCluster', { requestTimeout: LONG_TIMEOUT_OPT.timeout }).its('response.statusCode').should('be.oneOf', [200, 204]);
+    // Clean up: delete both clusters via API
+    [clusterName, removedClusterName].forEach((name) => {
+      cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `${ namespace }/${ name }`, false);
+    });
   });
 
   it('can set the management-cluster-name annotation during creation without an error icon', () => {
@@ -98,6 +90,43 @@ describe('Management Cluster Name Annotation', { testIsolation: false, tags: ['@
     });
   });
 
+  it('does not include the annotation in the request when it is removed before creation', () => {
+    cy.intercept('POST', `/v1/${ type }s`).as('createRemovedRequest');
+
+    clusterList.goTo();
+    clusterList.checkIsCurrentPage();
+    clusterList.createCluster();
+
+    createRKE2ClusterPage.waitForPage();
+    createRKE2ClusterPage.selectCustom(0);
+    createRKE2ClusterPage.nameNsDescription().name().set(removedClusterName);
+
+    // Navigate to Labels and Annotations tab
+    createRKE2ClusterPage.selectTab(tabbedPo, '[data-testid="btn-labels"]');
+
+    const labelsAnnotations = new LabelsAnnotationsPo('[data-testid="tabbed-block"]');
+
+    // Add the management-cluster-name annotation
+    labelsAnnotations.annotations().addRow();
+    labelsAnnotations.annotations().setKeyAtIndex(MANAGEMENT_CLUSTER_NAME_ANNOTATION, 0);
+    labelsAnnotations.annotations().setValueAtIndex(mgmtClusterNameValue, 0);
+
+    // Remove the annotation row
+    labelsAnnotations.annotations().removeButton(0).find('button').click();
+
+    // Create the cluster
+    createRKE2ClusterPage.create();
+
+    // Verify the annotation is NOT in the POST request
+    cy.wait('@createRemovedRequest', { requestTimeout: LONG_TIMEOUT_OPT.timeout }).then((intercept) => {
+      expect(intercept.response?.statusCode, 'Cluster create POST status').to.be.oneOf([200, 201]);
+
+      const annotations = intercept.request.body.metadata?.annotations || {};
+
+      expect(annotations).to.not.have.property(MANAGEMENT_CLUSTER_NAME_ANNOTATION);
+    });
+  });
+
   it('shows the annotation as read-only with an error icon when editing the cluster', () => {
     const editClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, clusterName);
 
@@ -119,8 +148,12 @@ describe('Management Cluster Name Annotation', { testIsolation: false, tags: ['@
     labelsAnnotations.annotations().keyInput(0).should('have.value', MANAGEMENT_CLUSTER_NAME_ANNOTATION);
     labelsAnnotations.annotations().keyWarningIcon(0).should('exist');
 
-    // Attempt to change the annotation value
-    labelsAnnotations.annotations().setValueAtIndex('modified-value', 0);
+    // The key and value inputs should be disabled
+    labelsAnnotations.annotations().keyInput(0).should('be.disabled');
+    labelsAnnotations.annotations().valueInput(0).should('be.disabled');
+
+    // The remove button should be hidden for the read-only row
+    labelsAnnotations.annotations().removeButton(0).should('not.exist');
 
     // Save the cluster
     editClusterPage.save();
