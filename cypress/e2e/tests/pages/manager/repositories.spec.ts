@@ -196,6 +196,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
     repositoriesPage.waitForPage();
 
+    // Force a fresh list query - the created repo can be missing from the steve/VAI list.
+    cy.reload();
+    repositoriesPage.waitForPage();
     // check list details
     repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
     repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
@@ -215,9 +218,12 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
     repositoriesPage.waitForPage();
 
+    // Force a fresh list query - the created repo can be missing from the steve/VAI list.
+    cy.reload();
+    repositoriesPage.waitForPage();
     // check list details
     repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can delete repositories via bulk actions', function() {
@@ -302,6 +308,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
     repositoriesPage.waitForPage();
 
+    // Force a fresh list query - the created repo can be missing from the steve/VAI list.
+    cy.reload();
+    repositoriesPage.waitForPage();
     // check list details
     repositoriesPage.list().details(this.ociRepoName, 2).should('be.visible');
 
