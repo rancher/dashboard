@@ -95,18 +95,20 @@ export async function processSupportNotices(context: Context, statusInfo: Suppor
       }, majorMinor);
     }
   } else {
-    // Community version 
+    // Community version
     if (status.eoc && semver.satisfies(version, status.eoc)) {
       logger.info(`This version (${ version }) will no longer receive updates`);
+
+      return await checkAndAddNotification(context, {
+        prefValuePrefix:    PREFIX.EOM,
+        pref:               READ_SUPPORT_NOTICE,
+        notificationPrefix: SUPPORT_NOTICE_PREFIX,
+        titleKey:           'dynamicContent.eoc.title',
+        messageKey:         'dynamicContent.eoc.message',
+      }, majorMinor);
     }
 
-    return await checkAndAddNotification(context, {
-      prefValuePrefix:    PREFIX.EOM,
-      pref:               READ_SUPPORT_NOTICE,
-      notificationPrefix: SUPPORT_NOTICE_PREFIX,
-      titleKey:           'dynamicContent.eoc.title',
-      messageKey:         'dynamicContent.eoc.message',
-    }, majorMinor);
+    return;
   }
 
   // Now check for upcoming EOL or EOM for Prime
