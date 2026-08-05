@@ -1,5 +1,5 @@
 import {
-  deriveRepoName, fetchAppCoCharts, ensureAppCoResources, ensureAppCoImagePullSecret, getDownstreamResourcesDocsUrl, FLEET_DOWNSTREAM_RESOURCES_DOCS_FALLBACK_URL
+  deriveRepoName, fetchAppCoCharts, ensureAppCoResources, ensureAppCoImagePullSecret, getDownstreamResourcesDocsUrl, FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL, FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_FALLBACK_URL
 } from '@shell/utils/fleet-appco';
 import { SECRET, CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import { SECRET_TYPES } from '@shell/config/secret';
@@ -62,25 +62,43 @@ describe('fleet-appco utils', () => {
   });
 
   describe('getDownstreamResourcesDocsUrl', () => {
-    it.each([
-      ['v2.15.0', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['2.15.0', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['v2.16.3', 'https://fleet.rancher.io/0.17/downstream-resources'],
-      ['v2.15.0-rc1', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['v2.15-head', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['v2.20.0', 'https://fleet.rancher.io/0.21/downstream-resources'],
-    ])('should map Rancher %s to Fleet docs %s', (version, expected) => {
-      expect(getDownstreamResourcesDocsUrl(version)).toStrictEqual(expected);
+    describe('community (non-Prime)', () => {
+      it.each([
+        ['v2.15.0'],
+        ['v2.20.0'],
+        ['dev'],
+        [''],
+        [undefined],
+      ])('should always use the unversioned community docs, regardless of version (%s)', (version) => {
+        expect(getDownstreamResourcesDocsUrl(version, false)).toStrictEqual(FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL);
+      });
+
+      it('should default to community docs when isPrime is omitted', () => {
+        expect(getDownstreamResourcesDocsUrl('v2.15.0')).toStrictEqual(FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL);
+      });
     });
 
-    it.each([
-      ['v2.14.0'],
-      ['v2.9.0'],
-      ['dev'],
-      [''],
-      [undefined],
-    ])('should fall back to the unversioned docs for %s', (version) => {
-      expect(getDownstreamResourcesDocsUrl(version)).toStrictEqual(FLEET_DOWNSTREAM_RESOURCES_DOCS_FALLBACK_URL);
+    describe('Prime', () => {
+      it.each([
+        ['v2.15.0', 'https://documentation.suse.com/cloudnative/continuous-delivery/v0.16/en/how-tos-for-users/downstream-resource-propagation.html'],
+        ['2.15.0', 'https://documentation.suse.com/cloudnative/continuous-delivery/v0.16/en/how-tos-for-users/downstream-resource-propagation.html'],
+        ['v2.16.3', 'https://documentation.suse.com/cloudnative/continuous-delivery/v0.17/en/how-tos-for-users/downstream-resource-propagation.html'],
+        ['v2.15.0-rc1', 'https://documentation.suse.com/cloudnative/continuous-delivery/v0.16/en/how-tos-for-users/downstream-resource-propagation.html'],
+        ['v2.15-head', 'https://documentation.suse.com/cloudnative/continuous-delivery/v0.16/en/how-tos-for-users/downstream-resource-propagation.html'],
+        ['v2.20.0', 'https://documentation.suse.com/cloudnative/continuous-delivery/v0.21/en/how-tos-for-users/downstream-resource-propagation.html'],
+      ])('should map Rancher %s to versioned SUSE docs %s', (version, expected) => {
+        expect(getDownstreamResourcesDocsUrl(version, true)).toStrictEqual(expected);
+      });
+
+      it.each([
+        ['v2.14.0'],
+        ['v2.9.0'],
+        ['dev'],
+        [''],
+        [undefined],
+      ])('should fall back to the latest SUSE docs for %s', (version) => {
+        expect(getDownstreamResourcesDocsUrl(version, true)).toStrictEqual(FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_FALLBACK_URL);
+      });
     });
   });
 
