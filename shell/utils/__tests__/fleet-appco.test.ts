@@ -1,5 +1,5 @@
 import {
-  deriveRepoName, fetchAppCoCharts, ensureAppCoResources, ensureAppCoImagePullSecret, getDownstreamResourcesDocsUrl, FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL, FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_FALLBACK_URL
+  deriveRepoName, fetchAppCoCharts, ensureAppCoResources, ensureAppCoImagePullSecret, getDownstreamResourcesDocsUrl, FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL, FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_FALLBACK_URL, getBundleDeploymentOptionsDocsUrl, FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_COMMUNITY_URL, FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_PRIME_FALLBACK_URL
 } from '@shell/utils/fleet-appco';
 import { SECRET, CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import { SECRET_TYPES } from '@shell/config/secret';
@@ -98,6 +98,47 @@ describe('fleet-appco utils', () => {
         [undefined],
       ])('should fall back to the latest SUSE docs for %s', (version) => {
         expect(getDownstreamResourcesDocsUrl(version, true)).toStrictEqual(FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_FALLBACK_URL);
+      });
+    });
+  });
+
+  describe('getBundleDeploymentOptionsDocsUrl', () => {
+    describe('community (non-Prime)', () => {
+      it.each([
+        ['v2.15.0'],
+        ['v2.20.0'],
+        ['dev'],
+        [''],
+        [undefined],
+      ])('should always use the unversioned community CRD reference, regardless of version (%s)', (version) => {
+        expect(getBundleDeploymentOptionsDocsUrl(version, false)).toStrictEqual(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_COMMUNITY_URL);
+      });
+
+      it('should keep the bundledeploymentoptions anchor', () => {
+        expect(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_COMMUNITY_URL).toStrictEqual('https://fleet.rancher.io/reference/ref-crds#_bundledeploymentoptions');
+      });
+
+      it('should default to community docs when isPrime is omitted', () => {
+        expect(getBundleDeploymentOptionsDocsUrl('v2.15.0')).toStrictEqual(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_COMMUNITY_URL);
+      });
+    });
+
+    describe('Prime', () => {
+      it.each([
+        ['v2.15.0', 'https://documentation.suse.com/cloudnative/continuous-delivery/v0.16/en/reference/ref-crds.html#_bundledeploymentoptions'],
+        ['v2.16.3', 'https://documentation.suse.com/cloudnative/continuous-delivery/v0.17/en/reference/ref-crds.html#_bundledeploymentoptions'],
+        ['v2.20.0', 'https://documentation.suse.com/cloudnative/continuous-delivery/v0.21/en/reference/ref-crds.html#_bundledeploymentoptions'],
+      ])('should map Rancher %s to versioned SUSE CRD reference %s', (version, expected) => {
+        expect(getBundleDeploymentOptionsDocsUrl(version, true)).toStrictEqual(expected);
+      });
+
+      it.each([
+        ['v2.14.0'],
+        ['dev'],
+        [''],
+        [undefined],
+      ])('should fall back to the latest SUSE docs for %s', (version) => {
+        expect(getBundleDeploymentOptionsDocsUrl(version, true)).toStrictEqual(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_PRIME_FALLBACK_URL);
       });
     });
   });

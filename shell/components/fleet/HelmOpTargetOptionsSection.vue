@@ -3,6 +3,8 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { RcIcon } from '@components/RcIcon';
+import { getVersionData, isRancherPrime } from '@shell/config/version';
+import { getBundleDeploymentOptionsDocsUrl } from '@shell/utils/fleet-appco';
 
 withDefaults(defineProps<{
   value: { spec: { serviceAccount?: string; namespace?: string } };
@@ -13,7 +15,7 @@ withDefaults(defineProps<{
 const store = useStore();
 const { t } = useI18n(store);
 
-const DOCS_URL = 'https://fleet.rancher.io/reference/ref-crds#_bundledeploymentoptions';
+const DOCS_URL = getBundleDeploymentOptionsDocsUrl(getVersionData()?.Version, isRancherPrime());
 </script>
 
 <template>
