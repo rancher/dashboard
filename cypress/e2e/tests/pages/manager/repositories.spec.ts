@@ -49,6 +49,12 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   });
 
   it('can create a repository', function() {
+    // Idempotent across retries: on the first attempt the VAI-backed list can omit the
+    // freshly-created repo (it exists and is counted - issue 17554), failing the row
+    // lookup. With the deterministic name the retry's re-create then returns 409, so
+    // remove any leftover before starting.
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName, false);
+
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
@@ -67,11 +73,19 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
     // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
+    // Force a fresh server-side query so the VAI-backed list reliably renders the row
+    // before asserting its state (issue 17554).
+    cy.reload();
+    repositoriesPage.waitForPage();
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can edit a repository', function() {
     ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    // Force a fresh server-side query - the VAI-backed list can omit the repo created
+    // above (issue 17554).
+    cy.reload();
     repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
@@ -87,6 +101,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can clone a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    // Force a fresh server-side query - the VAI-backed list can omit the repo created
+    // above (issue 17554).
+    cy.reload();
+    repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Clone').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=clone');
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }-clone`);
@@ -100,6 +118,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
   it('can download YAML', function() {
     ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    // Force a fresh server-side query - the VAI-backed list can omit the repo created
+    // above (issue 17554).
+    cy.reload();
     repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
 
@@ -130,6 +152,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
   it('can delete a repository', function() {
     ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    // Force a fresh server-side query - the VAI-backed list can omit the cloned repo
+    // created above (issue 17554).
+    cy.reload();
     repositoriesPage.waitForPage();
 
     // delete cloned Repository
