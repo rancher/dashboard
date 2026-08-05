@@ -222,10 +222,11 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
     repositoriesPage.waitForPage();
 
-    // Wait for the repo to finish downloading at the API level before asserting its UI
-    // state, so the 'Active' check does not race the download (mirrors the plain create
-    // test above).
-    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`);
+    // Wait for the repo to reach the 'active' state at the API level before asserting
+    // the UI badge. The rancher/charts clone is large and slow (~35s), and with several
+    // repos downloading in this suite it can exceed the UI timeout, so gate on the exact
+    // state the badge reflects (metadata.state.name) with generous retries.
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, 'active', 40);
 
     // Force a fresh list query - the created repo can be missing from the steve/VAI list.
     cy.reload();
