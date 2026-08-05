@@ -1,6 +1,6 @@
 import r from 'jsrsasign';
 import {
- CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_CLUSTER, UI_PROJECT_SECRET_COPY
+  CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_CLUSTER, UI_PROJECT_SECRET_COPY
 } from '@shell/config/labels-annotations';
 import { GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';

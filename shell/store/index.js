@@ -1064,7 +1064,7 @@ export const actions = {
         throw new Error('Unready cluster');
       }
     } catch (e) {
-      console.warn('Failed to find cluster, or cluster is not ready. Cluster:', id, '.Error: ', e) // eslint-disable-line no-console
+      console.warn('Failed to find cluster, or cluster is not ready. Cluster:', id, '.Error: ', e); // eslint-disable-line no-console
       commit('clusterId', null);
       commit('cluster/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);

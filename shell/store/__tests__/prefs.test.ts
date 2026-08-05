@@ -623,8 +623,8 @@ describe('prefs store', () => {
 
         await expect(
           actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: THEME, val: 'dark' })
+            dispatch, commit, rootGetters, state: s
+          } as any, { key: THEME, val: 'dark' })
         ).rejects.toThrow('Use value, not val');
       });
 
@@ -636,8 +636,8 @@ describe('prefs store', () => {
         const rootGetters = { 'auth/loggedIn': false };
 
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: PREFERS_SCHEME, value: 'dark' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: PREFERS_SCHEME, value: 'dark' });
 
         expect(commit).toHaveBeenCalledWith('load', { key: PREFERS_SCHEME, value: 'dark' });
       });
@@ -649,8 +649,8 @@ describe('prefs store', () => {
         const rootGetters = { 'auth/loggedIn': false };
 
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: THEME, value: 'dark' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: THEME, value: 'dark' });
 
         expect(commit).toHaveBeenCalledWith(
           'cookies/set',
@@ -667,8 +667,8 @@ describe('prefs store', () => {
 
         // CLUSTER has asUserPreference=true and is not a cookie pref
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'my-cluster' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'my-cluster' });
 
         // dispatch(loadServer) should NOT be called since not logged in
         expect(dispatch).not.toHaveBeenCalled();
@@ -678,8 +678,8 @@ describe('prefs store', () => {
         const drainDispatch = jest.fn().mockResolvedValue([mockServer]);
 
         await actions.loadServer({
- state: s, dispatch: drainDispatch, commit, rootState: {}, rootGetters: {}
-} as any, undefined);
+          state: s, dispatch: drainDispatch, commit, rootState: {}, rootGetters: {}
+        } as any, undefined);
       });
 
       it('dispatches loadServer and saves when logged in', async() => {
@@ -690,8 +690,8 @@ describe('prefs store', () => {
         const rootGetters = { 'auth/loggedIn': true };
 
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'new-cluster' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'new-cluster' });
 
         expect(dispatch).toHaveBeenCalledWith('loadServer', CLUSTER);
         expect(mockServer.save).toHaveBeenCalledWith({ redirectUnauthorized: false });
@@ -706,8 +706,8 @@ describe('prefs store', () => {
         const rootGetters = { 'auth/loggedIn': true };
 
         await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: EXPANDED_GROUPS, value: ['workload'] });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: EXPANDED_GROUPS, value: ['workload'] });
 
         expect(mockServer.data[EXPANDED_GROUPS]).toStrictEqual(JSON.stringify(['workload']));
       });
@@ -723,8 +723,8 @@ describe('prefs store', () => {
         const rootGetters = { 'auth/loggedIn': true };
 
         const result = await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'fail' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'fail' });
 
         expect(result).toStrictEqual({ type: 'error', status: 500 });
       });
@@ -736,8 +736,8 @@ describe('prefs store', () => {
         const rootGetters = { 'auth/loggedIn': true };
 
         const result = await actions.set({
- dispatch, commit, rootGetters, state: s
-} as any, { key: CLUSTER, value: 'x' });
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'x' });
 
         expect(result).toBeUndefined();
       });
@@ -752,8 +752,8 @@ describe('prefs store', () => {
         const rootGetters = {};
 
         const result = await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
 
         expect(result).toBeUndefined();
       });
@@ -766,8 +766,8 @@ describe('prefs store', () => {
         const rootGetters = {};
 
         const result = await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
 
         expect(result).toBeUndefined();
       });
@@ -782,8 +782,8 @@ describe('prefs store', () => {
         const rootGetters = {};
 
         await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
 
         const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
 
@@ -800,8 +800,8 @@ describe('prefs store', () => {
         const rootGetters = {};
 
         await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, CLUSTER);
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, CLUSTER);
 
         const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
         const clusterLoaded = loadCalls.some(([, payload]: [string, { key: string }]) => payload.key === CLUSTER);
@@ -819,8 +819,8 @@ describe('prefs store', () => {
         const rootGetters = {};
 
         await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
 
         const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
         const expandedCall = loadCalls.find(([, payload]: [string, { key: string }]) => payload.key === EXPANDED_GROUPS);
@@ -837,8 +837,8 @@ describe('prefs store', () => {
         const rootGetters = {};
 
         const result = await actions.loadServer({
- state: s, dispatch, commit, rootState, rootGetters
-} as any, undefined);
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
 
         expect(result).toBe(mockServer);
       });

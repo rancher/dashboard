@@ -85,11 +85,11 @@ export default {
     this.projectedScopedHeadersSsp = [
       STEVE_STATE_COL,
       STEVE_NAME_COL, {
-        name:  'project',
-        label: this.t('tableHeaders.project'),
-        value: 'project.nameDisplay',
+        name:   'project',
+        label:  this.t('tableHeaders.project'),
+        value:  'project.nameDisplay',
         search: `metadata.labels[${ UI_PROJECT_SECRET }]`,
-        sort:  `spec.displayName`,
+        sort:   `spec.displayName`,
       }, {
         ...SUB_TYPE,
         value:  'metadata.fields.1',
