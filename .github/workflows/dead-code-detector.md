@@ -47,7 +47,7 @@ Detect and report dead code by:
 1. **Analyzing Recent Commits**: Review changes in the latest commits to focus the analysis
 2. **Detecting Dead Code**: Identify unused exports, unreferenced components, orphaned files, dead routes, and unused i18n keys
 3. **Verifying Candidates**: Rule out dynamic resolution, follow the dead-code chain to its full extent, and check every claim before making it
-4. **Reporting Findings**: Create a detailed issue if significant dead code is detected (threshold below)
+4. **Reporting Findings**: Check what is already open, then create a detailed issue for anything genuinely new (threshold below)
 
 ## Context
 
@@ -85,6 +85,11 @@ Apply the following strategies to find dead code. For each candidate, you MUST v
 **Unreferenced utility functions**:
 - Functions in `shell/utils/` (and equivalent util directories) with no callers anywhere in the codebase
 
+**Test-only code**:
+- Modules and exports whose only importers are their own tests. Static tools that treat a test file as a legitimate importer will never surface these, so they have to be looked for deliberately: run the reference check excluding `__tests__/`, `*.test.*` and `*.spec.*`, then confirm the remaining hits are zero
+- Report the implementation and its test together as one removal. The test is not evidence the code is used — it is part of the same dead cluster
+- Verified examples of this shape: `ALL_STATE_COLORS`, `toBgColor` and `getHighestAlertColor` in `shell/utils/style.ts`, and `shell/utils/poller-sequential.js`
+
 **Dead routes**:
 - Route definitions pointing to page components that no longer exist
 
@@ -95,6 +100,16 @@ Apply the following strategies to find dead code. For each candidate, you MUST v
 ### 3. Candidate Verification
 
 Every candidate must pass all of the checks below before it can be reported. Each check exists because skipping it has already produced a wrong, overstated or incomplete finding.
+
+#### Search command hygiene
+
+A malformed search produces no output, and no output reads exactly like proof of deadness. Each mistake below has already produced an entirely false issue:
+
+- **Never use brace expansion in `--include`.** `grep --include="*.{ts,js,vue}"` matches **zero files** — `--include` takes a single glob and does not expand braces, so the command exits cleanly having searched nothing. Pass repeated flags instead: `--include="*.ts" --include="*.js" --include="*.vue"`, or use `rg`, which does not need them. Issues have been filed on evidence consisting entirely of empty output from this pattern
+- **Prove the command works before trusting a negative.** Run it once against a symbol known to be live. If the control search also returns nothing, the command is broken rather than the codebase. Never report a finding whose only evidence is an empty result from an untested command
+- **Search every import form, not just the `@shell` alias.** In-directory imports use `./name`, and `../` and `~/` forms also appear. A search for `utils/queue` misses `import Queue from './queue'` entirely — which is exactly how `shell/utils/queue.js` came to be reported as dead while `shell/utils/promise.js` was importing it
+- **Attribute a symbol to its module before calling it unused.** The same exported name can be defined in more than one file: `sortableNumericSuffix` exists in both `shell/utils/string.js` and `shell/utils/sort.js`, and every consumer imports it from `sort`. A name-only search cannot separate the two. Read the module path in each importer's `from` clause. When a symbol looks unused, check whether a second definition elsewhere is absorbing all the traffic — that does make the duplicate dead, but for a different reason and with a different fix, and the issue must say which copy is which
+- **Do not exclude the defining file by bare filename.** `grep -v "version.js"`, intended to drop a definition in `shell/utils/version.js`, also drops any other `version.js` that is a genuine consumer
 
 #### Search breadth
 
@@ -127,6 +142,16 @@ Static search cannot see any of the following. Check each one explicitly, and st
 - **Convention directories resolved from a Kubernetes resource type at runtime**: `shell/models/`, `shell/detail/`, `shell/edit/`, `shell/list/`, `shell/chart/`, `shell/cloud-credential/`, `shell/machine-config/`, `shell/promptRemove/`, `shell/dialog/`, and the `pkg/*/` equivalents. A file named after a resource type (e.g. `provisioning.cattle.io.cluster.vue`) is loaded by name, so no import statement will ever exist. Never report a file in these directories as an orphaned file
 - **`defineAsyncComponent`, `resolveComponent`, `<component :is="...">` with a computed name, and template-literal import paths**
 
+#### Entry points are never dead
+
+A module whose job is to expose an API has no in-repo importers by design. That is what it is for, not evidence against it. Never report:
+
+- `shell/apis/**` — the composition-API surface for UI extensions. `shell/apis/index.ts` opens with "Main export for APIs" and exists precisely so that out-of-tree extensions can import from `@shell/apis`
+- Anything reachable as a package entry: `main`, `types` or `exports` in a `package.json`, and the `entry` lists in build or tooling config
+- `shell/initialize/entry.js`, `shell/config/router/routes.js`, store/plugin/directive registration files, and the `pkg/*/index.ts` extension entry points
+
+A previous run filed an issue against three `shell/apis/index.ts` re-exports, marked it **Confidence: High**, and then opened its own removal steps with "verify with the team whether this is an external extension API". Those two statements cannot both stand. **An unresolved question about intent caps confidence below the reporting threshold** — resolve it or drop the finding. Do not outsource the verification to the reader by filing it anyway.
+
 #### Published package surface
 
 `shell/package.json` publishes `@rancher/shell` with `"files": ["**/*"]`. Every file under `shell/` ships to npm and can be imported by an out-of-tree UI extension as `@shell/...`. A repository-wide search cannot prove those consumers do not exist.
@@ -144,7 +169,9 @@ Dead code arrives in chains, and reporting only the leaves understates the clust
 3. Anything whose only remaining consumers are dead is dead too — add it to the cluster, then repeat until the set stops growing
 4. Work upwards as well: if a candidate's only importer is itself unreferenced, that importer belongs in the same cluster
 
-A previous run reported four orphaned components under `shell/components/graph/`. One of them imported a sibling whose only other consumer was itself unreferenced, and that consumer pulled in two more files. The real cluster was eight files, not four.
+**A consumer only exonerates a file if the consumer is itself reachable.** Finding one importer and stopping there is the most common way this check fails. Before concluding "X is still used by Y", run the reference check on Y.
+
+A previous run reported four orphaned components under `shell/components/graph/` and explicitly cleared a fifth, writing: "`HalfCircle.vue` references `./Circle` but `Circle.vue` itself is used by `CountGauge.vue` — only `HalfCircle.vue` can be safely removed." `CountGauge.vue` has no consumers of its own. One more check would have shown that `Circle.vue`, `CountGauge.vue` and `GradientBox.vue` were all dead, along with `Glance.vue` above them — eight files, not four, and a "do NOT remove" instruction that pointed at dead code.
 
 #### Age evidence
 
@@ -189,6 +216,7 @@ Assess findings to distinguish true dead code from intentional or dynamically-re
   - **High (85-95%)**: Component was only used in a package/feature that was later removed (verifiable via git history)
   - **Medium (70-85%)**: No references found anywhere (current code or git history), but component could theoretically be used via dynamic string resolution or external extensions
   - **Low (<70%)**: Component has unclear provenance, recent changes, or potential dynamic resolution patterns — DO NOT report these
+  - Any open question about whether the code is *meant* to have no in-repo consumers caps the rating at Low. Confidence describes what you established, not how plausible the finding feels
 - **Severity**: Amount of dead code (lines, number of symbols/files)
 - **Impact**: Maintenance burden and codebase bloat removed by deletion
 - **Safety**: Whether removal is safe — dynamic resolution ruled out, transitive closure complete, and the published `@shell/*` surface accounted for
@@ -196,6 +224,27 @@ Assess findings to distinguish true dead code from intentional or dynamically-re
 ### 5. Issue Reporting
 
 Create separate issues for each distinct category or cluster of dead code found (maximum 3 per run). Each issue should be focused enough to enable a clean removal PR.
+
+#### Check what has already been reported
+
+**Do this before creating anything.** This workflow runs daily against a codebase that changes slowly, so on any given run most of what you find has already been filed — and an issue nobody has acted on yet is still open, still accurate, and still waiting.
+
+Use the GitHub tools to list open issues labelled `bot/dead-code-detector`, and read their titles and bodies. Then, for each cluster you were about to report:
+
+- **Already covered** — do not file it again. Partial overlap counts: if an open issue lists three of your four files, that is the same cluster, not a new one
+- **Covered but wrong or incomplete** — do not file a corrected duplicate. Add a comment to the existing issue with the correction, and if commenting is unavailable, put it in the run summary instead
+- **Genuinely new** — file it, and name in the body which existing issues you checked against
+
+Between 31 July and 5 August 2026 this workflow filed 21 issues covering roughly six distinct clusters. The `shell/components/graph/` components were reported four separate times, the formatter components three times, and the empty `shell/utils/fleet-types.ts` three times. Re-reporting is the single largest source of noise in this workflow's output — treat a duplicate as a defect on the same level as a false positive.
+
+#### Cluster boundaries
+
+Successive runs have split the same underlying findings three ways one day and bundled eighteen unrelated components into a single issue the next. Apply a fixed rule so the boundary does not drift between runs:
+
+- A cluster is **one directory, plus whatever its members transitively drag in**. `shell/components/graph/` is one cluster; `shell/components/formatter/` is another; loose files directly under `shell/components/` are a third
+- Never file one issue spanning several unrelated directories merely because everything in it is an unreferenced component. "18 unreferenced components across the codebase" is a report, not a cluster, and it cannot become a clean PR
+- Do not split a single directory across multiple issues either
+- Derive every count and total from the list you are about to publish rather than estimating. One issue announced "9 files, ~1,870 lines" directly above a list of 11 files totalling 2,014 lines
 
 **When to Create Issues**:
 - Only create issues if significant dead code is found (threshold: >10 lines of dead code OR 3+ unused symbols/files in a related cluster)
@@ -224,7 +273,8 @@ Create separate issues for each distinct category or cluster of dead code found 
 
 ### Skip These Patterns
 
-- Public/extension API surface intended for external consumption (e.g. exports re-exported from package entry points, plugin/extension APIs)
+- Public/extension API surface intended for external consumption (e.g. exports re-exported from package entry points, plugin/extension APIs) — in this repository that means `shell/apis/**`, `pkg/*/index.ts`, and anything named as a `main`/`types`/`exports` target or a build-config entry
+- Anything already described by an open `bot/dead-code-detector` issue
 - Code referenced dynamically (string-keyed lookups, `resolveComponent`, `defineAsyncComponent`, model/registry auto-registration, dynamically-built i18n keys)
 - Framework lifecycle hooks and conventionally-named files auto-loaded by the build (e.g. auto-registered store modules, config directories)
 - **All test files** (files matching: `*_test.*`, `*.test.*`, `*.spec.*`, `test_*.*`, or in `test/`, `tests/`, `__tests__/`, `spec/` directories)
@@ -317,6 +367,9 @@ For each distinct dead-code cluster found, create a separate issue using this st
 
 - Searched for references with: `[command used]`
 - Result: [no importers / no template references / etc.]
+- Control search: [the same command run against a symbol known to be live, proving it returns hits when hits exist]
+- Import forms covered: [`@shell/...` alias, `./` and `../` relative, `~/` — all checked]
+- Existing issues checked: [numbers of the open `bot/dead-code-detector` issues compared against, and why this cluster is not among them]
 - Dynamic resolution ruled out: [`require.context` globs checked, convention directories checked, async/`:is` lookups checked — and why none apply]
 - Transitive closure: [files added by following the imports of the confirmed-dead files, or "none — all candidates are leaves"]
 - Last changed: [date + commit, per file]
@@ -388,6 +441,8 @@ Include the specific git commands run and their outputs to support the confidenc
 - Consider Vue and Rancher-specific idioms (model/registry auto-registration, `require.context`, resource-type-derived file resolution)
 - Provide the exact search evidence that proves each item is dead
 - An understated cluster is also a defect: report the full transitive closure, not just the files that first caught your attention
+- A duplicate of an already-open issue is also a defect: check the open `bot/dead-code-detector` issues before filing
+- Treat an empty search result as suspicious until the command has been shown to work on a live symbol. Most false findings here trace back to a command that searched nothing
 - Prefer saying "could not determine" over asserting something convenient
 
 ### Issue Creation
