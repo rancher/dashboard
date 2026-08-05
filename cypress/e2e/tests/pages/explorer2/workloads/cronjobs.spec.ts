@@ -372,7 +372,9 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
       // generate small set of cronjobs data
       generateCronJobsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsCronJobsListPagePo.navTo();
+      // Navigate directly rather than via the side menu: the side-menu nav
+      // intermittently lands on the wrong workload type (e.g. Deployments).
+      WorkloadsCronJobsListPagePo.goTo(localCluster);
       cy.wait('@cronJobsDataSmall');
       cronJobListPage.waitForPage();
 
