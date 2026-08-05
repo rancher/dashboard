@@ -822,4 +822,69 @@ describe('class: Resource', () => {
       expect(result).toStrictEqual(JSON.stringify({ message: 'validation.required', key: 'Value' }));
     });
   });
+
+  describe('getters: $plugin and $extension', () => {
+    const makeResource = (rootState: any) => new Resource({ type: 'test.resource' }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootState,
+      rootGetters: { 'i18n/t': jest.fn() },
+    });
+
+    it('should resolve the extension manager from rootState.$extension', () => {
+      const manager = { getPlugins: () => ({}) };
+      const resource = makeResource({ $extension: manager });
+
+      expect(resource.$extension).toBe(manager);
+      expect(resource.$plugin).toBe(manager);
+    });
+
+    it('should fall back to rootState.$plugin, which is all older Rancher versions set', () => {
+      const manager = { getPlugins: () => ({}) };
+      const resource = makeResource({ $plugin: manager });
+
+      expect(resource.$extension).toBe(manager);
+      expect(resource.$plugin).toBe(manager);
+    });
+
+    it('should prefer rootState.$extension when both are set', () => {
+      const manager = { getPlugins: () => ({}) };
+      const legacyManager = { getPlugins: () => ({}) };
+      const resource = makeResource({ $extension: manager, $plugin: legacyManager });
+
+      expect(resource.$extension).toBe(manager);
+      expect(resource.$plugin).toBe(manager);
+    });
+
+    it('should be undefined when neither is set', () => {
+      const resource = makeResource({});
+
+      expect(resource.$extension).toBeUndefined();
+      expect(resource.$plugin).toBeUndefined();
+    });
+  });
+
+  describe('getter: isProdRegistrationV2TopLevelProductResoure', () => {
+    const makeResource = (rootState: any) => new Resource({ type: 'test.resource' }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootState,
+      rootGetters: {
+        'i18n/t':  jest.fn(),
+        productId: 'some-product',
+      },
+    });
+
+    it('should not throw on an older Rancher that only sets rootState.$plugin', () => {
+      const resource = makeResource({ $plugin: { getPlugins: () => ({ somePlugin: { productNames: [] } }) } });
+
+      expect(resource.isProdRegistrationV2TopLevelProductResoure).toBe(false);
+    });
+
+    it('should be true when the matching plugin is registered as a top level product', () => {
+      const resource = makeResource({ $extension: { getPlugins: () => ({ somePlugin: { productNames: ['some-product'], topLevelProduct: true } }) } });
+
+      expect(resource.isProdRegistrationV2TopLevelProductResoure).toBe(true);
+    });
+  });
 });
