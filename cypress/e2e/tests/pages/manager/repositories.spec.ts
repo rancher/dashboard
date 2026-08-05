@@ -205,6 +205,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   });
 
   it('can create a repository with SSH key', function() {
+    // Idempotent across retries (mirrors the plain create test): remove any leftover
+    // SSH repo so a re-create does not 409 and strand the retry.
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, false);
+
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.create();
@@ -215,8 +219,13 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
     repositoriesPage.waitForPage();
+
+    // Wait for the repo to finish downloading at the API level before asserting its UI
+    // state, so the 'Active' check does not race the download (mirrors the plain create
+    // test above).
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`);
 
     // Force a fresh list query - the created repo can be missing from the steve/VAI list.
     cy.reload();
