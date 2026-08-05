@@ -204,69 +204,12 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
 echo "Waiting for Rancher to come up.........."
 kubectl -n cattle-system rollout status deploy/rancher
 
-echo "Waiting for dashboard UI to be reachable.........."
-
-okay=0
-
-while [ $okay -lt 20 ]; do
-  STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
-
-  echo "Status: $STATUS (Try: $okay)"
-
-  okay=$((okay+1))
-
-  if [ "$STATUS" == "200" ]; then
-    okay=100
-  else
-    sleep 5
-  fi
-done
-
-if [ "$STATUS" != "200" ]; then
-  echo "Dashboard did not become available in a reasonable time"
-  exit 1
-fi
-
-
-if [ "$OVERRIDE_UIS" == "true" ]; then
-  echo "Updating UI within Rancher container.........."
-  # Note - these will pick the first container within the pod, so replicas=1 above is important
-  POD_NAME=$(kubectl get pods --selector=app=rancher -n $RANCHER_NAMESPACE | tail -n 1 | cut -d ' ' -f1)
-  echo "POD NAME: $POD_NAME"
-  if [ "$POD_NAME" == "" ]; then
-    echo "Failed to find rancher pod"
-    exit 1
-  fi
-
-  # Remove root folders that container UIs
-  kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
-  kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
-
-  # Copy local builds to root folders that should contain UIs.
-  # Guard the mv so a REBUILD re-run is idempotent: on the first provision we move $DASHBOARD_DIST/$EMBER_DIST
-  # into ./dashboard and ./ui; on a rebuild those source dirs are already gone, so we keep the moved copies and
-  # just re-cp them into the freshly-provisioned pod.
-  [ -d dashboard ] || mv $DASHBOARD_DIST dashboard
-  [ -d ui ] || mv $EMBER_DIST ui
-  kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
-  kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
-
-  # Final validation
-  STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
-  echo "Status: $STATUS"
-
-  if [ "$STATUS" != "200" ]; then
-    echo "After updating dashboard with dev build it is no longer available"
-    exit 1
-  fi
-fi
-
-echo "Dashboard UI is ready"
-
 # On a readiness-check failure, a Rancher pod restart is not enough: it re-reads the persisted
 # k3s/etcd state and tends to leave CAPI/RBAC/impersonation half-broken. So instead of failing the
 # step outright, tear the WHOLE environment down (k3s-uninstall) and re-run this script from scratch
 # for a genuinely clean instance, up to PROVISION_MAX times; only then fail. $1 is the reason to log.
+# Defined here (before the first readiness check that uses it) so the dashboard-availability wait
+# below can rebuild rather than hard-exit, like every downstream check.
 reprovision() {
   local reason="$1"
 
@@ -289,6 +232,70 @@ reprovision() {
   echo "Re-running provisioning from scratch..."
   exec env PROVISION_ROLL=$((PROVISION_ROLL + 1)) bash "$0" "${SCRIPT_ARGS[@]}"
 }
+
+echo "Waiting for dashboard UI to be reachable.........."
+
+okay=0
+
+while [ $okay -lt 20 ]; do
+  STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
+
+  echo "Status: $STATUS (Try: $okay)"
+
+  okay=$((okay+1))
+
+  if [ "$STATUS" == "200" ]; then
+    okay=100
+  else
+    sleep 5
+  fi
+done
+
+if [ "$STATUS" != "200" ]; then
+  reprovision "Dashboard did not become available in a reasonable time"
+fi
+
+
+if [ "$OVERRIDE_UIS" == "true" ]; then
+  echo "Updating UI within Rancher container.........."
+  # Note - these will pick the first container within the pod, so replicas=1 above is important
+  POD_NAME=$(kubectl get pods --selector=app=rancher -n $RANCHER_NAMESPACE | tail -n 1 | cut -d ' ' -f1)
+  echo "POD NAME: $POD_NAME"
+  if [ "$POD_NAME" == "" ]; then
+    reprovision "Failed to find rancher pod for the dev-build UI override"
+  fi
+
+  # Remove root folders that container UIs
+  kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
+  kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
+
+  # Copy local builds to root folders that should contain UIs.
+  # Guard the mv so a REBUILD re-run is idempotent: on the first provision we move $DASHBOARD_DIST/$EMBER_DIST
+  # into ./dashboard and ./ui; on a rebuild those source dirs are already gone, so we keep the moved copies and
+  # just re-cp them into the freshly-provisioned pod.
+  [ -d dashboard ] || mv $DASHBOARD_DIST dashboard
+  [ -d ui ] || mv $EMBER_DIST ui
+  kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
+  kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
+
+  # Final validation - give the pod a few seconds to serve the freshly-copied build before failing.
+  # A genuinely bad dev build won't be fixed by a rebuild, so this stays a hard exit (no reprovision).
+  okay=0
+  while [ $okay -lt 12 ]; do
+    STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
+    echo "Status: $STATUS (Try: $okay)"
+    [ "$STATUS" == "200" ] && break
+    okay=$((okay+1))
+    sleep 5
+  done
+
+  if [ "$STATUS" != "200" ]; then
+    echo "After updating dashboard with dev build it is no longer available"
+    exit 1
+  fi
+fi
+
+echo "Dashboard UI is ready"
 
 # wait 10 minutes (sleep 10 seconds * 60 iteration = 600 seconds = 10 minutes)
 # if it regularly takes 10 minutes we have problems...
@@ -344,6 +351,60 @@ done
 
 if [ $okay -eq $wait ]; then
   reprovision "Rancher imperative api did not become ready in a reasonable time"
+fi
+
+# --- Final active readiness probe ---------------------------------------------------------------
+# The passive pod-Running waits above are necessary but not sufficient: steve's SQL cache and the
+# per-user impersonation machinery can still hang the FIRST authenticated request, which wedges the
+# first-run setup spec on "Logging in..." (401/500/timeout) and does not self-recover. So actively
+# verify the exact failing path before handing off to the tests: log in with the bootstrap password
+# (the same POST /v1-public/login the UI uses), then do authenticated steve GETs of the two caches
+# that flake during setup and the feature tests - management.cattle.io.users (impersonation) and
+# provisioning.cattle.io.clusters (cluster list). Require 2 consecutive all-200 rounds. The probe
+# only reads (it never sets the server URL / accepts the EULA / changes the password), so it does
+# not disturb the first-run state the setup spec asserts on. If it never converges, rebuild.
+API_URL="https://$DASHBOARD_URL"
+BOOTSTRAP_PW="${CATTLE_BOOTSTRAP_PASSWORD:-password}"
+PROBE_TIMEOUT="${PROBE_TIMEOUT:-20}"
+COOKIEJAR="$(mktemp)"
+
+probe_login() {   # -> prints HTTP code; captures the session cookie in $COOKIEJAR (responseType:cookie, as the UI does)
+  curl -sk -c "$COOKIEJAR" --max-time "$PROBE_TIMEOUT" -o /dev/null -w '%{http_code}' \
+    "$API_URL/v1-public/login" -H 'content-type: application/json' \
+    -d "{\"username\":\"admin\",\"password\":\"$BOOTSTRAP_PW\",\"description\":\"e2e readiness probe\",\"type\":\"localProvider\",\"responseType\":\"cookie\"}"
+}
+PROBE_RESOURCES="${PROBE_RESOURCES:-management.cattle.io.users provisioning.cattle.io.clusters}"
+probe_get() {   # $1 = steve resource type -> prints HTTP code (200 healthy; 000/empty = hang) for an AUTHENTICATED read
+  curl -sk -b "$COOKIEJAR" --max-time "$PROBE_TIMEOUT" -o /dev/null -w '%{http_code}' "$API_URL/v1/$1"
+}
+probe_healthy() {   # a round is "good" only if EVERY probed resource returns 200; need 2 consecutive good rounds
+  local i lc res gc good bad n=0
+  for i in 1 2 3 4 5 6 ; do
+    lc=$(probe_login)
+    if [ "$lc" != "200" ] ; then echo "  probe: login -> ${lc:-timeout} (retry)"; n=0; sleep 3; continue; fi
+    good=1; bad=""
+    for res in $PROBE_RESOURCES ; do
+      gc=$(probe_get "$res")
+      [ "$gc" = "200" ] || { good=0; bad="$bad $res=${gc:-timeout}"; }
+    done
+    if [ "$good" = "1" ] ; then
+      n=$((n+1)); echo "  probe: authenticated GET [$PROBE_RESOURCES] all 200 ($n/2 good)"
+      [ "$n" -ge 2 ] && return 0
+    else
+      echo "  probe: not converged yet -$bad"; n=0
+    fi
+    sleep 3
+  done
+  return 1
+}
+
+echo "Verifying steve can serve the setup-login path AND the feature resources (users + provisioning clusters)... (provision $PROVISION_ROLL/$PROVISION_MAX)"
+if probe_healthy ; then
+  echo "Steve/RBAC healthy - proceeding."
+  rm -f "$COOKIEJAR"
+else
+  rm -f "$COOKIEJAR"
+  reprovision "Steve/RBAC wedged - login or authenticated GET never converged"
 fi
 
 echo "Rancher is ready"
