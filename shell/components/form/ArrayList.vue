@@ -93,6 +93,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    disabledList: {
+      type:    Array,
+      default: null
+    },
     required: {
       type:    Boolean,
       default: false
@@ -246,6 +250,12 @@ export default {
       }
 
       return !this.valueMultiline && this.protip;
+    },
+    // Return the index of the disabled rows based on the disabledList prop
+    // The value is not used directly because only the first instance of a value is disabled
+    // Usually they are at the top of the list and that is how this has been designed
+    disabledIndexList() {
+      return this.disabledList?.map((value) => this.rows.findIndex((row) => row.value === value));
     }
   },
   created() {
@@ -381,7 +391,7 @@ export default {
                   :data-testid="`${componentTestid}-textarea-${idx}`"
                   :placeholder="valuePlaceholder"
                   :mode="mode"
-                  :disabled="disabled"
+                  :disabled="disabled || disabledIndexList?.includes(idx)"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
                   @update:value="queueUpdate"
@@ -393,7 +403,7 @@ export default {
                   v-model:value="row.value"
                   :data-testid="`${componentTestid}-labeled-input-${idx}`"
                   :placeholder="valuePlaceholder"
-                  :disabled="isView || disabled"
+                  :disabled="isView || disabled || disabledIndexList?.includes(idx)"
                   :rules="rules"
                   :compact="false"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
@@ -407,7 +417,7 @@ export default {
                   v-model="row.value"
                   :data-testid="`${componentTestid}-input-${idx}`"
                   :placeholder="valuePlaceholder"
-                  :disabled="isView || disabled"
+                  :disabled="isView || disabled || disabledIndexList?.includes(idx)"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
                   @blur="validate"
@@ -416,7 +426,7 @@ export default {
             </div>
           </slot>
           <div
-            v-if="showRemove && !isView"
+            v-if="showRemove && !isView && !disabledIndexList?.includes(idx)"
             class="remove"
           >
             <slot
