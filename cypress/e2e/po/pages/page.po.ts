@@ -19,7 +19,7 @@ export default class PagePo extends ComponentPo {
    * If using this on a page with a specific cluster context it will make another counts request for counts for it (cluster/counts)
    * Note - If that cluster is the upstream one the request will be the same as management (v1/counts)
    */
-  static goToAndWaitForGet(goTo: () => Cypress.Chainable, getUrls = [
+  static goToAndWaitForGet(goTo: () => Cypress.Chainable, getUrls: (string | RegExp)[] = [
     'v1/counts',
   ], timeout = 10000) {
     getUrls.forEach((cUrl, i) => {
