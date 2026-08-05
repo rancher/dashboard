@@ -37,10 +37,21 @@ describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUse
 describe('Cluster Management Helm Repositories', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   const downloadsFolder = Cypress.config('downloadsFolder');
+  // Generated at runtime in the before hook (see below) so no private key is committed.
+  let sshPrivateKey = 'privateKey';
 
   before(() => {
     cy.clearAllSessions();
     cy.login();
+    // Generate a throwaway, valid SSH keypair at runtime - real, parseable key material
+    // (unlike the old 'privateKey' placeholder), authorised nowhere, so purely test data
+    // and never written to the repo.
+    const keyPath = '/tmp/e2e-ssh-repo-key';
+
+    cy.exec(`rm -f ${ keyPath } ${ keyPath }.pub && ssh-keygen -t ed25519 -N '' -C e2e-test -f ${ keyPath } -q`);
+    cy.readFile(keyPath).then((key) => {
+      sshPrivateKey = key;
+    });
   });
 
   beforeEach(() => {
@@ -213,7 +224,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().selectGitRepoCard();
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
-    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth(sshPrivateKey, 'publicKey');
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
     repositoriesPage.waitForPage();
 
