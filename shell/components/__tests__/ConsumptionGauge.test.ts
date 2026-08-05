@@ -2,7 +2,51 @@ import { mount } from '@vue/test-utils';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 
+const AMOUNT_KEY = 'node.detail.glance.consumptionGauge.amount';
+
 describe('component: ConsumptionGauge', () => {
+  describe('amount values', () => {
+    // The used and total values are formatted independently, so each has to reach the
+    // translation already carrying whatever unit it was scaled to. A single shared unit
+    // would misreport any gauge whose two values land on different magnitudes.
+    const mountWithFormatter = (capacity: number, used: number, units?: string) => {
+      const t = jest.fn().mockReturnValue('');
+
+      mount(ConsumptionGauge, {
+        props: {
+          resourceName:    'MEMORY',
+          capacity,
+          used,
+          units,
+          numberFormatter: (value: number) => `${ value } formatted`,
+        },
+        global: { mocks: { t } }
+      });
+
+      return t;
+    };
+
+    it('should pass each value through the formatter with an empty shared unit', () => {
+      const t = mountWithFormatter(16000, 4000);
+
+      expect(t).toHaveBeenCalledWith(AMOUNT_KEY, {
+        used:  '4000 formatted',
+        total: '16000 formatted',
+        unit:  '',
+      });
+    });
+
+    it('should append the units prop to the total only when one is supplied', () => {
+      const t = mountWithFormatter(16000, 4000, 'GiB');
+
+      expect(t).toHaveBeenCalledWith(AMOUNT_KEY, {
+        used:  '4000 formatted',
+        total: '16000 formatted',
+        unit:  ' GiB',
+      });
+    });
+  });
+
   it('should render component with the correct data applied', () => {
     const colorStops = {
       0: '--success', 30: '--warning', 70: '--error'
