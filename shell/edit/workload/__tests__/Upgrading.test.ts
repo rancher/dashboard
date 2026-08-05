@@ -43,7 +43,7 @@ describe('component: Upgrading', () => {
   it.each([
     ['maxSurge', '%'],
     ['maxUnavailable', '%'],
-  ])('should set typed value in %p with %p unit', (key, unit) => {
+  ] as const)('should set typed value in %p with %p unit', (key, unit) => {
     const wrapper = mount(Upgrading);
     const newValue = 123;
     const expectation = `${ newValue }${ unit }`;

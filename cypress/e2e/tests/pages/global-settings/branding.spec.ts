@@ -6,7 +6,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { createPrivateLabelSettingsResponse, createPutSettingsResponse } from '@/cypress/e2e/blueprints/settings/branding-settings';
-import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
+import { PAGINATION_UTILS } from '@/cypress/support/utils/shell';
 
 const loginPage = new LoginPagePo();
 const homePage = new HomePagePo();
@@ -428,7 +428,7 @@ describe('Branding', { testIsolation: false }, () => {
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().previewColor().should('eq', settings.primaryColor.newRGB);
     brandingPage.applyButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
+      expect(background).to.satisfy((b: string) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
     });
 
     // Check over reload
@@ -436,7 +436,7 @@ describe('Branding', { testIsolation: false }, () => {
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().previewColor().should('eq', settings.primaryColor.newRGB);
     brandingPage.applyButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
+      expect(background).to.satisfy((b: string) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
     });
 
     // check that login page has new styles applied
@@ -444,13 +444,13 @@ describe('Branding', { testIsolation: false }, () => {
     loginPage.goTo();
 
     loginPage.submitButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
+      expect(background).to.satisfy((b: string) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
     });
 
     cy.reload();
 
     loginPage.submitButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
+      expect(background).to.satisfy((b: string) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
     });
     // EO test https://github.com/rancher/dashboard/issues/10788
 
@@ -489,13 +489,13 @@ describe('Branding', { testIsolation: false }, () => {
     loginPage.goTo();
 
     loginPage.password().showBtn().should('have.css', 'color').should((color: string) => {
-      expect(color).to.satisfy((b) => b.startsWith(settings.linkColor.newRGB));
+      expect(color).to.satisfy((b: string) => b.startsWith(settings.linkColor.newRGB));
     });
 
     cy.reload();
 
     loginPage.password().showBtn().should('have.css', 'color').should((color: string) => {
-      expect(color).to.satisfy((b) => b.startsWith(settings.linkColor.newRGB));
+      expect(color).to.satisfy((b: string) => b.startsWith(settings.linkColor.newRGB));
     });
     // EO test https://github.com/rancher/dashboard/issues/10788
 
@@ -523,7 +523,7 @@ describe('Branding', { testIsolation: false }, () => {
   after(() => {
     // Reset Private label to default - needed incase of 'Private Label' test failure
     if (resetPrivateLabel) {
-      cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', null).then((resp: Cypress.Response<any>) => {
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', undefined).then((resp: Cypress.Response<any>) => {
         const resourceVersion = resp.body.metadata.resourceVersion;
 
         cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', {

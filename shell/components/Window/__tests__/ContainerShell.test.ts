@@ -72,7 +72,7 @@ jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-web-links', () => {
 jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-search', () => {
   return {
     SearchAddon: class {
- findNext = jest.fn(); findPrevious = jest.fn();
+      findNext = jest.fn(); findPrevious = jest.fn();
     }
   };
 }, { virtual: true });

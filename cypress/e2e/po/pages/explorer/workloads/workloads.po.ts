@@ -8,7 +8,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import WorkloadPodStoragePo from '@/cypress/e2e/po/components/workloads/pod-storage.po';
 import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/container-mount-paths.po';
-import { WorkloadType } from '@shell/types/fleet';
+import { WorkloadType } from '@/cypress/support/utils/shell';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import CardPo from '~/cypress/e2e/po/components/Resource/Detail/Card/statusCard.po';

@@ -131,6 +131,7 @@ export default {
       requiresCert,
       requiresAuthEndpoint,
       sloEndSessionEndpointUiEnabled,
+      requiredScopes,
     };
   },
 
@@ -695,6 +696,7 @@ export default {
               :title="t('authConfig.oidc.scope.label')"
               :value-placeholder="t('authConfig.oidc.scope.placeholder')"
               :protip="t('authConfig.oidc.scope.protip', {}, true)"
+              :disabled-list="requiredScopes"
               @update:value="updateScope"
             />
           </div>

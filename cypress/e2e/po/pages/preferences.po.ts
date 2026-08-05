@@ -6,7 +6,7 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 export default class PreferencesPagePo extends PagePo {
-  static url = '/prefs'
+  static url = '/prefs';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(PreferencesPagePo.url);
   }

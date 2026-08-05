@@ -9,7 +9,7 @@ import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 
 export class FleetWorkspaceListPagePo extends BaseListPagePo {
-  static url = `/c/_/fleet/management.cattle.io.fleetworkspace`
+  static url = `/c/_/fleet/management.cattle.io.fleetworkspace`;
 
   constructor() {
     super(FleetWorkspaceListPagePo.url);

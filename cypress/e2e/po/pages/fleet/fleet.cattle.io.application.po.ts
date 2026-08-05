@@ -9,6 +9,8 @@ import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
+import KeyValuePo from '@/cypress/e2e/po/components/key-value.po';
 
 export class FleetApplicationListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/application`;
@@ -91,6 +93,44 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
     repoPaths.self().find('[data-testid="main-path"]').type(path);
   }
 
+  /**
+   * Add a repository path at a given row index (Custom paths / subpaths feature).
+   * `main-path` is repeated once per path row, so target the row by index.
+   * testing: https://github.com/rancher/dashboard/pull/14471
+   */
+  addGitRepoPathAtIndex(path: string, index: number) {
+    const repoPaths = this.gitRepoPaths();
+
+    repoPaths.clickAdd('Add Path');
+    repoPaths.self().find('[data-testid="main-path"]').eq(index).type(path);
+  }
+
+  /**
+   * Toggle "Manually specify config files subpaths" for the path row at `index`.
+   * Once enabled the subpaths KeyValue editor is revealed for that path.
+   * The Checkbox has no data-testid, so it is located by its label within the row.
+   */
+  enableSubpaths(index: number) {
+    return this.gitRepoPaths().self()
+      .find(`[data-testid="array-list-box${ index }"] .check`)
+      .first()
+      .click();
+  }
+
+  /**
+   * Set a subpath (base + Fleet YAML file) at row `subIndex` for the path at `index`.
+   * The subpaths editor is a KeyValue (key="base" / value="options") that renders
+   * with an initial empty row, so the first entry is filled in place.
+   */
+  setSubpath(index: number, base: string, fleetYaml: string, subIndex = 0) {
+    const container = `[data-testid="array-list-box${ index }"] .subpaths`;
+
+    this.self().find(`${ container } [data-testid="input-kv-item-key-${ subIndex }"]`).clear()
+      .type(base);
+    this.self().find(`${ container } [data-testid="kv-item-value-${ subIndex }"]`).clear()
+      .type(fleetYaml);
+  }
+
   targetClusterOptions(): RadioGroupInputPo {
     return new RadioGroupInputPo('[data-testid="fleet-target-cluster-radio-button"]');
   }
@@ -99,8 +139,35 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
     return new LabeledSelectPo('[data-testid="fleet-target-cluster-name-selector"]');
   }
 
+  targetClusterGroup(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid="fleet-target-cluster-group-selector"]');
+  }
+
   gitRepoPaths() {
     return new ArrayListPo('[data-testid="gitRepo-paths"]');
+  }
+
+  /**
+   * OCI Registry storage secret selector (Advanced step).
+   * testing: https://github.com/rancher/dashboard/pull/14414
+   */
+  ociStorageSecret(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid="fleet-oci-storage-secret-list"]');
+  }
+
+  enablePollingCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid="gitRepo-enablePolling-checkbox"]');
+  }
+
+  /**
+   * The banner shown when the Polling Interval is below the recommended minimum.
+   */
+  pollingIntervalMinimumWarning(): Cypress.Chainable {
+    return this.self().contains('The recommended minimum Polling Interval');
+  }
+
+  subpathsKeyValue(index: number): KeyValuePo {
+    return new KeyValuePo(`[data-testid="array-list-box${ index }"] .subpaths`);
   }
 
   authSelectOrCreate(selector: string) {

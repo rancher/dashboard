@@ -4,7 +4,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 import { HELM_STARTUP_DELAY_OPT } from '@/cypress/support/utils/timeouts';
-import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
+import { PAGINATION_UTILS } from '@/cypress/support/utils/shell';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test

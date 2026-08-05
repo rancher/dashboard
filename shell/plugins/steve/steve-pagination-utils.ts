@@ -360,7 +360,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       // { field: 'spec.group' }, // blocked on https://github.com/rancher/rancher/issues/55811
       // { field: 'spec.names.singular' }, // blocked on https://github.com/rancher/rancher/issues/55811
     ]
-  }
+  };
 
   private convertArrayPath(path: string): string {
     if (path.startsWith('metadata.fields.')) {

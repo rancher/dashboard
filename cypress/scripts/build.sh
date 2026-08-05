@@ -5,11 +5,29 @@ set -o pipefail
 # Build script for @rancher/cypress package
 # Run this script from the cypress/ directory
 
+# Cypress root directory (one level up from scripts/)
+CYPRESS_DIR="$(dirname "$0")/.."
+
+echo "Verifying no @shell imports in cypress..."
+
+SHELL_IMPORTS=$(grep -r "import.*@shell" "$CYPRESS_DIR" --include="*.ts" 2>/dev/null || true)
+if [ -n "$SHELL_IMPORTS" ]; then
+  echo ""
+  echo "Error: Found @shell imports in cypress folder. All shell dependencies must be removed."
+  echo "If you need shell functionality, please replicate it in cypress/support/utils/shell.ts instead."
+  echo ""
+  echo "@shell imports:"
+  echo ""
+  echo "$SHELL_IMPORTS" | sed 's/^/  /'
+  echo ""
+  exit 1
+fi
+
 echo "Building @rancher/cypress package..."
 
 
-# Move to the cypress root directory (one level up from scripts/)
-cd "$(dirname "$0")/.."
+# Move to the cypress root directory
+cd "$CYPRESS_DIR"
 
 # Clean previous builds
 rm -rf dist/

@@ -15,7 +15,7 @@ import TooltipPo from '@/cypress/e2e/po/components/tooltip.po';
 import InstallExtensionDialog from '@/cypress/e2e/po/prompts/installExtensionDialog.po';
 
 export default class ExtensionsPagePo extends PagePo {
-  static url = '/c/local/uiplugins'
+  static url = '/c/local/uiplugins';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ExtensionsPagePo.url);
   }

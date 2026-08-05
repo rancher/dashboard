@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { generateGlobalRolesDataSmall } from '@/cypress/e2e/blueprints/roles/global-roles-get';
-import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { BLANK_CLUSTER } from '@/cypress/support/utils/shell';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';

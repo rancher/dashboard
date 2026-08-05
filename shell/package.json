@@ -1,6 +1,6 @@
 {
   "name": "@rancher/shell",
-  "version": "3.0.13",
+  "version": "3.0.12",
   "rancherVersion": "2.15",
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancher/dashboard",
@@ -150,7 +150,7 @@
     "diff2html/diff": "5.2.2",
     "@vue/cli-service/html-webpack-plugin": "^5.0.0",
     "webpack-dev-server": "5.2.6",
-    "postcss": "8.5.18",
+    "postcss": "8.5.25",
     "@tootallnate/once": "^2.0.1",
     "cookie": "0.7.2"
   },

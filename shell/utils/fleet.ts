@@ -38,7 +38,7 @@ class Application {
    *
    * this empty selector means all applicable clusters will be selected
    */
-  includeAllWorkgroupRule = { clusterSelector: { matchExpressions: [] } }
+  includeAllWorkgroupRule = { clusterSelector: { matchExpressions: [] } };
 
   excludeHarvesterRule = {
     clusterSelector: {

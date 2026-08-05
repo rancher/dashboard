@@ -6,7 +6,7 @@ export default class Kubectl extends ComponentPo {
     super('#horizontal-window-manager');
   }
 
-  readonly kubeCommand: string = 'kubectl'
+  readonly kubeCommand: string = 'kubectl';
 
   openTerminal(options?: GetOptions) {
     cy.get('#btn-kubectl').click();

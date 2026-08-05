@@ -1,12 +1,12 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { qase } from '@/cypress/support/qase';
-import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
+import { PAGINATION_UTILS } from '@/cypress/support/utils/shell';
 
-function interceptAndChangeVersion(version) {
+function interceptAndChangeVersion(version: string) {
   return cy.intercept('GET', `/v1/management.cattle.io.settings?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`, (req) => {
     req.continue((res) => {
-      const serverVersion = res.body.data.find((setting) => setting.id === 'server-version');
+      const serverVersion = res.body.data.find((setting: { id: string }) => setting.id === 'server-version');
 
       serverVersion.value = version;
     });

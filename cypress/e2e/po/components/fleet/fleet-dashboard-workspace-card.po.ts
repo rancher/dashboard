@@ -85,7 +85,7 @@ class StatePanelPo extends ComponentPo {
 }
 
 export default class FleetDashboardWorkspaceCardPo extends ComponentPo {
-  workspace: string
+  workspace: string;
 
   constructor(workspace) {
     super(`[data-testid="fleet-dashboard-workspace-card-${ workspace }"]` );
