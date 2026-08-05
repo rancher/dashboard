@@ -139,9 +139,14 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       daemonSetsListPage.waitForPage();
 
       // check daemonsets count
-      const count = daemonSetNamesList.length + 1;
+      cy.waitForRancherResources('v1', 'apps.daemonset', daemonSetNamesList.length, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of daemonsets in the two filtered namespaces
+        // instead of assuming exactly daemonSetNamesList.length + 1; the cluster can
+        // briefly hold an extra resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (ds: any) => [nsName1, nsName2].includes(ds.metadata?.namespace)
+        ).length;
 
-      cy.waitForRancherResources('v1', 'apps.daemonset', count - 1, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
