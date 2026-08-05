@@ -356,10 +356,6 @@ describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@admin
     });
 
     driversPage.waitForPage();
-    // Force a fresh list query: the deleted driver can linger in the steve/VAI-backed
-    // list even after the delete returns 200 (list-lag), so the row stays visible.
-    cy.reload();
-    driversPage.waitForPage();
     driversPage.list().resourceTable().sortableTable().rowElementWithName(exampleDriver, MEDIUM_TIMEOUT_OPT)
       .should('not.exist');
 
