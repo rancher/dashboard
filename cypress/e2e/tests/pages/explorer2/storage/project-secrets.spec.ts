@@ -29,6 +29,12 @@ describe('Project Secrets', { testIsolation: false, tags: ['@explorer2', '@admin
   });
 
   it('creates a project-scoped secret and displays it in the list', () => {
+    // Navigate to a page that renders the header namespace filter before
+    // interacting with it. The beforeEach `cy.login()` can leave us on a page
+    // without the filter, so toggling it directly is racy.
+    projectSecretsListPage.goTo();
+    projectSecretsListPage.waitForPage();
+
     namespaceFilter.toggle();
     namespaceFilter.clickOptionByLabel('All Namespaces');
     namespaceFilter.closeDropdown();
