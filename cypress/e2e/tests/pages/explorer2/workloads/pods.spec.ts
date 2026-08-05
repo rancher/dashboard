@@ -65,10 +65,14 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
-      // check pods count
-      const count = podNamesList.length + 1;
+      // Wait for the created pods to be registered, then derive the actual number of
+      // pods in the two filtered namespaces. A hardcoded `podNamesList.length + 1` can
+      // disagree with the list total when the cluster briefly holds an extra pod.
+      cy.waitForRancherResources('v1', 'pods', podNamesList.length, true).then((resp: Cypress.Response<any>) => {
+        const count = resp.body.data.filter(
+          (pod: any) => [nsName1, nsName2].includes(pod.metadata?.namespace)
+        ).length;
 
-      cy.waitForRancherResources('v1', 'pods', count - 1, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();

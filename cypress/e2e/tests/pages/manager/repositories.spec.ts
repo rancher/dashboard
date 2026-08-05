@@ -221,6 +221,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     // Force a fresh list query - the created repo can be missing from the steve/VAI list.
     cy.reload();
     repositoriesPage.waitForPage();
+    // After a reload the VAI-backed list re-fetches from scratch and can take longer
+    // than the default timeout to render the table container, so wait for it explicitly.
+    cy.get('[data-testid="app-cluster-repo-list"]', LONG_TIMEOUT_OPT).should('be.visible');
     // check list details
     repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
     repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
