@@ -2988,8 +2988,8 @@ dynamicContent:
     title: End of Life reached
     message: This version of Rancher ({version}) has reached End of Life. Consider upgrading to a supported version.
   eoc:
-    title: No more updates
-    message: This version of Rancher ({version}) will no longer receive updates. Consider upgrading to a newer version.
+    title: Updates have ended
+    message: This version of Rancher ({version}) will no longer receive updates. Consider upgrading to a newer version or to Rancher Prime.
 
 etcdInfoBanner:
   hasLeader: "Etcd has a leader:"
