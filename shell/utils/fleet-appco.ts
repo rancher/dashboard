@@ -2,6 +2,7 @@ import { base64Encode } from '@shell/utils/crypto';
 import { CATALOG as CATALOG_TYPES, SECRET } from '@shell/config/types';
 import { CATALOG, DESCRIPTION, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
+import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 
 export const SUSE_APP_COLLECTION_REPO_URL = 'oci://dp.apps.rancher.io/charts';
 export const FLEET_APPCO_AUTH_GENERATE_NAME = 'fleet-appco-auth-';
@@ -15,39 +16,75 @@ const FLEET_DOWNSTREAM_RESOURCES_DOC_PATH = 'how-tos-for-users/downstream-resour
 const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH = 'reference/ref-crds';
 const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR = '_bundledeploymentoptions';
 
-/**
- * Build a Fleet docs URL, choosing between the community and Rancher Prime docs. Both point
- * at the *current* docs rather than a pinned version:
- *
- * - Community (fleet.rancher.io): the unversioned page. The current release is served at the
- *   root; versioned `0.X` deep links don't exist for it.
- * - Prime (documentation.suse.com): the `latest` page. There is no unversioned SUSE path, and
- *   a specific `v0.X` 404s until that release's docs are published, whereas `latest` always
- *   resolves.
- *
- * Because both link the current docs, a brand-new page only resolves once it ships in the
- * current release — verify a path exists before wiring it up.
- */
-function fleetDocsUrl(path: string, { isPrime, anchor = '' }: { isPrime?: boolean; anchor?: string }): string {
-  const hash = anchor ? `#${ anchor }` : '';
+// Rancher version that first shipped the AppCo Fleet docs pages below. A page lands in the
+// "next" (unreleased) docs and only moves to the current docs once the *following* release
+// ships, so while this exact version is running the pages exist only under "next".
+const FLEET_APPCO_DOCS_ADDED_IN = '2.15.0';
 
-  return isPrime ? `${ FLEET_PRIME_DOCS_BASE }/latest/en/${ path }.html${ hash }` : `${ FLEET_COMMUNITY_DOCS_BASE }/${ path }${ hash }`;
+interface ParsedVersion { major: number; minor: number; patch: number }
+
+/** Extract an X.Y.Z version from a string like "v2.15.0" or "v2.16.0-rc1"; null if none. */
+function parseVersion(version: string): ParsedVersion | null {
+  const match = /(\d+)\.(\d+)\.(\d+)/.exec(version || '');
+
+  return match ? {
+    major: Number(match[1]), minor: Number(match[2]), patch: Number(match[3])
+  } : null;
 }
 
-// Fleet "downstream resources" docs.
-export const FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL = fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, { isPrime: false });
-export const FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_URL = fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, { isPrime: true });
+/**
+ * Pick the docs channel for a page introduced in `addedIn`. A page lands in the unreleased
+ * ("next") site and only moves to the current docs from the *following* release onward:
+ *
+ * - running version === the release that introduced the page -> "next" (not published yet)
+ * - any later release                                        -> "current"
+ *
+ * The running version comes from the server (`getVersionData().Version`). Dev/head builds
+ * don't report a clean X.Y.Z, so they fall back to the `.0` of the line this UI was built
+ * for (`CURRENT_RANCHER_VERSION`), whose docs are likewise still in "next".
+ */
+function fleetDocsChannel(addedIn: string): 'next' | 'current' {
+  const added = parseVersion(addedIn);
+  const running = parseVersion(getVersionData().Version) ?? parseVersion(`${ CURRENT_RANCHER_VERSION }.0`);
+
+  if (!added || !running) {
+    return 'current';
+  }
+
+  const sameRelease = running.major === added.major && running.minor === added.minor && running.patch === added.patch;
+
+  return sameRelease ? 'next' : 'current';
+}
+
+/**
+ * Build a Fleet docs URL, choosing between the community and Rancher Prime docs and between
+ * the current and "next" (unreleased) channel for a page introduced in `addedIn` (see
+ * fleetDocsChannel):
+ *
+ * - Community (fleet.rancher.io): current release at the root, unreleased under `/next/`.
+ * - Prime (documentation.suse.com): current release at `/latest/`, unreleased at `/next/`.
+ */
+function fleetDocsUrl(path: string, addedIn: string, { isPrime, anchor = '' }: { isPrime?: boolean; anchor?: string }): string {
+  const hash = anchor ? `#${ anchor }` : '';
+  const channel = fleetDocsChannel(addedIn);
+
+  if (isPrime) {
+    const segment = channel === 'next' ? 'next' : 'latest';
+
+    return `${ FLEET_PRIME_DOCS_BASE }/${ segment }/en/${ path }.html${ hash }`;
+  }
+
+  const communityPath = channel === 'next' ? `next/${ path }` : path;
+
+  return `${ FLEET_COMMUNITY_DOCS_BASE }/${ communityPath }${ hash }`;
+}
 
 export function getDownstreamResourcesDocsUrl(isPrime = false): string {
-  return isPrime ? FLEET_DOWNSTREAM_RESOURCES_DOCS_PRIME_URL : FLEET_DOWNSTREAM_RESOURCES_DOCS_COMMUNITY_URL;
+  return fleetDocsUrl(FLEET_DOWNSTREAM_RESOURCES_DOC_PATH, FLEET_APPCO_DOCS_ADDED_IN, { isPrime });
 }
 
-// Fleet "BundleDeploymentOptions" (CRD reference) docs.
-export const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_COMMUNITY_URL = fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, { isPrime: false, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR });
-export const FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_PRIME_URL = fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, { isPrime: true, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR });
-
 export function getBundleDeploymentOptionsDocsUrl(isPrime = false): string {
-  return isPrime ? FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_PRIME_URL : FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOCS_COMMUNITY_URL;
+  return fleetDocsUrl(FLEET_BUNDLE_DEPLOYMENT_OPTIONS_DOC_PATH, FLEET_APPCO_DOCS_ADDED_IN, { isPrime, anchor: FLEET_BUNDLE_DEPLOYMENT_OPTIONS_ANCHOR });
 }
 
 interface AuthCredentials {
