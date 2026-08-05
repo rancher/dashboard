@@ -181,7 +181,7 @@ class PaginationUtils {
 
     if (paginationExtensionPoints) {
       const allowed = Object.entries(paginationExtensionPoints).find(([_, settingsFn]) => {
-        if (!settingsFn) {
+        if (typeof settingsFn !== 'function') {
           return false;
         }
 
