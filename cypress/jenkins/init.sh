@@ -38,10 +38,14 @@ clone_qa_infra() {
   echo "[init] qa-infra-automation (${QA_INFRA_BRANCH}) at $(git -C "${QA_INFRA_DIR}" rev-parse --short HEAD)"
 }
 
-# Build the runner image from Dockerfile.quickstart
+# Build the runner image from Dockerfile.quickstart.
+#
+# Cached rather than --no-cache: Pre-Clean removes this tag every build, so the
+# image is rebuilt regardless, and --no-cache only added a cold build plus a
+# BuildKit cache record per layer that nothing on the agent reclaims.
 build_runner_image() {
   echo "[init] Building ${RUNNER_IMAGE} image..."
-  docker build -q --no-cache -f "${PLAYBOOK_DIR}/Dockerfile.quickstart" \
+  docker build -q -f "${PLAYBOOK_DIR}/Dockerfile.quickstart" \
     -t "${RUNNER_IMAGE}" "${PLAYBOOK_DIR}"
 }
 

@@ -1,7 +1,7 @@
 #!groovy
 // Jenkinsfile — CI pipeline for Rancher Dashboard E2E tests
 //
-// Stages: Pre-Clean → Preflight → Checkout → Run Tests → Grab Results
+// Stages: Pre-Clean → Preflight → Checkout → Disk → Run Tests → Grab Results
 //   finally: Clean Test Environment → Cleanup Executor → Test Report
 
 def branch = "${env.BRANCH}" != 'null' && "${env.BRANCH}" != '' ? "${env.BRANCH}" : 'master'
@@ -68,6 +68,10 @@ node('harvester-vpn-1') {
                 ])
                 // init.sh clones qa-infra-automation at runtime
               }
+              // In the repo, so it cannot run before Checkout.
+              stage('Disk') {
+                sh 'cypress/jenkins/disk-report.sh before'
+              }
               stage('Run Tests') {
                 timeout(time: 180, unit: 'MINUTES') {
                   testExitCode = sh(script: 'cypress/jenkins/init.sh', returnStatus: true)
@@ -112,6 +116,9 @@ node('harvester-vpn-1') {
                   rm -f "${WORKSPACE}/qa-infra-automation/ansible/testing/dashboard-e2e/vars.yaml" 2>/dev/null || true
                   rm -f "${WORKSPACE}/qa-infra-automation/ansible/testing/dashboard-e2e/.env" 2>/dev/null || true
                 """
+                if (fileExists('cypress/jenkins/disk-report.sh')) {
+                  sh 'cypress/jenkins/disk-report.sh after'
+                }
               }
               try {
                 stage('Test Report') {
