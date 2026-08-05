@@ -56,8 +56,8 @@ export async function sendHighFailureAlert({ totalUnique, batch, jenkinsJobUrl }
     const res = await fetch(SLACK_API, {
       method:  'POST',
       headers: {
-        'Content-Type':  'application/json; charset=utf-8',
-        'Authorization': `Bearer ${ token }`,
+        'Content-Type': 'application/json; charset=utf-8',
+        Authorization:  `Bearer ${ token }`,
       },
       body: payload,
     });

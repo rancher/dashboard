@@ -138,9 +138,7 @@ export class JenkinsClient {
     // that value are processed (e.g. "head" skips v2.13-head, v2.14-head, v2.15-head).
     const { anchorNumber, batch, inProgressBuilds } = await this.getBatch();
 
-    const filteredBatch = VERSION_FILTER
-      ? batch.filter((b) => (b.description || '').startsWith(VERSION_FILTER))
-      : batch;
+    const filteredBatch = VERSION_FILTER ? batch.filter((b) => (b.description || '').startsWith(VERSION_FILTER)) : batch;
 
     if (VERSION_FILTER) {
       console.log(`  Version filter: "${ VERSION_FILTER }" — processing ${ filteredBatch.length } of ${ batch.length } build(s)`);
