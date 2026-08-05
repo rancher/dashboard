@@ -228,11 +228,11 @@ describe('component: rke2', () => {
         provider: 'custom'
       },
 
-      data: () => ({
+      data: (() => ({
         credentialId: 'I am authenticated',
         credential:   { decodedData: { clusterId: 'some-cluster-id' } },
         machinePools: [],
-      }),
+      })) as any,
 
       global: {
         mocks: {
@@ -590,7 +590,7 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data: () => ({
+      data: (() => ({
         credentialId:    'I am authenticated',
         userChartValues: chartValues,
         rke2Versions:    [
@@ -617,7 +617,7 @@ describe('component: rke2', () => {
             }
           }
         ]
-      }),
+      })) as any,
 
       global: {
         mocks: {
@@ -933,6 +933,77 @@ describe('component: rke2', () => {
       const canEditAsYaml = rke2.computed!.canEditAsYaml.call(vm);
 
       expect(canEditAsYaml).toBe(true);
+    });
+  });
+  describe('computed: validationPassed (extension provisioning section)', () => {
+    const baseVm = {
+      hasMachinePools:            false,
+      provider:                   'custom',
+      machinePoolValidation:      {},
+      addonConfigValidation:      {},
+      isUpstreamCAPIProvider:     true,
+      infrastructureClusterValid: true,
+      provisioningClusterValid:   true,
+      stackPreferenceError:       false,
+    };
+
+    it('should return true when provisioningClusterValid is true', () => {
+      const vm = { ...baseVm } as any;
+
+      const validationPassed = rke2.computed!.validationPassed.call(vm);
+
+      expect(validationPassed).toBe(true);
+    });
+
+    it('should return false when provisioningClusterValid is false and isUpstreamCAPIProvider is true', () => {
+      const vm = { ...baseVm, provisioningClusterValid: false } as any;
+
+      const validationPassed = rke2.computed!.validationPassed.call(vm);
+
+      expect(validationPassed).toBe(false);
+    });
+
+    it('should ignore provisioningClusterValid when isUpstreamCAPIProvider is false', () => {
+      const vm = {
+        ...baseVm, provisioningClusterValid: false, isUpstreamCAPIProvider: false
+      } as any;
+
+      const validationPassed = rke2.computed!.validationPassed.call(vm);
+
+      expect(validationPassed).toBe(true);
+    });
+  });
+
+  describe('methods: updateExtensionProvisioningSection', () => {
+    it('should do nothing when the emitted value is not an object', () => {
+      const originalValue = { spec: { foo: 'bar' } };
+      const vm = { value: originalValue } as any;
+
+      (rke2.methods as any).updateExtensionProvisioningSection.call(vm, null);
+
+      expect(vm.value).toBe(originalValue);
+      expect(vm.value).toStrictEqual({ spec: { foo: 'bar' } });
+    });
+
+    it('should assign the emitted value directly when there is no existing value', () => {
+      const vm = { value: null } as any;
+      const neu = { spec: { kubernetesVersion: 'v1.31.0+rke2r1' } };
+
+      (rke2.methods as any).updateExtensionProvisioningSection.call(vm, neu);
+
+      expect(vm.value).toBe(neu);
+    });
+
+    it('should merge the emitted value into the existing value, preserving the original reference', () => {
+      const original = { spec: { kubernetesVersion: 'v1.30.0+rke2r1', existing: 'field' } };
+      const vm = { value: original } as any;
+      const neu = { spec: { kubernetesVersion: 'v1.31.0+rke2r1' } };
+
+      (rke2.methods as any).updateExtensionProvisioningSection.call(vm, neu);
+
+      expect(vm.value).toBe(original);
+      expect(vm.value.spec.kubernetesVersion).toBe('v1.31.0+rke2r1');
+      expect(vm.value.spec.existing).toBe('field');
     });
   });
 });
