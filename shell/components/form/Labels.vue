@@ -266,6 +266,7 @@ export default {
         :read-allowed="false"
         :value-can-be-empty="true"
         :key-errors="annotations.keyErrors"
+        :disabled-keys="value.readOnlyAnnotationKeys || []"
         :use-rc-button="useRcButton"
         @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
       />

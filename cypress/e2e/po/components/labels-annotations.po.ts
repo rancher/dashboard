@@ -7,10 +7,10 @@ import KeyValuePo from '@/cypress/e2e/po/components/key-value.po';
  */
 export default class LabelsAnnotationsPo extends ComponentPo {
   labels(): KeyValuePo {
-    return new KeyValuePo(`[data-testid="labels-keyvalue"]`, true);
+    return new KeyValuePo(`[data-testid="labels-keyvalue"]`, undefined, true);
   }
 
   annotations(): KeyValuePo {
-    return new KeyValuePo(`[data-testid="annotations-keyvalue"]`, true);
+    return new KeyValuePo(`[data-testid="annotations-keyvalue"]`, undefined, true);
   }
 }

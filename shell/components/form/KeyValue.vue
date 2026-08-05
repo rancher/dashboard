@@ -244,6 +244,10 @@ export default {
       type:    Object,
       default: () => ({})
     },
+    disabledKeys: {
+      type:    Array,
+      default: () => []
+    },
     useRcButton: {
       type:    Boolean,
       default: false
@@ -728,7 +732,7 @@ export default {
                   v-else
                   ref="key"
                   v-model="row[keyName]"
-                  :disabled="isView || disabled || !keyEditable"
+                  :disabled="isView || disabled || !keyEditable || disabledKeys.includes(row[keyName])"
                   :placeholder="_keyPlaceholder"
                   :data-testid="`input-kv-item-key-${i}`"
                   :aria-label="t('generic.ariaLabel.key', {index: i+1})"
@@ -794,7 +798,7 @@ export default {
                     v-else-if="valueMultiline && row[valueName] !== undefined"
                     v-model:value="row[valueName]"
                     data-testid="value-multiline"
-                    :disabled="disabled"
+                    :disabled="disabled || disabledKeys.includes(row[keyName])"
                     :mode="mode"
                     :placeholder="_valuePlaceholder"
                     :min-height="40"
@@ -805,7 +809,7 @@ export default {
                   <input
                     v-else
                     v-model="row[valueName]"
-                    :disabled="isView || disabled"
+                    :disabled="isView || disabled || disabledKeys.includes(row[keyName])"
                     :type="valueConcealed ? 'password' : 'text'"
                     :placeholder="_valuePlaceholder"
                     autocorrect="off"
@@ -843,7 +847,7 @@ export default {
               />
             </div>
             <div
-              v-if="canRemove"
+              v-if="canRemove && !disabledKeys.includes(row[keyName])"
               :key="i"
               class="kv-item remove"
               role="gridcell"
