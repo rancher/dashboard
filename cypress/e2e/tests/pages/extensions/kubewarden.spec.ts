@@ -5,7 +5,8 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.po';
 import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
-const extensionName = 'SUSE Security Admission Controller';
+const extensionName = 'kubewarden';
+const extensionTitle = 'SUSE Security Admission Controller';
 const gitRepoName = 'rancher-extensions';
 let removeExtensions = false;
 
@@ -52,7 +53,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     // make sure extension card is in the installed tab
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.extensionCardClick(extensionName);
-    extensionsPo.extensionDetailsTitle().should('contain', extensionName);
+    extensionsPo.extensionDetailsTitle().should('contain', extensionTitle);
     extensionsPo.extensionDetailsCloseClick();
   });
 
@@ -113,7 +114,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.extensionCardClick(extensionName);
-    extensionsPo.extensionDetailsTitle().should('contain', extensionName);
+    extensionsPo.extensionDetailsTitle().should('contain', extensionTitle);
   });
 
   after(() => {
