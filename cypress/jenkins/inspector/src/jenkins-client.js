@@ -18,6 +18,7 @@ const JENKINS_BASE = process.env.JENKINS_BASE_URL || 'https://your-jenkins-insta
 const JOB_PATH = process.env.JENKINS_JOB_PATH || 'rancher_qa/ui-automation-ansible-job';
 const ANCHOR_DESCRIPTION = process.env.INSPECTOR_ANCHOR_DESCRIPTION || 'head · community · @adminUser';
 const ANCHOR_MAX_AGE_MS = 36 * 60 * 60 * 1000; // 36 hours
+const VERSION_FILTER = process.env.INSPECTOR_VERSION_FILTER || null; // e.g. "head" to only process head builds
 
 // Converts "rancher_qa/ui-automation-ansible-job" → "/job/rancher_qa/job/ui-automation-ansible-job"
 function toJobUrl(jobPath) {
@@ -133,11 +134,21 @@ export class JenkinsClient {
   async collectTodayFailures() {
     // Main entry point — finds today's batch and collects all failing tests
     // with environment context parsed from each build's description field.
+    // If INSPECTOR_VERSION_FILTER is set, only builds whose description starts with
+    // that value are processed (e.g. "head" skips v2.13-head, v2.14-head, v2.15-head).
     const { anchorNumber, batch, inProgressBuilds } = await this.getBatch();
+
+    const filteredBatch = VERSION_FILTER
+      ? batch.filter((b) => (b.description || '').startsWith(VERSION_FILTER))
+      : batch;
+
+    if (VERSION_FILTER) {
+      console.log(`  Version filter: "${ VERSION_FILTER }" — processing ${ filteredBatch.length } of ${ batch.length } build(s)`);
+    }
 
     const failures = [];
 
-    for (const build of batch) {
+    for (const build of filteredBatch) {
       const raw = await this.getFailingTests(build);
       const desc = build.description || '';
       const parts = desc.split(' · ').map((p) => p.trim());
@@ -160,7 +171,7 @@ export class JenkinsClient {
     }
 
     return {
-      anchorNumber, batch, inProgressBuilds, failures
+      anchorNumber, batch: filteredBatch, allBuilds: batch, inProgressBuilds, failures
     };
   }
 }

@@ -16,6 +16,7 @@
 
 import { JenkinsClient } from './jenkins-client.js';
 import GitHubClient from './github-client.js';
+import { sendHighFailureAlert } from './slack-client.js';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const JENKINS_AUTH = process.env.JENKINS_AUTH;
@@ -150,24 +151,24 @@ async function main() {
 
   console.log('Step 1: Finding today\'s build batch...');
   const {
-    anchorNumber, batch, inProgressBuilds, failures
+    anchorNumber, batch, allBuilds, inProgressBuilds, failures
   } = await jenkinsClient.collectTodayFailures();
 
   console.log(`  Anchor build: #${ anchorNumber }`);
-  console.log(`  Builds in batch (${ batch.length }):`);
-  batch.forEach((b) => console.log(`    #${ b.number }: ${ b.description }`));
+  console.log(`  Builds in batch (${ allBuilds.length }):`);
+  allBuilds.forEach((b) => console.log(`    #${ b.number }: ${ b.description }`));
   if (inProgressBuilds.length > 0) {
-    console.warn(`  Warning: ${ inProgressBuilds.length } build(s) still in progress (#${ inProgressBuilds.map((b) => b.number).join(', #') }) — results may be incomplete`);
+    console.log(`  Warning: ${ inProgressBuilds.length } build(s) still in progress (#${ inProgressBuilds.map((b) => b.number).join(', #') }) — results may be incomplete`);
   }
   console.log(`  Raw failing tests collected: ${ failures.length }`);
   console.log('');
 
   if (batch.length === 0) {
     if (inProgressBuilds.length > 0) {
-      console.warn(`No completed builds in today's batch — ${ inProgressBuilds.length } build(s) still in progress. Jenkins may be mid-flight.`);
+      console.log(`No completed builds in today's batch — ${ inProgressBuilds.length } build(s) still in progress. Jenkins may be mid-flight.`);
       process.exit(2);
     }
-    console.warn('No completed builds found in today\'s batch. Exiting.');
+    console.log('No completed builds found in today\'s batch. Exiting.');
     process.exit(2);
   }
 
@@ -176,9 +177,37 @@ async function main() {
     process.exit(0);
   }
 
-  if (dryRun) {
-    const grouped = groupFailures(failures);
+  // If unique failure count exceeds threshold, alert Slack and skip issue creation.
+  // This prevents flooding the project board when an env/config issue causes mass failures.
+  // Slack notification is enabled by default — set INSPECTOR_SLACK_NOTIFICATION=false to disable.
+  const slackThreshold = parseInt(process.env.INSPECTOR_SLACK_THRESHOLD || '10', 10);
+  const slackEnabled = (process.env.INSPECTOR_SLACK_NOTIFICATION || 'true').toLowerCase() !== 'false';
+  const grouped = groupFailures(failures);
 
+  if (grouped.size > slackThreshold) {
+    console.log(`\nHigh failure count: ${ grouped.size } unique failures exceeds threshold of ${ slackThreshold }.`);
+    console.log('Sending Slack alert and skipping issue creation.');
+
+    if (!dryRun && slackEnabled) {
+      const sent = await sendHighFailureAlert({
+        totalUnique:   grouped.size,
+        batch,
+        jenkinsJobUrl: `${ process.env.JENKINS_BASE_URL }/${ (process.env.JENKINS_JOB_PATH || '').split('/').map((p) => `job/${ p }`).join('/') }`,
+      });
+
+      if (sent) {
+        console.log('Slack alert sent successfully.');
+      }
+    } else if (dryRun) {
+      console.log('*** DRY RUN — Slack alert would be sent here ***');
+    } else {
+      console.log('Slack notifications disabled (INSPECTOR_SLACK_NOTIFICATION=false) — skipping alert.');
+    }
+
+    process.exit(0);
+  }
+
+  if (dryRun) {
     console.log(`=== Dry Run Summary (${ grouped.size } unique failing tests) ===`);
     for (const [title, f] of grouped) {
       const envs = f.environments.map((e) => `${ e.version }·${ e.user }`).join(', ');

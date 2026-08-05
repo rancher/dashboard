@@ -11,6 +11,11 @@ on:
         required: false
         default: 'false'
         type: boolean
+      version_filter:
+        description: 'Only process builds matching this version prefix (e.g. "head" for head-only builds)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   inspect:
@@ -51,5 +56,11 @@ jobs:
           BACKLOG_OPTION_ID: ${{ secrets.INSPECTOR_BACKLOG_OPTION_ID }}
           INSPECTOR_BUILD_WINDOW: ${{ vars.INSPECTOR_BUILD_WINDOW }}
           INSPECTOR_ANCHOR_DESCRIPTION: ${{ vars.INSPECTOR_ANCHOR_DESCRIPTION }}
-          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          INSPECTOR_VERSION_FILTER: ${{ inputs.version_filter }}
+          INSPECTOR_SLACK_THRESHOLD: ${{ vars.INSPECTOR_SLACK_THRESHOLD }}
+          INSPECTOR_SLACK_NOTIFICATION: ${{ vars.INSPECTOR_SLACK_NOTIFICATION }}
+          UI_QA_SLACK_BOT_TOKEN: ${{ secrets.UI_QA_SLACK_BOT_TOKEN }}
+          UI_QA_SLACK_CHANNEL: ${{ secrets.UI_QA_SLACK_CHANNEL }}
+          UI_QA_SLACK_GROUP_ID: ${{ secrets.UI_QA_SLACK_GROUP_ID }}
+          DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
         run: node src/inspect.js
