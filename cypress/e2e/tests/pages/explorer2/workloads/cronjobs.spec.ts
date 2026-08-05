@@ -215,10 +215,14 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
       WorkloadsCronJobsListPagePo.navTo();
       cronJobListPage.waitForPage();
 
-      // check cronjobs count
-      const count = cronJobNamesList.length + 1;
+      cy.waitForRancherResources('v1', 'batch.cronjob', cronJobNamesList.length, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of cronjobs in the two filtered namespaces
+        // instead of assuming exactly cronJobNamesList.length + 1; the cluster can
+        // briefly hold an extra resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (cj: any) => [nsName1, nsName2].includes(cj.metadata?.namespace)
+        ).length;
 
-      cy.waitForRancherResources('v1', 'batch.cronjob', count, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         cronJobListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();

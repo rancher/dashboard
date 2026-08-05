@@ -153,9 +153,15 @@ skipGeometric=true`;
 
       // check configmaps count
       // A kube-root-ca.crt configmap per namespace in the formula has to be included
-      const count = cmNamesList.length + 2;
+      cy.waitForRancherResources('v1', 'configmaps', cmNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of configmaps in the two filtered namespaces
+        // (which includes each namespace's kube-root-ca.crt) instead of assuming
+        // exactly cmNamesList.length + 2; the cluster can briefly hold an extra
+        // resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (cm: any) => [nsName1, nsName2].includes(cm.metadata?.namespace)
+        ).length;
 
-      cy.waitForRancherResources('v1', 'configmaps', count - 1, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();

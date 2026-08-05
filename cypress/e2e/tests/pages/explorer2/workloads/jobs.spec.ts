@@ -190,10 +190,14 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       WorkloadsJobsListPagePo.navTo();
       jobsListPage.waitForPage();
 
-      // check jobs count
-      const count = jobNamesList.length + 1;
+      cy.waitForRancherResources('v1', 'batch.job', jobNamesList.length, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of jobs in the two filtered namespaces instead
+        // of assuming exactly jobNamesList.length + 1; the cluster can briefly hold
+        // an extra resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (job: any) => [nsName1, nsName2].includes(job.metadata?.namespace)
+        ).length;
 
-      cy.waitForRancherResources('v1', 'batch.job', count - 1, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
