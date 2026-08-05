@@ -52,15 +52,22 @@
 - useI18n.ts: needs `jest.unmock('@shell/composables/useI18n')` at top (jest.setup.js stubs it globally); mock `@shell/plugins/i18n`; null-store path: use try/catch on `useI18n(null)` to get store=null after getting t reference
 - useClickOutside.ts: mount composable in defineComponent wrapper with @vue/test-utils; jsdom has no PointerEvent — use `new MouseEvent('pointerdown', ...)` instead; override target+composedPath via Object.defineProperty; ignore selectors only affect shouldListen via detail=0 or pointerdown paths (not direct click with detail=1)
 
+## Testing Notes (composables cont.)
+
+- useUserRetentionValidation.ts: mock `@shell/composables/useI18n` and `vuex`; `parseDuration` regex `^(\d+)h|(\d+)m|(\d+)s$` uses alternation (not fully anchored), so `6h30m` matches `6h`; split it.each into separate pass/fail blocks to satisfy jest/no-conditional-expect
+
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
 2. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
 3. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad`
 4. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
+5. `shell/composables/useStateColor.ts` — API-dependent; needs vuex store mocking for dispatch/getters
+6. `shell/composables/focusTrap.ts` — lifecycle hooks wrapping focus-trap library; needs mount-based testing
 
 ## Completed Work (Summary)
 
+- 2026-08-05: PR (test-assist/user-retention-validation-tests): 27 new tests for useUserRetentionValidation.ts — cron validation, duration format validation, 336h minimum enforcement, session TTL comparison; 0%→97.4% stmts, 89.5% branches, 100% fns
 - 2026-07-30: PR (test-assist/click-outside-composable-tests): 12 new tests for useClickOutside.ts — click outside, on element, inside element, null ref, ignore selectors, keyboard click (detail=0), lifecycle mount/unmount; 0%→95% stmts, 0%→94% branches, 0%→100% fns
 - 2026-07-04: PR (test-assist/labeled-form-element-composable-tests): 30 new tests for useLabeledFormElement.ts — raised/focused state, validation messages, required-field detection, emit assertions; 0%→100% stmts/lines, 93.33% branches
 - 2026-07-03: PR #18267 (test-assist/favicon-utils-tests): 15 new tests for favicon.js — haveSetFavIcon state, setFavIcon brand selection (suse/csp/harvester), findIconLink; 0%→100% stmts/fns, 94.7% branches
@@ -86,6 +93,7 @@
 
 ## Task Round-Robin History
 
+- 2026-08-05: Task 3 (useUserRetentionValidation.ts, 27 tests) + Task 7 (new month: created August issue #aw_aug2026)
 - 2026-07-30: Task 3 (useClickOutside.ts, 12 tests) + Task 7
 - 2026-07-04: Task 4 (all 4 PRs CI green) + Task 3 (useLabeledFormElement.ts, 30 tests) + Task 7
 - 2026-07-03: Task 4 (PRs #18249/#18235 CI green) + Task 3 (favicon.js, 15 tests) + Task 7
@@ -109,7 +117,8 @@
 ## Monthly Activity Issue
 
 - June 2026 issue: #17976 (closed)
-- July 2026 issue: #18236
+- July 2026 issue: #18236 (closed - new month)
+- August 2026 issue: #aw_aug2026 (created 2026-08-05)
 
 ## Maintainer Priorities
 
