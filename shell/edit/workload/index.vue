@@ -243,6 +243,8 @@ export default {
                       v-model:value="allContainers[i].name"
                       :mode="mode"
                       :label="t('workload.container.containerName')"
+                      required
+                      :rules="containerNameRules"
                     />
                   </div>
                   <div class="col span-6">
@@ -265,6 +267,8 @@ export default {
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
+                      required
+                      :rules="containerImageRules"
                     />
                   </div>
                   <div class="col span-6">
