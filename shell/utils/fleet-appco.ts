@@ -96,12 +96,21 @@ function fleetDocsUrl(doc: FleetDoc, isPrime: boolean): string {
   return `${ FLEET_COMMUNITY_DOCS_BASE }/${ communityPath }${ hash }`;
 }
 
-export function getDownstreamResourcesDocsUrl(isPrime = false): string {
-  return fleetDocsUrl(FLEET_DOCS.downstreamResources, isPrime);
+/**
+ * Whether this is a Rancher Prime install. Read from the same server version data as the docs
+ * channel (`getVersionData`) instead of importing `isRancherPrime` from `@shell/config/version`,
+ * whose exports vue-tsc cannot currently resolve from that JS module.
+ */
+function isPrimeInstall(): boolean {
+  return getVersionData().RancherPrime?.toLowerCase() === 'true';
 }
 
-export function getBundleDeploymentOptionsDocsUrl(isPrime = false): string {
-  return fleetDocsUrl(FLEET_DOCS.bundleDeploymentOptions, isPrime);
+export function getDownstreamResourcesDocsUrl(): string {
+  return fleetDocsUrl(FLEET_DOCS.downstreamResources, isPrimeInstall());
+}
+
+export function getBundleDeploymentOptionsDocsUrl(): string {
+  return fleetDocsUrl(FLEET_DOCS.bundleDeploymentOptions, isPrimeInstall());
 }
 
 interface AuthCredentials {

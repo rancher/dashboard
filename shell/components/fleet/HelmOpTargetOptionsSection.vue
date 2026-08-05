@@ -3,7 +3,6 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { RcIcon } from '@components/RcIcon';
-import { isRancherPrime } from '@shell/config/version';
 import { getBundleDeploymentOptionsDocsUrl } from '@shell/utils/fleet-appco';
 
 withDefaults(defineProps<{
@@ -15,7 +14,7 @@ withDefaults(defineProps<{
 const store = useStore();
 const { t } = useI18n(store);
 
-const DOCS_URL = getBundleDeploymentOptionsDocsUrl(isRancherPrime());
+const DOCS_URL = getBundleDeploymentOptionsDocsUrl();
 </script>
 
 <template>

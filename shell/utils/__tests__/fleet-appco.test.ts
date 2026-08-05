@@ -5,14 +5,16 @@ import { getVersionData } from '@shell/config/version';
 import { SECRET, CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import { SECRET_TYPES } from '@shell/config/secret';
 
-// The docs URLs depend on the running Rancher version, so mock it. CURRENT_RANCHER_VERSION
-// is the fallback used for dev/head builds that don't report a clean X.Y.Z.
+// The docs URLs depend on the running Rancher version and whether it is a Prime install, both
+// read from the server version data, so mock it. CURRENT_RANCHER_VERSION is the fallback used
+// for dev/head builds that don't report a clean X.Y.Z.
 jest.mock('@shell/config/version', () => ({
-  getVersionData:          jest.fn(() => ({ Version: 'v2.15.1' })),
+  getVersionData:          jest.fn(() => ({ Version: 'v2.15.1', RancherPrime: 'false' })),
   CURRENT_RANCHER_VERSION: '2.15',
 }));
 
-const mockRunningVersion = (version: string) => (getVersionData as jest.Mock).mockReturnValue({ Version: version });
+const mockVersionData = (version: string, isPrime = false) => (getVersionData as jest.Mock)
+  .mockReturnValue({ Version: version, RancherPrime: isPrime ? 'true' : 'false' });
 
 /**
  * Build a fake ClusterRepo resource. Its `waitForTestFn` emulates the real
@@ -72,85 +74,78 @@ describe('fleet-appco utils', () => {
   });
 
   describe('getDownstreamResourcesDocsUrl', () => {
-    describe('when running a later release than the one that introduced the docs (current channel)', () => {
-      beforeEach(() => mockRunningVersion('v2.15.1'));
-
-      it('should use the community docs at the root when not Prime', () => {
-        expect(getDownstreamResourcesDocsUrl(false)).toStrictEqual('https://fleet.rancher.io/how-tos-for-users/downstream-resource-propagation');
-      });
-
-      it('should default to the community docs when isPrime is omitted', () => {
+    describe('community (not a Prime install)', () => {
+      it('should use the current docs at the root on a later release', () => {
+        mockVersionData('v2.15.1', false);
         expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://fleet.rancher.io/how-tos-for-users/downstream-resource-propagation');
       });
 
-      it('should use the latest SUSE docs when Prime', () => {
-        expect(getDownstreamResourcesDocsUrl(true)).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/how-tos-for-users/downstream-resource-propagation.html');
+      it('should use the current docs at the root on a later minor', () => {
+        mockVersionData('v2.16.0', false);
+        expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://fleet.rancher.io/how-tos-for-users/downstream-resource-propagation');
       });
 
-      it('should also use the current docs on a later minor', () => {
-        mockRunningVersion('v2.16.0');
-        expect(getDownstreamResourcesDocsUrl(false)).toStrictEqual('https://fleet.rancher.io/how-tos-for-users/downstream-resource-propagation');
-        expect(getDownstreamResourcesDocsUrl(true)).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/how-tos-for-users/downstream-resource-propagation.html');
-      });
-    });
-
-    describe('when running the exact release that introduced the docs (next channel)', () => {
-      beforeEach(() => mockRunningVersion('v2.15.0'));
-
-      it('should use the community "next" docs when not Prime', () => {
-        expect(getDownstreamResourcesDocsUrl(false)).toStrictEqual('https://fleet.rancher.io/next/how-tos-for-users/downstream-resource-propagation');
+      it('should use the "next" docs on the exact release that introduced them', () => {
+        mockVersionData('v2.15.0', false);
+        expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/how-tos-for-users/downstream-resource-propagation');
       });
 
-      it('should use the SUSE "next" docs when Prime', () => {
-        expect(getDownstreamResourcesDocsUrl(true)).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/how-tos-for-users/downstream-resource-propagation.html');
+      it('should fall back to the "next" docs for dev/head builds', () => {
+        mockVersionData('master-head', false);
+        expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/how-tos-for-users/downstream-resource-propagation');
       });
     });
 
-    describe('when the running version cannot be parsed (dev/head build)', () => {
-      beforeEach(() => mockRunningVersion('master-head'));
+    describe('Rancher Prime', () => {
+      it('should use the latest SUSE docs on a later release', () => {
+        mockVersionData('v2.15.1', true);
+        expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/how-tos-for-users/downstream-resource-propagation.html');
+      });
 
-      it('should fall back to the "next" docs for the current build line', () => {
-        expect(getDownstreamResourcesDocsUrl(false)).toStrictEqual('https://fleet.rancher.io/next/how-tos-for-users/downstream-resource-propagation');
-        expect(getDownstreamResourcesDocsUrl(true)).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/how-tos-for-users/downstream-resource-propagation.html');
+      it('should use the SUSE "next" docs on the exact release that introduced them', () => {
+        mockVersionData('v2.15.0', true);
+        expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/how-tos-for-users/downstream-resource-propagation.html');
+      });
+
+      it('should fall back to the SUSE "next" docs for dev/head builds', () => {
+        mockVersionData('master-head', true);
+        expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/how-tos-for-users/downstream-resource-propagation.html');
       });
     });
   });
 
   describe('getBundleDeploymentOptionsDocsUrl', () => {
-    describe('when running a later release than the one that introduced the docs (current channel)', () => {
-      beforeEach(() => mockRunningVersion('v2.15.1'));
-
-      it('should use the community CRD reference (with anchor) at the root when not Prime', () => {
-        expect(getBundleDeploymentOptionsDocsUrl(false)).toStrictEqual('https://fleet.rancher.io/reference/ref-crds#_bundledeploymentoptions');
-      });
-
-      it('should default to the community docs when isPrime is omitted', () => {
+    describe('community (not a Prime install)', () => {
+      it('should use the current CRD reference (with anchor) at the root on a later release', () => {
+        mockVersionData('v2.15.1', false);
         expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://fleet.rancher.io/reference/ref-crds#_bundledeploymentoptions');
       });
 
-      it('should use the latest SUSE CRD reference (with anchor) when Prime', () => {
-        expect(getBundleDeploymentOptionsDocsUrl(true)).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/reference/ref-crds.html#_bundledeploymentoptions');
+      it('should use the "next" CRD reference (with anchor) on the exact release that introduced them', () => {
+        mockVersionData('v2.15.0', false);
+        expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/reference/ref-crds#_bundledeploymentoptions');
+      });
+
+      it('should fall back to the "next" CRD reference for dev/head builds', () => {
+        mockVersionData('master-head', false);
+        expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/reference/ref-crds#_bundledeploymentoptions');
       });
     });
 
-    describe('when running the exact release that introduced the docs (next channel)', () => {
-      beforeEach(() => mockRunningVersion('v2.15.0'));
-
-      it('should use the community "next" CRD reference (with anchor) when not Prime', () => {
-        expect(getBundleDeploymentOptionsDocsUrl(false)).toStrictEqual('https://fleet.rancher.io/next/reference/ref-crds#_bundledeploymentoptions');
+    describe('Rancher Prime', () => {
+      it('should use the latest SUSE CRD reference (with anchor) on a later release', () => {
+        mockVersionData('v2.15.1', true);
+        expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/reference/ref-crds.html#_bundledeploymentoptions');
       });
 
-      it('should use the SUSE "next" CRD reference (with anchor) when Prime', () => {
-        expect(getBundleDeploymentOptionsDocsUrl(true)).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/reference/ref-crds.html#_bundledeploymentoptions');
+      it('should use the SUSE "next" CRD reference (with anchor) on the exact release that introduced them', () => {
+        mockVersionData('v2.15.0', true);
+        expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/reference/ref-crds.html#_bundledeploymentoptions');
       });
-    });
 
-    describe('when the running version cannot be parsed (dev/head build)', () => {
-      beforeEach(() => mockRunningVersion('master-head'));
-
-      it('should fall back to the "next" docs for the current build line', () => {
-        expect(getBundleDeploymentOptionsDocsUrl(false)).toStrictEqual('https://fleet.rancher.io/next/reference/ref-crds#_bundledeploymentoptions');
-        expect(getBundleDeploymentOptionsDocsUrl(true)).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/reference/ref-crds.html#_bundledeploymentoptions');
+      it('should fall back to the SUSE "next" CRD reference for dev/head builds', () => {
+        mockVersionData('master-head', true);
+        expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/reference/ref-crds.html#_bundledeploymentoptions');
       });
     });
   });
