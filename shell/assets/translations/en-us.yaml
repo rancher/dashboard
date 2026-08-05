@@ -619,7 +619,7 @@ authConfig:
           4: 'Click "Create", and then click on the "Download JSON" button.'
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
         ariaLabel:
-          serverUrlVerify: Copy Server Auth Verfication URL to clipboard
+          serverUrlVerify: Copy Server Auth Verification URL to clipboard
       3:
         title: 'Create Service Account credentials'
         introduction: 'Follow <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config/configure-google-oauth#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
@@ -1299,7 +1299,7 @@ catalog:
         }
     error:
       requiresFound: '<a href="{url}">{name}</a> must be installed before you can install this chart.'
-      requiresMissing: 'This chart requires another chart that provides {name}, but none was was found.'
+      requiresMissing: 'This chart requires another chart that provides {name}, but none was found.'
       insufficientCpu: 'This chart requires {need, number} CPU cores, but the cluster only has {have, number} available.'
       insufficientMemory: 'This chart requires {need} of memory, but the cluster only has {have} available.'
       legacy:
@@ -2655,7 +2655,7 @@ cluster:
           label: S3 Snapshot Retention Count
           options:
             manual: Set manually
-            localDefined: Same as local ({count} Snaphots)
+            localDefined: Same as local ({count} Snapshots)
             localUndefined: Same as local
         bucket:
           label: Bucket
@@ -2980,13 +2980,13 @@ dynamicContent:
     moreInfo: Release Notes
   multipleNewReleases:
     title: New Rancher releases are available!
-    message: A new {version1} patch version has been released and a newer {version2} version is also avaialble.
+    message: A new {version1} patch version has been released and a newer {version2} version is also available.
     moreInfo: "{version} Release Notes"
   upcomingEom:
-    title: End of Maintainence in {days, plural, =1 {1 day} other {{days} days}}
-    message: This version of Rancher ({version}) will reach End of Maintainence in {days} day(s). Consider upgrading to a supported version soon.
+    title: End of Maintainance in {days, plural, =1 {1 day} other {{days} days}}
+    message: This version of Rancher ({version}) will reach End of Maintainance in {days} day(s). Consider upgrading to a supported version soon.
   eom:
-    title: End of Maintainence reached
+    title: End of Maintainance reached
     message: This version of Rancher ({version}) has reached End of Maintainence. Consider upgrading to a supported version.
   upcomingEol:
     title: End of Life in {days, plural, =1 {1 day} other {{days} days}}
@@ -3336,7 +3336,7 @@ fleet:
           description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
         advanced:
           label: Advanced
-          title: Specify advanced settings like authenticaion credentials and polling
+          title: Specify advanced settings like authentication credentials and polling
           subtext: 'Define advanced settings'
           description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
@@ -3448,7 +3448,7 @@ fleet:
           description: You can configure which clusters will be used as the target of synchronisation with the resources in the repository.
         advanced:
           label: Advanced
-          title: Specify advanced settings like authenticaion credentials and polling
+          title: Specify advanced settings like authentication credentials and polling
           subtext: 'Define advanced settings'
           description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
@@ -4453,7 +4453,7 @@ logging:
       title: Buffer
       tags: Tags
       chunkLimitSize: Chunk Limit Size
-      chunkLimitRecords: Chunk Limit chunkLimitRecords
+      chunkLimitRecords: Chunk Limit Records
       totalLimitSize: Total Limit Size
       flushInterval: Flush Interval
       timekey: Timekey
@@ -7827,7 +7827,7 @@ workload:
     cannotViewIngresses: Could not list Ingresses due to lack of permission.
     cannotFindIngresses: Could not find any Ingresses that forward traffic to Services that select Pods in this workload.
     ingressListCaption: "The following Ingresses forward traffic to Services that select Pods from this workload:"
-    cannotViewIngressesBecauseCannotViewServices: Could not find relevant relevant Ingresses due to lack of permission to view Services.
+    cannotViewIngressesBecauseCannotViewServices: Could not find relevant Ingresses due to lack of permission to view Services.
     pods:
       title: Pods
   detailTop:
@@ -8862,7 +8862,7 @@ oidcclient:
   secretAdded: Secret Added!
   noClientId: No Client Id found for this application. If the problem persists please recreate the application
   errors:
-    performSecretAction: The action on OIDC secrets tried to perform is invalid. Please check the the valid parameters for this function
+    performSecretAction: The action on OIDC secrets tried to perform is invalid. Please check the valid parameters for this function
   removeOidcClientModal:
     title: OIDC Application deletion
     content: Are you sure you want to delete the following OIDC applications?
@@ -9191,7 +9191,7 @@ banner:
   type:
     html: HTML
     text: Text
-  htmlWarning: 'Not all HTML elements or attriutes are permitted and the HTML entered here will be sanitized before display. For HTML anchor elements, it is recommended to use the target attribute to have links open in a blank tab.'
+  htmlWarning: 'Not all HTML elements or attributes are permitted and the HTML entered here will be sanitized before display. For HTML anchor elements, it is recommended to use the target attribute to have links open in a blank tab.'
   htmlContent: HTML Content
   toggleTextHtml: Toggle between text and html
 
