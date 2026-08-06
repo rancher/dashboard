@@ -47,10 +47,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       .click();
 
     workloadsDaemonsetsListPage.waitForPage();
-    // Force a fresh list query - after the create's save-and-navigate the VAI-backed list can
-    // intermittently fail to render the table container (sortable-table-list-container) in time.
-    cy.reload();
-    workloadsDaemonsetsListPage.waitForPage();
+    // Wait for the just-created daemonset to render in the list before editing it.
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable()
       .rowElementWithName(daemonsetName)
       .should('be.visible');
