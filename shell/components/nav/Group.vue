@@ -54,8 +54,9 @@ export default {
 
   data() {
     const id = (this.idPrefix || '') + this.group.name;
+    const expanded = this.group.name === 'starred';
 
-    return { id, expanded: false };
+    return { id, expanded };
   },
 
   computed: {
