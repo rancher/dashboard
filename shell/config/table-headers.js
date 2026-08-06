@@ -657,6 +657,29 @@ export const INGRESS_CLASS = {
   sort:     `$['spec']['ingressClassName']`,
 };
 
+export const HTTP_ROUTE_HOSTNAMES = {
+  name:     'httpRouteHostnames',
+  labelKey: 'tableHeaders.httpRouteHostnames',
+  value:    'hostnamesDisplay',
+  sort:     'hostnamesDisplay',
+};
+
+// No `value`: the caller supplies one, to narrow the urls to the workload whose page it is on.
+export const HTTP_ROUTE_ENDPOINTS = {
+  name:      'httpRouteEndpoints',
+  labelKey:  'tableHeaders.endpoints',
+  formatter: 'WorkloadDetailEndpoints',
+  sort:      false,
+  search:    false,
+};
+
+export const HTTP_ROUTE_GATEWAYS = {
+  name:     'httpRouteGateways',
+  labelKey: 'tableHeaders.httpRouteGateways',
+  value:    'parentRefsDisplay',
+  sort:     'parentRefsDisplay',
+};
+
 export const INGRESS_DEFAULT_BACKEND = {
   name:      'ingressDefaultBackend',
   labelKey:  'tableHeaders.ingressDefaultBackend',

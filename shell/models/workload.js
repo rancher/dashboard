@@ -1,6 +1,8 @@
 import { findBy, insertAt } from '@shell/utils/array';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE, INGRESS, POD } from '@shell/config/types';
+import {
+  WORKLOAD_TYPES, SERVICE, INGRESS, POD, GATEWAY_API
+} from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import day from 'dayjs';
 import { convertSelectorObj, parse, matches, convert } from '@shell/utils/selector';
@@ -328,6 +330,32 @@ export default class Workload extends WorkloadService {
     return this?.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS];
   }
 
+  get publicEndpoints() {
+    const annotation = this.endpoint;
+
+    if (!annotation) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(annotation);
+
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      console.warn(`publicEndpoints: failed to parse the ${ CATTLE_PUBLIC_ENDPOINTS } annotation on "${ this.id }"`, err); // eslint-disable-line no-console
+
+      return [];
+    }
+  }
+
+  // Undefined rather than an empty array when there is nothing to show: the masthead filters on
+  // the value, and an empty array is truthy and would leave a labelled row with no value.
+  get detailEndpoints() {
+    const endpoints = [...this.publicEndpoints, ...this.gatewayEndpoints];
+
+    return endpoints.length ? endpoints : undefined;
+  }
+
   get desired() {
     return this.spec?.replicas || 0;
   }
@@ -365,7 +393,7 @@ export default class Workload extends WorkloadService {
       },
       endpoint: {
         label:     'Endpoints',
-        content:   this.endpoint,
+        content:   this.detailEndpoints,
         formatter: 'WorkloadDetailEndpoints'
       },
       ready: {
@@ -845,6 +873,38 @@ export default class Workload extends WorkloadService {
     });
   }
 
+  // Asking `cluster/all` for a type with no schema warns and registers a phantom type, so the
+  // schema is checked first on clusters without the Gateway API CRDs.
+  get matchingHttpRoutes() {
+    if (!this.$rootGetters['cluster/schemaFor'](GATEWAY_API.HTTP_ROUTE)) {
+      return [];
+    }
+
+    const services = this.relatedServices;
+
+    if (!services.length) {
+      return [];
+    }
+
+    const allHttpRoutes = this.$rootGetters['cluster/all'](GATEWAY_API.HTTP_ROUTE) || [];
+
+    return allHttpRoutes.filter((httpRoute) => httpRoute.targetsAnyService(services));
+  }
+
+  // The `field.cattle.io/publicEndpoints` annotation is written by a Rancher controller that only
+  // knows Ingresses and LoadBalancer Services, so gateway endpoints are resolved here instead.
+  get gatewayEndpoints() {
+    const httpRoutes = this.matchingHttpRoutes;
+
+    if (!httpRoutes.length) {
+      return [];
+    }
+
+    const services = this.relatedServices;
+
+    return httpRoutes.flatMap((httpRoute) => httpRoute.endpointsForServices(services));
+  }
+
   get resourcesCardRows() {
     const rows = [...this._resourcesCardRows];
     const showsIngressesAndServices = this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB;
@@ -852,6 +912,11 @@ export default class Workload extends WorkloadService {
     if (showsIngressesAndServices) {
       const services = this.relatedServices || [];
       const ingresses = this.matchingIngresses || [];
+      const httpRoutes = this.matchingHttpRoutes || [];
+
+      if (httpRoutes.length) {
+        rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.httpRoutes'), httpRoutes, undefined, undefined, '#httproutes'));
+      }
 
       if (ingresses.length) {
         rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.ingresses'), ingresses, undefined, undefined, '#ingresses'));
