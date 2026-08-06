@@ -6,7 +6,8 @@ const projectSecretsListPage = new ProjectSecretsListPagePo(clusterId);
 const targetProject = {
   name: 'default', label: 'Default', namespace: ''
 };
-let projectScopedSecretName: string;
+let projectScopedSecretName = '';
+let removeProjectScopedSecret = false;
 const username = 'test';
 const password = 'test-password';
 
@@ -61,6 +62,8 @@ describe('Project Secrets', { tags: ['@explorer2', '@adminUser'] }, () => {
     cy.wait('@createProjectScopedSecret', { requestTimeout: 10000 }).then((req) => {
       const payload = req.request?.body;
 
+      expect(req.response?.statusCode).to.eq(201);
+      removeProjectScopedSecret = true;
       expect(payload.metadata.namespace).to.eq(targetProject.namespace);
       expect(payload.metadata.labels['management.cattle.io/project-scoped-secret']).to.eq(targetProject.namespace);
       expect(payload.metadata.name).to.eq(projectScopedSecretName);
@@ -68,8 +71,11 @@ describe('Project Secrets', { tags: ['@explorer2', '@adminUser'] }, () => {
   }));
 
   afterEach(() => {
-    cy.deleteRancherResource('v1', `secrets/${ targetProject.name }`, projectScopedSecretName, false);
-    cy.deleteRancherResource('v1', `secrets/${ targetProject.namespace }`, projectScopedSecretName, false);
+    if (removeProjectScopedSecret) {
+      cy.deleteRancherResource('v1', `secrets/${ targetProject.name }`, projectScopedSecretName, false);
+      cy.deleteRancherResource('v1', `secrets/${ targetProject.namespace }`, projectScopedSecretName, false);
+    }
+
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });
