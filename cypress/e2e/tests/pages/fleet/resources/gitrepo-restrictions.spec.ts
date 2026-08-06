@@ -20,7 +20,7 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
       cy.login();
     });
 
-    it('shows a deprecation banner pointing to Fleet Policy', () => {
+    it('shows a deprecation banner pointing to Policies', () => {
       fleetRestrictionsListPage.goTo();
       fleetRestrictionsListPage.waitForPage();
 
@@ -28,11 +28,11 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
 
       banner.banner().should('be.visible');
       banner.banner().should('contain.text', 'deprecated');
-      banner.banner().should('contain.text', 'Fleet Policy');
+      banner.banner().should('contain.text', 'Policies');
       banner.bannerElement('a')
         .should('have.attr', 'href', 'https://fleet.rancher.io/next/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction')
         .and('have.attr', 'target', '_blank')
-        .and('contain.text', 'Fleet Policy');
+        .and('contain.text', 'Policies');
     });
   });
 
