@@ -224,13 +224,6 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       // Wait for the resources to load
       cy.wait('@getNamespaces', { timeout: 20000 });
       cy.wait('@getProjects', { timeout: 20000 });
-
-      // The steve-backed project list can momentarily lag the norman project creates
-      // done in `before`, leaving one of the same-name projects out of the rendered
-      // list. Reload once to force a fresh query so all three are present.
-      cy.reload();
-      projectsNamespacesPage.waitForPage();
-      cy.wait('@getProjects', { timeout: 20000 });
     });
 
     it('should show all projects with same name when filtering in Group by Project view', () => {
