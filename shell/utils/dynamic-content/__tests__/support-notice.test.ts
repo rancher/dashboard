@@ -87,7 +87,7 @@ describe('processSupportNotices', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  describe('Prime', () => {
+  describe('prime', () => {
     it('should not add notification if no support status matches', async() => {
       const versionInfo: VersionInfo = { version: semver.coerce('2.13.0')!, isPrime: true };
       const statusInfo: SupportInfo = {
@@ -217,7 +217,7 @@ describe('processSupportNotices', () => {
     });
   });
 
-  describe('Community', () => {
+  describe('community', () => {
     it('should add EOC notification and log when version matches eoc range', async() => {
       const versionInfo: VersionInfo = { version: semver.coerce('2.11.5')!, isPrime: false };
       const statusInfo: SupportInfo = {
