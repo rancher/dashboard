@@ -11,6 +11,13 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 
+const integrationMapping = {
+  'Events API v2': 'routing_key',
+  Prometheus:      'service_key'
+};
+
+const integrationTypeOptions = Object.keys(integrationMapping);
+
 export default {
   components: {
     Checkbox, LabeledInput, LabeledSelect
@@ -26,16 +33,6 @@ export default {
     }
   },
   data() {
-    this.value['http_config'] = this.value.http_config || {};
-    this.value['send_resolved'] = typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true;
-
-    const integrationMapping = {
-      'Events API v2': 'routing_key',
-      Prometheus:      'service_key'
-    };
-
-    const integrationTypeOptions = Object.keys(integrationMapping);
-
     return {
       integrationMapping,
       integrationTypeOptions,
@@ -48,6 +45,10 @@ export default {
         this.value[this.integrationMapping[option]] = null;
       });
     }
+  },
+  created() {
+    this.value.http_config = this.value.http_config || {};
+    this.value.send_resolved = typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true;
   }
 };
 </script>
