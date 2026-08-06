@@ -1880,6 +1880,10 @@ cluster:
   explore: Explore
   importAction: Import Existing
   manageAction: Manage
+  kubeConfig:
+    error:
+      title: Unable to generate KubeConfig
+      noClusters: No clusters could be resolved from the current selection. Refresh the page and try again.
   kubernetesVersion:
     label: Kubernetes Version
     current: (current)
@@ -2990,6 +2994,9 @@ dynamicContent:
   eol:
     title: End of Life reached
     message: This version of Rancher ({version}) has reached End of Life. Consider upgrading to a supported version.
+  eoc:
+    title: Updates have ended
+    message: This version of Rancher ({version}) will no longer receive updates. Consider upgrading to a newer version or to Rancher Prime.
 
 etcdInfoBanner:
   hasLeader: "Etcd has a leader:"

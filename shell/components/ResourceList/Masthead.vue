@@ -99,7 +99,12 @@ export default {
     let currPluginName = '';
     let formRoute;
     let overrideCreateLocationByExtension = false;
-    const plugins = this.$extension.getPlugins();
+    // `data()` runs during the very first render, which is before Vue assigns `__vue_app__`,
+    // so the `$extension`/`$plugin` compat shim in `@shell/pkg/auto-import` cannot have run
+    // yet when this component is bundled into an extension loaded on an older Rancher.
+    // Fall through to `{}` there: `topLevelProduct` is a V2 product registration flag that
+    // doesn't exist on those versions, so the non-override branch below is correct for them.
+    const plugins = this.$extension?.getPlugins?.() || {};
 
     Object.keys(plugins).forEach((key) => {
       if (plugins[key].productNames.includes(this.$store.getters['productId'])) {

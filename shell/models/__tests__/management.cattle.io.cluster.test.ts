@@ -1,8 +1,14 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import { EXT } from '@shell/config/types';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { downloadFile } from '@shell/utils/download';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
+});
+
+jest.mock('@shell/utils/download', () => {
+  return { downloadFile: jest.fn(() => Promise.resolve({})) };
 });
 
 describe('class MgmtCluster', () => {
@@ -164,6 +170,145 @@ describe('class MgmtCluster', () => {
 
       expect(mockGenerateKubeConfig).toHaveBeenCalledWith([]);
       expect(copyTextToClipboard).toHaveBeenCalledWith(mockConfig);
+    });
+  });
+
+  describe('generateKubeConfig', () => {
+    const mockConfig = 'apiVersion: v1\nkind: Config';
+    let mockSave: jest.Mock;
+    let mockDispatch: jest.Mock;
+
+    const makeCluster = (id = 'cluster-1') => {
+      const ctx = {
+        dispatch:    mockDispatch,
+        rootGetters: { 'i18n/t': (key: string) => key }
+      };
+
+      return new MgmtCluster({ id, metadata: { name: id } }, ctx) as any;
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSave = jest.fn().mockResolvedValue({ status: { value: mockConfig } });
+      mockDispatch = jest.fn().mockResolvedValue({ save: mockSave });
+    });
+
+    it('should request a kubeconfig for this cluster without the default `rancher` entry', async() => {
+      const cluster = makeCluster();
+
+      const res = await cluster.generateKubeConfig();
+
+      expect(mockDispatch).toHaveBeenCalledWith('management/create', {
+        type: EXT.KUBECONFIG,
+        spec: { clusters: ['cluster-1'], includeDefaultEntry: false }
+      }, { root: true });
+      expect(mockSave).toHaveBeenCalledWith();
+      expect(res).toBe(mockConfig);
+    });
+
+    it('should pass an explicit list of clusters through, still excluding the default entry', async() => {
+      const cluster = makeCluster();
+
+      await cluster.generateKubeConfig(['cluster-1', 'cluster-2']);
+
+      expect(mockDispatch).toHaveBeenCalledWith('management/create', {
+        type: EXT.KUBECONFIG,
+        spec: { clusters: ['cluster-1', 'cluster-2'], includeDefaultEntry: false }
+      }, { root: true });
+    });
+
+    it('should not make a request when there are no clusters', async() => {
+      const cluster = makeCluster();
+
+      const res = await cluster.generateKubeConfig([]);
+
+      expect(mockDispatch).not.toHaveBeenCalledWith('management/create', expect.anything(), expect.anything());
+      expect(res).toBeUndefined();
+    });
+
+    it('should growl an error when there are no clusters', async() => {
+      const cluster = makeCluster();
+
+      await cluster.generateKubeConfig([]);
+
+      expect(mockDispatch).toHaveBeenCalledWith('growl/error', {
+        title:   'cluster.kubeConfig.error.title',
+        message: 'cluster.kubeConfig.error.noClusters',
+      }, { root: true });
+    });
+
+    it('should return undefined when the response has no value', async() => {
+      mockSave.mockResolvedValue({});
+      const cluster = makeCluster();
+
+      const res = await cluster.generateKubeConfig();
+
+      expect(res).toBeUndefined();
+    });
+  });
+
+  describe('kubeConfigClusterIds', () => {
+    const cluster = () => new MgmtCluster({ id: 'cluster-1' }) as any;
+
+    it('should prefer the management cluster id over the row id', () => {
+      const items = [{ id: 'prov-1', mgmt: { id: 'mgmt-1' } }, { id: 'prov-2' }];
+
+      expect(cluster().kubeConfigClusterIds(items)).toStrictEqual(['mgmt-1', 'prov-2']);
+    });
+
+    it('should de-duplicate ids that resolve to the same management cluster', () => {
+      const items = [
+        { id: 'prov-1', mgmt: { id: 'mgmt-1' } },
+        { id: 'mgmt-1' },
+        { id: 'prov-2', mgmt: { id: 'mgmt-2' } }
+      ];
+
+      expect(cluster().kubeConfigClusterIds(items)).toStrictEqual(['mgmt-1', 'mgmt-2']);
+    });
+
+    it('should drop rows without an id', () => {
+      const items = [{ id: 'mgmt-1' }, {}, { id: '' }];
+
+      expect(cluster().kubeConfigClusterIds(items)).toStrictEqual(['mgmt-1']);
+    });
+
+    it('should handle no items', () => {
+      expect(cluster().kubeConfigClusterIds()).toStrictEqual([]);
+      expect(cluster().kubeConfigClusterIds([])).toStrictEqual([]);
+    });
+  });
+
+  describe('downloadKubeConfigBulk', () => {
+    let cluster: any;
+    const mockGenerateKubeConfig = jest.fn();
+    const mockConfig = 'apiVersion: v1\nkind: Config';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      cluster = new MgmtCluster({ id: 'cluster-1' });
+      cluster.generateKubeConfig = mockGenerateKubeConfig;
+    });
+
+    it('should download a kubeconfig for the de-duplicated set of clusters', async() => {
+      const items = [
+        { id: 'prov-1', mgmt: { id: 'mgmt-1' } },
+        { id: 'mgmt-1' }
+      ];
+
+      mockGenerateKubeConfig.mockResolvedValue(mockConfig);
+
+      await cluster.downloadKubeConfigBulk(items);
+
+      expect(mockGenerateKubeConfig).toHaveBeenCalledWith(['mgmt-1']);
+      expect(downloadFile).toHaveBeenCalledWith('kubeconfig.yaml', mockConfig, 'application/yaml');
+    });
+
+    it('should not download a file when no config was generated', async() => {
+      mockGenerateKubeConfig.mockResolvedValue(undefined);
+
+      await cluster.downloadKubeConfigBulk([]);
+
+      expect(downloadFile).not.toHaveBeenCalled();
     });
   });
 });

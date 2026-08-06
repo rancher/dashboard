@@ -31,7 +31,7 @@ const UPCOMING_SUPPORT_NOTICE_PREFIX = 'upcoming-support-notice-';
 
 // Prefixes used in the value of the user preference to track which notifications the user has read
 const PREFIX = {
-  EOM: 'eom',
+  EOM: 'eom', // Also used for eoc for community
   EOL: 'eol',
 };
 
@@ -57,7 +57,7 @@ export async function processSupportNotices(context: Context, statusInfo: Suppor
     return;
   }
 
-  const { version } = versionInfo;
+  const { version, isPrime } = versionInfo;
   const { logger } = context;
 
   // TODO: ****************************************************************************************
@@ -67,33 +67,54 @@ export async function processSupportNotices(context: Context, statusInfo: Suppor
   const status = statusInfo.status || {};
   const majorMinor = `${ semver.major(version) }.${ semver.minor(version) }`;
 
-  // Check if this version is EOL - we warn of EOL
-  // If a version is EOL, then is has passed EOM, so we don't need to check that
-  if (status.eol && semver.satisfies(version, status.eol)) {
-    logger.info(`This version (${ version }) is End of Life`);
+  // Prime
+  if (isPrime) {
+    // Check if this version is EOL - we warn of EOL
+    // If a version is EOL, then is has passed EOM, so we don't need to check that
+    if (status.eol && semver.satisfies(version, status.eol)) {
+      logger.info(`This version (${ version }) is End of Life`);
 
-    return await checkAndAddNotification(context, {
-      prefValuePrefix:    PREFIX.EOL,
-      pref:               READ_SUPPORT_NOTICE,
-      notificationPrefix: SUPPORT_NOTICE_PREFIX,
-      titleKey:           'dynamicContent.eol.title',
-      messageKey:         'dynamicContent.eol.message',
-    }, majorMinor);
+      return await checkAndAddNotification(context, {
+        prefValuePrefix:    PREFIX.EOL,
+        pref:               READ_SUPPORT_NOTICE,
+        notificationPrefix: SUPPORT_NOTICE_PREFIX,
+        titleKey:           'dynamicContent.eol.title',
+        messageKey:         'dynamicContent.eol.message',
+      }, majorMinor);
+    }
+
+    if (status.eom && semver.satisfies(version, status.eom)) {
+      logger.info(`This version (${ version }) is End of Maintenance`);
+
+      return await checkAndAddNotification(context, {
+        prefValuePrefix:    PREFIX.EOM,
+        pref:               READ_SUPPORT_NOTICE,
+        notificationPrefix: SUPPORT_NOTICE_PREFIX,
+        titleKey:           'dynamicContent.eom.title',
+        messageKey:         'dynamicContent.eom.message',
+      }, majorMinor);
+    }
+  } else {
+    // Community version
+    if (status.eoc && semver.satisfies(version, status.eoc)) {
+      logger.info(`This version (${ version }) will no longer receive updates`);
+
+      return await checkAndAddNotification(context, {
+        prefValuePrefix:    PREFIX.EOM,
+        pref:               READ_SUPPORT_NOTICE,
+        notificationPrefix: SUPPORT_NOTICE_PREFIX,
+        titleKey:           'dynamicContent.eoc.title',
+        messageKey:         'dynamicContent.eoc.message',
+      }, majorMinor);
+    }
+
+    return;
   }
 
-  if (status.eom && semver.satisfies(version, status.eom)) {
-    logger.info(`This version (${ version }) is End of Maintenance`);
-
-    return await checkAndAddNotification(context, {
-      prefValuePrefix:    PREFIX.EOM,
-      pref:               READ_SUPPORT_NOTICE,
-      notificationPrefix: SUPPORT_NOTICE_PREFIX,
-      titleKey:           'dynamicContent.eom.title',
-      messageKey:         'dynamicContent.eom.message',
-    }, majorMinor);
+  // Now check for upcoming EOL or EOM for Prime
+  if (!isPrime) {
+    return;
   }
-
-  // Now check for upcoming EOL or EOM
 
   // Upcoming EOL
   if (statusInfo.upcoming?.eol && semver.satisfies(version, statusInfo.upcoming.eol.version)) {

@@ -624,12 +624,18 @@ export default class Resource {
     return this.$ctx.rootState;
   }
 
+  /**
+   * '$extension' is the current root state key for the extension manager, but Rancher versions
+   * before that rename only ever set '$plugin'. Extensions ship a compiled copy of this shell,
+   * so this code can end up running inside one of those older hosts - fall back to '$plugin'
+   * there rather than resolving 'undefined'.
+   */
   get '$plugin'() {
-    return this.$ctx.rootState?.$extension;
+    return this.$ctx.rootState?.$extension || this.$ctx.rootState?.$plugin;
   }
 
   get '$extension'() {
-    return this.$ctx.rootState?.$extension;
+    return this.$ctx.rootState?.$extension || this.$ctx.rootState?.$plugin;
   }
 
   get customValidationRules() {

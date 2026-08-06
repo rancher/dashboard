@@ -565,7 +565,8 @@ describe('Settings', { testIsolation: false }, () => {
 
       // checks on the downloaded YAML
       expect(obj.clusters.length).to.be.gte(1);
-      expect(obj.clusters[1].name).to.equal('local');
+      // Only the selected cluster is present. The legacy `rancher` entry used to occupy index 0
+      expect(obj.clusters[0].name).to.equal('local');
       expect(obj.users[0].user.token).to.have.length.gt(0);
       expect(obj.apiVersion).to.equal('v1');
       expect(obj.kind).to.equal('Config');

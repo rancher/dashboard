@@ -95,9 +95,17 @@ export const STEVE_LIST_GROUPS = [{
 
 export const STEVE_SECRET_ORIGIN = {
   ...SECRET_ORIGIN,
-  // We can't sort by the 'UI_PROJECT_SECRET' label (management.cattle.io/project-scoped-secret) due to backend limitations.
-  // So we sort by the 'UI_PROJECT_SECRET_COPY' annotation (management.cattle.io/project-scoped-secret-copy) which at least groups the copies.
-  sort: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`,
+  // We would like to sort on
+  // 1. if this is a project scoped secret copy
+  // 2. if this is a project scoped secret on it's clusters mgmt id
+  //   - field not shown in response but allowed to sort/filter via vai
+  // 3. if this is a project scoped secret on it's project's human name
+  //   - field not shown in response but allowed to sort/filter via vai
+  sort: [
+    `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`,
+    `spec.clusterName:desc`,
+    `spec.displayName`,
+  ],
 };
 
 export const STEVE_WORKLOAD_HEALTH_SCALE = {
