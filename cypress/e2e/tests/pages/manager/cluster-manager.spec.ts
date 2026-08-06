@@ -314,6 +314,10 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
         cy.wait('@generateKubeconfig').its('response.statusCode').should('be.oneOf', [200, 201]);
 
+        // A single click must only ever generate one kubeconfig. Each request mints at least one token, and for ACE
+        // clusters the legacy default entry used to mint a second. See https://github.com/rancher/rancher/issues/55672
+        cy.get('@generateKubeconfig.all').should('have.length', 1);
+
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
         cy.readFile(downloadedFilename).then((buffer) => {
@@ -324,6 +328,10 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           expect(obj.clusters.some((cluster: { name: string }) => cluster.name === rke2CustomName)).to.equal(true);
           expect(obj.apiVersion).to.equal('v1');
           expect(obj.kind).to.equal('Config');
+
+          // The legacy `rancher` entry pointing at the Rancher server root is excluded
+          expect(obj.clusters.map((cluster: { name: string }) => cluster.name)).to.not.include('rancher');
+          expect(obj.contexts.map((context: { name: string }) => context.name)).to.not.include('rancher');
         });
       }));
 
@@ -763,6 +771,10 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().downloadKubeConfig().click();
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
+
+    // A single bulk action must only ever generate one kubeconfig, no matter how many clusters are selected
+    cy.get('@generateKubeConfig.all').should('have.length', 1);
+
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
     cy.readFile(downloadedFilename).then((buffer) => {
@@ -770,8 +782,12 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
       // Basic checks on the downloaded YAML
       expect(obj.apiVersion).to.equal('v1');
-      expect(obj.clusters[1].name).to.equal('local');
       expect(obj.kind).to.equal('Config');
+
+      // Only the selected cluster is present. The legacy `rancher` entry used to occupy index 0
+      expect(obj.clusters).to.have.length(1);
+      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.contexts.map((context: { name: string }) => context.name)).to.not.include('rancher');
     });
   }));
 

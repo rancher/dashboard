@@ -4,7 +4,7 @@ import {
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { insertAt, addObject, removeObject } from '@shell/utils/array';
+import { insertAt, addObject, removeObject, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -661,10 +661,39 @@ export default class MgmtCluster extends SteveModel {
     }, { root: true });
   }
 
+  /**
+   * Collect the unique management cluster ids for a set of selected rows
+   *
+   * Both management and provisioning cluster rows can be selected, and both can resolve to the same management
+   * cluster, so the ids need to be de-duplicated (spec.clusters is a set)
+   */
+  kubeConfigClusterIds(items = []) {
+    return uniq(items.map((item) => item.mgmt?.id || item.id).filter((id) => !!id));
+  }
+
+  /**
+   * Generate a kubeconfig covering the given clusters
+   *
+   * `includeDefaultEntry: false` omits the legacy `rancher` cluster/user/context entry pointing at the Rancher
+   * server root. As well as being noise in every downloaded file, asking for it makes the backend mint an extra
+   * unscoped 'shared' token on top of the per-cluster token used by ACE clusters.
+   *
+   * See https://github.com/rancher/rancher/issues/55672 and https://github.com/rancher/rancher/issues/55031
+   */
   async generateKubeConfig(clusters = [this.id]) {
+    // The backend rejects a request with no clusters when the default entry is excluded
+    if (!clusters.length) {
+      this.$dispatch('growl/error', {
+        title:   this.t('cluster.kubeConfig.error.title'),
+        message: this.t('cluster.kubeConfig.error.noClusters'),
+      }, { root: true });
+
+      return;
+    }
+
     const memoryResource = await this.$dispatch('management/create', {
       type: EXT.KUBECONFIG,
-      spec: { clusters }
+      spec: { clusters, includeDefaultEntry: false }
     }, { root: true });
 
     const res = await memoryResource.save();
@@ -679,10 +708,12 @@ export default class MgmtCluster extends SteveModel {
   }
 
   async downloadKubeConfigBulk(items) {
-    const clusters = items.map((item) => item.mgmt?.id || item.id);
+    const clusters = this.kubeConfigClusterIds(items);
     const config = await this.generateKubeConfig(clusters);
 
-    downloadFile('kubeconfig.yaml', config, 'application/yaml');
+    if (config) {
+      downloadFile('kubeconfig.yaml', config, 'application/yaml');
+    }
   }
 
   async copyKubeConfig() {
@@ -697,7 +728,7 @@ export default class MgmtCluster extends SteveModel {
 
   async copyKubeConfigBulk(items) {
     try {
-      const clusters = items.map((item) => item.mgmt?.id || item.id);
+      const clusters = this.kubeConfigClusterIds(items);
       const config = await this.generateKubeConfig(clusters);
 
       if (config) {
