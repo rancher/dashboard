@@ -43,20 +43,7 @@ Owners are recorded as GitHub team handles rather than individuals. Teams can be
 
 ## Adding a repository
 
-1. Add a row with the owning GitHub team handle. Public repositories go in the table above. Never add a private repository here.
+1. Add a row with the owning GitHub team handle. Public repositories go in the table above. Never add a private repository here; the team keeps a second list for those, in one of its own private repositories, and members of `@rancher/ui` can ask where to find it.
 2. Add a comments-only `CODEOWNERS` file to the new repository. Copy [`.github/CODEOWNERS`](https://github.com/rancher/dashboard/blob/master/.github/CODEOWNERS) from this repository verbatim, it is deliberately repository-agnostic.
 
-`scripts/github/apply-codeowners.sh` reads the table above and can do step 2 for you. The script runs as a dry run by default:
-
-```bash
-./scripts/github/apply-codeowners.sh              # report what would change
-./scripts/github/apply-codeowners.sh --apply      # open the pull requests
-```
-
-Point it at the internal list with `--owners` to do the same for the private repositories:
-
-```bash
-./scripts/github/apply-codeowners.sh --owners /path/to/internal/OWNERS.md
-```
-
-Repositories outside the `rancher` org need somebody with push access in that org to run it. Private repositories need somebody who has been granted access to them.
+The team has a script that reads either list and does step 2 for you, opening one pull request per repository. It lives with the team's internal tools rather than here, because only the team runs it. Repositories outside the `rancher` org need somebody with push access in that org to run it.
