@@ -191,14 +191,10 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       WorkloadsJobsListPagePo.navTo();
       jobsListPage.waitForPage();
 
-      cy.waitForRancherResources('v1', 'batch.job', jobNamesList.length, true).then((resp: Cypress.Response<any>) => {
-        // Derive the actual number of jobs in the two filtered namespaces instead
-        // of assuming exactly jobNamesList.length + 1; the cluster can briefly hold
-        // an extra resource, which makes a hardcoded count disagree.
-        const count = resp.body.data.filter(
-          (job: any) => [nsName1, nsName2].includes(job.metadata?.namespace)
-        ).length;
+      // check jobs count
+      const count = jobNamesList.length + 1;
 
+      cy.waitForRancherResources('v1', 'batch.job', count - 1, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -219,7 +215,10 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text before navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
+          });
 
         // navigate to next page - right button
         jobsListPage.list().resourceTable().sortableTable().pagination()
@@ -228,7 +227,10 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`11 - 20 of ${ count } Jobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } Jobs`);
+          });
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -243,7 +245,10 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
+          });
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -266,7 +271,10 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
+          });
 
         // navigate to first page - beginning button
         jobsListPage.list().resourceTable().sortableTable().pagination()
@@ -275,7 +283,10 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
+          });
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -352,9 +363,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // generate small set of jobs data
       generateJobsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      // Navigate directly rather than via the side menu: the side-menu nav
-      // intermittently lands on the wrong workload type (e.g. Deployments).
-      WorkloadsJobsListPagePo.goTo(localCluster);
+      WorkloadsJobsListPagePo.navTo();
       cy.wait('@jobsDataSmall');
       jobsListPage.waitForPage();
 
