@@ -82,6 +82,7 @@ export type SupportInfo = {
   status: {
     eom: string,
     eol: string,
+    eoc: string,
   },
   upcoming: {
     eom: UpcomingSupportInfo,
