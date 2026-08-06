@@ -5,7 +5,7 @@
  * Configuration is via environment variables — see README.md for the full list.
  */
 
-import { fetchWithRetry } from './fetch-utils.js';
+import { fetchWithRetry, sanitizeText } from './fetch-utils.js';
 
 const GH_API = 'https://api.github.com';
 
@@ -195,13 +195,10 @@ class GitHubClient {
     const envTable = this._renderEnvironmentsTable(environments);
 
     const errorSection = failure.errorSummary
-      ? `\n### Error Summary\n\`\`\`\n${ failure.errorSummary }\n\`\`\`\n`
-      : '';
-    const stackSection = failure.stacktrace
-      ? `\n### Stack Trace\n\`\`\`\n${ failure.stacktrace }\n\`\`\`\n`
+      ? `\n### Error Summary\n\`\`\`\n${ sanitizeText(failure.errorSummary) }\n\`\`\`\n`
       : '';
 
-    const body = `**Regression detected** — this test is failing again.\n\n${ envTable }${ errorSection }${ stackSection }\n*Auto-detected by CI Failure Inspector.*`;
+    const body = `**Regression detected** — this test is failing again.\n\n${ envTable }${ errorSection }\n*Auto-detected by CI Failure Inspector.*`;
 
     await this._post(`/repos/${ this.org }/${ this.repo }/issues/${ issueNumber }/comments`, { body });
   }
@@ -222,12 +219,7 @@ class GitHubClient {
 ${ envTable ? `${ envTable }\n` : '' }
 ### Error Summary
 \`\`\`
-${ failure.errorSummary }
-\`\`\`
-
-### Stack Trace
-\`\`\`
-${ failure.stacktrace || 'No stack trace available' }
+${ sanitizeText(failure.errorSummary) }
 \`\`\`
 ${ aiSection }
 ---

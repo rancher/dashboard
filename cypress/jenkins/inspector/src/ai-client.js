@@ -8,8 +8,10 @@
  *   `copilot-requests: write` declared in the job permissions.
  */
 
+import { sanitizeText } from './fetch-utils.js';
+
 const COPILOT_API = 'https://api.githubcopilot.com/chat/completions';
-const MODEL = 'gpt-4o-mini';
+const MODEL = 'gpt-4o';
 
 // Truncate stacktrace to first N lines — the LLM only needs root cause frames
 const STACKTRACE_LINES = 20;
@@ -35,8 +37,8 @@ export class AIClient {
       `Suite: ${ suite }`,
       ``,
       `Error:`,
-      (errorSummary || '').slice(0, 500),
-      truncatedStack ? `\nStack trace (top frames):\n${ truncatedStack }` : '',
+      sanitizeText((errorSummary || '').slice(0, 500)),
+      truncatedStack ? `\nStack trace (top frames):\n${ sanitizeText(truncatedStack) }` : '',
     ].filter(Boolean).join('\n');
 
     try {
@@ -52,14 +54,14 @@ export class AIClient {
           messages: [
             {
               role:    'system',
-              content: 'You are a CI failure analyst for a Cypress end-to-end test suite. Given a failing test and its error output, provide 3-5 bullet points of likely root causes and concrete fix suggestions. Start with "The test failed because". Be specific to the error shown — avoid generic advice. Do not include code blocks.',
+              content: 'You are a CI failure analyst for a Cypress end-to-end test suite. Given a failing test and its error output, provide: 1) A brief explanation of why the test failed. 2) 2-4 likely root causes as bullet points. 3) A concrete code snippet showing a suggested fix where applicable. Be specific to the error shown — avoid generic advice.',
             },
             {
               role:    'user',
               content: userPrompt,
             },
           ],
-          max_tokens:  400,
+          max_tokens:  600,
           temperature: 0.3,
         }),
       });
