@@ -56,7 +56,6 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/catalog.cattle.io.clusterr
 
 # Drop transitively-emitted declarations we do not want to publish
 rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/getters.d.ts
-rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/mutations.d.ts
 rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/model-loader.d.ts
 rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/model-loader-require.d.ts
 
@@ -78,6 +77,15 @@ echo "// Do not modify this file as changes will get overwritten" >> ${INDEX}
 
 echo "/// <reference types=\"@rancher/shell/types/vue-shim\" />" >> ${INDEX}
 echo "/// <reference types=\"@rancher/shell/types/global-vue\" />" >> ${INDEX}
+
+# Append a declaration body, rewriting inline relative type imports to the
+# published module name
+function appendBody() {
+  local entry=$1
+  local basePkg=$2
+
+  sed 's#import("\./#import("'"${basePkg}"'/#g' $entry >> ${INDEX}
+}
 
 function processDir() {
   local dir=$1
@@ -101,7 +109,7 @@ function processDir() {
 
         echo -e "\n// ${module}\n" >> ${INDEX}
         echo "declare module '${module}' {" >> ${INDEX}
-        cat $entry >> ${INDEX}
+        appendBody $entry $basePkg
         echo -e "}" >> ${INDEX}
 
         # Also generate a module declaration with .js extension for JS source files
@@ -110,7 +118,7 @@ function processDir() {
           local moduleWithJs=${basePkg}/${name}.js
           echo -e "\n// ${moduleWithJs}\n" >> ${INDEX}
           echo "declare module '${moduleWithJs}' {" >> ${INDEX}
-          cat $entry >> ${INDEX}
+          appendBody $entry $basePkg
           echo -e "}" >> ${INDEX}
         fi
       fi
