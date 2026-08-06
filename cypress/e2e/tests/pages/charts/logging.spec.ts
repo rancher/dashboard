@@ -130,23 +130,17 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
       cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+      // The installed-apps list intermittently renders empty here even though the logging charts
+      // are installed: the namespace-filter reset above races the list's first fetch and, with
+      // testIsolation off, the stale empty result sticks (every retry re-hits the same empty
+      // list). Reload once so the list re-fetches under the now-committed filter before asserting.
+      // (A conditional gate can't be used - when the list is empty the row selector never
+      // resolves and times out rather than reporting zero rows.)
+      cy.reload();
+      installedAppsPage.waitForPage();
+      cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
       installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
       installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-
-      // The installed-apps list occasionally renders empty here even though the logging
-      // charts are installed: the namespace-filter change above races the list's fetch and,
-      // with testIsolation off, the stale empty result sticks across retries (all attempts
-      // fail identically on the no-rows assertion). If the freshly-installed chart is missing,
-      // force one fresh fetch under the now-committed filter before asserting.
-      installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail').then((rowNames: string[]) => {
-        if (!rowNames.includes(chartApp)) {
-          cy.reload();
-          installedAppsPage.waitForPage();
-          cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-          installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
-          installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-        }
-      });
 
       // Wait for table to load and check if charts exist before attempting uninstall
       installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
