@@ -53,7 +53,12 @@ class GitHubClient {
   }
 
   _issueTitle(failure) {
-    return `[UI][Auto] ${ failure.suite } > ${ failure.testTitle }`;
+    // For hook failures, extract the actual test name from inside the quotes.
+    // e.g. '"after all" hook: clean up for "my test"' → 'my test'
+    const hookMatch = failure.testTitle.match(/^"(?:before|after) (?:each|all)" hook[^"]*"(.+)"$/);
+    const normalizedTitle = hookMatch ? hookMatch[1] : failure.testTitle;
+
+    return `[UI][Auto] ${ failure.suite } > ${ normalizedTitle }`;
   }
 
   async fetchExistingIssues() {
