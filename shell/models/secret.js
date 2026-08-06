@@ -627,7 +627,6 @@ export default class Secret extends SteveModel {
     return undefined;
   }
 
-
   get detailLocation() {
     if (this.isProjectScoped) {
       const id = this.id?.replace(/.*\//, '');
