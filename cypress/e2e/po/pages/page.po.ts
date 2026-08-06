@@ -41,7 +41,9 @@ export default class PagePo extends ComponentPo {
   }
 
   waitForPage(params?: string, fragment?: string, options?: any) {
-    return cy.url().should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`, options);
+    // Timeout options must go on cy.url(); .should() does not accept an
+    // options argument (it would be consumed as the assertion message).
+    return cy.url(options).should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
   waitForPageWithExactUrl(params?: string, fragment?: string) {
