@@ -60,6 +60,7 @@ registration:
     mismatch-code: Registration active but does not match Secret registration code. Please verify the <a href="${ url }">registration</a>
     generic-registration: No registration found for existing registration code (Secret).
     timeout-registration: Timeout reached while waiting for resource.
+    timeout-offline-request: Timed out waiting for the offline registration request. The SCC operator may still be preparing resources. Wait a moment and try Download again, or export the request with kubectl from the cattle-scc-system namespace (secret labeled scc.cattle.io/secret-role=offline-request).
 
 prime:
   installed: This is a SUSE Rancher Prime installation
