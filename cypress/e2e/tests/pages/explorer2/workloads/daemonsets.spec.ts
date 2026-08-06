@@ -25,6 +25,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       });
     }).as('daemonsetEdit');
 
+    // Idempotent across retries (testIsolation is off): the deterministic name would 409 on a
+    // re-create once a prior attempt created it, so remove any leftover first.
+    cy.deleteRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, false);
+
     // list view for daemonsets
     const workloadsDaemonsetsListPage = new WorkloadsDaemonsetsListPagePo(localCluster);
 
@@ -42,6 +46,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
       .click();
 
+    workloadsDaemonsetsListPage.waitForPage();
+    // Force a fresh list query - after the create's save-and-navigate the VAI-backed list can
+    // intermittently fail to render the table container (sortable-table-list-container) in time.
+    cy.reload();
     workloadsDaemonsetsListPage.waitForPage();
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable()
       .rowElementWithName(daemonsetName)
