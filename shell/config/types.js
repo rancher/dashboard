@@ -322,6 +322,13 @@ export const ISTIO = {
   GATEWAY:          'networking.istio.io.gateway'
 };
 
+// Kubernetes Gateway API (gateway.networking.k8s.io), the successor to Ingress.
+// These are CRDs, so the schemas only exist on clusters where the API is installed.
+export const GATEWAY_API = {
+  GATEWAY:    'gateway.networking.k8s.io.gateway',
+  HTTP_ROUTE: 'gateway.networking.k8s.io.httproute'
+};
+
 export const LOGGING = {
   // LOGGING:        'logging.banzaicloud.io.logging',
   CLUSTER_FLOW:   'logging.banzaicloud.io.clusterflow',
