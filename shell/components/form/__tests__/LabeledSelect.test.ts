@@ -292,6 +292,65 @@ describe('component: LabeledSelect', () => {
     expect(spyPreventDefault).not.toHaveBeenCalled();
   });
 
+  describe('function: closeOnSelecting', () => {
+    it('should not throw when called with undefined', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: [{ label: 'Foo', value: 'foo' }], value: 'foo' } });
+
+      expect(() => wrapper.vm.closeOnSelecting(undefined)).not.toThrow();
+    });
+
+    it('should emit selecting event even when called with undefined', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: [{ label: 'Foo', value: 'foo' }], value: 'foo' } });
+
+      wrapper.vm.closeOnSelecting(undefined);
+
+      expect(wrapper.emitted('selecting')).toBeTruthy();
+      expect(wrapper.emitted('selecting')![0]).toStrictEqual([undefined]);
+    });
+
+    it('should close dropdown when selected option value matches current value', async() => {
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, { props: { options: [{ label: 'Foo', value }], value } });
+
+      await wrapper.trigger('click');
+      expect(wrapper.vm.isOpen).toBe(true);
+
+      wrapper.vm.closeOnSelecting({ value });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(false);
+    });
+
+    it('should not close dropdown when selected option value does not match current value', async() => {
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          options: [{ label: 'Foo', value }, { label: 'Bar', value: 'bar' }],
+          value
+        }
+      });
+
+      await wrapper.trigger('click');
+      expect(wrapper.vm.isOpen).toBe(true);
+
+      wrapper.vm.closeOnSelecting({ value: 'bar' });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(true);
+    });
+
+    it('should emit selecting event with the given option', () => {
+      const value = 'foo';
+      const option = { label: 'Foo', value };
+      const wrapper = mount(LabeledSelect, { props: { options: [option], value } });
+
+      wrapper.vm.closeOnSelecting(option);
+
+      expect(wrapper.emitted('selecting')).toBeTruthy();
+      expect(wrapper.emitted('selecting')![0]).toStrictEqual([option]);
+    });
+  });
+
   describe('size prop', () => {
     it.each([
       ['small'],

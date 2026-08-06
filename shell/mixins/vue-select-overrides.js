@@ -46,6 +46,10 @@ export default {
 
         let option = vm.filteredOptions[vm.typeAheadPointer];
 
+        if (!option) {
+          return;
+        }
+
         vm.$emit('option:selecting', option);
 
         if (!vm.isOptionSelected(option)) {

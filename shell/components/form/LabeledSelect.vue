@@ -308,7 +308,7 @@ export default {
     },
 
     closeOnSelecting(e) {
-      if (e.value === this.value) {
+      if (e && e.value === this.value) {
         this.close();
       }
 
