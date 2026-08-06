@@ -201,15 +201,12 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
 # ----------------------------------------------------
 
 
-echo "Waiting for Rancher to come up.........."
-kubectl -n cattle-system rollout status deploy/rancher
-
 # On a readiness-check failure, a Rancher pod restart is not enough: it re-reads the persisted
 # k3s/etcd state and tends to leave CAPI/RBAC/impersonation half-broken. So instead of failing the
 # step outright, tear the WHOLE environment down (k3s-uninstall) and re-run this script from scratch
 # for a genuinely clean instance, up to PROVISION_MAX times; only then fail. $1 is the reason to log.
-# Defined here (before the first readiness check that uses it) so the dashboard-availability wait
-# below can rebuild rather than hard-exit, like every downstream check.
+# Defined here (before the first readiness check that uses it) so the rancher-rollout and
+# dashboard-availability waits below can rebuild rather than hang or hard-exit.
 reprovision() {
   local reason="$1"
 
@@ -232,6 +229,11 @@ reprovision() {
   echo "Re-running provisioning from scratch..."
   exec env PROVISION_ROLL=$((PROVISION_ROLL + 1)) bash "$0" "${SCRIPT_ARGS[@]}"
 }
+
+echo "Waiting for Rancher to come up.........."
+# Bound the rollout wait: a wedged Rancher deployment (e.g. stuck at 0/1 replicas) should rebuild
+# from scratch rather than hang the step until the CI job times out.
+kubectl -n cattle-system rollout status deploy/rancher --timeout=600s || reprovision "Rancher deployment did not roll out in a reasonable time"
 
 echo "Waiting for dashboard UI to be reachable.........."
 
