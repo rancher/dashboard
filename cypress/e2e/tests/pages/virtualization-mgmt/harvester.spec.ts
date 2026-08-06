@@ -134,10 +134,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         // navigate to harvester list page and verify the logo and tagline do not display after cluster created
         HarvesterClusterPagePo.navTo();
         harvesterPo.waitForPage();
-        // Force a fresh list query: the just-created cluster can be missing from the
-        // rendered list (steve/VAI list lag), leaving the table container absent.
-        cy.reload();
-        harvesterPo.waitForPage();
+        // Wait for the just-created cluster to render in the list before acting on it.
         harvesterPo.list().resourceTable().sortableTable().rowWithName(harvesterClusterName)
           .checkVisible();
         harvesterPo.harvesterLogo().should('not.exist');

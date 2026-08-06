@@ -156,10 +156,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.list().name('eks-mock-cluster').find('a').should('be.visible')
       .click();
     eksDetailsPage.waitForPage();
-    // The tabbed component intermittently fails to render after the SPA navigation
-    // (a 30s wait was not enough - it never appears), so reload to force a fresh render.
-    cy.reload();
-    eksDetailsPage.waitForPage();
+    // Wait for the tabbed component to render after the SPA navigation before asserting its tabs.
     eksDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
     eksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
 
@@ -202,10 +199,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.list().name('gke-mock-cluster').find('a').should('be.visible')
       .click();
     gkeDetailsPage.waitForPage();
-    // The tabbed component intermittently fails to render after the SPA navigation
-    // (a 30s wait was not enough - it never appears), so reload to force a fresh render.
-    cy.reload();
-    gkeDetailsPage.waitForPage();
+    // Wait for the tabbed component to render after the SPA navigation before asserting its tabs.
     gkeDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
     gkeDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
 

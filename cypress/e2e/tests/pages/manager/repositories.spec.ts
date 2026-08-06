@@ -60,9 +60,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   });
 
   it('can create a repository', function() {
-    // Idempotent across retries: on the first attempt the VAI-backed list can omit the
-    // freshly-created repo (it exists and is counted - issue 17554), failing the row
-    // lookup. With the deterministic name the retry's re-create then returns 409, so
+    // Idempotent across retries: on the first attempt the list can intermittently omit the
+    // freshly-created repo from its rendered rows even though it exists (issue 17554), failing
+    // the row lookup. With the deterministic name the retry's re-create then returns 409, so
     // remove any leftover before starting.
     cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName, false);
 
@@ -84,20 +84,17 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
     // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
-    // Force a fresh server-side query so the VAI-backed list reliably renders the row
-    // before asserting its state (issue 17554).
-    cy.reload();
-    repositoriesPage.waitForPage();
+    // Wait for the row to render in the list before asserting its state - it can briefly drop
+    // out of the rendered rows after create (issue 17554).
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can edit a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    // Force a fresh server-side query - the VAI-backed list can omit the repo created
-    // above (issue 17554).
-    cy.reload();
-    repositoriesPage.waitForPage();
+    // Wait for the repo created above to render in the list before opening its action menu.
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-desc-edit`);
@@ -112,10 +109,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can clone a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    // Force a fresh server-side query - the VAI-backed list can omit the repo created
-    // above (issue 17554).
-    cy.reload();
-    repositoriesPage.waitForPage();
+    // Wait for the repo created above to render in the list before opening its action menu.
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Clone').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=clone');
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }-clone`);
@@ -130,10 +125,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can download YAML', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    // Force a fresh server-side query - the VAI-backed list can omit the repo created
-    // above (issue 17554).
-    cy.reload();
-    repositoriesPage.waitForPage();
+    // Wait for the repo created above to render in the list before opening its action menu.
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.repoName }.yaml`);
@@ -164,10 +157,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can delete a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    // Force a fresh server-side query - the VAI-backed list can omit the cloned repo
-    // created above (issue 17554).
-    cy.reload();
-    repositoriesPage.waitForPage();
+    // Wait for the cloned repo created above to render in the list before deleting it.
+    repositoriesPage.list().details(`${ this.repoName }-clone`, 2).should('be.visible');
 
     // delete cloned Repository
     repositoriesPage.list().resourceTable().sortableTable().rowNames()
@@ -230,14 +221,12 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
-    // The rancher/charts clone is large and slow in CI (~30s for the plain repo, and
-    // slower here with several repos downloading). The default 10s Active check is too
-    // short, so wait for the download to finish at the API level and force a fresh list
-    // query before asserting Active with the long timeout - the same pattern the plain
-    // create test uses.
+    // The rancher/charts clone is large and slow in CI (~30s for the plain repo, and slower
+    // here with several repos downloading), so the default 10s Active check is too short. Wait
+    // for the download to finish at the API level, then for the row to render, before asserting
+    // Active with the long timeout - the same pattern the plain create test uses.
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, 40);
-    cy.reload();
-    repositoriesPage.waitForPage();
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
     repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
