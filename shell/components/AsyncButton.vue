@@ -119,6 +119,23 @@ export default defineComponent({
       default: false,
     },
 
+    /**
+     * If true, the button will only show the icon in smaller views and hides the label.
+     */
+    showOnlyIconInSmallView: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /**
+     * If true, the 'icon' prop will be used for all button states (action, waiting, success, error),
+     * overriding any state-specific icons defined in translations.
+     * This is useful for buttons that need a static icon regardless of their phase, like Copy to Clipboard.
+     */
+    persistentIcon: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   setup() {
@@ -169,6 +186,10 @@ export default defineComponent({
         out['ready-for-action'] = true;
       }
 
+      if (this.showOnlyIconInSmallView) {
+        out['show-only-icon-in-small-view'] = true;
+      }
+
       return out;
     },
 
@@ -184,15 +205,26 @@ export default defineComponent({
 
       let out = '';
 
-      if ( this.icon ) {
+      // If persistentIcon is true, the icon prop always takes precedence
+      // This ensures a static icon is displayed across all phases
+      if ( this.persistentIcon && this.icon ) {
         out = this.icon;
-      } else if ( exists(key) ) {
-        out = `icon-${ t(key) }`;
-      } else if ( exists(defaultKey) ) {
-        out = `icon-${ t(defaultKey) }`;
+      } else {
+        // Otherwise, prioritize state-specific icons from translations
+        // This allows for dynamic icons based on the button's current phase (e.g., spinner for waiting).
+        if ( exists(key) ) {
+          out = `icon-${ t(key) }`;
+        } else if ( exists(defaultKey) ) {
+          out = `icon-${ t(defaultKey) }`;
+        } else if ( this.icon ) {
+          // Fallback to the generic icon prop if no state-specific translated icon is found
+          out = this.icon;
+        }
       }
 
-      if ( this.isSpinning ) {
+      // Add spinning animation for the waiting phase, unless the icon is persistent.
+      if ( this.isSpinning && !this.persistentIcon ) {
+        // If there's no icon at all, default to a spinner icon for the waiting state.
         if ( !out ) {
           out = 'icon-spinner';
         }
@@ -308,12 +340,22 @@ export default defineComponent({
   >
     <span
       v-if="isManualRefresh"
-      :class="{'mr-10': displayIcon && size !== 'sm', 'mr-5': displayIcon && size === 'sm'}"
+      :class="{
+        'mr-10': displayIcon && size !== 'sm',
+        'mr-5': displayIcon && size === 'sm',
+        'manual-refresh-label': true
+      }"
     >{{ t('action.refresh') }}</span>
     <i
       v-if="displayIcon"
       v-clean-tooltip="tooltip"
-      :class="{icon: true, 'icon-lg': true, [displayIcon]: true, 'mr-0': isManualRefresh}"
+      :class="{
+        icon: true,
+        'icon-lg': true,
+        [displayIcon]: true,
+        'mr-0': isManualRefresh,
+        'async-button-icon': true
+      }"
       :alt="t('asyncButton.alt.iconAlt')"
     />
     <span
@@ -321,6 +363,7 @@ export default defineComponent({
       v-clean-tooltip="tooltip"
       v-clean-html="displayLabel"
       data-testid="async-btn-display-label"
+      class="async-button-label"
     />
   </button>
 </template>
@@ -331,4 +374,18 @@ export default defineComponent({
   margin: 0 0 0 8px !important;
   font-size: 1rem !important;
 }
-</style>
+
+@media only screen and (max-width: 1060px) {
+  .show-only-icon-in-small-view {
+    &.btn {
+      padding: 0 4px 0 10px;
+    }
+    .async-button-label {
+      display: none;
+    }
+
+    .async-button-icon {
+      display: inline-block;
+    }
+  }
+}</style>
