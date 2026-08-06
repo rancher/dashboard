@@ -93,7 +93,7 @@ export default {
       // Fetch clusters other than the current one in order to populate the `Project Secret` column (specifically the cluster name where this PSS is in)
       await Promise.all(page.map((s) => {
         if (s.projectScopedClusterId) {
-          return this.$store.dispatch(`${ STORE.MANAGEMENT }/find`, { type: MANAGEMENT.CLUSTER, id: s.projectScopedClusterId }).catch((e) => {
+          return this.$store.dispatch(`${ STORE.MANAGEMENT }/find`, { type: MANAGEMENT.CLUSTER, id: s.projectScopedClusterId }).catch((e: any) => {
             console.error(`Unable to fetch cluster '${ s.projectScopedClusterId }' for secret '${ s.name }'`, e); // eslint-disable-line no-console
           });
         }

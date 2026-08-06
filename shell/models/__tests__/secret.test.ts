@@ -185,7 +185,7 @@ describe('class Secret', () => {
     it('parses issuer, cn, notBefore, notAfter and sans from a valid TLS cert', () => {
       const secret = new Secret({ _type: TYPES.TLS, data: { 'tls.crt': base64Encode(TEST_CERT_PEM) } });
 
-      const info = secret.certInfo;
+      const info: any = secret.certInfo;
 
       expect(info.cn).toBe('test.example.com');
       expect(info.issuer).toBe('test.example.com');
