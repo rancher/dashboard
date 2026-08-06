@@ -1,8 +1,8 @@
 import { ProjectSecretsListPagePo, ProjectSecretsCreateEditPo } from '@/cypress/e2e/po/pages/explorer/project-secrets.po';
 import { qase } from '@/cypress/support/qase';
 
-const cluster_id = 'local';
-const projectSecretsListPage = new ProjectSecretsListPagePo(cluster_id);
+const clusterId = 'local';
+const projectSecretsListPage = new ProjectSecretsListPagePo(clusterId);
 const targetProject = {
   name: 'default', label: 'Default', namespace: ''
 };
@@ -22,7 +22,10 @@ describe('Project Secrets', { tags: ['@explorer2', '@adminUser'] }, () => {
       // Scope by clusterName in addition to displayName: multiple clusters can each have their
       // own "Default" project, and an unscoped find() can resolve to the wrong cluster's project
       // (mismatching the namespace the UI actually uses for the "local" cluster's secret).
-      targetProject.namespace = resp.body.data.find((item: any) => item.spec.displayName === targetProject.label && item.spec.clusterName === cluster_id).status.backingNamespace;
+      const project = resp.body.data.find((item: any) => item.spec.displayName === targetProject.label && item.spec.clusterName === clusterId);
+
+      expect(project, `project "${ targetProject.label }" in cluster "${ clusterId }"`).to.exist;
+      targetProject.namespace = project.status.backingNamespace;
     });
 
     cy.intercept('POST', '/v1/secrets?exclude=metadata.managedFields').as('createProjectScopedSecret');
@@ -38,7 +41,7 @@ describe('Project Secrets', { tags: ['@explorer2', '@adminUser'] }, () => {
   qase(27179, it('creates a project-scoped secret and displays it in the list', () => {
     cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
 
-    const secretCreatePage = new ProjectSecretsCreateEditPo(cluster_id);
+    const secretCreatePage = new ProjectSecretsCreateEditPo(clusterId);
 
     projectSecretsListPage.goTo();
 
@@ -64,9 +67,9 @@ describe('Project Secrets', { tags: ['@explorer2', '@adminUser'] }, () => {
     });
   }));
 
-  after(() => {
-    cy.deleteRancherResource('v1', `secrets/${ targetProject.name }`, projectScopedSecretName, true);
-    cy.deleteRancherResource('v1', `secrets/${ targetProject.namespace }`, projectScopedSecretName, true);
+  afterEach(() => {
+    cy.deleteRancherResource('v1', `secrets/${ targetProject.name }`, projectScopedSecretName, false);
+    cy.deleteRancherResource('v1', `secrets/${ targetProject.namespace }`, projectScopedSecretName, false);
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });
