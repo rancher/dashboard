@@ -88,7 +88,7 @@ export default {
         name:   'project',
         label:  this.t('tableHeaders.project'),
         value:  'project.nameDisplay',
-        search: `metadata.labels[${ UI_PROJECT_SECRET }]`,
+        search: `spec.displayName`,
         sort:   `spec.displayName`,
       }, {
         ...SUB_TYPE,
