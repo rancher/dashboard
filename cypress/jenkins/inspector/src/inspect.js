@@ -113,7 +113,9 @@ async function groupAndCreateIssues(failures) {
         // Test was fixed but is failing again — reopen and move back to Backlog.
         // Always call addToProject on reopen: addProjectV2ItemById is idempotent so it's safe
         // even if the issue is already on the board, and it ensures the status resets to Backlog.
-        await githubClient.reopenIssue(existing.id, failure.environments, failure);
+        const aiSuggestions = await aiClient.generateFixSuggestions(failure);
+
+        await githubClient.reopenIssue(existing.id, failure.environments, failure, aiSuggestions);
         try {
           await githubClient.addToProject(existing.nodeId);
         } catch (e) {
