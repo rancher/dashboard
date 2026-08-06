@@ -802,26 +802,20 @@ export default {
             class="wizard"
             @error="e=>errors = e"
           >
+            <!--
+              Pass the step templates straight through and let the Wizard render
+              the containers around them, so each step gets the id and the
+              role="tabpanel" that its step tab's aria-controls points at.
+            -->
             <template
-              #stepContainer="{activeStep}"
-              class="step-container"
+              v-for="step in steps"
+              #[step.name]="scope"
+              :key="step.name"
             >
-              <template
-                v-for="(step, i) in steps"
-                :key="i"
-              >
-                <div
-                  v-if="step.name === activeStep.name || step.hidden"
-                  :key="step.name"
-                  class="step-container__step"
-                  :class="{'hide': step.name !== activeStep.name && step.hidden}"
-                >
-                  <slot
-                    :step="step"
-                    :name="step.name"
-                  />
-                </div>
-              </template>
+              <slot
+                :name="step.name"
+                v-bind="scope"
+              />
             </template>
             <template #controlsContainer="{showPrevious, next, back, activeStep, canNext, activeStepIndex, visibleSteps}">
               <CruResourceFooter
