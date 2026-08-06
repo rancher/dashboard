@@ -4,7 +4,6 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateDaemonSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/daemonsets/daemonsets-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
-import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -47,28 +46,23 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       .click();
 
     workloadsDaemonsetsListPage.waitForPage();
-    // Wait for the just-created daemonset to render in the list before editing it.
+    workloadsDaemonsetsListPage.baseResourceList().checkVisible();
+    // Confirm the list has finished loading before opening the edit form: we flick quickly
+    // between the list and the edit form, and if the list is still loading the SPA nav can
+    // land on a form whose tabs never render. Gating on the loading indicator (the same
+    // approach as the jobs.spec create flow) fixes the race without a direct-nav workaround.
+    workloadsDaemonsetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable()
       .rowElementWithName(daemonsetName)
       .should('be.visible');
-
-    // Navigate straight to the edit form and wait for the daemonset fetch before
-    // interacting. Opening the form via the list action menu intermittently landed
-    // on a form whose tabs never rendered (a load race, not a slow render, so a
-    // longer wait did not help). A direct navigation plus a data-ready gate is
-    // reliable and mirrors the jobs clone test.
-    cy.intercept('GET', `/v1/apps.daemonsets/default/${ daemonsetName }?*`).as('getDaemonset');
-
-    const daemonsetEditPage = new WorkLoadsDaemonsetsEditPagePo(daemonsetName, { mode: 'edit' }, localCluster, 'default');
-
-    daemonsetEditPage.goTo();
-    cy.wait('@getDaemonset', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+    workloadsDaemonsetsListPage.list().actionMenu(daemonsetName).getMenuItem('Edit Config')
+      .click();
 
     // edit daemonset
-    daemonsetEditPage.clickTab('#DaemonSet');
-    daemonsetEditPage.clickTab('#upgrading');
-    daemonsetEditPage.ScalingUpgradePolicyRadioBtn().set(1);
-    daemonsetEditPage.resourceDetail().cruResource().saveOrCreate()
+    workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
+    workloadsDaemonsetsEditPage.clickTab('#upgrading');
+    workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
+    workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
       .click();
 
     workloadsDaemonsetsListPage.baseResourceList().resourceTable().sortableTable()
