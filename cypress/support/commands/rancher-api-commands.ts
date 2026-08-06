@@ -129,8 +129,12 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
         // we now need to do a GET to the user to get the principalId to set the role bindings
         // in v1/management.cattle.io.users response, principalIds is not included, but we need it to set the role bindings
         // and also create the user password as secret, which is required for login
-        cy.getRancherResource('v1', 'management.cattle.io.users', resp.body.id)
-          .then((userDataResp) => {
+        // principalIds are not always populated immediately after user creation, so wait for
+        // them rather than reading principalIds[0] off a not-yet-ready user (which throws
+        // "Cannot read properties of undefined (reading '0')" and, in a before-all hook, skips
+        // the whole suite).
+        cy.waitForRancherResource('v1', 'management.cattle.io.users', resp.body.id, (userDataResp: any) => userDataResp?.body?.principalIds?.length > 0, 20, { failOnStatusCode: false })
+          .then((userDataResp: any) => {
             if (userDataResp.status !== 200) {
               cy.log('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
               // eslint-disable-next-line no-console
