@@ -85,7 +85,11 @@ export default {
     },
     namespacePlaceholder: {
       type:    String,
-      default: 'nameNsDescription.namespace.placeholder',
+      default: 'namespace.selectOrCreate',
+    },
+    namespaceCreatePlaceholder: {
+      type:    String,
+      default: 'namespace.createNamespace',
     },
     namespaceDisabled: {
       type:    Boolean,
@@ -221,9 +225,19 @@ export default {
 
     const store = useStore();
 
+    function persistNamespace(val) {
+      if (props.namespaceKey) {
+        set(props.value, props.namespaceKey, val);
+      } else {
+        props.value.metadata.namespace = val;
+      }
+      emit('update:value', props.value);
+    }
+
     if (props.namespaced) {
       if (props.forceNamespace) {
         namespace.value = props.forceNamespace;
+        persistNamespace(namespace.value);
       } else if (props.namespaceKey) {
         namespace.value = get(v.value, props.namespaceKey);
       } else {
@@ -249,6 +263,7 @@ export default {
       name,
       description,
       isCreate,
+      persistNamespace,
     };
   },
 
@@ -288,12 +303,7 @@ export default {
 
   watch: {
     namespace(val) {
-      if (this.namespaceKey) {
-        set(this.value, this.namespaceKey, val);
-      } else {
-        this.value.metadata.namespace = val;
-      }
-      this.$emit('update:value', this.value);
+      this.persistNamespace(val);
     },
 
     description(val) {
@@ -347,10 +357,10 @@ export default {
         :mapper="namespaceMapper"
         :create-namespace-override="createNamespaceOverride"
         :placeholder="namespacePlaceholder"
+        :create-placeholder="namespaceCreatePlaceholder"
         :rules="rules.namespace"
-        :field-name="namespaceFieldName"
         :label-key="namespaceLabel"
-        :append-to-body="false"
+        :append-to-body="true"
         :required="true"
         @update:value="onNamespaceChange"
         @is-namespace-new="$emit('isNamespaceNew', $event)"

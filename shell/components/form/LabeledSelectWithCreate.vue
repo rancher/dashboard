@@ -1,9 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { _CREATE } from '@shell/config/query-params';
 import { useI18n } from '@shell/composables/useI18n';
+import type { SelectOption } from '@shell/types/components/labeledSelect';
+import type { Validator } from '@shell/utils/validators/formRules/index';
 
 /**
  * A LabeledSelect that prepends a "Create new" highlighted option.
@@ -11,102 +14,78 @@ import { useI18n } from '@shell/composables/useI18n';
  */
 defineOptions({ name: 'LabeledSelectWithCreate' });
 
-const props = defineProps({
-  value: {
-    type:    String,
-    default: null,
-  },
-  options: {
-    type:    Array,
-    default: () => [],
-  },
+type FocusableInput = { focus: () => void };
 
-  label: {
-    type:    String,
-    default: '',
-  },
+interface Props {
+  value?: string | null;
+  options?: SelectOption[];
+  name?: string;
+  label?: string;
   /** takes precedence over label if set */
-  labelKey: {
-    type:    String,
-    default: null,
-  },
+  labelKey?: string | null;
   /** Text shown on the "Create new" option in the dropdown */
-  createLabel: {
-    type:    String,
-    default: 'Create new…',
-  },
+  createLabel?: string;
   /** Placeholder shown in the new-value input */
-  createPlaceholder: {
-    type:    String,
-    default: '',
-  },
+  createPlaceholder?: string;
   /** Placeholder shown in the select when not creating */
-  placeholder: {
-    type:    String,
-    default: '',
-  },
-  mode: {
-    type:    String,
-    default: 'create',
-  },
-  loading: {
-    type:    Boolean,
-    default: false,
-  },
-  disabled: {
-    type:    Boolean,
-    default: false,
-  },
-  clearable: {
-    type:    Boolean,
-    default: false,
-  },
-  rules: {
-    type:    Array,
-    default: () => [],
-  },
-  appendToBody: {
-    type:    Boolean,
-    default: false,
-  },
+  placeholder?: string;
+  mode?: string;
+  loading?: boolean;
+  disabled?: boolean;
+  clearable?: boolean;
+  rules?: Validator[];
+  appendToBody?: boolean;
   /**
    * When false, the "Create new" option is not shown.
    * Use this to gate creation on RBAC permissions.
    */
-  createAllowed: {
-    type:    Boolean,
-    default: true,
-  },
-  requireDirty: {
-    type:    Boolean,
-    default: true,
-  },
-  required: {
-    type:    Boolean,
-    default: false,
-  },
+  createAllowed?: boolean;
+  requireDirty?: boolean;
+  required?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  value:             null,
+  options:           () => [],
+  name:              undefined,
+  label:             '',
+  labelKey:          null,
+  createLabel:       undefined,
+  createPlaceholder: '',
+  placeholder:       '',
+  mode:              _CREATE,
+  loading:           false,
+  disabled:          false,
+  clearable:         false,
+  rules:             () => [],
+  appendToBody:      false,
+  createAllowed:     true,
+  requireDirty:      true,
+  required:          false,
 });
 
-const emit = defineEmits(['update:value', 'creating', 'cancel']);
+const emit = defineEmits<{(e: 'update:value', value: string): void, (e: 'creating'): void, (e: 'cancel'): void}>();
 
 const store = useStore();
 const { t } = useI18n(store);
 
 const creating = ref(false);
 const newValue = ref('');
-const inputRef = ref(null);
+const inputRef = ref<FocusableInput | null>(null);
 
-const selectOptions = computed(() => {
+const createLabelText = computed(() => props.createLabel || t('generic.createNew'));
+
+const selectOptions = computed<SelectOption[]>(() => {
   if (!props.createAllowed) {
     return props.options;
   }
 
-  const createEntry = {
-    label: props.createLabel,
+  const createEntry: SelectOption = {
+    label: createLabelText.value,
     value: '__create__',
     kind:  'highlighted',
   };
-  const divider = {
+  const divider: SelectOption = {
     label:    'divider',
     disabled: true,
     kind:     'divider',
@@ -115,11 +94,12 @@ const selectOptions = computed(() => {
   return [createEntry, divider, ...props.options];
 });
 
-function onSelecting(opt) {
+function onSelecting(opt: SelectOption | null) {
   if (!opt || opt.value === '__create__') {
     creating.value = true;
     newValue.value = '';
     emit('creating');
+    emit('update:value', '');
     nextTick(() => inputRef.value?.focus());
   }
 }
@@ -130,12 +110,12 @@ function cancelCreate() {
   emit('cancel');
 }
 
-function onCreateInput(val) {
+function onCreateInput(val: string) {
   newValue.value = val;
   emit('update:value', val);
 }
 
-function onSelectChange(val) {
+function onSelectChange(val: string) {
   if (val !== '__create__') {
     emit('update:value', val);
   }
@@ -148,11 +128,13 @@ function onSelectChange(val) {
     <LabeledInput
       v-if="creating"
       ref="inputRef"
+      :name="name"
       :value="newValue"
       :label="labelKey ? t(labelKey) : label"
       :placeholder="createPlaceholder"
       :mode="mode"
       :rules="rules"
+      :required="required"
       class="create-input"
       @update:value="onCreateInput"
       @keyup.escape="cancelCreate"
@@ -173,7 +155,8 @@ function onSelectChange(val) {
     <!-- Select mode -->
     <LabeledSelect
       v-else
-      :value="value"
+      :name="name"
+      :value="value ?? undefined"
       :label="labelKey ? t(labelKey) : label"
       :placeholder="placeholder"
       :options="selectOptions"

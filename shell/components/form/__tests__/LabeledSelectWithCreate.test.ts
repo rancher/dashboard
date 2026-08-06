@@ -4,7 +4,7 @@ import LabeledSelectWithCreate from '@shell/components/form/LabeledSelectWithCre
 const LabeledSelectStub = {
   name:  'LabeledSelect',
   props: [
-    'value', 'label', 'placeholder', 'options', 'mode', 'loading',
+    'name', 'value', 'label', 'placeholder', 'options', 'mode', 'loading',
     'disabled', 'clearable', 'rules', 'appendToBody', 'requireDirty',
     'required', 'searchable',
   ],
@@ -15,7 +15,7 @@ const LabeledSelectStub = {
 jest.mock('@components/Form/LabeledInput', () => ({
   LabeledInput: {
     name:  'LabeledInput',
-    props: ['value', 'label', 'placeholder', 'mode', 'rules'],
+    props: ['name', 'value', 'label', 'placeholder', 'mode', 'rules'],
     emits: ['update:value'],
 
     template: `
@@ -72,7 +72,7 @@ describe('component: LabeledSelectWithCreate', () => {
 
       expect(findSelect(wrapper).props('options')).toEqual([
         {
-          label: 'Create new…', value: '__create__', kind: 'highlighted',
+          label: 'generic.createNew', value: '__create__', kind: 'highlighted',
         },
         {
           label: 'divider', disabled: true, kind: 'divider',
@@ -105,6 +105,12 @@ describe('component: LabeledSelectWithCreate', () => {
       expect(findSelect(wrapper).props('label')).toBe('Raw Label');
     });
 
+    it('forwards the name prop to the select', () => {
+      const wrapper = mountComponent({ name: 'my-field' });
+
+      expect(findSelect(wrapper).props('name')).toBe('my-field');
+    });
+
     it('passes through the remaining select props unchanged', () => {
       const wrapper = mountComponent({
         placeholder:  'Pick one',
@@ -117,8 +123,10 @@ describe('component: LabeledSelectWithCreate', () => {
         required:     true,
       });
 
+      // a null value is forwarded as undefined so it matches LabeledSelect's own prop type;
+      // LabeledSelect's real default (null) then applies, same as passing null directly
       expect(findSelect(wrapper).props()).toMatchObject({
-        value:        null,
+        value:        undefined,
         placeholder:  'Pick one',
         mode:         'edit',
         loading:      true,
@@ -156,6 +164,15 @@ describe('component: LabeledSelectWithCreate', () => {
       expect(wrapper.emitted('creating')).toBeTruthy();
       expect(findSelect(wrapper).exists()).toBe(false);
       expect(findInput(wrapper).exists()).toBe(true);
+    });
+
+    it('emits an empty update:value when entering create mode, so the parent value is not stale', async() => {
+      const wrapper = mountComponent();
+
+      await findSelect(wrapper).vm.$emit('selecting', { label: 'Create new…', value: '__create__' });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.emitted('update:value')).toEqual([['']]);
     });
 
     it('switches to create mode when "selecting" fires with no option (e.g. clearing)', async() => {
@@ -215,7 +232,9 @@ describe('component: LabeledSelectWithCreate', () => {
       await findInput(wrapper).vm.$emit('update:value', 'Ne');
       await findInput(wrapper).vm.$emit('update:value', 'New');
 
-      expect(wrapper.emitted('update:value')).toEqual([['N'], ['Ne'], ['New']]);
+      // entering create mode itself emits an empty value first, so the parent's tracked
+      // value doesn't lag behind the now-blank input until the first keystroke
+      expect(wrapper.emitted('update:value')).toEqual([[''], ['N'], ['Ne'], ['New']]);
       // typing never auto-confirms/returns to select mode - only cancel does
       expect(findInput(wrapper).exists()).toBe(true);
       expect(findSelect(wrapper).exists()).toBe(false);
@@ -270,6 +289,12 @@ describe('component: LabeledSelectWithCreate', () => {
 
       expect(input.props('mode')).toBe('edit');
       expect(input.props('rules')).toStrictEqual(rules);
+    });
+
+    it('forwards the name prop to the create-mode LabeledInput', async() => {
+      const wrapper = await mountInCreateMode({ name: 'my-field' });
+
+      expect(findInput(wrapper).props('name')).toBe('my-field');
     });
   });
 });

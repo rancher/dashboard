@@ -33,6 +33,7 @@ generic:
   copyValueToClipboard: 'Copy {value} to Clipboard'
   copiedToClipboard: Text copied to Clipboard
   create: Create
+  createNew: Create new…
   created: Created
   customize: Customize
   dashboard: Dashboard

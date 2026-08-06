@@ -42,13 +42,17 @@ describe('namespaceSelect', () => {
     expect(wrapper.findComponent(LabeledSelectWithCreate).exists()).toStrictEqual(true);
   });
 
-  it('does not render LabeledSelectWithCreate when forceNamespace is provided', () => {
+  it('renders LabeledSelectWithCreate disabled, showing the forced namespace, when forceNamespace is provided', () => {
     const wrapper = shallowMount(NamespaceSelect, {
       ...requiredSetup(),
       props: { forceNamespace: 'forced-ns' },
     });
 
-    expect(wrapper.findComponent(LabeledSelectWithCreate).exists()).toStrictEqual(false);
+    const labeledSelect = wrapper.findComponent(LabeledSelectWithCreate);
+
+    expect(labeledSelect.exists()).toStrictEqual(true);
+    expect(labeledSelect.props('disabled')).toStrictEqual(true);
+    expect(labeledSelect.props('value')).toStrictEqual('forced-ns');
   });
 
   it.each([

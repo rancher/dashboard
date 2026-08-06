@@ -1,12 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
-import LabeledSelectWithCreate from '@shell/components/form/LabeledSelectWithCreate';
+import LabeledSelectWithCreate from '@shell/components/form/LabeledSelectWithCreate.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import type { SelectOption } from '@shell/types/components/labeledSelect';
+import type { Validator } from '@shell/utils/validators/formRules/index';
 
 /**
  * A self-contained namespace selector that:
@@ -17,79 +19,64 @@ import { useI18n } from '@shell/composables/useI18n';
  */
 defineOptions({ name: 'NamespaceSelect' });
 
-const props = defineProps({
-  value: {
-    type:    String,
-    default: null,
-  },
-  mode: {
-    type:    String,
-    default: _CREATE,
-  },
-  label: {
-    type:    String,
-    default: null,
-  },
+interface RawNamespace {
+  id?: string;
+  name?: string;
+  nameDisplay?: string;
+  [key: string]: any;
+}
+
+interface NormalizedNamespace extends RawNamespace {
+  id: string;
+  nameDisplay: string;
+}
+
+type Mapper = (ns: NormalizedNamespace) => SelectOption;
+
+interface Props {
+  value?: string | null;
+  mode?: string;
+  label?: string;
   /** takes precedence over label if set */
-  labelKey: {
-    type:    String,
-    default: 'nameNsDescription.namespace.label',
-  },
-  placeholder: {
-    type:    String,
-    default: 'namespace.selectOrCreate',
-  },
-  disabled: {
-    type:    Boolean,
-    default: false,
-  },
-  forceNamespace: {
-    type:    String,
-    default: null,
-  },
-  noDefaultNamespace: {
-    type:    Boolean,
-    default: false,
-  },
-  override: {
-    type:    Array,
-    default: null,
-  },
-  options: {
-    type:    Array,
-    default: null,
-  },
-  mapper: {
-    type:    Function,
-    default: null,
-  },
-  createNamespaceOverride: {
-    type:    Boolean,
-    default: false,
-  },
-  rules: {
-    type:    Array,
-    default: () => [],
-  },
-  fieldName: {
-    type:    String,
-    default: null,
-  },
-  appendToBody: {
-    type:    Boolean,
-    default: false,
-  },
-  requireDirty: {
-    type:    Boolean,
-    default: true,
-  },
-  required: {
-    type:    Boolean,
-    default: false,
-  },
+  labelKey?: string | null;
+  placeholder?: string;
+  createPlaceholder?: string;
+  disabled?: boolean;
+  forceNamespace?: string | null;
+  noDefaultNamespace?: boolean;
+  override?: (string | RawNamespace)[] | null;
+  options?: (string | RawNamespace)[] | null;
+  mapper?: Mapper | null;
+  createNamespaceOverride?: boolean;
+  rules?: Validator[];
+  name?: string;
+  appendToBody?: boolean;
+  requireDirty?: boolean;
+  required?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  value:                   null,
+  mode:                    _CREATE,
+  label:                   undefined,
+  labelKey:                'nameNsDescription.namespace.label',
+  placeholder:             'namespace.selectOrCreate',
+  createPlaceholder:       'namespace.createNamespace',
+  disabled:                false,
+  forceNamespace:          null,
+  noDefaultNamespace:      false,
+  override:                null,
+  options:                 null,
+  mapper:                  null,
+  createNamespaceOverride: false,
+  rules:                   () => [],
+  name:                    undefined,
+  appendToBody:            false,
+  requireDirty:            true,
+  required:                false,
 });
 
-const emit = defineEmits(['update:value', 'isNamespaceNew']);
+const emit = defineEmits<{(e: 'update:value', value: string): void, (e: 'isNamespaceNew', value: boolean): void}>();
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -106,26 +93,26 @@ const canCreateNamespace = computed(() => {
   return (nsSchema.value?.collectionMethods || []).includes('POST') && currentCluster.value?.canUpdate;
 });
 
-const namespace = ref(
+const namespace = ref<string | null>(
   props.forceNamespace ??
     props.value ??
     (!props.noDefaultNamespace ? store.getters['defaultNamespace'] : null)
 );
 
-const realNamespaceOptions = computed(() => {
-  let namespaces;
+const realNamespaceOptions = computed<SelectOption[]>(() => {
+  let namespaces: (string | RawNamespace)[];
 
   if (props.override) {
     namespaces = props.override;
   } else if (props.options) {
-    namespaces = props.options.map((ns) => (typeof ns === 'string' ? ns : (ns.name || ns.id))).filter(Boolean).sort();
+    namespaces = props.options.map((ns) => (typeof ns === 'string' ? ns : (ns.name || ns.id))).filter(Boolean).sort() as string[];
   } else {
     const namespaceObjs = isCreate.value ? allowedNamespaces.value : storeNamespaces.value;
 
     namespaces = Object.keys(namespaceObjs);
   }
 
-  const normalized = namespaces
+  const normalized: NormalizedNamespace[] = namespaces
     .map((ns) => {
       if (typeof ns === 'string') {
         return { nameDisplay: ns, id: ns };
@@ -140,10 +127,10 @@ const realNamespaceOptions = computed(() => {
         id,
       };
     })
-    .filter((ns) => !!ns.id);
+    .filter((ns): ns is NormalizedNamespace => !!ns.id);
 
   const mapped = normalized
-    .map(props.mapper || ((obj) => ({
+    .map(props.mapper || ((obj: NormalizedNamespace) => ({
       label: obj.nameDisplay,
       value: obj.id,
     })));
@@ -157,7 +144,7 @@ const realNamespaceOptions = computed(() => {
   return sorted;
 });
 
-const namespaceSelectOptions = computed(() => {
+const namespaceSelectOptions = computed<SelectOption[]>(() => {
   const sorted = [...realNamespaceOptions.value];
 
   // A namespace the user just created via the "create new" flow doesn't
@@ -171,34 +158,34 @@ const namespaceSelectOptions = computed(() => {
   return sorted;
 });
 
-const lastIsNamespaceNew = ref(null);
+const lastIsNamespaceNew = ref<boolean | null>(null);
 
 // Keep in sync when the parent changes value externally
 watch(() => props.value, (val) => {
-  if (val !== namespace.value) namespace.value = val;
+  if (val !== namespace.value) namespace.value = val ?? null;
 });
 
-const isNew = (val) => !val || !realNamespaceOptions.value.find((o) => o.value === val);
+const isNew = (val: string) => !val || !realNamespaceOptions.value.find((o) => o.value === val);
 
-function emitNamespaceNewIfChanged(nextIsNew) {
+function emitNamespaceNewIfChanged(nextIsNew: boolean) {
   if (lastIsNamespaceNew.value !== nextIsNew) {
     lastIsNamespaceNew.value = nextIsNew;
     emit('isNamespaceNew', nextIsNew);
   }
 }
 
-function emitChange(val) {
+function emitChange(val: string) {
   namespace.value = val;
   emit('update:value', val);
   emitNamespaceNewIfChanged(isNew(val));
 }
 
-function dispatchCreateNamespace(creating) {
+function dispatchCreateNamespace(creating: boolean) {
   store.dispatch('cru-resource/setCreateNamespace', creating);
 }
 const isCreatingNamespace = ref(false);
 
-function onUpdate(val) {
+function onUpdate(val: string) {
   if (!isCreatingNamespace.value) {
     dispatchCreateNamespace(false);
   }
@@ -224,9 +211,8 @@ const isReallyDisabled = computed(() => !!props.forceNamespace || props.disabled
 
 <template>
   <LabeledSelectWithCreate
-    v-if="!forceNamespace"
     :value="namespace"
-    :name="fieldName"
+    :name="name"
     :clearable="true"
     :options="namespaceSelectOptions"
     :disabled="isReallyDisabled"
@@ -235,7 +221,7 @@ const isReallyDisabled = computed(() => !!props.forceNamespace || props.disabled
     :label-key="labelKey"
     :placeholder="t(placeholder)"
     :create-label="t('namespace.createNamespace')"
-    :create-placeholder="t('namespace.createNamespace')"
+    :create-placeholder="t(createPlaceholder)"
     :create-allowed="canCreateNamespace || createNamespaceOverride"
     :rules="rules"
     :append-to-body="appendToBody"

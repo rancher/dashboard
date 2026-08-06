@@ -222,4 +222,35 @@ describe('nameNsDescription', () => {
 
     expect(lastEmittedValue.spec.myNs).toStrictEqual('new-ns');
   });
+
+  it('persists forceNamespace into value.metadata.namespace immediately on mount', () => {
+    const value = { metadata: { name: 'test-name', namespace: '' } };
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
+      props: {
+        value,
+        mode:           _CREATE,
+        forceNamespace: 'forced-ns',
+      },
+    });
+
+    expect(value.metadata.namespace).toStrictEqual('forced-ns');
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+  });
+
+  it('persists forceNamespace via namespaceKey immediately on mount, when provided', () => {
+    const value = { metadata: {}, spec: { myNs: '' } };
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
+      props: {
+        value,
+        mode:           _CREATE,
+        namespaceKey:   'spec.myNs',
+        forceNamespace: 'forced-ns',
+      },
+    });
+
+    expect(value.spec.myNs).toStrictEqual('forced-ns');
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+  });
 });
