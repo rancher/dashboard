@@ -266,6 +266,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
+      // the BE connects secret's `'management.cattle.io/project-scoped-secret'` label to a project's id... and exposes project human name via spec.displayName
+      { field: 'spec.displayName' },
+      // the BE connects secret's `'management.cattle.io/project-scoped-secret'` label to a project's id... and exposes project's cluster id via spec.clusterName
+      { field: 'spec.clusterName' }
     ],
     [NAMESPACE]: [
     ],

@@ -36,19 +36,12 @@ export default {
     },
     tooltip() {
       if (this.row.isProjectScoped) {
-        const projectName = this.row.project?.nameDisplay || this.row.projectScopedProjectId;
+        const projectName = this.row.project?.nameDisplay || this.row.projectScopedProjectName;
         const clusterName = this.row.projectCluster?.nameDisplay || this.row.projectScopedClusterId;
 
         return this.t('secret.projectScoped.tooltip.source', { project: projectName, cluster: clusterName });
       } else if (this.row.isProjectSecretCopy) {
-        const projectID = this.row.projectScopedProjectId;
-        const clusterId = this.currentCluster?.id;
-
-        // Try to fetch the project.
-        // Note: The management store might not have the project loaded if we haven't visited the cluster list or project list.
-        // However, if we are in the dashboard, we usually have projects loaded.
-        const project = this.$store.getters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ clusterId }/${ projectID }`);
-        const projectName = project?.nameDisplay || projectID;
+        const projectName = this.row.project?.nameDisplay || this.row.projectSecretCopyProjectName;
 
         return this.t('secret.projectScoped.tooltip.copy', { secret: this.row.nameDisplay, project: projectName });
       }
