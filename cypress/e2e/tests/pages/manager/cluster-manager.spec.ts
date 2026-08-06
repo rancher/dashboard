@@ -24,8 +24,10 @@ import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import {
   VERY_LONG_TIMEOUT_OPT,
   EXTRA_LONG_TIMEOUT_OPT,
+  LONG_TIMEOUT_OPT,
   MEDIUM_TIMEOUT_OPT,
-  RESTART_TIMEOUT_OPT
+  RESTART_TIMEOUT_OPT,
+  GROWL_DISMISS_TIMEOUT_OPT
 } from '@/cypress/support/utils/timeouts';
 import HostedProvidersPagePo from '@/cypress/e2e/po/pages/cluster-manager/hosted-providers.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
@@ -175,14 +177,23 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         createRKE2ClusterPage.create();
 
-        cy.wait('@createRequest').then((intercept) => {
+        cy.wait('@createRequest', { requestTimeout: LONG_TIMEOUT_OPT.timeout }).then((intercept) => {
           // Issue with linter https://github.com/cypress-io/eslint-plugin-cypress/issues/3
+          // Fail fast with a clear error if the backend rejects the create,
+          // instead of waiting 60s for a redirect that never comes.
+          expect(intercept.response?.statusCode, 'Cluster create POST status').to.be.oneOf([200, 201]);
           expect(isMatch(intercept.request.body, request)).to.equal(true);
           expect(['ingress-nginx', 'traefik']).to.include(intercept.request.body.spec?.rkeConfig?.machineGlobalConfig?.['ingress-controller']);
         });
 
-        detailRKE2ClusterPage().waitForPage(undefined, 'registration');
+        // After cluster create, the dashboard redirects from the create form to the
+        // detail page (#registration fragment). waitForPage defaults to a 4s timeout
+        // which can race the redirect under load. Pass LONG_TIMEOUT_OPT (60s).
+        detailRKE2ClusterPage().waitForPage(undefined, 'registration', LONG_TIMEOUT_OPT);
 
+        // The Insecure checkbox only renders once the async cluster registration
+        // token arrives from the backend; the LONG_TIMEOUT_OPT on the .contains()
+        // selector in activateInsecureRegistrationCommandFromUI() handles the wait.
         createRKE2ClusterPage.activateInsecureRegistrationCommandFromUI().click();
         createRKE2ClusterPage.commandFromCustomClusterUI().then(($value) => {
           const registrationCommand = $value.text();
@@ -202,7 +213,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             cy.log(result.stderr);
             expect(result.code).to.eq(0);
           });
-          cy.exec(createRKE2ClusterPage.customClusterRegistrationCmd(registrationCommand)).then((result) => {
+          cy.exec(createRKE2ClusterPage.customClusterRegistrationCmd(registrationCommand), { timeout: RESTART_TIMEOUT_OPT.timeout }).then((result) => {
             cy.log(result.stderr);
             cy.log(result.stdout);
             expect(result.code).to.eq(0);
@@ -211,7 +222,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         ClusterManagerListPagePo.navTo();
         clusterList.waitForPage();
         clusterList.list().state(rke2CustomName).should('contain.text', 'Updating');
-        clusterList.list().state(rke2CustomName).contains('Active', VERY_LONG_TIMEOUT_OPT); // super long timeout needed for cluster provisioning to complete
+        clusterList.list().state(rke2CustomName).contains('Active', VERY_LONG_TIMEOUT_OPT); // 700s: EC2 RKE2 provisioning can be slow; matches the EC2 RKE2 test pattern
       }));
 
       qase(2053, it('can copy config to clipboard', () => {
@@ -226,11 +237,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
-        cy.wait('@copyKubeConfig');
+        cy.wait('@copyKubeConfig', { requestTimeout: LONG_TIMEOUT_OPT.timeout });
 
-        // Verify confirmation message displays and is hidden after ~3 sec
-        cy.get('.growl-text').contains('Copied KubeConfig to Clipboard').should('be.visible');
-        cy.get('.growl-text', { timeout: 4000 }).should('not.exist');
+        // Growl auto-dismiss: 5s lifetime (growl.js DEFAULT_TIMEOUT) + 1s sweep + margin
+        cy.get('.growl-text', { timeout: MEDIUM_TIMEOUT_OPT.timeout }).contains('Copied KubeConfig to Clipboard').should('be.visible');
+        cy.get('.growl-text', { timeout: GROWL_DISMISS_TIMEOUT_OPT.timeout }).should('not.exist');
 
         // Skipping following assertion for now as it is failing due to Cypress' limitations with accessing the clipboard in Chrome browser and headless mode. Works in Electron browser
         // see https://github.com/cypress-io/cypress/issues/2752
@@ -241,19 +252,26 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       }));
 
       qase(1437, it('can edit cluster and see changes afterwards', () => {
-        clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        // navTo + waitForPage + row visible before touching the action menu,
+        // matching the delete test pattern: clicking the action menu on a
+        // still-rendering list is a known flake source.
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
         editCreatedClusterPage().nameNsDescription().description().set(rke2CustomName);
         editCreatedClusterPage().save();
 
-        // We should be taken back to the list page if the save was successful
-        clusterList.waitForPage();
+        // We should be taken back to the list page if the save was successful.
+        // The save PUT + redirect can exceed the 10s default under load.
+        clusterList.waitForPage(undefined, undefined, LONG_TIMEOUT_OPT);
 
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
         editCreatedClusterPage().nameNsDescription().description().self()
           .should('have.value', rke2CustomName);
       }));
@@ -332,53 +350,76 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         const customAddonConfig = `goodvalue: yay\nnested:\n  enabled: true`;
         const updatedDescription = `${ rke2CustomName }-addon-persist-check`;
 
-        clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        // navTo + waitForPage + row visible before touching the action menu,
+        // matching the delete test pattern.
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        // waitForPage defaults to 4s which can race the edit page load under load
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
         editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
         editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
           .set(customAddonConfig);
         editCreatedClusterPage().save();
 
-        clusterList.waitForPage();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        // The save PUT + redirect can exceed the 10s default under load.
+        clusterList.waitForPage(undefined, undefined, LONG_TIMEOUT_OPT);
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
         editCreatedClusterPage().nameNsDescription().description().set(updatedDescription);
         editCreatedClusterPage().save();
 
-        clusterList.waitForPage();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        clusterList.waitForPage(undefined, undefined, LONG_TIMEOUT_OPT);
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
         editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
         editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
           .value()
           .should('include', customAddonConfig);
       }));
 
-      it('can navigate to Cluster Provisioning Log tab in the detail page', () => {
+      qase(3227, it('can navigate to Cluster Provisioning Log tab in the detail page', () => {
+        // Note: this test depends on the create test succeeding. If the cluster
+        // never reaches Active, the log tab won't render and this test will fail.
         const detailPage = detailRKE2ClusterPage();
 
+        detailPage.goTo();
+        // The tabbed-block container may take a moment to render on the detail page;
+        // waitForPage checks the URL but not the DOM. The selectTab call below
+        // queries [data-testid="tabbed-block"] which defaults to a 4s timeout.
+        detailPage.waitForPage(undefined, undefined, LONG_TIMEOUT_OPT);
         detailPage.selectTab(tabbedPo, '[data-testid="btn-log"]');
 
         detailPage.waitForPage(undefined, 'log');
-        detailPage.logsContainer().should('be.visible');
-      });
+        detailPage.logsContainer(MEDIUM_TIMEOUT_OPT).should('be.visible');
+      }));
 
       qase(1434, it('can delete cluster', () => {
-        clusterList.goTo();
-        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', MEDIUM_TIMEOUT_OPT);
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+
+        cy.intercept('DELETE', `/v1/provisioning.cattle.io.clusters/fleet-default/${ rke2CustomName }`).as('deleteRke2Cluster');
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click({ force: true });
 
         const promptRemove = new PromptRemove();
 
         promptRemove.confirm(rke2CustomName);
         promptRemove.remove();
+        cy.wait('@deleteRke2Cluster', { requestTimeout: LONG_TIMEOUT_OPT.timeout }).its('response.statusCode').should('be.oneOf', [200, 204]);
 
         clusterList.waitForPage();
-        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('not.exist');
+        clusterList.sortableTable().rowElements(LONG_TIMEOUT_OPT).should(($rows) => {
+          const tableText = Cypress.$.makeArray<any>($rows).map((row) => row.innerText).join(' ');
+
+          expect(tableText).to.not.contain(rke2CustomName);
+        });
       }));
     });
   });
