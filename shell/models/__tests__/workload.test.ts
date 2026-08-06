@@ -1,6 +1,9 @@
 import Workload from '@shell/models/workload.js';
 import { steveClassJunkObject } from '@shell/plugins/steve/__tests__/utils/steve-mocks';
-import { WORKLOAD_TYPES, SERVICE, INGRESS } from '@shell/config/types';
+import { WORKLOAD_TYPES, SERVICE, INGRESS, GATEWAY_API } from '@shell/config/types';
+import HttpRoute from '@shell/models/gateway.networking.k8s.io.httproute';
+import Gateway from '@shell/models/gateway.networking.k8s.io.gateway';
+import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 
 describe('class: Workload', () => {
   describe('given custom workload keys', () => {
@@ -464,8 +467,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': () => []
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       () => []
         },
       });
 
@@ -491,8 +495,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': () => []
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       () => []
         },
       });
 
@@ -723,8 +728,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': (type: string) => {
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       (type: string) => {
             if (type === SERVICE) {
               return [mockService];
             }
@@ -769,8 +775,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': (type: string) => {
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       (type: string) => {
             if (type === SERVICE) {
               return [mockService];
             }
@@ -819,8 +826,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': (type: string) => {
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       (type: string) => {
             if (type === SERVICE) {
               return [mockService];
             }
@@ -862,8 +870,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': (type: string) => {
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       (type: string) => {
             if (type === SERVICE) {
               return [mockService];
             }
@@ -879,6 +888,188 @@ describe('class: Workload', () => {
       const ingressesRow = rows.find((r: any) => r.label === 'component.resource.detail.card.resourcesCard.rows.ingresses');
 
       expect(ingressesRow).toBeUndefined();
+    });
+  });
+
+  describe('getter: matchingHttpRoutes', () => {
+    const mockService = {
+      metadata: { name: 'svc1', namespace: 'default' },
+      spec:     { selector: { app: 'my-app' } }
+    };
+
+    const makeHttpRoute = (spec: any, gateways: any[] = [], namespace = 'default') => new HttpRoute({
+      metadata: { name: 'route1', namespace },
+      spec
+    }, {
+      rootGetters: {
+        'cluster/schemaFor': () => ({}),
+        'cluster/all':       (type: string) => (type === GATEWAY_API.GATEWAY ? gateways : [])
+      }
+    });
+
+    const makeWorkload = (services: any[], httpRoutes: any[], hasGatewayApi = true) => new Workload({
+      type:     WORKLOAD_TYPES.DEPLOYMENT,
+      metadata: { name: 'test', namespace: 'default' },
+      spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
+    }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootGetters: {
+        'i18n/t':            jest.fn(),
+        'cluster/schemaFor': () => (hasGatewayApi ? {} : undefined),
+        'cluster/all':       (type: string) => {
+          if (type === SERVICE) {
+            return services;
+          }
+          if (type === GATEWAY_API.HTTP_ROUTE) {
+            return httpRoutes;
+          }
+
+          return [];
+        }
+      },
+    });
+
+    it('should return an empty array when there are no related services', () => {
+      const route = makeHttpRoute({ rules: [{ backendRefs: [{ name: 'svc1' }] }] });
+
+      expect(makeWorkload([], [route]).matchingHttpRoutes).toStrictEqual([]);
+    });
+
+    it('should return an empty array when no HTTPRoutes exist', () => {
+      expect(makeWorkload([mockService], []).matchingHttpRoutes).toStrictEqual([]);
+    });
+
+    it('should not ask the store for a type with no schema, on a cluster without the Gateway API', () => {
+      const clusterAll = jest.fn().mockReturnValue([]);
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':            jest.fn(),
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       clusterAll,
+        },
+      });
+
+      expect(workload.matchingHttpRoutes).toStrictEqual([]);
+      expect(clusterAll).not.toHaveBeenCalledWith(GATEWAY_API.HTTP_ROUTE);
+    });
+
+    it('should find the routes that send traffic to a related service', () => {
+      const route = makeHttpRoute({ rules: [{ backendRefs: [{ name: 'svc1' }] }] });
+      const other = makeHttpRoute({ rules: [{ backendRefs: [{ name: 'svc2' }] }] });
+
+      expect(makeWorkload([mockService], [other, route]).matchingHttpRoutes).toStrictEqual([route]);
+    });
+
+    it('should not match a route whose backendRef points at another namespace', () => {
+      const route = makeHttpRoute({ rules: [{ backendRefs: [{ name: 'svc1', namespace: 'elsewhere' }] }] });
+
+      expect(makeWorkload([mockService], [route]).matchingHttpRoutes).toStrictEqual([]);
+    });
+  });
+
+  describe('getters: publicEndpoints / gatewayEndpoints / detailEndpoints', () => {
+    const publicEndpoint = {
+      addresses: ['172.18.0.3'], port: 80, protocol: 'HTTP', serviceName: 'default:svc1'
+    };
+
+    const mockService = {
+      metadata: { name: 'svc1', namespace: 'default' },
+      spec:     { selector: { app: 'my-app' } }
+    };
+
+    const mockGateway = new Gateway({
+      metadata: { name: 'gw', namespace: 'default' },
+      spec:     {
+        listeners: [{
+          name: 'http', protocol: 'HTTP', port: 80
+        }]
+      },
+      status: {}
+    });
+
+    const mockRoute = new HttpRoute({
+      metadata: { name: 'route1', namespace: 'default' },
+      spec:     {
+        parentRefs: [{ name: 'gw' }],
+        hostnames:  ['demo.example.com'],
+        rules:      [{ matches: [{ path: { value: '/shop' } }], backendRefs: [{ name: 'svc1' }] }]
+      }
+    }, {
+      rootGetters: {
+        'cluster/schemaFor': () => ({}),
+        'cluster/all':       (type: string) => (type === GATEWAY_API.GATEWAY ? [mockGateway] : [])
+      }
+    });
+
+    const makeWorkload = (annotations: any, httpRoutes: any[] = []) => new Workload({
+      type:     WORKLOAD_TYPES.DEPLOYMENT,
+      metadata: {
+        name: 'test', namespace: 'default', annotations
+      },
+      spec: { template: { metadata: { labels: { app: 'my-app' } } } }
+    }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootGetters: {
+        'i18n/t':            jest.fn(),
+        'cluster/schemaFor': () => ({}),
+        'cluster/all':       (type: string) => {
+          if (type === SERVICE) {
+            return [mockService];
+          }
+          if (type === GATEWAY_API.HTTP_ROUTE) {
+            return httpRoutes;
+          }
+
+          return [];
+        }
+      },
+    });
+
+    it('should parse the publicEndpoints annotation', () => {
+      const workload = makeWorkload({ [CATTLE_PUBLIC_ENDPOINTS]: JSON.stringify([publicEndpoint]) });
+
+      expect(workload.publicEndpoints).toStrictEqual([publicEndpoint]);
+    });
+
+    it.each([
+      ['no annotations at all', undefined],
+      ['no publicEndpoints annotation', { other: 'value' }],
+      ['a malformed annotation', { [CATTLE_PUBLIC_ENDPOINTS]: 'not json' }],
+      ['an annotation that is not an array', { [CATTLE_PUBLIC_ENDPOINTS]: '{"a":1}' }],
+    ])('should return no public endpoints for %s', (_label, annotations) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      expect(makeWorkload(annotations).publicEndpoints).toStrictEqual([]);
+
+      warn.mockRestore();
+    });
+
+    it('should resolve gateway endpoints through the matching routes', () => {
+      expect(makeWorkload(undefined, [mockRoute]).gatewayEndpoints).toStrictEqual([
+        { link: 'http://demo.example.com/shop', linkDisplay: 'http://demo.example.com/shop' }
+      ]);
+    });
+
+    it('should combine published endpoints with gateway endpoints', () => {
+      const workload = makeWorkload({ [CATTLE_PUBLIC_ENDPOINTS]: JSON.stringify([publicEndpoint]) }, [mockRoute]);
+
+      expect(workload.detailEndpoints).toStrictEqual([
+        publicEndpoint,
+        { link: 'http://demo.example.com/shop', linkDisplay: 'http://demo.example.com/shop' }
+      ]);
+    });
+
+    it('should be undefined when the workload is exposed by nothing, so the masthead row stays hidden', () => {
+      // An empty array would be truthy and leave a labelled Endpoints row with no value.
+      expect(makeWorkload(undefined).detailEndpoints).toBeUndefined();
     });
   });
 });

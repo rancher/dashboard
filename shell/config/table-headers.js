@@ -661,6 +661,20 @@ export const INGRESS_CLASS = {
   sort:     `$['spec']['ingressClassName']`,
 };
 
+export const HTTP_ROUTE_HOSTNAMES = {
+  name:     'httpRouteHostnames',
+  labelKey: 'tableHeaders.httpRouteHostnames',
+  value:    'hostnamesDisplay',
+  sort:     'hostnamesDisplay',
+};
+
+export const HTTP_ROUTE_GATEWAYS = {
+  name:     'httpRouteGateways',
+  labelKey: 'tableHeaders.httpRouteGateways',
+  value:    'parentRefsDisplay',
+  sort:     'parentRefsDisplay',
+};
+
 export const INGRESS_DEFAULT_BACKEND = {
   name:      'ingressDefaultBackend',
   labelKey:  'tableHeaders.ingressDefaultBackend',

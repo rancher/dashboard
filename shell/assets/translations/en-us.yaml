@@ -7093,6 +7093,8 @@ tableHeaders:
   iP: IP
   image: Image
   imageSize: Size
+  httpRouteGateways: Gateways
+  httpRouteHostnames: Hostnames
   ingressClass: Ingress Class
   ingressDefaultBackend: Default
   ingressTarget: Target
@@ -7824,6 +7826,10 @@ workload:
     cannotFindIngresses: Could not find any Ingresses that forward traffic to Services that select Pods in this workload.
     ingressListCaption: "The following Ingresses forward traffic to Services that select Pods from this workload:"
     cannotViewIngressesBecauseCannotViewServices: Could not find relevant relevant Ingresses due to lack of permission to view Services.
+    httpRoutes: HTTPRoutes
+    cannotFindHttpRoutes: Could not find any HTTPRoutes that forward traffic to Services that select Pods in this workload.
+    httpRouteListCaption: "The following HTTPRoutes forward traffic to Services that select Pods from this workload:"
+    cannotViewHttpRoutesBecauseCannotViewServices: Could not find relevant HTTPRoutes due to lack of permission to view Services.
     pods:
       title: Pods
   detailTop:
@@ -9532,6 +9538,7 @@ component:
           rows:
             services: Services
             ingresses: Ingresses
+            httpRoutes: HTTPRoutes
             referredToBy: Referred to by
             refersTo: Refers to
         podsCard:
