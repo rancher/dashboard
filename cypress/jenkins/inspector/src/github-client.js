@@ -189,12 +189,21 @@ class GitHubClient {
     return `### Failing Environments\n| Version | Environment | User |\n|---------|-------------|------|\n${ rows }`;
   }
 
-  async reopenIssue(issueNumber, environments = []) {
+  async reopenIssue(issueNumber, environments = [], failure = {}) {
     await this._patch(`/repos/${ this.org }/${ this.repo }/issues/${ issueNumber }`, { state: 'open' });
 
     const envTable = this._renderEnvironmentsTable(environments);
 
-    await this._post(`/repos/${ this.org }/${ this.repo }/issues/${ issueNumber }/comments`, { body: `**Regression detected** — this test is failing again.\n\n${ envTable }\n\n*Auto-detected by CI Failure Inspector.*` });
+    const errorSection = failure.errorSummary
+      ? `\n### Error Summary\n\`\`\`\n${ failure.errorSummary }\n\`\`\`\n`
+      : '';
+    const stackSection = failure.stacktrace
+      ? `\n### Stack Trace\n\`\`\`\n${ failure.stacktrace }\n\`\`\`\n`
+      : '';
+
+    const body = `**Regression detected** — this test is failing again.\n\n${ envTable }${ errorSection }${ stackSection }\n*Auto-detected by CI Failure Inspector.*`;
+
+    await this._post(`/repos/${ this.org }/${ this.repo }/issues/${ issueNumber }/comments`, { body });
   }
 
   async createFailureTask(failure, environments = []) {
