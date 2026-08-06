@@ -1,5 +1,6 @@
 import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query-params';
 import { MANAGEMENT, EXT } from '@shell/config/types';
+import { providerKey } from '@shell/models/management.cattle.io.authconfig';
 import { addObjects, findBy, joinStringList } from '@shell/utils/array';
 import { openAuthPopup, returnTo } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';
@@ -232,6 +233,10 @@ export const actions = {
       out.provider = opt.provider;
     }
 
+    if (opt.providerType) {
+      out.providerType = opt.providerType;
+    }
+
     return out;
   },
 
@@ -267,6 +272,7 @@ export const actions = {
   async redirectTo({ state, commit, dispatch }, opt = {}) {
     const provider = opt.provider;
     const driver = await dispatch('getAuthProvider', provider);
+    const providerType = providerKey(opt.providerType || driver?.type || provider);
     let redirectUrl = opt.redirectUrl;
 
     if ( !redirectUrl ) {
@@ -274,7 +280,7 @@ export const actions = {
     }
     let returnToUrl = `${ window.location.origin }/verify-auth`;
 
-    if (provider === 'azuread') {
+    if (providerType === 'azuread') {
       const params = { response_type: 'code', response_mode: 'query' };
 
       redirectUrl = addParams(redirectUrl, params );
@@ -282,7 +288,7 @@ export const actions = {
     }
 
     // The base nonce that will be sent server way
-    const baseNonce = opt.nonce || await dispatch('createNonce', opt);
+    const baseNonce = opt.nonce || await dispatch('createNonce', { ...opt, providerType });
 
     // Save a possibly expanded nonce
     await dispatch('saveNonce', opt.persistNonce || baseNonce);
@@ -292,8 +298,8 @@ export const actions = {
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
     let scopes = fromQuery.split(/[, ]+/).filter((x) => !!x);
 
-    if (BASE_SCOPES[provider]) {
-      addObjects(scopes, BASE_SCOPES[provider]);
+    if (BASE_SCOPES[providerType]) {
+      addObjects(scopes, BASE_SCOPES[providerType]);
     }
 
     // Need to merge these 2 formats preventing duplicates between code and UI, e.g.
@@ -368,17 +374,18 @@ export const actions = {
 
   async test({ dispatch }, { provider, body }) {
     const driver = await dispatch('getAuthConfig', provider);
+    const providerType = providerKey(driver?._type || driver?.type || provider);
 
     try {
       // saml providers
       if (!!driver?.actions?.testAndEnable) {
-        const finalRedirectUrl = returnTo({ config: provider }, this);
+        const finalRedirectUrl = returnTo({ config: providerType }, this);
 
         const res = await driver.doAction('testAndEnable', { finalRedirectUrl });
 
         const { idpRedirectUrl } = res;
 
-        return openAuthPopup(idpRedirectUrl, provider);
+        return openAuthPopup(idpRedirectUrl, providerType);
       } else {
       // github, google, azuread, oidc
         const res = await driver.doAction('configureTest', body);
@@ -386,13 +393,14 @@ export const actions = {
 
         const url = await dispatch('redirectTo', {
           provider,
+          providerType,
           redirectUrl,
           scopes:   body.scope,
           test:     true,
           redirect: false
         });
 
-        return openAuthPopup(url, provider);
+        return openAuthPopup(url, providerType);
       }
     } catch (err) {
       return Promise.reject(err);
@@ -409,6 +417,7 @@ export const actions = {
           url:    `/v1-public/login`,
           method: 'post',
           data:   {
+            name:         driver.id,
             type:         driver.type,
             description:  'UI session',
             responseType: 'cookie',
