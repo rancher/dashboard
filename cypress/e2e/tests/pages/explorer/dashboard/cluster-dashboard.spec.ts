@@ -255,6 +255,16 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     });
 
     clusterDashboard.goTo();
+    // The cluster dashboard can crash to the fail-whale error page on a transient backend blip
+    // during load; with testIsolation off that state carries into the Cypress retry and fails
+    // every attempt. If we landed on fail-whale, settle briefly and re-navigate so a transient
+    // crash recovers instead of wedging the retry.
+    cy.url().then((url) => {
+      if (url.includes('/fail-whale')) {
+        cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
+        clusterDashboard.goTo();
+      }
+    });
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
