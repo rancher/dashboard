@@ -49,8 +49,10 @@ function groupFailures(failures) {
   const grouped = new Map();
 
   for (const f of failures) {
-    if (!grouped.has(f.testTitle)) grouped.set(f.testTitle, { ...f, environments: [] });
-    if (f.environment) grouped.get(f.testTitle).environments.push(f.environment);
+    const title = githubClient._issueTitle(f);
+
+    if (!grouped.has(title)) grouped.set(title, { ...f, environments: [] });
+    if (f.environment) grouped.get(title).environments.push(f.environment);
   }
 
   return grouped;
@@ -122,8 +124,28 @@ async function groupAndCreateIssues(failures) {
         continue;
       }
 
-      // No existing issue — create a new one and add it to the project board
+      // No existing issue in the labelled set — do a label-independent check before
+      // creating, so an issue whose labels were changed by a triager isn't duplicated.
+      const untracked = await githubClient.findIssueByTitle(issueTitle);
+
+      if (untracked) {
+        // Deliberately not reopened: the issue no longer carries our labels, so it has been
+        // re-categorised by a human and is outside this tool's scope to manage.
+        console.log(`  SKIP  #${ untracked.id } exists as "${ untracked.state }" without our labels: ${ failure.testTitle }`);
+        existingIssues.set(issueTitle, { ...untracked });
+        skipped++;
+        continue;
+      }
+
       const task = await githubClient.createFailureTask(failure, failure.environments);
+
+      // Register the new issue immediately so any later duplicate title in this run won't re-create it
+      existingIssues.set(issueTitle, {
+        id:     task.id,
+        nodeId: task.nodeId,
+        url:    task.url,
+        state:  'open'
+      });
 
       try {
         // Add to UI Automation project board under Backlog status

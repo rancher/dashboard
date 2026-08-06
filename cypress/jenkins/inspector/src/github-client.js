@@ -9,6 +9,10 @@ import { fetchWithRetry } from './fetch-utils.js';
 
 const GH_API = 'https://api.github.com';
 
+// GitHub truncates issue titles beyond this length — we must truncate identically
+// so a generated title always matches the title GitHub stored for the same failure.
+const MAX_ISSUE_TITLE_LENGTH = 256;
+
 class GitHubClient {
   constructor(token, projectToken) {
     this.org = process.env.GITHUB_ORG || 'rancher';
@@ -31,13 +35,13 @@ class GitHubClient {
     };
   }
 
-  async _request(method, path, body) {
+  async _request(method, path, body, retryConfig) {
     const url = path.startsWith('http') ? path : `${ GH_API }${ path }`;
     const res = await fetchWithRetry(url, {
       method,
       headers: this.headers,
       body:    body ? JSON.stringify(body) : undefined
-    });
+    }, retryConfig);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message || `GitHub HTTP ${ res.status }: ${ path }`);
@@ -77,7 +81,18 @@ class GitHubClient {
     const hookMatch = failure.testTitle.match(/^"(?:before|after) (?:each|all)" hook[^"]*"(.+)"$/);
     const normalizedTitle = hookMatch ? hookMatch[1] : failure.testTitle;
 
-    return `[UI][Auto] ${ failure.suite } > ${ normalizedTitle }`;
+    // Deduplication compares this generated title against the title GitHub stored.
+    // GitHub collapses newlines and trims titles, and truncates them at MAX_ISSUE_TITLE_LENGTH.
+    // If we don't apply the same normalization the stored title can never match what we
+    // generate on the next run, which would re-create the same issue on every run forever.
+    const title = `[UI][Auto] ${ this._normalize(failure.suite) } > ${ this._normalize(normalizedTitle) }`;
+
+    return title.length > MAX_ISSUE_TITLE_LENGTH ? `${ title.slice(0, MAX_ISSUE_TITLE_LENGTH - 1) }…` : title;
+  }
+
+  _normalize(value) {
+    // Collapse all whitespace runs (including newlines/tabs) to single spaces and trim
+    return String(value ?? '').replace(/\s+/g, ' ').trim();
   }
 
   async fetchExistingIssues() {
@@ -88,13 +103,21 @@ class GitHubClient {
     const map = new Map();
     const labelParam = encodeURIComponent(this.labels.join(','));
     let page = 1;
+    let truncated = false;
 
-    while (page <= MAX_PAGES) {
+    for (;;) {
       const issues = await this._get(
-        `/repos/${ this.org }/${ this.repo }/issues?state=all&labels=${ labelParam }&per_page=100&page=${ page }`
+        `/repos/${ this.org }/${ this.repo }/issues?state=all&labels=${ labelParam }&sort=created&direction=asc&per_page=100&page=${ page }`
       );
 
       for (const issue of issues) {
+        const previous = map.get(issue.title);
+
+        // If duplicate titles already exist in the repo, always keep the open one.
+        // Otherwise a closed duplicate could shadow an open issue and we'd reopen the
+        // closed one, leaving two open issues tracking the same test.
+        if (previous?.state === 'open' && issue.state !== 'open') continue;
+
         map.set(issue.title, {
           id:     issue.number,
           nodeId: issue.node_id,
@@ -105,14 +128,53 @@ class GitHubClient {
 
       if (issues.length < 100) break;
 
-      page++;
-
-      if (page > MAX_PAGES) {
-        console.warn(`fetchExistingIssues: reached ${ MAX_PAGES }-page ceiling — some older issues may not be loaded`);
+      if (page >= MAX_PAGES) {
+        truncated = true;
+        break;
       }
+
+      page++;
+    }
+
+    // Refuse to continue on a partial list. Any issue we failed to load looks "new",
+    // so proceeding would re-create issues that already exist.
+    if (truncated) {
+      throw new Error(
+        `fetchExistingIssues: reached the ${ MAX_PAGES }-page ceiling (${ map.size }+ issues) so the ` +
+        `deduplication list is incomplete. Aborting before creating duplicates. ` +
+        `Close or archive stale [UI][Auto] issues, or raise MAX_PAGES.`
+      );
     }
 
     return map;
+  }
+
+  async findIssueByTitle(title) {
+    // Last-line-of-defense lookup used immediately before creating an issue.
+    // fetchExistingIssues() filters on labels, so an issue that a triager relabelled
+    // is invisible to it and would be re-created. Search ignores our labels entirely.
+    // Returns null on failure — this is a safety net, never a hard dependency.
+    try {
+      const q = encodeURIComponent(`repo:${ this.org }/${ this.repo } in:title "${ title.replace(/"/g, ' ') }"`);
+      const res = await this._get(`/search/issues?q=${ q }&per_page=100`);
+
+      // Search matching is fuzzy, so compare titles exactly and prefer an open issue
+      const matches = (res.items || []).filter((i) => i.title === title && !i.pull_request);
+      const match = matches.find((i) => i.state === 'open') || matches[0];
+
+      if (!match) return null;
+
+      return {
+        id:     match.number,
+        nodeId: match.node_id,
+        url:    match.html_url,
+        state:  match.state
+      };
+    } catch (e) {
+      console.warn(`  Warning: duplicate pre-check failed for "${ title }": ${ e.message }`);
+
+      return null;
+    }
   }
 
   _renderEnvironmentsTable(environments) {
@@ -159,9 +221,12 @@ ${ failure.stacktrace || 'No stack trace available' }
 *Auto-generated by [CI Failure Inspector](https://github.com/rancher/dashboard/tree/master/cypress/jenkins/inspector)*`;
 
     try {
-      const response = await this._post(`/repos/${ this.org }/${ this.repo }/issues`, {
+      // Deliberately not retried at the HTTP layer: a timeout or connection reset can fire
+      // after GitHub already accepted the create, so a blind retry duplicates the issue.
+      // Resilience is provided by the recovery lookup below instead.
+      const response = await this._request('POST', `/repos/${ this.org }/${ this.repo }/issues`, {
         title, body, labels: this.labels
-      });
+      }, { retries: 0 });
 
       return {
         id:     response.number,
@@ -170,7 +235,43 @@ ${ failure.stacktrace || 'No stack trace available' }
         title:  response.title
       };
     } catch (error) {
+      // The request may have succeeded server-side before the error surfaced. Check whether
+      // the issue actually landed and adopt it, rather than retrying and creating a second copy.
+      const recovered = await this._findRecentIssueByTitle(title);
+
+      if (recovered) {
+        console.log(`  Recovered #${ recovered.id } — issue was created despite: ${ error.message }`);
+
+        return { ...recovered, title };
+      }
+
       throw new Error(`Failed to create GitHub issue: ${ error.message }`);
+    }
+  }
+
+  async _findRecentIssueByTitle(title) {
+    // Used to confirm whether a failed create actually landed. Deliberately uses the REST
+    // list endpoint rather than search: list is immediately consistent, whereas the search
+    // index lags by seconds and would miss an issue created moments ago.
+    try {
+      const labelParam = encodeURIComponent(this.labels.join(','));
+      const issues = await this._get(
+        `/repos/${ this.org }/${ this.repo }/issues?state=all&labels=${ labelParam }&sort=created&direction=desc&per_page=100`
+      );
+      const match = issues.find((i) => i.title === title);
+
+      if (!match) return null;
+
+      return {
+        id:     match.number,
+        nodeId: match.node_id,
+        url:    match.html_url,
+        state:  match.state
+      };
+    } catch (e) {
+      console.warn(`  Warning: could not verify whether "${ title }" was created: ${ e.message }`);
+
+      return null;
     }
   }
 

@@ -17,6 +17,12 @@ on:
         default: ''
         type: string
 
+# Two runs racing (e.g. the schedule overlapping a manual dispatch) would each read the
+# same set of existing issues and both create — serialise runs so that can't happen.
+concurrency:
+  group: ci-failure-inspection
+  cancel-in-progress: false
+
 jobs:
   inspect:
     name: Inspect CI failures and create issues
