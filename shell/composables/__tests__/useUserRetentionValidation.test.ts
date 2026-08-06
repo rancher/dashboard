@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { useUserRetentionValidation } from '@shell/composables/useUserRetentionValidation';
+import type { Setting } from '@shell/types/resources/settings';
 
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
@@ -12,8 +13,9 @@ function makeComposable(
 ) {
   const disableAfterPeriod = ref(disableAfter);
   const deleteAfterPeriod = ref(deleteAfter);
-  const authUserSessionTtlMinutes = ref(
-    sessionTtlMinutes !== null ? { value: String(sessionTtlMinutes) } : null,
+  // The composable only reads `.value`, so a partial Setting mock is sufficient here.
+  const authUserSessionTtlMinutes = ref<Setting | null>(
+    sessionTtlMinutes !== null ? { value: String(sessionTtlMinutes) } as Setting : null,
   );
 
   return useUserRetentionValidation(disableAfterPeriod, deleteAfterPeriod, authUserSessionTtlMinutes);
