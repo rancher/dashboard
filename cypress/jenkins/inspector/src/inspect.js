@@ -17,6 +17,7 @@
 import { JenkinsClient } from './jenkins-client.js';
 import GitHubClient from './github-client.js';
 import { sendHighFailureAlert } from './slack-client.js';
+import { AIClient } from './ai-client.js';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GH_PROJECT_TOKEN = process.env.GH_PROJECT_TOKEN;
@@ -42,6 +43,7 @@ if (!JENKINS_URL) {
 
 const jenkinsClient = new JenkinsClient(JENKINS_AUTH);
 const githubClient = new GitHubClient(GITHUB_TOKEN, GH_PROJECT_TOKEN);
+const aiClient = new AIClient(process.env.COPILOT_TOKEN);
 
 function groupFailures(failures) {
   // Group by testTitle so the same test failing across multiple environments
@@ -137,7 +139,9 @@ async function groupAndCreateIssues(failures) {
         continue;
       }
 
-      const task = await githubClient.createFailureTask(failure, failure.environments);
+      // No existing issue — create a new one and add it to the project board
+      const aiSuggestions = await aiClient.generateFixSuggestions(failure);
+      const task = await githubClient.createFailureTask(failure, failure.environments, aiSuggestions);
 
       // Register the new issue immediately so any later duplicate title in this run won't re-create it
       existingIssues.set(issueTitle, {
