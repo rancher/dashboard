@@ -404,6 +404,12 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
 
+    // The extension reload re-initialises the whole app; wait for the page and its tabs to
+    // render before clicking a tab, otherwise the extension-tabs container is not yet in the
+    // DOM (seen as "extension-tabs not found" on the first attempt).
+    extensionsPo.waitForPage();
+    extensionsPo.waitForTabs();
+
     // make sure extension card is still on the installed tab
     // since we installed the latest version
     extensionsPo.extensionTabInstalledClick();
