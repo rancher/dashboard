@@ -19,11 +19,16 @@ import GitHubClient from './github-client.js';
 import { sendHighFailureAlert } from './slack-client.js';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GH_PROJECT_TOKEN = process.env.GH_PROJECT_TOKEN;
 const JENKINS_AUTH = process.env.JENKINS_AUTH;
 const JENKINS_URL = process.env.JENKINS_BASE_URL;
 
 if (!GITHUB_TOKEN) {
   console.error('ERROR: GITHUB_TOKEN env var is required');
+  process.exit(1);
+}
+if (!GH_PROJECT_TOKEN) {
+  console.error('ERROR: GH_PROJECT_TOKEN env var is required');
   process.exit(1);
 }
 if (!JENKINS_AUTH) {
@@ -36,7 +41,7 @@ if (!JENKINS_URL) {
 }
 
 const jenkinsClient = new JenkinsClient(JENKINS_AUTH);
-const githubClient = new GitHubClient(GITHUB_TOKEN);
+const githubClient = new GitHubClient(GITHUB_TOKEN, GH_PROJECT_TOKEN);
 
 function groupFailures(failures) {
   // Group by testTitle so the same test failing across multiple environments

@@ -35,6 +35,12 @@ jobs:
           secrets: |
             github/token/rancher--qa-tasks--issues--write token | GH_TOKEN
 
+      - name: Read project secrets from Vault
+        uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
+        with:
+          secrets: |
+            github/token/rancher--organization_projects--write token | GH_PROJECT_TOKEN
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,6 +50,7 @@ jobs:
         working-directory: cypress/jenkins/inspector
         env:
           GITHUB_TOKEN: ${{ env.GH_TOKEN }}
+          GH_PROJECT_TOKEN: ${{ env.GH_PROJECT_TOKEN }}
           JENKINS_AUTH: ${{ secrets.INSPECTOR_JENKINS_AUTH }}
           JENKINS_BASE_URL: ${{ secrets.INSPECTOR_JENKINS_BASE_URL }}
           JENKINS_JOB_PATH: ${{ secrets.INSPECTOR_JENKINS_JOB_PATH }}

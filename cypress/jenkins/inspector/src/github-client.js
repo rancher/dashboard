@@ -10,7 +10,7 @@ import { fetchWithRetry } from './fetch-utils.js';
 const GH_API = 'https://api.github.com';
 
 class GitHubClient {
-  constructor(token) {
+  constructor(token, projectToken) {
     this.org = process.env.GITHUB_ORG || 'rancher';
     this.repo = process.env.GITHUB_REPO || 'qa-tasks';
     this.project = parseInt(process.env.GITHUB_PROJECT_NUMBER || '40', 10);
@@ -24,6 +24,11 @@ class GitHubClient {
       Accept:         'application/vnd.github.v3+json',
       'Content-Type': 'application/json'
     };
+    this.projectHeaders = {
+      Authorization:  `token ${ projectToken }`,
+      Accept:         'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
   }
 
   async _request(method, path, body) {
@@ -31,6 +36,20 @@ class GitHubClient {
     const res = await fetchWithRetry(url, {
       method,
       headers: this.headers,
+      body:    body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || `GitHub HTTP ${ res.status }: ${ path }`);
+
+    return data;
+  }
+
+  async _projectRequest(method, path, body) {
+    const url = path.startsWith('http') ? path : `${ GH_API }${ path }`;
+    const res = await fetchWithRetry(url, {
+      method,
+      headers: this.projectHeaders,
       body:    body ? JSON.stringify(body) : undefined
     });
     const data = await res.json();
@@ -167,12 +186,10 @@ ${ failure.stacktrace || 'No stack trace available' }
         }
       }
     `;
-    const response = await this._post('/graphql', {
+    const response = await this._projectRequest('POST', '/graphql', {
       query,
       variables: { login: this.org, number: this.project }
     });
-
-    if (response.errors) throw new Error(response.errors[0].message);
 
     const owner = this.projectOwnerType === 'org' ? response.data.organization : response.data.user;
 
@@ -189,7 +206,7 @@ ${ failure.stacktrace || 'No stack trace available' }
     let cursor = null;
 
     do {
-      const res = await this._post('/graphql', {
+      const res = await this._projectRequest('POST', '/graphql', {
         query: `
           query($projectId: ID!, $cursor: String) {
             node(id: $projectId) {
@@ -229,7 +246,7 @@ ${ failure.stacktrace || 'No stack trace available' }
       const canSetStatus = !!this.statusFieldId && !!this.backlogOptionId;
 
       // addProjectV2ItemById is idempotent — if already on board it returns the existing item
-      const addRes = await this._post('/graphql', {
+      const addRes = await this._projectRequest('POST', '/graphql', {
         query: `
           mutation($projectId: ID!, $contentId: ID!) {
             addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
@@ -251,7 +268,7 @@ ${ failure.stacktrace || 'No stack trace available' }
       }
 
       // Set status to Backlog
-      const updateRes = await this._post('/graphql', {
+      const updateRes = await this._projectRequest('POST', '/graphql', {
         query: `
           mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
             updateProjectV2ItemFieldValue(input: {
