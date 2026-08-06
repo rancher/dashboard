@@ -38,8 +38,8 @@ export default abstract class ClusterManagerDetailPagePo extends BaseDetailPageP
     return new DetailDrawer();
   }
 
-  logsContainer() {
-    return new ClusterProvisioningLogPo(this.self()).logsContainer();
+  logsContainer(options?: any) {
+    return new ClusterProvisioningLogPo(this.self()).logsContainer(options);
   }
 
   kubectlCommandForImported() {
