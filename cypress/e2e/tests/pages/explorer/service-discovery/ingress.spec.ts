@@ -250,6 +250,13 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       const ingressCreatePagePo = new IngressCreateEditPo();
 
       ingressCreatePagePo.waitForPage(null, 'rules');
+      // With testIsolation off, the target-service dropdown is populated from the persisted store,
+      // which earlier Create/Edit tests filled before this test created its headless service - so
+      // the new service is absent from the options and the selection below silently no-ops (the
+      // submitted rule comes back with no http backend). Reload the freshly-opened form (nothing
+      // entered yet) to clear the store and force a fresh services fetch that includes it.
+      cy.reload();
+      ingressCreatePagePo.waitForPage(null, 'rules');
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressHeadlessName);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
