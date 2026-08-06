@@ -1,4 +1,4 @@
-import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
@@ -395,8 +395,12 @@ export const SECRET_ORIGIN = {
   labelKey:  'tableHeaders.secret.origin',
   tooltip:   'tableHeaders.secret.originTooltip',
   formatter: 'SecretOrigin',
-  sort:      'project.spec.displayName',
-  search:    false,
+  sort:      [
+    `metadata.annotations."${ UI_PROJECT_SECRET_COPY }":desc`,
+    `projectSecretCopyCluster.spec.displayName`,
+    'project.spec.displayName',
+  ],
+  search: false,
 };
 
 export const TARGET_KIND = {

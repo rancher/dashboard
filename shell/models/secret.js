@@ -574,6 +574,10 @@ export default class Secret extends SteveModel {
     return this.metadata?.labels?.[UI_PROJECT_SECRET_CLUSTER];
   }
 
+  get projectSecretCopyCluster() {
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.CLUSTER, this.projectSecretCopyClusterId);
+  }
+
   /**
    * If this is a project scoped secret, or a project scoped secrets's cloned secret, return it's project
    *
