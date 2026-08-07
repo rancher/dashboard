@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "yarn@4.17.1",
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
