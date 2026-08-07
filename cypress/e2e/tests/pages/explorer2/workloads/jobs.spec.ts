@@ -370,7 +370,9 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // generate small set of jobs data
       generateJobsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsJobsListPagePo.navTo();
+      // Navigate directly rather than via the side menu: the side-menu nav
+      // intermittently lands on the wrong workload type (e.g. Deployments).
+      WorkloadsJobsListPagePo.goTo(localCluster);
       cy.wait('@jobsDataSmall');
       jobsListPage.waitForPage();
 
