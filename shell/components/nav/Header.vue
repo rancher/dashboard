@@ -285,7 +285,17 @@ export default {
     // This is to enforce the logo display on certain routes like home, about, prefs, account, etc
     isLogoRoute() {
       return !this.$route.name.includes('c-cluster');
-    }
+    },
+
+    extensionHeaderActionsAriaExpanded() {
+      return this.extensionHeaderActions.map((action) => {
+        if (typeof action.ariaExpanded === 'function') {
+          return action.ariaExpanded();
+        }
+
+        return action.ariaExpanded;
+      });
+    },
   },
 
   watch: {
@@ -725,6 +735,7 @@ export default {
           role="button"
           tabindex="0"
           :aria-label="action.labelKey ? t(action.labelKey) : action.label"
+          :aria-expanded="typeof extensionHeaderActionsAriaExpanded[i] === 'boolean' ? extensionHeaderActionsAriaExpanded[i] : undefined"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >

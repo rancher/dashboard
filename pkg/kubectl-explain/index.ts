@@ -1,6 +1,6 @@
 import { importTypes } from '@rancher/auto-import';
 import { ActionLocation, IPlugin, IInternal } from '@shell/core/types';
-import { explain } from './slide-in';
+import { explain, isExplainPanelOpen } from './slide-in';
 
 // Init the package
 export default function(plugin: IPlugin, internal: IInternal): void {
@@ -22,10 +22,11 @@ export default function(plugin: IPlugin, internal: IInternal): void {
       'logging'
     ]
   }, {
-    labelKey:   'kubectl-explain.action',
-    tooltipKey: 'kubectl-explain.tooltip',
-    svg:        require('./explain.svg'),
-    invoke:     (opts, res, globals) => {
+    labelKey:    'kubectl-explain.action',
+    tooltipKey:  'kubectl-explain.tooltip',
+    svg:         require('./explain.svg'),
+    ariaExpanded: () => isExplainPanelOpen.value,
+    invoke:      (opts, res, globals) => {
       explain(store, globals.$route);
     }
   });
