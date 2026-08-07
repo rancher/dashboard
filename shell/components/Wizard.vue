@@ -446,6 +446,7 @@ export default {
         >
           <Banner
             color="error"
+            role="alert"
             :label="err"
             :closable="true"
             class="footer-error"

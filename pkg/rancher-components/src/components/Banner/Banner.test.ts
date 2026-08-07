@@ -81,27 +81,52 @@ describe('component: Banner', () => {
 
     const mainContainer = wrapper.find('.banner');
     const bannerIcon = wrapper.find('.banner__icon i');
-    const bannerContent = wrapper.find('.banner__content');
     const bannerCloseBtn = wrapper.find('.banner__content__closer');
     const bannerCloseIcon = wrapper.find('.icon-close.closer-icon');
 
-    const mainContainerRole = mainContainer.attributes('role');
-    const mainContainerAriaLabelledBy = mainContainer.attributes('aria-labelledby');
-
     const bannerIconAlt = bannerIcon.attributes('alt');
-
-    const bannerContentId = bannerContent.attributes('id');
 
     const bannerCloseBtnRole = bannerCloseBtn.attributes('role');
     const bannerCloseBtnAriaLabel = bannerCloseBtn.attributes('aria-label');
 
     const bannerCloseIconAlt = bannerCloseIcon.attributes('alt');
 
-    expect(mainContainerRole).toBe('region');
-    expect(mainContainerAriaLabelledBy).toBe(bannerContentId);
+    expect(mainContainer.attributes('role')).toBeUndefined();
+    expect(mainContainer.attributes('aria-labelledby')).toBeUndefined();
     expect(bannerIconAlt).toBeDefined();
     expect(bannerCloseIconAlt).toBeDefined();
     expect(bannerCloseBtnRole).toBe('button');
     expect(bannerCloseBtnAriaLabel).toBeDefined();
+  });
+
+  describe('a11y: role prop (live region)', () => {
+    it('should have no role attribute by default', () => {
+      const wrapper = mount(Banner, { propsData: { label: 'test' } });
+      const mainContainer = wrapper.find('.banner');
+
+      expect(mainContainer.attributes('role')).toBeUndefined();
+    });
+
+    it('should render role="alert" for persistent live-region containers announcing errors', () => {
+      const wrapper = mount(Banner, { propsData: { label: 'Something went wrong', role: 'alert' } });
+      const mainContainer = wrapper.find('.banner');
+
+      expect(mainContainer.attributes('role')).toBe('alert');
+    });
+
+    it('should render role="status" for persistent live-region containers announcing polite notifications', () => {
+      const wrapper = mount(Banner, { propsData: { label: 'Cluster is provisioning', role: 'status' } });
+      const mainContainer = wrapper.find('.banner');
+
+      expect(mainContainer.attributes('role')).toBe('status');
+    });
+
+    it('should accept only "alert" and "status" as valid role values', () => {
+      const alertWrapper = mount(Banner, { propsData: { label: 'test', role: 'alert' } });
+      const statusWrapper = mount(Banner, { propsData: { label: 'test', role: 'status' } });
+
+      expect(alertWrapper.find('.banner').attributes('role')).toBe('alert');
+      expect(statusWrapper.find('.banner').attributes('role')).toBe('status');
+    });
   });
 });

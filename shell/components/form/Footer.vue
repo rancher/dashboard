@@ -61,6 +61,7 @@ export default defineComponent({
     >
       <Banner
         color="error"
+        role="alert"
         :label="err"
         :closable="true"
         @close="closeError(idx)"

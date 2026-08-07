@@ -111,6 +111,7 @@ export default {
           v-for="(err, i) in allErrors"
           :key="i"
           color="error"
+          role="alert"
           :label="err"
         />
         <div class="buttons">

@@ -449,10 +449,14 @@ export default {
         :value="liveModel"
       />
     </Masthead>
+
     <div
       v-if="hasErrors"
       id="cru-errors"
       class="cru__errors"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
     >
       <Banner
         v-for="(err, i) in errors"

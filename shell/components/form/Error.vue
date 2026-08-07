@@ -55,12 +55,16 @@ export default defineComponent({
   <Banner
     v-if="!!asBanner && !!validationMessage"
     color="error"
+    role="alert"
+    aria-atomic="true"
     :label="validationMessage"
     :icon="icon"
   />
   <span
     v-else-if="!!validationMessage"
     class="text-error"
+    role="alert"
+    aria-atomic="true"
     data-testid="error-span"
   >{{ validationMessage }}</span>
 </template>

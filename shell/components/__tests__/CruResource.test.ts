@@ -68,6 +68,70 @@ describe('component: CruResource', () => {
     expect(node.text()).toContain(errors[1]);
   });
 
+  it('should announce the errors container as an assertive live region', () => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _EDIT,
+        resource: {},
+        errors:   ['mistake!']
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: _YAML } },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    const node = wrapper.find('#cru-errors');
+
+    expect(node.attributes('role')).toStrictEqual('alert');
+    expect(node.attributes('aria-live')).toStrictEqual('assertive');
+  });
+
+  it.each([
+    ['no errors prop', undefined],
+    ['an empty errors array', []],
+  ])('should not render the errors container given %s', (_label, errors) => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _EDIT,
+        resource: {},
+        errors
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: _YAML } },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    expect(wrapper.find('#cru-errors').exists()).toStrictEqual(false);
+  });
+
   it.each([
     ['error', 'error'],
     [{
