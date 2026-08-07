@@ -34,7 +34,11 @@ jobs:
   test-matrix:
     timeout-minutes: 45
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'rancher' || github.repository_owner == 'marcelofukumoto' || github.event_name == 'workflow_dispatch'
+    # Kill switch for the whole workflow: set the repo variable DISABLE_EXTENSION_COMPAT_TEST
+    # to 'true' to stop it running (both the matrix and the Slack notifier) without deleting it.
+    if: >-
+      vars.DISABLE_EXTENSION_COMPAT_TEST != 'true'
+      && (github.repository_owner == 'rancher' || github.repository_owner == 'marcelofukumoto' || github.event_name == 'workflow_dispatch')
     strategy:
       fail-fast: false
       # Each matrix row installs its own k3s on its own runner, so the rows are independent.
@@ -460,3 +464,83 @@ jobs:
           echo "===================== RANCHER LOGS ====================="
           kubectl -n cattle-system get pods || true
           kubectl -n cattle-system logs -l app=rancher --tail 100 --all-containers || true
+
+  # Aggregates the per-version outcomes of the matrix above into a single status
+  # table and posts it to a Slack Workflow Builder webhook trigger. The trigger
+  # exposes one data variable ("text"), so the whole table is sent as that string
+  # and the Slack workflow's "Send a message" step renders it.
+  notify-slack:
+    name: Notify Slack
+    needs: test-matrix
+    # Run even when some matrix rows failed (that is exactly what we want to report),
+    # but only for full runs (not single-version manual dispatches) and only where the
+    # webhook secret exists. Set the repo variable DISABLE_EXTENSION_COMPAT_SLACK to
+    # 'true' to turn these notifications off without editing the workflow.
+    if: >-
+      always()
+      && vars.DISABLE_EXTENSION_COMPAT_TEST != 'true'
+      && vars.DISABLE_EXTENSION_COMPAT_SLACK != 'true'
+      && github.event.inputs.rancher_version == ''
+      && (github.repository_owner == 'rancher' || github.repository_owner == 'marcelofukumoto')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Build status table
+        id: build
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+        with:
+          script: |
+            // Columns match the test-matrix version_labels, in display order.
+            const versions = ['2.10', '2.11', '2.12', '2.13', '2.14', 'latest'];
+
+            // Each matrix row is a job named "Rancher <version_label>"; read its conclusion.
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+              per_page: 100,
+            });
+            const conclusionByLabel = {};
+            for (const job of jobs) {
+              const m = job.name.match(/^Rancher (.+)$/);
+              if (m) { conclusionByLabel[m[1].trim()] = job.conclusion; }
+            }
+
+            const emoji = { success: '✅', failure: '❌', skipped: '⏭️', cancelled: '🚫' };
+            let anyFail = false;
+            const cells = versions.map((v) => {
+              const c = conclusionByLabel[v];
+              if (c === 'failure' || c === 'cancelled') { anyFail = true; }
+              return `${v} ${emoji[c] || '⚪'}`;
+            });
+
+            const overall = anyFail ? 'failed' : 'passed';
+            const headEmoji = anyFail ? '❌' : '✅';
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${context.runId}`;
+            const date = new Date().toISOString().slice(0, 10);
+
+            const text = [
+              `${headEmoji} Extension Compatibility Test — ${overall} (Run #${process.env.GITHUB_RUN_NUMBER}, ${date})`,
+              cells.join('  |  '),
+              runUrl,
+            ].join('\n');
+
+            core.setOutput('text', text);
+
+      - name: Send to Slack webhook
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_EXTENSION_COMPAT }}
+          SLACK_TEXT: ${{ steps.build.outputs.text }}
+        run: |
+          if [ -z "${SLACK_WEBHOOK_URL}" ]; then
+            echo "SLACK_WEBHOOK_EXTENSION_COMPAT secret is not set - skipping Slack notification."
+            exit 0
+          fi
+          # The Workflow Builder trigger expects a flat JSON body matching its "text" variable.
+          jq -n --arg text "${SLACK_TEXT}" '{ text: $text }' \
+            | curl -sS --fail-with-body -X POST \
+                -H 'Content-Type: application/json' \
+                --data @- \
+                "${SLACK_WEBHOOK_URL}"
