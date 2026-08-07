@@ -101,10 +101,10 @@ export const TextWithClearButton: Story = {
     template: '<LabeledInput v-bind="args" v-model:value="value" />',
   }),
   args: {
-    type:             'text',
-    label:            'Custom Input',
-    placeholder:      'Enter text',
-    showClearButton:  true,
+    type:            'text',
+    label:           'Custom Input',
+    placeholder:     'Enter text',
+    showClearButton: true,
   },
 };
 
