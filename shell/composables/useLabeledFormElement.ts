@@ -72,14 +72,6 @@ export const labeledFormElementProps = {
   requireDirty: {
     default: true,
     type:    Boolean
-  },
-  showClearButton: {
-    type:    Boolean,
-    default: undefined
-  },
-  clearButtonLabel: {
-    type:    String,
-    default: undefined
   }
 };
 

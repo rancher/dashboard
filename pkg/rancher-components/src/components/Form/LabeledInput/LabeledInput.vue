@@ -598,15 +598,14 @@ export default defineComponent({
       type="button"
       size="small"
       variant="ghost"
+      left-icon="close"
       class="labeled-input-clear-button"
       :aria-label="clearButtonAriaLabel"
       :disabled="isDisabled"
       @click="clearInput"
       @keydown.enter.prevent="clearInput"
       @keydown.space.prevent="clearInput"
-    >
-      <i class="icon icon-close" />
-    </RcButton>
+    />
     <!-- informational tooltip about field -->
     <LabeledTooltip
       v-if="hasTooltip"
@@ -699,7 +698,9 @@ input[type="search"]::-webkit-search-cancel-button {
     opacity: 0.5;
   }
 
-  :deep(.icon) {
+  // RcButton renders its leftIcon with size="inherit", so pin the glyph here to
+  // keep the 14px it had before, independent of the button's font-size.
+  :deep(.rc-icon) {
     font-size: 14px;
   }
 }
