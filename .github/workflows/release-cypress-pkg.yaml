@@ -35,14 +35,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        # `install: false` - the install runs below.
+        # `working-directory` must be explicit: a workflow-level `defaults.run`
+        # does not propagate into composite action steps.
+      - name: Setup env
+        uses: ./.github/actions/setup
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          install: 'false'
+          working-directory: ./cypress
 
       - name: Install packages
         run: npm run install:ci
