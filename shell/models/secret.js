@@ -1,5 +1,7 @@
 import r from 'jsrsasign';
-import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import {
+  CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_CLUSTER, UI_PROJECT_SECRET_COPY
+} from '@shell/config/labels-annotations';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
 import { MANAGEMENT, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
@@ -32,6 +34,29 @@ export const TYPES = {
 
 /** Class a cert as expiring if in eight days */
 const certExpiringPeriod = 1000 * 60 * 60 * 24 * 8;
+
+/**
+ * Project Scoped Secret Information
+ *
+ * There's lots of different weirdnesses with these.
+ *
+ * A project scoped secret is a secret in the upstream cluster with special annotations/labels
+ * A project scoped secret creates secrets in all namespaces in the associated project. These have special annotations/labels
+ *
+ * - Secret (PSS)
+ *   - Labels
+ *       - "management.cattle.io/project-scoped-secret": "<project metadata name>”,
+ *       - "management.cattle.io/project-scoped-secret-cluster": <cluster id>"
+ * - Secret (created by PSS)
+ *    - Labels
+ *       - "management.cattle.io/project-scoped-secret": "<project metadata name>”,
+ *       - "management.cattle.io/project-scoped-secret-cluster": <cluster id>"
+ *    - Annotations
+ *        - "management.cattle.io/project-scoped-secret-copy": "true",
+ *
+ * VAI connects a secret (created by PSS) to it's project and allows sort/filter on it's projects spec.clusterName (cluster's id) and spec.displayName (projects human name)
+ * This allows us to show a cluster's Project Scoped Secrets (filter on spec.clusterName) and Secret (created by PSS) project information easily
+ */
 
 export default class Secret extends SteveModel {
   _cachedCertInfo;
@@ -496,33 +521,28 @@ export default class Secret extends SteveModel {
    * is this a project scoped secret
    */
   get isProjectScoped() {
-    /**
-     * is this a project scoped secret .... or also a cloned project scoped secret
-     */
-    const isProjectScopedRelated = !!this.metadata.labels?.[UI_PROJECT_SECRET];
-
-    return isProjectScopedRelated && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
+    return !!this.projectScopedProjectName && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
   }
 
-  get projectScopedClusterId() {
-    if (!this.projectScopedProjectId) {
-      return undefined;
-    }
-
-    const clusterId = this.metadata.namespace.replace(`-${ this.projectScopedProjectId }`, '');
-
-    // default and system pss don't follow the patter of <cluster>-<project>, so if they match assume its one of them
-    return clusterId === this.metadata.namespace ? 'local' : clusterId;
-  }
-
-  get projectScopedProjectId() {
+  /**
+   * If this is a project scoped secret, return the Project's metadata.name
+   *
+   * It's metadata.name as that's what the backend supplies. If can be anything the user wants if the project was created outside the UI
+   */
+  get projectScopedProjectName() {
     return this.metadata.labels?.[UI_PROJECT_SECRET];
   }
 
-  get isProjectSecretCopy() {
-    return this.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] === 'true';
+  /**
+   * If this is a project scoped secret, return the cluster id the project is in
+   */
+  get projectScopedClusterId() {
+    return this.metadata?.labels?.[UI_PROJECT_SECRET_CLUSTER];
   }
 
+  /**
+   * If this is a project scoped secret, return the cluster the project is in
+   */
   get projectCluster() {
     if (!this.isProjectScoped) {
       return undefined;
@@ -532,22 +552,64 @@ export default class Secret extends SteveModel {
   }
 
   /**
-   * If this is a project scoped secret, return it
+   * Is this a secret created by a project scoped secret?
    */
-  get project() {
-    if (!this.isProjectScoped ) {
-      return undefined;
-    }
-
-    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
+  get isProjectSecretCopy() {
+    return this.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] === 'true';
   }
 
-  get projectScopedSecretCluster() {
-    if (!this.isProjectScoped ) {
-      return undefined;
+  /**
+   * If this is a secret created by a project scoped secret, return the Project's metadata.name
+   *
+   * It's metadata.name as that's what the backend supplies. If can be anything the user wants if the project was created outside the UI
+   */
+  get projectSecretCopyProjectName() {
+    return this.metadata.labels?.[UI_PROJECT_SECRET];
+  }
+
+  /**
+   * If this is a secret created by a project scoped secret, return the cluster id the project is in
+   */
+  get projectSecretCopyClusterId() {
+    return this.metadata?.labels?.[UI_PROJECT_SECRET_CLUSTER];
+  }
+
+  get projectSecretCopyCluster() {
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.CLUSTER, this.projectSecretCopyClusterId);
+  }
+
+  /**
+   * If this is a project scoped secret, or a project scoped secrets's cloned secret, return it's project
+   *
+   */
+  get project() {
+    let clusterId;
+    let projectName;
+
+    if (this.isProjectSecretCopy) {
+      clusterId = this.projectSecretCopyClusterId;
+      projectName = this.projectSecretCopyProjectName;
     }
 
-    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
+    if (this.isProjectScoped ) {
+      clusterId = this.projectScopedClusterId;
+      projectName = this.projectScopedProjectName;
+    }
+
+    if (projectName) {
+      const projectIdWithCluster = `${ clusterId }/${ projectName }`;
+      const projectId = projectName;
+
+      // Try to fetch the project.
+      // Note: The management store might not have the project loaded if we haven't visited the cluster list or project list.
+      // However, if we are in the dashboard, we usually have projects loaded.
+      const project = this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, projectIdWithCluster) ||
+        this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, projectId);
+
+      return project;
+    }
+
+    return undefined;
   }
 
   get detailLocation() {

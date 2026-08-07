@@ -1,4 +1,4 @@
-import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
@@ -395,12 +395,12 @@ export const SECRET_ORIGIN = {
   labelKey:  'tableHeaders.secret.origin',
   tooltip:   'tableHeaders.secret.originTooltip',
   formatter: 'SecretOrigin',
-  // Cannot _sort_ upstream secrets by if they are cluster scoped
-  // https://github.com/rancher/rancher/issues/51001
-  // metadata.labels[management.cattle.io/project-scoped-secret] - covers both cluster scoped AND clones
-  // metadata.annotations[management.cattle.io/project-scoped-secret-copy]
-  // sort:     [`metadata.labels[${ UI_PROJECT_SECRET }]`, `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`],
-  search:    false,
+  sort:      [
+    `metadata.annotations."${ UI_PROJECT_SECRET_COPY }":desc`,
+    `projectSecretCopyCluster.spec.displayName`,
+    'project.spec.displayName',
+  ],
+  search: false,
 };
 
 export const TARGET_KIND = {
