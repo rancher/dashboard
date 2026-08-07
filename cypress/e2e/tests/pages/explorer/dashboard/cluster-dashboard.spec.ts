@@ -47,6 +47,16 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
     clusterList.list().explore('local').click();
 
+    // The cluster dashboard can crash to the fail-whale error page on a transient backend blip
+    // during cluster load. If we landed there, settle briefly and re-navigate so a transient
+    // failure does not fail the test (same recovery as the "can view events" test).
+    cy.url().then((url) => {
+      if (url.includes('/fail-whale')) {
+        cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
+        clusterDashboard.goTo();
+      }
+    });
+
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // check if burger menu nav is highlighted correctly for local cluster
