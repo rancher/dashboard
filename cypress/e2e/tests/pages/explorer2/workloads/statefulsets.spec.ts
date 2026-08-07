@@ -271,6 +271,10 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       statefulSetListPage.goTo();
       statefulSetListPage.waitForPage();
 
+      // Wait for the statefulset row to render before opening its action menu.
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetName)
+        .should('be.visible');
+
       statefulSetListPage
         .list()
         .actionMenu(statefulSetName)
@@ -325,6 +329,12 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
           }
         }
       }));
+
+      // Ensure both statefulsets are queryable before the tests navigate to the list, so the
+      // list's fetch includes them. The steve/VAI list can omit a row that is not yet indexed,
+      // which left openRedeployDialog unable to find the row (wedged across all retries).
+      cy.waitForRancherResource('v1', apiResource, `${ namespace }/${ statefulSetName }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+      cy.waitForRancherResource('v1', apiResource, `${ namespace }/${ statefulSetNameWithoutService }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
     });
 
     it('redeploys successfully after confirmation', () => {
