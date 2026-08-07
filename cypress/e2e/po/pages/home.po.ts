@@ -7,7 +7,6 @@ import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import { PAGINATION_UTILS } from '@/cypress/support/utils/shell';
 
 const burgerMenu = new BurgerMenuPo();
 
@@ -22,9 +21,12 @@ export default class HomePagePo extends PagePo {
     // There's issues reporting when this page is ready, specifically for the user avatar click
     // To help with this be super sure the page is ready
 
+    // Match these calls whether or not the backend paginates them: newer Rancher adds
+    // `pagesize=<n>` while older backends omit it. Using a regex fires the wait on the
+    // real request against both, keeping the readiness guard without pinning a version.
     PagePo.goToAndWaitForGet(HomePagePo.goTo, [
-      `v1/counts?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`,
-      `v1/namespaces?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`,
+      /\/v1\/counts\?.*exclude=metadata\.managedFields/,
+      /\/v1\/namespaces\?.*exclude=metadata\.managedFields/,
     ]);
 
     const homePage = new HomePagePo();
