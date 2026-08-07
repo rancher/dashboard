@@ -41,6 +41,17 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
     });
   });
 
+  beforeEach(() => {
+    // One test below switches the UI language to zh-hans and only resets it at the very end - and
+    // that reset is itself flaky (see the "sometimes zh-hans" note / issue 9984). With
+    // testIsolation off, a switch that is not reset leaves the language as Chinese for every later
+    // test AND every retry, so English labels render as unfindable CJK (the "????" boxes). Force
+    // the language back to English - both the R_LOCALE cookie the app reads on load and the
+    // persisted preference - before each test, so every attempt starts from a known state.
+    cy.setCookie('R_LOCALE', 'en-us');
+    cy.setUserPreference({ locale: 'en-us' });
+  });
+
   describe('Create', () => {
     const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
