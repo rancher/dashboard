@@ -367,7 +367,10 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
   it('refresh menu item is not displayed for disabled repository', () => {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
+    // After re-navigating to the list the state badge can take longer than the default
+    // timeout to settle back to 'Disabled', so use a longer timeout (matches the 'can enable'
+    // test's Active check below).
+    repositoriesPage.list().details(repoName, 1).contains('Disabled', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
     // Open the action menu and verify refresh is not displayed for disabled repo
     const actionMenu = repositoriesPage.list().actionMenu(repoName);
