@@ -96,6 +96,11 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
           .should('exist');
 
+        // Confirm the list has finished loading before opening the clone action menu. We flick
+        // quickly between the list and the clone form, and clicking through while the list is
+        // still loading lands on a form whose inputs never render (the name input / list
+        // container time out). This mirrors the gate the create flow above already uses.
+        workloadsJobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
         // Clone the job
         workloadsJobsListPage.list().actionMenu(jobName2).getMenuItem('Clone').click();
 
