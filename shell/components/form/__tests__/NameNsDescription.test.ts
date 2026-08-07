@@ -1,290 +1,256 @@
-import { mount } from '@vue/test-utils';
-import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
+import { shallowMount } from '@vue/test-utils';
 import { createStore } from 'vuex';
+import NameNsDescription from '../NameNsDescription.vue';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 
-describe('component: NameNsDescription', () => {
-  // Accessing to computed value due code complexity
-  it('should map namespaces to options', () => {
-    const namespaceName = 'test';
-    const store = createStore({
-      getters: {
-        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
-        currentStore:        () => () => 'cluster',
-        'cluster/schemaFor': () => jest.fn()
+const requiredSetup = () => {
+  const store = createStore({
+    getters: { defaultNamespace: () => 'default' },
+    modules: {
+      'cru-resource': {
+        namespaced: true,
+        actions:    { setCreateNamespace: jest.fn() }
       }
-    });
-    const result = [
-      {
-        label: namespaceName,
-        value: namespaceName,
-      },
-    ];
-    const wrapper = mount(NameNsDescription, {
-      props: {
-        value: {
-          setAnnotation: jest.fn(),
-          metadata:      {}
-        },
-        mode:    'create',
-        cluster: {},
-      },
-      global: {
-        provide: { store },
-        mocks:   {
-          $store: {
-            dispatch: jest.fn(),
-            getters:  {
-              namespaces: jest.fn(),
-              'i18n/t':   jest.fn(),
-            },
-          },
-        },
-      },
-    });
-
-    expect((wrapper.vm as any).options).toStrictEqual(result);
+    }
   });
 
-  it('should emit in case of new namespace', () => {
-    const namespaceName = 'test';
-    const store = createStore({
-      getters: {
-        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
-        currentStore:        () => () => 'cluster',
-        'cluster/schemaFor': () => jest.fn()
+  return {
+    global: {
+      plugins: [store],
+      mocks:   { t: (text: string) => text },
+      stubs:   {
+        LabeledInput: {
+          name:     'LabeledInput',
+          template: '<input />',
+          methods:  { focus: jest.fn() },
+        },
+        NamespaceSelect: {
+          name:     'NamespaceSelect',
+          template: '<div class="namespace-select" />',
+        },
       }
-    });
-    const newNamespaceName = 'bananas';
-    const wrapper = mount(NameNsDescription, {
+    }
+  };
+};
+
+describe('nameNsDescription', () => {
+  it('mounts and renders correctly with default props', () => {
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
       props: {
-        value: {
-          setAnnotation: jest.fn(),
-          metadata:      {}
-        },
-        mode: 'create',
-      },
-      global: {
-        provide: { store },
-        mocks:   {
-          $store: {
-            dispatch: jest.fn(),
-            getters:  {
-              namespaces:                         jest.fn(),
-              'customizations/getPreviewCluster': {
-                ready:   true,
-                isLocal: false,
-                badge:   {},
-              },
-              'i18n/t': jest.fn(),
-            },
-          },
-        },
+        value: { metadata: { name: 'test-name', namespace: 'test-ns' } },
+        mode:  _CREATE,
       },
     });
 
-    (wrapper.vm as any).updateNamespace(newNamespaceName);
-
-    expect(wrapper.emitted().isNamespaceNew?.[0][0]).toBe(true);
+    expect(wrapper.exists()).toStrictEqual(true);
   });
 
-  it('should set the namespace using the namespaceKey prop', () => {
-    const namespaceName = 'custom-namespace';
-    const store = createStore({
-      getters: {
-        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
-        currentStore:        () => () => 'cluster',
-        'cluster/schemaFor': () => jest.fn()
-      }
-    });
-
-    const wrapper = mount(NameNsDescription, {
+  it.each([
+    {
+      desc:     'create mode, not disabled',
+      props:    { mode: _CREATE },
+      expected: false,
+    },
+    {
+      desc:     'edit mode, name not editable',
+      props:    { mode: _EDIT },
+      expected: true,
+    },
+    {
+      desc:     'edit mode, name editable',
+      props:    { mode: _EDIT, nameEditable: true },
+      expected: false,
+    },
+    {
+      desc:     'disabled prop is true',
+      props:    { mode: _CREATE, nameDisabled: true },
+      expected: true,
+    },
+  ])('calculates nameReallyDisabled correctly when $desc', ({ props, expected }) => {
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
       props: {
-        value: {
-          setAnnotation: jest.fn(),
-          metadata:      {},
-          value:         { metadata: { namespace: namespaceName } }
-        },
-        mode:         'create',
-        namespaceKey: 'value.metadata.namespace',
-      },
-      global: {
-        provide: { store },
-        mocks:   {
-          $store: {
-            dispatch: jest.fn(),
-            getters:  {
-              namespaces:                         jest.fn(),
-              'customizations/getPreviewCluster': {
-                ready:   true,
-                isLocal: false,
-                badge:   {},
-              },
-              'i18n/t': jest.fn(),
-            },
-          },
-        },
+        value: { metadata: {} },
+        ...props,
       },
     });
 
-    expect((wrapper.vm as any).namespace).toBe(namespaceName);
+    const nameReallyDisabled = (wrapper.vm as any).nameReallyDisabled;
+
+    expect(nameReallyDisabled).toStrictEqual(expected);
   });
 
-  it('renders the name input with the expected value', () => {
-    const namespaceName = 'test';
-    const store = createStore({
-      getters: {
-        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
-        currentStore:        () => () => 'cluster',
-        'cluster/schemaFor': () => jest.fn()
-      }
-    });
-    const wrapper = mount(NameNsDescription, {
+  it.each([
+    {
+      desc:     'create mode, not disabled',
+      props:    { mode: _CREATE },
+      expected: false,
+    },
+    {
+      desc:     'edit mode',
+      props:    { mode: _EDIT },
+      expected: true,
+    },
+    {
+      desc:     'disabled prop is true',
+      props:    { mode: _CREATE, namespaceDisabled: true },
+      expected: true,
+    },
+    {
+      desc:     'forceNamespace is set',
+      props:    { mode: _CREATE, forceNamespace: 'custom' },
+      expected: true,
+    },
+  ])('calculates namespaceReallyDisabled correctly when $desc', ({ props, expected }) => {
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
       props: {
-        value: {
-          setAnnotation: jest.fn(),
-          metadata:      { name: 'Default' }
-        },
-        mode: 'create',
-      },
-      global: {
-        provide: { store },
-        mocks:   {
-          $store: {
-            dispatch: jest.fn(),
-            getters:  {
-              namespaces:                         jest.fn(),
-              'customizations/getPreviewCluster': {
-                ready:   true,
-                isLocal: false,
-                badge:   {},
-              },
-              'i18n/t': jest.fn(),
-            },
-          },
-        },
+        value: { metadata: {} },
+        ...props,
       },
     });
 
-    const nameInput = wrapper.find('[data-testid="NameNsDescriptionNameInput"]');
+    const namespaceReallyDisabled = (wrapper.vm as any).namespaceReallyDisabled;
 
-    expect(nameInput.element.value).toBe('Default');
+    expect(namespaceReallyDisabled).toStrictEqual(expected);
   });
 
-  it('should set namespace to a plain string when forceNamespace prop is provided', () => {
-    const forcedNs = 'cert-manager';
-    const store = createStore({
-      getters: {
-        allowedNamespaces:   () => () => ({}),
-        currentStore:        () => () => 'cluster',
-        'cluster/schemaFor': () => jest.fn()
-      }
-    });
-
-    const wrapper = mount(NameNsDescription, {
+  it.each([
+    {
+      desc:       'nameHidden is true',
+      props:      { nameHidden: true },
+      nameExists: false,
+      nsExists:   true,
+      descExists: true,
+    },
+    {
+      desc:       'descriptionHidden is true',
+      props:      { descriptionHidden: true },
+      nameExists: true,
+      nsExists:   true,
+      descExists: false,
+    },
+    {
+      desc:       'nameNsHidden is true',
+      props:      { nameNsHidden: true },
+      nameExists: false,
+      nsExists:   false,
+      descExists: true,
+    },
+  ])('hides sections appropriately when $desc', ({
+    props, nameExists, nsExists, descExists
+  }) => {
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
       props: {
-        value: {
-          setAnnotation: jest.fn(),
-          metadata:      { namespace: '' }
-        },
-        mode:           'create',
-        forceNamespace: forcedNs,
-      },
-      global: {
-        provide: { store },
-        mocks:   {
-          $store: {
-            dispatch: jest.fn(),
-            getters:  {
-              namespaces: jest.fn(),
-              'i18n/t':   jest.fn(),
-            },
-          },
-        },
+        value: { metadata: {} },
+        mode:  _CREATE,
+        ...props,
       },
     });
 
-    expect(typeof (wrapper.vm as any).namespace).toBe('string');
-    expect((wrapper.vm as any).namespace).toBe(forcedNs);
+    expect(wrapper.find('[data-testid="name-ns-description-name"]').exists()).toStrictEqual(nameExists);
+    expect(wrapper.find('[data-testid="name-ns-description-namespace"]').exists()).toStrictEqual(nsExists);
+    expect(wrapper.find('[data-testid="name-ns-description-description"]').isVisible()).toStrictEqual(descExists);
   });
 
-  it('should set metadata.namespace to a plain string when falling back to defaultNamespace', () => {
-    const defaultNs = 'default';
-    const metadata: Record<string, unknown> = {};
-    const store = createStore({
-      getters: {
-        allowedNamespaces:   () => () => ({}),
-        currentStore:        () => () => 'cluster',
-        'cluster/schemaFor': () => jest.fn(),
-        defaultNamespace:    () => defaultNs,
-      }
-    });
-
-    mount(NameNsDescription, {
+  it('applies custom componentTestid to wrappers', () => {
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
       props: {
-        value: {
-          setAnnotation: jest.fn(),
-          metadata,
-        },
-        mode: 'create',
-      },
-      global: {
-        provide: { store },
-        mocks:   {
-          $store: {
-            dispatch: jest.fn(),
-            getters:  {
-              namespaces: jest.fn(),
-              'i18n/t':   jest.fn(),
-            },
-          },
-        },
+        value:           { metadata: {} },
+        mode:            _CREATE,
+        componentTestid: 'custom-prefix',
       },
     });
 
-    expect(typeof metadata.namespace).toBe('string');
-    expect(metadata.namespace).toBe(defaultNs);
+    expect(wrapper.find('[data-testid="custom-prefix-name"]').exists()).toStrictEqual(true);
+    expect(wrapper.find('[data-testid="custom-prefix-namespace"]').exists()).toStrictEqual(true);
+    expect(wrapper.find('[data-testid="custom-prefix-description"]').exists()).toStrictEqual(true);
   });
 
-  it('sets the name using the nameKey prop', () => {
-    const namespaceName = 'test';
-    const store = createStore({
-      getters: {
-        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
-        currentStore:        () => () => 'cluster',
-        'cluster/schemaFor': () => jest.fn()
-      }
-    });
-    const wrapper = mount(NameNsDescription, {
+  it('emits update:value when name is updated', async() => {
+    const value = { metadata: { name: 'old', namespace: 'default' } };
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
       props: {
-        value: {
-          setAnnotation: jest.fn(),
-          metadata:      {},
-          spec:          { displayName: 'Default' }
-        },
-        mode:    'create',
-        nameKey: 'spec.displayName'
-      },
-      global: {
-        provide: { store },
-        mocks:   {
-          $store: {
-            dispatch: jest.fn(),
-            getters:  {
-              namespaces:                         jest.fn(),
-              'customizations/getPreviewCluster': {
-                ready:   true,
-                isLocal: false,
-                badge:   {},
-              },
-              'i18n/t': jest.fn(),
-            },
-          },
-        },
+        value,
+        mode: _CREATE,
       },
     });
 
-    const nameInput = wrapper.find('[data-testid="NameNsDescriptionNameInput"]');
+    const nameInput = wrapper.findComponent({ name: 'LabeledInput' });
 
-    expect(nameInput.element.value).toBe('Default');
+    nameInput.vm.$emit('update:value', 'new-name');
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+
+    const emittedEvents = wrapper.emitted('update:value') || [];
+    const lastEmittedValue = emittedEvents[emittedEvents.length - 1][0] as any;
+
+    expect(lastEmittedValue.metadata.name).toStrictEqual('new-name');
+  });
+
+  it('updates using custom keys when provided', async() => {
+    const value = {
+      spec: {
+        myName: '', myNs: '', myDesc: ''
+      }
+    };
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
+      props: {
+        value,
+        mode:           _CREATE,
+        nameKey:        'spec.myName',
+        namespaceKey:   'spec.myNs',
+        descriptionKey: 'spec.myDesc',
+      },
+    });
+
+    const namespaceSelect = wrapper.findComponent({ name: 'NamespaceSelect' });
+
+    namespaceSelect.vm.$emit('update:value', 'new-ns');
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+
+    const emittedEvents = wrapper.emitted('update:value') || [];
+    const lastEmittedValue = emittedEvents[emittedEvents.length - 1][0] as any;
+
+    expect(lastEmittedValue.spec.myNs).toStrictEqual('new-ns');
+  });
+
+  it('persists forceNamespace into value.metadata.namespace immediately on mount', () => {
+    const value = { metadata: { name: 'test-name', namespace: '' } };
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
+      props: {
+        value,
+        mode:           _CREATE,
+        forceNamespace: 'forced-ns',
+      },
+    });
+
+    expect(value.metadata.namespace).toStrictEqual('forced-ns');
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+  });
+
+  it('persists forceNamespace via namespaceKey immediately on mount, when provided', () => {
+    const value = { metadata: {}, spec: { myNs: '' } };
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
+      props: {
+        value,
+        mode:           _CREATE,
+        namespaceKey:   'spec.myNs',
+        forceNamespace: 'forced-ns',
+      },
+    });
+
+    expect(value.spec.myNs).toStrictEqual('forced-ns');
+    expect(wrapper.emitted('update:value')).toBeTruthy();
   });
 });
