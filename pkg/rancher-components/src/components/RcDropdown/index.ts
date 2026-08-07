@@ -1,4 +1,5 @@
 export { default as RcDropdown } from './RcDropdown.vue';
+export { default as RcDropdownGroup } from './RcDropdownGroup.vue';
 export { default as RcDropdownItem } from './RcDropdownItem.vue';
 export { default as RcDropdownItemCheckbox } from './RcDropdownItemCheckbox.vue';
 export { default as RcDropdownItemSelect } from './RcDropdownItemSelect.vue';
