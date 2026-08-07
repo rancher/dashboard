@@ -315,6 +315,67 @@ export default {
       this.$emit('selecting', e);
     },
 
+    /**
+     * Filters options client-side during active search.
+     * To provide a superior UX with grouped options:
+     * - Decorative layout elements (group/title headers, dividers) are hidden when empty.
+     * - Group headers are dynamically retained if they contain at least one matching child option.
+     * - Dividers reset the active group header context to prevent incorrect nesting.
+     * - Standard disabled actual options remain searchable and visible (greyed out).
+     */
+    filterOptions(options, search) {
+      if (!search) {
+        return options;
+      }
+
+      const lowerSearch = search.toLowerCase();
+      const filtered = [];
+      let currentGroup = null;
+
+      options.forEach((option) => {
+        if (!option) {
+          return;
+        }
+
+        const isObject = typeof option === 'object';
+
+        // Keep track of the current group/title header but do not add it yet.
+        // It will only be added if at least one option under it matches the search.
+        if (isObject && ['group', 'title'].includes(option.kind)) {
+          currentGroup = option;
+
+          return;
+        }
+
+        // Dividers represent a hard section break; reset the group header context.
+        if (isObject && option.kind === 'divider') {
+          currentGroup = null;
+
+          return;
+        }
+
+        // Get the textual label for either object-based or primitive options.
+        let label = isObject ? this.getOptionLabel(option) : option;
+
+        if (typeof label === 'number') {
+          label = label.toString();
+        }
+
+        const matches = (label || '').toLowerCase().includes(lowerSearch);
+
+        if (matches) {
+          // If this is the first matching option in the current group, prepend its group header.
+          if (currentGroup) {
+            filtered.push(currentGroup);
+            currentGroup = null;
+          }
+          filtered.push(option);
+        }
+      });
+
+      return filtered;
+    },
+
     close() {
       this.isOpen = false;
       this.onClose();
@@ -476,6 +537,7 @@ export default {
       :placeholder="placeholder"
       :reduce="(x) => reduce(x)"
       :filterable="isFilterable"
+      :filter="filterOptions"
       :searchable="isSearchable"
       :selectable="selectable"
       :modelValue="value != null && !loading ? value : ''"
