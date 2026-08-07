@@ -391,7 +391,11 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       WorkloadsDeploymentsListPagePo.navTo();
       deploymentsListPage.waitForPage();
 
-      cy.waitForRancherResources('v1', 'apps.deployment', deploymentNamesList.length, true).then((resp: Cypress.Response<any>) => {
+      // Ensure the separately-created extra deployment has propagated before deriving the count
+      // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'apps.deployment', `${ nsName2 }/${ uniqueDeployment }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
+      cy.waitForRancherResources('v1', 'apps.deployment', deploymentNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
         // Derive the actual number of deployments in the two filtered namespaces
         // instead of assuming exactly deploymentNamesList.length + 1; the cluster
         // can briefly hold an extra resource, which makes a hardcoded count disagree.
