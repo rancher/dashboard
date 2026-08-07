@@ -185,9 +185,6 @@ export default {
         class="yaml-editor"
         @onReady="onReadyYamlEditor"
       />
-      <!-- `role="alert"` sits on each banner rather than on a wrapper element: the
-           parent is a flex column that sizes the YAML editor, so an extra box would
-           become a flex item. Assistive tech announces an alert when it is inserted. -->
       <Banner
         v-for="(err, i) in errors"
         :key="i"

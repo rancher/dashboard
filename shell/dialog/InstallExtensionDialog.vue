@@ -327,9 +327,6 @@ export default {
         <p>
           {{ t(`plugins.${ buttonMode }.prompt`) }}
         </p>
-        <!-- `role="status"` sits on each banner rather than on a wrapper element, so
-             the layout is unchanged. Assistive tech announces the notification when it
-             is inserted. -->
         <Banner
           v-if="chartVersionLoadsWithoutAuth"
           color="warning"

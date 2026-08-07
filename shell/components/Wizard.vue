@@ -440,11 +440,6 @@ export default {
         :cancel="cancel"
         :activeStep="activeStep"
       >
-        <!-- No wrapping live region here: the parent is a flex column with
-             `justify-content: space-between`, so an always-present wrapper
-             would become a third item and redistribute the spacing.
-             `role="alert"` sits on each banner instead - assistive tech
-             announces an alert when it is inserted. -->
         <div
           v-for="(err,idx) in errorStrings"
           :key="idx"

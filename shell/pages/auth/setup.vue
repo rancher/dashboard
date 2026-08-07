@@ -404,9 +404,6 @@ export default {
                 />
               </p>
               <div class="mt-20">
-                <!-- The live-region roles sit on the banners rather than on wrapper
-                     elements, so the layout is unchanged. Assistive tech announces them
-                     when they are inserted. -->
                 <Banner
                   v-if="showLocalhostWarning"
                   color="warning"

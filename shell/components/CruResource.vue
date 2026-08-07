@@ -683,11 +683,6 @@ export default {
       @submit.prevent
       @keydown.enter="onPressEnter($event)"
     >
-      <!-- `role="alert"` sits on the container that already exists rather than on a
-           persistent wrapper: this element is a grid cell under `.show-toc` and a
-           flex item otherwise, so an extra box would change the layout. Assistive
-           tech announces an alert when it is inserted, which is exactly when an
-           error appears. -->
       <div
         v-if="hasErrors"
         id="cru-errors"

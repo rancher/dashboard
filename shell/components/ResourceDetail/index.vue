@@ -39,14 +39,6 @@ async function getYaml(store, model) {
   return model.cleanForDownload(yaml);
 }
 
-/**
- * NOTE: the template must keep a single root node - the `v-if` / `v-else-if` / `v-else`
- * chain counts as one. Adding an unconditional sibling (or a root-level comment) turns
- * this into a fragment component, and Vue then drops the `outlet` class that
- * `shell/components/templates/default.vue` passes down from `<router-view class="outlet" />`
- * as a fallthrough attribute. That class supplies the padding, flex layout and min-height
- * for every resource detail / create / edit page.
- */
 export default {
   emits: ['input'],
 
@@ -458,9 +450,6 @@ export default {
       />
     </Masthead>
 
-    <!-- `role="alert"` sits on the container that already exists rather than on a
-         persistent wrapper, so the layout is unchanged. Assistive tech announces an
-         alert when it is inserted, which is exactly when an error appears. -->
     <div
       v-if="hasErrors"
       id="cru-errors"

@@ -96,9 +96,6 @@ describe('component: CruResource', () => {
 
     const node = wrapper.find('#cru-errors');
 
-    // The role lives on the existing container rather than on a persistent wrapper -
-    // an extra element would claim a grid cell under `.show-toc`. Assistive tech
-    // announces an alert when it is inserted, which is when an error appears.
     expect(node.attributes('role')).toStrictEqual('alert');
     expect(node.attributes('aria-live')).toStrictEqual('assertive');
   });
@@ -132,8 +129,6 @@ describe('component: CruResource', () => {
       }
     });
 
-    // The container must not render when there is nothing to show, otherwise consumers
-    // cannot tell "no errors" from "errors" and it occupies a grid cell for nothing.
     expect(wrapper.find('#cru-errors').exists()).toStrictEqual(false);
   });
 

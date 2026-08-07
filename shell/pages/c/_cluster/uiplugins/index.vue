@@ -1117,8 +1117,6 @@ export default {
       />
     </div>
     <div v-else>
-      <!-- `role="status"` sits on the banner rather than on a wrapper element, so the
-           layout is unchanged. Assistive tech announces it when it is inserted. -->
       <Banner
         v-if="!loading && showAddReposBanner"
         color="warning"

@@ -52,11 +52,6 @@ export default defineComponent({
 });
 </script>
 <template>
-  <!-- No wrapping live region here: consumers such as ServicePorts render this
-       straight into a `display: grid` row with explicit columns, so an
-       always-present wrapper would claim a grid cell. `role="alert"` sits on the
-       message itself instead - assistive tech announces an alert when it is
-       inserted, which is exactly when a validation message appears. -->
   <Banner
     v-if="!!asBanner && !!validationMessage"
     color="error"
