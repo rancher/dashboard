@@ -123,21 +123,21 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
   // testing https://github.com/rancher/dashboard/issues/4849
   it('can uninstall both chart and crd at once', function() {
     runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
-      // Reset the namespace filter to the suite's intended state before listing the
-      // installed apps. The preceding test navigates through cattle-logging-system
-      // resources and can leave the filter scoped to a namespace that hides the
-      // installed charts, which made the installed-apps list come up empty
-      // (persistently, across retries, since testIsolation is off).
-      cy.updateNamespaceFilter('local', 'none', '{"local":[]}', { delay: true });
+      // Show ALL namespaces (including system) before listing the installed apps: the logging
+      // charts live in the system namespace cattle-logging-system, and the preceding test can
+      // leave the filter scoped to a namespace that hides them. 'all' is the All-Namespaces
+      // selection - an empty selection can resolve to user-namespaces-only and hide them.
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all"]}', { delay: true });
 
       cy.intercept('GET', `${ CLUSTER_APPS_BASE_URL }?*`).as('getCharts');
 
       const clusterTools = new ClusterToolsPagePo('local');
       const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
-      // Confirm the chart is actually installed at the API level first - this separates "the
-      // install did not persist" from "installed but the list did not render it".
-      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+      // Confirm the chart is actually installed AND settled (deployed) at the API level first.
+      // This separates "the install did not persist / is still deploying" from "installed but the
+      // list did not render it", and avoids racing a still-transitioning app that the list omits.
+      cy.waitForResourceState('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, 'deployed');
 
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
