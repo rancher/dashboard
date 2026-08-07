@@ -135,25 +135,25 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       const clusterTools = new ClusterToolsPagePo('local');
       const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
+      // Confirm the chart is actually installed at the API level first - this separates "the
+      // install did not persist" from "installed but the list did not render it".
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
 
-      // The installed-apps list intermittently comes up empty even though the logging charts
-      // are installed: the namespace-filter reset above races the list fetch, and the freshly
-      // installed catalog.cattle.io.apps entries can lag the list index. With testIsolation off
-      // the stale empty result otherwise sticks across retries. Reload until the list fetch
-      // actually returns the logging app - checking the response body directly, which (unlike a
-      // DOM row selector) does not block/timeout on an empty list - so the table is populated
-      // before we assert.
+      // The installed-apps list intermittently loads empty even though the app is installed. Wait
+      // for the list fetch (getCharts) to actually contain the logging app; if it does not,
+      // re-navigate to force a fresh fetch. Re-navigating - unlike cy.reload() - does not abort an
+      // in-flight request, which previously left a retry failing early on an undefined response.
+      // Tolerate an undefined/aborted response by treating it as "not present yet".
       const waitForInstalledLoggingApp = (attempt = 0): void => {
         cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).then((interception) => {
-          expect(interception.response?.statusCode).to.eq(200);
-
-          const apps = interception.response?.body?.data || [];
+          const apps = interception?.response?.body?.data || [];
           const hasLoggingApp = apps.some((app: { metadata?: { name?: string } }) => app.metadata?.name === chartApp);
 
           if (!hasLoggingApp && attempt < 4) {
-            cy.reload();
+            installedAppsPage.goTo();
             installedAppsPage.waitForPage();
             waitForInstalledLoggingApp(attempt + 1);
           }
