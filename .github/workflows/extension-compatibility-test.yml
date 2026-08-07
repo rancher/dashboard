@@ -518,16 +518,35 @@ jobs:
 
             const overall = anyFail ? 'failed' : 'passed';
             const headEmoji = anyFail ? '❌' : '✅';
-            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${context.runId}`;
+            // The commit the run was built and tested from (the tip of the ref that
+            // triggered it - the branch on schedule/dispatch, master once merged).
+            const base = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`;
+            const runUrl = `${base}/actions/runs/${context.runId}`;
+            const commitUrl = `${base}/commit/${context.sha}`;
+            const shortSha = context.sha.slice(0, 7);
+            const ref = process.env.GITHUB_REF_NAME;
             const date = new Date().toISOString().slice(0, 10);
 
             const text = [
               `${headEmoji} Extension Compatibility Test — ${overall} (Run #${process.env.GITHUB_RUN_NUMBER}, ${date})`,
               cells.join('  |  '),
+              `Commit ${shortSha} (${ref})`,
               runUrl,
+              commitUrl,
             ].join('\n');
 
             core.setOutput('text', text);
+
+            // Surface the same result + commit in the run's log and job summary.
+            core.info(text);
+            await core.summary
+              .addHeading('Extension Compatibility Test', 2)
+              .addRaw(`**${overall.toUpperCase()}** — commit `)
+              .addLink(shortSha, commitUrl)
+              .addRaw(` (${ref})`)
+              .addBreak()
+              .addRaw(cells.join(' | '))
+              .write();
 
       - name: Send to Slack webhook
         env:
