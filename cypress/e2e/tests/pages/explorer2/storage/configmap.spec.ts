@@ -159,6 +159,10 @@ skipGeometric=true`;
       cy.wait('@cmList').then((interception: any) => {
         const count = interception.response.body.count;
 
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        configMapListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -179,7 +183,10 @@ skipGeometric=true`;
 
         // check text before navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } ConfigMaps`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } ConfigMaps`);
+          });
 
         // navigate to next page - right button
         configMapListPage.list().resourceTable().sortableTable().pagination()
@@ -188,7 +195,10 @@ skipGeometric=true`;
 
         // check text and buttons after navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`11 - 20 of ${ count } ConfigMaps`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } ConfigMaps`);
+          });
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -203,7 +213,10 @@ skipGeometric=true`;
 
         // check text and buttons after navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } ConfigMaps`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } ConfigMaps`);
+          });
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -226,7 +239,10 @@ skipGeometric=true`;
 
         // check text after navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } ConfigMaps`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } ConfigMaps`);
+          });
 
         // navigate to first page - beginning button
         configMapListPage.list().resourceTable().sortableTable().pagination()
@@ -235,7 +251,10 @@ skipGeometric=true`;
 
         // check text and buttons after navigation
         configMapListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } ConfigMaps`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } ConfigMaps`);
+          });
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();

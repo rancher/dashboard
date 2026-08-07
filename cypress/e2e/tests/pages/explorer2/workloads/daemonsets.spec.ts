@@ -151,6 +151,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
           (ds: any) => [nsName1, nsName2].includes(ds.metadata?.namespace)
         ).length;
 
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        daemonSetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -171,7 +175,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text before navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } DaemonSets`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } DaemonSets`);
+          });
 
         // navigate to next page - right button
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
@@ -180,7 +187,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text and buttons after navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`11 - 20 of ${ count } DaemonSets`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } DaemonSets`);
+          });
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -195,7 +205,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text and buttons after navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } DaemonSets`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } DaemonSets`);
+          });
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -218,7 +231,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text after navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } DaemonSets`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } DaemonSets`);
+          });
 
         // navigate to first page - beginning button
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
@@ -227,7 +243,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text and buttons after navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } DaemonSets`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } DaemonSets`);
+          });
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();

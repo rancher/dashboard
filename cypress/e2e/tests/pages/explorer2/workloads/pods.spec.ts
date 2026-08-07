@@ -73,6 +73,10 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
           (pod: any) => [nsName1, nsName2].includes(pod.metadata?.namespace)
         ).length;
 
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -93,7 +97,10 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text before navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
+          });
 
         // navigate to next page - right button
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
@@ -102,7 +109,10 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`11 - 20 of ${ count } Pods`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } Pods`);
+          });
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -117,7 +127,10 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
+          });
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -140,7 +153,10 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text after navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
+          });
 
         // navigate to first page - beginning button
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
@@ -149,7 +165,10 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
+          });
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();

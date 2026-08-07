@@ -227,6 +227,10 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
           (cj: any) => [nsName1, nsName2].includes(cj.metadata?.namespace)
         ).length;
 
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        cronJobListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         cronJobListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -247,7 +251,10 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
 
         // check text before navigation
         cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } CronJobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } CronJobs`);
+          });
 
         // navigate to next page - right button
         cronJobListPage.list().resourceTable().sortableTable().pagination()
@@ -256,7 +263,10 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
 
         // check text and buttons after navigation
         cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`11 - 20 of ${ count } CronJobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } CronJobs`);
+          });
         cronJobListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -271,7 +281,10 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
 
         // check text and buttons after navigation
         cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } CronJobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } CronJobs`);
+          });
         cronJobListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -294,7 +307,10 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
 
         // check text after navigation
         cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CronJobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CronJobs`);
+          });
 
         // navigate to first page - beginning button
         cronJobListPage.list().resourceTable().sortableTable().pagination()
@@ -303,7 +319,10 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
 
         // check text and buttons after navigation
         cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } CronJobs`);
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } CronJobs`);
+          });
         cronJobListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
