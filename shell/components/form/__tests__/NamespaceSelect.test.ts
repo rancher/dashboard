@@ -55,7 +55,7 @@ describe('namespaceSelect', () => {
     expect(labeledSelect.props('value')).toStrictEqual('forced-ns');
   });
 
-  it.each([
+  it.each<{ desc: string, props: { mode?: string, disabled?: boolean, forceNamespace?: string }, expected: boolean }>([
     {
       desc:     'is in edit mode',
       props:    { mode: _EDIT },

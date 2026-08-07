@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import LabeledSelectWithCreate from '@shell/components/form/LabeledSelectWithCreate.vue';
 
 const LabeledSelectStub = {
@@ -28,7 +28,7 @@ jest.mock('@components/Form/LabeledInput', () => ({
   },
 }));
 
-jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key) => key }) }));
+jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
 const CREATE_OPTIONS = [
   { label: 'Option A', value: 'a' },
@@ -50,11 +50,11 @@ function mountComponent(props = {}) {
   });
 }
 
-function findSelect(wrapper) {
+function findSelect(wrapper: VueWrapper) {
   return wrapper.findComponent(LabeledSelectStub);
 }
 
-function findInput(wrapper) {
+function findInput(wrapper: VueWrapper) {
   return wrapper.findComponent({ name: 'LabeledInput' });
 }
 
@@ -283,7 +283,7 @@ describe('component: LabeledSelectWithCreate', () => {
     });
 
     it('passes mode and rules through to the create-mode LabeledInput', async() => {
-      const rules = [(val) => (!val ? 'Required' : undefined)];
+      const rules = [(val: string) => (!val ? 'Required' : undefined)];
       const wrapper = await mountInCreateMode({ mode: 'edit', rules });
       const input = findInput(wrapper);
 
