@@ -156,6 +156,10 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       // Wait for the ingress created by the previous test to render in the list before acting on it.
       ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
         .checkVisible();
+      // Confirm the list has finished loading before opening the row action menu: the row can
+      // render before its action button, so a still-loading list makes actionMenu miss it
+      // ([data-testid*="action-button"] never found).
+      ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       ingressListPagePo.list().actionMenu(ingressName).getMenuItem('Edit Config').click();
 
       const ingressEditPage = new IngressCreateEditPo('local', namespace, ingressName);
