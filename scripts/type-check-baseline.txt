@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 2039
+# Total errors: 2031
 pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
 pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
@@ -1112,13 +1112,6 @@ shell/components/form/__tests__/FileImageSelector.test.ts: error TS2307: Cannot 
 shell/components/form/__tests__/FileImageSelector.test.ts: error TS2307: Cannot find module '@shell/components/form/FileSelector' or its corresponding type declarations.
 shell/components/form/__tests__/FileSelector.test.ts: error TS2307: Cannot find module '@shell/components/form/FileSelector' or its corresponding type declarations.
 shell/components/form/__tests__/HookOption.test.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
-shell/components/form/__tests__/KeyValue.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
-shell/components/form/__tests__/KeyValue.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
-shell/components/form/__tests__/KeyValue.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
-shell/components/form/__tests__/KeyValue.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
-shell/components/form/__tests__/KeyValue.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
-shell/components/form/__tests__/KeyValue.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
-shell/components/form/__tests__/KeyValue.test.ts: error TS2352: Conversion of type 'VueNode<HTMLTextAreaElement>' to type 'HTMLInputElement' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
 shell/components/form/__tests__/LabeledSelect.test.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
 shell/components/form/__tests__/LabeledSelect.test.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
 shell/components/form/__tests__/LabeledSelect.test.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
@@ -1434,7 +1427,6 @@ shell/edit/secret/__tests__/ssh.test.ts: error TS2305: Module '"@shell/config/qu
 shell/edit/secret/__tests__/ssh.test.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
 shell/edit/secret/__tests__/ssh.test.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
 shell/edit/workload/__tests__/Job.test.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
-shell/edit/workload/__tests__/Upgrading.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'ComponentPublicInstance<NonNullable<Partial<{ mode: string; value: Record<string, any>; type: string; noPodSpec: boolean; noDeploymentSpec: boolean; }> & Omit<{ readonly value: Record<string, any>; ... 4 more ...; readonly "onUpdate:value"?: ((...args: any[]) => any) | undefined; } & VNodeProps & AllowedComponentPro...'.
 shell/list/__tests__/workload.test.ts: error TS2307: Cannot find module 'vue/types/options' or its corresponding type declarations.
 shell/list/__tests__/workload.test.ts: error TS2307: Cannot find module 'vue/types/vue' or its corresponding type declarations.
 shell/list/node.vue: error TS2339: Property 'id' does not exist on type 'string'.

@@ -64,6 +64,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     <div
       v-if="!showBothEmpty"
       class="annotations"
+      data-testid="resource-detail-annotations"
     >
       <Annotations
         :annotations="annotations"
