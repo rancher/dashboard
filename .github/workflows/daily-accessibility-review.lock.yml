@@ -62,7 +62,7 @@
 name: "Daily Accessibility Review"
 on:
   schedule:
-    - cron: "40 5 * * *"  # Friendly format: daily (scattered)
+    - cron: "38 5 * * *"  # Friendly format: daily (scattered)
   workflow_dispatch:
     inputs:
       aw_context:
