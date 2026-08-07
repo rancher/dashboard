@@ -294,12 +294,8 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version-file: '.nvmrc'
-
-      - name: Install packages
-        run: npm run install:ci
+      - name: Setup env
+        uses: ./.github/actions/setup
 
       - name: Run i18n string check
         run: |
@@ -312,12 +308,8 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version-file: '.nvmrc'
-
-      - name: Install packages
-        run: npm run install:ci
+      - name: Setup env
+        uses: ./.github/actions/setup
 
       - name: Run check of all http links in the i18n files (broken link check)
         run: |
@@ -356,9 +348,11 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        # `install: false` - the check below reads the spec files directly
+      - name: Setup env
+        uses: ./.github/actions/setup
         with:
-          node-version-file: '.nvmrc'
+          install: 'false'
       - name: Check e2e tags
         run: |
           ./scripts/check-e2e-tests-for-tags
@@ -369,13 +363,13 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - name: Setup env
+        uses: ./.github/actions/setup
         with:
-          node-version-file: '.nvmrc'
+          working-directory: ./cypress
       - name: Verify Cypress build
         working-directory: ./cypress
         run: |
-          npm run install:ci
           yarn build-pkg --verify
 
   # Store the PR number in an artifact for use in TestHub registration since workflow_run triggered by PRs doesn't include the PR number in the head branch or commit message

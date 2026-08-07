@@ -27,16 +27,11 @@ jobs:
         with:
           fetch-depth: 1
 
-        # Note - Cannot use the setup action here, the build script below performs its own install
-        # Corepack must be enabled before setup-node: `cache: yarn` resolves the cache
-        # directory by shelling out to `yarn --version`
-      - name: Enable Corepack
-        run: corepack enable
-
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        # `install: false` - the build script below performs its own install
+      - name: Setup env
+        uses: ./.github/actions/setup
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          install: 'false'
 
         # Build a directory containing the dashboard that can be used with ui-dashboard-index
       - id: build-hosted
@@ -79,16 +74,11 @@ jobs:
         with:
           fetch-depth: 1
 
-        # Note - Cannot use the setup action here, the build script below performs its own install
-        # Corepack must be enabled before setup-node: `cache: yarn` resolves the cache
-        # directory by shelling out to `yarn --version`
-      - name: Enable Corepack
-        run: corepack enable
-
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        # `install: false` - the build script below performs its own install
+      - name: Setup env
+        uses: ./.github/actions/setup
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          install: 'false'
 
         # Build a tar that will be picked up by rancher builds and embedded into it
       - id: build-embedded

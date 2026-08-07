@@ -29,12 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-    - name: Use Node.js
-      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-      with:
-        node-version-file: '.nvmrc'
-    - name: Install packages
-      run: npm run install:ci
+    - name: Setup env
+      uses: ./.github/actions/setup
     - name: Build Storybook
       run: |
         yarn build-storybook

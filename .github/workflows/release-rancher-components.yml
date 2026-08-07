@@ -19,9 +19,11 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
-    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      # `install: false` - the install runs below, after npm has been updated
+    - name: Setup env
+      uses: ./.github/actions/setup
       with:
-        node-version-file: '.nvmrc'
+        install: 'false'
         registry-url: 'https://registry.npmjs.org'
         scope: '@rancher'
 
