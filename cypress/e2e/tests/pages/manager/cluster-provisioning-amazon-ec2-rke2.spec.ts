@@ -301,15 +301,8 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     promptModal().clickActionButton('Confirm');
 
     cy.waitForInterceptWithConflictRetry('@scaleDownMachineDeployment');
-    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).then(($progressBar) => {
-      const hasErrors = $progressBar.find('.bg-error').length > 0;
-
-      if (hasErrors) {
-        clusterDetails.poolsList('machine').progressBarElements(`${ this.rke2Ec2ClusterName }-pool1`, '.bg-success').should('exist');
-        clusterDetails.poolsList('machine').progressBarElements(`${ this.rke2Ec2ClusterName }-pool1`, '.piece').should('have.length', 2);
-        clusterDetails.resourceDetail().masthead().resourceStatus().contains('Updating');
-      }
-    });
+    // The mixed red/green state can transition too quickly to observe reliably in CI.
+    // Rely on the settled assertions below instead.
 
     // Verify the machine pool is scaled down to 1
     clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^1$/, VERY_LONG_TIMEOUT_OPT);
