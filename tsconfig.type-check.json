@@ -12,6 +12,7 @@
     "./cypress.config.ts",
     "docusaurus",
     "scripts/standalone",
-    "storybook"
+    "storybook",
+    "shell/types/shell"
   ]
 }
