@@ -15,6 +15,27 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
   const fleetRestrictionsListPage = new FleetGitRepoRestrictionListPagePo();
   const headerPo = new HeaderPo();
 
+  describe('Deprecation', { tags: ['@fleet', '@adminUser'] }, () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('shows a deprecation banner pointing to Policies', () => {
+      fleetRestrictionsListPage.goTo();
+      fleetRestrictionsListPage.waitForPage();
+
+      const banner = fleetRestrictionsListPage.deprecationBanner();
+
+      banner.banner().should('be.visible');
+      banner.banner().should('contain.text', 'deprecated');
+      banner.banner().should('contain.text', 'Policies');
+      banner.bannerElement('a')
+        .should('have.attr', 'href', 'https://fleet.rancher.io/next/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction')
+        .and('have.attr', 'target', '_blank')
+        .and('contain.text', 'Policies');
+    });
+  });
+
   describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
     before(() => {
       cy.login();
