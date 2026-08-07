@@ -339,20 +339,20 @@ export default defineComponent({
           <i
             v-if="tooltipKey"
             v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
-            v-stripped-aria-label="t(tooltipKey)"
+            :aria-label="t('generic.moreInfo')"
+            role="button"
             class="checkbox-info icon icon-info icon-lg"
             :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
-            role="tooltip"
           />
           <i
             v-else-if="tooltip"
             v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
-            v-stripped-aria-label="tooltip"
+            :aria-label="t('generic.moreInfo')"
+            role="button"
             class="checkbox-info icon icon-info icon-lg"
             :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
-            role="tooltip"
           />
         </slot>
       </span>

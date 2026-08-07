@@ -7,6 +7,7 @@ import { purifyHTML } from '@shell/plugins/clean-html';
 // It then imperatively creates and destroys a single tooltip instance as needed, avoiding the high upfront memory and processing cost of many Vue components.
 let singleton: ReturnType<typeof createTooltip> | null = null;
 let currentTarget: HTMLElement | null = null;
+let roleObserver: MutationObserver | null = null;
 
 interface TooltipDelay {
   show: number;
@@ -25,6 +26,28 @@ interface TooltipOptions {
 interface TooltipHTMLElement extends HTMLElement {
   // Store the whole options object for the tooltip
   __tooltipOptions__: TooltipOptions;
+}
+
+/**
+ * floating-vue sets aria-describedby on the trigger only after the popper is created and
+ * positioned (~200ms after show). Watch for that write to apply role="tooltip" at the
+ * right moment.
+ */
+function applyPopperRole(target: HTMLElement) {
+  roleObserver?.disconnect();
+
+  roleObserver = new MutationObserver(() => {
+    const popperId = target.getAttribute('aria-describedby');
+    const popperEl = popperId ? document.getElementById(popperId) : null;
+
+    if (popperEl) {
+      popperEl.setAttribute('role', 'tooltip');
+      roleObserver?.disconnect();
+      roleObserver = null;
+    }
+  });
+
+  roleObserver.observe(target, { attributeFilter: ['aria-describedby'] });
 }
 
 /**
@@ -57,6 +80,8 @@ function showSingletonTooltip(target: HTMLElement, options: TooltipOptions) {
 
   singleton.show();
   currentTarget = target;
+
+  applyPopperRole(target);
 }
 
 /**
@@ -69,6 +94,8 @@ function hideSingletonTooltip(target: HTMLElement) {
   }
 
   if (currentTarget === target) {
+    roleObserver?.disconnect();
+    roleObserver = null;
     destroyTooltip(target);
     singleton = null;
     currentTarget = null;
@@ -113,6 +140,8 @@ const cleanTooltipDirective: Directive = {
       el.addEventListener('click', onMouseClick);
     }
 
+    el.addEventListener('keydown', onKeyDown);
+
     if (el.__tooltipOptions__.content) {
       // Add a class to the element to indicate that it has a clean tooltip.
       el.classList.add('has-clean-tooltip');
@@ -150,6 +179,7 @@ const cleanTooltipDirective: Directive = {
     el.removeEventListener('focus', onMouseEnter);
     el.removeEventListener('blur', onMouseLeave);
     el.removeEventListener('click', onMouseClick);
+    el.removeEventListener('keydown', onKeyDown);
     el.classList.remove('has-clean-tooltip');
 
     // If this element's tooltip is currently shown, hide it
@@ -194,6 +224,27 @@ function onMouseClick(e: MouseEvent) {
 }
 
 /**
+ * Event handler for keydown events.
+ * Escape dismisses the tooltip, Enter/Space toggle it.
+ * @param {KeyboardEvent} e The keyboard event object.
+ */
+function onKeyDown(e: KeyboardEvent) {
+  const el = e.currentTarget as TooltipHTMLElement;
+
+  if (e.key === 'Escape') {
+    hideSingletonTooltip(el);
+  } else if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+
+    if (currentTarget === el) {
+      hideSingletonTooltip(el);
+    } else {
+      showSingletonTooltip(el, el.__tooltipOptions__);
+    }
+  }
+}
+
+/**
  * Parses the tooltip options from the directive's value and modifiers.
  * @param {string|object} value The value of the directive.
  * @param {object} modifiers The modifiers of the directive.
@@ -230,5 +281,6 @@ export default cleanTooltipDirective;
 export {
   onMouseEnter,
   onMouseLeave,
-  onMouseClick
+  onMouseClick,
+  onKeyDown
 };
