@@ -129,16 +129,30 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
 
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
-      cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-      // The installed-apps list intermittently renders empty here even though the logging charts
-      // are installed: the namespace-filter reset above races the list's first fetch and, with
-      // testIsolation off, the stale empty result sticks (every retry re-hits the same empty
-      // list). Reload once so the list re-fetches under the now-committed filter before asserting.
-      // (A conditional gate can't be used - when the list is empty the row selector never
-      // resolves and times out rather than reporting zero rows.)
-      cy.reload();
-      installedAppsPage.waitForPage();
-      cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+
+      // The installed-apps list intermittently comes up empty even though the logging charts
+      // are installed: the namespace-filter reset above races the list fetch, and the freshly
+      // installed catalog.cattle.io.apps entries can lag the list index. With testIsolation off
+      // the stale empty result otherwise sticks across retries. Reload until the list fetch
+      // actually returns the logging app - checking the response body directly, which (unlike a
+      // DOM row selector) does not block/timeout on an empty list - so the table is populated
+      // before we assert.
+      const waitForInstalledLoggingApp = (attempt = 0): void => {
+        cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).then((interception) => {
+          expect(interception.response?.statusCode).to.eq(200);
+
+          const apps = interception.response?.body?.data || [];
+          const hasLoggingApp = apps.some((app: { metadata?: { name?: string } }) => app.metadata?.name === chartApp);
+
+          if (!hasLoggingApp && attempt < 4) {
+            cy.reload();
+            installedAppsPage.waitForPage();
+            waitForInstalledLoggingApp(attempt + 1);
+          }
+        });
+      };
+
+      waitForInstalledLoggingApp();
       installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
       installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
 
