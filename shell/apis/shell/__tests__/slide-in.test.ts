@@ -130,7 +130,7 @@ describe('slideInApiImpl', () => {
 
   describe('deprecation warnings', () => {
     const originalEnv = process.env.dev;
-    let warnSpy: jest.SpyInstance;
+    let warnSpy: ReturnType<typeof jest.spyOn>;
 
     beforeEach(() => {
       process.env.dev = 'true';
