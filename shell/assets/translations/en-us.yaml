@@ -4839,10 +4839,14 @@ login:
   loggingIn: Logging in...
   loggedIn: Logged in
   loginWithLocal: Log in with Local User
+  useProvider: Use a {provider} user
+  useNonLocal: Use a non-local user
   providers:
     heading: Choose how to sign in
     or: Or
+    choose: Choose another authentication provider
     chooseDifferent: Choose a different provider
+    menu: Authentication providers
     useLocal: Log in as a local user
     meta: "{vendor} · {protocol}"
     remember: Remember my choice on this device

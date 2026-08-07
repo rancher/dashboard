@@ -171,7 +171,7 @@ export default class AuthConfig extends SteveModel {
   }
 
   get icon() {
-    return providerIcon(this.id);
+    return providerIcon(this._type);
   }
 
   get state() {
