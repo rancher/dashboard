@@ -268,6 +268,11 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
       clusterList.list().name(name).find('a').should('be.visible')
         .click();
       hostedDetailsPage.waitForPage();
+      // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
+      // is not enough - it never appears in that page load), so reload to force a fresh render.
+      cy.reload();
+      hostedDetailsPage.waitForPage();
+      hostedDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
 
       hostedDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Autoscaler');
     });
@@ -286,6 +291,11 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.list().name('imported-mock-cluster').find('a').should('be.visible')
       .click();
     importDetailsPage.waitForPage();
+    // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
+    // is not enough - it never appears in that page load), so reload to force a fresh render.
+    cy.reload();
+    importDetailsPage.waitForPage();
+    importDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
     importDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Provisioning Log');
   });
 });
