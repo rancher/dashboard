@@ -137,8 +137,13 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       WorkloadsDaemonsetsListPagePo.navTo();
       daemonSetsListPage.waitForPage();
 
+      // The extra daemonset is created separately (daemonsets2) and can propagate slightly
+      // later than the daemonsets1 batch. Wait for it to be queryable before deriving the count,
+      // otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'apps.daemonset', `${ nsName2 }/${ uniqueDaemonSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
       // check daemonsets count
-      cy.waitForRancherResources('v1', 'apps.daemonset', daemonSetNamesList.length, true).then((resp: Cypress.Response<any>) => {
+      cy.waitForRancherResources('v1', 'apps.daemonset', daemonSetNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
         // Derive the actual number of daemonsets in the two filtered namespaces
         // instead of assuming exactly daemonSetNamesList.length + 1; the cluster can
         // briefly hold an extra resource, which makes a hardcoded count disagree.

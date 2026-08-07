@@ -215,7 +215,11 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
       WorkloadsCronJobsListPagePo.navTo();
       cronJobListPage.waitForPage();
 
-      cy.waitForRancherResources('v1', 'batch.cronjob', cronJobNamesList.length, true).then((resp: Cypress.Response<any>) => {
+      // Ensure the separately-created extra cronjob has propagated before deriving the count
+      // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'batch.cronjob', `${ nsName2 }/${ uniqueCronJob }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
+      cy.waitForRancherResources('v1', 'batch.cronjob', cronJobNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
         // Derive the actual number of cronjobs in the two filtered namespaces
         // instead of assuming exactly cronJobNamesList.length + 1; the cluster can
         // briefly hold an extra resource, which makes a hardcoded count disagree.
