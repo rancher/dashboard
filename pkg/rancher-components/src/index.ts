@@ -6,6 +6,7 @@ export { Banner } from './components/Banner';
 export { StringList } from './components/StringList';
 export {
   RcDropdown,
+  RcDropdownGroup,
   RcDropdownItem,
   RcDropdownSeparator,
   RcDropdownTrigger,

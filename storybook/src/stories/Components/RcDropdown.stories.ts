@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import {
   RcDropdown,
   RcDropdownTrigger,
+  RcDropdownGroup,
   RcDropdownItem,
   RcDropdownItemCheckbox,
   RcDropdownItemSelect,
@@ -156,6 +157,44 @@ export const WithCheckboxAndSelectItems: Story = {
       canvas:      { sourceState: 'none' },
       story:       { height: '320px' },
       description: { story: '`RcDropdownItemCheckbox` and `RcDropdownItemSelect` allow menu items to carry interactive form controls (a checkbox and a `LabeledSelect`) while still participating in the dropdown\'s keyboard navigation and focus management.' },
+    },
+  },
+};
+
+export const WithGroups: Story = {
+  decorators: [dropdownDecorator],
+  render:     () => ({
+    components: {
+      RcDropdown,
+      RcDropdownTrigger,
+      RcDropdownGroup,
+      RcDropdownItem,
+      RcDropdownSeparator,
+    },
+    template: `
+      <RcDropdown aria-label="Choose an authentication provider">
+        <RcDropdownTrigger>
+          Choose another authentication provider
+        </RcDropdownTrigger>
+        <template #dropdownCollection>
+          <RcDropdownGroup label="Choose how to sign in">
+            <RcDropdownItem>Okta — Corporate SSO</RcDropdownItem>
+            <RcDropdownItem>GitHub — Community</RcDropdownItem>
+          </RcDropdownGroup>
+          <RcDropdownSeparator />
+          <RcDropdownGroup label="Other">
+            <RcDropdownItem>Local account</RcDropdownItem>
+          </RcDropdownGroup>
+        </template>
+      </RcDropdown>
+    `,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      canvas:      { sourceState: 'none' },
+      story:       { height: '340px' },
+      description: { story: '`RcDropdownGroup` labels a subset of the items in a menu. `RcDropdown`\'s `ariaLabel` names the menu as a whole; a group names the choices within it, which keeps menus offering several kinds of choice comprehensible. The group renders `role="group"` with `aria-labelledby` pointing at its visible heading, and nested items still participate in the dropdown\'s keyboard navigation.' },
     },
   },
 };
