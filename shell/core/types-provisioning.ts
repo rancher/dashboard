@@ -1,3 +1,5 @@
+import type { Component } from 'vue';
+
 /**
  * A function to run as part of the save cluster process
  */
@@ -12,6 +14,26 @@ export type ClusterSaveHook = (cluster: any) => Promise<any>
  * @param fnContext the `this` context from inside the function. If left blank will be a Vue component (where this.value will be the cluster)
  */
 export type RegisterClusterSaveHook = (hook: ClusterSaveHook, name: string, priority?: number, fnContext?: any) => void;
+
+/**
+ * Props for the `extensionInfrastructureSection` component.
+ *
+ * Either a plain object merged over the default props, or a function that receives the default props
+ * and returns an object of additional/overridden props
+ */
+export type ExtensionInfrastructureSectionProps =
+  | { [key: string]: any }
+  | ((context: { value: any, mode: string, credentialId: string, provisioningCluster: any, infrastructureCluster: any }) => { [key: string]: any });
+
+/**
+ * Props for the `extensionProvisioningSection` component
+ *
+ * Either a plain object merged over the default props, or a function that receives the default props
+ * and returns an object of additional/overridden props
+ */
+export type ExtensionProvisioningSectionProps =
+  | { [key: string]: any }
+  | ((context: { value: any, mode: string, provisioningCluster: any }) => { [key: string]: any });
 
 export type ClusterDetailTabs = {
   /**
@@ -287,7 +309,22 @@ export interface IClusterProvisioner {
   /**
    * Optional custom UI section for infrastructure-cluster-specific configuration.
    */
-  extensionInfrastructureSection?: any
+  extensionInfrastructureSection?: Component
+
+  /**
+   * Props (or a function returning props) passed to `extensionInfrastructureSection`
+   */
+  extensionInfrastructureSectionProps?: ExtensionInfrastructureSectionProps
+
+  /**
+   * Optional custom UI section for provisioning-cluster-specific configuration.
+   */
+  extensionProvisioningSection?: Component
+
+  /**
+   * Props (or a function returning props) passed to `extensionProvisioningSection`
+   */
+  extensionProvisioningSectionProps?: ExtensionProvisioningSectionProps
 
   /**
    * Indicates the provisioner manages upstream CAPI infrastructure resources directly.
