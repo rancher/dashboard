@@ -213,7 +213,8 @@ nav:
     mainMenuIcon: Main menu icon
     mainMenuRancherLogo: Main menu Rancher logo
     userAvatar: User avatar image
-  expandCollapseAppBar: Expand/Collapse the Application Bar
+  expandAppBar: Expand the Application Bar
+  collapseAppBar: Collapse the Application Bar
   harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
   tools: Tools
