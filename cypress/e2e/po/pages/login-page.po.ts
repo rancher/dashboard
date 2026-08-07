@@ -50,6 +50,43 @@ export class LoginPagePo extends PagePo {
     return new AsyncButtonPo('[data-testid="login-submit"]', this.self());
   }
 
+  /**
+   * The primary "Log in with <provider>" button for the currently selected
+   * auth provider.
+   */
+  providerSubmitButton(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-submit"]', this.self());
+  }
+
+  /**
+   * The "Choose another authentication provider" button. Only rendered once
+   * more than one non-local provider is configured.
+   */
+  providerSelectTrigger(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-trigger"]');
+  }
+
+  openProviderSelect(): Cypress.Chainable {
+    return this.providerSelectTrigger().click();
+  }
+
+  /**
+   * A provider in the open provider menu, keyed by its authconfig name.
+   */
+  providerOption(id: string): ComponentPo {
+    return new ComponentPo(`[data-testid="login-provider-option-${ id }"]`);
+  }
+
+  selectProvider(id: string): Cypress.Chainable {
+    this.openProviderSelect();
+
+    return this.providerOption(id).click();
+  }
+
+  rememberProviderCheckbox(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-remember"]');
+  }
+
   confirmationAcceptButton(): ComponentPo {
     return new ComponentPo('[data-testid="login-confirmation-accept-button"]', this.self());
   }
