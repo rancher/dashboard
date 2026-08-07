@@ -1,5 +1,22 @@
 name: Setup UI Env
-description: Setup node, python and call bootstrap script
+description: Enable Corepack, set up Node with Yarn Berry caching, and install packages
+
+inputs:
+  install:
+    description: Whether to run `npm run install:ci`. Set false when a later step or script performs its own install.
+    default: 'true'
+  working-directory:
+    description: Directory to run the install and the Yarn check in.
+    default: '.'
+  cache-dependency-path:
+    description: Passed through to actions/setup-node. Leave unset to keep the default root yarn.lock cache key.
+    required: false
+  registry-url:
+    description: Passed through to actions/setup-node.
+    required: false
+  scope:
+    description: Passed through to actions/setup-node.
+    required: false
 
 runs:
   using: 'composite'
@@ -8,11 +25,30 @@ runs:
       shell: bash
       run: corepack enable
 
-    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
       with:
         node-version-file: '.nvmrc'
         cache: 'yarn'
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+        registry-url: ${{ inputs.registry-url }}
+        scope: ${{ inputs.scope }}
+
+    # Fails if the ordering above ever regresses
+    - name: Verify Corepack resolved the pinned Yarn
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        expected="$(node -p "require('./package.json').packageManager.split('@')[1]")"
+        actual="$(yarn --version)"
+        if [ "$actual" != "$expected" ]; then
+          echo "::error::Expected Yarn ${expected} (from packageManager) but got ${actual}."
+          echo "::error::'corepack enable' must run before actions/setup-node, otherwise its 'cache: yarn' lookup resolves Yarn Classic's cache directory instead of Berry's."
+          exit 1
+        fi
+        echo "Yarn ${actual} active"
 
     - name: Install packages
+      if: inputs.install == 'true'
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: npm run install:ci
