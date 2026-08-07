@@ -13,8 +13,16 @@ import {
 } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
-import { sortBy } from '@shell/utils/sort';
-import { configTypeForProvider, providerKey } from '@shell/models/management.cattle.io.authconfig';
+import { configTypeForProvider } from '@shell/models/management.cattle.io.authconfig';
+import AuthProviderSelect from '@shell/components/auth/login/AuthProviderSelect.vue';
+import { LOCAL_AUTH_ID } from '@shell/utils/auth';
+import {
+  clearRememberedProviderId,
+  getRememberedProviderId,
+  resolveInitialProvider,
+  setRememberedProviderId,
+  toProviderOptions,
+} from '@shell/utils/auth-providers';
 import { mapGetters } from 'vuex';
 import { markRaw } from 'vue';
 import { MANAGEMENT, NORMAN, EXT } from '@shell/config/types';
@@ -32,12 +40,10 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import TabTitle from '@shell/components/TabTitle.vue';
 import { getBrandMeta } from '@shell/utils/brand';
 
-const LOCAL_PROVIDER = 'localProvider';
-
 export default {
   name:       'Login',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading, TabTitle
+    LabeledInput, AsyncButton, AuthProviderSelect, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading, TabTitle
   },
 
   data() {
@@ -58,6 +64,9 @@ export default {
       showLocal:          false,
       providers:          [],
       providerComponents: [],
+      providerOptions:    [],
+      selectedProviderId: null,
+      rememberProvider:   false,
       customLoginError:   {},
       firstLogin:         false,
       vendor:             getVendor()
@@ -88,11 +97,37 @@ export default {
       return this.providers.length === 1 ? this.providers[0] : undefined;
     },
 
+    /**
+     * The provider the primary login button acts on.
+     */
+    selectedProvider() {
+      return this.providerOptions.find((option) => option.id === this.selectedProviderId);
+    },
+
+    /**
+     * With a single external provider there is nothing to choose between, so the
+     * page keeps the plain "Use a local user" link it has always shown. The menu
+     * only earns its place once several providers are configured.
+     */
+    showProviderSelect() {
+      return this.providers.length > 1;
+    },
+
+    /**
+     * Index of the selected provider within `providers`, which `providerComponents`
+     * is built in step with.
+     */
+    selectedProviderIndex() {
+      return this.providers.findIndex((provider) => provider.id === this.selectedProviderId);
+    },
+
+    selectedProviderComponent() {
+      return this.providerComponents[this.selectedProviderIndex];
+    },
+
     nonLocalPrompt() {
       if (this.singleProvider) {
-        const provider = this.displayName(this.singleProvider);
-
-        return this.t('login.useProvider', { provider });
+        return this.t('login.useProvider', { provider: this.singleProvider.name });
       }
 
       return this.t('login.useNonLocal');
@@ -167,32 +202,36 @@ export default {
     const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
     const drivers = await this.$store.dispatch('auth/getAuthProviders');
 
-    let providers = sortBy(
-      drivers.map((x) => {
-        return {
-          id:   x.id,
-          type: x.type
-        };
-      }),
-      ['type']
-    );
-    const hasLocal = providers.some((x) => x.type === LOCAL_PROVIDER);
-    const hasOthers = hasLocal && !!providers.find((x) => x.type !== LOCAL_PROVIDER);
+    // Carries local as well, since the menu offers it alongside the external providers.
+    const providerOptions = toProviderOptions(drivers, {
+      t:            this.t,
+      withFallback: this.$store.getters['i18n/withFallback'],
+    });
 
-    if ( hasLocal ) {
-      // Local is special and handled here so that it can be togglee
-      providers = providers.filter((x) => {
-        return x.type !== LOCAL_PROVIDER;
-      });
-    }
+    const providers = providerOptions.filter((x) => !x.isLocal);
+    const hasLocal = providerOptions.some((x) => x.isLocal);
+    const hasOthers = hasLocal && !!providers.length;
+
+    const rememberedId = getRememberedProviderId();
+    const initial = resolveInitialProvider(providerOptions, rememberedId);
 
     this.vendor = getVendor();
+    this.providerOptions = providerOptions;
     this.providers = providers;
     this.hasLocal = hasLocal;
-    this.showLocal = hasLocal && (!hasOthers || (this.$route.query[LOCAL] === _FLAGGED));
+    this.selectedProviderId = initial?.id || null;
+    // Only reflect the checkbox as ticked when the saved provider still exists;
+    // a stale entry shouldn't claim the page is remembering something.
+    this.rememberProvider = !!rememberedId && initial?.id === rememberedId;
     this.customLoginError = JSON.parse(value).loginError;
     this.firstLogin = firstLoginSetting?.value === 'true';
     this.username = this.firstLogin ? 'admin' : this.username;
+
+    this.showLocal = hasLocal && (
+      !hasOthers ||
+      this.$route.query[LOCAL] === _FLAGGED ||
+      !!initial?.isLocal
+    );
 
     this.providerComponents = this.providers.map((x) => {
       return markRaw(this.$store.getters['type-map/importLogin'](configTypeForProvider(x.type) || x.type));
@@ -248,16 +287,40 @@ export default {
       };
     },
 
-    displayName(provider) {
-      return this.t(`model.authConfig.provider.${ providerKey(provider) }`);
-    },
-
     toggleLocal() {
       this.showLocal = !this.showLocal;
+      this.selectedProviderId = this.showLocal ? LOCAL_AUTH_ID : this.providers[0]?.id || null;
       this.$router.applyQuery({ [LOCAL]: _FLAGGED });
       this.$nextTick(() => {
         this.focusSomething();
       });
+    },
+
+    /**
+     * Picking a provider only changes what the page is offering -- the user still
+     * confirms with the primary button, so SSO, LDAP and local all behave alike.
+     */
+    selectProvider(option) {
+      this.selectedProviderId = option.id;
+      this.showLocal = option.isLocal;
+
+      if (this.rememberProvider) {
+        setRememberedProviderId(option.id);
+      }
+
+      this.$nextTick(() => {
+        this.focusSomething();
+      });
+    },
+
+    setRememberProvider(remember) {
+      this.rememberProvider = remember;
+
+      if (remember && this.selectedProviderId) {
+        setRememberedProviderId(this.selectedProviderId);
+      } else {
+        clearRememberedProviderId();
+      }
     },
 
     focusSomething() {
@@ -435,17 +498,15 @@ export default {
         </div>
 
         <div
-          v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length"
+          v-if="(!hasLocal || (hasLocal && !showLocal)) && selectedProvider && !selectedProvider.isLocal"
           :class="{'mt-30': !hasLoginMessage}"
         >
           <component
-            :is="providerComponents[idx]"
-            v-for="({type, id}, idx) in providers"
-            :key="idx"
-            class="mb-10"
-            :focus-on-mount="(idx === 0 && !showLocal)"
-            :name="id"
-            :type="type"
+            :is="selectedProviderComponent"
+            :key="selectedProvider.id"
+            :focus-on-mount="!showLocal"
+            :name="selectedProvider.id"
+            :type="selectedProvider.type"
             :open="!showLocal"
             @showInputs="showLocal = false"
             @error="handleProviderError"
@@ -503,8 +564,9 @@ export default {
               </div>
             </div>
           </form>
+          <!-- With several providers the menu below supersedes these links. -->
           <div
-            v-if="hasLocal && !showLocal"
+            v-if="!showProviderSelect && hasLocal && !showLocal"
             class="mt-20 text-center"
           >
             <a
@@ -517,7 +579,7 @@ export default {
             </a>
           </div>
           <div
-            v-if="hasLocal && showLocal && providers.length"
+            v-if="!showProviderSelect && hasLocal && showLocal && providers.length"
             class="mt-20 text-center"
           >
             <a
@@ -528,6 +590,17 @@ export default {
             </a>
           </div>
         </template>
+        <div
+          v-if="showProviderSelect"
+          class="mt-20 text-center"
+        >
+          <AuthProviderSelect
+            :options="providerOptions"
+            :remember="rememberProvider"
+            @select="selectProvider"
+            @update:remember="setRememberProvider"
+          />
+        </div>
         <div
           v-if="showLocaleSelector && hasMultipleLocales && !isHarvester"
           class="locale-selector"

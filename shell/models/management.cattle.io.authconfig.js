@@ -43,6 +43,21 @@ const imageOverrides = {
   oidc:         'openid',
 };
 
+/**
+ * Resolve a provider's vendor logo from any provider identifier.
+ *
+ * @returns the asset URL, or an empty string when the vendor has no logo.
+ */
+export const providerIcon = (type) => {
+  try {
+    const key = providerKey(type);
+
+    return requireAsset(`~shell/assets/images/vendor/${ imageOverrides[key] || key }.svg`);
+  } catch (e) {
+    return '';
+  }
+};
+
 export default class AuthConfig extends SteveModel {
   get _availableActions() {
     const out = super._availableActions;
@@ -93,13 +108,7 @@ export default class AuthConfig extends SteveModel {
   }
 
   get icon() {
-    try {
-      const key = providerKey(this._type);
-
-      return requireAsset(`~shell/assets/images/vendor/${ imageOverrides[key] || key }.svg`);
-    } catch (e) {
-      return '';
-    }
+    return providerIcon(this._type);
   }
 
   get state() {
