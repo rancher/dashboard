@@ -559,6 +559,8 @@ export default {
           <div
             data-testid="top-level-menu"
             :aria-label="shown ? t('nav.collapseAppBar') : t('nav.expandAppBar')"
+            :aria-expanded="shown"
+            aria-controls="top-level-menu-body"
             role="button"
             tabindex="0"
             class="menu"
@@ -588,7 +590,10 @@ export default {
         </div>
 
         <!-- Menu body -->
-        <div class="body">
+        <div
+          id="top-level-menu-body"
+          class="body"
+        >
           <div>
             <!-- Home button -->
             <div @click="hide()">
