@@ -49,6 +49,14 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       const loggingOutputList = new LoggingClusteroutputListPagePo();
       const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
 
+      // Make each attempt independent (testIsolation is off): a failed earlier attempt can leave
+      // the chart partially installed, so the Install button is no longer shown and the install
+      // request never fires on retry. Uninstall any leftover and wait for it to clear so a retry
+      // starts from a clean slate (a no-op on a clean first attempt - the GET is a 404 straight away).
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp?.status === 404, 30, { failOnStatusCode: false });
+
       cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
       ChartPage.navTo(null, 'Logging');
       chartPage.waitForChartHeader('Logging', { timeout: 20000 });
