@@ -243,7 +243,7 @@ export default {
     }
 
     if ( this.mode === _CREATE ) {
-      this.value?.applyDefaults(this, realMode);
+      this.value?.applyDefaults?.(this, realMode);
     }
   },
   data() {
