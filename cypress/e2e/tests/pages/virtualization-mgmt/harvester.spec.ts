@@ -10,6 +10,8 @@ const harvesterPo = new HarvesterClusterPagePo();
 const appRepoList = new RepositoriesPagePo(undefined, 'manager');
 
 let harvesterClusterName = '';
+// Incremented per test attempt so the imported-cluster name is unique across Cypress retries.
+let harvesterClusterAttempt = 0;
 const harvesterTitle = 'Harvester';
 
 // Cluster chart repository that supplies the Harvester UI extension (repo id, Git URL, branch)—differs for Community vs Prime.
@@ -60,7 +62,12 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.wrap(version, { log: false }).as('rancherVersion');
     });
     cy.createE2EResourceName('harvesterclustername').then((name) => {
-      harvesterClusterName = name;
+      // createE2EResourceName is deterministic within a run, so a Cypress retry would reuse
+      // the name and collide (422) with the cluster a failed earlier attempt left behind:
+      // importing via POST /v3/clusters also creates a management cluster, and the inline
+      // cleanup only runs when the test succeeds. A unique name per attempt lets a retry
+      // create cleanly and recover instead of wedging on the same 422.
+      harvesterClusterName = `${ name }-${ ++harvesterClusterAttempt }`;
     });
   });
 
@@ -73,17 +80,6 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }`).as('updateChart');
       cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }?action=install`).as('installHarvesterExtension');
       cy.intercept('POST', '/v3/clusters').as('createHarvesterCluster');
-
-      // Idempotent across retries: the cluster name is deterministic within a run, and
-      // a failed earlier attempt leaves the cluster on the server (its cleanup runs
-      // inline only when the test succeeds), so the re-create returns 422 instead of
-      // 201. Remove any leftover before starting - the extension install below gives
-      // the async delete plenty of time to complete before the create.
-      cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterName }`, false);
-      // Wait for the leftover to be fully gone (cluster deletion is async with
-      // finalizers) so the re-create does not collide with a still-terminating cluster.
-      // On a clean first attempt the GET is a 404 straight away.
-      cy.waitForRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterName }`, (resp: any) => resp.status === 404, 40, { failOnStatusCode: false });
 
       // verify install button and message displays
       harvesterPo.goTo();
