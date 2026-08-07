@@ -8,6 +8,57 @@ import { loadTranslation } from '@shell/utils/dynamic-importer';
 const NONE = 'none';
 const DEFAULT_LOCALE = 'en-us';
 
+// Extension type used to register i18n global values, referenced in translation
+// strings using [[name]] notation. See `substituteGlobals` below.
+export const I18N_GLOBAL_TYPE = 'l10n-global';
+
+// Matches [[name]] where name is any character except ']' and where the opening
+// `[[` is NOT preceded by a backslash (which is the escape sequence).
+const GLOBAL_PATTERN = /(\\?)\[\[([^\]]+)\]\]/g;
+
+/**
+ * Look up an i18n global value registered via
+ * `extension.register('l10n-global', name, value)`. Values may be registered as
+ * a function, in which case they are invoked to produce the current value.
+ *
+ * @param {string} name
+ * @param {any} $extension
+ * @returns {string | undefined}
+ */
+export function lookupGlobal(name, $extension) {
+  const registered = $extension?.getDynamic?.(I18N_GLOBAL_TYPE, name);
+  const value = typeof registered === 'function' ? registered() : registered;
+
+  return value !== undefined && value !== null ? String(value) : undefined;
+}
+
+/**
+ * Replace [[name]] tokens with values registered as i18n globals via
+ * `extension.register('i18n-global', name, value)`. If the token is not
+ * registered, the name itself is used as the value. Use `\[[` to include a
+ * literal `[[` in a translation string.
+ *
+ * @param {string} msg
+ * @param {any} $extension
+ * @returns {string}
+ */
+export function substituteGlobals(msg, $extension) {
+  if (typeof msg !== 'string' || !msg.includes('[[')) {
+    return msg;
+  }
+
+  return msg.replace(GLOBAL_PATTERN, (_match, escape, name) => {
+    if (escape) {
+      // Preserve the literal token, stripping only the escape character
+      return `[[${ name }]]`;
+    }
+
+    const value = lookupGlobal(name, $extension);
+
+    return value !== undefined ? value : name;
+  });
+}
+
 // Formatters can't be serialized into state
 const intlCache = {};
 
@@ -62,7 +113,7 @@ export const getters = {
     return state.available.length > 1;
   },
 
-  t: (state) => (key, args, language) => {
+  t: (state, _getters, rootState) => (key, args, language) => {
     if (state.selected === NONE && !language) {
       return `%${ key }%`;
     }
@@ -88,10 +139,14 @@ export const getters = {
         return undefined;
       }
 
-      if ( msg?.includes('{')) {
-        formatter = new IntlMessageFormat(msg, locale);
+      // Substitute [[name]] tokens with values registered as i18n globals.
+      const hasGlobal = msg.includes('[[');
+      const substituted = hasGlobal ? substituteGlobals(msg, rootState?.$extension) : msg;
+
+      if ( substituted?.includes('{')) {
+        formatter = new IntlMessageFormat(substituted, locale);
       } else {
-        formatter = msg;
+        formatter = substituted;
       }
 
       intlCache[cacheKey] = formatter;
@@ -112,6 +167,10 @@ export const getters = {
     } else {
       return '?';
     }
+  },
+
+  global: (_state, _getters, rootState) => (name) => {
+    return lookupGlobal(name, rootState?.$extension);
   },
 
   exists: (state) => (key, language) => {
