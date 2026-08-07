@@ -239,7 +239,9 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       // generate small set of statefulsets data
       generateStatefulSetsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsStatefulSetsListPagePo.navTo();
+      // Navigate directly rather than via the side menu: the side-menu nav
+      // intermittently lands on the wrong workload type (e.g. Deployments).
+      WorkloadsStatefulSetsListPagePo.goTo(localCluster);
       cy.wait('@statefulSetsDataSmall');
       statefulSetListPage.waitForPage();
 
