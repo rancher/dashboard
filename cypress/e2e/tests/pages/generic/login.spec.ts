@@ -81,6 +81,121 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
     });
   });
 
+  it('Shows the local login form without a provider menu when local is the only provider', () => {
+    LoginPagePo.goTo();
+
+    const loginPage = new LoginPagePo();
+
+    loginPage.waitForPage();
+    loginPage.providerSelectTrigger().checkNotExists();
+  });
+
+  describe('Multiple authentication providers', () => {
+    // Several IDPs can't be configured from a test, so the public provider list
+    // is stubbed. Everything under test here is client side.
+    const stubProviders = () => {
+      cy.intercept('GET', '/v1-public/authproviders*', {
+        statusCode: 200,
+        body:       {
+          type: 'collection',
+          data: [
+            {
+              id: 'local', type: 'localProvider', _type: 'localProvider'
+            },
+            {
+              id: 'okta-corp', type: 'oktaProvider', _type: 'oktaProvider'
+            },
+            {
+              id: 'okta-partner', type: 'oktaProvider', _type: 'oktaProvider'
+            },
+            {
+              id: 'gh-community', type: 'githubProvider', _type: 'githubProvider'
+            },
+          ],
+        },
+      }).as('authProviders');
+    };
+
+    beforeEach(() => {
+      stubProviders();
+      LoginPagePo.goTo();
+      cy.wait('@authProviders');
+    });
+
+    it('Offers a provider menu instead of one button per provider', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.waitForPage();
+      loginPage.providerSubmitButton().checkVisible();
+      loginPage.providerSelectTrigger().checkVisible();
+
+      // The old per-provider button stack is gone.
+      cy.get('[data-testid="login-provider-submit"]').should('have.length', 1);
+    });
+
+    it('Lists every provider, plus local, in the menu', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.openProviderSelect();
+
+      loginPage.providerOption('okta-corp').checkVisible();
+      loginPage.providerOption('okta-partner').checkVisible();
+      loginPage.providerOption('gh-community').checkVisible();
+      loginPage.providerOption('local').checkVisible();
+    });
+
+    it('Changes the primary button when another provider is chosen', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.selectProvider('okta-partner');
+
+      loginPage.providerSubmitButton().shouldContainText('okta-partner');
+      // Choosing a provider must not log the user in on its own.
+      cy.url().should('include', '/auth/login');
+    });
+
+    it('Reveals the local form when local is chosen', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.selectProvider('local');
+
+      loginPage.username().checkVisible();
+      loginPage.password().checkVisible();
+      // The menu stays available so the user can change their mind.
+      loginPage.providerSelectTrigger().checkVisible();
+    });
+
+    it('Reopens on the remembered provider', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.selectProvider('okta-partner');
+      loginPage.openProviderSelect();
+      loginPage.rememberProviderCheckbox().click();
+
+      stubProviders();
+      LoginPagePo.goTo();
+      cy.wait('@authProviders');
+
+      loginPage.providerSubmitButton().shouldContainText('okta-partner');
+    });
+
+    it('Falls back to the first provider once the choice is forgotten', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.selectProvider('okta-partner');
+      loginPage.openProviderSelect();
+      loginPage.rememberProviderCheckbox().click();
+      loginPage.openProviderSelect();
+      loginPage.rememberProviderCheckbox().click();
+
+      stubProviders();
+      LoginPagePo.goTo();
+      cy.wait('@authProviders');
+
+      loginPage.providerSubmitButton().shouldContainText('gh-community');
+    });
+  });
+
   it('Cannot login with invalid credentials', () => {
     LoginPagePo.goTo();
 
