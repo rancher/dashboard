@@ -20,9 +20,10 @@ export default {
 
   computed: {
     displayName() {
-      const providerString = this.t(`model.authConfig.provider.${ providerKey(this.type) }`);
+      const key = providerKey(this.type);
+      const providerString = this.t(`model.authConfig.provider.${ key }`);
 
-      return `${ providerString }: ${ this.name }`;
+      return this.name?.toLowerCase() === key ? providerString : this.name;
     }
   },
 
@@ -34,7 +35,7 @@ export default {
 
   methods: {
     focus() {
-      this.$refs.btn.focus();
+      this.$refs.btn?.focus();
     },
   },
 };
