@@ -42,7 +42,7 @@
     "eslint-plugin-local-rules": "link:../../eslint-plugin-local-rules",
     "eslint-plugin-n": "17.24.0",
     "eslint-plugin-node": "11.1.0",
-    "eslint-plugin-vue": "10.9.2",
+    "eslint-plugin-vue": "10.10.0",
     "globals": "17.7.0",
     "jsonpath-plus": "10.3.0",
     "neostandard": "0.13.0",
