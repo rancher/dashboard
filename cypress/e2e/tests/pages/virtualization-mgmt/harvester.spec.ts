@@ -10,6 +10,8 @@ const harvesterPo = new HarvesterClusterPagePo();
 const appRepoList = new RepositoriesPagePo(undefined, 'manager');
 
 let harvesterClusterName = '';
+// Incremented per test attempt so the imported-cluster name is unique across Cypress retries.
+let harvesterClusterAttempt = 0;
 const harvesterTitle = 'Harvester';
 
 // Cluster chart repository that supplies the Harvester UI extension (repo id, Git URL, branch)—differs for Community vs Prime.
@@ -60,7 +62,12 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.wrap(version, { log: false }).as('rancherVersion');
     });
     cy.createE2EResourceName('harvesterclustername').then((name) => {
-      harvesterClusterName = name;
+      // createE2EResourceName is deterministic within a run, so a Cypress retry would reuse
+      // the name and collide (422) with the cluster a failed earlier attempt left behind:
+      // importing via POST /v3/clusters also creates a management cluster, and the inline
+      // cleanup only runs when the test succeeds. A unique name per attempt lets a retry
+      // create cleanly and recover instead of wedging on the same 422.
+      harvesterClusterName = `${ name }-${ ++harvesterClusterAttempt }`;
     });
   });
 
@@ -123,6 +130,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         // navigate to harvester list page and verify the logo and tagline do not display after cluster created
         HarvesterClusterPagePo.navTo();
         harvesterPo.waitForPage();
+        // Wait for the just-created cluster to render in the list before acting on it.
         harvesterPo.list().resourceTable().sortableTable().rowWithName(harvesterClusterName)
           .checkVisible();
         harvesterPo.harvesterLogo().should('not.exist');

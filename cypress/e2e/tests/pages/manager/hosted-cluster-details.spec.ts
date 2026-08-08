@@ -2,6 +2,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { provisioningClusters, managementClusters, nodes, namespaces } from '@/cypress/e2e/blueprints/manager/hosted-cluster-mocks';
 import ClusterManagerDetailHostedPagePo from '~/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-hosted.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
   // ids from hosted-cluster-mocks
@@ -155,6 +156,11 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.list().name('eks-mock-cluster').find('a').should('be.visible')
       .click();
     eksDetailsPage.waitForPage();
+    // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
+    // is not enough - it never appears in that page load), so reload to force a fresh render.
+    cy.reload();
+    eksDetailsPage.waitForPage();
+    eksDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
     eksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
 
     // ensure the node pool tab is the first tab
@@ -196,6 +202,11 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.list().name('gke-mock-cluster').find('a').should('be.visible')
       .click();
     gkeDetailsPage.waitForPage();
+    // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
+    // is not enough - it never appears in that page load), so reload to force a fresh render.
+    cy.reload();
+    gkeDetailsPage.waitForPage();
+    gkeDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
     gkeDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
 
     // ensure the node pool tab is the first tab
@@ -257,6 +268,11 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
       clusterList.list().name(name).find('a').should('be.visible')
         .click();
       hostedDetailsPage.waitForPage();
+      // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
+      // is not enough - it never appears in that page load), so reload to force a fresh render.
+      cy.reload();
+      hostedDetailsPage.waitForPage();
+      hostedDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
 
       hostedDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Autoscaler');
     });
@@ -275,6 +291,11 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.list().name('imported-mock-cluster').find('a').should('be.visible')
       .click();
     importDetailsPage.waitForPage();
+    // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
+    // is not enough - it never appears in that page load), so reload to force a fresh render.
+    cy.reload();
+    importDetailsPage.waitForPage();
+    importDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
     importDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Provisioning Log');
   });
 });

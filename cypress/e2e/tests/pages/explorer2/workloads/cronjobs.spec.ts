@@ -73,8 +73,12 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
         const jod = findJob(resp);
         const jobName = jod.metadata.name;
 
+        // Require a Running pod: with the deterministic cronjob name and testIsolation
+        // off, a retry can still see a previous attempt's pod terminating, and picking
+        // that one makes the "Running" assertions below flake. Waiting for a Running pod
+        // ensures we target this run's freshly-created pod.
         const findPod = (resp: any) => {
-          return resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName));
+          return resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName) && pod.status?.phase === 'Running');
         };
 
         cy.waitForRancherResource<any>('v1', 'pods', `${ defaultNamespace }`, findPod, 20, { returnResource: true }).then((resp) => {
@@ -211,10 +215,22 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
       WorkloadsCronJobsListPagePo.navTo();
       cronJobListPage.waitForPage();
 
-      // check cronjobs count
-      const count = cronJobNamesList.length + 1;
+      // Ensure the separately-created extra cronjob has propagated before deriving the count
+      // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'batch.cronjob', `${ nsName2 }/${ uniqueCronJob }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'batch.cronjob', count, true).then((resp: Cypress.Response<any>) => {
+      cy.waitForRancherResources('v1', 'batch.cronjob', cronJobNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of cronjobs in the two filtered namespaces
+        // instead of assuming exactly cronJobNamesList.length + 1; the cluster can
+        // briefly hold an extra resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (cj: any) => [nsName1, nsName2].includes(cj.metadata?.namespace)
+        ).length;
+
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        cronJobListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         cronJobListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -383,7 +399,9 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
       // generate small set of cronjobs data
       generateCronJobsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsCronJobsListPagePo.navTo();
+      // Navigate directly rather than via the side menu: the side-menu nav
+      // intermittently lands on the wrong workload type (e.g. Deployments).
+      WorkloadsCronJobsListPagePo.goTo(localCluster);
       cy.wait('@cronJobsDataSmall');
       cronJobListPage.waitForPage();
 

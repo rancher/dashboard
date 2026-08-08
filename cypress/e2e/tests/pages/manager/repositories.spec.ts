@@ -37,10 +37,21 @@ describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUse
 describe('Cluster Management Helm Repositories', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   const downloadsFolder = Cypress.config('downloadsFolder');
+  // Generated at runtime in the before hook (see below) so no private key is committed.
+  let sshPrivateKey = 'privateKey';
 
   before(() => {
     cy.clearAllSessions();
     cy.login();
+    // Generate a throwaway, valid SSH keypair at runtime - real, parseable key material
+    // (unlike the old 'privateKey' placeholder), authorised nowhere, so purely test data
+    // and never written to the repo.
+    const keyPath = '/tmp/e2e-ssh-repo-key';
+
+    cy.exec(`rm -f ${ keyPath } ${ keyPath }.pub && ssh-keygen -t ed25519 -N '' -C e2e-test -f ${ keyPath } -q`);
+    cy.readFile(keyPath).then((key) => {
+      sshPrivateKey = key;
+    });
   });
 
   beforeEach(() => {
@@ -49,6 +60,12 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   });
 
   it('can create a repository', function() {
+    // Idempotent across retries: on the first attempt the list can intermittently omit the
+    // freshly-created repo from its rendered rows even though it exists (issue 17554), failing
+    // the row lookup. With the deterministic name the retry's re-create then returns 409, so
+    // remove any leftover before starting.
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName, false);
+
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
@@ -67,12 +84,17 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
     // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
+    // Wait for the row to render in the list before asserting its state - it can briefly drop
+    // out of the rendered rows after create (issue 17554).
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can edit a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    // Wait for the repo created above to render in the list before opening its action menu.
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-desc-edit`);
@@ -87,6 +109,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can clone a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    // Wait for the repo created above to render in the list before opening its action menu.
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Clone').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=clone');
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }-clone`);
@@ -101,6 +125,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can download YAML', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    // Wait for the repo created above to render in the list before opening its action menu.
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.repoName }.yaml`);
@@ -131,6 +157,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can delete a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    // Wait for the cloned repo created above to render in the list before deleting it.
+    repositoriesPage.list().details(`${ this.repoName }-clone`, 2).should('be.visible');
 
     // delete cloned Repository
     repositoriesPage.list().resourceTable().sortableTable().rowNames()
@@ -174,6 +202,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   });
 
   it('can create a repository with SSH key', function() {
+    // Idempotent across retries (mirrors the plain create test): remove any leftover SSH
+    // repo so the retry's re-create does not 409 and strand the list render.
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, false);
+
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.create();
@@ -183,13 +215,19 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().selectGitRepoCard();
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
-    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth(sshPrivateKey, 'publicKey');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
     repositoriesPage.waitForPage();
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active').should('be.visible');
+    // The rancher/charts clone is large and slow in CI (~30s for the plain repo, and slower
+    // here with several repos downloading), so the default 10s Active check is too short. Wait
+    // for the download to finish at the API level, then for the row to render, before asserting
+    // Active with the long timeout - the same pattern the plain create test uses.
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, 40);
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can delete repositories via bulk actions', function() {
@@ -329,7 +367,10 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
   it('refresh menu item is not displayed for disabled repository', () => {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
+    // After re-navigating to the list the state badge can take longer than the default
+    // timeout to settle back to 'Disabled', so use a longer timeout (matches the 'can enable'
+    // test's Active check below).
+    repositoriesPage.list().details(repoName, 1).contains('Disabled', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
     // Open the action menu and verify refresh is not displayed for disabled repo
     const actionMenu = repositoriesPage.list().actionMenu(repoName);

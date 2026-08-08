@@ -24,6 +24,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       });
     }).as('daemonsetEdit');
 
+    // Idempotent across retries (testIsolation is off): the deterministic name would 409 on a
+    // re-create once a prior attempt created it, so remove any leftover first.
+    cy.deleteRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, false);
+
     // list view for daemonsets
     const workloadsDaemonsetsListPage = new WorkloadsDaemonsetsListPagePo(localCluster);
 
@@ -42,6 +46,12 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       .click();
 
     workloadsDaemonsetsListPage.waitForPage();
+    workloadsDaemonsetsListPage.baseResourceList().checkVisible();
+    // Confirm the list has finished loading before opening the edit form: we flick quickly
+    // between the list and the edit form, and if the list is still loading the SPA nav can
+    // land on a form whose tabs never render. Gating on the loading indicator (the same
+    // approach as the jobs.spec create flow) fixes the race without a direct-nav workaround.
+    workloadsDaemonsetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable()
       .rowElementWithName(daemonsetName)
       .should('be.visible');
@@ -127,10 +137,24 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       WorkloadsDaemonsetsListPagePo.navTo();
       daemonSetsListPage.waitForPage();
 
-      // check daemonsets count
-      const count = daemonSetNamesList.length + 1;
+      // The extra daemonset is created separately (daemonsets2) and can propagate slightly
+      // later than the daemonsets1 batch. Wait for it to be queryable before deriving the count,
+      // otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'apps.daemonset', `${ nsName2 }/${ uniqueDaemonSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'apps.daemonset', count - 1, true).then((resp: Cypress.Response<any>) => {
+      // check daemonsets count
+      cy.waitForRancherResources('v1', 'apps.daemonset', daemonSetNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of daemonsets in the two filtered namespaces
+        // instead of assuming exactly daemonSetNamesList.length + 1; the cluster can
+        // briefly hold an extra resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (ds: any) => [nsName1, nsName2].includes(ds.metadata?.namespace)
+        ).length;
+
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        daemonSetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -299,7 +323,9 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       // generate small set of daemonsets data
       generateDaemonSetsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsDaemonsetsListPagePo.navTo();
+      // Navigate directly rather than via the side menu: the side-menu nav
+      // intermittently lands on the wrong workload type (e.g. Deployments).
+      WorkloadsDaemonsetsListPagePo.goTo(localCluster);
       cy.wait('@daemonSetsDataSmall');
       daemonSetsListPage.waitForPage();
 

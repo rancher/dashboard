@@ -391,11 +391,23 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       WorkloadsDeploymentsListPagePo.navTo();
       deploymentsListPage.waitForPage();
 
-      // check deployments count
-      const count = deploymentNamesList.length + 1;
+      // Ensure the separately-created extra deployment has propagated before deriving the count
+      // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'apps.deployment', `${ nsName2 }/${ uniqueDeployment }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'apps.deployment', count - 1, true).then((resp: Cypress.Response<any>) => {
-      // pagination is visible
+      cy.waitForRancherResources('v1', 'apps.deployment', deploymentNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of deployments in the two filtered namespaces
+        // instead of assuming exactly deploymentNamesList.length + 1; the cluster
+        // can briefly hold an extra resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (dep: any) => [nsName1, nsName2].includes(dep.metadata?.namespace)
+        ).length;
+
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
+
+        // pagination is visible
         deploymentsListPage.sortableTable().pagination().checkVisible();
 
         // basic checks on navigation buttons
@@ -405,17 +417,21 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
         deploymentsListPage.sortableTable().pagination().endButton().isEnabled();
 
         // check text before navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
+          });
 
         // navigate to next page - right button
         deploymentsListPage.sortableTable().pagination().rightButton().click();
 
         // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`11 - 20 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } Deployments`);
+          });
         deploymentsListPage.sortableTable().pagination().beginningButton().isEnabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isEnabled();
 
@@ -423,9 +439,11 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
         deploymentsListPage.sortableTable().pagination().leftButton().click();
 
         // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
+          });
         deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
 
@@ -441,17 +459,21 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
         }
 
         // check text after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Deployments`);
+          });
 
         // navigate to first page - beginning button
         deploymentsListPage.sortableTable().pagination().beginningButton().click();
 
         // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
+          });
         deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
       });

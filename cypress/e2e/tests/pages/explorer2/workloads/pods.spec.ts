@@ -65,10 +65,18 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
-      // check pods count
-      const count = podNamesList.length + 1;
+      // Wait for the created pods to be registered, then derive the actual number of
+      // pods in the two filtered namespaces. A hardcoded `podNamesList.length + 1` can
+      // disagree with the list total when the cluster briefly holds an extra pod.
+      cy.waitForRancherResources('v1', 'pods', podNamesList.length, true).then((resp: Cypress.Response<any>) => {
+        const count = resp.body.data.filter(
+          (pod: any) => [nsName1, nsName2].includes(pod.metadata?.namespace)
+        ).length;
 
-      cy.waitForRancherResources('v1', 'pods', count - 1, true).then((resp: Cypress.Response<any>) => {
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -237,7 +245,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // generate small set of pods data
       generatePodsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsPodsListPagePo.navTo();
+      // Navigate directly rather than via the side menu: the side-menu nav
+      // intermittently lands on the wrong workload type (e.g. Deployments).
+      WorkloadsPodsListPagePo.goTo(localCluster);
       cy.wait('@podsDataSmall');
       workloadsPodPage.waitForPage();
 

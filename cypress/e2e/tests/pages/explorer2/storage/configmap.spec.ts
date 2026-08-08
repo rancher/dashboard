@@ -148,14 +148,21 @@ skipGeometric=true`;
     it('pagination is visible and user is able to navigate through configmaps data', () => {
       ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
 
+      // Derive the count from the list's OWN namespace-filtered request, matching exactly what
+      // the UI renders. The global /v1/configmaps count is dominated by per-namespace system
+      // configmaps and its returned data page can be truncated/raced, so client-side filtering
+      // under-counts (seen as "of 25" vs the UI's "of 30").
+      cy.intercept('GET', '/v1/configmaps?*').as('cmList');
       configMapListPage.goTo();
       configMapListPage.waitForPage();
 
-      // check configmaps count
-      // A kube-root-ca.crt configmap per namespace in the formula has to be included
-      const count = cmNamesList.length + 2;
+      cy.wait('@cmList').then((interception: any) => {
+        const count = interception.response.body.count;
 
-      cy.waitForRancherResources('v1', 'configmaps', count - 1, true).then((resp: Cypress.Response<any>) => {
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        configMapListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();

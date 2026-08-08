@@ -25,8 +25,13 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   isChecked(label: string) {
-    return this.getOptions().contains( new RegExp(` ${ label } `)).find('i')
-      .then(($el) => expect($el).have.class('icon-checkmark'));
+    // Assert the option's checkmark icon is present, retrying until it appears.
+    // Match `.icon-checkmark` specifically: project options also render an
+    // `.icon-folder`, so a bare `find('i')` can resolve to the folder icon and the
+    // one-shot `.then` assertion then flakes (seen as "expected <i.icon-folder> to
+    // have class icon-checkmark").
+    return this.getOptions().contains( new RegExp(` ${ label } `)).find('i.icon-checkmark')
+      .should('exist');
   }
 
   checkIcon() {
@@ -49,6 +54,19 @@ export class NamespaceFilterPo extends ComponentPo {
     return this.self().find('.ns-controls > .ns-clear').click();
   }
 
+  /**
+   * Clear the selection and wait for the namespace-filter preference update to complete.
+   * Clearing resets the filter to its default ("Only User Namespaces") via a userpreferences
+   * PUT and a re-render; asserting the new selection's checkmark before that request settles
+   * flakes (the checkmark has not rendered yet). Mirrors clickOptionByLabelAndWaitForRequest.
+   */
+  clearSelectionButtonAndWaitForRequest() {
+    cy.intercept('PUT', 'v1/userpreferences/*').as('updatePrefAfterClear');
+    this.clearSelectionButton();
+
+    return cy.wait('@updatePrefAfterClear');
+  }
+
   selectedValues() {
     return this.namespaceDropdown().find('[data-testid="namespaces-values"]');
   }
@@ -63,5 +81,19 @@ export class NamespaceFilterPo extends ComponentPo {
 
   closeDropdown() {
     this.namespaceDropdown().find('.icon-chevron-up').click();
+  }
+
+  /**
+   * Close and reopen the dropdown so the option list re-renders from the current (settled)
+   * selection state. Clearing the selection empties it and the app asynchronously re-applies a
+   * page's forced default via a prefs round-trip; the already-open dropdown does not reliably
+   * re-render the newly-selected option's checkmark for that transition, so reopen before asserting.
+   */
+  reopenDropdown() {
+    this.closeDropdown();
+    this.getOptions().should('not.exist');
+    this.toggle();
+
+    return this.getOptions().should('be.visible');
   }
 }

@@ -1,6 +1,7 @@
 import { IngressListPagePo, IngressCreateEditPo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
 import { generateIngressesDataSmall, ingressesNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/ingresses-get';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const cluster = 'local';
 const ingressListPagePo = new IngressListPagePo();
@@ -155,8 +156,19 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
+      // Wait for the ingress created by the previous test to render in the list before acting on it.
       ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
         .checkVisible();
+      // Confirm the list has finished loading before opening the row action menu: the row can
+      // render before its action button, so a still-loading list makes actionMenu miss it
+      // ([data-testid*="action-button"] never found).
+      ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      // The row's per-resource action button hydrates after its cells (available actions load
+      // separately), so the table load-gate above is not always enough - wait for the button
+      // itself, with a longer timeout, before opening the menu.
+      ingressListPagePo.list().resourceTable().sortableTable().rowElementWithName(ingressName)
+        .find('[data-testid*="action-button"]', LONG_TIMEOUT_OPT)
+        .should('be.visible');
       ingressListPagePo.list().actionMenu(ingressName).getMenuItem('Edit Config').click();
 
       const ingressEditPage = new IngressCreateEditPo('local', namespace, ingressName);
@@ -235,6 +247,10 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
           type: 'ClusterIP'
         }
       });
+      // Ensure the service is queryable before the ingress form loads, so its target-service
+      // dropdown lists it. Otherwise the selection silently no-ops and the submitted rule comes
+      // back with no http backend/paths (spec.rules[0].http missing).
+      cy.waitForRancherResource('v1', 'services', `${ namespace }/${ headlessServiceName }`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
@@ -244,6 +260,13 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
 
       const ingressCreatePagePo = new IngressCreateEditPo();
 
+      ingressCreatePagePo.waitForPage(null, 'rules');
+      // With testIsolation off, the target-service dropdown is populated from the persisted store,
+      // which earlier Create/Edit tests filled before this test created its headless service - so
+      // the new service is absent from the options and the selection below silently no-ops (the
+      // submitted rule comes back with no http backend). Reload the freshly-opened form (nothing
+      // entered yet) to clear the store and force a fresh services fetch that includes it.
+      cy.reload();
       ingressCreatePagePo.waitForPage(null, 'rules');
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressHeadlessName);

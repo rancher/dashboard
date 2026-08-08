@@ -408,6 +408,11 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
 
     fleetClusterListPage.list().resourceTable().sortableTable()
       .checkLoadingIndicatorNotVisible();
+    // Wait for the cluster to reach Active on the list before opening its detail. The detail's
+    // Applications tab loads bundledeployments; navigating before the cluster (and steve's fleet
+    // caches) are ready leaves that request hanging, and with testIsolation off the hung load
+    // sticks across every retry. The passing 'bundle manifests' describe gates on Active the same way.
+    fleetClusterListPage.resourceTableDetails('local', 1).contains('Active', LONG_TIMEOUT_OPT);
     fleetClusterListPage.goToDetailsPage('local');
     fleetClusterDetailsPage.waitForPage(null, 'applications');
     fleetClusterDetailsPage.addAppButton().click();

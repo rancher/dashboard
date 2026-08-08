@@ -2,7 +2,7 @@ import { FleetApplicationCreatePo, FleetApplicationListPagePo, FleetGitRepoCreat
 import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
-import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
@@ -41,6 +41,21 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
     });
   });
 
+  beforeEach(() => {
+    // One test below switches the UI language to zh-hans. With testIsolation off, a switch that is
+    // not fully reset leaves the language as Chinese for every later test AND every retry, so
+    // English labels render as unfindable CJK (the "????" boxes). Force the language back to
+    // English before each test so every attempt starts from a known state - resetting both the
+    // R_LOCALE cookie the app reads on load and the persisted preference.
+    //
+    // verify: true is essential here. setUserPreference without it fires the PUT but does not wait;
+    // if goTo() reloads the app before the change propagates, the app reads the stale (zh-hans)
+    // preference back from the server and overwrites the cookie. Waiting for the backend to confirm
+    // en-us makes the reset actually take effect on the next page load.
+    cy.setCookie('R_LOCALE', 'en-us');
+    cy.setUserPreference({ locale: 'en-us' }, true);
+  });
+
   describe('Create', () => {
     const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
@@ -61,9 +76,22 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
       cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
 
-      // Select the workspace from the list page before navigating to create
+      // Select the workspace from the list page before navigating to create.
       listPage.goTo();
       listPage.waitForPage();
+      // This is the first fleet navigation after the spec's login/resource setup, and on a cold
+      // app it intermittently renders a broken page: the header workspace switcher never appears
+      // even given a long wait, and the create form later fails to render its fields. Every LATER
+      // test in this spec navigates fine from the now-warmed app, so reload once here to force a
+      // clean render before interacting.
+      cy.reload();
+      listPage.waitForPage();
+      // Wait for the fleet list to finish loading before touching the header: while the list data
+      // is still loading the page re-renders and the workspace switcher can detach mid-render, so a
+      // default-timeout toggle click would fail to find it. Gate on the loaded list first, and give
+      // the switcher a longer visibility wait since it renders only after the data settles.
+      listPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      headerPo.workspaceSwitcher().checkVisible(LONG_TIMEOUT_OPT);
       headerPo.selectWorkspace(workspace);
       listPage.create();
       createPage.createGitRepo();
@@ -81,7 +109,9 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
         .set(name);
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
-      // Repository details step
+      // Repository details step - wait for the step to finish rendering before filling it, so a
+      // slow wizard transition does not flake the first field lookup.
+      cy.contains('.labeled-input', 'Repository URL', LONG_TIMEOUT_OPT).should('be.visible');
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
       gitRepoCreatePage.setGitRepoPath(paths[0]);
@@ -195,19 +225,14 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
         gitRepoCreatePage.mastheadTitle().then((title) => {
           expect(title.replace(/\s+/g, ' ')).to.contain('fleet-e2e-test-gitrepo');
         });
-        // https://github.com/rancher/dashboard/issues/9984 reset lang to EN so that delete action can be performed
-        prefPage.goTo();
-        prefPage.languageDropdownMenu().checkVisible();
-        prefPage.languageDropdownMenu().toggle();
-        prefPage.languageDropdownMenu().isOpened();
-
-        cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateEnUs`);
-        prefPage.languageDropdownMenu().clickOptionWithLabel('English');
-        cy.wait('@prefUpdateEnUs').then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(response?.body.data).to.have.property('locale', 'en-us'); // Flake: This can sometimes be zh-hans.....?!
-        });
-        prefPage.languageDropdownMenu().isClosed();
+        // https://github.com/rancher/dashboard/issues/9984 reset lang back to EN. Resetting via the
+        // language dropdown was unreliable: the PUT sometimes never fired (leaving the UI in
+        // Chinese), and its own assertion noted the result "can sometimes be zh-hans". With
+        // testIsolation off that leftover Chinese poisoned every later test and retry. Cleanup
+        // (after() -> deleteRancherResource) is API-based, so the running UI does not need to be
+        // English; reset the locale preference directly and verify it lands, and let the next
+        // test's beforeEach reload the app into English.
+        cy.setUserPreference({ locale: 'en-us' }, true);
       });
     });
 

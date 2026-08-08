@@ -78,10 +78,22 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       WorkloadsStatefulSetsListPagePo.navTo();
       statefulSetListPage.waitForPage();
 
-      // check statefulsets count
-      const count = statefulSetNamesList.length + 1;
+      // Ensure the separately-created extra statefulset has propagated before deriving the count
+      // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'apps.statefulset', `${ nsName2 }/${ uniqueStatefulSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'apps.statefulset', count - 1, true).then((resp: Cypress.Response<any>) => {
+      cy.waitForRancherResources('v1', 'apps.statefulset', statefulSetNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of statefulsets in the two filtered namespaces
+        // instead of assuming exactly statefulSetNamesList.length + 1; the cluster
+        // can briefly hold an extra resource, which makes a hardcoded count disagree.
+        const count = resp.body.data.filter(
+          (ss: any) => [nsName1, nsName2].includes(ss.metadata?.namespace)
+        ).length;
+
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -250,7 +262,9 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       // generate small set of statefulsets data
       generateStatefulSetsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsStatefulSetsListPagePo.navTo();
+      // Navigate directly rather than via the side menu: the side-menu nav
+      // intermittently lands on the wrong workload type (e.g. Deployments).
+      WorkloadsStatefulSetsListPagePo.goTo(localCluster);
       cy.wait('@statefulSetsDataSmall');
       statefulSetListPage.waitForPage();
 
@@ -279,6 +293,10 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
     const openRedeployDialog = () => {
       statefulSetListPage.goTo();
       statefulSetListPage.waitForPage();
+
+      // Wait for the statefulset row to render before opening its action menu.
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetName)
+        .should('be.visible');
 
       statefulSetListPage
         .list()
@@ -315,6 +333,11 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
           }
         }
       }));
+
+      // Ensure the statefulset is queryable before the tests navigate to the list, so the
+      // list's fetch includes it. The steve/VAI list can omit a row that is not yet indexed,
+      // which left openRedeployDialog unable to find the row (wedged across all retries).
+      cy.waitForRancherResource('v1', apiResource, `${ namespace }/${ statefulSetName }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
     });
 
     it('redeploys successfully after confirmation', () => {

@@ -74,7 +74,12 @@ describe('Namespace picker', { testIsolation: false }, () => {
     namespacePicker.toggle();
     // Wait for dropdown options to be available before interacting
     namespacePicker.getOptions().should('be.visible');
-    namespacePicker.selectedValues().find('i').trigger('click');
+    // Use the clear-all control rather than the selected chip's close icon: on a page
+    // that forces namespace filtering, the per-chip close icon is intentionally not
+    // rendered while only one namespace is selected ("block removing the last
+    // selection"), so `selectedValues().find('i')` finds nothing and flakes.
+    namespacePicker.clearSelectionButtonAndWaitForRequest();
+    namespacePicker.reopenDropdown();
     // 'Only User Namespaces' option should be selected after clearing
     namespacePicker.isChecked('Only User Namespaces');
 
@@ -185,7 +190,8 @@ describe('Namespace picker', { testIsolation: false }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
 
     // clear selection from dropdown menu
-    namespacePicker.clearSelectionButton();
+    namespacePicker.clearSelectionButtonAndWaitForRequest();
+    namespacePicker.reopenDropdown();
     // 'Only User Namespaces' option should be selected after clearing
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
@@ -219,7 +225,8 @@ describe('Namespace picker', { testIsolation: false }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Reset: clear selection from dropdown menu
-    namespacePicker.clearSelectionButton();
+    namespacePicker.clearSelectionButtonAndWaitForRequest();
+    namespacePicker.reopenDropdown();
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
   });

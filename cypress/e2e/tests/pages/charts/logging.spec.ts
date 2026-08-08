@@ -49,6 +49,14 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       const loggingOutputList = new LoggingClusteroutputListPagePo();
       const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
 
+      // Make each attempt independent (testIsolation is off): a failed earlier attempt can leave
+      // the chart partially installed, so the Install button is no longer shown and the install
+      // request never fires on retry. Uninstall any leftover and wait for it to clear so a retry
+      // starts from a clean slate (a no-op on a clean first attempt - the GET is a 404 straight away).
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp?.status === 404, 30, { failOnStatusCode: false });
+
       cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
       ChartPage.navTo(null, 'Logging');
       chartPage.waitForChartHeader('Logging', { timeout: 20000 });
@@ -115,14 +123,44 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
   // testing https://github.com/rancher/dashboard/issues/4849
   it('can uninstall both chart and crd at once', function() {
     runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
+      // Show ALL namespaces (including system) before listing the installed apps: the logging
+      // charts live in the system namespace cattle-logging-system, and the preceding test can
+      // leave the filter scoped to a namespace that hides them. 'all' is the All-Namespaces
+      // selection - an empty selection can resolve to user-namespaces-only and hide them.
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all"]}', { delay: true });
+
       cy.intercept('GET', `${ CLUSTER_APPS_BASE_URL }?*`).as('getCharts');
 
       const clusterTools = new ClusterToolsPagePo('local');
       const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
+      // Confirm the chart is actually installed AND settled (deployed) at the API level first.
+      // This separates "the install did not persist / is still deploying" from "installed but the
+      // list did not render it", and avoids racing a still-transitioning app that the list omits.
+      cy.waitForResourceState('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, 'deployed');
+
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
-      cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+
+      // The installed-apps list intermittently loads empty even though the app is installed. Wait
+      // for the list fetch (getCharts) to actually contain the logging app; if it does not,
+      // re-navigate to force a fresh fetch. Re-navigating - unlike cy.reload() - does not abort an
+      // in-flight request, which previously left a retry failing early on an undefined response.
+      // Tolerate an undefined/aborted response by treating it as "not present yet".
+      const waitForInstalledLoggingApp = (attempt = 0): void => {
+        cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).then((interception) => {
+          const apps = interception?.response?.body?.data || [];
+          const hasLoggingApp = apps.some((app: { metadata?: { name?: string } }) => app.metadata?.name === chartApp);
+
+          if (!hasLoggingApp && attempt < 4) {
+            installedAppsPage.goTo();
+            installedAppsPage.waitForPage();
+            waitForInstalledLoggingApp(attempt + 1);
+          }
+        });
+      };
+
+      waitForInstalledLoggingApp();
       installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
       installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
 

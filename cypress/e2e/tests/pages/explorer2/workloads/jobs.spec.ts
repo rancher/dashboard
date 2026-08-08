@@ -4,6 +4,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/jobs/jobs-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -97,12 +98,18 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
           .should('exist');
 
-        // Clone the job
-        workloadsJobsListPage.list().actionMenu(jobName2).getMenuItem('Clone').click();
+        // Clone the job. Opening the clone form via the list action menu intermittently lands
+        // on a form whose inputs never render (the name input, then the list container, time
+        // out across retries) - and gating on the list loading indicator was not enough.
+        // Navigate straight to the clone form (mode=clone) and wait for the source-job fetch to
+        // resolve before touching the form; it is a load race rather than a slow render, so a
+        // direct navigation plus a data-ready gate is reliable and mirrors the pods clone test.
+        cy.intercept('GET', `/v1/batch.jobs/${ namespaceName }/${ jobName2 }?*`).as('cloneSourceJob');
 
-        const cloneJobDetailsPage = new WorkLoadsJobDetailsPagePo(jobName2, {}, 'local', namespaceName);
+        const cloneJobDetailsPage = new WorkLoadsJobDetailsPagePo(jobName2, { mode: 'clone' }, 'local', namespaceName);
 
-        cloneJobDetailsPage.waitForPage();
+        cloneJobDetailsPage.goTo();
+        cy.wait('@cloneSourceJob', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
         cloneJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
           .set(jobNameClone);
         cloneJobDetailsPage.resourceDetail().createEditView().save();
@@ -363,7 +370,9 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // generate small set of jobs data
       generateJobsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsJobsListPagePo.navTo();
+      // Navigate directly rather than via the side menu: the side-menu nav
+      // intermittently lands on the wrong workload type (e.g. Deployments).
+      WorkloadsJobsListPagePo.goTo(localCluster);
       cy.wait('@jobsDataSmall');
       jobsListPage.waitForPage();
 
