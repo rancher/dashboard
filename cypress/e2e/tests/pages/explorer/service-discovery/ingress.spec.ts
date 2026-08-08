@@ -1,6 +1,7 @@
 import { IngressListPagePo, IngressCreateEditPo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
 import { generateIngressesDataSmall, ingressesNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/ingresses-get';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const cluster = 'local';
 const ingressListPagePo = new IngressListPagePo();
@@ -160,6 +161,12 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       // render before its action button, so a still-loading list makes actionMenu miss it
       // ([data-testid*="action-button"] never found).
       ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      // The row's per-resource action button hydrates after its cells (available actions load
+      // separately), so the table load-gate above is not always enough - wait for the button
+      // itself, with a longer timeout, before opening the menu.
+      ingressListPagePo.list().resourceTable().sortableTable().rowElementWithName(ingressName)
+        .find('[data-testid*="action-button"]', LONG_TIMEOUT_OPT)
+        .should('be.visible');
       ingressListPagePo.list().actionMenu(ingressName).getMenuItem('Edit Config').click();
 
       const ingressEditPage = new IngressCreateEditPo('local', namespace, ingressName);
