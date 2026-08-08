@@ -2,7 +2,7 @@ import { FleetApplicationCreatePo, FleetApplicationListPagePo, FleetGitRepoCreat
 import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
-import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
@@ -79,6 +79,11 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       // Select the workspace from the list page before navigating to create
       listPage.goTo();
       listPage.waitForPage();
+      // The header's workspace switcher renders only after the fleet page's data settles; on a
+      // slow first navigation it can take longer than the default retry, so wait for it before
+      // selecting. Failing here (attempt 1) also wedged the app for later retries (testIsolation
+      // is off), which then failed further along at the create form.
+      headerPo.workspaceSwitcher().checkVisible(LONG_TIMEOUT_OPT);
       headerPo.selectWorkspace(workspace);
       listPage.create();
       createPage.createGitRepo();
@@ -96,7 +101,9 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
         .set(name);
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
-      // Repository details step
+      // Repository details step - wait for the step to finish rendering before filling it, so a
+      // slow wizard transition does not flake the first field lookup.
+      cy.contains('.labeled-input', 'Repository URL', LONG_TIMEOUT_OPT).should('be.visible');
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
       gitRepoCreatePage.setGitRepoPath(paths[0]);
