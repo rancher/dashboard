@@ -41,10 +41,15 @@
     "cypress-axe": "1.6.0",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",
+    "cypress-multi-reporters": "1.6.4",
     "cypress-real-events": "1.14.0",
     "cypress-terminal-report": "^7.2.0",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
+    "find-test-names": "1.29.19",
+    "globby": "11.1.0",
+    "junit-report-merger": "9.0.3",
+    "mocha-junit-reporter": "2.2.1",
     "sha.js": "^2.4.12"
   },
   "devDependencies": {
