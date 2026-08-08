@@ -31,6 +31,20 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
+// The cluster dashboard occasionally crashes to the fail-whale error page on a transient backend
+// blip during load. With testIsolation off that state carries into the Cypress retry, and a single
+// re-navigation is sometimes not enough for a longer blip. Re-navigate a few times until we land
+// off fail-whale before the caller asserts on the page.
+const goToDashboardRecoveringFromFailWhale = (attempt = 0) => {
+  clusterDashboard.goTo();
+  cy.url().then((url) => {
+    if (url.includes('/fail-whale') && attempt < 3) {
+      cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
+      goToDashboardRecoveringFromFailWhale(attempt + 1);
+    }
+  });
+};
+
 describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
@@ -264,17 +278,10 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
       });
     });
 
-    clusterDashboard.goTo();
-    // The cluster dashboard can crash to the fail-whale error page on a transient backend blip
-    // during load; with testIsolation off that state carries into the Cypress retry and fails
-    // every attempt. If we landed on fail-whale, settle briefly and re-navigate so a transient
-    // crash recovers instead of wedging the retry.
-    cy.url().then((url) => {
-      if (url.includes('/fail-whale')) {
-        cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
-        clusterDashboard.goTo();
-      }
-    });
+    // This test creates a project/namespace/pods first, adding backend churn, so the dashboard is
+    // especially prone to the transient fail-whale crash here; a single re-navigation was not
+    // always enough (it failed all three attempts once), so retry a few times before asserting.
+    goToDashboardRecoveringFromFailWhale();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
