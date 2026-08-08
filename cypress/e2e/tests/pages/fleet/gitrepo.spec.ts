@@ -42,14 +42,18 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
   });
 
   beforeEach(() => {
-    // One test below switches the UI language to zh-hans and only resets it at the very end - and
-    // that reset is itself flaky (see the "sometimes zh-hans" note / issue 9984). With
-    // testIsolation off, a switch that is not reset leaves the language as Chinese for every later
-    // test AND every retry, so English labels render as unfindable CJK (the "????" boxes). Force
-    // the language back to English - both the R_LOCALE cookie the app reads on load and the
-    // persisted preference - before each test, so every attempt starts from a known state.
+    // One test below switches the UI language to zh-hans. With testIsolation off, a switch that is
+    // not fully reset leaves the language as Chinese for every later test AND every retry, so
+    // English labels render as unfindable CJK (the "????" boxes). Force the language back to
+    // English before each test so every attempt starts from a known state - resetting both the
+    // R_LOCALE cookie the app reads on load and the persisted preference.
+    //
+    // verify: true is essential here. setUserPreference without it fires the PUT but does not wait;
+    // if goTo() reloads the app before the change propagates, the app reads the stale (zh-hans)
+    // preference back from the server and overwrites the cookie. Waiting for the backend to confirm
+    // en-us makes the reset actually take effect on the next page load.
     cy.setCookie('R_LOCALE', 'en-us');
-    cy.setUserPreference({ locale: 'en-us' });
+    cy.setUserPreference({ locale: 'en-us' }, true);
   });
 
   describe('Create', () => {
@@ -206,19 +210,14 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
         gitRepoCreatePage.mastheadTitle().then((title) => {
           expect(title.replace(/\s+/g, ' ')).to.contain('fleet-e2e-test-gitrepo');
         });
-        // https://github.com/rancher/dashboard/issues/9984 reset lang to EN so that delete action can be performed
-        prefPage.goTo();
-        prefPage.languageDropdownMenu().checkVisible();
-        prefPage.languageDropdownMenu().toggle();
-        prefPage.languageDropdownMenu().isOpened();
-
-        cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateEnUs`);
-        prefPage.languageDropdownMenu().clickOptionWithLabel('English');
-        cy.wait('@prefUpdateEnUs').then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(response?.body.data).to.have.property('locale', 'en-us'); // Flake: This can sometimes be zh-hans.....?!
-        });
-        prefPage.languageDropdownMenu().isClosed();
+        // https://github.com/rancher/dashboard/issues/9984 reset lang back to EN. Resetting via the
+        // language dropdown was unreliable: the PUT sometimes never fired (leaving the UI in
+        // Chinese), and its own assertion noted the result "can sometimes be zh-hans". With
+        // testIsolation off that leftover Chinese poisoned every later test and retry. Cleanup
+        // (after() -> deleteRancherResource) is API-based, so the running UI does not need to be
+        // English; reset the locale preference directly and verify it lands, and let the next
+        // test's beforeEach reload the app into English.
+        cy.setUserPreference({ locale: 'en-us' }, true);
       });
     });
 
