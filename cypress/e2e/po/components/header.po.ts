@@ -3,6 +3,7 @@ import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/workspace-switc
 import { ImportYamlPo } from '@/cypress/e2e/po/components/import-yaml.po';
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class HeaderPo extends ComponentPo {
   constructor() {
@@ -27,7 +28,11 @@ export class HeaderPo extends ComponentPo {
   selectWorkspace(name: string) {
     const wsFilter = this.workspaceSwitcher();
 
-    wsFilter.toggle();
+    // The workspace switcher can detach and re-render while a page is still settling (notably the
+    // Fleet application list, whose header re-renders as data loads), so the default-timeout toggle
+    // click intermittently fails to find it even right after a visibility check. Click with a long
+    // timeout so the query retries through the re-render before selecting.
+    wsFilter.self(LONG_TIMEOUT_OPT).click();
 
     return wsFilter.clickOptionWithLabel(name);
   }
