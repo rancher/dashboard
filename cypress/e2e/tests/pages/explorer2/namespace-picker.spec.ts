@@ -79,6 +79,7 @@ describe('Namespace picker', { testIsolation: false }, () => {
     // rendered while only one namespace is selected ("block removing the last
     // selection"), so `selectedValues().find('i')` finds nothing and flakes.
     namespacePicker.clearSelectionButtonAndWaitForRequest();
+    namespacePicker.reopenDropdown();
     // 'Only User Namespaces' option should be selected after clearing
     namespacePicker.isChecked('Only User Namespaces');
 
@@ -190,6 +191,7 @@ describe('Namespace picker', { testIsolation: false }, () => {
 
     // clear selection from dropdown menu
     namespacePicker.clearSelectionButtonAndWaitForRequest();
+    namespacePicker.reopenDropdown();
     // 'Only User Namespaces' option should be selected after clearing
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
@@ -224,6 +226,7 @@ describe('Namespace picker', { testIsolation: false }, () => {
 
     // Reset: clear selection from dropdown menu
     namespacePicker.clearSelectionButtonAndWaitForRequest();
+    namespacePicker.reopenDropdown();
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
   });
