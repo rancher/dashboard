@@ -157,6 +157,14 @@ export default {
     onAddMember(bindings) {
       this['bindings'] = [...this.bindings, ...bindings];
     },
+
+    bindingKey(binding) {
+      if (binding.id) {
+        return binding.id;
+      }
+
+      return [binding.principalId || binding.userPrincipalId || binding.groupPrincipalId, binding.roleTemplateId].join('-');
+    },
   }
 };
 </script>
@@ -166,6 +174,7 @@ export default {
     v-else
     v-model:value="bindings"
     :mode="mode"
+    :row-key="bindingKey"
     :show-header="true"
   >
     <template #column-headers>
