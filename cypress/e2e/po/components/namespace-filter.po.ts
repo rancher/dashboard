@@ -54,6 +54,19 @@ export class NamespaceFilterPo extends ComponentPo {
     return this.self().find('.ns-controls > .ns-clear').click();
   }
 
+  /**
+   * Clear the selection and wait for the namespace-filter preference update to complete.
+   * Clearing resets the filter to its default ("Only User Namespaces") via a userpreferences
+   * PUT and a re-render; asserting the new selection's checkmark before that request settles
+   * flakes (the checkmark has not rendered yet). Mirrors clickOptionByLabelAndWaitForRequest.
+   */
+  clearSelectionButtonAndWaitForRequest() {
+    cy.intercept('PUT', 'v1/userpreferences/*').as('updatePrefAfterClear');
+    this.clearSelectionButton();
+
+    return cy.wait('@updatePrefAfterClear');
+  }
+
   selectedValues() {
     return this.namespaceDropdown().find('[data-testid="namespaces-values"]');
   }
