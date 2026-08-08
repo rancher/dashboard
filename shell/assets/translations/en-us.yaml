@@ -6708,6 +6708,7 @@ sortableTable:
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
   searchLabel: Filter table results
+  clearFilter: Clear Filter for table results
   in: in
   addFilter: Add Filter
   filteringDescription: Using this input will immediately filter the results in the table below
