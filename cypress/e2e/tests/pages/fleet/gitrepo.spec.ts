@@ -76,15 +76,20 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
       cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
 
-      // Select the workspace from the list page before navigating to create
+      // Select the workspace from the list page before navigating to create.
       listPage.goTo();
       listPage.waitForPage();
-      // Wait for the fleet list to finish loading before touching the header. While the list data
-      // is still loading the page re-renders and the header's workspace switcher can detach
-      // mid-render, so the (default-timeout) toggle click fails to find it - then, with
-      // testIsolation off, that attempt-1 failure wedges the app and later retries fail further
-      // along at the create form. Gating on the loaded list settles the page first; the switcher
-      // also renders only after the data settles, so give it a longer visibility wait too.
+      // This is the first fleet navigation after the spec's login/resource setup, and on a cold
+      // app it intermittently renders a broken page: the header workspace switcher never appears
+      // even given a long wait, and the create form later fails to render its fields. Every LATER
+      // test in this spec navigates fine from the now-warmed app, so reload once here to force a
+      // clean render before interacting.
+      cy.reload();
+      listPage.waitForPage();
+      // Wait for the fleet list to finish loading before touching the header: while the list data
+      // is still loading the page re-renders and the workspace switcher can detach mid-render, so a
+      // default-timeout toggle click would fail to find it. Gate on the loaded list first, and give
+      // the switcher a longer visibility wait since it renders only after the data settles.
       listPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       headerPo.workspaceSwitcher().checkVisible(LONG_TIMEOUT_OPT);
       headerPo.selectWorkspace(workspace);
