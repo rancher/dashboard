@@ -79,10 +79,13 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       // Select the workspace from the list page before navigating to create
       listPage.goTo();
       listPage.waitForPage();
-      // The header's workspace switcher renders only after the fleet page's data settles; on a
-      // slow first navigation it can take longer than the default retry, so wait for it before
-      // selecting. Failing here (attempt 1) also wedged the app for later retries (testIsolation
-      // is off), which then failed further along at the create form.
+      // Wait for the fleet list to finish loading before touching the header. While the list data
+      // is still loading the page re-renders and the header's workspace switcher can detach
+      // mid-render, so the (default-timeout) toggle click fails to find it - then, with
+      // testIsolation off, that attempt-1 failure wedges the app and later retries fail further
+      // along at the create form. Gating on the loaded list settles the page first; the switcher
+      // also renders only after the data settles, so give it a longer visibility wait too.
+      listPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       headerPo.workspaceSwitcher().checkVisible(LONG_TIMEOUT_OPT);
       headerPo.selectWorkspace(workspace);
       listPage.create();
