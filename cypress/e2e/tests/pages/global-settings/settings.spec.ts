@@ -554,6 +554,11 @@ describe('Settings', { testIsolation: false }, () => {
     const downloadsFolder = Cypress.config('downloadsFolder');
 
     clusterList.goTo();
+    clusterList.waitForPage();
+    // Wait for the cluster list to finish loading before opening the row action menu. Acting on a
+    // still-loading list fails to find [data-testid="cluster-list"], and with testIsolation off that
+    // mid-test failure wedges the app so later retries cannot even open the side menu to navTo.
+    clusterList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().actionMenu('local').getMenuItem('Download KubeConfig').click();
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
