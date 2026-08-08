@@ -82,4 +82,18 @@ export class NamespaceFilterPo extends ComponentPo {
   closeDropdown() {
     this.namespaceDropdown().find('.icon-chevron-up').click();
   }
+
+  /**
+   * Close and reopen the dropdown so the option list re-renders from the current (settled)
+   * selection state. Clearing the selection empties it and the app asynchronously re-applies a
+   * page's forced default via a prefs round-trip; the already-open dropdown does not reliably
+   * re-render the newly-selected option's checkmark for that transition, so reopen before asserting.
+   */
+  reopenDropdown() {
+    this.closeDropdown();
+    this.getOptions().should('not.exist');
+    this.toggle();
+
+    return this.getOptions().should('be.visible');
+  }
 }
