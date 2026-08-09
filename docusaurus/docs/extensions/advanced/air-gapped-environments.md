@@ -10,7 +10,7 @@ We have implemented an action within the Extensions page to take care of the hea
 
 ## Prerequisites
 
-Loading an extension into an air-gapped envrionment requires a few prerequisites, namely:
+Loading an extension into an air-gapped environment requires a few prerequisites, namely:
 
 - The Extension needs to be bundled into the ECI
 - A registry to house the ECI
