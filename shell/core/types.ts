@@ -696,9 +696,9 @@ export interface IExtension extends IExtensionProducts {
    *
    * @param {String} type type of thing to register, e.g. 'edit'
    * @param {String} name unique name of 'something'
-   * @param {Function|String|Boolean} fn function that dynamically loads the module for the thing being registered, or (for `l10n-global`) the value itself
+   * @param {Function|string|boolean} fn function that dynamically loads the module for the thing being registered, or (for `l10n-global`) the value itself
    */
-  register(type: string, name: string, fn: Function | Boolean | String): void;
+  register(type: string, name: string, fn: Function | boolean | string): void;
 
   /**
    * Will return all of the configuration functions used for creating a new product.
