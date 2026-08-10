@@ -32,22 +32,47 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
-// [CREATE ISSUE FOR CODE FIX] The cluster dashboard occasionally crashes to the fail-whale error
-// page on a transient blip during load, instead of tolerating it and rendering; the app should
-// recover from a transient load error on its own rather than dead-ending on fail-whale.
+// [CREATE ISSUE FOR CODE FIX] Entering a cluster runs the nav guard's loadCluster
+// (shell/config/router/navigation-guards/clusters.js), which awaits two *unprotected* requests
+// against the downstream Steve proxy - GET /k8s/clusters/<id>/v1/schemas
+// (shell/store/index.js:1079) and then /counts + /namespaces (shell/store/index.js:1107). If the
+// downstream proxy is momentarily reconnecting, one of those rejects with a raw axios
+// "Network Error" (no HTTP status, shell/plugins/steve/actions.js onError); the guard sees a
+// non-ClusterNotFound error and dead-ends on /fail-whale, with no retry or tolerance. The app
+// should retry/tolerate a transient downstream blip during load instead of crashing.
 //
-// The cluster dashboard occasionally crashes to the fail-whale error page on a transient backend
-// blip during load. With testIsolation off that state carries into the Cypress retry, and a single
-// re-navigation is sometimes not enough for a longer blip. Re-navigate a few times until we land
-// off fail-whale before the caller asserts on the page.
-const goToDashboardRecoveringFromFailWhale = (attempt = 0) => {
-  clusterDashboard.goTo();
-  cy.url().then((url) => {
-    if (url.includes('/fail-whale') && attempt < 3) {
-      cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
-      goToDashboardRecoveringFromFailWhale(attempt + 1);
-    }
-  });
+// Test-side, we avoid tripping that bug (rather than recovering from it) by waiting for the cluster
+// to actually be serving before we navigate in: confirm the mgmt cluster is Connected, then poll
+// the very endpoint loadCluster will hit first (/schemas) on the downstream proxy until it answers
+// 200. Once the proxy has just responded, the app's own load a moment later succeeds.
+const waitForClusterSteveReady = (clusterId = 'local') => {
+  // 1. mgmt cluster reports Connected (2.6+) or Ready - the same signal loadCluster checks.
+  cy.waitForRancherResource(
+    'v1',
+    'management.cattle.io.clusters',
+    clusterId,
+    (resp: Cypress.Response<any>) => (resp?.body?.status?.conditions || []).some(
+      (c: any) => (c.type === 'Connected' || c.type === 'Ready') && c.status === 'True'
+    ),
+  );
+
+  // 2. Poll the downstream Steve proxy endpoint loadCluster fetches first, until it returns 200.
+  // This is the exact request whose transient "Network Error" produces the fail-whale.
+  const pollSchemas = (retries = 20): void => {
+    cy.request({
+      url:                   `${ Cypress.env('api') }/k8s/clusters/${ clusterId }/v1/schemas`,
+      failOnStatusCode:      false,
+      retryOnNetworkFailure: true,
+    }).then((resp) => {
+      if (resp.status === 200 || retries === 0) {
+        return;
+      }
+      cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
+      pollSchemas(retries - 1);
+    });
+  };
+
+  pollSchemas();
 };
 
 describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
@@ -64,17 +89,12 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     // check if burger menu nav is highlighted correctly for cluster manager
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Cluster Management');
 
-    clusterList.list().explore('local').click();
+    // Ensure the downstream cluster Steve proxy is actually serving before we enter the cluster,
+    // so loadCluster's schemas/counts fetch does not hit a transient "Network Error" and crash to
+    // fail-whale (see waitForClusterSteveReady).
+    waitForClusterSteveReady();
 
-    // The cluster dashboard can crash to the fail-whale error page on a transient backend blip
-    // during cluster load. If we landed there, settle briefly and re-navigate so a transient
-    // failure does not fail the test (same recovery as the "can view events" test).
-    cy.url().then((url) => {
-      if (url.includes('/fail-whale')) {
-        cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
-        clusterDashboard.goTo();
-      }
-    });
+    clusterList.list().explore('local').click();
 
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
@@ -298,10 +318,11 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
       });
     });
 
-    // This test creates a project/namespace/pods first, adding backend churn, so the dashboard is
-    // especially prone to the transient fail-whale crash here; a single re-navigation was not
-    // always enough (it failed all three attempts once), so retry a few times before asserting.
-    goToDashboardRecoveringFromFailWhale();
+    // This test creates a project/namespace/pods first, adding backend churn, so the downstream
+    // Steve proxy is especially likely to be mid-reconnect here. Wait for it to actually serve
+    // before navigating in, so loadCluster does not crash to fail-whale (see waitForClusterSteveReady).
+    waitForClusterSteveReady();
+    clusterDashboard.goTo();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
