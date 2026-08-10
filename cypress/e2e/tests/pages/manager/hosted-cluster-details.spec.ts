@@ -52,6 +52,26 @@ const openHostedClusterDetail = (
   ensureTabsRendered();
 };
 
+// A tab's label gains an inferred count suffix once its content is counted (e.g. "Node Pools" ->
+// "Node Pools (2)", see Tab.vue labelDisplay). That count populates asynchronously - before or after
+// these assertions run - so an exact tabNames().should('include', 'Node Pools') is racy and fails
+// once the count has appeared. Compare against the base label with any trailing " (N)" count
+// stripped, so the check holds whether or not the count has populated. This also fixes the negative
+// checks: a bare not.include('Autoscaler') would slip past an "Autoscaler (0)" tab.
+const stripTabCount = (name: string): string => name.replace(/\s*\(\d+\)$/, '').trim();
+
+const assertHasTab = (detailsPage: ClusterManagerDetailHostedPagePo, tabName: string): void => {
+  detailsPage.resourceDetail().tabs().tabNames().should((names: any) => {
+    expect((names as string[]).map(stripTabCount)).to.include(tabName);
+  });
+};
+
+const assertNoTab = (detailsPage: ClusterManagerDetailHostedPagePo, tabName: string): void => {
+  detailsPage.resourceDetail().tabs().tabNames().should((names: any) => {
+    expect((names as string[]).map(stripTabCount)).to.not.include(tabName);
+  });
+};
+
 describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
   // ids from hosted-cluster-mocks
   const AKS_CLUSTER = 'c-9zj2b';
@@ -175,7 +195,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
       .click();
     aksDetailsPage.waitForPage();
 
-    aksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
+    assertHasTab(aksDetailsPage, 'Node Pools');
 
     // ensure the node pool tab is the first tab
     aksDetailsPage.nodePoolTable().self().should('be.visible');
@@ -217,7 +237,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     openHostedClusterDetail(clusterList, 'eks-mock-cluster', eksDetailsPage);
     eksDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
-    eksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
+    assertHasTab(eksDetailsPage, 'Node Pools');
 
     // ensure the node pool tab is the first tab
     eksDetailsPage.nodePoolTable().self().should('be.visible');
@@ -257,7 +277,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     openHostedClusterDetail(clusterList, 'gke-mock-cluster', gkeDetailsPage);
     gkeDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
-    gkeDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
+    assertHasTab(gkeDetailsPage, 'Node Pools');
 
     // ensure the node pool tab is the first tab
     gkeDetailsPage.nodePoolTable().self().should('be.visible');
@@ -313,7 +333,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
       openHostedClusterDetail(clusterList, name, hostedDetailsPage);
       hostedDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
 
-      hostedDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Autoscaler');
+      assertNoTab(hostedDetailsPage, 'Autoscaler');
     });
   });
 
@@ -329,6 +349,6 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     openHostedClusterDetail(clusterList, 'imported-mock-cluster', importDetailsPage);
     importDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
-    importDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Provisioning Log');
+    assertNoTab(importDetailsPage, 'Provisioning Log');
   });
 });
