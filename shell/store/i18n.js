@@ -18,7 +18,7 @@ const GLOBAL_PATTERN = /(\\?)\[\[([^\]]+)\]\]/g;
 
 /**
  * Replace [[name]] tokens with values registered as i18n globals via
- * `extension.register('i18n-global', name, value)`. If the token is not
+ * `extension.register('l10n-global', name, value)`. If the token is not
  * registered, the name itself is used as the value. Use `\[[` to include a
  * literal `[[` in a translation string.
  *
