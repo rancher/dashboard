@@ -176,8 +176,8 @@ describe('component: Questions', () => {
 
       // Initially, child is shown
       expect(wrapper.vm.shownQuestions).toHaveLength(2);
-      expect(wrapper.vm.shownQuestions[0].variable).toBe('parent');
-      expect(wrapper.vm.shownQuestions[1].variable).toBe('child');
+      expect(wrapper.vm.shownQuestions?.[0].variable).toBe('parent');
+      expect(wrapper.vm.shownQuestions?.[1].variable).toBe('child');
       expect(value.child).toBe('some-value');
 
       // Now set parent to false to hide child question
@@ -191,7 +191,7 @@ describe('component: Questions', () => {
 
       // The child's value should have been deleted/removed from value
       expect(wrapper.vm.shownQuestions).toHaveLength(1);
-      expect(wrapper.vm.shownQuestions[0].variable).toBe('parent');
+      expect(wrapper.vm.shownQuestions?.[0].variable).toBe('parent');
       expect(wrapper.vm.value.child).toBeUndefined();
     });
 
@@ -212,7 +212,7 @@ describe('component: Questions', () => {
       });
 
       expect(wrapper.vm.shownQuestions).toHaveLength(2);
-      expect(wrapper.vm.shownQuestions[1].variable).toBe('nested.child');
+      expect(wrapper.vm.shownQuestions?.[1].variable).toBe('nested.child');
       expect(wrapper.vm.value.nested.child).toBe('some-nested-value');
 
       wrapper.setProps({
