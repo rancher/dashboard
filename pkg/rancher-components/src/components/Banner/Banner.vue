@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { nlToBr, generateRandomAlphaString } from '@shell/utils/string';
+import { nlToBr } from '@shell/utils/string';
 import { stringify } from '@shell/utils/error';
 
 /**
@@ -14,6 +14,7 @@ export interface Props {
   closable?: boolean;
   stacked?: boolean;
   disabled?: boolean;
+  role?: 'alert' | 'status' | null;
 }
 
 export default defineComponent({
@@ -68,11 +69,20 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
+    /**
+     * ARIA live region role. Assistive technology announces the banner when it is
+     * inserted into the page. Use 'alert' for errors, which interrupts the current
+     * announcement, and 'status' for informational messages, which waits for a pause.
+     * Omit for decorative or purely visual banners.
+     * @values alert, status
+     */
+    role: {
+      type:      String,
+      default:   null,
+      validator: (value: string | null) => ['alert', 'status', null].includes(value),
+    },
   },
-  emits: ['close'],
-  data() {
-    return { labelledbyId: `banner-labelledby-${ generateRandomAlphaString(12) }` };
-  },
+  emits:    ['close'],
   computed: {
     /**
      * Return message text as label.
@@ -91,8 +101,7 @@ export default defineComponent({
       [color]: true,
       'banner-disabled': disabled
     }"
-    role="region"
-    :aria-labelledby="labelledbyId"
+    :role="role || undefined"
     tabindex="0"
   >
     <div
@@ -107,7 +116,6 @@ export default defineComponent({
       />
     </div>
     <div
-      :id="labelledbyId"
       class="banner__content"
       data-testid="banner-content"
       :class="{

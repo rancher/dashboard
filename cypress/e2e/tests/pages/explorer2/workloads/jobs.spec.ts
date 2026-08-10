@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/jobs/jobs-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
 
   before(() => {
@@ -14,78 +14,107 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
 
   describe('CRUD', () => {
     const namespaceName = 'custom-namespace';
-    const jobName = 'my-job-custom-name';
+    const rootJobName = 'my-job-custom-name';
     const containerImageName = 'nginx';
 
     it('Creating a job while creating a new namespace should succeed', () => {
-      cy.intercept('POST', 'v1/namespaces').as('createNamespace');
-      cy.intercept('POST', 'v1/batch.jobs').as('createJob');
+      let jobName;
 
-      // list view jobs
-      const workloadsJobsListPage = new WorkloadsJobsListPagePo(localCluster);
+      cy.createE2EResourceName(rootJobName).then((name) => {
+        jobName = name;
 
-      workloadsJobsListPage.goTo();
-      workloadsJobsListPage.baseResourceList().masthead().create();
+        cy.intercept('POST', 'v1/namespaces').as('createNamespace');
+        cy.intercept('POST', 'v1/batch.jobs').as('createJob');
 
-      // create view jobs
-      const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo(localCluster);
+        // list view jobs
+        const workloadsJobsListPage = new WorkloadsJobsListPagePo(localCluster);
 
-      workloadsJobDetailsPage.selectNamespaceOption(1);
-      workloadsJobDetailsPage.namespace().set(namespaceName);
-      workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
-        .set(jobName);
-      workloadsJobDetailsPage.containerImage().set(containerImageName);
-      workloadsJobDetailsPage.resourceDetail().createEditView().save();
-      cy.wait('@createNamespace').its('response.statusCode').should('eq', 201);
-      cy.wait('@createJob').its('response.statusCode').should('eq', 201);
+        workloadsJobsListPage.goTo();
+        workloadsJobsListPage.waitForPage();
+        // We need to confirm that the list has actually finished loading given we're flicking quickly between list + create
+        workloadsJobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+        workloadsJobsListPage.baseResourceList().masthead().create();
 
-      workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName)
-        .should('exist');
+        // create view jobs
+        const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo(localCluster);
 
-      // navigate to namespace and check existence of namespace
-      cy.visit('/c/local/explorer/projectsnamespaces');
-      workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(namespaceName)
-        .should('exist');
+        const namespaceField = workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().namespace();
+
+        namespaceField.selectCreateNew('Create a new Namespace');
+        namespaceField.createInput().set(namespaceName);
+        workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
+          .set(jobName);
+        workloadsJobDetailsPage.containerImage().set(containerImageName);
+        workloadsJobDetailsPage.resourceDetail().createEditView().save();
+        cy.wait('@createNamespace').its('response.statusCode').should('eq', 201);
+        cy.wait('@createJob').its('response.statusCode').should('eq', 201);
+
+        workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName)
+          .should('exist');
+
+        // navigate to namespace and check existence of namespace
+        cy.visit('/c/local/explorer/projectsnamespaces');
+        workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(namespaceName)
+          .should('exist');
+      });
     });
 
     it('Should be able to clone a job', () => {
-      const jobName2 = `${ jobName }-2`;
-      const jobNameClone = `${ jobName }-3`;
+      let jobName;
 
-      // list view jobs
-      const workloadsJobsListPage = new WorkloadsJobsListPagePo('local');
+      cy.createE2EResourceName(rootJobName).then((name) => {
+        jobName = name;
 
-      workloadsJobsListPage.goTo();
-      workloadsJobsListPage.waitForPage();
-      workloadsJobsListPage.baseResourceList().checkVisible();
-      workloadsJobsListPage.baseResourceList().masthead().create();
+        const jobName2 = `${ jobName }-2`;
+        const jobNameClone = `${ jobName }-3`;
 
-      // create view jobs
-      const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo('local');
+        // list view jobs
+        const workloadsJobsListPage = new WorkloadsJobsListPagePo('local');
 
-      workloadsJobDetailsPage.selectNamespaceOption(1);
-      workloadsJobDetailsPage.namespace().set(namespaceName);
-      workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
-        .set(jobName2);
-      workloadsJobDetailsPage.containerImage().set(containerImageName);
-      workloadsJobDetailsPage.resourceDetail().createEditView().save();
+        workloadsJobsListPage.goTo();
+        workloadsJobsListPage.waitForPage();
+        workloadsJobsListPage.baseResourceList().checkVisible();
+        // We need to confirm that the list has actually finished loading given we're flicking quickly between list + create
+        workloadsJobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+        workloadsJobsListPage.baseResourceList().masthead().create();
 
-      workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
-        .should('exist');
+        // create view jobs
+        const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo('local');
 
-      // Clone the job
-      workloadsJobsListPage.list().actionMenu(jobName2).getMenuItem('Clone').click();
+        const namespaceField = workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().namespace();
 
-      const cloneJobDetailsPage = new WorkLoadsJobDetailsPagePo(jobName2, {}, 'local', namespaceName);
+        namespaceField.selectCreateNew('Create a new Namespace');
+        namespaceField.createInput().set(namespaceName);
+        workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
+          .set(jobName2);
+        workloadsJobDetailsPage.containerImage().set(containerImageName);
+        workloadsJobDetailsPage.resourceDetail().createEditView().save();
 
-      cloneJobDetailsPage.waitForPage();
-      cloneJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
-        .set(jobNameClone);
-      cloneJobDetailsPage.resourceDetail().createEditView().save();
-      cloneJobDetailsPage.errorBanner().should('not.exist');
+        // Saving returns the user to the list page (create-edit-view `done()` does a
+        // router.replace to `doneRoute`), so just wait for that navigation to settle
+        // before querying the table.
+        workloadsJobsListPage.waitForPage();
+        workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
+          .should('exist');
 
-      workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNameClone)
-        .should('exist');
+        // Clone the job
+        workloadsJobsListPage.list().actionMenu(jobName2).getMenuItem('Clone').click();
+
+        const cloneJobDetailsPage = new WorkLoadsJobDetailsPagePo(jobName2, {}, 'local', namespaceName);
+
+        cloneJobDetailsPage.waitForPage();
+        cloneJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
+          .set(jobNameClone);
+        cloneJobDetailsPage.resourceDetail().createEditView().save();
+        cloneJobDetailsPage.errorBanner().should('not.exist');
+
+        // Saving returns the user to the list page (create-edit-view `done()` does a
+        // router.replace to `doneRoute`), so just wait for that navigation to settle
+        // before querying the table.
+        workloadsJobsListPage.waitForPage();
+        workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNameClone)
+          .should('exist');
+      });
     });
 
     after(() => {

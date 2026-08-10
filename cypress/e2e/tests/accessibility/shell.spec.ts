@@ -43,6 +43,23 @@ import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 
 describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () => {
+  // Colour contrast results are only meaningful against a known palette, so pin the whole suite to
+  // Prime branding in light mode instead of relying on the server/browser defaults. See #18621.
+  let originalBrand = '';
+
+  before(() => {
+    cy.login();
+
+    cy.getRancherResource('v3', 'settings', 'ui-brand').then((resp: Cypress.Response<any>) => {
+      originalBrand = resp.body.value || '';
+    });
+
+    cy.setRancherResource('v3', 'settings', 'ui-brand', { value: 'suse' });
+    // The stored form of the `light` theme preference is `ui-light` (see `mangleWrite` on `THEME` in
+    // `shell/store/prefs.js`). `true` verifies the preference actually landed.
+    cy.setUserPreference({ theme: 'ui-light' }, true);
+  });
+
   describe('Login page', () => {
     it('login page', () => {
       const loginPage = new LoginPagePo();
@@ -66,7 +83,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
     });
   });
 
-  describe('Logged in', { testIsolation: 'off' }, () => {
+  describe('Logged in', { testIsolation: false }, () => {
     const aboutPage = new AboutPagePo();
     const prefPage = new PreferencesPagePo();
     const userMenu = new UserMenuPo();
@@ -839,6 +856,8 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
   });
 
   after(() => {
+    cy.setRancherResource('v3', 'settings', 'ui-brand', { value: originalBrand });
+    cy.setUserPreference({ theme: '' });
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     cy.setUserPreference({ 'plugin-developer': false });
   });

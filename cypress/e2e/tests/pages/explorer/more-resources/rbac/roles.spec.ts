@@ -3,7 +3,7 @@ import { generateRolesDataSmall, rolesNoData } from '@/cypress/e2e/blueprints/ex
 
 const rolesPage = new RolesPagePo();
 
-describe('Roles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Roles', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

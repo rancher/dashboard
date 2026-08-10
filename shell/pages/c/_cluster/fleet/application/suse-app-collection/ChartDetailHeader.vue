@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
+import { RcIcon } from '@components/RcIcon';
 
 interface SubHeaderItem {
   icon: string;
@@ -27,7 +30,14 @@ defineProps({
     type:    String,
     default: '',
   },
+  deprecated: {
+    type:    Boolean,
+    default: false,
+  },
 });
+
+const store = useStore();
+const { t } = useI18n(store);
 </script>
 
 <template>
@@ -47,6 +57,17 @@ defineProps({
           <slot name="back-link" />
           {{ chartName }}
         </h1>
+        <RcIcon
+          v-if="deprecated"
+          v-clean-tooltip="t('generic.deprecated')"
+          data-testid="appco-chart-deprecated-badge"
+          type="alert-alt"
+          size="large"
+          status="error"
+          role="img"
+          :aria-hidden="false"
+          :aria-label="t('generic.deprecated')"
+        />
       </div>
       <AppChartCardSubHeader :items="subHeaderItems" />
       <p
@@ -102,6 +123,7 @@ $logo-box-width: 60px;
 
     .header-top {
       display: flex;
+      align-items: center;
 
       .title {
         margin: 0 12px 0 0;

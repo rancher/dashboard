@@ -69,7 +69,7 @@ The 'primary' resource of a list will be fetched, per page, by the `PaginatedRes
 These can either be fetched 
 - once upfront when the component is first loaded 
   - Supply a method `:fetchSecondaryResources="..."` to the component
-  - Be careful not to load to many, otherwise `fetchPageSecondaryResources` should be used
+  - Be careful not to load too many, otherwise `fetchPageSecondaryResources` should be used
 - whenever a new page is shown 
   - Supply a method `:fetchPageSecondaryResources="..."` to the component
   - This could be triggered a lot so should itself be performant

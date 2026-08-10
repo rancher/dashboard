@@ -38,10 +38,10 @@ export default {
       resources:     [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUS],
       externalLinks: [
         {
-          enabled:     false,
-          group:       'alertmanager',
-          iconSrc:     prometheusSrc,
-          label:       'monitoring.overview.linkedList.alertManager.label',
+          enabled: false,
+          group:   'alertmanager',
+          iconSrc: prometheusSrc,
+          label:   'monitoring.overview.linkedList.alertManager.label',
           description:
             'monitoring.overview.linkedList.alertManager.description',
           link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
@@ -55,28 +55,28 @@ export default {
           link:        '',
         },
         {
-          enabled:     false,
-          group:       'prometheus',
-          iconSrc:     prometheusSrc,
-          label:       'monitoring.overview.linkedList.prometheusPromQl.label',
+          enabled: false,
+          group:   'prometheus',
+          iconSrc: prometheusSrc,
+          label:   'monitoring.overview.linkedList.prometheusPromQl.label',
           description:
             'monitoring.overview.linkedList.prometheusPromQl.description',
           link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
         },
         {
-          enabled:     false,
-          group:       'prometheus',
-          iconSrc:     prometheusSrc,
-          label:       'monitoring.overview.linkedList.prometheusRules.label',
+          enabled: false,
+          group:   'prometheus',
+          iconSrc: prometheusSrc,
+          label:   'monitoring.overview.linkedList.prometheusRules.label',
           description:
             'monitoring.overview.linkedList.prometheusRules.description',
           link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
         },
         {
-          enabled:     false,
-          group:       'prometheus',
-          iconSrc:     prometheusSrc,
-          label:       'monitoring.overview.linkedList.prometheusTargets.label',
+          enabled: false,
+          group:   'prometheus',
+          iconSrc: prometheusSrc,
+          label:   'monitoring.overview.linkedList.prometheusTargets.label',
           description:
             'monitoring.overview.linkedList.prometheusTargets.description',
           link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,

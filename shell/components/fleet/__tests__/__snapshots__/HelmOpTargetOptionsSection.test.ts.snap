@@ -10,7 +10,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot in compact 
     <br />
      %generic.learnMoreAbout% 
     <a
-      href="https://fleet.rancher.io/reference/ref-crds#_bundledeploymentoptions"
+      href="https://fleet.rancher.io/next/reference/ref-crds#_bundledeploymentoptions"
       rel="noopener noreferrer nofollow"
       target="_blank"
     >

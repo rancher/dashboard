@@ -103,9 +103,10 @@ export default {
           {{ t('authConfig.manageLocal') }}
         </router-link>
         <br><br>
-        <template v-if="disableLocalAuth">
-          {{ t('authConfig.bannerEnableAuthProvider', null, true) }}
-        </template>
+        <span
+          v-if="disableLocalAuth"
+          v-clean-html="t('authConfig.bannerEnableAuthProvider', {}, true)"
+        />
         <template v-else>
           {{ t('authConfig.noneEnabled') }}
         </template>
@@ -113,6 +114,7 @@ export default {
     </Banner>
     <SelectIconGrid
       :rows="rows"
+      :aria-label="displayName"
       :color-for="colorFor"
       name-field="provider"
       @clicked="(row) => goTo(row.id)"

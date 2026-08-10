@@ -25,6 +25,7 @@ exports[`component: AppCoVersionSelect should match snapshot 1`] = `
   rules=""
   searchable="true"
   selectable="[Function]"
+  size="large"
   value="1.2.0"
 />
 `;

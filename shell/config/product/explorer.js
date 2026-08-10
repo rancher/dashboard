@@ -11,6 +11,7 @@ import {
   VIRTUAL_TYPES,
   CAPI,
   WORKLOAD_DASHBOARD,
+  CRD,
 } from '@shell/config/types';
 
 import {
@@ -108,6 +109,7 @@ export function init(store) {
     WORKLOAD_TYPES.DEPLOYMENT,
     WORKLOAD_TYPES.DAEMON_SET,
     WORKLOAD_TYPES.STATEFUL_SET,
+    WORKLOAD_TYPES.REPLICA_SET,
     WORKLOAD_TYPES.JOB,
     WORKLOAD_TYPES.CRON_JOB,
     POD,
@@ -349,6 +351,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
     ]
   );
+
   headers(HPA,
     [STATE, NAME_COL, NAMESPACE_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
     [
@@ -388,6 +391,7 @@ export function init(store) {
   headers(WORKLOAD_TYPES.REPLICA_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL],
+    // STEVE_WORKLOAD_HEALTH_SCALE should added once https://github.com/rancher/rancher/issues/56210 is resolved
   );
   headers(WORKLOAD_TYPES.STATEFUL_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
@@ -565,6 +569,28 @@ export function init(store) {
     AGE_NORMAN
   ]);
 
+  const CRD_CR_COL = {
+    name:          'crd-cr',
+    labelKey:      'tableHeaders.customResources',
+    sort:          false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
+    search:        false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
+    value:         'resourceLink',
+    formatter:     'Link',
+    formatterOpts: { options: { internal: true } },
+  };
+
+  headers(CRD, [
+    STATE,
+    NAME_COL,
+    CRD_CR_COL,
+    AGE
+  ], [
+    STEVE_STATE_COL,
+    STEVE_NAME_COL,
+    CRD_CR_COL,
+    STEVE_AGE_COL
+  ]);
+
   virtualType({
     label:      store.getters['i18n/t']('clusterIndexPage.header'),
     group:      'Root',
@@ -600,6 +626,7 @@ export function init(store) {
     route:        { name: 'c-cluster-product-members' },
     exact:        false,
     'exact-path': true,
+    navResources: [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING],
     ifHaveType:   {
       type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       store: 'management'
@@ -616,6 +643,7 @@ export function init(store) {
     weight:           98,
     route:            { name: 'c-cluster-product-projectsnamespaces' },
     exact:            true,
+    navResources:     [MANAGEMENT.PROJECT, NAMESPACE],
   });
 
   virtualType({
@@ -640,6 +668,7 @@ export function init(store) {
     weight:           98,
     route:            { name: 'c-cluster-product-namespaces' },
     exact:            true,
+    navResources:     [NAMESPACE],
   });
 
   virtualType({

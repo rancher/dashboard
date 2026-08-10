@@ -182,7 +182,7 @@ describe('proxyApiImpl', () => {
       const processed = { items: ['a', 'b'] };
 
       mockDispatch.mockResolvedValue(raw);
-      const postProcess = jest.fn().mockResolvedValue(processed) as jest.Mock;
+      const postProcess = jest.fn().mockResolvedValue(processed);
 
       const result = await proxyApi.request({ url: new URL('https://api.example.com/items'), postProcess });
 

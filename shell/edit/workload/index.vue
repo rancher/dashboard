@@ -78,6 +78,14 @@ export default {
      */
     yamlModifiers() {
       return this.value.type === POD ? { collapseEmptyObjects: true } : undefined;
+    },
+
+    upgradingTabLabel() {
+      // ReplicaSet / ReplicationController have no rollout strategy; this tab only
+      // exposes minReadySeconds for them, so frame it as availability, not upgrades.
+      const noUpgradePolicy = this.isReplicable && !this.isDeployment && !this.isStatefulSet;
+
+      return noUpgradePolicy ? this.t('workload.container.titles.availability') : this.t('workload.container.titles.upgrading');
     }
   },
   methods: {
@@ -264,6 +272,8 @@ export default {
                       v-model:value="allContainers[i].name"
                       :mode="mode"
                       :label="t('workload.container.containerName')"
+                      required
+                      :rules="containerNameRules"
                     />
                   </div>
                   <div class="col span-6">
@@ -286,6 +296,8 @@ export default {
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
+                      required
+                      :rules="containerImageRules"
                     />
                   </div>
                   <div class="col span-6">
@@ -449,7 +461,7 @@ export default {
               />
             </Tab>
             <Tab
-              :label="t('workload.container.titles.upgrading')"
+              :label="upgradingTabLabel"
               name="upgrading"
               :weight="tabWeightMap['upgrading']"
             >

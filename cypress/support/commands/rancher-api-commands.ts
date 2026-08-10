@@ -1,9 +1,9 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams, UserPreferences } from '@/cypress/globals';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
-import { MEDIUM_API_DELAY } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_API_DELAY, USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import { base64Encode } from '@shell/utils/crypto/index.js';
+import { base64Encode } from '@/cypress/support/utils/shell';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -71,7 +71,15 @@ Cypress.Commands.add('login', (
   };
 
   if (cacheSession) {
-    (cy as any).session([username, password], login);
+    (cy as any).session([username, password], login, {
+      // Guard against reusing a stale/expired cached session: ping a protected
+      // endpoint and force a fresh login if it doesn't return 200.
+      validate: () => cy.request({
+        method:           'GET',
+        url:              `${ Cypress.env('api') }${ USERS_BASE_URL }?pagesize=1`,
+        failOnStatusCode: false
+      }).its('status').should('eq', 200)
+    });
     cy.getCookie('CSRF').then((c) => {
       token = c;
     });
@@ -679,7 +687,9 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
  * Wait for an intercepted request to complete with the expected status code.
  * If the response is a 409 Conflict (or another retryable status), waits for one automatic retry before asserting success.
  */
-Cypress.Commands.add('waitForInterceptWithConflictRetry', (alias: string, successStatusCode = 200, retryStatusCodes = [409], options = MEDIUM_TIMEOUT_OPT) => {
+// `alias` is typed as `@${string}` (not plain `string`) because Cypress 15.10+ narrowed
+// the `cy.wait()` alias overload to that template literal type.
+Cypress.Commands.add('waitForInterceptWithConflictRetry', (alias: `@${ string }`, successStatusCode = 200, retryStatusCodes = [409], options = MEDIUM_TIMEOUT_OPT) => {
   return cy.wait(alias).then((interception) => {
     const statusCode = interception.response?.statusCode;
 
@@ -706,7 +716,7 @@ Cypress.Commands.add('waitForRepositoryDownload', (prefix, resourceType, resourc
   return cy.waitForRancherResource(prefix, resourceType, resourceId, (resp) => {
     const conditions = resp.body.status?.conditions || [];
 
-    return conditions.some((condition) => condition.type === 'Downloaded' && condition.status === 'True'
+    return conditions.some((condition: { type: string; status: string }) => condition.type === 'Downloaded' && condition.status === 'True'
     );
   }, retries);
 });
@@ -1394,11 +1404,11 @@ Cypress.Commands.add('createManyNamespacedResources', ({
    */
   context?: string,
   namespace?: string,
-  createResource: ({ ns, i }) => CypressChainable
+  createResource: ({ ns, i }: { ns: string, i: number }) => CypressChainable
   count?: number,
   wait?: number,
 }): Cypress.Chainable<{ ns: string, workloadNames: string[]}> => {
-  const dynamicNs = namespace ? cy.wrap(namespace) : cy.createE2EResourceName(context).then((ns) => {
+  const dynamicNs = namespace ? cy.wrap(namespace) : cy.createE2EResourceName(context || '').then((ns) => {
     // create namespace
     cy.createNamespace(ns);
 

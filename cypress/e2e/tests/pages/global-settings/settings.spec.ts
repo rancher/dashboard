@@ -19,7 +19,7 @@ const BANNER_TEXT = "Typical users will not need to change these. Proceed with c
 const settingsOriginal: { [id: string]: any} = {};
 const resetSettings: string[] = [];
 
-describe('Settings', { testIsolation: 'off' }, () => {
+describe('Settings', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
@@ -565,7 +565,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
       // checks on the downloaded YAML
       expect(obj.clusters.length).to.be.gte(1);
-      expect(obj.clusters[1].name).to.equal('local');
+      // Only the selected cluster is present. The legacy `rancher` entry used to occupy index 0
+      expect(obj.clusters[0].name).to.equal('local');
       expect(obj.users[0].user.token).to.have.length.gt(0);
       expect(obj.apiVersion).to.equal('v1');
       expect(obj.kind).to.equal('Config');

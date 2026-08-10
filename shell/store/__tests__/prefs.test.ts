@@ -690,5 +690,360 @@ describe('prefs store', () => {
         expect(clusterLoaded).toBe(false);
       });
     });
+
+    describe('set', () => {
+      beforeEach(() => {
+        // The setDefinition mutation test overwrites CLUSTER in the shared module-level
+        // definitions object. Re-register it here so set action tests see correct asUserPreference.
+        create(CLUSTER, '');
+      });
+
+      afterEach(async() => {
+        // `set` populates the module-level `prefsBeforeLogin` when called while
+        // logged out. Drain it via a mock loadServer so it does not leak into
+        // subsequent loadServer tests (which would then try to call server.save).
+        const mockServer = { data: {}, save: jest.fn().mockResolvedValue(undefined) };
+        const drainDispatch = jest.fn().mockResolvedValue([mockServer]);
+
+        await actions.loadServer({
+          state: state(), dispatch: drainDispatch, commit: jest.fn(), rootState: {}, rootGetters: {}
+        } as any, undefined);
+      });
+
+      it('throws when opt.val is used instead of opt.value', async() => {
+        const commit = jest.fn();
+        const dispatch = jest.fn();
+        const rootGetters = { 'auth/loggedIn': true };
+        const s = state();
+
+        await expect(
+          actions.set({
+            dispatch, commit, rootGetters, state: s
+          } as any, { key: CLUSTER, val: 'test' })
+        ).rejects.toThrow('Use value, not val');
+      });
+
+      it('commits load with the key and value immediately', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const rootGetters = { 'auth/loggedIn': false };
+        const dispatch = jest.fn();
+
+        await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'my-cluster' });
+
+        expect(commit).toHaveBeenCalledWith('load', { key: CLUSTER, value: 'my-cluster' });
+      });
+
+      it('stores value in prefsBeforeLogin when not logged in and asUserPreference is true', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const dispatch = jest.fn();
+        const rootGetters = { 'auth/loggedIn': false };
+
+        const result = await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'test-cluster' });
+
+        expect(result).toBeUndefined();
+        // dispatch should not have been called for loadServer since we returned early
+        expect(dispatch).not.toHaveBeenCalled();
+      });
+
+      it('commits cookies/set for cookie-based prefs', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const dispatch = jest.fn().mockResolvedValue({ data: {}, save: jest.fn().mockResolvedValue(undefined) });
+        const rootGetters = { 'auth/loggedIn': true };
+
+        await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: THEME, value: 'dark' });
+
+        const cookieSetCall = commit.mock.calls.find(([name]: [string]) => name === 'cookies/set');
+
+        expect(cookieSetCall).toBeDefined();
+        expect(cookieSetCall[1]).toMatchObject({ value: 'dark' });
+      });
+
+      it('does not commit cookies/set for non-cookie prefs', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const dispatch = jest.fn().mockResolvedValue({ data: {}, save: jest.fn().mockResolvedValue(undefined) });
+        const rootGetters = { 'auth/loggedIn': true };
+
+        await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'my-cluster' });
+
+        const cookieSetCall = commit.mock.calls.find(([name]: [string]) => name === 'cookies/set');
+
+        expect(cookieSetCall).toBeUndefined();
+      });
+
+      it('dispatches loadServer when logged in and asUserPreference is true', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = { data: {}, save: jest.fn().mockResolvedValue(undefined) };
+        const dispatch = jest.fn().mockResolvedValue(serverObj);
+        const rootGetters = { 'auth/loggedIn': true };
+
+        // ROWS_PER_PAGE: asUserPreference defaults to true, not mutated by other tests
+        await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: ROWS_PER_PAGE, value: 25 });
+
+        expect(dispatch).toHaveBeenCalledWith('loadServer', ROWS_PER_PAGE);
+      });
+
+      it('writes mangleWrite-transformed value to server.data, json-stringified due to parseJSON', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const serverData: Record<string, unknown> = {};
+        const serverObj = { data: serverData, save: jest.fn().mockResolvedValue(undefined) };
+        const dispatch = jest.fn().mockResolvedValue(serverObj);
+        const rootGetters = { 'auth/loggedIn': true };
+
+        // THEME has mangleWrite: (x) => `ui-${x}` AND parseJSON:true, so stored as JSON.stringify('ui-light')
+        await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: THEME, value: 'light' });
+
+        expect(serverData[THEME]).toStrictEqual('"ui-light"');
+      });
+
+      it('JSON-stringifies value for parseJSON prefs when saving to server', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const serverData: Record<string, unknown> = {};
+        const serverObj = { data: serverData, save: jest.fn().mockResolvedValue(undefined) };
+        const dispatch = jest.fn().mockResolvedValue(serverObj);
+        const rootGetters = { 'auth/loggedIn': true };
+
+        // ROWS_PER_PAGE has parseJSON: true, no mangleWrite
+        await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: ROWS_PER_PAGE, value: 50 });
+
+        expect(serverData[ROWS_PER_PAGE]).toStrictEqual('50');
+      });
+
+      it('returns error type and status when loadServer call throws', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const err = Object.assign(new Error('server error'), { type: 'ServerError', status: 503 });
+        const dispatch = jest.fn().mockRejectedValue(err);
+        const rootGetters = { 'auth/loggedIn': true };
+
+        // ROWS_PER_PAGE: asUserPreference defaults to true
+        const result = await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: ROWS_PER_PAGE, value: 25 });
+
+        expect(result).toStrictEqual({ type: 'ServerError', status: 503 });
+      });
+
+      it('returns error info when server save throws', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const mockServer = {
+          data: {},
+          save: jest.fn().mockRejectedValue({ type: 'error', status: 500 }),
+        };
+        const dispatch = jest.fn().mockResolvedValue(mockServer);
+        const rootGetters = { 'auth/loggedIn': true };
+
+        const result = await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'fail' });
+
+        expect(result).toStrictEqual({ type: 'error', status: 500 });
+      });
+
+      it('returns undefined when loadServer returns undefined', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const dispatch = jest.fn().mockResolvedValue(undefined);
+        const rootGetters = { 'auth/loggedIn': true };
+
+        const result = await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: CLUSTER, value: 'x' });
+
+        expect(result).toBeUndefined();
+      });
+    });
+
+    describe('loadServer', () => {
+      it('returns undefined when management/findAll throws', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const dispatch = jest.fn().mockRejectedValue(new Error('network error'));
+        const rootState = { managementReady: false };
+        const rootGetters = {};
+
+        const result = await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        expect(result).toBeUndefined();
+      });
+
+      it('returns undefined when findAll returns empty array', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const dispatch = jest.fn().mockResolvedValue([]);
+        const rootState = {};
+        const rootGetters = {};
+
+        const result = await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        expect(result).toBeUndefined();
+      });
+
+      it('returns undefined when server object has no data field', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const dispatch = jest.fn().mockResolvedValue([{ }]);
+        const rootState = {};
+        const rootGetters = {};
+
+        const result = await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        expect(result).toBeUndefined();
+      });
+
+      it('commits load for each defined key present in server.data', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = { data: { [CLUSTER]: 'c1' } };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+        const rootState = {};
+        const rootGetters = {};
+
+        await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
+
+        expect(loadCalls.some(([, p]: [string, { key: string; value: string }]) => p.key === CLUSTER && p.value === 'c1')).toBe(true);
+      });
+
+      it('skips the ignoreKey even when present in server.data', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = { data: { [CLUSTER]: 'c1' } };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+        const rootState = {};
+        const rootGetters = {};
+
+        await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, CLUSTER);
+
+        const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
+
+        expect(loadCalls.every(([, p]: [string, { key: string }]) => p.key !== CLUSTER)).toBe(true);
+      });
+
+      it('applies mangleRead to values that have it defined', async() => {
+        const s = state();
+        const commit = jest.fn();
+        // THEME has mangleRead: (x) => x.replace(/^ui-/, '') and parseJSON:true
+        // Server stores JSON-stringified value, so '"ui-dark"' → JSON.parse → 'ui-dark' → mangleRead → 'dark'
+        const serverObj = { data: { [THEME]: '"ui-dark"' } };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+        const rootState = {};
+        const rootGetters = {};
+
+        await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
+        const themeCall = loadCalls.find(([, p]: [string, { key: string }]) => p.key === THEME);
+
+        expect(themeCall?.[1].value).toStrictEqual('dark');
+      });
+
+      it('parses JSON values for parseJSON prefs', async() => {
+        const s = state();
+        const commit = jest.fn();
+        // ROWS_PER_PAGE has parseJSON: true
+        const serverObj = { data: { [ROWS_PER_PAGE]: '25' } };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+        const rootState = {};
+        const rootGetters = {};
+
+        await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
+        const rppCall = loadCalls.find(([, p]: [string, { key: string }]) => p.key === ROWS_PER_PAGE);
+
+        expect(rppCall?.[1].value).toStrictEqual(25);
+      });
+
+      it('skips parseJSON value when JSON.parse fails (and does not commit for that key)', async() => {
+        const s = state();
+        const commit = jest.fn();
+        // ROWS_PER_PAGE expects valid JSON; pass invalid JSON
+        const serverObj = { data: { [ROWS_PER_PAGE]: 'not-json{{' } };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+        const rootState = {};
+        const rootGetters = {};
+
+        await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
+        const rppCall = loadCalls.find(([, p]: [string, { key: string }]) => p.key === ROWS_PER_PAGE);
+
+        expect(rppCall).toBeUndefined();
+      });
+
+      it('falls back to inheritFrom value when primary key is absent in server.data', async() => {
+        const s = state();
+        const commit = jest.fn();
+        // VIEW_IN_API has inheritFrom: DEV; server.data has DEV but not VIEW_IN_API
+        const serverObj = { data: { [DEV]: 'true' } };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+        const rootState = {};
+        const rootGetters = {};
+
+        await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        const loadCalls = commit.mock.calls.filter(([name]: [string]) => name === 'load');
+        const viewInApiCall = loadCalls.find(([, p]: [string, { key: string }]) => p.key === 'view-in-api');
+
+        // VIEW_IN_API is parseJSON so 'true' becomes boolean true
+        expect(viewInApiCall?.[1].value).toStrictEqual(true);
+      });
+
+      it('returns the server object on success', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = { data: {} };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+        const rootState = {};
+        const rootGetters = {};
+
+        const result = await actions.loadServer({
+          state: s, dispatch, commit, rootState, rootGetters
+        } as any, undefined);
+
+        expect(result).toBe(serverObj);
+      });
+    });
   });
 });

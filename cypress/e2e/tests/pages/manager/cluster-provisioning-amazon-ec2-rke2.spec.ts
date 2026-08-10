@@ -14,7 +14,7 @@ import describeSubnetsResponse from '@/cypress/e2e/blueprints/manager/describe-s
 import describeVpcsResponse from '@/cypress/e2e/blueprints/manager/describe-vpcs-response';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manager', '@adminUser', '@standardUser', '@jenkins', '@provisioning'] }, () => {
+describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manager', '@adminUser', '@standardUser', '@jenkins', '@provisioning', '@amazonRKE2'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 

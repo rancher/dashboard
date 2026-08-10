@@ -62,8 +62,17 @@ export default class HybridModel extends Resource {
     const all = this.metadata?.annotations || {};
 
     return omitBy(all, (value, key) => {
-      return matchesSomeRegex(key, ANNOTATIONS_TO_IGNORE_REGEX);
+      return this.isAnnotationIgnored(key);
     });
+  }
+
+  /**
+   * Determines if an annotation key should be hidden from the annotations getter
+   * and preserved as-is by setAnnotations. Override in subclasses to expose
+   * specific system annotations (e.g. cattle.io/) to the UI.
+   */
+  isAnnotationIgnored(key) {
+    return matchesSomeRegex(key, ANNOTATIONS_TO_IGNORE_REGEX);
   }
 
   setAnnotations(val) {
@@ -73,7 +82,7 @@ export default class HybridModel extends Resource {
 
     const all = this.metadata.annotations || {};
     const wasIgnored = pickBy(all, (value, key) => {
-      return matchesSomeRegex(key, ANNOTATIONS_TO_IGNORE_REGEX);
+      return this.isAnnotationIgnored(key);
     });
 
     this.metadata['annotations'] = { ...wasIgnored, ...val };

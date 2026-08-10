@@ -61,6 +61,7 @@ const store = useStore();
       }"
       class="new state-banner"
       v-bind="bannerProps"
+      role="status"
     />
     <Metadata
       v-bind="metadataProps"

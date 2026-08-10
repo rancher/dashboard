@@ -9,7 +9,7 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 // import { AlertingTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/alerting-tab.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 // import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
-// import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
+// import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@/cypress/support/utils/shell';
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPage = new ChartsPage();
@@ -45,7 +45,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   //   cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
   // }
 
-  describe('Monitoring', { testIsolation: 'off' }, () => {
+  describe('Monitoring', { testIsolation: false }, () => {
     describe('Prometheus local provisioner config', () => {
       const provisionerVersion = 'v0.0.24';
       // const storageClass = 'local-path';

@@ -20,6 +20,7 @@ import grouping from './grouping';
 import actions from './actions';
 import AdvancedFiltering from './advanced-filtering';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
@@ -63,6 +64,7 @@ export default {
     AsyncButton,
     ActionDropdown,
     LabeledSelect,
+    LabeledInput,
     ButtonMultiAction,
     ActionMenu,
     ActionDropdownShell,
@@ -1257,13 +1259,14 @@ export default {
               v-show="advancedFilteringVisibility"
               class="advanced-filter-container"
             >
-              <input
+              <LabeledInput
                 ref="advancedSearchQuery"
-                v-model="advFilterSearchTerm"
+                v-model:value="advFilterSearchTerm"
                 type="search"
                 class="advanced-search-box"
+                :clear-button-label="t('sortableTable.clearFilter')"
                 :placeholder="t('sortableTable.filterFor')"
-              >
+              />
               <div class="middle-block">
                 <span>{{ t('sortableTable.in') }}</span>
                 <LabeledSelect
@@ -1304,16 +1307,17 @@ export default {
           >
             {{ t('sortableTable.filteringDescription') }}
           </p>
-          <input
+          <LabeledInput
             v-if="search"
             ref="searchQuery"
-            v-model="eventualSearchQuery"
+            v-model:value="eventualSearchQuery"
             type="search"
-            class="input-sm search-box"
+            class="search-box"
             :aria-label="t('sortableTable.searchLabel')"
             aria-describedby="describe-filter-sortable-table"
+            :clear-button-label="t('sortableTable.clearFilter')"
             :placeholder="t('sortableTable.search')"
-          >
+          />
           <slot name="header-button" />
         </div>
       </div>
@@ -1874,10 +1878,51 @@ export default {
     }
   }
 
+  // `.search-box` IS the `.labeled-input` root element - LabeledInput puts the `class`
+  // prop on its own root, it does not wrap it. The global `INPUT[type='search']` rules in
+  // _form.scss out-specify `.labeled-input INPUT`, so the inner input keeps its own border
+  // and padding on top of the wrapper's, giving a double border and the wrong height.
+  // Strip the inner input back and let the wrapper draw the single border.
+  .search-box,
+  .advanced-search-box {
+    &.labeled-input {
+      display: flex;
+      align-items: center;
+      min-height: 32px;
+      height: 32px;
+      padding: 0 8px;
+    }
+
+    // The inner input no longer draws its own focus border, so surface it on the wrapper
+    &.labeled-input:focus-within {
+      border-color: var(--primary-border);
+    }
+
+    :deep(input[type='search']) {
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+      padding: 0 32px 0 0; // room for the 24px clear button + its 8px offset
+      border: none;
+      background-color: transparent;
+      border-radius: 0;
+      box-shadow: none;
+      outline: none;
+      line-height: normal;
+    }
+
+    :deep(.labeled-input-clear-button) {
+      right: 8px;
+    }
+  }
+
   .search-box {
-    height: 32px;
     margin-left: 10px;
     min-width: 180px;
+  }
+
+  .advanced-search-box {
+    width: 100%;
   }
 </style>
 

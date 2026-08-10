@@ -407,6 +407,7 @@ export default {
                 <Banner
                   v-if="showLocalhostWarning"
                   color="warning"
+                  role="status"
                   :label="t('validation.setting.serverUrl.localhost')"
                   data-testid="setup-serverurl-localhost-warning"
                 />
@@ -414,6 +415,7 @@ export default {
                   v-for="(err, i) in fvGetPathErrors(['serverUrl'])"
                   :key="i"
                   color="error"
+                  role="alert"
                   :label="err"
                   data-testid="setup-error-banner"
                 />

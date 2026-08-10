@@ -385,6 +385,12 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
   name: string;
 
   /**
+   * Resource types that this nav item owns but does not link to directly. For
+   * example, the create page of a resource that has no nav entry of its own.
+   */
+  navResources?: string[];
+
+  /**
    * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw} {@link RouteRecordRawWithParams}
    */
   route: PluginRouteRecordRaw | RouteRecordRaw | RouteRecordRawWithParams | Object;

@@ -33,6 +33,7 @@ generic:
   copyValueToClipboard: 'Copy {value} to Clipboard'
   copiedToClipboard: Text copied to Clipboard
   create: Create
+  createNew: Create new…
   created: Created
   customize: Customize
   dashboard: Dashboard
@@ -205,12 +206,15 @@ nav:
     about: About page link
     pinCluster: Pin/Unpin {cluster} cluster
     collapseExpand: Collapse/Expand menu group
+    expand: "Expand {group} menu group"
+    collapse: "Collapse {group} menu group"
     productAboutPage: Product about page link
   alt:
     mainMenuIcon: Main menu icon
     mainMenuRancherLogo: Main menu Rancher logo
     userAvatar: User avatar image
-  expandCollapseAppBar: Expand/Collapse the Application Bar
+  expandAppBar: Expand the Application Bar
+  collapseAppBar: Collapse the Application Bar
   harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
   tools: Tools
@@ -319,6 +323,7 @@ nav:
     resourceListNotListable: Resource type { resource } cannot be listed
     resourceListNotFound: Resource type { resource } not found, unable to display list
     resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
+    didYouMean: 'Did you mean <a href="{url}">{resource}</a>?'
     reload: Reload
     separator: or
 
@@ -504,7 +509,8 @@ authConfig:
   allowedPrincipalIds:
     title: Authorized Users & Groups
   associatedWarning: 'The {provider} account that is used to enable the external provider will be granted permissions equal to the currently logged in Rancher user. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
-  bannerEnableAuthProvider: "The \"Disable Local Authentication\" setting is enabled. Enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access. Please see {vendor} documentation for more information."
+  bannerEnableAuthProvider: 'The "Disable Local Authentication" feature flag is enabled. Enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature to regain access. Please see the <a href="{docsBase}/getting-started/installation-and-upgrade/installation-references/feature-flags" target="_blank" rel="noopener noreferrer nofollow">documentation</a> for more information.'
+  bannerEnabledAuthProvider: 'The "Disable Local Authentication" feature flag is also enabled. Users cannot log in with local credentials. In the event of a failure with this provider no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature to regain access. Please see the <a href="{docsBase}/getting-started/installation-and-upgrade/installation-references/feature-flags" target="_blank" rel="noopener noreferrer nofollow">documentation</a> for more information.'
   githubapp:
     clientId:
       label: Client ID
@@ -615,7 +621,7 @@ authConfig:
           4: 'Click "Create", and then click on the "Download JSON" button.'
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
         ariaLabel:
-          serverUrlVerify: Copy Server Auth Verfication URL to clipboard
+          serverUrlVerify: Copy Server Auth Verification URL to clipboard
       3:
         title: 'Create Service Account credentials'
         introduction: 'Follow <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config/configure-google-oauth#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
@@ -1295,7 +1301,7 @@ catalog:
         }
     error:
       requiresFound: '<a href="{url}">{name}</a> must be installed before you can install this chart.'
-      requiresMissing: 'This chart requires another chart that provides {name}, but none was was found.'
+      requiresMissing: 'This chart requires another chart that provides {name}, but none was found.'
       insufficientCpu: 'This chart requires {need, number} CPU cores, but the cluster only has {have, number} available.'
       insufficientMemory: 'This chart requires {need} of memory, but the cluster only has {have} available.'
       legacy:
@@ -1876,6 +1882,10 @@ cluster:
   explore: Explore
   importAction: Import Existing
   manageAction: Manage
+  kubeConfig:
+    error:
+      title: Unable to generate KubeConfig
+      noClusters: No clusters could be resolved from the current selection. Refresh the page and try again.
   kubernetesVersion:
     label: Kubernetes Version
     current: (current)
@@ -2647,7 +2657,7 @@ cluster:
           label: S3 Snapshot Retention Count
           options:
             manual: Set manually
-            localDefined: Same as local ({count} Snaphots)
+            localDefined: Same as local ({count} Snapshots)
             localUndefined: Same as local
         bucket:
           label: Bucket
@@ -2972,13 +2982,13 @@ dynamicContent:
     moreInfo: Release Notes
   multipleNewReleases:
     title: New Rancher releases are available!
-    message: A new {version1} patch version has been released and a newer {version2} version is also avaialble.
+    message: A new {version1} patch version has been released and a newer {version2} version is also available.
     moreInfo: "{version} Release Notes"
   upcomingEom:
-    title: End of Maintainence in {days, plural, =1 {1 day} other {{days} days}}
-    message: This version of Rancher ({version}) will reach End of Maintainence in {days} day(s). Consider upgrading to a supported version soon.
+    title: End of Maintainance in {days, plural, =1 {1 day} other {{days} days}}
+    message: This version of Rancher ({version}) will reach End of Maintainance in {days} day(s). Consider upgrading to a supported version soon.
   eom:
-    title: End of Maintainence reached
+    title: End of Maintainance reached
     message: This version of Rancher ({version}) has reached End of Maintainence. Consider upgrading to a supported version.
   upcomingEol:
     title: End of Life in {days, plural, =1 {1 day} other {{days} days}}
@@ -2986,6 +2996,9 @@ dynamicContent:
   eol:
     title: End of Life reached
     message: This version of Rancher ({version}) has reached End of Life. Consider upgrading to a supported version.
+  eoc:
+    title: Updates have ended
+    message: This version of Rancher ({version}) will no longer receive updates. Consider upgrading to a newer version or to Rancher Prime.
 
 etcdInfoBanner:
   hasLeader: "Etcd has a leader:"
@@ -3325,7 +3338,7 @@ fleet:
           description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
         advanced:
           label: Advanced
-          title: Specify advanced settings like authenticaion credentials and polling
+          title: Specify advanced settings like authentication credentials and polling
           subtext: 'Define advanced settings'
           description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
@@ -3437,7 +3450,7 @@ fleet:
           description: You can configure which clusters will be used as the target of synchronisation with the resources in the repository.
         advanced:
           label: Advanced
-          title: Specify advanced settings like authenticaion credentials and polling
+          title: Specify advanced settings like authentication credentials and polling
           subtext: 'Define advanced settings'
           description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
@@ -4190,6 +4203,7 @@ labels:
   addTaint: Add Taint
   addAnnotation: Add Annotation
   protectedWarning: This key is protected and will be discarded
+  readOnlyWarning: This key is read-only and changes will not be persisted
   labels:
     title: Labels
     description: Key/value pairs that are attached to objects which specify identifying attributes.
@@ -4442,7 +4456,7 @@ logging:
       title: Buffer
       tags: Tags
       chunkLimitSize: Chunk Limit Size
-      chunkLimitRecords: Chunk Limit chunkLimitRecords
+      chunkLimitRecords: Chunk Limit Records
       totalLimitSize: Total Limit Size
       flushInterval: Flush Interval
       timekey: Timekey
@@ -6577,6 +6591,8 @@ servicesPage:
       label: Use IPAM
     shareIP:
       label: Share IP LB
+    network:
+      label: Network
 
   ips:
     define: Service Ports
@@ -6693,6 +6709,7 @@ sortableTable:
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
   searchLabel: Filter table results
+  clearFilter: Clear Filter for table results
   in: in
   addFilter: Add Filter
   filteringDescription: Using this input will immediately filter the results in the table below
@@ -7042,6 +7059,7 @@ tableHeaders:
   completions: Completions
   count: Count
   createdAt: Created At
+  customResources: Resource
   customVerbs: Custom Verbs
   description: Description
   cpu: CPU
@@ -7467,6 +7485,7 @@ validation:
       url: Server URL must be an URL.
       awsStyleEndpoint: Endpoint URL has to be a valid domain-based endpoint and cannot start with a protocol (e.g https:// or http://)
   genericUrl: Field must be a valid URL
+  url: '"{key}" must be a valid URL'
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
@@ -7801,6 +7820,7 @@ workload:
       status: Status
       volumeClaimTemplates: Volume Claim Templates
       upgrading: Scaling and Upgrade Policy
+      availability: Availability
   cronSchedule: Schedule
   detail:
     services: Services
@@ -7811,7 +7831,7 @@ workload:
     cannotViewIngresses: Could not list Ingresses due to lack of permission.
     cannotFindIngresses: Could not find any Ingresses that forward traffic to Services that select Pods in this workload.
     ingressListCaption: "The following Ingresses forward traffic to Services that select Pods from this workload:"
-    cannotViewIngressesBecauseCannotViewServices: Could not find relevant relevant Ingresses due to lack of permission to view Services.
+    cannotViewIngressesBecauseCannotViewServices: Could not find relevant Ingresses due to lack of permission to view Services.
     pods:
       title: Pods
   detailTop:
@@ -7903,6 +7923,7 @@ workload:
   validation:
     containers: Containers
     containerImage: Container {name} - "Container Image" is required.
+    containerName: Container - "Container Name" is required.
     localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
@@ -8845,7 +8866,7 @@ oidcclient:
   secretAdded: Secret Added!
   noClientId: No Client Id found for this application. If the problem persists please recreate the application
   errors:
-    performSecretAction: The action on OIDC secrets tried to perform is invalid. Please check the the valid parameters for this function
+    performSecretAction: The action on OIDC secrets tried to perform is invalid. Please check the valid parameters for this function
   removeOidcClientModal:
     title: OIDC Application deletion
     content: Are you sure you want to delete the following OIDC applications?
@@ -9053,7 +9074,7 @@ advancedSettings:
 
 featureFlags:
   description:
-    'hide-local-auth-provider': Activating this feature and enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access. Please see {vendor} documentation for more information.
+    'hide-local-auth-provider': Activating this feature and enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature to regain access. Please see {vendor} documentation on Feature Flags for more information.
   label: Feature Flags
   title: "Are you sure?"
   warning: |-
@@ -9174,7 +9195,7 @@ banner:
   type:
     html: HTML
     text: Text
-  htmlWarning: 'Not all HTML elements or attriutes are permitted and the HTML entered here will be sanitized before display. For HTML anchor elements, it is recommended to use the target attribute to have links open in a blank tab.'
+  htmlWarning: 'Not all HTML elements or attributes are permitted and the HTML entered here will be sanitized before display. For HTML anchor elements, it is recommended to use the target attribute to have links open in a blank tab.'
   htmlContent: HTML Content
   toggleTextHtml: Toggle between text and html
 

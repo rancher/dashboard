@@ -16,6 +16,7 @@
           "name": "rancher-agent",
           "tag": "head"
         },
+        "runtime-rancher-version": "2.15.0",
         "helm": {
           "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.15"
         },
@@ -31,14 +32,25 @@
     },
     "release-2.15": {
       "milestone": {
-        "version": "v2.15.0",
-        "codeFreeze": true
+        "version": "v2.15.1",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {
           "namespace": "rancher",
           "name": "rancher",
           "tag": "v2.15-head"
+        },
+        "rancher-agent": {
+          "namespace": "rancher",
+          "name": "rancher-agent",
+          "tag": "v2.15-head"
+        },
+        "helm": {
+          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.15"
+        },
+        "kube": {
+          "version": "v1.35.2+k3s1"
         }
       },
       "rancher-rancher-repo": {
@@ -49,11 +61,12 @@
     },
     "release-2.14": {
       "milestone": {
-        "version": "v2.14.4",
-        "codeFreeze": true
+        "version": "v2.14.5",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {
+          "registry": "stgregistry.suse.com",
           "namespace": "rancher",
           "name": "rancher",
           "tag": "v2.14-head"
@@ -67,8 +80,8 @@
     },
     "release-2.13": {
       "milestone": {
-        "version": "v2.13.8",
-        "codeFreeze": true
+        "version": "v2.13.9",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {
@@ -86,8 +99,8 @@
     },
     "release-2.12": {
       "milestone": {
-        "version": "v2.12.12",
-        "codeFreeze": true
+        "version": "v2.12.13",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {
@@ -105,8 +118,8 @@
     },
     "release-2.11": {
       "milestone": {
-        "version": "v2.11.16",
-        "codeFreeze": true
+        "version": "v2.11.17",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {

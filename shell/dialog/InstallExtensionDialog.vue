@@ -330,11 +330,13 @@ export default {
         <Banner
           v-if="chartVersionLoadsWithoutAuth"
           color="warning"
+          role="status"
           :label="t('plugins.warnNoAuth')"
         />
         <Banner
           v-if="!plugin?.certified"
           color="warning"
+          role="status"
           :label="t('plugins.install.warnNotCertified')"
         />
         <LabeledSelect

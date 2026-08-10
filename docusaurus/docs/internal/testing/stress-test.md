@@ -45,4 +45,4 @@ const PERF_DATA = {
 };
 ```
   
-The custom fucntion is only applied to generated resources, not the existing resources that are used to generate them.
+The custom function is only applied to generated resources, not the existing resources that are used to generate them.

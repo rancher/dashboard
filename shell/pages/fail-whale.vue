@@ -1,7 +1,6 @@
 <script>
-import BrandImage from '@shell/components/BrandImage';
+import FailWhale from '@shell/components/FailWhale';
 import { mapGetters, mapState } from 'vuex';
-import { stringify } from '@shell/utils/error';
 import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
@@ -14,7 +13,7 @@ import { RcSeparator } from '@components/RcSeparator';
 export default {
 
   components: {
-    BrandImage, FixedBanner, GrowlManager, Header, PromptModal, RcButton, RcSeparator
+    FailWhale, FixedBanner, GrowlManager, Header, PromptModal, RcButton, RcSeparator
   },
   mixins: [Brand, BrowserTabVisibility],
 
@@ -46,10 +45,6 @@ export default {
       }
 
       return this.$router.resolve({ name: 'home' }).href;
-    },
-
-    displayError() {
-      return this.error?.data ? this.error.data : stringify(this.error);
     },
   },
 
@@ -91,25 +86,8 @@ export default {
           v-if="error"
           class="outlet"
         >
-          <div class="main-layout error">
-            <div class="text-center">
-              <BrandImage
-                file-name="error-desert-landscape.svg"
-                width="900"
-                height="300"
-              />
-              <h1 v-if="error.status">
-                HTTP Error {{ error.status }}: {{ error.statusText }}
-              </h1>
-              <h1 v-else>
-                Error
-              </h1>
-              <h2
-                v-if="error"
-                class="text-secondary mt-20"
-              >
-                {{ displayError }}
-              </h2>
+          <FailWhale :error="error">
+            <template #actions>
               <p class="mt-20">
                 <rc-button
                   size="large"
@@ -131,8 +109,8 @@ export default {
                   {{ t('nav.failWhale.reload') }}
                 </rc-button>
               </p>
-            </div>
-          </div>
+            </template>
+          </FailWhale>
         </div>
       </main>
     </div>
@@ -142,28 +120,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .error {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    justify-content: center;
-    overflow: hidden;
-
-    .row {
-      align-items: center;
-    }
-
-    h1 {
-      font-size: 5rem;
-    }
-
-    .desert-landscape {
-      img {
-        max-width: 100%;
-      }
-    }
-  }
-
   .custom-content {
     text-align: center;
     margin-top: 18px;

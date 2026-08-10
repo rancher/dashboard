@@ -2,6 +2,7 @@
 import { defineComponent, inject, computed, toRef } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
+import RcButton from '@components/RcButton/RcButton.vue';
 import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
@@ -21,7 +22,9 @@ const provideProps: NonReactiveProps = {
 };
 
 export default defineComponent({
-  components: { LabeledTooltip, TextAreaAutoGrow },
+  components: {
+    LabeledTooltip, RcButton, TextAreaAutoGrow
+  },
 
   inheritAttrs: false,
 
@@ -128,6 +131,27 @@ export default defineComponent({
     name: {
       type:    String,
       default: null
+    },
+
+    /**
+     * Show a clear button when the input has a value.
+     * When true, displays a keyboard-accessible clear button.
+     * When false, never shows a clear button.
+     * When undefined (default), shows the clear button only for type="search".
+     */
+    showClearButton: {
+      type:    Boolean,
+      default: undefined
+    },
+
+    /**
+     * Accessible label for the clear button. Pass an already translated string
+     * to describe what is being cleared in this specific context.
+     * Falls back to the generic "Clear" translation.
+     */
+    clearButtonLabel: {
+      type:    String,
+      default: undefined
     }
   },
 
@@ -172,6 +196,17 @@ export default defineComponent({
     // formatting quirks (e.g. scientific notation for large values).
     const inputMode = computed(() => (isInteger.value ? 'numeric' : undefined));
 
+    // Determine if clear button should be shown
+    const shouldShowClearButton = computed(() => {
+      // Explicit prop takes precedence
+      if (props.showClearButton !== undefined) {
+        return props.showClearButton && !!props.value;
+      }
+
+      // Default: show for search type when there's a value
+      return props.type === 'search' && !!props.value;
+    });
+
     return {
       focused,
       onFocusLabeled,
@@ -187,6 +222,7 @@ export default defineComponent({
       isInteger,
       nativeType,
       inputMode,
+      shouldShowClearButton,
     };
   },
 
@@ -240,6 +276,14 @@ export default defineComponent({
      */
     hasSuffix(): boolean {
       return !!this.$slots.suffix;
+    },
+
+    /**
+     * Accessible label for the clear button, falling back to the generic
+     * "Clear" translation when the consumer hasn't supplied a specific one.
+     */
+    clearButtonAriaLabel(): string {
+      return this.clearButtonLabel || this.t('generic.clear');
     },
 
     /**
@@ -445,6 +489,16 @@ export default defineComponent({
       this.veeValidate();
     },
 
+    /**
+     * Clears the input value and refocuses the input field.
+     */
+    clearInput(): void {
+      this.$emit('update:value', '');
+      this.$nextTick(() => {
+        this.focus();
+      });
+    },
+
     escapeHtml
   }
 });
@@ -538,6 +592,20 @@ export default defineComponent({
     </slot>
 
     <slot name="suffix" />
+    <!-- Clear button for search inputs -->
+    <RcButton
+      v-if="shouldShowClearButton"
+      type="button"
+      size="small"
+      variant="ghost"
+      left-icon="close"
+      class="labeled-input-clear-button"
+      :aria-label="clearButtonAriaLabel"
+      :disabled="isDisabled"
+      @click="clearInput"
+      @keydown.enter.prevent="clearInput"
+      @keydown.space.prevent="clearInput"
+    />
     <!-- informational tooltip about field -->
     <LabeledTooltip
       v-if="hasTooltip"
@@ -573,6 +641,10 @@ export default defineComponent({
   </div>
 </template>
 <style scoped lang="scss">
+.labeled-input {
+  position: relative;
+}
+
 .multiline-password:not(:focus) {
   -webkit-text-security: disc;
 }
@@ -596,6 +668,45 @@ export default defineComponent({
   input[type=number] {
     -moz-appearance: textfield;
   }
+}
+
+/* Hide the native, mouse-only search cancel button in Chrome/Safari */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+// RcButton (ghost) supplies the transparent background, flex centring and focus
+// outline. All that's left here is placing it in the field and sizing the target.
+.labeled-input-clear-button {
+  // Square 24px target (WCAG 2.5.8) - `btn-small` already gives us the height
+  --rc-button-padding: 0;
+
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  color: var(--input-text);
+
+  &:hover:not(:disabled) {
+    color: var(--primary);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  // RcButton renders its leftIcon with size="inherit", so pin the glyph here to
+  // keep the 14px it had before, independent of the button's font-size.
+  :deep(.rc-icon) {
+    font-size: 14px;
+  }
+}
+
+.labeled-input.suffix .labeled-input-clear-button {
+  right: 40px;
 }
 </style>
 <style>

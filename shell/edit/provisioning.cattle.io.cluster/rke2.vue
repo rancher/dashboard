@@ -275,6 +275,7 @@ export default {
       busy:                                     false,
       machinePoolValidation:                    {}, // map of validation states for each machine pool
       infrastructureClusterValid:               true,
+      provisioningClusterValid:                 true,
       machinePoolErrors:                        {},
       addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
       stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasOnlyIpv6Pools
@@ -836,12 +837,79 @@ export default {
       return null;
     },
 
+    showForm() {
+      return !!this.credentialId || !this.needCredential;
+    },
+
     extensionInfrastructureSection() {
       return this.extensionProvider?.extensionInfrastructureSection || null;
     },
+    extensionProvisioningSection() {
+      return this.extensionProvider?.extensionProvisioningSection || null;
+    },
 
-    showForm() {
-      return !!this.credentialId || !this.needCredential;
+    extensionInfrastructureSectionProps() {
+      const defaultProps = {
+        value:               this.infrastructureCluster,
+        mode:                this.mode,
+        credentialId:        this.credentialId,
+        provisioningCluster: this.value,
+      };
+
+      const extensionProps = this.extensionProvider?.extensionInfrastructureSectionProps;
+
+      if (typeof extensionProps === 'function') {
+        const extensionContext = { ...defaultProps };
+
+        extensionContext.infrastructureCluster = this.infrastructureCluster;
+
+        let out;
+
+        try {
+          out = extensionProps(extensionContext);
+        } catch {
+          return defaultProps;
+        }
+
+        if (out && typeof out === 'object') {
+          return { ...defaultProps, ...out };
+        }
+      } else if (extensionProps && typeof extensionProps === 'object') {
+        return { ...defaultProps, ...extensionProps };
+      }
+
+      return defaultProps;
+    },
+
+    extensionProvisioningSectionProps() {
+      const defaultProps = {
+        value: this.value,
+        mode:  this.mode,
+      };
+
+      const extensionProps = this.extensionProvider?.extensionProvisioningSectionProps;
+
+      if (typeof extensionProps === 'function') {
+        const extensionContext = { ...defaultProps };
+
+        extensionContext.provisioningCluster = this.value;
+
+        let out;
+
+        try {
+          out = extensionProps(extensionContext);
+        } catch {
+          return defaultProps;
+        }
+
+        if (out && typeof out === 'object') {
+          return { ...defaultProps, ...out };
+        }
+      } else if (extensionProps && typeof extensionProps === 'object') {
+        return { ...defaultProps, ...extensionProps };
+      }
+
+      return defaultProps;
     },
 
     isHarvesterExternalCredential() {
@@ -894,8 +962,9 @@ export default {
       const hasAddonConfigErrors = Object.values(this.addonConfigValidation).filter((v) => v === false).length > 0;
 
       const hasInfrastructureClusterError = this.isUpstreamCAPIProvider ? !this.infrastructureClusterValid : false;
+      const hasProvisioningClusterError = this.isUpstreamCAPIProvider ? !this.provisioningClusterValid : false;
 
-      return validRequiredPools && base && !hasAddonConfigErrors && !hasInfrastructureClusterError && !this.stackPreferenceError;
+      return validRequiredPools && base && !hasAddonConfigErrors && !hasInfrastructureClusterError && !hasProvisioningClusterError && !this.stackPreferenceError;
     },
 
     currentCluster() {
@@ -1071,6 +1140,21 @@ export default {
 
       // Preserve the original resource model instance while applying extension updates.
       mergeWithReplace(this.infrastructureCluster, neu, { mutateOriginal: true });
+    },
+
+    updateExtensionProvisioningSection(neu) {
+      if (!neu || typeof neu !== 'object') {
+        return;
+      }
+
+      if (!this.value || typeof this.value !== 'object') {
+        this.value = neu;
+
+        return;
+      }
+
+      // Preserve the original resource model instance while applying extension updates.
+      mergeWithReplace(this.value, neu, { mutateOriginal: true });
     },
 
     async handleVsphereCpiSecret() {
@@ -2503,7 +2587,6 @@ export default {
         data-testid="select-credential"
         class="mt-20"
       />
-
       <div
         v-if="showForm"
         data-testid="form"
@@ -2541,12 +2624,7 @@ export default {
           <component
             :is="extensionInfrastructureSection"
             v-if="extensionInfrastructureSection"
-            :value="infrastructureCluster"
-            :mode="mode"
-            :provider="provider"
-            :credential-id="credentialId"
-            :provisioning-cluster="value"
-            data-testid="extension-top-section"
+            v-bind="extensionInfrastructureSectionProps"
             class="span-12"
             @update:value="updateExtensionInfrastructureSection"
             @error="e => errors.push(e)"
@@ -2636,6 +2714,15 @@ export default {
 
         <!-- Cluster Tabs -->
         <h2 v-t="'cluster.tabs.cluster'" />
+        <component
+          :is="extensionProvisioningSection"
+          v-if="extensionProvisioningSection"
+          v-bind="extensionProvisioningSectionProps"
+          class="span-12"
+          @update:value="updateExtensionProvisioningSection"
+          @error="e => errors.push(e)"
+          @validationChanged="(val) => provisioningClusterValid = val"
+        />
         <Tabbed
           :side-tabs="true"
           class="min-height"

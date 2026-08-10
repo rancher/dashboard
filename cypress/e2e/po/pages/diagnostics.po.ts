@@ -5,7 +5,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
  * Diagnostics page
  */
 export default class DiagnosticsPagePo extends PagePo {
-  static url = '/diagnostic'
+  static url = '/diagnostic';
 
   constructor(pageUrl = DiagnosticsPagePo.url) {
     DiagnosticsPagePo.url = pageUrl;

@@ -101,5 +101,66 @@ describe('component: Workload', () => {
 
       expect(result).toStrictEqual(newMessage);
     });
+
+    it.each([
+      // isReplicable, isDeployment, isStatefulSet, expected label key
+      ['ReplicaSet/ReplicationController', true, false, false, 'workload.container.titles.availability'],
+      ['Deployment', true, true, false, 'workload.container.titles.upgrading'],
+      ['StatefulSet', true, false, true, 'workload.container.titles.upgrading'],
+      ['non-replicable (e.g. DaemonSet)', false, false, false, 'workload.container.titles.upgrading'],
+    ])('should label the upgrading tab correctly for %p', (_name, isReplicable, isDeployment, isStatefulSet, expected) => {
+      const typeMixin = {
+        computed: {
+          isReplicable: () => isReplicable, isDeployment: () => isDeployment, isStatefulSet: () => isStatefulSet
+        }
+      };
+      const MockedWorkload = {
+        ...Workload,
+        mixins: [baseMockedValidationMixin, baseMockedCREMixin, { ...baseMockedWorkloadMixin, computed: { ...baseMockedWorkloadMixin.computed, allNodeObjects: jest.fn() } }, typeMixin]
+      };
+      const wrapper = shallowMount(MockedWorkload, {
+        props: {
+          value:         { metadata: {}, spec: { template: {} } },
+          params:        {},
+          fvFormIsValid: {}
+        },
+
+        global: {
+          mocks: {
+            $route:      { params: {}, query: {} },
+            $router:     { applyQuery: jest.fn() },
+            $fetchState: { pending: false },
+            $store:      {
+              getters: {
+                'cluster/schemaFor': jest.fn(),
+                'cluster/canList':   jest.fn(),
+                currentStore:        () => 'cluster',
+                'type-map/labelFor': jest.fn(),
+                'i18n/t':            (text: string) => text,
+              },
+            },
+          },
+
+          stubs: {
+            Tab:                 true,
+            LabeledInput:        true,
+            VolumeClaimTemplate: true,
+            Networking:          true,
+            Job:                 true,
+            NodeScheduling:      true,
+            PodAffinity:         true,
+            Tolerations:         true,
+            Storage:             true,
+            Tabbed:              true,
+            LabeledSelect:       true,
+            NameNsDescription:   true,
+            CruResource:         true,
+            KeyValue:            true
+          },
+        },
+      });
+
+      expect((wrapper.vm as any).upgradingTabLabel).toStrictEqual(expected);
+    });
   });
 });

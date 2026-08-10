@@ -1,0 +1,111 @@
+#!/usr/bin/env node
+
+/* eslint-disable no-console */
+
+/**
+ * @rancher/shell ESLint launcher.
+ *
+ * Extensions consume ESLint transitively from @rancher/shell. @rancher/shell has moved to a
+ * flat-config ESLint 10 toolchain, but many published extensions still ship a legacy
+ * `.eslintrc.*` config that ESLint 10 cannot read. This launcher keeps both working by
+ * selecting the toolchain from the config file that exists in the project:
+ *
+ *   - `eslint.config.{js,mjs,cjs,ts,mts,cts}` present -> flat config  -> ESLint 10
+ *     (the primary `eslint` provided by @rancher/shell's dependencies).
+ *   - `.eslintrc.*` present                          -> legacy config -> ESLint 7
+ *     (the self-contained toolchain in `@rancher/shell/eslint-legacy`, installed on first use
+ *     and resolved via NODE_PATH so its plugin versions never collide with the flat toolchain).
+ *
+ * Wire it up from an extension's package.json, e.g.:
+ *   "scripts": { "lint": "./node_modules/@rancher/shell/scripts/lint --ext .js,.ts,.vue ." }
+ *
+ * Note: this only governs command-line / CI linting. Editor ESLint integrations resolve the
+ * `eslint` module directly and are unaffected — see the extension ESLint docs for the
+ * `.vscode/settings.json` guidance when an extension stays on the legacy config.
+ */
+
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const { spawnSync } = require('child_process');
+
+const cwd = process.cwd();
+const args = process.argv.slice(2);
+
+const FLAT_CONFIGS = [
+  'eslint.config.js', 'eslint.config.mjs', 'eslint.config.cjs',
+  'eslint.config.ts', 'eslint.config.mts', 'eslint.config.cts',
+];
+const LEGACY_CONFIGS = [
+  '.eslintrc.js', '.eslintrc.cjs', '.eslintrc.yaml', '.eslintrc.yml', '.eslintrc.json', '.eslintrc',
+];
+
+const present = (files) => files.some((f) => fs.existsSync(path.join(cwd, f)));
+
+function fail(message, code) {
+  console.error(`[@rancher/shell lint] ${ message }`);
+  process.exit(typeof code === 'number' ? code : 1);
+}
+
+function exit(status) {
+  process.exit(status === null || status === undefined ? 1 : status);
+}
+
+// Flat config -> the primary (ESLint 10) toolchain from @rancher/shell's dependencies.
+function runFlat() {
+  let bin;
+
+  try {
+    // Prefer the ESLint 10 shipped by @rancher/shell (resolve from the launcher) over any
+    // stale eslint that may be hoisted in the consuming project. Resolve via package.json +
+    // its `bin` field, since ESLint 10's `exports` map blocks deep-requiring `bin/eslint.js`.
+    const pkgPath = require.resolve('eslint/package.json', { paths: [__dirname, cwd] });
+    const pkg = require(pkgPath);
+    const binRel = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin.eslint;
+
+    bin = path.join(path.dirname(pkgPath), binRel);
+  } catch (e) {
+    fail('A flat ESLint config was found but ESLint (v9+) could not be resolved. Is @rancher/shell installed?');
+  }
+
+  exit(spawnSync(process.execPath, [bin, ...args], { stdio: 'inherit', cwd }).status);
+}
+
+// Legacy `.eslintrc.*` -> the isolated ESLint 7 toolchain in `@rancher/shell/eslint-legacy`.
+function runLegacy() {
+  const legacyDir = path.resolve(__dirname, '..', 'eslint-legacy');
+  const legacyModules = path.join(legacyDir, 'node_modules');
+  const legacyBin = path.join(legacyModules, '.bin', 'eslint');
+
+  if (!fs.existsSync(legacyBin)) {
+    console.error('[@rancher/shell lint] Legacy .eslintrc.* config detected — preparing the ESLint 7 toolchain (one-time install)...');
+
+    const install = spawnSync(
+      'npm',
+      ['install', '--no-audit', '--no-fund', '--legacy-peer-deps', '--loglevel=error'],
+      { stdio: 'inherit', cwd: legacyDir }
+    );
+
+    if (install.status !== 0 || !fs.existsSync(legacyBin)) {
+      fail('Could not prepare the legacy ESLint toolchain (see npm output above). This step needs network access and a writable node_modules.', install.status || 1);
+    }
+  }
+
+  // The isolated toolchain is resolved via NODE_PATH (shareable configs, e.g. `extends: standard`)
+  // and --resolve-plugins-relative-to (directly-referenced plugins, e.g. `plugin:vue/...`), so
+  // nothing from it is hoisted next to the flat toolchain.
+  const env = Object.assign({}, process.env, {
+    NODE_PATH: legacyModules + (process.env.NODE_PATH ? path.delimiter + process.env.NODE_PATH : ''),
+  });
+
+  exit(spawnSync(legacyBin, ['--resolve-plugins-relative-to', legacyDir, ...args], { stdio: 'inherit', cwd, env }).status);
+}
+
+if (present(FLAT_CONFIGS)) {
+  runFlat();
+} else if (present(LEGACY_CONFIGS)) {
+  runLegacy();
+} else {
+  fail('No ESLint config found. Looked for eslint.config.* (flat) and .eslintrc.* (legacy) in ' + cwd + '.', 2);
+}

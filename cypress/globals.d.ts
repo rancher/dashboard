@@ -1,5 +1,4 @@
 // External version of globals.d.ts for @rancher/cypress package
-// Dependencies on @shell/types removed for standalone use
 
 type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -77,6 +76,21 @@ declare global {
       RancherPrime?: string;
     }
 
+    /**
+     * Tag support provided at runtime by @cypress/grep (`describe`/`it` config `tags`).
+     *
+     * Declared locally rather than via a tsconfig `types: ['@cypress/grep']` entry:
+     * @cypress/grep v6 is exports-only (no top-level "types"/"main" field), so a `types`
+     * entry no longer resolves and fails with TS2688.
+     */
+    interface SuiteConfigOverrides {
+      tags?: string | string[];
+    }
+
+    interface TestConfigOverrides {
+      tags?: string | string[];
+    }
+
     interface Chainable {
       setupWebSocket: any;
       hideElementBySelector(...selectors: string[]): Chainable<void>;
@@ -119,7 +133,7 @@ declare global {
          */
         context?: string,
         namespace?: string,
-        createResource: ({ ns, i }) => Chainable
+        createResource: ({ ns, i }: { ns: string, i: number }) => Chainable
         count?: number,
         /**
          * Every 5 resources cy.wait this amount of milliseconds
@@ -134,7 +148,7 @@ declare global {
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
       waitForRancherResource<T = boolean>(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean, retryOnNetworkFailure?: boolean, timeout?: number, returnResource?: boolean}): Chainable<T>;
       waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean, config?: { requestTimeout: number }): Chainable;
-      waitForInterceptWithConflictRetry(alias: string, successStatusCode?: number, retryStatusCodes?: number[], options?: { timeout?: number }): Chainable;
+      waitForInterceptWithConflictRetry(alias: `@${ string }`, successStatusCode?: number, retryStatusCodes?: number[], options?: { timeout?: number }): Chainable;
       waitForRepositoryDownload(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, retries?: number): Chainable;
       waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number, failOnStatusCode?: boolean): Chainable;
       /**
@@ -149,7 +163,7 @@ declare global {
       getClusterToolsChartCount(repoName?: string): Chainable<number>;
       installChart(repo: string, chartId: string, chartName: string, chartVersion: string, namespace: string): Chainable;
       getChartVersions(repo: string, chartId: string): Chainable<string[]>;
-      deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
+      deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean): Chainable<void>;
       /**
        * Delete a namespace and wait for it to 404. Helpful when the ns contains many resources
        */
@@ -166,7 +180,7 @@ declare global {
          * Every 5 resources cy.wait this amount of milliseconds
          */
         wait?: number
-      })
+      }): Chainable<void>;
       /**
        * Loop through the array and execute the process, pausing every 5 entries for wait amount
        */
@@ -234,7 +248,7 @@ declare global {
       isEnabled(): Chainable<Element>;
 
       // Check css var
-      shouldHaveCssVar(name: string, value: string);
+      shouldHaveCssVar(name: string, value: string): Chainable<void>;
 
       /**
        * realHover event from cypress-real-events

@@ -189,6 +189,7 @@ export default {
         v-for="(err, i) in errors"
         :key="i"
         color="error"
+        role="alert"
         :label="err"
       />
     </template>

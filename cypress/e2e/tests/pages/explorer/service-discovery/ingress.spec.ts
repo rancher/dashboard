@@ -11,7 +11,7 @@ const secretsCount = 4;
 const servicesCount = 4;
 let namespace: string;
 
-describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -96,8 +96,10 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressName);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .toggle();
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .clickOptionWithLabel(namespace);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().description()
         .set(`${ ingressName } description`);
@@ -246,8 +248,10 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressHeadlessName);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .toggle();
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .clickOptionWithLabel(namespace);
 
       ingressCreatePagePo.setRuleRequestHostValue(0, 'example-headless.com');

@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
+import { CypressFailedAttempt, formatFailedCypressAttempt } from './support/utils/retry-logging';
 import path from 'path';
 import * as os from 'os';
 const { removeDirectory } = require('cypress-delete-downloads-folder');
@@ -62,6 +63,7 @@ const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(
 const DEFAULT_USERNAME = 'admin';
 const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
+const rancherVersion = process.env.RANCHER_VERSION;
 
 if (process.env.TEST_A11Y) {
   testDirs = ['accessibility'];
@@ -92,6 +94,7 @@ if (skipSetup && !process.env.TEST_PASSWORD) {
 console.log(`    Setup tests will ${ skipSetup ? 'NOT' : '' } be run`);
 console.log(`    Dashboard URL: ${ baseUrl }`);
 console.log(`    Rancher API URL: ${ apiUrl }`);
+console.log(`    Rancher version: ${ rancherVersion || 'not provided' }`);
 
 // Check API - sometimes in dev, you might have API set to a different system to the base url - this won't work
 // as the login cookie will be for the base url and any API requests will fail as not authenticated
@@ -117,10 +120,13 @@ const baseConfig = defineConfig({
     runMode:  2,
     openMode: 0
   },
-  env: {
+  // `expose` (Cypress 15.10+) is read via `Cypress.expose()`. Both @cypress/grep v6 and
+  // @cypress/code-coverage v4 read their settings from here and NOT from `env` — the grep
+  // plugin silently no-ops if `config.expose` is absent, so these must not live in `env`.
+  expose: {
     grepFilterSpecs:  true,
     grepOmitFiltered: true,
-    baseUrl,
+    grepTags:         process.env.GREP_TAGS,
     coverage:         hasCoverage,
     codeCoverage:     {
       exclude: [
@@ -137,11 +143,14 @@ const baseConfig = defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
+  },
+  env: {
+    baseUrl,
+    rancherVersion,
     api:                      apiUrl,
     username,
     password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:        process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    grepTags:                 process.env.GREP_TAGS,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:             process.env.AWS_ACCESS_KEY_ID,
     awsSecretKey:             process.env.AWS_SECRET_ACCESS_KEY,
@@ -168,7 +177,9 @@ const baseConfig = defineConfig({
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
-      require('@cypress/grep/src/plugin')(config);
+      // @cypress/grep v6 moved the plugin to `@cypress/grep/plugin` and exports it as a
+      // named `plugin` function (the old `@cypress/grep/src/plugin` path is gone).
+      require('@cypress/grep/plugin').plugin(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
       // On CI runners Chrome can crash between specs (small /dev/shm) or be too
@@ -201,6 +212,14 @@ const baseConfig = defineConfig({
             processCpu: `${ cpuUsage.toFixed(2) }%`,
           };
         },
+        // Prints a retried test's failure to the terminal. Without this only the last
+        // attempt's error is shown, see `support/utils/retry-logging.ts`.
+        logFailedAttempt: (failure: CypressFailedAttempt) => {
+          console.log(formatFailedCypressAttempt(failure));
+
+          // Cypress tasks must not return undefined
+          return null;
+        },
       });
       // Signals to the shared `afterEach` in `support/e2e.ts` that the `getHostStats`
       // task has been registered by this config. Consumers of `@rancher/cypress` that
@@ -208,6 +227,8 @@ const baseConfig = defineConfig({
       // flag, so the `afterEach` will skip calling the task and avoid failing the
       // hook (which would skip all remaining tests in the spec).
       config.env.hasHostStats = true;
+      // Same again for the `logFailedAttempt` task
+      config.env.hasRetryLogging = true;
       websocketTasks(on, config);
 
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
@@ -241,12 +262,10 @@ const baseConfig = defineConfig({
 
       return config;
     },
-    experimentalSessionAndOrigin: true,
-    specPattern:                  getSpecPattern(testDirs, process.env),
+    specPattern: getSpecPattern(testDirs, process.env),
     baseUrl
   },
   videoCompression:       15,
-  videoUploadOnPasses:    false,
   screenshotOnRunFailure: process.env.TEST_NO_SCREENSHOTS !== 'true',
   video:                  process.env.TEST_NO_VIDEOS !== 'true'
 });

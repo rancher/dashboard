@@ -5,7 +5,7 @@ import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import RolesPo from '@/cypress/e2e/po/pages/users-and-auth/roles.po';
 import ClusterProjectMembersPo from '@/cypress/e2e/po/pages/explorer/cluster-project-members.po';
-import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { BLANK_CLUSTER } from '@/cypress/support/utils/shell';
 import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
 
 Cypress.config();

@@ -1,6 +1,6 @@
 {
   "name": "@rancher/cypress",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Cypress E2E test, utilities, page objects, and blueprints for Rancher Dashboard",
   "bin": {
     "rancher-cypress": "./bin/cli.js"
@@ -25,11 +25,11 @@
   "author": "Rancher",
   "license": "Apache-2.0",
   "peerDependencies": {
-    "cypress": "11.1.0"
+    "cypress": "15.19.0"
   },
   "dependencies": {
-    "@cypress/code-coverage": "3.10.4",
-    "@cypress/grep": "4.1.1",
+    "@cypress/code-coverage": "4.0.3",
+    "@cypress/grep": "6.0.2",
     "@cypress/vue": "5.0.5",
     "@cypress/webpack-dev-server": "3.4.1",
     "@percy/cli": "1.31.8",
@@ -37,13 +37,13 @@
     "axe-core": "4.10.2",
     "axe-html-reporter": "2.2.11",
     "cy2": "4.0.9",
-    "cypress": "11.1.0",
-    "cypress-axe": "1.6.0",
+    "cypress": "15.19.0",
+    "cypress-axe": "1.7.0",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",
     "cypress-multi-reporters": "1.6.4",
     "cypress-qase-reporter": "3.6.3",
-    "cypress-real-events": "1.14.0",
+    "cypress-real-events": "1.15.0",
     "cypress-terminal-report": "^7.2.0",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
@@ -67,10 +67,8 @@
     "publish-pkg": "./scripts/publish.sh --npm"
   },
   "resolutions": {
-    "@babel/core": "7.29.7",
     "uuid": "11.1.1",
     "@cypress/request": "4.0.1",
-    "ws": "8.21.0",
     "tmp": "0.2.7",
     "@cypress/code-coverage/js-yaml": "4.3.0",
     "webpack-dev-server": "5.2.6"

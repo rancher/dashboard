@@ -2,6 +2,7 @@ export const NORMAN_NAME = 'field.cattle.io/name';
 export const DESCRIPTION = 'field.cattle.io/description';
 export const HOSTNAME = 'kubernetes.io/hostname';
 export const TIMESTAMP = 'cattle.io/timestamp';
+export const KUBECTL_RESTARTED_AT = 'kubectl.kubernetes.io/restartedAt';
 export const SYSTEM_NAMESPACE = 'management.cattle.io/system-namespace';
 export const PROJECT = 'field.cattle.io/projectId';
 export const DEFAULT_PROJECT = 'authz.management.cattle.io/default-project';
@@ -19,6 +20,8 @@ export const NODE_ARCHITECTURE = 'kubernetes.io/arch';
 export const IMPORTED_CLUSTER_VERSION_MANAGEMENT = 'rancher.io/imported-cluster-version-management';
 export const UI_PROJECT_SECRET = 'management.cattle.io/project-scoped-secret';
 export const UI_PROJECT_SECRET_COPY = 'management.cattle.io/project-scoped-secret-copy';
+export const UI_PROJECT_SECRET_CLUSTER = 'management.cattle.io/project-scoped-secret-cluster';
+
 export const SERVICE_LINKS = 'ui.rancher/service-links';
 export const NODE_DRIVER_FIELD_HINTS = 'io.cattle.nodedriver/ui-field-hints';
 
@@ -53,25 +56,26 @@ export const MACHINE_ROLES = {
 };
 
 export const CAPI = {
-  DEPLOYMENT_NAME:      'cluster.x-k8s.io/deployment-name',
-  CREDENTIAL_DRIVER:    'provisioning.cattle.io/driver',
-  CLUSTER_NAMESPACE:    'cluster.x-k8s.io/cluster-namespace',
-  FORCE_MACHINE_REMOVE: 'provisioning.cattle.io/force-machine-remove',
-  MACHINE_NAME:         'cluster.x-k8s.io/machine',
-  DELETE_MACHINE:       'cluster.x-k8s.io/delete-machine',
-  PROVIDER:             'provider.cattle.io',
+  DEPLOYMENT_NAME:         'cluster.x-k8s.io/deployment-name',
+  CREDENTIAL_DRIVER:       'provisioning.cattle.io/driver',
+  CLUSTER_NAMESPACE:       'cluster.x-k8s.io/cluster-namespace',
+  FORCE_MACHINE_REMOVE:    'provisioning.cattle.io/force-machine-remove',
+  MANAGEMENT_CLUSTER_NAME: 'provisioning.cattle.io/management-cluster-name',
+  MACHINE_NAME:            'cluster.x-k8s.io/machine',
+  DELETE_MACHINE:          'cluster.x-k8s.io/delete-machine',
+  PROVIDER:                'provider.cattle.io',
   /**
    * RKE2 - metadata.name is human name
    * RKE1 and some others - metadata.name is v1 mgmt id and it's the v1 mgmt cluster that contains human name
    * This label ensures something is in the v1 prov cluster that can be sorted/filtered on
    */
-  HUMAN_NAME:           'provisioning.cattle.io/management-cluster-display-name',
-  SECRET_AUTH:          'v2prov-secret-authorized-for-cluster',
-  SECRET_WILL_DELETE:   'v2prov-authorized-secret-deletes-on-cluster-removal',
+  HUMAN_NAME:              'provisioning.cattle.io/management-cluster-display-name',
+  SECRET_AUTH:             'v2prov-secret-authorized-for-cluster',
+  SECRET_WILL_DELETE:      'v2prov-authorized-secret-deletes-on-cluster-removal',
   /**
    * Annotation for overriding the cluster provider,
    */
-  UI_CUSTOM_PROVIDER:   'ui.rancher/provider',
+  UI_CUSTOM_PROVIDER:      'ui.rancher/provider',
 
   /**
    * Annotations for autoscaler
@@ -171,14 +175,15 @@ export const ANNOTATIONS_TO_FOLD = [
 ];
 
 export const HCI = {
-  CLOUD_INIT:          'harvesterhci.io/cloud-init-template',
-  CLOUD_PROVIDER_IPAM: 'cloudprovider.harvesterhci.io/ipam',
-  NETWORK_ROUTE:       'network.harvesterhci.io/route',
-  IMAGE_NAME:          'harvesterhci.io/image-name',
-  NETWORK_TYPE:        'network.harvesterhci.io/type',
-  CLUSTER_NETWORK:     'network.harvesterhci.io/clusternetwork',
-  PRIMARY_SERVICE:     'cloudprovider.harvesterhci.io/primary-service',
-  CPU_MANAGER:         'cpumanager',
+  CLOUD_INIT:             'harvesterhci.io/cloud-init-template',
+  CLOUD_PROVIDER_IPAM:    'cloudprovider.harvesterhci.io/ipam',
+  CLOUD_PROVIDER_NETWORK: 'cloudprovider.harvesterhci.io/network',
+  NETWORK_ROUTE:          'network.harvesterhci.io/route',
+  IMAGE_NAME:             'harvesterhci.io/image-name',
+  NETWORK_TYPE:           'network.harvesterhci.io/type',
+  CLUSTER_NETWORK:        'network.harvesterhci.io/clusternetwork',
+  PRIMARY_SERVICE:        'cloudprovider.harvesterhci.io/primary-service',
+  CPU_MANAGER:            'cpumanager',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
