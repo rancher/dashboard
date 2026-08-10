@@ -873,8 +873,6 @@ export default class Workload extends WorkloadService {
     });
   }
 
-  // Asking `cluster/all` for a type with no schema warns and registers a phantom type, so the
-  // schema is checked first on clusters without the Gateway API CRDs.
   get matchingHttpRoutes() {
     if (!this.$rootGetters['cluster/schemaFor'](GATEWAY_API.HTTP_ROUTE)) {
       return [];

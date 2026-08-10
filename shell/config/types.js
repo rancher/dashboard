@@ -322,7 +322,6 @@ export const ISTIO = {
   GATEWAY:          'networking.istio.io.gateway'
 };
 
-// CRDs, so these schemas only exist on clusters where the Gateway API is installed.
 export const GATEWAY_API = {
   GATEWAY:    'gateway.networking.k8s.io.gateway',
   HTTP_ROUTE: 'gateway.networking.k8s.io.httproute'

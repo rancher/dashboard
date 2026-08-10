@@ -288,8 +288,6 @@ export function init(store) {
     STEVE_AGE_COL
   ]);
 
-  // Registering headers does not add the type to the nav, it only replaces the raw printer columns
-  // Steve falls back to, here and on the workload's HTTPRoutes tab.
   headers(GATEWAY_API.HTTP_ROUTE, [STATE, NAME_COL, NAMESPACE_COL, HTTP_ROUTE_HOSTNAMES, HTTP_ROUTE_GATEWAYS, AGE]);
 
   headers(INGRESS,
