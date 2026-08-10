@@ -603,19 +603,21 @@ export default defineComponent({
       return this.isNewOrUnprovisioned && !this.setAuthorizedIPRanges;
     },
 
-    clusterId(): String | null {
+    clusterId(): string | null {
       return this.value?.id || null;
     },
 
-    canUseAvailabilityZones(): Boolean {
-      return regionsWithAvailabilityZones[this.config.resourceLocation] || !this.config.resourceLocation;
+    canUseAvailabilityZones(): boolean {
+      const resourceLocation = this.config.resourceLocation;
+
+      return !resourceLocation || !!regionsWithAvailabilityZones[resourceLocation];
     },
 
     canEnableNetworkPolicy(): Boolean {
       return this.networkPolicy !== 'none';
     },
 
-    isUserDefinedRouting(): Boolean {
+    isUserDefinedRouting(): boolean {
       return this.config?.outboundType === 'UserDefinedRouting';
     },
 
@@ -736,12 +738,12 @@ export default defineComponent({
         this.config.networkPlugin = 'azure';
         // add a required fv rule to the existing virtual network validators
 
-        const rule = this.fvFormRuleSets.find((r: {path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] };
+        const rule = this.fvFormRuleSets.find((r: {path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] as string[] };
 
         rule.rules.push('virtualNetworkRequired');
       } else {
         // remove required fv rule
-        const rule = this.fvFormRuleSets.find((r:{path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] };
+        const rule = this.fvFormRuleSets.find((r:{path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] as string[] };
 
         rule.rules.splice(rule.rules.indexOf('virtualNetworkRequired'), 1);
       }
@@ -847,8 +849,10 @@ export default defineComponent({
       });
 
       this.$nextTick(() => {
-        if ( this.$refs.pools?.select ) {
-          this.$refs.pools.select(poolName);
+        const pools = this.$refs.pools as { select?: (name: string) => void } | undefined;
+
+        if ( pools?.select ) {
+          pools.select(poolName);
         }
       });
     },
@@ -900,7 +904,7 @@ export default defineComponent({
           v-for="(pool, i) in nodePools"
           :key="i"
           :weight="-1 * i"
-          :name="pool._id || pool.name"
+          :name="pool._id || pool.name || ''"
           :label="pool.name || t('aks.nodePools.notNamed')"
           :error="!poolIsValid(pool)"
         >
@@ -922,7 +926,7 @@ export default defineComponent({
             }"
             :original-cluster-version="originalVersion"
             :cluster-version="config.kubernetesVersion"
-            @remove="removePool(pool)"
+            @remove="removePool(i)"
             @vmSizeSet="touchedVmSize = true"
           />
         </Tab>

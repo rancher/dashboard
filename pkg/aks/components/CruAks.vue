@@ -320,7 +320,7 @@ export default defineComponent({
       return !!this.config?.azureCredentialSecret;
     },
 
-    clusterId(): String | null {
+    clusterId(): string | null {
       return this.value?.id || null;
     },
 
