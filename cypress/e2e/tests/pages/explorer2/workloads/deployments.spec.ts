@@ -395,14 +395,7 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'apps.deployment', `${ nsName2 }/${ uniqueDeployment }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'apps.deployment', deploymentNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
-        // Derive the actual number of deployments in the two filtered namespaces
-        // instead of assuming exactly deploymentNamesList.length + 1; the cluster
-        // can briefly hold an extra resource, which makes a hardcoded count disagree.
-        const count = resp.body.data.filter(
-          (dep: any) => [nsName1, nsName2].includes(dep.metadata?.namespace)
-        ).length;
-
+      cy.waitForStableFilteredResourceCount('v1', 'apps.deployment', [nsName1, nsName2]).then((count) => {
         // Wait for the list to finish loading so the total is settled before the single
         // (non-retrying) pagination-text assertions below.
         deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();

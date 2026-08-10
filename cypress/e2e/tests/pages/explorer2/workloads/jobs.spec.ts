@@ -197,10 +197,10 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       WorkloadsJobsListPagePo.navTo();
       jobsListPage.waitForPage();
 
-      // check jobs count
-      const count = jobNamesList.length + 1;
-
-      cy.waitForRancherResources('v1', 'batch.job', count - 1, true).then((resp: Cypress.Response<any>) => {
+      // Derive the jobs count from a stable filtered read rather than assuming
+      // jobNamesList.length + 1 - the list can render more than the test created (e.g. 26 vs 23)
+      // while resources are still propagating, which a hardcoded total disagrees with.
+      cy.waitForStableFilteredResourceCount('v1', 'batch.job', [nsName1, nsName2]).then((count) => {
         // pagination is visible
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
