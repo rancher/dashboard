@@ -1,4 +1,5 @@
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 /**
  * List component for provisioning.cattle.io.cluster resources
@@ -20,8 +21,8 @@ export default class ProvClusterListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(name).column(index);
   }
 
-  state(clusterName: string) {
-    return this.resourceTable().sortableTable().rowWithName(clusterName).column(1);
+  state(clusterName: string, options?: GetOptions) {
+    return this.resourceTable().sortableTable().rowWithName(clusterName, options).column(1, options);
   }
 
   name(clusterName: string) {
