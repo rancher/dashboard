@@ -28,6 +28,21 @@ describe('Home Page List', { testIsolation: false }, () => {
        */
     const clusterName = 'local';
 
+    // [CREATE ISSUE FOR CODE FIX] The home cluster list rows are provisioning clusters whose version
+    // is derived from the linked management cluster (provisioning.cattle.io.cluster.kubernetesVersion
+    // -> this.mgmt?.kubernetesVersion). The home page never fetches management clusters itself - its
+    // secondary fetch (management.cattle.io.cluster.utils.ts fetchSecondaryResources) only loads
+    // provisioning clusters - so if the management clusters are not already in the store, `.mgmt` is
+    // undefined and the version renders a bare '—' that never resolves on this page. The home list
+    // should load the management clusters it links to (or show a pending state) rather than '—'.
+    //
+    // Warm the management-cluster store by visiting Cluster Management first (the page this test
+    // already compares against reliably loads them), so `.mgmt` resolves when we read the home list.
+    clusterMgmtClusterList.goTo();
+    clusterMgmtClusterList.waitForPage();
+    clusterMgmtClusterList.sortableTable().checkLoadingIndicatorNotVisible();
+    clusterMgmtClusterList.sortableTable().rowWithName(clusterName).checkVisible();
+
     HomePagePo.navTo();
     homePage.waitForPage();
 
