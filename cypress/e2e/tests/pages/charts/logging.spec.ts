@@ -142,6 +142,10 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
 
+      // [CREATE ISSUE FOR CODE FIX] The installed-apps list intermittently finishes loading empty
+      // (renders tr.no-rows) even though the app is installed and returned by the getCharts fetch;
+      // the app should render the installed apps without needing a fresh navigation.
+      //
       // The installed-apps list intermittently finishes loading empty (the tr.no-rows row) even
       // though the app is installed. Waiting for the loading indicator to clear FIRST is what lets
       // us tell "the app never rendered" apart from "still loading" - only once loading is done does
@@ -164,6 +168,10 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
 
       // Loading has finished and the list rendered rows.
       installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
+      // [CREATE ISSUE FOR CODE FIX] Uninstalling an app together with its CRD errors the prompt with
+      // "apps.catalog.cattle.io '<crd>' not found" when the CRD app is already gone. Deleting a
+      // missing CRD should be treated as already-deleted (idempotent) and succeed, not error.
+      //
       // Drive the uninstall from the ACTUAL app state via the API, not the rendered list: the list
       // can still show an app the backend has already removed, and uninstalling that app then 404s
       // and errors the prompt (the "... not found" case in the video). This also keeps the test
