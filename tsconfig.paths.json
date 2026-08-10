@@ -7,7 +7,11 @@
       "@shell/*": [
         "shell/*"
       ],
+      // `pkg/*` first to match the webpack alias (`shell/vue.config.js`) and the jest
+      // `moduleNameMapper`, both of which resolve `@pkg` to the repo's `pkg` directory.
+      // `shell/pkg/*` is kept as a fallback for the shell's own packaging helpers.
       "@pkg/*": [
+        "pkg/*",
         "shell/pkg/*"
       ],
       "~/*": [
