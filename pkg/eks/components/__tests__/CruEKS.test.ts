@@ -66,7 +66,7 @@ const setCredential = async(wrapper: VueWrapper<any>, config = {} as EKSConfig) 
 
 describe('eKS provisioning form', () => {
   it('should hide the form if no credential is selected', () => {
-    const wrapper = shallowMount(CruEKS, { props:     { value: {}, mode: 'create' }, ...requiredSetup() });
+    const wrapper = shallowMount(CruEKS, { props: { value: {}, mode: 'create' }, ...requiredSetup() });
 
     const form = wrapper.find('[data-testid="crueks-form"]');
 
@@ -75,9 +75,9 @@ describe('eKS provisioning form', () => {
 
   it('should show the form when a credential is selected', async() => {
     const wrapper = mount(CruEKS, {
-      props:     { value: {}, mode: 'create' },
+      props:   { value: {}, mode: 'create' },
       ...requiredSetup(),
-      shallow:   true
+      shallow: true
     });
 
     const formSelector = '[data-testid="crueks-form"]';
@@ -90,7 +90,7 @@ describe('eKS provisioning form', () => {
 
   it('should not use form validation if no credential is selected', async() => {
     const wrapper = shallowMount(CruEKS, {
-      props:     { value: {}, mode: 'create' },
+      props: { value: {}, mode: 'create' },
       ...requiredSetup()
     });
 
@@ -108,7 +108,7 @@ describe('eKS provisioning form', () => {
 
   it('should update both cluster.name and config.displayName when the name input is altered', async() => {
     const wrapper = shallowMount(CruEKS, {
-      props:     { value: {}, mode: 'create' },
+      props: { value: {}, mode: 'create' },
       ...requiredSetup()
     });
 
@@ -135,7 +135,7 @@ describe('eKS provisioning form', () => {
 
   it('should set _isNew to true when a pool is added', async() => {
     const wrapper = shallowMount(CruEKS, {
-      props:     { value: {}, mode: 'edit' },
+      props: { value: {}, mode: 'edit' },
       ...requiredSetup()
     });
 
@@ -148,7 +148,7 @@ describe('eKS provisioning form', () => {
 
   it('should update new node pools\' version when cluster version is updated', async() => {
     const wrapper = shallowMount(CruEKS, {
-      props:     { value: {}, mode: 'edit' },
+      props: { value: {}, mode: 'edit' },
       ...requiredSetup()
     });
 
@@ -165,7 +165,7 @@ describe('eKS provisioning form', () => {
 
   it('should configure enable network policy at the cluster level not within eksConfig', async() => {
     const wrapper = shallowMount(CruEKS, {
-      props:     { value: {}, mode: 'edit' },
+      props: { value: {}, mode: 'edit' },
       ...requiredSetup()
     });
 
@@ -191,7 +191,7 @@ describe('eKS provisioning form', () => {
 
   it('should show an error and prevent saving if no node groups are defined', async() => {
     const wrapper = shallowMount(CruEKS, {
-      props:     { value: {}, mode: 'create' },
+      props: { value: {}, mode: 'create' },
       ...requiredSetup()
     });
 
@@ -218,9 +218,9 @@ describe('eKS provisioning form', () => {
 
   it('should NOT show an error nor prevent saving if no node groups are defined in an IMPORTED cluster', async() => {
     const wrapper = mount(CruEKS, {
-      props:     { value: { isImported: true }, mode: 'edit' },
+      props:   { value: { isImported: true }, mode: 'edit' },
       ...requiredSetup(),
-      shallow:   true,
+      shallow: true,
     });
 
     // see above - DEFAULT_EKS_CONFIG does not satisfy EKSConfig
@@ -245,7 +245,7 @@ describe('eKS provisioning form', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(CruEKS, {
-      props:     { value: {}, mode: 'create' },
+      props: { value: {}, mode: 'create' },
       ...setup
     });
 

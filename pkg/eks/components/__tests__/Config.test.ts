@@ -85,7 +85,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = mount(
       Config,
       {
-        props: { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
         global: { ...setup }
       });
 
@@ -104,7 +104,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props: { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
         global: { ...setup }
       });
 
@@ -127,7 +127,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props: { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
         global: { ...setup }
       });
 
@@ -148,7 +148,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props: { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
         global: { ...setup }
       });
 
@@ -190,7 +190,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props: { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
         global: { ...setup }
       });
 
@@ -220,7 +220,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props: { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
         global: { ...setup }
       });
 
@@ -344,7 +344,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props: { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
         global: { ...setup }
       });
 
@@ -392,7 +392,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props: { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
         global: { ...setup }
       });
 
