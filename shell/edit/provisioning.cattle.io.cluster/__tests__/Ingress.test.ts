@@ -25,8 +25,6 @@ jest.mock('@shell/components/YamlEditor', () => {
     methods:  { updateValue: jest.fn() }
   };
 
-  YamlEditor.EDITOR_MODES = EDITOR_MODES;
-
   return {
     __esModule: true, default: YamlEditor, EDITOR_MODES
   };
@@ -66,6 +64,13 @@ jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
   INGRESS_CONTROLLER_CLASS_DEFAULT:   'rke2.cattle.io/ingress-nginx-controller-default',
   INGRESS_CLASS_MIGRATION:            'rke2.cattle.io/ingress-nginx-migration'
 }));
+
+// Payload of the component's `update:value` event: one ingress controller id, or the pair
+// of them when the dual option is picked.
+type IngressValue = string | string[];
+
+// Payload of the component's `update-values` event: a chart name and that chart's values.
+type UpdateValuesPayload = [chart: string, values: { providers?: Record<string, unknown> }];
 
 describe('ingress.vue', () => {
   const defaultProps = {
@@ -108,7 +113,9 @@ describe('ingress.vue', () => {
     await checkbox.vm.$emit('update:value', false);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([INGRESS_NONE]);
+    const emitted = wrapper.emitted('update:value') as [IngressValue][];
+
+    expect(emitted[0]).toStrictEqual([INGRESS_NONE]);
   });
 
   it('emits update:value with TRAEFIK when ingress is enabled and traefik is supported', async() => {
@@ -118,7 +125,9 @@ describe('ingress.vue', () => {
     await checkbox.vm.$emit('update:value', true);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([TRAEFIK]);
+    const emitted = wrapper.emitted('update:value') as [IngressValue][];
+
+    expect(emitted[0]).toStrictEqual([TRAEFIK]);
   });
 
   it('emits update:value with INGRESS_NGINX when ingress is enabled, traefik is NOT supported, and nginx IS supported', async() => {
@@ -128,7 +137,9 @@ describe('ingress.vue', () => {
     await checkbox.vm.$emit('update:value', true);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([INGRESS_NGINX]);
+    const emitted = wrapper.emitted('update:value') as [IngressValue][];
+
+    expect(emitted[0]).toStrictEqual([INGRESS_NGINX]);
   });
 
   it('selectIngress emits [INGRESS_NGINX, TRAEFIK] string value when INGRESS_DUAL is selected and previous value was ingress-nginx', () => {
@@ -138,7 +149,9 @@ describe('ingress.vue', () => {
     ingressCards.vm.$emit('select', INGRESS_DUAL);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([[INGRESS_NGINX, TRAEFIK]]);
+    const emitted = wrapper.emitted('update:value') as [IngressValue][];
+
+    expect(emitted[0]).toStrictEqual([[INGRESS_NGINX, TRAEFIK]]);
   });
 
   it('selectIngress emits [TRAEFIK, INGRESS_NGINX] string value when INGRESS_DUAL is selected and previous value was traefik', () => {
@@ -148,7 +161,9 @@ describe('ingress.vue', () => {
     ingressCards.vm.$emit('select', INGRESS_DUAL);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([[TRAEFIK, INGRESS_NGINX]]);
+    const emitted = wrapper.emitted('update:value') as [IngressValue][];
+
+    expect(emitted[0]).toStrictEqual([[TRAEFIK, INGRESS_NGINX]]);
   });
 
   it('selectIngress emits [TRAEFIK, INGRESS_NGINX] string value when INGRESS_DUAL is selected and  value went traefik -> nginx -> dual', () => {
@@ -157,12 +172,16 @@ describe('ingress.vue', () => {
 
     ingressCards.vm.$emit('select', INGRESS_NGINX);
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([INGRESS_NGINX]);
+    const emitted = wrapper.emitted('update:value') as [IngressValue][];
+
+    expect(emitted[0]).toStrictEqual([INGRESS_NGINX]);
 
     ingressCards.vm.$emit('select', INGRESS_DUAL);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')?.[1]).toStrictEqual([[TRAEFIK, INGRESS_NGINX]]);
+    const emittedAfterDual = wrapper.emitted('update:value') as [IngressValue][];
+
+    expect(emittedAfterDual[1]).toStrictEqual([[TRAEFIK, INGRESS_NGINX]]);
   });
 
   it('selectIngress emits string value when a single ingress is selected', () => {
@@ -172,7 +191,9 @@ describe('ingress.vue', () => {
     ingressCards.vm.$emit('select', INGRESS_NGINX);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([INGRESS_NGINX]);
+    const emitted = wrapper.emitted('update:value') as [IngressValue][];
+
+    expect(emitted[0]).toStrictEqual([INGRESS_NGINX]);
   });
 
   it('renders IngressConfiguration when versionInfo contains chart values', () => {
@@ -209,10 +230,10 @@ describe('ingress.vue', () => {
 
       ingressCards.vm.$emit('select', INGRESS_DUAL);
 
-      const emitted = wrapper.emitted('update-values');
+      const emitted = wrapper.emitted('update-values') as UpdateValuesPayload[] | undefined;
 
       expect(emitted).toBeTruthy();
-      const traefikValues = emitted?.find((e: any) => e[0] === 'traefik')?.[1] as any;
+      const traefikValues = emitted?.find((e) => e[0] === 'traefik')?.[1];
 
       expect(traefikValues?.providers?.kubernetesIngressNginx).toBeDefined();
       expect(traefikValues?.providers?.kubernetesIngressNGINX).toBeUndefined();
@@ -230,10 +251,10 @@ describe('ingress.vue', () => {
 
       ingressCards.vm.$emit('select', INGRESS_DUAL);
 
-      const emitted = wrapper.emitted('update-values');
+      const emitted = wrapper.emitted('update-values') as UpdateValuesPayload[] | undefined;
 
       expect(emitted).toBeTruthy();
-      const traefikValues = emitted?.find((e: any) => e[0] === 'traefik')?.[1] as any;
+      const traefikValues = emitted?.find((e) => e[0] === 'traefik')?.[1];
 
       expect(traefikValues?.providers?.kubernetesIngressNGINX).toBeDefined();
       expect(traefikValues?.providers?.kubernetesIngressNginx).toBeUndefined();
@@ -251,10 +272,10 @@ describe('ingress.vue', () => {
 
       ingressCards.vm.$emit('select', INGRESS_DUAL);
 
-      const emitted = wrapper.emitted('update-values');
+      const emitted = wrapper.emitted('update-values') as UpdateValuesPayload[] | undefined;
 
       expect(emitted).toBeTruthy();
-      const traefikValues = emitted?.find((e: any) => e[0] === 'traefik')?.[1] as any;
+      const traefikValues = emitted?.find((e) => e[0] === 'traefik')?.[1];
 
       expect(traefikValues?.providers?.kubernetesIngressNGINX).toBeDefined();
       expect(traefikValues?.providers?.kubernetesIngressNginx).toBeUndefined();
@@ -279,7 +300,7 @@ describe('ingress.vue', () => {
       });
 
       // Watcher migrates key and emits because userChartValues had saved values under the old key
-      const emitted = wrapper.emitted('update-values') as any[];
+      const emitted = wrapper.emitted('update-values') as UpdateValuesPayload[];
       const lastEmit = emitted[emitted.length - 1];
 
       expect(lastEmit[0]).toBe('traefik');
@@ -306,7 +327,7 @@ describe('ingress.vue', () => {
       });
 
       // Watcher migrates key and emits because userChartValues had saved values under the old key
-      const emitted = wrapper.emitted('update-values') as any[];
+      const emitted = wrapper.emitted('update-values') as UpdateValuesPayload[];
       const lastEmit = emitted[emitted.length - 1];
 
       expect(lastEmit[0]).toBe('traefik');

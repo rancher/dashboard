@@ -1,6 +1,7 @@
 import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
 import { mount, flushPromises } from '@vue/test-utils';
+import type { ComponentMountingOptions } from '@vue/test-utils';
 import AzureAD from '@shell/edit/auth/azuread.vue';
 import { _EDIT } from '@shell/config/query-params';
 import { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
@@ -29,19 +30,26 @@ const mockModel = {
   type:     'azureADConfig',
 };
 
+// azuread.vue takes most of its state from the untyped auth-config mixin, so the only
+// `data` keys vue-tsc knows about are the component's own five. The overrides below set
+// mixin state instead, so mountData() wraps them and asserts to the mounting-options
+// `data` type; that widens the check rather than validating the shape, which cannot be
+// checked here.
+type AzureADMountData = NonNullable<ComponentMountingOptions<typeof AzureAD>['data']>;
+
+const mountData = (data: Record<string, unknown>) => (() => data) as AzureADMountData;
+
 const requiredSetup = (modelOverrides = {}) => ({
-  data() {
-    return {
-      isEnabling:     true,
-      editConfig:     false,
-      model:          { ...mockModel, ...modelOverrides },
-      serverSetting:  null,
-      errors:         [],
-      originalModel:  null,
-      principals:     [],
-      authConfigName: 'azuread',
-    };
-  },
+  data: mountData({
+    isEnabling:     true,
+    editConfig:     false,
+    model:          { ...mockModel, ...modelOverrides },
+    serverSetting:  null,
+    errors:         [],
+    originalModel:  null,
+    principals:     [],
+    authConfigName: 'azuread',
+  }),
   global: {
     mocks: {
       $fetchState: { pending: false },
@@ -60,7 +68,7 @@ const requiredSetup = (modelOverrides = {}) => ({
       $router: { applyQuery: jest.fn() },
     },
   },
-  propsData: {
+  props: {
     value: { applicationSecret: '' },
     mode:  _EDIT,
   },
@@ -290,12 +298,10 @@ describe('edit: azureAD SSO logout should', () => {
   it('not render endSessionEndpoint field when sloType is rancher', async() => {
     wrapper = mount(AzureAD, {
       ...requiredSetup({ logoutAllSupported: true }),
-      data() {
-        return {
-          ...requiredSetup({ logoutAllSupported: true }).data(),
-          sloType: SLO_OPTION_VALUES.rancher,
-        };
-      },
+      data: mountData({
+        ...requiredSetup({ logoutAllSupported: true }).data(),
+        sloType: SLO_OPTION_VALUES.rancher,
+      }),
     });
     await nextTick();
     const endSessionEndpointField = wrapper.find('[data-testid="azuread-endSessionEndpoint"]');
@@ -306,12 +312,10 @@ describe('edit: azureAD SSO logout should', () => {
   it('render endSessionEndpoint field when sloType is all', async() => {
     wrapper = mount(AzureAD, {
       ...requiredSetup({ logoutAllSupported: true }),
-      data() {
-        return {
-          ...requiredSetup({ logoutAllSupported: true }).data(),
-          sloType: SLO_OPTION_VALUES.all,
-        };
-      },
+      data: mountData({
+        ...requiredSetup({ logoutAllSupported: true }).data(),
+        sloType: SLO_OPTION_VALUES.all,
+      }),
     });
     await flushPromises();
     const endSessionEndpointField = wrapper.find('[data-testid="azuread-endSessionEndpoint"]');
@@ -322,12 +326,10 @@ describe('edit: azureAD SSO logout should', () => {
   it('render endSessionEndpoint field when sloType is both', async() => {
     wrapper = mount(AzureAD, {
       ...requiredSetup({ logoutAllSupported: true }),
-      data() {
-        return {
-          ...requiredSetup({ logoutAllSupported: true }).data(),
-          sloType: SLO_OPTION_VALUES.both,
-        };
-      },
+      data: mountData({
+        ...requiredSetup({ logoutAllSupported: true }).data(),
+        sloType: SLO_OPTION_VALUES.both,
+      }),
     });
     await flushPromises();
     const endSessionEndpointField = wrapper.find('[data-testid="azuread-endSessionEndpoint"]');
@@ -360,29 +362,27 @@ describe('edit: azureAD SSO logout should', () => {
         applicationSecret:  validAppSecret,
         endSessionEndpoint: testCase.endSessionEndpoint,
       }),
-      data() {
-        return {
-          isEnabling: true,
-          editConfig: false,
-          model:      {
-            ...mockModel,
-            logoutAllSupported: true,
-            tenantId:           validTenantId,
-            applicationId:      validApplicationId,
-            applicationSecret:  validAppSecret,
-            graphEndpoint:      validGraphEndpoint,
-            tokenEndpoint:      validTokenEndpoint,
-            authEndpoint:       validAuthEndpoint,
-            endSessionEndpoint: testCase.endSessionEndpoint,
-          },
-          sloType:        testCase.sloType,
-          serverSetting:  null,
-          errors:         [],
-          originalModel:  null,
-          principals:     [],
-          authConfigName: 'azuread',
-        };
-      },
+      data: mountData({
+        isEnabling: true,
+        editConfig: false,
+        model:      {
+          ...mockModel,
+          logoutAllSupported: true,
+          tenantId:           validTenantId,
+          applicationId:      validApplicationId,
+          applicationSecret:  validAppSecret,
+          graphEndpoint:      validGraphEndpoint,
+          tokenEndpoint:      validTokenEndpoint,
+          authEndpoint:       validAuthEndpoint,
+          endSessionEndpoint: testCase.endSessionEndpoint,
+        },
+        sloType:        testCase.sloType,
+        serverSetting:  null,
+        errors:         [],
+        originalModel:  null,
+        principals:     [],
+        authConfigName: 'azuread',
+      }),
     });
     await flushPromises();
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
@@ -393,12 +393,10 @@ describe('edit: azureAD SSO logout should', () => {
   it('sets logoutAllEnabled=false and logoutAllForced=false when sloType changes to rancher', async() => {
     wrapper = mount(AzureAD, {
       ...requiredSetup({ logoutAllSupported: true }),
-      data() {
-        return {
-          ...requiredSetup({ logoutAllSupported: true }).data(),
-          sloType: SLO_OPTION_VALUES.all,
-        };
-      },
+      data: mountData({
+        ...requiredSetup({ logoutAllSupported: true }).data(),
+        sloType: SLO_OPTION_VALUES.all,
+      }),
     });
     await nextTick();
     wrapper.vm.sloType = SLO_OPTION_VALUES.rancher;
@@ -412,12 +410,10 @@ describe('edit: azureAD SSO logout should', () => {
   it('sets logoutAllEnabled=true and logoutAllForced=true when sloType changes to all', async() => {
     wrapper = mount(AzureAD, {
       ...requiredSetup({ logoutAllSupported: true }),
-      data() {
-        return {
-          ...requiredSetup({ logoutAllSupported: true }).data(),
-          sloType: SLO_OPTION_VALUES.rancher,
-        };
-      },
+      data: mountData({
+        ...requiredSetup({ logoutAllSupported: true }).data(),
+        sloType: SLO_OPTION_VALUES.rancher,
+      }),
     });
     await nextTick();
     wrapper.vm.sloType = SLO_OPTION_VALUES.all;
@@ -430,12 +426,10 @@ describe('edit: azureAD SSO logout should', () => {
   it('sets logoutAllEnabled=true and logoutAllForced=false when sloType changes to both', async() => {
     wrapper = mount(AzureAD, {
       ...requiredSetup({ logoutAllSupported: true }),
-      data() {
-        return {
-          ...requiredSetup({ logoutAllSupported: true }).data(),
-          sloType: SLO_OPTION_VALUES.rancher,
-        };
-      },
+      data: mountData({
+        ...requiredSetup({ logoutAllSupported: true }).data(),
+        sloType: SLO_OPTION_VALUES.rancher,
+      }),
     });
     await nextTick();
     wrapper.vm.sloType = SLO_OPTION_VALUES.both;

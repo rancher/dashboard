@@ -4,6 +4,7 @@ import { AUTH_TYPE } from '@shell/config/types';
 import { base64Encode } from '@shell/utils/crypto';
 import GitRepo from '@shell/models/fleet.cattle.io.gitrepo';
 import GitRepoComponent from '@shell/edit/fleet.cattle.io.gitrepo.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const mockStore = {
   dispatch: jest.fn(),
@@ -127,15 +128,17 @@ describe.each([
   });
 
   it('enable drift if self-healing is checked', async() => {
-    const correctDriftCheckbox = wrapper.findComponent('[data-testid="gitRepo-correctDrift-checkbox"]') as any;
+    const correctDriftCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="gitRepo-correctDrift-checkbox"]');
     const correctDriftContainer = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"] .checkbox-container');
 
     expect(correctDriftContainer.exists()).toBeTruthy();
 
     await correctDriftContainer.trigger('click');
 
-    expect(correctDriftCheckbox.emitted('update:value')).toHaveLength(1);
-    expect(correctDriftCheckbox.emitted('update:value')![0][0]).toBe(true);
+    const correctDriftEmits = correctDriftCheckbox.emitted('update:value') as [boolean][];
+
+    expect(correctDriftEmits).toHaveLength(1);
+    expect(correctDriftEmits[0][0]).toBe(true);
     expect(correctDriftCheckbox.props().value).toBeTruthy();
   });
 
@@ -157,7 +160,7 @@ describe.each([
       status: { webhookCommit: 'sha' },
     }));
 
-    const pollingCheckbox = wrapper.findComponent('[data-testid="gitRepo-enablePolling-checkbox"]') as any;
+    const pollingCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="gitRepo-enablePolling-checkbox"]');
     const pollingIntervalInput = wrapper.find('[data-testid="gitRepo-pollingInterval-input"]');
     const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-minimumValueWarning"]');
     const pollingIntervalWebhookWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-webhookWarning"]');

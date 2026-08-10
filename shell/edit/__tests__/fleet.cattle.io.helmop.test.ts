@@ -4,6 +4,7 @@ import HelmOp from '@shell/models/fleet.cattle.io.helmop';
 import HelmOpComponent from '@shell/edit/fleet.cattle.io.helmop.vue';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { createStore } from 'vuex';
 
 const mockStore = {
@@ -291,7 +292,7 @@ describe.each([
       },
     }));
 
-    const pollingCheckbox = wrapper.findComponent('[data-testid="helmOp-enablePolling-checkbox"]');
+    const pollingCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="helmOp-enablePolling-checkbox"]');
 
     expect(pollingCheckbox.exists()).toBe(visible);
   });
@@ -325,7 +326,7 @@ describe.each([
       },
     }));
 
-    const pollingCheckbox = wrapper.findComponent('[data-testid="helmOp-enablePolling-checkbox"]') as any;
+    const pollingCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="helmOp-enablePolling-checkbox"]');
     const pollingIntervalInput = wrapper.find('[data-testid="helmOp-pollingInterval-input"]');
     const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="helmOp-pollingInterval-minimumValueWarning"]');
 

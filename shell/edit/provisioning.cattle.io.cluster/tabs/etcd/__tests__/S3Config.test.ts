@@ -26,13 +26,13 @@ describe('s3Config', () => {
 
   const createWrapper = (props = {}) => {
     return shallowMount(S3Config, {
-      propsData: {
+      props: {
         ...defaultProps,
         ...props
       },
       mocks: {
         $store: mockStore,
-        t:      (key) => key,
+        t:      (key: string) => key,
       },
       stubs: {
         LabeledInput:             true,

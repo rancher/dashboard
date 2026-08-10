@@ -1,12 +1,13 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import Filters from '../Filters.vue';
+import ArrayList from '@shell/components/form/ArrayList.vue';
 import { ComponentPublicInstance } from 'vue';
 import { AuditPolicy, FilterRule } from '@shell/edit/auditlog.cattle.io.auditpolicy/types';
 
 // Mock the ID generation to have consistent snapshots
 jest.mock('@shell/utils/string', () => ({ generateRandomAlphaString: () => 'test-id-123' }));
 
-interface FiltersComponent extends ComponentPublicInstance {
+interface FiltersComponent extends ComponentPublicInstance<{ value: AuditPolicy | null, mode: string }> {
   spec: AuditPolicy;
   addRow: (key: 'action' | 'requestURI', filters: FilterRule[]) => void;
   updateRow: (key: 'action' | 'requestURI', index: number, value: string) => void;
@@ -112,9 +113,9 @@ describe('component: Filters', () => {
     it('should update when mode prop changes', async() => {
       const wrapper = factory({ mode: 'create' });
 
-      expect((wrapper.props() as any).mode).toBe('create');
+      expect(wrapper.props().mode).toBe('create');
       await wrapper.setProps({ mode: 'view' });
-      expect((wrapper.props() as any).mode).toBe('view');
+      expect(wrapper.props().mode).toBe('view');
     });
 
     it('should merge defaults with provided value', () => {
@@ -234,13 +235,13 @@ describe('component: Filters', () => {
       // Check that each emission contains the correct filters
       const emissions = wrapper.emitted('update:value');
 
-      expect(emissions && emissions[0] && (emissions[0][0] as any).filters).toHaveLength(1);
+      expect(emissions && emissions[0] && (emissions[0][0] as { filters: FilterRule[] }).filters).toHaveLength(1);
 
-      expect(emissions && emissions[1] && (emissions[1][0] as any).filters).toHaveLength(2);
+      expect(emissions && emissions[1] && (emissions[1][0] as { filters: FilterRule[] }).filters).toHaveLength(2);
 
-      expect(emissions && emissions[2] && (emissions[2][0] as any).filters).toHaveLength(3);
+      expect(emissions && emissions[2] && (emissions[2][0] as { filters: FilterRule[] }).filters).toHaveLength(3);
 
-      expect(emissions && emissions[2] && (emissions[2][0] as any).filters[2]).toStrictEqual(expectedDefault);
+      expect(emissions && emissions[2] && (emissions[2][0] as { filters: FilterRule[] }).filters[2]).toStrictEqual(expectedDefault);
     });
   });
 
@@ -276,11 +277,11 @@ describe('component: Filters', () => {
   describe('component configuration', () => {
     it('should configure ArrayList component with correct props', () => {
       const wrapper = factory();
-      const arrayListComponent = wrapper.findComponent({ name: 'ArrayList' });
+      const arrayListComponent = wrapper.findComponent<typeof ArrayList>({ name: 'ArrayList' });
 
       expect(arrayListComponent.exists()).toBe(true);
-      expect((arrayListComponent.props() as any).mode).toBe('create');
-      expect((arrayListComponent.props() as any).protip).toBe(false);
+      expect(arrayListComponent.props().mode).toBe('create');
+      expect(arrayListComponent.props().protip).toBe(false);
     });
 
     it('should pass correct mode to ArrayList component', () => {
@@ -288,18 +289,18 @@ describe('component: Filters', () => {
       const editWrapper = factory({ mode: 'edit' });
       const viewWrapper = factory({ mode: 'view' });
 
-      expect((createWrapper.findComponent({ name: 'ArrayList' }).props() as any).mode).toBe('create');
-      expect((editWrapper.findComponent({ name: 'ArrayList' }).props() as any).mode).toBe('edit');
-      expect((viewWrapper.findComponent({ name: 'ArrayList' }).props() as any).mode).toBe('view');
+      expect(createWrapper.findComponent<typeof ArrayList>({ name: 'ArrayList' }).props().mode).toBe('create');
+      expect(editWrapper.findComponent<typeof ArrayList>({ name: 'ArrayList' }).props().mode).toBe('edit');
+      expect(viewWrapper.findComponent<typeof ArrayList>({ name: 'ArrayList' }).props().mode).toBe('view');
     });
 
     it('should bind correct event handlers to ArrayList component', () => {
       const wrapper = factory();
-      const arrayListComponent = wrapper.findComponent({ name: 'ArrayList' });
+      const arrayListComponent = wrapper.findComponent<typeof ArrayList>({ name: 'ArrayList' });
 
       expect(arrayListComponent.exists()).toBe(true);
       // ArrayList component handles add/remove internally
-      expect((arrayListComponent.props() as any).defaultAddValue).toStrictEqual({
+      expect(arrayListComponent.props().defaultAddValue).toStrictEqual({
         action:     'allow',
         requestURI: ''
       });
