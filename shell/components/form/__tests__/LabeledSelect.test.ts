@@ -292,6 +292,65 @@ describe('component: LabeledSelect', () => {
     expect(spyPreventDefault).not.toHaveBeenCalled();
   });
 
+  describe('function: closeOnSelecting', () => {
+    it('should not throw when called with undefined', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: [{ label: 'Foo', value: 'foo' }], value: 'foo' } });
+
+      expect(() => wrapper.vm.closeOnSelecting(undefined)).not.toThrow();
+    });
+
+    it('should emit selecting event even when called with undefined', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: [{ label: 'Foo', value: 'foo' }], value: 'foo' } });
+
+      wrapper.vm.closeOnSelecting(undefined);
+
+      expect(wrapper.emitted('selecting')).toBeTruthy();
+      expect(wrapper.emitted('selecting')![0]).toStrictEqual([undefined]);
+    });
+
+    it('should close dropdown when selected option value matches current value', async() => {
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, { props: { options: [{ label: 'Foo', value }], value } });
+
+      await wrapper.trigger('click');
+      expect(wrapper.vm.isOpen).toBe(true);
+
+      wrapper.vm.closeOnSelecting({ value });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(false);
+    });
+
+    it('should not close dropdown when selected option value does not match current value', async() => {
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          options: [{ label: 'Foo', value }, { label: 'Bar', value: 'bar' }],
+          value
+        }
+      });
+
+      await wrapper.trigger('click');
+      expect(wrapper.vm.isOpen).toBe(true);
+
+      wrapper.vm.closeOnSelecting({ value: 'bar' });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(true);
+    });
+
+    it('should emit selecting event with the given option', () => {
+      const value = 'foo';
+      const option = { label: 'Foo', value };
+      const wrapper = mount(LabeledSelect, { props: { options: [option], value } });
+
+      wrapper.vm.closeOnSelecting(option);
+
+      expect(wrapper.emitted('selecting')).toBeTruthy();
+      expect(wrapper.emitted('selecting')![0]).toStrictEqual([option]);
+    });
+  });
+
   describe('size prop', () => {
     it.each([
       ['small'],
@@ -445,6 +504,224 @@ describe('component: LabeledSelect', () => {
 
       expect(wrapper.emitted('update:value')).toBeUndefined();
       expect(wrapper.vm.isOpen).toBe(false);
+    });
+  });
+
+  describe('vue-select-overrides (enter key selection)', () => {
+    it('should not select non-selectable options when hitting Enter', () => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value:   'foo',
+          options: [
+            {
+              label: 'Choose an existing secret:',
+              value: 'header',
+              kind:  'group'
+            }
+          ],
+        }
+      });
+
+      const mappedKeysFn = wrapper.vm.mappedKeys;
+      const defaultMap = {};
+
+      const mockVm = {
+        open:             true,
+        typeAheadPointer: 0,
+        filteredOptions:  [
+          {
+            label: 'Choose an existing secret:',
+            value: 'header',
+            kind:  'group'
+          }
+        ],
+        selectable:       wrapper.vm.selectable,
+        isOptionSelected: jest.fn().mockReturnValue(false),
+        optionExists:     jest.fn().mockReturnValue(false),
+        updateValue:      jest.fn(),
+        $emit:            jest.fn(),
+      };
+
+      const keys = mappedKeysFn(defaultMap, mockVm);
+      const enterHandler = keys[13]; // 13 is Enter
+
+      expect(enterHandler).toBeDefined();
+
+      enterHandler(new Event('keydown'));
+
+      // Expect that selection was not triggered and updateValue was not called
+      expect(mockVm.$emit).not.toHaveBeenCalledWith('option:selecting', {
+        label: 'Choose an existing secret:',
+        value: 'header',
+        kind:  'group'
+      });
+      expect(mockVm.updateValue).not.toHaveBeenCalledWith({
+        label: 'Choose an existing secret:',
+        value: 'header',
+        kind:  'group'
+      });
+    });
+
+    it('should select selectable options when hitting Enter', () => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value:   'foo',
+          options: [
+            {
+              label: 'My Secret',
+              value: 'my-secret'
+            }
+          ],
+        }
+      });
+
+      const mappedKeysFn = wrapper.vm.mappedKeys;
+      const defaultMap = {};
+
+      const mockVm = {
+        open:             true,
+        typeAheadPointer: 0,
+        filteredOptions:  [
+          {
+            label: 'My Secret',
+            value: 'my-secret'
+          }
+        ],
+        selectable:          wrapper.vm.selectable,
+        isOptionSelected:    jest.fn().mockReturnValue(false),
+        optionExists:        jest.fn().mockReturnValue(false),
+        updateValue:         jest.fn(),
+        $emit:               jest.fn(),
+        multiple:            false,
+        closeOnSelect:       true,
+        clearSearchOnSelect: true,
+        search:              'some-search',
+      };
+
+      const keys = mappedKeysFn(defaultMap, mockVm);
+      const enterHandler = keys[13];
+
+      enterHandler(new Event('keydown'));
+
+      expect(mockVm.$emit).toHaveBeenCalledWith('option:selecting', {
+        label: 'My Secret',
+        value: 'my-secret'
+      });
+      expect(mockVm.updateValue).toHaveBeenCalledWith({
+        label: 'My Secret',
+        value: 'my-secret'
+      });
+    });
+  });
+
+  describe('function: filterOptions', () => {
+    it('should return all options when search query is empty', () => {
+      const options = [
+        {
+          label: 'Choose an existing secret:', value: 'header', kind: 'group'
+        },
+        { label: 'My Secret', value: 'my-secret' },
+        { kind: 'divider' }
+      ];
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value: 'foo',
+          options
+        }
+      });
+
+      const result = wrapper.vm.filterOptions(options, '');
+
+      expect(result).toStrictEqual(options);
+    });
+
+    it('should filter out group and divider options when search query is not empty but retain group headers that contain matching child options', () => {
+      const options = [
+        {
+          label: 'Choose an existing secret:', value: 'header', kind: 'group'
+        },
+        { label: 'My Secret', value: 'my-secret' },
+        { kind: 'divider' },
+        { label: 'Another Secret', value: 'another-secret' }
+      ];
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value: 'foo',
+          options
+        }
+      });
+
+      const result = wrapper.vm.filterOptions(options, 'secret');
+
+      expect(result).toStrictEqual([
+        {
+          label: 'Choose an existing secret:', value: 'header', kind: 'group'
+        },
+        { label: 'My Secret', value: 'my-secret' },
+        { label: 'Another Secret', value: 'another-secret' }
+      ]);
+    });
+
+    it('should filter out title options when empty but keep them if they contain matching child options, while keeping standard disabled options searchable', () => {
+      const options = [
+        {
+          label:    'Choose an existing secret:',
+          kind:     'title',
+          disabled: true,
+        },
+        { label: 'My Secret', value: 'my-secret' },
+        { kind: 'divider' },
+        {
+          label:    'Disabled Option',
+          value:    'disabled-opt',
+          disabled: true,
+        }
+      ];
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value: 'foo',
+          options
+        }
+      });
+
+      const result = wrapper.vm.filterOptions(options, 'secret');
+
+      expect(result).toStrictEqual([
+        {
+          label:    'Choose an existing secret:',
+          kind:     'title',
+          disabled: true,
+        },
+        { label: 'My Secret', value: 'my-secret' }
+      ]);
+
+      const resultWithDisabled = wrapper.vm.filterOptions(options, 'disabled');
+
+      expect(resultWithDisabled).toStrictEqual([
+        {
+          label:    'Disabled Option',
+          value:    'disabled-opt',
+          disabled: true,
+        }
+      ]);
+    });
+
+    it('should match case-insensitively', () => {
+      const options = [
+        { label: 'My Secret', value: 'my-secret' }
+      ];
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value: 'foo',
+          options
+        }
+      });
+
+      const result = wrapper.vm.filterOptions(options, 'MY SECRET');
+
+      expect(result).toStrictEqual([
+        { label: 'My Secret', value: 'my-secret' }
+      ]);
     });
   });
 });
