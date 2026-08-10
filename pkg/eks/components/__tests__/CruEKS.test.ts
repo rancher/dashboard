@@ -2,11 +2,11 @@
 import flushPromises from 'flush-promises';
 import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { EKSConfig, EKSNodeGroup } from '../../types';
-import CruEKS, { DEFAULT_EKS_CONFIG } from '../CruEKS.vue';
-import Config from '../Config.vue';
-import describeKeyPairs from '../__mocks__/describeKeyPairs';
-import describeLaunchTemplates from '../__mocks__/describeLaunchTemplates';
+import { EKSConfig, EKSNodeGroup } from '@pkg/eks/types';
+import CruEKS, { DEFAULT_EKS_CONFIG } from '@pkg/eks/components/CruEKS.vue';
+import Config from '@pkg/eks/components/Config.vue';
+import describeKeyPairs from '@pkg/eks/components/__mocks__/describeKeyPairs';
+import describeLaunchTemplates from '@pkg/eks/components/__mocks__/describeLaunchTemplates';
 
 const mockedStore = (versionSetting: any) => {
   return {

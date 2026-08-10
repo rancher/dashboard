@@ -6,8 +6,9 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { randomStr } from '@shell/utils/string';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
-import AksNodePool from '../AksNodePool.vue';
-import Taint from '../Taint.vue';
+import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
+import Taint from '@pkg/aks/components/Taint.vue';
+import { AKSPoolMode } from '@pkg/aks/types';
 
 const mockedValidationMixin = {
   computed: {
@@ -253,7 +254,7 @@ describe('aks node pool component', () => {
   it.each([
     ['System', false],
     ['User', true],
-  ])('should validate node pool count differently if the pool mode is User', async(mode, allowZeroCount) => {
+  ] as [AKSPoolMode, boolean][])('should validate node pool count differently if the pool mode is User', async(mode, allowZeroCount) => {
     const countValidator = jest.fn();
 
     mount(AksNodePool, {

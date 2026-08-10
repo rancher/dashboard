@@ -5,14 +5,17 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 // eslint-disable-next-line jest/no-mocks-import
-import { mockVersionsSorted } from '../../util/__mocks__/aks';
-import { AKSConfig, AKSNodePool } from '../../types/index';
+import { mockVersionsSorted } from '@pkg/aks/util/__mocks__/aks';
+import { AKSConfig, AKSNodePool } from '@pkg/aks/types';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
-import { nodePoolNames } from '../../util/validators';
-import Config from '../Config.vue';
-import { defaultAksConfig, NETWORKING_AUTH_MODES } from '../CruAks.vue';
+import { nodePoolNames } from '@pkg/aks/util/validators';
+import Config from '@pkg/aks/components/Config.vue';
+import { defaultAksConfig, NETWORKING_AUTH_MODES } from '@pkg/aks/components/CruAks.vue';
 
-const DEFAULT_CLUSTER_CONFIG = defaultAksConfig;
+// `defaultAksConfig` is the shape the production code actually produces, but it does not satisfy
+// `AKSConfig`: `tags` is declared as a `Map` while the form uses a plain object, and
+// `loadBalancerSku`/`outboundType` widen to `string` rather than their union types.
+const DEFAULT_CLUSTER_CONFIG = defaultAksConfig as AKSConfig;
 
 // LabeledSelect declares `options` as a bare `Array`, so reads come back as `unknown[]`.
 // These tests only ever inspect the standard option fields.
@@ -432,7 +435,9 @@ describe('aks provisioning form', () => {
     await setCredential(wrapper, config);
     wrapper.setProps({ config: { ...config, kubernetesVersion: newVersion } });
     await wrapper.vm.$nextTick();
-    const pools = wrapper.vm.config.nodePools;
+    const pools = wrapper.vm.config.nodePools || [];
+
+    expect(pools).toHaveLength(nodePools.length);
 
     pools.forEach((pool: AKSNodePool) => {
       expect(pool.orchestratorVersion).toBe(pool._isNewOrUnprovisioned ? newVersion : originalVersion);

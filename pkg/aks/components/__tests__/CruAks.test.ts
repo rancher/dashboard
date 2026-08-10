@@ -1,9 +1,9 @@
 import flushPromises from 'flush-promises';
 import { shallowMount, VueWrapper, mount } from '@vue/test-utils';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import CruAks from '../CruAks.vue';
+import CruAks from '@pkg/aks/components/CruAks.vue';
 // eslint-disable-next-line jest/no-mocks-import
-import { mockRegions } from '../../util/__mocks__/aks';
+import { mockRegions } from '@pkg/aks/util/__mocks__/aks';
 import { _CREATE } from '@shell/config/query-params';
 
 const mockedStore = (versionSetting: any) => {

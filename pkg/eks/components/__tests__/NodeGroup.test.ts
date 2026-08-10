@@ -6,8 +6,8 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import NodeGroup from '../NodeGroup.vue';
-import describeLaunchTemplateVersionsResponseData from '../__mocks__/describeLaunchTemplateVersions.js';
+import NodeGroup from '@pkg/eks/components/NodeGroup.vue';
+import describeLaunchTemplateVersionsResponseData from '@pkg/eks/components/__mocks__/describeLaunchTemplateVersions.js';
 
 const mockedValidationMixin = {
   computed: {

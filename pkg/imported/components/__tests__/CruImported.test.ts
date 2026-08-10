@@ -1,9 +1,9 @@
 import { shallowMount } from '@vue/test-utils';
-import CruImported from '../CruImported.vue';
+import CruImported from '@pkg/imported/components/CruImported.vue';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { MANAGEMENT } from '@shell/config/types';
-import { DAY_2_OPS_DEFAULT } from '../../util/shared';
+import { DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared';
 import { SETTING } from '@shell/config/settings';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 
@@ -45,10 +45,16 @@ describe('cruImported component', () => {
       normanCluster: {
         name:                     '',
         annotations:              { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: 'system-default' },
-        importedConfig:           {},
+        importedConfig:           { privateRegistryURL: null },
         localClusterAuthEndpoint: {}
       }
     })
+  };
+
+  // `CruImported.vue` is a plain JS SFC, so the `normanCluster` type vue-tsc infers from its
+  // `data()` default has no `annotations` - they are seeded by the `data` override above.
+  const normanAnnotations = (wrapper: { vm: { normanCluster: object } }): Record<string, string> => {
+    return (wrapper.vm.normanCluster as { annotations: Record<string, string> }).annotations;
   };
 
   describe('networking tab visibility', () => {
@@ -241,7 +247,7 @@ describe('cruImported component', () => {
         ...defaultSetup
       });
 
-      delete wrapper.vm.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
+      delete normanAnnotations(wrapper)[OPERATION_ANNOTATIONS.ENABLED];
 
       expect(wrapper.vm.dayTwoOps).toBe(DAY_2_OPS_DEFAULT);
     });
@@ -255,7 +261,7 @@ describe('cruImported component', () => {
         ...defaultSetup
       });
 
-      wrapper.vm.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'true';
+      normanAnnotations(wrapper)[OPERATION_ANNOTATIONS.ENABLED] = 'true';
 
       expect(wrapper.vm.dayTwoOps).toBe('true');
     });
@@ -271,7 +277,7 @@ describe('cruImported component', () => {
 
       wrapper.vm.dayTwoOps = 'false';
 
-      expect(wrapper.vm.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED]).toBe('false');
+      expect(normanAnnotations(wrapper)[OPERATION_ANNOTATIONS.ENABLED]).toBe('false');
     });
 
     it('should initialize day two ops settings from feature and global setting', async() => {
@@ -299,7 +305,7 @@ describe('cruImported component', () => {
         },
       });
 
-      wrapper.vm.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'true';
+      normanAnnotations(wrapper)[OPERATION_ANNOTATIONS.ENABLED] = 'true';
 
       await wrapper.vm.initDayTwoOps();
 

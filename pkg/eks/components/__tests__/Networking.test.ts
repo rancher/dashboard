@@ -5,11 +5,11 @@ import { shallowMount } from '@vue/test-utils';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-import Networking from '../Networking.vue';
+import Networking from '@pkg/eks/components/Networking.vue';
 
-import SecurityGroupData from '../__mocks__/describeSecurityGroups.js';
-import SubnetData from '../__mocks__/describeSubnets';
-import VpcData from '../__mocks__/describeVpcs';
+import SecurityGroupData from '@pkg/eks/components/__mocks__/describeSecurityGroups.js';
+import SubnetData from '@pkg/eks/components/__mocks__/describeSubnets';
+import VpcData from '@pkg/eks/components/__mocks__/describeVpcs';
 
 // LabeledSelect declares `options` as a bare `Array`, so reads come back untyped
 type SubnetOption = {

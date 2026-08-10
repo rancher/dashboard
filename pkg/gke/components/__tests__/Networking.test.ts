@@ -6,7 +6,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import Networking from '../Networking.vue';
+import Networking from '@pkg/gke/components/Networking.vue';
 
 // const mockedValidationMixin = {
 //   computed: {

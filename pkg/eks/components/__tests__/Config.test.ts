@@ -4,11 +4,11 @@ import { shallowMount, VueWrapper, mount } from '@vue/test-utils';
 import Banner from '@components/Banner/Banner.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import { EKSConfig } from '../../types';
-import Config from '../Config.vue';
-import listKeysResponseData from '../__mocks__/listKeys';
-import describeAddonVersionsResponseData from '../__mocks__/describeAddonVersions';
-import versionsFallbackData from '../../assets/data/eks-versions';
+import { EKSConfig } from '@pkg/eks/types';
+import Config from '@pkg/eks/components/Config.vue';
+import listKeysResponseData from '@pkg/eks/components/__mocks__/listKeys';
+import describeAddonVersionsResponseData from '@pkg/eks/components/__mocks__/describeAddonVersions';
+import versionsFallbackData from '@pkg/eks/assets/data/eks-versions';
 import { _EDIT } from '@shell/config/query-params';
 
 // `EKSConfig` declares `imported` as required, but nothing in the eks package sets it when it

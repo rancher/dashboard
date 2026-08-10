@@ -399,7 +399,8 @@ export default defineComponent({
           }
         },
 
-        poolTaints: (taint: string) => {
+        // Called with no `taint` to validate the taints on every pool.
+        poolTaints: (taint?: string) => {
           if (taint && taint !== '') {
             const { key, value } = parseTaint(taint);
 

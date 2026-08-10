@@ -4,7 +4,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Taints from '@shell/components/form/Taints.vue';
-import GKENodePool from '../GKENodePool.vue';
+import GKENodePool from '@pkg/gke/components/GKENodePool.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 // const mockedValidationMixin = {

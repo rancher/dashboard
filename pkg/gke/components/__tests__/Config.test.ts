@@ -4,7 +4,7 @@ import flushPromises from 'flush-promises';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-import Config from '../Config.vue';
+import Config from '@pkg/gke/components/Config.vue';
 
 const mockedStore = (versionSetting: any) => {
   return {

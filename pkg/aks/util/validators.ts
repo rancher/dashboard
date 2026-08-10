@@ -140,7 +140,8 @@ export const privateDnsZone = (ctx: any, labelKey: string, clusterPath: string) 
 };
 
 export const nodePoolNames = (ctx: any) => {
-  return (poolName:string) :string | undefined => {
+  // Called with no `poolName` to validate every pool in the context, mirroring `nodePoolCount`.
+  return (poolName?:string) :string | undefined => {
     let allAvailable = true;
 
     const isValid = (name:string) => name.match(/^[a-z]+[a-z0-9]*$/) && name.length <= 12;

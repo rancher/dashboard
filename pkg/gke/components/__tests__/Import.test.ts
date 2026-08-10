@@ -2,7 +2,7 @@ import { shallowMount } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import Import from '../Import.vue';
+import Import from '@pkg/gke/components/Import.vue';
 
 const mockedStore = () => {
   return {
