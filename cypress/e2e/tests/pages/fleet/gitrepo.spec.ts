@@ -500,7 +500,7 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
   after(() => {
     // De-duplicate: the retry-independent create test can register the same repo more than once
     // across attempts. failOnStatusCode: false tolerates a repo that was already removed.
-    [...new Set(reposToDelete)].forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r, false));
+    reposToDelete.filter((r, i) => reposToDelete.indexOf(r) === i).forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r, false));
   });
 });
 
