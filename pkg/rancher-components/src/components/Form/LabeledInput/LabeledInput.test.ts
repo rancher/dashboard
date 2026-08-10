@@ -223,6 +223,193 @@ describe('component: LabeledInput', () => {
     expect(wrapper.find('label').text()).toBe(label);
   });
 
+  describe('clear button functionality', () => {
+    const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
+
+    describe('type="search"', () => {
+      it('should show clear button when type is search and value is not empty', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(true);
+      });
+
+      it('should not show clear button when type is search and value is empty', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: '' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(false);
+      });
+
+      it('should hide native search cancel button', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test' },
+          mocks:     i18nMock
+        });
+        const input = wrapper.find('input[type="search"]');
+
+        expect(input.exists()).toBe(true);
+      });
+
+      it('should clear input value when clear button is clicked', async() => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        await clearButton.trigger('click');
+
+        expect(wrapper.emitted('update:value')).toHaveLength(1);
+        expect(wrapper.emitted('update:value')![0][0]).toBe('');
+      });
+
+      it('should clear input value when Enter key is pressed on clear button', async() => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        await clearButton.trigger('keydown.enter');
+
+        expect(wrapper.emitted('update:value')).toHaveLength(1);
+        expect(wrapper.emitted('update:value')![0][0]).toBe('');
+      });
+
+      it('should clear input value when Space key is pressed on clear button', async() => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        await clearButton.trigger('keydown.space');
+
+        expect(wrapper.emitted('update:value')).toHaveLength(1);
+        expect(wrapper.emitted('update:value')![0][0]).toBe('');
+      });
+
+      it('should have proper ARIA label for accessibility', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.attributes('aria-label')).toBeDefined();
+        expect(clearButton.attributes('type')).toBe('button');
+      });
+
+      it('should be disabled when input is disabled', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'search', value: 'test query', mode: 'view'
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.attributes('disabled')).toBeDefined();
+      });
+    });
+
+    describe('clearButtonLabel prop', () => {
+      it('should fall back to the generic clear label when no custom label is given', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        // The i18n helper wraps unresolved keys in `%...%`, so this asserts
+        // which translation key was requested
+        expect(clearButton.attributes('aria-label')).toBe('%generic.clear%');
+      });
+
+      it('should use the custom label when one is given', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'search', value: 'test query', clearButtonLabel: 'Clear Filter for table results'
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.attributes('aria-label')).toBe('Clear Filter for table results');
+      });
+    });
+
+    describe('showClearButton prop', () => {
+      it('should show clear button when showClearButton is true and value is not empty', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'text', value: 'test', showClearButton: true
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(true);
+      });
+
+      it('should not show clear button when showClearButton is false even for search type', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'search', value: 'test', showClearButton: false
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(false);
+      });
+
+      it('should not show clear button when showClearButton is true but value is empty', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'text', value: '', showClearButton: true
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(false);
+      });
+    });
+
+    describe('type="text" without showClearButton', () => {
+      it('should not show clear button by default for text type', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'text', value: 'test' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(false);
+      });
+    });
+  });
+
   describe('vee-validate integration', () => {
     const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
 
