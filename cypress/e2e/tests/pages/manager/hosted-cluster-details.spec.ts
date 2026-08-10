@@ -16,21 +16,36 @@ const openHostedClusterDetail = (
   clusterList: ClusterManagerListPagePo,
   clusterName: string,
   detailsPage: ClusterManagerDetailHostedPagePo,
-  attempt = 0
-) => {
+  navAttempt = 0
+): void => {
   clusterList.list().name(clusterName).find('a').should('be.visible')
     .click();
   detailsPage.waitForPage();
-  // Wait for the masthead so the detail page has rendered before deciding whether the tabs are
-  // present (the title renders even when the tabbed component does not).
-  detailsPage.title().should('be.visible');
-  cy.get('.dashboard-root').then(($root) => {
-    if ($root.find('[data-testid="tabbed"]').length === 0 && attempt < 4) {
-      ClusterManagerListPagePo.navTo();
-      clusterList.waitForPage();
-      openHostedClusterDetail(clusterList, clusterName, detailsPage, attempt + 1);
-    }
-  });
+
+  // Poll for the tabbed component for a fair window before deciding the intermittent SPA-mount bug
+  // hit (where it never appears on that page load). We must only re-navigate on a genuine render
+  // failure - not on a page that simply has not finished rendering the tabs yet. Checking too early
+  // and recovering off the wrong state is exactly what made the logging recovery navigate when it
+  // did not need to.
+  const ensureTabsRendered = (poll = 0): void => {
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-testid="tabbed"]').length > 0) {
+        return; // tabs rendered - let the caller's checkVisible/tabNames assert on them
+      }
+
+      if (poll < 8) {
+        cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+        ensureTabsRendered(poll + 1);
+      } else if (navAttempt < 3) {
+        // The tabs genuinely did not render on this load; re-navigate to force a fresh render.
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        openHostedClusterDetail(clusterList, clusterName, detailsPage, navAttempt + 1);
+      }
+    });
+  };
+
+  ensureTabsRendered();
 };
 
 describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {

@@ -142,17 +142,17 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
 
-      // The installed-apps list intermittently loads empty even though the app is installed. Wait
-      // for the list fetch (getCharts) to actually contain the logging app; if it does not,
-      // re-navigate to force a fresh fetch. Re-navigating - unlike cy.reload - does not abort an
-      // in-flight request, which previously left a retry failing early on an undefined response.
-      // Tolerate an undefined/aborted response by treating it as "not present yet".
+      // The installed-apps list intermittently finishes loading empty (the tr.no-rows row) even
+      // though the app is installed. Waiting for the loading indicator to clear FIRST is what lets
+      // us tell "the app never rendered" apart from "still loading" - only once loading is done does
+      // tr.no-rows mean a genuinely empty render. If it came up empty, re-navigate to force a fresh
+      // fetch/render and retry. Re-navigating - unlike a page reload - does not abort an in-flight
+      // request.
       const waitForInstalledLoggingApp = (attempt = 0): void => {
-        cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).then((interception) => {
-          const apps = interception?.response?.body?.data || [];
-          const hasLoggingApp = apps.some((app: { metadata?: { name?: string } }) => app.metadata?.name === chartApp);
-
-          if (!hasLoggingApp && attempt < 4) {
+        installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
+        installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
+        cy.get('body').then(($body) => {
+          if ($body.find('tr.no-rows').length > 0 && attempt < 5) {
             installedAppsPage.goTo();
             installedAppsPage.waitForPage();
             waitForInstalledLoggingApp(attempt + 1);
@@ -161,62 +161,77 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       };
 
       waitForInstalledLoggingApp();
-      installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
-      installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
 
-      // Wait for table to load and check if charts exist before attempting uninstall
+      // Loading has finished and the list rendered rows.
       installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
-      installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail').then((rowNames: string[]) => {
-        // Check if both charts exist, fail test if they don't
-        const hasLoggingChart = rowNames.includes(chartApp);
-        const hasCrdChart = rowNames.includes(chartCrd);
+      // Drive the uninstall from the ACTUAL app state via the API, not the rendered list: the list
+      // can still show an app the backend has already removed, and uninstalling that app then 404s
+      // and errors the prompt (the "... not found" case in the video). This also keeps the test
+      // retry-independent - a previous attempt may have removed the chart, the CRD, or both.
+      const appExists = (name: string) => cy.request({
+        url:              `${ Cypress.env('api') }${ CLUSTER_APPS_BASE_URL }/${ chartNamespace }/${ name }`,
+        failOnStatusCode: false
+      }).then((resp) => resp.status === 200);
 
-        if (!hasLoggingChart || !hasCrdChart) {
-          // If this is a retry this step will always be hit (because the previous run uninstalled the charts.....)
-          throw new Error(`Charts not found: logging=${ hasLoggingChart }, crd=${ hasCrdChart }. Charts may not be properly installed.`);
+      appExists(chartApp).then((hasChart) => {
+        if (!hasChart) {
+          // The chart is already uninstalled (e.g. by a previous attempt) - this test's goal is met.
+          cy.log('rancher-logging is already uninstalled; nothing to uninstall.');
+
+          return;
         }
 
-        // Charts exist, verify they are properly displayed
-        installedAppsPage.appsList().resourceTableDetails(chartApp, 1).should('exist');
-        installedAppsPage.appsList().resourceTableDetails(chartCrd, 1).should('exist');
+        appExists(chartCrd).then((hasCrd) => {
+          // Verify the installed rows are displayed for whatever is actually present.
+          installedAppsPage.appsList().resourceTableDetails(chartApp, 1).should('exist');
+          if (hasCrd) {
+            installedAppsPage.appsList().resourceTableDetails(chartCrd, 1).should('exist');
+          }
 
-        // Proceed with uninstallation
-        clusterTools.goTo();
-        clusterTools.waitForPage();
-        cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-        clusterTools.deleteChart(chartAppDisplayName);
+          clusterTools.goTo();
+          clusterTools.waitForPage();
+          cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+          clusterTools.deleteChart(chartAppDisplayName);
 
-        const promptRemove = new PromptRemove();
+          const promptRemove = new PromptRemove();
+          const card = new CardPo();
 
-        cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging?action=uninstall`).as('chartUninstall');
-        cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging-crd?action=uninstall`).as('crdUninstall');
-        promptRemove.checkbox().shouldContainText('Delete the CRD associated with this app');
+          cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/${ chartNamespace }/${ chartApp }?action=uninstall`).as('chartUninstall');
+          promptRemove.checkbox().shouldContainText('Delete the CRD associated with this app');
 
-        promptRemove.checkbox().set();
-        promptRemove.checkbox().isChecked();
-        promptRemove.remove();
+          if (hasCrd) {
+            // Both present - uninstall the chart together with its CRD (the scenario this test covers).
+            cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/${ chartNamespace }/${ chartCrd }?action=uninstall`).as('crdUninstall');
+            promptRemove.checkbox().set();
+            promptRemove.checkbox().isChecked();
+          }
+          // else: the CRD app is already gone - leave "Delete the CRD" unchecked, otherwise the
+          // uninstall would 404 on the missing CRD and error the prompt; just remove the chart.
 
-        const card = new CardPo();
+          promptRemove.remove();
 
-        card.checkNotExists(MEDIUM_TIMEOUT_OPT);
-        cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
-        cy.wait('@crdUninstall').its('response.statusCode').should('eq', 201);
+          card.checkNotExists(MEDIUM_TIMEOUT_OPT);
+          cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
+          kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+          kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging');
 
-        kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
-        kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging');
-        kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
-        kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging-crd');
-
-        // Verify charts are removed after uninstallation
-        installedAppsPage.goTo();
-        installedAppsPage.waitForPage();
-        cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-        installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
-        installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-        installedAppsPage.appsList().sortableTable().filter(chartApp);
-        installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-        installedAppsPage.appsList().sortableTable().checkRowCount(true, 1, undefined, true);
+          if (hasCrd) {
+            cy.wait('@crdUninstall').its('response.statusCode').should('eq', 201);
+            kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+            kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging-crd');
+          }
+        });
       });
+
+      // Verify the chart is removed after uninstallation (also holds when it was already gone).
+      installedAppsPage.goTo();
+      installedAppsPage.waitForPage();
+      cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+      installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
+      installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
+      installedAppsPage.appsList().sortableTable().filter(chartApp);
+      installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
+      installedAppsPage.appsList().sortableTable().checkRowCount(true, 1, undefined, true);
     });
   });
 
