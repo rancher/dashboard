@@ -82,14 +82,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'apps.statefulset', `${ nsName2 }/${ uniqueStatefulSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'apps.statefulset', statefulSetNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
-        // Derive the actual number of statefulsets in the two filtered namespaces
-        // instead of assuming exactly statefulSetNamesList.length + 1; the cluster
-        // can briefly hold an extra resource, which makes a hardcoded count disagree.
-        const count = resp.body.data.filter(
-          (ss: any) => [nsName1, nsName2].includes(ss.metadata?.namespace)
-        ).length;
-
+      cy.waitForStableFilteredResourceCount('v1', 'apps.statefulset', [nsName1, nsName2]).then((count) => {
         // Wait for the list to finish loading so the total is settled before the single
         // (non-retrying) pagination-text assertions below.
         statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();

@@ -733,6 +733,56 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
 });
 
 /**
+ * Resolve the number of resources of `resourceType` that live in `namespaces`, waiting until that
+ * filtered count is STABLE across consecutive reads before returning it.
+ *
+ * Deriving an expected list total from a single `waitForRancherResources` snapshot is racy:
+ * that command returns as soon as the cluster-wide total crosses a threshold, which does not mean
+ * every resource the test created in the filtered namespaces has propagated yet. The client-side
+ * filter then reads a premature snapshot (e.g. 23) while the list, querying with the namespace
+ * filter a moment later, renders the fully-propagated set (e.g. 24) - so the pagination-text
+ * assertion disagrees. Waiting for the filtered count to settle closes that window and also absorbs
+ * a transient extra resource that later disappears.
+ */
+Cypress.Commands.add('waitForStableFilteredResourceCount', (prefix, resourceType, namespaces, config): Cypress.Chainable => {
+  const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
+  const requiredStableReads = config?.stableReads ?? 2;
+  const maxReads = config?.maxReads ?? 30;
+  const intervalMs = config?.intervalMs ?? 1500;
+
+  let _token: { value: string };
+
+  const readCount = (): Cypress.Chainable<number> => cy.request({
+    method:  'GET',
+    url,
+    headers: {
+      'x-api-csrf': _token.value,
+      Accept:       'application/json'
+    }
+  }).then((resp) => (resp.body?.data || []).filter(
+    (r: any) => namespaces.includes(r.metadata?.namespace)
+  ).length);
+
+  const poll = (prev: number, stable: number, reads: number): Cypress.Chainable<number> => readCount().then((n) => {
+    const nextStable = n === prev ? stable + 1 : 0;
+
+    if (nextStable >= requiredStableReads || reads + 1 >= maxReads) {
+      return cy.wrap(n, { log: false });
+    }
+
+    cy.wait(intervalMs); // eslint-disable-line cypress/no-unnecessary-waiting
+
+    return poll(n, nextStable, reads + 1);
+  });
+
+  return cy.getCookie('CSRF').then((c) => {
+    _token = token || c;
+
+    return poll(-1, 0, 0);
+  });
+});
+
+/**
  * Wait for an intercepted request to complete with the expected status code.
  * If the response is a 409 Conflict (or another retryable status), waits for one automatic retry before asserting success.
  */
