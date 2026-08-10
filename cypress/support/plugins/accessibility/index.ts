@@ -23,6 +23,7 @@ function createPath(testPath: string[]) {
         name:       p,
         children:   [],
         violations: [],
+        incomplete: [],
         leaf:       false,
       };
 
@@ -38,12 +39,18 @@ export type TestViolation = {
   name: string;
   children: TestViolation[];
   violations: any[];
+  incomplete: any[];
   leaf: boolean;
   screenshot?: string;
 };
 
 export type Options = {
   violations: any[];
+  titlePath: string[];
+};
+
+export type IncompleteOptions = {
+  incomplete: any[];
   titlePath: string[];
 };
 
@@ -58,10 +65,12 @@ const chain: TestViolation[] = [{
   name:       'Root',
   children:   [],
   violations: [],
+  incomplete: [],
   leaf:       false,
 }];
 
 const allViolations = [] as any[];
+const allIncomplete = [] as any[];
 const screenshots = [] as Screenshot[];
 let folder;
 
@@ -69,10 +78,11 @@ let folder;
 function tidy(item: TestViolation) {
   item.children.forEach((i) => tidy(i));
 
-  if (item.violations.length === 0 && item.children.length === 1) {
+  if (item.violations.length === 0 && item.incomplete.length === 0 && item.children.length === 1) {
     if (item.children[0].leaf) {
       // Collapse up
       item.violations = item.children[0].violations;
+      item.incomplete = item.children[0].incomplete;
       item.children = [];
     }
   }
@@ -137,7 +147,21 @@ function registerHooks(on, config) {
       found.leaf = true;
 
       return null;
-    }
+    },
+
+    // axe's 'needs review' bucket - results it could neither pass nor fail definitively.
+    // Recorded separately so a clean `violations` list is never mistaken for "no problems".
+    a11yIncomplete(options: IncompleteOptions) {
+      const { incomplete, titlePath } = options;
+      const found = createPath(titlePath);
+
+      allIncomplete.push(...incomplete);
+
+      found.incomplete.push(...incomplete);
+      found.leaf = true;
+
+      return null;
+    },
   });
 
   on('task', {
@@ -158,6 +182,7 @@ function registerHooks(on, config) {
       name:       spec.baseName,
       children:   [],
       violations: [],
+      incomplete: [],
       leaf:       false,
     };
 
@@ -216,7 +241,10 @@ function registerHooks(on, config) {
     });
 
     const reportHTML = createHtmlReport({
-      results: { violations: deDuplicate(allViolations) },
+      results: {
+        violations: deDuplicate(allViolations),
+        incomplete: deDuplicate(allIncomplete),
+      },
       options: {
         projectKey:            'Rancher Manager',
         doNotCreateReportFile: true,
