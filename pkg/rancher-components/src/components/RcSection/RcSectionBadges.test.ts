@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import RcSectionBadges from './RcSectionBadges.vue';
+import { BadgeConfig } from './types';
 
 // Stub RcStatusBadge to avoid pulling in its full dependency tree
 const RcStatusBadgeStub = {
@@ -9,7 +10,7 @@ const RcStatusBadgeStub = {
 };
 
 describe('component: RcSectionBadges', () => {
-  function createWrapper(badges: { label: string; status: string; tooltip?: string }[]) {
+  function createWrapper(badges: BadgeConfig[]) {
     return mount(RcSectionBadges, {
       props:  { badges },
       global: {
@@ -20,7 +21,7 @@ describe('component: RcSectionBadges', () => {
   }
 
   it('should render all badges when count is within the limit', () => {
-    const badges = [
+    const badges: BadgeConfig[] = [
       { label: 'Active', status: 'success' },
       { label: 'Pending', status: 'warning' },
     ];
@@ -33,7 +34,7 @@ describe('component: RcSectionBadges', () => {
   });
 
   it('should render exactly 3 badges when 3 are provided', () => {
-    const badges = [
+    const badges: BadgeConfig[] = [
       { label: 'A', status: 'success' },
       { label: 'B', status: 'warning' },
       { label: 'C', status: 'error' },
@@ -44,7 +45,7 @@ describe('component: RcSectionBadges', () => {
   });
 
   it('should render a maximum of 3 badges when more than 3 are provided', () => {
-    const badges = [
+    const badges: BadgeConfig[] = [
       { label: 'A', status: 'success' },
       { label: 'B', status: 'warning' },
       { label: 'C', status: 'error' },
@@ -60,7 +61,7 @@ describe('component: RcSectionBadges', () => {
   });
 
   it('should pass the correct status prop to each badge', () => {
-    const badges = [
+    const badges: BadgeConfig[] = [
       { label: 'A', status: 'success' },
       { label: 'B', status: 'error' },
     ];
@@ -86,7 +87,7 @@ describe('component: RcSectionBadges', () => {
 
   describe('tooltip', () => {
     it('should pass tooltip value to v-clean-tooltip directive', () => {
-      const badges = [
+      const badges: BadgeConfig[] = [
         {
           label: 'Active', status: 'success', tooltip: 'All systems operational'
         },
@@ -100,7 +101,7 @@ describe('component: RcSectionBadges', () => {
     });
 
     it('should render badges without tooltip when tooltip is omitted', () => {
-      const badges = [
+      const badges: BadgeConfig[] = [
         { label: 'Pending', status: 'warning' },
       ];
       const wrapper = createWrapper(badges);
@@ -113,7 +114,7 @@ describe('component: RcSectionBadges', () => {
   describe('console warning', () => {
     it('should warn when more than 3 badges are provided', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      const badges = [
+      const badges: BadgeConfig[] = [
         { label: 'A', status: 'success' },
         { label: 'B', status: 'warning' },
         { label: 'C', status: 'error' },
@@ -131,7 +132,7 @@ describe('component: RcSectionBadges', () => {
 
     it('should not warn when 3 or fewer badges are provided', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      const badges = [
+      const badges: BadgeConfig[] = [
         { label: 'A', status: 'success' },
         { label: 'B', status: 'warning' },
         { label: 'C', status: 'error' },

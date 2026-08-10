@@ -1,7 +1,10 @@
 import { mount } from '@vue/test-utils';
 import { defineComponent } from 'vue';
 import RcButtonSplit from './RcButtonSplit.vue';
-import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
+import { ButtonSize } from '@components/RcButton/types';
+
+// RcButtonSplit narrows RcButton's variants, and the narrowed type is local to the SFC.
+type RcButtonSplitVariant = NonNullable<InstanceType<typeof RcButtonSplit>['$props']['variant']>;
 
 // v-dropdown is provided by floating-vue and must be mocked in unit tests.
 // The default slot is the trigger anchor; the popper slot is the dropdown content.
@@ -38,8 +41,10 @@ describe('rcButtonSplit.vue', () => {
 
     await wrapper.find('.rc-button-split-action').trigger('click');
 
-    expect(wrapper.emitted('click')).toHaveLength(1);
-    expect(wrapper.emitted('click')![0][0]).toBeInstanceOf(MouseEvent);
+    const emitted = wrapper.emitted('click') as [MouseEvent][];
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0][0]).toBeInstanceOf(MouseEvent);
   });
 
   it('does not emit click when the dropdown trigger is clicked', async() => {
@@ -51,21 +56,19 @@ describe('rcButtonSplit.vue', () => {
   });
 
   describe('variant prop', () => {
-    it.each([
+    const variantCases: [RcButtonSplitVariant, string][] = [
       ['primary', 'variant-primary'],
       ['secondary', 'variant-secondary'],
       ['tertiary', 'variant-tertiary'],
-    ] as [ButtonVariant, string][])('applies %s variant class to the action button', (variant, className) => {
+    ];
+
+    it.each(variantCases)('applies %s variant class to the action button', (variant, className) => {
       const wrapper = mount(RcButtonSplit, { ...globalConfig, props: { variant } });
 
       expect(wrapper.find('.rc-button-split-action').classes()).toContain(className);
     });
 
-    it.each([
-      ['primary', 'variant-primary'],
-      ['secondary', 'variant-secondary'],
-      ['tertiary', 'variant-tertiary'],
-    ] as [ButtonVariant, string][])('applies %s variant class to the dropdown trigger button', (variant, className) => {
+    it.each(variantCases)('applies %s variant class to the dropdown trigger button', (variant, className) => {
       const wrapper = mount(RcButtonSplit, { ...globalConfig, props: { variant } });
 
       expect(wrapper.find('.rc-button-split-trigger').classes()).toContain(className);
@@ -73,21 +76,19 @@ describe('rcButtonSplit.vue', () => {
   });
 
   describe('size prop', () => {
-    it.each([
+    const sizeCases: [ButtonSize, string][] = [
       ['small', 'btn-small'],
       ['medium', 'btn-medium'],
       ['large', 'btn-large'],
-    ] as [ButtonSize, string][])('applies %s size class to the action button', (size, className) => {
+    ];
+
+    it.each(sizeCases)('applies %s size class to the action button', (size, className) => {
       const wrapper = mount(RcButtonSplit, { ...globalConfig, props: { size } });
 
       expect(wrapper.find('.rc-button-split-action').classes()).toContain(className);
     });
 
-    it.each([
-      ['small', 'btn-small'],
-      ['medium', 'btn-medium'],
-      ['large', 'btn-large'],
-    ] as [ButtonSize, string][])('applies %s size class to the dropdown trigger button', (size, className) => {
+    it.each(sizeCases)('applies %s size class to the dropdown trigger button', (size, className) => {
       const wrapper = mount(RcButtonSplit, { ...globalConfig, props: { size } });
 
       expect(wrapper.find('.rc-button-split-trigger').classes()).toContain(className);
@@ -150,8 +151,10 @@ describe('rcButtonSplit.vue', () => {
 
     await wrapper.findComponent({ name: 'RcDropdown' }).vm.$emit('update:open', true);
 
-    expect(wrapper.emitted('update:open')).toHaveLength(1);
-    expect(wrapper.emitted('update:open')![0]).toStrictEqual([true]);
+    const emitted = wrapper.emitted('update:open') as [boolean][];
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0]).toStrictEqual([true]);
   });
 
   it('applies default variant "primary" when no variant is provided', () => {
@@ -228,8 +231,10 @@ describe('rcButtonSplit.vue', () => {
 
       await wrapper.findAllComponents({ name: 'RcDropdownItem' })[0].trigger('click');
 
-      expect(wrapper.emitted('select')).toHaveLength(1);
-      expect(wrapper.emitted('select')![0]).toStrictEqual(['draft']);
+      const emitted = wrapper.emitted('select') as [string][];
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0]).toStrictEqual(['draft']);
     });
 
     it('does not emit select when no items prop is provided', async() => {

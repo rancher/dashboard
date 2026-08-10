@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 1770
+# Total errors: 1736
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
 pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
@@ -603,38 +603,10 @@ pkg/imported/components/__tests__/CruImported.test.ts: error TS2339: Property 'a
 pkg/imported/components/__tests__/CruImported.test.ts: error TS2339: Property 'annotations' does not exist on type 'never'.
 pkg/imported/components/__tests__/CruImported.test.ts: error TS2349: This expression is not callable.
 pkg/imported/components/__tests__/CruImported.test.ts: error TS2349: This expression is not callable.
-pkg/rancher-components/src/components/Banner/Banner.test.ts: error TS2339: Property 'click' does not exist on type 'VueNode<Element>'.
-pkg/rancher-components/src/components/Card/Card.test.ts: error TS2353: Object literal may only specify known properties, and 'body' does not exist in type 'NonNullable<Partial<{ title: string; content: string; sticky: boolean; buttonAction: (event: MouseEvent) => void; buttonText: string; showHighlightBorder: boolean; showActions: boolean; }> & Omit<...>>'.
-pkg/rancher-components/src/components/Form/Checkbox/Checkbox.test.ts: error TS2305: Module '"@vue/test-utils"' has no exported member 'Wrapper'.
 pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue: error TS2322: Type 'string | number | Record<string, any>' is not assignable to type 'string'.
-pkg/rancher-components/src/components/Form/ToggleSwitch/ToggleSwitch.test.ts: error TS2532: Object is possibly 'undefined'.
-pkg/rancher-components/src/components/Form/ToggleSwitch/ToggleSwitch.test.ts: error TS2532: Object is possibly 'undefined'.
-pkg/rancher-components/src/components/Form/ToggleSwitch/ToggleSwitch.test.ts: error TS2532: Object is possibly 'undefined'.
-pkg/rancher-components/src/components/Form/ToggleSwitch/ToggleSwitch.test.ts: error TS2532: Object is possibly 'undefined'.
-pkg/rancher-components/src/components/Pill/RcStatusBadge/RcStatusBadge.test.ts: error TS2305: Module '"@components/Pill/types"' has no exported member 'Status'.
-pkg/rancher-components/src/components/Pill/RcStatusIndicator/RcStatusIndicator.test.ts: error TS2305: Module '"@components/Pill/types"' has no exported member 'Status'.
-pkg/rancher-components/src/components/Pill/RcTag/RcTag.test.ts: error TS2459: Module '"./types"' declares 'Type' locally, but it is not exported.
-pkg/rancher-components/src/components/RcButtonSplit/RcButtonSplit.test.ts: error TS2322: Type 'ButtonVariant' is not assignable to type 'RcButtonSplitVariant | undefined'.
-pkg/rancher-components/src/components/RcButtonSplit/RcButtonSplit.test.ts: error TS2322: Type 'ButtonVariant' is not assignable to type 'RcButtonSplitVariant | undefined'.
 pkg/rancher-components/src/components/RcDropdown/RcDropdownItemSelect.vue: error TS2307: Cannot find module '@shell/components/form/LabeledSelect' or its corresponding type declarations.
 pkg/rancher-components/src/components/RcDropdown/RcDropdownMenu.vue: error TS2307: Cannot find module '@shell/components/IconOrSvg' or its corresponding type declarations.
-pkg/rancher-components/src/components/RcItemCard/RcItemCard.test.ts: error TS2739: Type '{ action: string; label: string; }' is missing the following properties from type 'DropdownOption': enabled, total, allEnabled, anyEnabled, available
-pkg/rancher-components/src/components/RcItemCard/RcItemCard.test.ts: error TS2739: Type '{ action: string; label: string; }' is missing the following properties from type 'DropdownOption': enabled, total, allEnabled, anyEnabled, available
-pkg/rancher-components/src/components/RcItemCard/RcItemCard.test.ts: error TS2739: Type '{ action: string; label: string; }' is missing the following properties from type 'DropdownOption': enabled, total, allEnabled, anyEnabled, available
 pkg/rancher-components/src/components/RcItemCard/RcItemCard.vue: error TS2307: Cannot find module './RcItemCardAction' or its corresponding type declarations.
-pkg/rancher-components/src/components/RcSection/RcSection.test.ts: error TS2353: Object literal may only specify known properties, and 'components' does not exist in type 'VNode<RendererNode, RendererElement, { [key: string]: any; }> | (new () => any) | { template: string; } | ((props: {}) => any) | (string | VNode<RendererNode, RendererElement, { ...; }> | (new () => any) | { ...; } | ((props: {}) => any))[]'.
-pkg/rancher-components/src/components/RcSection/RcSection.test.ts: error TS2353: Object literal may only specify known properties, and 'components' does not exist in type 'VNode<RendererNode, RendererElement, { [key: string]: any; }> | (new () => any) | { template: string; } | ((props: {}) => any) | (string | VNode<RendererNode, RendererElement, { ...; }> | (new () => any) | { ...; } | ((props: {}) => any))[]'.
-pkg/rancher-components/src/components/RcSection/RcSectionBadges.test.ts: error TS2322: Type '{ label: string; status: string; tooltip?: string | undefined; }[]' is not assignable to type 'BadgeConfig[]'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
-pkg/rancher-components/src/components/StringList/StringList.test.ts: error TS2571: Object is of type 'unknown'.
 pkg/rancher-prime/config/navigation.ts: error TS2353: Object literal may only specify known properties, and 'ifFeature' does not exist in type 'ConfigureVirtualTypeOptions'.
 pkg/rancher-prime/pages/Registration.test.ts: error TS2445: Property 'isDisabled' is protected and only accessible within class 'BaseWrapper<ElementType>' and its subclasses.
 pkg/rancher-prime/pages/Registration.test.ts: error TS2445: Property 'isDisabled' is protected and only accessible within class 'BaseWrapper<ElementType>' and its subclasses.
@@ -727,7 +699,6 @@ shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{ stat
 shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{}' is not assignable to parameter of type 'never'.
 shell/apis/shell/__tests__/proxy.test.ts: error TS2345: Argument of type '{}' is not assignable to parameter of type 'never'.
 shell/apis/shell/__tests__/slide-in.test.ts: error TS2554: Expected 1 arguments, but got 0.
-shell/apis/shell/__tests__/slide-in.test.ts: error TS2694: Namespace 'jest' has no exported member 'SpyInstance'.
 shell/apis/shell/__tests__/system.test.ts: error TS2305: Module '"@shell/config/version"' has no exported member 'isRancherPrime'.
 shell/apis/shell/__tests__/system.test.ts: error TS2724: '"@shell/config/version"' has no exported member named 'getKubeVersionData'. Did you mean 'getVersionData'?
 shell/apis/shell/index.ts: error TS2459: Module '"@shell/apis/intf/shell"' declares 'ProxyApi' locally, but it is not exported.
@@ -978,9 +949,6 @@ shell/components/form/__tests__/Error.test.ts: error TS2719: Type 'Rule[]' is no
 shell/components/form/__tests__/FileImageSelector.test.ts: error TS2307: Cannot find module '@shell/components/form/FileImageSelector' or its corresponding type declarations.
 shell/components/form/__tests__/FileImageSelector.test.ts: error TS2307: Cannot find module '@shell/components/form/FileSelector' or its corresponding type declarations.
 shell/components/form/__tests__/FileSelector.test.ts: error TS2307: Cannot find module '@shell/components/form/FileSelector' or its corresponding type declarations.
-shell/components/form/__tests__/NameNsDescription.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
-shell/components/form/__tests__/NameNsDescription.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
-shell/components/form/__tests__/NameNsDescription.test.ts: error TS2571: Object is of type 'unknown'.
 shell/components/form/__tests__/Networking.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
 shell/components/form/__tests__/Networking.test.ts: error TS2339: Property 'value' does not exist on type 'VueNode<Element>'.
 shell/components/form/__tests__/PrivateRegistry.test.ts: error TS2339: Property 'vm' does not exist on type 'WrapperLike'.
@@ -1190,8 +1158,6 @@ shell/edit/provisioning.cattle.io.cluster/__tests__/DrainOptions.test.ts: error 
 shell/edit/provisioning.cattle.io.cluster/__tests__/Ingress.test.ts: error TS2339: Property 'EDITOR_MODES' does not exist on type '{ name: string; template: string; props: string[]; methods: { updateValue: Mock<any, any, any>; }; }'.
 shell/edit/provisioning.cattle.io.cluster/__tests__/Networking.test.ts: error TS2339: Property 'props' does not exist on type 'WrapperLike'.
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS18047: 'wrapper.vm.machinePools' is possibly 'null'.
-shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2322: Type '() => { credentialId: string; credential: { decodedData: { clusterId: string; }; }; machinePools: never[]; }' is not assignable to type '() => Partial<{ loadedOnce: boolean; lastIdx: number; allPSAs: never[]; credentialId: string; credential: null; initialMachinePoolsValues: {}; machinePools: null; rke2Versions: null; k3sVersions: null; ... 47 more ...; infrastructureCluster: null; }>'.
-shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2322: Type '() => { credentialId: string; userChartValues: { 'rke2-calico': {}; 'rke2-ingress-nginx': { controller: { extraArgs: { 'enable-ssl-passthrough': boolean; 'watch-ingress-without-class': boolean; }; }; }; 'rke2-ingress-nginx-invalid': { ...; }; } | { ...; }; rke2Versions: { ...; }[]; }' is not assignable to type '() => Partial<{ loadedOnce: boolean; lastIdx: number; allPSAs: never[]; credentialId: string; credential: null; initialMachinePoolsValues: {}; machinePools: null; rke2Versions: null; k3sVersions: null; ... 47 more ...; infrastructureCluster: null; }>'.
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2339: Property 'dataDirectories' does not exist on type '{ etcd: { disableSnapshots: boolean; }; }'.
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: This expression is not callable.
 shell/edit/provisioning.cattle.io.cluster/__tests__/rke2.test.ts: error TS2349: This expression is not callable.
