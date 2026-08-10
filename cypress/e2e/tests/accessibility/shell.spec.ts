@@ -47,11 +47,12 @@ import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '@/cypress/e2
 // not be determined because it's outside the viewport". A short viewport on a dense list page
 // pushes real contrast results into the 'needs review' bucket. Scoped to this suite so every other
 // e2e spec keeps the default viewport.
-describe('Shell a11y testing', {
-  tags:           ['@adminUser', '@accessibility'],
-  viewportWidth:  1920,
-  viewportHeight: 1080,
-}, () => {
+//
+// Keep the config object on a single line. `scripts/check-e2e-tests-for-tags` parses spec files line
+// by line and only finds `tags:` if it sits on the same line as `describe(` - splitting this across
+// lines makes the PR gate report every test in the suite as untagged.
+// eslint-disable-next-line object-curly-newline
+describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewportWidth: 1920, viewportHeight: 1080 }, () => {
   // Colour contrast results are only meaningful against a known palette, so pin the whole suite to
   // Prime branding in light mode instead of relying on the server/browser defaults. See #18621.
   let originalBrand = '';

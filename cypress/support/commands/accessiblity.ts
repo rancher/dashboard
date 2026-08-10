@@ -18,6 +18,11 @@ const MARKER_DIV_ID = 'a11y_violation_marker_cypress';
 type AxeResults = {
   violations: any[];
   incomplete: any[];
+  passes: any[];
+  inapplicable: any[];
+  // Every rule axe knows about, whether or not it produced a result. Lets us tell "the rule ran and
+  // found nothing" apart from "the rule never ran".
+  availableRules: string[];
 };
 
 /**
@@ -35,7 +40,10 @@ type AxeResults = {
  */
 function runAxe(context?: any): Cypress.Chainable<AxeResults> {
   return cy.window({ log: false }).then(LONG_TIMEOUT_OPT, (win: any) => {
-    return win.axe.run(context || win.document, {}) as Promise<AxeResults>;
+    return (win.axe.run(context || win.document, {}) as Promise<AxeResults>).then((results) => ({
+      ...results,
+      availableRules: win.axe.getRules().map((rule: any) => rule.ruleId),
+    }));
   });
 }
 
@@ -220,6 +228,26 @@ function reportIncomplete(incomplete: any[], description?: string) {
   cy.task('a11yIncomplete', { incomplete, titlePath: testPath });
 }
 
+/**
+ * Reduce a bucket to one row per rule.
+ *
+ * `passes` and `inapplicable` are recorded at rule level only. We want them so we can answer "did
+ * this rule actually run?" - a rule missing from all four buckets never executed, which is a very
+ * different problem from a rule that ran and found nothing. Keeping their per-node detail would grow
+ * `accessibility.json` by orders of magnitude without answering anything extra.
+ */
+function summariseRules(results: any[]) {
+  return results.map(({
+    id, help, impact, tags, nodes
+  }) => ({
+    id,
+    help,
+    impact: impact || null,
+    tags,
+    nodes:  nodes.length,
+  }));
+}
+
 function reportResults(results: AxeResults, description?: string) {
   if (results.violations.length) {
     getAccessibilityViolationsCallback(description)(results.violations);
@@ -228,6 +256,17 @@ function reportResults(results: AxeResults, description?: string) {
   if (results.incomplete.length) {
     reportIncomplete(results.incomplete, description);
   }
+
+  // Record which bucket every rule landed in for this check, so the run-level summary can show where
+  // each rule ended up across the whole suite.
+  cy.task('a11yRules', {
+    titlePath:      [...Cypress.currentTest.titlePath],
+    availableRules: results.availableRules,
+    violations:     summariseRules(results.violations),
+    incomplete:     summariseRules(results.incomplete),
+    passes:         summariseRules(results.passes),
+    inapplicable:   summariseRules(results.inapplicable),
+  });
 }
 
 /**
