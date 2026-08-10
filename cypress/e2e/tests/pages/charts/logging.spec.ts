@@ -144,7 +144,7 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
 
       // The installed-apps list intermittently loads empty even though the app is installed. Wait
       // for the list fetch (getCharts) to actually contain the logging app; if it does not,
-      // re-navigate to force a fresh fetch. Re-navigating - unlike cy.reload() - does not abort an
+      // re-navigate to force a fresh fetch. Re-navigating - unlike cy.reload - does not abort an
       // in-flight request, which previously left a retry failing early on an undefined response.
       // Tolerate an undefined/aborted response by treating it as "not present yet".
       const waitForInstalledLoggingApp = (attempt = 0): void => {
