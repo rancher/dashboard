@@ -522,14 +522,27 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForPage();
 
+    // Retry-independence: a prior attempt can install uk-locale and then fail later, leaving it on
+    // the Installed tab so this attempt can no longer find it on Available to install. Uninstall it
+    // first (idempotent - a no-op when it is not installed), then re-open a clean Extensions page
+    // (the helper leaves the extension details view open).
+    uninstallExtensionIdempotently(extensionsPo, UNAUTHENTICATED_EXTENSION_NAME);
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
+
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.loading().should('not.exist');
 
     // Install unauthenticated extension
+    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=install`).as('installUnauthenticated');
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.installModal().checkVisible();
     extensionsPo.installModal().installButton().click();
+    // Wait for the install request to be accepted before reloading. Reloading while the install is
+    // still in flight leaves the Extensions page stuck on "Loading..." - the other install tests in
+    // this spec all wait here too.
+    cy.wait('@installUnauthenticated', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('be.oneOf', [200, 201]);
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
