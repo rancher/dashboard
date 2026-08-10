@@ -1,11 +1,10 @@
 /**
  * Strips sensitive infrastructure URLs from text before it is sent to external
- * services (AI API, GitHub issues). Replaces Rancher instance hostnames with a
- * placeholder so internal URLs are not exposed in public repositories.
+ * services (AI API, GitHub issues). Replaces only the Rancher instance hostname
+ * with a placeholder, preserving the path for debugging purposes.
  *
- * Patterns scrubbed:
- *   - https://jnkui-<hash>-rancher.qa.rancher.space/...
- *   - Any https?:// URL containing .qa.rancher.space or .rancher.space
+ * e.g. https://jnkui-abc-123/v1/fleet.cattle.io.gitrepos
+ *   →  https://hostname/v1/fleet.cattle.io.gitrepos
  *
  * @param {string} text
  * @returns {string}
@@ -14,8 +13,8 @@ export function sanitizeText(text) {
   if (!text) return text;
 
   return text
-    .replace(/https?:\/\/[^\s"'<>)]+\.rancher\.space[^\s"'<>)]*/g, '[RANCHER_URL]')
-    .replace(/https?:\/\/[^\s"'<>)]+\.rancher\.qa[^\s"'<>)]*/g, '[RANCHER_URL]');
+    .replace(/https?:\/\/[^\s"'<>)/]+\.rancher\.space/g, 'https://hostname')
+    .replace(/https?:\/\/[^\s"'<>)/]+\.rancher\.qa/g, 'https://hostname');
 }
 
 /**
