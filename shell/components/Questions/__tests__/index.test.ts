@@ -156,4 +156,60 @@ describe('component: Questions', () => {
       });
     });
   });
+
+  describe('method: shouldShow', () => {
+    it.each([
+      // Happy path for single conditions
+      ['foo=bar', { foo: 'bar' }, true],
+      ['foo=bar', { foo: 'baz' }, false],
+      ['foo!=bar', { foo: 'baz' }, true],
+      ['foo=true', { foo: true }, true],
+      ['foo=false', { foo: false }, true],
+      ['foo=', { foo: null }, true],
+      ['foo!=', { foo: 'bar' }, true],
+
+      // Unary logical NOT operator '!'
+      ['!(foo=bar)', { foo: 'baz' }, true],
+      ['!(foo=bar)', { foo: 'bar' }, false],
+      ['!foo', { foo: true }, false],
+      ['!foo', { foo: false }, true],
+
+      // Flat multi-conditions
+      ['foo=bar&&baz=qux', { foo: 'bar', baz: 'qux' }, true],
+      ['foo=bar&&baz=qux', { foo: 'bar', baz: 'not-qux' }, false],
+      ['foo=bar||baz=qux', { foo: 'bar', baz: 'not-qux' }, true],
+
+      // Complex nested expressions with parentheses
+      ['(foo=bar || baz=qux) && target=test', {
+        foo: 'bar', baz: 'not-qux', target: 'test'
+      }, true],
+      ['(foo=bar || baz=qux) && target=test', {
+        foo: 'not-bar', baz: 'not-qux', target: 'test'
+      }, false],
+      ['(foo=bar || baz=qux) && target=test', {
+        foo: 'not-bar', baz: 'qux', target: 'test'
+      }, true],
+      ['(foo=bar || baz=qux) && target=test', {
+        foo: 'bar', baz: 'not-qux', target: 'not-test'
+      }, false],
+
+      // Spacing and whitespace robustness variations
+      ['(foo=bar||baz=qux)&&target=test', {
+        foo: 'bar', baz: 'not-qux', target: 'test'
+      }, true],
+      ['(  foo=bar   ||   baz=qux  )   &&   target=test', {
+        foo: 'bar', baz: 'not-qux', target: 'test'
+      }, true],
+    ])('should correctly evaluate show_if condition "%s" with values %j to %s', (showIf, values, expected) => {
+      const wrapper = shallowMount(Questions, {
+        props:  defaultProps,
+        global: { mocks: defaultMocks },
+      });
+
+      const question = { show_if: showIf };
+      const result = wrapper.vm.shouldShow(question, values);
+
+      expect(result).toBe(expected);
+    });
+  });
 });

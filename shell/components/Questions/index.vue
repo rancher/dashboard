@@ -71,44 +71,82 @@ export function schemaToQuestions(fields) {
   return out;
 }
 
+/**
+ * Migrates a legacy/Ember-style `show_if` expression to a modern, valid Jexl expression.
+ *
+ * In legacy Helm charts, `show_if` is specified as simple equations without quotes,
+ * like "parent.variable=false" or "a=foo&&b=bar". Jexl requires correct quotes and
+ * comparison operators (e.g. `parent.variable == false`).
+ *
+ * To support complex nested conditions (e.g., "(a=true || b=true) && c=true"), this function
+ * tokenizes the string on logical boundaries while preserving parentheses and operators,
+ * migrating only the leaf atomic sub-expressions.
+ */
 function migrate(expr) {
+  if (typeof expr !== 'string') {
+    return expr;
+  }
+
+  // Tokenize the expression by logical operators (&&, ||), parentheses ( ( , ) ) and unary NOT (!).
+  // Note: we use a negative lookahead `!(?!=)` to match prefix `!` but leave `!=` comparison operators intact.
+  const tokens = expr.split(/(&&|\|\||\(|\)|!(?!=))/);
+  const migratedTokens = tokens.map((token) => {
+    const trimmed = token.trim();
+
+    // If the token is empty (e.g., spacing/delimiters), return as-is to preserve layout.
+    if (!trimmed) {
+      return token;
+    }
+
+    // Keep logical operators, parentheses, and unary NOT operators as-is.
+    const isLogicalOrBoundary = ['&&', '||', '(', ')', '!'].includes(trimmed);
+
+    if (isLogicalOrBoundary) {
+      return token;
+    }
+
+    // Process and migrate actual comparison terms or variable identifiers.
+    return migrateAtomic(trimmed);
+  });
+
+  return migratedTokens.join('');
+}
+
+/**
+ * Migrates a single atomic comparison or variable expression to a valid Jexl format.
+ * E.g.: "foo=bar" -> "foo == 'bar'", "foo=" -> "!foo"
+ */
+function migrateAtomic(expr) {
   let out;
+  const parts = expr.match(/^(.*)(!?=)(.*)$/);
 
-  if ( expr.includes('||') ) {
-    out = expr.split('||').map((x) => migrate(x)).join(' || ');
-  } else if ( expr.includes('&&') ) {
-    out = expr.split('&&').map((x) => migrate(x)).join(' && ');
-  } else {
-    const parts = expr.match(/^(.*)(!?=)(.*)$/);
+  if ( parts ) {
+    const key = parts[1].trim();
+    const op = parts[2].trim() === '!=' ? '!=' : '==';
+    const val = parts[3].trim();
 
-    if ( parts ) {
-      const key = parts[1].trim();
-      const op = parts[2].trim() === '!=' ? '!=' : '==';
-      const val = parts[3].trim();
-
-      if ( val === 'true' || val === 'false' || val === 'null' ) {
-        out = `${ key } ${ op } ${ val }`;
-      } else if ( val === '' ) {
-        // Existing charts expect `foo=` with `{foo: null}` to be true.
-        if ( op === '!=' ) {
-          out = `!!${ key }`;
-        } else {
-          out = `!${ key }`;
-        }
-        // out = `${ op === '!' ? '!' : '' }(${ key } == "" || ${ key } == null)`;
+    if ( val === 'true' || val === 'false' || val === 'null' ) {
+      out = `${ key } ${ op } ${ val }`;
+    } else if ( val === '' ) {
+      // Existing charts expect `foo=` with `{foo: null}` to be true.
+      if ( op === '!=' ) {
+        out = `!!${ key }`;
       } else {
-        out = `${ key } ${ op } "${ val }"`;
+        out = `!${ key }`;
       }
+      // out = `${ op === '!' ? '!' : '' }(${ key } == "" || ${ key } == null)`;
     } else {
-      try {
-        Jexl.compile(expr);
+      out = `${ key } ${ op } "${ val }"`;
+    }
+  } else {
+    try {
+      Jexl.compile(expr);
 
-        out = expr;
-      } catch (e) {
-        console.error('Error migrating expression:', expr); // eslint-disable-line no-console
+      out = expr;
+    } catch (e) {
+      console.error('Error migrating expression:', expr); // eslint-disable-line no-console
 
-        out = 'true';
-      }
+      out = 'true';
     }
   }
 
