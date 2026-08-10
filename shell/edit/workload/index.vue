@@ -44,7 +44,7 @@ export default {
     serviceOptions() {
       const noneOption = {
         label: this.t('generic.none'),
-        value: null
+        value: ''
       };
 
       const services = this.headlessServices.map((service) => ({
@@ -58,7 +58,7 @@ export default {
     },
     optionalServiceName: {
       get() {
-        return this.spec.serviceName ?? undefined;
+        return this.spec.serviceName || '';
       },
       set(value) {
         if (!value) {
