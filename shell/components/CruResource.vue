@@ -687,6 +687,8 @@ export default {
         v-if="hasErrors"
         id="cru-errors"
         class="cru__errors"
+        role="alert"
+        aria-live="assertive"
       >
         <Banner
           v-for="(err, i) in errors"

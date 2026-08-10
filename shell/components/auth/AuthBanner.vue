@@ -59,6 +59,7 @@ export default {
     <Banner
       color="success clearfix"
       class="banner"
+      role="status"
     >
       <div class="text">
         {{ t('authConfig.stateBanner.enabled', tArgs) }}

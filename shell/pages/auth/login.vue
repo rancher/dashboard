@@ -381,6 +381,9 @@ export default {
           class="login-messages"
           data-testid="login__messages"
           :class="{'login-messages--hasContent': hasLoginMessage}"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
         >
           <Banner
             v-if="errorToDisplay"
