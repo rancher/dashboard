@@ -156,4 +156,169 @@ describe('component: Questions', () => {
       });
     });
   });
+
+  describe('watch: shownQuestions', () => {
+    it('should remove values of questions that transition from shown to hidden', async() => {
+      const questions = [
+        { variable: 'parent', type: 'boolean' },
+        { variable: 'child', show_if: 'parent=true' }
+      ];
+      const value = {
+        parent: true,
+        child:  'some-value'
+      };
+      const wrapper = shallowMount(Questions, {
+        props: {
+          ...defaultProps, source: { questions: { questions } }, value
+        },
+        global: { mocks: defaultMocks },
+      });
+
+      // Initially, child is shown
+      expect(wrapper.vm.shownQuestions).toHaveLength(2);
+      expect(wrapper.vm.shownQuestions[0].variable).toBe('parent');
+      expect(wrapper.vm.shownQuestions[1].variable).toBe('child');
+      expect(value.child).toBe('some-value');
+
+      // Now set parent to false to hide child question
+      wrapper.setProps({
+        value: {
+          parent: false,
+          child:  'some-value'
+        }
+      });
+      await wrapper.vm.$nextTick();
+
+      // The child's value should have been deleted/removed from value
+      expect(wrapper.vm.shownQuestions).toHaveLength(1);
+      expect(wrapper.vm.shownQuestions[0].variable).toBe('parent');
+      expect(wrapper.vm.value.child).toBeUndefined();
+    });
+
+    it('should remove nested values of questions that transition from shown to hidden', async() => {
+      const questions = [
+        { variable: 'parent', type: 'boolean' },
+        { variable: 'nested.child', show_if: 'parent=true' }
+      ];
+      const value = {
+        parent: true,
+        nested: { child: 'some-nested-value' }
+      };
+      const wrapper = shallowMount(Questions, {
+        props: {
+          ...defaultProps, source: { questions: { questions } }, value
+        },
+        global: { mocks: defaultMocks },
+      });
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(2);
+      expect(wrapper.vm.shownQuestions[1].variable).toBe('nested.child');
+      expect(wrapper.vm.value.nested.child).toBe('some-nested-value');
+
+      wrapper.setProps({
+        value: {
+          parent: false,
+          nested: { child: 'some-nested-value' }
+        }
+      });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(1);
+      expect(wrapper.vm.value.nested.child).toBeUndefined();
+    });
+
+    it('should restore default values of questions that transition from shown to hidden if default exists in source.values', async() => {
+      const questions = [
+        { variable: 'parent', type: 'boolean' },
+        { variable: 'ingress.path', show_if: 'parent=true' }
+      ];
+      const source = {
+        values: {
+          parent:  true,
+          ingress: { path: '/' }
+        },
+        questions: { questions }
+      };
+      const value = {
+        parent:  true,
+        ingress: { path: '/api' }
+      };
+      const wrapper = shallowMount(Questions, {
+        props: {
+          ...defaultProps, source, value
+        },
+        global: { mocks: defaultMocks },
+      });
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(2);
+      expect(wrapper.vm.value.ingress.path).toBe('/api');
+
+      wrapper.setProps({
+        value: {
+          parent:  false,
+          ingress: { path: '/api' }
+        }
+      });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(1);
+      expect(wrapper.vm.value.ingress.path).toBe('/');
+    });
+
+    it('should restore falsy default values of questions that transition from shown to hidden if default exists in source.values', async() => {
+      const questions = [
+        { variable: 'parent', type: 'boolean' },
+        { variable: 'ingress.enabled', show_if: 'parent=true' },
+        { variable: 'ingress.limit', show_if: 'parent=true' },
+        { variable: 'ingress.path', show_if: 'parent=true' }
+      ];
+      const source = {
+        values: {
+          parent:  true,
+          ingress: {
+            enabled: false,
+            limit:   0,
+            path:    ''
+          }
+        },
+        questions: { questions }
+      };
+      const value = {
+        parent:  true,
+        ingress: {
+          enabled: true,
+          limit:   10,
+          path:    '/api'
+        }
+      };
+      const wrapper = shallowMount(Questions, {
+        props: {
+          ...defaultProps, source, value
+        },
+        global: { mocks: defaultMocks },
+      });
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(4);
+      expect(wrapper.vm.value.ingress.enabled).toBe(true);
+      expect(wrapper.vm.value.ingress.limit).toBe(10);
+      expect(wrapper.vm.value.ingress.path).toBe('/api');
+
+      wrapper.setProps({
+        value: {
+          parent:  false,
+          ingress: {
+            enabled: true,
+            limit:   10,
+            path:    '/api'
+          }
+        }
+      });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(1);
+      expect(wrapper.vm.value.ingress.enabled).toBe(false);
+      expect(wrapper.vm.value.ingress.limit).toBe(0);
+      expect(wrapper.vm.value.ingress.path).toBe('');
+    });
+  });
 });

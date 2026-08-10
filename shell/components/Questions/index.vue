@@ -1,7 +1,7 @@
 <script>
 import Jexl from 'jexl';
 import Tab from '@shell/components/Tabbed/Tab';
-import { get, set } from '@shell/utils/object';
+import { get, set, remove } from '@shell/utils/object';
 import { sortBy, camelCase } from 'lodash';
 import { _EDIT } from '@shell/config/query-params';
 import StringType from './String';
@@ -286,6 +286,31 @@ export default {
       handler() {
         this.valueGeneration++;
       },
+    },
+
+    shownQuestions(neu, old) {
+      if (old?.length) {
+        const neuVars = (neu || []).map((q) => q.variable).filter(Boolean);
+        const oldVars = (old || []).map((q) => q.variable).filter(Boolean);
+
+        for (const variable of oldVars) {
+          // If a question was previously visible but is now hidden (e.g. toggled off)
+          if (!neuVars.includes(variable)) {
+            const defaultValue = this.source?.values ? get(this.source.values, variable) : undefined;
+
+            if (defaultValue !== undefined) {
+              // If the variable existed in the default values.yaml of the chart,
+              // restore it to its original default value rather than deleting it.
+              // This prevents the diff utility from treating it as a deletion (null).
+              set(this.value, variable, defaultValue);
+            } else {
+              // If the variable did not exist in the default values.yaml (dynamic subquestion),
+              // remove it completely so it won't show up in the custom values diff.
+              remove(this.value, variable);
+            }
+          }
+        }
+      }
     }
   },
 
