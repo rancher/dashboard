@@ -146,6 +146,20 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     cy.login();
     HomePagePo.goTo();
+
+    // Wait for the home page to fully settle before any test navigates into a cluster detail.
+    // The home page fires the same provisioning/management cluster GETs the tests wait on; if we
+    // navigate away before they complete, the store is left half-loaded and the detail page's
+    // tabbed component fails to mount (the blank screen we see). Waiting here also *consumes* the
+    // home page's occurrence of these aliases, so each test's later
+    // cy.wait('@provClustersGet')/cy.wait('@mgmtClustersGet') correctly gates on the cluster LIST's
+    // request instead of resolving instantly against the home page's already-finished one.
+    const homePage = new HomePagePo();
+
+    homePage.waitForPage();
+    homePage.list().checkVisible(MEDIUM_TIMEOUT_OPT);
+    cy.wait('@provClustersGet');
+    cy.wait('@mgmtClustersGet');
   });
 
   it('should show a node pool tab in AKS cluster details', () => {
