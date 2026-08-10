@@ -228,44 +228,29 @@ function reportIncomplete(incomplete: any[], description?: string) {
   cy.task('a11yIncomplete', { incomplete, titlePath: testPath });
 }
 
-/**
- * Reduce a bucket to one row per rule.
- *
- * `passes` and `inapplicable` are recorded at rule level only. We want them so we can answer "did
- * this rule actually run?" - a rule missing from all four buckets never executed, which is a very
- * different problem from a rule that ran and found nothing. Keeping their per-node detail would grow
- * `accessibility.json` by orders of magnitude without answering anything extra.
- */
-function summariseRules(results: any[]) {
-  return results.map(({
-    id, help, impact, tags, nodes
-  }) => ({
-    id,
-    help,
-    impact: impact || null,
-    tags,
-    nodes:  nodes.length,
-  }));
-}
-
 function reportResults(results: AxeResults, description?: string) {
-  if (results.violations.length) {
-    getAccessibilityViolationsCallback(description)(results.violations);
+  const violations = Array.isArray(results?.violations) ? results.violations : [];
+  const incomplete = Array.isArray(results?.incomplete) ? results.incomplete : [];
+
+  if (violations.length) {
+    getAccessibilityViolationsCallback(description)(violations);
   }
 
-  if (results.incomplete.length) {
-    reportIncomplete(results.incomplete, description);
+  if (incomplete.length) {
+    reportIncomplete(incomplete, description);
   }
 
-  // Record which bucket every rule landed in for this check, so the run-level summary can show where
-  // each rule ended up across the whole suite.
-  cy.task('a11yRules', {
+  // Hand every bucket to the plugin. The two paths above own their own reporting (screenshots, DOM
+  // marking, the per-test tree); this is what feeds the run-level rule summary and the `passes` and
+  // `inapplicable` reports. The plugin does the summarising so all four buckets are treated the same
+  // way in one place.
+  cy.task('a11yResults', {
     titlePath:      [...Cypress.currentTest.titlePath],
-    availableRules: results.availableRules,
-    violations:     summariseRules(results.violations),
-    incomplete:     summariseRules(results.incomplete),
-    passes:         summariseRules(results.passes),
-    inapplicable:   summariseRules(results.inapplicable),
+    availableRules: results?.availableRules,
+    violations,
+    incomplete,
+    passes:         results?.passes,
+    inapplicable:   results?.inapplicable,
   });
 }
 
