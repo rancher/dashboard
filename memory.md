@@ -57,6 +57,7 @@
 - encryption.ts: polyfill `globalThis.crypto` from `import { webcrypto } from 'crypto'` in `beforeAll` — jsdom has no Web Crypto API; Node 24 does
 - encryption.ts: use real crypto (not mocked); tamper tests verify AES-GCM authentication tag rejection
 
+- focusTrap.ts: mock `focus-trap` (`createFocusTrap`); use `jest.useFakeTimers()` for `setTimeout` in watcher composable; flush 3x `nextTick` before `jest.runAllTimers()` to drive watcher→nextTick→nextTick→setTimeout chain
 - useUserRetentionValidation.ts: mock `@shell/composables/useI18n` and `vuex`; `parseDuration` regex `^(\d+)h|(\d+)m|(\d+)s$` uses alternation (not fully anchored), so `6h30m` matches `6h`; split it.each into separate pass/fail blocks to satisfy jest/no-conditional-expect
 
 ## Testing Backlog (Prioritized)
@@ -65,11 +66,11 @@
 2. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
 3. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad`
 4. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
-5. `shell/composables/useStateColor.ts` — API-dependent; needs vuex store mocking for dispatch/getters
-6. `shell/composables/focusTrap.ts` — lifecycle hooks wrapping focus-trap library; needs mount-based testing
+5. `shell/composables/focusTrap.ts` — ✅ Done (2026-08-10)
 
 ## Completed Work (Summary)
 
+- 2026-08-10: PR (test-assist/focus-trap-composable-tests): 19 new tests for focusTrap.ts — getFirstFocusableElement, useBasicSetupFocusTrap lifecycle, useWatcherBasedSetupFocusTrapWithDestroyIncluded; 0%→100% all metrics.
 - 2026-08-07: PR (test-assist/use-interval-composable-tests): 6 new tests for useInterval.ts — lifecycle mount/unmount, delay accuracy, multiple instances; 0%→100% all metrics.
 - 2026-08-06: PR (test-assist/encryption-utils-tests): 14 new tests for encryption.ts
 - 2026-08-05: PR (test-assist/user-retention-validation-tests): 27 new tests for useUserRetentionValidation.ts — cron validation, duration format validation, 336h minimum enforcement, session TTL comparison; 0%→97.4% stmts, 89.5% branches, 100% fns
@@ -98,6 +99,7 @@
 
 ## Task Round-Robin History
 
+- 2026-08-10: Task 3 (focusTrap.ts, 19 tests, 0%→100%) + Task 7
 - 2026-08-07: Task 3 (useInterval.ts, 6 tests) + Task 7
 - 2026-08-06: Task 3 (encryption.ts, 14 tests) + Task 7
 - 2026-08-05: Task 3 (useUserRetentionValidation.ts, 27 tests) + Task 7 (new month: created August issue #aw_aug2026)
@@ -125,7 +127,7 @@
 
 - June 2026 issue: #17976 (closed)
 - July 2026 issue: #18236 (closed - new month)
-- August 2026 issue: #aw_aug2026c (created 2026-08-07; supersedes #aw_aug2026b from 2026-08-06)
+- August 2026 issue: #aw_aug2026d (created 2026-08-10; supersedes previous runs)
 
 ## Maintainer Priorities
 
