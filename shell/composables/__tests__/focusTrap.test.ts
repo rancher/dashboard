@@ -9,7 +9,7 @@ import {
 
 const mockActivate = jest.fn();
 const mockDeactivate = jest.fn();
-const mockCreateFocusTrap = jest.fn(() => ({
+const mockCreateFocusTrap = jest.fn((..._args: any[]) => ({
   activate:   mockActivate,
   deactivate: mockDeactivate,
 }));
