@@ -877,6 +877,70 @@ describe('topLevelMenu', () => {
       });
     });
 
+    describe('toggle button a11y attributes', () => {
+      const mountToggleButton = (shownState = false) => {
+        return mount(TopLevelMenu, {
+          data:   () => ({ shown: shownState }),
+          global: {
+            mocks: {
+              $route: {},
+              $store: { ...generateStore([]) },
+            },
+            stubs: ['BrandImage', 'router-link'],
+          },
+        });
+      };
+
+      it('should use "expandAppBar" translation key as aria-label when menu is collapsed', () => {
+        const wrapper = mountToggleButton(false);
+
+        expect(wrapper.find('[data-testid="top-level-menu"]').attributes('aria-label')).toStrictEqual('%nav.expandAppBar%');
+      });
+
+      it('should use "collapseAppBar" translation key as aria-label when menu is expanded', () => {
+        const wrapper = mountToggleButton(true);
+
+        expect(wrapper.find('[data-testid="top-level-menu"]').attributes('aria-label')).toStrictEqual('%nav.collapseAppBar%');
+      });
+
+      it('should update aria-label reactively when shown state changes', async() => {
+        const wrapper = mountToggleButton(false);
+        const button = wrapper.find('[data-testid="top-level-menu"]');
+
+        expect(button.attributes('aria-label')).toStrictEqual('%nav.expandAppBar%');
+
+        await wrapper.setData({ shown: true });
+
+        expect(button.attributes('aria-label')).toStrictEqual('%nav.collapseAppBar%');
+      });
+
+      it('should expose aria-expanded false and point aria-controls at the menu body when collapsed', () => {
+        const wrapper = mountToggleButton(false);
+        const button = wrapper.find('[data-testid="top-level-menu"]');
+
+        expect(button.attributes('aria-expanded')).toStrictEqual('false');
+        expect(button.attributes('aria-controls')).toStrictEqual('top-level-menu-body');
+        expect(wrapper.find('#top-level-menu-body').exists()).toBe(true);
+      });
+
+      it('should expose aria-expanded true when the menu is expanded', () => {
+        const wrapper = mountToggleButton(true);
+
+        expect(wrapper.find('[data-testid="top-level-menu"]').attributes('aria-expanded')).toStrictEqual('true');
+      });
+
+      it('should update aria-expanded reactively when shown state changes', async() => {
+        const wrapper = mountToggleButton(false);
+        const button = wrapper.find('[data-testid="top-level-menu"]');
+
+        expect(button.attributes('aria-expanded')).toStrictEqual('false');
+
+        await wrapper.setData({ shown: true });
+
+        expect(button.attributes('aria-expanded')).toStrictEqual('true');
+      });
+    });
+
     describe('clusterMenuClick', () => {
       it('should navigate normally on non-explorer c-cluster route even with routeCombo set', async() => {
         const mockPush = jest.fn();
