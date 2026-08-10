@@ -19,10 +19,10 @@ describe('component: Masthead/index', () => {
       resourceName:      'test-resource'
     },
     metadataProps: {
-      resource:                mockResource,
-      identifyingInformation:  [],
-      labels:                  [],
-      annotations:             []
+      resource:               mockResource,
+      identifyingInformation: [],
+      labels:                 [],
+      annotations:            []
     }
   };
 
@@ -77,10 +77,10 @@ describe('component: Masthead/index', () => {
       props: {
         titleBarProps: undefined,
         metadataProps: {
-          resource:                mockResource,
-          identifyingInformation:  [],
-          labels:                  [],
-          annotations:             []
+          resource:               mockResource,
+          identifyingInformation: [],
+          labels:                 [],
+          annotations:            []
         }
       },
       global: globalStubs

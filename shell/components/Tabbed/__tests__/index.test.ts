@@ -25,7 +25,7 @@ describe('component: Tabbed', () => {
 
   it('should display tab navigation for a single tab when hideSingleTab is false (default)', async() => {
     const wrapper = mount(Tabbed, {
-      slots: { default: () => h(Tab, { name: 'tab1', label: 'Tab 1' }) },
+      slots:  { default: () => h(Tab, { name: 'tab1', label: 'Tab 1' }) },
       global: { ...defaultGlobalMountOptions },
     });
 
@@ -52,8 +52,8 @@ describe('component: Tabbed', () => {
 
   it('should NOT display tab navigation for a single tab when hideSingleTab is true', async() => {
     const wrapper = mount(Tabbed, {
-      props: { hideSingleTab: true },
-      slots: { default: () => h(Tab, { name: 'tab1', label: 'Tab 1' }) },
+      props:  { hideSingleTab: true },
+      slots:  { default: () => h(Tab, { name: 'tab1', label: 'Tab 1' }) },
       global: { ...defaultGlobalMountOptions },
     });
 

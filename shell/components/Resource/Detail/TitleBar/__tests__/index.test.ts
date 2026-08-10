@@ -13,7 +13,7 @@ describe('component: TitleBar/index', () => {
   it('should render container with class title-bar', async() => {
     const wrapper = mount(TitleBar, {
       props: {
-        resource:          {},
+        resource: {},
         resourceTypeLabel,
         resourceName
       },
@@ -39,9 +39,9 @@ describe('component: TitleBar/index', () => {
 
   it('should render type label as text when resourceTo is not provided', async() => {
     const wrapper = mount(TitleBar, {
-      props:  {
- resource: {}, resourceTypeLabel, resourceName
-},
+      props: {
+        resource: {}, resourceTypeLabel, resourceName
+      },
       global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
     });
 
@@ -52,9 +52,9 @@ describe('component: TitleBar/index', () => {
 
   it('should render resourceName', async() => {
     const wrapper = mount(TitleBar, {
-      props:  {
- resource: {}, resourceTypeLabel, resourceName
-},
+      props: {
+        resource: {}, resourceTypeLabel, resourceName
+      },
       global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
     });
 
@@ -65,9 +65,9 @@ describe('component: TitleBar/index', () => {
 
   it('should hide the ShowConfiguration button if onShowConfiguration is not defined', async() => {
     const wrapper = mount(TitleBar, {
-      props:  {
- resource: {}, resourceTypeLabel, resourceName
-},
+      props: {
+        resource: {}, resourceTypeLabel, resourceName
+      },
       global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
     });
 
@@ -93,9 +93,9 @@ describe('component: TitleBar/index', () => {
 
   it('should hide ActionMenu if actionMenuResource is not defined', async() => {
     const wrapper = mount(TitleBar, {
-      props:  {
- resource: {}, resourceTypeLabel, resourceName
-},
+      props: {
+        resource: {}, resourceTypeLabel, resourceName
+      },
       global: { stubs: { 'router-link': RouterLinkStub, ActionMenu }, provide: { store } }
     });
 
@@ -124,7 +124,7 @@ describe('component: TitleBar/index', () => {
   it('should hide the description element if description is not passed', async() => {
     const wrapper = mount(TitleBar, {
       props: {
-        resource:          {},
+        resource: {},
         resourceTypeLabel,
         resourceName
       },
@@ -138,7 +138,7 @@ describe('component: TitleBar/index', () => {
     const description = 'DESCRIPTION';
     const wrapper = mount(TitleBar, {
       props: {
-        resource:          {},
+        resource: {},
         resourceTypeLabel,
         resourceName,
         description
@@ -153,9 +153,9 @@ describe('component: TitleBar/index', () => {
   describe('additionalActions', () => {
     it('should not render additional action buttons when additionalActions is not provided', async() => {
       const wrapper = mount(TitleBar, {
-        props:  {
- resource: {}, resourceTypeLabel, resourceName
-},
+        props: {
+          resource: {}, resourceTypeLabel, resourceName
+        },
         global: { stubs: { 'router-link': RouterLinkStub, RcButton: true }, provide: { store } }
       });
 
@@ -256,9 +256,9 @@ describe('component: TitleBar/index', () => {
 
     it('should render the actions container correctly when additional-actions slot contains nested buttons', async() => {
       const wrapper = mount(TitleBar, {
-        props:  {
- resource: {}, resourceTypeLabel, resourceName
-},
+        props: {
+          resource: {}, resourceTypeLabel, resourceName
+        },
         slots:  { 'additional-actions': '<div class="btn-group"><button class="nested-btn">A</button><button class="nested-btn">B</button></div>' },
         global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
       });
