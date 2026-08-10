@@ -4,6 +4,35 @@ import { provisioningClusters, managementClusters, nodes, namespaces } from '@/c
 import ClusterManagerDetailHostedPagePo from '~/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-hosted.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
+// The tabbed component on a hosted cluster detail page intermittently fails to render after an
+// in-app navigation (it never appears in that page load). Rather than reload the page (which we
+// avoid), navigate from the cluster list and, if the tabs did not render, go back to the list and
+// try again a few times - the failure is intermittent, so a fresh navigation usually succeeds.
+//
+// Click the <a> link itself, not the surrounding cell: name() yields the <td> (column(2)) and
+// Cypress clicks an element's centre - in a column wider than the cluster name that centre lands on
+// cell padding beside the <a>, so the click silently does not navigate and waitForPage times out.
+const openHostedClusterDetail = (
+  clusterList: ClusterManagerListPagePo,
+  clusterName: string,
+  detailsPage: ClusterManagerDetailHostedPagePo,
+  attempt = 0
+) => {
+  clusterList.list().name(clusterName).find('a').should('be.visible')
+    .click();
+  detailsPage.waitForPage();
+  // Wait for the masthead so the detail page has rendered before deciding whether the tabs are
+  // present (the title renders even when the tabbed component does not).
+  detailsPage.title().should('be.visible');
+  cy.get('.dashboard-root').then(($root) => {
+    if ($root.find('[data-testid="tabbed"]').length === 0 && attempt < 4) {
+      ClusterManagerListPagePo.navTo();
+      clusterList.waitForPage();
+      openHostedClusterDetail(clusterList, clusterName, detailsPage, attempt + 1);
+    }
+  });
+};
+
 describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
   // ids from hosted-cluster-mocks
   const AKS_CLUSTER = 'c-9zj2b';
@@ -153,13 +182,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('eks-mock-cluster').find('a').should('be.visible')
-      .click();
-    eksDetailsPage.waitForPage();
-    // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
-    // is not enough - it never appears in that page load), so reload to force a fresh render.
-    cy.reload();
-    eksDetailsPage.waitForPage();
+    openHostedClusterDetail(clusterList, 'eks-mock-cluster', eksDetailsPage);
     eksDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
     eksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
 
@@ -199,13 +222,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('gke-mock-cluster').find('a').should('be.visible')
-      .click();
-    gkeDetailsPage.waitForPage();
-    // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
-    // is not enough - it never appears in that page load), so reload to force a fresh render.
-    cy.reload();
-    gkeDetailsPage.waitForPage();
+    openHostedClusterDetail(clusterList, 'gke-mock-cluster', gkeDetailsPage);
     gkeDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
     gkeDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
 
@@ -260,18 +277,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
       cy.wait('@provClustersGet');
       cy.wait('@mgmtClustersGet');
 
-      // Click the link itself, not the surrounding cell. `name()` yields the <td>
-      // (`column(2)`), and Cypress clicks an element's centre — in a column wider than the
-      // cluster name that centre lands on cell padding beside the <a> rendered by the
-      // ClusterLink formatter, so the click silently doesn't navigate and `waitForPage`
-      // below times out with the URL still on the list.
-      clusterList.list().name(name).find('a').should('be.visible')
-        .click();
-      hostedDetailsPage.waitForPage();
-      // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
-      // is not enough - it never appears in that page load), so reload to force a fresh render.
-      cy.reload();
-      hostedDetailsPage.waitForPage();
+      openHostedClusterDetail(clusterList, name, hostedDetailsPage);
       hostedDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
 
       hostedDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Autoscaler');
@@ -288,13 +294,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('imported-mock-cluster').find('a').should('be.visible')
-      .click();
-    importDetailsPage.waitForPage();
-    // The tabbed component intermittently fails to render after the SPA navigation (a plain wait
-    // is not enough - it never appears in that page load), so reload to force a fresh render.
-    cy.reload();
-    importDetailsPage.waitForPage();
+    openHostedClusterDetail(clusterList, 'imported-mock-cluster', importDetailsPage);
     importDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
     importDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Provisioning Log');
   });
