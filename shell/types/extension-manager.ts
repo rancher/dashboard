@@ -17,7 +17,7 @@ export type ExtensionManager = {
   removePlugin(name: string): Promise<void>;
   removeTypeFromStore(store: any, storeName: string, types: string[]): any[];
   applyPlugin(plugin: any): void;
-  register(type: string, name: string, fn: Function | String): void;
+  register(type: string, name: string, fn: Function | string): void;
   unregister(type: string, name: string, fn: Function): void;
   getAll(): ExtensionManagerTypes;
   getPlugins(): any;

@@ -437,7 +437,7 @@ export class Plugin implements IPlugin {
     await this._onLogOut(store);
   }
 
-  public register(type: string, name: string, fn: Function | String) {
+  public register(type: string, name: string, fn: Function | string) {
     const allowPaths = ['models', 'image'];
     const nparts = name.split('/');
 
