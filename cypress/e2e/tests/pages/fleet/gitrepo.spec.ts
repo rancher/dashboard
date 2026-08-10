@@ -41,21 +41,6 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
     });
   });
 
-  beforeEach(() => {
-    // One test below switches the UI language to zh-hans. With testIsolation off, a switch that is
-    // not fully reset leaves the language as Chinese for every later test AND every retry, so
-    // English labels render as unfindable CJK (the "????" boxes). Force the language back to
-    // English before each test so every attempt starts from a known state - resetting both the
-    // R_LOCALE cookie the app reads on load and the persisted preference.
-    //
-    // verify: true is essential here. setUserPreference without it fires the PUT but does not wait;
-    // if goTo() reloads the app before the change propagates, the app reads the stale (zh-hans)
-    // preference back from the server and overwrites the cookie. Waiting for the backend to confirm
-    // en-us makes the reset actually take effect on the next page load.
-    cy.setCookie('R_LOCALE', 'en-us');
-    cy.setUserPreference({ locale: 'en-us' }, true);
-  });
-
   describe('Create', () => {
     const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
@@ -68,6 +53,12 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
     });
 
     it('Can create a GitRepo', () => {
+      // Make this test retry-independent: with testIsolation off, a failed attempt leaves the
+      // gitrepo it created behind, so the retry's create fails with "... already exists" and never
+      // gets a real chance to pass. Delete it first if present (failOnStatusCode: false tolerates
+      // the not-found case on a clean first run).
+      cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', `${ workspace }/${ gitRepoCreateRequest.metadata.name }`, false);
+
       // generate a fake cluster that can be usable in fleet
       generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
 
@@ -79,11 +70,6 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       // Select the workspace from the list page before navigating to create.
       listPage.goTo();
       listPage.waitForPage();
-      // Do NOT cy.reload() here: this test set up generateFakeClusterDataAndIntercepts, whose
-      // fleet/provisioning/management cluster intercepts feed the header. A reload aborts those
-      // in-flight intercepted requests, and (before the intercepts were made defensive) the
-      // handlers threw on the empty response and never called res.send(), hanging the request and
-      // wedging the page so the workspace switcher never rendered.
       // Wait for the fleet list to finish loading before touching the header: while the list data
       // is still loading the page re-renders and the workspace switcher can detach mid-render, so a
       // default-timeout toggle click would fail to find it. Gate on the loaded list first, and give
@@ -185,52 +171,6 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
 
         expect(response.statusCode).to.eq(201);
         expect(request.body).to.deep.eq(gitRepoCreateRequest);
-
-        listPage.waitForPage();
-
-        const prefPage = new PreferencesPagePo();
-
-        // START TESTING https://github.com/rancher/dashboard/issues/9984
-        // change language to chinese
-        prefPage.goTo();
-        prefPage.languageDropdownMenu().checkVisible();
-        prefPage.languageDropdownMenu().toggle();
-        prefPage.languageDropdownMenu().isOpened();
-
-        cy.intercept({
-          method: 'PUT', url: 'v1/userpreferences/*', times: 1
-        }).as(`prefUpdateZhHans`);
-        prefPage.languageDropdownMenu().clickOption(2);
-        cy.wait('@prefUpdateZhHans').then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(response?.body.data).to.have.property('locale', 'zh-hans');
-        });
-        prefPage.languageDropdownMenu().isClosed();
-
-        listPage.goTo();
-        listPage.waitForPage();
-        headerPo.selectWorkspace(workspace);
-        listPage.list().resourceTable().checkVisible();
-        listPage.list().resourceTable().sortableTable()
-          .checkVisible();
-        listPage.list().resourceTable().sortableTable()
-          .checkLoadingIndicatorNotVisible();
-        listPage.list().resourceTable().sortableTable()
-          .noRowsShouldNotExist();
-
-        // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
-        listPage.goToDetailsPage('fleet-e2e-test-gitrepo');
-        gitRepoCreatePage.mastheadTitle().then((title) => {
-          expect(title.replace(/\s+/g, ' ')).to.contain('fleet-e2e-test-gitrepo');
-        });
-        // https://github.com/rancher/dashboard/issues/9984 reset lang back to EN. Resetting via the
-        // language dropdown was unreliable: the PUT sometimes never fired (leaving the UI in
-        // Chinese), and its own assertion noted the result "can sometimes be zh-hans". With
-        // testIsolation off that leftover Chinese poisoned every later test and retry. Cleanup
-        // (after() -> deleteRancherResource) is API-based, so the running UI does not need to be
-        // English; reset the locale preference directly and verify it lands, and let the next
-        // test's beforeEach reload the app into English.
-        cy.setUserPreference({ locale: 'en-us' }, true);
       });
     });
 
@@ -507,8 +447,60 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
     });
   });
 
+  describe('Details in a non-English locale (https://github.com/rancher/dashboard/issues/9984)', () => {
+    afterEach(() => {
+      // Always reset the locale back to English AFTER the UI switch, via the API. The backend
+      // preference persists across specs and runs, so a left-over Chinese locale would poison later
+      // tests. Doing this with no concurrent UI write in flight avoids the resourceVersion conflict
+      // that racing the app's own save produced ("preferences ... locale: the object has been
+      // modified" -> HTTP 500 -> fail-whale), which was the real cause of the create-test flakiness.
+      cy.setUserPreference({ locale: 'en-us' }, true);
+    });
+
+    it('loads the GitRepo details page when the UI language is Chinese', () => {
+      const prefPage = new PreferencesPagePo();
+      const gitRepoDetailsPage = new FleetGitRepoCreateEditPo();
+      const repoName = editRepoName as string;
+
+      // Switch the UI language to Chinese via the preferences page.
+      prefPage.goTo();
+      prefPage.languageDropdownMenu().checkVisible();
+      prefPage.languageDropdownMenu().toggle();
+      prefPage.languageDropdownMenu().isOpened();
+
+      cy.intercept({
+        method: 'PUT', url: 'v1/userpreferences/*', times: 1
+      }).as(`prefUpdateZhHans`);
+      prefPage.languageDropdownMenu().clickOption(2);
+      cy.wait('@prefUpdateZhHans').then(({ response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(response?.body.data).to.have.property('locale', 'zh-hans');
+      });
+      prefPage.languageDropdownMenu().isClosed();
+
+      // The list and details pages must render correctly under the non-English locale. All the
+      // selectors below key off data-testids / resource names, not translated text, so they work
+      // regardless of locale.
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+      listPage.list().resourceTable().checkVisible();
+      listPage.list().resourceTable().sortableTable()
+        .checkLoadingIndicatorNotVisible();
+      listPage.list().resourceTable().sortableTable()
+        .noRowsShouldNotExist();
+
+      listPage.goToDetailsPage(repoName);
+      gitRepoDetailsPage.mastheadTitle().then((title) => {
+        expect(title.replace(/\s+/g, ' ')).to.contain(repoName);
+      });
+    });
+  });
+
   after(() => {
-    reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r));
+    // De-duplicate: the retry-independent create test can register the same repo more than once
+    // across attempts. failOnStatusCode: false tolerates a repo that was already removed.
+    [...new Set(reposToDelete)].forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r, false));
   });
 });
 
