@@ -29,7 +29,16 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
 
     // giving it a small buffer so that the install is properly triggered
     cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting
-    terminal.closeTerminal();
+
+    // After install, Rancher opens a window-manager terminal (#horizontal-window-manager) with the
+    // Helm output, but its open/close timing varies and it can be absent (never opened, or already
+    // closed) by the time we look - closing it unconditionally flaked on '#horizontal-window-manager'
+    // not found. Close it only if it is actually open; a missing terminal just means nothing to close.
+    cy.get('body').then(($body) => {
+      if ($body.find('#horizontal-window-manager').length > 0) {
+        terminal.closeTerminal();
+      }
+    });
 
     installableParts.forEach((item:string) => {
       this.appsList().resourceTableDetails(item, 1).should('contain', 'Deployed');
