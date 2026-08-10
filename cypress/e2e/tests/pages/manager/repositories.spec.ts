@@ -359,12 +359,43 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
         }
 
         repositoriesPage.list().actionMenu(repoName).getMenuItem('Disable').click();
-        repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
+        // The 'Disabled' State badge is derived purely from spec.enabled === false
+        // (shell/models/catalog.cattle.io.clusterrepo.js), which is applied via a save + websocket
+        // round-trip; give it a longer timeout so a slow round-trip does not flake the assertion.
+        repositoriesPage.list().details(repoName, 1).contains('Disabled', MEDIUM_TIMEOUT_OPT).should('be.visible');
       });
     });
+
+    // Confirm the disable persisted at the API level, so tests that rely on this state (below) get a
+    // durable precondition rather than a transient badge that could revert.
+    cy.waitForRancherResource(
+      'v1',
+      'catalog.cattle.io.clusterrepos',
+      repoName,
+      (resp: Cypress.Response<any>) => resp?.body?.spec?.enabled === false,
+    );
   });
 
   it('refresh menu item is not displayed for disabled repository', () => {
+    // This test verifies the Refresh action is hidden for a disabled repo; it must not silently
+    // depend on the previous test having left it disabled (retry-independence). The 'Disabled' State
+    // badge is derived purely from spec.enabled === false, so guarantee that precondition via API and
+    // wait for the backend to reflect it before loading the list.
+    cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos', repoName).then((resp) => {
+      const repo = resp.body;
+
+      if (repo.spec?.enabled !== false) {
+        repo.spec = { ...repo.spec, enabled: false };
+        cy.setRancherResource('v1', 'catalog.cattle.io.clusterrepos', repoName, repo);
+      }
+    });
+    cy.waitForRancherResource(
+      'v1',
+      'catalog.cattle.io.clusterrepos',
+      repoName,
+      (resp: Cypress.Response<any>) => resp?.body?.spec?.enabled === false,
+    );
+
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     // After re-navigating to the list the state badge can take longer than the default
