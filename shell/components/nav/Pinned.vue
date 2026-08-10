@@ -33,7 +33,7 @@ export default {
 <template>
   <i
     :tabindex="tabOrder"
-    :aria-checked="!!pinned"
+    :aria-pressed="!!pinned"
     class="pin icon"
     :class="{'icon-pin-outlined': !pinned, 'icon-pin': pinned}"
     role="button"
