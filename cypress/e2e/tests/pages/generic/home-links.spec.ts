@@ -5,6 +5,21 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 describe('Home Page Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   const homePage = new HomePagePo();
 
+  before(() => {
+    // The external SUSE / Rancher Prime pages load a third-party telemetry pixel (cdn.vector.co) that
+    // asynchronously throws "No visitor ID available. Load may have failed." - often LATE, in the
+    // after-all hook, after the per-test catchTargetPageException (cy.on) handler's scope has ended,
+    // and Cypress does not retry hook failures. Register a spec-wide global handler so these known
+    // third-party errors never fail this spec's hooks; only the known messages are swallowed.
+    Cypress.on('uncaught:exception', (err) => {
+      if (RANCHER_PAGE_EXCEPTIONS.some((m) => (err?.message || '').includes(m))) {
+        return false;
+      }
+
+      return undefined;
+    });
+  });
+
   // Click the support links and verify user lands on the correct page
   beforeEach(() => {
     cy.login();

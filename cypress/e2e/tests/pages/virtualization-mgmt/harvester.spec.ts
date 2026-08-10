@@ -169,6 +169,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       extensionsPo.goTo();
       extensionsPo.waitForTabs();
+      // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
+      // that is #installed, not #available - so explicitly switch to the Available tab before waiting
+      // for it, instead of assuming the URL hash is already #available.
+      extensionsPo.extensionTabAvailableClick();
       extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
       extensionsPo.loading().should('not.exist');
 
@@ -246,6 +250,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       extensionsPo.goTo();
       extensionsPo.waitForTabs();
+      // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
+      // that is #installed, not #available - so explicitly switch to the Available tab before waiting
+      // for it, instead of assuming the URL hash is already #available.
+      extensionsPo.extensionTabAvailableClick();
       extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
       extensionsPo.loading().should('not.exist');
 
