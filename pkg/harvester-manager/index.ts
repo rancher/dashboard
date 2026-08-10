@@ -16,9 +16,11 @@ export default function(plugin: IPlugin) {
 
   if (plugin.environment.isPrime) {
     plugin.register('l10n-global', 'Harvester', 'SUSE Virtualization');
-    plugin.register('l10n', 'en-us', () => {
-      return { product: { harvesterManager: 'SUSE Virtualization' } };
-    });
+
+    const primeProductName = () => ({ product: { harvesterManager: 'SUSE Virtualization' } });
+
+    plugin.register('l10n', 'en-us', primeProductName);
+    plugin.register('l10n', 'zh-hans', primeProductName);
   }
 
   plugin.addTab(
