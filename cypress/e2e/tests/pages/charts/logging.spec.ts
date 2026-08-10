@@ -69,6 +69,28 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       kubectl.waitForTerminalStatus('Disconnected');
       kubectl.closeTerminal();
 
+      // The install POST returns before the chart is usable: Helm finishes deploying and the logging
+      // operator establishes its CRDs asynchronously. Wait for the app to be deployed AND for the
+      // ClusterOutput type to actually be served before navigating to it - otherwise the logging nav
+      // entry is missing (attempt 1 failure) and creating a ClusterOutput 404s because the type is not
+      // registered yet (attempt 2 failure).
+      cy.waitForResourceState('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, 'deployed', 60);
+
+      const waitForClusterOutputType = (retries = 30): void => {
+        cy.request({
+          url:              `${ Cypress.env('api') }/v1/logging.banzaicloud.io.clusteroutputs`,
+          failOnStatusCode: false
+        }).then((resp) => {
+          if (resp.status === 200 || retries === 0) {
+            return;
+          }
+          cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+          waitForClusterOutputType(retries - 1);
+        });
+      };
+
+      waitForClusterOutputType();
+
       LoggingClusteroutputListPagePo.navTo();
       loggingOutputList.waitForPage();
       loggingOutputList.baseResourceList().masthead().create();
@@ -230,6 +252,15 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
           }
         });
       });
+
+      // [CREATE ISSUE FOR CODE FIX] The logging uninstall (Helm uninstall + CRD/finalizer cleanup)
+      // takes minutes - the app row stays in an "Uninstalling ..." state that whole time - so the list
+      // still shows the app well after the uninstall action returned. Uninstalling should complete in a
+      // reasonable time (or the UI should not block a fresh render on it).
+      //
+      // Wait for the app to actually be gone at the API level (with a generous budget for the slow
+      // uninstall) before asserting the list shows no rows, instead of racing the multi-minute cleanup.
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp?.status === 404, 160, { failOnStatusCode: false });
 
       // Verify the chart is removed after uninstallation (also holds when it was already gone).
       installedAppsPage.goTo();
