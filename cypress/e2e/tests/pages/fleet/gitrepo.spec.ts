@@ -79,13 +79,11 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       // Select the workspace from the list page before navigating to create.
       listPage.goTo();
       listPage.waitForPage();
-      // This is the first fleet navigation after the spec's login/resource setup, and on a cold
-      // app it intermittently renders a broken page: the header workspace switcher never appears
-      // even given a long wait, and the create form later fails to render its fields. Every LATER
-      // test in this spec navigates fine from the now-warmed app, so reload once here to force a
-      // clean render before interacting.
-      cy.reload();
-      listPage.waitForPage();
+      // Do NOT cy.reload() here: this test set up generateFakeClusterDataAndIntercepts, whose
+      // fleet/provisioning/management cluster intercepts feed the header. A reload aborts those
+      // in-flight intercepted requests, and (before the intercepts were made defensive) the
+      // handlers threw on the empty response and never called res.send(), hanging the request and
+      // wedging the page so the workspace switcher never rendered.
       // Wait for the fleet list to finish loading before touching the header: while the list data
       // is still loading the page re-renders and the workspace switcher can detach mid-render, so a
       // default-timeout toggle click would fail to find it. Gate on the loaded list first, and give

@@ -2509,15 +2509,19 @@ export function generateFakeClusterDataAndIntercepts({
   // add cluster to fleet clusters for testing https://github.com/rancher/dashboard/issues/9984
   cy.intercept('GET', `/v1/fleet.cattle.io.clusters?*`, (req) => {
     req.continue((res) => {
-      const localIndex = res.body.data.findIndex((item: any) => item.id.includes('/local'));
+      // Guard against a response without a data array (304, or a request aborted by a reload):
+      // mutating it would throw and skip res.send(), hanging the request and wedging the page load.
+      if (Array.isArray(res.body?.data)) {
+        const localIndex = res.body.data.findIndex((item: any) => item.id.includes('/local'));
 
-      if (localIndex >= 0) {
-        const localCluster = res.body.data[localIndex];
+        if (localIndex >= 0) {
+          const localCluster = res.body.data[localIndex];
 
-        localCluster.metadata.annotations['field.cattle.io/description'] = longClusterDescription;
+          localCluster.metadata.annotations['field.cattle.io/description'] = longClusterDescription;
+        }
+
+        res.body.data.push(fakeNavClusterData.provClusterObj);
       }
-
-      res.body.data.push(fakeNavClusterData.provClusterObj);
 
       res.send(res.body);
     });
@@ -2531,15 +2535,19 @@ export function generateFakeClusterDataAndIntercepts({
     query:    { pagesize: '100000' }
   }, (req) => {
     req.continue((res) => {
-      const localIndex = res.body.data.findIndex((item: any) => item.id.includes('/local'));
+      // Guard against a response without a data array (304, or a request aborted by a reload):
+      // mutating it would throw and skip res.send(), hanging the request and wedging the page load.
+      if (Array.isArray(res.body?.data)) {
+        const localIndex = res.body.data.findIndex((item: any) => item.id.includes('/local'));
 
-      if (localIndex >= 0) {
-        const localCluster = res.body.data[localIndex];
+        if (localIndex >= 0) {
+          const localCluster = res.body.data[localIndex];
 
-        localCluster.metadata.annotations['field.cattle.io/description'] = longClusterDescription;
+          localCluster.metadata.annotations['field.cattle.io/description'] = longClusterDescription;
+        }
+
+        res.body.data.push(fakeNavClusterData.provClusterObj);
       }
-
-      res.body.data.push(fakeNavClusterData.provClusterObj);
 
       res.send(res.body);
     });
@@ -2553,6 +2561,13 @@ export function generateFakeClusterDataAndIntercepts({
   }).as('provCluster');
 
   const update = (clusters: any[]) => {
+    // The response may lack a data array (a 304 Not Modified, or a request aborted mid-flight by a
+    // reload). Bail out instead of throwing: an exception here would skip the res.send() below and
+    // leave the request hanging forever, wedging the page load so the header never renders.
+    if (!Array.isArray(clusters)) {
+      return;
+    }
+
     const localIndex = clusters.findIndex((item: any) => item.id.includes('local'));
 
     if (localIndex >= 0) {
