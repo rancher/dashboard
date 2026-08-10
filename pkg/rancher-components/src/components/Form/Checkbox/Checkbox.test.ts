@@ -1,4 +1,4 @@
-import { shallowMount, Wrapper, mount } from '@vue/test-utils';
+import { shallowMount, VueWrapper, mount } from '@vue/test-utils';
 import { Checkbox } from './index';
 
 describe('checkbox.vue', () => {
@@ -16,7 +16,7 @@ describe('checkbox.vue', () => {
   });
 
   it('renders a true value', () => {
-    const wrapper = shallowMount(Checkbox, { propsData: { value: true } });
+    const wrapper = shallowMount(Checkbox, { props: { value: true } });
     const cbInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement;
 
     expect(cbInput.checked).toBe(true);
@@ -34,36 +34,42 @@ describe('checkbox.vue', () => {
   });
 
   it('emits an input event with a true value', async() => {
-    const wrapper: Wrapper<InstanceType<typeof Checkbox>> = shallowMount(Checkbox);
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = shallowMount(Checkbox);
 
     wrapper.vm.clicked(event);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')[0][0]).toBe(true);
+    const emitted = wrapper.emitted('update:value') as [boolean][];
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0][0]).toBe(true);
   });
 
   it('emits an input event with a custom valueWhenTrue', async() => {
     const valueWhenTrue = 'BIG IF TRUE';
 
-    const wrapper: Wrapper<InstanceType<typeof Checkbox>> = shallowMount(Checkbox, { propsData: { value: false, valueWhenTrue } });
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = shallowMount(Checkbox, { props: { value: false, valueWhenTrue } });
 
     wrapper.vm.clicked(event);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')[0][0]).toBe(valueWhenTrue);
+    const emitted = wrapper.emitted('update:value') as [string][];
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0][0]).toBe(valueWhenTrue);
   });
 
   it('updates from valueWhenTrue to falsy', async() => {
     const valueWhenTrue = 'REAL HUGE IF FALSE';
 
-    const wrapper: Wrapper<InstanceType<typeof Checkbox>> = shallowMount(Checkbox, { propsData: { value: valueWhenTrue, valueWhenTrue } });
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = shallowMount(Checkbox, { props: { value: valueWhenTrue, valueWhenTrue } });
 
     wrapper.vm.clicked(event);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:value')[0][0]).toBeNull();
+    const [[value]] = wrapper.emitted('update:value') as [string | null][];
+
+    expect(value).toBeNull();
   });
 
   it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async() => {
@@ -71,10 +77,10 @@ describe('checkbox.vue', () => {
     const description = 'some-description';
     const ariaDescribedById = 'some-external-id';
 
-    const wrapper: Wrapper<InstanceType<typeof Checkbox>> = mount(
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = mount(
       Checkbox,
       {
-        propsData: {
+        props: {
           value: false, alternateLabel, description
         },
         attrs: { 'aria-describedby': ariaDescribedById },
@@ -97,10 +103,10 @@ describe('checkbox.vue', () => {
   it('a11y: having a label should not render "aria-label" prop and have "aria-labelledby"', async() => {
     const label = 'some-label';
 
-    const wrapper: Wrapper<InstanceType<typeof Checkbox>> = mount(
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = mount(
       Checkbox,
       {
-        propsData: {
+        props: {
           value: true, label, disabled: true
         }
       }

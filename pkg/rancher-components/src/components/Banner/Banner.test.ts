@@ -6,7 +6,7 @@ describe('component: Banner', () => {
     const label = 'some-label-test';
     const wrapper = mount(
       Banner,
-      { propsData: { label } });
+      { props: { label } });
 
     expect(wrapper.html()).toContain(label);
   });
@@ -24,7 +24,7 @@ describe('component: Banner', () => {
 
   it('should display an icon', () => {
     const icon = 'my-icon';
-    const wrapper = mount(Banner, { propsData: { icon } });
+    const wrapper = mount(Banner, { props: { icon } });
 
     const element = wrapper.find(`.${ icon }`).element;
 
@@ -40,8 +40,8 @@ describe('component: Banner', () => {
   });
 
   it('should emit close event', () => {
-    const wrapper = mount(Banner, { propsData: { closable: true } });
-    const element = wrapper.find(`[data-testid="banner-close"]`).element;
+    const wrapper = mount(Banner, { props: { closable: true } });
+    const element = wrapper.find(`[data-testid="banner-close"]`).element as HTMLElement;
 
     element.click();
 
@@ -50,7 +50,7 @@ describe('component: Banner', () => {
 
   it('should add the right color', () => {
     const color = 'red';
-    const wrapper = mount(Banner, { propsData: { color } });
+    const wrapper = mount(Banner, { props: { color } });
 
     const element = wrapper.element;
 
@@ -59,7 +59,7 @@ describe('component: Banner', () => {
 
   it('should stack the banner messages', () => {
     const stacked = true;
-    const wrapper = mount(Banner, { propsData: { stacked } });
+    const wrapper = mount(Banner, { props: { stacked } });
 
     const element = wrapper.find(`[data-testid="banner-content"]`).element;
 
@@ -74,7 +74,7 @@ describe('component: Banner', () => {
     const wrapper = mount(
       Banner,
       {
-        propsData: {
+        props: {
           label, icon, closable
         }
       });
@@ -101,29 +101,29 @@ describe('component: Banner', () => {
 
   describe('a11y: role prop (live region)', () => {
     it('should have no role attribute by default', () => {
-      const wrapper = mount(Banner, { propsData: { label: 'test' } });
+      const wrapper = mount(Banner, { props: { label: 'test' } });
       const mainContainer = wrapper.find('.banner');
 
       expect(mainContainer.attributes('role')).toBeUndefined();
     });
 
     it('should render role="alert" for persistent live-region containers announcing errors', () => {
-      const wrapper = mount(Banner, { propsData: { label: 'Something went wrong', role: 'alert' } });
+      const wrapper = mount(Banner, { props: { label: 'Something went wrong', role: 'alert' } });
       const mainContainer = wrapper.find('.banner');
 
       expect(mainContainer.attributes('role')).toBe('alert');
     });
 
     it('should render role="status" for persistent live-region containers announcing polite notifications', () => {
-      const wrapper = mount(Banner, { propsData: { label: 'Cluster is provisioning', role: 'status' } });
+      const wrapper = mount(Banner, { props: { label: 'Cluster is provisioning', role: 'status' } });
       const mainContainer = wrapper.find('.banner');
 
       expect(mainContainer.attributes('role')).toBe('status');
     });
 
     it('should accept only "alert" and "status" as valid role values', () => {
-      const alertWrapper = mount(Banner, { propsData: { label: 'test', role: 'alert' } });
-      const statusWrapper = mount(Banner, { propsData: { label: 'test', role: 'status' } });
+      const alertWrapper = mount(Banner, { props: { label: 'test', role: 'alert' } });
+      const statusWrapper = mount(Banner, { props: { label: 'test', role: 'status' } });
 
       expect(alertWrapper.find('.banner').attributes('role')).toBe('alert');
       expect(statusWrapper.find('.banner').attributes('role')).toBe('status');
