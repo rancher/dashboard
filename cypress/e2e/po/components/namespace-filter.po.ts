@@ -84,6 +84,10 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   /**
+   * [CREATE ISSUE FOR CODE FIX] After clearing the selection the app asynchronously re-applies the
+   * page's forced-default namespace, but the already-open dropdown does not reactively re-render the
+   * newly-selected option's checkmark - it should update in place without needing a reopen.
+   *
    * Close and reopen the dropdown so the option list re-renders from the current (settled)
    * selection state. Clearing the selection empties it and the app asynchronously re-applies a
    * page's forced default via a prefs round-trip; the already-open dropdown does not reliably

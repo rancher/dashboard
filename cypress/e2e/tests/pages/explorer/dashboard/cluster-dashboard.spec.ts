@@ -32,6 +32,10 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
+// [CREATE ISSUE FOR CODE FIX] The cluster dashboard occasionally crashes to the fail-whale error
+// page on a transient blip during load, instead of tolerating it and rendering; the app should
+// recover from a transient load error on its own rather than dead-ending on fail-whale.
+//
 // The cluster dashboard occasionally crashes to the fail-whale error page on a transient backend
 // blip during load. With testIsolation off that state carries into the Cypress retry, and a single
 // re-navigation is sometimes not enough for a longer blip. Re-navigate a few times until we land

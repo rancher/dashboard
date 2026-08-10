@@ -449,6 +449,10 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
 
   describe('Details in a non-English locale (https://github.com/rancher/dashboard/issues/9984)', () => {
     afterEach(() => {
+      // [CREATE ISSUE FOR CODE FIX] Switching the UI locale races the app's own save of the
+      // preferences.management.cattle.io "locale" object and returns HTTP 500 ("the object has been
+      // modified ... apply your changes to the latest version") -> the app throws to fail-whale. The
+      // app should re-read + re-save against the latest resourceVersion instead of erroring.
       // Always reset the locale back to English AFTER the UI switch, via the API. The backend
       // preference persists across specs and runs, so a left-over Chinese locale would poison later
       // tests. Doing this with no concurrent UI write in flight avoids the resourceVersion conflict
