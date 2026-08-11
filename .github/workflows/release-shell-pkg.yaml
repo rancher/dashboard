@@ -47,14 +47,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        # `install: false` - the install runs below, after the repository is reset
+        # and npm has been updated
+      - name: Setup env
+        uses: ./.github/actions/setup
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          install: 'false'
 
       - name: Check Tags Version Matching
         env:
@@ -88,7 +86,7 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Install packages
-        run: yarn install --frozen-lockfile
+        run: npm run install:ci
 
       - name: Publish Shell Package to npm
         run: ./shell/scripts/publish-shell.sh --npm

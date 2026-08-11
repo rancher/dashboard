@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "author": "SUSE",
   "repository": "https://github.com/rancher/dashboard",
-  "packageManager": "yarn@4.5.0",
+  "packageManager": "yarn@4.17.1",
   "bin": {
     "create-extension": "init"
   },

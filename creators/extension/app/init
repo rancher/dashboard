@@ -17,7 +17,7 @@ const files = [
   'gitignore',
   'eslint.config.mjs',
   '.nvmrc',
-  '.yarnrc',
+  '.yarnrc.yml',
   'babel.config.js',
   '.vscode/settings.json'
 ];
@@ -107,6 +107,12 @@ if (creatorPkg._pkgs) {
   Object.keys(creatorPkg._pkgs).forEach((pkgName) => {
     pkg.dependencies[pkgName] = creatorPkg._pkgs[pkgName];
   });
+}
+
+// The skeleton ships a .yarnrc.yml, so it needs the matching Yarn Berry pin for
+// Corepack to activate. Track the creator's own pin rather than a second copy.
+if (creatorPkg.packageManager) {
+  pkg.packageManager = creatorPkg.packageManager;
 }
 
 fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null, 2));
