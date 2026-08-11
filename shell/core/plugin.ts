@@ -41,6 +41,12 @@ export const EXT_IDS = {
    * Extension can provide resources that use server-side-pagination
    */
   SERVER_SIDE_PAGINATION_RESOURCES: 'server-side-pagination',
+  /**
+   * Extensions can provide values for l10n global tokens ([[name]]) referenced
+   * from translation strings. Values may be a string or a function returning a
+   * string. If a global is not registered, the token name is used as the value.
+   */
+  I18N_GLOBAL:                      'l10n-global',
 } as const;
 export type EXT_IDS_VALUES = (typeof EXT_IDS)[keyof typeof EXT_IDS];
 
@@ -431,7 +437,7 @@ export class Plugin implements IPlugin {
     await this._onLogOut(store);
   }
 
-  public register(type: string, name: string, fn: Function) {
+  public register(type: string, name: string, fn: Function | string) {
     const allowPaths = ['models', 'image'];
     const nparts = name.split('/');
 
@@ -450,14 +456,14 @@ export class Plugin implements IPlugin {
         this.l10n[name] = [];
       }
 
-      this.l10n[name].push(fn);
+      this.l10n[name].push(fn as Function);
 
     // Accumulate model extensions
     } else if (type === EXT_IDS.MODEL_EXTENSION) {
       if (!this.modelExtensions[name]) {
         this.modelExtensions[name] = [];
       }
-      this.modelExtensions[name].push(fn);
+      this.modelExtensions[name].push(fn as Function);
     } else {
       if (!this.types[type]) {
         this.types[type] = {};

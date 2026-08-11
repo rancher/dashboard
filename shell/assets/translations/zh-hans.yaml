@@ -122,7 +122,7 @@ locale:
   none: (None)
 
 nav:
-  harvesterDashboard: Harvester 仪表板
+  harvesterDashboard: '[[Harvester]] 仪表板'
   backToRancher: Cluster Manager
   clusterTools: 集群工具
   kubeconfig:
@@ -1142,7 +1142,7 @@ cluster:
       label: vSphere
       note: '<b>重要</b>：在附加配置标签中配置 vSphere 云提供商和存储提供商选项。'
     harvester:
-      label: Harvester
+      label: '[[Harvester]]'
   copyConfig: 将 KubeConfig 复制到剪切板
   copiedConfig: 已将 KubeConfig 复制到剪切板
   custom:
@@ -1301,26 +1301,26 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: '命名空间/名称'
-      cluster: 导入的 Harvester 集群
+      cluster: 导入的 [[Harvester]] 集群
       installGuestAgent: 安装访客代理
   description:
     label: 集群描述
     placeholder: 输入可以描述该集群的文本
   harvester:
-    importNotice: 导入 Harvester 集群的方式：
+    importNotice: 导入 [[Harvester]] 集群的方式：
     warning:
-      label: 这是一个 Harvester 集群 - 请启用 Harvester 功能开关以对其进行管理。
+      label: 这是一个 [[Harvester]] 集群 - 请启用 [[Harvester]] 功能开关以对其进行管理。
       state: 警告
       cloudProvider:
         incompatible:
-          由于当前的 Harvester 版本与所选的 RKE2 Kubernetes 版本不兼容，因此你无法选择 Harvester cloud provider。请单击 <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">此处</a>查看支持的 Kubernetes 版本。
+          由于当前的 [[Harvester]] 版本与所选的 RKE2 Kubernetes 版本不兼容，因此你无法选择 [[Harvester]] cloud provider。请单击 <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">此处</a>查看支持的 Kubernetes 版本。
     clusterWarning: |-
       还有 {count, plural,
-      =1 {1 个 Harvester 集群未显示}
-      other { # 个 Harvester 集群未显示}
+      =1 {1 个 [[Harvester]] 集群未显示}
+      other { # 个 [[Harvester]] 集群未显示}
       }
     registration:
-      step1: "1. 前往目标 Harvester UI 的<code>高级设置</code>页面。"
+      step1: "1. 前往目标 [[Harvester]] UI 的<code>高级设置</code>页面。"
       step2: '2. 找到<code>cluster-registration-url</code>设置项，并点击<code><i class="icon icon-actions" ></i></code> -> <code>编辑设置</code>按钮。'
       step3: "3. 输入以下注册 URL，并点击<code>保存</code>。"
       step4: "注册 URL"
@@ -1789,7 +1789,7 @@ cluster:
     google: Google GCE
     googlegke: Google GKE
     gke: Google GKE
-    harvester: Harvester
+    harvester: '[[Harvester]]'
     huaweicce: 华为 CCE
     import: 通用
     imported: 已导入
@@ -2116,21 +2116,21 @@ fleet:
   clusters:
     harvester: |-
       还有 {count, plural,
-      =1 {1个 Harvester 集群未显示，因为它不能与持续交付一起使用。}
-      other { #个 Harvester 集群未显示，因为它们不能与持续交付一起使用。}
+      =1 {1个 [[Harvester]] 集群未显示，因为它不能与持续交付一起使用。}
+      other { #个 [[Harvester]] 集群未显示，因为它们不能与持续交付一起使用。}
       }
   tokens:
     harvester: |-
       {count, plural,
-      =1 {1个 Token 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
-      other {#个 Token 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
+      =1 {1个 Token 未显示，因为它属于不能与持续交付一起使用的 [[Harvester]] 集群。}
+      other {#个 Token 未显示，因为它属于不能与持续交付一起使用的 [[Harvester]] 集群。}
       }
   bundles:
     resources: 资源
     harvester: |-
       {count, plural,
-      =1 {1 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
-      other {# 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
+      =1 {1 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 [[Harvester]] 集群。}
+      other {# 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 [[Harvester]] 集群。}
       }
   fleetSummary:
     noClusters:
@@ -3738,7 +3738,7 @@ persistentVolume:
       disk-csi-azure-com: Azure 磁盘 (CSI)
       file-csi-azure-com: Azure 文件 (CSI)
       driver-longhorn-io: Longhorn (CSI)
-      driver-harvesterhci-io: Harvester (CSI)
+      driver-harvesterhci-io: '[[Harvester]] (CSI)'
       nfs-csi-k8s-io: NFS (CSI)
       ebs-csi-aws-com: AWS Elastic Block Store (CSI)
       rbd-csi-ceph-com: Ceph RBD (CSI)
@@ -5283,13 +5283,13 @@ storageClass:
     title: （已弃用）
     warning: '{provisioner} 树内插件已弃用。你可以在<a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">这里</a>查找 CSI 驱动。'
   harvesterhci:
-    title: Harvester (CSI)
+    title: '[[Harvester]] (CSI)'
     warning:
-      unSatisfiesVersion: 请升级 Harvester CSI 驱动版本来使用此功能(csi-driver >= v0.1.15)
+      unSatisfiesVersion: 请升级 [[Harvester]] CSI 驱动版本来使用此功能(csi-driver >= v0.1.15)
     hostStorageClass:
       label: 主机存储类
-      placeholder: 主机 Harvester 集群上的存储类名称
-      tooltip: 默认使用主机 Harvester 集群上的默认存储类。
+      placeholder: 主机 [[Harvester]] 集群上的存储类名称
+      tooltip: 默认使用主机 [[Harvester]] 集群上的默认存储类。
 
 tableHeaders:
   assuredConcurrencyShares: 确保并发份额
@@ -6696,8 +6696,8 @@ typeLabel:
     }
   harvesterhci.io.management.cluster: |-
     {count, plural,
-      one { Harvester 集群 }
-      other { Harvester 集群 }
+      one { [[Harvester]] 集群 }
+      other { [[Harvester]] 集群 }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,
@@ -7044,7 +7044,7 @@ featureFlags:
     title: 等待重启
     wait: 重启需要数分钟。
   description:
-    harvester: 接入 Harvester，以导入和管理 Harvester 集群
+    harvester: 接入 [[Harvester]]，以导入和管理 [[Harvester]] 集群
     unsupported-storage-drivers: 允许使用非默认启用的存储提供商和卷插件
     legacy: 启用旧版功能
     istio-virtual-service-ui: 暴露了一个用户界面，使用户能够创建、读取、更新和删除虚拟服务和目标规则，这是 Istio 的流量管理功能。
