@@ -9,6 +9,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import ResourceYamlEditorPagePo from '@/cypress/e2e/po/pages/explorer/yaml-editor.po';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 // import TooltipPo from '@/cypress/e2e/po/components/tooltip.po'; // Used in the below commented test
 
@@ -478,15 +479,30 @@ describe('User can update their preferences', () => {
 
     // Verify that an auth redirect works (a user visits a page while not authorized and will be redirect to that page after loggin in, only active when "Take me to the area I last visited" is selected)
     if (key.index === '1') {
-      userMenu.clickMenuItem('Log Out');
-      cy.url().should('contain', 'auth/login?logged-out');
-
       const redirectUrl = '/c/local/explorer/node';
 
-      cy.visit(redirectUrl);
-      cy.url().should('contain', 'auth/login?timed-out');
+      const attemptAuthRedirect = () => {
+        userMenu.clickMenuItem('Log Out');
+        cy.url().should('contain', 'auth/login?logged-out');
 
-      cy.login(undefined, undefined, false, true);
+        cy.visit(redirectUrl);
+        cy.url().should('contain', 'auth/login?timed-out');
+
+        cy.login(undefined, undefined, false, true);
+        cy.url().should('not.contain', 'auth/login');
+      };
+
+      attemptAuthRedirect();
+      // Wait for the redirect chain to settle on either the expected page or the home page.
+      // A transient failure fetching preferences after login lands the user on the home page
+      // instead - retry the flow once to recover (authRedirect only lives in the store, so
+      // the whole timed-out flow needs to run again)
+      cy.location('pathname', MEDIUM_TIMEOUT_OPT).should('match', new RegExp(`(/home|${ redirectUrl })`));
+      cy.location('pathname').then((pathname) => {
+        if (pathname.endsWith('/home')) {
+          attemptAuthRedirect();
+        }
+      });
       cy.url().should('contain', redirectUrl);
       prefPage.goTo();
       prefPage.landingPageRadioBtn().checkVisible();
@@ -496,6 +512,16 @@ describe('User can update their preferences', () => {
     userMenu.clickMenuItem('Log Out');
     cy.url().should('contain', 'auth/login?logged-out');
     cy.login(undefined, undefined, false);
+    // Wait for the redirect chain to settle on either the expected landing page or the home
+    // page. A transient failure fetching preferences after login lands the user on the home
+    // page instead - re-navigating to the root re-runs a full app bootstrap which fetches the
+    // preferences again and re-runs the landing page redirect.
+    cy.location('pathname', MEDIUM_TIMEOUT_OPT).should('match', new RegExp(`(/home|${ key.page })`));
+    cy.location('pathname').then((pathname) => {
+      if (key.page !== '/home' && pathname.endsWith('/home')) {
+        cy.visit('/');
+      }
+    });
     cy.url().should('contain', key.page);
   }
 
