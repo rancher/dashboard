@@ -10,13 +10,13 @@ const CachedPrincipal = {
 };
 
 describe('component: MembershipEditor removal', () => {
-  it('renders the remaining member after removing a member in the middle of the list', async() => {
+  it('renders the correct remaining members after removing a duplicated principal', async() => {
     const wrapper = mount(MembershipEditor, {
       data() {
         return {
           schema:            null,
           lastSavedBindings: [],
-          bindings:          [1, 2, 3, 4, 5].map((number) => ({
+          bindings:          [1, 1, 2, 3, 4].map((number) => ({
             principalId:    `local://user-${ number }`,
             roleDisplay:    `Member ${ number }`,
             roleTemplateId: 'member',
@@ -38,13 +38,13 @@ describe('component: MembershipEditor removal', () => {
       }
     });
 
-    await wrapper.find('[data-testid="remove-item-3"]').trigger('click');
+    await wrapper.find('[data-testid="remove-item-1"]').trigger('click');
 
     expect(wrapper.findAll('.principal').map((principal) => principal.text())).toStrictEqual([
       'local://user-1',
       'local://user-2',
       'local://user-3',
-      'local://user-5',
+      'local://user-4',
     ]);
   });
 });
