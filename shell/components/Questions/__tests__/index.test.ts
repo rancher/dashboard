@@ -212,6 +212,14 @@ describe('component: Questions', () => {
       // '!=' must actually be evaluated as a comparison, not silently treated as always-true
       ['foo!=bar', { foo: 'bar' }, false],
       ['foo!=', { foo: null }, false],
+
+      // A value entirely wrapped in parens (e.g. "foo=(bar)") migrates to "!foo(bar)", which
+      // *compiles* as a negated function call but throws "Function foo is not defined" when
+      // evaluated. evalExpr() catches that throw and returns true unconditionally, which would
+      // make the question always show - the { foo: 'something-else' } case below only passes
+      // if migrate() detects this and falls back to a plain "foo == \"(bar)\"" comparison.
+      ['foo=(bar)', { foo: '(bar)' }, true],
+      ['foo=(bar)', { foo: 'something-else' }, false],
     ])('should correctly evaluate show_if condition "%s" with values %j to %s', (showIf, values, expected) => {
       const wrapper = shallowMount(Questions, {
         props:  defaultProps,

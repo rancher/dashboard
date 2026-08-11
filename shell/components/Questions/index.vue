@@ -89,12 +89,16 @@ function migrate(expr) {
 
   const grouped = migrateGrouped(expr);
 
-  // Tokenizing on (, ) and ! can also split inside a comparison's value (e.g. "foo=bar(1)"
-  // or "foo=a!b"), producing invalid Jexl. Guard against that by only trusting the grouped
-  // migration if it actually compiles, and falling back to the simpler, ungrouped migration
-  // (which doesn't support explicit parentheses/negation, but won't mangle raw values) otherwise.
+  // Tokenizing on (, ) and ! can also split inside a comparison's value (e.g. "foo=bar(1)",
+  // "foo=a!b" or "foo=(bar)"), producing Jexl that's either invalid or, worse, syntactically
+  // valid but semantically wrong (e.g. "foo=(bar)" migrates to "!foo(bar)", which *compiles*
+  // as a function call but throws "Function foo is not defined" when evaluated). Guard against
+  // both by requiring the grouped migration to actually evaluate cleanly against an empty
+  // context, and falling back to the simpler, ungrouped migration (which doesn't support
+  // explicit parentheses/negation, but won't mangle raw values) otherwise.
   try {
     Jexl.compile(grouped);
+    Jexl.evalSync(grouped, {});
 
     return grouped;
   } catch (e) {
