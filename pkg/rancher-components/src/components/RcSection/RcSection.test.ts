@@ -49,12 +49,8 @@ describe('component: RcSection', () => {
         props: {
           ...defaultProps, background: 'primary', expanded: true
         },
-        slots: {
-          default: {
-            components: { RcSection },
-            template:   '<RcSection type="secondary" mode="with-header" :expandable="false" title="Child" />',
-          },
-        },
+        global: { components: { RcSection } },
+        slots:  { default: '<RcSection type="secondary" mode="with-header" :expandable="false" title="Child" />' },
       });
 
       const childSection = wrapper.findAll('.rc-section')[1];
@@ -67,12 +63,8 @@ describe('component: RcSection', () => {
         props: {
           ...defaultProps, background: 'primary', expanded: true
         },
-        slots: {
-          default: {
-            components: { RcSection },
-            template:   '<RcSection type="secondary" mode="with-header" :expandable="false" background="primary" title="Child" />',
-          },
-        },
+        global: { components: { RcSection } },
+        slots:  { default: '<RcSection type="secondary" mode="with-header" :expandable="false" background="primary" title="Child" />' },
       });
 
       const childSection = wrapper.findAll('.rc-section')[1];
@@ -181,8 +173,10 @@ describe('component: RcSection', () => {
 
       await wrapper.find('.section-header').trigger('click');
 
-      expect(wrapper.emitted('update:expanded')).toHaveLength(1);
-      expect(wrapper.emitted('update:expanded')![0]).toStrictEqual([false]);
+      const emitted = wrapper.emitted('update:expanded') as [boolean][];
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0]).toStrictEqual([false]);
     });
 
     it('should emit update:expanded with true when clicking a collapsed header', async() => {
@@ -194,8 +188,10 @@ describe('component: RcSection', () => {
 
       await wrapper.find('.section-header').trigger('click');
 
-      expect(wrapper.emitted('update:expanded')).toHaveLength(1);
-      expect(wrapper.emitted('update:expanded')![0]).toStrictEqual([true]);
+      const emitted = wrapper.emitted('update:expanded') as [boolean][];
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0]).toStrictEqual([true]);
     });
 
     it('should not emit update:expanded when clicking a non-expandable header', async() => {
@@ -215,8 +211,10 @@ describe('component: RcSection', () => {
 
       await wrapper.find('.toggle-button').trigger('click');
 
-      expect(wrapper.emitted('update:expanded')).toHaveLength(1);
-      expect(wrapper.emitted('update:expanded')![0]).toStrictEqual([false]);
+      const emitted = wrapper.emitted('update:expanded') as [boolean][];
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0]).toStrictEqual([false]);
     });
   });
 

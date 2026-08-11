@@ -686,11 +686,19 @@ export interface IExtension extends IExtensionProducts {
 
   /**
    * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n
+   *
+   * A special type `'l10n-global'` can be used to register a value that will be
+   * substituted for `[[name]]` tokens in translation strings, allowing shared
+   * terms (e.g. product names) to be defined once and referenced across
+   * localisations. The value can be a string or a function returning a string.
+   * If no global is registered for a given name, the token's name is used as
+   * the value.
+   *
    * @param {String} type type of thing to register, e.g. 'edit'
    * @param {String} name unique name of 'something'
-   * @param {Function} fn function that dynamically loads the module for the thing being registered
+   * @param {Function|string|boolean} fn function that dynamically loads the module for the thing being registered, or (for `l10n-global`) the value itself
    */
-  register(type: string, name: string, fn: Function | Boolean): void;
+  register(type: string, name: string, fn: Function | boolean | string): void;
 
   /**
    * Will return all of the configuration functions used for creating a new product.

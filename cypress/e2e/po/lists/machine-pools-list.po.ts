@@ -14,7 +14,7 @@ export default class MachinePoolsListPo extends BaseResourceList {
 
   machinePoolReadyofDesiredCount(poolName: string, count: number | RegExp, options?: GetOptions) {
     return this.resourceTable().sortableTable().groupElementWithName(poolName)
-      .find('.group-header-buttons')
+      .find('[data-testid="machine-progress-count"] .count')
       .contains(count, options);
   }
 

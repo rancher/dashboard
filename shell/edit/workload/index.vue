@@ -41,6 +41,35 @@ export default {
       return this.fvFormIsValid && !hasContainerErrors;
     },
 
+    serviceOptions() {
+      const noneOption = {
+        label: this.t('generic.none'),
+        value: ''
+      };
+
+      const services = this.headlessServices.map((service) => ({
+        label: service.metadata.name,
+        value: service.metadata.name
+      }));
+
+      services.unshift(noneOption);
+
+      return services;
+    },
+    optionalServiceName: {
+      get() {
+        return this.spec.serviceName || '';
+      },
+      set(value) {
+        if (!value) {
+          delete this.spec.serviceName;
+
+          return;
+        }
+
+        this.spec.serviceName = value;
+      }
+    },
     /**
      * For Pods, render empty blocks (e.g. an unused podAntiAffinity the form
      * seeds as empty) as `{}` in "Edit as YAML" instead of a valueless key that
@@ -179,13 +208,13 @@ export default {
           class="col span-3"
         >
           <LabeledSelect
-            v-model:value="spec.serviceName"
-            option-label="metadata.name"
-            :reduce="service=>service.metadata.name"
+            v-model:value="optionalServiceName"
+            option-label="label"
+            :reduce="opt=>opt.value"
             :mode="mode"
+            :disabled="!isCreate"
             :label="t('workload.serviceName')"
-            :options="headlessServices"
-            required
+            :options="serviceOptions"
           />
         </div>
       </div>

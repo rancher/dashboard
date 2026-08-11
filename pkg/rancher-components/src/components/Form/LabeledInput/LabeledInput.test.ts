@@ -19,7 +19,9 @@ describe('component: LabeledInput', () => {
     jest.useRealTimers();
 
     expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
+    const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+    expect(emitted).toBe(value);
   });
 
   it('using type "multiline" should emit input value correctly', () => {
@@ -37,7 +39,9 @@ describe('component: LabeledInput', () => {
     jest.useRealTimers();
 
     expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
+    const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+    expect(emitted).toBe(value);
   });
 
   describe('using type "chron"', () => {
@@ -270,7 +274,9 @@ describe('component: LabeledInput', () => {
         await clearButton.trigger('click');
 
         expect(wrapper.emitted('update:value')).toHaveLength(1);
-        expect(wrapper.emitted('update:value')![0][0]).toBe('');
+        const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+        expect(emitted).toBe('');
       });
 
       it('should clear input value when Enter key is pressed on clear button', async() => {
@@ -284,7 +290,9 @@ describe('component: LabeledInput', () => {
         await clearButton.trigger('keydown.enter');
 
         expect(wrapper.emitted('update:value')).toHaveLength(1);
-        expect(wrapper.emitted('update:value')![0][0]).toBe('');
+        const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+        expect(emitted).toBe('');
       });
 
       it('should clear input value when Space key is pressed on clear button', async() => {
@@ -298,7 +306,9 @@ describe('component: LabeledInput', () => {
         await clearButton.trigger('keydown.space');
 
         expect(wrapper.emitted('update:value')).toHaveLength(1);
-        expect(wrapper.emitted('update:value')![0][0]).toBe('');
+        const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+        expect(emitted).toBe('');
       });
 
       it('should have proper ARIA label for accessibility', () => {
