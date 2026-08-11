@@ -97,12 +97,11 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
         cy.reload();
       }
 
+      // Assert on the permissions cell with a retrying assertion (not a one-shot invoke('text')):
+      // the cell can render its permissions incrementally, so a single read can catch only the first.
       projectMembership.projectTable().rowElementWithName(username).find('td:nth-of-type(3)').first()
-        .invoke('text')
-        .then((t) => {
-          expect(t).to.include('Create Namespaces');
-          expect(t).to.include('Manage Config Maps');
-        });
+        .should('include.text', 'Create Namespaces')
+        .and('include.text', 'Manage Config Maps');
     });
   });
 });
