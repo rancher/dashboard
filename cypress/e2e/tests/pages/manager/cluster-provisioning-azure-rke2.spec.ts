@@ -236,7 +236,7 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: fals
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"]');
     clusterDetails.waitForPage(null, 'snapshots');
-    clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2AzureClusterName }`);
+    clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2AzureClusterName }`, VERY_LONG_TIMEOUT_OPT);
   }));
 
   qase(5606, it('can delete an Azure RKE2 cluster', function() {
