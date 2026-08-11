@@ -306,7 +306,7 @@ export default {
             } else {
               // If the variable did not exist in the default values.yaml (dynamic subquestion),
               // remove it completely so it won't show up in the custom values diff.
-              remove(this.value, variable);
+              remove(this.value, variable, true);
             }
           }
         }

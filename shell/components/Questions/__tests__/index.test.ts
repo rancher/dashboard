@@ -224,7 +224,7 @@ describe('component: Questions', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.vm.shownQuestions).toHaveLength(1);
-      expect(wrapper.vm.value.nested.child).toBeUndefined();
+      expect(wrapper.vm.value.nested).toBeUndefined();
     });
 
     it('should restore default values of questions that transition from shown to hidden if default exists in source.values', async() => {

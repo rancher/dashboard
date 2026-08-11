@@ -90,7 +90,7 @@ export function get(obj, path) {
   return obj;
 }
 
-export function remove(obj, path) {
+export function remove(obj, path, pruneEmptyParents = false) {
   const parentAry = splitObjectPath(path);
 
   // Remove the very last part of the path
@@ -105,6 +105,21 @@ export function remove(obj, path) {
     if ( parent ) {
       parent[leafKey] = undefined;
       delete parent[leafKey];
+
+      if ( pruneEmptyParents ) {
+        // Walk back up the path, deleting any ancestor objects that are now empty,
+        // stopping as soon as one still has content.
+        while ( parentAry.length ) {
+          const ancestorKey = parentAry.pop();
+          const ancestor = parentAry.length ? get(obj, joinObjectPath(parentAry)) : obj;
+
+          if ( ancestor && isEmpty(ancestor[ancestorKey]) ) {
+            delete ancestor[ancestorKey];
+          } else {
+            break;
+          }
+        }
+      }
     }
   }
 
