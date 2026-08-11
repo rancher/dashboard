@@ -21,16 +21,16 @@ export class AIClient {
     this.token = token;
   }
 
-  async generateFixSuggestions({ testTitle, suite, errorSummary, stacktrace }) {
+  async generateFixSuggestions({
+    testTitle, suite, errorSummary, stacktrace
+  }) {
     if (!this.token) {
       console.warn('  Warning: COPILOT_TOKEN not set — skipping AI fix suggestions');
 
       return null;
     }
 
-    const truncatedStack = stacktrace
-      ? stacktrace.split('\n').slice(0, STACKTRACE_LINES).join('\n')
-      : null;
+    const truncatedStack = stacktrace ? stacktrace.split('\n').slice(0, STACKTRACE_LINES).join('\n') : null;
 
     const userPrompt = [
       `Test: ${ testTitle }`,
@@ -45,8 +45,8 @@ export class AIClient {
       const res = await fetch(COPILOT_API, {
         method:  'POST',
         headers: {
-          'Content-Type':          'application/json',
-          Authorization:           `Bearer ${ this.token }`,
+          'Content-Type':           'application/json',
+          Authorization:            `Bearer ${ this.token }`,
           'Copilot-Integration-Id': 'copilot-developer-cli',
         },
         body: JSON.stringify({

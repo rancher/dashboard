@@ -194,12 +194,8 @@ class GitHubClient {
 
     const envTable = this._renderEnvironmentsTable(environments);
 
-    const errorSection = failure.errorSummary
-      ? `\n### Error Summary\n\`\`\`\n${ sanitizeText(failure.errorSummary) }\n\`\`\`\n`
-      : '';
-    const aiSection = aiSuggestions
-      ? `\n### 🤖 AI Fix Suggestions\n${ aiSuggestions }\n`
-      : '';
+    const errorSection = failure.errorSummary ? `\n### Error Summary\n\`\`\`\n${ sanitizeText(failure.errorSummary) }\n\`\`\`\n` : '';
+    const aiSection = aiSuggestions ? `\n### 🤖 AI Fix Suggestions\n${ aiSuggestions }\n` : '';
 
     const body = `**Regression detected** — this test is failing again.\n\n${ envTable }${ errorSection }${ aiSection }\n*Auto-detected by CI Failure Inspector.*`;
 
@@ -210,9 +206,7 @@ class GitHubClient {
     const title = this._issueTitle(failure);
     const envTable = this._renderEnvironmentsTable(environments);
 
-    const aiSection = aiSuggestions
-      ? `\n### 🤖 AI Fix Suggestions\n${ aiSuggestions }\n`
-      : '';
+    const aiSection = aiSuggestions ? `\n### 🤖 AI Fix Suggestions\n${ aiSuggestions }\n` : '';
 
     const body = `## Failure Details
 
