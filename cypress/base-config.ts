@@ -108,15 +108,19 @@ console.log('');
  * Base Cypress configuration for Rancher Dashboard E2E tests
  */
 const baseConfig = defineConfig({
-  defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
-  trashAssetsBeforeRuns: true,
-  chromeWebSecurity:     false,
+  defaultCommandTimeout:        process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
+  trashAssetsBeforeRuns:        true,
+  chromeWebSecurity:            false,
   // Don't retain per-test DOM snapshots across the run. Otherwise these accumulate
   // over a 24-spec run until the runner is memory-starved and Chrome can't relaunch
   // between specs, crashing with "Missing browserCriClient in connectToNewSpec".
   // 0 = keep none.
-  numTestsKeptInMemory:  0,
-  retries:               {
+  numTestsKeptInMemory:         0,
+  // Let Cypress actively release Chrome renderer memory between tests. Combined with
+  // numTestsKeptInMemory: 0 this reduces the long-run browser crashes that surface as
+  // "Timed out waiting for the browser to connect" late in a 20+ spec job.
+  experimentalMemoryManagement: true,
+  retries:                      {
     runMode:  2,
     openMode: 0
   },
