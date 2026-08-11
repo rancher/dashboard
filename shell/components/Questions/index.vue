@@ -154,11 +154,13 @@ function migrateUngrouped(expr) {
  */
 function migrateAtomic(expr) {
   let out;
-  const parts = expr.match(/^(.*)(!?=)(.*)$/);
+  // The first group is lazy and `!=` is matched explicitly (rather than via `!?=`) so that the
+  // '!' of `!=` isn't greedily consumed into the key, e.g. "foo!=bar" -> key: "foo", op: "!=".
+  const parts = expr.match(/^(.*?)\s*(!=|=)\s*(.*)$/);
 
   if ( parts ) {
     const key = parts[1].trim();
-    const op = parts[2].trim() === '!=' ? '!=' : '==';
+    const op = parts[2] === '!=' ? '!=' : '==';
     const val = parts[3].trim();
 
     if ( val === 'true' || val === 'false' || val === 'null' ) {

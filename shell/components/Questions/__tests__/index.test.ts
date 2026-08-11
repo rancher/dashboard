@@ -208,6 +208,10 @@ describe('component: Questions', () => {
       ['foo=a!b', { foo: 'something-else' }, false],
       ['storageClass=Premium (SSD)', { storageClass: 'Premium (SSD)' }, true],
       ['storageClass=Premium (SSD)', { storageClass: 'Standard' }, false],
+
+      // '!=' must actually be evaluated as a comparison, not silently treated as always-true
+      ['foo!=bar', { foo: 'bar' }, false],
+      ['foo!=', { foo: null }, false],
     ])('should correctly evaluate show_if condition "%s" with values %j to %s', (showIf, values, expected) => {
       const wrapper = shallowMount(Questions, {
         props:  defaultProps,
