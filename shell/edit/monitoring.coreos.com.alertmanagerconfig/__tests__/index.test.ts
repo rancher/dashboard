@@ -1,5 +1,6 @@
 /* eslint-disable import/first */
-global.PointerEvent = class PointerEvent extends Event {};
+// jsdom does not implement PointerEvent; a bare Event stand-in is enough for these tests.
+global.PointerEvent = class PointerEvent extends Event {} as unknown as typeof globalThis.PointerEvent;
 
 import { shallowMount } from '@vue/test-utils';
 import { EDITOR_MODES } from '@shell/components/YamlEditor.vue';
@@ -21,7 +22,7 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
     };
 
     const wrapper = shallowMount(Index, {
-      propsData: {
+      props: {
         value: valueMock,
         mode:  'create',
       },
@@ -76,7 +77,7 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
     };
 
     const wrapper = shallowMount(Index, {
-      propsData: {
+      props: {
         value: valueMock,
         mode:  _VIEW, // Set mode to _VIEW
       },
@@ -115,7 +116,7 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
     };
 
     const wrapper = shallowMount(Index, {
-      propsData: {
+      props: {
         value: valueMock,
         mode:  _EDIT, // Set mode to _EDIT
       },
@@ -154,7 +155,7 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
     };
 
     const wrapper = shallowMount(Index, {
-      propsData: {
+      props: {
         value: valueMock,
         mode:  'create',
       },

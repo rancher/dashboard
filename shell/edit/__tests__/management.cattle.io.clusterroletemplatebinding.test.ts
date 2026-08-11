@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils';
 import ClusterRoleTemplateBinding from '@shell/edit/management.cattle.io.clusterroletemplatebinding.vue';
 import Banner from '@components/Banner/Banner.vue';
-import CruResource from '@shell/components/CruResource';
+import CruResource from '@shell/components/CruResource.vue';
 
 describe('view: management.cattle.io.clusterroletemplatebinding should', () => {
   let wrapper: any;
@@ -23,17 +23,18 @@ describe('view: management.cattle.io.clusterroletemplatebinding should', () => {
             'current_store/all':       jest.fn(),
             currentCluster:            { id: 'my-cluster' },
             currentProduct:            { inStore: 'whatever' },
-            'i18n/t':                  (val) => val,
+            'i18n/t':                  (val: string) => val,
             'i18n/exists':             jest.fn(),
           },
-          dispatch: jest.fn((action, payload) => {
+          dispatch: jest.fn((action: string, payload?: unknown) => {
             const actions = {
               'management/findAll':              () => [],
               'cru-resource/setCreateNamespace': jest.fn(),
             };
+            const handler = actions[action as keyof typeof actions];
 
-            if (actions[action]) {
-              return actions[action](payload);
+            if (handler) {
+              return handler(payload);
             }
 
             throw new Error(`Unknown action: ${ action }`);
@@ -48,7 +49,7 @@ describe('view: management.cattle.io.clusterroletemplatebinding should', () => {
       },
       stubs,
     },
-    propsData: { value: {} },
+    props: { value: {} },
   });
 
   afterEach(() => {

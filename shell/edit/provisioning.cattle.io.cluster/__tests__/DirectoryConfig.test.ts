@@ -1,15 +1,15 @@
 import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
-import { mount, Wrapper } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import DirectoryConfig, { DATA_DIR_RADIO_OPTIONS, DEFAULT_SUBDIRS, DEFAULT_COMMON_BASE_PATH } from '@shell/edit/provisioning.cattle.io.cluster/tabs/DirectoryConfig.vue';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
 import { clone } from '@shell/utils/object';
 
 describe('component: DirectoryConfig', () => {
-  let wrapper: Wrapper<InstanceType<typeof DirectoryConfig>>;
+  let wrapper: VueWrapper<InstanceType<typeof DirectoryConfig>>;
 
   const mountOptions = {
-    propsData: {
+    props: {
       value: {
         systemAgent:  '',
         provisioning: '',
@@ -111,8 +111,8 @@ describe('component: DirectoryConfig', () => {
   it('should render the component with configuration being an empty object, without errors and radio be of value DATA_DIR_RADIO_OPTIONS.CUSTOM (edit scenario)', () => {
     const newMountOptions = clone(mountOptions);
 
-    newMountOptions.propsData.value = {};
-    newMountOptions.propsData.mode = _EDIT;
+    newMountOptions.props.value = {};
+    newMountOptions.props.mode = _EDIT;
 
     wrapper = mount(
       DirectoryConfig,
@@ -144,10 +144,10 @@ describe('component: DirectoryConfig', () => {
     const newMountOptions = clone(mountOptions);
     const inputPath = 'some-data-dir';
 
-    newMountOptions.propsData.value.systemAgent = `${ inputPath }/${ DEFAULT_SUBDIRS.AGENT }`;
-    newMountOptions.propsData.value.provisioning = `${ inputPath }/${ DEFAULT_SUBDIRS.PROVISIONING }`;
-    newMountOptions.propsData.value.k8sDistro = `${ inputPath }/${ DEFAULT_SUBDIRS.K8S_DISTRO_K3S }`;
-    newMountOptions.propsData.mode = _EDIT;
+    newMountOptions.props.value.systemAgent = `${ inputPath }/${ DEFAULT_SUBDIRS.AGENT }`;
+    newMountOptions.props.value.provisioning = `${ inputPath }/${ DEFAULT_SUBDIRS.PROVISIONING }`;
+    newMountOptions.props.value.k8sDistro = `${ inputPath }/${ DEFAULT_SUBDIRS.K8S_DISTRO_K3S }`;
+    newMountOptions.props.mode = _EDIT;
 
     wrapper = mount(
       DirectoryConfig,

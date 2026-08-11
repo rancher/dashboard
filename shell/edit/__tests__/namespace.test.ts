@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Namespace from '@shell/edit/namespace.vue';
+import ContainerResourceLimit from '@shell/components/ContainerResourceLimit.vue';
 
 describe('view Namespace should', () => {
   it('retrieve resource limits from project', () => {
@@ -42,7 +43,7 @@ describe('view Namespace should', () => {
       },
     });
 
-    const limitsUi = wrapper.findComponent('[data-testid="namespace-container-resource-limit"]');
+    const limitsUi = wrapper.findComponent<typeof ContainerResourceLimit>('[data-testid="namespace-container-resource-limit"]');
 
     expect(limitsUi.props().value).toStrictEqual(limits);
   });

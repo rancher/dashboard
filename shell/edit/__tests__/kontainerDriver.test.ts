@@ -24,7 +24,7 @@ describe('view: kontainerdriver should', () => {
         $router: { applyQuery: jest.fn() },
       },
     },
-    propsData: {
+    props: {
       value: {
         spec: {
           active:           true,

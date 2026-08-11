@@ -3,8 +3,10 @@ import Certificate from '../Certificate.vue';
 
 const DEFAULT_CERT_VALUE = '__[[DEFAULT_CERT]]__';
 
-const createWrapper = (propsData = {}) => {
-  return shallowMount(Certificate, { propsData });
+type CertificateValue = { hosts: string[], secretName: string | null };
+
+const createWrapper = (props = {}) => {
+  return shallowMount(Certificate, { props });
 };
 
 describe('networking.k8s.io.ingress/Certificate.vue', () => {
@@ -43,7 +45,10 @@ describe('networking.k8s.io.ingress/Certificate.vue', () => {
     wrapper.vm.update();
     await wrapper.vm.$nextTick();
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')[0][0]).toStrictEqual({
+
+    const emitted = (wrapper.emitted('update:value') as [CertificateValue][])[0][0];
+
+    expect(emitted).toStrictEqual({
       hosts:      ['host1'],
       secretName: 'cert1',
     });
@@ -56,7 +61,10 @@ describe('networking.k8s.io.ingress/Certificate.vue', () => {
     wrapper.vm.secretVal = DEFAULT_CERT_VALUE;
     wrapper.vm.update();
     await wrapper.vm.$nextTick();
-    expect(wrapper.emitted('update:value')[0][0].secretName).toBeNull();
+
+    const emitted = (wrapper.emitted('update:value') as [CertificateValue][])[0][0];
+
+    expect(emitted.secretName).toBeNull();
   });
 
   it('updates secretVal when onSecretInput is called with an object', async() => {
@@ -67,7 +75,10 @@ describe('networking.k8s.io.ingress/Certificate.vue', () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.secretVal).toStrictEqual('cert1');
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')[0][0].secretName).toStrictEqual('cert1');
+
+    const emitted = (wrapper.emitted('update:value') as [CertificateValue][])[0][0];
+
+    expect(emitted.secretName).toStrictEqual('cert1');
   });
 
   it('updates secretVal when onSecretInput is called with a string', async() => {
@@ -77,7 +88,10 @@ describe('networking.k8s.io.ingress/Certificate.vue', () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.secretVal).toStrictEqual('cert1');
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')[0][0].secretName).toStrictEqual('cert1');
+
+    const emitted = (wrapper.emitted('update:value') as [CertificateValue][])[0][0];
+
+    expect(emitted.secretName).toStrictEqual('cert1');
   });
 
   it('updates hosts when onHostsInput is called', async() => {
@@ -87,7 +101,10 @@ describe('networking.k8s.io.ingress/Certificate.vue', () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.hosts).toStrictEqual(['host1', 'host2']);
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')[0][0].hosts).toStrictEqual(['host1', 'host2']);
+
+    const emitted = (wrapper.emitted('update:value') as [CertificateValue][])[0][0];
+
+    expect(emitted.hosts).toStrictEqual(['host1', 'host2']);
   });
 
   it('computes certsWithDefault correctly', () => {
