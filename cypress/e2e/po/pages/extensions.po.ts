@@ -293,7 +293,10 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionReloadClick(): Cypress.Chainable {
-    return this.extensionReloadBanner().getId('extension-reload-banner-reload-btn').click();
+    // Force the click: a transient growl toast can overlay the reload button, which makes Cypress
+    // error with "being covered by another element". The button itself is interactable - the growl
+    // is an incidental, self-dismissing overlay - so the covered-element check is a false negative.
+    return this.extensionReloadBanner().getId('extension-reload-banner-reload-btn').click({ force: true });
   }
 
   // ------------------ new repos banner ------------------
