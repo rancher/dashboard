@@ -38,7 +38,7 @@ jobs:
     # to 'true' to stop it running (both the matrix and the Slack notifier) without deleting it.
     if: >-
       vars.DISABLE_EXTENSION_COMPAT_TEST != 'true'
-      && (github.repository_owner == 'rancher' || github.repository_owner == 'marcelofukumoto' || github.event_name == 'workflow_dispatch')
+      && (github.repository_owner == 'rancher' || github.event_name == 'workflow_dispatch')
     strategy:
       fail-fast: false
       # Each matrix row installs its own k3s on its own runner, so the rows are independent.
@@ -481,7 +481,7 @@ jobs:
       && vars.DISABLE_EXTENSION_COMPAT_TEST != 'true'
       && vars.DISABLE_EXTENSION_COMPAT_SLACK != 'true'
       && github.event.inputs.rancher_version == ''
-      && (github.repository_owner == 'rancher' || github.repository_owner == 'marcelofukumoto')
+      && github.repository_owner == 'rancher'
     runs-on: ubuntu-latest
     permissions:
       actions: read

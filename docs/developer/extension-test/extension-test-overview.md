@@ -168,7 +168,7 @@ payload.)
 
 The notification posts only on **full runs** (schedule, or dispatch with empty
 `rancher_version`), when neither disable variable is `true`, and when the repo owner is
-`rancher` or `marcelofukumoto`.
+`rancher`.
 
 **Setting up the Slack side (reference).** Create a Slack Workflow that starts from a webhook;
 add a data variable `text` (string); add a "Send a message" step that inserts `text`; copy the
