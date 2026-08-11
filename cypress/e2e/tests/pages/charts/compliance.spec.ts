@@ -65,17 +65,9 @@ describe('Charts', { testIsolation: false, tags: ['@charts', '@adminUser'] }, ()
           installChartPage.nextPage();
           installChartPage.installChart();
 
-          // Do not gate on the install terminal (#horizontal-window-manager) appearing: it only opens
-          // once the helm-operation pod starts, which is slow/flaky under CI load, and this step does
-          // not need to observe it. Wait for the app to actually deploy via the API instead - the poll
-          // tolerates the initial 404 and a slow deploy and gives up gracefully (it does not hard-fail
-          // like a cy.wait on an intercept that never matched). Then close the terminal only if it opened.
-          cy.waitForResourceState('v1', 'catalog.cattle.io.apps', 'compliance-operator-system/rancher-compliance', 'deployed', 120);
-          cy.get('body').then(($body) => {
-            if ($body.find('#horizontal-window-manager').length > 0) {
-              terminal.closeTerminal();
-            }
-          });
+          // Wait for terminal to show installation progress and complete
+          terminal.waitForTerminalStatus('Disconnected', LONG_TIMEOUT_OPT);
+          terminal.closeTerminal();
 
           // Navigate to installed apps page explicitly and wait for it to load
           installedAppsPage.goTo('local', 'apps');
