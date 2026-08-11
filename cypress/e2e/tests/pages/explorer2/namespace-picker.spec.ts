@@ -55,6 +55,9 @@ describe('Namespace picker', { testIsolation: false }, () => {
     namespacePicker.getOptions().should('be.visible');
     namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
     namespacePicker.clickOptionByLabel('cattle-fleet-system');
+    // The option's checkmark does not render reactively right after selecting it (see reopenDropdown);
+    // reopen the dropdown so the list re-renders from the settled selection before asserting isChecked.
+    namespacePicker.reopenDropdown();
     namespacePicker.isChecked('cattle-fleet-system');
     namespacePicker.closeDropdown();
     // Wait for dropdown to close completely before proceeding
@@ -85,6 +88,8 @@ describe('Namespace picker', { testIsolation: false }, () => {
 
     // Filter by Project: Select 'Project: System'
     namespacePicker.clickOptionByLabel('Project: System');
+    // Same non-reactive-checkmark workaround as above: reopen before asserting the selection.
+    namespacePicker.reopenDropdown();
     namespacePicker.isChecked('Project: System');
     namespacePicker.closeDropdown();
     // Wait for dropdown to close completely
