@@ -200,6 +200,14 @@ describe('component: Questions', () => {
       ['(  foo=bar   ||   baz=qux  )   &&   target=test', {
         foo: 'bar', baz: 'not-qux', target: 'test'
       }, true],
+
+      // Values containing '(', ')' or '!' must not be split by the grouping tokenizer
+      ['foo=bar(1)', { foo: 'bar(1)' }, true],
+      ['foo=bar(1)', { foo: 'something-else' }, false],
+      ['foo=a!b', { foo: 'a!b' }, true],
+      ['foo=a!b', { foo: 'something-else' }, false],
+      ['storageClass=Premium (SSD)', { storageClass: 'Premium (SSD)' }, true],
+      ['storageClass=Premium (SSD)', { storageClass: 'Standard' }, false],
     ])('should correctly evaluate show_if condition "%s" with values %j to %s', (showIf, values, expected) => {
       const wrapper = shallowMount(Questions, {
         props:  defaultProps,

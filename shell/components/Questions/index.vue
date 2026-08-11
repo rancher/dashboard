@@ -87,6 +87,27 @@ function migrate(expr) {
     return expr;
   }
 
+  const grouped = migrateGrouped(expr);
+
+  // Tokenizing on (, ) and ! can also split inside a comparison's value (e.g. "foo=bar(1)"
+  // or "foo=a!b"), producing invalid Jexl. Guard against that by only trusting the grouped
+  // migration if it actually compiles, and falling back to the simpler, ungrouped migration
+  // (which doesn't support explicit parentheses/negation, but won't mangle raw values) otherwise.
+  try {
+    Jexl.compile(grouped);
+
+    return grouped;
+  } catch (e) {
+    return migrateUngrouped(expr);
+  }
+}
+
+/**
+ * Migrates a `show_if` expression that may use grouping parentheses and/or unary NOT (e.g.
+ * "(a=true || b=true) && c=true") by tokenizing on logical boundaries and migrating only the
+ * leaf atomic sub-expressions. This can misfire if `(`, `)` or `!` appear within a value itself.
+ */
+function migrateGrouped(expr) {
   // Tokenize the expression by logical operators (&&, ||), parentheses ( ( , ) ) and unary NOT (!).
   // Note: we use a negative lookahead `!(?!=)` to match prefix `!` but leave `!=` comparison operators intact.
   const tokens = expr.split(/(&&|\|\||\(|\)|!(?!=))/);
@@ -113,6 +134,21 @@ function migrate(expr) {
 }
 
 /**
+ * Migrates a `show_if` expression by splitting only on && / || (no support for grouping
+ * parentheses or unary NOT), matching the legacy behavior. Safe for values that contain
+ * `(`, `)` or `!`.
+ */
+function migrateUngrouped(expr) {
+  if ( expr.includes('||') ) {
+    return expr.split('||').map((x) => migrateUngrouped(x)).join(' || ');
+  } else if ( expr.includes('&&') ) {
+    return expr.split('&&').map((x) => migrateUngrouped(x)).join(' && ');
+  }
+
+  return migrateAtomic(expr);
+}
+
+/**
  * Migrates a single atomic comparison or variable expression to a valid Jexl format.
  * E.g.: "foo=bar" -> "foo == 'bar'", "foo=" -> "!foo"
  */
@@ -134,7 +170,6 @@ function migrateAtomic(expr) {
       } else {
         out = `!${ key }`;
       }
-      // out = `${ op === '!' ? '!' : '' }(${ key } == "" || ${ key } == null)`;
     } else {
       out = `${ key } ${ op } "${ val }"`;
     }
