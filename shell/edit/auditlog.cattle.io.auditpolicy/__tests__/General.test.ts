@@ -1,12 +1,25 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import General from '../General.vue';
 import { ComponentPublicInstance } from 'vue';
-import { AuditPolicy } from '@shell/edit/auditlog.cattle.io.auditpolicy/types';
+import { AuditPolicy, Verbosity, VerbosityDetails } from '@shell/edit/auditlog.cattle.io.auditpolicy/types';
 
-interface GeneralComponent extends ComponentPublicInstance {
+interface GeneralComponent extends ComponentPublicInstance<{ value: AuditPolicy | null, mode: string }> {
   spec: AuditPolicy;
   levelOptionsMap: Array<{ value: number; label: string }>;
 }
+
+// Payload of the component's `update:value` event: the policy it was given, with the
+// verbosity block always filled in.
+type EmittedAuditPolicy = AuditPolicy & {
+  verbosity: Verbosity & { request: VerbosityDetails, response: VerbosityDetails },
+};
+
+/**
+ * The `index`th `update:value` payload the component emitted.
+ */
+const emittedPolicy = (wrapper: VueWrapper<GeneralComponent>, index: number): EmittedAuditPolicy => {
+  return (wrapper.emitted('update:value') as [EmittedAuditPolicy][])[index][0];
+};
 
 // Mock the ID generation to have consistent snapshots
 jest.mock('@shell/utils/string', () => ({ generateRandomAlphaString: () => 'test-id-123' }));
@@ -124,9 +137,9 @@ describe('component: General', () => {
       const editWrapper = factory({ mode: 'edit' });
       const viewWrapper = factory({ mode: 'view' });
 
-      expect((createWrapper.props() as any).mode).toBe('create');
-      expect((editWrapper.props() as any).mode).toBe('edit');
-      expect((viewWrapper.props() as any).mode).toBe('view');
+      expect(createWrapper.props().mode).toBe('create');
+      expect(editWrapper.props().mode).toBe('edit');
+      expect(viewWrapper.props().mode).toBe('view');
     });
 
     it('should merge defaults with provided value', () => {
@@ -170,7 +183,7 @@ describe('component: General', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.emitted('update:value')).toHaveLength(2);
-      expect((wrapper.emitted('update:value')?.[1]?.[0] as any).enabled).toBe(true);
+      expect(emittedPolicy(wrapper, 1).enabled).toBe(true);
     });
 
     it('should emit update:value when verbosity level changes', async() => {
@@ -180,7 +193,7 @@ describe('component: General', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.emitted('update:value')).toHaveLength(2);
-      expect((wrapper.emitted('update:value')?.[1]?.[0] as any).verbosity.level).toBe(2);
+      expect(emittedPolicy(wrapper, 1).verbosity.level).toBe(2);
     });
 
     it('should emit update:value when request headers changes', async() => {
@@ -190,7 +203,7 @@ describe('component: General', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.emitted('update:value')).toHaveLength(2);
-      expect((wrapper.emitted('update:value')?.[1]?.[0] as any).verbosity.request.headers).toBe(true);
+      expect(emittedPolicy(wrapper, 1).verbosity.request.headers).toBe(true);
     });
 
     it('should emit update:value when response body changes', async() => {
@@ -200,7 +213,7 @@ describe('component: General', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.emitted('update:value')).toHaveLength(2);
-      expect((wrapper.emitted('update:value')?.[1]?.[0] as any).verbosity.response.body).toBe(true);
+      expect(emittedPolicy(wrapper, 1).verbosity.response.body).toBe(true);
     });
 
     it('should preserve existing prop values when emitting updates', async() => {
@@ -210,7 +223,9 @@ describe('component: General', () => {
       wrapper.vm.spec.enabled = true;
       await wrapper.vm.$nextTick();
 
-      const emittedValue = (wrapper.emitted('update:value')?.[1]?.[0] as any);
+      // This test is the only one that passes an extra key through, so it narrows locally
+      // rather than widening the shared payload type.
+      const emittedValue = emittedPolicy(wrapper, 1) as EmittedAuditPolicy & { customField: string };
 
       expect(emittedValue.customField).toBe('test');
       expect(emittedValue.enabled).toBe(true);
@@ -224,7 +239,7 @@ describe('component: General', () => {
       wrapper.vm.spec.verbosity!.response!.body = true;
       await wrapper.vm.$nextTick();
 
-      const emittedValue = (wrapper.emitted('update:value')?.[0]?.[0] as any);
+      const emittedValue = emittedPolicy(wrapper, 0);
 
       expect(emittedValue.verbosity).toStrictEqual({
         level:    3,
@@ -298,7 +313,7 @@ describe('component: General', () => {
       wrapper.vm.spec.verbosity!.level = 1;
       await wrapper.vm.$nextTick();
 
-      const emittedValue = (wrapper.emitted('update:value')?.[0]?.[0] as any);
+      const emittedValue = emittedPolicy(wrapper, 0);
 
       expect(emittedValue.verbosity).toBeDefined();
       expect(emittedValue.verbosity.level).toBe(1);
@@ -329,7 +344,7 @@ describe('component: General', () => {
       wrapper.vm.spec.verbosity!.level = 3;
       await wrapper.vm.$nextTick();
 
-      const emittedValue = (wrapper.emitted('update:value')?.[0]?.[0] as any);
+      const emittedValue = emittedPolicy(wrapper, 0);
 
       expect(emittedValue.verbosity.level).toBe(3);
     });
@@ -341,7 +356,7 @@ describe('component: General', () => {
       wrapper.vm.spec.verbosity!.request!.body = true;
       await wrapper.vm.$nextTick();
 
-      const emittedValue = (wrapper.emitted('update:value')?.[0]?.[0] as any);
+      const emittedValue = emittedPolicy(wrapper, 0);
 
       expect(emittedValue.verbosity.request.headers).toBe(true);
       expect(emittedValue.verbosity.request.body).toBe(true);
@@ -354,7 +369,7 @@ describe('component: General', () => {
       wrapper.vm.spec.verbosity!.response!.body = true;
       await wrapper.vm.$nextTick();
 
-      const emittedValue = (wrapper.emitted('update:value')?.[0]?.[0] as any);
+      const emittedValue = emittedPolicy(wrapper, 0);
 
       expect(emittedValue.verbosity.response.headers).toBe(true);
       expect(emittedValue.verbosity.response.body).toBe(true);
@@ -369,7 +384,7 @@ describe('component: General', () => {
       wrapper.vm.spec.verbosity!.response!.body = true;
       await wrapper.vm.$nextTick();
 
-      const emittedValue = (wrapper.emitted('update:value')?.[1]?.[0] as any);
+      const emittedValue = emittedPolicy(wrapper, 1);
 
       expect(emittedValue).toStrictEqual({
         enabled:   true,
@@ -444,7 +459,7 @@ describe('component: General', () => {
       // Second emission after changes, only one additional one
       expect(wrapper.emitted('update:value')).toHaveLength(2);
 
-      const emittedValue = (wrapper.emitted('update:value')?.[0]?.[0] as any);
+      const emittedValue = emittedPolicy(wrapper, 0);
 
       expect(emittedValue.verbosity.request.headers).toBe(true);
       expect(emittedValue.verbosity.request.body).toBe(true);
@@ -462,7 +477,7 @@ describe('component: General', () => {
       wrapper.vm.spec.verbosity!.level = 1;
       await wrapper.vm.$nextTick();
 
-      const emittedValue = (wrapper.emitted('update:value')?.[1]?.[0] as any);
+      const emittedValue = emittedPolicy(wrapper, 1);
 
       expect(emittedValue.verbosity).toBeDefined();
       expect(emittedValue.verbosity.request).toBeDefined();

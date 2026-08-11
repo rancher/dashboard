@@ -64,13 +64,13 @@ const mockValue = {
   agentConfig: {}
 };
 
-const createWrapper = (propsData: any = {}) => {
+const createWrapper = (propsOverride: any = {}) => {
   return shallowMount(RKE2, {
-    propsData: {
+    props: {
       mode:     'create',
-      value:    { ...mockValue, ...propsData.value },
+      value:    { ...mockValue, ...propsOverride.value },
       provider: 'custom',
-      ...propsData
+      ...propsOverride
     },
     global: {
       mocks: {

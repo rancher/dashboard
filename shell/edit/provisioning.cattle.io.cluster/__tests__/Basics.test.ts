@@ -1,8 +1,12 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 // import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { RKE2_INGRESS_NGINX, RKE2_TRAEFIK } from '@shell/edit/provisioning.cattle.io.cluster/shared';
+
+// Payload of the component's `cilium-values-changed` event.
+type CiliumValues = { bandwidthManager: { enabled: boolean, test?: boolean } };
 
 const defaultStubs = {
   Banner:          true,
@@ -160,6 +164,9 @@ function createBasicsTab(version : string, userChartValues: any, options = {}) {
       showCloudProvider:           false,
       unsupportedCloudProvider:    false,
       cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+      isAzureProviderUnsupported:  false,
+      canAzureMigrateOnEdit:       false,
+      complianceOverride:          false,
       ...options
     },
 
@@ -218,6 +225,9 @@ describe('component: Basics', () => {
         showCloudProvider:           true,
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+        isAzureProviderUnsupported:  false,
+        canAzureMigrateOnEdit:       false,
+        complianceOverride:          false,
       },
 
       global: {
@@ -272,6 +282,9 @@ describe('component: Basics', () => {
         showCloudProvider:           true,
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+        isAzureProviderUnsupported:  false,
+        canAzureMigrateOnEdit:       false,
+        complianceOverride:          false,
       },
 
       global: {
@@ -328,6 +341,9 @@ describe('component: Basics', () => {
         showCloudProvider:           true,
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+        isAzureProviderUnsupported:  false,
+        canAzureMigrateOnEdit:       false,
+        complianceOverride:          false,
       },
 
       global: {
@@ -340,7 +356,7 @@ describe('component: Basics', () => {
       },
     });
 
-    const select = wrapper.getComponent('[data-testid="rke2-custom-edit-psa"]');
+    const select = wrapper.getComponent<typeof LabeledSelect>('[data-testid="rke2-custom-edit-psa"]');
 
     expect(select.props().disabled).toBe(disabled);
   });
@@ -359,7 +375,8 @@ describe('component: Basics', () => {
       await nextTick();
 
       // Check and update user values with the emitted value
-      let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
+      const emitted = wrapper.emitted('cilium-values-changed') as [CiliumValues][];
+      let latest = emitted[0][0];
 
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOnValue));
 
@@ -371,7 +388,9 @@ describe('component: Basics', () => {
       await nextTick();
 
       // Update from the emitted value
-      latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
+      const emittedAgain = wrapper.emitted('cilium-values-changed') as [CiliumValues][];
+
+      latest = emittedAgain[1][0];
 
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOffValue));
     });
@@ -385,7 +404,8 @@ describe('component: Basics', () => {
       await nextTick();
       await nextTick();
 
-      let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
+      const emitted = wrapper.emitted('cilium-values-changed') as [CiliumValues][];
+      let latest = emitted[0][0];
 
       await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
 
@@ -409,7 +429,9 @@ describe('component: Basics', () => {
       await nextTick();
       await nextTick();
 
-      latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
+      const emittedAgain = wrapper.emitted('cilium-values-changed') as [CiliumValues][];
+
+      latest = emittedAgain[1][0];
 
       const expected = '{"bandwidthManager":{"test":true,"enabled":true}}';
 

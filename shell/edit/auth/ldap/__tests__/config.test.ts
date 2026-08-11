@@ -12,7 +12,7 @@ describe('lDAP config', () => {
         }
       });
 
-    const userLoginFilter = wrapper.find('[data-testid="user-login-filter"]');
+    const userLoginFilter = wrapper.find<HTMLInputElement>('[data-testid="user-login-filter"]');
 
     await userLoginFilter.setValue('Test Filter');
 
@@ -33,7 +33,7 @@ describe('lDAP config', () => {
         }
       });
 
-    const userLoginFilter = wrapper.find('[data-testid="user-login-filter"]');
+    const userLoginFilter = wrapper.find<HTMLInputElement>('[data-testid="user-login-filter"]');
 
     const expectedValue = '';
 
@@ -46,7 +46,7 @@ describe('lDAP config', () => {
     'openldap', 'freeipa'
   ])('should display searchUsingServiceAccount checkbox if type %p', (type) => {
     const wrapper = mount(LDAPConfig, {
-      propsData: {
+      props: {
         value: {},
         type,
       }

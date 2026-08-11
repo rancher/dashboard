@@ -5,6 +5,7 @@ import { _EDIT } from '@shell/config/query-params';
 
 import oidc from '@shell/edit/auth/oidc.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -182,14 +183,14 @@ describe('oidc.vue', () => {
     });
 
     it('`groupSearchEnabled` defaults to false', async() => {
-      const groupSearchCheckbox = wrapper.getComponent('[data-testid="input-group-search"]');
+      const groupSearchCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="input-group-search"]');
 
       expect(groupSearchCheckbox.isVisible()).toBe(true);
       expect(wrapper.vm.model.groupSearchEnabled).toBe(false);
     });
 
     it('`groupSearchEnabled` updates when checkbox is clicked', async() => {
-      const groupSearchCheckbox = wrapper.getComponent('[data-testid="input-group-search"]');
+      const groupSearchCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="input-group-search"]');
 
       await groupSearchCheckbox.find('[role="checkbox"]').trigger('click');
 
@@ -356,7 +357,7 @@ describe('oidc.vue', () => {
           }
         });
 
-        const checkbox = wrapper.getComponent('[data-testid="input-client-authenticated-group-search"]');
+        const checkbox = wrapper.getComponent<typeof Checkbox>('[data-testid="input-client-authenticated-group-search"]');
 
         await checkbox.find('[role="checkbox"]').trigger('click');
 

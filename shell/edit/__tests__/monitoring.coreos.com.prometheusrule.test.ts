@@ -60,7 +60,7 @@ describe('edit: management.cattle.io.setting should', () => {
     expect(errorBanners).toHaveLength(MOCKED_ERRORS.length);
 
     for (let i = 0; i < MOCKED_ERRORS.length; i++) {
-      await errorBanners.at(0).trigger('click');
+      await errorBanners[0].trigger('click');
       const resultErrorBanners = wrapper.findAll(ERROR_BANNER_SELECTOR);
 
       // Assert that an error banner is closed until the last one

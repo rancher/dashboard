@@ -1,4 +1,4 @@
-import { mount, shallowMount } from '@vue/test-utils';
+import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
 import { SECRET } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
@@ -90,10 +90,25 @@ const defaultMocks = {
   },
 };
 
-const defaultSpec = {
+const defaultSpec: {
+  rkeConfig: { etcd: { disableSnapshots: boolean }, dataDirectories?: { k8sDistro: string } },
+  chartValues: Record<string, any>,
+} = {
   rkeConfig:   { etcd: { disableSnapshots: false } },
   chartValues: {},
 };
+
+// rke2.vue is a plain-JS SFC. The members below are its own, but vue-tsc resolves them
+// to `never` on the instance type, so they are reached through a typed view.
+type Rke2Vm = {
+  initSpecs: () => Promise<void>,
+  _doSaveOverride: (done: () => void) => Promise<void>,
+  chartVersionKey: (chart: string) => string,
+  applyChartValues: (rkeConfig: Record<string, any>) => void,
+  machinePools: { drainBeforeDelete: boolean }[],
+};
+
+const rke2Vm = (wrapper: VueWrapper<any>) => wrapper.vm as Rke2Vm;
 
 describe('component: rke2', () => {
   /**
@@ -199,9 +214,11 @@ describe('component: rke2', () => {
       },
     });
 
-    await wrapper.vm.initSpecs();
+    const rkeVm = rke2Vm(wrapper);
 
-    wrapper.vm.machinePools.forEach((p: any) => expect(p.drainBeforeDelete).toBe(true));
+    await rkeVm.initSpecs();
+
+    rkeVm.machinePools.forEach((p) => expect(p.drainBeforeDelete).toBe(true));
   });
 
   it('should set distro root directory from k8sDistro on a Harvester cluster creation on save override (_doSaveOverride)', async() => {
@@ -259,8 +276,10 @@ describe('component: rke2', () => {
     // otherwise we get console errors
     // jest.spyOn(wrapper.vm, 'save').mockImplementation();
 
-    await wrapper.vm._doSaveOverride(jest.fn());
-    const chartKey = wrapper.vm.chartVersionKey(HARVESTER_CLOUD_PROVIDER);
+    const rkeVm = rke2Vm(wrapper);
+
+    await rkeVm._doSaveOverride(jest.fn());
+    const chartKey = rkeVm.chartVersionKey(HARVESTER_CLOUD_PROVIDER);
 
     const cloudConfigPath = get(wrapper.vm.userChartValues, `${ chartKey }.cloudConfigPath`);
 
@@ -365,7 +384,7 @@ describe('component: rke2', () => {
     ['v1.31.0+k3s1', [{ value: 'aws' }], 'azure', false],
   ])('should set isAzureProviderUnsupported', (k8s, providerOptions, cloudProvider, value) => {
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode:  _CREATE,
         value: {
           spec: {
@@ -405,7 +424,7 @@ describe('component: rke2', () => {
     ['view', 'v1.28.0+k3s1', 'azure', false],
   ])('should set canAzureMigrateOnEdit', (mode, k8s, liveCloudProvider, value) => {
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode,
         liveValue: {
           spec: {
@@ -443,7 +462,7 @@ describe('component: rke2', () => {
     ['not', 'v1.31.0+rke2r1', 'azure', undefined],
   ])('should %p include version %p if Cloud Provider is %p', async(_, k8s, liveCloudProvider, value) => {
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {
           spec: {
@@ -485,7 +504,7 @@ describe('component: rke2', () => {
     ['disable', 'v1.32.0+rke2r1', true],
   ])('should %p Azure provider option if version is %p', async(_, k8s, value) => {
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {
           spec: {
@@ -530,7 +549,7 @@ describe('component: rke2', () => {
     ['enable', '', 'v1.28.0+rke2r1', true], // default provider
   ])('should %p provider option %p in edit mode if live provider is Azure and 1.27 <= k8s < 1.30', async(_, cloudProvider, k8s, value) => {
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode:  'edit',
         value: {
           spec: {
@@ -630,7 +649,7 @@ describe('component: rke2', () => {
       },
     });
 
-    wrapper.vm.applyChartValues(wrapper.vm.value.spec.rkeConfig);
+    rke2Vm(wrapper).applyChartValues(wrapper.vm.value.spec.rkeConfig);
 
     expect(wrapper.vm.value.spec.rkeConfig.chartValues).toStrictEqual(expected);
   });
