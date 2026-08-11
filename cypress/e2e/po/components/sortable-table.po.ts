@@ -141,8 +141,8 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().should('exist').contains('tbody tr', new RegExp(`${ name }`), options);
   }
 
-  rowElementWithPartialName(name: string) {
-    return this.self().contains('tbody tr', name);
+  rowElementWithPartialName(name: string, options?: GetOptions) {
+    return this.self().contains('tbody tr', name, options);
   }
 
   tableHeaderRowElementWithPartialName(name: string) {
@@ -174,8 +174,8 @@ export default class SortableTablePo extends ComponentPo {
     return new ListRowPo(this.rowElements().eq(index));
   }
 
-  rowWithPartialName(name: string) {
-    return new ListRowPo(this.rowElementWithPartialName(name));
+  rowWithPartialName(name: string, options?: GetOptions) {
+    return new ListRowPo(this.rowElementWithPartialName(name, options));
   }
 
   rowWithName(name: string) {
