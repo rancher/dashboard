@@ -4,11 +4,19 @@ import { KEY } from '@shell/utils/platform';
 
 const t = (key: string): string => key;
 
+// Labels of the results that have been opened, in order
+let clicked: string[] = [];
+
 // Renders each group child the same way nav/Type.vue does, so the dialog's
 // keyboard navigation can be exercised against a realistic DOM
 const GroupStub = {
-  props:    ['group'],
-  emits:    ['close'],
+  props:   ['group'],
+  emits:   ['close'],
+  methods: {
+    open(label: string) {
+      clicked.push(label);
+    },
+  },
   template: `
     <ul>
       <li
@@ -19,7 +27,7 @@ const GroupStub = {
         <a
           class="type-link"
           href="#"
-          @click.prevent="$emit('close')"
+          @click.prevent="open(c.label); $emit('close')"
         >{{ c.label }}</a>
       </li>
     </ul>
@@ -28,6 +36,8 @@ const GroupStub = {
 
 describe('component: SearchDialog', () => {
   let wrapper: VueWrapper<any>;
+  // Lets a test change the results the store returns after the component has mounted
+  let getTree: jest.Mock;
 
   const createMockGroups = () => [
     {
@@ -54,13 +64,15 @@ describe('component: SearchDialog', () => {
   ];
 
   const mountComponent = async(groups = createMockGroups()) => {
+    getTree = jest.fn().mockReturnValue(groups);
+
     const store = {
       getters: {
         clusterId:           'local',
         productId:           'explorer',
         currentProduct:      { inStore: 'cluster' },
         'type-map/allTypes': jest.fn().mockReturnValue({}),
-        'type-map/getTree':  jest.fn().mockReturnValue(groups),
+        'type-map/getTree':  getTree,
         'cluster/all':       jest.fn().mockReturnValue([]),
         'cluster/canList':   jest.fn().mockReturnValue(true),
       },
@@ -82,6 +94,10 @@ describe('component: SearchDialog', () => {
 
     return mounted;
   };
+
+  beforeEach(() => {
+    clicked = [];
+  });
 
   afterEach(() => {
     if (wrapper) {
@@ -162,6 +178,31 @@ describe('component: SearchDialog', () => {
       expect(document.activeElement).toBe(links[links.length - 1].element);
     });
 
+    it('should focus a result of the current filter when Down is pressed before the debounce fires', async() => {
+      wrapper = await mountComponent();
+
+      getTree.mockReturnValue([{
+        name:     'workload',
+        label:    'Workload',
+        children: [
+          {
+            name: 'apps.replicaset', label: 'ReplicaSets', route: { name: 'c-cluster-product-resource' }
+          },
+        ],
+      }]);
+
+      wrapper.vm.value = 'repli';
+      await wrapper.vm.$nextTick();
+
+      await wrapper.find('input').trigger('keydown', { keyCode: KEY.DOWN });
+      await wrapper.vm.$nextTick();
+
+      const links = wrapper.findAll('a.type-link');
+
+      expect(links).toHaveLength(1);
+      expect(document.activeElement).toBe(links[0].element);
+    });
+
     it('should do nothing on Down when there are no results', async() => {
       wrapper = await mountComponent([]);
 
@@ -191,6 +232,29 @@ describe('component: SearchDialog', () => {
       await wrapper.find('input').trigger('keydown', { keyCode: KEY.CR });
 
       expect(wrapper.emitted('close')).toBeUndefined();
+    });
+
+    // Filtering is debounced, so pressing Enter straight after typing must not open a result of the previous filter
+    it('should open a result of the current filter when Enter is pressed before the debounce fires', async() => {
+      wrapper = await mountComponent();
+
+      getTree.mockReturnValue([{
+        name:     'workload',
+        label:    'Workload',
+        children: [
+          {
+            name: 'apps.replicaset', label: 'ReplicaSets', route: { name: 'c-cluster-product-resource' }
+          },
+        ],
+      }]);
+
+      wrapper.vm.value = 'repli';
+      await wrapper.vm.$nextTick();
+
+      await wrapper.find('input').trigger('keydown', { keyCode: KEY.CR });
+      await wrapper.vm.$nextTick();
+
+      expect(clicked).toStrictEqual(['ReplicaSets']);
     });
   });
 

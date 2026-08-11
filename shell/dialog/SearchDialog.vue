@@ -79,7 +79,20 @@ export default {
       return Array.from(this.$refs.results?.querySelectorAll('li.child.nav-type a.type-link') || []);
     },
 
-    focusLink(direction) {
+    /**
+     * Filtering the results is debounced, so what is rendered can lag behind what has been typed. Apply any pending
+     * filter before acting on the results, otherwise a key pressed within the debounce window would use the results
+     * of the previous filter
+     */
+    async settleResults() {
+      this.queueUpdate?.flush();
+
+      await this.$nextTick();
+    },
+
+    async focusLink(direction) {
+      await this.settleResults();
+
       const links = this.visibleLinks();
 
       if (!links.length) {
@@ -106,9 +119,15 @@ export default {
         break;
       case KEY.CR:
         e.preventDefault();
-        this.visibleLinks()[0]?.click();
+        this.openFirstResult();
         break;
       }
+    },
+
+    async openFirstResult() {
+      await this.settleResults();
+
+      this.visibleLinks()[0]?.click();
     },
 
     resultsKeyHandler(e) {
