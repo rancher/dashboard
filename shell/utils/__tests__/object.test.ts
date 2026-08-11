@@ -161,6 +161,21 @@ describe('fx: remove', () => {
 
     expect(result).toStrictEqual(expected);
   });
+
+  describe('with pruneEmptyParents', () => {
+    it.each([
+      [{ level1: { level2: true } }, 'level1.level2', {}],
+      [{ level1: { level2: true, other: true } }, 'level1.level2', { level1: { other: true } }],
+      [{ level1: { level2: true }, other: true }, 'level1.level2', { other: true }],
+      [{ level1: { level2: { level3: true } } }, 'level1.level2.level3', {}],
+      [{ level1: { level2: { level3: true, other: true } } }, 'level1.level2.level3', { level1: { level2: { other: true } } }],
+      [{ level1: { level2: { level3: true } }, other: true }, 'level1.level2.level3', { other: true }],
+    ])('should evaluate %p as %p', (obj, path, expected) => {
+      const result = remove(obj, path, true);
+
+      expect(result).toStrictEqual(expected);
+    });
+  });
 });
 
 describe('fx: diff', () => {

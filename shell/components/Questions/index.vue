@@ -1,7 +1,7 @@
 <script>
 import Jexl from 'jexl';
 import Tab from '@shell/components/Tabbed/Tab';
-import { get, set } from '@shell/utils/object';
+import { get, set, remove } from '@shell/utils/object';
 import { sortBy, camelCase } from 'lodash';
 import { _EDIT } from '@shell/config/query-params';
 import StringType from './String';
@@ -180,7 +180,7 @@ export default {
   },
 
   data() {
-    return { valueGeneration: 0 };
+    return { valueGeneration: 0, hiddenValuesCache: {} };
   },
 
   computed: {
@@ -286,6 +286,50 @@ export default {
       handler() {
         this.valueGeneration++;
       },
+    },
+
+    shownQuestions(neu, old) {
+      if (!old?.length) {
+        return;
+      }
+
+      const neuVars = (neu || []).map((q) => q.variable).filter(Boolean);
+      const oldVars = (old || []).map((q) => q.variable).filter(Boolean);
+
+      for (const variable of oldVars) {
+        // If a question was previously visible but is now hidden (e.g. toggled off)
+        if (!neuVars.includes(variable)) {
+          const currentValue = get(this.value, variable);
+
+          if (currentValue !== undefined) {
+            // Remember the user's answer so it can be restored if the question is shown again,
+            // instead of it being silently lost.
+            this.hiddenValuesCache[variable] = currentValue;
+          }
+
+          const defaultValue = this.source?.values ? get(this.source.values, variable) : undefined;
+
+          if (defaultValue !== undefined) {
+            // If the variable existed in the default values.yaml of the chart,
+            // restore it to its original default value rather than deleting it.
+            // This prevents the diff utility from treating it as a deletion (null).
+            set(this.value, variable, defaultValue);
+          } else {
+            // If the variable did not exist in the default values.yaml (dynamic subquestion),
+            // remove it completely so it won't show up in the custom values diff.
+            remove(this.value, variable, true);
+          }
+        }
+      }
+
+      for (const variable of neuVars) {
+        // If a question was previously hidden and is now shown again, restore the user's last
+        // answer (if any) rather than leaving it at the default from when it was hidden.
+        if (!oldVars.includes(variable) && variable in this.hiddenValuesCache) {
+          set(this.value, variable, this.hiddenValuesCache[variable]);
+          delete this.hiddenValuesCache[variable];
+        }
+      }
     }
   },
 
