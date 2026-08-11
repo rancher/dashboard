@@ -34,6 +34,30 @@ export class NamespaceFilterPo extends ComponentPo {
       .should('exist');
   }
 
+  /**
+   * [CREATE ISSUE FOR CODE FIX] The option's checkmark does not update reactively when the selection
+   * changes - it only renders correctly on a fresh dropdown open, and the selection itself settles
+   * asynchronously (a userpreferences round-trip, plus a page's re-applied forced default after a
+   * clear). A single reopen can race that settle and still show no checkmark. Reopen the dropdown and
+   * re-check until the checkmark for `label` appears, so the assertion no longer flakes.
+   */
+  ensureOptionChecked(label: string, retries = 6): void {
+    this.getOptions().contains(new RegExp(` ${ label } `)).then(($row) => {
+      if ($row.find('i.icon-checkmark').length > 0) {
+        return; // checkmark present - selection verified
+      }
+
+      if (retries <= 0) {
+        this.isChecked(label); // exhausted - assert once more for a clear failure message
+
+        return;
+      }
+
+      this.reopenDropdown();
+      this.ensureOptionChecked(label, retries - 1);
+    });
+  }
+
   checkIcon() {
     return this.self().find('.icon-checkmark');
   }

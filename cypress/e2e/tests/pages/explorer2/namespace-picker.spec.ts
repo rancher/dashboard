@@ -55,10 +55,9 @@ describe('Namespace picker', { testIsolation: false }, () => {
     namespacePicker.getOptions().should('be.visible');
     namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
     namespacePicker.clickOptionByLabel('cattle-fleet-system');
-    // The option's checkmark does not render reactively right after selecting it (see reopenDropdown);
-    // reopen the dropdown so the list re-renders from the settled selection before asserting isChecked.
-    namespacePicker.reopenDropdown();
-    namespacePicker.isChecked('cattle-fleet-system');
+    // The checkmark is not reactive and the selection settles asynchronously; reopen-and-recheck
+    // until it appears (see ensureOptionChecked) instead of a single reopen that can race the settle.
+    namespacePicker.ensureOptionChecked('cattle-fleet-system');
     namespacePicker.closeDropdown();
     // Wait for dropdown to close completely before proceeding
     namespacePicker.self().should('be.visible');
@@ -82,15 +81,13 @@ describe('Namespace picker', { testIsolation: false }, () => {
     // rendered while only one namespace is selected ("block removing the last
     // selection"), so `selectedValues().find('i')` finds nothing and flakes.
     namespacePicker.clearSelectionButtonAndWaitForRequest();
-    namespacePicker.reopenDropdown();
-    // 'Only User Namespaces' option should be selected after clearing
-    namespacePicker.isChecked('Only User Namespaces');
+    // 'Only User Namespaces' option should be selected after clearing (checkmark is not reactive and
+    // the forced default is re-applied asynchronously, so reopen-and-recheck until it appears).
+    namespacePicker.ensureOptionChecked('Only User Namespaces');
 
     // Filter by Project: Select 'Project: System'
     namespacePicker.clickOptionByLabel('Project: System');
-    // Same non-reactive-checkmark workaround as above: reopen before asserting the selection.
-    namespacePicker.reopenDropdown();
-    namespacePicker.isChecked('Project: System');
+    namespacePicker.ensureOptionChecked('Project: System');
     namespacePicker.closeDropdown();
     // Wait for dropdown to close completely
     namespacePicker.self().should('be.visible');
@@ -196,9 +193,9 @@ describe('Namespace picker', { testIsolation: false }, () => {
 
     // clear selection from dropdown menu
     namespacePicker.clearSelectionButtonAndWaitForRequest();
-    namespacePicker.reopenDropdown();
-    // 'Only User Namespaces' option should be selected after clearing
-    namespacePicker.isChecked('Only User Namespaces');
+    // 'Only User Namespaces' option should be selected after clearing (checkmark is not reactive and
+    // the forced default is re-applied asynchronously, so reopen-and-recheck until it appears).
+    namespacePicker.ensureOptionChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
@@ -231,8 +228,7 @@ describe('Namespace picker', { testIsolation: false }, () => {
 
     // Reset: clear selection from dropdown menu
     namespacePicker.clearSelectionButtonAndWaitForRequest();
-    namespacePicker.reopenDropdown();
-    namespacePicker.isChecked('Only User Namespaces');
+    namespacePicker.ensureOptionChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
