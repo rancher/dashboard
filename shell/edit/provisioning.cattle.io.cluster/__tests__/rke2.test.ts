@@ -377,141 +377,16 @@ describe('component: rke2', () => {
     });
   });
 
-  it.each([
-    ['v1.25.0+k3s1', [{ value: 'aws' }, { value: 'azure' }], 'azure', true],
-    ['v1.31.0+k3s1', [{ value: 'aws' }, { value: 'azure' }], 'harvester', true],
-    ['v1.29.0+k3s1', [{ value: 'aws' }, { value: 'azure' }], 'harvester', false],
-    ['v1.31.0+k3s1', [{ value: 'aws' }], 'azure', false],
-  ])('should set isAzureProviderUnsupported', (k8s, providerOptions, cloudProvider, value) => {
+  it('should filter out the azure cloud provider option', () => {
     const wrapper = mount(rke2, {
       props: {
         mode:  _CREATE,
         value: {
           spec: {
             ...defaultSpec,
-            kubernetesVersion: k8s
+            kubernetesVersion: 'v1.28.0+rke2r1'
           },
-          agentConfig: { 'cloud-provider-name': cloudProvider }
-        },
-        provider: 'custom'
-      },
-      data:     () => ({}),
-      computed: {
-        ...rke2.computed,
-        cloudProviderOptions() {
-          return providerOptions;
-        },
-      },
-      global: {
-        mocks: {
-          ...defaultMocks,
-          $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
-          $extension: { getDynamic: jest.fn(() => undefined ) },
-        },
-        stubs: defaultStubs
-      }
-    });
-
-    expect(wrapper.vm.isAzureProviderUnsupported).toBe(value);
-  });
-
-  it.each([
-    ['edit', 'v1.31.0+k3s1', 'azure', false],
-    ['edit', 'v1.26.0+k3s1', 'azure', false],
-    ['edit', 'v1.28.0+k3s1', 'harvester', false],
-    ['edit', 'v1.28.0+k3s1', 'azure', true],
-    ['create', 'v1.28.0+k3s1', 'azure', false],
-    ['view', 'v1.28.0+k3s1', 'azure', false],
-  ])('should set canAzureMigrateOnEdit', (mode, k8s, liveCloudProvider, value) => {
-    const wrapper = mount(rke2, {
-      props: {
-        mode,
-        liveValue: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': liveCloudProvider }
-        },
-        value: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': liveCloudProvider }
-        },
-        provider: 'custom'
-      },
-      global: {
-        mocks: {
-          ...defaultMocks,
-          $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
-          $extension: { getDynamic: jest.fn(() => undefined ) },
-        },
-        stubs: defaultStubs
-      }
-    });
-
-    expect((wrapper.vm as any).canAzureMigrateOnEdit).toBe(value);
-  });
-
-  it.each([
-    ['', 'v1.32.0+rke2r1', 'amazon', 'v1.32.0+rke2r1'],
-    ['', 'v1.29.0+rke2r1', 'amazon', 'v1.29.0+rke2r1'],
-    ['', 'v1.29.0+rke2r1', 'azure', 'v1.29.0+rke2r1'],
-    ['not', 'v1.31.0+rke2r1', 'azure', undefined],
-  ])('should %p include version %p if Cloud Provider is %p', async(_, k8s, liveCloudProvider, value) => {
-    const wrapper = mount(rke2, {
-      props: {
-        mode:  'create',
-        value: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': liveCloudProvider }
-        },
-        provider: 'custom'
-      },
-      data:   () => ({}),
-      global: {
-        mocks: {
-          ...defaultMocks,
-          $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
-          $extension: { getDynamic: jest.fn(() => undefined ) },
-        },
-        stubs: defaultStubs
-      }
-    });
-
-    wrapper.setData({
-      rke2Versions: [{
-        id:         k8s,
-        version:    k8s,
-        serverArgs: true,
-        charts:     {
-          [RKE2_INGRESS_NGINX]: {},
-          [RKE2_TRAEFIK]:       {}
-        }
-      }]
-    });
-
-    expect((wrapper.vm as any).versionOptions[0]?.value).toBe(value);
-  });
-
-  it.each([
-    ['enable', 'v1.28.0+rke2r1', false],
-    ['disable', 'v1.32.0+rke2r1', true],
-  ])('should %p Azure provider option if version is %p', async(_, k8s, value) => {
-    const wrapper = mount(rke2, {
-      props: {
-        mode:  'create',
-        value: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': 'azure' }
+          agentConfig: { 'cloud-provider-name': 'amazon' }
         },
         provider: 'custom'
       },
@@ -536,56 +411,10 @@ describe('component: rke2', () => {
       }
     });
 
-    const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === 'azure');
+    const options = (wrapper.vm as any).cloudProviderOptions;
 
-    expect(azureOption.disabled).toBe(value);
-  });
-
-  it.each([
-    ['enable', 'azure', 'v1.28.0+rke2r1', false], // azure provider / current
-    ['enable', 'external', 'v1.28.0+rke2r1', false], // external provider
-    ['enable', 'azure', 'v1.26.0+rke2r1', false], // version mismatch
-    ['disable', 'amazon', 'v1.26.0+rke2r1', true],
-    ['enable', '', 'v1.28.0+rke2r1', true], // default provider
-  ])('should %p provider option %p in edit mode if live provider is Azure and 1.27 <= k8s < 1.30', async(_, cloudProvider, k8s, value) => {
-    const wrapper = mount(rke2, {
-      props: {
-        mode:  'edit',
-        value: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': 'azure' }
-        },
-        provider: 'custom'
-      },
-      computed: {
-        ...rke2.computed,
-        canAzureMigrateOnEdit: () => true,
-        agentArgs:             () => ({
-          'cloud-provider-name': {
-            options: [
-              'azure',
-              'amazon',
-              'external'
-            ]
-          }
-        })
-      },
-      global: {
-        mocks: {
-          ...defaultMocks,
-          $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
-          $extension: { getDynamic: jest.fn(() => undefined ) },
-        },
-        stubs: defaultStubs
-      }
-    });
-
-    const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === cloudProvider);
-
-    expect(azureOption.disabled).toBe(value);
+    expect(options.find((o: any) => o.value === 'azure')).toBeUndefined();
+    expect(options.find((o: any) => o.value === 'amazon')).toBeDefined();
   });
 
   it.each(rke2TestTable)('should preserve valid user-supplied chart values', (chartValues, expected) => {

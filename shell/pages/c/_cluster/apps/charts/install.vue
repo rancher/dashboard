@@ -3,7 +3,6 @@ import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@shell/store/prefs';
-import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
 import { mapGetters } from 'vuex';
 import { markRaw } from 'vue';
 import { Banner } from '@components/Banner';
@@ -186,24 +185,6 @@ export default {
       this.forceNamespace = this.query.appNamespace;
     } else {
       this.forceNamespace = null;
-    }
-
-    /* Check if the app is deprecated. */
-    try {
-      this.legacyApp = this.existing ? await this.existing.deployedAsLegacy() : false;
-    } catch (e) {
-      this.legacyApp = false;
-      console.warn('Unable to determine if existing install is a legacy app: ', e); // eslint-disable-line no-console
-    }
-
-    /* Check if the app is a multicluster deprecated app.
-    (Multicluster apps were replaced by Fleet.) */
-
-    try {
-      this.mcapp = this.existing ? await this.existing.deployedAsMultiCluster() : false;
-    } catch (e) {
-      this.mcapp = false;
-      console.warn('Unable to determine if existing install is a mc app: ', e); // eslint-disable-line no-console
     }
 
     /* The form state is intialized as a chartInstallAction resource. */
@@ -430,8 +411,6 @@ export default {
       forceNamespace:                         null,
       loadedVersion:                          null,
       loadedVersionValues:                    null,
-      legacyApp:                              null,
-      mcapp:                                  null,
       mode:                                   null,
       value:                                  null,
       valuesComponent:                        null,
@@ -505,17 +484,11 @@ export default {
       },
 
       isPlainLayout: isPlainLayout(this.$route.query),
-
-      legacyDefs: {
-        legacy: this.t('catalog.install.error.legacy.category.legacy'),
-        mcm:    this.t('catalog.install.error.legacy.category.mcm')
-      }
     };
   },
 
   computed: {
-    ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
-    mcm: mapFeature(MULTI_CLUSTER),
+    ...mapGetters({ inStore: 'catalog/inStore' }),
 
     monitoringChartWarning() {
       const annotations = this.version?.annotations || {};
@@ -790,22 +763,6 @@ export default {
 
     namespaceNewAllowed() {
       return !this.existing && !this.forceNamespace;
-    },
-
-    legacyEnabled() {
-      // Check for the legacy feature flag in the settings
-      return this.features(LEGACY);
-    },
-
-    legacyFeatureRoute() {
-      return {
-        name:   'c-cluster-product-resource',
-        params: { product: 'settings', resource: 'management.cattle.io.feature' }
-      };
-    },
-
-    legacyAppRoute() {
-      return { name: 'c-cluster-legacy-project' };
     },
 
     /**
@@ -1647,7 +1604,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div
-    v-else-if="!legacyApp && !mcapp"
+    v-else
     class="install-steps"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
@@ -2162,72 +2119,6 @@ export default {
         :version-info="versionInfo"
         class="chart-content__tabs"
       />
-    </div>
-  </div>
-
-  <!-- App is deployed as a Legacy or MultiCluster app, don't let user update from here -->
-  <div
-    v-else
-    class="install-steps"
-    :class="{ 'isPlainLayout': isPlainLayout}"
-  >
-    <div class="outer-container">
-      <div class="header mmt-6 mmb-6">
-        <div class="top choice-banner">
-          <div class="chart-title-container mmb-6">
-            <div class="logo-container">
-              <div class="logo-box">
-                <LazyImage
-                  :src="chart ? chart.icon : ''"
-                  class="logo"
-                />
-              </div>
-            </div>
-            <div class="chart-title">
-              <h2 v-if="stepperName">
-                <router-link
-                  :to="chartLocation()"
-                  data-testid="chart-install-name-link"
-                >
-                  {{ stepperName }}
-                </router-link>
-              </h2>
-              <span
-                v-if="stepperSubtext"
-                class="subtext"
-              >
-                <i
-                  v-clean-tooltip="t('tableHeaders.version')"
-                  class="icon icon-version-alt"
-                />
-                {{ stepperSubtext }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <Banner
-        color="warning"
-        class="description"
-      >
-        <span v-if="!mcapp">
-          {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
-        </span>
-        <template v-if="!legacyEnabled">
-          <span v-clean-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
-          <router-link :to="legacyFeatureRoute">
-            {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
-          </router-link>
-        </template>
-        <template v-else-if="mcapp">
-          <span v-clean-html="t('catalog.install.error.legacy.mcmNotSupported')" />
-        </template>
-        <template v-else>
-          <router-link :to="legacyAppRoute">
-            <span v-clean-html="t('catalog.install.error.legacy.navigate')" />
-          </router-link>
-        </template>
-      </Banner>
     </div>
   </div>
 </template>

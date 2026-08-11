@@ -893,16 +893,6 @@ catalog:
       requiresMissing: '这个 Chart 另一个提供 {name} 的 Chart，但我们找不到这个Chart。'
       insufficientCpu: '这个 Chart 需要 {need, number} 个 CPU 核，但集群只有 {have, number} 个可用。'
       insufficientMemory: '这个 Chart 需要 {need} 内存，但集群只有 {have} 可用。'
-      legacy:
-        label: 这是个 {legacyType} 应用，无法在这里修改。
-        enableLegacy:
-          prompt: 想编辑这个应用，你需要添加旧版功能。
-          goto: 前往功能开关设置
-        navigate: 导航到旧版应用程序
-        mcmNotSupported: 无法通过此 UI 管理旧版多集群应用程序
-        category:
-          legacy: 旧版
-          mcm: 多集群
     header:
       install: '安装 {name}'
       installGeneric: 安装 Chart
@@ -1357,7 +1347,6 @@ cluster:
     deprecated: （已弃用）
     deprecatedPatches: 显示已弃用的 Kubernetes 补丁版本
     deprecatedPatchWarning: 建议为每个 Kubernetes 次要版本使用最新的补丁版本，已弃用的补丁版本可能对迁移有用。
-  legacyWarning: 旧版功能开关已开启，但是不是所有旧版功能都在 Kubernetes 1.21+ 中支持。
   log:
     connecting: 正在连接
     noData: 没有预设的日志项目
