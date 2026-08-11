@@ -320,5 +320,70 @@ describe('component: Questions', () => {
       expect(wrapper.vm.value.ingress.limit).toBe(0);
       expect(wrapper.vm.value.ingress.path).toBe('');
     });
+
+    it('should restore the user-entered value of a question that is hidden and then shown again (no default in source.values)', async() => {
+      const questions = [
+        { variable: 'parent', type: 'boolean' },
+        { variable: 'nested.child', show_if: 'parent=true' }
+      ];
+      const wrapper = shallowMount(Questions, {
+        props: {
+          ...defaultProps, source: { questions: { questions } }, value: { parent: true, nested: { child: 'my-custom-value' } }
+        },
+        global: { mocks: defaultMocks },
+      });
+
+      expect(wrapper.vm.value.nested.child).toBe('my-custom-value');
+
+      // Hide the question
+      wrapper.setProps({ value: { parent: false, nested: { child: 'my-custom-value' } } });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(1);
+      expect(wrapper.vm.value.nested).toBeUndefined();
+
+      // Show the question again
+      wrapper.setProps({ value: { parent: true } });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(2);
+      expect(wrapper.vm.value.nested.child).toBe('my-custom-value');
+    });
+
+    it('should restore the user-entered value of a question that is hidden and then shown again (default exists in source.values)', async() => {
+      const questions = [
+        { variable: 'parent', type: 'boolean' },
+        { variable: 'ingress.path', show_if: 'parent=true' }
+      ];
+      const source = {
+        values: {
+          parent:  true,
+          ingress: { path: '/' }
+        },
+        questions: { questions }
+      };
+      const wrapper = shallowMount(Questions, {
+        props: {
+          ...defaultProps, source, value: { parent: true, ingress: { path: '/api' } }
+        },
+        global: { mocks: defaultMocks },
+      });
+
+      expect(wrapper.vm.value.ingress.path).toBe('/api');
+
+      // Hide the question, its value is reset to the chart default
+      wrapper.setProps({ value: { parent: false, ingress: { path: '/api' } } });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(1);
+      expect(wrapper.vm.value.ingress.path).toBe('/');
+
+      // Show the question again, the user's custom answer should come back, not the default
+      wrapper.setProps({ value: { parent: true, ingress: { path: '/' } } });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.shownQuestions).toHaveLength(2);
+      expect(wrapper.vm.value.ingress.path).toBe('/api');
+    });
   });
 });
