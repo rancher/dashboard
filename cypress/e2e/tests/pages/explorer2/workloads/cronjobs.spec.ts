@@ -219,7 +219,7 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'batch.cronjob', `${ nsName2 }/${ uniqueCronJob }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForStableFilteredResourceCount('v1', 'batch.cronjob', [nsName1, nsName2]).then((count) => {
+      cy.waitForStableFilteredResourceCount('v1', 'batch.cronjob', [nsName1, nsName2], { minCount: cronJobNamesList.length + 1 }).then((count) => {
         // Wait for the list to finish loading so the total is settled before the single
         // (non-retrying) pagination-text assertions below.
         cronJobListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();

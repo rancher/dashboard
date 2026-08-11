@@ -82,7 +82,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'apps.statefulset', `${ nsName2 }/${ uniqueStatefulSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForStableFilteredResourceCount('v1', 'apps.statefulset', [nsName1, nsName2]).then((count) => {
+      cy.waitForStableFilteredResourceCount('v1', 'apps.statefulset', [nsName1, nsName2], { minCount: statefulSetNamesList.length + 1 }).then((count) => {
         // Wait for the list to finish loading so the total is settled before the single
         // (non-retrying) pagination-text assertions below.
         statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
