@@ -749,6 +749,12 @@ Cypress.Commands.add('waitForStableFilteredResourceCount', (prefix, resourceType
   const requiredStableReads = config?.stableReads ?? 2;
   const maxReads = config?.maxReads ?? 30;
   const intervalMs = config?.intervalMs ?? 1500;
+  // Do not accept a "stable" count until at least this many resources are present in the filtered
+  // namespaces. The collection list is indexed separately from single-resource GETs, so it can read
+  // low (e.g. 23) and hold there for a couple of polls before the last-created resource appears -
+  // which then stabilises at the wrong value while the UI list, querying a moment later, renders the
+  // full set (24). Requiring the minimum first closes that premature-stabilisation gap.
+  const minCount = config?.minCount ?? 0;
 
   let _token: { value: string };
 
@@ -764,7 +770,8 @@ Cypress.Commands.add('waitForStableFilteredResourceCount', (prefix, resourceType
   ).length);
 
   const poll = (prev: number, stable: number, reads: number): Cypress.Chainable<number> => readCount().then((n) => {
-    const nextStable = n === prev ? stable + 1 : 0;
+    // Only count consecutive-equal reads as "stable" once the minimum has been reached.
+    const nextStable = (n === prev && n >= minCount) ? stable + 1 : 0;
 
     if (nextStable >= requiredStableReads || reads + 1 >= maxReads) {
       return cy.wrap(n, { log: false });
