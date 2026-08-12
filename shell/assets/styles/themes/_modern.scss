@@ -728,6 +728,10 @@ BODY, .theme-light {
   --rc-section-background-primary: #{$body-bg};
   --rc-section-background-secondary: #{$grey-5};
   --rc-section-action-color: #{$gray009};
+  // Lifted off --rc-inactive-background (#EDEFF3), which light mode sets
+  // near-identical to --rc-section-background-secondary (#F5F7FA), leaving a
+  // counter badge in a secondary section header with no readable fill.
+  --rc-section-counter-background: #{$gray003};
 
   --rc-image-bg: #{$lightest};
   --rc-image-color: #{$darkest};
@@ -1076,6 +1080,9 @@ BODY, .theme-dark {
   --rc-section-background-primary: #{$body-bg};
   --rc-section-background-secondary: #{$darkest};
   --rc-section-action-color: #{$gray010};
+  // Deliberately the same value dark mode gives --rc-inactive-background: the
+  // dark badge already contrasts its section, so it needs no lift.
+  --rc-section-counter-background: #{$gray005};
 
   --rc-image-bg: #{$lightest};
   --rc-image-color: #{$darkest};

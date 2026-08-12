@@ -9,6 +9,20 @@
  *   <p>Section content here</p>
  * </RcSection>
  *
+ * Content is laid out with a 24px gap between the direct children of the
+ * section. Wrap form elements in a RcSectionContentGroup to space them 16px
+ * apart within a group, and use as many groups as the form needs:
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <RcSectionContentGroup>
+ *     <LabeledInput label="Name" />
+ *     <LabeledInput label="Description" />
+ *   </RcSectionContentGroup>
+ *   <RcSectionContentGroup>
+ *     <LabeledInput label="Namespace" />
+ *   </RcSectionContentGroup>
+ * </RcSection>
+ *
  * <RcSection title="Section title" type="secondary" mode="with-header" expandable v-model:expanded="expanded" background="secondary">
  *   <template #counter>
  *     <RcCounterBadge :count="99" type="inactive" />
@@ -192,6 +206,31 @@ function toggle() {
 
   &.bg-secondary {
     background-color: var(--rc-section-background-secondary);
+
+    // An inactive badge takes both its fill and its border from the same grey
+    // (--rc-inactive-background / --rc-inactive-border, #EDEFF3), and this
+    // section's background is #F5F7FA, 1.07:1 from both. So a counter badge in
+    // the header has no fill and no ring, and reads as no badge at all.
+    //
+    // Re-pointing the fill to white does not lift the badge off the header
+    // (white is 1.07:1 there too). What it does is separate the fill from the
+    // border, so the pill's visible edge becomes the same #EDEFF3-against-white
+    // pair (1.15:1) that already makes the badge read on a primary-background
+    // section, where the grey pill sits directly on white.
+    //
+    // The fill only. --rc-inactive-border stays #EDEFF3, so the badge's outer
+    // boundary against the header is still 1.07:1, under the 3:1 that WCAG
+    // 1.4.11 asks of a component boundary. Re-pointing it is a product-wide
+    // token decision affecting every RcTag and RcCounterBadge, so it is
+    // deliberately out of scope here.
+    //
+    // Scoped CSS puts the scope attribute on `.title` only, so a descendant
+    // combinator here would also match a nested section's title. Nested
+    // sections render inside `.section-content`, so a child combinator to the
+    // header keeps the override on this instance.
+    > .section-header .title {
+      --rc-inactive-background: var(--rc-section-counter-background);
+    }
   }
 }
 
@@ -262,7 +301,7 @@ function toggle() {
 .section-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--gap-lg, 24px);
   padding: 0 0 16px;
   color: var(--body-text);
 

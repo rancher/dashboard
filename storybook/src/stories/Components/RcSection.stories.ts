@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import { RcSection, RcSectionBadges, RcSectionActions } from '@components/RcSection';
+import { RcSection, RcSectionBadges, RcSectionActions, RcSectionContentGroup } from '@components/RcSection';
 import { SectionType, SectionMode, SectionBackground } from '@components/RcSection/types';
 import RcCounterBadge from '@components/Pill/RcCounterBadge';
 import { RcIcon } from '@components/RcIcon';
@@ -15,10 +15,10 @@ const contentGroup = (title: string, body: string, required = false) => {
   const titleColor = required ? '#6C6F76' : '#BEC1D2';
 
   return `
-  <div style="display: flex; flex-direction: column; gap: 16px;">
+  <RcSectionContentGroup>
     <p style="margin: 0; font-weight: ${ titleWeight }; font-size: 14px; line-height: 1.4; text-align: center; color: ${ titleColor };">${ title }</p>
     <p style="margin: 0; font-weight: 400; font-size: 14px; line-height: 1.4; text-align: center; color: #BEC1D2;">${ body }</p>
-  </div>`;
+  </RcSectionContentGroup>`;
 };
 
 const SLOT = '<!-- default slot -->';
@@ -86,12 +86,21 @@ const defaultTemplate = `<RcSection v-bind="args" v-model:expanded="expanded">
   ${ SLOT }
 </RcSection>`;
 
+// Rendered and shown in the "Show code" panel, so the docs demonstrate
+// RcSectionContentGroup rather than a slot placeholder comment.
+const defaultSource = withSlotContent(
+  defaultTemplate,
+  `${ contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true) }
+   ${ contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content') }`,
+);
+
 export const Default: Story = {
   render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcSectionContentGroup,
       RcCounterBadge,
       RcIcon,
     },
@@ -106,11 +115,7 @@ export const Default: Story = {
 
       return { args, expanded };
     },
-    template: withSlotContent(
-      defaultTemplate,
-      `${ contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true) }
-       ${ contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content') }`,
-    ),
+    template: defaultSource,
   }),
   args: {
     type:       'secondary',
@@ -122,7 +127,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       canvas: { sourceState: 'shown' },
-      source: { code: defaultTemplate },
+      source: { code: defaultSource },
     },
   },
 };
@@ -140,28 +145,31 @@ const primaryFixedTemplate = `<RcSection title="Primary section" type="primary" 
   ${ SLOT }
 </RcSection>`;
 
+const primaryFixedSource = withSlotContent(
+  primaryFixedTemplate,
+  `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
+   ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
+);
+
 export const PrimaryFixed: Story = {
   render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcSectionContentGroup,
       RcCounterBadge,
     },
     setup() {
       return { args };
     },
-    template: withSlotContent(
-      primaryFixedTemplate,
-      `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
-       ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
-    ),
+    template: primaryFixedSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: primaryFixedTemplate },
+      source: { code: primaryFixedSource },
     },
   },
 };
@@ -179,24 +187,29 @@ const secondaryFixedTemplate = `<RcSection title="Secondary section" type="secon
   ${ SLOT }
 </RcSection>`;
 
+const secondaryFixedSource = withSlotContent(
+  secondaryFixedTemplate,
+  `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
+   ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
+);
+
 export const SecondaryFixed: Story = {
   render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcSectionContentGroup,
       RcCounterBadge,
     },
     setup() {
       return { args };
     },
+    // The backdrop is a canvas-only device to show the section against a
+    // contrasting page, so it stays out of the code panel.
     template: `
       <div style="background: #EFEFEF; padding: 24px;">
-        ${ withSlotContent(
-      secondaryFixedTemplate,
-      `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
-           ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
-    ) }
+        ${ secondaryFixedSource }
       </div>
     `,
   }),
@@ -204,7 +217,7 @@ export const SecondaryFixed: Story = {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: secondaryFixedTemplate },
+      source: { code: secondaryFixedSource },
     },
   },
 };
@@ -226,29 +239,32 @@ const expandableTemplate = `<RcSection
   ${ SLOT }
 </RcSection>`;
 
+const expandableSource = withSlotContent(
+  expandableTemplate,
+  `${ contentGroup('Content Group 1', 'This content is visible when expanded.', true) }
+   ${ contentGroup('Content Group 2', 'Another content group.') }`,
+);
+
 export const Expandable: Story = {
   render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcSectionContentGroup,
     },
     setup() {
       const expanded = ref(true);
 
       return { args, expanded };
     },
-    template: withSlotContent(
-      expandableTemplate,
-      `${ contentGroup('Content Group 1', 'This content is visible when expanded.', true) }
-       ${ contentGroup('Content Group 2', 'Another content group.') }`,
-    ),
+    template: expandableSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: expandableTemplate },
+      source: { code: expandableSource },
     },
   },
 };
@@ -267,24 +283,28 @@ const collapsedByDefaultTemplate = `<RcSection
   ${ SLOT }
 </RcSection>`;
 
+const collapsedByDefaultSource = withSlotContent(
+  collapsedByDefaultTemplate,
+  contentGroup('Content Group 1', 'This content is hidden until expanded.', true),
+);
+
 export const CollapsedByDefault: Story = {
   render: (args: any) => ({
-    components: { RcSection, RcSectionBadges },
+    components: {
+      RcSection, RcSectionBadges, RcSectionContentGroup
+    },
     setup() {
       const expanded = ref(false);
 
       return { args, expanded };
     },
-    template: withSlotContent(
-      collapsedByDefaultTemplate,
-      contentGroup('Content Group 1', 'This content is hidden until expanded.', true),
-    ),
+    template: collapsedByDefaultSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: collapsedByDefaultTemplate },
+      source: { code: collapsedByDefaultSource },
     },
   },
 };
@@ -293,23 +313,25 @@ const noHeaderTemplate = `<RcSection type="primary" mode="no-header" background=
   ${ SLOT }
 </RcSection>`;
 
+const noHeaderSource = withSlotContent(
+  noHeaderTemplate,
+  `${ contentGroup('Content Group 1', 'No header, just content.', true) }
+   ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
+);
+
 export const NoHeader: Story = {
   render: (args: any) => ({
-    components: { RcSection },
+    components: { RcSection, RcSectionContentGroup },
     setup() {
       return { args };
     },
-    template: withSlotContent(
-      noHeaderTemplate,
-      `${ contentGroup('Content Group 1', 'No header, just content.', true) }
-       ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
-    ),
+    template: noHeaderSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: noHeaderTemplate },
+      source: { code: noHeaderSource },
     },
   },
 };
@@ -321,22 +343,26 @@ const withErrorsSlotTemplate = `<RcSection title="Section with errors" type="pri
   ${ SLOT }
 </RcSection>`;
 
+const withErrorsSlotSource = withSlotContent(
+  withErrorsSlotTemplate,
+  contentGroup('Content Group 1', 'This section has validation errors indicated in the header.', true),
+);
+
 export const WithErrorsSlot: Story = {
   render: (args: any) => ({
-    components: { RcSection, RcIcon },
+    components: {
+      RcSection, RcIcon, RcSectionContentGroup
+    },
     setup() {
       return { args };
     },
-    template: withSlotContent(
-      withErrorsSlotTemplate,
-      contentGroup('Content Group 1', 'This section has validation errors indicated in the header.', true),
-    ),
+    template: withErrorsSlotSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: withErrorsSlotTemplate },
+      source: { code: withErrorsSlotSource },
     },
   },
 };
@@ -372,12 +398,18 @@ const fullHeaderTemplate = `<RcSection
   ${ SLOT }
 </RcSection>`;
 
+const fullHeaderSource = withSlotContent(
+  fullHeaderTemplate,
+  contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true),
+);
+
 export const FullHeader: Story = {
   render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcSectionContentGroup,
       RcCounterBadge,
       RcIcon,
     },
@@ -386,16 +418,13 @@ export const FullHeader: Story = {
 
       return { args, expanded };
     },
-    template: withSlotContent(
-      fullHeaderTemplate,
-      contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true),
-    ),
+    template: fullHeaderSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: fullHeaderTemplate },
+      source: { code: fullHeaderSource },
     },
   },
 };
@@ -480,6 +509,7 @@ export const AllTypes: Story = {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcSectionContentGroup,
       RcCounterBadge,
       RcIcon,
     },
