@@ -6,7 +6,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
 const namespaceFilter = new NamespaceFilterPo();
@@ -491,7 +491,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // make sure extension card is in the installed tab
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(undefined, 'installed');
-    extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
+    // The >30mb extension installs/renders slowly (cacheState disabled), so its card can take
+    // well over the default window to appear under CI load; wait longer before clicking it.
+    extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME, LONG_TIMEOUT_OPT);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
 
@@ -671,7 +673,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // performed the uninstall or a previous one already did)
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(undefined, 'available');
-    extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
+    // The >30mb extension installs/renders slowly (cacheState disabled), so its card can take
+    // well over the default window to appear under CI load; wait longer before clicking it.
+    extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME, LONG_TIMEOUT_OPT);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
   });
 
