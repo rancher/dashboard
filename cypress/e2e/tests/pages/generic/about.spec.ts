@@ -37,13 +37,11 @@ describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '
     aboutPage.waitForPage();
     cy.getRancherVersion().then((version) => {
       const isPrime = version.RancherPrime === 'true';
-      const expectedOrigin = isPrime ? 'https://documentation.suse.com' : 'https://github.com';
       const expectedUrlPattern = isPrime ? '/cloudnative/rancher-manager/.+/en/release-notes' : '/rancher/rancher/releases/tag/';
 
-      aboutPage.clickVersionLink('View release notes');
-      cy.origin(expectedOrigin, { args: { expectedUrlPattern } }, ({ expectedUrlPattern }) => {
-        cy.url().should('match', new RegExp(expectedUrlPattern));
-      });
+      // Assert the link points at the release notes rather than loading the external site, which
+      // flakes to chrome-error://chromewebdata/ when it is transiently unreachable in CI.
+      aboutPage.getLinkDestination('View release notes').should('match', new RegExp(expectedUrlPattern));
     });
   }));
 
