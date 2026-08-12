@@ -207,8 +207,14 @@ describe('Feature Flags', { testIsolation: false }, () => {
       featureFlagsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       featureFlagsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
       cy.getRancherResource('v1', 'management.cattle.io.features').then((resp: Cypress.Response<any>) => {
-        // We filter out fleet and ui-sql-cache feature flags
-        const featureCount = resp.body.count - 2;
+        // The list view hides these flags by name (see shell/list/management.cattle.io.feature.vue).
+        // Derive the expected visible-row count by applying the SAME filter to the API response rather
+        // than subtracting a fixed number: `ui-sql-cache` is being removed from the backend
+        // (rancher/rancher#53996), so it is present in some CI backends and absent in others. A hard
+        // `count - 2` then over- or under-counts by one when only one of these flags actually exists,
+        // which is the "Found 28, expected 27" flake. Filtering by name stays correct either way.
+        const hideFeatureFlags = ['fleet', 'ui-sql-cache'];
+        const featureCount = resp.body.data.filter((f: any) => !hideFeatureFlags.includes(f.metadata.name)).length;
 
         featureFlagsPage.list().resourceTable().sortableTable().checkRowCount(false, featureCount);
       });
