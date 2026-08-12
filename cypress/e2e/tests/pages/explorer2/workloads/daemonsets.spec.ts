@@ -143,7 +143,13 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       cy.waitForRancherResource('v1', 'apps.daemonset', `${ nsName2 }/${ uniqueDaemonSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
       // check daemonsets count
-      cy.waitForStableFilteredResourceCount('v1', 'apps.daemonset', [nsName1, nsName2], { minCount: daemonSetNamesList.length + 1 }).then((count) => {
+      cy.waitForStableFilteredResourceCount('v1', 'apps.daemonset', [nsName1, nsName2], { minCount: daemonSetNamesList.length + 1 }).then(() => {
+        // Assert the pager against the number of resources we actually created, not the value
+        // from the count read above: that server-side filtered count can lag the rows the UI
+        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
+        // assertion below waits for the UI to settle on that known total.
+        const count = daemonSetNamesList.length + 1;
+
         // Wait for the list to finish loading so the total is settled before the single
         // (non-retrying) pagination-text assertions below.
         daemonSetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
@@ -169,9 +175,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
         // check text before navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } DaemonSets`);
-          });
+          .should('contain', `1 - 10 of ${ count } DaemonSets`);
 
         // navigate to next page - right button
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()

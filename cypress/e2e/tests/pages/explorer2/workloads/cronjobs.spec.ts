@@ -219,7 +219,13 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'batch.cronjob', `${ nsName2 }/${ uniqueCronJob }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForStableFilteredResourceCount('v1', 'batch.cronjob', [nsName1, nsName2], { minCount: cronJobNamesList.length + 1 }).then((count) => {
+      cy.waitForStableFilteredResourceCount('v1', 'batch.cronjob', [nsName1, nsName2], { minCount: cronJobNamesList.length + 1 }).then(() => {
+        // Assert the pager against the number of resources we actually created, not the value
+        // from the count read above: that server-side filtered count can lag the rows the UI
+        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
+        // assertion below waits for the UI to settle on that known total.
+        const count = cronJobNamesList.length + 1;
+
         // Wait for the list to finish loading so the total is settled before the single
         // (non-retrying) pagination-text assertions below.
         cronJobListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
@@ -245,9 +251,7 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
         // check text before navigation
         cronJobListPage.list().resourceTable().sortableTable().pagination()
           .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } CronJobs`);
-          });
+          .should('contain', `1 - 10 of ${ count } CronJobs`);
 
         // navigate to next page - right button
         cronJobListPage.list().resourceTable().sortableTable().pagination()

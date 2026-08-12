@@ -395,7 +395,13 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'apps.deployment', `${ nsName2 }/${ uniqueDeployment }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForStableFilteredResourceCount('v1', 'apps.deployment', [nsName1, nsName2], { minCount: deploymentNamesList.length + 1 }).then((count) => {
+      cy.waitForStableFilteredResourceCount('v1', 'apps.deployment', [nsName1, nsName2], { minCount: deploymentNamesList.length + 1 }).then(() => {
+        // Assert the pager against the number of resources we actually created, not the value
+        // from the count read above: that server-side filtered count can lag the rows the UI
+        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
+        // assertion below waits for the UI to settle on that known total.
+        const count = deploymentNamesList.length + 1;
+
         // Wait for the list to finish loading so the total is settled before the single
         // (non-retrying) pagination-text assertions below.
         deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
@@ -412,9 +418,7 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
         // check text before navigation
         deploymentsListPage.sortableTable().pagination()
           .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-          });
+          .should('contain', `1 - 10 of ${ count } Deployments`);
 
         // navigate to next page - right button
         deploymentsListPage.sortableTable().pagination().rightButton().click();

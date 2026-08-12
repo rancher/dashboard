@@ -82,7 +82,13 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'apps.statefulset', `${ nsName2 }/${ uniqueStatefulSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForStableFilteredResourceCount('v1', 'apps.statefulset', [nsName1, nsName2], { minCount: statefulSetNamesList.length + 1 }).then((count) => {
+      cy.waitForStableFilteredResourceCount('v1', 'apps.statefulset', [nsName1, nsName2], { minCount: statefulSetNamesList.length + 1 }).then(() => {
+        // Assert the pager against the number of resources we actually created, not the value
+        // from the count read above: that server-side filtered count can lag the rows the UI
+        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
+        // assertion below waits for the UI to settle on that known total.
+        const count = statefulSetNamesList.length + 1;
+
         // Wait for the list to finish loading so the total is settled before the single
         // (non-retrying) pagination-text assertions below.
         statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
@@ -108,9 +114,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
         // check text before navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
           .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } StatefulSets`);
-          });
+          .should('contain', `1 - 10 of ${ count } StatefulSets`);
 
         // navigate to next page - right button
         statefulSetListPage.list().resourceTable().sortableTable().pagination()

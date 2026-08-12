@@ -68,7 +68,13 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // Wait for the created pods to be registered, then derive the actual number of
       // pods in the two filtered namespaces. A hardcoded `podNamesList.length + 1` can
       // disagree with the list total when the cluster briefly holds an extra pod.
-      cy.waitForStableFilteredResourceCount('v1', 'pods', [nsName1, nsName2], { minCount: podNamesList.length + 1 }).then((count) => {
+      cy.waitForStableFilteredResourceCount('v1', 'pods', [nsName1, nsName2], { minCount: podNamesList.length + 1 }).then(() => {
+        // Assert the pager against the number of resources we actually created, not the value
+        // from the count read above: that server-side filtered count can lag the rows the UI
+        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
+        // assertion below waits for the UI to settle on that known total.
+        const count = podNamesList.length + 1;
+
         // Wait for the list to finish loading so the total is settled before the single
         // (non-retrying) pagination-text assertions below.
         workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
@@ -94,9 +100,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         // check text before navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-          });
+          .should('contain', `1 - 10 of ${ count } Pods`);
 
         // navigate to next page - right button
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
