@@ -437,7 +437,7 @@ export default {
       {{ `${vendor} - ${t('login.login')}` }}
     </TabTitle>
     <div class="row gutless mb-20">
-      <div class="col span-6 p-20">
+      <div class="col span-6 p-20 login-panel">
         <p
           v-if="!brandLogo"
           class="text-center"
@@ -722,8 +722,14 @@ export default {
       flex-direction: column;
       height: 100%;
       place-content: center;
+      justify-content: safe center;
     }
   }
+
+  .login-panel {
+    padding-bottom: 60px;
+  }
+
   .locale-selector {
     position: absolute;
     bottom: 30px;
