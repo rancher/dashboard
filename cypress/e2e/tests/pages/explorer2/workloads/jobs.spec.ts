@@ -200,7 +200,13 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // Derive the jobs count from a stable filtered read rather than assuming
       // jobNamesList.length + 1 - the list can render more than the test created (e.g. 26 vs 23)
       // while resources are still propagating, which a hardcoded total disagrees with.
-      cy.waitForStableFilteredResourceCount('v1', 'batch.job', [nsName1, nsName2], { minCount: jobNamesList.length + 1 }).then((count) => {
+      cy.waitForStableFilteredResourceCount('v1', 'batch.job', [nsName1, nsName2], { minCount: jobNamesList.length + 1 }).then(() => {
+        // Assert the pager against the number of resources we actually created, not the value
+        // from the count read above: that server-side filtered count can lag the rows the UI
+        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
+        // assertion below waits for the UI to settle on that known total.
+        const count = jobNamesList.length + 1;
+
         // pagination is visible
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -222,9 +228,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         // check text before navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
-          });
+          .should('contain', `1 - 10 of ${ count } Jobs`);
 
         // navigate to next page - right button
         jobsListPage.list().resourceTable().sortableTable().pagination()
