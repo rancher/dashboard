@@ -46,10 +46,26 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     cy.wait('@createClusterMembership');
 
     clusterMembership.waitForPageWithExactUrl();
-    cy.get('body tbody').then((el) => {
-      if (el.find('tr.no-rows').is(':visible')) {
-        cy.reload();
-      }
+
+    // After adding the member the list can lag the create, or the row can render with a still-loading
+    // principal (issue #8804), so the new member isn't queryable by name yet. Reload until the row
+    // resolves to the username. The previous reload-only-when-empty check missed the "rows present
+    // but the new member's name not resolved yet" case: attempt 1 then timed out here, and because
+    // the binding was already created the retry re-added a duplicate and got stuck on the create form.
+    const reloadUntilMemberResolved = (attempt = 0) => {
+      cy.get('body tbody').then((el) => {
+        if (el.find(`tr:contains("${ username }")`).length === 0 && attempt < 5) {
+          cy.reload();
+          clusterMembership.waitForPageWithExactUrl();
+          cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting -- let the list re-fetch and principals resolve
+          reloadUntilMemberResolved(attempt + 1);
+        }
+      });
+    };
+
+    reloadUntilMemberResolved();
+
+    cy.get('body tbody').then(() => {
       clusterMembership.listElementWithName(username).should('exist');
       clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
       // clear new line chars and white spaces
