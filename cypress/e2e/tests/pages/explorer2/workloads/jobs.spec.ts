@@ -5,6 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/jobs/jobs-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
 describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -61,6 +62,12 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
     });
 
     it('Should be able to clone a job', () => {
+      // The create/clone flow issues background requests that can transiently fail; the app's
+      // back-off logic surfaces that as an uncaught "Failed call" rejection (shell/utils/back-off.ts)
+      // which fails attempt 1, and with testIsolation off the half-done state then breaks the retry.
+      // Tolerate the known transient app errors, matching the extensions suite.
+      catchTargetPageException(['Failed call', 'Network Error']);
+
       let jobName;
 
       cy.createE2EResourceName(rootJobName).then((name) => {
