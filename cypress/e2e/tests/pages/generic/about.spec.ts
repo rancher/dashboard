@@ -63,31 +63,19 @@ describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '
     }));
 
     qase(1504, it('can navigate to /rancher/rancher', () => {
-      aboutPage.clickVersionLink('Rancher');
-      cy.origin('https://github.com', () => {
-        cy.url().should('include', 'https://github.com/rancher/rancher');
-      });
+      aboutPage.getLinkDestination('Rancher').should('include', 'https://github.com/rancher/rancher');
     }));
 
     qase(1507, it('can navigate to /rancher/dashboard', () => {
-      aboutPage.clickVersionLink('Dashboard');
-      cy.origin('https://github.com', () => {
-        cy.url().should('include', 'https://github.com/rancher/dashboard');
-      });
+      aboutPage.getLinkDestination('Dashboard').should('include', 'https://github.com/rancher/dashboard');
     }));
 
     qase(1508, it('can navigate to /rancher/helm', () => {
-      aboutPage.clickVersionLink('Helm');
-      cy.origin('https://github.com', () => {
-        cy.url().should('include', 'https://github.com/rancher/helm');
-      });
+      aboutPage.getLinkDestination('Helm').should('include', 'https://github.com/rancher/helm');
     }));
 
     qase(1505, it('can navigate to /rancher/machine', () => {
-      aboutPage.clickVersionLink('Machine');
-      cy.origin('https://github.com', () => {
-        cy.url().should('include', 'https://github.com/rancher/machine');
-      });
+      aboutPage.getLinkDestination('Machine').should('include', 'https://github.com/rancher/machine');
     }));
   });
 
