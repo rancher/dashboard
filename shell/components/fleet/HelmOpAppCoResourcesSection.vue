@@ -9,7 +9,7 @@ import { RcSection } from '@components/RcSection';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 import { RcIcon } from '@components/RcIcon';
-import { getDownstreamResourcesDocsUrl } from '@shell/utils/fleet-appco';
+import { getDownstreamResourcesDocsUrl } from '@shell/utils/fleet-docs';
 
 const props = withDefaults(defineProps<{
   value: Record<string, any>;

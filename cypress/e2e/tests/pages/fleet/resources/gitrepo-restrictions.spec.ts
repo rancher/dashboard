@@ -15,6 +15,32 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
   const fleetRestrictionsListPage = new FleetGitRepoRestrictionListPagePo();
   const headerPo = new HeaderPo();
 
+  describe('Deprecation', { tags: ['@fleet', '@adminUser'] }, () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('shows a deprecation banner pointing to Policies', () => {
+      fleetRestrictionsListPage.goTo();
+      fleetRestrictionsListPage.waitForPage();
+
+      const banner = fleetRestrictionsListPage.deprecationBanner();
+
+      banner.banner().should('be.visible');
+      banner.banner().should('contain.text', 'deprecated');
+      banner.banner().should('contain.text', 'Policies');
+      // The docs channel (root vs `/next/`) is chosen from the running Rancher version: the
+      // migration page lives only under `/next/` on the release that introduced it (2.15.0) and
+      // moves to the root from the next release on (see getGitRepoRestrictionMigrationDocsUrl).
+      // Accept either channel so the assertion isn't pinned to a single runtime version.
+      banner.bannerElement('a')
+        .should('have.attr', 'target', '_blank')
+        .and('contain.text', 'Policies')
+        .invoke('attr', 'href')
+        .should('match', /^https:\/\/fleet\.rancher\.io\/(next\/)?how-tos-for-operators\/tenant-setup#_migration_from_gitreporestriction$/);
+    });
+  });
+
   describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
     before(() => {
       cy.login();
