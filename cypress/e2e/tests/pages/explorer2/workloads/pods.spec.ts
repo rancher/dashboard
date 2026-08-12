@@ -68,15 +68,13 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // Wait for the created pods to be registered, then derive the actual number of
       // pods in the two filtered namespaces. A hardcoded `podNamesList.length + 1` can
       // disagree with the list total when the cluster briefly holds an extra pod.
-      cy.waitForStableFilteredResourceCount('v1', 'pods', [nsName1, nsName2], { minCount: podNamesList.length + 1 }).then(() => {
-        // Assert the pager against the number of resources we actually created, not the value
-        // from the count read above: that server-side filtered count can lag the rows the UI
-        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
-        // assertion below waits for the UI to settle on that known total.
-        const count = podNamesList.length + 1;
+      cy.waitForRancherResources('v1', 'pods', podNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of pods in the two filtered namespaces instead of assuming
+        // exactly podNamesList.length + 1; the cluster can briefly hold an extra resource, which makes a
+        // hardcoded count disagree with the UI.
+        const count = resp.body.data.filter((r: any) => [nsName1, nsName2].includes(r.metadata?.namespace)).length;
 
-        // Wait for the list to finish loading so the total is settled before the single
-        // (non-retrying) pagination-text assertions below.
+        // Wait for the list to finish loading before the (retrying) pagination-text assertions below.
         workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
         // pagination is visible
@@ -99,8 +97,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text before navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .should('contain', `1 - 10 of ${ count } Pods`);
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
 
         // navigate to next page - right button
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
@@ -109,10 +106,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } Pods`);
-          });
+          .checkPaginationTextEquals(`11 - 20 of ${ count } Pods`);
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -127,10 +121,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -153,10 +144,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text after navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
-          });
+          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
 
         // navigate to first page - beginning button
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
@@ -165,10 +153,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();

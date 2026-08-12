@@ -1,5 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import ProductNavPo from '~/cypress/e2e/po/side-bars/product-side-nav.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export default class PaginationPo extends ComponentPo {
   constructor(selector = 'div.paging') {
@@ -24,6 +25,17 @@ export default class PaginationPo extends ComponentPo {
 
   paginationText() {
     return this.self().find('span').invoke('text');
+  }
+
+  /**
+   * Retry the "x - y of z" pagination text until it equals the expected value. Re-queries via
+   * `.should` so a transient/unsettled total settles before the assertion, instead of a one-shot
+   * `.then(expect)` that catches the transient value and fails.
+   */
+  checkPaginationTextEquals(expectedText: string, timeoutOpt = MEDIUM_TIMEOUT_OPT) {
+    return this.self().find('span', timeoutOpt).should(($span) => {
+      expect($span.text().trim()).to.eq(expectedText);
+    });
   }
 
   /**
