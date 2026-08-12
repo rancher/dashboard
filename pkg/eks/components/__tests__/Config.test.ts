@@ -11,11 +11,6 @@ import describeAddonVersionsResponseData from '@pkg/eks/components/__mocks__/des
 import versionsFallbackData from '@pkg/eks/assets/data/eks-versions';
 import { _EDIT } from '@shell/config/query-params';
 
-// `EKSConfig` declares `imported` as required, but nothing in the eks package sets it when it
-// builds a config - see `DEFAULT_EKS_CONFIG` in CruEKS.vue. These fixtures deliberately keep the
-// shape the production code actually produces, so cast rather than inventing an `imported` value.
-const asEksConfig = (config: Omit<Partial<EKSConfig>, 'imported'>): EKSConfig => config as EKSConfig;
-
 // LabeledSelect declares `options` as a bare `Array`, so reads come back as `unknown[]`.
 // These tests only ever inspect the standard option fields.
 type VersionOption = {
@@ -85,7 +80,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = mount(
       Config,
       {
-        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -104,7 +99,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -113,7 +108,7 @@ describe('eKS K8s configuration', () => {
     await setCredential(wrapper);
     expect(spy).toHaveBeenCalledTimes(8);
 
-    wrapper.setProps({ config: asEksConfig({ amazonCredentialSecret: 'foo', region: 'rab' }) });
+    wrapper.setProps({ config: { amazonCredentialSecret: 'foo', region: 'rab' } });
     await flushPromises();
     expect(spy).toHaveBeenCalledTimes(12);
     expect(spy).toHaveBeenCalledWith('aws/eks', { cloudCredentialId: 'foo', region: 'rab' });
@@ -127,7 +122,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -135,7 +130,7 @@ describe('eKS K8s configuration', () => {
     await setCredential(wrapper);
     expect(spy).toHaveBeenCalledTimes(8);
 
-    wrapper.setProps({ config: asEksConfig({ amazonCredentialSecret: 'oof', region: 'bar' }) });
+    wrapper.setProps({ config: { amazonCredentialSecret: 'oof', region: 'bar' } });
     await flushPromises();
     expect(spy).toHaveBeenCalledTimes(12);
     expect(spy).toHaveBeenCalledWith('aws/eks', { cloudCredentialId: 'oof', region: 'bar' });
@@ -148,7 +143,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -168,7 +163,7 @@ describe('eKS K8s configuration', () => {
 
     const wrapper = shallowMount(Config, {
       props: {
-        config:            asEksConfig({ amazonCredentialSecret: '', region: '' }),
+        config:            { amazonCredentialSecret: '', region: '' },
         kubernetesVersion: '1.23',
         mode:              _EDIT
       },
@@ -190,7 +185,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -220,7 +215,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -248,7 +243,7 @@ describe('eKS K8s configuration', () => {
 
     const wrapper = shallowMount(Config, {
       props: {
-        config:            asEksConfig({ amazonCredentialSecret: '', region: '' }),
+        config:            { amazonCredentialSecret: '', region: '' },
         secretsEncryption: true,
         kmsKey:            '123abc'
       },
@@ -274,7 +269,7 @@ describe('eKS K8s configuration', () => {
 
     const wrapper = shallowMount(Config, {
       props: {
-        config:            asEksConfig({ amazonCredentialSecret: '', region: '' }),
+        config:            { amazonCredentialSecret: '', region: '' },
         secretsEncryption: true,
         kmsKey:            '123abc'
       },
@@ -317,7 +312,7 @@ describe('eKS K8s configuration', () => {
 
     const wrapper = shallowMount(Config, {
       props: {
-        config:            asEksConfig({ amazonCredentialSecret: '', region: '' }),
+        config:            { amazonCredentialSecret: '', region: '' },
         secretsEncryption: true,
         kmsKey:            '123abc'
       },
@@ -344,7 +339,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -365,7 +360,7 @@ describe('eKS K8s configuration', () => {
 
     const wrapper = shallowMount(Config, {
       props: {
-        config:          asEksConfig({ amazonCredentialSecret: '', region: '' }),
+        config:          { amazonCredentialSecret: '', region: '' },
         originalVersion: '1.26'
       },
       global: { ...setup }
@@ -392,7 +387,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props:  { config: asEksConfig({ amazonCredentialSecret: '', region: '' }) },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -410,7 +405,7 @@ describe('eKS K8s configuration', () => {
     const setup = requiredSetup({ value: '>1.24' });
     const wrapper = shallowMount(Config, {
       props: {
-        config: asEksConfig({ amazonCredentialSecret: '', region: '' }),
+        config: { amazonCredentialSecret: '', region: '' },
         originalVersion
       },
       global: { ...setup }
@@ -427,9 +422,9 @@ describe('eKS K8s configuration', () => {
 
   it('should not allow the user to upgrade if any node groups are of a lower version', async() => {
     const setup = requiredSetup({ value: '>1.24' });
-    const eksConfig = asEksConfig({
+    const eksConfig = {
       amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.27' }, { version: '1.25' }]
-    });
+    };
     const wrapper = mount(Config, {
       props: {
         config:          eksConfig,
@@ -450,9 +445,9 @@ describe('eKS K8s configuration', () => {
   // setting/unsetting _isUpgrading is tested in ./NodeGroup.test.ts
   it('should not allow the user to upgrade if any node groups are currently being upgraded', async() => {
     const setup = requiredSetup({ value: '>1.24' });
-    const eksConfig = asEksConfig({
+    const eksConfig = {
       amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.27' }, { version: '1.27', _isUpgrading: true }]
-    });
+    };
     const wrapper = shallowMount(Config, {
       props: {
         config:          eksConfig,
@@ -471,9 +466,9 @@ describe('eKS K8s configuration', () => {
 
   it('should allow the user to upgrade if all node groups are the same version as the current cluster version', async() => {
     const setup = requiredSetup({ value: '>1.24' });
-    const eksConfig = asEksConfig({
+    const eksConfig = {
       amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.27' }, { version: '1.27' }]
-    });
+    };
     const wrapper = shallowMount(Config, {
       props: {
         config:          eksConfig,

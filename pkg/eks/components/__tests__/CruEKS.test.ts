@@ -195,9 +195,6 @@ describe('eKS provisioning form', () => {
       ...requiredSetup()
     });
 
-    // DEFAULT_EKS_CONFIG does not satisfy EKSConfig: `imported` is declared required and `tags` is
-    // declared `string[]` while the default is a map. CruEKS.vue hits the same mismatch and works
-    // around it with `{ ...DEFAULT_EKS_CONFIG } as any as EKSConfig`.
     await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG } as unknown as EKSConfig);
     wrapper.vm.addGroup();
 
