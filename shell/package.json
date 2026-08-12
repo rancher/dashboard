@@ -70,7 +70,7 @@
     "dayjs": "1.11.18",
     "diff": "9.0.0",
     "diff2html": "3.4.24",
-    "dompurify": "3.4.12",
+    "dompurify": "3.4.13",
     "element-matches": "^0.1.2",
     "entities": "4.5.0",
     "eslint": "10.5.0",
