@@ -245,9 +245,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // generate small set of pods data
       generatePodsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      // Navigate directly rather than via the side menu: the side-menu nav
-      // intermittently lands on the wrong workload type (e.g. Deployments).
-      WorkloadsPodsListPagePo.goTo(localCluster);
+      // navTo is hardened against the workload-overview redirect to Deployments (it waits for
+      // the overview's summary fetch to settle and reloads/retries if it redirected).
+      WorkloadsPodsListPagePo.navTo(localCluster);
       cy.wait('@podsDataSmall');
       workloadsPodPage.waitForPage();
 

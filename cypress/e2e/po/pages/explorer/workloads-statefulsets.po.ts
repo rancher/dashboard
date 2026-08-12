@@ -1,6 +1,5 @@
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { navToWorkloadTypeViaSideMenu } from '@/cypress/e2e/po/side-bars/workload-side-nav';
 import RedeployDialogPo from '@/cypress/e2e/po/components/workloads/redeploy-dialog.po';
 
 export class WorkloadsStatefulSetsListPagePo extends BaseListPagePo {
@@ -17,12 +16,7 @@ export class WorkloadsStatefulSetsListPagePo extends BaseListPagePo {
   }
 
   static navTo(clusterId = 'local') {
-    const burgerMenu = new BurgerMenuPo();
-    const sideNav = new ProductNavPo();
-
-    burgerMenu.goToCluster(clusterId);
-    sideNav.navToSideMenuGroupByLabel('Workloads');
-    sideNav.navToSideMenuEntryByLabel('StatefulSets');
+    navToWorkloadTypeViaSideMenu(clusterId, 'StatefulSets');
   }
 
   redeployDialog(): RedeployDialogPo {
