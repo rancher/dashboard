@@ -14,8 +14,14 @@ export interface State {
   tabs: Array<Tab>;
   active: Record<Position | string, string>;
   open: Record<Position | string, boolean>;
-  panelHeight: Record<Position | string, number | null>;
-  panelWidth: Record<Position | string, number | null>;
+  /**
+   * Panel sizes are inconsistently typed at runtime and the union records that rather than endorsing it:
+   * `state()` seeds them from local storage, which hands back strings, while the setPanelHeight and
+   * setPanelWidth mutations write numbers. Tracked in #18807, which coerces in `state()` so this can
+   * narrow back to `number | null`. Read them with care until then.
+   */
+  panelHeight: Record<Position | string, number | string | null>;
+  panelWidth: Record<Position | string, number | string | null>;
   userPin: Position | string | null;
   lockedPositions: Position[];
 }

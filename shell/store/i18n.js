@@ -64,6 +64,18 @@ const intlCache = {};
 
 let lastLoaded = 0;
 
+/**
+ * @typedef {object} I18nState
+ * @property {string} default - Locale to fall back to when nothing else applies.
+ * @property {string | null} selected - Locale in use, filled in by the `setSelected` mutation.
+ * @property {string | null} previous - Declared for `toggleNone` to switch back to, but nothing in the codebase assigns it, so `toggleNone` always falls back to `default`.
+ * @property {string[]} available - Locales that can be loaded.
+ * @property {Record<string, any>} translations - Loaded translations, keyed by locale.
+ */
+
+/**
+ * @returns {I18nState}
+ */
 export const state = function() {
   // const translationContext = require.context('@shell/assets/translations', true, /.*/);
   // const available = translationContext.keys().map(path => path.replace(/^.*\/([^\/]+)\.[^.]+$/, '$1'));

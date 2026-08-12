@@ -437,7 +437,7 @@ describe('action-menu store', () => {
         s.modalData = { key: 'old' };
         mutations.updateModalData(s, [{ key: 'key', value: 'new' }]);
 
-        expect(s.modalData.key).toStrictEqual('new');
+        expect(s.modalData).toStrictEqual({ key: 'new' });
       });
     });
 

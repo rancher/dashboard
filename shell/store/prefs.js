@@ -3,6 +3,27 @@ import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
 import { getBrandMeta } from '@shell/utils/brand';
 
+/**
+ * How a single preference behaves, as built by `create` and by the
+ * `setDefinition` mutation.
+ *
+ * @typedef {object} PrefDefinition
+ * @property {any} [def] - Value used when the user has none stored.
+ * @property {any[]} [options] - Allowed values, when the preference is a fixed set.
+ * @property {boolean} [parseJSON] - Value is stored JSON encoded.
+ * @property {boolean} [asCookie] - Value is also kept in a cookie.
+ * @property {boolean} [asUserPreference] - Value is stored on the server.
+ * @property {string} [inheritFrom] - Preference to default to when this one is not on the server.
+ * @property {(value: any) => any} [mangleRead] - Alter the value read from the API.
+ * @property {(value: any) => any} [mangleWrite] - Alter the value written to the API.
+ */
+
+/**
+ * Preferences are open ended: `create` registers the built-in ones at module
+ * load and extensions add their own at runtime, so the keys are not known here.
+ *
+ * @type {Record<string, PrefDefinition>}
+ */
 const definitions = {};
 /**
  * Key/value of prefrences are stored before login here and cookies due lack of access permission.
@@ -135,6 +156,17 @@ const cookieOptions = {
   secure:   true,
 };
 
+/**
+ * @typedef {object} PrefsState
+ * @property {boolean} cookiesLoaded
+ * @property {Record<string, any>} data - Stored value of each preference, keyed by preference name.
+ * @property {Record<string, PrefDefinition>} definitions - The module level `definitions` object itself, not a copy, so every store instance shares the definitions that `create` adds at module load and `setDefinition` adds at runtime.
+ * @property {Record<string, any> | null} authRedirect - Route to return to once the user has logged in.
+ */
+
+/**
+ * @returns {PrefsState}
+ */
 export const state = function() {
   return {
     cookiesLoaded: false,

@@ -6,6 +6,32 @@ const DEFAULT_TIMEOUT = 5000;
 
 const MAX_GROWLS = 5;
 
+/**
+ * A growl on the stack, as built by the `add` mutation. `id` and `started` are
+ * always set there, everything else comes from the data given to the actions.
+ *
+ * @typedef {object} Growl
+ * @property {number} id - Incrementing id, unique within the stack.
+ * @property {number} started - Epoch ms the growl was added.
+ * @property {string} [color]
+ * @property {string} [icon]
+ * @property {number} [timeout]
+ * @property {string} [title]
+ * @property {string} [message]
+ * @property {string} [notification] - Id of the notification the growl came from.
+ * @property {string} [url] - Socket url, used by the steve subscribe plugin to find its own growl again.
+ * @property {number} [earliestClose] - Epoch ms before which the growl should not be closed.
+ */
+
+/**
+ * @typedef {object} GrowlState
+ * @property {number} nextId - Id the next added growl will get.
+ * @property {Growl[]} stack - Growls currently showing, newest first.
+ */
+
+/**
+ * @returns {GrowlState}
+ */
 export const state = function() {
   return {
     nextId: 1,

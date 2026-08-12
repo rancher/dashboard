@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 1037
+# Total errors: 819
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 pkg/aks/components/Config.vue: error TS2532: Object is possibly 'undefined'.
@@ -403,9 +403,6 @@ shell/components/nav/NotificationCenter/Notification.vue: error TS7053: Element 
 shell/components/nav/__tests__/Group.test.ts: error TS2322: Type 'Record<string, unknown>' is not assignable to type 'Stubs | undefined'.
 shell/components/nav/__tests__/TopLevelMenu.test.ts: error TS2305: Module '"@vue/test-utils"' has no exported member 'Wrapper'.
 shell/components/user.retention/user-retention-header.vue: error TS2307: Cannot find module '@shell/components/TabTitle' or its corresponding type declarations.
-shell/composables/useIsNewDetailPageEnabled.test.ts: error TS2322: Type 'null' is not assignable to type 'string'.
-shell/composables/useIsNewDetailPageEnabled.test.ts: error TS2322: Type 'undefined' is not assignable to type 'string'.
-shell/composables/useIsNewDetailPageEnabled.test.ts: error TS2556: A spread argument must either have a tuple type or be passed to a rest parameter.
 shell/composables/useUserRetentionValidation.ts: error TS2769: No overload matches this call.
 shell/config/__test__/home-links.test.ts: error TS2345: Argument of type '(language: String, value: string | boolean | null) => void' is not assignable to parameter of type '(...args: (string | boolean)[] | (boolean | null)[]) => any'.
 shell/config/__test__/home-links.test.ts: error TS7006: Parameter 'link' implicitly has an 'any' type.
@@ -413,29 +410,6 @@ shell/config/__test__/uiplugins.test.ts: error TS2345: Argument of type 'boolean
 shell/config/__test__/uiplugins.test.ts: error TS2345: Argument of type 'boolean' is not assignable to parameter of type '(() => any) & void'.
 shell/config/__test__/uiplugins.test.ts: error TS2769: No overload matches this call.
 shell/config/__test__/uiplugins.test.ts: error TS2769: No overload matches this call.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS18048: 'route.meta' is possibly 'undefined'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS18048: 'route.meta' is possibly 'undefined'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'children' does not exist on type '{ weight?: number | undefined; } | { weight?: number | undefined; localOnly?: boolean | undefined; } | { children: ProductChild[]; weight?: number | undefined; default?: string | undefined; }'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'children' does not exist on type '{ weight?: number | undefined; } | { weight?: number | undefined; localOnly?: boolean | undefined; } | { children: ProductChild[]; weight?: number | undefined; default?: string | undefined; }'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'children' does not exist on type '{ weight?: number | undefined; } | { weight?: number | undefined; localOnly?: boolean | undefined; } | { children: ProductChild[]; weight?: number | undefined; default?: string | undefined; }'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'children' does not exist on type '{ weight?: number | undefined; } | { weight?: number | undefined; localOnly?: boolean | undefined; } | { children: ProductChild[]; weight?: number | undefined; default?: string | undefined; }'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'children' does not exist on type '{ weight?: number | undefined; } | { weight?: number | undefined; localOnly?: boolean | undefined; } | { children: ProductChild[]; weight?: number | undefined; default?: string | undefined; }'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'children' does not exist on type '{ weight?: number | undefined; } | { weight?: number | undefined; localOnly?: boolean | undefined; } | { children: ProductChild[]; weight?: number | undefined; default?: string | undefined; }'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'name' does not exist on type 'ProductChild'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'name' does not exist on type 'ProductChild'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'name' does not exist on type 'ProductChild'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'name' does not exist on type 'ProductChild'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'name' does not exist on type 'ProductChild'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'name' does not exist on type 'ProductChild'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2339: Property 'name' does not exist on type 'ProductChild'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number | bigint'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2532: Object is possibly 'undefined'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2532: Object is possibly 'undefined'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2532: Object is possibly 'undefined'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2532: Object is possibly 'undefined'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2532: Object is possibly 'undefined'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2532: Object is possibly 'undefined'.
-shell/core/__tests__/plugin-products-helpers.test.ts: error TS2532: Object is possibly 'undefined'.
 shell/detail/__tests__/autoscaling.horizontalpodautoscaler.test.ts: error TS18048: 'currentMatch' is possibly 'undefined'.
 shell/detail/__tests__/autoscaling.horizontalpodautoscaler.test.ts: error TS2339: Property 'current' does not exist on type 'string | { metric: { name: string; }; current: { averageValue: number; }; }'.
 shell/detail/__tests__/autoscaling.horizontalpodautoscaler.test.ts: error TS2339: Property 'metric' does not exist on type 'string | { metric: { name: string; }; current: { averageValue: number; }; }'.
@@ -540,51 +514,10 @@ shell/machine-config/__tests__/vmwarevsphere.test.ts: error TS7053: Element impl
 shell/machine-config/__tests__/vmwarevsphere.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"poolId"' can't be used to index type '{}'.
 shell/machine-config/components/__tests__/EC2Networking.test.ts: error TS2339: Property 'vm' does not exist on type 'WrapperLike'.
 shell/machine-config/components/__tests__/EC2Networking.test.ts: error TS2339: Property 'vm' does not exist on type 'WrapperLike'.
-shell/mixins/__tests__/brand.spec.ts: error TS2345: Argument of type '(_: any, options: any) => Promise<never[]>' is not assignable to parameter of type '(action: any, ...args: any[]) => never[] | undefined'.
-shell/mixins/__tests__/brand.spec.ts: error TS2345: Argument of type '(_: any, options: any) => Promise<{ metadata: { name: string; }; }[]>' is not assignable to parameter of type '(action: any, ...args: any[]) => never[] | undefined'.
-shell/mixins/__tests__/brand.spec.ts: error TS7006: Parameter 'action' implicitly has an 'any' type.
-shell/mixins/__tests__/brand.spec.ts: error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
-shell/mixins/__tests__/chart.test.ts: error TS2339: Property 'map' does not exist on type 'never'.
-shell/mixins/__tests__/chart.test.ts: error TS2345: Argument of type '(chartId: string | number | null, expected: string | number | null) => Promise<void>' is not assignable to parameter of type '(...args: (string | number)[] | (number | null)[]) => any'.
-shell/mixins/__tests__/chart.test.ts: error TS2345: Argument of type 'string | number | null' is not assignable to parameter of type 'number'.
-shell/mixins/__tests__/chart.test.ts: error TS2349: This expression is not callable.
-shell/mixins/__tests__/chart.test.ts: error TS2349: This expression is not callable.
-shell/mixins/__tests__/chart.test.ts: error TS2349: This expression is not callable.
-shell/mixins/__tests__/chart.test.ts: error TS2349: This expression is not callable.
 shell/mixins/compact-input.ts: error TS2339: Property 'label' does not exist on type '{ isCompact(): boolean; }'.
 shell/mixins/compact-input.ts: error TS2339: Property 'labelKey' does not exist on type '{ isCompact(): boolean; }'.
 shell/mixins/compact-input.ts: error TS2551: Property 'compact' does not exist on type '{ isCompact(): boolean; }'. Did you mean 'isCompact'?
 shell/mixins/compact-input.ts: error TS2551: Property 'compact' does not exist on type '{ isCompact(): boolean; }'. Did you mean 'isCompact'?
-shell/models/__tests__/management.cattle.io.cluster.test.ts: error TS2345: Argument of type '(clusterData: Object, expected: String) => void' is not assignable to parameter of type '(...args: (string | { provider: string; driver: string; })[] | {}[]) => any'.
-shell/models/__tests__/namespace.test.ts: error TS18048: 'moveAction' is possibly 'undefined'.
-shell/models/__tests__/namespace.test.ts: error TS18048: 'typeItem' is possibly 'undefined'.
-shell/models/__tests__/namespace.test.ts: error TS18048: 'typeItem' is possibly 'undefined'.
-shell/models/__tests__/namespace.test.ts: error TS18048: 'typeItem' is possibly 'undefined'.
-shell/models/__tests__/namespace.test.ts: error TS18048: 'typeItem' is possibly 'undefined'.
-shell/models/__tests__/namespace.test.ts: error TS18048: 'typeItem' is possibly 'undefined'.
-shell/models/__tests__/namespace.test.ts: error TS18048: 'typeItem' is possibly 'undefined'.
-shell/models/__tests__/namespace.test.ts: error TS2339: Property 'annotations' does not exist on type '{}'.
-shell/models/__tests__/namespace.test.ts: error TS2339: Property 'annotations' does not exist on type '{}'.
-shell/models/__tests__/provisioning.cattle.io.cluster.test.ts: error TS2314: Generic type 'Array<T>' requires 1 type argument(s).
-shell/models/__tests__/provisioning.cattle.io.cluster.test.ts: error TS2339: Property 'mgmt' does not exist on type 'Object'.
-shell/models/__tests__/provisioning.cattle.io.cluster.test.ts: error TS2339: Property 'mgmt' does not exist on type 'Object'.
-shell/models/__tests__/provisioning.cattle.io.cluster.test.ts: error TS2339: Property 'mgmt' does not exist on type 'Object'.
-shell/models/__tests__/provisioning.cattle.io.cluster.test.ts: error TS2339: Property 'provisioner' does not exist on type 'Object'.
-shell/models/__tests__/provisioning.cattle.io.cluster.test.ts: error TS2339: Property 'spec' does not exist on type 'Object'.
-shell/models/__tests__/provisioning.cattle.io.cluster.test.ts: error TS2345: Argument of type '(clusterData: Object, expected: Boolean) => void' is not assignable to parameter of type '(...args: (boolean | { clusterName: string; provisioner: string; spec: {}; mgmt: MgmtCluster; })[]) => any'.
-shell/models/__tests__/provisioning.cattle.io.cluster.test.ts: error TS2345: Argument of type '(testName: string, conditions: any, expected: Boolean) => void' is not assignable to parameter of type '(...args: (string | boolean | { error: boolean; lastUpdateTime: string; status: string; transitioning: boolean; type: string; }[])[]) => any'.
-shell/models/__tests__/workload.test.ts: error TS18047: 'card' is possibly 'null'.
-shell/models/__tests__/workload.test.ts: error TS18047: 'card' is possibly 'null'.
-shell/models/__tests__/workload.test.ts: error TS18047: 'card' is possibly 'null'.
-shell/models/__tests__/workload.test.ts: error TS18047: 'card' is possibly 'null'.
-shell/models/__tests__/workload.test.ts: error TS18047: 'card' is possibly 'null'.
-shell/models/__tests__/workload.test.ts: error TS18047: 'card' is possibly 'null'.
-shell/models/__tests__/workload.test.ts: error TS18047: 'card' is possibly 'null'.
-shell/models/__tests__/workload.test.ts: error TS18047: 'card' is possibly 'null'.
-shell/models/__tests__/workload.test.ts: error TS18047: 'card' is possibly 'null'.
-shell/models/__tests__/workload.test.ts: error TS18048: 'ingressesRow' is possibly 'undefined'.
-shell/models/__tests__/workload.test.ts: error TS2339: Property '$store' does not exist on type 'Workload'.
-shell/models/__tests__/workload.test.ts: error TS2531: Object is possibly 'null'.
 shell/models/ext.cattle.io.kubeconfig.ts: error TS2305: Module '"vue-router"' has no exported member 'Location'.
 shell/models/ext.cattle.io.kubeconfig.ts: error TS2416: Property '_availableActions' in type 'Kubeconfig' is not assignable to the same property in base type 'SteveModel'.
 shell/models/ext.cattle.io.kubeconfig.ts: error TS2769: No overload matches this call.
@@ -621,10 +554,7 @@ shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue: error T
 shell/pages/c/_cluster/fleet/application/suse-app-collection/credentials.vue: error TS2307: Cannot find module '@shell/components/Loading' or its corresponding type declarations.
 shell/pages/c/_cluster/fleet/application/suse-app-collection/credentials.vue: error TS2307: Cannot find module '@shell/components/form/LabeledSelect' or its corresponding type declarations.
 shell/pages/c/_cluster/fleet/index.vue: error TS18047: '$event.target' is possibly 'null'.
-shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'fleetWorkspaces' does not exist on type '{}'.
 shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'gitRepos' does not exist on type '{}'.
-shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'gitRepos' does not exist on type '{}'.
-shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'helmOps' does not exist on type '{}'.
 shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'helmOps' does not exist on type '{}'.
 shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'value' does not exist on type 'EventTarget'.
 shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'workspaces' does not exist on type '{}'.
@@ -741,7 +671,6 @@ shell/pages/c/_cluster/uiplugins/__tests__/index.test.ts: error TS2339: Property
 shell/pages/c/_cluster/uiplugins/__tests__/index.test.ts: error TS2339: Property 'installing' does not exist on type '{ name: any; label: any; description: any; id: any; versions: any[]; installed: boolean; builtin: boolean; chart: any; incompatibilityMessage: string; }'.
 shell/pages/c/_cluster/uiplugins/__tests__/index.test.ts: error TS2339: Property 'primeOnly' does not exist on type '{ name: any; label: any; description: any; id: any; versions: any[]; installed: boolean; builtin: boolean; chart: any; incompatibilityMessage: string; }'.
 shell/pages/home.vue: error TS18048: '__VLS_ctx.altClusterListFeature.configuration' is possibly 'undefined'.
-shell/pages/home.vue: error TS2345: Argument of type '{ maxExponent: number; minExponent: number; addSuffix: boolean; firstSuffix: string; increment: number; maxPrecision: number; startingExponent: number; suffix: string; }' is not assignable to parameter of type '{ increment?: number | undefined; addSuffix?: boolean | undefined; addSuffixSpace?: boolean | undefined; suffix?: string | undefined; firstSuffix?: null | undefined; startingExponent?: number | undefined; minExponent?: number | undefined; maxExponent?: number | undefined; maxPrecision?: number | undefined; canRoundT...'.
 shell/plugins/__tests__/mutations.tests.ts: error TS18048: 'ctx.getters' is possibly 'undefined'.
 shell/plugins/__tests__/mutations.tests.ts: error TS18048: 'originalResourceRef.metadata' is possibly 'undefined'.
 shell/plugins/__tests__/mutations.tests.ts: error TS2339: Property 'a' does not exist on type '{}'.
@@ -877,139 +806,7 @@ shell/plugins/steve/__tests__/subscribe.spec.ts: error TS7031: Binding element '
 shell/plugins/steve/__tests__/subscribe.spec.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ setSocket(state: any, socket: any): void; setWantSocket(state: any, want: any): void; enqueuePendingFrame(state: any, obj: any): void; dequeuePendingFrame(state: any, obj: any): void; ... 6 more ...; debug(state: any, on: any, store: any): void; }'.
 shell/plugins/steve/__tests__/utils/mutation.test.helpers.ts: error TS2339: Property 'id' does not exist on type 'Resource'.
 shell/plugins/steve/accept-or-reject-socket-message.ts: error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'ActionFindAllArgs'.
-shell/store/__tests__/action-menu.test.ts: error TS2339: Property 'key' does not exist on type '{}'.
-shell/store/__tests__/catalog.test.ts: error TS2353: Object literal may only specify known properties, and 'searchQuery' does not exist in type '{ clusterProvider?: string | undefined; showDeprecated?: boolean | undefined; showHidden?: boolean | undefined; showPrerelease?: boolean | undefined; hideRepos?: never[] | undefined; showRepos?: never[] | undefined; showTypes?: never[] | undefined; hideTypes?: never[] | undefined; }'.
-shell/store/__tests__/catalog.test.ts: error TS2353: Object literal may only specify known properties, and 'searchQuery' does not exist in type '{ clusterProvider?: string | undefined; showDeprecated?: boolean | undefined; showHidden?: boolean | undefined; showPrerelease?: boolean | undefined; hideRepos?: never[] | undefined; showRepos?: never[] | undefined; showTypes?: never[] | undefined; hideTypes?: never[] | undefined; }'.
-shell/store/__tests__/catalog.test.ts: error TS2353: Object literal may only specify known properties, and 'searchQuery' does not exist in type '{ clusterProvider?: string | undefined; showDeprecated?: boolean | undefined; showHidden?: boolean | undefined; showPrerelease?: boolean | undefined; hideRepos?: never[] | undefined; showRepos?: never[] | undefined; showTypes?: never[] | undefined; hideTypes?: never[] | undefined; }'.
-shell/store/__tests__/catalog.test.ts: error TS2353: Object literal may only specify known properties, and 'searchQuery' does not exist in type '{ clusterProvider?: string | undefined; showDeprecated?: boolean | undefined; showHidden?: boolean | undefined; showPrerelease?: boolean | undefined; hideRepos?: never[] | undefined; showRepos?: never[] | undefined; showTypes?: never[] | undefined; hideTypes?: never[] | undefined; }'.
-shell/store/__tests__/catalog.test.ts: error TS2353: Object literal may only specify known properties, and 'searchQuery' does not exist in type '{ clusterProvider?: string | undefined; showDeprecated?: boolean | undefined; showHidden?: boolean | undefined; showPrerelease?: boolean | undefined; hideRepos?: never[] | undefined; showRepos?: never[] | undefined; showTypes?: never[] | undefined; hideTypes?: never[] | undefined; }'.
-shell/store/__tests__/catalog.test.ts: error TS2353: Object literal may only specify known properties, and 'searchQuery' does not exist in type '{ clusterProvider?: string | undefined; showDeprecated?: boolean | undefined; showHidden?: boolean | undefined; showPrerelease?: boolean | undefined; hideRepos?: never[] | undefined; showRepos?: never[] | undefined; showTypes?: never[] | undefined; hideTypes?: never[] | undefined; }'.
-shell/store/__tests__/growl.test.ts: error TS2322: Type '{ id: number; color: string; title: string; }' is not assignable to type 'never'.
-shell/store/__tests__/growl.test.ts: error TS2322: Type '{ id: number; color: string; title: string; }' is not assignable to type 'never'.
-shell/store/__tests__/growl.test.ts: error TS2339: Property 'id' does not exist on type 'never'.
-shell/store/__tests__/growl.test.ts: error TS2339: Property 'id' does not exist on type 'never'.
-shell/store/__tests__/growl.test.ts: error TS2339: Property 'started' does not exist on type 'never'.
-shell/store/__tests__/growl.test.ts: error TS2339: Property 'started' does not exist on type 'never'.
-shell/store/__tests__/growl.test.ts: error TS2339: Property 'title' does not exist on type 'never'.
-shell/store/__tests__/growl.test.ts: error TS2339: Property 'title' does not exist on type 'never'.
-shell/store/__tests__/growl.test.ts: error TS2339: Property 'title' does not exist on type 'never'.
-shell/store/__tests__/prefs.test.ts: error TS2322: Type '{ name: string; }' is not assignable to type 'null'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"new-test-def"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-ascookie"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-def-value"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-def-value"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-inherit"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-mangle"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-mangle"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-no-ascookie"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-no-parsejson"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-no-userupref"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-options"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-parsejson"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"test-pref-userupref-default"' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/prefs.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-shell/store/__tests__/wm.test.ts: error TS2322: Type '{ tabs: never[]; active: {}; open: {}; panelHeight: { bottom: string | null; }; panelWidth: { left: string | null; right: string | null; }; userPin: null; lockedPositions: never[]; }' is not assignable to type 'State'.
-shell/types/store/__tests__/pagination.types.spec.ts: error TS2322: Type 'null' is not assignable to type 'boolean | undefined'.
-shell/types/store/__tests__/pagination.types.spec.ts: error TS2322: Type 'null' is not assignable to type 'boolean | undefined'.
-shell/utils/__tests__/banners.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"bannerFooter"' can't be used to index type '{}'.
-shell/utils/__tests__/banners.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type '"bannerHeader"' can't be used to index type '{}'.
-shell/utils/__tests__/banners.test.ts: error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
-shell/utils/__tests__/chart.test.ts: error TS2345: Argument of type 'null' is not assignable to parameter of type 'string'.
-shell/utils/__tests__/chart.test.ts: error TS2345: Argument of type 'null' is not assignable to parameter of type 'string'.
-shell/utils/__tests__/chart.test.ts: error TS2345: Argument of type 'null' is not assignable to parameter of type 'string'.
-shell/utils/__tests__/chart.test.ts: error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'string'.
-shell/utils/__tests__/chart.test.ts: error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'string'.
-shell/utils/__tests__/chart.test.ts: error TS2353: Object literal may only specify known properties, and 'cluster' does not exist in type '{ showAppReadme?: boolean | undefined; hideReadmeFirstTitle?: boolean | undefined; }'.
-shell/utils/__tests__/chart.test.ts: error TS2353: Object literal may only specify known properties, and 'cluster' does not exist in type '{ showAppReadme?: boolean | undefined; hideReadmeFirstTitle?: boolean | undefined; }'.
-shell/utils/__tests__/cspAdaptor.test.ts: error TS18048: 'args' is possibly 'undefined'.
-shell/utils/__tests__/cspAdaptor.test.ts: error TS18048: 'args' is possibly 'undefined'.
-shell/utils/__tests__/cspAdaptor.test.ts: error TS18048: 'args' is possibly 'undefined'.
-shell/utils/__tests__/cspAdaptor.test.ts: error TS2493: Tuple type '[action: string]' of length '1' has no element at index '1'.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/fleet.test.ts: error TS2554: Expected 3 arguments, but got 2.
-shell/utils/__tests__/object.test.ts: error TS2353: Object literal may only specify known properties, and 'replaceObjectProps' does not exist in type '{ mutateOriginal?: boolean | undefined; replaceArray?: boolean | undefined; }'.
-shell/utils/__tests__/parse-externalid.test.ts: error TS2339: Property 'template' does not exist on type '{ kind: null; group: null; base: null; id: null; name: null; version: null; }'.
-shell/utils/__tests__/parse-externalid.test.ts: error TS2339: Property 'templateId' does not exist on type '{ kind: null; group: null; base: null; id: null; name: null; version: null; }'.
-shell/utils/__tests__/parse-externalid.test.ts: error TS2339: Property 'templateId' does not exist on type '{ kind: null; group: null; base: null; id: null; name: null; version: null; }'.
-shell/utils/__tests__/parse-externalid.test.ts: error TS2339: Property 'templateId' does not exist on type '{ kind: null; group: null; base: null; id: null; name: null; version: null; }'.
-shell/utils/__tests__/parse-externalid.test.ts: error TS2339: Property 'templateId' does not exist on type '{ kind: null; group: null; base: null; id: null; name: null; version: null; }'.
-shell/utils/__tests__/parse-externalid.test.ts: error TS2339: Property 'templateVersionId' does not exist on type '{ kind: null; group: null; base: null; id: null; name: null; version: null; }'.
-shell/utils/__tests__/parse-externalid.test.ts: error TS2339: Property 'templateVersionId' does not exist on type '{ kind: null; group: null; base: null; id: null; name: null; version: null; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'left' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'left' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'left' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'left' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'left' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'left' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'left' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'left' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'top' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'top' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'top' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'top' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'top' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'top' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'top' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'top' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/position.test.ts: error TS2339: Property 'top' does not exist on type '{ position: string; }'.
-shell/utils/__tests__/promise.test.ts: error TS2339: Property 'err' does not exist on type '{}'.
-shell/utils/__tests__/promise.test.ts: error TS2339: Property 'err' does not exist on type '{}'.
-shell/utils/__tests__/promise.test.ts: error TS2339: Property 'ok' does not exist on type '{}'.
-shell/utils/__tests__/promise.test.ts: error TS2339: Property 'reject' does not exist on type '{ promise: Promise<any>; }'.
-shell/utils/__tests__/promise.test.ts: error TS2339: Property 'reject' does not exist on type '{ promise: Promise<any>; }'.
-shell/utils/__tests__/promise.test.ts: error TS2339: Property 'resolve' does not exist on type '{ promise: Promise<any>; }'.
-shell/utils/__tests__/promise.test.ts: error TS2339: Property 'resolve' does not exist on type '{ promise: Promise<any>; }'.
-shell/utils/__tests__/require-asset.test.ts: error TS2345: Argument of type 'Mock<any, any, any>' is not assignable to parameter of type 'WebpackRequireContext'.
-shell/utils/__tests__/require-asset.test.ts: error TS2345: Argument of type 'Mock<any, any, any>' is not assignable to parameter of type 'WebpackRequireContext'.
-shell/utils/__tests__/require-asset.test.ts: error TS2345: Argument of type 'Mock<any, any, any>' is not assignable to parameter of type 'WebpackRequireContext'.
-shell/utils/__tests__/require-asset.test.ts: error TS2345: Argument of type 'Mock<any, any, any>' is not assignable to parameter of type 'WebpackRequireContext'.
-shell/utils/__tests__/require-asset.test.ts: error TS2345: Argument of type 'Mock<any, any, any>' is not assignable to parameter of type 'WebpackRequireContext'.
-shell/utils/__tests__/string-utils.test.ts: error TS2345: Argument of type 'RegExp' is not assignable to parameter of type 'null | undefined'.
-shell/utils/__tests__/units.test.ts: error TS2322: Type 'string' is not assignable to type 'null | undefined'.
-shell/utils/__tests__/units.test.ts: error TS2345: Argument of type '{ increment: number; suffix: string; firstSuffix: string; } | { increment: number; suffix: string; firstSuffix?: undefined; }' is not assignable to parameter of type '{ increment?: number | undefined; addSuffix?: boolean | undefined; addSuffixSpace?: boolean | undefined; suffix?: string | undefined; firstSuffix?: null | undefined; startingExponent?: number | undefined; minExponent?: number | undefined; maxExponent?: number | undefined; maxPrecision?: number | undefined; canRoundT...'.
-shell/utils/__tests__/units.test.ts: error TS2345: Argument of type '{ suffix: string; firstSuffix?: undefined; addSuffixSpace?: undefined; addSuffix?: undefined; } | { suffix: string; firstSuffix: string; addSuffixSpace?: undefined; addSuffix?: undefined; } | { ...; } | { ...; }' is not assignable to parameter of type '{ increment?: number | undefined; addSuffix?: boolean | undefined; addSuffixSpace?: boolean | undefined; suffix?: string | undefined; firstSuffix?: null | undefined; startingExponent?: number | undefined; minExponent?: number | undefined; maxExponent?: number | undefined; maxPrecision?: number | undefined; canRoundT...'.
-shell/utils/__tests__/url.test.ts: error TS2322: Type 'null' is not assignable to type 'string'.
-shell/utils/__tests__/url.test.ts: error TS2345: Argument of type 'null' is not assignable to parameter of type 'QueryParams'.
-shell/utils/__tests__/url.test.ts: error TS2345: Argument of type 'null' is not assignable to parameter of type 'string | string[]'.
-shell/utils/__tests__/url.test.ts: error TS2345: Argument of type 'string' is not assignable to parameter of type 'QueryParams'.
-shell/utils/__tests__/width.test.ts: error TS2345: Argument of type 'null' is not assignable to parameter of type 'Element'.
-shell/utils/__tests__/width.test.ts: error TS2345: Argument of type 'null' is not assignable to parameter of type 'Element'.
-shell/utils/__tests__/width.test.ts: error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'Element'.
-shell/utils/__tests__/width.test.ts: error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'Element'.
-shell/utils/__tests__/width.test.ts: error TS2353: Object literal may only specify known properties, and 'length' does not exist in type 'Element'.
 shell/utils/duration.ts: error TS2345: Argument of type 'string' is not assignable to parameter of type 'null | undefined'.
-shell/utils/dynamic-content/__tests__/announcement.test.ts: error TS2741: Property 'isPrime' is missing in type '{ version: semver.SemVer; }' but required in type 'VersionInfo'.
-shell/utils/dynamic-content/__tests__/announcement.test.ts: error TS2741: Property 'primary' is missing in type '{ secondary: { action: string; link: string; }; }' but required in type '{ primary: CallToAction; secondary?: CallToAction | undefined; }'.
 shell/utils/dynamic-content/__tests__/config.test.ts: error TS2339: Property 'isRancherPrime' does not exist on type 'typeof import("@shell/config/version")'.
 shell/utils/dynamic-content/__tests__/config.test.ts: error TS2339: Property 'isRancherPrime' does not exist on type 'typeof import("@shell/config/version")'.
 shell/utils/dynamic-content/__tests__/config.test.ts: error TS2339: Property 'isRancherPrime' does not exist on type 'typeof import("@shell/config/version")'.
@@ -1018,23 +815,8 @@ shell/utils/dynamic-content/__tests__/info.test.ts: error TS2339: Property 'isRa
 shell/utils/dynamic-content/__tests__/info.test.ts: error TS2339: Property 'isRancherPrime' does not exist on type 'typeof import("@shell/config/version")'.
 shell/utils/dynamic-content/__tests__/info.test.ts: error TS2339: Property 'isRancherPrime' does not exist on type 'typeof import("@shell/config/version")'.
 shell/utils/dynamic-content/__tests__/info.test.ts: error TS2339: Property 'isRancherPrime' does not exist on type 'typeof import("@shell/config/version")'.
-shell/utils/dynamic-content/__tests__/support-notice.test.ts: error TS2322: Type 'null' is not assignable to type 'SemVer'.
 shell/utils/dynamic-content/config.ts: error TS2305: Module '"@shell/config/version"' has no exported member 'isRancherPrime'.
 shell/utils/gc/gc-interval.ts: error TS2769: No overload matches this call.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2322: Type '{ resource: string; }' is not assignable to type 'string | { resource: string; context: string[]; }'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2341: Property 'isEnabledInStore' is private and only accessible within class 'PaginationUtils'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2345: Argument of type 'undefined' is not assignable to parameter of type '(string[] | (({ rootGetters, $extension }: any, enabledFor: PaginationResourceContext) => boolean) | { (ctx: any): PaginationSettingsStores; (serverPagination: PaginationSettings): PaginationSettingsStores; } | ... 11 more ... | (({ rootGetters }: any) => number | undefined)) & void'.
-shell/utils/unit-tests/pagination-utils.spec.ts: error TS2769: No overload matches this call.
 shell/utils/validators/private-registry.ts: error TS2307: Cannot find module 'types/store/vuex' or its corresponding type declarations.
 shell/utils/versions.ts: error TS2724: '"@shell/config/version"' has no exported member named 'setKubeVersionData'. Did you mean 'getVersionData'?
 shell/utils/versions.ts: error TS2724: '"@shell/config/version"' has no exported member named 'setVersionData'. Did you mean 'getVersionData'?

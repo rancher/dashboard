@@ -767,6 +767,28 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
   });
 }
 
+/**
+ * Filter a list of charts and sort what is left.
+ *
+ * @typedef {object} FilterChartsOptions
+ * @property {string} [clusterProvider]
+ * @property {string | string[]} [operatingSystems] - Single os or a list of them, as taken by `compatibleVersionsFor`.
+ * @property {string[]} [category]
+ * @property {string[]} [tag]
+ * @property {string} [searchQuery]
+ * @property {string} [sort] - Which order to sort in, one of the `CATALOG_SORT_OPTIONS` values.
+ * When unset, the charts are sorted by certification, then repo, then name.
+ * @property {boolean} [showDeprecated]
+ * @property {boolean} [showHidden]
+ * @property {boolean} [showPrerelease]
+ * @property {string[]} [hideRepos]
+ * @property {(string | undefined)[]} [showRepos] - Repo keys to keep, which callers build from a repo that may not have loaded.
+ * @property {string | string[]} [showTypes]
+ * @property {string[]} [hideTypes]
+ *
+ * @param {any[]} charts - The charts to filter.
+ * @param {FilterChartsOptions} [opt] - Which charts to keep and how to sort them.
+ */
 export function filterAndArrangeCharts(charts, {
   clusterProvider = '',
   operatingSystems,

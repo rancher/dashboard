@@ -17,7 +17,7 @@ describe('pagination-utils', () => {
     });
 
     it('should return false if no store settings are provided', () => {
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:           { rootGetters: mockRootGetters },
         storeSettings: undefined as unknown as PaginationSettingsStore,
         enabledFor:    { store: 'cluster' }
@@ -28,7 +28,7 @@ describe('pagination-utils', () => {
 
     it('should return true if no specific resource is being checked', () => {
       const storeSettings: PaginationSettingsStore = { resources: {} };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster' }
@@ -39,7 +39,7 @@ describe('pagination-utils', () => {
 
     it('should return true if enableAll is true for the store', () => {
       const storeSettings: PaginationSettingsStore = { resources: { enableAll: true } };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster', resource: { id: 'pod' } }
@@ -50,7 +50,7 @@ describe('pagination-utils', () => {
 
     it('should return false if a resource is checked but has no id', () => {
       const storeSettings: PaginationSettingsStore = { resources: {} };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster', resource: { id: undefined as unknown as string } }
@@ -65,7 +65,7 @@ describe('pagination-utils', () => {
       mockRootGetters['type-map/hasCustomList'].mockReturnValue(false);
 
       const storeSettings: PaginationSettingsStore = { resources: { enableSome: { generic: true } } };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster', resource: { id: 'pod' } }
@@ -78,7 +78,7 @@ describe('pagination-utils', () => {
       mockRootGetters['type-map/hasCustomList'].mockReturnValue(true);
 
       const storeSettings: PaginationSettingsStore = { resources: { enableSome: { generic: true } } };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster', resource: { id: 'pod' } }
@@ -89,7 +89,7 @@ describe('pagination-utils', () => {
 
     it('should return true if resource id is in enabled list as a string', () => {
       const storeSettings: PaginationSettingsStore = { resources: { enableSome: { enabled: ['pod'] } } };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster', resource: { id: 'pod' } }
@@ -100,7 +100,7 @@ describe('pagination-utils', () => {
 
     it('should return true if resource id is in enabled list as an object without context', () => {
       const storeSettings: PaginationSettingsStore = { resources: { enableSome: { enabled: [{ resource: 'pod' }] } } };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster', resource: { id: 'pod' } }
@@ -111,7 +111,7 @@ describe('pagination-utils', () => {
 
     it('should return false if resource id is in enabled list as an object with empty context', () => {
       const storeSettings: PaginationSettingsStore = { resources: { enableSome: { enabled: [{ resource: 'pod', context: [] }] } } };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster', resource: { id: 'pod' } }
@@ -122,7 +122,7 @@ describe('pagination-utils', () => {
 
     it('should return true if resource id and context match an enabled setting', () => {
       const storeSettings: PaginationSettingsStore = { resources: { enableSome: { enabled: [{ resource: 'pod', context: ['list'] }] } } };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster', resource: { id: 'pod', context: 'list' } }
@@ -133,7 +133,7 @@ describe('pagination-utils', () => {
 
     it('should return false if resource context does not match enabled setting', () => {
       const storeSettings: PaginationSettingsStore = { resources: { enableSome: { enabled: [{ resource: 'pod', context: ['detail'] }] } } };
-      const result = paginationUtils.isEnabledInStore({
+      const result = paginationUtils['isEnabledInStore']({
         ctx:        { rootGetters: mockRootGetters },
         storeSettings,
         enabledFor: { store: 'cluster', resource: { id: 'pod', context: 'list' } }
@@ -161,12 +161,21 @@ describe('pagination-utils', () => {
     });
 
     it('should return false if pagination settings are not defined', () => {
-      jest.spyOn(paginationUtils, 'getSettings').mockReturnValue(undefined);
+      mockRootGetters['features/get'].mockReturnValue(true);
+
+      // The stored `ui-performance` setting explicitly blanks out `serverPagination`, which is the only
+      // way it can be missing (the defaults are merged in for every key the setting omits)
+      mockRootGetters['management/byId'].mockImplementation((type: string, id: string) => {
+        if (type === 'management.cattle.io.setting' && id === SETTING.UI_PERFORMANCE) {
+          return { value: JSON.stringify({ serverPagination: null }) };
+        }
+
+        return null;
+      });
+
       const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, enabledFor);
 
       expect(result).toBe(false);
-
-      jest.clearAllMocks();
     });
 
     it('should return false if enabledFor is not provided', () => {
