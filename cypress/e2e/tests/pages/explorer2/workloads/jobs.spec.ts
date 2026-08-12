@@ -207,12 +207,11 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // Derive the jobs count from a stable filtered read rather than assuming
       // jobNamesList.length + 1 - the list can render more than the test created (e.g. 26 vs 23)
       // while resources are still propagating, which a hardcoded total disagrees with.
-      cy.waitForStableFilteredResourceCount('v1', 'batch.job', [nsName1, nsName2], { minCount: jobNamesList.length + 1 }).then(() => {
-        // Assert the pager against the number of resources we actually created, not the value
-        // from the count read above: that server-side filtered count can lag the rows the UI
-        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
-        // assertion below waits for the UI to settle on that known total.
-        const count = jobNamesList.length + 1;
+      cy.waitForRancherResources('v1', 'batch.job', jobNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of jobs in the two filtered namespaces instead of assuming
+        // exactly jobNamesList.length + 1; the cluster can briefly hold an extra resource, which makes a
+        // hardcoded count disagree with the UI.
+        const count = resp.body.data.filter((r: any) => [nsName1, nsName2].includes(r.metadata?.namespace)).length;
 
         // pagination is visible
         jobsListPage.list().resourceTable().sortableTable().pagination()
@@ -234,8 +233,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text before navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .should('contain', `1 - 10 of ${ count } Jobs`);
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
 
         // navigate to next page - right button
         jobsListPage.list().resourceTable().sortableTable().pagination()
@@ -244,10 +242,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } Jobs`);
-          });
+          .checkPaginationTextEquals(`11 - 20 of ${ count } Jobs`);
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -262,10 +257,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -288,10 +280,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
-          });
+          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
 
         // navigate to first page - beginning button
         jobsListPage.list().resourceTable().sortableTable().pagination()
@@ -300,10 +289,7 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
         // check text and buttons after navigation
         jobsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Jobs`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
         jobsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();

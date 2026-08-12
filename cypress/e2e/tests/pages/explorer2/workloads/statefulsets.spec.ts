@@ -82,15 +82,13 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'apps.statefulset', `${ nsName2 }/${ uniqueStatefulSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForStableFilteredResourceCount('v1', 'apps.statefulset', [nsName1, nsName2], { minCount: statefulSetNamesList.length + 1 }).then(() => {
-        // Assert the pager against the number of resources we actually created, not the value
-        // from the count read above: that server-side filtered count can lag the rows the UI
-        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
-        // assertion below waits for the UI to settle on that known total.
-        const count = statefulSetNamesList.length + 1;
+      cy.waitForRancherResources('v1', 'apps.statefulset', statefulSetNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of statefulsets in the two filtered namespaces instead of assuming
+        // exactly statefulSetNamesList.length + 1; the cluster can briefly hold an extra resource, which makes a
+        // hardcoded count disagree with the UI.
+        const count = resp.body.data.filter((r: any) => [nsName1, nsName2].includes(r.metadata?.namespace)).length;
 
-        // Wait for the list to finish loading so the total is settled before the single
-        // (non-retrying) pagination-text assertions below.
+        // Wait for the list to finish loading before the (retrying) pagination-text assertions below.
         statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
         // pagination is visible
@@ -113,8 +111,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text before navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .should('contain', `1 - 10 of ${ count } StatefulSets`);
+          .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
 
         // navigate to next page - right button
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
@@ -123,10 +120,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text and buttons after navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } StatefulSets`);
-          });
+          .checkPaginationTextEquals(`11 - 20 of ${ count } StatefulSets`);
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -141,10 +135,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text and buttons after navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } StatefulSets`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -167,10 +158,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text after navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } StatefulSets`);
-          });
+          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } StatefulSets`);
 
         // navigate to first page - beginning button
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
@@ -179,10 +167,7 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
 
         // check text and buttons after navigation
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } StatefulSets`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
         statefulSetListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();

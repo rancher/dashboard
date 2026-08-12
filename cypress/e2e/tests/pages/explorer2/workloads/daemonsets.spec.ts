@@ -150,15 +150,13 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       cy.waitForRancherResource('v1', 'apps.daemonset', `${ nsName2 }/${ uniqueDaemonSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
       // check daemonsets count
-      cy.waitForStableFilteredResourceCount('v1', 'apps.daemonset', [nsName1, nsName2], { minCount: daemonSetNamesList.length + 1 }).then(() => {
-        // Assert the pager against the number of resources we actually created, not the value
-        // from the count read above: that server-side filtered count can lag the rows the UI
-        // renders in EITHER direction (this flaked as both '23' and '24'). The retrying pager
-        // assertion below waits for the UI to settle on that known total.
-        const count = daemonSetNamesList.length + 1;
+      cy.waitForRancherResources('v1', 'apps.daemonset', daemonSetNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
+        // Derive the actual number of daemonsets in the two filtered namespaces instead of assuming
+        // exactly daemonSetNamesList.length + 1; the cluster can briefly hold an extra resource, which makes a
+        // hardcoded count disagree with the UI.
+        const count = resp.body.data.filter((r: any) => [nsName1, nsName2].includes(r.metadata?.namespace)).length;
 
-        // Wait for the list to finish loading so the total is settled before the single
-        // (non-retrying) pagination-text assertions below.
+        // Wait for the list to finish loading before the (retrying) pagination-text assertions below.
         daemonSetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
         // pagination is visible
@@ -181,8 +179,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text before navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .should('contain', `1 - 10 of ${ count } DaemonSets`);
+          .checkPaginationTextEquals(`1 - 10 of ${ count } DaemonSets`);
 
         // navigate to next page - right button
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
@@ -191,10 +188,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text and buttons after navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } DaemonSets`);
-          });
+          .checkPaginationTextEquals(`11 - 20 of ${ count } DaemonSets`);
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isEnabled();
@@ -209,10 +203,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text and buttons after navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } DaemonSets`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } DaemonSets`);
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
@@ -235,10 +226,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text after navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } DaemonSets`);
-          });
+          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } DaemonSets`);
 
         // navigate to first page - beginning button
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
@@ -247,10 +235,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
 
         // check text and buttons after navigation
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } DaemonSets`);
-          });
+          .checkPaginationTextEquals(`1 - 10 of ${ count } DaemonSets`);
         daemonSetsListPage.list().resourceTable().sortableTable().pagination()
           .beginningButton()
           .isDisabled();
