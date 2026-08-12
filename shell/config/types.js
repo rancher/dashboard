@@ -322,6 +322,11 @@ export const ISTIO = {
   GATEWAY:          'networking.istio.io.gateway'
 };
 
+export const GATEWAY_API = {
+  GATEWAY:    'gateway.networking.k8s.io.gateway',
+  HTTP_ROUTE: 'gateway.networking.k8s.io.httproute'
+};
+
 export const LOGGING = {
   // LOGGING:        'logging.banzaicloud.io.logging',
   CLUSTER_FLOW:   'logging.banzaicloud.io.clusterflow',

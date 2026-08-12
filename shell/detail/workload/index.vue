@@ -1,14 +1,15 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
+import { NAMESPACE as NAMESPACE_COL, HTTP_ROUTE_ENDPOINTS } from '@shell/config/table-headers';
 import {
-  POD, WORKLOAD_TYPES, SERVICE, INGRESS, NAMESPACE, WORKLOAD_TYPE_TO_KIND_MAPPING, METRICS_SUPPORTED_KINDS
+  POD, WORKLOAD_TYPES, SERVICE, INGRESS, NAMESPACE, WORKLOAD_TYPE_TO_KIND_MAPPING, METRICS_SUPPORTED_KINDS, GATEWAY_API
 } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
 import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { allHash } from '@shell/utils/promise';
+import { insertAt } from '@shell/utils/array';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
@@ -46,6 +47,14 @@ export default {
 
     if (this.serviceSchema) {
       hash.servicesInNamespace = this.$store.dispatch('cluster/findAll', { type: SERVICE, opt: { namespaced: this.value.metadata.namespace } });
+    }
+
+    if (this.httpRouteSchema) {
+      hash.allHttpRoutes = this.$store.dispatch('cluster/findAll', { type: GATEWAY_API.HTTP_ROUTE });
+    }
+
+    if (this.gatewaySchema) {
+      hash.allGateways = this.$store.dispatch('cluster/findAll', { type: GATEWAY_API.GATEWAY });
     }
 
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
@@ -122,6 +131,14 @@ export default {
       return this.$store.getters['cluster/schemaFor'](SERVICE);
     },
 
+    httpRouteSchema() {
+      return this.$store.getters['cluster/schemaFor'](GATEWAY_API.HTTP_ROUTE);
+    },
+
+    gatewaySchema() {
+      return this.$store.getters['cluster/schemaFor'](GATEWAY_API.GATEWAY);
+    },
+
     relatedServices() {
       return this.value.relatedServices;
     },
@@ -153,6 +170,29 @@ export default {
 
     ingressHeaders() {
       return this.$store.getters['type-map/headersFor'](this.ingressSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
+    },
+
+    matchingHttpRoutes() {
+      return this.value.matchingHttpRoutes;
+    },
+
+    // An HTTPRoute may forward to a Service in another namespace, so unlike the Ingresses tab the
+    // namespace column has to stay whenever one of the listed routes is not in this namespace.
+    httpRoutesAreAllInNamespace() {
+      return this.matchingHttpRoutes.every((r) => r.metadata?.namespace === this.value.metadata?.namespace);
+    },
+
+    httpRouteHeaders() {
+      const headers = this.$store.getters['type-map/headersFor'](this.httpRouteSchema);
+      const scoped = this.httpRoutesAreAllInNamespace ? headers.filter((h) => !h.name || h.name !== NAMESPACE_COL.name) : headers;
+
+      // Empty without the Gateway schema, so the column is only worth showing when it can resolve.
+      if (this.gatewaySchema) {
+        // The configured HTTPRoute columns end with Age, so this lands immediately before it.
+        insertAt(scoped, scoped.length - 1, { ...HTTP_ROUTE_ENDPOINTS, value: (row) => row.endpointsForServices(this.relatedServices) });
+      }
+
+      return scoped;
     },
 
     serviceHeaders() {
@@ -364,6 +404,42 @@ export default {
           :headers="ingressHeaders"
           key-field="id"
           :schema="ingressSchema"
+          :namespaced="false"
+          :groupable="false"
+          :search="false"
+          :table-actions="false"
+        />
+      </Tab>
+      <Tab
+        v-if="!isJob && !isCronJob && httpRouteSchema"
+        name="httproutes"
+        :label="t('workload.detail.httpRoutes')"
+        :weight="1"
+      >
+        <p
+          v-if="!serviceSchema"
+          class="caption"
+        >
+          {{ t('workload.detail.cannotViewHttpRoutesBecauseCannotViewServices') }}
+        </p>
+        <p
+          v-else-if="matchingHttpRoutes.length === 0"
+          class="caption"
+        >
+          {{ t('workload.detail.cannotFindHttpRoutes') }}
+        </p>
+        <p
+          v-else
+          class="caption"
+        >
+          {{ t('workload.detail.httpRouteListCaption') }}
+        </p>
+        <ResourceTable
+          v-if="serviceSchema && matchingHttpRoutes.length > 0"
+          :rows="matchingHttpRoutes"
+          :headers="httpRouteHeaders"
+          key-field="id"
+          :schema="httpRouteSchema"
           :namespaced="false"
           :groupable="false"
           :search="false"
