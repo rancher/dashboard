@@ -1,0 +1,40 @@
+certManager:
+  nav:
+    overview: Overview
+    group:
+      certManager: Cert Manager
+      acme: ACME
+  overview:
+    notImplemented: The cert-manager overview is not available yet.
+
+typeLabel:
+  cert-manager.io.certificate: |-
+    {count, plural,
+      one { Certificate }
+      other { Certificates }
+    }
+  cert-manager.io.issuer: |-
+    {count, plural,
+      one { Issuer }
+      other { Issuers }
+    }
+  cert-manager.io.clusterissuer: |-
+    {count, plural,
+      one { Cluster Issuer }
+      other { Cluster Issuers }
+    }
+  cert-manager.io.certificaterequest: |-
+    {count, plural,
+      one { Certificate Request }
+      other { Certificate Requests }
+    }
+  acme.cert-manager.io.order: |-
+    {count, plural,
+      one { Order }
+      other { Orders }
+    }
+  acme.cert-manager.io.challenge: |-
+    {count, plural,
+      one { Challenge }
+      other { Challenges }
+    }

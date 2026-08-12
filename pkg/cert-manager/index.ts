@@ -1,0 +1,75 @@
+import { importTypes } from '@rancher/auto-import';
+import { IPlugin } from '@shell/core/types';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import { ProductChildCustomPage, ProductChildGroup } from '@shell/core/plugin-products-external';
+import { ProductChildResourcePageInternal } from '@shell/core/plugin-products-internal';
+import { CERT_MANAGER } from './types';
+
+const overviewPage: ProductChildCustomPage = {
+  // `name` becomes the route path segment `/c/:cluster/explorer/<name>`, which is shared by
+  // every extension that extends `explorer` - so it has to stay namespaced to cert-manager.
+  name:      'cert-manager-overview',
+  labelKey:  'certManager.nav.overview',
+  component: () => import('./pages/Overview.vue'),
+  sideMenu:  { weight: 100 },
+  // Resource pages disappear on their own when the CRDs are absent (`allTypes` only walks
+  // existing schemas). A virtual type does not, so this gate is what hides the whole group.
+  enable:    { ifHaveType: CERT_MANAGER.CERTIFICATE },
+};
+
+const certificatesPage: ProductChildResourcePageInternal = {
+  type:     CERT_MANAGER.CERTIFICATE,
+  sideMenu: { weight: 90 },
+};
+
+const issuersPage: ProductChildResourcePageInternal = {
+  type:     CERT_MANAGER.ISSUER,
+  sideMenu: { weight: 80 },
+};
+
+const clusterIssuersPage: ProductChildResourcePageInternal = {
+  type:     CERT_MANAGER.CLUSTER_ISSUER,
+  sideMenu: { weight: 70 },
+};
+
+const certificateRequestsPage: ProductChildResourcePageInternal = {
+  type:     CERT_MANAGER.CERTIFICATE_REQUEST,
+  sideMenu: { weight: 30 },
+};
+
+const ordersPage: ProductChildResourcePageInternal = {
+  type:     CERT_MANAGER.ORDER,
+  sideMenu: { weight: 20 },
+};
+
+const challengesPage: ProductChildResourcePageInternal = {
+  type:     CERT_MANAGER.CHALLENGE,
+  sideMenu: { weight: 10 },
+};
+
+const acmeGroup: ProductChildGroup = {
+  name:     'cert-manager-acme',
+  labelKey: 'certManager.nav.group.acme',
+  sideMenu: {
+    weight:   10,
+    children: [certificateRequestsPage, ordersPage, challengesPage],
+  },
+};
+
+const certManagerGroup: ProductChildGroup = {
+  name:     'cert-manager',
+  labelKey: 'certManager.nav.group.certManager',
+  sideMenu: {
+    // Explorer's own group weights are cluster 99, workload 98, serviceDiscovery 96,
+    // storage 95, policy 94. 93 puts Cert Manager below them and above More Resources.
+    weight:   93,
+    children: [overviewPage, certificatesPage, issuersPage, clusterIssuersPage, acmeGroup],
+  },
+};
+
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
+
+  extension.extendProduct(EXPLORER, [certManagerGroup]);
+}
