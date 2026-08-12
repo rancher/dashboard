@@ -88,7 +88,13 @@ describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@admin
       driverId = response?.body.id;
     });
 
-    driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
+    // The "Example" display name resolves from the fetched driver binary shortly after create, and
+    // the list can lag the create, so the row is not queryable by name within the default window.
+    // Wait longer for the row to appear, then confirm it reaches its Active end state. (The transient
+    // "Activating" state raced the name resolving and was not reliably observable by name.)
+    driversPage.list().resourceTable().sortableTable()
+      .rowElementWithName(exampleDriver, LONG_TIMEOUT_OPT)
+      .should('be.visible');
     driversPage.list().details(exampleDriver, 1).contains('Active', LONG_TIMEOUT_OPT);
 
     // Verify the driver tile appears on the cluster create page.
