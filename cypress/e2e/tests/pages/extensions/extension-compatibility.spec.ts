@@ -117,7 +117,12 @@ const cmName = 'ext-compat-cm';
 let extensionUrl = '';
 let moduleName = '';
 
-describe('Extension Compatibility', { tags: ['@extensions', '@adminUser'], retries: { runMode: 3, openMode: 0 } }, () => {
+// Tagged `@extensionsCompatibility` (NOT `@extensions`) on purpose: this suite needs a
+// developer-loaded extension server and a matrix of Rancher versions that only the dedicated
+// "Extension Compatibility Test" workflow (.github/workflows/extension-compatibility-test.yml,
+// which selects it by --spec) sets up. Keeping it off `@extensions` stops the normal e2e
+// GREP_TAGS=@adminUser+@extensions jobs from running it, where it would always fail.
+describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@adminUser'], retries: { runMode: 3, openMode: 0 } }, () => {
   // One-time suite setup (developer-load the extension + create test data). This runs from
   // beforeEach guarded by `setupComplete` rather than a `before` hook: a `before all` hook is
   // never retried, so a single fresh-cluster flake (slow login / side-nav) would fail the whole
