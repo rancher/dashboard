@@ -222,8 +222,23 @@ reprovision() {
   if [ "$KUBE_TYPE" = "K3S" ] && [ -x /usr/local/bin/k3s-uninstall.sh ]; then
     echo "Tearing down k3s..."
     sudo /usr/local/bin/k3s-uninstall.sh || echo "WARN: k3s-uninstall.sh returned non-zero (continuing to reinstall)"
+  elif [ "$KUBE_TYPE" = "K3S" ]; then
+    # k3s-uninstall.sh removes itself at the end of a run (see the earlier uninstall), so a second
+    # rebuild can find it gone while a wedged reinstall never recreated it. Re-running on that dirty
+    # k3s/etcd state is exactly what keeps the rebuild from ever converging, so do a best-effort
+    # manual teardown here instead of re-running on top of the broken instance.
+    echo "WARN: /usr/local/bin/k3s-uninstall.sh missing - best-effort manual teardown so the rebuild starts clean..."
+    sudo systemctl stop k3s k3s-agent 2>/dev/null || true
+    if [ -x /usr/local/bin/k3s-killall.sh ]; then
+      sudo /usr/local/bin/k3s-killall.sh 2>/dev/null || true
+    else
+      sudo pkill -9 -f 'k3s server' 2>/dev/null || true
+      sudo pkill -9 -f 'k3s agent' 2>/dev/null || true
+      sudo pkill -9 -f 'containerd-shim' 2>/dev/null || true
+    fi
+    sudo rm -rf /var/lib/rancher/k3s /etc/rancher /run/k3s /run/flannel /var/lib/kubelet 2>/dev/null || true
   else
-    echo "WARN: cannot cleanly tear down (KUBE_TYPE=$KUBE_TYPE, /usr/local/bin/k3s-uninstall.sh missing) - re-running anyway"
+    echo "WARN: cannot cleanly tear down (KUBE_TYPE=$KUBE_TYPE) - re-running anyway"
   fi
 
   echo "Re-running provisioning from scratch..."
