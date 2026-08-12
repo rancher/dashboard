@@ -71,7 +71,9 @@ export interface AKSConfig {
   serviceCidr?: string
   sshPublicKey?: string
   subnet?: string | null,
-  tags?: Map<string, string>,
+  tags?: {
+    [key: string]: string
+  },
   userAssignedIdentity?: string,
   virtualNetwork?: string | null,
   virtualNetworkResourceGroup?: string | null

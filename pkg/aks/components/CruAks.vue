@@ -70,7 +70,7 @@ const importedDefaultAksConfig = {
   resourceLocation: DEFAULT_REGION,
 };
 
-export const defaultAksConfig = {
+export const defaultAksConfig: AKSConfig = {
   clusterName:        '',
   imported:           false,
   linuxAdminUsername: 'azureuser',

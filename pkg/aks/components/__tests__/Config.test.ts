@@ -12,10 +12,7 @@ import { nodePoolNames } from '@pkg/aks/util/validators';
 import Config from '@pkg/aks/components/Config.vue';
 import { defaultAksConfig, NETWORKING_AUTH_MODES } from '@pkg/aks/components/CruAks.vue';
 
-// `defaultAksConfig` is the shape the production code actually produces, but it does not satisfy
-// `AKSConfig`: `tags` is declared as a `Map` while the form uses a plain object, and
-// `loadBalancerSku`/`outboundType` widen to `string` rather than their union types.
-const DEFAULT_CLUSTER_CONFIG = defaultAksConfig as AKSConfig;
+const DEFAULT_CLUSTER_CONFIG = defaultAksConfig;
 
 // LabeledSelect declares `options` as a bare `Array`, so reads come back as `unknown[]`.
 // These tests only ever inspect the standard option fields.
