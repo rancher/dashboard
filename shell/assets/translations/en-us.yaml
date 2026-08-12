@@ -8943,7 +8943,7 @@ oidcclient:
 action:
   ariaLabel:
     hidePass: Hide {area}
-    showPass: Reveal {area}
+    showPass: Show {area}
   clone: Clone
   disable: Disable
   download: Download YAML
