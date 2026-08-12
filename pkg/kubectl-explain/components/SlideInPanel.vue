@@ -54,6 +54,14 @@ export default {
 
   computed: {
 
+    // The panel stays mounted when closed (it's only moved off-screen), so without `inert` all of its
+    // links and buttons remain in the tab order and can be reached by tabbing past the end of the page.
+    // Returns `undefined` rather than `false` when open so that Vue drops the attribute entirely -
+    // `inert="false"` would still be inert, since `inert` is a boolean attribute.
+    isPanelInert() {
+      return this.isOpen ? undefined : true;
+    },
+
     top() {
       const banner = document.getElementById('banner-header');
       let height = HEADER_HEIGHT;
@@ -216,6 +224,7 @@ export default {
       role="dialog"
       aria-modal="true"
       :aria-hidden="!isOpen"
+      :inert="isPanelInert"
       :aria-label="t('kubectl-explain.title')"
     >
       <div

@@ -289,11 +289,9 @@ export default {
 
     extensionHeaderActionsAriaExpanded() {
       return this.extensionHeaderActions.map((action) => {
-        if (typeof action.ariaExpanded === 'function') {
-          return action.ariaExpanded();
-        }
+        const expanded = typeof action.ariaExpanded === 'function' ? action.ariaExpanded() : action.ariaExpanded;
 
-        return action.ariaExpanded;
+        return typeof expanded === 'boolean' ? expanded : undefined;
       });
     },
   },
@@ -735,7 +733,7 @@ export default {
           role="button"
           tabindex="0"
           :aria-label="action.labelKey ? t(action.labelKey) : action.label"
-          :aria-expanded="typeof extensionHeaderActionsAriaExpanded[i] === 'boolean' ? extensionHeaderActionsAriaExpanded[i] : undefined"
+          :aria-expanded="extensionHeaderActionsAriaExpanded[i]"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
