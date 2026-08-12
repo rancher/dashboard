@@ -4,6 +4,7 @@ import { SECRET } from '@shell/config/types';
 import { CERT_MANAGER } from '../types';
 import { Condition, conditionOf } from '../utils/conditions';
 import { issuerRefMatches } from '../utils/issuer-ref';
+import { resourceLocation } from '../utils/locations';
 import { IssuerSpec, IssuerStatus, ObjectMeta } from '../schema';
 
 /** Exactly one of these is set on an Issuer/ClusterIssuer spec. */
@@ -108,16 +109,7 @@ export default class Issuer extends SteveModel {
   }
 
   get caSecretLocation() {
-    if (!this.spec?.ca?.secretName) {
-      return null;
-    }
-
-    return {
-      name:   'c-cluster-product-resource-namespace-id',
-      params: {
-        resource: SECRET, namespace: this.metadata?.namespace, id: this.spec.ca.secretName
-      },
-    };
+    return resourceLocation(this, SECRET, this.spec?.ca?.secretName, this.metadata?.namespace);
   }
 
   get certificates() {

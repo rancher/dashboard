@@ -1,4 +1,5 @@
 import { CERT_MANAGER } from '../types';
+import { resourceLocation } from './locations';
 
 export interface IssuerRef {
   name: string;
@@ -15,29 +16,18 @@ export function issuerRefType(issuerRef?: IssuerRef): string {
 }
 
 /**
- * Route location for the Issuer or ClusterIssuer an `issuerRef` points at. ClusterIssuers are
- * cluster scoped, so they resolve without a namespace.
+ * Route location for the Issuer or ClusterIssuer a resource's `issuerRef` points at.
+ * ClusterIssuers are cluster scoped, so they resolve without a namespace.
  */
-export function issuerRefLocation(issuerRef?: IssuerRef, namespace?: string) {
+export function issuerRefLocation(model: any, issuerRef?: IssuerRef) {
   if (!issuerRef?.name) {
     return null;
   }
 
   const resource = issuerRefType(issuerRef);
+  const namespace = resource === CERT_MANAGER.CLUSTER_ISSUER ? undefined : model.metadata?.namespace;
 
-  if (resource === CERT_MANAGER.CLUSTER_ISSUER) {
-    return {
-      name:   'c-cluster-product-resource-id',
-      params: { resource, id: issuerRef.name },
-    };
-  }
-
-  return {
-    name:   'c-cluster-product-resource-namespace-id',
-    params: {
-      resource, namespace, id: issuerRef.name
-    },
-  };
+  return resourceLocation(model, resource, issuerRef.name, namespace);
 }
 
 /**

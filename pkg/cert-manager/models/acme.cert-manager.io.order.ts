@@ -2,6 +2,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { CERT_MANAGER } from '../types';
 import { issuerRefLocation } from '../utils/issuer-ref';
 import { acmeState } from '../utils/acme-state';
+import { resourceLocation } from '../utils/locations';
 import { OrderSpec, OrderStatus, ObjectMeta } from '../schema';
 
 export interface AuthorizationSummary {
@@ -27,7 +28,7 @@ export default class Order extends SteveModel {
   }
 
   get issuerLocation() {
-    return issuerRefLocation(this.spec?.issuerRef, this.metadata?.namespace);
+    return issuerRefLocation(this, this.spec?.issuerRef);
   }
 
   get dnsNamesDisplay(): string[] {
@@ -57,17 +58,6 @@ export default class Order extends SteveModel {
   }
 
   get ownerCertificateRequestLocation() {
-    if (!this.ownerCertificateRequestName) {
-      return null;
-    }
-
-    return {
-      name:   'c-cluster-product-resource-namespace-id',
-      params: {
-        resource:  CERT_MANAGER.CERTIFICATE_REQUEST,
-        namespace: this.metadata?.namespace,
-        id:        this.ownerCertificateRequestName,
-      },
-    };
+    return resourceLocation(this, CERT_MANAGER.CERTIFICATE_REQUEST, this.ownerCertificateRequestName, this.metadata?.namespace);
   }
 }

@@ -3,6 +3,7 @@ import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { CERT_MANAGER } from '../types';
 import { issuerRefLocation } from '../utils/issuer-ref';
 import { acmeState } from '../utils/acme-state';
+import { resourceLocation } from '../utils/locations';
 import { ChallengeSpec, ChallengeStatus, ObjectMeta } from '../schema';
 
 export default class Challenge extends SteveModel {
@@ -55,7 +56,7 @@ export default class Challenge extends SteveModel {
   }
 
   get issuerLocation() {
-    return issuerRefLocation(this.spec?.issuerRef, this.metadata?.namespace);
+    return issuerRefLocation(this, this.spec?.issuerRef);
   }
 
   get ownerOrderName(): string | undefined {
@@ -63,15 +64,6 @@ export default class Challenge extends SteveModel {
   }
 
   get ownerOrderLocation() {
-    if (!this.ownerOrderName) {
-      return null;
-    }
-
-    return {
-      name:   'c-cluster-product-resource-namespace-id',
-      params: {
-        resource: CERT_MANAGER.ORDER, namespace: this.metadata?.namespace, id: this.ownerOrderName
-      },
-    };
+    return resourceLocation(this, CERT_MANAGER.ORDER, this.ownerOrderName, this.metadata?.namespace);
   }
 }

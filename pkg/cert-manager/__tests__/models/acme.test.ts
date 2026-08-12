@@ -9,7 +9,9 @@ function build(Model: any, spec: any = {}, status: any = {}, opts: { metadata?: 
     },
     spec,
     status,
-    $rootGetters: { 'cluster/all': () => opts.rows },
+    $rootGetters: {
+      'cluster/all': () => opts.rows, productId: 'explorer', clusterId: 'local'
+    },
   };
 
   return Object.create(Model.prototype, Object.getOwnPropertyDescriptors(ctx)) as any;
@@ -86,7 +88,7 @@ describe('model: acme.cert-manager.io.order', () => {
     expect(model.ownerCertificateRequestLocation).toStrictEqual({
       name:   'c-cluster-product-resource-namespace-id',
       params: {
-        resource: CERT_MANAGER.CERTIFICATE_REQUEST, namespace: 'default', id: 'my-cr'
+        product: 'explorer', cluster: 'local', resource: CERT_MANAGER.CERTIFICATE_REQUEST, namespace: 'default', id: 'my-cr'
       },
     });
   });
@@ -130,7 +132,7 @@ describe('model: acme.cert-manager.io.challenge', () => {
     expect(model.ownerOrderLocation).toStrictEqual({
       name:   'c-cluster-product-resource-namespace-id',
       params: {
-        resource: CERT_MANAGER.ORDER, namespace: 'default', id: 'my-order'
+        product: 'explorer', cluster: 'local', resource: CERT_MANAGER.ORDER, namespace: 'default', id: 'my-order'
       },
     });
   });

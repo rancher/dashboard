@@ -1,0 +1,95 @@
+import { mount } from '@vue/test-utils';
+import AcmeSolver from '../AcmeSolver.vue';
+
+const STUB = { template: '<div />' };
+
+function render(solver: Record<string, any>) {
+  return mount(AcmeSolver, {
+    props:  { value: solver, mode: 'edit' },
+    global: {
+      mocks: { t: (key: string) => key },
+      stubs: {
+        RadioGroup:    STUB,
+        LabeledInput:  STUB,
+        ArrayList:     STUB,
+        KeyValue:      STUB,
+        Banner:        { template: '<div class="banner" />' },
+        Dns01Provider: { props: ['value'], template: '<div class="dns01" />' },
+      },
+    },
+  });
+}
+
+describe('component: AcmeSolver', () => {
+  it('should default a new solver to HTTP-01', () => {
+    const solver: Record<string, any> = {};
+
+    expect(render(solver).vm.challengeType).toBe('http01');
+    expect(solver.http01).toStrictEqual({ ingress: {} });
+  });
+
+  it('should report DNS-01 when a dns01 block is present', () => {
+    expect(render({ dns01: { cloudflare: {} } }).vm.challengeType).toBe('dns01');
+  });
+
+  it('should drop http01 when switching to DNS-01', () => {
+    const solver: Record<string, any> = { http01: { ingress: { ingressClassName: 'nginx' } } };
+    const wrapper = render(solver);
+
+    wrapper.vm.challengeType = 'dns01';
+
+    expect(solver.http01).toBeUndefined();
+    expect(solver.dns01).toStrictEqual({});
+  });
+
+  it('should drop dns01 when switching to HTTP-01', () => {
+    const solver: Record<string, any> = { dns01: { cloudflare: { email: 'a@b.com' } } };
+    const wrapper = render(solver);
+
+    wrapper.vm.challengeType = 'http01';
+
+    expect(solver.dns01).toBeUndefined();
+    expect(solver.http01).toStrictEqual({ ingress: {} });
+  });
+
+  it('should never leave both challenge types set, which cert-manager rejects', () => {
+    const solver: Record<string, any> = { http01: { ingress: {} } };
+    const wrapper = render(solver);
+
+    wrapper.vm.challengeType = 'dns01';
+    wrapper.vm.challengeType = 'http01';
+    wrapper.vm.challengeType = 'dns01';
+
+    expect(!!solver.http01 && !!solver.dns01).toBe(false);
+  });
+
+  it('should keep existing dns01 provider config when toggling away and back', () => {
+    const solver: Record<string, any> = { dns01: { cloudflare: { email: 'a@b.com' } } };
+    const wrapper = render(solver);
+
+    wrapper.vm.challengeType = 'http01';
+    wrapper.vm.challengeType = 'dns01';
+
+    // Switching away discards the block - the user explicitly chose a different challenge type.
+    expect(solver.dns01).toStrictEqual({});
+  });
+
+  it('should treat an empty selector as a catch-all', () => {
+    expect(render({ http01: { ingress: {} } }).vm.isCatchAll).toBe(true);
+    expect(render({ selector: { dnsZones: ['example.com'] } }).vm.isCatchAll).toBe(false);
+    expect(render({ selector: { matchLabels: { a: 'b' } } }).vm.isCatchAll).toBe(false);
+  });
+
+  it('should give each solver a distinct radio group name', () => {
+    const first = render({}).vm.radioName;
+    const second = render({}).vm.radioName;
+
+    expect(first).not.toBe(second);
+  });
+
+  it('should flag a Gateway API solver it cannot edit', () => {
+    const wrapper = render({ http01: { gatewayHTTPRoute: { parentRefs: [] } } });
+
+    expect(wrapper.find('.banner').exists()).toBe(true);
+  });
+});

@@ -3,6 +3,7 @@ import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { CERT_MANAGER } from '../types';
 import { Condition, conditionOf } from '../utils/conditions';
 import { issuerRefLocation } from '../utils/issuer-ref';
+import { resourceLocation } from '../utils/locations';
 import { parseCsr, CsrInfo } from '../utils/csr';
 import { CertificateRequestSpec, CertificateRequestStatus, ObjectMeta } from '../schema';
 
@@ -68,7 +69,7 @@ export default class CertificateRequest extends SteveModel {
   }
 
   get issuerLocation() {
-    return issuerRefLocation(this.spec?.issuerRef, this.metadata?.namespace);
+    return issuerRefLocation(this, this.spec?.issuerRef);
   }
 
   get ownerCertificateName(): string | undefined {
@@ -76,16 +77,7 @@ export default class CertificateRequest extends SteveModel {
   }
 
   get ownerCertificateLocation() {
-    if (!this.ownerCertificateName) {
-      return null;
-    }
-
-    return {
-      name:   'c-cluster-product-resource-namespace-id',
-      params: {
-        resource: CERT_MANAGER.CERTIFICATE, namespace: this.metadata?.namespace, id: this.ownerCertificateName
-      },
-    };
+    return resourceLocation(this, CERT_MANAGER.CERTIFICATE, this.ownerCertificateName, this.metadata?.namespace);
   }
 
   /** Decoded PKCS#10 request. Null when `spec.request` is absent or unparseable. */

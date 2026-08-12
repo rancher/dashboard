@@ -16,7 +16,9 @@ function certificate(spec: any = {}, status: any = {}, opts: { metadata?: any; r
     },
     spec,
     status,
-    $rootGetters: { 'cluster/all': () => opts.rows },
+    $rootGetters: {
+      'cluster/all': () => opts.rows, productId: 'explorer', clusterId: 'local'
+    },
   };
 
   return Object.create(Certificate.prototype, Object.getOwnPropertyDescriptors(ctx)) as any;
@@ -137,7 +139,7 @@ describe('model: cert-manager.io.certificate', () => {
       expect(cert.issuerLocation).toStrictEqual({
         name:   'c-cluster-product-resource-namespace-id',
         params: {
-          resource: CERT_MANAGER.ISSUER, namespace: 'default', id: 'my-issuer'
+          product: 'explorer', cluster: 'local', resource: CERT_MANAGER.ISSUER, namespace: 'default', id: 'my-issuer'
         },
       });
     });
@@ -147,7 +149,9 @@ describe('model: cert-manager.io.certificate', () => {
 
       expect(cert.issuerLocation).toStrictEqual({
         name:   'c-cluster-product-resource-id',
-        params: { resource: CERT_MANAGER.CLUSTER_ISSUER, id: 'letsencrypt' },
+        params: {
+          product: 'explorer', cluster: 'local', resource: CERT_MANAGER.CLUSTER_ISSUER, namespace: undefined, id: 'letsencrypt'
+        },
       });
     });
 
@@ -161,13 +165,58 @@ describe('model: cert-manager.io.certificate', () => {
       expect(certificate({ secretName: 'my-tls' }).secretLocation).toStrictEqual({
         name:   'c-cluster-product-resource-namespace-id',
         params: {
-          resource: SECRET, namespace: 'default', id: 'my-tls'
+          product: 'explorer', cluster: 'local', resource: SECRET, namespace: 'default', id: 'my-tls'
         },
       });
     });
 
     it('should be null without a secretName', () => {
       expect(certificate().secretLocation).toBeNull();
+    });
+  });
+
+  describe('cleanForSave', () => {
+    // The edit form has to create these before its inputs can bind to them, so an untouched
+    // Private Key or Advanced tab would otherwise persist an empty object.
+    const clean = (spec: any) => {
+      const model = certificate();
+
+      Object.getPrototypeOf(Object.getPrototypeOf(model)).cleanForSave = (data: any) => data;
+
+      return model.cleanForSave({ spec }, true);
+    };
+
+    it('should drop an untouched privateKey', () => {
+      expect(clean({ privateKey: {}, secretName: 'a' }).spec.privateKey).toBeUndefined();
+    });
+
+    it('should drop an untouched secretTemplate', () => {
+      expect(clean({ secretTemplate: {} }).spec.secretTemplate).toBeUndefined();
+    });
+
+    it('should keep them once they hold anything', () => {
+      const out = clean({ privateKey: { algorithm: 'RSA' }, secretTemplate: { labels: { a: 'b' } } });
+
+      expect(out.spec.privateKey).toStrictEqual({ algorithm: 'RSA' });
+      expect(out.spec.secretTemplate).toStrictEqual({ labels: { a: 'b' } });
+    });
+
+    it('should cope with a spec that has neither', () => {
+      expect(() => clean({ secretName: 'a' })).not.toThrow();
+    });
+  });
+
+  describe('route locations', () => {
+    it.each([
+      ['issuerLocation', certificate({ issuerRef: { name: 'my-issuer' } })],
+      ['secretLocation', certificate({ secretName: 'my-tls' })],
+    ])('%s should carry the params the explorer routes require', (getter, cert) => {
+      // RouterLink throws on a named route with a missing required param, and Vue then renders
+      // nothing at all - no link, no text. Every location must name product and cluster.
+      expect(cert[getter].params.product).toBe('explorer');
+      expect(cert[getter].params.cluster).toBe('local');
+      expect(cert[getter].params.resource).toEqual(expect.any(String));
+      expect(cert[getter].params.id).toEqual(expect.any(String));
     });
   });
 
