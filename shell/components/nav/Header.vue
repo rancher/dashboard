@@ -596,7 +596,7 @@ export default {
           class="side-menu-logo-img"
           data-testid="header__brand-img"
           file-name="rancher-logo.svg"
-          :alt="t('branding.logos.label')"
+          :alt="t('branding.logos.logoLabel')"
         />
       </div>
     </div>
