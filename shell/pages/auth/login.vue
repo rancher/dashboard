@@ -14,7 +14,8 @@ import {
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
 import { configTypeForProvider } from '@shell/models/management.cattle.io.authconfig';
-import AuthProviderSelect from '@shell/components/auth/login/AuthProviderSelect.vue';
+import AuthProviderList from '@shell/components/auth/login/AuthProviderList.vue';
+import OrDivider from '@shell/components/auth/login/OrDivider.vue';
 import { LOCAL_AUTH_ID } from '@shell/utils/auth';
 import {
   clearRememberedProviderId,
@@ -43,7 +44,7 @@ import { getBrandMeta } from '@shell/utils/brand';
 export default {
   name:       'Login',
   components: {
-    LabeledInput, AsyncButton, AuthProviderSelect, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading, TabTitle
+    LabeledInput, AsyncButton, AuthProviderList, OrDivider, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading, TabTitle
   },
 
   data() {
@@ -106,10 +107,10 @@ export default {
 
     /**
      * With a single external provider there is nothing to choose between, so the
-     * page keeps the plain "Use a local user" link it has always shown. The menu
+     * page keeps the plain "Use a local user" link it has always shown. The list
      * only earns its place once several providers are configured.
      */
-    showProviderSelect() {
+    showProviderList() {
       return this.providers.length > 1;
     },
 
@@ -202,7 +203,7 @@ export default {
     const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
     const drivers = await this.$store.dispatch('auth/getAuthProviders');
 
-    // Carries local as well, since the menu offers it alongside the external providers.
+    // Carries local as well, since the list offers it alongside the external providers.
     const providerOptions = toProviderOptions(drivers, {
       t:            this.t,
       withFallback: this.$store.getters['i18n/withFallback'],
@@ -567,41 +568,57 @@ export default {
               </div>
             </div>
           </form>
-          <!-- With several providers the menu below supersedes these links. -->
-          <div
-            v-if="!showProviderSelect && hasLocal && !showLocal"
-            class="mt-20 text-center"
-          >
-            <a
-              id="login-useLocal"
-              data-testid="login-useLocal"
-              role="button"
-              @click="toggleLocal"
-            >
-              {{ t('login.useLocal') }}
-            </a>
-          </div>
-          <div
-            v-if="!showProviderSelect && hasLocal && showLocal && providers.length"
-            class="mt-20 text-center"
-          >
-            <a
-              role="button"
-              @click="toggleLocal"
-            >
-              {{ nonLocalPrompt }}
-            </a>
-          </div>
+          <!-- With several providers the list below supersedes these links. -->
+          <template v-if="!showProviderList && hasLocal && !showLocal">
+            <div class="login-alternatives mt-20">
+              <OrDivider />
+            </div>
+            <div class="mt-20 text-center">
+              <a
+                id="login-useLocal"
+                data-testid="login-useLocal"
+                role="button"
+                @click="toggleLocal"
+              >
+                {{ t('login.useLocal') }}
+              </a>
+            </div>
+          </template>
+          <template v-if="!showProviderList && hasLocal && showLocal && providers.length">
+            <div class="login-alternatives mt-20">
+              <OrDivider />
+            </div>
+            <div class="mt-20 text-center">
+              <a
+                role="button"
+                @click="toggleLocal"
+              >
+                {{ nonLocalPrompt }}
+              </a>
+            </div>
+          </template>
         </template>
         <div
-          v-if="showProviderSelect"
-          class="mt-20 text-center"
+          v-if="showProviderList"
+          class="login-alternatives mt-20"
         >
-          <AuthProviderSelect
+          <div class="login-remember">
+            <Checkbox
+              :value="rememberProvider"
+              :label="t('login.providers.remember')"
+              data-testid="login-provider-remember"
+              @update:value="setRememberProvider"
+            />
+            <p class="login-remember__hint">
+              {{ t('login.providers.rememberHint') }}
+            </p>
+          </div>
+          <OrDivider class="mt-20" />
+          <AuthProviderList
+            class="mt-20"
             :options="providerOptions"
-            :remember="rememberProvider"
+            :selected-id="selectedProviderId"
             @select="selectProvider"
-            @update:remember="setRememberProvider"
           />
         </div>
         <div
@@ -666,6 +683,21 @@ export default {
 
       .text-error, .banner {
         max-width: 80%;
+      }
+    }
+
+    .login-alternatives {
+      width: 362px;
+      max-width: 100%;
+      align-self: center;
+    }
+
+    .login-remember {
+      &__hint {
+        margin-top: 2px;
+        color: var(--label-secondary);
+        font-size: 12px;
+        line-height: 18px;
       }
     }
 

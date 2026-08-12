@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcDropdownItem } from '@components/RcDropdown';
+import { RcButton } from '@components/RcButton';
 import AuthProviderLogo from '@shell/components/auth/login/AuthProviderLogo.vue';
 import type { AuthProviderOption } from '@shell/utils/auth-providers';
 
@@ -9,7 +9,10 @@ defineEmits<{(e: 'select', option: AuthProviderOption): void }>();
 </script>
 
 <template>
-  <RcDropdownItem
+  <RcButton
+    type="button"
+    variant="ghost"
+    size="large"
     class="auth-provider-option"
     :data-testid="`login-provider-option-${ option.id }`"
     @click="$emit('select', option)"
@@ -17,23 +20,36 @@ defineEmits<{(e: 'select', option: AuthProviderOption): void }>();
     <template #before>
       <AuthProviderLogo :icon="option.icon" />
     </template>
-    <div class="auth-provider-option__text">
-      <div class="auth-provider-option__name">
+    <span class="auth-provider-option__text">
+      <span class="auth-provider-option__name">
         {{ option.name }}
-      </div>
-      <div class="auth-provider-option__meta">
+      </span>
+      <span class="auth-provider-option__meta">
         {{ option.meta }}
-      </div>
-    </div>
-  </RcDropdownItem>
+      </span>
+    </span>
+  </RcButton>
 </template>
 
 <style lang="scss" scoped>
-  .auth-provider-option {
-    gap: 12px;
-    padding: 9px 10px;
+  .rc-button.auth-provider-option {
+    --rc-button-padding: 9px 10px;
 
-    &__text {
+    justify-content: flex-start;
+    width: 100%;
+    text-align: left;
+
+    color: var(--body-text);
+    border-radius: var(--border-radius);
+
+    &:hover {
+      // The global button styles turn text `--lightest` on hover, which would
+      // wash the name out against this background.
+      color: var(--body-text);
+      background-color: var(--dropdown-hover-bg);
+    }
+
+    .auth-provider-option__text {
       display: flex;
       flex-direction: column;
       gap: 1px;
@@ -41,7 +57,7 @@ defineEmits<{(e: 'select', option: AuthProviderOption): void }>();
       flex: 1;
     }
 
-    &__name {
+    .auth-provider-option__name {
       font-size: 14px;
       font-weight: 700;
       line-height: 20px;
@@ -49,8 +65,8 @@ defineEmits<{(e: 'select', option: AuthProviderOption): void }>();
       text-overflow: ellipsis;
     }
 
-    &__meta {
-      color: var(--dropdown-group-text);
+    .auth-provider-option__meta {
+      color: var(--label-secondary);
       font-size: 12px;
       line-height: 17px;
       overflow: hidden;
