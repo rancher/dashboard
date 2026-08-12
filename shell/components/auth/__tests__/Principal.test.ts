@@ -145,6 +145,40 @@ describe('component: Principal', () => {
       });
     });
 
+    // Regression: user.provider is aggregated across all of the user's principalIds,
+    // so a user with more than one resolves to 'multiple' (or the wrong driver). The
+    // rendered principal must take its provider from its own id so it isn't mislabeled.
+    // (The missing github profile picture is handled by Principal.avatarSrc, which falls
+    // back to an identicon rather than throwing - covered in the principal model tests.)
+    it('should derive the provider from the id, not the aggregated user.provider (github, multi-principal user)', async() => {
+      const githubValue = 'github_user://12345';
+      const user = {
+        principalIds:  [githubValue, 'local://u-abc123'],
+        displayName:   'GH User',
+        username:      'gh-user',
+        provider:      'multiple', // aggregated - must NOT be used for the rendered id
+        isCurrentUser: false,
+      };
+      const { $store, dispatch } = createStore({ users: [user], find: forbidden });
+
+      const wrapper = shallowMount(Principal, {
+        props:  { value: githubValue },
+        global: { mocks: { $fetchState: { pending: false }, $store } },
+      }) as VueWrapper<any, any>;
+
+      await wrapper.vm.loadData();
+
+      expect(dispatch).toHaveBeenCalledWith('rancher/create', {
+        type:          NORMAN.PRINCIPAL,
+        id:            githubValue,
+        principalType: 'user',
+        provider:      'github',
+        name:          'GH User',
+        loginName:     'gh-user',
+        me:            false,
+      });
+    });
+
     it('should resolve the display name from the matching user', async() => {
       const user = {
         principalIds: [value], displayName: 'Base User', username: 'base-user'

@@ -59,8 +59,11 @@ export default {
         });
       } catch (e) {
         // Fetching a principal directly requires permissions that a standard
-        // (non-admin) user may not have, so the request above can fail. Fall
-        // through to the user-based fallback below to resolve the display info.
+        // (non-admin) user may not have, so the request above can fail. This is
+        // expected for non-admins - log it (rather than swallowing it silently)
+        // and fall through to the user-based fallback below to resolve the
+        // display info.
+        console.debug('Direct principal fetch failed, falling back to the user list', this.value, e); // eslint-disable-line no-console
       }
 
       // Fall back to the management user list, which a user with permission to
@@ -98,11 +101,18 @@ export default {
 
       // Build a norman principal from the user so the model getters (avatar,
       // displayType, ...) work exactly as they would for a fetched principal.
+      //
+      // Derive the provider from the id being rendered (this.value) rather than
+      // user.provider: user.provider is aggregated across all of the user's
+      // principalIds, so for a user with more than one it resolves to 'multiple'
+      // (or the wrong driver) and mislabels the principal we're actually showing.
+      const provider = this.value.split(':')[0].split('_')[0].toLowerCase();
+
       return this.$store.dispatch('rancher/create', {
         type:          NORMAN.PRINCIPAL,
         id:            this.value,
         principalType: 'user',
-        provider:      user.provider,
+        provider,
         name:          user.displayName || user.nameDisplay,
         loginName:     user.username,
         me:            user.isCurrentUser,
