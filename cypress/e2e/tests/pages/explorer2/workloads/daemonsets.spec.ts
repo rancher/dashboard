@@ -320,9 +320,9 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       // generate small set of daemonsets data
       generateDaemonSetsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      // Navigate directly rather than via the side menu: the side-menu nav
-      // intermittently lands on the wrong workload type (e.g. Deployments).
-      WorkloadsDaemonsetsListPagePo.goTo(localCluster);
+      // navTo is hardened against the workload-overview redirect to Deployments (it waits for
+      // the overview's summary fetch to settle and reloads/retries if it redirected).
+      WorkloadsDaemonsetsListPagePo.navTo(localCluster);
       cy.wait('@daemonSetsDataSmall');
       daemonSetsListPage.waitForPage();
 
