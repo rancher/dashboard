@@ -12,6 +12,7 @@ export {
   RcDropdownMenu
 } from './components/RcDropdown';
 export { RcIcon } from './components/RcIcon';
+export { RcContentGroup, RcContentGroups } from './components/Layout';
 export { RcSection } from './components/RcSection';
 export { RcSeparator } from './components/RcSeparator';
 export { RcItemCard, RcItemCardAction } from './components/RcItemCard';

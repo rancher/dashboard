@@ -9,18 +9,38 @@
  *   <p>Section content here</p>
  * </RcSection>
  *
- * Content is laid out with a 24px gap between the direct children of the
- * section. Wrap form elements in a RcSectionContentGroup to space them 16px
- * apart within a group, and use as many groups as the form needs:
+ * The default slot is a stack of content groups: its direct children are
+ * spaced 24px apart. Give it an RcContentGroup when a run of content belongs
+ * together, and that group stacks its own content 16px apart.
  *
  * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
- *   <RcSectionContentGroup>
+ *   <RcContentGroup>
  *     <LabeledInput label="Name" />
  *     <LabeledInput label="Description" />
- *   </RcSectionContentGroup>
- *   <RcSectionContentGroup>
+ *   </RcContentGroup>
+ *   <RcContentGroup>
  *     <LabeledInput label="Namespace" />
- *   </RcSectionContentGroup>
+ *   </RcContentGroup>
+ * </RcSection>
+ *
+ * Plain content works the same way, with each child its own group 24px from
+ * the next, so a section that does not need the tighter grouping writes
+ * nothing extra.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <p>First group</p>
+ *   <p>Second group</p>
+ * </RcSection>
+ *
+ * The `groups` slot replaces the stack itself, for a section that has to own
+ * the spacing of its groups. `groups` and the default slot are mutually
+ * exclusive: when both are given, `groups` wins and the default slot content
+ * is dropped.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <template #groups>
+ *     <MyOwnGroupLayout />
+ *   </template>
  * </RcSection>
  *
  * <RcSection title="Section title" type="secondary" mode="with-header" expandable v-model:expanded="expanded" background="secondary">
@@ -48,9 +68,10 @@
  * </RcSection>
  */
 import {
-  computed, inject, provide, useTemplateRef, type Ref
+  computed, inject, provide, useSlots, useTemplateRef, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
+import RcContentGroups from '@components/Layout/RcContentGroups/RcContentGroups.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
@@ -58,6 +79,12 @@ import type { RcSectionProps, SectionBackground } from './types';
 const RC_SECTION_BG_KEY = 'rc-section-background';
 
 const props = withDefaults(defineProps<RcSectionProps>(), { title: '' });
+
+const slots = useSlots();
+
+if (process.env.NODE_ENV !== 'production' && slots.groups && slots.default) {
+  console.warn('[RcSection]: Both the `groups` slot and the default slot were given. The `groups` slot replaces the default one, so the default slot content is not rendered.'); // eslint-disable-line no-console
+}
 
 const parentBackground = inject<Ref<SectionBackground> | null>(RC_SECTION_BG_KEY, null);
 
@@ -174,7 +201,11 @@ function toggle() {
       v-if="expanded"
       :class="contentClass"
     >
-      <slot />
+      <slot name="groups">
+        <RcContentGroups>
+          <slot />
+        </RcContentGroups>
+      </slot>
     </div>
   </div>
 </template>
@@ -301,7 +332,6 @@ function toggle() {
 .section-content {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-lg, 24px);
   padding: 0 0 16px;
   color: var(--body-text);
 

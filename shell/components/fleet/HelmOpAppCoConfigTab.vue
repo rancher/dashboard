@@ -13,6 +13,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import Labels from '@shell/components/form/Labels';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { RcContentGroup } from '@components/Layout';
 import { RcSection } from '@components/RcSection';
 import HelmOpAppCoResourcesSection from '@shell/components/fleet/HelmOpAppCoResourcesSection.vue';
 import HelmOpTargetOptionsSection from '@shell/components/fleet/HelmOpTargetOptionsSection.vue';
@@ -425,7 +426,8 @@ defineExpose({ refreshYamlEditor });
       v-bind="advancedWrapperProps"
       data-testid="appco-config-advanced"
     >
-      <div class="content-group">
+      <!-- These sections belong together at 16px, not the 24px a section's default slot gives its children, and the wrapper here may be a plain `div` rather than an RcSection. -->
+      <RcContentGroup>
         <div
           v-if="isView"
           class="row"
@@ -531,19 +533,13 @@ defineExpose({ refreshYamlEditor });
             @update:diff-mode="emit('update:diff-mode', $event)"
           />
         </RcSection>
-      </div>
+      </RcContentGroup>
     </component>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .appco-config-tab {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-md);
-}
-
-.content-group {
   display: flex;
   flex-direction: column;
   gap: var(--gap-md);

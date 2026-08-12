@@ -2,9 +2,10 @@
 
 exports[`component: HelmOpTargetOptionsSection should match snapshot in compact mode 1`] = `
 <div
-  class="col gap-md"
+  class="rc-content-group col"
   data-testid="helmop-target-options-section"
 >
+  
   <p>
     %fleet.helmOp.target.clusterDeploymentDescription%
     <br />
@@ -79,6 +80,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot in compact 
       %fleet.helmOp.targetNamespace.compactDescription%
     </p>
   </div>
+  
 </div>
 `;
 

@@ -1,18 +1,16 @@
 import { shallowMount } from '@vue/test-utils';
-import RcSectionContentGroup from './RcSectionContentGroup.vue';
-import { RcSectionContentGroup as ExportedRcSectionContentGroup } from './index';
+import RcContentGroup from './RcContentGroup.vue';
+import ExportedRcContentGroup from './index';
 
-describe('component: RcSectionContentGroup', () => {
+describe('component: RcContentGroup', () => {
   function createWrapper(defaultSlot?: string) {
-    return shallowMount(RcSectionContentGroup, { slots: defaultSlot === undefined ? {} : { default: defaultSlot } });
+    return shallowMount(RcContentGroup, { slots: defaultSlot === undefined ? {} : { default: defaultSlot } });
   }
 
-  it('should render a wrapper carrying the content group class and test id', () => {
+  it('should render a wrapper carrying the content group class', () => {
     const wrapper = createWrapper();
-    const group = wrapper.find('[data-testid="rc-section-content-group"]');
 
-    expect(group.exists()).toBe(true);
-    expect(group.classes()).toContain('rc-section-content-group');
+    expect(wrapper.find('.rc-content-group').exists()).toBe(true);
   });
 
   it.each([
@@ -20,7 +18,7 @@ describe('component: RcSectionContentGroup', () => {
     ['several children', '<span class="child">First</span><span class="child">Second</span>', ['First', 'Second']],
   ])('should nest %s from the default slot inside the group', (_label, slot, expected) => {
     const wrapper = createWrapper(slot);
-    const rendered = wrapper.findAll('[data-testid="rc-section-content-group"] .child');
+    const rendered = wrapper.findAll('.rc-content-group .child');
 
     expect(rendered.map((child) => child.text())).toStrictEqual(expected);
   });
@@ -40,6 +38,6 @@ describe('component: RcSectionContentGroup', () => {
   });
 
   it('should be re-exported from the component index so consumers can import it', () => {
-    expect(ExportedRcSectionContentGroup).toBe(RcSectionContentGroup);
+    expect(ExportedRcContentGroup).toBe(RcContentGroup);
   });
 });
