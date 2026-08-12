@@ -3,8 +3,6 @@ import jsyaml from 'js-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
 import Footer from '@shell/components/form/Footer';
-import ResourceTemplateSelector from '@shell/components/ResourceTemplateSelector';
-import ResourceTemplateUtils from '@shell/utils/resource-template';
 import { ANNOTATIONS_TO_FOLD } from '@shell/config/labels-annotations';
 import { ensureRegex } from '@shell/utils/string';
 import { typeOf } from '@shell/utils/sort';
@@ -26,7 +24,6 @@ export default {
   components: {
     Footer,
     FileSelector,
-    ResourceTemplateSelector,
     YamlEditor
   },
 
@@ -297,23 +294,14 @@ export default {
       }
     },
 
-    onTemplateSelected(configMap) {
-      const inStore = this.$store.getters['currentStore'](this.value.type);
-
-      this.$store.dispatch(`${ inStore }/promptModal`, {
-        component:      'GenericPrompt',
-        componentProps: {
-          title:       this.t('resourceTemplateSelector.confirmTitle'),
-          body:        this.t('resourceTemplateSelector.confirmBodyYaml'),
-          applyMode:   'apply',
-          applyAction: async() => {
-            const yaml = ResourceTemplateUtils.applyTemplate(this.value, configMap);
-
-            this.currentYaml = yaml;
-            this.updateValue(yaml);
-          },
-        },
-      });
+    /**
+     * Push a template's yaml into the editor. Triggered externally (from the
+     * ResourceTemplateSelector now living in the page Masthead) via a ref, once the caller has
+     * already applied the template to `value` and shown any confirmation.
+     */
+    applyTemplateYaml(yaml) {
+      this.currentYaml = yaml;
+      this.updateValue(yaml);
     },
 
     refresh() {
@@ -365,10 +353,6 @@ export default {
             class="btn role-secondary"
             :label="t('generic.readFromFile')"
             @selected="onFileSelected"
-          />
-          <ResourceTemplateSelector
-            :resource-type="value.type"
-            @apply="onTemplateSelected"
           />
         </template>
         <template

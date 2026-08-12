@@ -4,6 +4,7 @@ import { FLEET, NAMESPACE, MANAGEMENT, HELM } from '@shell/config/types';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
+import ResourceTemplateSelector from '@shell/components/ResourceTemplateSelector';
 import { get } from '@shell/utils/object';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
@@ -28,6 +29,8 @@ export default {
 
   name: 'MastheadResourceDetail',
 
+  emits: ['apply-template'],
+
   components: {
     BadgeState,
     Banner,
@@ -35,6 +38,7 @@ export default {
     ExtensionPanel,
     TabTitle,
     ActionMenu,
+    ResourceTemplateSelector,
   },
   props: {
     value: {
@@ -531,6 +535,12 @@ export default {
       <slot name="right">
         <div class="actions-container align-start">
           <div class="actions">
+            <ResourceTemplateSelector
+              v-if="!isView && canViewYaml"
+              :resource-type="resource"
+              class="mr-10"
+              @apply="$emit('apply-template', $event)"
+            />
             <button
               v-if="detailsAction && currentView === DETAIL_VIEW && isView"
               type="button"

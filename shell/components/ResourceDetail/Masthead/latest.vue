@@ -8,12 +8,17 @@ import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resourc
 import { useResourceDetailBannerProps } from '@shell/components/Resource/Detail/composables';
 import { computed } from 'vue';
 import Cards from '@shell/components/Resource/Detail/Cards.vue';
+import ResourceTemplateSelector from '@shell/components/ResourceTemplateSelector';
+import { _VIEW } from '@shell/config/query-params';
 
 // We are disabling eslint for this script to allow the use of the Props interface
 export interface Props {
   value?: Object;
   resourceSubtype?: string;
   isCustomDetailOrEdit?: boolean;
+  mode?: string;
+  resource?: string;
+  canViewYaml?: boolean;
 }
 
 </script>
@@ -21,7 +26,11 @@ export interface Props {
 <script lang="ts" setup>
 import { useStore } from 'vuex';
 
-const props = withDefaults(defineProps<Props>(), { value: () => ({}), resourceSubtype: undefined, isCustomDetailOrEdit: false });
+const props = withDefaults(defineProps<Props>(), {
+  value: () => ({}), resourceSubtype: undefined, isCustomDetailOrEdit: false, mode: _VIEW, resource: undefined, canViewYaml: false
+});
+
+const emit = defineEmits(['apply-template']);
 
 const uiCtxResource = computed(() => {
   const {
@@ -45,7 +54,15 @@ const store = useStore();
 
 <template>
   <div>
-    <TitleBar v-bind="titleBarProps" />
+    <TitleBar v-bind="titleBarProps">
+      <template #additional-actions>
+        <ResourceTemplateSelector
+          v-if="props.mode !== _VIEW && props.canViewYaml"
+          :resource-type="props.resource"
+          @apply="emit('apply-template', $event)"
+        />
+      </template>
+    </TitleBar>
     <Banner
       v-if="bannerProps"
       v-ui-context="{

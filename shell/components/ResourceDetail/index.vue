@@ -7,7 +7,7 @@ import {
   AS, _YAML, _DETAIL, _CONFIG, PREVIEW, MODE,
 } from '@shell/config/query-params';
 import { SCHEMA } from '@shell/config/types';
-import { createYaml } from '@shell/utils/create-yaml';
+import { createYaml, createYamlWithOptions } from '@shell/utils/create-yaml';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import DetailTop from '@shell/components/DetailTop';
 import { clone, diff } from '@shell/utils/object';
@@ -264,9 +264,9 @@ export default {
       this.value?.applyDefaults(this, realMode);
     }
 
-    // Consume anything staged by "apply resource template to form" (CruResource.vue) ahead of
-    // the page reload that action triggers. Runs after applyDefaults so the staged values win
-    // over any defaults just applied. No-op when nothing is staged.
+    // Consume anything staged by onTemplateSelected() (below) ahead of the page reload that
+    // action triggers. Runs after applyDefaults so the staged values win over any defaults just
+    // applied. No-op when nothing is staged.
     const staged = ResourceTemplateUtils.consumeStagedFormApply();
 
     if ( staged && this.value ) {
@@ -394,6 +394,76 @@ export default {
       this.resourceSubtype = subtype;
     },
 
+    /**
+     * Generate yaml for the resource currently being edited, the same way CruResource.vue's
+     * createResourceYaml() does (createYamlWithOptions is the same utility, just called with
+     * this.value/this.resourceType instead of a form-owned resource/type pair).
+     */
+    async currentValueYaml() {
+      const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resourceType);
+      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
+      const clonedResource = clone(this.value);
+
+      return createYamlWithOptions(schemas, this.resourceType, clonedResource);
+    },
+
+    /**
+     * Triggered by ResourceTemplateSelector in the page Masthead (@apply-template).
+     */
+    onTemplateSelected(configMap) {
+      const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resourceType);
+
+      if (this.isYaml) {
+        // Already showing yaml directly (no custom form component involved) - apply immediately,
+        // no reload needed, since this component owns `value`/`yaml` directly.
+        this.$store.dispatch(`${ inStore }/promptModal`, {
+          component:      'GenericPrompt',
+          componentProps: {
+            title:       this.t('resourceTemplateSelector.confirmTitle'),
+            body:        this.t('resourceTemplateSelector.confirmBodyYaml'),
+            applyMode:   'apply',
+            applyAction: async() => {
+              const yaml = ResourceTemplateUtils.applyTemplate(this.value, configMap);
+
+              this.yaml = yaml;
+              this.$refs.resourceyaml?.applyTemplateYaml(yaml);
+            },
+          },
+        });
+
+        return;
+      }
+
+      // Showing the custom edit component/form. Its internals aren't reliably reachable from
+      // here - many custom edit components copy props into local state on creation and won't
+      // react to the resource object being mutated later - so both choices stage the template
+      // (and the form's current in-progress edits) then reload the page. The fresh load merges
+      // them onto the resource before the form ever mounts (see consumeStagedFormApply in
+      // fetch() above).
+      this.$store.dispatch(`${ inStore }/promptModal`, {
+        component:      'GenericPrompt',
+        componentProps: {
+          title:       this.t('resourceTemplateSelector.confirmTitle'),
+          body:        this.t('resourceTemplateSelector.confirmBodyForm'),
+          applyMode:   'applyToForm',
+          applyAction: async() => {
+            const currentYaml = await this.currentValueYaml();
+
+            ResourceTemplateUtils.stageFormApply(currentYaml, configMap);
+            window.location.reload();
+          },
+          secondaryApplyMode:   'applyToYaml',
+          secondaryApplyAction: async() => {
+            const currentYaml = await this.currentValueYaml();
+
+            ResourceTemplateUtils.stageFormApply(currentYaml, configMap);
+            await this.$router.applyQuery({ [AS]: _YAML });
+            window.location.reload();
+          },
+        },
+      });
+    },
+
     keyAction(act) {
       const m = this.liveModel;
 
@@ -482,6 +552,7 @@ export default {
       :resource-subtype="resourceSubtype"
       :parent-route-override="parentRouteOverride"
       :store-override="storeOverride"
+      @apply-template="onTemplateSelected"
     >
       <DetailTop
         v-if="isView && isDetail"

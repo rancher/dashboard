@@ -5,8 +5,6 @@ import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
-import ResourceTemplateSelector from '@shell/components/ResourceTemplateSelector';
-import ResourceTemplateUtils from '@shell/utils/resource-template';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters, mapState, mapActions } from 'vuex';
@@ -39,7 +37,6 @@ export default {
     Banner,
     CruResourceFooter,
     ResourceYaml,
-    ResourceTemplateSelector,
     Wizard,
     TableOfContents,
     RcSeparator,
@@ -431,40 +428,6 @@ export default {
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
       this.$router.applyQuery({ [AS]: _YAML });
-    },
-
-    onTemplateSelected(configMap) {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-
-      this.$store.dispatch(`${ inStore }/promptModal`, {
-        component:      'GenericPrompt',
-        componentProps: {
-          title: this.t('resourceTemplateSelector.confirmTitle'),
-          body:  this.t('resourceTemplateSelector.confirmBodyForm'),
-
-          // Applying a template to a live form isn't reliable - many custom edit components
-          // copy props into local state on creation and won't react to the resource object
-          // being mutated later - so this stages both the template and the form's current
-          // in-progress edits, then reloads the page. On the fresh load, ResourceDetail/index.vue
-          // merges them onto the freshly created/fetched resource before the form ever mounts.
-          applyMode:   'applyToForm',
-          applyAction: async() => {
-            const currentYaml = await this.createResourceYaml(this.yamlModifiers);
-
-            ResourceTemplateUtils.stageFormApply(currentYaml, configMap);
-            window.location.reload();
-          },
-
-          // Alternative: switch to YAML view instead, same as applying a template while already
-          // viewing YAML.
-          secondaryApplyMode:   'applyToYaml',
-          secondaryApplyAction: async() => {
-            this.resourceYaml = ResourceTemplateUtils.applyTemplate(this.resource, configMap);
-            this.showAsForm = false;
-            this.$router.applyQuery({ [AS]: _YAML });
-          },
-        },
-      });
     },
 
     selectType(id, event) {
@@ -892,11 +855,6 @@ export default {
                   >
                     <t k="cruResource.previewYaml" />
                   </button>
-                  <ResourceTemplateSelector
-                    v-if="showYaml"
-                    :resource-type="resource.type"
-                    @apply="onTemplateSelected"
-                  />
                   <template
                     v-if="showPrevious"
                     name="back"
@@ -996,11 +954,6 @@ export default {
                 >
                   <t k="cruResource.previewYaml" />
                 </button>
-                <ResourceTemplateSelector
-                  v-if="showYaml"
-                  :resource-type="resource.type"
-                  @apply="onTemplateSelected"
-                />
                 <AsyncButton
                   v-if="!showSubtypeSelection"
                   ref="save"

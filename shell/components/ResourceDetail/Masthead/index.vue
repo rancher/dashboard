@@ -38,6 +38,8 @@ const props = withDefaults(defineProps<Props>(), {
   canViewYaml:         false
 });
 
+const emit = defineEmits(['apply-template']);
+
 const isNewDetailPageEnabled = useIsNewDetailPageEnabled();
 const isView = computed(() => props.mode === _VIEW);
 const showLatestMasthead = computed(() => isNewDetailPageEnabled.value && isView.value );
@@ -49,10 +51,15 @@ const showLatestMasthead = computed(() => isNewDetailPageEnabled.value && isView
     :value="props.value"
     :resourceSubtype="props.resourceSubtype"
     :isCustomDetailOrEdit="props.hasDetail || props.hasEdit"
+    :mode="props.mode"
+    :resource="props.resource"
+    :canViewYaml="props.canViewYaml"
+    @apply-template="emit('apply-template', $event)"
   />
   <Legacy
     v-else
     v-bind="props"
+    @apply-template="emit('apply-template', $event)"
   >
     <slot name="default" />
   </Legacy>
