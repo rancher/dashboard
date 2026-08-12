@@ -71,44 +71,123 @@ export function schemaToQuestions(fields) {
   return out;
 }
 
+/**
+ * Migrates a legacy/Ember-style `show_if` expression to a modern, valid Jexl expression.
+ *
+ * In legacy Helm charts, `show_if` is specified as simple equations without quotes,
+ * like "parent.variable=false" or "a=foo&&b=bar". Jexl requires correct quotes and
+ * comparison operators (e.g. `parent.variable == false`).
+ *
+ * To support complex nested conditions (e.g., "(a=true || b=true) && c=true"), this function
+ * tokenizes the string on logical boundaries while preserving parentheses and operators,
+ * migrating only the leaf atomic sub-expressions.
+ */
 function migrate(expr) {
-  let out;
+  if (typeof expr !== 'string') {
+    return expr;
+  }
 
+  const grouped = migrateGrouped(expr);
+
+  // Tokenizing on (, ) and ! can also split inside a comparison's value (e.g. "foo=bar(1)",
+  // "foo=a!b" or "foo=(bar)"), producing Jexl that's either invalid or, worse, syntactically
+  // valid but semantically wrong (e.g. "foo=(bar)" migrates to "!foo(bar)", which *compiles*
+  // as a function call but throws "Function foo is not defined" when evaluated). Guard against
+  // both by requiring the grouped migration to actually evaluate cleanly against an empty
+  // context, and falling back to the simpler, ungrouped migration (which doesn't support
+  // explicit parentheses/negation, but won't mangle raw values) otherwise.
+  try {
+    Jexl.compile(grouped);
+    Jexl.evalSync(grouped, {});
+
+    return grouped;
+  } catch (e) {
+    return migrateUngrouped(expr);
+  }
+}
+
+/**
+ * Migrates a `show_if` expression that may use grouping parentheses and/or unary NOT (e.g.
+ * "(a=true || b=true) && c=true") by tokenizing on logical boundaries and migrating only the
+ * leaf atomic sub-expressions. This can misfire if `(`, `)` or `!` appear within a value itself.
+ */
+function migrateGrouped(expr) {
+  // Tokenize the expression by logical operators (&&, ||), parentheses ( ( , ) ) and unary NOT (!).
+  // Note: we use a negative lookahead `!(?!=)` to match prefix `!` but leave `!=` comparison operators intact.
+  const tokens = expr.split(/(&&|\|\||\(|\)|!(?!=))/);
+  const migratedTokens = tokens.map((token) => {
+    const trimmed = token.trim();
+
+    // If the token is empty (e.g., spacing/delimiters), return as-is to preserve layout.
+    if (!trimmed) {
+      return token;
+    }
+
+    // Keep logical operators, parentheses, and unary NOT operators as-is.
+    const isLogicalOrBoundary = ['&&', '||', '(', ')', '!'].includes(trimmed);
+
+    if (isLogicalOrBoundary) {
+      return token;
+    }
+
+    // Process and migrate actual comparison terms or variable identifiers.
+    return migrateAtomic(trimmed);
+  });
+
+  return migratedTokens.join('');
+}
+
+/**
+ * Migrates a `show_if` expression by splitting only on && / || (no support for grouping
+ * parentheses or unary NOT), matching the legacy behavior. Safe for values that contain
+ * `(`, `)` or `!`.
+ */
+function migrateUngrouped(expr) {
   if ( expr.includes('||') ) {
-    out = expr.split('||').map((x) => migrate(x)).join(' || ');
+    return expr.split('||').map((x) => migrateUngrouped(x)).join(' || ');
   } else if ( expr.includes('&&') ) {
-    out = expr.split('&&').map((x) => migrate(x)).join(' && ');
-  } else {
-    const parts = expr.match(/^(.*)(!?=)(.*)$/);
+    return expr.split('&&').map((x) => migrateUngrouped(x)).join(' && ');
+  }
 
-    if ( parts ) {
-      const key = parts[1].trim();
-      const op = parts[2].trim() === '!=' ? '!=' : '==';
-      const val = parts[3].trim();
+  return migrateAtomic(expr);
+}
 
-      if ( val === 'true' || val === 'false' || val === 'null' ) {
-        out = `${ key } ${ op } ${ val }`;
-      } else if ( val === '' ) {
-        // Existing charts expect `foo=` with `{foo: null}` to be true.
-        if ( op === '!=' ) {
-          out = `!!${ key }`;
-        } else {
-          out = `!${ key }`;
-        }
-        // out = `${ op === '!' ? '!' : '' }(${ key } == "" || ${ key } == null)`;
+/**
+ * Migrates a single atomic comparison or variable expression to a valid Jexl format.
+ * E.g.: "foo=bar" -> "foo == 'bar'", "foo=" -> "!foo"
+ */
+function migrateAtomic(expr) {
+  let out;
+  // The first group is lazy and `!=` is matched explicitly (rather than via `!?=`) so that the
+  // '!' of `!=` isn't greedily consumed into the key, e.g. "foo!=bar" -> key: "foo", op: "!=".
+  const parts = expr.match(/^(.*?)\s*(!=|=)\s*(.*)$/);
+
+  if ( parts ) {
+    const key = parts[1].trim();
+    const op = parts[2] === '!=' ? '!=' : '==';
+    const val = parts[3].trim();
+
+    if ( val === 'true' || val === 'false' || val === 'null' ) {
+      out = `${ key } ${ op } ${ val }`;
+    } else if ( val === '' ) {
+      // Existing charts expect `foo=` with `{foo: null}` to be true.
+      if ( op === '!=' ) {
+        out = `!!${ key }`;
       } else {
-        out = `${ key } ${ op } "${ val }"`;
+        out = `!${ key }`;
       }
     } else {
-      try {
-        Jexl.compile(expr);
+      out = `${ key } ${ op } "${ val }"`;
+    }
+  } else {
+    try {
+      Jexl.compile(expr);
 
-        out = expr;
-      } catch (e) {
-        console.error('Error migrating expression:', expr); // eslint-disable-line no-console
+      out = expr;
+    } catch (e) {
+      console.error('Error migrating expression:', expr); // eslint-disable-line no-console
 
-        out = 'true';
-      }
+      out = 'true';
     }
   }
 

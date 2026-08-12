@@ -157,6 +157,82 @@ describe('component: Questions', () => {
     });
   });
 
+  describe('method: shouldShow', () => {
+    it.each([
+      // Happy path for single conditions
+      ['foo=bar', { foo: 'bar' }, true],
+      ['foo=bar', { foo: 'baz' }, false],
+      ['foo!=bar', { foo: 'baz' }, true],
+      ['foo=true', { foo: true }, true],
+      ['foo=false', { foo: false }, true],
+      ['foo=', { foo: null }, true],
+      ['foo!=', { foo: 'bar' }, true],
+
+      // Unary logical NOT operator '!'
+      ['!(foo=bar)', { foo: 'baz' }, true],
+      ['!(foo=bar)', { foo: 'bar' }, false],
+      ['!foo', { foo: true }, false],
+      ['!foo', { foo: false }, true],
+
+      // Flat multi-conditions
+      ['foo=bar&&baz=qux', { foo: 'bar', baz: 'qux' }, true],
+      ['foo=bar&&baz=qux', { foo: 'bar', baz: 'not-qux' }, false],
+      ['foo=bar||baz=qux', { foo: 'bar', baz: 'not-qux' }, true],
+
+      // Complex nested expressions with parentheses
+      ['(foo=bar || baz=qux) && target=test', {
+        foo: 'bar', baz: 'not-qux', target: 'test'
+      }, true],
+      ['(foo=bar || baz=qux) && target=test', {
+        foo: 'not-bar', baz: 'not-qux', target: 'test'
+      }, false],
+      ['(foo=bar || baz=qux) && target=test', {
+        foo: 'not-bar', baz: 'qux', target: 'test'
+      }, true],
+      ['(foo=bar || baz=qux) && target=test', {
+        foo: 'bar', baz: 'not-qux', target: 'not-test'
+      }, false],
+
+      // Spacing and whitespace robustness variations
+      ['(foo=bar||baz=qux)&&target=test', {
+        foo: 'bar', baz: 'not-qux', target: 'test'
+      }, true],
+      ['(  foo=bar   ||   baz=qux  )   &&   target=test', {
+        foo: 'bar', baz: 'not-qux', target: 'test'
+      }, true],
+
+      // Values containing '(', ')' or '!' must not be split by the grouping tokenizer
+      ['foo=bar(1)', { foo: 'bar(1)' }, true],
+      ['foo=bar(1)', { foo: 'something-else' }, false],
+      ['foo=a!b', { foo: 'a!b' }, true],
+      ['foo=a!b', { foo: 'something-else' }, false],
+      ['storageClass=Premium (SSD)', { storageClass: 'Premium (SSD)' }, true],
+      ['storageClass=Premium (SSD)', { storageClass: 'Standard' }, false],
+
+      // '!=' must actually be evaluated as a comparison, not silently treated as always-true
+      ['foo!=bar', { foo: 'bar' }, false],
+      ['foo!=', { foo: null }, false],
+
+      // A value entirely wrapped in parens (e.g. "foo=(bar)") migrates to "!foo(bar)", which
+      // *compiles* as a negated function call but throws "Function foo is not defined" when
+      // evaluated. evalExpr() catches that throw and returns true unconditionally, which would
+      // make the question always show - the { foo: 'something-else' } case below only passes
+      // if migrate() detects this and falls back to a plain "foo == \"(bar)\"" comparison.
+      ['foo=(bar)', { foo: '(bar)' }, true],
+      ['foo=(bar)', { foo: 'something-else' }, false],
+    ])('should correctly evaluate show_if condition "%s" with values %j to %s', (showIf, values, expected) => {
+      const wrapper = shallowMount(Questions, {
+        props:  defaultProps,
+        global: { mocks: defaultMocks },
+      });
+
+      const question = { show_if: showIf };
+      const result = wrapper.vm.shouldShow(question, values);
+
+      expect(result).toBe(expected);
+    });
+  });
+
   describe('watch: shownQuestions', () => {
     it('should remove values of questions that transition from shown to hidden', async() => {
       const questions = [
