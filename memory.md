@@ -38,6 +38,7 @@
 - prefs.js: `definitions` is module-level (not in state); use EXPANDED_GROUPS/NAMESPACE_FILTERS (array/object) to test clone; `clone()` on primitives returns same value; reset skips asCookie prefs
 - action-menu.js: `anon` counter is module-level; provide `action` field in test data; `_execute` bulkAction fires only when resources.length>1 and !opts.alt
 - i18n.js: `intlCache` is module-level var; use unique keys per test to avoid cache pollution; mock `@shell/assets/translations/en-us.yaml` with `jest.mock(..., () => ({}))` since Jest has no YAML transformer; provide own translations in makeState()
+- i18n.js actions: mock `@shell/utils/dynamic-importer` at top of file; `loadTranslation` returns module with `.default`; `switchTo` with locale already in state.translations skips `dispatch('load', ...)`; `switchTo(NONE)` commits immediately, skips prefs/set; load-fail with no i18nExt commits setSelected with DEFAULT_LOCALE
 - useI18n.ts: `jest.setup.js` globally stubs `@shell/composables/useI18n`; add `jest.unmock('@shell/composables/useI18n')` BEFORE imports to bypass; mock `@shell/plugins/i18n` for stringFor; module-level `store` is shared — tests are order-dependent but safe since each test sets store via useI18n()
 - auth.js: `jest.mock('@shell/utils/uiplugins', ...)` needed for isLoggedIn; store getters with schemaFor are function-getters (return functions, not values); `notLoggedIn` — 'index'.includes('auth')=false so setAuthRedirect IS called for index route; `openAuthPopup` deferred (Popup + BroadcastChannel complexity)
 - favicon.js: `favIconSet` and `defaultFavIcon` are module-level; use `jest.resetModules()` + dynamic `require()` in beforeEach; mock `@shell/utils/require-asset`; use `link.getAttribute('href')` (not `link.href`) to avoid jsdom URL resolution
@@ -64,12 +65,11 @@
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
 2. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
-3. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad`
-4. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
-5. `shell/composables/focusTrap.ts` — ✅ Done (2026-08-10)
+3. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
 
 ## Completed Work (Summary)
 
+- 2026-08-12: PR (test-assist/i18n-store-actions-tests): 23 new tests for i18n.js actions — init, load, mergeLoad, switchTo; 72%→92.17% stmts, 83%→100% fns, 98.5%→94.49% branches.
 - 2026-08-10: PR (test-assist/focus-trap-composable-tests): 19 new tests for focusTrap.ts — getFirstFocusableElement, useBasicSetupFocusTrap lifecycle, useWatcherBasedSetupFocusTrapWithDestroyIncluded; 0%→100% all metrics.
 - 2026-08-07: PR (test-assist/use-interval-composable-tests): 6 new tests for useInterval.ts — lifecycle mount/unmount, delay accuracy, multiple instances; 0%→100% all metrics.
 - 2026-08-06: PR (test-assist/encryption-utils-tests): 14 new tests for encryption.ts
@@ -84,44 +84,22 @@
 - 2026-06-28: PR #18197 (test-assist/i18n-store-tests): 51 tests for i18n.js; 0%→72% stmts, 98.5% branches, 83% fns — merged ✅
 - 2026-06-27: PR #18196 (test-assist/prefs-store-tests): 67 tests for prefs.js — merged ✅
 - 2026-06-26: PR #18184 (test-assist/action-menu-store-tests): 53 tests for action-menu.js — merged ✅
-- 2026-06-25: PR #18164 (test-assist/ui-context-store-tests): 28 tests for ui-context.ts — merged ✅
-- 2026-06-24: PR #18154 (test-assist/wm-store-tests): 57 tests for wm.ts — merged ✅
-- 2026-06-23: PR #18142 (test-assist/notifications-actions-tests): 31 tests for notifications.ts actions — merged ✅
-- 2026-06-22: PR #18117 (test-assist/features-store-tests): 12 tests for features.js — merged ✅
-- 2026-06-21: PR #18112 (test-assist/modal-slidein-store-tests): 24 tests for modal.ts + slideInPanel.ts — merged ✅
-- 2026-06-20: PR #18110 (test-assist/growl-store-tests): 29 tests for growl.js — merged ✅
-- 2026-06-19: PR #18103 (test-assist/type-map-utils-tests): 41 tests for type-map.utils.ts — merged ✅
-- 2026-06-18: PR #18092 (test-assist/notifications-store-tests): 49 tests for notifications store — merged ✅
-- 2026-06-17: PR #18083 (test-assist/dynamic-importer-tests): 46 tests for dynamic-importer.js — merged ✅
-- 2026-06-16: PR #18071 (test-assist/notification-handler-tests): 17 tests — merged ✅
-- 2026-06-14: PR #18054 (test-assist/router-utils-tests): 32 tests for router.js — merged ✅
-- Earlier PRs: #18053, #18041, #18033, #18023, #18011, #17989, #17987, #17983, #17975, #17904, #17889, #17862, #17843, #17815, #17806, #17801 — all merged ✅
+- Earlier PRs: all merged ✅
 
 ## Task Round-Robin History
 
+- 2026-08-12: Task 3 (i18n.js actions, 23 tests, 72%→92.17% stmts) + Task 7
 - 2026-08-10: Task 3 (focusTrap.ts, 19 tests, 0%→100%) + Task 7
 - 2026-08-07: Task 3 (useInterval.ts, 6 tests) + Task 7
 - 2026-08-06: Task 3 (encryption.ts, 14 tests) + Task 7
 - 2026-08-05: Task 3 (useUserRetentionValidation.ts, 27 tests) + Task 7 (new month: created August issue #aw_aug2026)
 - 2026-07-30: Task 3 (useClickOutside.ts, 12 tests) + Task 7
 - 2026-07-04: Task 4 (all 4 PRs CI green) + Task 3 (useLabeledFormElement.ts, 30 tests) + Task 7
-- 2026-07-03: Task 4 (PRs #18249/#18235 CI green) + Task 3 (favicon.js, 15 tests) + Task 7
-- 2026-07-02: Task 4 (PRs #18235/#18210 CI green) + Task 3 (auth.js, 25 tests) + Task 7
-- 2026-07-01: Task 4 (PR #18210 CI-green, no action) + Task 3 (useI18n.ts, 10 tests) + Task 7 (new month: closed June #17976, created July issue)
-- 2026-06-30: Task 2+3 (useRuntimeFlag.ts + useLabeledSelect.ts, 29 tests) + Task 7
-- 2026-06-29: Task 3 (useFormValidation.ts composable, 17 tests) + Task 7
-- 2026-06-28: Task 3 (i18n.js store, 51 tests) + Task 7
-- 2026-06-27: Task 3 (prefs.js store, 67 tests) + Task 7
-- 2026-06-26: Task 3 (action-menu.js, 53 tests) + Task 7
-- 2026-06-25: Task 3+4 (ui-context.ts, 28 tests) + Task 7
-- 2026-06-24: Task 3 (wm.ts, 57 tests) + Task 7
-- 2026-06-23: Task 3 (notifications.ts actions, 31 tests) + Task 7
-- 2026-06-22: Task 3 (features.js, 12 tests) + Task 7
-- 2026-06-21: Task 3+4 (modal.ts + slideInPanel.ts, 24 tests) + Task 7
-- 2026-06-20: Task 3 (growl.js, 29 tests) + Task 7
-- 2026-06-19: Task 3 (type-map.utils.ts, 41 tests) + Task 7
-- 2026-06-18: Task 3 (notifications store, 49 tests) + Task 7
-- 2026-06-15: Task 2+3 (auth.js, 24 tests) + Task 7
+- 2026-07-03: Task 4 + Task 3 (favicon.js, 15 tests) + Task 7
+- 2026-07-02: Task 4 + Task 3 (auth.js, 25 tests) + Task 7
+- 2026-07-01: Task 4 + Task 3 (useI18n.ts, 10 tests) + Task 7 (new month)
+- 2026-06-30: Task 2+3 + Task 7
+- Earlier: various Task 3+4+7
 
 ## Monthly Activity Issue
 
