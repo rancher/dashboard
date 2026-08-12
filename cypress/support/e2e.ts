@@ -3,6 +3,7 @@ import '@cypress/code-coverage/support';
 import './commands/commands';
 import './commands/chainable';
 import './commands/rancher-api-commands';
+import './commands/fail-whale';
 import './commands/accessiblity';
 
 import { CypressFailedAttempt } from './utils/retry-logging';

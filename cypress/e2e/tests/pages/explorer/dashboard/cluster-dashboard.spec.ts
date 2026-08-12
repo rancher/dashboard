@@ -105,13 +105,13 @@ const ignoreClusterLoadNetworkError = () => {
 // Prevention (waitForClusterSteveReady) makes this rare, but the crash happens inside the app's async
 // loadCluster after any precondition we can check - so if we still land on fail-whale, re-confirm the
 // proxy is serving and re-navigate, as a bounded fallback for the tagged app bug.
-const goToClusterDashboardTolerant = (clusterId = 'local', attempt = 0): void => {
+const goToClusterDashboardTolerant = (clusterId = 'local'): void => {
   clusterDashboard.goTo();
-  cy.url().then((url) => {
-    if (url.includes('/fail-whale') && attempt < 3) {
-      waitForClusterSteveReady(clusterId);
-      goToClusterDashboardTolerant(clusterId, attempt + 1);
-    }
+  // If we still landed on fail-whale, re-confirm the proxy is serving and re-enter the cluster
+  // (the shared recovery drives the settle + retry loop).
+  cy.recoverFromFailWhale(() => {
+    waitForClusterSteveReady(clusterId);
+    clusterDashboard.goTo();
   });
 };
 

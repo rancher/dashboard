@@ -21,22 +21,6 @@ const configMapPayload = {
   __clone: true
 };
 
-// On a cold load the app can crash to the fail-whale error page: a downstream Steve proxy GET fails
-// with a raw axios Network Error (no HTTP status), which trips the navigation guard to /fail-whale
-// with no retry. With testIsolation off that state carries into the Cypress retry and wedges every
-// attempt - here it left the app parked on /fail-whale, so the burger-menu navigation in ChartPage.navTo
-// never found its top-level-menu toggle and both tests failed all three attempts. Settle briefly (so an
-// in-flight redirect can land), then re-navigate to home a few times until we land off fail-whale.
-const recoverFromFailWhale = (attempt = 0) => {
-  cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
-  cy.url().then((url) => {
-    if (url.includes('/fail-whale') && attempt < 4) {
-      HomePagePo.goTo();
-      recoverFromFailWhale(attempt + 1);
-    }
-  });
-};
-
 describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'] }, () => {
   const testChartsRepoName = 'test-charts';
   const testChartsGitRepoUrl = 'https://github.com/richard-cox/rodeo';
@@ -48,7 +32,7 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     HomePagePo.goTo();
     // The shared cold load is the most fail-whale-prone point; recover here so a transient crash
     // doesn't poison every test in this testIsolation:false spec.
-    recoverFromFailWhale();
+    cy.recoverFromFailWhale();
   });
 
   describe('Check resources are selectable in the chart install wizard', () => {
@@ -70,7 +54,7 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
 
     it('Resource dropdown picker has ConfigMaps listed', () => {
       // Guard the burger-menu navigation against a fail-whale that landed after the shared before().
-      recoverFromFailWhale();
+      cy.recoverFromFailWhale();
       ChartPage.navTo(undefined, 'rancher-demo');
       chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
@@ -125,7 +109,7 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
 
         // We need to install the chart first to have the versions selector show up later when we come back to the install page
         // Guard the burger-menu navigation against a fail-whale crash from the preceding backend churn.
-        recoverFromFailWhale();
+        cy.recoverFromFailWhale();
         ChartPage.navTo(undefined, chartName);
         chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
         chartPage.goToInstall();
