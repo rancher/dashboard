@@ -4,6 +4,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateDaemonSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/daemonsets/daemonsets-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -59,6 +60,12 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       .click();
 
     // edit daemonset
+    // Opening the edit form is a SPA navigation + fetch. Clicking a tab before the form has mounted
+    // its tab bar leaves #DaemonSet unresolved and times out across retries (gating on the list
+    // loading indicator above isn't enough - the race is the edit form mounting). Wait for the edit
+    // route to commit and the tab bar to render before clicking a tab.
+    cy.url().should('include', `apps.daemonset/default/${ daemonsetName }`);
+    cy.get('.dashboard-root').find('#DaemonSet', LONG_TIMEOUT_OPT).should('be.visible');
     workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
     workloadsDaemonsetsEditPage.clickTab('#upgrading');
     workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
