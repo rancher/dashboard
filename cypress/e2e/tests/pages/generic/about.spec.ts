@@ -32,18 +32,25 @@ describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '
     diagnosticsPo.waitForPage();
   }));
 
-  qase(1520, it('can View release notes', () => {
+  qase(1520, it('renders a link to the release notes', () => {
     aboutPage.goTo();
     aboutPage.waitForPage();
     cy.getRancherVersion().then((version) => {
       const isPrime = version.RancherPrime === 'true';
-      const expectedOrigin = isPrime ? 'https://documentation.suse.com' : 'https://github.com';
-      const expectedUrlPattern = isPrime ? '/cloudnative/rancher-manager/.+/en/release-notes' : '/rancher/rancher/releases/tag/';
+      // Assert the link the dashboard renders instead of following it to the external site. The
+      // site's availability and its redirects are not ours: following it lands on
+      // chrome-error://chromewebdata/ when the runner cannot reach github.com, and for a dev build
+      // the dashboard links to `releases/latest` (see getReleaseNotesURL in shell/utils/version.js)
+      // so the old `/releases/tag/` expectation only held while github.com chose to redirect.
+      //
+      // The community pattern accepts both shapes rather than deriving which one to expect. That is
+      // deliberate: picking the shape here would restate `isDevBuild` in the test, and
+      // shell/utils/__tests__/version.test.ts already covers every dev/release/prime branch of
+      // getReleaseNotesURL exhaustively, so the choice is not left untested.
+      const expectedUrlPattern = isPrime ? '/cloudnative/rancher-manager/.+/en/release-notes' : '/rancher/rancher/releases/(latest|tag/v.+)';
 
-      aboutPage.clickVersionLink('View release notes');
-      cy.origin(expectedOrigin, { args: { expectedUrlPattern } }, ({ expectedUrlPattern }) => {
-        cy.url().should('match', new RegExp(expectedUrlPattern));
-      });
+      aboutPage.links('View release notes').should('have.attr', 'target');
+      aboutPage.getLinkDestination('View release notes').should('match', new RegExp(expectedUrlPattern));
     });
   }));
 
@@ -52,6 +59,15 @@ describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '
       aboutPage.goTo();
       aboutPage.waitForPage();
     });
+
+    // These links are static hrefs rendered by shell/pages/about.vue, so the href and the `target`
+    // that opens it in a new tab are the whole of the dashboard's behaviour here. Loading
+    // github.com from a CI runner is not, and when it fails the assertion sees
+    // chrome-error://chromewebdata/ on every retry.
+    const checkVersionLink = (label: string, expectedUrl: string) => {
+      aboutPage.links(label).should('have.attr', 'target');
+      aboutPage.getLinkDestination(label).should('include', expectedUrl);
+    };
 
     qase(1506, it('can see rancher version', () => {
       // Check Rancher version
@@ -62,32 +78,20 @@ describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '
       });
     }));
 
-    qase(1504, it('can navigate to /rancher/rancher', () => {
-      aboutPage.clickVersionLink('Rancher');
-      cy.origin('https://github.com', () => {
-        cy.url().should('include', 'https://github.com/rancher/rancher');
-      });
+    qase(1504, it('renders a link to /rancher/rancher', () => {
+      checkVersionLink('Rancher', 'https://github.com/rancher/rancher');
     }));
 
-    qase(1507, it('can navigate to /rancher/dashboard', () => {
-      aboutPage.clickVersionLink('Dashboard');
-      cy.origin('https://github.com', () => {
-        cy.url().should('include', 'https://github.com/rancher/dashboard');
-      });
+    qase(1507, it('renders a link to /rancher/dashboard', () => {
+      checkVersionLink('Dashboard', 'https://github.com/rancher/dashboard');
     }));
 
-    qase(1508, it('can navigate to /rancher/helm', () => {
-      aboutPage.clickVersionLink('Helm');
-      cy.origin('https://github.com', () => {
-        cy.url().should('include', 'https://github.com/rancher/helm');
-      });
+    qase(1508, it('renders a link to /rancher/helm', () => {
+      checkVersionLink('Helm', 'https://github.com/rancher/helm');
     }));
 
-    qase(1505, it('can navigate to /rancher/machine', () => {
-      aboutPage.clickVersionLink('Machine');
-      cy.origin('https://github.com', () => {
-        cy.url().should('include', 'https://github.com/rancher/machine');
-      });
+    qase(1505, it('renders a link to /rancher/machine', () => {
+      checkVersionLink('Machine', 'https://github.com/rancher/machine');
     }));
   });
 

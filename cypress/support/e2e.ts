@@ -18,6 +18,16 @@ const { register: registerCypressGrep } = require('@cypress/grep');
 registerCypressGrep();
 addCustomCommand();
 
+/**
+ * A lazily loaded route chunk that fails to fetch leaves the app unmounted - vue-router aborts the
+ * navigation and nothing re-renders - and the app never recovers on its own. Specs that run with
+ * `testIsolation: false` get no fresh page between tests or between retry attempts, so that one
+ * failure then fails every remaining test in the file (a single `Loading chunk 2172 failed` in
+ * global-settings/settings.spec.ts produced 47 downstream `[data-testid="side-menu"]` failures).
+ * Set when a chunk of ours fails so the next test starts from a freshly loaded app.
+ */
+let reloadAppBeforeNextTest = false;
+
 // TODO handle redirection errors better?
 // we see a lot of 'error navigation cancelled' uncaught exceptions that don't actually break anything; ignore them here
 Cypress.on('uncaught:exception', (err, runnable) => {
@@ -25,6 +35,36 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   if (err.message.includes('navigation guard')) {
     return false;
   }
+
+  // Deliberately not returning false, so this attempt still fails and is still reported. With
+  // `retries.runMode: 2` a recovered retry will usually pass and the job go green, but the failed
+  // attempt is printed by the retry logger below, so an unexplained ChunkLoadError stays visible in
+  // the CI output instead of being erased.
+  //
+  // webpack puts the failing URL in the message ("Loading chunk 2172 failed.\n(error:
+  // https://.../dashboard/js/2172.b25e9f35.js)"), and Cypress keeps the original text when it wraps
+  // it. Require `/dashboard/js/` so this only ever reacts to our own lazy chunks and never to an
+  // identically worded error from a third party bundle - the suse.com pages this suite visits serve
+  // their own webpack `.chunk.js` files. That path is Rancher's publicPath and covers every chunk
+  // error observed in CI; a consumer serving the bundle from elsewhere gets no recovery rather than
+  // a wrong one.
+  if (err.message.includes('/dashboard/js/') && (err.name === 'ChunkLoadError' || err.message.includes('Loading chunk'))) {
+    reloadAppBeforeNextTest = true;
+  }
+});
+
+beforeEach(() => {
+  // Only specs that opt out of test isolation need this. With `testIsolation: true` Cypress resets
+  // the page itself and the retry recovers unaided (proved by the two about.spec.ts chunk jobs),
+  // so gating here keeps the visit out of every other spec - including the `setup` specs and the
+  // downstream suites that consume this file through the published @rancher/cypress package.
+  if (reloadAppBeforeNextTest && Cypress.config('testIsolation') === false) {
+    // Reload the app rather than retry the failed request, so the next test is not run against the
+    // dead page the chunk failure left behind. See `reloadAppBeforeNextTest` above.
+    cy.visit('/');
+  }
+
+  reloadAppBeforeNextTest = false;
 });
 
 require('cypress-terminal-report/src/installLogsCollector')({

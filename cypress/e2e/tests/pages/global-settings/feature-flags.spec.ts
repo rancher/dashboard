@@ -207,8 +207,13 @@ describe('Feature Flags', { testIsolation: false }, () => {
       featureFlagsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       featureFlagsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
       cy.getRancherResource('v1', 'management.cattle.io.features').then((resp: Cypress.Response<any>) => {
-        // We filter out fleet and ui-sql-cache feature flags
-        const featureCount = resp.body.count - 2;
+        // Apply the same by name filter the list view uses (see hideFeatureFlags in
+        // shell/list/management.cattle.io.feature.vue) instead of subtracting a fixed number.
+        // `count - 2` assumes both hidden flags exist in the backend under test, so it is off by
+        // one against any Rancher build that ships only one of them (ui-sql-cache is on its way
+        // out, see rancher/rancher#53996). That is the "Found 28, expected 27" failure.
+        const hiddenFeatureFlags = ['fleet', 'ui-sql-cache'];
+        const featureCount = resp.body.data.filter((flag: any) => !hiddenFeatureFlags.includes(flag.metadata.name)).length;
 
         featureFlagsPage.list().resourceTable().sortableTable().checkRowCount(false, featureCount);
       });

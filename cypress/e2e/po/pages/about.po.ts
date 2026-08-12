@@ -32,6 +32,10 @@ export default class AboutPagePo extends PagePo {
     return this.links(value).invoke('prop', 'href');
   }
 
+  /**
+   * No longer used by about.spec.ts, which asserts the rendered link instead of following it to the
+   * external site. Kept because this page object ships in the published @rancher/cypress package.
+   */
   clickVersionLink(value: string) {
     this.links(value)
       .then((el) => {
