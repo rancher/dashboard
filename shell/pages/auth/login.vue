@@ -532,7 +532,7 @@ export default {
         class="col span-6 landscape"
         data-testid="login-landscape__img"
         file-name="login-landscape.svg"
-        :alt="t('login.landscapeAlt')"
+        alt=""
       />
     </div>
   </div>
