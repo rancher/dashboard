@@ -864,6 +864,18 @@ asyncButton:
     action: Save Application
     success: Saved
     waiting: Saving&hellip;
+  saveTemplate:
+    action: Save As Template
+    success: Saved
+    waiting: Saving&hellip;
+  applyToForm:
+    action: Apply to Form
+    success: Applied
+    waiting: Applying&hellip;
+  applyToYaml:
+    action: Apply to YAML
+    success: Applied
+    waiting: Applying&hellip;
   apply:
     action: Apply
     success: Applied
@@ -8932,6 +8944,22 @@ action:
   suspend: Suspend
   resume: Resume
   showConfiguration: Show Configuration
+  saveAsTemplate: Save as Template
+
+saveAsTemplateModal:
+  title: Save Resource As Template
+  name:
+    label: Name
+  namespace:
+    label: Namespace
+
+resourceTemplateSelector:
+  label: Load from Resource Template
+  placeholder: Select a saved template
+  apply: Apply
+  confirmTitle: Apply Resource Template
+  confirmBodyYaml: Applying this template will overwrite the current YAML content. Existing values may be lost.
+  confirmBodyForm: 'Applying this template to the form will reload the page. Applying it to YAML will discard your current form changes and switch to YAML editing.'
 
 unit:
   sec: secs

@@ -31,6 +31,7 @@ To get started, follow the `Getting Started` section.
   - `shell/`: Core application logic, components, and pages.
   - `storybook/`: Component documentation source
 
+## Core Components
 When either created, editing, viewing or listing a kubernetes resource the following core components are used
 - Listing resources
   - Root component
@@ -49,3 +50,8 @@ When either created, editing, viewing or listing a kubernetes resource the follo
       - or a generic component for header, handling YAML or a custom component to show a form
     - custom components are either supplied via components in `shell/edit` (create/edit), `shell/detail` (detail) or externally via a UI Extension
 
+## Component guideline
+- use Composition API components instead of Option API
+- use Typescript for new components
+- for buttons that execute synchronous tasks use RcButton for buttons
+- for buttons that execute asynchronous tasks use AsyncButton for buttons

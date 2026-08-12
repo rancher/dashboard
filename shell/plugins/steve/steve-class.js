@@ -134,4 +134,28 @@ export default class SteveModel extends HybridModel {
 
     await this.remove();
   }
+
+  // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
+  get _availableActions() {
+    const out = super._availableActions;
+    const downloadIdx = out.findIndex((a) => a.action === 'download');
+
+    out.splice(downloadIdx === -1 ? out.length : downloadIdx + 1, 0, {
+      action:   'saveAsTemplate',
+      label:    this.t('action.saveAsTemplate'),
+      icon:     'icon icon-copy',
+      bulkable: false,
+      enabled:  this.canYaml,
+    });
+
+    return out;
+  }
+
+  saveAsTemplate(resources = this) {
+    this.$dispatch('promptModal', {
+      component:  'SaveAsTemplateDialog',
+      resources:  !Array.isArray(resources) ? [resources] : resources,
+      modalWidth: '750px',
+    });
+  }
 }

@@ -16,6 +16,7 @@ import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import FailWhale from '@shell/components/FailWhale';
 import { useResourceDetailPageProvider } from '@shell/composables/resourceDetail';
+import ResourceTemplateUtils from '@shell/utils/resource-template';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -261,6 +262,19 @@ export default {
 
     if ( this.mode === _CREATE ) {
       this.value?.applyDefaults(this, realMode);
+    }
+
+    // Consume anything staged by "apply resource template to form" (CruResource.vue) ahead of
+    // the page reload that action triggers. Runs after applyDefaults so the staged values win
+    // over any defaults just applied. No-op when nothing is staged.
+    const staged = ResourceTemplateUtils.consumeStagedFormApply();
+
+    if ( staged && this.value ) {
+      try {
+        ResourceTemplateUtils.applyStagedFormApply(this.value, staged);
+      } catch (e) {
+        this.errors.push(e);
+      }
     }
   },
   data() {

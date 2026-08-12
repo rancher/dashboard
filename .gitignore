@@ -123,3 +123,5 @@ codecov
 
 # @rancher/shell on-demand legacy ESLint toolchain (installed by scripts/lint)
 shell/eslint-legacy/node_modules/
+
+.claude

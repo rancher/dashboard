@@ -185,4 +185,88 @@ describe('class: Steve', () => {
       });
     });
   });
+
+  describe('getter: _availableActions', () => {
+    const HybridModelProto = Object.getPrototypeOf(Steve.prototype);
+
+    const makeSteve = ({ canYaml, baseActions }) => {
+      const steve = new Steve({}, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key) => key },
+      });
+
+      Object.defineProperty(steve, 'canYaml', { get: () => canYaml, configurable: true });
+      jest.spyOn(HybridModelProto, '_availableActions', 'get').mockReturnValue(baseActions);
+
+      return steve;
+    };
+
+    it('should insert saveAsTemplate right after the download action', () => {
+      const steve = makeSteve({ canYaml: true, baseActions: [{ action: 'download' }, { action: 'viewInApi' }] });
+
+      const actions = steve._availableActions;
+      const idx = actions.findIndex((a) => a.action === 'saveAsTemplate');
+
+      expect(idx).toBe(1);
+      expect(actions[idx]).toStrictEqual({
+        action:   'saveAsTemplate',
+        label:    'action.saveAsTemplate',
+        icon:     'icon icon-copy',
+        bulkable: false,
+        enabled:  true,
+      });
+    });
+
+    it('should append saveAsTemplate at the end when there is no download action', () => {
+      const steve = makeSteve({ canYaml: false, baseActions: [{ action: 'viewInApi' }] });
+
+      const actions = steve._availableActions;
+
+      expect(actions[actions.length - 1]).toStrictEqual({
+        action:   'saveAsTemplate',
+        label:    'action.saveAsTemplate',
+        icon:     'icon icon-copy',
+        bulkable: false,
+        enabled:  false,
+      });
+    });
+  });
+
+  describe('method: saveAsTemplate', () => {
+    const makeSteve = (dispatch) => {
+      return new Steve({}, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+    };
+
+    it('should dispatch promptModal with the resource wrapped in an array by default', () => {
+      const dispatch = jest.fn();
+      const steve = makeSteve(dispatch);
+
+      steve.saveAsTemplate();
+
+      expect(dispatch).toHaveBeenCalledWith('promptModal', {
+        component:  'SaveAsTemplateDialog',
+        resources:  [steve],
+        modalWidth: '750px',
+      });
+    });
+
+    it('should pass through an already-array resources argument', () => {
+      const dispatch = jest.fn();
+      const steve = makeSteve(dispatch);
+      const resources = [steve, steve];
+
+      steve.saveAsTemplate(resources);
+
+      expect(dispatch).toHaveBeenCalledWith('promptModal', {
+        component:  'SaveAsTemplateDialog',
+        resources,
+        modalWidth: '750px',
+      });
+    });
+  });
 });
