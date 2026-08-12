@@ -19,6 +19,7 @@ const LOCAL = { id: 'local', type: 'localProvider' };
 const OKTA_CORP = { id: 'okta-corp', type: 'oktaProvider' };
 const OKTA_PARTNER = { id: 'okta-partner', type: 'oktaProvider' };
 const GITHUB = { id: 'gh-community', type: 'githubProvider' };
+const AD = { id: 'ad-corp', type: 'activeDirectoryProvider' };
 
 const createWrapper = (drivers: object[]) => {
   const dispatch = jest.fn((action: string) => {
@@ -66,30 +67,30 @@ describe('page: login', () => {
   beforeEach(() => window.localStorage.clear());
 
   describe('provider selection', () => {
-    it('should offer the menu once several providers are configured', async() => {
+    it('should offer the list once several providers are configured', async() => {
       const wrapper = createWrapper([LOCAL, OKTA_CORP, OKTA_PARTNER]);
 
       await runFetch(wrapper);
 
-      expect(wrapper.vm.showProviderSelect).toBe(true);
+      expect(wrapper.vm.showProviderList).toBe(true);
     });
 
     // A single provider has nothing to choose between, so the page keeps the
     // plain "Use a local user" link it has always shown.
-    it('should not offer the menu for a single provider', async() => {
+    it('should not offer the list for a single provider', async() => {
       const wrapper = createWrapper([LOCAL, OKTA_CORP]);
 
       await runFetch(wrapper);
 
-      expect(wrapper.vm.showProviderSelect).toBe(false);
+      expect(wrapper.vm.showProviderList).toBe(false);
     });
 
-    it('should not offer the menu when only local is configured', async() => {
+    it('should not offer the list when only local is configured', async() => {
       const wrapper = createWrapper([LOCAL]);
 
       await runFetch(wrapper);
 
-      expect(wrapper.vm.showProviderSelect).toBe(false);
+      expect(wrapper.vm.showProviderList).toBe(false);
     });
 
     it('should list local alongside the external providers', async() => {
@@ -130,6 +131,98 @@ describe('page: login', () => {
       wrapper.vm.selectProvider(local);
 
       expect(wrapper.vm.showLocal).toBe(true);
+    });
+
+    // A username and password form owns the panel, so the alternatives collapse
+    // to a "Choose a different provider" link until the user asks for them.
+    it('should collapse the list while the local form is showing', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.isLocal));
+
+      expect(wrapper.vm.isCredentialForm).toBe(true);
+      expect(wrapper.vm.hasProviderChoice).toBe(true);
+      expect(wrapper.vm.showProviderList).toBe(false);
+    });
+
+    it('should collapse the list for a directory provider, which asks for credentials too', async() => {
+      const wrapper = createWrapper([LOCAL, AD, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.id === 'ad-corp'));
+
+      expect(wrapper.vm.isCredentialForm).toBe(true);
+      expect(wrapper.vm.showProviderList).toBe(false);
+    });
+
+    it('should reveal the list when a different provider is asked for', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.isLocal));
+      wrapper.vm.expandProviderList();
+
+      expect(wrapper.vm.showProviderList).toBe(true);
+    });
+
+    // Leaving the form in place would sit it above the very list meant to
+    // replace it, so the panel drops back to the provider it opened on.
+    it('should step off the form when a different provider is asked for', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.isLocal));
+      wrapper.vm.expandProviderList();
+
+      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
+      expect(wrapper.vm.showLocal).toBe(false);
+      expect(wrapper.vm.isCredentialForm).toBe(false);
+    });
+
+    // Remembering local and then asking for the list would otherwise land back
+    // on the form the user is trying to leave.
+    it('should skip the remembered provider when it is the one on screen', async() => {
+      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.expandProviderList();
+
+      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
+    });
+
+    // The page is choosing here, not the user.
+    it('should not overwrite the remembered provider when it steps off the form', async() => {
+      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.expandProviderList();
+
+      expect(window.localStorage.getItem(REMEMBERED_PROVIDER_KEY)).toBe('local');
+    });
+
+    // Otherwise the list would stay open behind the next form.
+    it('should collapse the list again once a provider is chosen from it', async() => {
+      const wrapper = createWrapper([LOCAL, AD, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.isLocal));
+      wrapper.vm.expandProviderList();
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.id === 'ad-corp'));
+
+      expect(wrapper.vm.showProviderList).toBe(false);
+    });
+
+    it('should keep the list open for a provider that redirects away', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.id === 'okta-corp'));
+
+      expect(wrapper.vm.isCredentialForm).toBe(false);
+      expect(wrapper.vm.showProviderList).toBe(true);
     });
 
     it('should hide the local form when an external provider is chosen', async() => {

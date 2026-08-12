@@ -81,13 +81,13 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
     });
   });
 
-  it('Shows the local login form without a provider menu when local is the only provider', () => {
+  it('Shows the local login form without a provider list when local is the only provider', () => {
     LoginPagePo.goTo();
 
     const loginPage = new LoginPagePo();
 
     loginPage.waitForPage();
-    loginPage.providerSelectTrigger().checkNotExists();
+    loginPage.providerList().checkNotExists();
   });
 
   describe('Multiple authentication providers', () => {
@@ -122,26 +122,39 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
       cy.wait('@authProviders');
     });
 
-    it('Offers a provider menu instead of one button per provider', () => {
+    it('Offers a provider list instead of one button per provider', () => {
       const loginPage = new LoginPagePo();
 
       loginPage.waitForPage();
       loginPage.providerSubmitButton().checkVisible();
-      loginPage.providerSelectTrigger().checkVisible();
+      loginPage.providerList().checkVisible();
 
       // The old per-provider button stack is gone.
       cy.get('[data-testid="login-provider-submit"]').should('have.length', 1);
     });
 
-    it('Lists every provider, plus local, in the menu', () => {
+    it('Lists the remaining providers, plus local, on the page', () => {
       const loginPage = new LoginPagePo();
 
-      loginPage.openProviderSelect();
+      loginPage.waitForPage();
 
       loginPage.providerOption('okta-corp').checkVisible();
       loginPage.providerOption('okta-partner').checkVisible();
-      loginPage.providerOption('gh-community').checkVisible();
       loginPage.providerOption('local').checkVisible();
+      // The provider on the primary button is not offered twice.
+      loginPage.providerOption('gh-community').checkNotExists();
+    });
+
+    it('Reaches each provider in the list with the tab key', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.waitForPage();
+
+      loginPage.providerOption('okta-corp').self().focus();
+      cy.focused().should('have.attr', 'data-testid', 'login-provider-option-okta-corp');
+
+      cy.realPress('Tab');
+      cy.focused().should('have.attr', 'data-testid', 'login-provider-option-okta-partner');
     });
 
     it('Changes the primary button when another provider is chosen', () => {
@@ -161,16 +174,32 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
 
       loginPage.username().checkVisible();
       loginPage.password().checkVisible();
-      // The menu stays available so the user can change their mind.
-      loginPage.providerSelectTrigger().checkVisible();
+      // The form owns the panel, so the list collapses to a link.
+      loginPage.providerList().checkNotExists();
+      loginPage.chooseDifferentProvider().checkVisible();
+    });
+
+    it('Brings the list back from the local form', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.selectProvider('local');
+      loginPage.chooseDifferentProvider().click();
+
+      loginPage.providerList().checkVisible();
+      // The form gives way to the provider the page opened on, and local goes
+      // back to being one of the options.
+      loginPage.providerSubmitButton().shouldContainText('gh-community');
+      loginPage.providerOption('local').checkVisible();
+
+      loginPage.selectProvider('okta-partner');
+      loginPage.providerSubmitButton().shouldContainText('okta-partner');
     });
 
     it('Reopens on the remembered provider', () => {
       const loginPage = new LoginPagePo();
 
       loginPage.selectProvider('okta-partner');
-      loginPage.openProviderSelect();
-      loginPage.rememberProviderCheckbox().click();
+      loginPage.rememberProviderCheckbox().set();
 
       stubProviders();
       LoginPagePo.goTo();
@@ -183,10 +212,8 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
       const loginPage = new LoginPagePo();
 
       loginPage.selectProvider('okta-partner');
-      loginPage.openProviderSelect();
-      loginPage.rememberProviderCheckbox().click();
-      loginPage.openProviderSelect();
-      loginPage.rememberProviderCheckbox().click();
+      loginPage.rememberProviderCheckbox().set();
+      loginPage.rememberProviderCheckbox().set();
 
       stubProviders();
       LoginPagePo.goTo();

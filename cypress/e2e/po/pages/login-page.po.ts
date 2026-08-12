@@ -3,6 +3,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 export class LoginPagePo extends PagePo {
@@ -59,32 +60,35 @@ export class LoginPagePo extends PagePo {
   }
 
   /**
-   * The "Choose another authentication provider" button. Only rendered once
-   * more than one non-local provider is configured.
+   * The list of alternative providers. Only rendered once more than one
+   * non-local provider is configured.
    */
-  providerSelectTrigger(): ComponentPo {
-    return new ComponentPo('[data-testid="login-provider-trigger"]');
-  }
-
-  openProviderSelect(): Cypress.Chainable {
-    return this.providerSelectTrigger().click();
+  providerList(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-list"]');
   }
 
   /**
-   * A provider in the open provider menu, keyed by its authconfig name.
+   * A provider in the list, keyed by its authconfig name. The provider on the
+   * primary button is not repeated here.
    */
   providerOption(id: string): ComponentPo {
     return new ComponentPo(`[data-testid="login-provider-option-${ id }"]`);
   }
 
   selectProvider(id: string): Cypress.Chainable {
-    this.openProviderSelect();
-
     return this.providerOption(id).click();
   }
 
-  rememberProviderCheckbox(): ComponentPo {
-    return new ComponentPo('[data-testid="login-provider-remember"]');
+  /**
+   * The link that reveals the list again. Shown in place of the list while a
+   * username and password form has the panel.
+   */
+  chooseDifferentProvider(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-choose"]');
+  }
+
+  rememberProviderCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid="login-provider-remember"]');
   }
 
   confirmationAcceptButton(): ComponentPo {
