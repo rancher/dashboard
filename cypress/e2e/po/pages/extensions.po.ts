@@ -140,6 +140,14 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoList.waitForPage();
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
     cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', name);
+    // The API state is already Active (waitForResourceState above), but the repo list's state badge
+    // can lag that under CI load and only render 'Active' after a delayed re-fetch. kubewarden calls
+    // this from a before-all hook, which Cypress does NOT retry, so a badge that outruns the default
+    // window fails the whole suite. Reload once to force a fresh list render off the now-Active API
+    // state before asserting the badge.
+    cy.reload();
+    appRepoList.waitForPage();
+    appRepoList.list().checkVisible();
     appRepoList.list().state(name).should('contain', 'Active');
 
     return cy.wrap(appRepoList.list());
@@ -188,7 +196,11 @@ export default class ExtensionsPagePo extends PagePo {
 
     card.self().should('be.visible');
 
-    return card.openActionMenu().getMenuItem(actionLabel).click();
+    // The Upgrade/Downgrade items appear only once the extension's available versions have loaded
+    // from the (sometimes slow) chart repo. The menu re-renders reactively when they arrive, so give
+    // the item lookup a long window instead of the default - otherwise it outruns a slow repo fetch
+    // and the action is reported missing even though it shows up moments later.
+    return card.openActionMenu().getMenuItem(actionLabel, LONG_TIMEOUT_OPT).click();
   }
 
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
@@ -196,8 +208,8 @@ export default class ExtensionsPagePo extends PagePo {
       .invoke('text');
   }
 
-  extensionCardClick(extensionTitle: string): void {
-    this.extensionCard(extensionTitle).click();
+  extensionCardClick(extensionTitle: string, options?: Partial<Cypress.Timeoutable>): void {
+    this.extensionCard(extensionTitle, options).click();
   }
 
   extensionCardInstallClick(extensionTitle: string): Cypress.Chainable {
