@@ -1,6 +1,11 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
+// The overview's summary fetch resolves into one of two rendered states: the "By State" bento-grid
+// (there are workloads) or the empty state (e.g. an empty namespace filter, as the
+// "pagination is hidden" tests use). Either one confirms the overview finished loading.
+export const WORKLOAD_OVERVIEW_LOADED_SELECTOR = '.bento-grid, [data-testid="workload-dashboard-empty"]';
+
 /**
  * The Workloads overview page (`/c/<cluster>/explorer/workload-dashboard`).
  */
@@ -25,12 +30,9 @@ export default class WorkloadDashboardPagePo extends PagePo {
   }
 
   /**
-   * Wait for the overview to finish loading. Its summary fetch resolves into one of two rendered
-   * states - the bento-grid (there are workloads) or the empty state (e.g. an empty namespace
-   * filter, as the "pagination is hidden" tests use) - so either one confirms the overview loaded
-   * and settled (no redirect), which is what we need before navigating on from it.
+   * Wait for the overview to finish loading (bento-grid or the empty state rendered).
    */
   waitForOverviewLoaded() {
-    return this.self().find('.bento-grid, [data-testid="workload-dashboard-empty"]', LONG_TIMEOUT_OPT).should('be.visible');
+    return this.self().find(WORKLOAD_OVERVIEW_LOADED_SELECTOR, LONG_TIMEOUT_OPT).should('be.visible');
   }
 }
