@@ -6,9 +6,9 @@ jest.mock('@shell/composables/focusTrap', () => ({ useWatcherBasedSetupFocusTrap
 jest.mock('@pkg/kubectl-explain/slide-in', () => ({ isExplainPanelOpen: { value: false } }));
 
 jest.mock('@pkg/kubectl-explain/open-api-utils.ts', () => ({
-  expandOpenAPIDefinition:  jest.fn(),
-  getOpenAPISchemaName:     jest.fn(),
-  makeOpenAPIBreadcrumb:    jest.fn(),
+  expandOpenAPIDefinition: jest.fn(),
+  getOpenAPISchemaName:    jest.fn(),
+  makeOpenAPIBreadcrumb:   jest.fn(),
 }));
 
 const globalMocks = {
@@ -115,6 +115,48 @@ describe('component: SlideInPanel', () => {
       });
 
       expect(wrapper.find('.icon-sort').exists()).toBe(false);
+    });
+  });
+
+  // The panel is never unmounted - closing it only slides it off-screen - so it has to be marked
+  // `inert` while closed. Otherwise tabbing past the last element of the page moves focus into the
+  // off-screen panel, which is also flagged as `aria-hidden`, so nothing gets announced.
+  describe('keyboard focus containment', () => {
+    const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+    it('holds focusable elements that need to be taken out of the tab order while closed', () => {
+      const wrapper = mountPanel({ isOpen: false });
+      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+
+      expect(aside.element.querySelectorAll(FOCUSABLE).length).toBeGreaterThan(0);
+    });
+
+    it('is inert while closed', () => {
+      const wrapper = mountPanel({ isOpen: false });
+      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+
+      expect(aside.attributes('inert')).toBeDefined();
+    });
+
+    it('is not inert while open', () => {
+      const wrapper = mountPanel({ isOpen: true });
+      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+
+      expect(aside.attributes('inert')).toBeUndefined();
+    });
+
+    it('becomes inert again after being opened and then closed', async() => {
+      const wrapper = mountPanel();
+
+      (wrapper.vm as any).open();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="slide-in-panel-resource-explain"]').attributes('inert')).toBeUndefined();
+
+      (wrapper.vm as any).close();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="slide-in-panel-resource-explain"]').attributes('inert')).toBeDefined();
     });
   });
 });
