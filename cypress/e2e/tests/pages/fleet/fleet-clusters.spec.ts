@@ -503,8 +503,10 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
 
   after('clean up', () => {
     if (toRemove) {
-      // delete gitrepo
-      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ workspace }`, toRemove);
+      // delete gitrepo - tolerate a non-2xx (already gone / still finalizing) like the sibling
+      // cleanup above: a failed assertion here fails the after-all hook, which is not retried and
+      // surfaces as a confusing "cy.task() must only be invoked..." cascade that skips the spec.
+      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ workspace }`, toRemove, false);
     }
   });
 });
