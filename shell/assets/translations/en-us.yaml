@@ -4581,11 +4581,12 @@ login:
   useProvider: Use a {provider} user
   useNonLocal: Use a non-local user
   providers:
-    choose: Choose another authentication provider
-    menu: Authentication providers
     heading: Choose how to sign in
+    or: Or
+    chooseDifferent: Choose a different provider
     meta: '{vendor} · {protocol}'
     remember: Remember my choice on this device
+    rememberHint: Applies to whichever provider you use below. Saved in this browser only.
     local:
       name: Local account
       meta: Username and password

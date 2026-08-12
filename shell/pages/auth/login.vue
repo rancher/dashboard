@@ -12,6 +12,7 @@ import {
   IS_SLO, IS_SESSION_IDLE
 } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
+import { RcButton } from '@components/RcButton';
 import Password from '@shell/components/form/Password';
 import { configTypeForProvider } from '@shell/models/management.cattle.io.authconfig';
 import AuthProviderList from '@shell/components/auth/login/AuthProviderList.vue';
@@ -44,7 +45,7 @@ import { getBrandMeta } from '@shell/utils/brand';
 export default {
   name:       'Login',
   components: {
-    LabeledInput, AsyncButton, AuthProviderList, OrDivider, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading, TabTitle
+    LabeledInput, AsyncButton, AuthProviderList, OrDivider, Checkbox, RcButton, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading, TabTitle
   },
 
   data() {
@@ -68,6 +69,7 @@ export default {
       providerOptions:    [],
       selectedProviderId: null,
       rememberProvider:   false,
+      listExpanded:       false,
       customLoginError:   {},
       firstLogin:         false,
       vendor:             getVendor()
@@ -105,13 +107,16 @@ export default {
       return this.providerOptions.find((option) => option.id === this.selectedProviderId);
     },
 
-    /**
-     * With a single external provider there is nothing to choose between, so the
-     * page keeps the plain "Use a local user" link it has always shown. The list
-     * only earns its place once several providers are configured.
-     */
-    showProviderList() {
+    hasProviderChoice() {
       return this.providers.length > 1;
+    },
+
+    isCredentialForm() {
+      return this.showLocal || this.selectedProvider?.category === 'ldap';
+    },
+
+    showProviderList() {
+      return this.hasProviderChoice && (!this.isCredentialForm || this.listExpanded);
     },
 
     /**
@@ -304,6 +309,7 @@ export default {
     selectProvider(option) {
       this.selectedProviderId = option.id;
       this.showLocal = option.isLocal;
+      this.listExpanded = false;
 
       if (this.rememberProvider) {
         setRememberedProviderId(option.id);
@@ -311,6 +317,24 @@ export default {
 
       this.$nextTick(() => {
         this.focusSomething();
+      });
+    },
+
+    expandProviderList() {
+      const alternatives = this.providerOptions.filter((option) => option.id !== this.selectedProviderId);
+      const fallback = resolveInitialProvider(alternatives, getRememberedProviderId());
+
+      if (fallback) {
+        // Deliberately not `selectProvider`: the page is choosing here, not the
+        // user, so it must not overwrite what they asked to be remembered.
+        this.selectedProviderId = fallback.id;
+        this.showLocal = fallback.isLocal;
+      }
+
+      this.listExpanded = true;
+
+      this.$nextTick(() => {
+        this.$refs.providerList?.focus?.();
       });
     },
 
@@ -569,7 +593,7 @@ export default {
             </div>
           </form>
           <!-- With several providers the list below supersedes these links. -->
-          <template v-if="!showProviderList && hasLocal && !showLocal">
+          <template v-if="!hasProviderChoice && hasLocal && !showLocal">
             <div class="login-alternatives mt-20">
               <OrDivider />
             </div>
@@ -584,7 +608,7 @@ export default {
               </a>
             </div>
           </template>
-          <template v-if="!showProviderList && hasLocal && showLocal && providers.length">
+          <template v-if="!hasProviderChoice && hasLocal && showLocal && providers.length">
             <div class="login-alternatives mt-20">
               <OrDivider />
             </div>
@@ -599,10 +623,13 @@ export default {
           </template>
         </template>
         <div
-          v-if="showProviderList"
+          v-if="hasProviderChoice"
           class="login-alternatives mt-20"
         >
-          <div class="login-remember">
+          <div
+            v-if="showProviderList"
+            class="login-remember"
+          >
             <Checkbox
               :value="rememberProvider"
               :label="t('login.providers.remember')"
@@ -614,7 +641,21 @@ export default {
             </p>
           </div>
           <OrDivider class="mt-20" />
+          <div
+            v-if="!showProviderList"
+            class="mt-20 text-center"
+          >
+            <RcButton
+              variant="link"
+              data-testid="login-provider-choose"
+              @click="expandProviderList"
+            >
+              {{ t('login.providers.chooseDifferent') }}
+            </RcButton>
+          </div>
           <AuthProviderList
+            v-else
+            ref="providerList"
             class="mt-20"
             :options="providerOptions"
             :selected-id="selectedProviderId"
