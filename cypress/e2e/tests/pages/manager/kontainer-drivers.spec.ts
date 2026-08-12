@@ -57,7 +57,11 @@ describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@admin
       const existingDriver = resp.body.data?.find((driver: any) => driver.url === downloadUrl);
 
       if (existingDriver) {
-        cy.deleteRancherResource('v3', 'kontainerDrivers', existingDriver.id);
+        cy.deleteRancherResource('v3', 'kontainerDrivers', existingDriver.id, false);
+        // The delete propagates asynchronously. Wait for the driver to actually be gone before
+        // re-creating, otherwise on a retry (testIsolation is off) the UI create races the delete
+        // and the POST comes back 409, failing every retry.
+        cy.waitForRancherResource('v3', 'kontainerdrivers', existingDriver.id, (r: any) => r?.status === 404, 20, { failOnStatusCode: false });
       }
     });
 
