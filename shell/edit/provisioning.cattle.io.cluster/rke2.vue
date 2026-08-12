@@ -712,6 +712,7 @@ export default {
         const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
         for (const opt of this.agentArgs['cloud-provider-name']?.options) {
+          //Azure in-tree cloud provider has been deprecated and is no longer supported in RKE2. It is being removed from the list of cloud provider options.
           if (opt === 'azure') {
             continue;
           }
