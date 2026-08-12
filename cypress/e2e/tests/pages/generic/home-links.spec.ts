@@ -86,7 +86,22 @@ describe('Home Page Support Links', { tags: ['@generic', '@adminUser', '@standar
 
     // click Rancher Prime link (replaces old Commercial Support link)
     homePage.clickSupportLink(5, true);
-    cy.origin('https://www.suse.com', () => {
+    cy.origin('https://www.suse.com', { args: { RANCHER_PAGE_EXCEPTIONS } }, ({ RANCHER_PAGE_EXCEPTIONS }) => {
+      // The suse.com telemetry pixel (cdn.vector.co) rejects asynchronously and often LATE - after
+      // this test finishes, during the spec's after-all hook. By then the per-test `cy.on` handler
+      // registered by catchTargetPageException is already torn down, and Cypress does NOT retry hook
+      // failures, so the whole spec fails. `cy.on` scopes to the current test; `Cypress.on` scoped to
+      // THIS (suse.com) secondary origin persists for the rest of the spec, so it still swallows the
+      // known third-party rejection when it finally fires in the after-all hook. This must live inside
+      // cy.origin because the primary-context handler in `before()` does not see secondary-origin errors.
+      Cypress.on('uncaught:exception', (err) => {
+        if (RANCHER_PAGE_EXCEPTIONS.some((m) => (err?.message || '').includes(m))) {
+          return false;
+        }
+
+        return undefined;
+      });
+
       cy.url().should('include', 'suse.com/products/rancher');
     });
   }));
