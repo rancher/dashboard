@@ -18,17 +18,19 @@ export default class WorkloadDashboardPagePo extends PagePo {
   }
 
   /**
-   * The "By State" bento-grid. It renders only once the overview's summary fetch has resolved with
-   * data, so its presence confirms the overview has actually loaded.
+   * The "By State" bento-grid, rendered once the overview's summary fetch resolves WITH data.
    */
   bentoGrid() {
     return this.self().find('.bento-grid', LONG_TIMEOUT_OPT);
   }
 
   /**
-   * Wait for the overview to finish loading (its bento-grid rendered).
+   * Wait for the overview to finish loading. Its summary fetch resolves into one of two rendered
+   * states - the bento-grid (there are workloads) or the empty state (e.g. an empty namespace
+   * filter, as the "pagination is hidden" tests use) - so either one confirms the overview loaded
+   * and settled (no redirect), which is what we need before navigating on from it.
    */
   waitForOverviewLoaded() {
-    return this.bentoGrid().should('be.visible');
+    return this.self().find('.bento-grid, [data-testid="workload-dashboard-empty"]', LONG_TIMEOUT_OPT).should('be.visible');
   }
 }
