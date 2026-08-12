@@ -37,11 +37,13 @@ describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '
     aboutPage.waitForPage();
     cy.getRancherVersion().then((version) => {
       const isPrime = version.RancherPrime === 'true';
+      const expectedOrigin = isPrime ? 'https://documentation.suse.com' : 'https://github.com';
       const expectedUrlPattern = isPrime ? '/cloudnative/rancher-manager/.+/en/release-notes' : '/rancher/rancher/releases/tag/';
 
-      // Assert the link points at the release notes rather than loading the external site, which
-      // flakes to chrome-error://chromewebdata/ when it is transiently unreachable in CI.
-      aboutPage.getLinkDestination('View release notes').should('match', new RegExp(expectedUrlPattern));
+      aboutPage.clickVersionLink('View release notes');
+      cy.origin(expectedOrigin, { args: { expectedUrlPattern } }, ({ expectedUrlPattern }) => {
+        cy.url().should('match', new RegExp(expectedUrlPattern));
+      });
     });
   }));
 
@@ -61,19 +63,31 @@ describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '
     }));
 
     qase(1504, it('can navigate to /rancher/rancher', () => {
-      aboutPage.getLinkDestination('Rancher').should('include', 'https://github.com/rancher/rancher');
+      aboutPage.clickVersionLink('Rancher');
+      cy.origin('https://github.com', () => {
+        cy.url().should('include', 'https://github.com/rancher/rancher');
+      });
     }));
 
     qase(1507, it('can navigate to /rancher/dashboard', () => {
-      aboutPage.getLinkDestination('Dashboard').should('include', 'https://github.com/rancher/dashboard');
+      aboutPage.clickVersionLink('Dashboard');
+      cy.origin('https://github.com', () => {
+        cy.url().should('include', 'https://github.com/rancher/dashboard');
+      });
     }));
 
     qase(1508, it('can navigate to /rancher/helm', () => {
-      aboutPage.getLinkDestination('Helm').should('include', 'https://github.com/rancher/helm');
+      aboutPage.clickVersionLink('Helm');
+      cy.origin('https://github.com', () => {
+        cy.url().should('include', 'https://github.com/rancher/helm');
+      });
     }));
 
     qase(1505, it('can navigate to /rancher/machine', () => {
-      aboutPage.getLinkDestination('Machine').should('include', 'https://github.com/rancher/machine');
+      aboutPage.clickVersionLink('Machine');
+      cy.origin('https://github.com', () => {
+        cy.url().should('include', 'https://github.com/rancher/machine');
+      });
     }));
   });
 
