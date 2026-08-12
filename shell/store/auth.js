@@ -417,7 +417,7 @@ export const actions = {
           url:    `/v1-public/login`,
           method: 'post',
           data:   {
-            name:         driver.id,
+            configName:   driver.id,
             type:         driver.type,
             description:  'UI session',
             responseType: 'cookie',

@@ -190,7 +190,7 @@ describe('action: test', () => {
 });
 
 describe('action: login', () => {
-  it('should send both the name and the type of the auth config to log in against', async() => {
+  it('should send both the config name and the type of the auth config to log in against', async() => {
     const dispatch = jest.fn((action) => {
       if (action === 'getAuthProvider') {
         return { id: 'github-two', type: 'githubProvider' };
@@ -203,7 +203,7 @@ describe('action: login', () => {
       'management/request',
       expect.objectContaining({
         data: {
-          name:         'github-two',
+          configName:   'github-two',
           type:         'githubProvider',
           description:  'UI session',
           responseType: 'cookie',
