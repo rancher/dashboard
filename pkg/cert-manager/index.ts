@@ -1,9 +1,14 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin } from '@shell/core/types';
+import { IPlugin, PaginationHeaderOptions } from '@shell/core/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { ProductChildCustomPage, ProductChildGroup } from '@shell/core/plugin-products-external';
 import { ProductChildResourcePageInternal } from '@shell/core/plugin-products-internal';
 import { CERT_MANAGER } from './types';
+import {
+  CERTIFICATE_HEADERS, ISSUER_HEADERS, CLUSTER_ISSUER_HEADERS,
+  CERTIFICATE_REQUEST_HEADERS, ORDER_HEADERS, CHALLENGE_HEADERS,
+  TableHeader,
+} from './table-headers';
 
 const overviewPage: ProductChildCustomPage = {
   // `name` becomes the route path segment `/c/:cluster/explorer/<name>`, which is shared by
@@ -17,34 +22,48 @@ const overviewPage: ProductChildCustomPage = {
   enable:    { ifHaveType: CERT_MANAGER.CERTIFICATE },
 };
 
+// `listConfig.headers` maps to the *pagination* headers only. These CRDs are not registered for
+// server-side pagination, so the client-side `localHeaders` are the ones that render.
+//
+// `localHeaders` is declared as `PaginationHeaderOptions[]` (which omits `getValue`), but it is
+// forwarded to the DSL's client-side `headers` argument, where `getValue` is supported and used by
+// the shell's own STATE/NAME columns. The cast works around that mistyping.
+const localHeaders = (headers: TableHeader[]) => headers as PaginationHeaderOptions[];
+
 const certificatesPage: ProductChildResourcePageInternal = {
-  type:     CERT_MANAGER.CERTIFICATE,
-  sideMenu: { weight: 90 },
+  type:       CERT_MANAGER.CERTIFICATE,
+  sideMenu:   { weight: 90 },
+  listConfig: { localHeaders: localHeaders(CERTIFICATE_HEADERS) },
 };
 
 const issuersPage: ProductChildResourcePageInternal = {
-  type:     CERT_MANAGER.ISSUER,
-  sideMenu: { weight: 80 },
+  type:       CERT_MANAGER.ISSUER,
+  sideMenu:   { weight: 80 },
+  listConfig: { localHeaders: localHeaders(ISSUER_HEADERS) },
 };
 
 const clusterIssuersPage: ProductChildResourcePageInternal = {
-  type:     CERT_MANAGER.CLUSTER_ISSUER,
-  sideMenu: { weight: 70 },
+  type:       CERT_MANAGER.CLUSTER_ISSUER,
+  sideMenu:   { weight: 70 },
+  listConfig: { localHeaders: localHeaders(CLUSTER_ISSUER_HEADERS) },
 };
 
 const certificateRequestsPage: ProductChildResourcePageInternal = {
-  type:     CERT_MANAGER.CERTIFICATE_REQUEST,
-  sideMenu: { weight: 30 },
+  type:       CERT_MANAGER.CERTIFICATE_REQUEST,
+  sideMenu:   { weight: 30 },
+  listConfig: { localHeaders: localHeaders(CERTIFICATE_REQUEST_HEADERS) },
 };
 
 const ordersPage: ProductChildResourcePageInternal = {
-  type:     CERT_MANAGER.ORDER,
-  sideMenu: { weight: 20 },
+  type:       CERT_MANAGER.ORDER,
+  sideMenu:   { weight: 20 },
+  listConfig: { localHeaders: localHeaders(ORDER_HEADERS) },
 };
 
 const challengesPage: ProductChildResourcePageInternal = {
-  type:     CERT_MANAGER.CHALLENGE,
-  sideMenu: { weight: 10 },
+  type:       CERT_MANAGER.CHALLENGE,
+  sideMenu:   { weight: 10 },
+  listConfig: { localHeaders: localHeaders(CHALLENGE_HEADERS) },
 };
 
 const acmeGroup: ProductChildGroup = {

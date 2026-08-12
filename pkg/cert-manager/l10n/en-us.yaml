@@ -7,6 +7,111 @@ certManager:
   overview:
     notImplemented: The cert-manager overview is not available yet.
 
+  tableHeaders:
+    issuer: Issuer
+    secret: Secret
+    dnsNames: DNS Names
+    dnsName: DNS Name
+    expires: Expires
+    renews: Renews
+    type: Type
+    acmeServer: ACME Server
+    certificates: Certificates
+    certificate: Certificate
+    approved: Approved
+    revision: Revision
+    reason: Reason
+    challenges: Challenges
+    challengeType: Challenge Type
+    presented: Presented
+
+  certificate:
+    commonName: Common Name
+    revision: Revision
+    notBefore: Not Before
+    notAfter: Not After
+    renewalTime: Renewal Time
+    duration: Duration
+    dnsNames: DNS Names
+    ipAddresses: IP Addresses
+    uris: URIs
+    emailAddresses: Email Addresses
+    noIdentifiers: This certificate has no subject alternative names.
+    failedIssuance: |-
+      {count, plural,
+        one { Issuance has failed once. }
+        other { Issuance has failed # times. }
+      } Last failure: {time}
+    privateKey:
+      algorithm: Algorithm
+      size: Size
+      encoding: Encoding
+      rotationPolicy: Rotation Policy
+    tab:
+      sans: Subject Alternative Names
+      privateKey: Private Key
+      issuanceHistory: Issuance History
+
+  issuer:
+    type:
+      acme: ACME
+      ca: CA
+      selfSigned: Self Signed
+      vault: Vault
+      venafi: Venafi
+    acme:
+      server: ACME Server
+      email: Email
+      accountUri: Account URI
+    ca:
+      secretName: CA Secret
+    vault:
+      server: Vault Server
+      path: Path
+    solver:
+      challengeType: Challenge Type
+      provider: Provider
+      selector: Selector
+      catchAll: All domains
+      none: This issuer has no solvers configured.
+    tab:
+      solvers: Solvers
+      certificates: Certificates
+
+  certificateRequest:
+    label: Certificate Request
+    certificate: Certificate
+    subject: Subject
+    signatureAlgorithm: Signature Algorithm
+    pem: Certificate Signing Request
+    denied: This request was denied.
+    csrUnreadable: The certificate signing request could not be decoded.
+    tab:
+      csr: CSR
+      orders: Orders
+
+  order:
+    label: Order
+    url: ACME Order URL
+    finalizeUrl: Finalize URL
+    identifier: Identifier
+    wildcard: Wildcard
+    challengeTypes: Challenge Types
+    noAuthorizations: This order has no authorizations yet.
+    tab:
+      authorizations: Authorizations
+      challenges: Challenges
+
+  challenge:
+    presented: Presented
+    processing: Processing
+    token: Token
+    key: Key
+    url: ACME Challenge URL
+    authorizationUrl: Authorization URL
+    tab:
+      details: Challenge Details
+
 typeLabel:
   cert-manager.io.certificate: |-
     {count, plural,
