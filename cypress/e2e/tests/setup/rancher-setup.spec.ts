@@ -121,6 +121,20 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
   it('Create standard user', () => {
     cy.login();
 
+    // Retry-safe: this setup spec is re-run in full on a retry, and `standard_user` has a deterministic
+    // username (onlyContext). If a prior attempt already created the user (then failed on a later step,
+    // or left it partially configured), the create below would return 409 and every retry would fail on
+    // the dead precondition. Remove any existing standard_user and wait for it to clear first, so the
+    // create always starts clean and fully re-runs (password secret + role bindings included).
+    cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: any) => {
+      const existing = (resp.body?.data || []).find((u: any) => u.username === 'standard_user');
+
+      if (existing) {
+        cy.deleteRancherResource('v1', 'management.cattle.io.users', existing.id, false);
+        cy.waitForRancherResource('v1', 'management.cattle.io.users', existing.id, (r: any) => r?.status === 404, 20, { failOnStatusCode: false });
+      }
+    });
+
     // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
     cy.createUser({
       username:    'standard_user',
