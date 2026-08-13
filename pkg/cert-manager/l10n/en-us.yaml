@@ -65,9 +65,10 @@ certManager:
     addIpAddress: Add IP Address
     addUri: Add URI
     addEmailAddress: Add Email Address
+    sans: Subject Alternative Names
+    plusMore: '+ {count} more'
     sansHelp: A certificate needs at least one identifier - a common name or a subject alternative name.
     noIssuersInNamespace: 'There are no Issuers in the {namespace} namespace. An Issuer must live in the same namespace as the certificate it signs - create one there, or use a Cluster Issuer instead.'
-    noIdentifiers: This certificate has no subject alternative names.
     usages: Key Usages
     revisionHistoryLimit: Revision History Limit
     secretTemplate: Secret Template
@@ -81,6 +82,7 @@ certManager:
       issuer: Issuer (this namespace)
       clusterIssuer: Cluster Issuer (whole cluster)
     privateKey:
+      label: Private Key
       algorithm: Algorithm
       size: Size
       sizeFixed: This algorithm has a single fixed key size.
@@ -95,6 +97,7 @@ certManager:
       privateKey: Private Key
       advanced: Advanced
       issuanceHistory: Issuance History
+
 
   issuer:
     typeLabel: Issuer Type

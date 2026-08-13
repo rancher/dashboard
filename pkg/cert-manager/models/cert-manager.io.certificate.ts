@@ -117,6 +117,35 @@ export default class Certificate extends SteveModel {
     return commonName ? [commonName, ...rest] : rest;
   }
 
+  /** Every subject alternative name, in the order cert-manager lists them. */
+  get subjectAltNames(): string[] {
+    const {
+      dnsNames = [], ipAddresses = [], uris = [], emailAddresses = []
+    } = this.spec || {};
+
+    return [...dnsNames, ...ipAddresses, ...uris, ...emailAddresses];
+  }
+
+  /**
+   * First name plus a count, the way the shell shows a TLS Secret's certificate names.
+   * The full list stays in Show Configuration.
+   */
+  get subjectAltNamesDisplay(): string | undefined {
+    const [first, ...rest] = this.subjectAltNames;
+
+    if (!first) {
+      return undefined;
+    }
+
+    return rest.length ? `${ first } ${ this.t('certManager.certificate.plusMore', { count: rest.length }) }` : first;
+  }
+
+  get privateKeyDisplay(): string | undefined {
+    const { algorithm, size } = this.spec?.privateKey || {};
+
+    return [algorithm, size].filter(Boolean).join(' ') || undefined;
+  }
+
   get certificateRequests() {
     return relatedTo(this.$rootGetters['cluster/all'](CERT_MANAGER.CERTIFICATE_REQUEST) || [], this);
   }
@@ -145,6 +174,7 @@ export default class Certificate extends SteveModel {
         },
       },
       { label: this.t('certManager.certificate.commonName'), content: this.spec?.commonName },
+      { label: this.t('certManager.certificate.sans'), content: this.subjectAltNamesDisplay },
       { label: this.t('certManager.certificate.revision'), content: this.status?.revision },
       { separator: true },
       {
@@ -168,6 +198,9 @@ export default class Certificate extends SteveModel {
         formatter: 'LiveDate',
       },
       { label: this.t('certManager.certificate.duration'), content: this.spec?.duration },
+      { separator: true },
+      { label: this.t('certManager.certificate.privateKey.label'), content: this.privateKeyDisplay },
+      { label: this.t('certManager.certificate.privateKey.rotationPolicy'), content: this.spec?.privateKey?.rotationPolicy },
     ];
   }
 

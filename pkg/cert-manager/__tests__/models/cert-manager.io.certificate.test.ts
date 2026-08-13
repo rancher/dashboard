@@ -178,6 +178,42 @@ describe('model: cert-manager.io.certificate', () => {
     });
   });
 
+  describe('masthead chips', () => {
+    it('should show the first subject alternative name plus a count', () => {
+      // Mirrors how the shell shows a TLS Secret's certificate names; the full list is in the YAML.
+      const cert = certificate({ dnsNames: ['a.com', 'b.com'], ipAddresses: ['10.0.0.1'] });
+
+      expect(cert.subjectAltNamesDisplay).toBe('a.com certManager.certificate.plusMore');
+    });
+
+    it('should not add a count for a single name', () => {
+      expect(certificate({ dnsNames: ['a.com'] }).subjectAltNamesDisplay).toBe('a.com');
+    });
+
+    it('should be undefined when the certificate has no alternative names', () => {
+      expect(certificate({ commonName: 'a.com' }).subjectAltNamesDisplay).toBeUndefined();
+    });
+
+    it('should gather every kind of alternative name', () => {
+      const cert = certificate({
+        dnsNames: ['a.com'], ipAddresses: ['10.0.0.1'], uris: ['spiffe://x'], emailAddresses: ['a@b.com']
+      });
+
+      expect(cert.subjectAltNames).toStrictEqual(['a.com', '10.0.0.1', 'spiffe://x', 'a@b.com']);
+    });
+
+    it.each([
+      ['algorithm and size', { algorithm: 'RSA', size: 2048 }, 'RSA 2048'],
+      ['an algorithm with no size, as Ed25519 has none', { algorithm: 'Ed25519' }, 'Ed25519'],
+    ])('should summarise the private key from %s', (_label, privateKey, expected) => {
+      expect(certificate({ privateKey }).privateKeyDisplay).toBe(expected);
+    });
+
+    it('should have no private key summary when nothing is set', () => {
+      expect(certificate({ privateKey: {} }).privateKeyDisplay).toBeUndefined();
+    });
+  });
+
   describe('details', () => {
     // DetailTop in the masthead renders these, and drops any entry with empty content.
     const labelsOf = (model: any) => model.details.filter((d: any) => !d.separator).map((d: any) => d.label);
@@ -194,11 +230,14 @@ describe('model: cert-manager.io.certificate', () => {
         'certManager.tableHeaders.issuer',
         'certManager.tableHeaders.secret',
         'certManager.certificate.commonName',
+        'certManager.certificate.sans',
         'certManager.certificate.revision',
         'certManager.certificate.notBefore',
         'certManager.certificate.notAfter',
         'certManager.certificate.renewalTime',
         'certManager.certificate.duration',
+        'certManager.certificate.privateKey.label',
+        'certManager.certificate.privateKey.rotationPolicy',
       ]);
     });
 
