@@ -6,6 +6,7 @@ import { CERT_MANAGER } from '../types';
 import { Condition, conditionOf } from '../utils/conditions';
 import { issuerRefLocation } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
+import { stateObjFor } from '../utils/state';
 import { relatedTo } from '../utils/issuance';
 import { CertificateSpec, CertificateStatus, ObjectMeta } from '../schema';
 
@@ -93,6 +94,11 @@ export default class Certificate extends SteveModel {
     }
 
     return STATES_ENUM.PENDING;
+  }
+
+  /** Keeps the badge colour in step with the state this model computes - see stateObjFor. */
+  get stateObj(): any {
+    return stateObjFor(this, this.state);
   }
 
   get stateDescription(): string {

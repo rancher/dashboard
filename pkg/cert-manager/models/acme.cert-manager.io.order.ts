@@ -3,6 +3,7 @@ import { CERT_MANAGER } from '../types';
 import { issuerRefLocation } from '../utils/issuer-ref';
 import { acmeState } from '../utils/acme-state';
 import { resourceLocation } from '../utils/locations';
+import { stateObjFor } from '../utils/state';
 import { OrderSpec, OrderStatus, ObjectMeta } from '../schema';
 
 export interface AuthorizationSummary {
@@ -21,6 +22,11 @@ export default class Order extends SteveModel {
 
   get state(): string {
     return acmeState(this.status?.state);
+  }
+
+  /** Keeps the badge colour in step with the state this model computes - see stateObjFor. */
+  get stateObj(): any {
+    return stateObjFor(this, this.state);
   }
 
   get stateDescription(): string {

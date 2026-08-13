@@ -5,6 +5,7 @@ import { CERT_MANAGER } from '../types';
 import { Condition, conditionOf } from '../utils/conditions';
 import { issuerRefMatches } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
+import { stateObjFor } from '../utils/state';
 import { IssuerSpec, IssuerStatus, ObjectMeta } from '../schema';
 
 /** Exactly one of these is set on an Issuer/ClusterIssuer spec. */
@@ -55,6 +56,11 @@ export default class Issuer extends SteveModel {
     }
 
     return STATES_ENUM.PENDING;
+  }
+
+  /** Keeps the badge colour in step with the state this model computes - see stateObjFor. */
+  get stateObj(): any {
+    return stateObjFor(this, this.state);
   }
 
   get stateDescription(): string {

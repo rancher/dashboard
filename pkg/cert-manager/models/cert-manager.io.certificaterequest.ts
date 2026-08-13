@@ -4,6 +4,7 @@ import { CERT_MANAGER } from '../types';
 import { Condition, conditionOf } from '../utils/conditions';
 import { issuerRefLocation } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
+import { stateObjFor } from '../utils/state';
 import { parseCsr, CsrInfo } from '../utils/csr';
 import { certificateNameOf, CERTIFICATE_REVISION_ANNOTATION } from '../utils/issuance';
 import { CertificateRequestSpec, CertificateRequestStatus, ObjectMeta } from '../schema';
@@ -57,6 +58,11 @@ export default class CertificateRequest extends SteveModel {
     }
 
     return this.isApproved ? STATES_ENUM.IN_PROGRESS : STATES_ENUM.PENDING;
+  }
+
+  /** Keeps the badge colour in step with the state this model computes - see stateObjFor. */
+  get stateObj(): any {
+    return stateObjFor(this, this.state);
   }
 
   get stateDescription(): string {
