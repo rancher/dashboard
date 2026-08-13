@@ -2,11 +2,17 @@
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import CertManagerResourceTabs from '../components/CertManagerResourceTabs.vue';
+import IssuanceProgress from '../components/IssuanceProgress.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { CERTIFICATE_REQUEST_HEADERS } from '../table-headers';
+import { useRelatedTypes } from '../composables/useRelatedTypes';
+import { CERT_MANAGER } from '../types';
 
 defineProps<{ value: any }>();
+
+// Related resources are read from the store; a directly loaded detail page has none yet.
+useRelatedTypes([CERT_MANAGER.CERTIFICATE_REQUEST, CERT_MANAGER.ORDER, CERT_MANAGER.CHALLENGE]);
 
 const { t } = useI18n(useStore());
 
@@ -14,6 +20,12 @@ const { t } = useI18n(useStore());
 
 <template>
   <div>
+    <!-- A single stage is not progress; the widget only earns its place once there is a chain -->
+    <IssuanceProgress
+      v-if="value.issuanceStages.length > 1"
+      :stages="value.issuanceStages"
+    />
+
     <!--
       Subject alternative names and private key settings live in the masthead rather than in tabs
       of their own: they are static spec values, and tabs are for collections. This mirrors how the

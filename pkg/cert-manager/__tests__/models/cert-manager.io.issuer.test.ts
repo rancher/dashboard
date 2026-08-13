@@ -43,6 +43,28 @@ describe('model: cert-manager.io.issuer', () => {
     });
   });
 
+  describe('issuerTypeDisplay', () => {
+    it('should name the ACME provider alongside the type', () => {
+      const model = issuer({ acme: { server: 'https://acme-v02.api.letsencrypt.org/directory' } });
+
+      expect(model.issuerTypeDisplay).toBe("certManager.issuer.type.acme (Let's Encrypt)");
+    });
+
+    it('should fall back to the host for an unrecognised ACME server', () => {
+      const model = issuer({ acme: { server: 'https://ca.internal/acme/directory' } });
+
+      expect(model.issuerTypeDisplay).toBe('certManager.issuer.type.acme (ca.internal)');
+    });
+
+    it('should show just the type for a non-ACME issuer', () => {
+      expect(issuer({ selfSigned: {} }).issuerTypeDisplay).toBe('certManager.issuer.type.selfSigned');
+    });
+
+    it('should show nothing for an issuer with no config', () => {
+      expect(issuer().issuerTypeDisplay).toBe('');
+    });
+  });
+
   describe('state', () => {
     it('should be active when ready', () => {
       expect(issuer({}, { conditions: [{ type: 'Ready', status: 'True' }] }).state).toBe('active');

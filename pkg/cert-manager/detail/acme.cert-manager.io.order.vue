@@ -8,8 +8,13 @@ import Banner from '@components/Banner/Banner.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import DetailSummary, { SummaryItem } from '../components/DetailSummary.vue';
 import { CHALLENGE_HEADERS } from '../table-headers';
+import { useRelatedTypes } from '../composables/useRelatedTypes';
+import { CERT_MANAGER } from '../types';
 
 const props = defineProps<{ value: any }>();
+
+// Related resources are read from the store; a directly loaded detail page has none yet.
+useRelatedTypes([CERT_MANAGER.CHALLENGE]);
 
 const { t } = useI18n(useStore());
 

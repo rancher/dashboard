@@ -61,6 +61,7 @@ export default {
     return {
       // Stop auto-filling secretName from the resource name once the user edits it themselves.
       secretNameTouched: !!this.value.spec?.secretName,
+      showCommonName:    !!this.value.spec?.commonName,
       fvFormRuleSets:    [
         {
           path: 'metadata.name', rules: ['required', 'dnsLabel'], translationKey: 'nameNsDescription.name.label'
@@ -232,6 +233,11 @@ export default {
       this.value.spec.secretTemplate = { ...this.value.spec.secretTemplate, [key]: keyValue };
     },
 
+    clearCommonName() {
+      this.value.spec.commonName = undefined;
+      this.showCommonName = false;
+    },
+
     onSecretNameInput() {
       this.secretNameTouched = true;
     },
@@ -261,16 +267,10 @@ export default {
 
     <Tabbed :side-tabs="true">
       <Tab
-        name="general"
-        :label="t('certManager.certificate.tab.general')"
+        name="basics"
+        :label="t('certManager.certificate.tab.basics')"
         :weight="60"
       >
-        <Banner
-          v-if="hasNoIdentifier"
-          color="warning"
-          :label="t('certManager.certificate.validation.noIdentifiers')"
-        />
-
         <div class="row mb-20">
           <div class="col span-6">
             <RadioGroup
@@ -307,6 +307,7 @@ export default {
               v-model:value="value.spec.secretName"
               :label="t('certManager.certificate.secretName')"
               :tooltip="t('certManager.certificate.secretNameTooltip')"
+              :placeholder="t('certManager.certificate.secretNamePlaceholder')"
               :mode="mode"
               :rules="fvGetAndReportPathRules('spec.secretName')"
               required
@@ -315,7 +316,29 @@ export default {
           </div>
         </div>
 
-        <div class="row mb-20">
+        <Banner
+          v-if="hasNoIdentifier"
+          color="warning"
+          :label="t('certManager.certificate.validation.noIdentifiers')"
+        />
+
+        <ArrayList
+          v-model:value="value.spec.dnsNames"
+          :title="t('certManager.certificate.dnsNames')"
+          :add-label="t('certManager.certificate.addDnsName')"
+          :mode="mode"
+          class="mb-20"
+        />
+
+        <!--
+          Common name is hidden behind a link: a CN that is not also in dnsNames is rejected by the
+          CSR check, and most deployments should simply leave it empty.
+        -->
+        <h3>{{ t('certManager.certificate.commonName') }}</h3>
+        <div
+          v-if="showCommonName"
+          class="row mb-10"
+        >
           <div class="col span-6">
             <LabeledInput
               v-model:value="value.spec.commonName"
@@ -325,50 +348,23 @@ export default {
             />
           </div>
           <div class="col span-6 mt-10">
-            <Checkbox
-              v-model:value="value.spec.isCA"
-              :label="t('certManager.certificate.isCA')"
-              :mode="mode"
-            />
+            <a
+              v-if="!isView"
+              href="#"
+              @click.prevent="clearCommonName"
+            >{{ t('generic.remove') }}</a>
           </div>
         </div>
+        <a
+          v-else-if="!isView"
+          href="#"
+          class="mb-10 inline-block"
+          @click.prevent="showCommonName = true"
+        >{{ t('certManager.certificate.setCommonName') }}</a>
+        <p class="text-muted mb-20">
+          {{ t('certManager.certificate.commonNameHelp') }}
+        </p>
 
-        <div class="row">
-          <div class="col span-6">
-            <DurationInput
-              v-model:value="value.spec.duration"
-              :label="t('certManager.certificate.duration')"
-              :tooltip="t('certManager.certificate.durationTooltip')"
-              :mode="mode"
-            />
-          </div>
-          <div class="col span-6">
-            <DurationInput
-              v-model:value="value.spec.renewBefore"
-              :label="t('certManager.certificate.renewBefore')"
-              :tooltip="t('certManager.certificate.renewBeforeTooltip')"
-              :mode="mode"
-            />
-          </div>
-        </div>
-      </Tab>
-
-      <Tab
-        name="sans"
-        :label="t('certManager.certificate.tab.sans')"
-        :weight="50"
-      >
-        <Banner
-          color="info"
-          :label="t('certManager.certificate.sansHelp')"
-        />
-        <ArrayList
-          v-model:value="value.spec.dnsNames"
-          :title="t('certManager.certificate.dnsNames')"
-          :add-label="t('certManager.certificate.addDnsName')"
-          :mode="mode"
-          class="mb-20"
-        />
         <ArrayList
           v-model:value="value.spec.ipAddresses"
           :title="t('certManager.certificate.ipAddresses')"
@@ -392,10 +388,78 @@ export default {
       </Tab>
 
       <Tab
-        name="private-key"
-        :label="t('certManager.certificate.tab.privateKey')"
-        :weight="40"
+        name="advanced"
+        :label="t('certManager.certificate.tab.advanced')"
+        :weight="30"
       >
+        <div class="row mb-20">
+          <div class="col span-6">
+            <DurationInput
+              v-model:value="value.spec.duration"
+              :label="t('certManager.certificate.duration')"
+              :tooltip="t('certManager.certificate.durationTooltip')"
+              :mode="mode"
+            />
+          </div>
+          <div class="col span-6">
+            <DurationInput
+              v-model:value="value.spec.renewBefore"
+              :label="t('certManager.certificate.renewBefore')"
+              :tooltip="t('certManager.certificate.renewBeforeTooltip')"
+              :mode="mode"
+            />
+          </div>
+        </div>
+
+        <Checkbox
+          v-model:value="value.spec.isCA"
+          :label="t('certManager.certificate.isCA')"
+          :mode="mode"
+          class="mb-20"
+        />
+
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model:value="value.spec.usages"
+              :label="t('certManager.certificate.usages')"
+              :options="keyUsageOptions"
+              :multiple="true"
+              :taggable="true"
+              :mode="mode"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model:value.number="value.spec.revisionHistoryLimit"
+              type="number"
+              min="1"
+              :label="t('certManager.certificate.revisionHistoryLimit')"
+              :mode="mode"
+            />
+          </div>
+        </div>
+
+        <h3>{{ t('certManager.certificate.secretTemplate') }}</h3>
+        <KeyValue
+          :value="value.spec.secretTemplate?.labels"
+          :title="t('labels.labels.title')"
+          :mode="mode"
+          :read-allowed="false"
+          class="mb-20"
+          @update:value="v => setSecretTemplate('labels', v)"
+        />
+        <KeyValue
+          :value="value.spec.secretTemplate?.annotations"
+          :title="t('labels.annotations.title')"
+          :mode="mode"
+          :read-allowed="false"
+          @update:value="v => setSecretTemplate('annotations', v)"
+        />
+
+        <h3 class="mt-20">
+          {{ t('certManager.certificate.privateKey.label') }}
+        </h3>
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledSelect
@@ -443,51 +507,6 @@ export default {
             />
           </div>
         </div>
-      </Tab>
-
-      <Tab
-        name="advanced"
-        :label="t('certManager.certificate.tab.advanced')"
-        :weight="30"
-      >
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model:value="value.spec.usages"
-              :label="t('certManager.certificate.usages')"
-              :options="keyUsageOptions"
-              :multiple="true"
-              :taggable="true"
-              :mode="mode"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledInput
-              v-model:value.number="value.spec.revisionHistoryLimit"
-              type="number"
-              min="1"
-              :label="t('certManager.certificate.revisionHistoryLimit')"
-              :mode="mode"
-            />
-          </div>
-        </div>
-
-        <h3>{{ t('certManager.certificate.secretTemplate') }}</h3>
-        <KeyValue
-          :value="value.spec.secretTemplate?.labels"
-          :title="t('labels.labels.title')"
-          :mode="mode"
-          :read-allowed="false"
-          class="mb-20"
-          @update:value="v => setSecretTemplate('labels', v)"
-        />
-        <KeyValue
-          :value="value.spec.secretTemplate?.annotations"
-          :title="t('labels.annotations.title')"
-          :mode="mode"
-          :read-allowed="false"
-          @update:value="v => setSecretTemplate('annotations', v)"
-        />
       </Tab>
 
       <Tab

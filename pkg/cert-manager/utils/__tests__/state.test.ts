@@ -43,12 +43,24 @@ describe('fx: stateObjFor', () => {
   it('should preserve the rest of the Steve state object', () => {
     const obj = stateObjFor({ metadata: { state: { message: 'Issuing certificate', name: 'pending' } } }, 'error');
 
-    expect(obj.message).toBe('Issuing certificate');
     expect(obj.name).toBe('pending');
   });
 
+  it('should caption the resource with its own description, not Steve\'s reading of it', () => {
+    // Steve reported "Resource is Ready" on a certificate that had failed four times.
+    const resource = { metadata: { state: { message: 'Resource is Ready' } }, stateDescription: 'Issuer not found' };
+
+    expect(stateObjFor(resource, 'error').message).toBe('Issuer not found');
+  });
+
+  it('should keep the Steve message when the model has nothing to say', () => {
+    expect(stateObjFor({ metadata: { state: { message: 'Resource is Ready' } } }, 'active').message).toBe('Resource is Ready');
+  });
+
   it('should cope with a resource that has no Steve state', () => {
-    expect(stateObjFor({}, 'error')).toStrictEqual({ error: true, transitioning: false });
+    expect(stateObjFor({}, 'error')).toStrictEqual({
+      error: true, transitioning: false, message: undefined
+    });
   });
 });
 

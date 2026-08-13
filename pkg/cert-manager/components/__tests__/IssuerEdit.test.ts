@@ -41,8 +41,9 @@ describe('component: IssuerEdit', () => {
       wrapper.vm.configType = 'acme';
 
       expect(value.spec.ca).toBeUndefined();
+      // Seeded with Let's Encrypt production so the server radio lands on a sensible default
       expect(value.spec.acme).toStrictEqual({
-        server: '', privateKeySecretRef: { name: '' }, solvers: []
+        server: 'https://acme-v02.api.letsencrypt.org/directory', privateKeySecretRef: { name: '' }, solvers: []
       });
     });
 
@@ -55,6 +56,15 @@ describe('component: IssuerEdit', () => {
       const present = ['selfSigned', 'ca', 'acme', 'vault', 'venafi'].filter((type) => !!value.spec[type]);
 
       expect(present).toStrictEqual(['vault']);
+    });
+
+    it('should describe each issuer type, not just name it', () => {
+      // Most people picking an issuer type for the first time do not know a CA issuer from a
+      // self signed one.
+      const options = render().wrapper.vm.configTypeOptions;
+
+      expect(options.map((o: any) => o.value)).toStrictEqual(['selfSigned', 'ca', 'acme', 'vault', 'venafi']);
+      options.forEach((o: any) => expect(o.description).toBeTruthy());
     });
 
     it('should flag types the form does not cover', () => {

@@ -104,6 +104,43 @@ describe('model: cert-manager.io.certificate', () => {
       expect(cert.stateDescription).toBe('Issuer not found');
     });
 
+    it('should describe the failure, not the still-valid certificate', () => {
+      // A certificate can hold a valid cert from an earlier revision while the next one fails.
+      // Captioning that with the Ready message reads as "everything is fine" under a red banner.
+      const cert = certificate({}, {
+        notAfter:               iso(88),
+        failedIssuanceAttempts: 4,
+        conditions:             [
+          {
+            type: 'Ready', status: 'True', message: 'Certificate is up to date and has not expired'
+          },
+          {
+            type: 'Issuing', status: 'False', message: 'The certificate request has failed to complete'
+          },
+        ],
+      });
+
+      expect(cert.state).toBe('error');
+      expect(cert.stateDescription).toBe('The certificate request has failed to complete');
+    });
+
+    it('should not treat a not-yet-ready certificate as a failure', () => {
+      const cert = certificate({}, {
+        notAfter:   iso(88),
+        conditions: [
+          {
+            type: 'Ready', status: 'False', message: 'Issuing certificate as Secret does not exist'
+          },
+          {
+            type: 'Issuing', status: 'True', message: 'Issuing certificate'
+          },
+        ],
+      });
+
+      expect(cert.state).toBe('in-progress');
+      expect(cert.stateDescription).toBe('Issuing certificate as Secret does not exist');
+    });
+
     it('should be empty when there are no conditions', () => {
       expect(certificate().stateDescription).toBe('');
     });
@@ -175,6 +212,49 @@ describe('model: cert-manager.io.certificate', () => {
 
     it('should be null without a secretName', () => {
       expect(certificate().secretLocation).toBeNull();
+    });
+  });
+
+  describe('issuanceStages', () => {
+    const stage = (rows: any[]) => certificate({}, {}, { rows });
+    const request = (orders: any[] = []) => ({ metadata: { namespace: 'default', annotations: { 'cert-manager.io/certificate-name': 'my-cert' } }, orders });
+
+    it('should stop at the certificate when nothing has been requested yet', () => {
+      const cert = certificate();
+
+      expect(cert.issuanceStages.map((s: any) => s.labelKey)).toStrictEqual(['certManager.issuance.certificate']);
+      expect(cert.issuanceStages[0].resource).toBe(cert);
+    });
+
+    it('should stop at the request for a non-ACME issuer, which never creates an order', () => {
+      expect(stage([request()]).issuanceStages.map((s: any) => s.labelKey)).toStrictEqual([
+        'certManager.issuance.certificate',
+        'certManager.issuance.certificateRequest',
+      ]);
+    });
+
+    it('should include the order once ACME has one', () => {
+      const order = { challenges: [] };
+
+      expect(stage([request([order])]).issuanceStages.map((s: any) => s.labelKey)).toStrictEqual([
+        'certManager.issuance.certificate',
+        'certManager.issuance.certificateRequest',
+        'certManager.issuance.order',
+      ]);
+    });
+
+    it('should include the challenge, which is where a stuck issuance usually sits', () => {
+      const challenge = { id: 'c1' };
+      const order = { challenges: [challenge] };
+      const stages = stage([request([order])]).issuanceStages;
+
+      expect(stages.map((s: any) => s.labelKey)).toStrictEqual([
+        'certManager.issuance.certificate',
+        'certManager.issuance.certificateRequest',
+        'certManager.issuance.order',
+        'certManager.issuance.challenge',
+      ]);
+      expect(stages[3].resource).toBe(challenge);
     });
   });
 

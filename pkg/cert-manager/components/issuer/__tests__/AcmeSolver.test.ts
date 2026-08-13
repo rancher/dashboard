@@ -80,6 +80,13 @@ describe('component: AcmeSolver', () => {
     expect(render({ selector: { matchLabels: { a: 'b' } } }).vm.isCatchAll).toBe(false);
   });
 
+  it('should describe each challenge type, not just name it', () => {
+    const options = render({}).vm.challengeTypeOptions;
+
+    expect(options.map((o: any) => o.value)).toStrictEqual(['http01', 'dns01']);
+    options.forEach((o: any) => expect(o.description).toBeTruthy());
+  });
+
   it('should give each solver a distinct radio group name', () => {
     const first = render({}).vm.radioName;
     const second = render({}).vm.radioName;

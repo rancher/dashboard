@@ -104,7 +104,11 @@ export default {
     },
 
     configTypeOptions() {
-      return ISSUER_CONFIG_TYPES.map((value) => ({ label: this.t(`certManager.issuer.type.${ value }`), value }));
+      return ISSUER_CONFIG_TYPES.map((value) => ({
+        value,
+        label:       this.t(`certManager.issuer.type.${ value }`),
+        description: this.t(`certManager.issuer.typeDescription.${ value }`),
+      }));
     },
 
     configType: {

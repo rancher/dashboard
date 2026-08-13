@@ -73,6 +73,27 @@ describe('component: CertificateEdit', () => {
     });
   });
 
+  describe('common name disclosure', () => {
+    // A common name absent from dnsNames is rejected by the CSR check, so it is hidden behind a
+    // link with guidance rather than sitting alongside the fields most people should be using.
+    it('should stay hidden for a new certificate', () => {
+      expect(render().wrapper.vm.showCommonName).toBe(false);
+    });
+
+    it('should be revealed for a certificate that already has one', () => {
+      expect(render({ commonName: 'example.com' }, 'edit').wrapper.vm.showCommonName).toBe(true);
+    });
+
+    it('should clear the value when removed, not just hide the field', () => {
+      const { wrapper, value } = render({ commonName: 'example.com' }, 'edit');
+
+      wrapper.vm.clearCommonName();
+
+      expect(value.spec.commonName).toBeUndefined();
+      expect(wrapper.vm.showCommonName).toBe(false);
+    });
+  });
+
   describe('optional spec objects', () => {
     // They are pruned from the saved resource when empty, so the store can hand this form back a
     // spec with neither present. Reading through them directly crashed the Advanced tab.

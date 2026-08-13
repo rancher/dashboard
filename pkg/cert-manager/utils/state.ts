@@ -14,9 +14,14 @@ const TRANSITIONING_STATES: string[] = [STATES_ENUM.IN_PROGRESS];
  * `expiring` amber, `pending` blue and `active` green.
  */
 export function stateObjFor(resource: any, state: string) {
+  const steve = resource?.metadata?.state || {};
+
   return {
-    ...(resource?.metadata?.state || {}),
+    ...steve,
     error:         ERROR_STATES.includes(state),
     transitioning: TRANSITIONING_STATES.includes(state),
+    // The masthead banner prints this. Steve's message reflects its own reading of the conditions,
+    // so leaving it would caption a failing certificate with "Resource is Ready".
+    message:       resource?.stateDescription || steve.message,
   };
 }

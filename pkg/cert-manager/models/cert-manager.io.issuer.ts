@@ -87,6 +87,15 @@ export default class Issuer extends SteveModel {
     return reason && reason !== 'Ready' ? [reason, message].filter(Boolean).join(': ') : (message || '');
   }
 
+  /** "ACME (Let's Encrypt)" - the type and, for ACME, which server, in one column. */
+  get issuerTypeDisplay(): string {
+    if (this.configType !== 'acme' || !this.acmeServerDisplay) {
+      return this.configTypeDisplay;
+    }
+
+    return `${ this.configTypeDisplay } (${ this.acmeServerDisplay })`;
+  }
+
   get acmeServer(): string | undefined {
     return this.spec?.acme?.server;
   }

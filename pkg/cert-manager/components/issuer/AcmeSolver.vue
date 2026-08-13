@@ -43,10 +43,11 @@ export default {
 
   computed: {
     challengeTypeOptions() {
-      return [
-        { label: this.t('certManager.solver.http01'), value: CHALLENGE_TYPES.HTTP01 },
-        { label: this.t('certManager.solver.dns01'), value: CHALLENGE_TYPES.DNS01 },
-      ];
+      return [CHALLENGE_TYPES.HTTP01, CHALLENGE_TYPES.DNS01].map((value) => ({
+        value,
+        label:       this.t(`certManager.solver.${ value }`),
+        description: this.t(`certManager.solver.${ value }Description`),
+      }));
     },
 
     challengeType: {

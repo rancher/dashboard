@@ -25,6 +25,13 @@ certManager:
       m: Minutes
       s: Seconds
 
+  issuance:
+    title: Issuance Progress
+    certificate: Certificate
+    certificateRequest: Certificate Request
+    order: ACME Order
+    challenge: ACME Challenge
+
   tableHeaders:
     issuer: Issuer
     secret: Secret
@@ -66,6 +73,9 @@ certManager:
     addUri: Add URI
     addEmailAddress: Add Email Address
     sans: Subject Alternative Names
+    setCommonName: Set Common Name
+    commonNameHelp: Most modern deployments rely on DNS Names and leave Common Name empty. If you do set one, it must also appear in the DNS Names or IP Addresses above.
+    secretNamePlaceholder: e.g. my-tls-secret
     failedAttempts: Failed Issuance Attempts
     lastFailure: Last Failure
     plusMore: '+ {count} more'
@@ -89,7 +99,7 @@ certManager:
     validation:
       noIdentifiers: Set a common name or at least one subject alternative name.
     tab:
-      general: General
+      basics: Basics
       sans: Subject Alternative Names
       privateKey: Private Key
       advanced: Advanced
@@ -104,10 +114,21 @@ certManager:
       selfSigned: Self Signed
       vault: Vault
       venafi: Venafi
+    typeDescription:
+      acme: Request certificates from an ACME server such as Let's Encrypt.
+      ca: Sign certificates with a certificate authority stored in a Kubernetes Secret.
+      selfSigned: Issue self signed certificates without a CA. Useful for testing.
+      vault: Request certificates from a HashiCorp Vault PKI backend.
+      venafi: Request certificates from Venafi TPP or Venafi Cloud.
     selfSignedHelp: A self signed issuer signs certificates with their own private key. It needs no further configuration.
     editAsYaml: '{type} issuers have configuration that this form does not cover. Switch to YAML to edit it. Anything already configured is preserved.'
     acme:
       server: ACME Server
+      serverUrl: ACME Server URL
+      serverChoice:
+        production: Let's Encrypt (Production)
+        staging: Let's Encrypt (Staging)
+        custom: Custom ACME Server
       serverTooltip: The ACME directory URL. Pick a known provider or type your own.
       email: Email
       emailTooltip: Used by the CA to send expiry notices. Let's Encrypt strongly recommends setting it.
@@ -144,7 +165,9 @@ certManager:
     add: Add Solver
     challengeType: Challenge Type
     http01: HTTP-01
+    http01Description: Solve challenges by serving a token over an HTTP ingress.
     dns01: DNS-01
+    dns01Description: Solve challenges by creating TXT records in DNS. Required for wildcard certificates.
     ingressClassName: Ingress Class Name
     ingressClassNameTooltip: cert-manager creates a temporary Ingress with this class to serve the challenge.
     existingIngress: Existing Ingress Name

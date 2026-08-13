@@ -6,8 +6,13 @@ import CertManagerResourceTabs from './CertManagerResourceTabs.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { CERTIFICATE_HEADERS } from '../table-headers';
+import { useRelatedTypes } from '../composables/useRelatedTypes';
+import { CERT_MANAGER } from '../types';
 
 const props = defineProps<{ value: any }>();
+
+// Related resources are read from the store; a directly loaded detail page has none yet.
+useRelatedTypes([CERT_MANAGER.CERTIFICATE]);
 
 const { t } = useI18n(useStore());
 

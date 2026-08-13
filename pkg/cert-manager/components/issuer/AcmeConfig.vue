@@ -1,17 +1,17 @@
 <script>
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Banner from '@components/Banner/Banner.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import { _EDIT } from '@shell/config/query-params';
-import { WELL_KNOWN_ACME_SERVERS } from '../../form-options';
+import { RadioGroup } from '@components/Form/Radio';
+import { ACME_SERVERS, ACME_SERVER_CHOICE } from '../../form-options';
 import AcmeSolver from './AcmeSolver.vue';
 
 export default {
   name:       'AcmeConfig',
   components: {
-    AcmeSolver, ArrayListGrouped, Banner, Checkbox, LabeledInput, LabeledSelect
+    AcmeSolver, ArrayListGrouped, Banner, Checkbox, LabeledInput, RadioGroup
   },
 
   props: {
@@ -37,8 +37,35 @@ export default {
   },
 
   computed: {
-    serverOptions() {
-      return WELL_KNOWN_ACME_SERVERS;
+    serverChoiceOptions() {
+      return Object.values(ACME_SERVER_CHOICE).map((value) => ({
+        value,
+        label: this.t(`certManager.issuer.acme.serverChoice.${ value }`),
+      }));
+    },
+
+    /** Derived from the URL so an issuer authored in YAML still lands on the right option. */
+    serverChoice: {
+      get() {
+        if (this.value.server === ACME_SERVERS.PRODUCTION) {
+          return ACME_SERVER_CHOICE.PRODUCTION;
+        }
+
+        return this.value.server === ACME_SERVERS.STAGING ? ACME_SERVER_CHOICE.STAGING : ACME_SERVER_CHOICE.CUSTOM;
+      },
+      set(choice) {
+        if (choice === ACME_SERVER_CHOICE.PRODUCTION) {
+          this.value.server = ACME_SERVERS.PRODUCTION;
+        } else if (choice === ACME_SERVER_CHOICE.STAGING) {
+          this.value.server = ACME_SERVERS.STAGING;
+        } else {
+          this.value.server = '';
+        }
+      },
+    },
+
+    isCustomServer() {
+      return this.serverChoice === ACME_SERVER_CHOICE.CUSTOM;
     },
 
     secretNamespaceTooltip() {
@@ -50,15 +77,23 @@ export default {
 
 <template>
   <div>
+    <RadioGroup
+      v-model:value="serverChoice"
+      name="acmeServerChoice"
+      :label="t('certManager.issuer.acme.server')"
+      :options="serverChoiceOptions"
+      :mode="mode"
+      class="mb-20"
+    />
+
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledSelect
+        <LabeledInput
           v-model:value="value.server"
-          :label="t('certManager.issuer.acme.server')"
+          :label="t('certManager.issuer.acme.serverUrl')"
           :tooltip="t('certManager.issuer.acme.serverTooltip')"
-          :options="serverOptions"
-          :taggable="true"
           :mode="mode"
+          :disabled="!isCustomServer"
           required
         />
       </div>

@@ -119,7 +119,15 @@ export default class Certificate extends SteveModel {
   }
 
   get stateDescription(): string {
-    return this.readyCondition?.message || this.issuingCondition?.message || '';
+    // Prefer whichever condition is actually failing. A certificate can hold a valid, unexpired
+    // cert from an earlier revision - Ready=True, "up to date and has not expired" - while the
+    // next revision fails to issue, and captioning the error with the Ready message is misleading.
+    //
+    // Reads `state` rather than `stateObj`, which would recurse: stateObj takes its message here.
+    const failing = (this.status?.conditions || [])
+      .find((c: Condition) => isFailingCondition(c, this.state === STATES_ENUM.ERROR));
+
+    return failing?.message || this.readyCondition?.message || this.issuingCondition?.message || '';
   }
 
   get issuerLocation() {
@@ -138,6 +146,37 @@ export default class Certificate extends SteveModel {
     const rest = [...dnsNames, ...ipAddresses, ...uris].filter((n: string) => n !== commonName);
 
     return commonName ? [commonName, ...rest] : rest;
+  }
+
+  /**
+   * The issuance chain for the current revision, as far as it has progressed. Orders and
+   * Challenges only exist for ACME issuers, so the chain is as short as two stages.
+   */
+  get issuanceStages(): { labelKey: string; resource: any }[] {
+    const stages = [{ labelKey: 'certManager.issuance.certificate', resource: this }];
+    const [request] = this.certificateRequests;
+
+    if (!request) {
+      return stages;
+    }
+
+    stages.push({ labelKey: 'certManager.issuance.certificateRequest', resource: request });
+
+    const [order] = request.orders || [];
+
+    if (!order) {
+      return stages;
+    }
+
+    stages.push({ labelKey: 'certManager.issuance.order', resource: order });
+
+    const [challenge] = order.challenges || [];
+
+    if (challenge) {
+      stages.push({ labelKey: 'certManager.issuance.challenge', resource: challenge });
+    }
+
+    return stages;
   }
 
   /** Every subject alternative name, in the order cert-manager lists them. */

@@ -89,16 +89,8 @@ const ISSUER_COMMON_HEADERS: TableHeader[] = [
   {
     name:        'configType',
     labelKey:    'certManager.tableHeaders.type',
-    getValue:    (row: any) => row.configTypeDisplay,
+    getValue:    (row: any) => row.issuerTypeDisplay,
     sort:        false,
-    search:      false,
-    dashIfEmpty: true,
-  },
-  {
-    name:        'acmeServer',
-    labelKey:    'certManager.tableHeaders.acmeServer',
-    getValue:    (row: any) => row.acmeServerDisplay,
-    sort:        ['spec.acme.server'],
     search:      ['spec.acme.server'],
     dashIfEmpty: true,
   },

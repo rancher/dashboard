@@ -70,7 +70,7 @@ export const ISSUER_CONFIG_DEFAULTS: Record<IssuerConfigType, () => Record<strin
   selfSigned: () => ({}),
   ca:         () => ({ secretName: '' }),
   acme:       () => ({
-    server: '', privateKeySecretRef: { name: '' }, solvers: []
+    server: ACME_SERVERS.PRODUCTION, privateKeySecretRef: { name: '' }, solvers: []
   }),
   vault: () => ({
     server: '', path: '', auth: {}
@@ -78,12 +78,21 @@ export const ISSUER_CONFIG_DEFAULTS: Record<IssuerConfigType, () => Record<strin
   venafi: () => ({ zone: '' }),
 };
 
-export const WELL_KNOWN_ACME_SERVERS = [
-  { label: 'Let\'s Encrypt', value: 'https://acme-v02.api.letsencrypt.org/directory' },
-  { label: 'Let\'s Encrypt (Staging)', value: 'https://acme-staging-v02.api.letsencrypt.org/directory' },
-  { label: 'ZeroSSL', value: 'https://acme.zerossl.com/v2/DV90' },
-  { label: 'Buypass', value: 'https://api.buypass.com/acme/directory' },
-];
+/**
+ * Production vs staging is the most consequential ACME choice - staging exists precisely so you
+ * do not burn production rate limits - so the two are offered explicitly rather than as URLs in
+ * a dropdown.
+ */
+export const ACME_SERVERS = {
+  PRODUCTION: 'https://acme-v02.api.letsencrypt.org/directory',
+  STAGING:    'https://acme-staging-v02.api.letsencrypt.org/directory',
+} as const;
+
+export const ACME_SERVER_CHOICE = {
+  PRODUCTION: 'production',
+  STAGING:    'staging',
+  CUSTOM:     'custom',
+} as const;
 
 export const CHALLENGE_TYPES = {
   HTTP01: 'http01',
