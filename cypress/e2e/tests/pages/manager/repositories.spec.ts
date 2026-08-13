@@ -144,6 +144,13 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can refresh a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    // Reload to pick up the repo's latest resourceVersion before refreshing. On a Cypress retry the
+    // previous attempt already refreshed (and bumped) the repo, so the list's cached copy is stale and
+    // the Refresh PUT comes back 409 (conflict) instead of 200. A fresh load avoids that poisoned-retry
+    // conflict. Wait for the row to render before opening its action menu.
+    cy.reload();
+    repositoriesPage.waitForPage();
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`).as('refreshRepo');
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click({ force: true });
     cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
