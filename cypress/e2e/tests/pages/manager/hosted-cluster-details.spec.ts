@@ -191,9 +191,10 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('aks-mock-cluster').find('a').should('be.visible')
-      .click();
-    aksDetailsPage.waitForPage();
+    // Use the shared open helper (like the EKS/GKE tests) so the intermittent SPA-mount bug - where
+    // the tabbed component never renders on a given page load - is recovered by re-navigation instead
+    // of failing outright with "[data-testid=tabbed] not found".
+    openHostedClusterDetail(clusterList, 'aks-mock-cluster', aksDetailsPage);
 
     assertHasTab(aksDetailsPage, 'Node Pools');
 
