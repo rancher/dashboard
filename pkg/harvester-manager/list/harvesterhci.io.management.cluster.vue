@@ -252,7 +252,7 @@ export default {
       } : {
         name:   'suse-virtualization.svg',
         height: 36
-      }
+      };
     },
   },
 
