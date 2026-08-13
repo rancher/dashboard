@@ -208,96 +208,99 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // Derive the jobs count from a stable filtered read rather than assuming
       // jobNamesList.length + 1 - the list can render more than the test created (e.g. 26 vs 23)
       // while resources are still propagating, which a hardcoded total disagrees with.
-      cy.waitForRancherResources('v1', 'batch.job', jobNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
-        // Derive the actual number of jobs in the two filtered namespaces instead of assuming
-        // exactly jobNamesList.length + 1; the cluster can briefly hold an extra resource, which makes a
-        // hardcoded count disagree with the UI.
-        const count = resp.body.data.filter((r: any) => [nsName1, nsName2].includes(r.metadata?.namespace)).length;
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      jobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-        // pagination is visible
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkVisible();
+      // pagination is visible
+      jobsListPage.list().resourceTable().sortableTable().pagination()
+        .checkVisible();
 
+      jobsListPage.list().resourceTable().sortableTable().pagination()
+        .paginationTotalCount()
+        .then((count: number) => {
         // basic checks on navigation buttons
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .isEnabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .isEnabled();
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
 
-        // check text before navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
+          // check text before navigation
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
 
-        // navigate to next page - right button
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .click();
+          // navigate to next page - right button
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
 
-        // check text and buttons after navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`11 - 20 of ${ count } Jobs`);
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isEnabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isEnabled();
+          // check text and buttons after navigation
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`11 - 20 of ${ count } Jobs`);
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
 
-        // navigate to first page - left button
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .click();
+          // navigate to first page - left button
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
 
-        // check text and buttons after navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
+          // check text and buttons after navigation
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
 
-        // navigate to last page - end button
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .scrollIntoView()
-          .click();
+          // navigate to last page - end button
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
+            .click();
 
-        // row count on last page
-        let lastPageCount = count % 10;
+          // row count on last page
+          let lastPageCount = count % 10;
 
-        if (lastPageCount === 0) {
-          lastPageCount = 10;
-        }
+          if (lastPageCount === 0) {
+            lastPageCount = 10;
+          }
 
-        // check text after navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
+          // check text after navigation
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Jobs`);
 
-        // navigate to first page - beginning button
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .click();
+          // navigate to first page - beginning button
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
 
-        // check text and buttons after navigation
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        jobsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-      });
+          // check text and buttons after navigation
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } Jobs`);
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          jobsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+        });
     });
 
     it('sorting changes the order of paginated jobs data', () => {
