@@ -91,6 +91,11 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
 
       waitForClusterOutputType();
 
+      // The API now serves ClusterOutput, but the product side-nav is built from the schema list
+      // cached when the cluster loaded - before this CRD existed - so the 'ClusterOutput' nav entry
+      // is still absent. Reload to force a fresh schema fetch so the entry renders before we nav to it.
+      cy.reload();
+
       LoggingClusteroutputListPagePo.navTo();
       loggingOutputList.waitForPage();
       loggingOutputList.baseResourceList().masthead().create();
