@@ -2,9 +2,9 @@ import {
   NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW, FROM_TOOLS, _FLAGGED
 } from '@shell/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@shell/config/labels-annotations';
-import { compare, isPrerelease, sortable } from '@shell/utils/version';
+import { compare, sortable } from '@shell/utils/version';
 import { filterBy } from '@shell/utils/array';
-import { CATALOG, MANAGEMENT, NORMAN, SECRET } from '@shell/config/types';
+import { CATALOG, SECRET } from '@shell/config/types';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
 
@@ -147,13 +147,7 @@ export default class CatalogApp extends SteveModel {
     const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
     const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
 
-    let versions = chart.versions;
-
-    if (!showPreRelease) {
-      versions = chart.versions.filter((v) => !isPrerelease(v.version));
-    }
-
-    versions = compatibleVersionsFor(chart, workerOSs, showPreRelease);
+    const versions = compatibleVersionsFor(chart, workerOSs, showPreRelease);
 
     const newestChart = versions?.[0];
     const newestVersion = newestChart?.version;
@@ -342,47 +336,6 @@ export default class CatalogApp extends SteveModel {
 
   get deployedResources() {
     return filterBy(this.metadata?.relationships || [], 'rel', 'helmresource');
-  }
-
-  get deployedAsMultiCluster() {
-    return async() => {
-      try {
-        const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true })
-          .catch(() => {
-            throw new Error("You don't have permission to list multi-cluster apps");
-          });
-
-        if (mcapps) {
-          return mcapps.find((mcapp) => mcapp.spec?.targets?.find((target) => target.appName === this.metadata?.name));
-        }
-      } catch (e) {}
-
-      return false;
-    };
-  }
-
-  async deployedAsLegacy() {
-    await this.fetchValues();
-
-    if (this.values?.global) {
-      const { clusterName, projectName } = this.values.global;
-
-      if (clusterName && projectName) {
-        try {
-          const legacyApp = await this.$dispatch('rancher/find', {
-            type: NORMAN.APP,
-            id:   `${ projectName }:${ this.metadata?.name }`,
-            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
-          }, { root: true });
-
-          if (legacyApp) {
-            return legacyApp;
-          }
-        } catch (e) {}
-      }
-    }
-
-    return false;
   }
 
   /**

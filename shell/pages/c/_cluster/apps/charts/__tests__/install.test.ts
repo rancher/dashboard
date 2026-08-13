@@ -440,11 +440,9 @@ describe('page: Install', () => {
   describe('fetch() pull secret pre-selection', () => {
     const createFetchWrapper = (overrides: Record<string, any> = {}) => {
       const existingMock = overrides.existing ? {
-        metadata:               overrides.existing.metadata || { namespace: 'default', name: 'release' },
-        fetchValues:            jest.fn().mockResolvedValue(undefined),
-        deployedAsLegacy:       jest.fn().mockResolvedValue(false),
-        deployedAsMultiCluster: jest.fn().mockResolvedValue(false),
-        values:                 overrides.chartValues?.global ? overrides.chartValues : {},
+        metadata:    overrides.existing.metadata || { namespace: 'default', name: 'release' },
+        fetchValues: jest.fn().mockResolvedValue(undefined),
+        values:      overrides.chartValues?.global ? overrides.chartValues : {},
       } : null;
 
       const wrapper = mountInstall({

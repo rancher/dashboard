@@ -1,6 +1,5 @@
 <script>
 import difference from 'lodash/difference';
-import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { set, get } from '@shell/utils/object';
@@ -8,7 +7,6 @@ import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
-import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
 import Ingress from '@shell/edit/provisioning.cattle.io.cluster/tabs/Ingress';
 import {
@@ -113,14 +111,7 @@ export default {
       type:     Array,
       required: true
     },
-    isAzureProviderUnsupported: {
-      type:     Boolean,
-      required: true
-    },
-    canAzureMigrateOnEdit: {
-      type:     Boolean,
-      required: true
-    },
+
     originalIngressController: {
       type:     [String, Array],
       required: false,
@@ -142,8 +133,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ features: 'features/get' }),
-
     serverConfig() {
       return this.value.spec.rkeConfig.machineGlobalConfig;
     },
@@ -344,17 +333,6 @@ export default {
       return name === 'rancher-vsphere';
     },
 
-    showk8sLegacyWarning() {
-      const isLegacyEnabled = this.features(LEGACY);
-
-      if (!isLegacyEnabled) {
-        return false;
-      }
-      const selectedVersion = semver.coerce(this.value.spec.kubernetesVersion);
-
-      return semver.satisfies(selectedVersion, '>=1.21.0');
-    },
-
     ciliumBandwidthManager: {
       get() {
         // eslint-disable-next-line no-unused-vars
@@ -385,14 +363,6 @@ export default {
       return this.chartVersionKey(RKE2_TRAEFIK);
     },
 
-    canNotEditCloudProvider() {
-      if (!this.isEdit) {
-        return false;
-      }
-
-      return !this.canAzureMigrateOnEdit;
-    },
-
     /**
      * Display warning about additional configuration needed for cloud provider Amazon if kube >= 1.27
      */
@@ -400,19 +370,6 @@ export default {
       return !!semver.gte(this.value.spec.kubernetesVersion, 'v1.27.0') && this.agentConfig?.['cloud-provider-name'] === 'aws';
     },
 
-    /**
-     * Display warning about unsupported Azure provider if k8s >= 1.30
-     */
-    showCloudProviderUnsupportedAzureWarning() {
-      return this.showCloudProvider && this.isCreate && this.isAzureProviderUnsupported;
-    },
-
-    /**
-     * Display warning about Azure provider migration from k8s versions >= 1.27 to External provider
-     */
-    showCloudProviderMigrateAzureWarning() {
-      return this.showCloudProvider && this.isEdit && this.canAzureMigrateOnEdit;
-    },
     showIngress() {
       return !this.value?.isK3s;
     }
@@ -439,31 +396,12 @@ export default {
       :label="t('cluster.banner.haveArgInfo')"
     />
     <Banner
-      v-if="showk8sLegacyWarning"
-      color="warning"
-      :label="t('cluster.legacyWarning')"
-    />
-    <Banner
       v-if="isHarvesterDriver && isHarvesterIncompatible && showCloudProvider"
       color="warning"
     >
       <span
         v-clean-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
       />
-    </Banner>
-    <Banner
-      v-if="showCloudProviderUnsupportedAzureWarning"
-      color="warning"
-      data-testid="clusterBasics__showCloudProviderUnsupportedAzureWarning"
-    >
-      <span v-clean-html="t('cluster.banner.cloudProviderUnsupportedAzure', {}, true)" />
-    </Banner>
-    <Banner
-      v-if="showCloudProviderMigrateAzureWarning"
-      color="warning"
-      data-testid="clusterBasics__showCloudProviderMigrateAzureWarning"
-    >
-      <span v-clean-html="t('cluster.banner.cloudProviderMigrateAzure', {}, true)" />
     </Banner>
     <Banner
       v-if="showCloudProviderAmazonAdditionalConfigWarning"
@@ -506,7 +444,6 @@ export default {
           v-model:value="agentConfig['cloud-provider-name']"
           data-testid="clusterBasics__cloudProvider"
           :mode="mode"
-          :disabled="canNotEditCloudProvider"
           :options="cloudProviderOptions"
           :label="t('cluster.rke2.cloudProvider.label')"
         />

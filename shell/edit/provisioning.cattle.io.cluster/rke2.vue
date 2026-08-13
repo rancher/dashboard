@@ -97,8 +97,6 @@ const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 const REGISTRIES_TAB_NAME = 'registry';
 const INIT_HOOKS = '_initHooks';
 
-const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
-
 export default {
   emits: ['update:value', 'input'],
 
@@ -401,7 +399,6 @@ export default {
       const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
-      const isAzure = this.agentConfig?.['cloud-provider-name'] === 'azure';
 
       let allValidRke2Versions = getAllOptionsAfterCurrentVersion(this.$store, this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
       let allValidK3sVersions = getAllOptionsAfterCurrentVersion(this.$store, this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
@@ -412,11 +409,6 @@ export default {
         // opts in to showing deprecated versions, we don't filter them.
         allValidRke2Versions = filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
         allValidK3sVersions = filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
-      }
-
-      if (isAzure) {
-        allValidRke2Versions = allValidRke2Versions.filter((v) => !isAzureK8sUnsupported(v.value));
-        allValidK3sVersions = allValidK3sVersions.filter((v) => !isAzureK8sUnsupported(v.value));
       }
 
       const showRke2 = allValidRke2Versions.length && !existingK3s;
@@ -712,33 +704,28 @@ export default {
 
     cloudProviderOptions() {
       const out = [{
-        label:    this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
-        value:    '',
-        disabled: this.canAzureMigrateOnEdit
+        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value: '',
       }];
 
       if (!!this.agentArgs['cloud-provider-name']?.options) {
         const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
         for (const opt of this.agentArgs['cloud-provider-name']?.options) {
+          // Azure in-tree cloud provider has been deprecated and is no longer supported in RKE2. It is being removed from the list of cloud provider options.
+          if (opt === 'azure') {
+            continue;
+          }
+
           // If we don't have a preferred provider... show all options
           const showAllOptions = preferred === undefined;
           // If we have a preferred provider... only show default, preferred and external
           const isPreferred = opt === preferred;
           const isExternal = opt === 'external';
-          const isAzure = opt === 'azure';
 
           let disabled = false;
 
           if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
-            disabled = true;
-          }
-
-          if (isAzure && isAzureK8sUnsupported(this.value.spec.kubernetesVersion)) {
-            disabled = true;
-          }
-
-          if (!isAzure && !isExternal && this.canAzureMigrateOnEdit) {
             disabled = true;
           }
 
@@ -759,25 +746,6 @@ export default {
       }
 
       return out;
-    },
-
-    isAzureProviderUnsupported() {
-      const isAzureAvailable = !!this.cloudProviderOptions.find((p) => p.value === 'azure');
-      const isAzureSelected = this.agentConfig['cloud-provider-name'] === 'azure';
-
-      return isAzureAvailable && (isAzureK8sUnsupported(this.value.spec.kubernetesVersion) || isAzureSelected);
-    },
-
-    canAzureMigrateOnEdit() {
-      if (!this.isEdit) {
-        return false;
-      }
-
-      const isAzureLiveProvider = this.liveValue.agentConfig['cloud-provider-name'] === 'azure';
-
-      return isAzureLiveProvider &&
-        semver.gte(this.liveValue?.spec?.kubernetesVersion, '1.27.0') &&
-        semver.lt(this.liveValue?.spec?.kubernetesVersion, '1.30.0');
     },
 
     canManageMembers() {
@@ -2758,8 +2726,6 @@ export default {
               :show-cni="showCni"
               :show-cloud-provider="showCloudProvider"
               :cloud-provider-options="cloudProviderOptions"
-              :is-azure-provider-unsupported="isAzureProviderUnsupported"
-              :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
               :has-some-ipv6-pools="hasOnlyIpv6Pools"
               :original-ingress-controller="originalIngressController"
               @update:value="$emit('input', $event)"

@@ -1304,16 +1304,6 @@ catalog:
       requiresMissing: 'This chart requires another chart that provides {name}, but none was found.'
       insufficientCpu: 'This chart requires {need, number} CPU cores, but the cluster only has {have, number} available.'
       insufficientMemory: 'This chart requires {need} of memory, but the cluster only has {have} available.'
-      legacy:
-        label: This is a {legacyType} App and it cannot be modified here
-        enableLegacy:
-          prompt: You will need to enable Legacy Features to edit this App
-          goto: Go to Feature Flag settings
-        navigate: Navigate to Legacy Apps
-        mcmNotSupported: Legacy Multi-cluster Apps can not be managed through this UI
-        category:
-          legacy: Legacy
-          mcm: Multi-cluster
     header:
       install: 'Install {name}'
       installGeneric: Install Chart
@@ -1894,7 +1884,6 @@ cluster:
     manual: (manually upgraded)
     deprecatedPatches: Show deprecated Kubernetes patch versions
     deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
-  legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
   log:
     connecting: Connecting…
     noData: There are no provisioning log entries.
@@ -2338,8 +2327,6 @@ cluster:
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the <b>Amazon</b> Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
-    cloudProviderUnsupportedAzure: 'On Kubernetes 1.30 or greater, the <b>Azure</b> Cloud Provider has been removed. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/azure" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
-    cloudProviderMigrateAzure: 'On Kubernetes 1.30 or greater, the <b>Azure</b> Cloud Provider has been removed. To upgrade Kubernetes, the cluster should be migrated to External provider first.<br> See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/azure" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
     machinePoolError: |-
       {count, plural,
         =1 { {pool_name}: The provided value for {fields} was not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
