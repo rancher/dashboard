@@ -483,6 +483,8 @@ addonConfigConfirmation:
 
 addProjectMemberDialog:
   title: Add Project Member
+  duplicateRolesError: This member already has all of the selected roles in this project. No new assignments were created.
+  duplicateRolesSkipped: "One or more selected roles were skipped because they are already assigned to this member in this project."
 
 authConfig:
   slo:
