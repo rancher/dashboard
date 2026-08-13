@@ -66,17 +66,14 @@ certManager:
     addUri: Add URI
     addEmailAddress: Add Email Address
     sans: Subject Alternative Names
+    failedAttempts: Failed Issuance Attempts
+    lastFailure: Last Failure
     plusMore: '+ {count} more'
     sansHelp: A certificate needs at least one identifier - a common name or a subject alternative name.
     noIssuersInNamespace: 'There are no Issuers in the {namespace} namespace. An Issuer must live in the same namespace as the certificate it signs - create one there, or use a Cluster Issuer instead.'
     usages: Key Usages
     revisionHistoryLimit: Revision History Limit
     secretTemplate: Secret Template
-    failedIssuance: |-
-      {count, plural,
-        one { Issuance has failed once. }
-        other { Issuance has failed # times. }
-      } Last failure: {time}
     issuerKind:
       label: Issuer Scope
       issuer: Issuer (this namespace)

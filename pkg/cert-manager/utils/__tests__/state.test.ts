@@ -1,5 +1,6 @@
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { stateObjFor } from '../state';
+import { isFailingCondition } from '../conditions';
 
 /** What the badge ultimately renders: `stateColor` on the model, minus the `text-` prefix. */
 const colorOf = (state: string, steveState: any = {}) => {
@@ -48,5 +49,41 @@ describe('fx: stateObjFor', () => {
 
   it('should cope with a resource that has no Steve state', () => {
     expect(stateObjFor({}, 'error')).toStrictEqual({ error: true, transitioning: false });
+  });
+});
+
+describe('fx: isFailingCondition', () => {
+  const condition = (type: string, status: string) => ({ type, status } as any);
+
+  it.each([
+    ['Failed', 'Failed'],
+    ['Denied', 'Denied'],
+    ['InvalidRequest', 'InvalidRequest'],
+  ])('should treat %s=True as a failure regardless of the resource state', (_label, type) => {
+    expect(isFailingCondition(condition(type, 'True'), false)).toBe(true);
+  });
+
+  it.each([
+    ['Failed'],
+    ['Denied'],
+  ])('should not treat %s=False as a failure', (type) => {
+    expect(isFailingCondition(condition(type, 'False'), true)).toBe(false);
+  });
+
+  it('should flag Ready=False once the resource is in an error state', () => {
+    expect(isFailingCondition(condition('Ready', 'False'), true)).toBe(true);
+  });
+
+  it('should leave Ready=False alone while the resource is merely issuing', () => {
+    // A certificate part way through issuance legitimately reports Ready=False.
+    expect(isFailingCondition(condition('Ready', 'False'), false)).toBe(false);
+  });
+
+  it('should never flag a condition that is True', () => {
+    expect(isFailingCondition(condition('Ready', 'True'), true)).toBe(false);
+  });
+
+  it('should cope with a missing condition', () => {
+    expect(isFailingCondition(undefined as any, true)).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { CERT_MANAGER } from '../types';
-import { Condition, conditionOf } from '../utils/conditions';
+import { Condition, conditionOf, isFailingCondition } from '../utils/conditions';
 import { issuerRefLocation } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
@@ -58,6 +58,23 @@ export default class CertificateRequest extends SteveModel {
     }
 
     return this.isApproved ? STATES_ENUM.IN_PROGRESS : STATES_ENUM.PENDING;
+  }
+
+  /** Conditions the shell should render as errors - see isFailingCondition. */
+  get conditionsHaveIssues(): boolean {
+    return (this.status?.conditions || []).some((c: Condition) => isFailingCondition(c, this.stateObj.error));
+  }
+
+  get resourceConditions(): any[] {
+    const conditions = this.status?.conditions || [];
+
+    return super.resourceConditions.map((row: any, i: number) => {
+      const error = isFailingCondition(conditions[i], this.stateObj.error);
+
+      return {
+        ...row, error, stateSimpleColor: error ? 'error' : 'disabled'
+      };
+    });
   }
 
   /** Keeps the badge colour in step with the state this model computes - see stateObjFor. */

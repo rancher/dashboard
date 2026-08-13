@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
+import CertManagerResourceTabs from './CertManagerResourceTabs.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { CERTIFICATE_HEADERS } from '../table-headers';
@@ -17,7 +17,7 @@ const isAcme = computed(() => props.value.configType === 'acme');
 
 <template>
   <div>
-    <ResourceTabs :value="value">
+    <CertManagerResourceTabs :value="value">
       <Tab
         v-if="isAcme"
         name="solvers"
@@ -72,7 +72,7 @@ const isAcme = computed(() => props.value.configType === 'acme');
           :groupable="false"
         />
       </Tab>
-    </ResourceTabs>
+    </CertManagerResourceTabs>
   </div>
 </template>
 

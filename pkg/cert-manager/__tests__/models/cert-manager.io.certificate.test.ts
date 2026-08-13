@@ -236,6 +236,8 @@ describe('model: cert-manager.io.certificate', () => {
         'certManager.certificate.notAfter',
         'certManager.certificate.renewalTime',
         'certManager.certificate.duration',
+        'certManager.certificate.failedAttempts',
+        'certManager.certificate.lastFailure',
         'certManager.certificate.privateKey.label',
         'certManager.certificate.privateKey.rotationPolicy',
       ]);

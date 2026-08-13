@@ -3,7 +3,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { SECRET } from '@shell/config/types';
 import { CERT_MANAGER } from '../types';
-import { Condition, conditionOf } from '../utils/conditions';
+import { Condition, conditionOf, isFailingCondition } from '../utils/conditions';
 import { issuerRefLocation } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
@@ -94,6 +94,23 @@ export default class Certificate extends SteveModel {
     }
 
     return STATES_ENUM.PENDING;
+  }
+
+  /** Conditions the shell should render as errors - see isFailingCondition. */
+  get conditionsHaveIssues(): boolean {
+    return (this.status?.conditions || []).some((c: Condition) => isFailingCondition(c, this.stateObj.error));
+  }
+
+  get resourceConditions(): any[] {
+    const conditions = this.status?.conditions || [];
+
+    return super.resourceConditions.map((row: any, i: number) => {
+      const error = isFailingCondition(conditions[i], this.stateObj.error);
+
+      return {
+        ...row, error, stateSimpleColor: error ? 'error' : 'disabled'
+      };
+    });
   }
 
   /** Keeps the badge colour in step with the state this model computes - see stateObjFor. */
@@ -204,6 +221,16 @@ export default class Certificate extends SteveModel {
         formatter: 'LiveDate',
       },
       { label: this.t('certManager.certificate.duration'), content: this.spec?.duration },
+      {
+        label:   this.t('certManager.certificate.failedAttempts'),
+        content: this.status?.failedIssuanceAttempts,
+      },
+      {
+        label:         this.t('certManager.certificate.lastFailure'),
+        content:       this.status?.lastFailureTime,
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
+      },
       { separator: true },
       { label: this.t('certManager.certificate.privateKey.label'), content: this.privateKeyDisplay },
       { label: this.t('certManager.certificate.privateKey.rotationPolicy'), content: this.spec?.privateKey?.rotationPolicy },
