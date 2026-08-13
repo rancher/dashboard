@@ -331,13 +331,27 @@ export default {
         />
 
         <!--
-          Common name is hidden behind a link: a CN that is not also in dnsNames is rejected by the
-          CSR check, and most deployments should simply leave it empty.
+          Common name is hidden behind a button: a CN that is not also in dnsNames is rejected by
+          the CSR check, and most deployments should simply leave it empty. Laid out to match the
+          ArrayList sections around it - heading with an info tooltip, then an unadorned tertiary
+          add button, since ArrayList defaults `addIcon` to none.
         -->
-        <h3>{{ t('certManager.certificate.commonName') }}</h3>
+        <div
+          class="clearfix"
+          role="group"
+        >
+          <h3>
+            {{ t('certManager.certificate.commonName') }}
+            <i
+              v-clean-tooltip="{ content: t('certManager.certificate.commonNameHelp'), triggers: ['hover', 'touch', 'focus'] }"
+              class="icon icon-info"
+              tabindex="0"
+            />
+          </h3>
+        </div>
         <div
           v-if="showCommonName"
-          class="row mb-10"
+          class="row mb-20"
         >
           <div class="col span-6">
             <LabeledInput
@@ -348,22 +362,28 @@ export default {
             />
           </div>
           <div class="col span-6 mt-10">
-            <a
+            <button
               v-if="!isView"
-              href="#"
-              @click.prevent="clearCommonName"
-            >{{ t('generic.remove') }}</a>
+              type="button"
+              class="btn role-link"
+              @click="clearCommonName"
+            >
+              {{ t('generic.remove') }}
+            </button>
           </div>
         </div>
-        <a
+        <div
           v-else-if="!isView"
-          href="#"
-          class="mb-10 inline-block"
-          @click.prevent="showCommonName = true"
-        >{{ t('certManager.certificate.setCommonName') }}</a>
-        <p class="text-muted mb-20">
-          {{ t('certManager.certificate.commonNameHelp') }}
-        </p>
+          class="footer mmt-6 mb-20"
+        >
+          <button
+            type="button"
+            class="btn role-tertiary add"
+            @click="showCommonName = true"
+          >
+            {{ t('certManager.certificate.addCommonName') }}
+          </button>
+        </div>
 
         <ArrayList
           v-model:value="value.spec.ipAddresses"

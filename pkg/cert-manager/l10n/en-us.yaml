@@ -73,7 +73,7 @@ certManager:
     addUri: Add URI
     addEmailAddress: Add Email Address
     sans: Subject Alternative Names
-    setCommonName: Set Common Name
+    addCommonName: Add Common Name
     commonNameHelp: Most modern deployments rely on DNS Names and leave Common Name empty. If you do set one, it must also appear in the DNS Names or IP Addresses above.
     secretNamePlaceholder: e.g. my-tls-secret
     failedAttempts: Failed Issuance Attempts
