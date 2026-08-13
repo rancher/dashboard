@@ -16,21 +16,6 @@ const { t } = useI18n(useStore());
 
 const csr = computed(() => props.value.csrInfo);
 
-const summary = computed<SummaryItem[]>(() => [
-  {
-    label: t('certManager.certificateRequest.certificate'),
-    value: props.value.ownerCertificateName,
-    to:    props.value.ownerCertificateLocation,
-  },
-  {
-    label: t('certManager.tableHeaders.issuer'),
-    value: props.value.spec?.issuerRef?.name,
-    to:    props.value.issuerLocation,
-  },
-  { label: t('certManager.tableHeaders.revision'), value: props.value.revision },
-  { label: t('certManager.certificate.duration'), value: props.value.spec?.duration },
-]);
-
 const csrSummary = computed<SummaryItem[]>(() => [
   { label: t('certManager.certificateRequest.subject'), value: csr.value?.subject },
   { label: t('certManager.certificateRequest.signatureAlgorithm'), value: csr.value?.signatureAlgorithm },
@@ -52,8 +37,6 @@ const csrIdentifiers = computed(() => [
       :label="value.deniedCondition?.message || t('certManager.certificateRequest.denied')"
     />
 
-    <DetailSummary :items="summary" />
-
     <ResourceTabs :value="value">
       <Tab
         name="csr"
@@ -68,7 +51,6 @@ const csrIdentifiers = computed(() => [
         <template v-else>
           <DetailSummary
             :items="csrSummary"
-            :span="6"
           />
           <div
             v-for="group in csrIdentifiers"

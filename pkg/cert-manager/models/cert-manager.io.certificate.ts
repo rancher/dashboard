@@ -6,6 +6,7 @@ import { CERT_MANAGER } from '../types';
 import { Condition, conditionOf } from '../utils/conditions';
 import { issuerRefLocation } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
+import { relatedTo } from '../utils/issuance';
 import { CertificateSpec, CertificateStatus, ObjectMeta } from '../schema';
 
 /** Matches cert-manager's own default `renewBefore` of two thirds of the certificate lifetime. */
@@ -117,9 +118,55 @@ export default class Certificate extends SteveModel {
   }
 
   get certificateRequests() {
-    const all = this.$rootGetters['cluster/all'](CERT_MANAGER.CERTIFICATE_REQUEST) || [];
+    return relatedTo(this.$rootGetters['cluster/all'](CERT_MANAGER.CERTIFICATE_REQUEST) || [], this);
+  }
 
-    return all.filter((cr: any) => (cr.metadata?.ownerReferences || []).some((o: any) => o.uid === this.metadata?.uid));
+  /**
+   * Rendered by DetailTop in the masthead, alongside labels and annotations. Entries with empty
+   * content are dropped there, so optional fields need no guarding here.
+   */
+  get details(): any[] {
+    return [
+      ...super.details,
+      {
+        label:         this.t('certManager.tableHeaders.issuer'),
+        content:       this.spec?.issuerRef?.name,
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.issuerLocation, row: {}, options: { internal: true }
+        },
+      },
+      {
+        label:         this.t('certManager.tableHeaders.secret'),
+        content:       this.spec?.secretName,
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.secretLocation, row: {}, options: { internal: true }
+        },
+      },
+      { label: this.t('certManager.certificate.commonName'), content: this.spec?.commonName },
+      { label: this.t('certManager.certificate.revision'), content: this.status?.revision },
+      { separator: true },
+      {
+        label:         this.t('certManager.certificate.notBefore'),
+        content:       this.status?.notBefore,
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
+      },
+      {
+        label:         this.t('certManager.certificate.notAfter'),
+        content:       this.expiresAt,
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
+      },
+      {
+        label:         this.t('certManager.certificate.renewalTime'),
+        content:       this.renewalTime,
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
+      },
+      { label: this.t('certManager.certificate.duration'), content: this.spec?.duration },
+    ];
   }
 
   /**

@@ -13,25 +13,6 @@ const props = defineProps<{ value: any }>();
 
 const { t } = useI18n(useStore());
 
-const summary = computed<SummaryItem[]>(() => [
-  {
-    label: t('certManager.tableHeaders.issuer'),
-    value: props.value.spec?.issuerRef?.name,
-    to:    props.value.issuerLocation,
-  },
-  {
-    label: t('certManager.tableHeaders.secret'),
-    value: props.value.spec?.secretName,
-    to:    props.value.secretLocation,
-  },
-  { label: t('certManager.certificate.commonName'), value: props.value.spec?.commonName },
-  { label: t('certManager.certificate.revision'), value: props.value.status?.revision },
-  { label: t('certManager.certificate.notBefore'), value: props.value.status?.notBefore },
-  { label: t('certManager.certificate.notAfter'), value: props.value.expiresAt },
-  { label: t('certManager.certificate.renewalTime'), value: props.value.renewalTime },
-  { label: t('certManager.certificate.duration'), value: props.value.spec?.duration },
-]);
-
 const identifiers = computed(() => [
   { label: t('certManager.certificate.dnsNames'), values: props.value.spec?.dnsNames || [] },
   { label: t('certManager.certificate.ipAddresses'), values: props.value.spec?.ipAddresses || [] },
@@ -56,8 +37,6 @@ const failedAttempts = computed(() => props.value.status?.failedIssuanceAttempts
       color="error"
       :label="t('certManager.certificate.failedIssuance', { count: failedAttempts, time: value.status?.lastFailureTime })"
     />
-
-    <DetailSummary :items="summary" />
 
     <ResourceTabs :value="value">
       <Tab

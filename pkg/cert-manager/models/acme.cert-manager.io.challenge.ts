@@ -59,6 +59,32 @@ export default class Challenge extends SteveModel {
     return issuerRefLocation(this, this.spec?.issuerRef);
   }
 
+  /** Rendered by DetailTop in the masthead. Token, key and URLs stay in the tab below. */
+  get details(): any[] {
+    return [
+      ...super.details,
+      {
+        label:         this.t('certManager.order.label'),
+        content:       this.ownerOrderName,
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.ownerOrderLocation, row: {}, options: { internal: true }
+        },
+      },
+      { label: this.t('certManager.tableHeaders.dnsName'), content: this.dnsNameDisplay },
+      { label: this.t('certManager.tableHeaders.challengeType'), content: this.challengeType },
+      { label: this.t('certManager.issuer.solver.provider'), content: this.solverSummary },
+      {
+        label:         this.t('certManager.tableHeaders.issuer'),
+        content:       this.spec?.issuerRef?.name,
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.issuerLocation, row: {}, options: { internal: true }
+        },
+      },
+    ];
+  }
+
   get ownerOrderName(): string | undefined {
     return (this.metadata?.ownerReferences || []).find((o: any) => o.kind === 'Order')?.name;
   }

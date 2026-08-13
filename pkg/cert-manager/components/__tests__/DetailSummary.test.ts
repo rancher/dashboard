@@ -6,9 +6,9 @@ const RouterLinkStub = {
   template: '<a class="router-link"><slot /></a>',
 };
 
-function render(items: any[], span?: number) {
+function render(items: any[]) {
   return mount(DetailSummary, {
-    props:  span ? { items, span } : { items },
+    props:  { items },
     global: { stubs: { 'router-link': RouterLinkStub } },
   });
 }
@@ -73,8 +73,11 @@ describe('component: DetailSummary', () => {
     expect(link.attributes('rel')).toBe('noopener noreferrer nofollow');
   });
 
-  it('should default to a three column span and honour an override', () => {
-    expect(render([{ label: 'a', value: 'b' }]).find('.col').classes()).toContain('span-3');
-    expect(render([{ label: 'a', value: 'b' }], 6).find('.col').classes()).toContain('span-6');
+  it('should lay out as an auto-fitting grid rather than fixed columns', () => {
+    // Fixed span-N columns overflow the page horizontally once there are more than four items.
+    const wrapper = render([1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ label: `l${ n }`, value: `v${ n }` })));
+
+    expect(wrapper.findAll('.item')).toHaveLength(8);
+    expect(wrapper.find('.cert-manager-summary').classes()).not.toContain('row');
   });
 });

@@ -11,22 +11,6 @@ const props = defineProps<{ value: any }>();
 
 const { t } = useI18n(useStore());
 
-const summary = computed<SummaryItem[]>(() => [
-  {
-    label: t('certManager.order.label'),
-    value: props.value.ownerOrderName,
-    to:    props.value.ownerOrderLocation,
-  },
-  { label: t('certManager.tableHeaders.dnsName'), value: props.value.dnsNameDisplay },
-  { label: t('certManager.tableHeaders.challengeType'), value: props.value.challengeType },
-  { label: t('certManager.issuer.solver.provider'), value: props.value.solverSummary },
-  {
-    label: t('certManager.tableHeaders.issuer'),
-    value: props.value.spec?.issuerRef?.name,
-    to:    props.value.issuerLocation,
-  },
-]);
-
 const details = computed<SummaryItem[]>(() => [
   { label: t('certManager.challenge.presented'), value: props.value.isPresented ? t('generic.yes') : t('generic.no') },
   { label: t('certManager.challenge.processing'), value: props.value.isProcessing ? t('generic.yes') : t('generic.no') },
@@ -58,8 +42,6 @@ const showReason = computed(() => !!props.value.status?.reason && props.value.st
       :label="value.status.reason"
     />
 
-    <DetailSummary :items="summary" />
-
     <ResourceTabs :value="value">
       <Tab
         name="challenge-details"
@@ -68,7 +50,6 @@ const showReason = computed(() => !!props.value.status?.reason && props.value.st
       >
         <DetailSummary
           :items="details"
-          :span="4"
         />
         <h3>{{ t('certManager.challenge.key') }}</h3>
         <pre class="cert-manager-key">{{ value.spec?.key }}</pre>

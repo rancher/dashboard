@@ -13,18 +13,17 @@ export interface SummaryItem {
   hideIfEmpty?: boolean;
 }
 
-const props = withDefaults(defineProps<{ items: SummaryItem[]; span?: number }>(), { span: 3 });
+const props = defineProps<{ items: SummaryItem[] }>();
 
 const visible = computed(() => props.items.filter((item) => !item.hideIfEmpty || item.value));
 </script>
 
 <template>
-  <div class="row cert-manager-summary">
+  <div class="cert-manager-summary">
     <div
       v-for="item in visible"
       :key="item.label"
-      class="col"
-      :class="`span-${ span }`"
+      class="item"
     >
       <h3>{{ item.label }}</h3>
       <router-link
@@ -50,6 +49,11 @@ const visible = computed(() => props.items.filter((item) => !item.hideIfEmpty ||
 
 <style lang="scss" scoped>
 .cert-manager-summary {
+  // An auto-fitting grid rather than fixed span-N columns, which overflow the page horizontally
+  // once there are more items than fit a 12 column row.
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   margin-bottom: 20px;
 
   h3 {

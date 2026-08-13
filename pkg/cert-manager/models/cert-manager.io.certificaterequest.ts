@@ -5,9 +5,8 @@ import { Condition, conditionOf } from '../utils/conditions';
 import { issuerRefLocation } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
 import { parseCsr, CsrInfo } from '../utils/csr';
+import { certificateNameOf, CERTIFICATE_REVISION_ANNOTATION } from '../utils/issuance';
 import { CertificateRequestSpec, CertificateRequestStatus, ObjectMeta } from '../schema';
-
-const REVISION_ANNOTATION = 'cert-manager.io/certificate-revision';
 
 export default class CertificateRequest extends SteveModel {
   declare spec: CertificateRequestSpec;
@@ -65,7 +64,7 @@ export default class CertificateRequest extends SteveModel {
   }
 
   get revision(): string | undefined {
-    return this.metadata?.annotations?.[REVISION_ANNOTATION];
+    return this.metadata?.annotations?.[CERTIFICATE_REVISION_ANNOTATION];
   }
 
   get issuerLocation() {
@@ -73,11 +72,37 @@ export default class CertificateRequest extends SteveModel {
   }
 
   get ownerCertificateName(): string | undefined {
-    return (this.metadata?.ownerReferences || []).find((o: any) => o.kind === 'Certificate')?.name;
+    // Annotation first: Steve does not always include ownerReferences in list responses.
+    return certificateNameOf(this);
   }
 
   get ownerCertificateLocation() {
     return resourceLocation(this, CERT_MANAGER.CERTIFICATE, this.ownerCertificateName, this.metadata?.namespace);
+  }
+
+  /** Rendered by DetailTop in the masthead. Empty entries are dropped there. */
+  get details(): any[] {
+    return [
+      ...super.details,
+      {
+        label:         this.t('certManager.certificateRequest.certificate'),
+        content:       this.ownerCertificateName,
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.ownerCertificateLocation, row: {}, options: { internal: true }
+        },
+      },
+      {
+        label:         this.t('certManager.tableHeaders.issuer'),
+        content:       this.spec?.issuerRef?.name,
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.issuerLocation, row: {}, options: { internal: true }
+        },
+      },
+      { label: this.t('certManager.tableHeaders.revision'), content: this.revision },
+      { label: this.t('certManager.certificate.duration'), content: this.spec?.duration },
+    ];
   }
 
   /** Decoded PKCS#10 request. Null when `spec.request` is absent or unparseable. */

@@ -5,7 +5,6 @@ import { useI18n } from '@shell/composables/useI18n';
 import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
-import DetailSummary, { SummaryItem } from './DetailSummary.vue';
 import { CERTIFICATE_HEADERS } from '../table-headers';
 
 const props = defineProps<{ value: any }>();
@@ -14,48 +13,10 @@ const { t } = useI18n(useStore());
 
 const isAcme = computed(() => props.value.configType === 'acme');
 
-const summary = computed<SummaryItem[]>(() => {
-  const items: SummaryItem[] = [{ label: t('certManager.tableHeaders.type'), value: props.value.configTypeDisplay }];
-
-  if (isAcme.value) {
-    items.push(
-      {
-        label: t('certManager.issuer.acme.server'),
-        value: props.value.acmeServerDisplay,
-        href:  props.value.acmeServer,
-      },
-      { label: t('certManager.issuer.acme.email'), value: props.value.acmeRegisteredEmail || props.value.spec?.acme?.email },
-      {
-        label: t('certManager.issuer.acme.accountUri'),
-        value: props.value.acmeAccountUri,
-        href:  props.value.acmeAccountUri,
-      },
-    );
-  }
-
-  if (props.value.configType === 'ca') {
-    items.push({
-      label: t('certManager.issuer.ca.secretName'),
-      value: props.value.spec?.ca?.secretName,
-      to:    props.value.caSecretLocation,
-    });
-  }
-
-  if (props.value.configType === 'vault') {
-    items.push(
-      { label: t('certManager.issuer.vault.server'), value: props.value.spec?.vault?.server },
-      { label: t('certManager.issuer.vault.path'), value: props.value.spec?.vault?.path },
-    );
-  }
-
-  return items;
-});
 </script>
 
 <template>
   <div>
-    <DetailSummary :items="summary" />
-
     <ResourceTabs :value="value">
       <Tab
         v-if="isAcme"

@@ -38,6 +38,30 @@ export default class Order extends SteveModel {
     return commonName ? [commonName, ...rest] : rest;
   }
 
+  /** Rendered by DetailTop in the masthead. The long ACME URLs stay in the tabs below. */
+  get details(): any[] {
+    return [
+      ...super.details,
+      {
+        label:         this.t('certManager.certificateRequest.label'),
+        content:       this.ownerCertificateRequestName,
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.ownerCertificateRequestLocation, row: {}, options: { internal: true }
+        },
+      },
+      {
+        label:         this.t('certManager.tableHeaders.issuer'),
+        content:       this.spec?.issuerRef?.name,
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.issuerLocation, row: {}, options: { internal: true }
+        },
+      },
+      { label: this.t('certManager.certificate.commonName'), content: this.spec?.commonName },
+    ];
+  }
+
   get authorizationSummaries(): AuthorizationSummary[] {
     return (this.status?.authorizations || []).map((auth: any) => ({
       identifier:     auth.identifier,

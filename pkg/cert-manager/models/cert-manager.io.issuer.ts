@@ -112,6 +112,27 @@ export default class Issuer extends SteveModel {
     return resourceLocation(this, SECRET, this.spec?.ca?.secretName, this.metadata?.namespace);
   }
 
+  /** Rendered by DetailTop in the masthead. Empty entries are dropped there. */
+  get details(): any[] {
+    return [
+      ...super.details,
+      { label: this.t('certManager.tableHeaders.type'), content: this.configTypeDisplay },
+      { label: this.t('certManager.issuer.acme.server'), content: this.acmeServerDisplay },
+      { label: this.t('certManager.issuer.acme.email'), content: this.acmeRegisteredEmail || this.spec?.acme?.email },
+      { label: this.t('certManager.issuer.acme.accountUri'), content: this.acmeAccountUri },
+      {
+        label:         this.t('certManager.issuer.ca.secretName'),
+        content:       this.spec?.ca?.secretName,
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.caSecretLocation, row: {}, options: { internal: true }
+        },
+      },
+      { label: this.t('certManager.issuer.vault.server'), content: this.spec?.vault?.server },
+      { label: this.t('certManager.issuer.vault.path'), content: this.spec?.vault?.path },
+    ];
+  }
+
   get certificates() {
     const all = this.$rootGetters['cluster/all'](CERT_MANAGER.CERTIFICATE) || [];
 

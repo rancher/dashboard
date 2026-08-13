@@ -16,6 +16,9 @@ function certificate(spec: any = {}, status: any = {}, opts: { metadata?: any; r
     },
     spec,
     status,
+    t:            (key: string) => key,
+    // `super.details` reads these; an own property keeps the base getter from touching the store
+    owners:       [],
     $rootGetters: {
       'cluster/all': () => opts.rows, productId: 'explorer', clusterId: 'local'
     },
@@ -175,6 +178,48 @@ describe('model: cert-manager.io.certificate', () => {
     });
   });
 
+  describe('details', () => {
+    // DetailTop in the masthead renders these, and drops any entry with empty content.
+    const labelsOf = (model: any) => model.details.filter((d: any) => !d.separator).map((d: any) => d.label);
+
+    it('should surface the certificate facts for the masthead', () => {
+      const cert = certificate(
+        {
+          issuerRef: { name: 'my-issuer' }, secretName: 'my-tls', commonName: 'example.com'
+        },
+        { revision: 2, notAfter: iso(30) },
+      );
+
+      expect(labelsOf(cert)).toStrictEqual([
+        'certManager.tableHeaders.issuer',
+        'certManager.tableHeaders.secret',
+        'certManager.certificate.commonName',
+        'certManager.certificate.revision',
+        'certManager.certificate.notBefore',
+        'certManager.certificate.notAfter',
+        'certManager.certificate.renewalTime',
+        'certManager.certificate.duration',
+      ]);
+    });
+
+    it('should link the issuer and the secret', () => {
+      const cert = certificate({ issuerRef: { name: 'my-issuer' }, secretName: 'my-tls' });
+      const [issuer, secret] = cert.details;
+
+      expect(issuer.formatter).toBe('Link');
+      expect(issuer.content).toBe('my-issuer');
+      expect(issuer.formatterOpts.to).toStrictEqual(cert.issuerLocation);
+      expect(secret.formatterOpts.to).toStrictEqual(cert.secretLocation);
+    });
+
+    it('should keep the base details from the shell model', () => {
+      // `super.details` carries owner references, deletion timestamps and the like.
+      const cert = certificate();
+
+      expect(Array.isArray(cert.details)).toBe(true);
+    });
+  });
+
   describe('cleanForSave', () => {
     // The edit form has to create these before its inputs can bind to them, so an untouched
     // Private Key or Advanced tab would otherwise persist an empty object.
@@ -221,13 +266,41 @@ describe('model: cert-manager.io.certificate', () => {
   });
 
   describe('certificateRequests', () => {
-    it('should only return requests owned by this certificate', () => {
-      const mine = { metadata: { ownerReferences: [{ uid: 'cert-uid' }] } };
-      const theirs = { metadata: { ownerReferences: [{ uid: 'other-uid' }] } };
-      const orphan = { metadata: {} };
-      const cert = certificate({}, {}, { rows: [mine, theirs, orphan] });
+    const byAnnotation = (name: string, namespace = 'default', revision?: string) => ({
+      metadata: {
+        namespace,
+        annotations: {
+          'cert-manager.io/certificate-name': name,
+          ...(revision ? { 'cert-manager.io/certificate-revision': revision } : {}),
+        },
+      },
+    });
 
-      expect(cert.certificateRequests).toStrictEqual([mine]);
+    it('should match on the certificate-name annotation', () => {
+      const mine = byAnnotation('my-cert');
+      const theirs = byAnnotation('other-cert');
+
+      expect(certificate({}, {}, { rows: [mine, theirs] }).certificateRequests).toStrictEqual([mine]);
+    });
+
+    it('should still match on ownerReferences when the annotation is absent', () => {
+      // Steve does not always include ownerReferences in list responses, hence the annotation
+      // first - but resources created by older cert-manager versions only have the owner ref.
+      const mine = { metadata: { namespace: 'default', ownerReferences: [{ uid: 'cert-uid' }] } };
+
+      expect(certificate({}, {}, { rows: [mine] }).certificateRequests).toStrictEqual([mine]);
+    });
+
+    it('should not match a same-named certificate in another namespace', () => {
+      expect(certificate({}, {}, { rows: [byAnnotation('my-cert', 'other')] }).certificateRequests).toStrictEqual([]);
+    });
+
+    it('should return the newest revision first', () => {
+      const first = byAnnotation('my-cert', 'default', '1');
+      const third = byAnnotation('my-cert', 'default', '3');
+      const second = byAnnotation('my-cert', 'default', '2');
+
+      expect(certificate({}, {}, { rows: [first, third, second] }).certificateRequests).toStrictEqual([third, second, first]);
     });
 
     it('should be empty when the store has nothing', () => {

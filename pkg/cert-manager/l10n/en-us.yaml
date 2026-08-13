@@ -5,14 +5,7 @@ certManager:
       certManager: Cert Manager
       acme: ACME
   overview:
-    installed: 'cert-manager {version} is installed on this cluster.'
-    pendingOrders: Pending Orders
-    health: Certificate Health
-    needsAttention: Needs Attention
-    noProblems: No certificates, orders or challenges are reporting a problem.
-    problemType: Type
-    expiringSoon: Expiring Within {days} Days
-    noneExpiring: No certificates expire within the next {days} days.
+    notImplemented: The cert-manager overview is not available yet.
 
   action:
     renew:

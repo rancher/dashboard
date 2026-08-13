@@ -13,29 +13,16 @@ const props = defineProps<{ value: any }>();
 
 const { t } = useI18n(useStore());
 
-const summary = computed<SummaryItem[]>(() => [
+// Too long for the masthead, so they live with the authorizations they belong to
+const acmeUrls = computed<SummaryItem[]>(() => [
   {
-    label: t('certManager.certificateRequest.label'),
-    value: props.value.ownerCertificateRequestName,
-    to:    props.value.ownerCertificateRequestLocation,
+    label: t('certManager.order.url'), value: props.value.status?.url, href: props.value.status?.url
   },
   {
-    label: t('certManager.tableHeaders.issuer'),
-    value: props.value.spec?.issuerRef?.name,
-    to:    props.value.issuerLocation,
-  },
-  { label: t('certManager.certificate.commonName'), value: props.value.spec?.commonName },
-  {
-    label: t('certManager.order.url'),
-    value: props.value.status?.url,
-    href:  props.value.status?.url,
-  },
-  {
-    label: t('certManager.order.finalizeUrl'),
-    value: props.value.status?.finalizeURL,
-    href:  props.value.status?.finalizeURL,
+    label: t('certManager.order.finalizeUrl'), value: props.value.status?.finalizeURL, href: props.value.status?.finalizeURL
   },
 ]);
+
 </script>
 
 <template>
@@ -46,14 +33,14 @@ const summary = computed<SummaryItem[]>(() => [
       :label="value.status.reason"
     />
 
-    <DetailSummary :items="summary" />
-
     <ResourceTabs :value="value">
       <Tab
         name="authorizations"
         :label="t('certManager.order.tab.authorizations')"
         :weight="30"
       >
+        <DetailSummary :items="acmeUrls" />
+
         <table
           v-if="value.authorizationSummaries.length"
           class="cert-manager-table"
