@@ -4,6 +4,7 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { ProductChildCustomPage, ProductChildGroup } from '@shell/core/plugin-products-external';
 import { ProductChildResourcePageInternal } from '@shell/core/plugin-products-internal';
 import { CERT_MANAGER } from './types';
+import * as navOverview from './config/nav';
 import {
   CERTIFICATE_HEADERS, ISSUER_HEADERS, CLUSTER_ISSUER_HEADERS,
   CERTIFICATE_REQUEST_HEADERS, ORDER_HEADERS, CHALLENGE_HEADERS,
@@ -66,9 +67,9 @@ const challengesPage: ProductChildResourcePageInternal = {
   listConfig: { localHeaders: localHeaders(CHALLENGE_HEADERS) },
 };
 
-const acmeGroup: ProductChildGroup = {
-  name:     'cert-manager-acme',
-  labelKey: 'certManager.nav.group.acme',
+const advancedGroup: ProductChildGroup = {
+  name:     'cert-manager-advanced',
+  labelKey: 'certManager.nav.group.advanced',
   sideMenu: {
     weight:   10,
     children: [certificateRequestsPage, ordersPage, challengesPage],
@@ -82,7 +83,7 @@ const certManagerGroup: ProductChildGroup = {
     // Explorer's own group weights are cluster 99, workload 98, serviceDiscovery 96,
     // storage 95, policy 94. 93 puts Cert Manager below them and above More Resources.
     weight:   93,
-    children: [overviewPage, certificatesPage, issuersPage, clusterIssuersPage, acmeGroup],
+    children: [overviewPage, certificatesPage, issuersPage, clusterIssuersPage, advancedGroup],
   },
 };
 
@@ -91,4 +92,8 @@ export default function(extension: IPlugin) {
   extension.metadata = require('./package.json');
 
   extension.extendProduct(EXPLORER, [certManagerGroup]);
+  // Turns the overview into the group's landing page rather than a nav row of its own.
+  // `ProductFunction` is typed as callable, but the extension manager invokes `.init(plugin, store)`
+  // on whatever is registered - which is how the built-in products are wired up too.
+  extension.addProduct(navOverview as any);
 }

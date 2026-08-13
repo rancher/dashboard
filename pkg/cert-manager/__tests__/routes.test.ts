@@ -42,6 +42,7 @@ async function extensionRoutes(): Promise<RouteRecordRaw[]> {
   const routes: RouteRecordRaw[] = [];
   const plugin = {
     extendProduct:              jest.fn(),
+    addProduct:                 jest.fn(),
     addRoute:                   jest.fn((route: RouteRecordRaw) => routes.push(route)),
     enableServerSidePagination: jest.fn(),
     DSL:                        jest.fn().mockReturnValue({}),

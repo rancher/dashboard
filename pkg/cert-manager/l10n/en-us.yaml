@@ -3,7 +3,7 @@ certManager:
     overview: Overview
     group:
       certManager: Cert Manager
-      acme: ACME
+      advanced: Advanced
   overview:
     notImplemented: The cert-manager overview is not available yet.
 

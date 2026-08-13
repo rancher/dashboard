@@ -45,7 +45,7 @@ describe('extension: cert-manager', () => {
     expect(group.sideMenu.weight).toBe(93);
   });
 
-  it('should list the overview page and the three top level resources, plus a nested ACME group', async() => {
+  it('should list the overview page and the three top level resources, plus a nested Advanced group', async() => {
     const { group } = await registerExtension();
     const children = group.sideMenu.children;
 
@@ -57,8 +57,8 @@ describe('extension: cert-manager', () => {
 
     const acme = children[4] as ProductChildGroup;
 
-    expect(acme.name).toBe('cert-manager-acme');
-    expect(acme.labelKey).toBe('certManager.nav.group.acme');
+    expect(acme.name).toBe('cert-manager-advanced');
+    expect(acme.labelKey).toBe('certManager.nav.group.advanced');
     expect(acme.sideMenu.children.map((c) => (c as any).type)).toStrictEqual([
       CERT_MANAGER.CERTIFICATE_REQUEST,
       CERT_MANAGER.ORDER,
