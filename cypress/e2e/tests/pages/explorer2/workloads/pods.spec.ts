@@ -299,6 +299,11 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       createClonePo.nameNsDescription().name().set(clonePodName);
       createClonePo.save();
 
+      // The save creates the cloned pod, but the list and the detail page can lag it (indexing),
+      // which showed up as the cloned row never appearing and the detail-page GET never firing.
+      // Wait for the pod to be queryable via the API before asserting on the UI below.
+      cy.waitForRancherResource('v1', 'pods', `${ namespace }/${ clonePodName }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
       workloadsPodPage.waitForPage();
       workloadsPodPage.list().checkVisible();
       workloadsPodPage.list().resourceTable().sortableTable().filter(clonePodName);
