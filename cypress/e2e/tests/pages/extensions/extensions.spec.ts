@@ -402,21 +402,31 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // Ensure the extension card is visible and loaded before trying to upgrade
     extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
 
-    // click on update button on card
-    extensionsPo.extensionCardUpgradeClick(EXTENSION_NAME);
-    extensionsPo.installModal().installButton().click();
-    cy.wait('@upgradeExtension').its('response.statusCode').should('eq', 201);
+    // Idempotent across retries (testIsolation is off): attempt 1 can upgrade the extension to the
+    // latest version - the @upgradeExtension 201 already fires - and then still fail afterwards on the
+    // post-reload tab check. On the retry the extension is already at latest, so the card no longer
+    // offers an "Upgrade" action and a plain retry can NEVER pass (it hard-fails looking for it). Only
+    // drive the upgrade when it is actually available; the end-state assertions below then hold whether
+    // this attempt upgraded it or a previous one did.
+    extensionsPo.clickActionIfPresent(EXTENSION_NAME, 'Upgrade').then((upgrading: boolean) => {
+      if (!upgrading) {
+        return;
+      }
 
-    // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
+      extensionsPo.installModal().installButton().click();
+      cy.wait('@upgradeExtension').its('response.statusCode').should('eq', 201);
 
-    // The extension reload re-initialises the whole app and occasionally lands on a page where the
-    // tabs container never mounts (seen as "extension-tabs not found"). A fresh navigation to the
-    // extensions page recovers deterministically off a clean load before we wait for the tabs.
-    extensionsPo.goTo();
-    extensionsPo.waitForPage();
-    extensionsPo.waitForTabs();
+      // let's check the extension reload banner and reload the page
+      extensionsPo.extensionReloadBanner().should('be.visible');
+      extensionsPo.extensionReloadClick();
+
+      // The extension reload re-initialises the whole app and occasionally lands on a page where the
+      // tabs container never mounts (seen as "extension-tabs not found"). A fresh navigation to the
+      // extensions page recovers deterministically off a clean load before we wait for the tabs.
+      extensionsPo.goTo();
+      extensionsPo.waitForPage();
+      extensionsPo.waitForTabs();
+    });
 
     // make sure extension card is still on the installed tab
     // since we installed the latest version
