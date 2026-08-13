@@ -60,14 +60,8 @@ function groupFailures(failures) {
   return grouped;
 }
 
-async function groupAndCreateIssues(failures) {
+async function groupAndCreateIssues(failures, existingIssues) {
   const grouped = groupFailures(failures);
-
-  // Fetch all existing issues once upfront — avoids per-failure GitHub Search API calls
-  console.log('  Fetching existing issues from GitHub...');
-  const existingIssues = await githubClient.fetchExistingIssues();
-
-  console.log(`  Found ${ existingIssues.size } existing tracked issues`);
 
   // Fetch project board members to detect open issues missing from the board
   try {
@@ -174,6 +168,33 @@ async function groupAndCreateIssues(failures) {
   };
 }
 
+/**
+ * Split the failures into those already tracked by an open issue, those whose issue was
+ * closed (a regression that would be reopened), and those with no issue at all.
+ *
+ * Keyed on the same generated title the create/reopen path uses, so the counts match what
+ * that path would do. Only issues carrying this tool's labels are considered, so a failure
+ * whose issue was relabelled by a triager is reported as new — the label-independent
+ * lookup is a per-failure search call, too expensive to run across a whole batch.
+ */
+function summarizeTracking(grouped, existingIssues) {
+  let knownCount = 0; let regressionCount = 0; let newCount = 0;
+
+  for (const failure of grouped.values()) {
+    const existing = existingIssues.get(githubClient._issueTitle(failure));
+
+    if (existing?.state === 'open') knownCount++;
+    else if (existing?.state === 'closed') regressionCount++;
+    else newCount++;
+  }
+
+  return {
+    knownCount,
+    regressionCount,
+    newCount
+  };
+}
+
 async function main() {
   const dryRun = process.env.DRY_RUN === 'true';
 
@@ -216,16 +237,46 @@ async function main() {
   const slackThreshold = parseInt(process.env.INSPECTOR_SLACK_THRESHOLD || '10', 10);
   const slackEnabled = (process.env.INSPECTOR_SLACK_NOTIFICATION || 'true').toLowerCase() !== 'false';
   const grouped = groupFailures(failures);
+  const overThreshold = grouped.size > slackThreshold;
 
-  if (grouped.size > slackThreshold) {
+  // Existing issues drive both the create/reopen path and the known-vs-new breakdown in
+  // the high-failure alert, so fetch once here and share the result. The alert path used
+  // to skip this fetch entirely, which is why the breakdown needs it hoisted above the
+  // threshold check rather than left inside groupAndCreateIssues().
+  let existingIssues = null;
+
+  if (overThreshold || !dryRun) {
+    console.log('  Fetching existing issues from GitHub...');
+    try {
+      existingIssues = await githubClient.fetchExistingIssues();
+      console.log(`  Found ${ existingIssues.size } existing tracked issues`);
+    } catch (e) {
+      // Below the threshold this is load-bearing: without it issues get duplicated, so
+      // fail loudly. On the alert path it only enriches the message, and an alert with no
+      // breakdown is far better than no alert at all.
+      if (!overThreshold) throw e;
+      console.warn(`  Warning: could not fetch existing issues — alert will omit the known/new breakdown: ${ e.message }`);
+    }
+  }
+
+  if (overThreshold) {
     console.log(`\nHigh failure count: ${ grouped.size } unique failures exceeds threshold of ${ slackThreshold }.`);
     console.log('Sending Slack alert and skipping issue creation.');
+
+    const breakdown = existingIssues ? summarizeTracking(grouped, existingIssues) : null;
+
+    if (breakdown) {
+      console.log(`  Known (open issue)   : ${ breakdown.knownCount }`);
+      console.log(`  Regressions (closed) : ${ breakdown.regressionCount }`);
+      console.log(`  Potentially new      : ${ breakdown.newCount }`);
+    }
 
     if (!dryRun && slackEnabled) {
       const sent = await sendHighFailureAlert({
         totalUnique:   grouped.size,
         batch,
         jenkinsJobUrl: `${ process.env.JENKINS_BASE_URL }/${ (process.env.JENKINS_JOB_PATH || '').split('/').map((p) => `job/${ p }`).join('/') }`,
+        ...(breakdown || {}),
       });
 
       if (sent) {
@@ -252,7 +303,7 @@ async function main() {
   }
 
   console.log('Step 2: Creating/updating GitHub issues...');
-  const result = await groupAndCreateIssues(failures);
+  const result = await groupAndCreateIssues(failures, existingIssues);
 
   console.log('');
 
