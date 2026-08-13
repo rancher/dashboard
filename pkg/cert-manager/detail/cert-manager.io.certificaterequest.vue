@@ -5,7 +5,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import CertManagerResourceTabs from '../components/CertManagerResourceTabs.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Banner from '@components/Banner/Banner.vue';
-import CopyToClipboard from '@shell/components/CopyToClipboard.vue';
+import DetailText from '@shell/components/DetailText.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import DetailSummary, { SummaryItem } from '../components/DetailSummary.vue';
 import { ORDER_HEADERS } from '../table-headers';
@@ -72,11 +72,12 @@ const csrIdentifiers = computed(() => [
               </li>
             </ul>
           </div>
-          <div class="cert-manager-pem-header">
-            <h3>{{ t('certManager.certificateRequest.pem') }}</h3>
-            <CopyToClipboard :text="csr.pem" />
-          </div>
-          <pre class="cert-manager-pem">{{ csr.pem }}</pre>
+          <!-- Same treatment the shell gives certificate data on a Secret: monospace, copyable,
+               truncated with an expand affordance -->
+          <DetailText
+            :value="csr.pem"
+            label-key="certManager.certificateRequest.pem"
+          />
         </template>
       </Tab>
 
@@ -95,16 +96,3 @@ const csrIdentifiers = computed(() => [
     </CertManagerResourceTabs>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.cert-manager-pem-header {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-}
-
-.cert-manager-pem {
-  max-height: 300px;
-  overflow: auto;
-}
-</style>
