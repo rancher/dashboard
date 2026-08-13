@@ -1,7 +1,6 @@
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { LoggingClusterOutputCreateEditPagePo, LoggingClusteroutputListPagePo } from '@/cypress/e2e/po/other-products/logging/logging-clusteroutput.po';
 import { LoggingClusterFlowCreateEditPagePo, LoggingClusterFlowDetailPagePo, LoggingClusterFlowListPagePo } from '@/cypress/e2e/po/other-products/logging/logging-clusterflow.po';
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
@@ -45,7 +44,6 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
     runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
       const installChartPage = new InstallChartPage();
       const chartPage = new ChartPage();
-      const sideNav = new ProductNavPo();
       const loggingOutputList = new LoggingClusteroutputListPagePo();
       const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
 
@@ -112,7 +110,11 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       loggingOutputList.baseResourceList().resourceTable().sortableTable().rowElementWithName(outputName)
         .should('exist');
 
-      sideNav.navToSideMenuEntryByLabel('ClusterFlow');
+      // Navigate directly to the ClusterFlow list by URL rather than the product side-nav, for the
+      // same reason as ClusterOutput above: the nav entry is derived from the schema list cached when
+      // the cluster loaded (before the logging CRDs existed) and is intermittently absent.
+      LoggingClusterFlowListPagePo.goTo('local');
+      loggingFlowList.waitForPage();
       loggingFlowList.baseResourceList().masthead().create();
       loggingFlowCreate.waitForPage();
       loggingFlowCreate.resourceDetail().createEditView()
