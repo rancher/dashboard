@@ -203,6 +203,46 @@ export default class ExtensionsPagePo extends PagePo {
     return card.openActionMenu().getMenuItem(actionLabel, LONG_TIMEOUT_OPT).click();
   }
 
+  /**
+   * Open the card action menu and click `actionLabel` only if it is offered; resolves to whether it
+   * was clicked. Used to keep the upgrade/downgrade tests idempotent across retries: a prior attempt
+   * may already have moved the extension to the target version (e.g. upgraded to latest), which
+   * removes that action - so a plain retry, which re-runs the whole test, would otherwise hard-fail on
+   * the now-missing menu item. Waits for the version-dependent actions to load first (Upgrade and/or
+   * Downgrade appear only once the chart repo versions are fetched) so a slow menu is not misread as
+   * "action absent".
+   */
+  clickActionIfPresent(extensionTitle: string, actionLabel: string): Cypress.Chainable<boolean> {
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
+
+    card.self().should('be.visible');
+    card.openActionMenu();
+
+    const menu = '[dropdown-menu-collection]';
+
+    cy.get(`${ menu } [dropdown-menu-item]`, LONG_TIMEOUT_OPT).should(($items) => {
+      const text = $items.toArray().map((el) => el.textContent || '').join('|');
+
+      expect(text).to.match(/Upgrade|Downgrade/);
+    });
+
+    return cy.get(menu).then(($menu) => {
+      const item = $menu.find('[dropdown-menu-item]').toArray().find((el) => (el.textContent || '').includes(actionLabel));
+
+      if (item) {
+        cy.wrap(item).click();
+
+        return cy.wrap(true, { log: false });
+      }
+
+      // Not offered (already at the target version from a prior attempt) - close the menu and skip.
+      cy.get('body').type('{esc}');
+
+      return cy.wrap(false, { log: false });
+    });
+  }
+
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
     return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-sub-header-item"]').first()
       .invoke('text');
