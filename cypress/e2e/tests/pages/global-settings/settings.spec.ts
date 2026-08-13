@@ -37,6 +37,17 @@ describe('Settings', { testIsolation: false }, () => {
     });
   });
 
+  afterEach(function() {
+    // Failure-safe cleanup for the Inactivity test only. That test drives the client-side inactivity
+    // modal (faked via useractivities intercepts); if it fails while the modal is up, the modal's
+    // countdown logs the user out client-side. With testIsolation off, that logged-out state then
+    // cascades into every following test in this spec ("side-menu not found"). Force a fresh session so
+    // a failure in this one test cannot poison the rest of the spec (a no-op cost when it passed).
+    if (this.currentTest?.title?.includes('Inactivity')) {
+      cy.login(undefined, undefined, false);
+    }
+  });
+
   it('Inactivity ::: can update the setting "auth-user-session-idle-ttl-minutes" and should show the the inactivity modal', { tags: ['@globalSettings', '@adminUser'] }, () => {
     let callCountGet = 0;
     let callCountPut = 0;
@@ -105,6 +116,10 @@ describe('Settings', { testIsolation: false }, () => {
     newSettingsPage.waitForUrlPathWithoutContext();
     newSettingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
 
+    // Register the revert now (not only at the end): if the modal assertions below fail, the `after`
+    // hook must still restore this setting to its default so the change does not leak past this spec.
+    resetSettings.push(sessionIdleSetting);
+
     cy.wait('@getUpdatedUserActivity', { timeout: 15000 });
 
     // this wait is a delicate balance with the 30 seconds of the intercept
@@ -155,8 +170,6 @@ describe('Settings', { testIsolation: false }, () => {
 
     newSettingsPage.waitForUrlPathWithoutContext();
     newSettingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
-
-    resetSettings.push(sessionIdleSetting);
   });
 
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
