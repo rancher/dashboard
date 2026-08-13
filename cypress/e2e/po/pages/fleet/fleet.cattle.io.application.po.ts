@@ -57,6 +57,14 @@ export class FleetApplicationCreatePo extends BaseDetailPagePo {
   createHelmOp() {
     return this.self().get(`[data-testid="subtype-banner-item-fleet.cattle.io.helmop"]`).click();
   }
+
+  /**
+   * The SUSE Application Collection subtype card. Only shown on Rancher Prime and when the
+   * `ui-suse-app-collection` setting is not disabled.
+   */
+  suseAppCollectionSubtype(): Cypress.Chainable {
+    return cy.get(`[data-testid="subtype-banner-item-suse-application-collection"]`);
+  }
 }
 
 export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {

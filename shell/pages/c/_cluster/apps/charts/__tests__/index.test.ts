@@ -145,4 +145,42 @@ describe('page: Charts Index', () => {
       expect(ctx.visibleChartsCount).toBe(30);
     });
   });
+
+  describe('computed: suseAppCollectionEnabled', () => {
+    const createContext = (value?: string) => ({ $store: { getters: { 'management/byId': (_type: string, _id: string) => (value !== undefined ? { value } : undefined) } } });
+
+    it.each([
+      [undefined, true],
+      ['true', true],
+      ['false', false],
+    ])('reflects the ui-suse-app-collection setting (value: %s)', (value, expected) => {
+      const ctx = createContext(value);
+
+      expect((Charts.computed!.suseAppCollectionEnabled as () => boolean).call(ctx)).toBe(expected);
+    });
+  });
+
+  describe('computed: showAppCollectionBannerLogic', () => {
+    const baseContext = {
+      hasSuseAppCollectionRepo: false,
+      canCreateRepos:           true,
+      showAppCollectionBanner:  true,
+      hideBannerPref:           false,
+      isPrime:                  true,
+      suseAppCollectionEnabled: true,
+    };
+
+    it('is truthy when all conditions including the setting are met', () => {
+      const result = (Charts.computed!.showAppCollectionBannerLogic as () => unknown).call(baseContext);
+
+      expect(!!result).toBe(true);
+    });
+
+    it('is falsy when the SUSE Application Collection setting is disabled', () => {
+      const ctx = { ...baseContext, suseAppCollectionEnabled: false };
+      const result = (Charts.computed!.showAppCollectionBannerLogic as () => unknown).call(ctx);
+
+      expect(!!result).toBe(false);
+    });
+  });
 });

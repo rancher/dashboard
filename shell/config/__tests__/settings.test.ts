@@ -22,6 +22,21 @@ describe('Settings Configuration', () => {
     });
   });
 
+  describe('SUSE_APP_COLLECTION', () => {
+    it('should be defined in SETTING constants', () => {
+      expect(SETTING.SUSE_APP_COLLECTION).toBe('ui-suse-app-collection');
+    });
+
+    it('should be included in ALLOWED_SETTINGS as a boolean setting', () => {
+      expect(ALLOWED_SETTINGS).toHaveProperty(SETTING.SUSE_APP_COLLECTION);
+      expect(ALLOWED_SETTINGS[SETTING.SUSE_APP_COLLECTION]).toStrictEqual({ kind: 'boolean' });
+    });
+
+    it('should not be included in PROVISIONING_SETTINGS', () => {
+      expect(PROVISIONING_SETTINGS).not.toContain(SETTING.SUSE_APP_COLLECTION);
+    });
+  });
+
   describe('PROVISIONING_SETTINGS array', () => {
     it('should contain all expected provisioning-related settings', () => {
       const expectedSettings = [

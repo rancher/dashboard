@@ -124,3 +124,15 @@ export const isProviderEnabled = (context: ClusterProvisionerContext, provider: 
   // We want to have providers enabled by default unless they are turned off by a setting
   return true;
 };
+
+/**
+ * Whether the SUSE Application Collection integration (App Bundle install wizard entry points in
+ * Continuous Delivery and Charts) is enabled.
+ *
+ * Defaults to enabled - only an explicit `false` value on the `ui-suse-app-collection` setting disables it.
+ */
+export const isSuseAppCollectionEnabled = (store: Store<any>): boolean => {
+  const setting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUSE_APP_COLLECTION);
+
+  return setting?.value !== 'false';
+};
