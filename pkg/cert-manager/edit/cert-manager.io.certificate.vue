@@ -87,14 +87,10 @@ export default {
     spec.issuerRef.kind = spec.issuerRef.kind || ISSUER_KINDS.ISSUER;
     // cert-manager defaults the group, but writing it makes the resulting YAML self-describing.
     spec.issuerRef.group = spec.issuerRef.group || ISSUER_GROUP;
-    // These are bound into sub-fields, so they have to exist before the first render.
-    spec.privateKey = spec.privateKey || {};
-    spec.secretTemplate = spec.secretTemplate || {};
-
     if (this.isCreate) {
       // Only the private key is defaulted. `duration` and `renewBefore` are deliberately left
       // blank: ACME issuers ignore them entirely, so a prefilled value would be misleading there.
-      Object.assign(spec.privateKey, { ...CERTIFICATE_DEFAULTS.privateKey, ...spec.privateKey });
+      spec.privateKey = { ...CERTIFICATE_DEFAULTS.privateKey, ...spec.privateKey };
     }
 
     this.value.spec = spec;
@@ -211,7 +207,7 @@ export default {
     // Ed25519 has a single fixed key size, and an RSA size is invalid for ECDSA and vice versa.
     'value.spec.privateKey.algorithm'(neu, old) {
       if (old) {
-        this.value.spec.privateKey.size = undefined;
+        this.setPrivateKey('size', undefined);
       }
     },
 
@@ -223,6 +219,19 @@ export default {
   },
 
   methods: {
+    /**
+     * `spec.privateKey` and `spec.secretTemplate` are optional and are stripped from the saved
+     * resource when empty, so they can be absent when the store rehydrates this model after a
+     * save. Writing through these keeps the template from dereferencing a missing object.
+     */
+    setPrivateKey(key, keyValue) {
+      this.value.spec.privateKey = { ...this.value.spec.privateKey, [key]: keyValue };
+    },
+
+    setSecretTemplate(key, keyValue) {
+      this.value.spec.secretTemplate = { ...this.value.spec.secretTemplate, [key]: keyValue };
+    },
+
     onSecretNameInput() {
       this.secretNameTouched = true;
     },
@@ -390,43 +399,47 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledSelect
-              v-model:value="value.spec.privateKey.algorithm"
+              :value="value.spec.privateKey?.algorithm"
               :label="t('certManager.certificate.privateKey.algorithm')"
               :options="keyAlgorithmOptions"
               :mode="mode"
               :clearable="true"
+              @update:value="v => setPrivateKey('algorithm', v)"
             />
           </div>
           <div class="col span-6">
             <LabeledSelect
-              v-model:value="value.spec.privateKey.size"
+              :value="value.spec.privateKey?.size"
               :label="t('certManager.certificate.privateKey.size')"
               :options="keySizeOptions"
               :disabled="!keySizeOptions.length"
               :tooltip="keySizeOptions.length ? undefined : t('certManager.certificate.privateKey.sizeFixed')"
               :mode="mode"
               :clearable="true"
+              @update:value="v => setPrivateKey('size', v)"
             />
           </div>
         </div>
         <div class="row">
           <div class="col span-6">
             <LabeledSelect
-              v-model:value="value.spec.privateKey.encoding"
+              :value="value.spec.privateKey?.encoding"
               :label="t('certManager.certificate.privateKey.encoding')"
               :options="keyEncodingOptions"
               :mode="mode"
               :clearable="true"
+              @update:value="v => setPrivateKey('encoding', v)"
             />
           </div>
           <div class="col span-6">
             <LabeledSelect
-              v-model:value="value.spec.privateKey.rotationPolicy"
+              :value="value.spec.privateKey?.rotationPolicy"
               :label="t('certManager.certificate.privateKey.rotationPolicy')"
               :tooltip="t('certManager.certificate.privateKey.rotationPolicyTooltip')"
               :options="rotationPolicyOptions"
               :mode="mode"
               :clearable="true"
+              @update:value="v => setPrivateKey('rotationPolicy', v)"
             />
           </div>
         </div>
@@ -461,17 +474,19 @@ export default {
 
         <h3>{{ t('certManager.certificate.secretTemplate') }}</h3>
         <KeyValue
-          v-model:value="value.spec.secretTemplate.labels"
+          :value="value.spec.secretTemplate?.labels"
           :title="t('labels.labels.title')"
           :mode="mode"
           :read-allowed="false"
           class="mb-20"
+          @update:value="v => setSecretTemplate('labels', v)"
         />
         <KeyValue
-          v-model:value="value.spec.secretTemplate.annotations"
+          :value="value.spec.secretTemplate?.annotations"
           :title="t('labels.annotations.title')"
           :mode="mode"
           :read-allowed="false"
+          @update:value="v => setSecretTemplate('annotations', v)"
         />
       </Tab>
 

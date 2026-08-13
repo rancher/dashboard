@@ -42,10 +42,11 @@ describe('component: CertificateEdit', () => {
       expect(value.spec.issuerRef.kind).toBe('ClusterIssuer');
     });
 
-    it('should create the objects that sub-fields bind into', () => {
+    it('should not create empty optional objects', () => {
+      // They are stripped on save anyway, and the form no longer needs them to exist.
       const { value } = render();
 
-      expect(value.spec.secretTemplate).toStrictEqual({});
+      expect(value.spec.secretTemplate).toBeUndefined();
     });
 
     it('should default the private key on create', () => {
@@ -55,7 +56,7 @@ describe('component: CertificateEdit', () => {
     });
 
     it('should not default the private key when editing an existing certificate', () => {
-      expect(render({}, 'edit').value.spec.privateKey).toStrictEqual({});
+      expect(render({}, 'edit').value.spec.privateKey).toBeUndefined();
     });
 
     it('should not overwrite private key values that are already set', () => {
@@ -69,6 +70,43 @@ describe('component: CertificateEdit', () => {
 
       expect(value.spec.duration).toBeUndefined();
       expect(value.spec.renewBefore).toBeUndefined();
+    });
+  });
+
+  describe('optional spec objects', () => {
+    // They are pruned from the saved resource when empty, so the store can hand this form back a
+    // spec with neither present. Reading through them directly crashed the Advanced tab.
+    it('should render when privateKey and secretTemplate are both absent', () => {
+      const { wrapper } = render({}, 'edit');
+
+      expect(wrapper.vm.keyAlgorithm).toBeUndefined();
+      expect(wrapper.html()).toBeTruthy();
+    });
+
+    it('should create privateKey on first write', () => {
+      const { wrapper, value } = render({}, 'edit');
+
+      wrapper.vm.setPrivateKey('algorithm', 'ECDSA');
+
+      expect(value.spec.privateKey).toStrictEqual({ algorithm: 'ECDSA' });
+    });
+
+    it('should create secretTemplate on first write', () => {
+      const { wrapper, value } = render({}, 'edit');
+
+      wrapper.vm.setSecretTemplate('labels', { a: 'b' });
+
+      expect(value.spec.secretTemplate).toStrictEqual({ labels: { a: 'b' } });
+    });
+
+    it('should keep the other keys when writing one', () => {
+      const { wrapper, value } = render({ privateKey: { algorithm: 'RSA', size: 2048 } }, 'edit');
+
+      wrapper.vm.setPrivateKey('encoding', 'PKCS8');
+
+      expect(value.spec.privateKey).toStrictEqual({
+        algorithm: 'RSA', size: 2048, encoding: 'PKCS8'
+      });
     });
   });
 
