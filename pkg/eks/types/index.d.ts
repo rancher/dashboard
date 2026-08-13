@@ -1,6 +1,6 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
 
-export * as AWS from '../../../shell/types/aws-sdk';
+export * as AWS from '@shell/types/aws-sdk';
 
 export interface EKSLaunchTemplate {
   id?: string,
@@ -44,7 +44,7 @@ export interface EKSConfig {
   amazonCredentialSecret: string,
   displayName?: string,
   ebsCSIDriver?: boolean,
-  imported: boolean,
+  imported?: boolean,
   kmsKey?: string,
   kubernetesVersion?: string,
   loggingTypes?: string[],
@@ -57,7 +57,9 @@ export interface EKSConfig {
   securityGroups?: string[],
   serviceRole?: string,
   subnets?: string[],
-  tags?: string[]
+  tags?: {
+    [key: string]: string
+  },
   enableNetworkPolicy?: boolean
   ipFamily?: string
 }

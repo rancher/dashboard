@@ -70,7 +70,7 @@ const importedDefaultAksConfig = {
   resourceLocation: DEFAULT_REGION,
 };
 
-export const defaultAksConfig = {
+export const defaultAksConfig: AKSConfig = {
   clusterName:        '',
   imported:           false,
   linuxAdminUsername: 'azureuser',
@@ -320,7 +320,7 @@ export default defineComponent({
       return !!this.config?.azureCredentialSecret;
     },
 
-    clusterId(): String | null {
+    clusterId(): string | null {
       return this.value?.id || null;
     },
 

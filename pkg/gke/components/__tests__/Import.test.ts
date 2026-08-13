@@ -1,7 +1,8 @@
 import { shallowMount } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 
-import Import from '@pkg/gke/components/Import';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import Import from '@pkg/gke/components/Import.vue';
 
 const mockedStore = () => {
   return {
@@ -36,7 +37,7 @@ describe('gke import', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Import, {
-      propsData: {
+      props: {
         zone:       'test-zone',
         region:     '',
         credential: 'abc',
@@ -54,7 +55,7 @@ describe('gke import', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Import, {
-      propsData: {
+      props: {
         zone:       'mocked-empty-response',
         region:     '',
         credential: 'abc',
@@ -65,7 +66,7 @@ describe('gke import', () => {
 
     await flushPromises();
 
-    const nameTextInput = wrapper.getComponent('[data-testid="gke-import-cluster-name-text"]');
+    const nameTextInput = wrapper.getComponent<typeof LabeledInput>('[data-testid="gke-import-cluster-name-text"]');
 
     expect(nameTextInput.isVisible()).toBe(true);
 
@@ -80,7 +81,7 @@ describe('gke import', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Import, {
-      propsData: {
+      props: {
         zone:       'mocked-empty-response',
         region:     '',
         credential: 'abc',
@@ -91,7 +92,7 @@ describe('gke import', () => {
 
     await flushPromises();
 
-    const nameTextInput = wrapper.getComponent('[data-testid="gke-import-cluster-name-text"]');
+    const nameTextInput = wrapper.getComponent<typeof LabeledInput>('[data-testid="gke-import-cluster-name-text"]');
 
     nameTextInput.vm.$emit('input', { target: { value: 'abc' } });
     expect((wrapper.emitted('update:clusterName') || []).pop()?.[0]).toStrictEqual('abc');

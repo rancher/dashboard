@@ -1,10 +1,12 @@
 /* eslint-disable jest/no-mocks-import */
 import flushPromises from 'flush-promises';
-import { mount, shallowMount, Wrapper } from '@vue/test-utils';
-import { EKSConfig, EKSNodeGroup } from 'types';
+import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { EKSConfig, EKSNodeGroup } from '@pkg/eks/types';
 import CruEKS, { DEFAULT_EKS_CONFIG } from '@pkg/eks/components/CruEKS.vue';
-import describeKeyPairs from '../__mocks__/describeKeyPairs';
-import describeLaunchTemplates from '../__mocks__/describeLaunchTemplates';
+import Config from '@pkg/eks/components/Config.vue';
+import describeKeyPairs from '@pkg/eks/components/__mocks__/describeKeyPairs';
+import describeLaunchTemplates from '@pkg/eks/components/__mocks__/describeLaunchTemplates';
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -55,7 +57,7 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   };
 };
 
-const setCredential = async(wrapper :Wrapper<any>, config = {} as EKSConfig) => {
+const setCredential = async(wrapper: VueWrapper<any>, config = {} as EKSConfig) => {
   wrapper.setData({ config });
   wrapper.vm.updateCredential('foo');
   wrapper.vm.updateRegion('bar');
@@ -64,7 +66,7 @@ const setCredential = async(wrapper :Wrapper<any>, config = {} as EKSConfig) => 
 
 describe('eKS provisioning form', () => {
   it('should hide the form if no credential is selected', () => {
-    const wrapper = shallowMount(CruEKS, { propsData: { value: {}, mode: 'create' }, ...requiredSetup() });
+    const wrapper = shallowMount(CruEKS, { props: { value: {}, mode: 'create' }, ...requiredSetup() });
 
     const form = wrapper.find('[data-testid="crueks-form"]');
 
@@ -73,9 +75,9 @@ describe('eKS provisioning form', () => {
 
   it('should show the form when a credential is selected', async() => {
     const wrapper = mount(CruEKS, {
-      propsData: { value: {}, mode: 'create' },
+      props:   { value: {}, mode: 'create' },
       ...requiredSetup(),
-      shallow:   true
+      shallow: true
     });
 
     const formSelector = '[data-testid="crueks-form"]';
@@ -88,7 +90,7 @@ describe('eKS provisioning form', () => {
 
   it('should not use form validation if no credential is selected', async() => {
     const wrapper = shallowMount(CruEKS, {
-      propsData: { value: {}, mode: 'create' },
+      props: { value: {}, mode: 'create' },
       ...requiredSetup()
     });
 
@@ -106,7 +108,7 @@ describe('eKS provisioning form', () => {
 
   it('should update both cluster.name and config.displayName when the name input is altered', async() => {
     const wrapper = shallowMount(CruEKS, {
-      propsData: { value: {}, mode: 'create' },
+      props: { value: {}, mode: 'create' },
       ...requiredSetup()
     });
 
@@ -116,7 +118,7 @@ describe('eKS provisioning form', () => {
 
     await setCredential(wrapper);
 
-    const nameInput = wrapper.getComponent('[data-testid="eks-name-input"]');
+    const nameInput = wrapper.getComponent<typeof LabeledInput>('[data-testid="eks-name-input"]');
 
     nameInput.vm.$emit('update:value', 'abc');
     await wrapper.vm.$nextTick();
@@ -133,7 +135,7 @@ describe('eKS provisioning form', () => {
 
   it('should set _isNew to true when a pool is added', async() => {
     const wrapper = shallowMount(CruEKS, {
-      propsData: { value: {}, mode: 'edit' },
+      props: { value: {}, mode: 'edit' },
       ...requiredSetup()
     });
 
@@ -146,7 +148,7 @@ describe('eKS provisioning form', () => {
 
   it('should update new node pools\' version when cluster version is updated', async() => {
     const wrapper = shallowMount(CruEKS, {
-      propsData: { value: {}, mode: 'edit' },
+      props: { value: {}, mode: 'edit' },
       ...requiredSetup()
     });
 
@@ -163,13 +165,13 @@ describe('eKS provisioning form', () => {
 
   it('should configure enable network policy at the cluster level not within eksConfig', async() => {
     const wrapper = shallowMount(CruEKS, {
-      propsData: { value: {}, mode: 'edit' },
+      props: { value: {}, mode: 'edit' },
       ...requiredSetup()
     });
 
     await setCredential(wrapper);
 
-    const configComponent = wrapper.getComponent('[data-testid="eks-config-section"]');
+    const configComponent = wrapper.getComponent<typeof Config>('[data-testid="eks-config-section"]');
 
     configComponent.vm.$emit('update:enableNetworkPolicy', true);
 
@@ -189,14 +191,14 @@ describe('eKS provisioning form', () => {
 
   it('should show an error and prevent saving if no node groups are defined', async() => {
     const wrapper = shallowMount(CruEKS, {
-      propsData: { value: {}, mode: 'create' },
+      props: { value: {}, mode: 'create' },
       ...requiredSetup()
     });
 
-    await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG });
+    await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG } as unknown as EKSConfig);
     wrapper.vm.addGroup();
 
-    const nameInput = wrapper.getComponent('[data-testid="eks-name-input"]');
+    const nameInput = wrapper.getComponent<typeof LabeledInput>('[data-testid="eks-name-input"]');
 
     nameInput.vm.$emit('input', 'abc');
     await wrapper.vm.$nextTick();
@@ -213,15 +215,16 @@ describe('eKS provisioning form', () => {
 
   it('should NOT show an error nor prevent saving if no node groups are defined in an IMPORTED cluster', async() => {
     const wrapper = mount(CruEKS, {
-      propsData: { value: { isImported: true }, mode: 'edit' },
+      props:   { value: { isImported: true }, mode: 'edit' },
       ...requiredSetup(),
-      shallow:   true,
+      shallow: true,
     });
 
-    await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG, imported: true });
+    // see above - DEFAULT_EKS_CONFIG does not satisfy EKSConfig
+    await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG, imported: true } as unknown as EKSConfig);
     wrapper.vm.addGroup();
 
-    const nameInput = wrapper.getComponent('[data-testid="eks-name-input"]');
+    const nameInput = wrapper.getComponent<typeof LabeledInput>('[data-testid="eks-name-input"]');
 
     nameInput.vm.$emit('update:value', 'abc');
     await wrapper.vm.$nextTick();
@@ -239,7 +242,7 @@ describe('eKS provisioning form', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(CruEKS, {
-      propsData: { value: {}, mode: 'create' },
+      props: { value: {}, mode: 'create' },
       ...setup
     });
 

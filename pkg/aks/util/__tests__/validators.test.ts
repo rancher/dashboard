@@ -1,9 +1,13 @@
 import * as validators from '@pkg/aks/util/validators';
-import { AKSNodePool } from 'types';
+import { AKSNodePool } from '@pkg/aks/types';
 
-validators.requiredTranslation = (ctx, label) => `${ label } is required.`;
+// TypeScript treats an `import * as` namespace as read-only, but ts-jest compiles this module
+// to CJS where the exports object really is writable - which is how these two helpers are stubbed.
+const stubbedValidators = validators as { -readonly [K in keyof typeof validators]: typeof validators[K] };
 
-validators.needsValidation = () => true;
+stubbedValidators.requiredTranslation = (ctx: any, label = 'Value') => `${ label } is required.`;
+
+stubbedValidators.needsValidation = () => true;
 
 const MOCK_TRANSLATION = 'abc';
 

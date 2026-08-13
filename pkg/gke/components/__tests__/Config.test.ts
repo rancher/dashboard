@@ -1,8 +1,10 @@
 import { shallowMount } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 
-import Config from '@pkg/gke/components/Config.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import Config from '@pkg/gke/components/Config.vue';
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -45,7 +47,7 @@ describe('gke Config', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -69,7 +71,7 @@ describe('gke Config', () => {
     const setup = requiredSetup({ value: versionRange });
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -81,7 +83,7 @@ describe('gke Config', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const versionDropdown = wrapper.getComponent('[data-testid="gke-version-select"]');
+    const versionDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="gke-version-select"]');
 
     expect(versionDropdown.props().options).toHaveLength(numVersionsAvailable);
   });
@@ -93,7 +95,7 @@ describe('gke Config', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         zone,
         region,
         cloudCredentialId: '',
@@ -105,7 +107,7 @@ describe('gke Config', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const locationModeRadio = wrapper.getComponent('[data-testid="gke-location-mode-radio"]');
+    const locationModeRadio = wrapper.getComponent<typeof RadioGroup>('[data-testid="gke-location-mode-radio"]');
 
     expect(locationModeRadio.props().value).toBe(isUsingRegion);
   });
@@ -114,7 +116,7 @@ describe('gke Config', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         zone:              'us-east1-b',
         region:            '',
         cloudCredentialId: '',
@@ -140,7 +142,7 @@ describe('gke Config', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         zone,
         region:            '',
         cloudCredentialId: '',
@@ -165,7 +167,7 @@ describe('gke Config', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         zone:              '',
         region,
         cloudCredentialId: '',
@@ -191,7 +193,7 @@ describe('gke Config', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         zone:              '',
         region:            'us-east1',
         cloudCredentialId: '',
@@ -206,7 +208,7 @@ describe('gke Config', () => {
 
     // verify that each location has a checkbox and it is checked
     locations.forEach((location) => {
-      const extraZonesCheckbox = wrapper.findComponent(`[data-testid="gke-extra-zones-${ location }"]`);
+      const extraZonesCheckbox = wrapper.findComponent<typeof Checkbox>(`[data-testid="gke-extra-zones-${ location }"]`);
 
       expect(extraZonesCheckbox.exists()).toBe(true);
       expect(extraZonesCheckbox.props().value).toBe(true);
@@ -216,7 +218,8 @@ describe('gke Config', () => {
 
     // verify that there are no checked zone checkboxes NOT in locations
     const checkedNotInLocations = allExtraZoneCheckboxes.filter((zoneCheckbox) => {
-      return !!zoneCheckbox.props().value && !locations.includes(zoneCheckbox.props().label);
+      // `label` is optional on Checkbox; an unlabelled checkbox can never be one of `locations`
+      return !!zoneCheckbox.props().value && !locations.includes(zoneCheckbox.props().label as string);
     });
 
     expect(Object.keys(checkedNotInLocations)).toHaveLength(0);
@@ -226,7 +229,7 @@ describe('gke Config', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         zone:              'us-east1-b',
         region:            '',
         cloudCredentialId: '',
@@ -239,11 +242,11 @@ describe('gke Config', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const zoneSelect = wrapper.getComponent('[data-testid="gke-zone-select"]');
+    const zoneSelect = wrapper.getComponent<typeof LabeledSelect>('[data-testid="gke-zone-select"]');
 
     zoneSelect.vm.$emit('selecting', { name: 'us-east4-b' });
 
     await flushPromises();
-    expect(wrapper.emitted('update:locations')[0][0]).toStrictEqual(['us-east4-b']);
+    expect(wrapper.emitted('update:locations')?.[0]?.[0]).toStrictEqual(['us-east4-b']);
   });
 });

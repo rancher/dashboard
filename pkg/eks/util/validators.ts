@@ -1,5 +1,5 @@
 import { set } from '@shell/utils/object';
-import { EKSConfig, EKSNodeGroup, NormanCluster } from 'types';
+import { EKSConfig, EKSNodeGroup, NormanCluster } from '@pkg/eks/types';
 
 export interface CruEKSContext {
   t: Function,

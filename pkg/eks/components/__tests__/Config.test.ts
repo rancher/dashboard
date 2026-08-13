@@ -1,12 +1,23 @@
 /* eslint-disable jest/no-mocks-import */
 import flushPromises from 'flush-promises';
 import { shallowMount, VueWrapper, mount } from '@vue/test-utils';
-import { EKSConfig } from 'types';
+import Banner from '@components/Banner/Banner.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { EKSConfig } from '@pkg/eks/types';
 import Config from '@pkg/eks/components/Config.vue';
-import listKeysResponseData from '../__mocks__/listKeys';
-import describeAddonVersionsResponseData from '../__mocks__/describeAddonVersions';
-import versionsFallbackData from '../../assets/data/eks-versions';
+import listKeysResponseData from '@pkg/eks/components/__mocks__/listKeys';
+import describeAddonVersionsResponseData from '@pkg/eks/components/__mocks__/describeAddonVersions';
+import versionsFallbackData from '@pkg/eks/assets/data/eks-versions';
 import { _EDIT } from '@shell/config/query-params';
+
+// LabeledSelect declares `options` as a bare `Array`, so reads come back as `unknown[]`.
+// These tests only ever inspect the standard option fields.
+type VersionOption = {
+  label?: string;
+  value?: string;
+  disabled?: boolean;
+};
 
 const mockedValidationMixin = {
   computed: {
@@ -69,13 +80,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = mount(
       Config,
       {
-        propsData: {
-          config: {
-            amazonCredentialSecret: '',
-            region:                 ''
-          }
-
-        },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -94,12 +99,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        props: {
-          config: {
-            amazonCredentialSecret: '',
-            region:                 ''
-          }
-        },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -122,12 +122,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        propsData: {
-          config: {
-            amazonCredentialSecret: '',
-            region:                 ''
-          }
-        },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -148,12 +143,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        propsData: {
-          config: {
-            amazonCredentialSecret: '',
-            region:                 ''
-          }
-        },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -172,7 +162,7 @@ describe('eKS K8s configuration', () => {
     const setup = requiredSetup({ value: '>=1.25' });
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config:            { amazonCredentialSecret: '', region: '' },
         kubernetesVersion: '1.23',
         mode:              _EDIT
@@ -195,12 +185,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        propsData: {
-          config: {
-            amazonCredentialSecret: '',
-            region:                 ''
-          }
-        },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -230,12 +215,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        propsData: {
-          config: {
-            amazonCredentialSecret: '',
-            region:                 ''
-          }
-        },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -245,7 +225,7 @@ describe('eKS K8s configuration', () => {
 
     expect(wrapper.emitted('update:secretsEncryption')).toBeUndefined();
 
-    const secretsEncryptionCheckbox = wrapper.getComponent('[data-testid="eks-secrets-encryption-checkbox"]');
+    const secretsEncryptionCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="eks-secrets-encryption-checkbox"]');
 
     secretsEncryptionCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
@@ -262,7 +242,7 @@ describe('eKS K8s configuration', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config:            { amazonCredentialSecret: '', region: '' },
         secretsEncryption: true,
         kmsKey:            '123abc'
@@ -288,7 +268,7 @@ describe('eKS K8s configuration', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config:            { amazonCredentialSecret: '', region: '' },
         secretsEncryption: true,
         kmsKey:            '123abc'
@@ -297,7 +277,7 @@ describe('eKS K8s configuration', () => {
     });
 
     await setCredential(wrapper);
-    const kmsDropdown = wrapper.getComponent('[data-testid="eks-kms-dropdown"]');
+    const kmsDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="eks-kms-dropdown"]');
 
     expect(kmsDropdown.props().options).toStrictEqual(['arn:aws:kms:us-west-2:testdata2134',
       'arn:aws:kms:us-west-2:testdata6543',
@@ -331,7 +311,7 @@ describe('eKS K8s configuration', () => {
     };
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config:            { amazonCredentialSecret: '', region: '' },
         secretsEncryption: true,
         kmsKey:            '123abc'
@@ -359,12 +339,7 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        propsData: {
-          config: {
-            amazonCredentialSecret: '',
-            region:                 ''
-          }
-        },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
@@ -384,7 +359,7 @@ describe('eKS K8s configuration', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config:          { amazonCredentialSecret: '', region: '' },
         originalVersion: '1.26'
       },
@@ -394,12 +369,12 @@ describe('eKS K8s configuration', () => {
     await setCredential(wrapper);
     expect(wrapper.exists()).toBe(true);
 
-    let versionOptions = wrapper.getComponent('[data-testid="eks-version-dropdown"]').vm.options;
+    let versionOptions = wrapper.getComponent<typeof LabeledSelect>('[data-testid="eks-version-dropdown"]').vm.options;
 
     expect(versionOptions).not.toContain('1.25');
     wrapper.setProps({ originalVersion: '1.27' });
     await wrapper.vm.$nextTick();
-    versionOptions = wrapper.getComponent('[data-testid="eks-version-dropdown"]').vm.options;
+    versionOptions = wrapper.getComponent<typeof LabeledSelect>('[data-testid="eks-version-dropdown"]').vm.options;
     expect(versionOptions).not.toContain('1.26');
   });
 
@@ -412,18 +387,13 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        propsData: {
-          config: {
-            amazonCredentialSecret: '',
-            region:                 ''
-          }
-        },
+        props:  { config: { amazonCredentialSecret: '', region: '' } },
         global: { ...setup }
       });
 
     await setCredential(wrapper);
     expect(wrapper.exists()).toBe(true);
-    const versionOptions = (wrapper.getComponent('[data-testid="eks-version-dropdown"]').vm.options || []).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value);
+    const versionOptions = ((wrapper.getComponent<typeof LabeledSelect>('[data-testid="eks-version-dropdown"]').vm.options || []) as VersionOption[]).map((opt: VersionOption) => opt.value);
 
     expect(versionOptions).toStrictEqual(expectedVersions);
   });
@@ -434,7 +404,7 @@ describe('eKS K8s configuration', () => {
   ])('should only allow the user to select a kubernetes version within one minor version of the current version when editing', async(originalVersion, enabledVersions, disabledVersions) => {
     const setup = requiredSetup({ value: '>1.24' });
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config: { amazonCredentialSecret: '', region: '' },
         originalVersion
       },
@@ -443,20 +413,20 @@ describe('eKS K8s configuration', () => {
 
     await setCredential(wrapper);
 
-    const versionOptions = wrapper.getComponent('[data-testid="eks-version-dropdown"]').vm.options || [];
+    const versionOptions = (wrapper.getComponent<typeof LabeledSelect>('[data-testid="eks-version-dropdown"]').vm.options || []) as VersionOption[];
 
-    expect(versionOptions.filter((opt: {label: string, value: string, disabled?:boolean}) => opt.disabled).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value)).toStrictEqual(disabledVersions);
+    expect(versionOptions.filter((opt: VersionOption) => opt.disabled).map((opt: VersionOption) => opt.value)).toStrictEqual(disabledVersions);
 
-    expect(versionOptions.filter((opt: {label: string, value: string, disabled?:boolean}) => !opt.disabled).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value)).toStrictEqual(enabledVersions);
+    expect(versionOptions.filter((opt: VersionOption) => !opt.disabled).map((opt: VersionOption) => opt.value)).toStrictEqual(enabledVersions);
   });
 
   it('should not allow the user to upgrade if any node groups are of a lower version', async() => {
     const setup = requiredSetup({ value: '>1.24' });
-    const eksConfig: EKSConfig = {
+    const eksConfig = {
       amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.27' }, { version: '1.25' }]
     };
     const wrapper = mount(Config, {
-      propsData: {
+      props: {
         config:          eksConfig,
         originalVersion: '1.27',
       },
@@ -464,9 +434,9 @@ describe('eKS K8s configuration', () => {
     });
 
     await setCredential(wrapper, eksConfig);
-    const versionDropdown = wrapper.getComponent('[data-testid="eks-version-dropdown"]');
+    const versionDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="eks-version-dropdown"]');
 
-    const upgradesDisallowedBanner = wrapper.getComponent('[data-testid="eks-version-upgrade-disallowed-banner"]');
+    const upgradesDisallowedBanner = wrapper.getComponent<typeof Banner>('[data-testid="eks-version-upgrade-disallowed-banner"]');
 
     expect(versionDropdown.props().disabled).toBe(true);
     expect(upgradesDisallowedBanner.isVisible()).toBe(true);
@@ -475,11 +445,11 @@ describe('eKS K8s configuration', () => {
   // setting/unsetting _isUpgrading is tested in ./NodeGroup.test.ts
   it('should not allow the user to upgrade if any node groups are currently being upgraded', async() => {
     const setup = requiredSetup({ value: '>1.24' });
-    const eksConfig: EKSConfig = {
+    const eksConfig = {
       amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.27' }, { version: '1.27', _isUpgrading: true }]
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config:          eksConfig,
         originalVersion: '1.27',
       },
@@ -487,8 +457,8 @@ describe('eKS K8s configuration', () => {
     });
 
     await setCredential(wrapper, eksConfig);
-    const versionDropdown = wrapper.getComponent('[data-testid="eks-version-dropdown"]');
-    const upgradesDisallowedBanner = wrapper.getComponent('[data-testid="eks-version-upgrade-disallowed-banner"]');
+    const versionDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="eks-version-dropdown"]');
+    const upgradesDisallowedBanner = wrapper.getComponent<typeof Banner>('[data-testid="eks-version-upgrade-disallowed-banner"]');
 
     expect(versionDropdown.props().disabled).toBe(true);
     expect(upgradesDisallowedBanner.isVisible()).toBe(true);
@@ -496,11 +466,11 @@ describe('eKS K8s configuration', () => {
 
   it('should allow the user to upgrade if all node groups are the same version as the current cluster version', async() => {
     const setup = requiredSetup({ value: '>1.24' });
-    const eksConfig: EKSConfig = {
+    const eksConfig = {
       amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.27' }, { version: '1.27' }]
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config:          eksConfig,
         originalVersion: '1.27',
       },
@@ -509,8 +479,8 @@ describe('eKS K8s configuration', () => {
 
     await setCredential(wrapper);
 
-    const versionDropdown = wrapper.getComponent('[data-testid="eks-version-dropdown"]');
-    const upgradesDisallowedBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-disallowed-banner"]');
+    const versionDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="eks-version-dropdown"]');
+    const upgradesDisallowedBanner = wrapper.findComponent<typeof Banner>('[data-testid="eks-version-upgrade-disallowed-banner"]');
 
     expect(versionDropdown.props().disabled).toBe(false);
     expect(upgradesDisallowedBanner.exists()).toBe(false);

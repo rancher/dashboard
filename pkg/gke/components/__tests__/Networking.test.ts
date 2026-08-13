@@ -1,6 +1,11 @@
 import { shallowMount } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 
+import Banner from '@components/Banner/Banner.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Networking from '@pkg/gke/components/Networking.vue';
 
 // const mockedValidationMixin = {
@@ -45,7 +50,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -71,7 +76,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -83,7 +88,7 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const networksDropdown = wrapper.getComponent('[data-testid="gke-networks-dropdown"]');
+    const networksDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="gke-networks-dropdown"]');
 
     expect(networksDropdown.props().options).toHaveLength(5);
     expect(wrapper.emitted('update:network')?.[0]?.[0]).toBe('default');
@@ -93,7 +98,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -105,7 +110,7 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const subnetworksDropdown = wrapper.getComponent('[data-testid="gke-subnetworks-dropdown"]');
+    const subnetworksDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="gke-subnetworks-dropdown"]');
 
     expect(subnetworksDropdown.props().options).toHaveLength(0);
 
@@ -121,7 +126,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -142,7 +147,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -155,8 +160,8 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const secondaryRangeNameInput = wrapper.findComponent('[data-testid="gke-subnetwork-name-input"]');
-    let secondaryRangeDropdown = wrapper.findComponent('[data-testid="gke-cluster-secondary-range-name-select"]');
+    const secondaryRangeNameInput = wrapper.findComponent<typeof LabeledInput>('[data-testid="gke-subnetwork-name-input"]');
+    let secondaryRangeDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="gke-cluster-secondary-range-name-select"]');
 
     expect(secondaryRangeNameInput.exists()).toBe(true);
     expect(secondaryRangeDropdown.exists()).toBe(false);
@@ -165,7 +170,7 @@ describe('gke Networking', () => {
     await wrapper.vm.$nextTick();
     expect(secondaryRangeNameInput.exists()).toBe(false);
 
-    secondaryRangeDropdown = wrapper.findComponent('[data-testid="gke-cluster-secondary-range-name-select"]');
+    secondaryRangeDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="gke-cluster-secondary-range-name-select"]');
     expect(secondaryRangeDropdown.exists()).toBe(true);
     expect(secondaryRangeDropdown.props().options).toHaveLength(2);
   });
@@ -174,7 +179,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -188,8 +193,8 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const clusterSecondaryCIDRInput = wrapper.getComponent('[data-testid="gke-cluster-secondary-range-cidr-input"]');
-    const clusterSecondaryRangeSelect = wrapper.getComponent('[data-testid="gke-cluster-secondary-range-name-select"]');
+    const clusterSecondaryCIDRInput = wrapper.getComponent<typeof LabeledInput>('[data-testid="gke-cluster-secondary-range-cidr-input"]');
+    const clusterSecondaryRangeSelect = wrapper.getComponent<typeof LabeledSelect>('[data-testid="gke-cluster-secondary-range-name-select"]');
 
     expect(clusterSecondaryCIDRInput.props('disabled')).toBe(false);
     expect(clusterSecondaryCIDRInput.props('value')).toBe('');
@@ -203,8 +208,8 @@ describe('gke Networking', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:clusterSecondaryRangeName')[0][0]).toBe('range-1');
-    expect(wrapper.emitted('update:clusterIpv4CidrBlock')[0][0]).toBe('');
+    expect(wrapper.emitted('update:clusterSecondaryRangeName')?.[0]?.[0]).toBe('range-1');
+    expect(wrapper.emitted('update:clusterIpv4CidrBlock')?.[0]?.[0]).toBe('');
     wrapper.setProps({ clusterSecondaryRangeName: 'range-1' });
     await wrapper.vm.$nextTick();
 
@@ -221,7 +226,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -234,7 +239,9 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const banner = wrapper.getComponent('[data-testid="gke-use-ip-aliases-banner"]');
+    // findComponent, not getComponent: the banner is expected to disappear later in this test,
+    // and getComponent's return type deliberately omits `exists`
+    const banner = wrapper.findComponent<typeof Banner>('[data-testid="gke-use-ip-aliases-banner"]');
 
     expect(banner.exists()).toBe(true);
 
@@ -247,7 +254,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:                 'test-zone',
         region:               'test-region',
         cloudCredentialId:    '',
@@ -270,7 +277,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:              'test-zone',
         region:            'test-region',
         cloudCredentialId: '',
@@ -292,7 +299,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:               'test-zone',
         region:             'test-region',
         cloudCredentialId:  '',
@@ -309,14 +316,14 @@ describe('gke Networking', () => {
 
     await wrapper.vm.$nextTick();
 
-    let masterIpv4CidrBlockInput = wrapper.findComponent('[data-testid="gke-master-ipv4-cidr-block-input"]');
+    let masterIpv4CidrBlockInput = wrapper.findComponent<typeof LabeledInput>('[data-testid="gke-master-ipv4-cidr-block-input"]');
 
     expect(masterIpv4CidrBlockInput.exists()).toBe(false);
 
     wrapper.setProps({ enablePrivateNodes: true });
     await wrapper.vm.$nextTick();
 
-    masterIpv4CidrBlockInput = wrapper.findComponent('[data-testid="gke-master-ipv4-cidr-block-input"]');
+    masterIpv4CidrBlockInput = wrapper.findComponent<typeof LabeledInput>('[data-testid="gke-master-ipv4-cidr-block-input"]');
     expect(masterIpv4CidrBlockInput.isVisible()).toBe(true);
   });
 
@@ -324,7 +331,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:               'test-zone',
         region:             'test-region',
         cloudCredentialId:  '',
@@ -340,14 +347,14 @@ describe('gke Networking', () => {
     wrapper.setData({ showAdvanced: true });
     await wrapper.vm.$nextTick();
 
-    let enablePrivateEndpointCheckbox = wrapper.getComponent('[data-testid="gke-enable-private-endpoint-checkbox"]');
+    let enablePrivateEndpointCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="gke-enable-private-endpoint-checkbox"]');
 
     expect(enablePrivateEndpointCheckbox.props().disabled).toBe(true);
 
     wrapper.setProps({ enablePrivateNodes: true });
     await wrapper.vm.$nextTick();
 
-    enablePrivateEndpointCheckbox = wrapper.getComponent('[data-testid="gke-enable-private-endpoint-checkbox"]');
+    enablePrivateEndpointCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="gke-enable-private-endpoint-checkbox"]');
 
     expect(enablePrivateEndpointCheckbox.props().disabled).toBe(false);
   });
@@ -356,7 +363,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:               'test-zone',
         region:             'test-region',
         cloudCredentialId:  '',
@@ -372,13 +379,13 @@ describe('gke Networking', () => {
     wrapper.setData({ showAdvanced: true });
     await wrapper.vm.$nextTick();
 
-    let masterAuthorizedNetworkCidrInput = wrapper.findComponent('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
+    let masterAuthorizedNetworkCidrInput = wrapper.findComponent<typeof KeyValue>('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
 
     expect(masterAuthorizedNetworkCidrInput.exists()).toBe(false);
 
     wrapper.setProps({ enableMasterAuthorizedNetwork: true });
     await wrapper.vm.$nextTick();
-    masterAuthorizedNetworkCidrInput = wrapper.findComponent('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
+    masterAuthorizedNetworkCidrInput = wrapper.findComponent<typeof KeyValue>('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
     expect(masterAuthorizedNetworkCidrInput.isVisible()).toBe(true);
   });
 
@@ -386,7 +393,7 @@ describe('gke Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         zone:                          'test-zone',
         region:                        'test-region',
         cloudCredentialId:             '',
@@ -404,7 +411,7 @@ describe('gke Networking', () => {
     wrapper.setData({ showAdvanced: true });
     await wrapper.vm.$nextTick();
 
-    const masterAuthorizedNetworkCidrInput = wrapper.findComponent('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
+    const masterAuthorizedNetworkCidrInput = wrapper.findComponent<typeof KeyValue>('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
 
     expect(masterAuthorizedNetworkCidrInput.isVisible()).toBe(true);
     expect(masterAuthorizedNetworkCidrInput.props().disabled).toBe(false);
