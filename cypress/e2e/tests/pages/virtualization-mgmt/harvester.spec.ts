@@ -4,6 +4,7 @@ import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { qase } from '~/cypress/support/qase';
+import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
 const extensionsPo = new ExtensionsPagePo();
 const harvesterPo = new HarvesterClusterPagePo();
@@ -145,6 +146,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
   }));
 
   qase(7021, it('missing repo message should display when repo does NOT exist', () => {
+    // Installing/reloading the extension issues background requests that can transiently fail; the
+    // app surfaces that as an uncaught "Failed call" rejection which would fail the test.
+    catchTargetPageException(['Failed call', 'Network Error']);
+
     cy.get<Cypress.RancherVersion>('@rancherVersion').then((version) => {
       const catalog = harvesterExtensionCatalog(version);
       const chartRepo = catalog.repo;
@@ -184,6 +189,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.installModal().selectVersionClick(1);
       extensionsPo.installModal().installButton().click();
       cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
+      // The app should switch to the Installed tab after install, but that navigation is
+      // intermittent (the URL stays on #available); click it explicitly before waiting for it.
+      extensionsPo.extensionTabInstalledClick();
       extensionsPo.waitForPage(undefined, 'installed');
 
       extensionsPo.extensionReloadBanner().should('be.visible');
