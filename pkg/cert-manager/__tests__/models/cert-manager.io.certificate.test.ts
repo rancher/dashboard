@@ -212,6 +212,23 @@ describe('model: cert-manager.io.certificate', () => {
       expect(secret.formatterOpts.to).toStrictEqual(cert.secretLocation);
     });
 
+    it('should not render a future expiry as though it already passed', () => {
+      // LiveDate unconditionally appends "ago", so an expiry 88 days away read as "88 days ago".
+      const cert = certificate({}, { notAfter: iso(88) });
+      const notAfter = cert.details.find((d: any) => d.label === 'certManager.certificate.notAfter');
+
+      expect(notAfter.formatter).toBe('LiveExpiryDate');
+      expect(notAfter.formatterOpts.row).toBe(cert);
+    });
+
+    it('should only say "ago" for a date that is always in the past', () => {
+      const cert = certificate({}, { notBefore: iso(-2), renewalTime: iso(58) });
+      const byLabel = (label: string) => cert.details.find((d: any) => d.label === label);
+
+      expect(byLabel('certManager.certificate.notBefore').formatterOpts).toStrictEqual({ addSuffix: true });
+      expect(byLabel('certManager.certificate.renewalTime').formatterOpts).toBeUndefined();
+    });
+
     it('should keep the base details from the shell model', () => {
       // `super.details` carries owner references, deletion timestamps and the like.
       const cert = certificate();

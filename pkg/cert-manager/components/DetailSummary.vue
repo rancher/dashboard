@@ -53,7 +53,10 @@ const visible = computed(() => props.items.filter((item) => !item.hideIfEmpty ||
   // once there are more items than fit a 12 column row.
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  // Bounded tracks packed from the left. `1fr` would stretch a handful of items across the whole
+  // page, and fixed span-N columns overflow it horizontally once there are more than four.
+  grid-template-columns: repeat(auto-fill, minmax(220px, 300px));
+  justify-content: start;
   margin-bottom: 20px;
 
   h3 {

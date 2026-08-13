@@ -156,14 +156,16 @@ export default class Certificate extends SteveModel {
       {
         label:         this.t('certManager.certificate.notAfter'),
         content:       this.expiresAt,
-        formatter:     'LiveDate',
-        formatterOpts: { addSuffix: true },
+        // LiveDate always appends "ago", so a future expiry reads as though it already lapsed.
+        // LiveExpiryDate keys off the row state and only says "ago" once actually expired.
+        formatter:     'LiveExpiryDate',
+        formatterOpts: { row: this },
       },
       {
-        label:         this.t('certManager.certificate.renewalTime'),
-        content:       this.renewalTime,
-        formatter:     'LiveDate',
-        formatterOpts: { addSuffix: true },
+        label:     this.t('certManager.certificate.renewalTime'),
+        content:   this.renewalTime,
+        // No suffix, matching the Renews column in the list - it is normally a future date.
+        formatter: 'LiveDate',
       },
       { label: this.t('certManager.certificate.duration'), content: this.spec?.duration },
     ];
