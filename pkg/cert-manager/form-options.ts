@@ -94,6 +94,12 @@ export const ACME_SERVER_CHOICE = {
   CUSTOM:     'custom',
 } as const;
 
+/**
+ * An HTTP-01 ingress solver may set exactly one of these; the admission webhook rejects any
+ * combination. https://cert-manager.io/docs/configuration/acme/http01/
+ */
+export const HTTP01_INGRESS_MODES = ['ingressClassName', 'name', 'class'] as const;
+
 export const CHALLENGE_TYPES = {
   HTTP01: 'http01',
   DNS01:  'dns01',

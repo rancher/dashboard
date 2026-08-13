@@ -154,7 +154,10 @@ certManager:
     validation:
       noConfigType: Choose an issuer type.
       multipleConfigTypes: 'An issuer must have exactly one type, but found: {types}. Edit as YAML to resolve this.'
+      serverRequired: An ACME issuer needs a server URL.
+      privateKeySecretRequired: An ACME issuer needs the name of a Secret to hold its account private key. cert-manager creates the Secret if it does not exist.
       solverChallengeType: Every solver needs exactly one challenge type, either HTTP-01 or DNS-01.
+      solverIngress: An HTTP-01 solver can set only one of an ingress class name, an existing ingress name, or a legacy ingress class.
       solverProvider: Choose a provider for every DNS-01 solver.
     tab:
       configuration: Configuration
@@ -168,10 +171,14 @@ certManager:
     http01Description: Solve challenges by serving a token over an HTTP ingress.
     dns01: DNS-01
     dns01Description: Solve challenges by creating TXT records in DNS. Required for wildcard certificates.
-    ingressClassName: Ingress Class Name
-    ingressClassNameTooltip: cert-manager creates a temporary Ingress with this class to serve the challenge.
-    existingIngress: Existing Ingress Name
-    existingIngressTooltip: Add the challenge path to an existing Ingress instead of creating a temporary one.
+    ingressMode:
+      label: Challenge Ingress
+      ingressClassName: Ingress Class Name
+      ingressClassNameDescription: cert-manager creates a temporary Ingress with this class to serve the challenge.
+      name: Existing Ingress Name
+      nameDescription: Add the challenge path to an existing Ingress instead of creating a temporary one.
+      class: Legacy Ingress Class
+      classDescription: Sets the class through the legacy annotation. Prefer the ingress class name unless your controller needs it.
     gatewayHttpRoute: This solver is configured to use a Gateway API HTTPRoute. Switch to YAML to edit that configuration.
     selector: Selector
     selectorHelp: Limit which certificates this solver applies to.

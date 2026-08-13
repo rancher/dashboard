@@ -3,9 +3,9 @@ import ArrayList from '@shell/components/form/ArrayList';
 import KeyValue from '@shell/components/form/KeyValue';
 import Banner from '@components/Banner/Banner.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { RadioGroup } from '@components/Form/Radio';
 import { _EDIT } from '@shell/config/query-params';
-import { CHALLENGE_TYPES } from '../../form-options';
+import { CHALLENGE_TYPES, HTTP01_INGRESS_MODES } from '../../form-options';
+import { RadioGroup } from '@components/Form/Radio';
 import Dns01Provider from './Dns01Provider.vue';
 
 // RadioGroup needs a name that is unique across the page, and solvers are rendered as a list.
@@ -46,7 +46,9 @@ export default {
       return [CHALLENGE_TYPES.HTTP01, CHALLENGE_TYPES.DNS01].map((value) => ({
         value,
         label:       this.t(`certManager.solver.${ value }`),
-        description: this.t(`certManager.solver.${ value }Description`),
+        // Raw - `RadioButton` interpolates the description as text, so an escaped apostrophe
+        // would reach the page as `&#39;`.
+        description: this.t(`certManager.solver.${ value }Description`, undefined, true),
       }));
     },
 
@@ -63,6 +65,34 @@ export default {
           delete this.value.dns01;
           this.value.http01 = this.value.http01 || { ingress: {} };
         }
+      },
+    },
+
+    ingressModeOptions() {
+      return HTTP01_INGRESS_MODES.map((value) => ({
+        value,
+        label:       this.t(`certManager.solver.ingressMode.${ value }`),
+        description: this.t(`certManager.solver.ingressMode.${ value }Description`, undefined, true),
+      }));
+    },
+
+    /**
+     * cert-manager allows exactly one of `ingressClassName`, `class` or `name` on an HTTP-01
+     * ingress solver and the webhook rejects any combination, so this is a choice rather than
+     * three fields. Derived from whichever key is set, so YAML-authored solvers round-trip.
+     */
+    ingressMode: {
+      get() {
+        const ingress = this.value.http01?.ingress || {};
+
+        return HTTP01_INGRESS_MODES.find((mode) => ingress[mode] !== undefined) || HTTP01_INGRESS_MODES[0];
+      },
+      set(neu) {
+        const ingress = this.value.http01.ingress || {};
+
+        HTTP01_INGRESS_MODES.forEach((mode) => delete ingress[mode]);
+        ingress[neu] = '';
+        this.value.http01.ingress = ingress;
       },
     },
 
@@ -87,27 +117,27 @@ export default {
     />
 
     <template v-if="challengeType === 'http01'">
-      <div
-        v-if="value.http01.ingress"
-        class="row mb-20"
-      >
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.http01.ingress.ingressClassName"
-            :label="t('certManager.solver.ingressClassName')"
-            :tooltip="t('certManager.solver.ingressClassNameTooltip')"
-            :mode="mode"
-          />
+      <template v-if="value.http01.ingress">
+        <RadioGroup
+          v-model:value="ingressMode"
+          :name="`ingressMode-${ radioName }`"
+          :label="t('certManager.solver.ingressMode.label')"
+          :options="ingressModeOptions"
+          :mode="mode"
+          class="mb-20"
+        />
+
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledInput
+              :value="value.http01.ingress[ingressMode]"
+              :label="t(`certManager.solver.ingressMode.${ ingressMode }`)"
+              :mode="mode"
+              @update:value="v => value.http01.ingress[ingressMode] = v"
+            />
+          </div>
         </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.http01.ingress.name"
-            :label="t('certManager.solver.existingIngress')"
-            :tooltip="t('certManager.solver.existingIngressTooltip')"
-            :mode="mode"
-          />
-        </div>
-      </div>
+      </template>
       <Banner
         v-if="value.http01.gatewayHTTPRoute"
         color="info"

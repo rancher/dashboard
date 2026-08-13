@@ -99,4 +99,48 @@ describe('component: AcmeSolver', () => {
 
     expect(wrapper.find('.banner').exists()).toBe(true);
   });
+
+  describe('http01 ingress mode', () => {
+    // cert-manager rejects any combination of ingressClassName / name / class, so the form has to
+    // offer them as a choice rather than as three fields.
+    it('should default to the ingress class name', () => {
+      expect(render({ http01: { ingress: {} } }).vm.ingressMode).toBe('ingressClassName');
+    });
+
+    it.each([
+      ['ingressClassName', { ingressClassName: 'nginx' }],
+      ['name', { name: 'my-ingress' }],
+      ['class', { class: 'nginx' }],
+    ])('should derive %s from the key that is set', (expected, ingress) => {
+      expect(render({ http01: { ingress } }).vm.ingressMode).toBe(expected);
+    });
+
+    it('should drop the other keys when the mode changes', () => {
+      const solver: Record<string, any> = { http01: { ingress: { ingressClassName: 'nginx' } } };
+      const wrapper = render(solver);
+
+      wrapper.vm.ingressMode = 'name';
+
+      expect(solver.http01.ingress).toStrictEqual({ name: '' });
+    });
+
+    it('should never leave two of them set', () => {
+      const solver: Record<string, any> = { http01: { ingress: { ingressClassName: 'nginx' } } };
+      const wrapper = render(solver);
+
+      wrapper.vm.ingressMode = 'class';
+      wrapper.vm.ingressMode = 'name';
+
+      expect(Object.keys(solver.http01.ingress)).toStrictEqual(['name']);
+    });
+
+    it('should keep unrelated ingress settings', () => {
+      const solver: Record<string, any> = { http01: { ingress: { ingressClassName: 'nginx', serviceType: 'ClusterIP' } } };
+      const wrapper = render(solver);
+
+      wrapper.vm.ingressMode = 'name';
+
+      expect(solver.http01.ingress.serviceType).toBe('ClusterIP');
+    });
+  });
 });

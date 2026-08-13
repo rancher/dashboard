@@ -1,5 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import IssuerEdit from '../IssuerEdit.vue';
+import { ISSUER_CONFIG_TYPES } from '../../form-options';
 
 function render(spec: Record<string, any> = {}, clusterScoped = false) {
   const value = { metadata: { name: 'my-issuer', namespace: 'default' }, spec };
@@ -92,6 +93,38 @@ describe('component: IssuerEdit', () => {
       expect(rulesFor({}).exactlyOneConfigType({ selfSigned: {} })).toBeUndefined();
     });
 
+    it('should require the ACME account key secret, which the webhook rejects when missing', () => {
+      const spec = { acme: { server: 'https://acme', privateKeySecretRef: {} } };
+
+      expect(rulesFor({}).acmeRequiredFields(spec)).toBe('certManager.issuer.validation.privateKeySecretRequired');
+    });
+
+    it('should require an ACME server URL', () => {
+      expect(rulesFor({}).acmeRequiredFields({ acme: {} })).toBe('certManager.issuer.validation.serverRequired');
+    });
+
+    it('should accept a complete ACME config', () => {
+      const spec = { acme: { server: 'https://acme', privateKeySecretRef: { name: 'key' } } };
+
+      expect(rulesFor({}).acmeRequiredFields(spec)).toBeUndefined();
+    });
+
+    it('should not impose ACME requirements on other issuer types', () => {
+      expect(rulesFor({}).acmeRequiredFields({ selfSigned: {} })).toBeUndefined();
+    });
+
+    it('should reject a solver that sets more than one ingress key', () => {
+      const solvers = [{ http01: { ingress: { ingressClassName: 'nginx', name: 'my-ingress' } } }];
+
+      expect(rulesFor({}).acmeSolverShape({ acme: { solvers } })).toBe('certManager.issuer.validation.solverIngress');
+    });
+
+    it('should accept a solver with exactly one ingress key', () => {
+      const solvers = [{ http01: { ingress: { ingressClassName: 'nginx' } } }];
+
+      expect(rulesFor({}).acmeSolverShape({ acme: { solvers } })).toBeUndefined();
+    });
+
     it.each([
       ['a solver with neither challenge type', { selector: {} }],
       ['a solver with both challenge types', { http01: {}, dns01: { cloudflare: {} } }],
@@ -115,6 +148,33 @@ describe('component: IssuerEdit', () => {
 
     it('should accept an issuer with no solvers at all', () => {
       expect(rulesFor({}).acmeSolverShape({ selfSigned: {} })).toBeUndefined();
+    });
+  });
+
+  describe('config type options', () => {
+    // `RadioButton` renders the label as HTML but interpolates the description as text, so the
+    // description has to be asked for raw - otherwise "Let's Encrypt" arrives as "Let&#39;s Encrypt".
+    it('should ask for the description unescaped and the label escaped', () => {
+      const wrapper = shallowMount(IssuerEdit, {
+        props:  { value: { metadata: {}, spec: {} }, mode: 'create' },
+        global: {
+          mocks: {
+            t:           (key: string, _args: any, raw?: boolean) => (raw ? `raw:${ key }` : `escaped:${ key }`),
+            $store:      { getters: { 'i18n/t': (key: string) => key, currentProduct: {} } },
+            $route:      { query: {}, params: {} },
+            $fetchState: { pending: false },
+          },
+        },
+      });
+
+      const options = wrapper.vm.configTypeOptions as { label: string, description: string }[];
+
+      expect(options.map((option) => option.description)).toStrictEqual(
+        ISSUER_CONFIG_TYPES.map((type) => `raw:certManager.issuer.typeDescription.${ type }`)
+      );
+      expect(options.map((option) => option.label)).toStrictEqual(
+        ISSUER_CONFIG_TYPES.map((type) => `escaped:certManager.issuer.type.${ type }`)
+      );
     });
   });
 });

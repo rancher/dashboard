@@ -10,7 +10,7 @@ import Error from '@shell/components/form/Error';
 import Banner from '@components/Banner/Banner.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
-import { ISSUER_CONFIG_TYPES, ISSUER_CONFIG_DEFAULTS } from '../form-options';
+import { ISSUER_CONFIG_TYPES, ISSUER_CONFIG_DEFAULTS, HTTP01_INGRESS_MODES } from '../form-options';
 import AcmeConfig from './issuer/AcmeConfig.vue';
 
 /**
@@ -58,7 +58,7 @@ export default {
         {
           path: 'metadata.name', rules: ['required', 'dnsLabel'], translationKey: 'nameNsDescription.name.label'
         },
-        { path: 'spec', rules: ['exactlyOneConfigType', 'acmeSolverShape'] },
+        { path: 'spec', rules: ['exactlyOneConfigType', 'acmeRequiredFields', 'acmeSolverShape'] },
       ],
     };
   },
@@ -88,6 +88,22 @@ export default {
           return undefined;
         },
 
+        /**
+         * `required` on the inputs only draws the asterisk. Without this the form happily submits
+         * an ACME issuer with no account key and the admission webhook rejects it.
+         */
+        acmeRequiredFields: (spec) => {
+          if (!spec?.acme) {
+            return undefined;
+          }
+
+          if (!spec.acme.server) {
+            return this.t('certManager.issuer.validation.serverRequired');
+          }
+
+          return spec.acme.privateKeySecretRef?.name ? undefined : this.t('certManager.issuer.validation.privateKeySecretRequired');
+        },
+
         acmeSolverShape: (spec) => {
           const solvers = spec?.acme?.solvers || [];
           const invalid = solvers.some((solver) => !!solver.http01 === !!solver.dns01);
@@ -98,7 +114,19 @@ export default {
 
           const noProvider = solvers.some((solver) => solver.dns01 && !Object.keys(solver.dns01).length);
 
-          return noProvider ? this.t('certManager.issuer.validation.solverProvider') : undefined;
+          if (noProvider) {
+            return this.t('certManager.issuer.validation.solverProvider');
+          }
+
+          // The form offers these as a choice, but a solver authored in YAML can still set more
+          // than one, and the webhook error for it is not self explanatory.
+          const ambiguousIngress = solvers.some((solver) => {
+            const ingress = solver.http01?.ingress || {};
+
+            return HTTP01_INGRESS_MODES.filter((mode) => !!ingress[mode]).length > 1;
+          });
+
+          return ambiguousIngress ? this.t('certManager.issuer.validation.solverIngress') : undefined;
         },
       };
     },
@@ -107,7 +135,10 @@ export default {
       return ISSUER_CONFIG_TYPES.map((value) => ({
         value,
         label:       this.t(`certManager.issuer.type.${ value }`),
-        description: this.t(`certManager.issuer.typeDescription.${ value }`),
+        // Raw, because `RadioButton` interpolates the description as text while it renders the
+        // label as HTML. Escaped here as well, "Let's Encrypt" would reach the page as
+        // "Let&#39;s Encrypt" - Vue escapes the interpolation on its own.
+        description: this.t(`certManager.issuer.typeDescription.${ value }`, undefined, true),
       }));
     },
 
