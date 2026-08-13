@@ -30,6 +30,10 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
     cy.setUserPreference({ 'all-namespaces': true }, true);
 
     HomePagePo.goTo();
+    // The cold home/cluster bootstrap is fail-whale-prone; recover here so a transient crash does not
+    // leave the app on the fail-whale (or a not-fully-loaded shell) and fail the later chart navigation
+    // with ".side-nav not found". testIsolation is off, so an unrecovered crash poisons the whole spec.
+    cy.recoverFromFailWhale();
 
     cy.createE2EResourceName('logging-flow').then((name) => {
       flowName = name;
