@@ -204,11 +204,18 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted(cluster, false);
 
     // go to "add rancher repositories"
-    extensionsPo.waitForTabs(); // Do this before opening the menu, as tab content can cause change in window size which closes the menu before the click happens
+    // Wait for the tabs AND the card content to finish loading before opening the menu: tab/card
+    // content rendering resizes the window, which closes the actions menu between opening it and
+    // clicking the item (the observed flake where the Add flow silently never ran). Settling the
+    // layout first keeps the menu open through the item click.
+    extensionsPo.waitForTabs();
+    extensionsPo.loading().should('not.exist');
     extensionsPo.extensionMenuToggle();
     extensionsPo.addRepositoriesClick();
 
-    // add the partners repo
+    // add the partners repo - confirm the modal actually opened before clicking Add, otherwise a
+    // missed menu interaction would no-op the Add click and leave the repo unadded (row-not-found).
+    extensionsPo.addReposModal().should('be.visible');
     extensionsPo.addReposModalAddClick();
     extensionsPo.addReposModal().should('not.exist');
 
@@ -404,9 +411,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
 
-    // The extension reload re-initialises the whole app; wait for the page and its tabs to
-    // render before clicking a tab, otherwise the extension-tabs container is not yet in the
-    // DOM (seen as "extension-tabs not found" on the first attempt).
+    // The extension reload re-initialises the whole app and occasionally lands on a page where the
+    // tabs container never mounts (seen as "extension-tabs not found"). A fresh navigation to the
+    // extensions page recovers deterministically off a clean load before we wait for the tabs.
+    extensionsPo.goTo();
     extensionsPo.waitForPage();
     extensionsPo.waitForTabs();
 

@@ -343,7 +343,7 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   addReposModalAddClick(): Cypress.Chainable {
-    return this.addReposModal().get('.dialog-buttons button:last-child').click();
+    return this.addReposModal().get('.dialog-buttons button:last-child').should('be.visible').click();
   }
 
   // ------------------ Import Extension Catalog modal ------------------
