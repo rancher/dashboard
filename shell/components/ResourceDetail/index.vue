@@ -14,6 +14,7 @@ import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
+import FailWhale from '@shell/components/FailWhale';
 import { useResourceDetailPageProvider } from '@shell/composables/resourceDetail';
 
 function modeFor(route) {
@@ -48,7 +49,8 @@ export default {
     ResourceYaml,
     Masthead,
     IconMessage,
-    Banner
+    Banner,
+    FailWhale,
   },
 
   mixins: [CreateEditView],
@@ -138,6 +140,15 @@ export default {
     const schema = store.getters[`${ inStore }/schemaFor`](resourceType);
     let model, initialModel, liveModel, yaml;
 
+    // If the resource type (e.g. CRD) is gone, render the error in-context (in
+    // place of the details) rather than redirecting to the global fail-whale
+    // page, so the side menu and cluster context are retained.
+    if ( !schema && realMode !== _CREATE && realMode !== _IMPORT ) {
+      this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceNotFound', { resource: resourceType }, true));
+
+      return;
+    }
+
     if ( realMode === _CREATE || realMode === _IMPORT ) {
       if ( !namespace ) {
         namespace = store.getters['defaultNamespace'];
@@ -181,7 +192,13 @@ export default {
         });
       } catch (e) {
         if (e.status === 404 || e.status === 403) {
-          store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource: resourceType, fqid }, true)));
+          // Render the error in-context (in place of the details) rather than
+          // redirecting to the global fail-whale page, so the side menu and
+          // cluster context are retained (e.g. after the resource has been
+          // deleted but the user still has a preference/URL pointing at it).
+          this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceIdNotFound', { resource: resourceType, fqid }, true));
+
+          return;
         }
         console.info(`Could not find '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
         liveModel = {};
@@ -251,20 +268,24 @@ export default {
       resourceSubtype: null,
 
       // Set by fetch
-      hasCustomDetail: null,
-      hasCustomEdit:   null,
-      resourceType:    null,
-      asYaml:          null,
-      yaml:            null,
-      liveModel:       null,
-      initialModel:    null,
-      mode:            null,
-      as:              null,
-      value:           null,
-      model:           null,
-      notFound:        null,
-      canViewYaml:     null,
-      errors:          []
+      hasCustomDetail:       null,
+      hasCustomEdit:         null,
+      resourceType:          null,
+      asYaml:                null,
+      yaml:                  null,
+      liveModel:             null,
+      initialModel:          null,
+      mode:                  null,
+      as:                    null,
+      value:                 null,
+      model:                 null,
+      notFound:              null,
+      canViewYaml:           null,
+      errors:                [],
+      // When set, the resource type or the specific resource could not be
+      // found. The error is rendered in-context (in place of the details)
+      // instead of redirecting to the fail-whale page.
+      resourceNotFoundError: null,
     };
   },
 
@@ -411,6 +432,10 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending || notFound" />
+  <FailWhale
+    v-else-if="resourceNotFoundError"
+    :error="resourceNotFoundError"
+  />
   <component
     :is="showComponent"
     v-else-if="isFullPageOverride"
