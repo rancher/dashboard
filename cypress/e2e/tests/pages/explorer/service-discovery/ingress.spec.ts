@@ -261,10 +261,17 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       const ingressCreatePagePo = new IngressCreateEditPo();
 
       ingressCreatePagePo.waitForPage(null, 'rules');
-      // The headless service is confirmed to exist via the API (waitForRancherResource above) before
-      // this page's fresh load (ingressListPagePo.goTo is a full visit that resets the store), so the
-      // form's services fetch already lists it and the target-service selection below finds it - no
-      // page reload needed to work around a stale store.
+      // With testIsolation off, the target-service dropdown is populated from the persisted services
+      // store, which earlier Create/Edit tests filled before this test created its headless service.
+      // The list-page full visit + waitForRancherResource guard are NOT sufficient: the create form is
+      // reached by an in-app navigation (masthead().create()) that reuses the already-populated store,
+      // so the new headless service can be absent from the options and the selection silently no-ops -
+      // the submitted rule then comes back with no http backend ("{ host } to have property http").
+      // Reload the freshly-opened form (nothing entered yet) to force a fresh services fetch that
+      // includes the new service. (A prior commit removed this reload assuming goTo alone sufficed;
+      // that regressed this test, so it is restored.)
+      cy.reload();
+      ingressCreatePagePo.waitForPage(null, 'rules');
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressHeadlessName);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
