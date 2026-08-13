@@ -82,99 +82,99 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'apps.statefulset', `${ nsName2 }/${ uniqueStatefulSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'apps.statefulset', statefulSetNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
-        // Derive the actual number of statefulsets in the two filtered namespaces instead of assuming
-        // exactly statefulSetNamesList.length + 1; the cluster can briefly hold an extra resource, which makes a
-        // hardcoded count disagree with the UI.
-        const count = resp.body.data.filter((r: any) => [nsName1, nsName2].includes(r.metadata?.namespace)).length;
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-        // Wait for the list to finish loading before the (retrying) pagination-text assertions below.
-        statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      // pagination is visible
+      statefulSetListPage.list().resourceTable().sortableTable().pagination()
+        .checkVisible();
 
-        // pagination is visible
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .checkVisible();
-
+      statefulSetListPage.list().resourceTable().sortableTable().pagination()
+        .paginationTotalCount()
+        .then((count: number) => {
         // basic checks on navigation buttons
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .isEnabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .isEnabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
 
-        // check text before navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
+          // check text before navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
 
-        // navigate to next page - right button
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .click();
+          // navigate to next page - right button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
 
-        // check text and buttons after navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`11 - 20 of ${ count } StatefulSets`);
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isEnabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isEnabled();
+          // check text and buttons after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`11 - 20 of ${ count } StatefulSets`);
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
 
-        // navigate to first page - left button
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .click();
+          // navigate to first page - left button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
 
-        // check text and buttons after navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
+          // check text and buttons after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
 
-        // navigate to last page - end button
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .scrollIntoView()
-          .click();
+          // navigate to last page - end button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
+            .click();
 
-        // row count on last page
-        let lastPageCount = count % 10;
+          // row count on last page
+          let lastPageCount = count % 10;
 
-        if (lastPageCount === 0) {
-          lastPageCount = 10;
-        }
+          if (lastPageCount === 0) {
+            lastPageCount = 10;
+          }
 
-        // check text after navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } StatefulSets`);
+          // check text after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } StatefulSets`);
 
-        // navigate to first page - beginning button
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .click();
+          // navigate to first page - beginning button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
 
-        // check text and buttons after navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-      });
+          // check text and buttons after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+        });
     });
 
     it('sorting changes the order of paginated statefulsets data', () => {

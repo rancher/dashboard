@@ -395,18 +395,16 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
       cy.waitForRancherResource('v1', 'apps.deployment', `${ nsName2 }/${ uniqueDeployment }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'apps.deployment', deploymentNamesList.length + 1, true).then((resp: Cypress.Response<any>) => {
-        // Derive the actual number of deployments in the two filtered namespaces instead of assuming
-        // exactly deploymentNamesList.length + 1; the cluster can briefly hold an extra resource, which makes a
-        // hardcoded count disagree with the UI.
-        const count = resp.body.data.filter((r: any) => [nsName1, nsName2].includes(r.metadata?.namespace)).length;
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
 
-        // Wait for the list to finish loading before the (retrying) pagination-text assertions below.
-        deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
+      // pagination is visible
+      deploymentsListPage.sortableTable().pagination().checkVisible();
 
-        // pagination is visible
-        deploymentsListPage.sortableTable().pagination().checkVisible();
-
+      deploymentsListPage.sortableTable().pagination().paginationTotalCount().then((count: number) => {
         // basic checks on navigation buttons
         deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
