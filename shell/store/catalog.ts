@@ -11,6 +11,7 @@ import { ensureRegex } from '@shell/utils/string';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
 import { lookup } from '@shell/plugins/dashboard-store/model-loader';
+import { ActionContext, MutationTree } from 'vuex';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -25,10 +26,9 @@ const ALLOWED_CATEGORIES = [
 ];
 
 const CERTIFIED_SORTS = {
-  [CATALOG_ANNOTATIONS._RANCHER]:      1,
-  [CATALOG_ANNOTATIONS._EXPERIMENTAL]: 1,
-  [CATALOG_ANNOTATIONS._PARTNER]:      2,
-  other:                               3,
+  [CATALOG_ANNOTATIONS._RANCHER]: 1,
+  [CATALOG_ANNOTATIONS._PARTNER]: 2,
+  other:                          3,
 };
 
 export const APP_STATUS = {
@@ -47,7 +47,27 @@ export const APP_UPGRADE_STATUS = {
 export const WINDOWS = 'windows';
 export const LINUX = 'linux';
 
-export const state = function() {
+/**
+ * Charts, repos and version info are model instances from the steve store, which is untyped, so
+ * they are `any` here.
+ */
+export interface CatalogState {
+  loaded: Record<string, boolean>;
+  clusterRepos: any[];
+  namespacedRepos: any[];
+  charts: Record<string, any>;
+  /** Version info by `repoType/repoName/chartName/versionName`. */
+  versionInfos: Record<string, any>;
+  config: { namespace: string };
+  /** Which store the repos were loaded from, `cluster` or `management`. */
+  inStore: string | undefined;
+  /** Set by `setCharts`, so unset until the first load. */
+  errors?: string[];
+}
+
+type CatalogContext = ActionContext<CatalogState, any>;
+
+export const state = function(): CatalogState {
   return {
     loaded:          {},
     clusterRepos:    [],
@@ -59,14 +79,18 @@ export const state = function() {
   };
 };
 
+/**
+ * The getters are annotated one by one rather than as a vuex `GetterTree`, because `Getter`
+ * declares all four of its arguments as required and the unit tests call these with two.
+ */
 export const getters = {
-  isLoaded(state) {
-    return (repo) => {
+  isLoaded(state: CatalogState) {
+    return (repo: any) => {
       return !!state.loaded[repo._key];
     };
   },
 
-  repos(state) {
+  repos(state: CatalogState) {
     const clustered = state.clusterRepos || [];
     const namespaced = state.namespacedRepos || [];
 
@@ -74,20 +98,20 @@ export const getters = {
   },
 
   // Raw charts
-  rawCharts(state) {
+  rawCharts(state: CatalogState) {
     return state.charts;
   },
 
-  repo(state, getters) {
-    return ({ repoType, repoName }) => {
+  repo(state: CatalogState, getters: any) {
+    return ({ repoType, repoName }: { repoType?: string, repoName?: string }) => {
       const ary = (repoType === 'cluster' ? state.clusterRepos : state.namespacedRepos);
 
       return findBy(ary, 'metadata.name', repoName);
     };
   },
 
-  charts(state, getters, rootState, rootGetters) {
-    const repoKeys = getters.repos.map((x) => x._key);
+  charts(state: CatalogState, getters: any, rootState: any, rootGetters: any) {
+    const repoKeys = getters.repos.map((x: any) => x._key);
     let cluster = rootGetters['currentCluster'];
 
     if ( rootGetters['currentProduct']?.inStore === 'management' ) {
@@ -112,9 +136,17 @@ export const getters = {
     return sortBy(out, ['certifiedSort', 'repoName', 'chartName']);
   },
 
-  chart(state, getters) {
+  chart(state: CatalogState, getters: any) {
     return ({
       key, repoType, repoName, chartName, includeHidden, showDeprecated, multiple
+    }: {
+      key?: string,
+      repoType?: string,
+      repoName?: string,
+      chartName?: string,
+      includeHidden?: boolean,
+      showDeprecated?: boolean,
+      multiple?: boolean,
     }) => {
       if ( key && !repoType && !repoName && !chartName) {
         const parsed = parseKey(key);
@@ -132,7 +164,7 @@ export const getters = {
       });
 
       if ( includeHidden === false ) {
-        matchingCharts = matchingCharts.filter((x) => !x.hidden);
+        matchingCharts = matchingCharts.filter((x: any) => !x.hidden);
       }
 
       if ( !matchingCharts.length ) {
@@ -147,8 +179,8 @@ export const getters = {
     };
   },
 
-  isInstalled(state, getters, rootState, rootGetters) {
-    return ({ gvr }) => {
+  isInstalled(state: CatalogState, getters: any, rootState: any, rootGetters: any) {
+    return ({ gvr }: { gvr: string }) => {
       let name, version;
       const idx = gvr.indexOf('/');
 
@@ -170,9 +202,11 @@ export const getters = {
     };
   },
 
-  versionSatisfying(state, getters) {
+  versionSatisfying(state: CatalogState, getters: any) {
     return ({
       repoType, repoName, constraint, chartVersion
+    }: {
+      repoType?: string, repoName?: string, constraint: string, chartVersion: string
     }) => {
       let name, wantVersion;
       const idx = constraint.indexOf('=');
@@ -188,7 +222,7 @@ export const getters = {
       name = name.toLowerCase().trim();
       chartVersion = normalizeVersion(chartVersion);
 
-      const matching = getters.charts.filter((chart) => chart.chartName.toLowerCase().trim() === name);
+      const matching = getters.charts.filter((chart: any) => chart.chartName.toLowerCase().trim() === name);
 
       if ( !matching.length ) {
         return;
@@ -204,9 +238,9 @@ export const getters = {
       if ( wantVersion === 'latest' ) {
         version = chart.versions[0];
       } else if ( wantVersion === 'match' || wantVersion === 'matching' ) {
-        version = chart.versions.find((v) => normalizeVersion(v.version) === chartVersion);
+        version = chart.versions.find((v: any) => normalizeVersion(v.version) === chartVersion);
       } else {
-        version = chart.versions.find((v) => normalizeVersion(v.version) === wantVersion);
+        version = chart.versions.find((v: any) => normalizeVersion(v.version) === wantVersion);
       }
 
       if ( version ) {
@@ -215,9 +249,9 @@ export const getters = {
     };
   },
 
-  versionProviding(state, getters) {
-    return ({ repoType, repoName, gvr }) => {
-      const matching = getters.charts.filter((chart) => chart.provides.includes(gvr) );
+  versionProviding(state: CatalogState, getters: any) {
+    return ({ repoType, repoName, gvr }: { repoType?: string, repoName?: string, gvr: string }) => {
+      const matching = getters.charts.filter((chart: any) => chart.provides.includes(gvr) );
 
       if ( !matching.length ) {
         return;
@@ -227,7 +261,7 @@ export const getters = {
         preferSameRepo(matching, repoType, repoName);
       }
 
-      const version = matching[0].versions.find((version) => version.annotations?.[CATALOG_ANNOTATIONS.PROVIDES] === gvr);
+      const version = matching[0].versions.find((version: any) => version.annotations?.[CATALOG_ANNOTATIONS.PROVIDES] === gvr);
 
       if ( version ) {
         return clone(version);
@@ -235,9 +269,15 @@ export const getters = {
     };
   },
 
-  version(state, getters) {
+  version(state: CatalogState, getters: any) {
     return ({
       repoType, repoName, chartName, versionName, showDeprecated
+    }: {
+      repoType?: string,
+      repoName?: string,
+      chartName?: string,
+      versionName?: string,
+      showDeprecated?: boolean,
     }) => {
       const chart = getters['chart']({
         repoType, repoName, chartName, showDeprecated
@@ -261,48 +301,48 @@ export const getters = {
     };
   },
 
-  errors(state) {
+  errors(state: CatalogState) {
     return state.errors || [];
   },
 
-  haveComponent() {
-    return (name) => {
+  haveComponent(state: CatalogState, getters: any) {
+    return (name: string) => {
       return getters['type-map/hasCustomChart'](name);
     };
   },
 
-  importComponent(state, getters) {
-    return (name) => {
+  importComponent(state: CatalogState, getters: any) {
+    return (name: string) => {
       return getters['type-map/importChart'](name);
     };
   },
 
-  inStore(state) {
+  inStore(state: CatalogState) {
     return state.inStore;
   },
 
-  classify: (state, getters, rootState) => (obj) => {
+  classify: (state: CatalogState, getters: any, rootState: any) => (obj: any) => {
     return lookup(state.config.namespace, obj?.type, obj?.metadata?.name, rootState);
   },
 };
 
-export const mutations = {
+export const mutations: MutationTree<CatalogState> = {
   reset(currentState) {
     const newState = state();
 
     Object.assign(currentState, newState);
   },
 
-  setInStore(state, inStore) {
+  setInStore(state, inStore: string) {
     state.inStore = inStore;
   },
 
-  setRepos(state, { cluster, namespaced }) {
+  setRepos(state, { cluster, namespaced }: { cluster: any[], namespaced: any[] }) {
     state.clusterRepos = cluster;
     state.namespacedRepos = namespaced;
   },
 
-  addClusterRepo(state, repo) {
+  addClusterRepo(state, repo: any) {
     if (!state.clusterRepos) {
       state.clusterRepos = [];
     }
@@ -312,7 +352,7 @@ export const mutations = {
     }
   },
 
-  setCharts(state, { charts, errors = [], loaded = [] }) {
+  setCharts(state, { charts, errors = [], loaded = [] }: { charts: Record<string, any>, errors?: string[], loaded?: any[] }) {
     state.charts = charts;
     state.errors = errors;
 
@@ -321,11 +361,11 @@ export const mutations = {
     }
   },
 
-  setVersions(state, versions) {
+  setVersions(state, versions: Record<string, any>) {
     state.versionInfos = versions;
   },
 
-  cacheVersion(state, { key, info }) {
+  cacheVersion(state, { key, info }: { key: string, info: any }) {
     state.versionInfos[key] = info;
   }
 };
@@ -340,12 +380,12 @@ export const actions = {
    * repos will be fetched, and only their existing charts will be cleared from the cache to avoid
    * duplicate chart entries or wiping out unrelated chart data.
    */
-  async load(ctx, { force, reset, repoKeys = [] } = {}) {
+  async load(ctx: CatalogContext, { force, reset, repoKeys = [] }: { force?: boolean, reset?: boolean, repoKeys?: string[] } = {}) {
     const {
       state, getters, rootGetters, commit, dispatch
     } = ctx;
 
-    let promises = {};
+    let promises: Record<string, Promise<any>> = {};
     // Installing an app? This is fine (in cluster store)
     // Fetching list of cluster templates? This is fine (in management store)
     // Installing a cluster template? This isn't fine (in cluster store as per installing app, but if there is no cluster we need to default to management)
@@ -364,11 +404,11 @@ export const actions = {
 
     // As per comment above, when there are no clusters this will be management. Store it such that it can be used for those cases
     commit('setInStore', inStore);
-    hash.cluster = hash.cluster?.filter((repo) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
+    hash.cluster = hash.cluster?.filter((repo: any) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
 
     commit('setRepos', hash);
 
-    const repos = getters['repos'];
+    const repos: any[] = getters['repos'];
     const loaded = [];
 
     promises = {};
@@ -393,8 +433,8 @@ export const actions = {
     }
 
     const res = await allHashSettled(promises);
-    const charts = reset ? {} : { ...state.charts };
-    let versionInfos = null;
+    const charts: Record<string, any> = reset ? {} : { ...state.charts };
+    let versionInfos: Record<string, any> | null = null;
 
     if (reset) {
       versionInfos = {};
@@ -455,7 +495,7 @@ export const actions = {
     }
   },
 
-  async loadRepo(ctx, { repoName }) {
+  async loadRepo(ctx: CatalogContext, { repoName }: { repoName: string }) {
     const {
       state, getters, rootGetters, commit, dispatch
     } = ctx;
@@ -506,8 +546,8 @@ export const actions = {
    * Globally refreshes all loaded repositories by triggering their refresh actions concurrently,
    * bypassing individual catalog loads, and then performs a single, global catalog/load.
    */
-  async refresh({ getters, commit, dispatch }) {
-    const promises = getters.repos.map((x) => x.refresh(false));
+  async refresh({ getters, commit, dispatch }: Pick<CatalogContext, 'getters' | 'commit' | 'dispatch'>) {
+    const promises = getters.repos.map((x: any) => x.refresh(false));
 
     // @TODO wait for repo state to indicate they're done once the API has that
 
@@ -520,8 +560,10 @@ export const actions = {
     Fetch full information about a specific version of a Helm chart,
     including the standard values and README.
   */
-  async getVersionInfo({ state, getters, commit }, {
+  async getVersionInfo({ state, getters, commit }: Pick<CatalogContext, 'state' | 'getters' | 'commit'>, {
     repoType, repoName, chartName, versionName
+  }: {
+    repoType: string, repoName: string, chartName: string, versionName: string
   }) {
     const key = `${ repoType }/${ repoName }/${ chartName }/${ versionName }`;
     let info = state.versionInfos[key];
@@ -546,7 +588,7 @@ export const actions = {
     return info;
   },
 
-  rehydrate(ctx) {
+  rehydrate(ctx: CatalogContext) {
     const { state, commit } = ctx;
     const charts = state.charts || {};
 
@@ -562,11 +604,11 @@ export const actions = {
   }
 };
 
-export function generateKey(repoType, repoName, chartName) {
+export function generateKey(repoType: string, repoName: string, chartName: string) {
   return `${ repoType }/${ repoName }/${ chartName }`;
 }
 
-export function parseKey(key) {
+export function parseKey(key: string) {
   const parts = key.split('/');
 
   return {
@@ -576,7 +618,7 @@ export function parseKey(key) {
   };
 }
 
-function addChart(ctx, map, chart, repo) {
+function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, repo: any) {
   const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
   const repoName = repo.metadata.name;
   const key = generateKey(repoType, repoName, chart.name);
@@ -692,7 +734,7 @@ function addChart(ctx, map, chart, repo) {
   }
 }
 
-function preferSameRepo(matching, repoType, repoName) {
+function preferSameRepo(matching: any[], repoType: string, repoName: string) {
   matching.sort((a, b) => {
     const aSameRepo = a.repoType === repoType && a.repoName === repoName ? 1 : 0;
     const bSameRepo = b.repoType === repoType && b.repoName === repoName ? 1 : 0;
@@ -707,14 +749,14 @@ function preferSameRepo(matching, repoType, repoName) {
   });
 }
 
-function normalizeVersion(v) {
+function normalizeVersion(v: string) {
   return v.replace(/^v/i, '').toLowerCase().trim();
 }
 
-function filterCategories(categories) {
+function filterCategories(categories?: string[]) {
   categories = (categories || []).map((x) => normalizeCategory(x));
 
-  const out = [];
+  const out: string[] = [];
 
   for ( const c of ALLOWED_CATEGORIES ) {
     if ( categories.includes(normalizeCategory(c)) ) {
@@ -725,11 +767,11 @@ function filterCategories(categories) {
   return out;
 }
 
-function normalizeCategory(c) {
+function normalizeCategory(c: string) {
   return c.replace(/\s+/g, '').toLowerCase();
 }
 
-export function normalizeFilterQuery(value) {
+export function normalizeFilterQuery(value?: string | string[] | null) {
   if (Array.isArray(value)) {
     return value.map((v) => v.toLowerCase());
   } else if (value) {
@@ -745,14 +787,15 @@ catalog.cattle.io/deplys-on-os: OS -> requires global.cattle.OS.enabled: true
 catalog.cattle.io/permits-os: OS -> will break on clusters containing nodes that are not OS
   default if not found: catalog.cattle.io/permits-os: linux
 */
-export function compatibleVersionsFor(chart, os, includePrerelease = true) {
+export function compatibleVersionsFor(chart: any, os?: string | string[], includePrerelease = true): any[] {
   const versions = chart.versions;
 
   if (os && !isArray(os)) {
-    os = [os];
+    // `isArray` is not a type predicate, so tell the compiler what it just checked
+    os = [os as string];
   }
 
-  return versions.filter((ver) => {
+  return versions.filter((ver: any) => {
     const osPermitted = getPermittedOSs(ver?.annotations, chart?.isRancherRepo);
 
     if ( !includePrerelease && isPrerelease(ver.version) ) {
@@ -767,29 +810,35 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
   });
 }
 
+export interface FilterChartsOptions {
+  clusterProvider?: string;
+  /** Single os or a list of them, as taken by `compatibleVersionsFor`. */
+  operatingSystems?: string | string[];
+  category?: string[];
+  tag?: string[];
+  searchQuery?: string;
+  /**
+   * Which order to sort in, one of the `CATALOG_SORT_OPTIONS` values. When unset, the charts are
+   * sorted by certification, then repo, then name.
+   */
+  sort?: string;
+  showDeprecated?: boolean;
+  showHidden?: boolean;
+  showPrerelease?: boolean;
+  hideRepos?: string[];
+  /** Repo keys to keep, which callers build from a repo that may not have loaded. */
+  showRepos?: (string | undefined)[];
+  /** Single type or a list of them. `provisioning.cattle.io.cluster/index.vue` passes a bare string. */
+  showTypes?: string | string[];
+  hideTypes?: string[];
+}
+
 /**
  * Filter a list of charts and sort what is left.
  *
- * @typedef {object} FilterChartsOptions
- * @property {string} [clusterProvider]
- * @property {string | string[]} [operatingSystems] - Single os or a list of them, as taken by `compatibleVersionsFor`.
- * @property {string[]} [category]
- * @property {string[]} [tag]
- * @property {string} [searchQuery]
- * @property {string} [sort] - Which order to sort in, one of the `CATALOG_SORT_OPTIONS` values.
- * When unset, the charts are sorted by certification, then repo, then name.
- * @property {boolean} [showDeprecated]
- * @property {boolean} [showHidden]
- * @property {boolean} [showPrerelease]
- * @property {string[]} [hideRepos]
- * @property {(string | undefined)[]} [showRepos] - Repo keys to keep, which callers build from a repo that may not have loaded.
- * @property {string | string[]} [showTypes]
- * @property {string[]} [hideTypes]
- *
- * @param {any[]} charts - The charts to filter.
- * @param {FilterChartsOptions} [opt] - Which charts to keep and how to sort them.
+ * @param charts - The charts to filter.
  */
-export function filterAndArrangeCharts(charts, {
+export function filterAndArrangeCharts(charts: any[], {
   clusterProvider = '',
   operatingSystems,
   category,
@@ -803,7 +852,7 @@ export function filterAndArrangeCharts(charts, {
   showRepos = [],
   showTypes = [],
   hideTypes = [],
-} = {}) {
+}: FilterChartsOptions = {}): any[] {
   const out = charts.filter((c) => {
     if (
       ( c.deprecated && !showDeprecated ) ||
@@ -822,12 +871,12 @@ export function filterAndArrangeCharts(charts, {
       return false;
     }
 
-    if (category?.length && !c.categories.some((cat) => category.includes(cat.toLowerCase()))) {
+    if (category?.length && !c.categories.some((cat: string) => category.includes(cat.toLowerCase()))) {
       // The category filter doesn't match
       return false;
     }
 
-    if (tag?.length && !c.tags.some((t) => tag.includes(t.toLowerCase()))) {
+    if (tag?.length && !c.tags.some((t: string) => tag.includes(t.toLowerCase()))) {
       // The tag filter doesn't match
       return false;
     }
@@ -841,7 +890,7 @@ export function filterAndArrangeCharts(charts, {
       for (const token of searchTokens) {
         const nameMatch = c.chartNameDisplay.match(token);
         const descMatch = chartDescription.match(token);
-        const keywordMatch = keywords.some((k) => k.match(token));
+        const keywordMatch = keywords.some((k: string) => k.match(token));
 
         if (!nameMatch && !descMatch && !keywordMatch) {
           return false;
@@ -874,7 +923,7 @@ export function filterAndArrangeCharts(charts, {
 /**
  * Detects if a repository is a Rancher repository.
  */
-export function isRancherRepo(repo, chart) {
+export function isRancherRepo(repo: any, chart: any) {
   return !!(chart?.isRancherRepo || repo?.isRancherSource);
 }
 
@@ -884,7 +933,7 @@ export function isRancherRepo(repo, chart) {
  * Otherwise, if the chart is from a Rancher repository, it defaults to Linux.
  * External charts with no annotations have no OS restrictions (returns empty array).
  */
-export function getPermittedOSs(annotations, isRancher) {
+export function getPermittedOSs(annotations?: Record<string, string>, isRancher?: boolean) {
   const permittedOs = annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
   const fallbackOs = isRancher ? LINUX : '';
 

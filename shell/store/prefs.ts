@@ -2,36 +2,58 @@ import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
 import { getBrandMeta } from '@shell/utils/brand';
+import { VuexStoreGetters } from '@shell/types/store/vuex';
 
 /**
  * How a single preference behaves, as built by `create` and by the
  * `setDefinition` mutation.
- *
- * @typedef {object} PrefDefinition
- * @property {any} [def] - Value used when the user has none stored.
- * @property {any[]} [options] - Allowed values, when the preference is a fixed set.
- * @property {boolean} [parseJSON] - Value is stored JSON encoded.
- * @property {boolean} [asCookie] - Value is also kept in a cookie.
- * @property {boolean} [asUserPreference] - Value is stored on the server.
- * @property {string} [inheritFrom] - Preference to default to when this one is not on the server.
- * @property {(value: any) => any} [mangleRead] - Alter the value read from the API.
- * @property {(value: any) => any} [mangleWrite] - Alter the value written to the API.
  */
+export interface PrefDefinition {
+  def?: any;
+  options?: any[];
+  parseJSON?: boolean;
+  asCookie?: boolean;
+  asUserPreference?: boolean;
+  inheritFrom?: string;
+  mangleRead?: (value: any) => any;
+  mangleWrite?: (value: any) => any;
+}
+
+export type PrefOptions = Omit<PrefDefinition, 'def'>;
+
+export interface PrefsState {
+  cookiesLoaded: boolean;
+  data: Record<string, any>;
+  definitions: Record<string, PrefDefinition>;
+  authRedirect: Record<string, any> | null;
+}
+
+interface PrefError {
+  type?: string;
+  status?: number;
+}
+
+interface PrefsActionContext {
+  state: PrefsState;
+  getters: VuexStoreGetters;
+  rootState: Record<string, any>;
+  rootGetters: VuexStoreGetters;
+  commit: (mutation: string, payload?: any, options?: { root?: boolean }) => void;
+  dispatch: (action: string, payload?: any, options?: { root?: boolean }) => Promise<any>;
+}
 
 /**
  * Preferences are open ended: `create` registers the built-in ones at module
  * load and extensions add their own at runtime, so the keys are not known here.
- *
- * @type {Record<string, PrefDefinition>}
  */
-const definitions = {};
+const definitions: Record<string, PrefDefinition> = {};
 /**
  * Key/value of prefrences are stored before login here and cookies due lack of access permission.
  * Once user is logged in while setting asUserPreference, update stored before login Key/value to the backend in loadServer function.
  */
-let prefsBeforeLogin = {};
+let prefsBeforeLogin: Record<string, any> = {};
 
-export const create = function(name, def, opt = {}) {
+export const create = function(name: string, def: any, opt: PrefOptions = {}): string {
   const parseJSON = opt.parseJSON === true;
   const asCookie = opt.asCookie === true;
   const asUserPreference = opt.asUserPreference !== false;
@@ -52,13 +74,13 @@ export const create = function(name, def, opt = {}) {
   return name;
 };
 
-export const mapPref = function(name) {
+export const mapPref = function(name: string) {
   return {
-    get() {
+    get(this: { $store: { getters: VuexStoreGetters } }) {
       return this.$store.getters['prefs/get'](name);
     },
 
-    set(value) {
+    set(this: { $store: { dispatch: (action: string, payload?: any) => void } }, value: any) {
       this.$store.dispatch('prefs/set', { key: name, value });
     }
   };
@@ -157,17 +179,10 @@ const cookieOptions = {
 };
 
 /**
- * @typedef {object} PrefsState
- * @property {boolean} cookiesLoaded
- * @property {Record<string, any>} data - Stored value of each preference, keyed by preference name.
- * @property {Record<string, PrefDefinition>} definitions - The module level `definitions` object itself, not a copy, so every store instance shares the definitions that `create` adds at module load and `setDefinition` adds at runtime.
- * @property {Record<string, any> | null} authRedirect - Route to return to once the user has logged in.
+ * `definitions` is the module level object itself, not a copy, so every store instance
+ * shares what `create` adds at module load and `setDefinition` adds at runtime.
  */
-
-/**
- * @returns {PrefsState}
- */
-export const state = function() {
+export const state = function(): PrefsState {
   return {
     cookiesLoaded: false,
     data:          {},
@@ -177,7 +192,7 @@ export const state = function() {
 };
 
 export const getters = {
-  get: (state) => (key) => {
+  get: (state: PrefsState) => (key: string) => {
     const definition = state.definitions[key];
 
     if (!definition) {
@@ -195,7 +210,7 @@ export const getters = {
     return def;
   },
 
-  defaultValue: (state) => (key) => {
+  defaultValue: (state: PrefsState) => (key: string) => {
     const definition = state.definitions[key];
 
     if (!definition) {
@@ -205,7 +220,7 @@ export const getters = {
     return clone(definition.def);
   },
 
-  options: (state) => (key) => {
+  options: (state: PrefsState) => (key: string) => {
     const definition = state.definitions[key];
 
     if (!definition) {
@@ -219,7 +234,7 @@ export const getters = {
     return definition.options.slice();
   },
 
-  theme: (state, getters, rootState, rootGetters) => {
+  theme: (state: PrefsState, getters: VuexStoreGetters, rootState: unknown, rootGetters: VuexStoreGetters) => {
     const setting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.THEME);
 
     if (setting?.value) {
@@ -247,7 +262,7 @@ export const getters = {
     return theme;
   },
 
-  afterLoginRoute: (state, getters) => {
+  afterLoginRoute: (state: PrefsState, getters: VuexStoreGetters) => {
     const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
 
     if (typeof afterLoginRoutePref !== 'string') {
@@ -281,7 +296,7 @@ export const getters = {
     }
   },
 
-  dev: (state, getters) => {
+  dev: (state: PrefsState, getters: VuexStoreGetters) => {
     try {
       return getters['get'](PLUGIN_DEVELOPER);
     } catch {
@@ -291,15 +306,15 @@ export const getters = {
 };
 
 export const mutations = {
-  load(state, { key, value }) {
+  load(state: PrefsState, { key, value }: { key: string, value: any }) {
     state.data[key] = value;
   },
 
-  cookiesLoaded(state) {
+  cookiesLoaded(state: PrefsState) {
     state.cookiesLoaded = true;
   },
 
-  reset(state) {
+  reset(state: PrefsState) {
     for (const key in state.definitions) {
       if ( state.definitions[key]?.asCookie ) {
         continue;
@@ -308,11 +323,11 @@ export const mutations = {
     }
   },
 
-  setDefinition(state, { name, definition = {} }) {
+  setDefinition(state: PrefsState, { name, definition = {} }: { name: string, definition?: PrefDefinition }) {
     state.definitions[name] = definition;
   },
 
-  setAuthRedirect(state, route) {
+  setAuthRedirect(state: PrefsState, route: Record<string, any> | null) {
     state.authRedirect = route;
   }
 };
@@ -320,7 +335,7 @@ export const mutations = {
 export const actions = {
   async set({
     dispatch, commit, rootGetters, state
-  }, opt) {
+  }: PrefsActionContext, opt: { key: string, value?: any, val?: any }): Promise<PrefError | undefined> {
     let { key, value } = opt; // eslint-disable-line prefer-const
     const definition = state.definitions[key];
     let server;
@@ -372,18 +387,19 @@ export const actions = {
         }
       } catch (e) {
         // Well it failed, but not much to do about it...
+        const error = e as PrefError;
 
         // Return the error
-        return { type: e.type, status: e.status };
+        return { type: error.type, status: error.status };
       }
     }
   },
 
-  async setTheme({ dispatch }, val) {
+  async setTheme({ dispatch }: PrefsActionContext, val: string) {
     await dispatch('set', { key: THEME, value: val });
   },
 
-  loadCookies({ state, commit, rootGetters }) {
+  loadCookies({ state, commit, rootGetters }: PrefsActionContext) {
     if ( state.cookiesLoaded ) {
       return;
     }
@@ -407,7 +423,7 @@ export const actions = {
     commit('cookiesLoaded');
   },
 
-  loadTheme({ dispatch }) {
+  loadTheme({ dispatch }: PrefsActionContext) {
     const watchDark = window.matchMedia('(prefers-color-scheme: dark)');
     const watchLight = window.matchMedia('(prefers-color-scheme: light)');
     const watchNone = window.matchMedia('(prefers-color-scheme: no-preference)');
@@ -446,7 +462,7 @@ export const actions = {
       }
     });
 
-    function changed(value) {
+    function changed(value: string) {
       // console.log('Prefers Theme:', value);
       dispatch('set', { key: PREFERS_SCHEME, value });
     }
@@ -464,8 +480,8 @@ export const actions = {
 
   async loadServer( {
     state, dispatch, commit, rootState, rootGetters
-  }, ignoreKey) {
-    let server = { data: {} };
+  }: PrefsActionContext, ignoreKey?: string) {
+    let server: any = { data: {} };
 
     try {
       const all = await dispatch('management/findAll', {
@@ -533,7 +549,7 @@ export const actions = {
     return server;
   },
 
-  setLastVisited({ state, dispatch, getters }, route) {
+  setLastVisited({ state, dispatch, getters }: PrefsActionContext, route: any) {
     if (!route) {
       return;
     }
@@ -549,13 +565,13 @@ export const actions = {
     return dispatch('set', { key: LAST_VISITED, value: route });
   },
 
-  toggleTheme({ getters, dispatch }) {
+  toggleTheme({ getters, dispatch }: PrefsActionContext) {
     const value = getters[THEME] === 'light' ? 'dark' : 'light';
 
     return dispatch('set', { key: THEME, value });
   },
 
-  setBrandStyle({ rootState, rootGetters }, dark = false) {
+  setBrandStyle({ rootState, rootGetters }: PrefsActionContext, dark = false) {
     if (rootState.managementReady) {
       try {
         const brandSetting = rootGetters['management/brand'];
@@ -565,7 +581,9 @@ export const actions = {
           const hasStylesheet = brandMeta.hasStylesheet === 'true';
 
           if (hasStylesheet) {
-            document.body.classList.add(brandMeta);
+            // `brandMeta` is an object, so this has always added `[object Object]` and thrown
+            // into the catch below. Spelled out to keep that behaviour while typing the call.
+            document.body.classList.add(String(brandMeta));
           } else {
             // TODO option apply color at runtime
           }
