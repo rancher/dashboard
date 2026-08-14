@@ -7489,11 +7489,6 @@ validation:
   tab: "One or more fields in this tab contain a form validation error"
   version: Invalid Version number
 
-carousel:
-  previous: Previous
-  next: Next
-  controlItem: Go to slide nº {number}
-
 wizard:
   previous: Previous
   finish: Finish
