@@ -39,7 +39,7 @@ describe('component: Header', () => {
 
   const defaultConfigMock = { rancherEnv: 'web' };
 
-  function createWrapper(routeOverride = {}, storeOverride = {}, extensionMock: any = { getDynamic: jest.fn() }) {
+  function createWrapper(routeOverride = {}, storeOverride = {}, extensionMock: any = { getDynamic: jest.fn() }, props = {}) {
     const routeMock = {
       ...defaultRouteMock,
       ...routeOverride,
@@ -56,6 +56,7 @@ describe('component: Header', () => {
     };
 
     return shallowMount(Header as any, {
+      props,
       global: {
         mocks: {
           $store:     storeMock,
@@ -83,6 +84,26 @@ describe('component: Header', () => {
       },
     });
   }
+
+  describe('a11y: brand logo', () => {
+    it('should label the logo with the product name, not just "Logo"', () => {
+      const wrapper = createWrapper(
+        {
+          name:   'home',
+          path:   '/home',
+          params: {},
+        },
+        { rootProduct: {} },
+        undefined,
+        { simple: true },
+      );
+
+      const brandImage = wrapper.find('[data-testid="header__brand-img"]');
+
+      expect(brandImage.exists()).toBe(true);
+      expect(brandImage.attributes('alt')).toBe('%branding.logos.logoLabel%');
+    });
+  });
 
   describe('disableWorkspaceSwitcher', () => {
     it('should return false on a list page', () => {
