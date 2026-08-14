@@ -2,7 +2,17 @@ import { shallowMount } from '@vue/test-utils';
 import IssuerEdit from '../IssuerEdit.vue';
 import { ISSUER_CONFIG_TYPES } from '../../form-options';
 
-function render(spec: Record<string, any> = {}, clusterScoped = false) {
+/**
+ * The layout components swallow their slots when auto stubbed, so the fields inside them never
+ * render. Pass these when the test cares about what the template binds to a field.
+ */
+const PASSTHROUGH_STUBS = {
+  CruResource: { template: '<div><slot /></div>' },
+  Tabbed:      { template: '<div><slot /></div>' },
+  Tab:         { template: '<div><slot /></div>' },
+};
+
+function render(spec: Record<string, any> = {}, clusterScoped = false, stubs: Record<string, any> = {}) {
   const value = { metadata: { name: 'my-issuer', namespace: 'default' }, spec };
 
   const wrapper = shallowMount(IssuerEdit, {
@@ -10,6 +20,7 @@ function render(spec: Record<string, any> = {}, clusterScoped = false) {
       value, mode: 'create', clusterScoped
     },
     global: {
+      stubs,
       mocks: {
         t:           (key: string, args?: any) => (args ? `${ key }:${ JSON.stringify(args) }` : key),
         $store:      { getters: { 'i18n/t': (key: string) => key, currentProduct: {} } },
@@ -93,24 +104,64 @@ describe('component: IssuerEdit', () => {
       expect(rulesFor({}).exactlyOneConfigType({ selfSigned: {} })).toBeUndefined();
     });
 
-    it('should require the ACME account key secret, which the webhook rejects when missing', () => {
-      const spec = { acme: { server: 'https://acme', privateKeySecretRef: {} } };
+    // These are bound to their inputs rather than checked at form level, so the message waits for
+    // a blur instead of greeting the user the moment they pick ACME.
+    describe('required fields', () => {
+      const ACME_PATHS = ['spec.acme.server', 'spec.acme.privateKeySecretRef.name'];
 
-      expect(rulesFor({}).acmeRequiredFields(spec)).toBe('certManager.issuer.validation.privateKeySecretRequired');
-    });
+      const errorsFor = (spec: Record<string, any>, paths: string[]) => render(spec).wrapper.vm.fvGetPathErrors(paths);
 
-    it('should require an ACME server URL', () => {
-      expect(rulesFor({}).acmeRequiredFields({ acme: {} })).toBe('certManager.issuer.validation.serverRequired');
-    });
+      it('should require the ACME account key secret, which the webhook rejects when missing', () => {
+        const spec = { acme: { server: 'https://acme', privateKeySecretRef: {} } };
 
-    it('should accept a complete ACME config', () => {
-      const spec = { acme: { server: 'https://acme', privateKeySecretRef: { name: 'key' } } };
+        expect(errorsFor(spec, ['spec.acme.privateKeySecretRef.name'])).toHaveLength(1);
+      });
 
-      expect(rulesFor({}).acmeRequiredFields(spec)).toBeUndefined();
-    });
+      it('should require an ACME server URL', () => {
+        const spec = { acme: { server: '', privateKeySecretRef: { name: 'key' } } };
 
-    it('should not impose ACME requirements on other issuer types', () => {
-      expect(rulesFor({}).acmeRequiredFields({ selfSigned: {} })).toBeUndefined();
+        expect(errorsFor(spec, ['spec.acme.server'])).toHaveLength(1);
+      });
+
+      it('should accept a complete ACME config', () => {
+        const spec = { acme: { server: 'https://acme', privateKeySecretRef: { name: 'key' } } };
+
+        expect(errorsFor(spec, ACME_PATHS)).toStrictEqual([]);
+      });
+
+      // The paths are declared unconditionally, so this is the guard that a CA or self signed
+      // issuer is not held to them - `getAllValues` yields nothing when `spec.acme` is absent.
+      it('should not impose ACME requirements on other issuer types', () => {
+        expect(errorsFor({ selfSigned: {} }, ACME_PATHS)).toStrictEqual([]);
+        expect(errorsFor({ ca: { secretName: 'ca' } }, ACME_PATHS)).toStrictEqual([]);
+      });
+
+      it('should require the CA secret name', () => {
+        expect(errorsFor({ ca: {} }, ['spec.ca.secretName'])).toHaveLength(1);
+        expect(errorsFor({ ca: { secretName: 'ca' } }, ['spec.ca.secretName'])).toStrictEqual([]);
+      });
+
+      it('should not impose the CA requirement on an ACME issuer', () => {
+        const spec = { acme: { server: 'https://acme', privateKeySecretRef: { name: 'key' } } };
+
+        expect(errorsFor(spec, ['spec.ca.secretName'])).toStrictEqual([]);
+      });
+
+      // The bug this replaced: picking ACME seeded the fields empty, the form level rule fired
+      // straight away and the user was told off for a form they had not touched yet.
+      it('should not report anything in a banner before the user has typed', () => {
+        const { wrapper } = render({ acme: { server: '', privateKeySecretRef: { name: '' } } }, false, PASSTHROUGH_STUBS);
+
+        expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual([]);
+        // Still gated - the message is deferred, the Create button is not.
+        expect(wrapper.vm.fvFormIsValid).toBe(false);
+      });
+
+      it('should hand both ACME fields their own validators', () => {
+        const { wrapper } = render({ acme: { server: '', privateKeySecretRef: { name: '' } } }, false, PASSTHROUGH_STUBS);
+
+        expect(wrapper.vm.fvReportedValidationPaths).toStrictEqual(expect.arrayContaining(ACME_PATHS));
+      });
     });
 
     it('should reject a solver that sets more than one ingress key', () => {

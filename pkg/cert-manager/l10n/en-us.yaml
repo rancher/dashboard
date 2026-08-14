@@ -154,8 +154,6 @@ certManager:
     validation:
       noConfigType: Choose an issuer type.
       multipleConfigTypes: 'An issuer must have exactly one type, but found: {types}. Edit as YAML to resolve this.'
-      serverRequired: An ACME issuer needs a server URL.
-      privateKeySecretRequired: An ACME issuer needs the name of a Secret to hold its account private key. cert-manager creates the Secret if it does not exist.
       solverChallengeType: Every solver needs exactly one challenge type, either HTTP-01 or DNS-01.
       solverIngress: An HTTP-01 solver can set only one of an ingress class name, an existing ingress name, or a legacy ingress class.
       solverProvider: Choose a provider for every DNS-01 solver.

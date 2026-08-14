@@ -54,11 +54,23 @@ export default {
 
   data() {
     return {
+      // The config blocks are mutually exclusive, so only one set of these deep paths ever
+      // resolves. `getAllValues` yields nothing for a path whose parent is absent, which is what
+      // keeps the ACME rules from blocking a CA issuer and vice versa.
       fvFormRuleSets: [
         {
           path: 'metadata.name', rules: ['required', 'dnsLabel'], translationKey: 'nameNsDescription.name.label'
         },
-        { path: 'spec', rules: ['exactlyOneConfigType', 'acmeRequiredFields', 'acmeSolverShape'] },
+        { path: 'spec', rules: ['exactlyOneConfigType', 'acmeSolverShape'] },
+        {
+          path: 'spec.acme.server', rules: ['required'], translationKey: 'certManager.issuer.acme.serverUrl'
+        },
+        {
+          path: 'spec.acme.privateKeySecretRef.name', rules: ['required'], translationKey: 'certManager.issuer.acme.privateKeySecret'
+        },
+        {
+          path: 'spec.ca.secretName', rules: ['required'], translationKey: 'certManager.issuer.ca.secretName'
+        },
       ],
     };
   },
@@ -86,22 +98,6 @@ export default {
           }
 
           return undefined;
-        },
-
-        /**
-         * `required` on the inputs only draws the asterisk. Without this the form happily submits
-         * an ACME issuer with no account key and the admission webhook rejects it.
-         */
-        acmeRequiredFields: (spec) => {
-          if (!spec?.acme) {
-            return undefined;
-          }
-
-          if (!spec.acme.server) {
-            return this.t('certManager.issuer.validation.serverRequired');
-          }
-
-          return spec.acme.privateKeySecretRef?.name ? undefined : this.t('certManager.issuer.validation.privateKeySecretRequired');
         },
 
         acmeSolverShape: (spec) => {
@@ -218,6 +214,7 @@ export default {
               :label="t('certManager.issuer.ca.secretName')"
               :tooltip="t('certManager.issuer.ca.secretNameTooltip')"
               :mode="mode"
+              :rules="fvGetAndReportPathRules('spec.ca.secretName')"
               required
             />
           </div>
@@ -228,6 +225,10 @@ export default {
           :value="value.spec.acme"
           :mode="mode"
           :cluster-scoped="clusterScoped"
+          :rules="{
+            server: fvGetAndReportPathRules('spec.acme.server'),
+            privateKeySecret: fvGetAndReportPathRules('spec.acme.privateKeySecretRef.name'),
+          }"
         />
 
         <Banner

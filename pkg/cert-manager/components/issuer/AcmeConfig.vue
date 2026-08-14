@@ -29,6 +29,16 @@ export default {
       type:    Boolean,
       default: false,
     },
+    /**
+     * Validators keyed by field, owned by the parent form. Bound to the inputs rather than
+     * checked at the form level so a `required` message waits for the field to be blurred - the
+     * ACME defaults leave both of these empty, and a banner on arrival reads as an error the
+     * user caused.
+     */
+    rules: {
+      type:    Object,
+      default: () => ({}),
+    },
   },
 
   created() {
@@ -94,6 +104,7 @@ export default {
           :tooltip="t('certManager.issuer.acme.serverTooltip')"
           :mode="mode"
           :disabled="!isCustomServer"
+          :rules="rules.server || []"
           required
         />
       </div>
@@ -114,6 +125,7 @@ export default {
           :label="t('certManager.issuer.acme.privateKeySecret')"
           :tooltip="secretNamespaceTooltip"
           :mode="mode"
+          :rules="rules.privateKeySecret || []"
           required
         />
       </div>
