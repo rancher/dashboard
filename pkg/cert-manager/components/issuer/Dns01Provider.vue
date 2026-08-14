@@ -93,12 +93,12 @@ export default {
 
     <div
       v-if="isKnownProvider"
-      class="row"
+      class="row provider-fields"
     >
       <div
         v-for="field in fields"
         :key="field.path"
-        class="col span-6 mb-10"
+        class="col span-6"
       >
         <LabeledInput
           :value="fieldValue(field.path)"
@@ -121,6 +121,21 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+/**
+ * `.row` never wraps, so the providers that carry more than two fields - most of them, Azure DNS
+ * has seven - push the page sideways. The column widths already add up to exactly two per row
+ * plus one gutter, so wrapping is all that is missing; the gutter on every second column has to
+ * go with it, since only the last child drops it by default.
+ */
+.provider-fields {
+  flex-wrap: wrap;
+  row-gap: 10px;
+
+  .col:nth-child(even) {
+    margin-right: 0;
+  }
+}
+
 .dns01-raw {
   max-height: 240px;
   overflow: auto;

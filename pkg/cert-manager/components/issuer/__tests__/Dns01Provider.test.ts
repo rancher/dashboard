@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Dns01Provider from '../Dns01Provider.vue';
+import { DNS01_PROVIDER_FIELDS } from '../dns01-providers';
 
 function render(dns01: Record<string, any>) {
   const wrapper = mount(Dns01Provider, {
@@ -104,5 +105,25 @@ describe('component: Dns01Provider', () => {
     const wrapper = render({ webhook: { solverName: 'my-solver' } });
 
     expect(wrapper.vm.unknownProviderYaml).toContain('my-solver');
+  });
+
+  describe('field layout', () => {
+    // The wrapping is CSS, so jsdom cannot see it. This only guards the hook the stylesheet
+    // needs: `.row` does not wrap on its own, and most providers overflow a single row.
+    // `webhook` is deliberately absent - it has no descriptors and renders the raw editor.
+    it.each(Object.keys(DNS01_PROVIDER_FIELDS))('should mark the field row of %s as wrapping', (provider) => {
+      const wrapper = render({ [provider]: {} });
+      const row = wrapper.find('.row.provider-fields');
+
+      expect(row.exists()).toBe(true);
+      expect(row.findAll('.col')).toHaveLength(DNS01_PROVIDER_FIELDS[provider].length);
+    });
+
+    it('should be laying out more fields than fit in one unwrapped row', () => {
+      // Guards the test above from passing vacuously if the providers ever shrink to two fields.
+      const widest = Math.max(...Object.values(DNS01_PROVIDER_FIELDS).map((fields) => fields.length));
+
+      expect(widest).toBeGreaterThan(2);
+    });
   });
 });
