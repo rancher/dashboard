@@ -1,11 +1,12 @@
 <script>
 import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
-import { mapGetters, mapState } from 'vuex';
+import { mapGetters, mapState, useStore } from 'vuex';
 import {
   mapPref,
   FAVORITE_TYPES
 } from '@shell/store/prefs';
+import { useClusterLocalStorage } from '@shell/composables/useClusterLocalStorage';
 import { getVersionInfo } from '@shell/utils/version';
 import {
   addObjects, replaceWith, clear, addObject, sameContents
@@ -20,14 +21,27 @@ import { TYPE_MODES } from '@shell/store/type-map';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import Group from '@shell/components/nav/Group';
 import LocaleSelector from '@shell/components/LocaleSelector';
+import { RcButton } from '@components/RcButton';
+import { RcIcon } from '@components/RcIcon';
 
 export default {
   name:       'SideNav',
-  components: { Group, LocaleSelector },
+  components: {
+    Group, LocaleSelector, RcButton, RcIcon
+  },
+  setup() {
+    const store = useStore();
+
+    // Nav state is only persisted in the cluster explorer; outside of it the
+    // cluster id resolves to '' and every storage method becomes a no-op.
+    const explorerClusterId = () => (store.getters.isExplorer ? store.getters.clusterId : '');
+
+    return { navStateStorage: useClusterLocalStorage('nav-group-state', explorerClusterId) };
+  },
   data() {
     return {
       groups:        [],
-      gettingGroups: false
+      gettingGroups: false,
     };
   },
 
@@ -184,6 +198,21 @@ export default {
     allNavLinksIds() {
       return this.allNavLinks.map((a) => a.id);
     },
+
+    /**
+     * Whether anything is expanded anywhere in the tree, which is what gates the
+     * collapse-all control. Read from the tree rather than from the rendered
+     * groups, so a group nested inside a collapsed parent still counts.
+     */
+    hasExpandedGroup() {
+      let expanded = false;
+
+      this.eachCollapsibleGroup(this.groups, (node) => {
+        expanded = expanded || !!node.expanded;
+      });
+
+      return expanded;
+    },
   },
 
   methods: {
@@ -242,9 +271,51 @@ export default {
         });
       }
 
+      this.stampNavState(out);
+
       replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
 
       this.gettingGroups = false;
+    },
+
+    /**
+     * Visit every collapsible group in the tree, passing each node and the path
+     * identifying it. Root groups (and everything under them) render fixed open,
+     * so they have no expand state to track.
+     *
+     * The path matches the `id` Group builds for itself, because group names are
+     * only unique among their siblings (`Networking` exists under both Istio and
+     * More Resources, for example).
+     */
+    eachCollapsibleGroup(nodes, fn, prefix = '') {
+      (nodes || []).forEach((node) => {
+        if (node.isRoot || !node.children?.length) {
+          return;
+        }
+
+        const path = prefix + node.name;
+
+        fn(node, path);
+        this.eachCollapsibleGroup(node.children, fn, `${ path }_`);
+      });
+    },
+
+    // Stamp each group's saved expand/collapse state onto the tree so groups
+    // render in their persisted state (the tree is the source of truth, see
+    // Group's `isExpanded`). The whole tree is marked up front, so nested groups
+    // restore in the same render pass as their parents.
+    stampNavState(nodes) {
+      const savedState = this.navStateStorage.load();
+
+      if (!savedState) {
+        return;
+      }
+
+      this.eachCollapsibleGroup(nodes, (node, path) => {
+        if (savedState[path] !== undefined) {
+          node.expanded = savedState[path];
+        }
+      });
     },
 
     getProductsGroups(out, loadProducts, namespaceMode, productMap) {
@@ -358,50 +429,59 @@ export default {
       }
     },
 
-    groupSelected(selected) {
-      this.$refs.groups.forEach((grp) => {
-        if (grp.canCollapse) {
-          grp.isExpanded = (grp.group.name === selected.name);
-        }
+    collapseAll() {
+      this.eachCollapsibleGroup(this.groups, (node) => {
+        node.expanded = false;
+      });
+
+      // Drop the persisted state rather than merging into it, so groups that
+      // aren't in the tree right now are collapsed too (nothing stored for a
+      // group means collapsed).
+      this.navStateStorage.save({});
+
+      // The collapse-all control hides once nothing is expanded, so move focus to
+      // the first group header instead of dropping it to <body>. Only headers of
+      // collapsible groups are focusable, so ask for one of those.
+      this.$nextTick(() => {
+        this.$el.querySelector('.nav .header[tabindex="0"]')?.focus();
       });
     },
 
-    collapseAll() {
-      this.$refs.groups.forEach((grp) => {
-        grp.isExpanded = false;
+    // Merge rather than replace, so groups that aren't in the tree right now keep
+    // their state. `More Resources` subgroups are count driven, so they come and
+    // go with the namespace filter.
+    saveNavState() {
+      const state = { ...(this.navStateStorage.load() || {}) };
+
+      this.eachCollapsibleGroup(this.groups, (node, path) => {
+        state[path] = !!node.expanded;
       });
+
+      this.navStateStorage.save(state);
     },
 
     syncNav() {
       const refs = this.$refs.groups;
 
-      if (refs) {
-        // Only expand one group - so after the first has been expanded, no more will
-        // This prevents the 'More Resources' group being expanded in addition to the normal group
-        let canExpand = true;
-        const expanded = refs.filter((grp) => grp.isExpanded)[0];
-
-        if (expanded && expanded.hasActiveRoute()) {
-          this.$nextTick(() => expanded.syncNav());
-
-          return;
-        }
-        refs.forEach((grp) => {
-          if (!grp.group.isRoot) {
-            grp.isExpanded = false;
-            if (canExpand) {
-              const isActive = grp.hasActiveRoute();
-
-              if (isActive) {
-                grp.isExpanded = true;
-                canExpand = false;
-                this.$nextTick(() => grp.syncNav());
-              }
-            }
-          }
-        });
+      if (!refs) {
+        return;
       }
+
+      let synced = false;
+
+      refs.forEach((grp) => {
+        if (!grp.group.isRoot && !synced && grp.hasActiveRoute()) {
+          if (!grp.isExpanded) {
+            grp.isExpanded = true;
+          }
+          synced = true;
+          this.$nextTick(() => grp.syncNav());
+        }
+      });
+
+      this.saveNavState();
     },
+
   },
 };
 </script>
@@ -412,11 +492,30 @@ export default {
     role="navigation"
     :aria-label="t('nav.ariaLabel.sideNav')"
   >
+    <RcButton
+      v-if="hasExpandedGroup"
+      v-clean-tooltip="{content: t('nav.ariaLabel.collapseAllSections'), placement: 'right'}"
+      variant="secondary"
+      size="small"
+      class="collapse-all-btn"
+      :aria-label="t('nav.ariaLabel.collapseAllSections')"
+      @click="collapseAll()"
+    >
+      <!--
+        A down chevron over an up chevron stands in for a "collapse all"
+        (collapse toward center) double-chevron. Stop-gap until a dedicated
+        icon is added to the icon set.
+      -->
+      <span class="double-chevron">
+        <RcIcon type="chevron-down" />
+        <RcIcon type="chevron-up" />
+      </span>
+    </RcButton>
     <!-- Actual nav -->
     <div class="nav">
       <template
         v-for="(g) in groups"
-        :key="g.name"
+        :key="`${ clusterId }/${ g.name }`"
       >
         <Group
           ref="groups"
@@ -425,8 +524,8 @@ export default {
           :group="g"
           :can-collapse="!g.isRoot"
           :show-header="!g.isRoot"
-          @selected="groupSelected($event)"
-          @expand="groupSelected($event)"
+          @expand="saveNavState()"
+          @close="saveNavState()"
         />
       </template>
     </div>
@@ -489,7 +588,41 @@ export default {
   .side-nav {
     display: flex;
     flex-direction: column;
-    .nav {
+    .collapse-all-btn {
+    position: absolute;
+    bottom: 2rem;
+    right: 1rem;
+    min-height: unset;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity ease .15s;
+    z-index: 1;
+
+    // Stack two smaller chevrons so they read as a single double-chevron while
+    // the stacked pair stays roughly the height of one normal chevron, keeping
+    // the button the same size.
+    .double-chevron {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      :deep(.rc-icon) {
+        display: block;
+        font-size: 10px;
+        line-height: 0.7;
+      }
+    }
+  }
+
+  .side-nav:hover .collapse-all-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .nav {
       flex: 1;
       overflow-y: auto;
     }

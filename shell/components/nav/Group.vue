@@ -55,7 +55,7 @@ export default {
   data() {
     const id = (this.idPrefix || '') + this.group.name;
 
-    return { id, expanded: false };
+    return { id };
   },
 
   computed: {
@@ -92,12 +92,16 @@ export default {
       return false;
     },
 
+    // The expand/collapse state lives on the group itself rather than in this
+    // component, so it survives the group being unmounted (a nested group only
+    // exists while its parent is expanded) and SideNav can read and write the
+    // state of the whole tree, including groups that aren't currently rendered.
     isExpanded: {
       get() {
-        return this.fixedOpen || this.group.isRoot || !!this.expanded;
+        return this.fixedOpen || this.group.isRoot || !!this.group.expanded;
       },
       set(v) {
-        this.expanded = v;
+        this.group.expanded = v;
       }
     },
 
@@ -112,23 +116,13 @@ export default {
       this.$emit('expand', this.group);
     },
 
+    // The group header was clicked, so open the group and navigate into it
     groupSelected() {
-      // Can not click on groups that are fixed open
-      if (this.fixedOpen) {
-        return;
-      }
-
       // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
       if (this.hasActiveRoute() && this.isExpanded) {
         return;
-      } else {
-        // Remove all active class if click on group header and not active route
-        const headerEl = document.querySelectorAll('.header');
-
-        headerEl.forEach((el) => {
-          el.classList.remove('active');
-        });
       }
+
       this.expandGroup();
 
       const items = this.group[this.childrenKey];
@@ -165,8 +159,9 @@ export default {
       }
     },
 
+    // A nav item within the group was clicked. The item routes itself, so there's
+    // nothing to navigate here
     selectType() {
-      this.groupSelected();
       this.close();
     },
 
@@ -176,12 +171,8 @@ export default {
 
     // User clicked on the expander icon, so toggle the expansion so the user can see inside the group
     peek($event) {
-      // Add active class to the current header if click on chevron icon
-      $event.target.parentElement.classList.remove('active');
-      if (this.hasActiveRoute() && this.isExpanded) {
-        $event.target.parentElement.classList.add('active');
-      }
       this.isExpanded = !this.isExpanded;
+      this.$emit(this.isExpanded ? 'expand' : 'close', this.group);
       $event.stopPropagation();
     },
 
@@ -362,7 +353,6 @@ export default {
             :group="child"
             :fixed-open="fixedOpen"
             :highlight-route="highlightRoute"
-            @selected="groupSelected($event)"
             @expand="expandGroup($event)"
             @close="close($event)"
           />
