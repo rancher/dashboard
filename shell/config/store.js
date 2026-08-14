@@ -25,7 +25,7 @@ let store = {};
   resolveStoreModules(require('../store/github.js'), 'github.js');
   resolveStoreModules(require('../store/gitlab.js'), 'gitlab.js');
   resolveStoreModules(require('../store/growl.ts'), 'growl.ts');
-  resolveStoreModules(require('../store/i18n.js'), 'i18n.js');
+  resolveStoreModules(require('../store/i18n.ts'), 'i18n.ts');
   resolveStoreModules(require('../store/linode.js'), 'linode.js');
   resolveStoreModules(require('../store/modal.ts'), 'modal.ts');
   resolveStoreModules(require('../store/plugins.js'), 'plugins.js');
@@ -56,7 +56,7 @@ let store = {};
       '../store/github.js',
       '../store/gitlab.js',
       '../store/growl.ts',
-      '../store/i18n.js',
+      '../store/i18n.ts',
       '../store/index.js',
       '../store/linode.js',
       '../store/modal.ts',

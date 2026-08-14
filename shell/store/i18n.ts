@@ -1,9 +1,12 @@
 import merge from 'lodash/merge';
 import IntlMessageFormat from 'intl-messageformat';
+import { ActionContext } from 'vuex';
 import { get } from '@shell/utils/object';
 import en from '@shell/assets/translations/en-us.yaml';
 import { getProduct, getVendor, DOCS_BASE } from '@shell/config/private-label';
 import { loadTranslation } from '@shell/utils/dynamic-importer';
+import { ExtensionManager } from '@shell/types/extension-manager';
+import { VuexStoreGetters } from '@shell/types/store/vuex';
 
 const NONE = 'none';
 const DEFAULT_LOCALE = 'en-us';
@@ -16,16 +19,37 @@ export const I18N_GLOBAL_TYPE = 'l10n-global';
 // `[[` is NOT preceded by a backslash (which is the escape sequence).
 const GLOBAL_PATTERN = /(\\?)\[\[([^\]]+)\]\]/g;
 
+export interface I18nState {
+  default: string;
+  selected: string | null;
+  /**
+   * Declared for `toggleNone` to switch back to, but nothing in the codebase
+   * assigns it, so `toggleNone` always falls back to `default`.
+   */
+  previous: string | null;
+  available: string[];
+  translations: Record<string, any>;
+}
+
+type TranslationsModule = Record<string, any> | Promise<Record<string, any>>;
+type TranslationsModuleSource = TranslationsModule | (() => TranslationsModule);
+
+export interface I18nGetterRootState {
+  $extension?: Pick<ExtensionManager, 'getDynamic'>;
+}
+
+interface I18nActionRootState {
+  $extension?: ExtensionManager;
+}
+
+type I18nContext = ActionContext<I18nState, I18nActionRootState>;
+
 /**
  * Look up an i18n global value registered via
  * `extension.register('l10n-global', name, value)`. Values may be registered as
  * a function, in which case they are invoked to produce the current value.
- *
- * @param {string} name
- * @param {any} $extension
- * @returns {string | undefined}
  */
-export function lookupGlobal(name, $extension) {
+export function lookupGlobal(name: string, $extension?: Pick<ExtensionManager, 'getDynamic'>): string | undefined {
   const registered = $extension?.getDynamic?.(I18N_GLOBAL_TYPE, name);
   const value = typeof registered === 'function' ? registered() : registered;
 
@@ -37,17 +61,13 @@ export function lookupGlobal(name, $extension) {
  * `extension.register('l10n-global', name, value)`. If the token is not
  * registered, the name itself is used as the value. Use `\[[` to include a
  * literal `[[` in a translation string.
- *
- * @param {string} msg
- * @param {any} $extension
- * @returns {string}
  */
-export function substituteGlobals(msg, $extension) {
+export function substituteGlobals(msg: string, $extension?: Pick<ExtensionManager, 'getDynamic'>): string {
   if (typeof msg !== 'string' || !msg.includes('[[')) {
     return msg;
   }
 
-  return msg.replace(GLOBAL_PATTERN, (_match, escape, name) => {
+  return msg.replace(GLOBAL_PATTERN, (_match: string, escape: string, name: string) => {
     if (escape) {
       // Preserve the literal token, stripping only the escape character
       return `[[${ name }]]`;
@@ -60,23 +80,11 @@ export function substituteGlobals(msg, $extension) {
 }
 
 // Formatters can't be serialized into state
-const intlCache = {};
+const intlCache: Record<string, IntlMessageFormat | string> = {};
 
-let lastLoaded = 0;
+let lastLoaded: number | undefined = 0;
 
-/**
- * @typedef {object} I18nState
- * @property {string} default - Locale to fall back to when nothing else applies.
- * @property {string | null} selected - Locale in use, filled in by the `setSelected` mutation.
- * @property {string | null} previous - Declared for `toggleNone` to switch back to, but nothing in the codebase assigns it, so `toggleNone` always falls back to `default`.
- * @property {string[]} available - Locales that can be loaded.
- * @property {Record<string, any>} translations - Loaded translations, keyed by locale.
- */
-
-/**
- * @returns {I18nState}
- */
-export const state = function() {
+export const state = function(): I18nState {
   // const translationContext = require.context('@shell/assets/translations', true, /.*/);
   // const available = translationContext.keys().map(path => path.replace(/^.*\/([^\/]+)\.[^.]+$/, '$1'));
   // Using require.context() forces them to all be in the same webpack chunk name... just hardcode the list for now so zh-hans
@@ -95,26 +103,16 @@ export const state = function() {
 };
 
 /**
- * The locale a lookup should resolve against: an explicit override first, then the
- * selected locale, then the store's own default.
- *
- * `selected` is null until the `setSelected` mutation runs, and `IntlMessageFormat`
- * only substitutes its default for `undefined`, never for null. A null therefore
- * reaches `Intl.*` and any message with an ICU argument that needs locale data
- * (`{n, plural}`, `{n, number}`, a date or time) throws. Falling back to
- * `state.default` keeps the store's own notion of a default authoritative instead of
- * deferring to `IntlMessageFormat.defaultLocale`.
- *
- * @param {I18nState} state
- * @param {string} [language] - Explicit locale override passed to the getter.
- * @returns {string}
+ * `selected` is null until `setSelected` runs, and `IntlMessageFormat` only defaults for
+ * `undefined`, so a null throws in `Intl.*` on plurals, numbers and dates. Falls back to
+ * `state.default` to keep the store's own default authoritative.
  */
-function localeToUse(state, language) {
+function localeToUse(state: I18nState, language?: string): string {
   return language || state.selected || state.default;
 }
 
 export const getters = {
-  selectedLocaleLabel(state) {
+  selectedLocaleLabel(state: I18nState) {
     const key = `locale.${ state.selected }`;
 
     if ( state.selected === NONE ) {
@@ -124,8 +122,8 @@ export const getters = {
     }
   },
 
-  availableLocales(state, getters) {
-    const out = {};
+  availableLocales(state: I18nState, getters: VuexStoreGetters) {
+    const out: Record<string, string> = {};
 
     for ( const locale of state.available ) {
       const key = `locale.${ locale }`;
@@ -140,11 +138,11 @@ export const getters = {
     return out;
   },
 
-  hasMultipleLocales(state) {
+  hasMultipleLocales(state: I18nState) {
     return state.available.length > 1;
   },
 
-  t: (state, _getters, rootState) => (key, args, language) => {
+  t: (state: I18nState, _getters?: VuexStoreGetters, rootState?: I18nGetterRootState) => (key: string, args?: Record<string, any>, language?: string) => {
     if (state.selected === NONE && !language) {
       return `%${ key }%`;
     }
@@ -200,11 +198,11 @@ export const getters = {
     }
   },
 
-  global: (_state, _getters, rootState) => (name) => {
+  global: (_state: I18nState, _getters?: VuexStoreGetters, rootState?: I18nGetterRootState) => (name: string) => {
     return lookupGlobal(name, rootState?.$extension);
   },
 
-  exists: (state) => (key, language) => {
+  exists: (state: I18nState) => (key: string, language?: string) => {
     const locale = localeToUse(state, language);
     const cacheKey = `${ locale }/${ key }`;
 
@@ -225,15 +223,15 @@ export const getters = {
     return false;
   },
 
-  current: (state) => () => {
+  current: (state: I18nState) => () => {
     return state.selected;
   },
 
-  default: (state) => () => {
+  default: (state: I18nState) => () => {
     return state.default;
   },
 
-  multiWithFallback: (state, getters) => (items, key = 'key') => {
+  multiWithFallback: (state: I18nState, getters: VuexStoreGetters) => (items: Record<string, any>[], key = 'key') => {
     return items.map((item) => {
       item[key] = getters.withFallback(item[key], null, item[key]);
 
@@ -241,7 +239,7 @@ export const getters = {
     });
   },
 
-  withFallback: (state, getters) => (key, args, fallback, fallbackIsKey = false) => {
+  withFallback: (state: I18nState, getters: VuexStoreGetters) => (key: string, args?: Record<string, any> | string | null, fallback?: string, fallbackIsKey = false) => {
     // Support withFallback(key,fallback) when no args
     if ( !fallback && typeof args === 'string' ) {
       fallback = args;
@@ -260,11 +258,11 @@ export const getters = {
 };
 
 export const mutations = {
-  loadTranslations(state, { locale, translations }) {
+  loadTranslations(state: I18nState, { locale, translations }: { locale: string, translations: Record<string, any> }) {
     state.translations[locale] = translations;
   },
 
-  mergeLoadTranslations(state, { locale, translations }) {
+  mergeLoadTranslations(state: I18nState, { locale, translations }: { locale: string, translations: Record<string, any> }) {
     if (!state.translations[locale]) {
       state.translations[locale] = translations;
     } else {
@@ -272,19 +270,19 @@ export const mutations = {
     }
   },
 
-  setSelected(state, locale) {
+  setSelected(state: I18nState, locale: string) {
     // this will set the lang param on HTML (best place to add this action since all locale changes go through this mutation)
     if (locale === NONE) {
-      document.querySelector('html').removeAttribute('lang');
+      document.documentElement.removeAttribute('lang');
     } else {
-      document.querySelector('html').setAttribute('lang', locale);
+      document.documentElement.setAttribute('lang', locale);
     }
 
     state.selected = locale;
   },
 
   // Add a locale to the list of available locales
-  addLocale(state, { locale, label }) {
+  addLocale(state: I18nState, { locale, label }: { locale: string, label: string }) {
     const hasLocale = state.available.find((l) => l === locale);
 
     if (!hasLocale) {
@@ -296,7 +294,7 @@ export const mutations = {
   },
 
   // Remove locale
-  removeLocale(state, locale) {
+  removeLocale(state: I18nState, locale: string) {
     const index = state.available.findIndex((l) => l === locale);
 
     if (index !== -1) {
@@ -312,7 +310,7 @@ export const mutations = {
 export const actions = {
   init({
     state, commit, dispatch, rootGetters
-  }) {
+  }: I18nContext) {
     let selected = rootGetters['prefs/get']('locale');
 
     // We might be using a locale that is loaded by a plugin that is no longer loaded
@@ -325,7 +323,7 @@ export const actions = {
     return dispatch('switchTo', selected);
   },
 
-  async load({ commit }, locale) {
+  async load({ commit }: I18nContext, locale: string) {
     const translationsModule = await loadTranslation(locale);
     const translations = translationsModule.default || translationsModule;
 
@@ -334,7 +332,7 @@ export const actions = {
     return true;
   },
 
-  async mergeLoad({ commit }, { locale, module }) {
+  async mergeLoad({ commit }: I18nContext, { locale, module }: { locale: string, module: TranslationsModuleSource }) {
     const promise = typeof (module) === 'function' ? module() : Promise.resolve(module);
     const translationsModule = await promise;
     const translations = translationsModule.default || translationsModule;
@@ -343,12 +341,12 @@ export const actions = {
   },
 
   // Add a locale to the list of available locales
-  addLocale({ commit }, { locale, label }) {
+  addLocale({ commit }: I18nContext, { locale, label }: { locale: string, label: string }) {
     commit('addLocale', { locale, label });
   },
 
   // Remove a locale from the list of available locales
-  removeLocale({ commit, getters, dispatch }, { locale }) {
+  removeLocale({ commit, getters, dispatch }: I18nContext, { locale }: { locale: string }) {
     const current = getters['current']();
 
     // If we are removing the current locale, switch back to the default locale
@@ -365,7 +363,7 @@ export const actions = {
     commit,
     dispatch,
     getters
-  }, locale) {
+  }: I18nContext, locale: string) {
     const currentLocale = getters['current']();
 
     if ( locale === NONE ) {
@@ -377,7 +375,7 @@ export const actions = {
 
     const lastLoad = rootState.$extension?.lastLoad;
     const i18nExt = rootState.$extension?.getDynamic('l10n', locale);
-    const reload = lastLoaded < lastLoad;
+    const reload = lastLoaded !== undefined && lastLoad !== undefined && lastLoaded < lastLoad;
 
     lastLoaded = lastLoad;
 
@@ -396,9 +394,9 @@ export const actions = {
 
       // Load all of the locales from the plugins
       if (i18nExt && i18nExt.length) {
-        const p = [];
+        const p: Promise<any>[] = [];
 
-        i18nExt.forEach((fn) => {
+        i18nExt.forEach((fn: TranslationsModuleSource) => {
           p.push(dispatch('mergeLoad', { locale, module: fn }));
         });
 
@@ -407,7 +405,7 @@ export const actions = {
           const defaultI18nExt = rootState.$extension?.getDynamic('l10n', DEFAULT_LOCALE);
 
           if (defaultI18nExt && defaultI18nExt.length) {
-            defaultI18nExt.forEach((fn) => {
+            defaultI18nExt.forEach((fn: TranslationsModuleSource) => {
               p.push(dispatch('mergeLoad', { locale: DEFAULT_LOCALE, module: fn }));
             });
           }
@@ -436,7 +434,7 @@ export const actions = {
     }
   },
 
-  toggleNone({ state, dispatch }) {
+  toggleNone({ state, dispatch }: I18nContext) {
     if ( state.selected === NONE ) {
       return dispatch('switchTo', state.previous || state.default);
     } else {
