@@ -190,6 +190,13 @@ locale:
 
 nav:
   skipToContent: Skip to main content
+  jumpTo:
+    placeholder: Jump to...
+    tooltip: Start typing to quickly find and jump to a particular section ({shortcut})
+    ariaLabel: Jump to a navigation section
+    noResults: No matching sections
+    popularHeading: Popular resource types
+    recentHeading: Last used in this cluster
   ariaLabel:
     clusterIconKeyCombo: Cluster keyboard shortcut combination icon
     localClusterIcon: Local Cluster icon

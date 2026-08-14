@@ -852,6 +852,38 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
           });
         });
       });
+
+      it('Side navigation jump-to', () => {
+        const clusterDashboard = new ClusterDashboardPagePo('local');
+
+        clusterDashboard.goTo();
+        clusterDashboard.waitForPage();
+
+        const actionBar = new ProductNavPo().actionBar();
+
+        actionBar.openJumpTo();
+        actionBar.jumpToResults().should('have.length.gt', 0);
+
+        cy.injectAxe();
+
+        // The results are teleported out of the nav, so both halves of the
+        // combobox are checked
+        actionBar.self().then((el: any) => {
+          cy.checkElementAccessibility(el);
+        });
+
+        actionBar.jumpToDropdown().then((el: any) => {
+          cy.checkElementAccessibility(el);
+        });
+
+        // The empty state renders different markup, so check it too
+        actionBar.searchJumpTo('zzzzzz');
+        actionBar.jumpToResults().should('have.length', 0);
+
+        actionBar.jumpToDropdown().then((el: any) => {
+          cy.checkElementAccessibility(el);
+        });
+      });
     });
   });
 

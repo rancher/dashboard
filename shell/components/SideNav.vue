@@ -21,13 +21,12 @@ import { TYPE_MODES } from '@shell/store/type-map';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import Group from '@shell/components/nav/Group';
 import LocaleSelector from '@shell/components/LocaleSelector';
-import { RcButton } from '@components/RcButton';
-import { RcIcon } from '@components/RcIcon';
+import NavActionBar from '@shell/components/nav/NavActionBar';
 
 export default {
   name:       'SideNav',
   components: {
-    Group, LocaleSelector, RcButton, RcIcon
+    Group, LocaleSelector, NavActionBar
   },
   setup() {
     const store = useStore();
@@ -482,6 +481,48 @@ export default {
       this.saveNavState();
     },
 
+    /**
+     * Emitted once a jump-to's navigation has settled, so the active item is
+     * already rendered (or is about to be, once its groups expand). Syncing here
+     * rather than leaning on the route watcher covers jumping to the section
+     * already being shown, where the route never changes and so the watcher
+     * never runs: without it, a jump back into a collapsed group does nothing.
+     */
+    onJumped() {
+      this.syncNav();
+      this.scrollActiveIntoView();
+    },
+
+    /**
+     * Scroll the active nav item into view within the scrolling group list, once
+     * it exists and is visible (i.e. after any ancestor groups have expanded).
+     * Retries across a few frames so it fires after a jump-to reveals the target.
+     */
+    scrollActiveIntoView() {
+      // Cancel any still-running attempt so overlapping jumps don't stack loops.
+      if (this.scrollRaf) {
+        cancelAnimationFrame(this.scrollRaf);
+      }
+
+      let tries = 0;
+      const attempt = () => {
+        const el = this.$el?.querySelector('.nav .router-link-exact-active') ||
+          this.$el?.querySelector('.nav .router-link-active');
+
+        // `offsetParent` is null while the item is still hidden in a collapsed
+        // group; wait until it has rendered and become visible before scrolling.
+        if (el && el.offsetParent !== null) {
+          el.scrollIntoView({ block: 'nearest' });
+          this.scrollRaf = null;
+        } else if (tries++ < 30) {
+          this.scrollRaf = requestAnimationFrame(attempt);
+        } else {
+          this.scrollRaf = null;
+        }
+      };
+
+      this.scrollRaf = requestAnimationFrame(attempt);
+    },
   },
 };
 </script>
@@ -492,25 +533,14 @@ export default {
     role="navigation"
     :aria-label="t('nav.ariaLabel.sideNav')"
   >
-    <RcButton
-      v-if="hasExpandedGroup"
-      v-clean-tooltip="{content: t('nav.ariaLabel.collapseAllSections'), placement: 'right'}"
-      variant="secondary"
-      size="small"
-      class="collapse-all-btn"
-      :aria-label="t('nav.ariaLabel.collapseAllSections')"
-      @click="collapseAll()"
-    >
-      <!--
-        A down chevron over an up chevron stands in for a "collapse all"
-        (collapse toward center) double-chevron. Stop-gap until a dedicated
-        icon is added to the icon set.
-      -->
-      <span class="double-chevron">
-        <RcIcon type="chevron-down" />
-        <RcIcon type="chevron-up" />
-      </span>
-    </RcButton>
+    <!-- Jump-to + collapse-all bar, pinned above the scrolling nav. The
+         collapse-all control only appears while a group is expanded. -->
+    <NavActionBar
+      :groups="groups"
+      :has-expanded-group="hasExpandedGroup"
+      @collapse-all="collapseAll()"
+      @jumped="onJumped"
+    />
     <!-- Actual nav -->
     <div class="nav">
       <template
@@ -588,41 +618,7 @@ export default {
   .side-nav {
     display: flex;
     flex-direction: column;
-    .collapse-all-btn {
-    position: absolute;
-    bottom: 2rem;
-    right: 1rem;
-    min-height: unset;
-    padding: 0;
-    width: 28px;
-    height: 28px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity ease .15s;
-    z-index: 1;
-
-    // Stack two smaller chevrons so they read as a single double-chevron while
-    // the stacked pair stays roughly the height of one normal chevron, keeping
-    // the button the same size.
-    .double-chevron {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-      :deep(.rc-icon) {
-        display: block;
-        font-size: 10px;
-        line-height: 0.7;
-      }
-    }
-  }
-
-  .side-nav:hover .collapse-all-btn {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .nav {
+    .nav {
       flex: 1;
       overflow-y: auto;
     }
