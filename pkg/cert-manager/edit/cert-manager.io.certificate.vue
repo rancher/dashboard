@@ -61,7 +61,6 @@ export default {
     return {
       // Stop auto-filling secretName from the resource name once the user edits it themselves.
       secretNameTouched: !!this.value.spec?.secretName,
-      showCommonName:    !!this.value.spec?.commonName,
       fvFormRuleSets:    [
         {
           path: 'metadata.name', rules: ['required', 'dnsLabel'], translationKey: 'nameNsDescription.name.label'
@@ -233,11 +232,6 @@ export default {
       this.value.spec.secretTemplate = { ...this.value.spec.secretTemplate, [key]: keyValue };
     },
 
-    clearCommonName() {
-      this.value.spec.commonName = undefined;
-      this.showCommonName = false;
-    },
-
     onSecretNameInput() {
       this.secretNameTouched = true;
     },
@@ -330,29 +324,7 @@ export default {
           class="mb-20"
         />
 
-        <!--
-          Common name is hidden behind a button: a CN that is not also in dnsNames is rejected by
-          the CSR check, and most deployments should simply leave it empty. Laid out to match the
-          ArrayList sections around it - heading with an info tooltip, then an unadorned tertiary
-          add button, since ArrayList defaults `addIcon` to none.
-        -->
-        <div
-          class="clearfix"
-          role="group"
-        >
-          <h3>
-            {{ t('certManager.certificate.commonName') }}
-            <i
-              v-clean-tooltip="{ content: t('certManager.certificate.commonNameHelp'), triggers: ['hover', 'touch', 'focus'] }"
-              class="icon icon-info"
-              tabindex="0"
-            />
-          </h3>
-        </div>
-        <div
-          v-if="showCommonName"
-          class="row mb-20"
-        >
+        <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
               v-model:value="value.spec.commonName"
@@ -361,28 +333,6 @@ export default {
               :mode="mode"
             />
           </div>
-          <div class="col span-6 mt-10">
-            <button
-              v-if="!isView"
-              type="button"
-              class="btn role-link"
-              @click="clearCommonName"
-            >
-              {{ t('generic.remove') }}
-            </button>
-          </div>
-        </div>
-        <div
-          v-else-if="!isView"
-          class="footer mmt-6 mb-20"
-        >
-          <button
-            type="button"
-            class="btn role-tertiary add"
-            @click="showCommonName = true"
-          >
-            {{ t('certManager.certificate.addCommonName') }}
-          </button>
         </div>
 
         <ArrayList

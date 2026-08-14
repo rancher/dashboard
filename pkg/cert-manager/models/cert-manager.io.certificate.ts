@@ -36,6 +36,12 @@ export default class Certificate extends SteveModel {
       }
     });
 
+    // Clearing the input leaves '' behind, which is not the same as having no common name: the
+    // CSR check rejects a common name that is not also a DNS name, and '' never will be.
+    if (val?.spec?.commonName === '') {
+      delete val.spec.commonName;
+    }
+
     return val;
   }
 

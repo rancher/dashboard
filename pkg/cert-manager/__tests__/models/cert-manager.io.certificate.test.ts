@@ -387,6 +387,15 @@ describe('model: cert-manager.io.certificate', () => {
     it('should cope with a spec that has neither', () => {
       expect(() => clean({ secretName: 'a' })).not.toThrow();
     });
+
+    // The field is a plain optional input, so clearing it leaves '' rather than removing the key.
+    it('should drop a common name the user emptied', () => {
+      expect(clean({ commonName: '' })).toStrictEqual({ spec: {} });
+    });
+
+    it('should keep a common name that was set', () => {
+      expect(clean({ commonName: 'example.com' }).spec.commonName).toBe('example.com');
+    });
   });
 
   describe('route locations', () => {

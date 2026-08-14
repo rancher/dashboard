@@ -52,7 +52,7 @@ certManager:
 
   certificate:
     commonName: Common Name
-    commonNameTooltip: The X.509 Common Name. Most public CAs now require the name to also appear in the DNS names.
+    commonNameTooltip: The X.509 Common Name, limited to 64 characters. Optional, and most deployments leave it empty in favour of DNS Names. If you do set one, it must also appear in the DNS Names or IP Addresses.
     revision: Revision
     notBefore: Not Before
     notAfter: Not After
@@ -73,8 +73,6 @@ certManager:
     addUri: Add URI
     addEmailAddress: Add Email Address
     sans: Subject Alternative Names
-    addCommonName: Add Common Name
-    commonNameHelp: Most modern deployments rely on DNS Names and leave Common Name empty. If you do set one, it must also appear in the DNS Names or IP Addresses above.
     secretNamePlaceholder: e.g. my-tls-secret
     failedAttempts: Failed Issuance Attempts
     lastFailure: Last Failure
