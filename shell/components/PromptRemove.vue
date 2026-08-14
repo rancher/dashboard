@@ -2,7 +2,7 @@
 import { shallowRef } from 'vue';
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
-import { escapeHtml, resourceNames } from '@shell/utils/string';
+import { resourceNames } from '@shell/utils/string';
 import { Card } from '@components/Card';
 import { Checkbox } from '@components/Form/Checkbox';
 import { alternateLabel } from '@shell/utils/platform';
@@ -215,7 +215,6 @@ export default {
 
   methods: {
     resourceNames,
-    escapeHtml,
     close() {
       this.confirmName = '';
       this.error = '';
@@ -382,10 +381,13 @@ export default {
             v-if="needsConfirm"
             class="mt-10"
           >
-            <span
-              v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
-              class="confirm-text"
-            />
+            <span class="confirm-text">{{ t('promptRemove.confirmName') }}</span>
+            <div
+              :data-testid="componentTestid + '-name-to-match'"
+              class="name-to-match mt-5"
+            >
+              {{ nameToMatch }}
+            </div>
           </div>
         </div>
         <LabeledInput
@@ -395,7 +397,7 @@ export default {
           v-focus
           :data-testid="componentTestid + '-input'"
           type="text"
-          :aria-label="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) })"
+          :aria-label="`${t('promptRemove.confirmName')} ${nameToMatch}`"
         >
           <div class="text-warning mb-10 mt-10">
             {{ warning }}
@@ -474,8 +476,15 @@ export default {
       }
     }
 
-    .confirm-text b {
+    .name-to-match {
+      padding: 5px;
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: var(--border-radius);
       user-select: all;
+      cursor: text;
+      font-family: monospace;
+      word-break: break-all;
     }
   }
 </style>
