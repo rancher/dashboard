@@ -94,6 +94,25 @@ export const state = function() {
   return out;
 };
 
+/**
+ * The locale a lookup should resolve against: an explicit override first, then the
+ * selected locale, then the store's own default.
+ *
+ * `selected` is null until the `setSelected` mutation runs, and `IntlMessageFormat`
+ * only substitutes its default for `undefined`, never for null. A null therefore
+ * reaches `Intl.*` and any message with an ICU argument that needs locale data
+ * (`{n, plural}`, `{n, number}`, a date or time) throws. Falling back to
+ * `state.default` keeps the store's own notion of a default authoritative instead of
+ * deferring to `IntlMessageFormat.defaultLocale`.
+ *
+ * @param {I18nState} state
+ * @param {string} [language] - Explicit locale override passed to the getter.
+ * @returns {string}
+ */
+function localeToUse(state, language) {
+  return language || state.selected || state.default;
+}
+
 export const getters = {
   selectedLocaleLabel(state) {
     const key = `locale.${ state.selected }`;
@@ -130,7 +149,7 @@ export const getters = {
       return `%${ key }%`;
     }
 
-    const locale = language || state.selected;
+    const locale = localeToUse(state, language);
     const cacheKey = `${ locale }/${ key }`;
     let formatter = intlCache[cacheKey];
 
@@ -186,7 +205,7 @@ export const getters = {
   },
 
   exists: (state) => (key, language) => {
-    const locale = language || state.selected;
+    const locale = localeToUse(state, language);
     const cacheKey = `${ locale }/${ key }`;
 
     if ( intlCache[cacheKey] ) {

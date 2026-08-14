@@ -44,7 +44,7 @@ describe('wm store', () => {
       localStorage.setItem(STORAGE_KEY[BOTTOM], '300');
       const fresh = state();
 
-      expect(fresh.panelHeight[BOTTOM]).toStrictEqual('300');
+      expect(fresh.panelHeight[BOTTOM]).toStrictEqual(300);
     });
 
     it('reads panelWidth for LEFT and RIGHT from localStorage on initialization', () => {
@@ -52,14 +52,26 @@ describe('wm store', () => {
       localStorage.setItem(STORAGE_KEY[RIGHT], '350');
       const fresh = state();
 
-      expect(fresh.panelWidth[LEFT]).toStrictEqual('250');
-      expect(fresh.panelWidth[RIGHT]).toStrictEqual('350');
+      expect(fresh.panelWidth[LEFT]).toStrictEqual(250);
+      expect(fresh.panelWidth[RIGHT]).toStrictEqual(350);
     });
 
     it('panelHeight and panelWidth are null when localStorage is empty', () => {
       expect(s.panelHeight[BOTTOM]).toBeNull();
       expect(s.panelWidth[LEFT]).toBeNull();
       expect(s.panelWidth[RIGHT]).toBeNull();
+    });
+
+    it.each([
+      ['a non-numeric value', 'not-a-number'],
+      ['the string NaN', 'NaN'],
+      ['a null written by an earlier session', 'null'],
+      ['an empty string', ''],
+    ])('panelHeight is null when localStorage holds %s', (_label, stored) => {
+      localStorage.setItem(STORAGE_KEY[BOTTOM], stored);
+      const fresh = state();
+
+      expect(fresh.panelHeight[BOTTOM]).toBeNull();
     });
   });
 

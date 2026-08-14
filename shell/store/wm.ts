@@ -14,14 +14,8 @@ export interface State {
   tabs: Array<Tab>;
   active: Record<Position | string, string>;
   open: Record<Position | string, boolean>;
-  /**
-   * Panel sizes are inconsistently typed at runtime and the union records that rather than endorsing it:
-   * `state()` seeds them from local storage, which hands back strings, while the setPanelHeight and
-   * setPanelWidth mutations write numbers. Tracked in #18807, which coerces in `state()` so this can
-   * narrow back to `number | null`. Read them with care until then.
-   */
-  panelHeight: Record<Position | string, number | string | null>;
-  panelWidth: Record<Position | string, number | string | null>;
+  panelHeight: Record<Position | string, number | null>;
+  panelWidth: Record<Position | string, number | null>;
   userPin: Position | string | null;
   lockedPositions: Position[];
 }
@@ -37,15 +31,25 @@ function moveTabByReference(tabs: Tab[], fromPosition: Position | undefined, toP
   tabs.push(tab);
 }
 
-export const state = function() {
+/**
+ * The key may be unset or hold something unparseable, such as an older `null` written as `'null'`.
+ * Anything that doesn't parse becomes `null`, so the store never holds `NaN` or a string.
+ */
+function storedPanelSize(key: string): number | null {
+  const size = parseInt(window.localStorage.getItem(key) ?? '', 10);
+
+  return Number.isNaN(size) ? null : size;
+}
+
+export const state = function(): State {
   return {
     tabs:        [],
     active:      {},
     open:        {},
-    panelHeight: { [BOTTOM]: window.localStorage.getItem(STORAGE_KEY[BOTTOM]) },
+    panelHeight: { [BOTTOM]: storedPanelSize(STORAGE_KEY[BOTTOM]) },
     panelWidth:  {
-      [LEFT]:  window.localStorage.getItem(STORAGE_KEY[LEFT]),
-      [RIGHT]: window.localStorage.getItem(STORAGE_KEY[RIGHT]),
+      [LEFT]:  storedPanelSize(STORAGE_KEY[LEFT]),
+      [RIGHT]: storedPanelSize(STORAGE_KEY[RIGHT]),
     },
     userPin:         null,
     lockedPositions: [],
