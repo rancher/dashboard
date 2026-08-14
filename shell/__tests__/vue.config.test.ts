@@ -13,6 +13,7 @@ describe('shell vue.config', () => {
     it('includes excluded package paths and escapes regex characters', () => {
       const ignored: RegExp = getWatcherIgnored(['harvester', 'foo.bar']);
 
+      expect(ignored.test('/workspace/node_modules/some-package/index.ts')).toBe(true);
       expect(ignored.test('/workspace/pkg.harvester/index.ts')).toBe(true);
       expect(ignored.test('/workspace/pkg.foo.bar/index.ts')).toBe(true);
       expect(ignored.test('/workspace/pkg-harvester/index.ts')).toBe(false);
