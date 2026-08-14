@@ -126,8 +126,11 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     fleetClusterDetailsPage.waitForPage(null, 'applications');
     fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-applications"]');
 
-    // check cluster labels
-    fleetClusterDetailsPage.clusterLabels().contains('foo: bar').scrollIntoView().should('be.visible');
+    // check cluster labels - re-query the label after scrolling rather than chaining `.should` onto
+    // the scrolled subject: an async re-render (e.g. the app bundles list streaming in) detaches it
+    // and Cypress errors with "subject no longer attached to the DOM" on scrollIntoView.
+    fleetClusterDetailsPage.clusterLabels().contains('foo: bar').scrollIntoView();
+    fleetClusterDetailsPage.clusterLabels().contains('foo: bar').should('be.visible');
 
     // check state
     fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 1).contains('Active');
