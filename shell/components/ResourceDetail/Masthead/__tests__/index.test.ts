@@ -9,12 +9,12 @@ jest.mock('@shell/components/ResourceDetail/Masthead/latest.vue', () => ({
   name:     'Latest',
   template: `<div>Latest</div>`,
   props:    ['value', 'resourceSubtype', 'isCustomDetailOrEdit', 'mode', 'resource', 'canViewYaml'],
-  emits:    ['apply-template'],
+  emits:    ['apply-template', 'save-template'],
 }));
 jest.mock('@shell/components/ResourceDetail/Masthead/legacy.vue', () => ({
   name:     'Legacy',
   template: `<div>Legacy</div>`,
-  emits:    ['apply-template'],
+  emits:    ['apply-template', 'save-template'],
 }));
 
 describe('component: Masthead/index', () => {
@@ -152,5 +152,29 @@ describe('component: Masthead/index', () => {
 
     expect(wrapper.emitted('apply-template')).toBeTruthy();
     expect(wrapper.emitted('apply-template')![0]).toStrictEqual([configMap]);
+  });
+
+  it('should relay save-template from Latest', async() => {
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
+    const props = { value: { type: 'VALUE' }, mode: _VIEW };
+
+    const wrapper = mount(Index, { props });
+    const component = wrapper.getComponent({ name: 'Latest' });
+
+    await component.vm.$emit('save-template');
+
+    expect(wrapper.emitted('save-template')).toBeTruthy();
+  });
+
+  it('should relay save-template from Legacy', async() => {
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
+    const props = { value: { type: 'VALUE' }, mode: _VIEW };
+
+    const wrapper = mount(Index, { props });
+    const component = wrapper.getComponent({ name: 'Legacy' });
+
+    await component.vm.$emit('save-template');
+
+    expect(wrapper.emitted('save-template')).toBeTruthy();
   });
 });

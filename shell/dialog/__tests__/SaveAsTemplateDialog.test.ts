@@ -82,9 +82,9 @@ describe('component: SaveAsTemplateDialog', () => {
     jest.clearAllMocks();
   });
 
-  const mountComponent = async(resources = [createMockResource()]) => {
+  const mountComponent = async(resources = [createMockResource()], initialYaml: string | null = null) => {
     const wrapper = mount(SaveAsTemplateDialog, {
-      props:  { resources },
+      props:  { resources, initialYaml },
       global: {
         mocks: {
           // Options API children (AsyncButton, LabeledSelect, etc.) read `this.$store`
@@ -159,6 +159,32 @@ describe('component: SaveAsTemplateDialog', () => {
       const wrapper = await mountComponent([createMockResource({ metadata: {} })]);
 
       expect(wrapper.findComponent(LabeledSelect).props('value')).toBe('default');
+    });
+  });
+
+  describe('initialYaml prop', () => {
+    it('should skip followLink/cleanForDownload and use the given yaml directly, for a resource that has not been saved yet', async() => {
+      const resource = createMockResource();
+      const clone = createMockClone('kind: Deployment\nmetadata:\n  name: \'\'');
+
+      routeDispatch({}, clone);
+
+      await mountComponent([resource], 'kind: Deployment\nmetadata:\n  name: from-form');
+
+      expect(resource.followLink).not.toHaveBeenCalled();
+      expect(resource.cleanForDownload).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith('cluster/clone', { resource });
+      expect(clone.cleanForNew).toHaveBeenCalledWith();
+      expect(clone.cleanYaml).toHaveBeenCalledWith('kind: Deployment\nmetadata:\n  name: from-form', _CLONE);
+    });
+
+    it('should still label the ConfigMap with the resource type and default the namespace, same as the followLink path', async() => {
+      const wrapper = await mountComponent(
+        [createMockResource({ metadata: { namespace: 'my-ns' } })],
+        'kind: Deployment\n'
+      );
+
+      expect(wrapper.findComponent(LabeledSelect).props('value')).toBe('my-ns');
     });
   });
 

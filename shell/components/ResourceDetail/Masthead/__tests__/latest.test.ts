@@ -10,7 +10,7 @@ jest.mock('@shell/components/ResourceTemplateSelector', () => ({
   name:     'ResourceTemplateSelector',
   template: `<div data-testid="resource-template-selector">ResourceTemplateSelector</div>`,
   props:    ['resourceType'],
-  emits:    ['apply'],
+  emits:    ['apply', 'save'],
 }));
 jest.mock('@shell/components/Resource/Detail/TitleBar/composables', () => ({ useDefaultTitleBarProps: jest.fn(() => ({})) }));
 jest.mock('@shell/components/Resource/Detail/Metadata/index.vue', () => ({
@@ -133,6 +133,18 @@ describe('component: Masthead/latest', () => {
 
       expect(wrapper.emitted('apply-template')).toBeTruthy();
       expect(wrapper.emitted('apply-template')![0]).toStrictEqual([configMap]);
+    });
+
+    it('should relay save as save-template', async() => {
+      const props = {
+        value: { name: 'test-resource' }, mode: _EDIT, resource: 'apps.deployment', canViewYaml: true
+      };
+
+      const wrapper = mount(Latest, { props, ...defaultMocks });
+
+      await wrapper.getComponent({ name: 'ResourceTemplateSelector' }).vm.$emit('save');
+
+      expect(wrapper.emitted('save-template')).toBeTruthy();
     });
   });
 });

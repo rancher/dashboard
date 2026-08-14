@@ -1,3 +1,4 @@
+import jsyaml from 'js-yaml';
 import resourceTemplateUtils from '@shell/utils/resource-template';
 import { CATTLE_UI_RESOURCE_TEMPLATE, CATTLE_UI_RESOURCE_TEMPLATE_APPLIED } from '@shell/config/labels-annotations';
 import { CONFIG_MAP } from '@shell/config/types';
@@ -147,6 +148,70 @@ describe('resourceTemplateUtils', () => {
       };
 
       expect(() => resourceTemplateUtils.applyStagedFormApply(resource, staged)).not.toThrow();
+    });
+  });
+
+  describe('mergeTemplateOntoYaml', () => {
+    const configMap = {
+      metadata: { namespace: 'default', name: 'my-template' },
+      data:     { [resourceTemplateUtils.dataKey]: 'spec:\n  type: LoadBalancer\n  ports:\n    - port: 443\n' },
+    };
+
+    it('should merge the template onto the current yaml, with the template winning field conflicts', () => {
+      const currentYaml = 'apiVersion: v1\nkind: Service\nmetadata:\n  name: my-svc\n  namespace: default\nspec:\n  type: ClusterIP\n';
+
+      const merged = jsyaml.load(resourceTemplateUtils.mergeTemplateOntoYaml(currentYaml, configMap)) as any;
+
+      expect(merged.spec.type).toBe('LoadBalancer');
+      expect(merged.spec.ports).toStrictEqual([{ port: 443 }]);
+    });
+
+    it('should preserve fields the template does not mention', () => {
+      const currentYaml = 'apiVersion: v1\nkind: Service\nmetadata:\n  name: my-svc\n  namespace: default\nspec:\n  type: ClusterIP\n';
+
+      const merged = jsyaml.load(resourceTemplateUtils.mergeTemplateOntoYaml(currentYaml, configMap)) as any;
+
+      expect(merged.apiVersion).toBe('v1');
+      expect(merged.kind).toBe('Service');
+      expect(merged.metadata.name).toBe('my-svc');
+    });
+
+    it('should set the applied label in the merged yaml', () => {
+      const currentYaml = 'metadata:\n  name: my-svc\n';
+
+      const merged = jsyaml.load(resourceTemplateUtils.mergeTemplateOntoYaml(currentYaml, configMap)) as any;
+
+      expect(merged.metadata.labels[CATTLE_UI_RESOURCE_TEMPLATE_APPLIED]).toBe('default/my-template');
+    });
+
+    it('should just label the current yaml unchanged when the ConfigMap has no template data', () => {
+      const currentYaml = 'metadata:\n  name: my-svc\nspec:\n  type: ClusterIP\n';
+      const emptyConfigMap = { metadata: { namespace: 'default', name: 'my-template' }, data: {} };
+
+      const merged = jsyaml.load(resourceTemplateUtils.mergeTemplateOntoYaml(currentYaml, emptyConfigMap)) as any;
+
+      expect(merged.spec.type).toBe('ClusterIP');
+      expect(merged.metadata.labels[CATTLE_UI_RESOURCE_TEMPLATE_APPLIED]).toBe('default/my-template');
+    });
+
+    it('should fall back to an empty object and still label it when the current yaml fails to parse', () => {
+      const merged = jsyaml.load(resourceTemplateUtils.mergeTemplateOntoYaml(':: not valid yaml ::', configMap)) as any;
+
+      expect(merged.spec.type).toBe('LoadBalancer');
+      expect(merged.metadata.labels[CATTLE_UI_RESOURCE_TEMPLATE_APPLIED]).toBe('default/my-template');
+    });
+
+    it('should skip the merge and still label it when the template yaml fails to parse', () => {
+      const currentYaml = 'metadata:\n  name: my-svc\nspec:\n  type: ClusterIP\n';
+      const badConfigMap = {
+        metadata: { namespace: 'default', name: 'my-template' },
+        data:     { [resourceTemplateUtils.dataKey]: ':: not valid yaml ::' },
+      };
+
+      const merged = jsyaml.load(resourceTemplateUtils.mergeTemplateOntoYaml(currentYaml, badConfigMap)) as any;
+
+      expect(merged.spec.type).toBe('ClusterIP');
+      expect(merged.metadata.labels[CATTLE_UI_RESOURCE_TEMPLATE_APPLIED]).toBe('default/my-template');
     });
   });
 });

@@ -25,6 +25,7 @@ jest.mock('@shell/utils/resource-template', () => ({
     applyTemplate:          jest.fn(),
     stageFormApply:         jest.fn(),
     consumeStagedFormApply: jest.fn().mockReturnValue(null),
+    mergeTemplateOntoYaml:  jest.fn(),
   },
 }));
 
@@ -171,6 +172,7 @@ describe('component: ResourceDetail/index', () => {
   const mountComponent = (dataOverrides: Record<string, any> = {}) => {
     const dispatch = jest.fn();
     const applyQuery = jest.fn().mockResolvedValue(undefined);
+    const fetch = jest.fn().mockResolvedValue(undefined);
     const store = {
       getters: {
         currentStore:               () => 'current_store',
@@ -202,6 +204,9 @@ describe('component: ResourceDetail/index', () => {
           $route:      { params: {}, query: {} },
           $router:     { applyQuery },
           $fetchState: { pending: false },
+          // this.$fetch() (see onTemplateSelected's "apply to form" path) is normally supplied by
+          // the global fetch mixin, which - like $fetchState above - isn't installed here.
+          $fetch:      fetch,
           t,
         },
         stubs: {
@@ -211,7 +216,7 @@ describe('component: ResourceDetail/index', () => {
     });
 
     return {
-      wrapper: w, dispatch, applyQuery
+      wrapper: w, dispatch, applyQuery, fetch
     };
   };
 
@@ -258,6 +263,27 @@ describe('component: ResourceDetail/index', () => {
         expect(wrapper.vm.yaml).toBe('kind: Deployment');
         expect(applyTemplateYaml).toHaveBeenCalledWith('kind: Deployment');
       });
+
+      it.each([
+        ['a successful apply', true],
+        ['Cancel', false],
+      ])('should reset the registered ResourceTemplateSelector after %s', (_, confirmedValue) => {
+        const mounted = mountComponent({
+          resourceType: 'apps.deployment', value: { type: 'apps.deployment' }, as: _YAML
+        });
+
+        wrapper = mounted.wrapper;
+        const reset = jest.fn();
+
+        wrapper.vm.registerTemplateSelector(reset);
+        wrapper.vm.onTemplateSelected(mockConfigMap);
+
+        const { confirm } = mounted.dispatch.mock.calls[0][1].componentProps;
+
+        confirm(confirmedValue);
+
+        expect(reset).toHaveBeenCalledWith();
+      });
     });
 
     describe('while viewing the custom form (this.isYaml false)', () => {
@@ -285,6 +311,9 @@ describe('component: ResourceDetail/index', () => {
       });
 
       describe('apply to form', () => {
+        // Regression guard: this path used to window.location.reload() (see git history) -
+        // replaced by $fetch() + a forced remount, since a plain page reload was visually
+        // jarring. Confirm the old mechanism is gone, not just that the new one is present.
         let originalLocation: PropertyDescriptor | undefined;
         let reload: jest.Mock;
 
@@ -302,10 +331,13 @@ describe('component: ResourceDetail/index', () => {
           }
         });
 
-        it('should stage the current value yaml + template, then reload the page', async() => {
+        it('should stage the current value yaml + template, clear stale errors, $fetch(), then bump formRemountKey', async() => {
           const mounted = mountFormView();
 
           wrapper = mounted.wrapper;
+          wrapper.vm.errors = ['some stale error'];
+          const initialRemountKey = wrapper.vm.formRemountKey;
+
           wrapper.vm.onTemplateSelected(mockConfigMap);
 
           const { applyAction } = mounted.dispatch.mock.calls[0][1].componentProps;
@@ -313,42 +345,175 @@ describe('component: ResourceDetail/index', () => {
           await applyAction();
 
           expect(ResourceTemplateUtils.stageFormApply).toHaveBeenCalledWith('mocked-current-yaml', mockConfigMap);
-          expect(reload).toHaveBeenCalledWith();
+          expect(wrapper.vm.errors).toStrictEqual([]);
+          expect(mounted.fetch).toHaveBeenCalledWith();
+          expect(wrapper.vm.formRemountKey).toBe(initialRemountKey + 1);
+          expect(reload).not.toHaveBeenCalled();
         });
       });
 
       describe('apply to yaml', () => {
-        let originalLocation: PropertyDescriptor | undefined;
-        let reload: jest.Mock;
-
-        beforeEach(() => {
-          originalLocation = Object.getOwnPropertyDescriptor(window, 'location');
-          reload = jest.fn();
-          Object.defineProperty(window, 'location', {
-            value: { reload }, writable: true, configurable: true
-          });
-        });
-
-        afterEach(() => {
-          if (originalLocation) {
-            Object.defineProperty(window, 'location', originalLocation);
-          }
-        });
-
-        it('should stage the current value yaml + template, switch the AS query param to yaml, then reload', async() => {
+        it('should delegate to the registered CruResource when one is present', async() => {
           const mounted = mountFormView();
 
           wrapper = mounted.wrapper;
+          const applyTemplate = jest.fn().mockResolvedValue(undefined);
+
+          wrapper.vm.cruResource = { applyTemplate };
           wrapper.vm.onTemplateSelected(mockConfigMap);
 
           const { secondaryApplyAction } = mounted.dispatch.mock.calls[0][1].componentProps;
 
           await secondaryApplyAction();
 
-          expect(ResourceTemplateUtils.stageFormApply).toHaveBeenCalledWith('mocked-current-yaml', mockConfigMap);
-          expect(mounted.applyQuery).toHaveBeenCalledWith({ [AS]: _YAML });
-          expect(reload).toHaveBeenCalledWith();
+          expect(applyTemplate).toHaveBeenCalledWith(mockConfigMap);
+          expect(ResourceTemplateUtils.mergeTemplateOntoYaml).not.toHaveBeenCalled();
+          expect(mounted.applyQuery).not.toHaveBeenCalled();
         });
+
+        it('should merge the template onto the current value yaml and switch to yaml view when no CruResource is registered', async() => {
+          const mounted = mountFormView();
+
+          wrapper = mounted.wrapper;
+          (ResourceTemplateUtils.mergeTemplateOntoYaml as jest.Mock).mockReturnValue('merged-yaml');
+
+          wrapper.vm.onTemplateSelected(mockConfigMap);
+
+          const { secondaryApplyAction } = mounted.dispatch.mock.calls[0][1].componentProps;
+
+          await secondaryApplyAction();
+
+          expect(ResourceTemplateUtils.mergeTemplateOntoYaml).toHaveBeenCalledWith('mocked-current-yaml', mockConfigMap);
+          expect(wrapper.vm.yaml).toBe('merged-yaml');
+          expect(wrapper.vm.as).toBe(_YAML);
+          expect(mounted.applyQuery).toHaveBeenCalledWith({ [AS]: _YAML });
+        });
+      });
+
+      describe('template selector reset (confirm callback)', () => {
+        it.each([
+          ['a successful apply', true],
+          ['Cancel', false],
+        ])('should reset the registered ResourceTemplateSelector after %s', (_, confirmedValue) => {
+          const mounted = mountFormView();
+
+          wrapper = mounted.wrapper;
+          const reset = jest.fn();
+
+          wrapper.vm.registerTemplateSelector(reset);
+          wrapper.vm.onTemplateSelected(mockConfigMap);
+
+          const { confirm } = mounted.dispatch.mock.calls[0][1].componentProps;
+
+          confirm(confirmedValue);
+
+          expect(reset).toHaveBeenCalledWith();
+        });
+      });
+    });
+  });
+
+  describe('method: registerCruResource', () => {
+    it('should store the registered CruResource instance', () => {
+      const mounted = mountComponent();
+
+      wrapper = mounted.wrapper;
+      const instance = { applyTemplate: jest.fn(), currentEditYaml: jest.fn() };
+
+      wrapper.vm.registerCruResource(instance);
+
+      // Vue wraps the assigned object in a reactive Proxy, so it's no longer reference-equal
+      // (toBe) to the original - compare structurally instead.
+      expect(wrapper.vm.cruResource).toStrictEqual(instance);
+    });
+
+    it('should clear the registered instance when unregistered', () => {
+      const mounted = mountComponent();
+
+      wrapper = mounted.wrapper;
+      wrapper.vm.registerCruResource({ applyTemplate: jest.fn() });
+
+      wrapper.vm.registerCruResource(null);
+
+      expect(wrapper.vm.cruResource).toBeNull();
+    });
+  });
+
+  describe('method: registerTemplateSelector', () => {
+    it('should store the registered reset function', () => {
+      const mounted = mountComponent();
+
+      wrapper = mounted.wrapper;
+      const reset = jest.fn();
+
+      wrapper.vm.registerTemplateSelector(reset);
+
+      expect(wrapper.vm.templateSelectorReset).toBe(reset);
+    });
+  });
+
+  describe('method: currentEditYaml', () => {
+    it('should read the live yaml off the top-level ResourceYaml ref when isYaml', async() => {
+      const mounted = mountComponent({
+        resourceType: 'apps.deployment', value: { type: 'apps.deployment' }, as: _YAML, yaml: 'stale-yaml'
+      });
+
+      wrapper = mounted.wrapper;
+      (wrapper.vm.$ as any).refs = { resourceyaml: { currentYaml: 'live-yaml' } };
+
+      await expect(wrapper.vm.currentEditYaml()).resolves.toBe('live-yaml');
+    });
+
+    it('should fall back to this.yaml when isYaml but the ResourceYaml ref is not available yet', async() => {
+      const mounted = mountComponent({
+        resourceType: 'apps.deployment', value: { type: 'apps.deployment' }, as: _YAML, yaml: 'stale-yaml'
+      });
+
+      wrapper = mounted.wrapper;
+
+      await expect(wrapper.vm.currentEditYaml()).resolves.toBe('stale-yaml');
+    });
+
+    it('should delegate to the registered CruResource when not showing yaml', async() => {
+      const mounted = mountComponent({
+        resourceType: 'apps.deployment', value: { type: 'apps.deployment' }, as: 'config'
+      });
+
+      wrapper = mounted.wrapper;
+      const currentEditYaml = jest.fn().mockResolvedValue('cru-yaml');
+
+      wrapper.vm.cruResource = { currentEditYaml };
+
+      await expect(wrapper.vm.currentEditYaml()).resolves.toBe('cru-yaml');
+      expect(currentEditYaml).toHaveBeenCalledWith();
+    });
+
+    it('should fall back to regenerating the yaml when not showing yaml and no CruResource is registered', async() => {
+      const mounted = mountComponent({
+        resourceType: 'apps.deployment', value: { type: 'apps.deployment' }, as: 'config'
+      });
+
+      wrapper = mounted.wrapper;
+
+      await expect(wrapper.vm.currentEditYaml()).resolves.toBe('mocked-current-yaml');
+    });
+  });
+
+  describe('method: onSaveTemplate', () => {
+    it('should dispatch promptModal with SaveAsTemplateDialog, the current resource, and the current edit yaml', async() => {
+      const mounted = mountComponent({
+        resourceType: 'apps.deployment', value: { type: 'apps.deployment' }, as: 'config'
+      });
+
+      wrapper = mounted.wrapper;
+
+      await wrapper.vm.onSaveTemplate();
+
+      expect(mounted.dispatch).toHaveBeenCalledWith('current_store/promptModal', {
+        component:      'SaveAsTemplateDialog',
+        resources:      [wrapper.vm.value],
+        modalWidth:     '750px',
+        componentProps: { initialYaml: 'mocked-current-yaml' },
       });
     });
   });

@@ -97,5 +97,15 @@ describe('component: Masthead/legacy', () => {
       expect(wrapper.emitted('apply-template')).toBeTruthy();
       expect(wrapper.emitted('apply-template')![0]).toStrictEqual([configMap]);
     });
+
+    it('should relay save as save-template', () => {
+      wrapper = mountComponent({
+        mode: _EDIT, canViewYaml: true, resource: 'apps.deployment'
+      });
+
+      wrapper.findComponent(ResourceTemplateSelector).vm.$emit('save');
+
+      expect(wrapper.emitted('save-template')).toBeTruthy();
+    });
   });
 });
