@@ -100,8 +100,9 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', positionDropdown);
 });
 
-const shortcutKeys = { windows: ['ctrl', 'p'], mac: ['meta', 'p'] };
-const shortcutLabel = isMac ? '⌘P' : 'Ctrl+P';
+// Ctrl/Cmd+K, inherited from the resource search dialog this replaces.
+const shortcutKeys = { windows: ['ctrl', 'k'], mac: ['meta', 'k'] };
+const shortcutLabel = isMac ? '⌘K' : 'Ctrl+K';
 
 /**
  * The route a node navigates to: its own, or (for a group) the first descendant

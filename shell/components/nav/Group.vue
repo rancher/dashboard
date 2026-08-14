@@ -40,16 +40,6 @@ export default {
       type:    Boolean,
       default: true,
     },
-
-    fixedOpen: {
-      type:    Boolean,
-      default: false,
-    },
-
-    highlightRoute: {
-      type:    Boolean,
-      default: true,
-    }
   },
 
   data() {
@@ -98,7 +88,7 @@ export default {
     // state of the whole tree, including groups that aren't currently rendered.
     isExpanded: {
       get() {
-        return this.fixedOpen || this.group.isRoot || !!this.group.expanded;
+        return this.group.isRoot || !!this.group.expanded;
       },
       set(v) {
         this.group.expanded = v;
@@ -252,7 +242,7 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': highlightRoute && isGroupActive }"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
   >
     <div
       v-if="showHeader || (!onlyHasOverview && canCollapse)"
@@ -261,9 +251,9 @@ export default {
       <div
         v-if="showHeader"
         class="header"
-        :class="{'active': highlightRoute && isOverview, 'noHover': !canCollapse || fixedOpen}"
+        :class="{'active': isOverview, 'noHover': !canCollapse}"
         :role="hasChildren && !hasOverview ? 'button' : undefined"
-        :tabindex="hasChildren && !hasOverview ? (fixedOpen ? -1 : 0) : undefined"
+        :tabindex="hasChildren && !hasOverview ? 0 : undefined"
         :aria-label="hasChildren && !hasOverview ? (group.labelDisplay || group.label || '') : undefined"
         :aria-expanded="hasChildren && !hasOverview ? (!canCollapse || isExpanded) : undefined"
         :aria-controls="hasChildren && !hasOverview ? (!canCollapse ? null : `group-${id}`) : undefined"
@@ -300,7 +290,6 @@ export default {
               :is-root="depth == 0 && !showHeader"
               :type="group"
               :depth="depth"
-              :highlight-route="highlightRoute"
               @selected="selectType($event)"
             />
           </ul>
@@ -351,8 +340,6 @@ export default {
             :children-key="childrenKey"
             :can-collapse="canCollapse"
             :group="child"
-            :fixed-open="fixedOpen"
-            :highlight-route="highlightRoute"
             @expand="expandGroup($event)"
             @close="close($event)"
           />
@@ -363,7 +350,6 @@ export default {
           :is-root="depth == 0 && !showHeader"
           :type="child"
           :depth="depth"
-          :highlight-route="highlightRoute"
           @selected="selectType($event)"
         />
       </template>

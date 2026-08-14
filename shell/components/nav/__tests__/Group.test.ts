@@ -292,12 +292,6 @@ describe('component: Group', () => {
         expect(wrapper.find('.header').attributes('tabindex')).toBe('0');
       });
 
-      it('renders header with tabindex="-1" when fixedOpen is true', () => {
-        const wrapper = mountGroupWithMocks(group, { fixedOpen: true });
-
-        expect(wrapper.find('.header').attributes('tabindex')).toBe('-1');
-      });
-
       it('renders header with aria-label from group label', () => {
         const wrapper = mountGroupWithMocks(group);
 
