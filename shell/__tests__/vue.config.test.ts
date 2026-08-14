@@ -1,6 +1,6 @@
 const { getWatcherIgnored } = require('../vue-config-utils.js');
 
-describe('shell vue.config', () => {
+describe('shell vue-config-utils', () => {
   describe('getWatcherIgnored', () => {
     it('includes the default ignored directories', () => {
       const ignored: RegExp = getWatcherIgnored();
