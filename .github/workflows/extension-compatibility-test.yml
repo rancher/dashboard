@@ -127,6 +127,19 @@ jobs:
             skip_cluster_create_rke2: "false"
             # Legacy RESOURCE_DETAIL tab is native to 2.14 - exercise it here
             skip_resource_detail_legacy: "false"
+          - rancher_version: "v2.15-head"
+            rancher_registry: ""
+            kube_version: "v1.36.2+k3s1"
+            helm_repo: "https://charts.optimus.rancher.io/server-charts/release-2.15"
+            version_label: "2.15"
+            # Same test config as the latest node: every extension point is present in 2.15, and the
+            # legacy RESOURCE_DETAIL tab ("up until v2.14") is skipped from 2.15 on.
+            skip_shell_api_tests: "false"
+            skip_tab_resource_detail_page: "false"
+            skip_table_hook: "false"
+            skip_about_top: "false"
+            skip_cluster_create_rke2: "false"
+            skip_resource_detail_legacy: "true"
           - rancher_version: "head"
             rancher_registry: ""
             kube_version: "v1.36.1+k3s1"
