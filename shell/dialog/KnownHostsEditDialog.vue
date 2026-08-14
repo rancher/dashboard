@@ -2,6 +2,7 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import CodeMirror from '@shell/components/CodeMirror';
 import FileSelector from '@shell/components/form/FileSelector.vue';
+import { useModalTitleId } from '@components/utils/modalTitle';
 
 export default {
   emits: ['close'],
@@ -9,6 +10,10 @@ export default {
   components: {
     FileSelector,
     CodeMirror,
+  },
+
+  setup() {
+    return { modalTitleId: useModalTitleId() };
   },
 
   props: {
@@ -82,7 +87,10 @@ export default {
     ref="sshKnownHostsDialog"
     class="ssh-known-hosts-dialog"
   >
-    <h4 class="mt-10">
+    <h4
+      :id="modalTitleId"
+      class="mt-10"
+    >
       {{ t('secret.ssh.editKnownHosts.title') }}
     </h4>
     <div class="custom mt-10">
