@@ -1,4 +1,4 @@
-const { getWatcherIgnored } = require('../vue-config-utils.js');
+const { getWatcherIgnored } = require('../vue.config.js');
 
 describe('shell vue-config-utils', () => {
   describe('getWatcherIgnored', () => {
