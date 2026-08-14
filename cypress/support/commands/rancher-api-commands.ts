@@ -89,6 +89,16 @@ Cypress.Commands.add('login', (
 });
 
 /**
+ * Refresh the cached CSRF token used by the api-request commands from the current CSRF cookie.
+ * Useful when authentication was established without the standard cy.login() flow.
+ */
+Cypress.Commands.add('refreshCsrfToken', () => {
+  return cy.getCookie('CSRF').then((c) => {
+    token = c;
+  });
+});
+
+/**
  * Create user via api request
  */
 Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => {

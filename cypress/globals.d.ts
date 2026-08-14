@@ -97,6 +97,7 @@ declare global {
       state(state: any): any;
 
       login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
+      refreshCsrfToken(): Chainable;
       logout(): Chainable;
       clearAllSessions(): Chainable;
       byLabel(label: string): Chainable<Element>;
