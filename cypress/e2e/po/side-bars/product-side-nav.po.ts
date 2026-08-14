@@ -15,9 +15,8 @@ export default class ProductNavPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   groups(): Cypress.Chainable {
-    // Scope to top-level (depth-0) groups only. The app implements the
-    // "one open group collapses its siblings" behaviour at the top level, so
-    // matching nested subgroups here breaks collapse-on-click assertions.
+    // Scope to top-level (depth-0) groups only, so a group's own subgroups aren't
+    // counted alongside it when asserting on the groups of the nav.
     return this.self().find('.accordion.depth-0.has-children');
   }
 
@@ -49,7 +48,13 @@ export default class ProductNavPo extends ComponentPo {
    * Navigate to a side menu group by label
    */
   navToSideMenuGroupByLabel(label: string): Cypress.Chainable {
-    return cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist').contains('.accordion.has-children', label, LONG_TIMEOUT_OPT).click();
+    // Click the group's header specifically. Clicking the accordion container
+    // would land on a child link when the group is already expanded (groups now
+    // stay expanded across navigation), so target the header to always navigate
+    // into the group's overview.
+    return cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist').contains('.accordion.has-children', label, LONG_TIMEOUT_OPT).find('.header')
+      .first()
+      .click();
   }
 
   sideMenuEntryByLabelCount(label: string): Cypress.Chainable {

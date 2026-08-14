@@ -208,6 +208,7 @@ nav:
     collapseExpand: Collapse/Expand menu group
     expand: "Expand {group} menu group"
     collapse: "Collapse {group} menu group"
+    collapseAllSections: Collapse all sections
     productAboutPage: Product about page link
   alt:
     mainMenuIcon: Main menu icon
