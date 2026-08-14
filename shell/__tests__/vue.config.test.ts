@@ -8,6 +8,7 @@ describe('shell vue.config', () => {
       expect(ignored.test('/tmp/node_modules/some-package/index.js')).toBe(true);
       expect(ignored.test('/tmp/dist-pkg/index.js')).toBe(true);
       expect(ignored.test('/tmp/scripts/standalone/dev.js')).toBe(true);
+      expect(ignored.test('/tmp/src/index.js')).toBe(false);
     });
 
     it('includes excluded package paths and escapes regex characters', () => {
