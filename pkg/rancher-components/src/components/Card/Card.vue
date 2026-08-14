@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import RcSeparator from '@components/RcSeparator/RcSeparator.vue';
+import { useModalTitleId } from '@components/utils/modalTitle';
 
 export default defineComponent({
 
@@ -53,6 +54,12 @@ export default defineComponent({
       type:    Boolean,
       default: false,
     }
+  },
+  setup() {
+    // A modal can't label itself from a title that lives in its slot content,
+    // so when this card is the content of one, the card title takes on the id
+    // the modal points its `aria-labelledby` at. No-op outside of a modal.
+    return { modalTitleId: useModalTitleId() };
   }
 });
 </script>
@@ -66,6 +73,7 @@ export default defineComponent({
   >
     <div class="card-wrap">
       <div
+        :id="modalTitleId"
         class="card-title"
         data-testid="card-title-slot"
       >

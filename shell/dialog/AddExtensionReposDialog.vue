@@ -4,11 +4,16 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import { isRancherPrime } from '@shell/config/version';
+import { useModalTitleId } from '@components/utils/modalTitle';
 
 export default {
   emits: ['close'],
 
   components: { AsyncButton, Checkbox },
+
+  setup() {
+    return { modalTitleId: useModalTitleId() };
+  },
 
   props: {
     /**
@@ -109,7 +114,7 @@ export default {
 
 <template>
   <div class="modal-dialog">
-    <h4>
+    <h4 :id="modalTitleId">
       {{ t('plugins.addRepos.title') }}
     </h4>
     <p class="mb-20">

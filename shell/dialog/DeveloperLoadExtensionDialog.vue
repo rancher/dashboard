@@ -5,6 +5,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { UI_PLUGIN } from '@shell/config/types';
 import { UI_PLUGIN_CHART_ANNOTATIONS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { DEVELOPER_LOAD_NAME_SUFFIX } from '@shell/core/extension-manager-impl';
+import { useModalTitleId } from '@components/utils/modalTitle';
 
 export default {
   emits: ['close'],
@@ -14,6 +15,11 @@ export default {
     Checkbox,
     LabeledInput
   },
+
+  setup() {
+    return { modalTitleId: useModalTitleId() };
+  },
+
   props: {
     /**
      * Callback when modal is closed
@@ -173,7 +179,7 @@ export default {
 
 <template>
   <div class="plugin-install-dialog">
-    <h4>
+    <h4 :id="modalTitleId">
       {{ t('plugins.developer.title') }}
     </h4>
     <p>

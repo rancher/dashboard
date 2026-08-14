@@ -14,6 +14,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading.vue';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { useModalTitleId } from '@components/utils/modalTitle';
 
 const DEFAULT_DEPLOYMENT = {
   type:     WORKLOAD_TYPES.DEPLOYMENT,
@@ -104,6 +105,10 @@ export default {
   },
 
   mixins: [ResourceManager],
+
+  setup() {
+    return { modalTitleId: useModalTitleId() };
+  },
 
   props: {
     /**
@@ -461,7 +466,7 @@ export default {
     class="plugin-install-dialog"
   >
     <div>
-      <h4>
+      <h4 :id="modalTitleId">
         {{ t('plugins.manageCatalog.imageLoad.load') }}
       </h4>
       <p>
