@@ -224,4 +224,40 @@ describe('component: SideNav', () => {
       expect((wrapper.vm as any).hasExpandedGroup).toBe(true);
     });
   });
+
+  describe('scrolling a jumped-to section into view', () => {
+    it('scrolls the active item into view when a jump has settled', () => {
+      const wrapper = mountNav();
+      const scroll = jest.spyOn(wrapper.vm as any, 'scrollActiveIntoView').mockImplementation(() => undefined);
+
+      (wrapper.vm as any).onJumped();
+
+      expect(scroll).toHaveBeenCalledWith();
+    });
+
+    it('expands the target group when the jump did not change the route', () => {
+      const wrapper = mountNav();
+      const sync = jest.spyOn(wrapper.vm as any, 'syncNav').mockImplementation(() => undefined);
+
+      jest.spyOn(wrapper.vm as any, 'scrollActiveIntoView').mockImplementation(() => undefined);
+
+      // Jumping to the section already being shown resolves without a route
+      // change, so the $route watcher never runs and only this can expand it.
+      (wrapper.vm as any).onJumped();
+
+      expect(sync).toHaveBeenCalledWith();
+    });
+
+    it('does not scroll on a navigation that was not a jump', async() => {
+      const wrapper = mountNav();
+      const scroll = jest.spyOn(wrapper.vm as any, 'scrollActiveIntoView').mockImplementation(() => undefined);
+
+      // A tab or hash change on the page the user is already on must not yank a
+      // nav they have scrolled back to the active item.
+      (wrapper.vm as any).$options.watch.$route.call(wrapper.vm, {}, {});
+      await nextTick();
+
+      expect(scroll).not.toHaveBeenCalledWith();
+    });
+  });
 });

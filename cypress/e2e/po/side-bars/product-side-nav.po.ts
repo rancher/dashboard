@@ -1,5 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import VersionNumberPo from '~/cypress/e2e/po/components/version-number.po';
+import NavActionBarPo from '@/cypress/e2e/po/side-bars/nav-action-bar.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 /**
@@ -18,6 +19,14 @@ export default class ProductNavPo extends ComponentPo {
     // Scope to top-level (depth-0) groups only, so a group's own subgroups aren't
     // counted alongside it when asserting on the groups of the nav.
     return this.self().find('.accordion.depth-0.has-children');
+  }
+
+  /**
+   * Get a top-level navigation accordion group by its label
+   * @returns {Cypress.Chainable}
+   */
+  groupByLabel(label: string): Cypress.Chainable {
+    return this.self().contains('.accordion.depth-0.has-children', label);
   }
 
   /**
@@ -109,6 +118,13 @@ export default class ProductNavPo extends ComponentPo {
    */
   version() {
     return new VersionNumberPo('.side-menu .version');
+  }
+
+  /**
+   * Get the jump-to / collapse-all toolbar above the nav
+   */
+  actionBar() {
+    return new NavActionBarPo();
   }
 
   /**
