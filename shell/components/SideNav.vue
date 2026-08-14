@@ -388,7 +388,10 @@ export default {
         }
         refs.forEach((grp) => {
           if (!grp.group.isRoot) {
-            grp.isExpanded = false;
+            // Keep starred section open by default
+            if (grp.group.name !== 'starred') {
+              grp.isExpanded = false;
+            }
             if (canExpand) {
               const isActive = grp.hasActiveRoute();
 
