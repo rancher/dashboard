@@ -39,6 +39,12 @@ export default class PaginationPo extends ComponentPo {
   }
 
   /**
+   * [CREATE ISSUE TO INVESTIGATE] The server-side (VAI/steve) list count backing the pager can report
+   * one more than the resources that actually exist for a filtered namespace view (the "24 vs 23"
+   * flake), and holds that wrong total for the full retry window rather than briefly. The count the
+   * pager renders should match the real number of matching resources; investigate whether VAI's
+   * collection count is over-counting or lagging deletes/creates.
+   *
    * Extract the total `z` from the "x - y of z Label" pagination text as a number.
    *
    * Reading the total from the pager itself couples the pagination-navigation assertions to the exact

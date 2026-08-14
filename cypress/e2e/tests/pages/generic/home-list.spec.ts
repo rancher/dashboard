@@ -28,7 +28,7 @@ describe('Home Page List', { testIsolation: false }, () => {
        */
     const clusterName = 'local';
 
-    // [CREATE ISSUE FOR CODE FIX] The home cluster list rows are provisioning clusters whose version
+    // [CREATE ISSUE TO INVESTIGATE] The home cluster list rows are provisioning clusters whose version
     // is derived from the linked management cluster (provisioning.cattle.io.cluster.kubernetesVersion
     // -> this.mgmt?.kubernetesVersion). The home page never fetches management clusters itself - its
     // secondary fetch (management.cattle.io.cluster.utils.ts fetchSecondaryResources) only loads

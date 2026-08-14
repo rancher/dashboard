@@ -1,6 +1,14 @@
 /**
  * Recover from the fail-whale error page.
  *
+ * [CREATE ISSUE TO INVESTIGATE] The root cause of this whole helper: cold-load GETs (schemas/counts/
+ * namespaces during loadCluster, and the management bootstrap) are issued with axios-retry disabled
+ * (shell/utils/axios.js configures `axiosRetry(axios, { retries: 0 })`), so a single transient
+ * "Network Error" against a momentarily-reconnecting Steve proxy dead-ends at /fail-whale with no
+ * retry. Enabling a small retry budget (e.g. `retries: 3` with the default network/idempotent
+ * predicate) would let these transient blips recover in-app and remove the need for this test-side
+ * recovery entirely - but it is an app behaviour change and needs its own reviewed PR.
+ *
  * On a cold cluster/home load a transient backend "Network Error" (a raw connection failure with no
  * HTTP status) trips the navigation guard (shell/config/router/navigation-guards/clusters.js) or the
  * management bootstrap straight to /fail-whale, with no retry. With testIsolation off that state then

@@ -93,6 +93,12 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
 
       waitForClusterOutputType();
 
+      // [CREATE ISSUE TO INVESTIGATE] The product side-nav is built from the schema list cached when the
+      // cluster first loaded; after a chart installs new CRDs (e.g. logging ClusterOutput/ClusterFlow)
+      // the nav does not reliably refresh to include the new resource types, so their entries are
+      // intermittently missing. The nav should pick up newly-registered schemas (or offer a refresh)
+      // rather than requiring a full route reload.
+      //
       // Navigate directly to the ClusterOutput list by URL rather than clicking through the product
       // side-nav. That nav entry is derived from the schema list cached when the cluster first loaded
       // (before this CRD existed), so it is intermittently absent - and expanding the Logging group to
@@ -175,7 +181,7 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
 
-      // [CREATE ISSUE FOR CODE FIX] The installed-apps list intermittently finishes loading empty
+      // [CREATE ISSUE TO INVESTIGATE] The installed-apps list intermittently finishes loading empty
       // (renders tr.no-rows) even though the app is installed and returned by the getCharts fetch;
       // the app should render the installed apps without needing a fresh navigation.
       //
@@ -201,7 +207,7 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
 
       // Loading has finished and the list rendered rows.
       installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
-      // [CREATE ISSUE FOR CODE FIX] Uninstalling an app together with its CRD errors the prompt with
+      // [CREATE ISSUE TO INVESTIGATE] Uninstalling an app together with its CRD errors the prompt with
       // "apps.catalog.cattle.io '<crd>' not found" when the CRD app is already gone. Deleting a
       // missing CRD should be treated as already-deleted (idempotent) and succeed, not error.
       //
@@ -264,7 +270,7 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
         });
       });
 
-      // [CREATE ISSUE FOR CODE FIX] The logging uninstall (Helm uninstall + CRD/finalizer cleanup)
+      // [CREATE ISSUE TO INVESTIGATE] The logging uninstall (Helm uninstall + CRD/finalizer cleanup)
       // takes minutes - the app row stays in an "Uninstalling ..." state that whole time - so the list
       // still shows the app well after the uninstall action returned. Uninstalling should complete in a
       // reasonable time (or the UI should not block a fresh render on it).

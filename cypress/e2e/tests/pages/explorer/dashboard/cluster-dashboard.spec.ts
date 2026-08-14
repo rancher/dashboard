@@ -32,7 +32,7 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
-// [CREATE ISSUE FOR CODE FIX] Entering a cluster runs the nav guard's loadCluster
+// [CREATE ISSUE TO INVESTIGATE] Entering a cluster runs the nav guard's loadCluster
 // (shell/config/router/navigation-guards/clusters.js), which awaits two *unprotected* requests
 // against the downstream Steve proxy - GET /k8s/clusters/<id>/v1/schemas
 // (shell/store/index.js:1079) and then /counts + /namespaces (shell/store/index.js:1107). If the
