@@ -172,6 +172,13 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       appRepoList.sortableTable().rowElementWithName(chartRepo).should('be.visible');
       appRepoList.list().state(chartRepo).contains('Active', LONG_TIMEOUT_OPT);
 
+      // Retry-safe (testIsolation is off and the before-hook cleanup runs only once): a prior attempt
+      // may have left the Harvester extension installed - the inline uninstall only runs on success -
+      // so it would be absent from the Available tab below and the install click times out on a missing
+      // card. Ensure it is uninstalled first so this attempt (and any retry) starts installable.
+      cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
+
       extensionsPo.goTo();
       extensionsPo.waitForTabs();
       // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
@@ -255,6 +262,13 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       appRepoList.waitForPage();
       appRepoList.sortableTable().rowElementWithName(chartRepo).should('be.visible');
       appRepoList.list().state(chartRepo).contains('Active', LONG_TIMEOUT_OPT);
+
+      // Retry-safe (testIsolation is off and the before-hook cleanup runs only once): a prior attempt
+      // may have left the Harvester extension installed - the inline uninstall only runs on success -
+      // so it would be absent from the Available tab below and the install click times out on a missing
+      // card. Ensure it is uninstalled first so this attempt (and any retry) starts installable.
+      cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
 
       extensionsPo.goTo();
       extensionsPo.waitForTabs();
