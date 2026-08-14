@@ -125,3 +125,6 @@ codecov
 shell/eslint-legacy/node_modules/
 
 .claude
+
+# Scratch working files (e.g. Playwright visual-review screenshots/reports)
+/scratchpad/

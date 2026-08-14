@@ -131,6 +131,44 @@ class ResourceTemplateUtils {
       }
     } catch (e) {}
   }
+
+  /**
+   * Merge a template ConfigMap's YAML onto an existing yaml string (template wins any field
+   * conflicts), returning the merged yaml text labeled with the ConfigMap it came from. Unlike
+   * stageFormApply/applyStagedFormApply, this is synchronous and needs no page reload - used to
+   * switch a form straight into yaml view with the template applied, in place.
+   */
+  mergeTemplateOntoYaml(currentYaml: string, configMap: any): string {
+    let merged: any = {};
+
+    try {
+      merged = jsyaml.load(currentYaml) || {};
+    } catch (e) {}
+
+    const templateYaml = configMap.data?.[this.dataKey] || '';
+
+    if (templateYaml) {
+      try {
+        const parsedTemplate = jsyaml.load(templateYaml);
+
+        if (parsedTemplate && typeof parsedTemplate === 'object') {
+          merge(merged, parsedTemplate);
+        }
+      } catch (e) {}
+    }
+
+    if (!merged.metadata) {
+      merged.metadata = {};
+    }
+
+    if (!merged.metadata.labels) {
+      merged.metadata.labels = {};
+    }
+
+    merged.metadata.labels[CATTLE_UI_RESOURCE_TEMPLATE_APPLIED] = `${ configMap.metadata.namespace }/${ configMap.metadata.name }`;
+
+    return jsyaml.dump(merged);
+  }
 }
 
 export default new ResourceTemplateUtils();

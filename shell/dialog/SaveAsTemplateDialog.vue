@@ -18,9 +18,16 @@ import ResourceTemplateUtils from '@shell/utils/resource-template';
 
 interface Props {
   resources: any[];
+  /**
+   * Pre-generated yaml for a resource that doesn't exist on the server yet (e.g. mid-creation,
+   * from ResourceTemplateSelector's Save button) - when provided, this is used as the raw yaml
+   * instead of fetching resources[0]'s current state via followLink('view'), which only works
+   * for a resource that's already been saved.
+   */
+  initialYaml?: string | null;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { initialYaml: null });
 const emit = defineEmits<{(e: 'close'): void }>();
 
 const store = useStore();
@@ -49,9 +56,13 @@ onMounted(async() => {
     selectedNamespace.value = hasAccessToDefault ? 'default' : allNamespaces.value[0]?.name;
   }
 
-  const rawYaml = await resource.value.cleanForDownload(
-    (await resource.value.followLink('view', { headers: { accept: 'application/yaml' } })).data
-  );
+  let rawYaml = props.initialYaml;
+
+  if (rawYaml === null) {
+    rawYaml = await resource.value.cleanForDownload(
+      (await resource.value.followLink('view', { headers: { accept: 'application/yaml' } })).data
+    );
+  }
 
   // Clone before cleaning - cleanForNew() mutates the instance it's called on, and we must
   // not mutate the live resource the user is currently viewing/editing. Mirrors the

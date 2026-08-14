@@ -29,7 +29,7 @@ export default {
 
   name: 'MastheadResourceDetail',
 
-  emits: ['apply-template'],
+  emits: ['apply-template', 'save-template'],
 
   components: {
     BadgeState,
@@ -538,8 +538,8 @@ export default {
             <ResourceTemplateSelector
               v-if="!isView && canViewYaml"
               :resource-type="resource"
-              class="mr-10"
               @apply="$emit('apply-template', $event)"
+              @save="$emit('save-template')"
             />
             <button
               v-if="detailsAction && currentView === DETAIL_VIEW && isView"

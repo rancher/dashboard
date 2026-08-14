@@ -23,6 +23,7 @@ import {
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
 import { RcSeparator } from '@components/RcSeparator';
+import ResourceTemplateUtils from '@shell/utils/resource-template';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
@@ -31,6 +32,13 @@ export default {
   name: 'CruResource',
 
   emits: ['select-type', 'error', 'cancel', 'finish'],
+
+  // Optionally provided by ResourceDetail/index.vue, which owns the "Load from Resource
+  // Template" control in the page Masthead - a sibling of whatever custom edit component (and
+  // therefore this CruResource) is currently showing, not a parent, so it has no direct $refs
+  // path down to this instance. Registering here lets it reach applyTemplate() below regardless
+  // of how deeply this component is nested inside the per-type edit component.
+  inject: { registerCruResource: { default: null } },
 
   components: {
     AsyncButton,
@@ -319,6 +327,7 @@ export default {
 
   mounted() {
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
+    this.registerCruResource?.(this);
   },
 
   beforeUnmount() {
@@ -326,6 +335,7 @@ export default {
     window.removeEventListener('resize', this.throttledComputeTocContainerHeight);
     this.throttledComputeTocContainerHeight?.cancel?.();
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
+    this.registerCruResource?.(null);
   },
 
   methods: {
@@ -428,6 +438,45 @@ export default {
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
       this.$router.applyQuery({ [AS]: _YAML });
+    },
+
+    /**
+     * Triggered via the injected registerCruResource() by ResourceDetail/index.vue's
+     * onTemplateSelected(), when the user picks a resource template while this CruResource is
+     * the currently-showing custom edit form. Merges the template onto this form's current yaml
+     * (the same generation this.createResourceYaml() already uses for the plain "Edit as YAML"
+     * button, so any per-type generateYaml override is respected) and switches into this
+     * component's own yaml view with the merge result - exactly what clicking "Edit as YAML"
+     * does, just pre-populated - rather than any separate yaml view owned by ResourceDetail.
+     */
+    async applyTemplate(configMap) {
+      const currentYaml = await this.createResourceYaml(this.yamlModifiers);
+      const mergedYaml = ResourceTemplateUtils.mergeTemplateOntoYaml(currentYaml, configMap);
+
+      this.resourceYaml = mergedYaml;
+
+      if (this.showAsForm) {
+        this.showAsForm = false;
+        this.$router.applyQuery({ [AS]: _YAML });
+      } else {
+        this.$refs.resourceyaml?.applyTemplateYaml(mergedYaml);
+      }
+    },
+
+    /**
+     * Triggered via the injected registerCruResource() by ResourceDetail/index.vue's
+     * onSaveTemplate(), to get whatever yaml the user is currently looking at, for the "Save"
+     * button in ResourceTemplateSelector. When this CruResource is already showing its own yaml
+     * view, the user may have hand-edited it there since it was generated, so read that live text
+     * back out rather than regenerating from the (now possibly stale) resource; otherwise
+     * generate fresh from the form, same as the plain "Edit as YAML" button does.
+     */
+    async currentEditYaml() {
+      if (!this.showAsForm && this.$refs.resourceyaml) {
+        return this.$refs.resourceyaml.currentYaml;
+      }
+
+      return this.createResourceYaml(this.yamlModifiers);
     },
 
     selectType(id, event) {

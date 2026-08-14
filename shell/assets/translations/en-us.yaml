@@ -8954,10 +8954,9 @@ saveAsTemplateModal:
     label: Namespace
 
 resourceTemplateSelector:
-  label: Load from Resource Template
-  placeholder: Select a saved template
-  apply: Apply
-  confirmTitle: Apply Resource Template
+  label: Load from Template
+  save: Save as Template
+  confirmTitle: Apply Template
   confirmBodyYaml: Applying this template will overwrite the current YAML content. Existing values may be lost.
   confirmBodyForm: 'Applying this template to the form will reload the page. Applying it to YAML will discard your current form changes and switch to YAML editing.'
 

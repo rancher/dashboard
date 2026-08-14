@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
   value: () => ({}), resourceSubtype: undefined, isCustomDetailOrEdit: false, mode: _VIEW, resource: undefined, canViewYaml: false
 });
 
-const emit = defineEmits(['apply-template']);
+const emit = defineEmits(['apply-template', 'save-template']);
 
 const uiCtxResource = computed(() => {
   const {
@@ -60,6 +60,7 @@ const store = useStore();
           v-if="props.mode !== _VIEW && props.canViewYaml"
           :resource-type="props.resource"
           @apply="emit('apply-template', $event)"
+          @save="emit('save-template')"
         />
       </template>
     </TitleBar>
