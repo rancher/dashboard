@@ -645,6 +645,8 @@ module.exports = function(dir, appConfig = {}) {
   return config;
 };
 
-module.exports._testing = {
-  getWatcherIgnored
-};
+if (process.env.NODE_ENV === 'test') {
+  module.exports._testing = {
+    getWatcherIgnored
+  };
+}
