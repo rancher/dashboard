@@ -506,7 +506,7 @@ jobs:
         with:
           script: |
             // Columns match the test-matrix version_labels, in display order.
-            const versions = ['2.10', '2.11', '2.12', '2.13', '2.14', 'latest'];
+            const versions = ['2.10', '2.11', '2.12', '2.13', '2.14', '2.15', 'latest'];
 
             // Each matrix row is a job named "Rancher <version_label>"; read its conclusion.
             const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
