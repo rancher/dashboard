@@ -420,6 +420,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
       extensionsPo.extensionReloadBanner().should('be.visible');
       extensionsPo.extensionReloadClick();
 
+      // [CREATE ISSUE TO INVESTIGATE] Clicking the extension reload banner re-initialises the whole app
+      // and intermittently lands on the extensions page with the tabs container never mounting
+      // ("extension-tabs not found"). The reload should reliably re-render the extensions page (or
+      // recover) rather than occasionally leaving it half-mounted.
+      //
       // The extension reload re-initialises the whole app and occasionally lands on a page where the
       // tabs container never mounts (seen as "extension-tabs not found"). A fresh navigation to the
       // extensions page recovers deterministically off a clean load before we wait for the tabs.

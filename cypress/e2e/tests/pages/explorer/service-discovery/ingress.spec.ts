@@ -261,6 +261,12 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       const ingressCreatePagePo = new IngressCreateEditPo();
 
       ingressCreatePagePo.waitForPage(null, 'rules');
+      // [CREATE ISSUE TO INVESTIGATE] The ingress create form's target-service dropdown is populated
+      // from the persisted services store rather than a fresh fetch on open, so a service created after
+      // the store was last populated is missing from the options - and selecting a missing option
+      // silently no-ops, producing a saved rule with no http backend. The form should fetch (or
+      // refresh) the services list when it opens instead of trusting a possibly-stale store.
+      //
       // With testIsolation off, the target-service dropdown is populated from the persisted services
       // store, which earlier Create/Edit tests filled before this test created its headless service.
       // The list-page full visit + waitForRancherResource guard are NOT sufficient: the create form is

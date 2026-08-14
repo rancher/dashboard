@@ -90,7 +90,7 @@ describe('Rancher as an OIDC Provider', { tags: ['@globalSettings', '@adminUser'
 
     oidcClientDetailPage.waitForUrlPathWithoutContext();
 
-    // [CREATE ISSUE FOR CODE FIX] While the client ID is still being generated (async, pushed over a
+    // [CREATE ISSUE TO INVESTIGATE] While the client ID is still being generated (async, pushed over a
     // websocket after create), the OIDC app detail page shows the definitive "No Client Id found ...
     // please recreate the application" message instead of a pending/generating state, and can appear
     // stuck. It should show a pending state and update in place when the client ID arrives.

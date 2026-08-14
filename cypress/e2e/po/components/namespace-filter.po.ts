@@ -35,7 +35,7 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   /**
-   * [CREATE ISSUE FOR CODE FIX] The option's checkmark does not update reactively when the selection
+   * [CREATE ISSUE TO INVESTIGATE] The option's checkmark does not update reactively when the selection
    * changes - it only renders correctly on a fresh dropdown open, and the selection itself settles
    * asynchronously (a userpreferences round-trip, plus a page's re-applied forced default after a
    * clear). A single reopen can race that settle and still show no checkmark. Reopen the dropdown and
@@ -108,7 +108,7 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   /**
-   * [CREATE ISSUE FOR CODE FIX] After clearing the selection the app asynchronously re-applies the
+   * [CREATE ISSUE TO INVESTIGATE] After clearing the selection the app asynchronously re-applies the
    * page's forced-default namespace, but the already-open dropdown does not reactively re-render the
    * newly-selected option's checkmark - it should update in place without needing a reopen.
    *
