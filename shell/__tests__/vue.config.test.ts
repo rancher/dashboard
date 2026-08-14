@@ -15,6 +15,7 @@ describe('shell vue.config', () => {
 
       expect(ignored.test('/workspace/node_modules/some-package/index.ts')).toBe(true);
       expect(ignored.test('/workspace/pkg.harvester/index.ts')).toBe(true);
+      expect(ignored.test('/workspace/pkg.harvester/')).toBe(true);
       expect(ignored.test('/workspace/pkg.foo.bar/index.ts')).toBe(true);
       expect(ignored.test('/workspace/pkg.harvester')).toBe(false);
       expect(ignored.test('/workspace/pkg-harvester/index.ts')).toBe(false);
