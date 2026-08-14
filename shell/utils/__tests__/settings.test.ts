@@ -1,4 +1,11 @@
-import { getPerformanceSetting, isProviderEnabled } from '../settings';
+import {
+  fetchOrCreateSetting,
+  fetchSetting,
+  fetchInitialSettings,
+  setSetting,
+  getPerformanceSetting,
+  isProviderEnabled,
+} from '../settings';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { MANAGEMENT } from '@shell/config/types';
 import { ClusterProvisionerContext } from '@shell/core/types';
@@ -136,5 +143,240 @@ describe('isProviderEnabled', () => {
     const context = makeMockContext('not-valid-json{{{');
 
     expect(() => isProviderEnabled(context, 'eks')).toThrow('Unexpected token');
+  });
+});
+
+describe('fetchOrCreateSetting', () => {
+  it('returns existing setting when management/find succeeds', async() => {
+    const existingSetting = { id: 'my-setting', value: 'existing-value' };
+    const store = {
+      dispatch: jest.fn().mockResolvedValue(existingSetting),
+      getters:  {},
+    };
+
+    const result = await fetchOrCreateSetting(store as any, 'my-setting', 'default-value');
+
+    expect(store.dispatch).toHaveBeenCalledWith('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'my-setting',
+    });
+    expect(result).toStrictEqual(existingSetting);
+  });
+
+  it('creates and saves setting when management/find throws and save is true', async() => {
+    const createdSetting = {
+      id: 'new-setting', value: 'new-value', save: jest.fn().mockResolvedValue(undefined)
+    };
+    const schemaUrl = '/v1/management.cattle.io.settings';
+    const mockSchema = { linkFor: jest.fn().mockReturnValue(schemaUrl) };
+    const store = {
+      dispatch: jest.fn()
+        .mockRejectedValueOnce(new Error('not found'))
+        .mockResolvedValueOnce(createdSetting),
+      getters: { 'management/schemaFor': jest.fn().mockReturnValue(mockSchema) },
+    };
+
+    const result = await fetchOrCreateSetting(store as any, 'new-setting', 'new-value', true);
+
+    expect(store.dispatch).toHaveBeenNthCalledWith(2, 'management/create', {
+      type:     MANAGEMENT.SETTING,
+      metadata: { name: 'new-setting' },
+      value:    'new-value',
+      default:  'new-value',
+    });
+    expect(createdSetting.save).toHaveBeenCalledWith({ url: schemaUrl });
+    expect(result).toStrictEqual(createdSetting);
+  });
+
+  it('creates setting but does not save when save is false', async() => {
+    const createdSetting = {
+      id: 'new-setting', value: 'new-value', save: jest.fn()
+    };
+    const mockSchema = { linkFor: jest.fn().mockReturnValue('/some/url') };
+    const store = {
+      dispatch: jest.fn()
+        .mockRejectedValueOnce(new Error('not found'))
+        .mockResolvedValueOnce(createdSetting),
+      getters: { 'management/schemaFor': jest.fn().mockReturnValue(mockSchema) },
+    };
+
+    await fetchOrCreateSetting(store as any, 'new-setting', 'default-val', false);
+
+    expect(createdSetting.save).not.toHaveBeenCalled();
+  });
+
+  it('uses empty string as default when val is empty', async() => {
+    const createdSetting = {
+      id: 'new-setting', value: '', save: jest.fn()
+    };
+    const mockSchema = { linkFor: jest.fn().mockReturnValue('/url') };
+    const store = {
+      dispatch: jest.fn()
+        .mockRejectedValueOnce(new Error('not found'))
+        .mockResolvedValueOnce(createdSetting),
+      getters: { 'management/schemaFor': jest.fn().mockReturnValue(mockSchema) },
+    };
+
+    await fetchOrCreateSetting(store as any, 'new-setting', '', false);
+
+    expect(store.dispatch).toHaveBeenNthCalledWith(2, 'management/create', {
+      type:     MANAGEMENT.SETTING,
+      metadata: { name: 'new-setting' },
+      value:    '',
+      default:  '',
+    });
+  });
+});
+
+describe('fetchSetting', () => {
+  it('returns the matching setting by id', async() => {
+    const settings = [
+      { id: 'setting-a', value: 'a' },
+      { id: 'setting-b', value: 'b' },
+    ];
+    const store = { dispatch: jest.fn().mockResolvedValue(settings) };
+
+    const result = await fetchSetting(store as any, 'setting-b');
+
+    expect(store.dispatch).toHaveBeenCalledWith('management/findAll', { type: MANAGEMENT.SETTING });
+    expect(result).toStrictEqual({ id: 'setting-b', value: 'b' });
+  });
+
+  it('returns undefined when setting id is not found', async() => {
+    const settings = [{ id: 'setting-a', value: 'a' }];
+    const store = { dispatch: jest.fn().mockResolvedValue(settings) };
+
+    const result = await fetchSetting(store as any, 'nonexistent');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when findAll returns null', async() => {
+    const store = { dispatch: jest.fn().mockResolvedValue(null) };
+
+    const result = await fetchSetting(store as any, 'setting-a');
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('fetchInitialSettings', () => {
+  it('dispatches findAll with full url and watch:false when authed (header=true)', async() => {
+    const store = {
+      dispatch: jest.fn().mockResolvedValue([]),
+      getters:  {
+        'management/generation': jest.fn().mockReturnValue(null),
+        'auth/fromHeader':       'true',
+      },
+    };
+
+    await fetchInitialSettings(store as any);
+
+    expect(store.dispatch).toHaveBeenCalledWith('management/findAll', {
+      type: MANAGEMENT.SETTING,
+      opt:  {
+        url:   expect.stringContaining(MANAGEMENT.SETTING),
+        watch: false,
+      },
+    });
+  });
+
+  it('dispatches findAll with full url and watch:false when authed (header=none)', async() => {
+    const store = {
+      dispatch: jest.fn().mockResolvedValue([]),
+      getters:  {
+        'management/generation': jest.fn().mockReturnValue(null),
+        'auth/fromHeader':       'none',
+      },
+    };
+
+    await fetchInitialSettings(store as any);
+
+    expect(store.dispatch).toHaveBeenCalledWith('management/findAll', {
+      type: MANAGEMENT.SETTING,
+      opt:  {
+        url:   expect.stringContaining(MANAGEMENT.SETTING),
+        watch: false,
+      },
+    });
+  });
+
+  it('dispatches findAll with redirectUnauthorized:false when not authed and no generation', async() => {
+    const store = {
+      dispatch: jest.fn().mockResolvedValue([]),
+      getters:  {
+        'management/generation': jest.fn().mockReturnValue(null),
+        'auth/fromHeader':       'false',
+      },
+    };
+
+    await fetchInitialSettings(store as any);
+
+    expect(store.dispatch).toHaveBeenCalledWith('management/findAll', {
+      type: MANAGEMENT.SETTING,
+      opt:  {
+        url:                  expect.stringContaining(MANAGEMENT.SETTING),
+        load:                 'multi',
+        redirectUnauthorized: false,
+      },
+    });
+  });
+
+  it('returns cached settings from store.getters when not authed but generation exists', async() => {
+    const cachedSettings = [{ id: 'setting-a', value: 'a' }];
+    const store = {
+      dispatch: jest.fn(),
+      getters:  {
+        'management/generation': jest.fn().mockReturnValue(5),
+        'auth/fromHeader':       'false',
+        'management/all':        jest.fn().mockReturnValue(cachedSettings),
+      },
+    };
+
+    const result = await fetchInitialSettings(store as any);
+
+    expect(store.dispatch).not.toHaveBeenCalled();
+    expect(store.getters['management/all']).toHaveBeenCalledWith(MANAGEMENT.SETTING);
+    expect(result).toStrictEqual(cachedSettings);
+  });
+});
+
+describe('setSetting', () => {
+  it('fetches or creates setting, sets value, saves, and returns it', async() => {
+    const existingSetting = {
+      id:    'my-setting',
+      value: 'old-value',
+      save:  jest.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      dispatch: jest.fn().mockResolvedValue(existingSetting),
+      getters:  {},
+    };
+
+    const result = await setSetting(store as any, 'my-setting', 'new-value');
+
+    expect(existingSetting.value).toBe('new-value');
+    expect(existingSetting.save).toHaveBeenCalled();
+    expect(result).toStrictEqual(existingSetting);
+  });
+
+  it('uses fetchOrCreateSetting with save=false', async() => {
+    const existingSetting = {
+      id:    'my-setting',
+      value: 'original',
+      save:  jest.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      dispatch: jest.fn().mockResolvedValue(existingSetting),
+      getters:  {},
+    };
+
+    await setSetting(store as any, 'my-setting', 'updated');
+
+    // management/find is called (not create path), with save=false for fetchOrCreateSetting
+    expect(store.dispatch).toHaveBeenCalledWith('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'my-setting',
+    });
   });
 });
