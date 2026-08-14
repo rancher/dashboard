@@ -604,6 +604,14 @@ export default {
     },
 
     /**
+     * Readable, plural name of the resource being listed, used by the table to
+     * describe the select all checkbox
+     */
+    selectAllLabel() {
+      return this.parsedPagingParams.pluralLabel;
+    },
+
+    /**
      * Get the counts data by namespace for the current resource type
      */
     namespaceCounts() {
@@ -715,6 +723,7 @@ export default {
     :paging="true"
     :paging-params="parsedPagingParams"
     :paging-label="pagingLabel"
+    :select-all-label="selectAllLabel"
     :rows-per-page="rowsPerPage"
     :row-actions="rowActions"
     :table-actions="_showBulkActions"
