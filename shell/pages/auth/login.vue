@@ -372,7 +372,7 @@ export default {
           v-else
           :class="{[customizations.logoClass]: !!customizations.logoClass}"
           :file-name="brandLogo"
-          :alt="t('login.landscapeAlt')"
+          :alt="t('login.logoAlt', { vendor })"
         />
         <h1 class="text-center login-welcome">
           {{ t(customizations.welcomeLabelKey, {vendor}) }}
