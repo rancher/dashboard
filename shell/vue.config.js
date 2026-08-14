@@ -19,7 +19,8 @@ console.info = () => {}; // eslint-disable-line no-console
 
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
-// TODO: Add explanation of this logic
+// Restore console.info immediately after importing `http-proxy-middleware`.
+// The package logs noisy startup messages during import, so we suppress only that import-time output.
 console.info = oldInfoLogger; // eslint-disable-line no-console
 
 // This is currently hardcoded to avoid importing the TS
@@ -331,7 +332,8 @@ const getDevServerConfig = (proxy) => {
         app.use(p, px);
       });
 
-      // TODO: Verify after migration completed
+      // Webpack dev server leaves websocket upgrades to custom middleware for proxied routes.
+      // We route upgrades to the matching proxy middleware to preserve websocket support for API paths.
       devServer.webSocketProxies.push({
         upgrade(req, socket, head) {
           const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
@@ -517,13 +519,9 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
 };
 
 /**
- * Add ignored paths based on env var configuration and known cases
- * TODO: Verify after migration completed
- * In Webpack5 only RegExp, string and [string] types are accepted
+ * Add ignored paths based on env var configuration and known cases.
+ * Webpack 5 accepts RegExp values for `watchOptions.ignored`.
  * https://webpack.js.org/configuration/watch/#watchoptionsignored
- * Example conversion:
- * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
- * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
  */
 const getWatcherIgnored = (excludes = []) => {
   const paths = [
@@ -531,7 +529,7 @@ const getWatcherIgnored = (excludes = []) => {
     /dist-pkg/,
     /scripts\/standalone/,
   ];
-  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }/`));
+  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg\\.${ excluded.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }/`));
   const pathsCombined = [...paths, ...pathExcludedPkg];
   const regexCombined = new RegExp(pathsCombined.map(({ source }) => source).join('|'));
 
@@ -539,7 +537,7 @@ const getWatcherIgnored = (excludes = []) => {
 };
 
 /**
- * Expose a function that can be used by an app to provide a nuxt configuration for building an application
+ * Expose a function that can be used by an app to provide the vue-cli configuration for building an application.
  * This takes the directory of the application as the first argument so that we can derive folder locations
  * from it, rather than from the location of this file
  */
@@ -598,8 +596,9 @@ module.exports = function(dir, appConfig = {}) {
       }
     },
     configureWebpack(config) {
-      // TODO VUE3: We may want to look into what we want the value to actually be. For the time being this was causing a warning in our CLI because it would set process.env.NODE_ENV to 'development' even thought it was
-      //            already set to 'dev' and we're using 'dev' in other locations so I don't think we want to do that. Config details found here: https://webpack.js.org/configuration/optimization/#optimizationnodeenv.
+      // Keep NODE_ENV unchanged; webpack defaults this to 'development' in dev mode,
+      // but dashboard tooling relies on our existing 'dev' value.
+      // https://webpack.js.org/configuration/optimization/#optimizationnodeenv
       config.optimization.nodeEnv = false;
       config.resolve.alias['~'] = dir;
       config.resolve.alias['@'] = dir;
@@ -626,7 +625,7 @@ module.exports = function(dir, appConfig = {}) {
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
       config.watchOptions = {
         ...(config.watchOptions || {}),
-        ignored: getWatcherIgnored()
+        ignored: getWatcherIgnored(excludes)
       };
 
       if (dev) {
@@ -644,4 +643,8 @@ module.exports = function(dir, appConfig = {}) {
   };
 
   return config;
+};
+
+module.exports._testing = {
+  getWatcherIgnored
 };
