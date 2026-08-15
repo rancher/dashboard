@@ -9,6 +9,40 @@
  *   <p>Section content here</p>
  * </RcSection>
  *
+ * The default slot is a stack of content groups: its direct children are
+ * spaced 24px apart. Give it an RcContentGroup when a run of content belongs
+ * together, and that group stacks its own content 16px apart.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <RcContentGroup>
+ *     <LabeledInput label="Name" />
+ *     <LabeledInput label="Description" />
+ *   </RcContentGroup>
+ *   <RcContentGroup>
+ *     <LabeledInput label="Namespace" />
+ *   </RcContentGroup>
+ * </RcSection>
+ *
+ * Plain content works the same way, with each child its own group 24px from
+ * the next, so a section that does not need the tighter grouping writes
+ * nothing extra.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <p>First group</p>
+ *   <p>Second group</p>
+ * </RcSection>
+ *
+ * The `groups` slot replaces the stack itself, for a section that has to own
+ * the spacing of its groups. `groups` and the default slot are mutually
+ * exclusive: when both are given, `groups` wins and the default slot content
+ * is dropped.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <template #groups>
+ *     <MyOwnGroupLayout />
+ *   </template>
+ * </RcSection>
+ *
  * <RcSection title="Section title" type="secondary" mode="with-header" expandable v-model:expanded="expanded" background="secondary">
  *   <template #counter>
  *     <RcCounterBadge :count="99" type="inactive" />
@@ -34,9 +68,10 @@
  * </RcSection>
  */
 import {
-  computed, inject, provide, useTemplateRef, type Ref
+  computed, inject, provide, useSlots, useTemplateRef, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
+import RcContentGroups from '@components/Layout/RcContentGroups/RcContentGroups.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
@@ -44,6 +79,12 @@ import type { RcSectionProps, SectionBackground } from './types';
 const RC_SECTION_BG_KEY = 'rc-section-background';
 
 const props = withDefaults(defineProps<RcSectionProps>(), { title: '' });
+
+const slots = useSlots();
+
+if (process.env.NODE_ENV !== 'production' && slots.groups && slots.default) {
+  console.warn('[RcSection]: Both the `groups` slot and the default slot were given. The `groups` slot replaces the default one, so the default slot content is not rendered.'); // eslint-disable-line no-console
+}
 
 const parentBackground = inject<Ref<SectionBackground> | null>(RC_SECTION_BG_KEY, null);
 
@@ -160,7 +201,11 @@ function toggle() {
       v-if="expanded"
       :class="contentClass"
     >
-      <slot />
+      <slot name="groups">
+        <RcContentGroups>
+          <slot />
+        </RcContentGroups>
+      </slot>
     </div>
   </div>
 </template>
@@ -192,6 +237,31 @@ function toggle() {
 
   &.bg-secondary {
     background-color: var(--rc-section-background-secondary);
+
+    // An inactive badge takes both its fill and its border from the same grey
+    // (--rc-inactive-background / --rc-inactive-border, #EDEFF3), and this
+    // section's background is #F5F7FA, 1.07:1 from both. So a counter badge in
+    // the header has no fill and no ring, and reads as no badge at all.
+    //
+    // Re-pointing the fill to white does not lift the badge off the header
+    // (white is 1.07:1 there too). What it does is separate the fill from the
+    // border, so the pill's visible edge becomes the same #EDEFF3-against-white
+    // pair (1.15:1) that already makes the badge read on a primary-background
+    // section, where the grey pill sits directly on white.
+    //
+    // The fill only. --rc-inactive-border stays #EDEFF3, so the badge's outer
+    // boundary against the header is still 1.07:1, under the 3:1 that WCAG
+    // 1.4.11 asks of a component boundary. Re-pointing it is a product-wide
+    // token decision affecting every RcTag and RcCounterBadge, so it is
+    // deliberately out of scope here.
+    //
+    // Scoped CSS puts the scope attribute on `.title` only, so a descendant
+    // combinator here would also match a nested section's title. Nested
+    // sections render inside `.section-content`, so a child combinator to the
+    // header keeps the override on this instance.
+    > .section-header .title {
+      --rc-inactive-background: var(--rc-section-counter-background);
+    }
   }
 }
 
@@ -262,7 +332,6 @@ function toggle() {
 .section-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
   padding: 0 0 16px;
   color: var(--body-text);
 

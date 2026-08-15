@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils';
+import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcSection from './RcSection.vue';
 
 describe('component: RcSection', () => {
@@ -316,6 +317,83 @@ describe('component: RcSection', () => {
       });
 
       expect(wrapper.find('.test-error').exists()).toBe(true);
+    });
+
+    it('should wrap the default slot in a content group stack so its children are spaced as groups', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, expanded: true },
+        slots: { default: '<p class="test-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.section-content > .rc-content-groups > .test-content').exists()).toBe(true);
+    });
+
+    it('should replace the default content group stack when the groups slot is given', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, expanded: true },
+        slots: { groups: '<p class="test-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.section-content > .test-content').exists()).toBe(true);
+      expect(wrapper.find('.rc-content-groups').exists()).toBe(false);
+    });
+
+    it('should drop the default slot content when both the groups and default slots are given', () => {
+      // The combination is warned about, which is asserted separately below.
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, expanded: true },
+        slots: {
+          groups:  '<p class="test-groups">Groups</p>',
+          default: '<p class="test-default">Default</p>',
+        },
+      });
+
+      expect(wrapper.find('.section-content > .test-groups').exists()).toBe(true);
+      expect(wrapper.find('.test-default').exists()).toBe(false);
+
+      warn.mockRestore();
+    });
+
+    it('should not render the default content group stack when collapsed', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        },
+        slots: { default: '<p class="test-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.rc-content-groups').exists()).toBe(false);
+      expect(wrapper.find('.test-content').exists()).toBe(false);
+    });
+  });
+
+  describe('slot misuse warnings', () => {
+    let warn: jest.SpyInstance;
+
+    beforeEach(() => {
+      warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => warn.mockRestore());
+
+    const mountWithSlots = (slots: Record<string, string>) => mount(RcSection, {
+      props:  { ...defaultProps, expanded: true },
+      global: { components: { RcContentGroup } },
+      slots,
+    });
+
+    it('should not warn when the default slot is given several content groups', () => {
+      mountWithSlots({ default: '<RcContentGroup /><RcContentGroup />' });
+
+      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('[RcSection]'));
+    });
+
+    it('should warn when both the groups and default slots are given', () => {
+      mountWithSlots({ groups: '<RcContentGroup />', default: '<p>Content</p>' });
+
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('Both the `groups` slot and the default slot were given'));
     });
   });
 });

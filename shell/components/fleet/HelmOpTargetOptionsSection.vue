@@ -2,6 +2,7 @@
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { RcContentGroup } from '@components/Layout';
 import { RcIcon } from '@components/RcIcon';
 import { getBundleDeploymentOptionsDocsUrl } from '@shell/utils/fleet-appco';
 
@@ -18,8 +19,9 @@ const DOCS_URL = getBundleDeploymentOptionsDocsUrl();
 </script>
 
 <template>
-  <div
-    :class="{ row: !compact, 'col gap-md': compact }"
+  <component
+    :is="compact ? RcContentGroup : 'div'"
+    :class="compact ? 'col' : 'row'"
     data-testid="helmop-target-options-section"
   >
     <p v-if="compact">
@@ -68,16 +70,10 @@ const DOCS_URL = getBundleDeploymentOptionsDocsUrl();
         {{ t('fleet.helmOp.targetNamespace.compactDescription') }}
       </p>
     </div>
-  </div>
+  </component>
 </template>
 
 <style lang="scss" scoped>
-.gap-md {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-md);
-}
-
 .cluster-deployment-settings-input {
   display: flex;
   gap: 4px;

@@ -17,8 +17,11 @@ describe('component: HelmOpAppCoResourcesSection', () => {
       props:  { ...props, ...overrides },
       global: {
         stubs: {
-          RcSection: { template: '<div><slot /></div>' },
-          RcIcon:    true,
+          RcSection:      { template: '<div><slot /></div>' },
+          RcIcon:         true,
+          // A wrapper div with no logic of its own; stubbing it would swallow
+          // the content this suite is about.
+          RcContentGroup: false,
         }
       }
     });
