@@ -26,12 +26,10 @@ export default {
       required: true
     }
   },
-  data() {
+  created() {
     this.value['send_resolved'] = this.value.send_resolved || false;
     this.value['require_tls'] = this.value.require_tls || false;
-
-    return {};
-  },
+  }
 };
 </script>
 
