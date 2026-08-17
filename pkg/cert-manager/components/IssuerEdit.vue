@@ -4,7 +4,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tabbed from '@shell/components/Tabbed';
-import Tab from '@shell/components/Tabbed/Tab';
+import Tab from '@shell/components/Tabbed/Tab.vue';
 import Labels from '@shell/components/form/Labels';
 import Error from '@shell/components/form/Error';
 import Banner from '@components/Banner/Banner.vue';
