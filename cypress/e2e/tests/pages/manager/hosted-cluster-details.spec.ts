@@ -4,7 +4,7 @@ import { provisioningClusters, managementClusters, nodes, namespaces } from '@/c
 import ClusterManagerDetailHostedPagePo from '~/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-hosted.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-// [CREATE ISSUE TO INVESTIGATE] The tabbed component on a cluster detail page intermittently fails to
+// Known issue rancher/dashboard#18848: the tabbed component on a cluster detail page intermittently fails to
 // mount after an in-app (SPA) navigation and then never appears on that page load; the app should
 // render it reliably (or recover) rather than needing a fresh navigation.
 //
