@@ -343,8 +343,12 @@ export default {
       <Tab
         name="advanced"
         :label="t('certManager.certificate.tab.advanced')"
-        :weight="30"
+        :weight="-1"
       >
+        <h3 class="mb-20">
+          {{ t('certManager.certificate.lifecycleAndConfiguration', undefined, true) }}
+        </h3>
+
         <div class="row mb-20">
           <div class="col span-6">
             <DurationInput
@@ -377,6 +381,7 @@ export default {
             <LabeledSelect
               v-model:value="value.spec.usages"
               :label="t('certManager.certificate.usages')"
+              :tooltip="t('certManager.certificate.usagesTooltip')"
               :options="keyUsageOptions"
               :multiple="true"
               :taggable="true"
@@ -389,11 +394,13 @@ export default {
               type="number"
               min="1"
               :label="t('certManager.certificate.revisionHistoryLimit')"
+              :tooltip="t('certManager.certificate.revisionHistoryLimitTooltip')"
               :mode="mode"
             />
           </div>
         </div>
 
+        <div class="spacer" />
         <h3>{{ t('certManager.certificate.secretTemplate') }}</h3>
         <KeyValue
           :value="value.spec.secretTemplate?.labels"
@@ -411,7 +418,8 @@ export default {
           @update:value="v => setSecretTemplate('annotations', v)"
         />
 
-        <h3 class="mt-20">
+        <div class="spacer" />
+        <h3>
           {{ t('certManager.certificate.privateKey.label') }}
         </h3>
         <div class="row mb-20">
