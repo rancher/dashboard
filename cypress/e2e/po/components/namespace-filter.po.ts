@@ -35,11 +35,12 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   /**
-   * [CREATE ISSUE TO INVESTIGATE] The option's checkmark does not update reactively when the selection
-   * changes - it only renders correctly on a fresh dropdown open, and the selection itself settles
-   * asynchronously (a userpreferences round-trip, plus a page's re-applied forced default after a
-   * clear). A single reopen can race that settle and still show no checkmark. Reopen the dropdown and
-   * re-check until the checkmark for `label` appears, so the assertion no longer flakes.
+   * After a clear, the app re-applies the page's forced-default selection asynchronously (a
+   * userpreferences round-trip), and the dropdown renders its option list from a cached copy of the
+   * filtered options that refreshes a tick later. At Cypress speed a single check can run before that
+   * settles and see no checkmark yet. Reopen the dropdown and re-check until the checkmark for `label`
+   * appears, so the assertion waits out the settle rather than racing it. (The checkmark does update on
+   * its own at human speed, so this is test timing - not an app bug.)
    */
   ensureOptionChecked(label: string, retries = 6): void {
     this.getOptions().contains(new RegExp(` ${ label } `)).then(($row) => {
@@ -108,14 +109,12 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   /**
-   * [CREATE ISSUE TO INVESTIGATE] After clearing the selection the app asynchronously re-applies the
-   * page's forced-default namespace, but the already-open dropdown does not reactively re-render the
-   * newly-selected option's checkmark - it should update in place without needing a reopen.
-   *
-   * Close and reopen the dropdown so the option list re-renders from the current (settled)
-   * selection state. Clearing the selection empties it and the app asynchronously re-applies a
-   * page's forced default via a prefs round-trip; the already-open dropdown does not reliably
-   * re-render the newly-selected option's checkmark for that transition, so reopen before asserting.
+   * Close and reopen the dropdown so the option list re-renders from the current (settled) selection
+   * state. Clearing the selection empties it and the app asynchronously re-applies a page's forced
+   * default via a prefs round-trip; the option list renders from a cached copy of the filtered options
+   * that can lag that settle at Cypress speed, so reopening forces a fresh render before we assert the
+   * checkmark. (At human speed the checkmark updates in place - this reopen is purely to wait out the
+   * async settle in the test.)
    */
   reopenDropdown() {
     this.closeDropdown();
