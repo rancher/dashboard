@@ -97,7 +97,7 @@ export default defineComponent({
     list-style: none;
     margin: 0;
     padding: 0;
-    row-gap: 16px;
+    row-gap: var(--gap-md);
   }
 
   // Steps hug their content and the connectors are a fixed length. Letting either grow spreads a
@@ -111,7 +111,7 @@ export default defineComponent({
   .step {
     align-items: center;
     display: flex;
-    gap: 12px;
+    gap: var(--gap-md);
     white-space: nowrap;
   }
 
@@ -149,7 +149,7 @@ export default defineComponent({
   .detail {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--gap);
   }
 }
 </style>

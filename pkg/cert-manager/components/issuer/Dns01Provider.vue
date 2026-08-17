@@ -129,7 +129,7 @@ export default {
  */
 .provider-fields {
   flex-wrap: wrap;
-  row-gap: 10px;
+  row-gap: var(--gap);
 
   .col:nth-child(even) {
     margin-right: 0;
