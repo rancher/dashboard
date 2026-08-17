@@ -7,6 +7,7 @@ import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import CardPo from '@/cypress/e2e/po/components/card.po';
@@ -50,6 +51,7 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       const chartPage = new ChartPage();
       const loggingOutputList = new LoggingClusteroutputListPagePo();
       const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
+      const sideNav = new ProductNavPo();
 
       // Make each attempt independent (testIsolation is off): a failed earlier attempt can leave
       // the chart partially installed, so the Install button is no longer shown and the install
@@ -93,18 +95,10 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
 
       waitForClusterOutputType();
 
-      // [CREATE ISSUE TO INVESTIGATE] The product side-nav is built from the schema list cached when the
-      // cluster first loaded; after a chart installs new CRDs (e.g. logging ClusterOutput/ClusterFlow)
-      // the nav does not reliably refresh to include the new resource types, so their entries are
-      // intermittently missing. The nav should pick up newly-registered schemas (or offer a refresh)
-      // rather than requiring a full route reload.
-      //
-      // Navigate directly to the ClusterOutput list by URL rather than clicking through the product
-      // side-nav. That nav entry is derived from the schema list cached when the cluster first loaded
-      // (before this CRD existed), so it is intermittently absent - and expanding the Logging group to
-      // reach it is itself state-dependent. A direct visit loads the route fresh with the now-registered
-      // type and sidesteps the side-nav flake entirely.
-      LoggingClusteroutputListPagePo.goTo('local');
+      // Navigate through the product side-nav. The ClusterOutput entry appears once the freshly-
+      // installed CRD's schema propagates into the nav, which can lag the install - so navTo (via
+      // ProductNavPo.sideMenuEntryByLabel) waits for the entry to render before clicking it.
+      LoggingClusteroutputListPagePo.navTo();
       loggingOutputList.waitForPage();
       loggingOutputList.baseResourceList().masthead().create();
       loggingOutputEdit.waitForPage();
@@ -120,10 +114,10 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       loggingOutputList.baseResourceList().resourceTable().sortableTable().rowElementWithName(outputName)
         .should('exist');
 
-      // Navigate directly to the ClusterFlow list by URL rather than the product side-nav, for the
-      // same reason as ClusterOutput above: the nav entry is derived from the schema list cached when
-      // the cluster loaded (before the logging CRDs existed) and is intermittently absent.
-      LoggingClusterFlowListPagePo.goTo('local');
+      // The Logging group is already expanded (from the ClusterOutput nav above), so click the
+      // ClusterFlow entry directly rather than re-toggling the group. sideMenuEntryByLabel waits for
+      // the entry to render (its schema can also lag the install).
+      sideNav.navToSideMenuEntryByLabel('ClusterFlow');
       loggingFlowList.waitForPage();
       loggingFlowList.baseResourceList().masthead().create();
       loggingFlowCreate.waitForPage();

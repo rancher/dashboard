@@ -58,10 +58,13 @@ export default class ProductNavPo extends ComponentPo {
   }
 
   sideMenuEntryByLabel(label: string): Cypress.Chainable {
-    // The main chain below doesn't pick up additions, this is a workaround
-    cy.contains(label).should('exist', LONG_TIMEOUT_OPT);
+    // The main chain below doesn't pick up dynamic additions on its own, so first wait for the entry
+    // to render. Give it a long window: a freshly-installed CRD's schema can take a while to propagate
+    // into the product side-nav, so the entry can appear well after the resource exists. (Note the
+    // timeout must go on `cy.contains`, not on `.should('exist')` where it is ignored.)
+    cy.contains('.child.nav-type a .label', label, LONG_TIMEOUT_OPT).should('exist');
 
-    return this.self().should('exist', LONG_TIMEOUT_OPT)
+    return this.self().should('exist')
       .find('.child.nav-type a .label')
       .filter(`:contains("${ label }")`)
       .filter((index, element) => {
