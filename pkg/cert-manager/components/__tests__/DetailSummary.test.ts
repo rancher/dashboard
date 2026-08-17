@@ -20,7 +20,7 @@ describe('component: DetailSummary', () => {
       { label: 'Secret', value: 'my-tls' },
     ]);
 
-    expect(wrapper.findAll('h3').map((h) => h.text())).toStrictEqual(['Issuer', 'Secret']);
+    expect(wrapper.findAll('p.text-muted').map((p) => p.text())).toStrictEqual(['Issuer', 'Secret']);
     expect(wrapper.text()).toContain('letsencrypt');
     expect(wrapper.text()).toContain('my-tls');
   });
@@ -28,13 +28,13 @@ describe('component: DetailSummary', () => {
   it('should show a dash for an empty value', () => {
     const wrapper = render([{ label: 'Issuer' }]);
 
-    expect(wrapper.find('.text-muted').text()).toBe('—');
+    expect(wrapper.find('span.text-muted').text()).toBe('—');
   });
 
   it('should render zero as a value rather than a dash', () => {
     const wrapper = render([{ label: 'Revision', value: 0 }]);
 
-    expect(wrapper.find('.text-muted').exists()).toBe(false);
+    expect(wrapper.find('span.text-muted').exists()).toBe(false);
     expect(wrapper.text()).toContain('0');
   });
 
@@ -44,7 +44,7 @@ describe('component: DetailSummary', () => {
       { label: 'Account URI', hideIfEmpty: true },
     ]);
 
-    expect(wrapper.findAll('h3').map((h) => h.text())).toStrictEqual(['Issuer']);
+    expect(wrapper.findAll('p.text-muted').map((p) => p.text())).toStrictEqual(['Issuer']);
   });
 
   it('should render an internal link when a route is given', () => {
@@ -59,7 +59,7 @@ describe('component: DetailSummary', () => {
     const wrapper = render([{ label: 'Issuer', to: { name: 'somewhere' } }]);
 
     expect(wrapper.find('.router-link').exists()).toBe(false);
-    expect(wrapper.find('.text-muted').exists()).toBe(true);
+    expect(wrapper.find('span.text-muted').exists()).toBe(true);
   });
 
   it('should render external links safely', () => {
