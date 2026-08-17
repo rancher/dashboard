@@ -1045,5 +1045,169 @@ describe('prefs store', () => {
         expect(result).toBe(serverObj);
       });
     });
+
+    describe('loadTheme', () => {
+      type MediaResult = { matches: boolean; addListener: (fn: (e: { matches: boolean }) => void) => void };
+      type MediaImpl = (query: string) => MediaResult;
+
+      let setTimeoutSpy: jest.SpyInstance;
+      let mediaImpl: MediaImpl;
+
+      beforeEach(() => {
+        jest.useFakeTimers();
+        setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+        mediaImpl = () => ({ matches: false, addListener: jest.fn() });
+        (window.matchMedia as jest.Mock).mockImplementation((query: string) => mediaImpl(query));
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+        jest.restoreAllMocks();
+      });
+
+      it('dispatches set with dark when watchDark.matches is true', () => {
+        const dispatch = jest.fn();
+
+        mediaImpl = (query: string) => ({
+          matches:     query === '(prefers-color-scheme: dark)',
+          addListener: jest.fn(),
+        });
+
+        actions.loadTheme({ dispatch } as any);
+
+        expect(dispatch).toHaveBeenCalledWith('set', { key: PREFERS_SCHEME, value: 'dark' });
+      });
+
+      it('dispatches set with light when watchLight.matches is true', () => {
+        const dispatch = jest.fn();
+
+        mediaImpl = (query: string) => ({
+          matches:     query === '(prefers-color-scheme: light)',
+          addListener: jest.fn(),
+        });
+
+        actions.loadTheme({ dispatch } as any);
+
+        expect(dispatch).toHaveBeenCalledWith('set', { key: PREFERS_SCHEME, value: 'light' });
+      });
+
+      it('dispatches set based on clock (daytime → light) when no media query matches', () => {
+        const dispatch = jest.fn();
+        const dateSpy = jest.spyOn(Date.prototype, 'getHours').mockReturnValue(10);
+
+        actions.loadTheme({ dispatch } as any);
+
+        expect(dispatch).toHaveBeenCalledWith('set', { key: PREFERS_SCHEME, value: 'light' });
+        dateSpy.mockRestore();
+      });
+
+      it('dispatches set based on clock (nighttime → dark) when no media query matches', () => {
+        const dispatch = jest.fn();
+        const dateSpy = jest.spyOn(Date.prototype, 'getHours').mockReturnValue(20);
+
+        actions.loadTheme({ dispatch } as any);
+
+        expect(dispatch).toHaveBeenCalledWith('set', { key: PREFERS_SCHEME, value: 'dark' });
+        dateSpy.mockRestore();
+      });
+
+      it('registers a setTimeout to call loadTheme again at the next half-hour boundary', () => {
+        const dispatch = jest.fn();
+
+        actions.loadTheme({ dispatch } as any);
+
+        expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+        const timeoutMs = setTimeoutSpy.mock.calls[0][1] as number;
+
+        expect(timeoutMs).toBeGreaterThan(0);
+        expect(timeoutMs).toBeLessThanOrEqual(30 * 60 * 1000);
+      });
+
+      it('dispatches loadTheme again when the scheduled timeout fires', () => {
+        const dispatch = jest.fn();
+
+        actions.loadTheme({ dispatch } as any);
+        jest.runAllTimers();
+
+        expect(dispatch).toHaveBeenCalledWith('loadTheme');
+      });
+
+      it('registers dark-preference change listener that dispatches dark', () => {
+        const dispatch = jest.fn();
+        let darkListener: (e: { matches: boolean }) => void = () => {};
+
+        mediaImpl = (query: string) => ({
+          matches:     false,
+          addListener: (fn: (e: { matches: boolean }) => void) => {
+            if (query === '(prefers-color-scheme: dark)') {
+              darkListener = fn;
+            }
+          },
+        });
+
+        actions.loadTheme({ dispatch } as any);
+        dispatch.mockClear();
+
+        darkListener({ matches: true });
+
+        expect(dispatch).toHaveBeenCalledWith('set', { key: PREFERS_SCHEME, value: 'dark' });
+      });
+
+      it('does not dispatch when dark listener fires with matches false', () => {
+        const dispatch = jest.fn();
+        let darkListener: (e: { matches: boolean }) => void = () => {};
+
+        mediaImpl = (query: string) => ({
+          matches:     false,
+          addListener: (fn: (e: { matches: boolean }) => void) => {
+            if (query === '(prefers-color-scheme: dark)') {
+              darkListener = fn;
+            }
+          },
+        });
+
+        actions.loadTheme({ dispatch } as any);
+        dispatch.mockClear();
+
+        darkListener({ matches: false });
+
+        expect(dispatch).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('setBrandStyle', () => {
+      it('does nothing when managementReady is false', () => {
+        const addSpy = jest.spyOn(document.body.classList, 'add');
+        const rootState = { managementReady: false };
+        const rootGetters = { 'management/brand': 'somebrand' };
+
+        actions.setBrandStyle({ rootState, rootGetters } as any);
+
+        expect(addSpy).not.toHaveBeenCalled();
+        addSpy.mockRestore();
+      });
+
+      it('does nothing when brandSetting is empty string', () => {
+        const addSpy = jest.spyOn(document.body.classList, 'add');
+        const rootState = { managementReady: true };
+        const rootGetters = { 'management/brand': '' };
+
+        actions.setBrandStyle({ rootState, rootGetters } as any);
+
+        expect(addSpy).not.toHaveBeenCalled();
+        addSpy.mockRestore();
+      });
+
+      it('does not throw when getBrandMeta throws', () => {
+        const rootState = { managementReady: true };
+        const rootGetters = { 'management/brand': 'throwbrand' };
+
+        // setBrandStyle wraps the inner block in try/catch — must not propagate
+        expect(() => {
+          actions.setBrandStyle({ rootState, rootGetters } as any);
+        }).not.toThrow();
+      });
+    });
   });
 });
+
