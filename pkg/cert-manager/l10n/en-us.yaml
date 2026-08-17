@@ -64,6 +64,7 @@ certManager:
     secretName: Secret Name
     secretNameTooltip: Name of the Secret that will hold the issued certificate and private key. It is created in this namespace.
     isCA: Mark this certificate as a certificate authority
+    isCATooltip: Sets the X.509 Basic Constraints CA flag. Enable this if you intend to use this certificate to sign other certificates (e.g., as the Secret for a CA Issuer).
     dnsNames: DNS Names
     ipAddresses: IP Addresses
     uris: URIs

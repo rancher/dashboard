@@ -371,6 +371,7 @@ export default {
         <Checkbox
           v-model:value="value.spec.isCA"
           :label="t('certManager.certificate.isCA')"
+          :tooltip="t('certManager.certificate.isCATooltip')"
           :mode="mode"
           class="mb-20"
         />
