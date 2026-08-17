@@ -54,8 +54,8 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     // but the new member's name not resolved yet" case: attempt 1 then timed out here, and because
     // the binding was already created the retry re-added a duplicate and got stuck on the create form.
     const reloadUntilMemberResolved = (attempt = 0) => {
-      cy.get('body tbody').then((el) => {
-        if (el.find(`tr:contains("${ username }")`).length === 0 && attempt < 5) {
+      clusterMembership.sortableTable().self().then(($table) => {
+        if ($table.find(`tbody tr:contains("${ username }")`).length === 0 && attempt < 5) {
           cy.reload();
           clusterMembership.waitForPageWithExactUrl();
           cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting -- let the list re-fetch and principals resolve
@@ -66,16 +66,14 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
 
     reloadUntilMemberResolved();
 
-    cy.get('body tbody').then(() => {
-      clusterMembership.listElementWithName(username).should('exist');
-      clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
+    clusterMembership.listElementWithName(username).should('exist');
+    clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
       // clear new line chars and white spaces
-        const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
+      const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
 
-        // no string "loading..." next to name
-        // usecase https://github.com/rancher/dashboard/issues/8804
-        expect(sanitizedName).to.equal(username);
-      });
+      // no string "loading..." next to name
+      // usecase https://github.com/rancher/dashboard/issues/8804
+      expect(sanitizedName).to.equal(username);
     });
   });
   it('Clicking cancel should return to Cluster and Project members ', () => {
