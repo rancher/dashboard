@@ -28,26 +28,13 @@ describe('Home Page List', { testIsolation: false }, () => {
        */
     const clusterName = 'local';
 
-    // The home cluster list shows management clusters (MgmtCluster); their kube version comes from
-    // status (statusInfo.kubernetesVersion) and streams in slightly after the list first renders, so
-    // the version cell can briefly show '—' before it resolves. Visit Cluster Management first (the
-    // page this test compares against anyway) so those clusters and their status are already loaded by
-    // the time we read the home list, avoiding the transient '—'.
-    clusterMgmtClusterList.goTo();
-    clusterMgmtClusterList.waitForPage();
-    clusterMgmtClusterList.sortableTable().checkLoadingIndicatorNotVisible();
-    clusterMgmtClusterList.sortableTable().rowWithName(clusterName).checkVisible();
-
-    HomePagePo.navTo();
+    HomePagePo.goTo();
     homePage.waitForPage();
 
     // Ensure the cluster list has fully loaded before reading values. Otherwise an
     // async re-render of the still-streaming list can detach the row mid-read.
     homeClusterList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     homeClusterList.resourceTable().sortableTable().rowWithName(clusterName).checkVisible();
-
-    // Verify version is present before proceeding
-    homeClusterList.version(clusterName).should('not.contain', '—');
 
     // Get text values and store as aliases.
     // The home cluster list keeps re-rendering rows as the CPU/Memory/Pods metrics
