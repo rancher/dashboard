@@ -1,5 +1,7 @@
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { _EDIT } from '@shell/config/query-params';
@@ -9,66 +11,43 @@ import { DURATION_UNITS, DurationUnit, durationToParts, partsToDuration } from '
  * Value/unit pair bound to a single Go duration string. Emits `undefined` when cleared so the
  * caller can drop the field from the spec rather than persisting an empty string.
  */
-export default defineComponent({
-  name:       'DurationInput',
-  components: { LabeledInput, LabeledSelect },
-
-  props: {
-    value: {
-      type:    String as PropType<string | undefined>,
-      default: undefined,
-    },
-    label: {
-      type:    String,
-      default: '',
-    },
-    mode: {
-      type:    String,
-      default: _EDIT,
-    },
-    tooltip: {
-      type:    String,
-      default: undefined,
-    },
-  },
-
-  emits: ['update:value'],
-
-  data() {
-    const parts = durationToParts(this.value);
-
-    return {
-      amount: parts ? String(parts.value) : '',
-      unit:   (parts?.unit || 'd') as DurationUnit,
-    };
-  },
-
-  computed: {
-    unitOptions() {
-      return DURATION_UNITS.map((unit) => ({ label: this.t(`certManager.duration.unit.${ unit }`), value: unit }));
-    },
-  },
-
-  watch: {
-    // Keep in step when the parent replaces the resource, e.g. after a save or a form reset.
-    value(neu: string | undefined) {
-      if (neu === partsToDuration(this.amount, this.unit)) {
-        return;
-      }
-
-      const parts = durationToParts(neu);
-
-      this.amount = parts ? String(parts.value) : '';
-      this.unit = parts?.unit || 'd';
-    },
-  },
-
-  methods: {
-    update() {
-      this.$emit('update:value', partsToDuration(this.amount, this.unit));
-    },
-  },
+const props = withDefaults(defineProps<{
+  value?: string;
+  label?: string;
+  mode?: string;
+  tooltip?: string;
+}>(), {
+  value:   undefined,
+  label:   '',
+  mode:    _EDIT,
+  tooltip: undefined,
 });
+
+const emit = defineEmits<{(e: 'update:value', value: string | undefined): void}>();
+
+const { t } = useI18n(useStore());
+
+const initialParts = durationToParts(props.value);
+const amount = ref(initialParts ? String(initialParts.value) : '');
+const unit = ref<DurationUnit>(initialParts?.unit || 'd');
+
+const unitOptions = computed(() => DURATION_UNITS.map((u) => ({ label: t(`certManager.duration.unit.${ u }`), value: u })));
+
+// Keep in step when the parent replaces the resource, e.g. after a save or a form reset.
+watch(() => props.value, (neu) => {
+  if (neu === partsToDuration(amount.value, unit.value)) {
+    return;
+  }
+
+  const parts = durationToParts(neu);
+
+  amount.value = parts ? String(parts.value) : '';
+  unit.value = parts?.unit || 'd';
+});
+
+function update() {
+  emit('update:value', partsToDuration(amount.value, unit.value));
+}
 </script>
 
 <template>
