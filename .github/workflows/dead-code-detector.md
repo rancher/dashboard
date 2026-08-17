@@ -3,6 +3,8 @@ name: Dead Code Detector
 description: Identifies dead and unused code across the codebase and suggests safe removal opportunities
 on:
   schedule: daily
+  # Manual dispatch is kept enabled while the remediation path is being proven out.
+  workflow_dispatch:
 
 if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_DEAD_CODE_DETECTOR != 'true'
 
@@ -16,8 +18,25 @@ safe-outputs:
     labels: [bot/dead-code-detector, bot/skip-grooming]
     group: true
     max: 3
-  # Section 4 corrects an existing issue by commenting on it rather than filing
-  # a corrected duplicate, which needs this output to be declared.
+  create-pull-request:
+    draft: true
+    title-prefix: "[dead-code] "
+    labels: [bot/dead-code-detector, "QA/None"]
+    # rancher/dashboard#18833: at most one open pull request at a time carrying
+    # the bot/dead-code-detector label, so one per run. Lessons entries ride
+    # along in that same pull request rather than opening a second one.
+    max: 1
+    if-no-changes: ignore
+    protected-files:
+      policy: request_review
+      # The detector maintains its own lessons file. Everything else under
+      # .github/ stays protected — in particular it must never touch
+      # .github/workflows/.
+      exclude:
+        - .github/agents/lessons/
+  # Section 1 refutes a wrong issue and section 6 corrects an incomplete one by
+  # commenting on it rather than filing a corrected duplicate, which needs this
+  # output to be declared.
   add-comment:
     target: "*"
     max: 3
@@ -30,17 +49,19 @@ strict: true
 
 # Dead Code Detection
 
-Analyze the codebase to identify dead and unused code. Report significant findings that can be safely removed to reduce maintenance burden and codebase size.
+Remove dead code from the codebase, and report what cannot yet be removed.
+
+Filing an issue is the fallback, not the goal. This workflow has already filed far more issues than anyone has acted on — a run that deletes one verified-dead cluster is worth more than a run that describes three.
 
 ## Task
 
-Detect and report dead code by:
+Each run does one of these, in this order of preference:
 
-1. **Loading the Lessons**: Read `.github/agents/lessons/dead-code.md` before anything else
-2. **Analyzing Recent Commits**: Review changes in the latest commits to focus the analysis
-3. **Detecting Dead Code**: Identify unused exports, unreferenced components, orphaned files, dead routes, and unused i18n keys
-4. **Verifying Candidates**: Rule out dynamic resolution, follow the dead-code chain to its full extent, and check every claim before making it
-5. **Reporting Findings**: Check what is already open, then create a detailed issue for anything genuinely new (threshold below)
+1. **Remediate**: Take an open `bot/dead-code-detector` issue, re-verify it from scratch, delete the code, and open a pull request that closes the issue
+2. **Refute**: If re-verification shows the issue is wrong, comment on it with the disproof instead of opening a pull request
+3. **Detect**: Only when no open issue is actionable, look for new dead code and file an issue for it
+
+Every path starts by reading `.github/agents/lessons/dead-code.md`, and ends by recording in it anything that misled the run.
 
 ## Context
 
@@ -56,10 +77,50 @@ Detect and report dead code by:
 
 It holds two things, and both bind this run:
 
-- **The unknown-usage register** — exported code with no in-repo consumer that no one has been able to rule on. Anything already listed there has been dealt with: do not file it, do not re-report it, do not raise its confidence because you found the same emptiness again. Check every candidate against this register before doing anything with it
-- **The lessons** — rules written because following this prompt alone still produced a wrong answer. Each one applies to this run with the same force as the checks in section 3
+- **The unknown-usage register** — exported code with no in-repo consumer that no one has been able to rule on. Anything already listed there has been dealt with: do not file it, do not remove it, do not re-report it, do not raise its confidence because you found the same emptiness again. Check every candidate against this register before doing anything with it
+- **The lessons** — rules written because following this prompt alone still produced a wrong answer. Each one applies to this run with the same force as the checks in section 4
 
-### 1. Changed Files Analysis
+Then collect any **pending entries**: comments on open `bot/dead-code-detector` pull requests containing the marker `<!-- dead-code-detector:pending-lesson -->`. Those are entries an earlier run could not commit because a pull request was already open. Apply their rules to this run, and if this run opens a pull request, write them into the file alongside anything new you learn.
+
+### 1. Remediation — Fix an Already-Reported Cluster
+
+This is the primary path. Only fall through to the detection path in sections 2-3 if this section produces nothing.
+
+**First, check the pull request budget:**
+
+At most **one** pull request labelled `bot/dead-code-detector` may be open at a time. List open pull requests carrying that label before doing anything else:
+
+- **One is already open** — do not open another, and do not remove any code this run. A queue of unreviewed deletion pull requests is exactly the backlog this workflow was changed to stop producing. Spend the run on refutation instead (below), and if you learn something worth recording, follow the carry-over rule in section 7
+- **None is open** — proceed
+
+**Select a candidate:**
+
+1. List open issues labelled `bot/dead-code-detector`
+2. Discard any whose body or comments contain the marker `<!-- dead-code-detector:refuted -->` — a previous run already disproved it
+3. Discard any already covered by an open pull request
+4. Discard anything already on the unknown-usage register, and anything whose candidates are exported. Those are register rows, not removals — see "Published package surface" in section 4. If an open issue proposes removing an exported symbol, refute it and register the symbol instead
+5. Discard the duplicates: the same cluster has been filed repeatedly in the past. Pick the **oldest** issue describing a cluster and ignore its restatements — the removal will resolve them all
+6. From what remains, take the one with the highest stated confidence and the smallest blast radius. A three-file leaf cluster is a better run than an eighteen-file grab bag
+
+**Re-verify from scratch:**
+
+The issue's own evidence does not count. Open issues exist whose entire evidence is empty output from a search that matched nothing, so their "Result: no matches" proves nothing. Re-run every applicable check in section 4 against the code as it exists now, including the control search. Code may also have gained a consumer since the issue was filed.
+
+**Then take exactly one of these two actions:**
+
+- **Confirmed dead** — remove it:
+  1. Delete the files and exports, and everything the transitive closure adds
+  2. Remove what the deletion orphans: stylesheet rules, assets, barrel-file re-exports, i18n keys, and any now-empty directory
+  3. Run `yarn lint` and `yarn test:ci`. If either fails, fix the fallout or abandon the removal — never open a pull request with a failing gate
+  4. Open a pull request using the template below. The body ends with `Fixes #N` for the issue you selected, and lists the duplicate issue numbers the same removal also resolves
+- **False positive, or no longer accurate** — do not open a pull request. Comment on the issue with:
+  1. The marker `<!-- dead-code-detector:refuted -->` on its own line, so later runs skip it
+  2. The exact command that found the live reference, and its output
+  3. A one-line statement of what the original analysis missed
+
+Refuting a bad issue is a successful run. It is worth more than a speculative removal, and it stops the same wrong finding being re-examined every night.
+
+### 2. Changed Files Analysis
 
 Identify and analyze modified files first:
 - Determine files changed in the recent commits using `git log` and `git diff`
@@ -70,7 +131,7 @@ Identify and analyze modified files first:
 - Use code exploration tools to understand file structure
 - Read modified file contents to examine changes
 
-### 2. Dead Code Detection
+### 3. Dead Code Detection
 
 Apply the following strategies to find dead code. For each candidate, you MUST verify it is genuinely unreferenced before reporting it — a single missed reference makes the finding a false positive.
 
@@ -82,7 +143,7 @@ Apply the following strategies to find dead code. For each candidate, you MUST v
 **Orphaned Vue components**:
 - Components in `shell/components/`, `shell/pages/`, or `pkg/**/` that are never referenced in any template, route definition, or dynamic import
 - Check both PascalCase (`<MyComponent>`) and kebab-case (`<my-component>`) usage in templates
-- Account for components resolved dynamically (e.g. via `resolveComponent`, `defineAsyncComponent`, string-keyed lookups, or the Rancher model/registry mechanisms) — see the dynamic resolution checks in section 3
+- Account for components resolved dynamically (e.g. via `resolveComponent`, `defineAsyncComponent`, string-keyed lookups, or the Rancher model/registry mechanisms) — see the dynamic resolution checks in section 4
 
 **Unreferenced utility functions**:
 - Functions in `shell/utils/` (and equivalent util directories) with no callers anywhere in the codebase
@@ -98,7 +159,7 @@ Apply the following strategies to find dead code. For each candidate, you MUST v
 - Keys in locale files (e.g. `shell/assets/translations/en-us.yaml`) that are never referenced in templates or JS/TS via `t('...')`, `i18n-t`, `v-t`, or similar
 - Be conservative: keys may be constructed dynamically (string concatenation, interpolation). Only report keys with a static, obviously-unused prefix path
 
-### 3. Candidate Verification
+### 4. Candidate Verification
 
 Every candidate must pass all of the checks below before it can be reported. Each check exists because skipping it has already produced a wrong, overstated or incomplete finding.
 
@@ -183,7 +244,7 @@ Every statement in the issue must be something determined, not something that se
 - Never write a conditional instruction ("check whether X, and if so do Y") into the removal steps. Resolve it — that check *is* the analysis being asked for
 - Anything genuinely undeterminable belongs in the issue as an explicit open question, not as an assumption
 
-### 4. Dead Code Evaluation
+### 5. Dead Code Evaluation
 
 Assess findings to distinguish true dead code from intentional or dynamically-referenced code:
 
@@ -202,7 +263,7 @@ Assess findings to distinguish true dead code from intentional or dynamically-re
 - **Impact**: Maintenance burden and codebase bloat removed by deletion
 - **Safety**: Whether removal is safe — dynamic resolution ruled out, transitive closure complete, and the published `@shell/*` surface accounted for
 
-### 5. Issue Reporting
+### 6. Issue Reporting
 
 Create separate issues for each distinct category or cluster of dead code found (maximum 3 per run). Each issue should be focused enough to enable a clean removal PR.
 
@@ -213,12 +274,12 @@ Create separate issues for each distinct category or cluster of dead code found 
 Use the GitHub tools to list open issues labelled `bot/dead-code-detector`, and read their titles and bodies. Then, for each cluster you were about to report:
 
 - **Already covered** — do not file it again. Partial overlap counts: if an open issue lists three of your four files, that is the same cluster, not a new one
-- **Covered but wrong or incomplete** — do not file a corrected duplicate. Add a comment to the existing issue with the correction
+- **Covered but wrong or incomplete** — do not file a corrected duplicate. Add a comment to the existing issue with the correction. If the existing issue is wrong rather than merely incomplete, refute it as described in section 1, marker included
 - **Genuinely new** — file it, and name in the body which existing issues you checked against
 
 #### Register, do not report, anything exported
 
-A candidate that is exported does not become an issue. It becomes a row in the unknown-usage register in `.github/agents/lessons/dead-code.md`, for the reason given under "Published package surface" in section 3: its consumers live outside this repository and no search here can rule them out.
+A candidate that is exported does not become an issue. It becomes a row in the unknown-usage register in `.github/agents/lessons/dead-code.md`, for the reason given under "Published package surface" in section 4: its consumers live outside this repository and no search here can rule them out.
 
 For each such candidate, produce the row: the date, the symbol or file, what it is exported as (`@shell/...` where it applies), the in-repo consumer count you measured, today's date as the last re-check, and a one-line note on what you searched.
 
@@ -251,6 +312,38 @@ Apply a fixed rule so the boundary does not drift between runs:
 - **Verification Evidence**: How you confirmed each item is unreferenced (search commands/results)
 - **Impact Assessment**: Lines/files removed, maintainability improvement
 - **Removal Recommendations**: Concrete, safe removal steps
+
+### 7. Improving This Detector
+
+Every run that gets surprised should leave the next run better equipped. When something misleads you, write it into `.github/agents/lessons/dead-code.md` — the journal this workflow keeps for itself.
+
+**What qualifies as a lesson:**
+
+- A dynamic resolution mechanism that this prompt does not list — a `require.context` glob, a registry, a naming convention, a build-time transform — which made live code look unreferenced
+- A search idiom that returned a misleading result: a command that silently matched nothing, an import form the search missed, a name collision that hid the real attribution
+- A repository convention that makes a file reachable without an import statement
+- An open issue whose stated evidence did not reproduce, along with what the original analysis missed
+- A removal that broke `yarn lint` or `yarn test:ci` in a way the reference check did not predict
+
+**What does not qualify:**
+
+- A restatement of a rule already in this prompt. An entry earns its place only if following this prompt as written would still have produced the wrong answer
+- A one-off observation about a specific file with no general rule behind it
+- Anything you did not actually run into on this run. Do not speculate about failure modes
+
+**How to record it:**
+
+1. Append to the end of `.github/agents/lessons/dead-code.md`, using the exact entry format that file specifies: a dated `###` heading, then **Trigger**, **Rule** and **Command**
+2. The **Rule** must be an instruction for a future run, not a description of what happened
+3. The **Command** must be one you actually ran, with its real output — including, where it makes the point, the broken form alongside the working form
+4. Never edit or delete existing entries. The file only grows
+
+**Where the entry ships**, given the one-open-pull-request budget in section 1:
+
+- **This run is opening a removal pull request** — include the journal change in that same pull request, and describe it in the Journal section of the body. Only one pull request may be open, so it carries both
+- **This run is opening no pull request** (one was already open, or the run refuted an issue instead) — do not open a second one. Post the entry, verbatim and in the format above, as a comment on the open `bot/dead-code-detector` pull request, prefixed with the marker `<!-- dead-code-detector:pending-lesson -->` on its own line. Section 0 collects those markers, so the next run that opens a pull request writes them into the file. If no pull request is open at all, write the entry into the file and open the pull request for it
+
+**Never modify anything under `.github/` other than `.github/agents/lessons/dead-code.md`.** That includes this workflow and its lock file. Proposals to change this prompt go in the journal, which is read at the start of every run and therefore takes effect immediately without a workflow edit.
 
 ## Detection Scope
 
@@ -294,7 +387,7 @@ For each distinct dead-code cluster found, create a separate issue using this st
 
 *Analysis of commit ${{ github.event.head_commit.id }}*
 
-**Assignee**: @copilot
+*Left as an issue rather than a pull request because: [confidence below the removal threshold / cluster too large to remove safely in one run / lint or test gate could not be run]. A later run will pick this up from section 1.*
 
 ## Summary
 
@@ -361,21 +454,74 @@ For each distinct dead-code cluster found, create a separate issue using this st
 - **Analysis Date**: [timestamp]
 ````
 
+## Pull Request Template
+
+For a removal produced by section 1, use this structure. The evidence is not optional — a reviewer must be able to reach the same conclusion without repeating the search.
+
+````markdown
+# 🧹 Remove dead code: [Cluster Name]
+
+Removes the [cluster] reported in #N, after re-verifying every item against the current code.
+
+## What was removed
+
+| File | Lines | Why it is dead |
+| --- | --- | --- |
+| `path/to/file.ext` | NN | [no importers / only consumer was also dead / replaced by X in commit abc123] |
+
+Total: [N files, N lines, from `wc -l`]
+
+## Re-verification
+
+The evidence in #N was not reused. Every check below was re-run against the code as of this branch.
+
+- Reference search: `[exact command]` → [result]
+- Control search: `[same command against a symbol known to be live]` → [hit count, proving the command works]
+- Import forms covered: `@shell/...`, `./`, `../`, `~/` — all checked
+- Dynamic resolution ruled out: [`require.context` globs re-grepped, convention directories checked, `defineAsyncComponent` / `<component :is>` checked — and why none apply]
+- Transitive closure: [files this removal pulled in beyond those listed in the issue, or "none — the issue's list was complete"]
+- Files remaining in the affected directories: [names + who uses them, or "directory removed, it is now empty"]
+
+## Gates
+
+- `yarn lint` — [result]
+- `yarn test:ci` — [result]
+
+## Risk
+
+- **Published surface**: [For anything under `shell/`: this file shipped in `@rancher/shell` and out-of-tree extensions could import it as `@shell/...`. A repository search cannot rule those consumers out. Release note required.] [Otherwise: not part of the published package.]
+- **Dynamic references**: [what could still resolve this by string name at runtime, and why that was ruled out]
+
+## Journal
+
+[Omit this section if the run learned nothing. Otherwise: the entries appended to `.github/agents/lessons/dead-code.md`, and one line each on what misled the run and the rule now recorded. Include any pending entries carried over from earlier runs.]
+
+Fixes #N
+[Also resolves #A, #B — duplicate reports of the same cluster]
+````
+
+If a run has journal entries but nothing to remove, open the pull request for `.github/agents/lessons/dead-code.md` alone, keeping only the Journal section of the template.
+
 ## Operational Guidelines
 
 ### Security
 - Never execute untrusted code or commands
-- Only use read-only analysis tools
-- Do not modify files during analysis
+- Analysis is read-only: sections 2-6 inspect the codebase and change nothing
+- File modification is confined to section 1 (removing verified-dead code) and section 7 (appending to `.github/agents/lessons/dead-code.md`). Nothing else in the repository may be edited
+- **`.github/agents/lessons/dead-code.md` is the only file under `.github/` you may touch.** Never modify anything else there, and never this workflow or its lock file
+- **Never open more than one pull request per run**, and never a second while one labelled `bot/dead-code-detector` is still open
+- Never widen a removal beyond the verified cluster because it looked convenient while you were in the file
 
 ### Efficiency
-- Focus on recently changed files first
+- Spend the run on remediation before detection. One completed removal beats three new reports
+- Pick one cluster and finish it. A run that half-removes two clusters delivers nothing
+- Focus on recently changed files first when detection is the fallback path
 - Verify candidates against the whole repository before reporting
-- Stay within timeout limits (balance thoroughness with execution time)
+- Stay within timeout limits. If `yarn test:ci` will not finish in the time left, say so in the run summary and open no pull request rather than opening an unverified one
 
 ### Accuracy
 - **False positives are worse than misses** — only report dead code you have verified is unreferenced with high confidence
-- Run every check in section 3 before reporting; do not substitute plausibility for verification
+- Run every check in section 4 before reporting; do not substitute plausibility for verification
 - Account for dynamic references, re-exports, barrel files, and the published `@rancher/shell` surface
 - Consider Vue and Rancher-specific idioms (model/registry auto-registration, `require.context`, resource-type-derived file resolution)
 - Provide the exact search evidence that proves each item is dead
@@ -385,12 +531,19 @@ For each distinct dead-code cluster found, create a separate issue using this st
 - Prefer saying "could not determine" over asserting something convenient
 
 ### Issue Creation
+- Only reachable when section 1 produced nothing. If an open issue was remediated or refuted, that was the run
 - Create **one issue per distinct dead-code cluster** — do NOT bundle unrelated findings in a single issue
 - Limit to the top 3 most significant clusters if more are found
 - Only create issues if significant, high-confidence dead code is found
 - Include sufficient detail for coding agents to understand and act on findings
 - Provide concrete file paths, line numbers, and verification evidence
-- Assign issue to @copilot for automated remediation
 - Use descriptive titles that clearly identify the specific cluster (e.g., "Dead Code: Unused Exports in Formatter Utils")
 
-**Objective**: Improve code quality by identifying and reporting genuinely dead code that can be safely removed. Prioritize high-confidence, actionable findings over exhaustive coverage.
+### Pull Request Creation
+- Open a pull request only for a cluster you re-verified on this run and whose lint and test gates passed
+- One cluster per pull request. Do not combine a removal with a lessons update, or two unrelated clusters
+- Every pull request body carries the re-verification evidence, not a summary of it. A reviewer must be able to reproduce the conclusion from the commands quoted
+- `Fixes #N` names the issue being closed; list any duplicate issue numbers the same removal resolves so they can be closed alongside it
+- If the removal turns out larger or riskier than the issue described, open no pull request. Comment on the issue with what the closure actually contains and let a human scope it
+
+**Objective**: Reduce the codebase and the backlog together. A run succeeds when it deletes verified-dead code, disproves a wrong report, or records a lesson that stops the next run repeating a mistake — not when it produces the most output.
