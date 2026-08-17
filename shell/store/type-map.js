@@ -214,15 +214,19 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 const instanceMethods = {};
 
 export const IF_HAVE = {
-  V2_MONITORING:            'v2-monitoring',
-  PROJECT:                  'project',
-  NO_PROJECT:               'no-project',
-  NOT_V1_ISTIO:             'not-v1-istio',
-  MULTI_CLUSTER:            'multi-cluster',
-  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
-  ADMIN:                    'admin-user',
-  MCM_DISABLED:             'mcm-disabled',
-  NOT_STANDALONE_HARVESTER: 'not-standalone-harvester',
+  V2_MONITORING:              'v2-monitoring',
+  PROJECT:                    'project',
+  NO_PROJECT:                 'no-project',
+  NOT_V1_ISTIO:               'not-v1-istio',
+  MULTI_CLUSTER:              'multi-cluster',
+  NEUVECTOR_NAMESPACE:        'neuvector-namespace',
+  ADMIN:                      'admin-user',
+  MCM_DISABLED:               'mcm-disabled',
+  NOT_STANDALONE_HARVESTER:   'not-standalone-harvester',
+  // Show if the user can access cluster OR project role template bindings. Used by the
+  // "Cluster and Project Members" nav so a user with only project-level membership permissions
+  // (e.g. Manage Project Members) can reach it, not just cluster-level ones (SURE-8995).
+  CLUSTER_OR_PROJECT_MEMBERS: 'cluster-or-project-members',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -2055,6 +2059,13 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.NOT_STANDALONE_HARVESTER: { // Not used by harvester extension...
     return !getters['isStandaloneHarvester'];
+  }
+  case IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS: {
+    // SURE-8995: the Cluster and Project Members page is reachable if the user can access EITHER
+    // cluster role template bindings (cluster owner/member) OR project ones (e.g. Manage Project
+    // Members). Previously it was gated on cluster bindings alone, hiding it from project members.
+    return !!getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) ||
+           !!getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
   }
   default:
     return false;

@@ -218,6 +218,12 @@ export default {
     canManageMembers() {
       return canViewClusterPermissionsEditor(this.$store);
     },
+    // SURE-8995: the page is now reachable by users with only project membership permissions. Show the
+    // Cluster Membership tab only to users who can actually access cluster role bindings (the previous
+    // gate for the whole page), so project-only users don't see an empty/irrelevant cluster tab.
+    canViewClusterMembers() {
+      return !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
+    },
     canManageProjectMembers() {
       return canViewProjectMembershipEditor(this.$store);
     },
@@ -303,6 +309,7 @@ export default {
     />
     <Tabbed>
       <Tab
+        v-if="canViewClusterMembers"
         name="cluster-membership"
         :label="t('members.clusterMembership')"
       >
