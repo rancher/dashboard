@@ -297,16 +297,11 @@ export default {
           </div>
         </div>
 
-        <Banner
-          v-if="hasNoIdentifier"
-          color="warning"
-          :label="t('certManager.certificate.validation.noIdentifiers')"
-        />
-
         <ArrayList
           v-model:value="value.spec.dnsNames"
           :title="t('certManager.certificate.dnsNames')"
           :add-label="t('certManager.certificate.addDnsName')"
+          :required="hasNoIdentifier"
           :mode="mode"
           class="mb-20"
         />
@@ -317,6 +312,7 @@ export default {
               v-model:value="value.spec.commonName"
               :label="t('certManager.certificate.commonName')"
               :tooltip="t('certManager.certificate.commonNameTooltip')"
+              :required="hasNoIdentifier"
               :mode="mode"
             />
           </div>
