@@ -47,8 +47,9 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
 
     clusterMembership.waitForPageWithExactUrl();
 
-    // After adding the member the list can lag the create, or the row can render with a still-loading
-    // principal (issue #8804), so the new member isn't queryable by name yet. Reload until the row
+    // After adding the member the list can lag the create (rancher/dashboard#18846), or the row can
+    // render with a still-loading principal (#8804), so the new member isn't queryable by name yet.
+    // Reload until the row
     // resolves to the username. The previous reload-only-when-empty check missed the "rows present
     // but the new member's name not resolved yet" case: attempt 1 then timed out here, and because
     // the binding was already created the retry re-added a duplicate and got stuck on the create form.
