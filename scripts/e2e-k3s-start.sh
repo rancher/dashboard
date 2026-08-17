@@ -5,7 +5,7 @@
 # ----------------------- Input
 # ---------------------------------
 
-USE_LOCAL_BRANCH_METADATA=false # branch_metadata usually just comes from `master`. if there are dependent changes in a PR and the local version is needed toggle this to `true`
+USE_LOCAL_BRANCH_METADATA=true # [EXPERIMENT] use this branch's pinned branches-metadata.json (pre-08-14 Rancher head) to isolate the e2e regression. Revert to false before merge.
 KUBE_TYPE=${KUBE_TYPE:-K3S} # K3S or K3D
 OVERRIDE_UIS=${OVERRIDE_UIS:-true} # use UI bits supplied externally (e.g. by CI) rather than the built in UI bits
 TEST_BASE_URL=${TEST_BASE_URL:-https://127.0.0.1.sslip.io}
