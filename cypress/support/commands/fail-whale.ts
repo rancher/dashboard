@@ -1,3 +1,5 @@
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+
 /**
  * Recover from the fail-whale error page.
  *
@@ -14,15 +16,20 @@
  * management bootstrap straight to /fail-whale, with no retry. With testIsolation off that state then
  * poisons every remaining test in the spec.
  *
- * This settles briefly (so an in-flight redirect can land), and if we are on /fail-whale, recovers -
- * by default a plain `cy.reload()`, which the fail-whale page bounces to home (shell/pages/fail-whale.vue
- * redirects a fresh load with no store error). Callers that must end up on a specific page pass a
- * `reNavigate` callback (e.g. re-probe + re-enter the cluster) instead. Retried a bounded number of
- * times until we land off fail-whale.
+ * Rather than a blind fixed wait, we wait for the app to actually render its destination: both a
+ * normal page and the fail-whale render the shell's `#main-content`, and it only mounts once the
+ * cold-load has resolved (the redirect fires in the nav guard BEFORE the target route commits). So
+ * once `#main-content` is present the URL is final, and we recover if it is /fail-whale - by default a
+ * plain `cy.reload()`, which the fail-whale page bounces to home (shell/pages/fail-whale.vue redirects
+ * a fresh load with no store error). Callers that must end up on a specific page pass a `reNavigate`
+ * callback (e.g. re-probe + re-enter the cluster) instead. Retried a bounded number of times until we
+ * land off fail-whale. On the normal path this returns as soon as the page renders - no fixed wait.
  */
 Cypress.Commands.add('recoverFromFailWhale', (reNavigate?: () => void, tries = 4) => {
   const attempt = (n: number): void => {
-    cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting -- let an in-flight fail-whale redirect land before checking
+    // Wait for the destination to render (loaded page OR fail-whale both mount #main-content), then
+    // check which one it settled on.
+    cy.get('#main-content', LONG_TIMEOUT_OPT).should('exist');
     cy.url().then((url) => {
       if (url.includes('/fail-whale') && n < tries) {
         if (reNavigate) {
