@@ -41,52 +41,12 @@ const header = new HeaderPo();
 // non-ClusterNotFound error and dead-ends on /fail-whale, with no retry or tolerance. The app
 // should retry/tolerate a transient downstream blip during load instead of crashing.
 //
-// Test-side we PREVENT it first - confirm the mgmt cluster is Connected, then poll the downstream
-// proxy endpoints loadCluster hits (schemas/counts/namespaces) until they are consistently serving
-// before navigating. But the crash happens inside the app's async load AFTER any precondition we can
-// check, so prevention alone is not a guarantee: ignoreClusterLoadNetworkError + goToClusterDashboard-
-// Tolerant below add a bounded RECOVERY (re-navigate off fail-whale) for the residual case.
-const waitForClusterSteveReady = (clusterId = 'local') => {
-  // 1. mgmt cluster reports Connected (2.6+) or Ready - the same signal loadCluster checks.
-  cy.waitForRancherResource(
-    'v1',
-    'management.cattle.io.clusters',
-    clusterId,
-    (resp: Cypress.Response<any>) => (resp?.body?.status?.conditions || []).some(
-      (c: any) => (c.type === 'Connected' || c.type === 'Ready') && c.status === 'True'
-    ),
-  );
-
-  // 2. Poll ALL the downstream Steve proxy endpoints loadCluster fetches (schemas, counts,
-  // namespaces) until they ALL return 200 across two consecutive rounds. A single 200 can be followed
-  // immediately by a reconnect blip - especially right after the churn of creating resources - so
-  // require the proxy to be consistently serving before we navigate, not just answering once.
-  const base = `${ Cypress.env('api') }/k8s/clusters/${ clusterId }/v1`;
-  const roundServing = (): Cypress.Chainable<boolean> => cy.request({
-    url: `${ base }/schemas`, failOnStatusCode: false, retryOnNetworkFailure: true
-  })
-    .then((a) => cy.request({
-      url: `${ base }/counts`, failOnStatusCode: false, retryOnNetworkFailure: true
-    })
-      .then((b) => cy.request({
-        url: `${ base }/namespaces`, failOnStatusCode: false, retryOnNetworkFailure: true
-      })
-        .then((c) => a.status === 200 && b.status === 200 && c.status === 200)));
-
-  const pollUntilStable = (good = 0, attempts = 0): void => {
-    roundServing().then((ok) => {
-      const next = ok ? good + 1 : 0;
-
-      if (next >= 2 || attempts >= 30) {
-        return;
-      }
-      cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
-      pollUntilStable(next, attempts + 1);
-    });
-  };
-
-  pollUntilStable();
-};
+// Test-side we PREVENT it first with PagePo.readyForClusterPage - confirm the mgmt cluster is
+// Connected, then poll the downstream proxy endpoints loadCluster hits (schemas/counts/namespaces)
+// until they are consistently serving before navigating. But the crash happens inside the app's async
+// load AFTER any precondition we can check, so prevention alone is not a guarantee:
+// ignoreClusterLoadNetworkError + goToClusterDashboardTolerant below add a bounded RECOVERY
+// (re-navigate off fail-whale) for the residual case.
 
 // Tolerate the app's known uncaught "Network Error" during cluster load (the tagged bug above): the
 // unhandled promise rejection would otherwise auto-fail the test even when a re-navigation recovers.
@@ -102,7 +62,7 @@ const ignoreClusterLoadNetworkError = () => {
 };
 
 // Navigate into the cluster dashboard, tolerating the fail-whale crash the app cannot recover from.
-// Prevention (waitForClusterSteveReady) makes this rare, but the crash happens inside the app's async
+// Prevention (readyForClusterPage) makes this rare, but the crash happens inside the app's async
 // loadCluster after any precondition we can check - so if we still land on fail-whale, re-confirm the
 // proxy is serving and re-navigate, as a bounded fallback for the tagged app bug.
 const goToClusterDashboardTolerant = (clusterId = 'local'): void => {
@@ -110,7 +70,7 @@ const goToClusterDashboardTolerant = (clusterId = 'local'): void => {
   // If we still landed on fail-whale, re-confirm the proxy is serving and re-enter the cluster
   // (the shared recovery drives the settle + retry loop).
   cy.recoverFromFailWhale(() => {
-    waitForClusterSteveReady(clusterId);
+    clusterDashboard.readyForClusterPage(clusterId);
     clusterDashboard.goTo();
   });
 };
@@ -131,8 +91,8 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
     // Ensure the downstream cluster Steve proxy is actually serving before we enter the cluster,
     // so loadCluster's schemas/counts fetch does not hit a transient "Network Error" and crash to
-    // fail-whale (see waitForClusterSteveReady).
-    waitForClusterSteveReady();
+    // fail-whale (see readyForClusterPage).
+    clusterDashboard.readyForClusterPage();
 
     clusterList.list().explore('local').click();
 
@@ -363,7 +323,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     // navigating in (prevention), tolerate the app's known uncaught Network Error, and re-navigate off
     // fail-whale if the app still crashes inside its async load (recovery) - see the helpers above.
     ignoreClusterLoadNetworkError();
-    waitForClusterSteveReady();
+    clusterDashboard.readyForClusterPage();
     goToClusterDashboardTolerant();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
