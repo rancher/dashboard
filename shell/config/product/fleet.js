@@ -98,12 +98,10 @@ export function init(store) {
     FLEET.CLUSTER,
     FLEET.CLUSTER_GROUP,
     FLEET.WORKSPACE,
+    FLEET.SCHEDULE
   ]);
 
   configureType(FLEET.CLUSTER, { isCreatable: false });
-
-  weightType(FLEET.CLUSTER, 108, true);
-  weightType(FLEET.CLUSTER_GROUP, 107, true);
 
   headers(FLEET.WORKSPACE, [
     STATE,
@@ -138,6 +136,18 @@ export function init(store) {
     },
     AGE
   ]);
+
+  configureType(FLEET.SCHEDULE, { isCreatable: false });
+
+  headers(FLEET.SCHEDULE, [
+    STATE,
+    NAME_COL,
+    AGE
+  ]);
+
+  weightType(FLEET.CLUSTER, 108, true);
+  weightType(FLEET.CLUSTER_GROUP, 107, true);
+  weightType(FLEET.SCHEDULE, 106, true);
 
   basicType([
     FLEET.GIT_REPO,
