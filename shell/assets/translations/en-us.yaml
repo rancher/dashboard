@@ -9089,6 +9089,7 @@ featureFlags:
 
 performance:
   label: UI Performance Settings
+  removedSettingsBanner: As of Rancher v2.16, the ui-sql-cache feature is always enabled. Affected performance settings have been removed
   settingName: Performance
   websocketNotification:
     label: Websocket Notifications

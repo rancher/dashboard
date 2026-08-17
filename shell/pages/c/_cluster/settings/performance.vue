@@ -6,8 +6,6 @@ import { Banner } from '@components/Banner';
 import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import paginationUtils from '@shell/utils/pagination-utils';
-import Collapse from '@shell/components/Collapse';
 
 export default {
   components: {
@@ -15,7 +13,6 @@ export default {
     Loading,
     AsyncButton,
     Banner,
-    Collapse,
   },
 
   async fetch() {
@@ -38,11 +35,10 @@ export default {
 
   data() {
     return {
-      uiPerfSetting:          null,
-      bannerVal:              {},
-      value:                  {},
-      errors:                 [],
-      ssPApplicableTypesOpen: false,
+      uiPerfSetting: null,
+      bannerVal:     {},
+      value:         {},
+      errors:        [],
     };
   },
 
@@ -52,30 +48,6 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
-
-    sspApplicableResources() {
-      const storeResources = [];
-      const stores = paginationUtils.getStoreSettings(this.value.serverPagination);
-
-      Object.entries(stores).forEach(([store, settings]) => {
-        const resources = [];
-
-        if (settings.resources.enableAll) {
-          resources.push(this.t('performance.serverPagination.resources.all'));
-        } else {
-          settings.resources.enableSome.enabled?.forEach((resource) => {
-            resources.push(!!resource.length ? resource : `${ resource.resource } (${ resource.context })`);
-          });
-          if (settings.resources.enableSome.generic) {
-            resources.push(this.t('performance.serverPagination.resources.generic', {}, true));
-          }
-        }
-
-        storeResources.push(`Resources in store '${ store }': ${ resources.join(', ') }`);
-      });
-
-      return storeResources.join('<br><br>');
-    }
   },
 
   methods: {
@@ -102,6 +74,10 @@ export default {
     <h1>
       {{ t('performance.label') }}
     </h1>
+    <Banner
+      color="info"
+      :label="t('performance.removedSettingsBanner')"
+    />
     <div>
       <div class="ui-perf-setting">
         <!-- Websocket Notifications -->
@@ -115,24 +91,6 @@ export default {
             class="mt-10 mb-20"
             :primary="true"
           />
-        </div>
-        <!-- Server Side Pagination -->
-        <div class="mt-20">
-          <h2 id="ssp-setting">
-            {{ t('performance.serverPagination.label') }}
-          </h2>
-          <p>{{ t('performance.serverPagination.description') }}</p>
-          <Collapse
-            :title="t('performance.serverPagination.applicable')"
-            :open="ssPApplicableTypesOpen"
-            :isDisabled="false"
-            @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
-          >
-            <p
-              v-clean-html="sspApplicableResources"
-              :class="{ 'text-muted': !value.serverPagination.enabled }"
-            />
-          </Collapse>
         </div>
       </div>
     </div>
@@ -157,26 +115,10 @@ export default {
 </template>
 
 <style scoped lang='scss'>
-.overlay {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  background-color: var(--overlay-bg);
-  z-index: 1;
-}
   .ui-perf-setting {
     P {
       line-height: 1.25;
       margin-bottom: 10px;
     }
-
-    .underline {
-      text-decoration: underline;
-    }
-  }
-  .input {
-    max-width: 25%;
   }
 </style>
