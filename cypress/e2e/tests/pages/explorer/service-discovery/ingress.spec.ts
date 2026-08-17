@@ -166,8 +166,8 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       // The row's per-resource action button hydrates after its cells (available actions load
       // separately), so the table load-gate above is not always enough - wait for the button
       // itself, with a longer timeout, before opening the menu.
-      ingressListPagePo.list().resourceTable().sortableTable().rowElementWithName(ingressName)
-        .find('[data-testid*="action-button"]', LONG_TIMEOUT_OPT)
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+        .actionBtn(LONG_TIMEOUT_OPT)
         .should('be.visible');
       ingressListPagePo.list().actionMenu(ingressName).getMenuItem('Edit Config').click();
 
