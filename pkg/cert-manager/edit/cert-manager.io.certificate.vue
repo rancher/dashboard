@@ -59,8 +59,6 @@ export default {
 
   data() {
     return {
-      // Stop auto-filling secretName from the resource name once the user edits it themselves.
-      secretNameTouched: !!this.value.spec?.secretName,
       fvFormRuleSets:    [
         {
           path: 'metadata.name', rules: ['required', 'dnsLabel'], translationKey: 'nameNsDescription.name.label'
@@ -210,12 +208,6 @@ export default {
         this.setPrivateKey('size', undefined);
       }
     },
-
-    'value.metadata.name'(neu) {
-      if (this.isCreate && neu && !this.secretNameTouched) {
-        this.value.spec.secretName = neu;
-      }
-    },
   },
 
   methods: {
@@ -230,10 +222,6 @@ export default {
 
     setSecretTemplate(key, keyValue) {
       this.value.spec.secretTemplate = { ...this.value.spec.secretTemplate, [key]: keyValue };
-    },
-
-    onSecretNameInput() {
-      this.secretNameTouched = true;
     },
 
   },
@@ -305,7 +293,6 @@ export default {
               :mode="mode"
               :rules="fvGetAndReportPathRules('spec.secretName')"
               required
-              @update:value="onSecretNameInput"
             />
           </div>
         </div>

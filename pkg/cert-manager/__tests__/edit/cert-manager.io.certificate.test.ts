@@ -202,45 +202,6 @@ describe('component: CertificateEdit', () => {
     });
   });
 
-  describe('secret name', () => {
-    it('should follow the resource name while untouched', async() => {
-      const { wrapper, value } = render();
-
-      value.metadata.name = 'my-cert';
-      await wrapper.vm.$nextTick();
-
-      expect(value.spec.secretName).toBe('my-cert');
-    });
-
-    it('should stop following once the user edits it', async() => {
-      const { wrapper, value } = render();
-
-      wrapper.vm.onSecretNameInput();
-      value.metadata.name = 'my-cert';
-      await wrapper.vm.$nextTick();
-
-      expect(value.spec.secretName).toBeUndefined();
-    });
-
-    it('should not overwrite a secret name that already exists', async() => {
-      const { wrapper, value } = render({ secretName: 'existing-tls' });
-
-      value.metadata.name = 'my-cert';
-      await wrapper.vm.$nextTick();
-
-      expect(value.spec.secretName).toBe('existing-tls');
-    });
-
-    it('should not auto-fill when editing rather than creating', async() => {
-      const { wrapper, value } = render({}, 'edit');
-
-      value.metadata.name = 'my-cert';
-      await wrapper.vm.$nextTick();
-
-      expect(value.spec.secretName).toBeUndefined();
-    });
-  });
-
   describe('validation', () => {
     const rule = () => render().wrapper.vm.fvExtraRules.atLeastOneIdentifier;
 
