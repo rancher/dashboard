@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
+import CertManagerResourceTabs from '../components/CertManagerResourceTabs.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Banner from '@components/Banner/Banner.vue';
 import DetailSummary, { SummaryItem } from '../components/DetailSummary.vue';
@@ -42,7 +42,7 @@ const showReason = computed(() => !!props.value.status?.reason && props.value.st
       :label="value.status.reason"
     />
 
-    <ResourceTabs :value="value">
+    <CertManagerResourceTabs :value="value">
       <Tab
         name="challenge-details"
         :label="t('certManager.challenge.tab.details')"
@@ -54,7 +54,7 @@ const showReason = computed(() => !!props.value.status?.reason && props.value.st
         <h3>{{ t('certManager.challenge.key') }}</h3>
         <pre class="cert-manager-key">{{ value.spec?.key }}</pre>
       </Tab>
-    </ResourceTabs>
+    </CertManagerResourceTabs>
   </div>
 </template>
 

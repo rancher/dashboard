@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
+import CertManagerResourceTabs from '../components/CertManagerResourceTabs.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Banner from '@components/Banner/Banner.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
@@ -38,7 +38,7 @@ const acmeUrls = computed<SummaryItem[]>(() => [
       :label="value.status.reason"
     />
 
-    <ResourceTabs :value="value">
+    <CertManagerResourceTabs :value="value">
       <Tab
         name="authorizations"
         :label="t('certManager.order.tab.authorizations')"
@@ -96,7 +96,7 @@ const acmeUrls = computed<SummaryItem[]>(() => [
           :groupable="false"
         />
       </Tab>
-    </ResourceTabs>
+    </CertManagerResourceTabs>
   </div>
 </template>
 
