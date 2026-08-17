@@ -19,7 +19,6 @@ import AcmeConfig from './issuer/AcmeConfig.vue';
  */
 export default {
   name:         'IssuerEdit',
-  emits:        ['input'],
   inheritAttrs: false,
 
   components: {

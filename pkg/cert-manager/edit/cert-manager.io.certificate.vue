@@ -24,7 +24,6 @@ import DurationInput from '../components/DurationInput.vue';
 
 export default {
   name:         'CertificateEdit',
-  emits:        ['input'],
   inheritAttrs: false,
 
   components: {
@@ -59,7 +58,7 @@ export default {
 
   data() {
     return {
-      fvFormRuleSets:    [
+      fvFormRuleSets: [
         {
           path: 'metadata.name', rules: ['required', 'dnsLabel'], translationKey: 'nameNsDescription.name.label'
         },
