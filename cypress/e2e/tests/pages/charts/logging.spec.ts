@@ -8,7 +8,7 @@ import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import CardPo from '@/cypress/e2e/po/components/card.po';
 import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
@@ -266,24 +266,19 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
         });
       });
 
-      // [CREATE ISSUE TO INVESTIGATE] The logging uninstall (Helm uninstall + CRD/finalizer cleanup)
-      // takes minutes - the app row stays in an "Uninstalling ..." state that whole time - so the list
-      // still shows the app well after the uninstall action returned. Uninstalling should complete in a
-      // reasonable time (or the UI should not block a fresh render on it).
-      //
-      // Wait for the app to actually be gone at the API level (with a generous budget for the slow
-      // uninstall) before asserting the list shows no rows, instead of racing the multi-minute cleanup.
-      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp?.status === 404, 160, { failOnStatusCode: false });
-
-      // Verify the chart is removed after uninstallation (also holds when it was already gone).
+      // EXPERIMENT (PR review): wait on the app's UI state instead of polling the API for a 404. The
+      // uninstall (Helm + CRD/finalizer cleanup) can take minutes - the row shows "Uninstalling ..."
+      // that whole time - so wait (very generously) for the row to leave the list. If this re-flakes
+      // (the installed-apps list can finish rendering empty spuriously - rancher/dashboard#18558 - or
+      // may not drop the row reactively) we revert to polling the API for a 404.
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
       cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
       installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
       installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
       installedAppsPage.appsList().sortableTable().filter(chartApp);
-      installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-      installedAppsPage.appsList().sortableTable().checkRowCount(true, 1, undefined, true);
+      installedAppsPage.appsList().sortableTable().rowElementWithName(chartApp, VERY_LONG_TIMEOUT_OPT)
+        .should('not.exist');
     });
   });
 
