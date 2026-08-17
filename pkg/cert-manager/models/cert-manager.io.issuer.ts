@@ -7,11 +7,7 @@ import { issuerRefMatches } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
 import { IssuerSpec, IssuerStatus, ObjectMeta } from '../schema';
-
-/** Exactly one of these is set on an Issuer/ClusterIssuer spec. */
-export const ISSUER_CONFIG_TYPES = ['acme', 'ca', 'selfSigned', 'vault', 'venafi'] as const;
-
-export type IssuerConfigType = typeof ISSUER_CONFIG_TYPES[number];
+import { ISSUER_CONFIG_TYPES, IssuerConfigType } from '../form-options';
 
 const WELL_KNOWN_ACME_SERVERS: Record<string, string> = {
   'https://acme-v02.api.letsencrypt.org/directory':         'Let\'s Encrypt',

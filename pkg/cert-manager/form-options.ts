@@ -61,6 +61,10 @@ export const CERTIFICATE_DEFAULTS = {
   },
 };
 
+/**
+ * Exactly one of these is set on an Issuer/ClusterIssuer spec. The order is meaningful: the first
+ * entry is the config type a new Issuer defaults to (see IssuerEdit).
+ */
 export const ISSUER_CONFIG_TYPES = ['selfSigned', 'ca', 'acme', 'vault', 'venafi'] as const;
 
 export type IssuerConfigType = typeof ISSUER_CONFIG_TYPES[number];
