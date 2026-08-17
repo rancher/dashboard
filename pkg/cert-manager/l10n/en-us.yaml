@@ -54,10 +54,6 @@ certManager:
     lifecycleAndConfiguration: Lifecycle & Configuration
     commonName: Common Name
     commonNameTooltip: The X.509 Common Name, limited to 64 characters. Optional, and most deployments leave it empty in favour of DNS Names. If you do set one, it must also appear in the DNS Names or IP Addresses.
-    revision: Revision
-    notBefore: Not Before
-    notAfter: Not After
-    renewalTime: Renewal Time
     duration: Duration
     durationTooltip: How long the certificate is valid for. cert-manager defaults to 90 days.
     renewBefore: Renew Before

@@ -243,16 +243,9 @@ export default class Certificate extends SteveModel {
       },
       { label: this.t('certManager.certificate.commonName'), content: this.spec?.commonName },
       { label: this.t('certManager.certificate.sans'), content: this.subjectAltNamesDisplay },
-      { label: this.t('certManager.certificate.revision'), content: this.status?.revision },
       { separator: true },
       {
-        label:         this.t('certManager.certificate.notBefore'),
-        content:       this.status?.notBefore,
-        formatter:     'LiveDate',
-        formatterOpts: { addSuffix: true },
-      },
-      {
-        label:         this.t('certManager.certificate.notAfter'),
+        label:         this.t('certManager.tableHeaders.expires'),
         content:       this.expiresAt,
         // LiveDate always appends "ago", so a future expiry reads as though it already lapsed.
         // LiveExpiryDate keys off the row state and only says "ago" once actually expired.
@@ -260,12 +253,11 @@ export default class Certificate extends SteveModel {
         formatterOpts: { row: this },
       },
       {
-        label:     this.t('certManager.certificate.renewalTime'),
+        label:     this.t('certManager.tableHeaders.renews'),
         content:   this.renewalTime,
         // No suffix, matching the Renews column in the list - it is normally a future date.
         formatter: 'LiveDate',
       },
-      { label: this.t('certManager.certificate.duration'), content: this.spec?.duration },
       {
         label:   this.t('certManager.certificate.failedAttempts'),
         content: this.status?.failedIssuanceAttempts,
@@ -276,9 +268,6 @@ export default class Certificate extends SteveModel {
         formatter:     'LiveDate',
         formatterOpts: { addSuffix: true },
       },
-      { separator: true },
-      { label: this.t('certManager.certificate.privateKey.label'), content: this.privateKeyDisplay },
-      { label: this.t('certManager.certificate.privateKey.rotationPolicy'), content: this.spec?.privateKey?.rotationPolicy },
     ];
   }
 

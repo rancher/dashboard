@@ -311,15 +311,10 @@ describe('model: cert-manager.io.certificate', () => {
         'certManager.tableHeaders.secret',
         'certManager.certificate.commonName',
         'certManager.certificate.sans',
-        'certManager.certificate.revision',
-        'certManager.certificate.notBefore',
-        'certManager.certificate.notAfter',
-        'certManager.certificate.renewalTime',
-        'certManager.certificate.duration',
+        'certManager.tableHeaders.expires',
+        'certManager.tableHeaders.renews',
         'certManager.certificate.failedAttempts',
         'certManager.certificate.lastFailure',
-        'certManager.certificate.privateKey.label',
-        'certManager.certificate.privateKey.rotationPolicy',
       ]);
     });
 
@@ -336,18 +331,18 @@ describe('model: cert-manager.io.certificate', () => {
     it('should not render a future expiry as though it already passed', () => {
       // LiveDate unconditionally appends "ago", so an expiry 88 days away read as "88 days ago".
       const cert = certificate({}, { notAfter: iso(88) });
-      const notAfter = cert.details.find((d: any) => d.label === 'certManager.certificate.notAfter');
+      const expires = cert.details.find((d: any) => d.label === 'certManager.tableHeaders.expires');
 
-      expect(notAfter.formatter).toBe('LiveExpiryDate');
-      expect(notAfter.formatterOpts.row).toBe(cert);
+      expect(expires.formatter).toBe('LiveExpiryDate');
+      expect(expires.formatterOpts.row).toBe(cert);
     });
 
     it('should only say "ago" for a date that is always in the past', () => {
-      const cert = certificate({}, { notBefore: iso(-2), renewalTime: iso(58) });
+      const cert = certificate({}, { notBefore: iso(-2), renewalTime: iso(58), lastFailureTime: iso(-5) });
       const byLabel = (label: string) => cert.details.find((d: any) => d.label === label);
 
-      expect(byLabel('certManager.certificate.notBefore').formatterOpts).toStrictEqual({ addSuffix: true });
-      expect(byLabel('certManager.certificate.renewalTime').formatterOpts).toBeUndefined();
+      expect(byLabel('certManager.certificate.lastFailure').formatterOpts).toStrictEqual({ addSuffix: true });
+      expect(byLabel('certManager.tableHeaders.renews').formatterOpts).toBeUndefined();
     });
 
     it('should keep the base details from the shell model', () => {
