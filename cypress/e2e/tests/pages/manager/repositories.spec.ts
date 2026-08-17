@@ -144,16 +144,29 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   it('can refresh a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    // Reload to pick up the repo's latest resourceVersion before refreshing. On a Cypress retry the
-    // previous attempt already refreshed (and bumped) the repo, so the list's cached copy is stale and
-    // the Refresh PUT comes back 409 (conflict) instead of 200. A fresh load avoids that poisoned-retry
-    // conflict. Wait for the row to render before opening its action menu.
-    cy.reload();
-    repositoriesPage.waitForPage();
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+
+    // EXPERIMENT (PR review): instead of reloading to pick up the repo's latest resourceVersion, retry
+    // the Refresh action if it 409s. On a Cypress retry the previous attempt already refreshed (and
+    // bumped) the repo, so the list's cached copy can be briefly stale and the Refresh PUT comes back
+    // 409; the cache should refresh shortly (socket update), so re-clicking Refresh then succeeds with
+    // the latest resourceVersion. (If the cache does not self-refresh without a reload this will loop
+    // and fail - then we revert to the reload.)
     cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`).as('refreshRepo');
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click({ force: true });
-    cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
+
+    const refreshUntilOk = (attempt = 0): void => {
+      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click({ force: true });
+      cy.wait('@refreshRepo').its('response.statusCode').then((status) => {
+        if (status !== 200 && attempt < 5) {
+          cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting -- let the list cache pick up the latest resourceVersion
+          refreshUntilOk(attempt + 1);
+        } else {
+          expect(status).to.eq(200);
+        }
+      });
+    };
+
+    refreshUntilOk();
 
     // check list details
     // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
