@@ -175,9 +175,10 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       installedAppsPage.goTo();
       installedAppsPage.waitForPage();
 
-      // [CREATE ISSUE TO INVESTIGATE] The installed-apps list intermittently finishes loading empty
-      // (renders tr.no-rows) even though the app is installed and returned by the getCharts fetch;
-      // the app should render the installed apps without needing a fresh navigation.
+      // Known issue rancher/dashboard#18558: the installed-apps list intermittently finishes loading
+      // empty (renders tr.no-rows) even though the app is installed and returned by the getCharts
+      // fetch; the app should render the installed apps without needing a fresh navigation. This e2e
+      // test depends on that fix - the re-navigate retry below is the workaround until it lands.
       //
       // The installed-apps list intermittently finishes loading empty (the tr.no-rows row) even
       // though the app is installed. Waiting for the loading indicator to clear FIRST is what lets
