@@ -13,6 +13,7 @@ import { canViewProjectMembershipEditor } from '@shell/components/form/Members/P
 import { allHash } from '@shell/utils/promise';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { RcButton } from '@components/RcButton';
+import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
 
 /**
  * Explorer members page.
@@ -73,7 +74,10 @@ export default {
     }
 
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
-      .then((projects) => (this['projects'] = projects));
+      .then((projects) => {
+        this['projects'] = projects;
+        this.loadProjectMembershipPermissions();
+      });
 
     const hydration = {
       normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
@@ -103,6 +107,10 @@ export default {
       normanClusterRoleTemplateBindings: [],
       projectRoleTemplateBindings:       [],
       projects:                          [],
+      // SURE-8995: per-project member-management capabilities ({ create, remove }),
+      // keyed by mgmt project id. Populated from the projects' `resourcePermissions`
+      // (steve `?checkPermissions=`) in fetch().
+      projectMembershipPermissions:      {},
       VIRTUAL_TYPES,
       projectRoleTemplateColumns:        [
         STATE,
@@ -241,6 +249,27 @@ export default {
     },
   },
   methods: {
+    // SURE-8995: `canEditProjectMembers` (schema collectionMethods POST) is a
+    // GLOBAL flag - true if the user can create a binding on *any* project - so
+    // on its own it wrongly shows the Add/remove actions on every project. Read
+    // the per-project answer from each project's `resourcePermissions` instead
+    // (steve `?checkPermissions=`), so member actions only appear on projects
+    // the user can actually manage.
+    async loadProjectMembershipPermissions() {
+      if (!this.canEditProjectMembers) {
+        return; // can't create bindings anywhere - nothing to check
+      }
+
+      this.projectMembershipPermissions = await fetchProjectMembershipPermissions(this.$store);
+    },
+    canAddProjectMember(group) {
+      return !!this.projectMembershipPermissions[this.getMgmtProjectId(group)]?.create;
+    },
+    canRemoveProjectMember(row) {
+      const projectId = (row.projectId || '').replace(':', '/');
+
+      return !!this.projectMembershipPermissions[projectId]?.remove;
+    },
     getMgmtProjectId(group) {
       return group.group.key.replace(':', '/');
     },
@@ -364,7 +393,7 @@ export default {
               </div>
               <div class="right">
                 <button
-                  v-if="canEditProjectMembers"
+                  v-if="canAddProjectMember(group)"
                   type="button"
                   class="btn btn-sm role-secondary mr-10 right"
                   :data-testid="`add-project-member-${getProjectLabel(group).replace(' ', '').toLowerCase()}`"
@@ -393,6 +422,7 @@ export default {
                 {{ role.nameDisplay }}
               </span>
               <i
+                v-if="canRemoveProjectMember(row)"
                 class="icon icon-close"
                 :data-testid="`role-values-close-${j}`"
                 @click="removeRole(row, role, $event)"

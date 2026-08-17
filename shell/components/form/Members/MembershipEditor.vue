@@ -5,6 +5,7 @@ import Principal from '@shell/components/auth/Principal';
 import Loading from '@shell/components/Loading';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { get, set } from '@shell/utils/object';
+import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
 
 function normalizeId(id) {
   return id?.replace(':', '/') || id;
@@ -88,6 +89,17 @@ export default {
     }
 
     this['bindings'] = bindings;
+
+    // SURE-8995: only offer "Add" when the user can actually create a binding in
+    // THIS project. Schema methods are global, so read the per-project answer
+    // from the project's `resourcePermissions` (steve `?checkPermissions=`). Only
+    // applies when editing an existing project's members; cluster members and the
+    // create-project flow are unaffected.
+    if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId && this.mode !== _CREATE) {
+      const permissions = await fetchProjectMembershipPermissions(this.$store, this.parentId);
+
+      this['canAddMember'] = !!permissions[normalizeId(this.parentId)]?.create;
+    }
   },
 
   data() {
@@ -95,6 +107,7 @@ export default {
       schema:            this.$store.getters[`rancher/schemaFor`](this.type),
       bindings:          [],
       lastSavedBindings: [],
+      canAddMember:      true,
     };
   },
 
@@ -197,6 +210,7 @@ export default {
     </template>
     <template #add>
       <button
+        v-if="canAddMember"
         type="button"
         class="btn role-primary mt-10"
         data-testid="add-item"
