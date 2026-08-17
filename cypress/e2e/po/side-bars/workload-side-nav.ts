@@ -6,17 +6,16 @@ import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 /**
  * Navigate to a Workloads sub-type via the side menu.
  *
- * Clicking the 'Workloads' group lands on the workload overview, which fires one summary request per
- * workload type. If any type's counts aren't populated yet the overview redirects to the Deployments
- * list AND flags the cluster in an in-memory set that keeps redirecting until a page reload
- * (shell/pages/c/_cluster/explorer/workload-dashboard/composable.ts). Clicking the target type while
- * that summary fetch is still in flight races the redirect / nav re-render and lands on the wrong
- * type.
+ * Clicking the 'Workloads' group lands on the workload overview, which asynchronously fetches a
+ * per-type summary before rendering. Clicking the target type while that load is still in flight can
+ * race the nav re-render. So after landing on the overview we wait for it to finish loading - the
+ * bento-grid (populated) or the empty state - before navigating to the target type.
  *
- * So after landing on the overview we wait for it to finish loading - the bento-grid (populated) or
- * the empty state - before navigating to the target type. Once the overview has rendered its loaded
- * state the summary has settled, so the premature-counts redirect no longer fires and the entry
- * click lands on the type we asked for.
+ * Note: the overview redirects to the Deployments list when a summary response is malformed - e.g. a
+ * list-shaped body with `data` but no `summary` - and then keeps redirecting until a reload
+ * (shell/pages/c/_cluster/explorer/workload-dashboard/composable.ts). The "pagination is hidden"
+ * tests avoid tripping that by letting the overview's `summaryonly` request reach the real backend
+ * instead of answering it with their small list mock (see the generate*DataSmall blueprints).
  */
 export const navToWorkloadTypeViaSideMenu = (
   clusterId: string,
