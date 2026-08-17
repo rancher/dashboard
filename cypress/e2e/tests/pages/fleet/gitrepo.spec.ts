@@ -449,15 +449,12 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
 
   describe('Details in a non-English locale (https://github.com/rancher/dashboard/issues/9984)', () => {
     afterEach(() => {
-      // [CREATE ISSUE TO INVESTIGATE] Switching the UI locale races the app's own save of the
-      // preferences.management.cattle.io "locale" object and returns HTTP 500 ("the object has been
-      // modified ... apply your changes to the latest version") -> the app throws to fail-whale. The
-      // app should re-read + re-save against the latest resourceVersion instead of erroring.
-      // Always reset the locale back to English AFTER the UI switch, via the API. The backend
-      // preference persists across specs and runs, so a left-over Chinese locale would poison later
-      // tests. Doing this with no concurrent UI write in flight avoids the resourceVersion conflict
-      // that racing the app's own save produced ("preferences ... locale: the object has been
-      // modified" -> HTTP 500 -> fail-whale), which was the real cause of the create-test flakiness.
+      // Reset the locale back to English AFTER the UI switch, via the API - the backend preference
+      // persists across specs and runs, so a left-over Chinese locale would poison later tests. Do it
+      // with no concurrent UI write in flight: the resourceVersion conflict ("the object has been
+      // modified ... apply your changes to the latest version" -> HTTP 500 -> fail-whale) only occurs
+      // when this programmatic reset races the test's own UI locale save immediately before it - a
+      // test-only sequence a real user would not hit, so this is test timing, not an app bug.
       cy.setUserPreference({ locale: 'en-us' }, true);
     });
 
