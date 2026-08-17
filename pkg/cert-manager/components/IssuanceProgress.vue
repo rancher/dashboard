@@ -1,5 +1,6 @@
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script setup lang="ts">
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { BadgeState } from '@components/BadgeState';
 import SubtleLink from '@shell/components/SubtleLink.vue';
 
@@ -15,29 +16,19 @@ export interface IssuanceStage {
  * the real reason sits further down the chain. Showing the chain makes that visible without the
  * user having to know the resources exist.
  */
-export default defineComponent({
-  name:       'IssuanceProgress',
-  components: { BadgeState, SubtleLink },
+defineProps<{ stages: IssuanceStage[] }>();
 
-  props: {
-    stages: {
-      type:     Array as PropType<IssuanceStage[]>,
-      required: true,
-    },
-  },
+const { t } = useI18n(useStore());
 
-  methods: {
-    /** Static throughout: a spinner on some steps and not others reads as a rendering glitch. */
-    iconFor(resource: any): string {
-      switch (resource.stateSimpleColor) {
-      case 'success': return 'icon-checkmark';
-      case 'error': return 'icon-error';
-      case 'warning': return 'icon-warning';
-      default: return 'icon-dot-open';
-      }
-    },
-  },
-});
+/** Static throughout: a spinner on some steps and not others reads as a rendering glitch. */
+function iconFor(resource: any): string {
+  switch (resource.stateSimpleColor) {
+  case 'success': return 'icon-checkmark';
+  case 'error': return 'icon-error';
+  case 'warning': return 'icon-warning';
+  default: return 'icon-dot-open';
+  }
+}
 </script>
 
 <template>
