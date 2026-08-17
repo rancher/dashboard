@@ -208,7 +208,6 @@
     "neostandard": "0.13.0",
     "nodemon": "2.0.22",
     "nyc": "17.1.0",
-    "sinon": "8.1.1",
     "start-server-and-test": "2.0.10",
     "style-loader": "3.3.2",
     "ts-jest": "29.4.12",
