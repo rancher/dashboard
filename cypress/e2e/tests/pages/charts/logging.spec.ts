@@ -202,9 +202,10 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
 
       // Loading has finished and the list rendered rows.
       installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
-      // [CREATE ISSUE TO INVESTIGATE] Uninstalling an app together with its CRD errors the prompt with
-      // "apps.catalog.cattle.io '<crd>' not found" when the CRD app is already gone. Deleting a
-      // missing CRD should be treated as already-deleted (idempotent) and succeed, not error.
+      // Known issue rancher/dashboard#18844: uninstalling an app together with its CRD errors the
+      // prompt with "apps.catalog.cattle.io '<crd>' not found" when the CRD app is already gone.
+      // Deleting a missing CRD should be idempotent (already-deleted -> succeed), not error. This e2e
+      // test depends on that fix; the API-state-driven uninstall below is the workaround until it lands.
       //
       // Drive the uninstall from the ACTUAL app state via the API, not the rendered list: the list
       // can still show an app the backend has already removed, and uninstalling that app then 404s
