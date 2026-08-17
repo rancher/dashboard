@@ -19,6 +19,21 @@ export default class Kubectl extends ComponentPo {
     this.self().get('[data-testid="wm-tab-close-button"]').first().click();
   }
 
+  /**
+   * Close the terminal only if it is actually open. After some flows (e.g. a chart install) the
+   * window-manager terminal (#horizontal-window-manager) opens with Helm output, but its open/close
+   * timing varies and it can be absent - never opened, or already closed - by the time we look.
+   * Closing it unconditionally flakes with "#horizontal-window-manager not found"; a missing terminal
+   * just means there is nothing to close.
+   */
+  closeTerminalIfOpen() {
+    cy.get('body').then(($body) => {
+      if ($body.find('#horizontal-window-manager').length > 0) {
+        this.closeTerminal();
+      }
+    });
+  }
+
   closeTerminalByTabName(name: string) {
     return this.self().get(`[aria-label="${ name }"] [data-testid="wm-tab-close-button"]`).click();
   }

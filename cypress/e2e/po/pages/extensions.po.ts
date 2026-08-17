@@ -140,11 +140,12 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoList.waitForPage();
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
     cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', name);
-    // The API state is already Active (waitForResourceState above), but the repo list's state badge
-    // can lag that under CI load and only render 'Active' after a delayed re-fetch. kubewarden calls
-    // this from a before-all hook, which Cypress does NOT retry, so a badge that outruns the default
-    // window fails the whole suite. Reload once to force a fresh list render off the now-Active API
-    // state before asserting the badge.
+    // Known issue rancher/dashboard#17554: a clusterrepo can report Active before its Download has
+    // actually completed, and the repo list's state badge then lags the (already-Active) API state
+    // under CI load, only rendering 'Active' after a delayed re-fetch. kubewarden calls this from a
+    // before-all hook, which Cypress does NOT retry, so a badge that outruns the default window fails
+    // the whole suite. Reload once to force a fresh list render off the now-Active API state before
+    // asserting the badge.
     cy.reload();
     appRepoList.waitForPage();
     appRepoList.list().checkVisible();
@@ -217,30 +218,18 @@ export default class ExtensionsPagePo extends PagePo {
     const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
 
     card.self().should('be.visible');
-    card.openActionMenu();
+    const menu = card.openActionMenu();
 
-    const menu = '[dropdown-menu-collection]';
-
-    cy.get(`${ menu } [dropdown-menu-item]`, LONG_TIMEOUT_OPT).should(($items) => {
+    // Wait for the version-dependent actions to load before deciding: Upgrade and/or Downgrade appear
+    // only once the chart repo versions are fetched, so their absence earlier is a slow menu, not a
+    // genuinely missing action.
+    menu.menuItems(LONG_TIMEOUT_OPT).should(($items) => {
       const text = $items.toArray().map((el) => el.textContent || '').join('|');
 
       expect(text).to.match(/Upgrade|Downgrade/);
     });
 
-    return cy.get(menu).then(($menu) => {
-      const item = $menu.find('[dropdown-menu-item]').toArray().find((el) => (el.textContent || '').includes(actionLabel));
-
-      if (item) {
-        cy.wrap(item).click();
-
-        return cy.wrap(true, { log: false });
-      }
-
-      // Not offered (already at the target version from a prior attempt) - close the menu and skip.
-      cy.get('body').type('{esc}');
-
-      return cy.wrap(false, { log: false });
-    });
+    return menu.clickMenuItemIfPresent(actionLabel);
   }
 
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
