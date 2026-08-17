@@ -60,7 +60,7 @@ const csrIdentifiers = computed(() => [
           <div
             v-for="group in csrIdentifiers"
             :key="group.label"
-            class="mb-20"
+            class="mmb-5"
           >
             <h3>{{ group.label }}</h3>
             <ul class="list-unstyled">

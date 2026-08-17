@@ -93,10 +93,10 @@ export default {
       :label="t('certManager.issuer.acme.server')"
       :options="serverChoiceOptions"
       :mode="mode"
-      class="mb-20"
+      class="mmb-5"
     />
 
-    <div class="row mb-20">
+    <div class="row mmb-5">
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.server"
@@ -118,7 +118,7 @@ export default {
       </div>
     </div>
 
-    <div class="row mb-20">
+    <div class="row mmb-5">
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.privateKeySecretRef.name"
@@ -143,7 +143,7 @@ export default {
       v-model:value="value.skipTLSVerify"
       :label="t('certManager.issuer.acme.skipTLSVerify')"
       :mode="mode"
-      class="mb-20"
+      class="mmb-5"
     />
 
     <h3>{{ t('certManager.issuer.tab.solvers') }}</h3>

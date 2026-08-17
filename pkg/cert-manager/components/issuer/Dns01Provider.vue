@@ -79,7 +79,7 @@ export default {
 
 <template>
   <div>
-    <div class="row mb-20">
+    <div class="row mmb-5">
       <div class="col span-6">
         <LabeledSelect
           v-model:value="provider"

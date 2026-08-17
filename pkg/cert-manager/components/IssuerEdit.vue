@@ -195,7 +195,7 @@ export default {
           :label="t('certManager.issuer.typeLabel')"
           :options="configTypeOptions"
           :mode="mode"
-          class="mb-20"
+          class="mmb-5"
         />
 
         <Banner

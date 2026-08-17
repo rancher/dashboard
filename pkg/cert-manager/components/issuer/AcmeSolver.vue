@@ -113,7 +113,7 @@ export default {
       :label="t('certManager.solver.challengeType')"
       :options="challengeTypeOptions"
       :mode="mode"
-      class="mb-20"
+      class="mmb-5"
     />
 
     <template v-if="challengeType === 'http01'">
@@ -124,10 +124,10 @@ export default {
           :label="t('certManager.solver.ingressMode.label')"
           :options="ingressModeOptions"
           :mode="mode"
-          class="mb-20"
+          class="mmb-5"
         />
 
-        <div class="row mb-20">
+        <div class="row mmb-5">
           <div class="col span-6">
             <LabeledInput
               :value="value.http01.ingress[ingressMode]"
@@ -151,7 +151,7 @@ export default {
       :mode="mode"
     />
 
-    <h3 class="mt-20">
+    <h3 class="mmt-5">
       {{ t('certManager.solver.selector') }}
     </h3>
     <Banner
@@ -182,7 +182,7 @@ export default {
       :title="t('certManager.solver.matchLabels')"
       :mode="mode"
       :read-allowed="false"
-      class="mt-20"
+      class="mmt-5"
     />
   </div>
 </template>

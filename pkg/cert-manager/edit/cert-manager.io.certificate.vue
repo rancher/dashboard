@@ -253,7 +253,7 @@ export default {
         :label="t('certManager.certificate.tab.basics')"
         :weight="60"
       >
-        <div class="row mb-20">
+        <div class="row mmb-5">
           <div class="col span-6">
             <RadioGroup
               v-model:value="value.spec.issuerRef.kind"
@@ -271,7 +271,7 @@ export default {
           :label="t('certManager.certificate.noIssuersInNamespace', { namespace: value.metadata.namespace })"
         />
 
-        <div class="row mb-20">
+        <div class="row mmb-5">
           <div class="col span-6">
             <ResourceLabeledSelect
               :key="issuerResourceType"
@@ -303,10 +303,10 @@ export default {
           :add-label="t('certManager.certificate.addDnsName')"
           :required="hasNoIdentifier"
           :mode="mode"
-          class="mb-20"
+          class="mmb-5"
         />
 
-        <div class="row mb-20">
+        <div class="row mmb-5">
           <div class="col span-6">
             <LabeledInput
               v-model:value="value.spec.commonName"
@@ -323,14 +323,14 @@ export default {
           :title="t('certManager.certificate.ipAddresses')"
           :add-label="t('certManager.certificate.addIpAddress')"
           :mode="mode"
-          class="mb-20"
+          class="mmb-5"
         />
         <ArrayList
           v-model:value="value.spec.uris"
           :title="t('certManager.certificate.uris')"
           :add-label="t('certManager.certificate.addUri')"
           :mode="mode"
-          class="mb-20"
+          class="mmb-5"
         />
         <ArrayList
           v-model:value="value.spec.emailAddresses"
@@ -345,11 +345,11 @@ export default {
         :label="t('certManager.certificate.tab.advanced')"
         :weight="-1"
       >
-        <h3 class="mb-20">
+        <h3 class="mmb-5">
           {{ t('certManager.certificate.lifecycleAndConfiguration', undefined, true) }}
         </h3>
 
-        <div class="row mb-20">
+        <div class="row mmb-5">
           <div class="col span-6">
             <DurationInput
               v-model:value="value.spec.duration"
@@ -373,10 +373,10 @@ export default {
           :label="t('certManager.certificate.isCA')"
           :tooltip="t('certManager.certificate.isCATooltip')"
           :mode="mode"
-          class="mb-20"
+          class="mmb-5"
         />
 
-        <div class="row mb-20">
+        <div class="row mmb-5">
           <div class="col span-6">
             <LabeledSelect
               v-model:value="value.spec.usages"
@@ -407,7 +407,7 @@ export default {
           :title="t('labels.labels.title')"
           :mode="mode"
           :read-allowed="false"
-          class="mb-20"
+          class="mmb-5"
           @update:value="v => setSecretTemplate('labels', v)"
         />
         <KeyValue
@@ -422,7 +422,7 @@ export default {
         <h3>
           {{ t('certManager.certificate.privateKey.label') }}
         </h3>
-        <div class="row mb-20">
+        <div class="row mmb-5">
           <div class="col span-6">
             <LabeledSelect
               :value="value.spec.privateKey?.algorithm"
