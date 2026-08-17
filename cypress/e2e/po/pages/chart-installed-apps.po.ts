@@ -31,15 +31,9 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
     // giving it a small buffer so that the install is properly triggered
     cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting
 
-    // After install, Rancher opens a window-manager terminal (#horizontal-window-manager) with the
-    // Helm output, but its open/close timing varies and it can be absent (never opened, or already
-    // closed) by the time we look - closing it unconditionally flaked on '#horizontal-window-manager'
-    // not found. Close it only if it is actually open; a missing terminal just means nothing to close.
-    cy.get('body').then(($body) => {
-      if ($body.find('#horizontal-window-manager').length > 0) {
-        terminal.closeTerminal();
-      }
-    });
+    // After install, Rancher opens a window-manager terminal with the Helm output, but its open/close
+    // timing varies and it can be absent by the time we look, so close it only if it is actually open.
+    terminal.closeTerminalIfOpen();
 
     // After install, the wizard can briefly stay on "Installing..." before redirecting to the
     // installed-apps list; wait (generously) for the list to actually render before asserting on its
