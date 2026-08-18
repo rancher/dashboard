@@ -106,6 +106,19 @@ export default {
     title: {
       type:    String,
       default: null,
+    },
+
+    /**
+     * id of a tab panel that lives OUTSIDE of this component.
+     *
+     * Normally each Tab renders its own `role="tabpanel"` and the tab's `aria-controls` points at it.
+     * Some consumers (e.g. `tabsOnly` usages) render the tab content themselves, elsewhere in the page.
+     * In that case pass the id of that container here so the tabs stay programmatically associated
+     * with the content they actually control.
+     */
+    externalPanelId: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -288,18 +301,15 @@ export default {
 
     selectNext(direction) {
       const { sortedTabs } = this;
+
+      if (!sortedTabs.length) {
+        return;
+      }
+
       const currentIdx = sortedTabs.findIndex((x) => x.active);
       const nextIdx = getCyclicalIdx(currentIdx, direction, sortedTabs.length);
-      const nextName = sortedTabs[nextIdx].name;
 
-      this.select(nextName);
-
-      this.$nextTick(() => {
-        this.$refs.tablist.removeAttribute('tabindex');
-        if (this.tabRefs[nextName]) {
-          this.tabRefs[nextName].focus();
-        }
-      });
+      this.selectAndFocus(sortedTabs[nextIdx].name);
 
       function getCyclicalIdx(currentIdx, direction, tabsLength) {
         const nxt = currentIdx + direction;
@@ -312,6 +322,35 @@ export default {
           return nxt;
         }
       }
+    },
+
+    /**
+     * Home/End keyboard support, as per the ARIA authoring practices for tabs
+     */
+    selectEdge(edge) {
+      const { sortedTabs } = this;
+
+      if (!sortedTabs.length) {
+        return;
+      }
+
+      const tab = edge === 'first' ? sortedTabs[0] : sortedTabs[sortedTabs.length - 1];
+
+      this.selectAndFocus(tab.name);
+    },
+
+    /**
+     * Move both selection and keyboard focus to a tab.
+     *
+     * Focus has to follow selection because the tabs use a roving tabindex - only the active tab is
+     * reachable with `tabindex="0"`, so leaving focus behind would strand it on an unreachable element.
+     */
+    selectAndFocus(name) {
+      this.select(name);
+
+      this.$nextTick(() => {
+        this.tabRefs[name]?.focus();
+      });
     },
 
     tabAddClicked() {
@@ -350,16 +389,11 @@ export default {
         role="tablist"
         class="tab-list"
         :data-testid="`${componentTestid}-block`"
-        tabindex="0"
-        @keydown.right.prevent="selectNext(1)"
-        @keydown.left.prevent="selectNext(-1)"
-        @keydown.down.prevent="selectNext(1)"
-        @keydown.up.prevent="selectNext(-1)"
+        :aria-orientation="sideTabs ? 'vertical' : 'horizontal'"
       >
         <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
         <li
           v-for="tab in sortedTabs"
-          :id="tab.name"
           :key="tab.name"
           :data-testid="tab.name"
           role="presentation"
@@ -369,13 +403,21 @@ export default {
             :id="`tab-${tab.name}`"
             :ref="(el) => { if (el) tabRefs[tab.name] = el; }"
             :data-testid="`btn-${tab.name}`"
-            :aria-controls="tab.name"
-            :aria-selected="tab.active"
+            :aria-controls="externalPanelId || tab.name"
+            :aria-selected="!!tab.active"
+            :aria-disabled="tab.disabled ? 'true' : undefined"
             :aria-label="tab.labelDisplay || ''"
             role="tab"
             :tabindex="tab.active ? '0' : '-1'"
             @click.prevent="select(tab.name, $event)"
-            @keyup.enter.space="select(tab.name, $event)"
+            @keydown.enter.prevent="select(tab.name, $event)"
+            @keydown.space.prevent="select(tab.name, $event)"
+            @keydown.right.prevent="selectNext(1)"
+            @keydown.left.prevent="selectNext(-1)"
+            @keydown.down.prevent="selectNext(1)"
+            @keydown.up.prevent="selectNext(-1)"
+            @keydown.home.prevent="selectEdge('first')"
+            @keydown.end.prevent="selectEdge('last')"
           >
             <i
               v-if="tab.labelIcon"
@@ -399,17 +441,20 @@ export default {
       <div
         v-if="sideTabs && !sortedTabs.length"
         class="tab disabled"
+        role="presentation"
       >
         <a
           href="#"
           @click.prevent
         >(None)</a>
       </div>
-      <ul
+      <!-- A tablist may only own tabs, so the add/remove controls go outside the ul -->
+      <div
         v-if="sideTabs && showTabsAddRemove"
         class="tab-list-footer"
+        role="presentation"
       >
-        <li>
+        <div class="tab-list-footer-controls">
           <button
             type="button"
             class="btn bg-transparent"
@@ -429,8 +474,8 @@ export default {
           >
             <i class="icon icon-minus" />
           </button>
-        </li>
-      </ul>
+        </div>
+      </div>
       <slot name="tab-row-extras" />
     </div>
     <div
@@ -480,19 +525,6 @@ export default {
     padding: 0;
     display: flex;
     flex-direction: inherit;
-
-    &:focus-visible {
-      outline: none;
-
-      .tab.active {
-        @include focus-outline;
-        outline-offset: -2px;
-      }
-    }
-
-    &:focus .tab.active a span {
-      text-decoration: underline;
-    }
   }
 
   &.horizontal {
@@ -534,6 +566,17 @@ export default {
 
       &:hover {
         text-decoration: none;
+        span {
+          text-decoration: underline;
+        }
+      }
+
+      // The tab itself is the focusable element now (roving tabindex), so the focus ring lives here
+      // rather than on the tablist.
+      &:focus-visible {
+        @include focus-outline;
+        outline-offset: -2px;
+
         span {
           text-decoration: underline;
         }
@@ -667,7 +710,7 @@ export default {
       margin: auto 0 0;
       z-index: z-index('default');
 
-      li {
+      .tab-list-footer-controls {
         display: flex;
         flex: 1;
 

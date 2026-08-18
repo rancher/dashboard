@@ -288,7 +288,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
         createRKE2ClusterPage.nameNsDescription().name().set('abc');
 
-        createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
 
         createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeEnabled();
 
@@ -367,7 +367,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
         // waitForPage defaults to 4s which can race the edit page load under load
         editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
-        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
         editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
           .set(customAddonConfig);
         editCreatedClusterPage().save();
@@ -386,7 +386,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
         editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
-        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
         editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
           .value()
           .should('include', customAddonConfig);

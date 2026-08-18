@@ -67,9 +67,9 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     // commit and the tab bar to render before clicking a tab (gating on the list loading indicator
     // above isn't enough - the race is the edit form mounting).
     workloadsDaemonsetsEditPage.waitForPage();
-    workloadsDaemonsetsEditPage.waitForTab('#DaemonSet', LONG_TIMEOUT_OPT);
-    workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
-    workloadsDaemonsetsEditPage.clickTab('#upgrading');
+    workloadsDaemonsetsEditPage.waitForTab('[data-testid="btn-DaemonSet"]', LONG_TIMEOUT_OPT);
+    workloadsDaemonsetsEditPage.clickTab('[data-testid="btn-DaemonSet"]');
+    workloadsDaemonsetsEditPage.clickTab('[data-testid="btn-upgrading"]');
     workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
     workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
       .click();
