@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 819
+# Total errors: 816
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 pkg/aks/components/Config.vue: error TS2532: Object is possibly 'undefined'.
@@ -534,7 +534,6 @@ shell/pages/c/_cluster/explorer/__tests__/index.test.ts: error TS2339: Property 
 shell/pages/c/_cluster/explorer/__tests__/index.test.ts: error TS2339: Property 'isLocal' does not exist on type '{ id: string; metadata: { creationTimestamp: number; }; status: { provider: string; }; }'.
 shell/pages/c/_cluster/explorer/__tests__/index.test.ts: error TS2339: Property 'isLocal' does not exist on type '{ id: string; metadata: { creationTimestamp: number; }; status: { provider: string; }; }'.
 shell/pages/c/_cluster/explorer/__tests__/index.test.ts: error TS2353: Object literal may only specify known properties, and 'componentStatuses' does not exist in type '{ provider: string; }'.
-shell/pages/c/_cluster/explorer/__tests__/index.test.ts: error TS2696: The 'Object' type is assignable to very few other types. Did you mean to use the 'any' type instead?
 shell/pages/c/_cluster/explorer/__tests__/index.test.ts: error TS2740: Type '(type: string) => boolean' is missing the following properties from type 'Mock<any, any, any>': getMockName, mock, mockClear, mockReset, and 13 more.
 shell/pages/c/_cluster/explorer/workload-dashboard/index.vue: error TS2307: Cannot find module '@shell/components/Loading' or its corresponding type declarations.
 shell/pages/c/_cluster/explorer/workload-dashboard/index.vue: error TS2307: Cannot find module '@shell/components/ResourceList/Masthead' or its corresponding type declarations.
@@ -769,8 +768,6 @@ shell/plugins/steve/__tests__/actions.test.ts: error TS2769: No overload matches
 shell/plugins/steve/__tests__/getters.test.ts: error TS7006: Parameter 'type' implicitly has an 'any' type.
 shell/plugins/steve/__tests__/mutations.test.ts: error TS2339: Property 'id' does not exist on type 'Resource'.
 shell/plugins/steve/__tests__/mutations.test.ts: error TS2339: Property 'namespace' does not exist on type 'Resource'.
-shell/plugins/steve/__tests__/mutations.test.ts: error TS2339: Property 'podsByNamespace' does not exist on type '{ types: { pod: any; }; ctx?: undefined; type?: undefined; data?: undefined; } | { ctx: { rootGetters: { 'type-map/optionsFor': (type: string) => {}; }; getters: { classify: (resource: any) => typeof Resource; cleanResource: (existing: Resource, resource: any) => any; keyFieldForType: () => string; }; }; type: strin...'.
-shell/plugins/steve/__tests__/mutations.test.ts: error TS2339: Property 'podsByNamespace' does not exist on type '{ types: { pod: any; }; ctx?: undefined; type?: undefined; data?: undefined; } | { ctx: { rootGetters: { 'type-map/optionsFor': (type: string) => {}; }; getters: { classify: (resource: any) => typeof Resource; cleanResource: (existing: Resource, resource: any) => any; keyFieldForType: () => string; }; }; type: strin...'.
 shell/plugins/steve/__tests__/mutations.test.ts: error TS2532: Object is possibly 'undefined'.
 shell/plugins/steve/__tests__/resource-utils.test.ts: error TS2554: Expected 1-2 arguments, but got 0.
 shell/plugins/steve/__tests__/steve-pagination-utils.test.ts: error TS2341: Property 'convertPaginationParams' is private and only accessible within class 'StevePaginationUtils'.
