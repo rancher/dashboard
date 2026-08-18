@@ -39,8 +39,8 @@ defineProps<{
     flex-shrink: 0;
 
     box-sizing: border-box;
-    width: 32px;
-    height: 32px;
+    width: 42px;
+    height: 42px;
 
     // Vendor marks are drawn for light backgrounds, so the tile keeps the same
     // light surface in every theme
