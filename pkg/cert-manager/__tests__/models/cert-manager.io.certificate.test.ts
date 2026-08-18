@@ -338,7 +338,9 @@ describe('model: cert-manager.io.certificate', () => {
     });
 
     it('should only say "ago" for a date that is always in the past', () => {
-      const cert = certificate({}, { notBefore: iso(-2), renewalTime: iso(58), lastFailureTime: iso(-5) });
+      const cert = certificate({}, {
+        notBefore: iso(-2), renewalTime: iso(58), lastFailureTime: iso(-5)
+      });
       const byLabel = (label: string) => cert.details.find((d: any) => d.label === label);
 
       expect(byLabel('certManager.certificate.lastFailure').formatterOpts).toStrictEqual({ addSuffix: true });
@@ -447,6 +449,66 @@ describe('model: cert-manager.io.certificate', () => {
 
     it('should be empty when the store has nothing', () => {
       expect(certificate().certificateRequests).toStrictEqual([]);
+    });
+  });
+
+  describe('hasMissingIssuer', () => {
+    /**
+     * `hasMissingIssuer` reads both `cluster/all` (to find the issuer) and `cluster/schemaFor`
+     * (to know whether it could see one at all), so this helper supplies both.
+     */
+    const cert = (spec: any, issuerRows: any[], hasSchema = true) => {
+      const ctx = {
+        metadata:     { name: 'my-cert', namespace: 'default' },
+        spec,
+        status:       {},
+        t:            (key: string) => key,
+        owners:       [],
+        $rootGetters: {
+          'cluster/all':       () => issuerRows,
+          'cluster/schemaFor': () => (hasSchema ? {} : undefined),
+          productId:           'explorer',
+          clusterId:           'local',
+        },
+      };
+
+      return Object.create(Certificate.prototype, Object.getOwnPropertyDescriptors(ctx)) as any;
+    };
+
+    const issuer = (name: string, namespace: string | undefined = 'default', type: string = CERT_MANAGER.ISSUER) => ({ metadata: { name, namespace }, type });
+
+    it('should be false when the certificate names no issuer', () => {
+      expect(cert({}, []).hasMissingIssuer).toBe(false);
+    });
+
+    it('should be false when the referenced Issuer is loaded', () => {
+      const model = cert({ issuerRef: { name: 'my-issuer' } }, [issuer('my-issuer')]);
+
+      expect(model.hasMissingIssuer).toBe(false);
+      expect(model.issuerResource).toStrictEqual(issuer('my-issuer'));
+    });
+
+    it('should be true when the referenced Issuer cannot be found', () => {
+      expect(cert({ issuerRef: { name: 'gone' } }, []).hasMissingIssuer).toBe(true);
+    });
+
+    it('should be true when a same-named Issuer lives in another namespace', () => {
+      // An Issuer only signs certificates in its own namespace, so one elsewhere does not count.
+      expect(cert({ issuerRef: { name: 'my-issuer' } }, [issuer('my-issuer', 'other')]).hasMissingIssuer).toBe(true);
+    });
+
+    it('should match a ClusterIssuer regardless of namespace', () => {
+      const model = cert(
+        { issuerRef: { name: 'letsencrypt', kind: 'ClusterIssuer' } },
+        [issuer('letsencrypt', undefined, CERT_MANAGER.CLUSTER_ISSUER)],
+      );
+
+      expect(model.hasMissingIssuer).toBe(false);
+    });
+
+    it('should stay false when the issuer type is not readable', () => {
+      // With no schema we cannot tell whether the issuer exists, so we do not raise a false alarm.
+      expect(cert({ issuerRef: { name: 'gone' } }, [], false).hasMissingIssuer).toBe(false);
     });
   });
 });

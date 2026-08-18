@@ -27,7 +27,9 @@ describe('component: IssuanceProgress', () => {
     ['info', 'icon-dot-open'],
     ['disabled', 'icon-dot-open'],
   ])('should use a static icon for a %s step', (color, expected) => {
-    expect(render([stage('a', color)]).vm.iconFor({ stateSimpleColor: color })).toBe(expected);
+    const wrapper = render([stage('a', color)]);
+
+    expect(wrapper.find('.marker .icon').classes()).toContain(expected);
   });
 
   it('should never animate a marker', () => {

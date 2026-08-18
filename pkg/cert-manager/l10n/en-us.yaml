@@ -5,7 +5,49 @@ certManager:
       certManager: Cert Manager
       advanced: Advanced
   overview:
-    notImplemented: The cert-manager overview is not available yet.
+    title: Cert Manager Overview
+    error: Something went wrong loading the cert-manager overview.
+    noneOfType: None yet.
+    certificateCount: |-
+      {count, plural,
+        one {# certificate}
+        other {# certificates}
+      }
+    subtitle:
+      allNamespaces: For all namespaces
+      filtered: For the selected namespaces
+    sections:
+      issuers: Issuers
+      acme: ACME Activity
+    certificates:
+      title: Certificates
+    expiry:
+      title: Expiry
+      expired: Expired
+      within7: Within 7 days
+      within30: Within 30 days
+      within90: Within 90 days
+      beyond90: Beyond 90 days
+      expiringSoon: Expiring Soonest
+      none: No issued certificates yet.
+      days: |-
+        {count, plural,
+          one {# day}
+          other {# days}
+        }
+      more: |-
+        {count, plural,
+          one {# more certificate}
+          other {# more certificates}
+        }
+    empty:
+      title: Get started with cert-manager
+      message: cert-manager issues and renews TLS certificates for your cluster. A Certificate always references an Issuer or ClusterIssuer, so create one of those first - then you can request certificates against it.
+      createIssuer: Create Issuer
+      createClusterIssuer: Create Cluster Issuer
+      docsLink: Read the cert-manager documentation
+      noCertificates: No certificates yet - create one against an issuer above.
+      createCertificate: Create a Certificate
 
   action:
     renew:

@@ -4,7 +4,7 @@ import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { SECRET } from '@shell/config/types';
 import { CERT_MANAGER } from '../types';
 import { Condition, conditionOf, isFailingCondition } from '../utils/conditions';
-import { issuerRefLocation } from '../utils/issuer-ref';
+import { issuerRefLocation, issuerRefType, issuerRefMatches } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
 import { relatedTo } from '../utils/issuance';
@@ -138,6 +138,40 @@ export default class Certificate extends SteveModel {
 
   get issuerLocation() {
     return issuerRefLocation(this, this.spec?.issuerRef);
+  }
+
+  /** The Issuer or ClusterIssuer this certificate's `issuerRef` resolves to, if it is loaded. */
+  get issuerResource(): any | undefined {
+    if (!this.spec?.issuerRef?.name) {
+      return undefined;
+    }
+
+    const type = issuerRefType(this.spec.issuerRef);
+    const all = this.$rootGetters['cluster/all'](type) || [];
+
+    return all.find((issuer: any) => issuerRefMatches(this.spec?.issuerRef, this.metadata?.namespace, issuer));
+  }
+
+  /**
+   * True when the referenced Issuer/ClusterIssuer cannot be found - a certificate can never issue
+   * without it, yet the certificate itself often just reads as "pending" rather than failing.
+   *
+   * Only claims a miss when the issuer type is actually readable and loaded: with no schema (the
+   * CRD or the user's permissions are absent) the answer is unknown, not "missing", so it stays
+   * false to avoid a false alarm.
+   */
+  get hasMissingIssuer(): boolean {
+    if (!this.spec?.issuerRef?.name) {
+      return false;
+    }
+
+    const type = issuerRefType(this.spec.issuerRef);
+
+    if (!this.$rootGetters['cluster/schemaFor'](type)) {
+      return false;
+    }
+
+    return !this.issuerResource;
   }
 
   get secretLocation() {

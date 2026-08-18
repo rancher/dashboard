@@ -16,7 +16,7 @@ const overviewPage: ProductChildCustomPage = {
   // every extension that extends `explorer` - so it has to stay namespaced to cert-manager.
   name:      'cert-manager-overview',
   labelKey:  'certManager.nav.overview',
-  component: () => import('./pages/Overview.vue'),
+  component: () => import('./pages/overview/index.vue'),
   sideMenu:  { weight: 100 },
   // Resource pages disappear on their own when the CRDs are absent (`allTypes` only walks
   // existing schemas). A virtual type does not, so this gate is what hides the whole group.
