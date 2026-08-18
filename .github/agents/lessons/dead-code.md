@@ -202,7 +202,11 @@ do not cite issue numbers.
 
 - **Trigger**: A component whose apparent consumers were a CSS class and an unrelated identifier
   that happened to contain its name
-- **Rule**: Read every match before counting it as a consumer. The reverse case matters too — a
+- **Rule**: Never judge a component by a bare-name search. Search the forms that constitute a real
+  reference — `import ... from '.../Name'`, a `components: {}` entry, `<Name`, `<kebab-name` — and
+  read every remaining match before counting it as a consumer; a hit inside a longer identifier is
+  noise until you have opened the line. This is not the two-modules case above: there is no second
+  definition here, only a name that happens to be a substring. The reverse case matters too — a
   style rule left behind in a file that no longer uses the component is itself dead code, so list
   it in the removal steps instead of letting it scare you off the finding
 - **Command**:
@@ -214,6 +218,9 @@ do not cite issue numbers.
   # shell/detail/workload/index.vue:391:    .count-gauge {                         <- orphaned style
   # shell/pages/c/_cluster/explorer/index.vue:310:    totalCountGaugeInput() {      <- substring
   # not one import of the component
+  grep -rn "import.*CountGauge\|<CountGauge\|<count-gauge" shell pkg cypress storybook \
+    --include="*.vue" --include="*.ts" --include="*.js" | wc -l
+  # 0 — the reference-shaped search, which is the one that answers the question
   ```
 
 ### 2026-08-19 — A test is not a consumer
