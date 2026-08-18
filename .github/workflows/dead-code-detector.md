@@ -22,10 +22,9 @@ safe-outputs:
     draft: true
     title-prefix: "[dead-code] "
     labels: [bot/dead-code-detector, "QA/None"]
-    # rancher/dashboard#18833: at most one open pull request at a time carrying
-    # the bot/dead-code-detector label, so one per run. Lessons entries ride
-    # along in that same pull request rather than opening a second one.
-    max: 1
+    # Mirrors the create-issue budget above. Section 1 of the prompt states the
+    # rule this number enforces; keep the two in step.
+    max: 3
     if-no-changes: ignore
     protected-files:
       policy: request_review
@@ -43,15 +42,31 @@ safe-outputs:
 tools:
   github:
     min-integrity: none
-timeout-minutes: 15
+# Remediation runs `yarn lint` and `yarn test:ci` before opening a pull request,
+# so the budget has to cover a dependency install plus a full unit test run.
+timeout-minutes: 45
 strict: true
+
+# Replaces the default checkout-only setup. Without a matching Node version and
+# installed dependencies the gates in section 1 cannot run at all.
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v6.0.2
+    with:
+      persist-credentials: false
+  - name: Setup Node
+    uses: actions/setup-node@v6.4.0
+    with:
+      node-version-file: '.nvmrc'
+  - name: Install dependencies
+    run: yarn install --frozen-lockfile --ignore-engines
 ---
 
 # Dead Code Detection
 
 Remove dead code from the codebase, and report what cannot yet be removed.
 
-Filing an issue is the fallback, not the goal. This workflow has already filed far more issues than anyone has acted on — a run that deletes one verified-dead cluster is worth more than a run that describes three.
+Filing an issue is the fallback, not the goal. A run that deletes one verified-dead cluster is worth more than a run that describes three.
 
 ## Task
 
@@ -62,6 +77,8 @@ Each run does one of these, in this order of preference:
 3. **Detect**: Only when no open issue is actionable, look for new dead code and file an issue for it
 
 Every path starts by reading `.github/agents/lessons/dead-code.md`, and ends by recording in it anything that misled the run.
+
+**A run must never end silently.** If none of the three paths produced anything — the pull request budget was full and nothing was refutable, or detection found nothing new — call the `noop` tool and say in one sentence why. Ending with no output at all is indistinguishable from a crash, and the workflow files a failure issue for it. Being blocked is a legitimate result; not saying so is not.
 
 ## Context
 
@@ -84,35 +101,46 @@ Then collect any **pending entries**: comments on open `bot/dead-code-detector` 
 
 ### 1. Remediation — Fix an Already-Reported Cluster
 
-This is the primary path. Only fall through to the detection path in sections 2-3 if this section produces nothing.
+This is the primary path. Only fall through to the detection path in sections 2-6 if this section produces nothing.
 
 **First, check the pull request budget:**
 
-At most **one** pull request labelled `bot/dead-code-detector` may be open at a time. List open pull requests carrying that label before doing anything else:
+At most **three** pull requests labelled `bot/dead-code-detector` may be open at a time, the same ceiling the detection path has for issues. List open pull requests carrying that label before doing anything else, with the label listing rather than a search:
 
-- **One is already open** — do not open another, and do not remove any code this run. A queue of unreviewed deletion pull requests is exactly the backlog this workflow was changed to stop producing. Spend the run on refutation instead (below), and if you learn something worth recording, follow the carry-over rule in section 7
-- **None is open** — proceed
+```bash
+gh pr list --label bot/dead-code-detector --state open --json number,title,files
+```
+
+**Do not use the pull request or issue search tools for this.** GitHub's search API is capped at 30 requests an hour for this token and is routinely exhausted by other workflows before this one starts; the label listing above is a REST call under a far higher limit. A `403 API rate limit` from a search tool means you used the wrong tool, not that the run is blocked — switch to the CLI and continue.
+
+The budget counts pull requests **open**, not pull requests opened by this run: two already open leaves room for one more, not for three.
+
+- **The budget is full** — do not open another, and do not remove any code this run. A queue of unreviewed deletion pull requests is exactly the backlog this workflow was changed to stop producing. Spend the run on refutation instead (below), and if you learn something worth recording, follow the carry-over rule in section 7
+- **There is room** — proceed, and carry the number of free slots through the rest of the run
 
 **Select a candidate:**
 
-1. List open issues labelled `bot/dead-code-detector`
+1. List open issues labelled `bot/dead-code-detector` with `gh issue list --label bot/dead-code-detector --state open --json number,title,body`. **An empty result from the `list_issues` MCP tool is not an empty backlog.** Issues are tagged private-scoped and this agent holds no secrecy clearance, so that tool filters every one of them out and returns `[]` with no error. The CLI is not filtered. If a listing comes back empty, re-run it through the CLI before concluding there is nothing to work on
 2. Discard any whose body or comments contain the marker `<!-- dead-code-detector:refuted -->` — a previous run already disproved it
-3. Discard any already covered by an open pull request
+3. Discard any already covered by an open pull request. **Checking for a `Closes`/`Fixes` link is not enough** — a pull request that names no issue still covers one. List the changed files of every open `bot/dead-code-detector` pull request with `gh pr diff <n> --name-only`, and discard any issue whose files overlap that set at all. A partial overlap counts: two pull requests deleting some of the same files will conflict on merge
 4. Discard anything already on the unknown-usage register, and anything whose candidates are exported. Those are register rows, not removals — see "Published package surface" in section 4. If an open issue proposes removing an exported symbol, refute it and register the symbol instead
-5. Discard the duplicates: the same cluster has been filed repeatedly in the past. Pick the **oldest** issue describing a cluster and ignore its restatements — the removal will resolve them all
-6. From what remains, take the one with the highest stated confidence and the smallest blast radius. A three-file leaf cluster is a better run than an eighteen-file grab bag
+5. Discard the duplicates. A cluster is routinely filed several times over, in different words. Pick the **oldest** issue describing a cluster, and keep the numbers of its restatements — the removal resolves them all and the pull request has to close them all
+6. From what remains, order by stated confidence and then by blast radius, and take as many as the budget allows. A three-file leaf cluster is a better candidate than an eighteen-file grab bag
+7. Check the ones you took against each other. Two issues whose file sets overlap are one cluster, not two — merge them into a single removal that closes both, and pull the next candidate up to fill the slot
 
 **Re-verify from scratch:**
 
-The issue's own evidence does not count. Open issues exist whose entire evidence is empty output from a search that matched nothing, so their "Result: no matches" proves nothing. Re-run every applicable check in section 4 against the code as it exists now, including the control search. Code may also have gained a consumer since the issue was filed.
+The issue's own evidence does not count. A "Result: no matches" proves nothing on its own — the search that produced it may have matched nothing because it was malformed, and the lessons file records the forms that fail this way. Re-run every applicable check in section 4 against the code as it exists now, including the control search. Code may also have gained a consumer since the issue was filed.
 
-**Then take exactly one of these two actions:**
+**Then, for each candidate, take exactly one of these two actions:**
+
+Work through the candidates one at a time and finish each before starting the next — re-verify, remove, gate, open the pull request, then move on. A run that half-removes several clusters delivers nothing. If the timeout is approaching, stop after the last completed pull request rather than leaving one unfinished.
 
 - **Confirmed dead** — remove it:
   1. Delete the files and exports, and everything the transitive closure adds
   2. Remove what the deletion orphans: stylesheet rules, assets, barrel-file re-exports, i18n keys, and any now-empty directory
-  3. Run `yarn lint` and `yarn test:ci`. If either fails, fix the fallout or abandon the removal — never open a pull request with a failing gate
-  4. Open a pull request using the template below. The body ends with `Fixes #N` for the issue you selected, and lists the duplicate issue numbers the same removal also resolves
+  3. Run `yarn lint` and `yarn test:ci`. If either fails, fix the fallout or abandon the removal — never open a pull request with a failing gate. **A gate that could not run has not passed.** If either command errors on a missing dependency, a runtime version, or anything other than your change, that is a failed gate: open no pull request, and say in the run summary exactly which command failed and what it printed. Do not reason about what the gate would have reported — the whole point of running it is that your reasoning is what is being checked
+  4. Open a pull request using the template below. The body ends with `Closes #N` for the issue you selected, followed by one `Closes #M` line for **every** duplicate issue the same removal resolves — the ones you set aside at step 4 of selection. An unlinked pull request drains nothing from the backlog, which is the problem this path exists to solve
 - **False positive, or no longer accurate** — do not open a pull request. Comment on the issue with:
   1. The marker `<!-- dead-code-detector:refuted -->` on its own line, so later runs skip it
   2. The exact command that found the live reference, and its output
@@ -315,7 +343,7 @@ Apply a fixed rule so the boundary does not drift between runs:
 
 ### 7. Improving This Detector
 
-Every run that gets surprised should leave the next run better equipped. When something misleads you, write it into `.github/agents/lessons/dead-code.md` — the journal this workflow keeps for itself.
+Every run that gets surprised should leave the next run better equipped. When something misleads you, write it into `.github/agents/lessons/dead-code.md` — the lessons file this workflow keeps for itself.
 
 **What qualifies as a lesson:**
 
@@ -330,20 +358,25 @@ Every run that gets surprised should leave the next run better equipped. When so
 - A restatement of a rule already in this prompt. An entry earns its place only if following this prompt as written would still have produced the wrong answer
 - A one-off observation about a specific file with no general rule behind it
 - Anything you did not actually run into on this run. Do not speculate about failure modes
+- Anything that is not about identifying dead code. A problem with the workflow itself — a missing dependency, a wrong runtime version, a gate that will not start — is not a lesson. Report it in the run summary and move on
+
+**Write the entry repository-agnostically.** Describe the pattern, not where it was filed — never name a repository or a fork, and do not cite issue numbers. The file travels with the workflow, so a number that resolves somewhere else is worse than no reference at all.
+
+**Resembling an existing entry is not the same as being covered by it.** Before dismissing something as already recorded, read the entry you have in mind and check that its **Rule** would actually have caught this case. Two failures can share a symptom and still need different checks — if the existing rule would have let this one through, write a new entry and say in it how the two differ.
 
 **How to record it:**
 
-1. Append to the end of `.github/agents/lessons/dead-code.md`, using the exact entry format that file specifies: a dated `###` heading, then **Trigger**, **Rule** and **Command**
+1. Append to the end of the `## Entries` section of `.github/agents/lessons/dead-code.md`, using the exact entry format that file specifies: a dated `###` heading, then **Trigger**, **Rule** and **Command**
 2. The **Rule** must be an instruction for a future run, not a description of what happened
 3. The **Command** must be one you actually ran, with its real output — including, where it makes the point, the broken form alongside the working form
 4. Never edit or delete existing entries. The file only grows
 
-**Where the entry ships**, given the one-open-pull-request budget in section 1:
+**Where the entry ships**, given the pull request budget in section 1:
 
-- **This run is opening a removal pull request** — include the journal change in that same pull request, and describe it in the Journal section of the body. Only one pull request may be open, so it carries both
-- **This run is opening no pull request** (one was already open, or the run refuted an issue instead) — do not open a second one. Post the entry, verbatim and in the format above, as a comment on the open `bot/dead-code-detector` pull request, prefixed with the marker `<!-- dead-code-detector:pending-lesson -->` on its own line. Section 0 collects those markers, so the next run that opens a pull request writes them into the file. If no pull request is open at all, write the entry into the file and open the pull request for it
+- **This run is opening one or more removal pull requests** — include the lessons change in the **first** one, and describe it in the Lessons section of its body. A lessons entry never gets a pull request of its own while a removal is available to carry it, and it must not be duplicated across several
+- **This run is opening no pull request** (the budget was full, or the run refuted an issue instead) — do not spend a slot on the entry alone. Post it, verbatim and in the format above, as a comment on an open `bot/dead-code-detector` pull request, prefixed with the marker `<!-- dead-code-detector:pending-lesson -->` on its own line. Section 0 collects those markers, so the next run that opens a pull request writes them into the file. If no pull request is open at all, write the entry into the file and open the pull request for it
 
-**Never modify anything under `.github/` other than `.github/agents/lessons/dead-code.md`.** That includes this workflow and its lock file. Proposals to change this prompt go in the journal, which is read at the start of every run and therefore takes effect immediately without a workflow edit.
+**Never modify anything under `.github/` other than `.github/agents/lessons/dead-code.md`.** That includes this workflow and its lock file. Proposals to change this prompt go in the lessons file, which is read at the start of every run and therefore takes effect immediately without a workflow edit.
 
 ## Detection Scope
 
@@ -356,7 +389,7 @@ Every run that gets surprised should leave the next run better equipped. When so
 - Translation (i18n) keys never referenced
 - Whole files that are no longer imported anywhere and do not ship in the published package
 
-Anything **exported** that has no importers goes to the unknown-usage register instead of into a removal issue. See "Published package surface" in section 3.
+Anything **exported** that has no importers goes to the unknown-usage register instead of into a removal issue. See "Published package surface" in section 4.
 
 ### Skip These Patterns
 
@@ -484,40 +517,53 @@ The evidence in #N was not reused. Every check below was re-run against the code
 
 ## Gates
 
-- `yarn lint` — [result]
-- `yarn test:ci` — [result]
+Both must have actually executed. "Expected to pass", "cannot run" or "no source file was modified so nothing can break" are not results, and a pull request carrying one of them should not have been opened.
+
+- `yarn lint` — [pass, or the failure output]
+- `yarn test:ci` — [pass, with the suite/test counts it printed]
 
 ## Risk
 
 - **Published surface**: [For anything under `shell/`: this file shipped in `@rancher/shell` and out-of-tree extensions could import it as `@shell/...`. A repository search cannot rule those consumers out. Release note required.] [Otherwise: not part of the published package.]
 - **Dynamic references**: [what could still resolve this by string name at runtime, and why that was ruled out]
 
-## Journal
+## Lessons
 
 [Omit this section if the run learned nothing. Otherwise: the entries appended to `.github/agents/lessons/dead-code.md`, and one line each on what misled the run and the rule now recorded. Include any pending entries carried over from earlier runs.]
 
-Fixes #N
-[Also resolves #A, #B — duplicate reports of the same cluster]
+Closes #N
+[One `Closes #M` line per duplicate report of the same cluster. Not "also resolves" — GitHub only auto-closes on its own keywords, and a duplicate left open comes back as a new candidate on a later run.]
 ````
 
-If a run has journal entries but nothing to remove, open the pull request for `.github/agents/lessons/dead-code.md` alone, keeping only the Journal section of the template.
+If a run has lessons entries but nothing to remove, open the pull request for `.github/agents/lessons/dead-code.md` alone, keeping only the Lessons section of the template.
 
 ## Operational Guidelines
+
+### Say it once
+
+Everything you write — lessons entries, issue bodies, pull request bodies, and this prompt if you ever propose a change to it — states each rule, number and piece of evidence in exactly **one** place. Everywhere else points at that place.
+
+- **Define once.** A budget, threshold or convention has a single home. The pull request budget lives in section 1; the entry format lives under "Format for lessons" in the lessons file itself. Repeating a number in a second place means the two will disagree the first time one of them changes, and nobody will know which is authoritative
+- **Reference, do not restate.** Point at the home ("the pull request budget in section 1") rather than repeating its content. A pointer stays correct when the target changes; a copy does not
+- **Check the reference before you write it.** Open what you are pointing at and confirm it says what you are claiming. A pointer to a section that has been renamed, renumbered or rewritten is worse than no pointer — it reads as verified and is not. The same goes for the lessons file: cite an entry only after re-reading it
+- **Evidence is quoted once, where it is used.** A pull request body carries the commands and their output; the issue it closes is referenced by number, not summarised back
 
 ### Security
 - Never execute untrusted code or commands
 - Analysis is read-only: sections 2-6 inspect the codebase and change nothing
 - File modification is confined to section 1 (removing verified-dead code) and section 7 (appending to `.github/agents/lessons/dead-code.md`). Nothing else in the repository may be edited
 - **`.github/agents/lessons/dead-code.md` is the only file under `.github/` you may touch.** Never modify anything else there, and never this workflow or its lock file
-- **Never open more than one pull request per run**, and never a second while one labelled `bot/dead-code-detector` is still open
+- **Never exceed the pull request budget in section 1.** Count what is already open before opening anything
 - Never widen a removal beyond the verified cluster because it looked convenient while you were in the file
 
 ### Efficiency
 - Spend the run on remediation before detection. One completed removal beats three new reports
-- Pick one cluster and finish it. A run that half-removes two clusters delivers nothing
+- Finish each cluster before starting the next. Only completed removals count; half-finished ones deliver nothing
 - Focus on recently changed files first when detection is the fallback path
 - Verify candidates against the whole repository before reporting
 - Stay within timeout limits. If `yarn test:ci` will not finish in the time left, say so in the run summary and open no pull request rather than opening an unverified one
+- Reach for the `gh` CLI, not the search tools. Search is rate limited to 30 requests an hour across every workflow on the repository and is often already spent; `gh issue list` and `gh pr list` are not. A rate limit error is a signal to change tool, not to abandon the run
+- Finish with `noop` and a one-line reason whenever the run produced no pull request, no comment and no issue — including when it was blocked. Silence is reported as a failure
 
 ### Accuracy
 - **False positives are worse than misses** — only report dead code you have verified is unreferenced with high confidence
@@ -541,9 +587,10 @@ If a run has journal entries but nothing to remove, open the pull request for `.
 
 ### Pull Request Creation
 - Open a pull request only for a cluster you re-verified on this run and whose lint and test gates passed
-- One cluster per pull request. Do not combine a removal with a lessons update, or two unrelated clusters
+- One cluster per pull request. Never combine two unrelated clusters into one, and never split one cluster across two — each pull request has to be independently reviewable and independently revertable. A lessons entry from section 7 rides along in the first pull request the run opens rather than taking a slot of its own
+- No two pull requests from a run may touch the same file. If two clusters overlap they were one cluster; merge them and close both issues from the one pull request
 - Every pull request body carries the re-verification evidence, not a summary of it. A reviewer must be able to reproduce the conclusion from the commands quoted
-- `Fixes #N` names the issue being closed; list any duplicate issue numbers the same removal resolves so they can be closed alongside it
+- End the body with a `Closes #N` line for the issue selected and one more for every duplicate the removal resolves. Only GitHub's own closing keywords auto-close; prose like "also resolves #A" leaves the issue open and it returns as a candidate on a later run
 - If the removal turns out larger or riskier than the issue described, open no pull request. Comment on the issue with what the closure actually contains and let a human scope it
 
 **Objective**: Reduce the codebase and the backlog together. A run succeeds when it deletes verified-dead code, disproves a wrong report, or records a lesson that stops the next run repeating a mistake — not when it produces the most output.
