@@ -25,22 +25,12 @@ import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
  * callback (e.g. re-probe + re-enter the cluster) instead. Retried a bounded number of times until we
  * land off fail-whale. On the normal path this returns as soon as the page renders - no fixed wait.
  */
-Cypress.Commands.add('recoverFromFailWhale', (reNavigate?: () => void, tries = 4) => {
-  const attempt = (n: number): void => {
-    // Wait for the destination to render (loaded page OR fail-whale both mount #main-content), then
-    // check which one it settled on.
-    cy.get('#main-content', LONG_TIMEOUT_OPT).should('exist');
-    cy.url().then((url) => {
-      if (url.includes('/fail-whale') && n < tries) {
-        if (reNavigate) {
-          reNavigate();
-        } else {
-          cy.reload();
-        }
-        attempt(n + 1);
-      }
-    });
-  };
-
-  attempt(0);
+Cypress.Commands.add('recoverFromFailWhale', () => {
+  // EXPERIMENT (PR review r3795307111): the fail-whale RECOVERY is disabled to measure whether any
+  // spec still lands on /fail-whale (e.g. after the k3s-start-script changes). We keep only the
+  // "wait for the destination to render" step - both a normal page and fail-whale mount #main-content -
+  // but no longer reload / re-navigate off fail-whale. If a spec now hits fail-whale its own
+  // assertions will fail and surface the case; if stability stays green the recovery is no longer
+  // needed and this command can be dropped. Revert this to the reload/re-navigate loop if it re-flakes.
+  cy.get('#main-content', LONG_TIMEOUT_OPT).should('exist');
 });
