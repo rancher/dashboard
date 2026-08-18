@@ -33,7 +33,7 @@
     "release-2.15": {
       "milestone": {
         "version": "v2.15.1",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -62,7 +62,7 @@
     "release-2.14": {
       "milestone": {
         "version": "v2.14.5",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -81,7 +81,7 @@
     "release-2.13": {
       "milestone": {
         "version": "v2.13.9",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -100,7 +100,7 @@
     "release-2.12": {
       "milestone": {
         "version": "v2.12.13",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -119,7 +119,7 @@
     "release-2.11": {
       "milestone": {
         "version": "v2.11.17",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
