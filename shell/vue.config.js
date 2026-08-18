@@ -35,9 +35,13 @@ const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
 /**
- * Add ignored paths based on env var configuration and known cases.
- * Webpack 5 accepts RegExp values for `watchOptions.ignored`.
+ * Add ignored paths based on env var configuration and known cases
+ * TODO: Verify after migration completed
+ * In Webpack5 only RegExp, string and [string] types are accepted
  * https://webpack.js.org/configuration/watch/#watchoptionsignored
+ * Example conversion:
+ * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
+ * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
  */
 const getWatcherIgnored = (excludes = []) => {
   const paths = [
@@ -45,7 +49,7 @@ const getWatcherIgnored = (excludes = []) => {
     /dist-pkg/,
     /scripts\/standalone/,
   ];
-  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg\\.${ excluded.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }/`));
+  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }/`));
   const pathsCombined = [...paths, ...pathExcludedPkg];
   const regexCombined = new RegExp(pathsCombined.map(({ source }) => source).join('|'));
 
@@ -625,7 +629,7 @@ module.exports = function(dir, appConfig = {}) {
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
       config.watchOptions = {
         ...(config.watchOptions || {}),
-        ignored: getWatcherIgnored(excludes)
+        ignored: getWatcherIgnored()
       };
 
       if (dev) {
@@ -644,5 +648,3 @@ module.exports = function(dir, appConfig = {}) {
 
   return config;
 };
-
-module.exports.getWatcherIgnored = getWatcherIgnored;
