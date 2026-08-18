@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils';
-import type { VueWrapper } from '@vue/test-utils';
+import type { ComponentMountingOptions, VueWrapper } from '@vue/test-utils';
 import ContainerShell from '@shell/components/Window/ContainerShell.vue';
 import Socket, {
   addEventListener, EVENT_CONNECTED, EVENT_CONNECTING, EVENT_DISCONNECTED, EVENT_MESSAGE, EVENT_CONNECT_ERROR
@@ -169,14 +169,7 @@ describe('component: ContainerShell', () => {
     mockRafCallback = undefined;
   };
 
-  /**
-   * Accepts mount options with varying pod.os types to support test variants.
-   * ContainerShell.vue is plain-JS, so exact prop inference isn't available.
-   */
-  const wrapperPostMounted = async(params: {
-    props: { tab: unknown; active: boolean; height: number; pod: { spec: { nodeName: string }; links: { view: string }; os?: string | undefined; _os?: string }; initialContainer?: string };
-    global?: Record<string, unknown>;
-  }) => {
+  const wrapperPostMounted = async(params: ComponentMountingOptions<typeof ContainerShell>) => {
     const wrapper = await mount(ContainerShell, params);
 
     // await the various async dyamic imports on xterm

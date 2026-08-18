@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { Component } from 'vue';
+import { defineComponent } from 'vue';
 import FilterPanel from '@shell/components/FilterPanel.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
@@ -62,7 +62,7 @@ describe('component: FilterPanel', () => {
   });
 
   it('renders a custom component if provided in option', () => {
-    const CustomComponent: Component = { template: '<div>Custom content</div>' };
+    const CustomComponent = defineComponent({ template: '<div>Custom content</div>' });
 
     const wrapper = mount(FilterPanel, {
       props: {

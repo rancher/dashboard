@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 305
+# Total errors: 303
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 pkg/aks/components/Config.vue: error TS2532: Object is possibly 'undefined'.
@@ -105,8 +105,6 @@ shell/components/Drawer/ResourceDetailDrawer/__tests__/ConfigTab.test.ts: error 
 shell/components/Drawer/ResourceDetailDrawer/index.vue: error TS2614: Module '"@shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue"' has no exported member 'Props'. Did you mean to use 'import Props from "@shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue"' instead?
 shell/components/Resource/Detail/Metadata/index.vue: error TS2322: Type '(returnFocusSelector: string, defaultTab: string) => void' is not assignable to type '(returnFocusSelector: string) => void'.
 shell/components/Resource/Detail/TitleBar/__tests__/index.test.ts: error TS2322: Type 'DefineComponent<{}, {}, {}, {}, {}, ComponentOptionsMixin, ComponentOptionsMixin, {}, string, PublicProps, ToResolvedProps<{}, {}>, ... 8 more ..., any>' is not assignable to type 'VueElement | AdditionalActionButton[] | undefined'.
-shell/components/Window/__tests__/ContainerShell.test.ts: error TS2345: Argument of type '{ props: { tab: unknown; active: boolean; height: number; pod: { spec: { nodeName: string; }; links: { view: string; }; os?: string | undefined; _os?: string | undefined; }; initialContainer?: string | undefined; }; global?: Record<...> | undefined; }' is not assignable to parameter of type 'ComponentMountingOptions<DefineComponent<ExtractPropTypes<{ tab: { type: ObjectConstructor; required: true; }; active: { type: BooleanConstructor; required: true; }; height: { type: NumberConstructor; default: undefined; }; width: { ...; }; pod: { ...; }; initialContainer: { ...; }; commandOnFirstConnect: { ...; }; ...'.
-shell/components/__tests__/FilterPanel.test.ts: error TS2322: Type 'ComponentOptions<any, any, any, ComputedOptions, MethodOptions, any, any, any, string, {}, {}, string, {}, {}, {}, string, ComponentProvideOptions>' is not assignable to type 'ComponentType | undefined'.
 shell/components/fleet/FleetClusterTargets/index.vue: error TS2345: Argument of type '{ raw: boolean; }' is not assignable to parameter of type 'boolean | undefined'.
 shell/components/fleet/HelmOpAdvancedTab.vue: error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
 shell/components/fleet/HelmOpAdvancedTab.vue: error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
