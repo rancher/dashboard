@@ -666,7 +666,11 @@ export default {
           </Tabbed>
         </Tab>
         <template #tab-row-extras>
-          <li class="tablist-controls">
+          <!-- This slot renders inside the tablist <ul>, so it must not claim a role of its own -->
+          <li
+            class="tablist-controls"
+            role="presentation"
+          >
             <button
               v-if="!isView"
               type="button"

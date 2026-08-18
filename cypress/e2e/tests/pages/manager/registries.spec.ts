@@ -51,7 +51,7 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     createCustomClusterPage.selectCustom(0);
 
     // navigate to Registries tab
-    createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('#registry');
+    createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-registry"]');
     // enable registry (checkbox is on by default in Prime; only set when not Prime)
     cy.getRancherVersion().then((version) => {
       if (version.RancherPrime !== 'true') {
@@ -86,7 +86,7 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     // cluster name
     createCustomClusterPage.nameNsDescription().name().set(this.clusterName);
     // navigate to Registries tab
-    createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('#registry');
+    createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-registry"]');
     // enable registry (checkbox is on by default in Prime; only set when not Prime)
     cy.getRancherVersion().then((version) => {
       if (version.RancherPrime !== 'true') {
@@ -156,7 +156,7 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     // cluster name
     createCustomClusterPage.nameNsDescription().name().set(this.clusterName2);
     // navigate to Registries tab
-    createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('#registry');
+    createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-registry"]');
     // enable registry (checkbox is on by default in Prime; only set when not Prime)
     cy.getRancherVersion().then((version) => {
       if (version.RancherPrime !== 'true') {

@@ -17,8 +17,12 @@ export default class TabbedPo extends ComponentPo {
     return this.self().get(`[data-testid="btn-${ name }"]`).click();
   }
 
+  /**
+   * The tablist can also hold presentational list items (the add/remove footer, `tab-row-extras`
+   * slot content), so scope this to actual tabs.
+   */
   allTabs(componentTestId = this.componentId) {
-    return this.self().get(`[data-testid="${ componentTestId }-block"] > li`);
+    return this.self().get(`[data-testid="${ componentTestId }-block"] > li.tab`);
   }
 
   assertTabIsActive(selector: string) {
