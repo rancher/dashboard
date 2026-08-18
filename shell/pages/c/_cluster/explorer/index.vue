@@ -357,7 +357,11 @@ export default {
         // This should use cluster/byId getter
         const node = this.nodes.find((nd) => nd.id === nodeMetrics.id);
 
-        return node;
+        if (!node) return false;
+        const isSchedulable = !node.spec?.unschedulable;
+        const isWorker = node.isWorker;
+
+        return isSchedulable && isWorker;
       });
 
       const initialAggregation = {
