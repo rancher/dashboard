@@ -67,10 +67,12 @@ export default class LabeledInputPo extends ComponentPo {
 
   /**
    * Return the validation tooltip message displayed on the input
-   * @returns Cypress chainable for the aria-label attribute on the tooltip
+   * @returns Cypress chainable for the tooltip message
    */
   validationMessage(): Cypress.Chainable {
-    return this.self().closest('.labeled-input').find('[data-testid="labeledTooltip-info-icon"]').invoke('attr', 'aria-label');
+    return this.self().closest('.labeled-input').find('[data-testid="labeledTooltip-info-icon"]')
+      .invoke('attr', 'aria-describedby')
+      .then((id) => cy.get(`#${ id }`).invoke('text'));
   }
 
   /**

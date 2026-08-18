@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 import { AuditPolicy } from '@shell/edit/auditlog.cattle.io.auditpolicy/types';
 
 // Component Props & Emits
@@ -85,12 +86,8 @@ const redactionLabel = computed(() => {
             <div class="spacer" />
             <fieldset>
               <h2>
-                {{ t("auditPolicy.additionalRedactions.paths.title") }}                  <i
-                  v-clean-tooltip="{content: t('auditPolicy.additionalRedactions.paths.tooltip'), triggers: ['hover', 'touch', 'focus'] }"
-                  :aria-label="t('generic.moreInfo')"
-                  role="button"
-                  class="icon icon-info"
-                  tabindex="0"
+                {{ t("auditPolicy.additionalRedactions.paths.title") }}                  <RcIconTooltip
+                  :content="t('auditPolicy.additionalRedactions.paths.tooltip')"
                 />
               </h2>
               <div class="row">

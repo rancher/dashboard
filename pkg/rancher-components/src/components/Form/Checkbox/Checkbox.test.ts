@@ -1,5 +1,8 @@
 import { shallowMount, VueWrapper, mount } from '@vue/test-utils';
 import { Checkbox } from './index';
+import { waitForTooltip } from '@shell/directives/__tests__/utils/tooltip';
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe('checkbox.vue', () => {
   const event = {
@@ -128,5 +131,86 @@ describe('checkbox.vue', () => {
 
     expect(ariaDisabled).toBe('true');
     expect(tabIndex).toBe('-1');
+  });
+
+  it('a11y: the info icon should be a button naming itself rather than the tooltip', () => {
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = mount(
+      Checkbox,
+      {
+        props: {
+          value: false, label: 'some-label', tooltip: 'Pull secrets'
+        }
+      }
+    );
+    const button = wrapper.find('button.checkbox-info');
+
+    expect(button.attributes('type')).toBe('button');
+    expect(button.attributes('aria-label')).toBe('%generic.moreInfo%');
+    expect(button.find('i.icon-info').attributes('aria-hidden')).toBe('true');
+  });
+
+  it.each([
+    ['Enter', 'Enter'],
+    ['Space', ' '],
+  ])('a11y: %s on the info icon should not toggle the checkbox', async(_name, key) => {
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = mount(
+      Checkbox,
+      {
+        props: {
+          value: false, label: 'some-label', tooltip: 'Pull secrets'
+        }
+      }
+    );
+
+    wrapper.find('button.checkbox-info').element.dispatchEvent(new KeyboardEvent('keydown', {
+      key, bubbles: true, cancelable: true
+    }));
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:value')).toBeUndefined();
+  });
+
+  it('a11y: activating the info icon should not toggle the checkbox', async() => {
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = mount(
+      Checkbox,
+      {
+        props: {
+          value: false, label: 'some-label', tooltip: 'Pull secrets'
+        }
+      }
+    );
+
+    wrapper.find('button.checkbox-info').element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:value')).toBeUndefined();
+  });
+
+  it('a11y: activating the info icon should leave its tooltip shown', async() => {
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = mount(
+      Checkbox,
+      {
+        props: {
+          value: false, label: 'some-label', tooltip: 'Pull secrets'
+        },
+        attachTo: document.body,
+      }
+    );
+    const icon = wrapper.find('button.checkbox-info').element;
+
+    icon.dispatchEvent(new FocusEvent('focus'));
+    await waitForTooltip();
+
+    expect(document.querySelector('.v-popper__popper--shown')).not.toBeNull();
+
+    icon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await wait(600);
+
+    // The click must not dismiss what the focus just opened, so this waits out the hide it would
+    // have caused rather than waiting for a state to appear.
+    expect(document.querySelector('.v-popper__popper--shown')).not.toBeNull();
+    expect(wrapper.emitted('update:value')).toBeUndefined();
+
+    wrapper.unmount();
   });
 });
