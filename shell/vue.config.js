@@ -35,28 +35,6 @@ const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
 /**
- * Add ignored paths based on env var configuration and known cases
- * TODO: Verify after migration completed
- * In Webpack5 only RegExp, string and [string] types are accepted
- * https://webpack.js.org/configuration/watch/#watchoptionsignored
- * Example conversion:
- * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
- * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
- */
-const getWatcherIgnored = (excludes = []) => {
-  const paths = [
-    /node_modules/,
-    /dist-pkg/,
-    /scripts\/standalone/,
-  ];
-  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }/`));
-  const pathsCombined = [...paths, ...pathExcludedPkg];
-  const regexCombined = new RegExp(pathsCombined.map(({ source }) => source).join('|'));
-
-  return regexCombined;
-};
-
-/**
  * Paths to the shell folder when it is included as a node dependency
  */
 const getShellPaths = (dir) => {
@@ -538,6 +516,24 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
   }
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
+};
+
+/**
+ * Add ignored paths based on env var configuration and known cases.
+ * Webpack 5 accepts RegExp values for `watchOptions.ignored`.
+ * https://webpack.js.org/configuration/watch/#watchoptionsignored
+ */
+const getWatcherIgnored = (excludes = []) => {
+  const paths = [
+    /node_modules/,
+    /dist-pkg/,
+    /scripts\/standalone/,
+  ];
+  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }/`));
+  const pathsCombined = [...paths, ...pathExcludedPkg];
+  const regexCombined = new RegExp(pathsCombined.map(({ source }) => source).join('|'));
+
+  return regexCombined;
 };
 
 /**
