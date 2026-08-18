@@ -30,9 +30,6 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     cy.login();
     cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
     HomePagePo.goTo();
-    // The shared cold load is the most fail-whale-prone point; recover here so a transient crash
-    // doesn't poison every test in this testIsolation:false spec.
-    cy.recoverFromFailWhale();
   });
 
   describe('Check resources are selectable in the chart install wizard', () => {
@@ -53,8 +50,6 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     });
 
     it('Resource dropdown picker has ConfigMaps listed', () => {
-      // Guard the burger-menu navigation against a fail-whale that landed after the shared before().
-      cy.recoverFromFailWhale();
       ChartPage.navTo(undefined, 'rancher-demo');
       chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
@@ -108,8 +103,6 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
         cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
 
         // We need to install the chart first to have the versions selector show up later when we come back to the install page
-        // Guard the burger-menu navigation against a fail-whale crash from the preceding backend churn.
-        cy.recoverFromFailWhale();
         ChartPage.navTo(undefined, chartName);
         chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
         chartPage.goToInstall();

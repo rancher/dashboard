@@ -32,49 +32,6 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
-// [CREATE ISSUE TO INVESTIGATE] Entering a cluster runs the nav guard's loadCluster
-// (shell/config/router/navigation-guards/clusters.js), which awaits two *unprotected* requests
-// against the downstream Steve proxy - GET /k8s/clusters/<id>/v1/schemas
-// (shell/store/index.js:1079) and then /counts + /namespaces (shell/store/index.js:1107). If the
-// downstream proxy is momentarily reconnecting, one of those rejects with a raw axios
-// "Network Error" (no HTTP status, shell/plugins/steve/actions.js onError); the guard sees a
-// non-ClusterNotFound error and dead-ends on /fail-whale, with no retry or tolerance. The app
-// should retry/tolerate a transient downstream blip during load instead of crashing.
-//
-// Test-side we PREVENT it first with PagePo.readyForClusterPage - confirm the mgmt cluster is
-// Connected, then poll the downstream proxy endpoints loadCluster hits (schemas/counts/namespaces)
-// until they are consistently serving before navigating. But the crash happens inside the app's async
-// load AFTER any precondition we can check, so prevention alone is not a guarantee:
-// ignoreClusterLoadNetworkError + goToClusterDashboardTolerant below add a bounded RECOVERY
-// (re-navigate off fail-whale) for the residual case.
-
-// Tolerate the app's known uncaught "Network Error" during cluster load (the tagged bug above): the
-// unhandled promise rejection would otherwise auto-fail the test even when a re-navigation recovers.
-// Only the specific transient load rejection is swallowed; every other error still fails the test.
-const ignoreClusterLoadNetworkError = () => {
-  cy.on('uncaught:exception', (err) => {
-    if (/Network Error/i.test(err?.message || '')) {
-      return false;
-    }
-
-    return undefined;
-  });
-};
-
-// Navigate into the cluster dashboard, tolerating the fail-whale crash the app cannot recover from.
-// Prevention (readyForClusterPage) makes this rare, but the crash happens inside the app's async
-// loadCluster after any precondition we can check - so if we still land on fail-whale, re-confirm the
-// proxy is serving and re-navigate, as a bounded fallback for the tagged app bug.
-const goToClusterDashboardTolerant = (clusterId = 'local'): void => {
-  clusterDashboard.goTo();
-  // If we still landed on fail-whale, re-confirm the proxy is serving and re-enter the cluster
-  // (the shared recovery drives the settle + retry loop).
-  cy.recoverFromFailWhale(() => {
-    clusterDashboard.readyForClusterPage(clusterId);
-    clusterDashboard.goTo();
-  });
-};
-
 describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
@@ -88,11 +45,6 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
     // check if burger menu nav is highlighted correctly for cluster manager
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Cluster Management');
-
-    // Ensure the downstream cluster Steve proxy is actually serving before we enter the cluster,
-    // so loadCluster's schemas/counts fetch does not hit a transient "Network Error" and crash to
-    // fail-whale (see readyForClusterPage).
-    clusterDashboard.readyForClusterPage();
 
     clusterList.list().explore('local').click();
 
@@ -318,13 +270,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
       });
     });
 
-    // This test creates a project/namespace/pods first, adding backend churn, so the downstream
-    // Steve proxy is especially likely to be mid-reconnect here. Wait for it to actually serve before
-    // navigating in (prevention), tolerate the app's known uncaught Network Error, and re-navigate off
-    // fail-whale if the app still crashes inside its async load (recovery) - see the helpers above.
-    ignoreClusterLoadNetworkError();
-    clusterDashboard.readyForClusterPage();
-    goToClusterDashboardTolerant();
+    clusterDashboard.goTo();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
