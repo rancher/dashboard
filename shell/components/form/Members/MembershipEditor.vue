@@ -180,6 +180,7 @@ export default {
     v-model:value="bindings"
     :mode="mode"
     :show-header="true"
+    :add-allowed="canAddMember"
   >
     <template #column-headers>
       <div class="box mb-0">
@@ -210,7 +211,6 @@ export default {
     </template>
     <template #add>
       <button
-        v-if="canAddMember"
         type="button"
         class="btn role-primary mt-10"
         data-testid="add-item"
