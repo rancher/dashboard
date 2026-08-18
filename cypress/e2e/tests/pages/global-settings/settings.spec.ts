@@ -23,9 +23,6 @@ describe('Settings', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
-    // The cold home bootstrap (which fetches management.cattle.io.settings) is fail-whale-prone;
-    // recover here so a transient crash doesn't poison every test in this testIsolation:false spec.
-    cy.recoverFromFailWhale();
 
     // get settings server-url response data
     cy.getRancherResource('v1', 'management.cattle.io.settings').then((resp: Cypress.Response<any>) => {

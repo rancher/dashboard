@@ -196,11 +196,6 @@ declare global {
       tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, config?: { delay: boolean }): Chainable
 
       setUserPreference(prefs: any, verify?: boolean, retries?: number): Chainable;
-      /**
-       * Recover from the /fail-whale error page: settle, then if on fail-whale, reload (bounces to
-       * home) or run `reNavigate`, retried up to `tries` times.
-       */
-      recoverFromFailWhale(reNavigate?: () => void, tries?: number): Chainable;
 
       /**
        * update namespace filter
