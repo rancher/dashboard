@@ -13,15 +13,16 @@ jest.mock('@shell/utils/require-asset', () => {
 });
 
 const labels: Record<string, string> = {
-  'model.authConfig.provider."okta"':           'Okta',
-  'model.authConfig.provider."github"':         'GitHub',
-  'model.authConfig.provider."azuread"':        'Microsoft Entra ID',
+  'model.authConfig.provider."okta"':            'Okta',
+  'model.authConfig.provider."github"':          'GitHub',
+  'model.authConfig.provider."azuread"':         'Microsoft Entra ID',
   'model.authConfig.provider."activedirectory"': 'ActiveDirectory',
-  'model.authConfig.description."saml"':        'SAML',
-  'model.authConfig.description."oauth"':       'OAuth',
-  'model.authConfig.description."ldap"':        'LDAP',
-  'login.providers.local.name':                 'Local account',
-  'login.providers.local.meta':                 'Username and password',
+  'model.authConfig.description."saml"':         'SAML',
+  'model.authConfig.description."oauth"':        'OAuth',
+  'model.authConfig.description."ldap"':         'LDAP',
+  'login.providers.local.name':                  'Local account',
+  'login.providers.local.description':           'Signs in with a username and password held by Rancher itself.',
+  'login.providers.local.meta':                  'Username and password',
 };
 
 const i18n = {
@@ -35,17 +36,20 @@ const i18n = {
   withFallback: (key: string, _args: object | null, fallback: string) => labels[key] ?? fallback,
 };
 
-const driver = (id: string, type: string): AuthProviderDriver => ({ id, type });
+const driver = (id: string, type: string, description?: string): AuthProviderDriver => ({
+  id, type, description
+});
 
 const option = (id: string, extra: Partial<AuthProviderOption> = {}): AuthProviderOption => ({
   id,
-  type:     'oktaProvider',
-  key:      'okta',
-  category: 'saml',
-  name:     id,
-  meta:     'Okta · SAML',
-  icon:     '',
-  isLocal:  false,
+  type:        'oktaProvider',
+  key:         'okta',
+  category:    'saml',
+  name:        id,
+  description: '',
+  meta:        'Okta · SAML',
+  icon:        '',
+  isLocal:     false,
   ...extra,
 });
 
@@ -79,6 +83,20 @@ describe('fx: toProviderOptions', () => {
     const [result] = toProviderOptions([driver('GitHub', 'githubProvider')], i18n);
 
     expect(result.name).toBe('GitHub');
+  });
+
+  // The row keeps a place for the admin's own words about the config, so that
+  // two tenants of one provider can be told apart by more than their names.
+  it('should carry the description the admin gave the config', () => {
+    const [result] = toProviderOptions([driver('Okta — Partner tenant', 'oktaProvider', 'Partners and contractors.')], i18n);
+
+    expect(result.description).toBe('Partners and contractors.');
+  });
+
+  it('should leave the description empty when the config has none', () => {
+    const [result] = toProviderOptions([driver('okta', 'oktaProvider')], i18n);
+
+    expect(result.description).toBe('');
   });
 
   it('should resolve the vendor logo', () => {
@@ -120,6 +138,7 @@ describe('fx: toProviderOptions', () => {
       const [result] = toProviderOptions([driver('local', 'localProvider')], i18n);
 
       expect(result.name).toBe('Local account');
+      expect(result.description).toBe('Signs in with a username and password held by Rancher itself.');
       expect(result.meta).toBe('Username and password');
       expect(result.icon).toBe('');
     });

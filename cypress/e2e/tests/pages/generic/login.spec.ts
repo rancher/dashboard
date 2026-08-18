@@ -106,7 +106,10 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
               id: 'okta-corp', type: 'oktaProvider', _type: 'oktaProvider'
             },
             {
-              id: 'okta-partner', type: 'oktaProvider', _type: 'oktaProvider'
+              id:          'okta-partner',
+              type:        'oktaProvider',
+              _type:       'oktaProvider',
+              description: 'Partners and contractors.',
             },
             {
               id: 'gh-community', type: 'githubProvider', _type: 'githubProvider'
@@ -143,6 +146,26 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
       loginPage.providerOption('local').checkVisible();
       // The provider on the primary button is not offered twice.
       loginPage.providerOption('gh-community').checkNotExists();
+    });
+
+    it('Describes a provider with the words the admin gave it', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.waitForPage();
+
+      loginPage.providerOption('okta-partner').shouldContainText('Partners and contractors.');
+    });
+
+    // However many providers are configured, local must not scroll out of reach.
+    it('Keeps local out of the scrolling part of the list', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.waitForPage();
+
+      loginPage.providerScrollList().checkVisible();
+      loginPage.providerScrollList().self().find('[data-testid="login-provider-option-okta-corp"]').should('exist');
+      loginPage.providerScrollList().self().find('[data-testid="login-provider-option-local"]').should('not.exist');
+      loginPage.providerOption('local').checkVisible();
     });
 
     it('Reaches each provider in the list with the tab key', () => {

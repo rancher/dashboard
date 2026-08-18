@@ -626,21 +626,7 @@ export default {
           v-if="hasProviderChoice"
           class="login-alternatives mt-20"
         >
-          <div
-            v-if="showProviderList"
-            class="login-remember"
-          >
-            <Checkbox
-              :value="rememberProvider"
-              :label="t('login.providers.remember')"
-              data-testid="login-provider-remember"
-              @update:value="setRememberProvider"
-            />
-            <p class="login-remember__hint">
-              {{ t('login.providers.rememberHint') }}
-            </p>
-          </div>
-          <OrDivider class="mt-20" />
+          <OrDivider />
           <div
             v-if="!showProviderList"
             class="mt-20 text-center"
@@ -653,14 +639,26 @@ export default {
               {{ t('login.providers.chooseDifferent') }}
             </RcButton>
           </div>
-          <AuthProviderList
-            v-else
-            ref="providerList"
-            class="mt-20"
-            :options="providerOptions"
-            :selected-id="selectedProviderId"
-            @select="selectProvider"
-          />
+          <template v-else>
+            <AuthProviderList
+              ref="providerList"
+              class="mt-20"
+              :options="providerOptions"
+              :selected-id="selectedProviderId"
+              @select="selectProvider"
+            />
+            <div class="login-remember mt-20">
+              <Checkbox
+                :value="rememberProvider"
+                :label="t('login.providers.remember')"
+                data-testid="login-provider-remember"
+                @update:value="setRememberProvider"
+              />
+              <p class="login-remember__hint">
+                {{ t('login.providers.rememberHint') }}
+              </p>
+            </div>
+          </template>
         </div>
         <div
           v-if="showLocaleSelector && hasMultipleLocales && !isHarvester"

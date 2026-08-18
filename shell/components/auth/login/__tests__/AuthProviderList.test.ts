@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import AuthProviderList from '@shell/components/auth/login/AuthProviderList.vue';
 import AuthProviderOption from '@shell/components/auth/login/AuthProviderOption.vue';
@@ -13,12 +14,13 @@ jest.mock('vuex', () => {
 
 const option = (id: string, isLocal = false): Option => ({
   id,
-  type:     isLocal ? 'localProvider' : 'oktaProvider',
-  key:      isLocal ? 'local' : 'okta',
-  category: isLocal ? '' : 'saml',
-  name:     id,
-  meta:     isLocal ? 'Username and password' : 'Okta · SAML',
-  icon:     '',
+  type:        isLocal ? 'localProvider' : 'oktaProvider',
+  key:         isLocal ? 'local' : 'okta',
+  category:    isLocal ? '' : 'saml',
+  name:        id,
+  description: '',
+  meta:        isLocal ? 'Username and password' : 'Okta · SAML',
+  icon:        '',
   isLocal,
 });
 
@@ -57,6 +59,22 @@ describe('component: AuthProviderList', () => {
     expect(all[all.length - 1].props('option').isLocal).toBe(true);
   });
 
+  // However many providers are configured, local must not scroll out of reach.
+  it('should keep local out of the scrolling region', () => {
+    const wrapper = createWrapper([option('okta-corp'), option('gh'), option('local', true)]);
+
+    const scrolled = wrapper.find('.auth-provider-list__scroll').findAllComponents(AuthProviderOption);
+
+    expect(scrolled.map((o) => o.props('option').id)).toStrictEqual(['okta-corp', 'gh']);
+  });
+
+  it('should not open a scrolling region when local is all that is left to offer', () => {
+    const wrapper = createWrapper([option('okta-corp'), option('local', true)], 'okta-corp');
+
+    expect(wrapper.find('.auth-provider-list__scroll').exists()).toBe(false);
+    expect(wrapper.findAllComponents(AuthProviderOption)[0].props('option').isLocal).toBe(true);
+  });
+
   it('should omit local when it is not configured', () => {
     const wrapper = createWrapper([option('okta-corp'), option('gh')]);
 
@@ -69,6 +87,22 @@ describe('component: AuthProviderList', () => {
 
     expect(wrapper.findComponent(RcSeparator).exists()).toBe(false);
     expect(wrapper.findAllComponents(AuthProviderOption)).toHaveLength(1);
+  });
+
+  // Local sits beside the scrollbar rather than behind it, so it has to leave
+  // the same gap as the rows above or it hangs over their edge.
+  it('should hold the scrollbar gutter open for the local option', async() => {
+    const wrapper = createWrapper([option('okta-corp'), option('gh'), option('local', true)]);
+    const scroll = wrapper.find('.auth-provider-list__scroll').element;
+
+    Object.defineProperty(scroll, 'offsetWidth', { value: 362, configurable: true });
+    Object.defineProperty(scroll, 'clientWidth', { value: 354, configurable: true });
+
+    window.dispatchEvent(new Event('resize'));
+    await nextTick();
+    await nextTick();
+
+    expect(wrapper.find('.auth-provider-list__local').attributes('style')).toContain('padding-right: 8px');
   });
 
   it('should raise the chosen provider to the page', () => {

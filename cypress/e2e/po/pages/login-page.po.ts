@@ -68,6 +68,14 @@ export class LoginPagePo extends PagePo {
   }
 
   /**
+   * The scrolling part of the list, which holds the external providers. Local
+   * sits outside it so that it is always in reach.
+   */
+  providerScrollList(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-scroll"]');
+  }
+
+  /**
    * A provider in the list, keyed by its authconfig name. The provider on the
    * primary button is not repeated here.
    */

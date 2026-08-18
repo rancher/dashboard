@@ -4584,11 +4584,12 @@ login:
     heading: Choose how to sign in
     or: Or
     chooseDifferent: Choose a different provider
-    meta: '{vendor} · {protocol}'
+    meta: "{vendor} · {protocol}"
     remember: Remember my choice on this device
-    rememberHint: Applies to whichever provider you use below. Saved in this browser only.
+    rememberHint: Applies to whichever provider you choose. Saved in this browser only.
     local:
       name: Local account
+      description: Sign into Rancher with a username and password.
       meta: Username and password
   remember:
     label: Remember Username

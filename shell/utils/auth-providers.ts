@@ -8,6 +8,8 @@ export const REMEMBERED_PROVIDER_KEY = 'rancher-login-provider';
 export interface AuthProviderDriver {
   id: string;
   type: string;
+  /** Free text the admin gave the config, when the server has one for it. */
+  description?: string;
 }
 
 export interface AuthProviderOption {
@@ -16,6 +18,7 @@ export interface AuthProviderOption {
   key: string;
   category?: string;
   name: string;
+  description: string;
   meta: string;
   icon: string;
   isLocal: boolean;
@@ -43,14 +46,15 @@ export const toProviderOptions = (drivers: AuthProviderDriver[], i18n: I18n): Au
     const protocolLabel = category ? withFallback(`model.authConfig.description."${ category }"`, null, category.toUpperCase()) : '';
 
     return {
-      id:   driver.id,
-      type: driver.type,
+      id:          driver.id,
+      type:        driver.type,
       key,
       category,
-      name: displayNameFor(driver.id, key, vendorLabel),
-      meta: protocolLabel ? t('login.providers.meta', { vendor: vendorLabel, protocol: protocolLabel }) : vendorLabel,
-      icon: providerIcon(driver.type),
-      isLocal: false,
+      name:        displayNameFor(driver.id, key, vendorLabel),
+      description: driver.description || '',
+      meta:        protocolLabel ? t('login.providers.meta', { vendor: vendorLabel, protocol: protocolLabel }) : vendorLabel,
+      icon:        providerIcon(driver.type),
+      isLocal:     false,
     };
   });
 
@@ -63,14 +67,15 @@ export const toProviderOptions = (drivers: AuthProviderDriver[], i18n: I18n): Au
   return [
     ...external,
     {
-      id:       LOCAL_AUTH_ID,
-      type:     LOCAL_PROVIDER,
-      key:      LOCAL_AUTH_ID,
-      category: '',
-      name:     t('login.providers.local.name'),
-      meta:     t('login.providers.local.meta'),
-      icon:     '',
-      isLocal:  true,
+      id:          LOCAL_AUTH_ID,
+      type:        LOCAL_PROVIDER,
+      key:         LOCAL_AUTH_ID,
+      category:    '',
+      name:        t('login.providers.local.name'),
+      description: t('login.providers.local.description'),
+      meta:        t('login.providers.local.meta'),
+      icon:        '',
+      isLocal:     true,
     },
   ];
 };
