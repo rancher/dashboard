@@ -52,10 +52,17 @@ export default {
 
     const projectRoleTemplateBindingSchema = this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
 
+    // SURE-8995: this page is now reachable by users with only project membership
+    // permissions, who have no access to CLUSTER role bindings. The norman CRTB
+    // schema can be present while the management (steve) one is not, so guard the
+    // cluster binding load on BOTH - otherwise `management/findAll` throws
+    // "Unknown schema for type: management.cattle.io.clusterroletemplatebinding".
+    const mgmtClusterRoleTemplateBindingSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
+
     this['normanClusterRTBSchema'] = clusterRoleTemplateBindingSchema;
     this['normanProjectRTBSchema'] = projectRoleTemplateBindingSchema;
 
-    if (clusterRoleTemplateBindingSchema) {
+    if (clusterRoleTemplateBindingSchema && mgmtClusterRoleTemplateBindingSchema) {
       Promise.all([
         this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING }, { root: true }),
         this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING })
@@ -63,6 +70,8 @@ export default {
         this['normanClusterRoleTemplateBindings'] = normanBindings;
         this.loadingClusterBindings = false;
       });
+    } else {
+      this.loadingClusterBindings = false;
     }
 
     if (projectRoleTemplateBindingSchema) {
