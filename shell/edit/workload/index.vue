@@ -5,12 +5,14 @@ import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 import { mapGetters } from 'vuex';
 import { FORM_TYPES } from '@shell/components/form/Security';
 import { NODE, POD } from '@shell/config/types';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default {
-  name:   'Workload',
-  emits:  ['input'],
-  mixins: [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
-  props:  {
+  name:       'Workload',
+  emits:      ['input'],
+  components: { RcIconTooltip },
+  mixins:     [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
+  props:      {
     value: {
       type:     Object,
       required: true,
@@ -330,13 +332,7 @@ export default {
               <div>
                 <h3>
                   {{ t('workload.container.ports.expose') }}
-                  <i
-                    v-clean-tooltip="{content: t('workload.container.ports.toolTip'), triggers: ['hover', 'touch', 'focus'] }"
-                    :aria-label="t('generic.moreInfo')"
-                    role="button"
-                    class="icon icon-info"
-                    tabindex="0"
-                  />
+                  <rc-icon-tooltip :content="t('workload.container.ports.toolTip')" />
                 </h3>
                 <p class="padded">
                   {{ t('workload.container.ports.description') }}

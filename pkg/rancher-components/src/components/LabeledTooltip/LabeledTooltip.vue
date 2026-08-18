@@ -1,7 +1,11 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { RcIconTooltip } from '@components/RcIconTooltip';
+import { RcIconType } from '@components/RcIcon/types';
 
 export default defineComponent({
+  components: { RcIconTooltip },
+
   props: {
     /**
      * The Labeled Tooltip value.
@@ -37,12 +41,12 @@ export default defineComponent({
     },
   },
   computed: {
-    iconClass(): string {
-      return this.status === 'error' ? 'icon-warning' : 'icon-info';
+    iconType(): RcIconType {
+      return this.status === 'error' ? 'warning' : 'info';
     },
     iconAriaLabel(): string {
-      if ((this.status === 'error' || this.status === 'warning') && this.value) {
-        return this.isObject(this.value) ? this.value.content as string : this.value as string;
+      if (this.status === 'error' || this.status === 'warning') {
+        return this.t(`generic.${ this.status }`);
       }
 
       return this.t('generic.moreInfo');
@@ -50,12 +54,10 @@ export default defineComponent({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tooltipContent(): {[key: string]: any} | string {
       if (this.isObject(this.value)) {
-        return {
-          ...{ content: this.value.content, popperClass: [`tooltip-${ status }`] }, ...this.value, triggers: ['hover', 'touch', 'focus']
-        };
+        return { ...{ content: this.value.content, popperClass: [`tooltip-${ status }`] }, ...this.value };
       }
 
-      return this.value ? { content: this.value, triggers: ['hover', 'touch', 'focus'] } : '';
+      return this.value || '';
     }
   },
   methods: {
@@ -73,14 +75,14 @@ export default defineComponent({
     :class="{[status]: true, hoverable: hover}"
   >
     <template v-if="hover">
-      <i
-        v-clean-tooltip="tooltipContent"
-        :aria-label="iconAriaLabel"
-        :class="{'hover':!value, [iconClass]: true}"
-        class="icon status-icon"
-        role="button"
-        tabindex="0"
+      <rc-icon-tooltip
+        :content="tooltipContent"
+        :label="iconAriaLabel"
+        :icon-type="iconType"
+        :class="{'hover':!value}"
+        class="status-icon"
         :data-testid="componentTestid"
+        @click.stop
       />
     </template>
     <template v-else>

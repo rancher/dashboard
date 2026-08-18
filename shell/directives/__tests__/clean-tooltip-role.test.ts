@@ -16,7 +16,6 @@ describe('clean-tooltip role="tooltip"', () => {
 
     wrapper.element.dispatchEvent(new MouseEvent('mouseenter'));
 
-    // floating-vue's default show delay is 200ms, plus async positioning
     await wait(600);
 
     expect(document.querySelector('.v-popper__popper')?.getAttribute('role')).toBe('tooltip');
@@ -51,12 +50,7 @@ describe('clean-tooltip role="tooltip"', () => {
     elB.dispatchEvent(new MouseEvent('mouseenter'));
     await wait(600);
 
-    const poppers = document.querySelectorAll('.v-popper__popper');
-    const visiblePopper = Array.from(poppers).find(
-      (p) => p.classList.contains('v-popper__popper--shown')
-    ) || poppers[poppers.length - 1];
-
-    expect(visiblePopper?.getAttribute('role')).toBe('tooltip');
+    expect(document.querySelector('.v-popper__popper--shown')?.getAttribute('role')).toBe('tooltip');
 
     wrapper.unmount();
   });
