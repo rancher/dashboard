@@ -65,12 +65,6 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
             :aria-label="`${ card.total } ${ card.title }`"
           />
         </div>
-        <div
-          v-if="hasAside"
-          class="aside-cell"
-        >
-          <slot name="aside-heading" />
-        </div>
       </div>
     </template>
 
@@ -173,9 +167,8 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
       line-height: 21px;
     }
 
-    // With an aside, the header mirrors the body's two columns: the title on the left with its total
-    // at the end of the bar (this column's right edge), and the "Expiring Soonest" heading up on the
-    // same line on the right.
+    // With an aside, the left half is a body column, so keep the title's total at the end of the bar
+    // (this column's right edge) rather than the full card width.
     &.has-aside {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -183,11 +176,6 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
 
       .title-cell {
         flex: none;
-      }
-
-      .aside-cell {
-        align-items: center;
-        display: flex;
       }
     }
   }
@@ -202,6 +190,9 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
 
     // Each row's count stays right-aligned to the end of the bar (the right edge of this column),
     // matching the workload cards.
+    //
+    // Nudge the aside down so its first row sits nearer the state rows, which start below the bar
+    // rather than at the top of the column.
     .aside {
       display: flex;
       flex-direction: column;

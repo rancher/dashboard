@@ -22,13 +22,13 @@ certManager:
     certificates:
       title: Certificates
     expiry:
-      title: Expiry
+      title: Certificate Expiry
       expired: Expired
       within7: Within 7 days
       within30: Within 30 days
       within90: Within 90 days
       beyond90: Beyond 90 days
-      expiringSoon: Expiring Soonest
+      expiringSoon: Soonest to Expire
       none: No issued certificates yet.
       days: |-
         {count, plural,

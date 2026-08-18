@@ -138,6 +138,9 @@ function iconFor(resource: any): string {
   }
 
   .detail {
+    // Shrink each child to its own content, so the state pill sizes to its label rather than
+    // stretching to match a wider link above it.
+    align-items: flex-start;
     display: flex;
     flex-direction: column;
     gap: var(--gap);

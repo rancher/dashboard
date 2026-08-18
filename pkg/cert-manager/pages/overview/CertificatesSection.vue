@@ -48,13 +48,11 @@ const { t } = useI18n(useStore());
       </div>
 
       <OverviewCard :card="summary">
-        <template #aside-heading>
+        <template #aside>
           <h4 class="mm-0 text-deemphasized">
             {{ t('certManager.overview.expiry.expiringSoon') }}
           </h4>
-        </template>
 
-        <template #aside>
           <template v-if="expiringSoon.length">
             <ul
               class="expiring-soon"
