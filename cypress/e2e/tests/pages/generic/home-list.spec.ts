@@ -28,13 +28,16 @@ describe('Home Page List', { testIsolation: false }, () => {
        */
     const clusterName = 'local';
 
-    HomePagePo.goTo();
+    HomePagePo.navTo();
     homePage.waitForPage();
 
     // Ensure the cluster list has fully loaded before reading values. Otherwise an
     // async re-render of the still-streaming list can detach the row mid-read.
     homeClusterList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     homeClusterList.resourceTable().sortableTable().rowWithName(clusterName).checkVisible();
+
+    // Verify version is present before proceeding
+    homeClusterList.version(clusterName).should('not.contain', '—');
 
     // Get text values and store as aliases.
     // The home cluster list keeps re-rendering rows as the CPU/Memory/Pods metrics
