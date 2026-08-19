@@ -23,6 +23,10 @@ export class SlideInApiImpl implements SlideInApi {
     if (config.showHeader !== undefined) {
       console.warn(`${ DEPRECATION_PREFIX } "showHeader" is deprecated. Header visibility is now inferred from the presence of "title". Full deprecation expected in Rancher 2.17.`); // eslint-disable-line no-console
     }
+
+    if (config.title !== undefined) {
+      console.warn(`${ DEPRECATION_PREFIX } "title" is deprecated. Render RcDrawer as your panel's root instead, which also lets the panel contribute footer actions. Full deprecation expected in Rancher 2.17.`); // eslint-disable-line no-console
+    }
   }
 
   /**
@@ -54,7 +58,10 @@ export class SlideInApiImpl implements SlideInApi {
 
     this.store.commit('slideInPanel/open', {
       component,
-      componentProps: { ...(config || {}), ...props }
+      componentProps: {
+        ...(config || {}),
+        ...props
+      }
     });
   }
 }

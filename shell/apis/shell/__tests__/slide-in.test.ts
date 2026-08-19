@@ -158,9 +158,16 @@ describe('slideInApiImpl', () => {
       );
     });
 
+    it('warns when deprecated "title" is used', () => {
+      slideInApi.open(MockComponent, { title: 'Test' });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('"title" is deprecated')
+      );
+    });
+
     it('does not warn when using preset properties', () => {
       slideInApi.open(MockComponent, {
-        title:  'Test',
         width:  'wide' as const,
         height: 'full' as const,
       });

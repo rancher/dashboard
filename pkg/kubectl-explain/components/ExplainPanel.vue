@@ -88,7 +88,10 @@ export default {
     class="main"
   >
     <div class="title-spacer" />
-    <div v-if="definition.description">
+    <div
+      v-if="definition.description"
+      class="definition-description"
+    >
       {{ definition.description }}
     </div>
     <div

@@ -14,6 +14,9 @@ export {
 export { RcIcon } from './components/RcIcon';
 export { RcSection } from './components/RcSection';
 export { RcSeparator } from './components/RcSeparator';
+export {
+  RcDrawer, RcDrawerCard, RcDrawerMessage
+} from './components/RcDrawer';
 export { RcItemCard, RcItemCardAction } from './components/RcItemCard';
 export { default as RcCounterBadge } from './components/Pill/RcCounterBadge';
 export { default as RcStatusBadge } from './components/Pill/RcStatusBadge';

@@ -7,8 +7,8 @@ import FleetApplicationSource from '@shell/components/formatter/FleetApplication
 import FleetClusters from '@shell/components/fleet/FleetClusters.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
-import Drawer from '@shell/components/Drawer/Chrome.vue';
-import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import RcDrawer from '@components/RcDrawer/RcDrawer.vue';
+import RcDrawerCard from '@components/RcDrawer/RcDrawerCard.vue';
 import suseAppCoLogo from '@shell/assets/images/content/suse.svg';
 import suseAppCoLogoDark from '@shell/assets/images/content/dark/suse.svg';
 
@@ -21,8 +21,8 @@ export default {
     FleetClusters,
     Tabbed,
     Tab,
-    Drawer,
-    DrawerCard,
+    RcDrawer,
+    RcDrawerCard,
   },
 
   props: {
@@ -80,19 +80,13 @@ export default {
 
   },
 
-  methods: {
-    closePanel() {
-      this.$store.commit('slideInPanel/close');
-    }
-  }
 };
 </script>
 
 <template>
-  <Drawer
-    :ariaTarget="value.id"
-    :removeFooter="true"
-    @close="closePanel"
+  <RcDrawer
+    :title="value.id"
+    :hideFooter="true"
   >
     <template
       #title
@@ -134,7 +128,7 @@ export default {
           :label="t('fleet.dashboard.resourceDetails.clusters')"
           name="clusters"
         >
-          <DrawerCard>
+          <RcDrawerCard>
             <FleetClusters
               :schema="clusterSchema"
               :rows="value.targetClusters"
@@ -145,25 +139,25 @@ export default {
               :ignore-filter="true"
               paging-label="sortableTable.paging.resource"
             />
-          </DrawerCard>
+          </RcDrawerCard>
         </Tab>
         <Tab
           :label="t('fleet.dashboard.resourceDetails.resources')"
           name="resources"
         >
-          <DrawerCard>
+          <RcDrawerCard>
             <FleetResources
               :rows="value.resourcesStatuses"
               :cluster-id="clusterId"
               :search="true"
             />
-          </DrawerCard>
+          </RcDrawerCard>
         </Tab>
         <Tab
           :label="t('fleet.dashboard.resourceDetails.source')"
           name="source"
         >
-          <DrawerCard class="mmb-4">
+          <RcDrawerCard>
             <FleetApplicationSource
               v-if="value.source.value"
               :row="value"
@@ -174,11 +168,11 @@ export default {
             >
               &mdash;
             </div>
-          </DrawerCard>
+          </RcDrawerCard>
         </Tab>
       </Tabbed>
     </template>
-  </Drawer>
+  </RcDrawer>
 </template>
 
 <style lang="scss" scoped>

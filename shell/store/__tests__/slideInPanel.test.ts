@@ -29,8 +29,21 @@ describe('slideInPanel store', () => {
         isOpen:         false,
         isClosing:      false,
         component:      null,
-        componentProps: {}
+        componentProps: {},
+        openCount:      0
       });
+    });
+  });
+
+  describe('openCount', () => {
+    it('increments on every open so the panel remounts instead of being patched', () => {
+      const state = createState();
+
+      slideInPanel.mutations.open(state, { component: { name: 'A' } });
+      slideInPanel.mutations.close(state);
+      slideInPanel.mutations.open(state, { component: { name: 'B' } });
+
+      expect(state.openCount).toBe(2);
     });
   });
 
