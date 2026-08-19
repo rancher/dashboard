@@ -43,6 +43,21 @@ const LDAP_DEFAULTS = {
   userSearchAttribute:          'uid|sn|givenName'
 };
 
+const GENERIC_SAML = 'genericsaml';
+
+// Providers that expose the Entity ID field
+const ENTITY_ID_PROVIDERS = ['keycloak', 'ping', GENERIC_SAML];
+
+// Generic SAML NameID formats. Labels are translated, values mirror the backend enum.
+const NAME_ID_FORMATS = ['unspecified', 'emailAddress', 'transient', 'persistent'];
+
+// Generic SAML signature algorithms. These are standard algorithm identifiers, so they aren't translated.
+const SIGNATURE_METHODS = [
+  { value: 'RSA-SHA256', label: 'RSA-SHA256' },
+  { value: 'RSA-SHA1', label: 'RSA-SHA1' },
+  { value: 'RSA-SHA512', label: 'RSA-SHA512' },
+];
+
 export default {
   components: {
     Loading,
@@ -100,19 +115,8 @@ export default {
 
   data() {
     return {
-      showLdap:            false,
-      showLdapDetails:     false,
-      nameIDFormatOptions: [
-        { value: 'unspecified', label: 'unspecified' },
-        { value: 'emailAddress', label: 'emailAddress' },
-        { value: 'transient', label: 'transient' },
-        { value: 'persistent', label: 'persistent' },
-      ],
-      signatureMethodOptions: [
-        { value: 'RSA-SHA256', label: 'RSA-SHA256' },
-        { value: 'RSA-SHA1', label: 'RSA-SHA1' },
-        { value: 'RSA-SHA512', label: 'RSA-SHA512' },
-      ],
+      showLdap:        false,
+      showLdapDetails: false,
     };
   },
 
@@ -122,29 +126,23 @@ export default {
 
   computed: {
     isGenericSaml() {
-      return this.NAME === 'genericsaml';
+      return this.NAME === GENERIC_SAML;
     },
 
-    // The model is (re)assigned by the auth-config mixin's fetch(), so defaults
-    // can't be seeded in created(). Instead default on read and write on change,
-    // matching how oidc.vue handles its generic defaults. An untouched default is
-    // saved empty and the backend applies the same default (unspecified / RSA-SHA256).
-    nameIDFormat: {
-      get() {
-        return this.model?.nameIDFormat || 'unspecified';
-      },
-      set(value) {
-        this.model.nameIDFormat = value;
-      }
+    supportsEntityId() {
+      return ENTITY_ID_PROVIDERS.includes(this.NAME);
     },
 
-    signatureMethod: {
-      get() {
-        return this.model?.signatureMethod || 'RSA-SHA256';
-      },
-      set(value) {
-        this.model.signatureMethod = value;
-      }
+    nameIDFormatOptions() {
+      return NAME_ID_FORMATS.map((value) => ({ value, label: this.t(`authConfig.saml.nameIDFormatOptions.${ value }`) }));
+    },
+
+    signatureMethodOptions() {
+      return SIGNATURE_METHODS;
+    },
+
+    nameIDFormatLabel() {
+      return this.nameIDFormatOptions.find((option) => option.value === this.model?.nameIDFormat)?.label || '';
     },
 
     validationPassed() {
@@ -271,11 +269,15 @@ export default {
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
             <template v-if="isGenericSaml">
-              <tr data-testid="genericsaml-view-fields">
-                <td>{{ t(`authConfig.saml.nameIDFormat`) }}: </td><td>{{ nameIDFormat }}</td>
+              <tr v-if="model.nameIDFormat">
+                <td>{{ t(`authConfig.saml.nameIDFormat`) }}: </td><td>{{ nameIDFormatLabel }}</td>
               </tr>
-              <tr><td>{{ t(`authConfig.saml.signatureMethod`) }}: </td><td>{{ signatureMethod }}</td></tr>
-              <tr><td>{{ t(`authConfig.saml.allowIdpInitiated`) }}: </td><td>{{ model.allowIdpInitiated ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
+              <tr v-if="model.signatureMethod">
+                <td>{{ t(`authConfig.saml.signatureMethod`) }}: </td><td>{{ model.signatureMethod }}</td>
+              </tr>
+              <tr data-testid="genericsaml-view-fields">
+                <td>{{ t(`authConfig.saml.allowIdpInitiated`) }}: </td><td>{{ model.allowIdpInitiated ? t('generic.enabled') : t('generic.disabled') }}</td>
+              </tr>
               <tr><td>{{ t(`authConfig.saml.forceAuthn`) }}: </td><td>{{ model.forceAuthn ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
             </template>
             <tr v-if="isLogoutAllSupported">
@@ -396,7 +398,7 @@ export default {
 
         <div class="row mb-20">
           <div
-            v-if="NAME === 'keycloak' || NAME === 'ping' || NAME === 'genericsaml'"
+            v-if="supportsEntityId"
             class="col span-6"
           >
             <LabeledInput
@@ -481,7 +483,7 @@ export default {
             <div class="row mb-20">
               <div class="col span-6">
                 <LabeledSelect
-                  v-model:value="nameIDFormat"
+                  v-model:value="model.nameIDFormat"
                   :label="t('authConfig.saml.nameIDFormat')"
                   :options="nameIDFormatOptions"
                   :mode="mode"
@@ -490,7 +492,7 @@ export default {
               </div>
               <div class="col span-6">
                 <LabeledSelect
-                  v-model:value="signatureMethod"
+                  v-model:value="model.signatureMethod"
                   :label="t('authConfig.saml.signatureMethod')"
                   :options="signatureMethodOptions"
                   :mode="mode"
