@@ -46,7 +46,7 @@ export async function installPlugins(vueApp) {
       // A contenteditable takes typing like an input, so shortcuts must not fire in it
       prevent:          ['input', 'textarea', 'select', '[contenteditable="true"]', '[contenteditable="plaintext-only"]'],
       // A surface that owns the screen silences the app's shortcuts while it is up.
-      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR]
+      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR, '.rc-modal']
     });
   vueApp.use(InstallCodeMirror);
 }
