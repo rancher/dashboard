@@ -522,6 +522,9 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
  * Add ignored paths based on env var configuration and known cases.
  * Webpack 5 accepts RegExp values for `watchOptions.ignored`.
  * https://webpack.js.org/configuration/watch/#watchoptionsignored
+ * Example conversion:
+ * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
+ * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/ 
  */
 const getWatcherIgnored = (excludes = []) => {
   const paths = [
