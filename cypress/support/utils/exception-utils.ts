@@ -3,7 +3,8 @@ export const RANCHER_PAGE_EXCEPTIONS = [
   'TenantFeatures',
   'DomainData',
   'ResizeObserver loop',
-  'cross origin page'
+  'cross origin page',
+  'No visitor ID available'
 ];
 
 /**
