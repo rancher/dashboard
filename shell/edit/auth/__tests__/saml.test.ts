@@ -77,7 +77,7 @@ const mountOptions = (model: object) => ({
   },
 });
 
-const mountOptionsForProvider = (provider: string, model: object) => ({
+const mountOptionsForProvider = (provider: string, model: object, value: object = {}) => ({
   data() {
     return {
       isEnabling:     false,
@@ -109,8 +109,8 @@ const mountOptionsForProvider = (provider: string, model: object) => ({
     },
   },
   props: {
-    value: {},
-    mode:  _EDIT,
+    value,
+    mode: _EDIT,
   },
 });
 
@@ -258,25 +258,75 @@ describe('saml.vue', () => {
       expect(wrapper.vm.isGenericSaml).toBe(false);
     });
 
-    it('defaults nameIDFormat to unspecified when unset', async() => {
-      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, nameIDFormat: undefined }));
+    it('seeds nameIDFormat and signatureMethod defaults when unset', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider(
+        'genericsaml',
+        {
+          ...genericSamlModel, nameIDFormat: undefined, signatureMethod: undefined
+        },
+        { configType: 'saml' }
+      ));
       await flushPromises();
+      wrapper.vm.applyDefaults();
 
-      expect(wrapper.vm.nameIDFormat).toBe('unspecified');
+      expect(wrapper.vm.model.nameIDFormat).toBe('unspecified');
+      expect(wrapper.vm.model.signatureMethod).toBe('RSA-SHA256');
     });
 
-    it('defaults signatureMethod to RSA-SHA256 when unset', async() => {
-      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, signatureMethod: undefined }));
+    it('does not overwrite nameIDFormat and signatureMethod when already set', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider(
+        'genericsaml',
+        {
+          ...genericSamlModel, nameIDFormat: 'persistent', signatureMethod: 'RSA-SHA512'
+        },
+        { configType: 'saml' }
+      ));
       await flushPromises();
+      wrapper.vm.applyDefaults();
 
-      expect(wrapper.vm.signatureMethod).toBe('RSA-SHA256');
+      expect(wrapper.vm.model.nameIDFormat).toBe('persistent');
+      expect(wrapper.vm.model.signatureMethod).toBe('RSA-SHA512');
     });
 
-    it('reflects nameIDFormat when already set', async() => {
-      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, nameIDFormat: 'persistent' }));
+    it('does not seed generic SAML defaults for other saml providers', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('shibboleth', validModel, { configType: 'saml' }));
+      await flushPromises();
+      wrapper.vm.applyDefaults();
+
+      expect(wrapper.vm.model.nameIDFormat).toBeUndefined();
+      expect(wrapper.vm.model.signatureMethod).toBeUndefined();
+    });
+
+    it('translates the nameIDFormat option labels', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', genericSamlModel));
       await flushPromises();
 
-      expect(wrapper.vm.nameIDFormat).toBe('persistent');
+      expect(wrapper.vm.nameIDFormatOptions).toStrictEqual([
+        { value: 'unspecified', label: '%authConfig.saml.nameIDFormatOptions.unspecified%' },
+        { value: 'emailAddress', label: '%authConfig.saml.nameIDFormatOptions.emailAddress%' },
+        { value: 'transient', label: '%authConfig.saml.nameIDFormatOptions.transient%' },
+        { value: 'persistent', label: '%authConfig.saml.nameIDFormatOptions.persistent%' },
+      ]);
+    });
+
+    it('resolves nameIDFormatLabel from the model value', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, nameIDFormat: 'emailAddress' }));
+      await flushPromises();
+
+      expect(wrapper.vm.nameIDFormatLabel).toBe('%authConfig.saml.nameIDFormatOptions.emailAddress%');
+    });
+
+    it.each([
+      ['keycloak', true],
+      ['ping', true],
+      ['genericsaml', true],
+      ['shibboleth', false],
+      ['okta', false],
+    ] as [string, boolean][])('supportsEntityId for %s is %s', async(provider: string, expected: boolean) => {
+      wrapper = mount(Saml, mountOptionsForProvider(provider, { ...validModel, id: provider }));
+      await flushPromises();
+
+      expect(wrapper.vm.supportsEntityId).toBe(expected);
     });
 
     it('renders generic SAML fields when provider is genericsaml', async() => {
@@ -305,6 +355,30 @@ describe('saml.vue', () => {
       await flushPromises();
 
       expect(wrapper.find('[data-testid="genericsaml-view-fields"]').exists()).toBe(false);
+    });
+
+    it('omits the nameIDFormat and signatureMethod rows when those values are unset', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', {
+        ...genericSamlModel, enabled: true, nameIDFormat: undefined, signatureMethod: undefined
+      }));
+      await flushPromises();
+
+      const rows = wrapper.findAll('tr').map((row) => row.text());
+
+      expect(rows).not.toContainEqual(expect.stringContaining('authConfig.saml.nameIDFormat'));
+      expect(rows).not.toContainEqual(expect.stringContaining('authConfig.saml.signatureMethod'));
+    });
+
+    it('renders the nameIDFormat and signatureMethod rows when those values are set', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', {
+        ...genericSamlModel, enabled: true, nameIDFormat: 'emailAddress', signatureMethod: 'RSA-SHA512'
+      }));
+      await flushPromises();
+
+      const rows = wrapper.findAll('tr').map((row) => row.text());
+
+      expect(rows).toContainEqual(expect.stringContaining('%authConfig.saml.nameIDFormatOptions.emailAddress%'));
+      expect(rows).toContainEqual(expect.stringContaining('RSA-SHA512'));
     });
   });
 });
