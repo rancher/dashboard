@@ -37,6 +37,8 @@ describe('modalApiImpl', () => {
       resources:           [],
       modalWidth:          '600px',
       closeOnClickOutside: true,
+      title:               '',
+      size:                undefined,
     });
   });
 
@@ -59,6 +61,8 @@ describe('modalApiImpl', () => {
       resources:           config.resources,
       modalWidth:          config.width,
       closeOnClickOutside: config.closeOnClickOutside,
+      title:               '',
+      size:                undefined,
     });
   });
 
@@ -75,6 +79,8 @@ describe('modalApiImpl', () => {
       resources:           [], // Default
       modalWidth:          '600px', // Default
       closeOnClickOutside: true, // Default
+      title:               '', // Default
+      size:                undefined, // Default
     });
   });
 });

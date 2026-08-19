@@ -38,6 +38,8 @@ export class ModalApiImpl implements ModalApi {
       resources:           config?.resources || [],
       modalWidth:          config?.width || '600px',
       closeOnClickOutside: config?.closeOnClickOutside ?? true,
+      title:               config?.title || '',
+      size:                config?.size,
       // modalSticky:         config.modalSticky ?? false // Not implemented yet
     });
   }

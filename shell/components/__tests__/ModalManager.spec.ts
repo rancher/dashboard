@@ -14,10 +14,11 @@ const MockComponent = {
   props:    ['someProp', 'resources', 'registerBackgroundClosing']
 };
 
-describe('modalManager.vue with Teleport', () => {
+describe('modalManager.vue', () => {
   let store: Store<any>;
   let getters: Record<string, () => any>;
   let modalsDiv: HTMLDivElement;
+  let wrapper: ReturnType<typeof mount> | null;
 
   beforeEach(() => {
     // Create the teleport target container
@@ -41,24 +42,29 @@ describe('modalManager.vue with Teleport', () => {
   });
 
   afterEach(() => {
-    // Clean up the teleport container after each test
+    wrapper?.unmount();
+    wrapper = null;
     document.body.removeChild(modalsDiv);
   });
 
-  const factory = () => {
-    return mount(ModalManager, {
-      attachTo: document.body, // attach so Teleport can work properly
+  const APP_MODAL_STUB = {
+    AppModal: {
+      name:     'AppModal',
+      template: `<div data-testid="app-modal" @close="$emit('close')" :style="{ '--prompt-modal-width': width }"><slot /></div>`,
+      props:    ['clickToClose', 'width']
+    }
+  };
+
+  const factory = (stubs: Record<string, any> = APP_MODAL_STUB) => {
+    wrapper = mount(ModalManager, {
+      attachTo: document.body,
       global:   {
         plugins: [store],
-        stubs:   {
-          AppModal: {
-            name:     'AppModal',
-            template: `<div data-testid="app-modal" @close="$emit('close')" :style="{ '--prompt-modal-width': width }"><slot /></div>`,
-            props:    ['clickToClose', 'width']
-          }
-        }
+        stubs
       }
     });
+
+    return wrapper;
   };
 
   it('renders the AppModal and dynamic component when modal is open', async() => {
@@ -114,11 +120,11 @@ describe('modalManager.vue with Teleport', () => {
       getters,
       mutations: { 'modal/closeModal': closeModalMutation }
     });
-    const wrapper = factory();
+    factory();
 
     await nextTick();
 
-    const appModalWrapper = wrapper.findComponent({ name: 'AppModal' });
+    const appModalWrapper = wrapper!.findComponent({ name: 'AppModal' });
 
     appModalWrapper.vm.$emit('close');
     await nextTick();
@@ -134,22 +140,66 @@ describe('modalManager.vue with Teleport', () => {
       getters,
       mutations: { 'modal/closeModal': closeModalMutation }
     });
-    const wrapper = factory();
+    factory();
 
     await nextTick();
 
     const backgroundFn = jest.fn();
 
-    (wrapper.vm as unknown as ModalManagerMethods).registerBackgroundClosing(backgroundFn);
+    (wrapper!.vm as unknown as ModalManagerMethods).registerBackgroundClosing(backgroundFn);
     await nextTick();
 
-    const appModalWrapper = wrapper.findComponent({ name: 'AppModal' });
+    const appModalWrapper = wrapper!.findComponent({ name: 'AppModal' });
 
     appModalWrapper.vm.$emit('close');
     await nextTick();
 
     expect(backgroundFn).toHaveBeenCalledWith();
     expect(closeModalMutation).toHaveBeenCalledWith({}, undefined);
+  });
+
+  describe('opting into the standard modal', () => {
+    const standardFactory = () => {
+      store = createStore({
+        getters,
+        mutations: { 'modal/closeModal': jest.fn() }
+      });
+
+      return factory({});
+    };
+
+    it('renders the component inside RcModal when a title is given', async() => {
+      getters['modal/title'] = () => 'Delete namespace?';
+      standardFactory();
+
+      await nextTick();
+
+      const container = document.querySelector('#modals .rc-modal');
+
+      expect(container).toBeTruthy();
+      expect(container?.querySelector('.rc-modal__title')?.textContent?.trim()).toStrictEqual('Delete namespace?');
+      expect(container?.querySelector('.rc-modal__body [data-testid="modal-manager-component"]')).toBeTruthy();
+    });
+
+    it('passes the requested standard size through, not the legacy width', async() => {
+      getters['modal/title'] = () => 'Delete namespace?';
+      getters['modal/size'] = () => 'small';
+      standardFactory();
+
+      await nextTick();
+
+      expect(document.querySelector('#modals .rc-modal')).toBeTruthy();
+      expect(wrapper?.findComponent({ name: 'RcModal' }).props('size')).toStrictEqual('small');
+    });
+
+    it('falls back to the legacy frameless modal when neither title nor size is given', async() => {
+      standardFactory();
+
+      await nextTick();
+
+      expect(document.querySelector('#modals .rc-modal')).toBeNull();
+      expect(document.querySelector('#modals [data-testid="modal-manager-component"]')).toBeTruthy();
+    });
   });
 
   it('does nothing if modal is already closed when close is triggered', async() => {
@@ -160,11 +210,11 @@ describe('modalManager.vue with Teleport', () => {
       getters,
       mutations: { 'modal/closeModal': closeModalMutation }
     });
-    const wrapper = factory();
+    factory();
 
     await nextTick();
 
-    const modalManager = wrapper.vm as unknown as ModalManagerMethods;
+    const modalManager = wrapper!.vm as unknown as ModalManagerMethods;
     const spy = jest.spyOn(modalManager, 'close');
 
     modalManager.close();

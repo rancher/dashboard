@@ -69,10 +69,7 @@ export default {
 </script>
 
 <template>
-  <Card
-    class="prompt-remove"
-    :show-highlight-border="false"
-  >
+  <Card :show-highlight-border="false">
     <template #title>
       <h4 class="text-default-text">
         {{ t('promptForceRemove.modalTitle') }}
@@ -115,7 +112,15 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+  .card-container {
+    box-shadow: none;
+  }
+
   .actions {
     text-align: right;
+  }
+
+  .spacer {
+    flex: 1;
   }
 </style>

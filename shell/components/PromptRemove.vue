@@ -3,21 +3,19 @@ import { shallowRef } from 'vue';
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
 import { escapeHtml, resourceNames } from '@shell/utils/string';
-import { Card } from '@components/Card';
+import { RcModal } from '@components/RcModal';
 import { Checkbox } from '@components/Form/Checkbox';
-import { alternateLabel } from '@shell/utils/platform';
 import { uniq } from '@shell/utils/array';
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import AppModal from '@shell/components/AppModal.vue';
 
 export default {
   name: 'PromptRemove',
 
   components: {
-    Card, Checkbox, AsyncButton, LabeledInput, AppModal
+    RcModal, Checkbox, AsyncButton, LabeledInput
   },
   props: {
     /**
@@ -142,10 +140,6 @@ export default {
       } else {
         return this.toRemove[0].currentRouter();
       }
-    },
-
-    protip() {
-      return this.t('promptRemove.protip', { alternateLabel });
     },
 
     deleteDisabled() {
@@ -336,142 +330,91 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
-    custom-class="remove-modal"
-    name="promptRemove"
-    :width="400"
-    height="auto"
-    styles="max-height: 100vh;"
-    :trigger-focus-trap="true"
+  <RcModal
+    :show="showModal"
+    class="prompt-remove"
+    :title="t('promptRemove.title')"
+    size="small"
+    :data-testid="componentTestid + '-modal'"
     @close="close"
   >
-    <Card
-      class="prompt-remove"
-      :show-highlight-border="false"
-    >
-      <template #title>
-        <h4 class="text-default-text">
-          {{ t('promptRemove.title') }}
-        </h4>
+    <div>
+      <template v-if="!hasCustomRemove">
+        {{ t('promptRemove.attemptingToRemove', { type }) }} <span
+          v-clean-html="resourceNames(names, null, t)"
+        />
       </template>
-      <template #body>
-        <div class="mb-10">
-          <template v-if="!hasCustomRemove">
-            {{ t('promptRemove.attemptingToRemove', { type }) }} <span
-              v-clean-html="resourceNames(names, null, t)"
-            />
-          </template>
 
-          <component
-            :is="removeComponent"
-            v-if="hasCustomRemove"
-            ref="customPrompt"
-            v-model:value="toRemove"
-            v-bind="$data"
-            :close="close"
-            :needs-confirm="needsConfirm"
-            :value="toRemove"
-            :names="names"
-            :type="type"
-            :done-location="doneLocation"
-            @errors="e => error = e"
-            @done="done"
-          />
-          <div
-            v-if="needsConfirm"
-            class="mt-10"
-          >
-            <span
-              v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
-              class="confirm-text"
-            />
-          </div>
-        </div>
-        <LabeledInput
-          v-if="needsConfirm"
-          id="confirm"
-          v-model:value="confirmName"
-          v-focus
-          :data-testid="componentTestid + '-input'"
-          type="text"
-          :aria-label="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) })"
-        >
-          <div class="text-warning mb-10 mt-10">
-            {{ warning }}
-          </div>
-          <div class="text-error mb-10 mt-10">
-            {{ error }}
-          </div>
-          <div
-            v-if="!needsConfirm"
-            class="text-info mt-20"
-          >
-            {{ protip }}
-          </div>
-        </LabeledInput>
-        <div v-else-if="!hasCustomRemove">
-          <div
-            v-if="warning"
-            class="text-warning mb-10 mt-10"
-          >
-            {{ warning }}
-          </div>
-          <div
-            v-if="error"
-            class="text-error mb-10 mt-10"
-          >
-            {{ error }}
-          </div>
-        </div>
-        <Checkbox
-          v-if="chartsToRemoveIsApp"
-          v-model:value="chartsDeleteCrd"
-          label-key="promptRemoveApp.removeCrd"
-          class="mt-10 type"
-          @update:value="chartAddCrdToRemove"
+      <component
+        :is="removeComponent"
+        v-if="hasCustomRemove"
+        ref="customPrompt"
+        v-model:value="toRemove"
+        v-bind="$data"
+        :close="close"
+        :needs-confirm="needsConfirm"
+        :value="toRemove"
+        :names="names"
+        :type="type"
+        :done-location="doneLocation"
+        @errors="e => error = e"
+        @done="done"
+      />
+      <div
+        v-if="needsConfirm"
+        class="mt-10"
+      >
+        <span
+          v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
+          class="confirm-text"
         />
-      </template>
-      <template #actions>
-        <button
-          class="btn role-secondary"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-        <div class="spacer" />
-        <AsyncButton
-          mode="delete"
-          class="btn bg-error ml-10"
-          :disabled="deleteDisabled"
-          :data-testid="componentTestid + '-confirm-button'"
-          @click="remove"
-        />
-      </template>
-    </Card>
-  </app-modal>
+      </div>
+    </div>
+    <LabeledInput
+      v-if="needsConfirm"
+      id="confirm"
+      v-model:value="confirmName"
+      v-focus
+      :data-testid="componentTestid + '-input'"
+      type="text"
+      :aria-label="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) })"
+    />
+    <div
+      v-if="warning && !hasCustomRemove"
+      class="text-warning"
+    >
+      {{ warning }}
+    </div>
+    <div
+      v-if="error && !hasCustomRemove"
+      class="text-error"
+      role="alert"
+    >
+      {{ error }}
+    </div>
+    <Checkbox
+      v-if="chartsToRemoveIsApp"
+      v-model:value="chartsDeleteCrd"
+      label-key="promptRemoveApp.removeCrd"
+      class="type"
+      @update:value="chartAddCrdToRemove"
+    />
+    <template #primary-action>
+      <AsyncButton
+        mode="delete"
+        class="btn bg-error"
+        :disabled="deleteDisabled"
+        :data-testid="componentTestid + '-confirm-button'"
+        @click="remove"
+      />
+    </template>
+  </RcModal>
 </template>
 
 <style lang='scss'>
   .prompt-remove {
-    &.card-container {
-      box-shadow: none;
-    }
     #confirm {
-      width: 90%;
-      margin-left: 3px;
-    }
-
-    .actions {
-      text-align: right;
-    }
-
-    .card-actions {
-      display: flex;
-
-      .spacer {
-        flex: 1;
-      }
+      width: 100%;
     }
 
     .confirm-text b {
