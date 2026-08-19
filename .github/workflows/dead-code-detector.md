@@ -12,10 +12,14 @@ permissions:
   pull-requests: read
 safe-outputs:
   create-issue:
-    expires: 2d
     title-prefix: "[dead-code] "
     labels: [bot/dead-code-detector, bot/skip-grooming]
     group: true
+    max: 3
+  # Section 4 corrects an existing issue by commenting on it rather than filing
+  # a corrected duplicate, which needs this output to be declared.
+  add-comment:
+    target: "*"
     max: 3
 tools:
   github:
@@ -32,10 +36,11 @@ Analyze the codebase to identify dead and unused code. Report significant findin
 
 Detect and report dead code by:
 
-1. **Analyzing Recent Commits**: Review changes in the latest commits to focus the analysis
-2. **Detecting Dead Code**: Identify unused exports, unreferenced components, orphaned files, dead routes, and unused i18n keys
-3. **Verifying Candidates**: Rule out dynamic resolution, follow the dead-code chain to its full extent, and check every claim before making it
-4. **Reporting Findings**: Check what is already open, then create a detailed issue for anything genuinely new (threshold below)
+1. **Loading the Lessons**: Read `.github/agents/lessons/dead-code.md` before anything else
+2. **Analyzing Recent Commits**: Review changes in the latest commits to focus the analysis
+3. **Detecting Dead Code**: Identify unused exports, unreferenced components, orphaned files, dead routes, and unused i18n keys
+4. **Verifying Candidates**: Rule out dynamic resolution, follow the dead-code chain to its full extent, and check every claim before making it
+5. **Reporting Findings**: Check what is already open, then create a detailed issue for anything genuinely new (threshold below)
 
 ## Context
 
@@ -44,6 +49,15 @@ Detect and report dead code by:
 - **Triggered by**: @${{ github.actor }}
 
 ## Analysis Workflow
+
+### 0. Load the Lessons File
+
+**Do this first, before anything else.** Read `.github/agents/lessons/dead-code.md`. If it does not exist, note that and continue.
+
+It holds two things, and both bind this run:
+
+- **The unknown-usage register** — exported code with no in-repo consumer that no one has been able to rule on. Anything already listed there has been dealt with: do not file it, do not re-report it, do not raise its confidence because you found the same emptiness again. Check every candidate against this register before doing anything with it
+- **The lessons** — rules written because following this prompt alone still produced a wrong answer. Each one applies to this run with the same force as the checks in section 3
 
 ### 1. Changed Files Analysis
 
@@ -144,9 +158,11 @@ A previous run filed an issue against three `shell/apis/index.ts` re-exports, ma
 
 `shell/package.json` publishes `@rancher/shell` with `"files": ["**/*"]`. Every file under `shell/` ships to npm and can be imported by an out-of-tree UI extension as `@shell/...`. A repository-wide search cannot prove those consumers do not exist.
 
+**Never recommend removing anything that is exported.** If a symbol is `export`ed, or a component lives in a file that ships in the published package, its consumers are not knowable from this repository and "no importers here" is not evidence of deadness. This is a hard rule, not a confidence adjustment: no amount of searching promotes an unprovable negative into a removal.
+
 - Do not write "not part of any public extension API" about a file under `shell/`
-- Instead state that the file is unreferenced *in this repository*, and that removing it changes the published `@shell/*` surface
-- This is not a reason to skip the finding — a component abandoned for years is still worth removing — it is a reason to describe it accurately and to add a release-note item to the removal steps
+- Do not file an exported symbol as a removal candidate. Record it in the unknown-usage register instead (below), which is where findings of this shape accumulate until someone with knowledge of the extension ecosystem can rule on them
+- What may still be reported for removal: code that is not exported at all — module-private functions and constants, and files whose only export is consumed nowhere in the repository *and* which do not ship in the published package (anything outside `shell/`, such as `cypress/`, `storybook/`, `docusaurus/` and `creators/`)
 
 #### Transitive closure
 
@@ -220,10 +236,21 @@ Create separate issues for each distinct category or cluster of dead code found 
 Use the GitHub tools to list open issues labelled `bot/dead-code-detector`, and read their titles and bodies. Then, for each cluster you were about to report:
 
 - **Already covered** — do not file it again. Partial overlap counts: if an open issue lists three of your four files, that is the same cluster, not a new one
-- **Covered but wrong or incomplete** — do not file a corrected duplicate. Add a comment to the existing issue with the correction, and if commenting is unavailable, put it in the run summary instead
+- **Covered but wrong or incomplete** — do not file a corrected duplicate. Add a comment to the existing issue with the correction
 - **Genuinely new** — file it, and name in the body which existing issues you checked against
 
-Between 31 July and 5 August 2026 this workflow filed 21 issues covering roughly six distinct clusters. The `shell/components/graph/` components were reported four separate times, the formatter components three times, and the empty `shell/utils/fleet-types.ts` three times. Re-reporting is the single largest source of noise in this workflow's output — treat a duplicate as a defect on the same level as a false positive.
+#### Register, do not report, anything exported
+
+A candidate that is exported does not become an issue. It becomes a row in the unknown-usage register in `.github/agents/lessons/dead-code.md`, for the reason given under "Published package surface" in section 3: its consumers live outside this repository and no search here can rule them out.
+
+For each such candidate, produce the row: the date, the symbol or file, what it is exported as (`@shell/...` where it applies), the in-repo consumer count you measured, today's date as the last re-check, and a one-line note on what you searched.
+
+Then place it:
+
+- **The run is opening a pull request** — write the rows into the register in that pull request, and re-check the rows already there while you are in the file. An entry that has since gained an in-repo consumer is resolved: say which consumer, and take it off the list
+- **The run is opening no pull request** — put the rows verbatim in the run summary, under a heading that says they are pending registration. They are picked up by the next run that opens one
+
+Never delete a register row because it has been there a long time. It leaves when the question is answered, not when it gets old.
 
 #### Cluster boundaries
 
@@ -252,15 +279,18 @@ Successive runs have split the same underlying findings three ways one day and b
 
 ### Report These Issues
 
-- Exported functions, constants, classes, or types with no importers
-- Vue components never referenced in templates, routes, or dynamic imports
-- Utility functions with no callers
+- Module-private functions, constants, classes or types — declared without `export` — that nothing in their own file uses
+- Vue components never referenced in templates, routes, or dynamic imports, and not shipped in the published package
+- Utility functions with no callers, where the function is not exported
 - Route definitions pointing to non-existent components
 - Translation (i18n) keys never referenced
-- Whole files that are no longer imported anywhere
+- Whole files that are no longer imported anywhere and do not ship in the published package
+
+Anything **exported** that has no importers goes to the unknown-usage register instead of into a removal issue. See "Published package surface" in section 3.
 
 ### Skip These Patterns
 
+- **Anything exported.** An `export` puts the symbol on a surface this repository cannot see the far side of. Never recommend its removal; register it instead
 - Public/extension API surface intended for external consumption (e.g. exports re-exported from package entry points, plugin/extension APIs) — in this repository that means `shell/apis/**`, `pkg/*/index.ts`, and anything named as a `main`/`types`/`exports` target or a build-config entry
 - Anything already described by an open `bot/dead-code-detector` issue
 - Code referenced dynamically (string-keyed lookups, `resolveComponent`, `defineAsyncComponent`, model/registry auto-registration, dynamically-built i18n keys)
