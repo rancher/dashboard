@@ -3,7 +3,7 @@ import { get, set } from '@shell/utils/object';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Banner from '@components/Banner/Banner.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _EDIT } from '@shell/config/query-params';
 import { DNS01_PROVIDERS } from '../../form-options';
 import { DNS01_PROVIDER_FIELDS, hasFieldDescriptors } from './dns01-providers';
 
@@ -53,10 +53,6 @@ export default {
 
     isKnownProvider() {
       return hasFieldDescriptors(this.provider);
-    },
-
-    isView() {
-      return this.mode === _VIEW;
     },
 
     unknownProviderYaml() {

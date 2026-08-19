@@ -154,7 +154,6 @@ export function useCertManagerOverview() {
     fetchError,
     hasContent,
     hasCertificates,
-    hasIssuers,
     subtitle,
     certificateSummary,
     expiryTiles,
@@ -165,7 +164,6 @@ export function useCertManagerOverview() {
     acmeCards,
     showAcmeSection,
     showIssuersSection,
-    resourceRoute,
     createRoute,
   };
 }

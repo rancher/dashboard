@@ -46,7 +46,7 @@ const isAcme = computed(() => props.value.configType === 'acme');
               :key="i"
             >
               <td>{{ solver.type }}</td>
-              <td>{{ solver.provider || '&mdash;' }}</td>
+              <td>{{ solver.provider || '—' }}</td>
               <td>
                 <span v-if="solver.selector.length">{{ solver.selector.join(', ') }}</span>
                 <span

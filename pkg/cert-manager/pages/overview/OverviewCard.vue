@@ -16,8 +16,7 @@ import type { OverviewStatusCard } from './types';
  * is a link to the resource list; individual rows deep-link to the list pre-filtered by state.
  *
  * An optional `#aside` slot adds a second column beside the rows - used by the Certificates card to
- * carry the "Expiring Soonest" list. Its `#aside-heading` sits on the header line beside the title,
- * so both certificate summaries read as one two-column panel.
+ * carry the "Expiring Soonest" list, so both certificate summaries read as one two-column panel.
  */
 const props = defineProps<{ card: OverviewStatusCard }>();
 

@@ -12,7 +12,6 @@ export interface ProviderField {
   /** Path within the provider object. Dotted paths address secret refs, e.g. `apiTokenSecretRef.name`. */
   path: string;
   labelKey: string;
-  type?: 'text' | 'checkbox';
   required?: boolean;
 }
 

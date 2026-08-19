@@ -82,7 +82,6 @@ certManager:
     expires: Expires
     renews: Renews
     type: Type
-    acmeServer: ACME Server
     certificates: Certificates
     certificate: Certificate
     approved: Approved
@@ -117,7 +116,6 @@ certManager:
     failedAttempts: Failed Issuance Attempts
     lastFailure: Last Failure
     plusMore: '+ {count} more'
-    sansHelp: A certificate needs at least one identifier - a common name or a subject alternative name.
     noIssuersInNamespace: 'There are no Issuers in the {namespace} namespace. An Issuer must live in the same namespace as the certificate it signs - create one there, or use a Cluster Issuer instead.'
     usages: Key Usages
     usagesTooltip: X.509 key usages. If left empty, cert-manager defaults to Digital Signature and Key Encipherment.
@@ -140,8 +138,6 @@ certManager:
       noIdentifiers: Set a common name or at least one subject alternative name.
     tab:
       basics: Basics
-      sans: Subject Alternative Names
-      privateKey: Private Key
       advanced: Advanced
       issuanceHistory: Issuance History
 
@@ -219,7 +215,6 @@ certManager:
       classDescription: Sets the class through the legacy annotation. Prefer the ingress class name unless your controller needs it.
     gatewayHttpRoute: This solver is configured to use a Gateway API HTTPRoute. Switch to YAML to edit that configuration.
     selector: Selector
-    selectorHelp: Limit which certificates this solver applies to.
     catchAllHelp: With no selector this solver applies to every certificate issued by this issuer.
     dnsZones: DNS Zones
     dnsNames: DNS Names

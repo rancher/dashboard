@@ -21,14 +21,3 @@ export function resourceLocation(model: any, resource: string, id?: string, name
     },
   };
 }
-
-export function listLocation(model: any, resource: string) {
-  return {
-    name:   'c-cluster-product-resource',
-    params: {
-      product: model.$rootGetters['productId'],
-      cluster: model.$rootGetters['clusterId'],
-      resource,
-    },
-  };
-}

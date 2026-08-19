@@ -26,7 +26,7 @@ describe('Cert Manager overview', { tags: ['@extensions', '@adminUser'] }, () =>
       overview.emptyState().find('.btn.role-secondary').should('be.visible');
 
       // No summary content until there is something to summarise.
-      overview.self().get('[data-testid="cert-manager-overview-card"]').should('not.exist');
+      overview.cards().should('not.exist');
     });
   });
 
