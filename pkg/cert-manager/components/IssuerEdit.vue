@@ -195,6 +195,7 @@ export default {
           :options="configTypeOptions"
           :mode="mode"
           class="mmb-5"
+          data-testid="cert-manager-issuer-config-type"
         />
 
         <Banner
@@ -215,6 +216,7 @@ export default {
               :mode="mode"
               :rules="fvGetAndReportPathRules('spec.ca.secretName')"
               required
+              data-testid="cert-manager-issuer-ca-secret-name"
             />
           </div>
         </div>

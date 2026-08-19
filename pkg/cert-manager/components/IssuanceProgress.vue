@@ -32,7 +32,10 @@ function iconFor(resource: any): string {
 </script>
 
 <template>
-  <div class="issuance-progress">
+  <div
+    class="issuance-progress"
+    data-testid="cert-manager-issuance-progress"
+  >
     <h3 class="title">
       {{ t('certManager.issuance.title') }}
     </h3>
@@ -42,6 +45,7 @@ function iconFor(resource: any): string {
         v-for="(stage, i) in stages"
         :key="stage.labelKey"
         class="stage"
+        :data-testid="`cert-manager-issuance-stage-${ i }`"
       >
         <span
           v-if="i > 0"

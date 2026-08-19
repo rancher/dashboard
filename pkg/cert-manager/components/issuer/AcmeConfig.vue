@@ -106,6 +106,7 @@ export default {
           :disabled="!isCustomServer"
           :rules="rules.server || []"
           required
+          data-testid="cert-manager-issuer-acme-server"
         />
       </div>
       <div class="col span-6">
@@ -127,6 +128,7 @@ export default {
           :mode="mode"
           :rules="rules.privateKeySecret || []"
           required
+          data-testid="cert-manager-issuer-acme-private-key-secret"
         />
       </div>
       <div class="col span-6">

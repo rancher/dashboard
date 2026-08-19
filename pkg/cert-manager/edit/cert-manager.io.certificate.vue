@@ -257,6 +257,7 @@ export default {
             <RadioGroup
               v-model:value="value.spec.issuerRef.kind"
               name="issuerKind"
+              data-testid="cert-manager-certificate-issuer-kind"
               :label="t('certManager.certificate.issuerKind.label')"
               :options="issuerKindOptions"
               :mode="mode"
@@ -275,6 +276,7 @@ export default {
             <ResourceLabeledSelect
               :key="issuerResourceType"
               v-model:value="value.spec.issuerRef.name"
+              data-testid="cert-manager-certificate-issuer"
               :resource-type="issuerResourceType"
               :label="t('certManager.tableHeaders.issuer')"
               :mode="mode"
@@ -286,6 +288,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="value.spec.secretName"
+              data-testid="cert-manager-certificate-secret-name"
               :label="t('certManager.certificate.secretName')"
               :tooltip="t('certManager.certificate.secretNameTooltip')"
               :placeholder="t('certManager.certificate.secretNamePlaceholder')"
@@ -298,6 +301,7 @@ export default {
 
         <ArrayList
           v-model:value="value.spec.dnsNames"
+          data-testid="cert-manager-certificate-dns-names"
           :title="t('certManager.certificate.dnsNames')"
           :add-label="t('certManager.certificate.addDnsName')"
           :required="hasNoIdentifier"
@@ -309,6 +313,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="value.spec.commonName"
+              data-testid="cert-manager-certificate-common-name"
               :label="t('certManager.certificate.commonName')"
               :tooltip="t('certManager.certificate.commonNameTooltip')"
               :required="hasNoIdentifier"

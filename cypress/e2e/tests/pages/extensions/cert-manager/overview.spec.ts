@@ -1,4 +1,4 @@
-import CertManagerOverviewPo from '@/cypress/e2e/po/pages/extensions/cert-manager.po';
+import CertManagerOverviewPo from '@/cypress/e2e/po/pages/extensions/cert-manager/overview.po';
 import { generateCertManagerEmpty, generateCertManagerWithData } from '@/cypress/e2e/blueprints/other-products/cert-manager';
 
 /**
