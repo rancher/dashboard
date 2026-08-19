@@ -1,6 +1,3 @@
-import {
-  describe, it, expect, jest, beforeEach, afterEach
-} from '@jest/globals';
 import { ResourcesApiClassImpl } from '../resources-api-class';
 import { Store } from 'vuex';
 
@@ -11,15 +8,15 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
   let mockSchemaFor: jest.Mock;
   let mockPaginationEnabled: jest.Mock;
   let mockUrlFor: jest.Mock;
-  let consoleErrorSpy: any;
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    mockDispatch = jest.fn() as any;
-    mockSchemaFor = jest.fn() as any;
-    mockPaginationEnabled = jest.fn() as any;
-    mockUrlFor = jest.fn() as any;
+    mockDispatch = jest.fn();
+    mockSchemaFor = jest.fn();
+    mockPaginationEnabled = jest.fn();
+    mockUrlFor = jest.fn();
     mockUrlFor.mockImplementation((type: string, id: string) => {
       const schema = mockSchemaFor(type);
 
@@ -697,7 +694,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         data:     { key: 'value' },
       };
       const cleanedData = { ...inputData };
-      const mockModel = { cleanForSave: jest.fn<any, any[]>().mockReturnValue(cleanedData) };
+      const mockModel = { cleanForSave: jest.fn().mockReturnValue(cleanedData) };
       const mockResponse = { ...inputData, metadata: { ...inputData.metadata, resourceVersion: '2' } };
 
       mockSchemaFor.mockReturnValue({
@@ -738,7 +735,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
 
     it('should throw error and log when request fails', async() => {
       // Arrange
-      const mockModel = { cleanForSave: jest.fn<any, any[]>().mockReturnValue({}) };
+      const mockModel = { cleanForSave: jest.fn().mockReturnValue({}) };
 
       mockSchemaFor.mockReturnValue({
         attributes: { namespaced: false },

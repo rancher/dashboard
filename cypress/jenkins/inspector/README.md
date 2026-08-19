@@ -24,6 +24,7 @@ Runs automatically **Tue–Sat at 4:00 AM PST** (11:00 UTC) via GitHub Actions, 
 | Variable | Source | Description |
 |---|---|---|
 | `GITHUB_TOKEN` | Vault | Scoped token for creating issues in `rancher/qa-tasks` |
+| `COPILOT_TOKEN` | Workflow env | GitHub Actions token used for AI fix suggestions; requires `copilot-requests: write` permission. If unset, issues are still created without AI suggestions |
 | `JENKINS_AUTH` | Repo secret | Base64-encoded `username:token` for Jenkins REST API |
 | `JENKINS_BASE_URL` | Repo secret | Jenkins instance base URL |
 | `INSPECTOR_JENKINS_JOB_PATH` | Repo secret | Job path |
@@ -37,6 +38,7 @@ Runs automatically **Tue–Sat at 4:00 AM PST** (11:00 UTC) via GitHub Actions, 
 | `INSPECTOR_ANCHOR_DESCRIPTION` | Repo variable | Jenkins build description that marks the batch start (default: `head · community · @adminUser`) |
 | `INSPECTOR_SLACK_THRESHOLD` | Repo variable | Unique failure count above which a Slack alert is sent instead of creating issues (default: `10`) |
 | `INSPECTOR_SLACK_NOTIFICATION` | Repo variable | Set to `false` to disable Slack alerts (default: `true`) |
+| `INSPECTOR_COPILOT_MODEL` | Repo variable | Copilot model used for AI fix suggestions (default: `gpt-5.6-luna`). Set this if the default model is retired — the model must support the `/responses` API |
 | `GITHUB_ORG` | Workflow env | Target org (default: `rancher`) |
 | `GITHUB_REPO` | Workflow env | Target repo (default: `qa-tasks`) |
 
