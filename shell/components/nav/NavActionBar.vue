@@ -100,7 +100,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', positionDropdown);
 });
 
-// Ctrl/Cmd+K, inherited from the resource search dialog this replaces.
 const shortcutKeys = { windows: ['ctrl', 'k'], mac: ['meta', 'k'] };
 const shortcutLabel = isMac ? '⌘K' : 'Ctrl+K';
 
@@ -532,7 +531,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
 
 .jump-to-heading {
   padding: var(--nav-toolbar-inset);
-  color: var(--muted);
+  color: var(--dropdown-secondary-text);
   font-size: 13px;
   line-height: 1.2;
 }
@@ -557,8 +556,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   border-radius: var(--border-radius);
   cursor: pointer;
 
-  // Gray highlight on the active option (hover moves it), matching the actions
-  // popover menu.
   &.active {
     background-color: var(--dropdown-hover-bg);
   }
@@ -575,7 +572,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   .jump-to-option-path {
     font-size: 13px;
     line-height: 1.2;
-    color: var(--muted);
+    color: var(--dropdown-secondary-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
