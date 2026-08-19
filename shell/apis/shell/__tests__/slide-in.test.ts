@@ -1,8 +1,5 @@
 // slide-in.test.ts
 
-import {
-  describe, it, expect, jest, beforeEach
-} from '@jest/globals';
 import { SlideInApiImpl } from '../slide-in'; // Adjust path as needed
 import { Store } from 'vuex';
 
@@ -16,7 +13,7 @@ describe('slideInApiImpl', () => {
 
   beforeEach(() => {
     // 1. Arrange
-    mockCommit = jest.fn() as any;
+    mockCommit = jest.fn();
     mockStore = { commit: mockCommit } as any;
 
     // 2. Arrange

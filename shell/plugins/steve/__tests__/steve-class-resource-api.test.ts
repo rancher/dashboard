@@ -1,10 +1,7 @@
-import {
-  describe, it, expect, jest, beforeEach, afterEach
-} from '@jest/globals';
 import Steve from '@shell/plugins/steve/steve-class.js';
 
 describe('class: Steve — ResourceInstanceApi methods', () => {
-  let consoleErrorSpy: any;
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -15,11 +12,10 @@ describe('class: Steve — ResourceInstanceApi methods', () => {
   });
 
   function createSteveModel(overrides: Record<string, any> = {}) {
-    const dispatch = jest.fn<any, any[]>();
+    const dispatch = jest.fn();
 
     dispatch.mockResolvedValue(undefined);
 
-    // @ts-expect-error - JS class without TS declarations
     const model = new Steve({
       type:     'configmap',
       id:       'default/my-config',

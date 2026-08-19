@@ -1,8 +1,5 @@
 // notifications.test.ts
 
-import {
-  describe, it, expect, jest, beforeEach
-} from '@jest/globals';
 import { NotificationApiImpl } from '../notifications';
 import { Store } from 'vuex';
 import { NotificationLevel } from '@shell/types/notifications'; // Assuming this path
@@ -14,7 +11,7 @@ describe('notificationApiImpl', () => {
 
   beforeEach(() => {
     // 1. Arrange
-    mockDispatch = jest.fn() as any;
+    mockDispatch = jest.fn();
     mockStore = { dispatch: mockDispatch } as any;
 
     // 2. Arrange

@@ -1,8 +1,5 @@
 // modal.test.ts
 
-import {
-  describe, it, expect, jest, beforeEach
-} from '@jest/globals';
 import { ModalApiImpl } from '../modal'; // Adjust path as needed
 import { Store } from 'vuex';
 
@@ -16,7 +13,7 @@ describe('modalApiImpl', () => {
 
   beforeEach(() => {
     // 1. Arrange: Create a mock commit function
-    mockCommit = jest.fn() as any;
+    mockCommit = jest.fn();
 
     // Create a mock store object
     mockStore = { commit: mockCommit } as any;
