@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import { RcButton } from '@components/RcButton';
 import SubtleLink from '@shell/components/SubtleLink.vue';
 import { stateColorCssVar } from '@shell/utils/style';
 import type { RouteLocationRaw } from 'vue-router';
@@ -11,7 +12,7 @@ import type { OverviewStatusCard, OverviewExpiryTile, ExpiringSoonRow } from './
 /**
  * Certificates: a by-state summary card, coloured tiles counting how soon certificates expire, and a
  * short list of the ones expiring soonest. When there are no certificates yet, an inline prompt takes
- * their place - the issuer sections still render above, so the user can see what to build against.
+ * their place - the issuer sections still render below, so the user can see what to build against.
  */
 defineProps<{
   summary: OverviewStatusCard;
@@ -101,9 +102,14 @@ const { t } = useI18n(useStore());
       <p class="mm-0">
         {{ t('certManager.overview.empty.noCertificates') }}
       </p>
-      <SubtleLink :to="createRoute">
+      <RcButton
+        variant="primary"
+        size="large"
+        :to="createRoute"
+        data-testid="cert-manager-overview-create-certificate"
+      >
         {{ t('certManager.overview.empty.createCertificate') }}
-      </SubtleLink>
+      </RcButton>
     </div>
   </div>
 </template>
@@ -156,12 +162,10 @@ const { t } = useI18n(useStore());
 }
 
 .empty-inline {
-  border: 1px dashed var(--border);
-  border-radius: var(--border-radius-md);
   padding: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--gap);
+  gap: var(--gap-lg);
 }
 </style>

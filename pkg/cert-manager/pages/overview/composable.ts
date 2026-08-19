@@ -109,23 +109,10 @@ export function useCertManagerOverview() {
 
   const certificatesRoute = computed<RouteLocationRaw>(() => resourceRoute(CERT_MANAGER.CERTIFICATE));
 
-  const issuerCards = computed(() => {
-    const cards = [];
-
-    if (issuers.value.length) {
-      cards.push(buildIssuerCard(
-        'issuers', t('typeLabel."cert-manager.io.issuer"', { count: 2 }).trim(), CERT_MANAGER.ISSUER, issuers.value, resourceRoute
-      ));
-    }
-
-    if (clusterIssuers.value.length) {
-      cards.push(buildIssuerCard(
-        'clusterIssuers', t('typeLabel."cert-manager.io.clusterissuer"', { count: 2 }).trim(), CERT_MANAGER.CLUSTER_ISSUER, clusterIssuers.value, resourceRoute
-      ));
-    }
-
-    return cards;
-  });
+  const issuerCards = computed(() => [
+    buildIssuerCard('issuers', t('typeLabel."cert-manager.io.issuer"', { count: 2 }).trim(), CERT_MANAGER.ISSUER, issuers.value, resourceRoute),
+    buildIssuerCard('clusterIssuers', t('typeLabel."cert-manager.io.clusterissuer"', { count: 2 }).trim(), CERT_MANAGER.CLUSTER_ISSUER, clusterIssuers.value, resourceRoute),
+  ]);
 
   const acmeCards = computed(() => [
     buildAcmeCard('orders', t('typeLabel."acme.cert-manager.io.order"', { count: 2 }).trim(), CERT_MANAGER.ORDER, orders.value, resourceRoute),

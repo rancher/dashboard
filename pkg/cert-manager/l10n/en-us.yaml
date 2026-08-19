@@ -46,7 +46,7 @@ certManager:
       createIssuer: Create Issuer
       createClusterIssuer: Create Cluster Issuer
       docsLink: Read the cert-manager documentation
-      noCertificates: No certificates yet - create one against an issuer above.
+      noCertificates: No certificates yet. Create one from an issuer to get started.
       createCertificate: Create a Certificate
 
   action:
