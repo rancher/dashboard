@@ -30,6 +30,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      copilot-requests: write
 
     steps:
       - name: Checkout
@@ -57,6 +58,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ env.GH_TOKEN }}
           GH_PROJECT_TOKEN: ${{ env.GH_PROJECT_TOKEN }}
+          COPILOT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_MODEL: ${{ vars.INSPECTOR_COPILOT_MODEL }}
           JENKINS_AUTH: ${{ secrets.INSPECTOR_JENKINS_AUTH }}
           JENKINS_BASE_URL: ${{ secrets.INSPECTOR_JENKINS_BASE_URL }}
           JENKINS_JOB_PATH: ${{ secrets.INSPECTOR_JENKINS_JOB_PATH }}

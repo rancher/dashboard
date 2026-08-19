@@ -1,4 +1,23 @@
 /**
+ * Strips sensitive infrastructure URLs from text before it is sent to external
+ * services (AI API, GitHub issues). Replaces only the Rancher instance hostname
+ * with a placeholder, preserving the path for debugging purposes.
+ *
+ * e.g. https://jnkui-abc-123/v1/fleet.cattle.io.gitrepos
+ *   →  https://hostname/v1/fleet.cattle.io.gitrepos
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+export function sanitizeText(text) {
+  if (!text) return text;
+
+  return text
+    .replace(/https?:\/\/[^\s"'<>)/]+\.rancher\.space/g, 'https://hostname')
+    .replace(/https?:\/\/[^\s"'<>)/]+\.rancher\.qa/g, 'https://hostname');
+}
+
+/**
  * fetchWithRetry — wraps fetch with an AbortController timeout and retry logic.
  * Retries on 5xx responses and connection resets (up to `retries` times).
  *
