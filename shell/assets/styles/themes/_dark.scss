@@ -121,6 +121,7 @@
     --dropdown-active-bg         : #{$light};
     --dropdown-hover-text        : #{$lightest};
     --dropdown-hover-bg          : #{$slate};
+    --dropdown-secondary-text    : var(--dropdown-hover-text);
     --dropdown-disabled-bg       : #{$disabled};
     --dropdown-disabled-text     : #{$disabled};
     --dropdown-group-text        : #{$lighter};

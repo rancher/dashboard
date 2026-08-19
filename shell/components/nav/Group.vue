@@ -386,7 +386,8 @@ export default {
       }
       &:focus{
         outline:none;
-
+      }
+      &:focus-visible{
         h6 span {
           @include focus-outline;
         }
