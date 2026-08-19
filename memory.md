@@ -58,17 +58,18 @@
 - encryption.ts: polyfill `globalThis.crypto` from `import { webcrypto } from 'crypto'` in `beforeAll` — jsdom has no Web Crypto API; Node 24 does
 - encryption.ts: use real crypto (not mocked); tamper tests verify AES-GCM authentication tag rejection
 
-- focusTrap.ts: mock `focus-trap` (`createFocusTrap`); use `jest.useFakeTimers()` for `setTimeout` in watcher composable; flush 3x `nextTick` before `jest.runAllTimers()` to drive watcher→nextTick→nextTick→setTimeout chain
+- projectAndNamespaceFiltering.utils.ts: rootGetters is plain object (bracket notation), not function; mock with `{ currentProduct: {...}, 'management/byId': () => ({...}) }`; exclude param overwrites include when both present
 - useUserRetentionValidation.ts: mock `@shell/composables/useI18n` and `vuex`; `parseDuration` regex `^(\d+)h|(\d+)m|(\d+)s$` uses alternation (not fully anchored), so `6h30m` matches `6h`; split it.each into separate pass/fail blocks to satisfy jest/no-conditional-expect
 
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
-2. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
-3. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
+2. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
+3. `shell/composables/drawer.ts` — thin store wrapper (low value)
 
 ## Completed Work (Summary)
 
+- 2026-08-19: PR (test-assist/project-ns-filtering-utils-tests): 23 new tests for projectAndNamespaceFiltering.utils.ts — isApplicable, isEnabled, createParam, checkAndCreateParam; 0%→100% stmts/fns/lines, 92.59% branches.
 - 2026-08-13: PR (test-assist/settings-utils-tests): 13 new tests for settings.ts async functions — fetchOrCreateSetting, fetchSetting, fetchInitialSettings, setSetting; 50%→100% stmts, 33%→100% fns.
 - 2026-08-12: PR (test-assist/i18n-store-actions-tests): 23 new tests for i18n.js actions — init, load, mergeLoad, switchTo; 72%→92.17% stmts, 83%→100% fns, 98.5%→94.49% branches.
 - 2026-08-10: PR (test-assist/focus-trap-composable-tests): 19 new tests for focusTrap.ts — getFirstFocusableElement, useBasicSetupFocusTrap lifecycle, useWatcherBasedSetupFocusTrapWithDestroyIncluded; 0%→100% all metrics.
@@ -89,6 +90,7 @@
 
 ## Task Round-Robin History
 
+- 2026-08-19: Task 3 (projectAndNamespaceFiltering.utils.ts, 23 tests, 0%→100% stmts/fns/lines) + Task 7
 - 2026-08-13: Task 3 (settings.ts async functions, 13 tests, 50%→100% stmts, 33%→100% fns) + Task 7
 - 2026-08-10: Task 3 (focusTrap.ts, 19 tests, 0%→100%) + Task 7
 - 2026-08-07: Task 3 (useInterval.ts, 6 tests) + Task 7
@@ -106,7 +108,7 @@
 
 - June 2026 issue: #17976 (closed)
 - July 2026 issue: #18236 (closed - new month)
-- August 2026 issue: #aw_aug2026e (created 2026-08-13; supersedes previous runs — GitHub API was unavailable and old number not in memory)
+- August 2026 issue: #18800 (open)
 
 ## Maintainer Priorities
 
