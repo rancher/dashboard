@@ -88,9 +88,8 @@ Apply the following strategies to find dead code. For each candidate, you MUST v
 - Functions in `shell/utils/` (and equivalent util directories) with no callers anywhere in the codebase
 
 **Test-only code**:
-- Modules and exports whose only importers are their own tests. Static tools that treat a test file as a legitimate importer will never surface these, so they have to be looked for deliberately: run the reference check excluding `__tests__/`, `*.test.*` and `*.spec.*`, then confirm the remaining hits are zero
+- Modules and exports whose only importers are their own tests. Run the reference check excluding `__tests__/`, `*.test.*` and `*.spec.*`, then confirm the remaining hits are zero
 - Report the implementation and its test together as one removal. The test is not evidence the code is used — it is part of the same dead cluster
-- Verified examples of this shape: `ALL_STATE_COLORS`, `toBgColor` and `getHighestAlertColor` in `shell/utils/style.ts`, and `shell/utils/poller-sequential.js`
 
 **Dead routes**:
 - Route definitions pointing to page components that no longer exist
@@ -105,13 +104,11 @@ Every candidate must pass all of the checks below before it can be reported. Eac
 
 #### Search command hygiene
 
-A malformed search produces no output, and no output reads exactly like proof of deadness. Each mistake below has already produced an entirely false issue:
+A malformed search produces no output, and no output reads exactly like proof of deadness.
 
-- **Never use brace expansion in `--include`.** `grep --include="*.{ts,js,vue}"` matches **zero files** — `--include` takes a single glob and does not expand braces, so the command exits cleanly having searched nothing. Pass repeated flags instead: `--include="*.ts" --include="*.js" --include="*.vue"`, or use `rg`, which does not need them. Issues have been filed on evidence consisting entirely of empty output from this pattern
-- **Prove the command works before trusting a negative.** Run it once against a symbol known to be live. If the control search also returns nothing, the command is broken rather than the codebase. Never report a finding whose only evidence is an empty result from an untested command
-- **Search every import form, not just the `@shell` alias.** In-directory imports use `./name`, and `../` and `~/` forms also appear. A search for `utils/queue` misses `import Queue from './queue'` entirely — which is exactly how `shell/utils/queue.js` came to be reported as dead while `shell/utils/promise.js` was importing it
-- **Attribute a symbol to its module before calling it unused.** The same exported name can be defined in more than one file: `sortableNumericSuffix` exists in both `shell/utils/string.js` and `shell/utils/sort.js`, and every consumer imports it from `sort`. A name-only search cannot separate the two. Read the module path in each importer's `from` clause. When a symbol looks unused, check whether a second definition elsewhere is absorbing all the traffic — that does make the duplicate dead, but for a different reason and with a different fix, and the issue must say which copy is which
-- **Do not exclude the defining file by bare filename.** `grep -v "version.js"`, intended to drop a definition in `shell/utils/version.js`, also drops any other `version.js` that is a genuine consumer
+**Prove the command works before trusting a negative.** Run it once against a symbol known to be live. If the control search also returns nothing, the command is broken rather than the codebase. Never report a finding whose only evidence is an empty result from an untested command.
+
+The specific search idioms that have produced false findings here — and what to use instead — are recorded in the lessons file. Read them before composing a search, not after.
 
 #### Search breadth
 
@@ -126,21 +123,14 @@ A missed reference is a false positive, so cast the net wider than the source ex
 
 A match on a candidate's name is not automatically a usage:
 
-- A CSS class (`.count-gauge`) or an unrelated identifier that merely contains the name (`totalCountGaugeInput`) does not reference `CountGauge.vue`. Read every match before counting it as a consumer
+- A CSS class, or an unrelated identifier that merely contains the name as a substring, is not a reference. Read every match before counting it as a consumer
 - The reverse case matters too: a stylesheet rule left behind for a component you are removing is itself dead code. List it in the removal steps instead of letting it scare you off the finding
 
 #### Dynamic resolution
 
 Static search cannot see any of the following. Check each one explicitly, and state in the issue that you did:
 
-- **`require.context` auto-registration.** Run `grep -rn "require.context" shell pkg --include=*.js --include=*.ts` and check whether the candidate's directory is covered by one of the resulting globs. Re-run the grep rather than trusting a remembered list — at time of writing it covers `shell/components/formatter/*.vue` (`shell/plugins/formatters.js`, `shell/plugins/global-formatters.js`) and `shell/config/product/*` (`shell/utils/dynamic-importer.js`)
-  - **CRITICAL for formatters**: All Vue components in `shell/components/formatter/` matching `/[A-Z]\w+\.(vue)$/` are **automatically registered globally** by `require.context` in two places:
-    1. `shell/plugins/formatters.js` — adds them to the `FORMATTERS` object cache used by `SortableTable`
-    2. `shell/plugins/global-formatters.js` — registers them as global Vue components
-  - This means formatters ARE available at runtime via string-based references (e.g., `formatter: 'ComponentName'` in table configs) even without explicit imports
-  - To verify a formatter is unused, you must search for **string-based references**: `grep -r "'FormatterName'\|\"FormatterName\"" shell/config pkg` and check table header definitions in `shell/config/table-headers.js` and all `pkg/*/config/` directories
-  - Also search the entire git history: `git log -p --all -S "FormatterName" -- "shell/config/" "pkg/"` to see if it was ever used and later replaced
-  - Even if no current references exist, note in the issue that the component is part of the auto-registration system and could theoretically be referenced by external UI extensions via string name
+- **`require.context` auto-registration.** Run `grep -rn "require.context" shell pkg --include=*.js --include=*.ts` and check whether the candidate's directory is covered by one of the resulting globs. Always re-run the grep; never work from a remembered list of globs. A directory registered this way has no imports by design, and its members are invoked by string name instead — so ruling one out means searching for the quoted name across config directories and across git history, not searching for imports. The lessons file records which globs exist and how to search the directories they cover
 - **Convention directories resolved from a Kubernetes resource type at runtime**: `shell/models/`, `shell/detail/`, `shell/edit/`, `shell/list/`, `shell/chart/`, `shell/cloud-credential/`, `shell/machine-config/`, `shell/promptRemove/`, `shell/dialog/`, and the `pkg/*/` equivalents. A file named after a resource type (e.g. `provisioning.cattle.io.cluster.vue`) is loaded by name, so no import statement will ever exist. Never report a file in these directories as an orphaned file
 - **`defineAsyncComponent`, `resolveComponent`, `<component :is="...">` with a computed name, and template-literal import paths**
 
@@ -151,8 +141,6 @@ A module whose job is to expose an API has no in-repo importers by design. That 
 - `shell/apis/**` — the composition-API surface for UI extensions. `shell/apis/index.ts` opens with "Main export for APIs" and exists precisely so that out-of-tree extensions can import from `@shell/apis`
 - Anything reachable as a package entry: `main`, `types` or `exports` in a `package.json`, and the `entry` lists in build or tooling config
 - `shell/initialize/entry.js`, `shell/config/router/routes.js`, store/plugin/directive registration files, and the `pkg/*/index.ts` extension entry points
-
-A previous run filed an issue against three `shell/apis/index.ts` re-exports, marked it **Confidence: High**, and then opened its own removal steps with "verify with the team whether this is an external extension API". Those two statements cannot both stand. **An unresolved question about intent caps confidence below the reporting threshold** — resolve it or drop the finding. Do not outsource the verification to the reader by filing it anyway.
 
 #### Published package surface
 
@@ -173,9 +161,7 @@ Dead code arrives in chains, and reporting only the leaves understates the clust
 3. Anything whose only remaining consumers are dead is dead too — add it to the cluster, then repeat until the set stops growing
 4. Work upwards as well: if a candidate's only importer is itself unreferenced, that importer belongs in the same cluster
 
-**A consumer only exonerates a file if the consumer is itself reachable.** Finding one importer and stopping there is the most common way this check fails. Before concluding "X is still used by Y", run the reference check on Y.
-
-A previous run reported four orphaned components under `shell/components/graph/` and explicitly cleared a fifth, writing: "`HalfCircle.vue` references `./Circle` but `Circle.vue` itself is used by `CountGauge.vue` — only `HalfCircle.vue` can be safely removed." `CountGauge.vue` has no consumers of its own. One more check would have shown that `Circle.vue`, `CountGauge.vue` and `GradientBox.vue` were all dead, along with `Glance.vue` above them — eight files, not four, and a "do NOT remove" instruction that pointed at dead code.
+**A consumer only exonerates a file if the consumer is itself reachable.** Finding one importer and stopping there is the most common way this check fails. Before concluding "X is still used by Y", run the reference check on Y, and keep walking up until you reach something reachable or the chain ends. The chain crosses directory boundaries, so the cluster can be larger than the directory it started in.
 
 #### Age evidence
 
@@ -186,13 +172,7 @@ Cheap to gather, and the strongest available signal that code was abandoned rath
 
 Include both in the issue. A component whose last consumer was deleted years ago is a far safer removal than one added last month, and the dates let a reviewer judge that without repeating the work.
 
-**Historical Context Patterns** — different removal patterns indicate different confidence levels:
-
-- **Explicit replacement**: Search git history for the component name in config files: `git log -p --all -S "ComponentName" -- "shell/config/" "pkg/"`. If you find a commit that changed `formatter: 'OldComponent'` to `formatter: 'NewComponent'`, that's **very high confidence** — the old component was intentionally replaced.
-
-- **Orphaned by package removal**: Check if the component was part of a removed package: `git log --all --oneline -- "**/ComponentName.vue"` then check if its parent directory/package was deleted. Example: `git log -p --all -S "ComponentName" -- "pkg/removed-package/"`. If the only usage was in a package that was later removed, that's **high confidence** with clear provenance.
-
-- **Never used**: If git history shows no usage in config files (`git log -p --all -S "ComponentName" -- "shell/config/" "pkg/"`returns empty), the component may have been speculative, incomplete, or migrated from another codebase. This is **medium confidence** — safe to remove but requires runtime testing to confirm no dynamic string-based references exist.
+How the code came to be unreferenced sets the confidence level, and the shapes it takes are described under "Provenance and confidence" in `.github/agents/lessons/dead-code.md`. Establish which one applies before assigning a confidence to a candidate.
 
 #### Check claims, do not infer them
 
@@ -215,11 +195,8 @@ Assess findings to distinguish true dead code from intentional or dynamically-re
 - **Unused i18n Keys**: Translation keys with no consumers
 
 **Assessment Criteria**:
-- **Confidence**: How certain you are the code is truly unreferenced (only report high-confidence findings)
-  - **Very High (95%+)**: Git history shows explicit replacement (old component → new component in same config file)
-  - **High (85-95%)**: Component was only used in a package/feature that was later removed (verifiable via git history)
-  - **Medium (70-85%)**: No references found anywhere (current code or git history), but component could theoretically be used via dynamic string resolution or external extensions
-  - **Low (<70%)**: Component has unclear provenance, recent changes, or potential dynamic resolution patterns — DO NOT report these
+- **Confidence**: How certain you are the code is truly unreferenced (only report high-confidence findings). The provenance shape sets the ceiling, and the three shapes and their bands are defined under "Provenance and confidence" in the lessons file — establish which one applies rather than picking a number that matches how the finding feels
+  - **Low (<70%)**: unclear provenance, recent changes, or a dynamic resolution pattern that could not be ruled out — DO NOT report these
   - Any open question about whether the code is *meant* to have no in-repo consumers caps the rating at Low. Confidence describes what you established, not how plausible the finding feels
 - **Severity**: Amount of dead code (lines, number of symbols/files)
 - **Impact**: Maintenance burden and codebase bloat removed by deletion
@@ -254,12 +231,12 @@ Never delete a register row because it has been there a long time. It leaves whe
 
 #### Cluster boundaries
 
-Successive runs have split the same underlying findings three ways one day and bundled eighteen unrelated components into a single issue the next. Apply a fixed rule so the boundary does not drift between runs:
+Apply a fixed rule so the boundary does not drift between runs:
 
-- A cluster is **one directory, plus whatever its members transitively drag in**. `shell/components/graph/` is one cluster; `shell/components/formatter/` is another; loose files directly under `shell/components/` are a third
-- Never file one issue spanning several unrelated directories merely because everything in it is an unreferenced component. "18 unreferenced components across the codebase" is a report, not a cluster, and it cannot become a clean PR
+- A cluster is **one directory, plus whatever its members transitively drag in**. Two sibling component directories are two clusters; loose files directly under a shared parent are a third
+- Never file one issue spanning several unrelated directories merely because everything in it is an unreferenced component. That is a report, not a cluster, and it cannot become a clean PR
 - Do not split a single directory across multiple issues either
-- Derive every count and total from the list you are about to publish rather than estimating. One issue announced "9 files, ~1,870 lines" directly above a list of 11 files totalling 2,014 lines
+- Derive every count and total from the list you are about to publish, counted rather than estimated
 
 **When to Create Issues**:
 - Only create issues if significant dead code is found (threshold: >10 lines of dead code OR 3+ unused symbols/files in a related cluster)
@@ -308,54 +285,6 @@ Anything **exported** that has no importers goes to the unknown-usage register i
 - **Closure**: Follow the imports of confirmed-dead files to find the rest of the cluster, rather than reporting only the leaves
 - **Historical Context**: Use `git log` to establish whether the code was recently added (possibly not yet wired up) or genuinely abandoned, and include the dates as evidence
 
-### Example Analysis: Formatter Components
-
-Real-world example demonstrating the verification patterns (from issue #19):
-
-**Component: `DelayedValue.vue`** (Very High Confidence)
-```bash
-# Check current usage
-grep -r "DelayedValue" shell/config pkg --include="*.js" --include="*.ts"
-# Result: No matches
-
-# Check git history for usage
-git log -p --all -S "DelayedValue" -- "shell/config/table-headers.js"
-# Result: Shows it was added in June 2022 (commit cab999d02f) as formatter for Pod Restarts
-# Result: Shows it was REPLACED in July 2022 (commit 609f73918d):
-#   -  formatter:    'DelayedValue',
-#   +  formatter:    'LivePodRestarts',
-# Conclusion: Very high confidence — explicitly replaced, safe to remove
-```
-
-**Component: `ImagePercentageBar.vue`** (High Confidence)
-```bash
-# Check current usage
-grep -r "ImagePercentageBar" shell/config pkg --include="*.js" --include="*.ts"
-# Result: No matches
-
-# Check git history
-git log -p --all -S "ImagePercentageBar" -- "pkg/"
-# Result: Used in pkg/harvester/config/table-headers.js for IMAGE_PROGRESS formatter
-# Result: Entire pkg/harvester/ directory was removed in commit 34cbd6d66a (Jan 2024)
-# Conclusion: High confidence — orphaned by Harvester package removal
-```
-
-**Component: `LinkDetailImage.vue`** (Medium Confidence)
-```bash
-# Check current usage
-grep -r "LinkDetailImage" shell/config pkg --include="*.js" --include="*.ts"
-# Result: No matches
-
-# Check git history
-git log -p --all -S "LinkDetailImage" -- "shell/config/" "pkg/"
-# Result: No usage found in any config file in entire git history
-# Conclusion: Medium confidence — never used, but could be referenced via string name
-# Note: Component is auto-registered via require.context, could be used by external extensions
-# Recommendation: Remove but include runtime testing in removal checklist
-```
-
-**Key Takeaway**: Even components that are auto-registered globally (via `require.context`) can be dead code if they're never referenced by name in any config file, template, or external integration point. Use git history to distinguish between "never used" (medium confidence) vs "explicitly replaced" (very high confidence) vs "orphaned by removal" (high confidence).
-
 ## Issue Template
 
 For each distinct dead-code cluster found, create a separate issue using this structure:
@@ -396,15 +325,7 @@ For each distinct dead-code cluster found, create a separate issue using this st
 
 ## Historical Context
 
-For each component, document its provenance to justify confidence level:
-
-- **Replacement pattern** (if applicable): Show git commit where `ComponentName` was replaced by another component in config files. Example: `git show abc123 -- shell/config/table-headers.js` showing `formatter: 'Old'` → `formatter: 'New'`. This indicates **very high confidence** for removal.
-
-- **Orphaned by removal** (if applicable): Show that the component was only used in a package/directory that was later deleted. Example: Component was in `pkg/harvester/config/table-headers.js` using `formatter: 'ImagePercentageBar'`, then `pkg/harvester/` was removed in commit `34cbd6d66a` (January 2024). This indicates **high confidence** with clear audit trail.
-
-- **Never used** (if applicable): Git history search `git log -p --all -S "ComponentName" -- "shell/config/" "pkg/"` returns no usage in config files. Component may have been speculative, incomplete, or migrated without usage. This indicates **medium confidence** — removal is likely safe but requires runtime testing.
-
-Include the specific git commands run and their outputs to support the confidence assessment.
+[Which provenance shape this is, per the lessons file, and the git commands and output that establish it. State the shape, do not restate the rubric.]
 
 ## Impact Analysis
 
