@@ -4452,7 +4452,10 @@ logging:
   s3:
     keyId: Key Id from Secret
     secretKey: Secret Key from Secret
+    region: Region
+    regionTooltip: The AWS region of the bucket, such as us-east-1. Set this for AWS S3 targets, and alongside Endpoint for S3-compatible services. Pick from the list, or type a region that is not listed.
     endpoint: Endpoint
+    endpointTooltip: For S3-compatible services such as MinIO, and for AWS VPC, FIPS or GovCloud endpoints. For any other AWS S3 target, leave this empty and set Region instead, otherwise fluentd rejects the configuration.
     bucket: Bucket
     path: Path
     overwriteExistingPath: Overwrite Existing Path
