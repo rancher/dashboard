@@ -1,12 +1,49 @@
+import { ActionContext } from 'vuex';
 import { clear, findBy, removeObject } from '@shell/utils/array';
 import { stringify } from '@shell/utils/error';
-import { NotificationLevel } from '@shell/types/notifications';
+import { Notification, NotificationLevel } from '@shell/types/notifications';
 
 const DEFAULT_TIMEOUT = 5000;
 
 const MAX_GROWLS = 5;
 
-export const state = function() {
+/**
+ * A growl on the stack, as built by the `add` mutation. `id` and `started` are
+ * always set there, everything else comes from the data given to the actions.
+ */
+export interface Growl {
+  id: number;
+  /**
+   * Epoch ms the growl was added.
+   */
+  started: number;
+  color?: string;
+  icon?: string;
+  timeout?: number;
+  title?: string;
+  message?: string;
+  notification?: string;
+  /**
+   * Socket url, used by the steve subscribe plugin to find its own growl again.
+   */
+  url?: string;
+  /**
+   * Epoch ms before which the growl should not be closed.
+   */
+  earliestClose?: number;
+}
+
+export type GrowlData = Omit<Growl, 'id' | 'started'>;
+
+export interface GrowlState {
+  nextId: number;
+  /** Newest first. */
+  stack: Growl[];
+}
+
+type GrowlContext = ActionContext<GrowlState, any>;
+
+export const state = function(): GrowlState {
   return {
     nextId: 1,
     stack:  [],
@@ -14,18 +51,18 @@ export const state = function() {
 };
 
 export const getters = {
-  find: (state) => ({ key, val }) => {
+  find: (state: GrowlState) => ({ key, val }: { key: string, val: unknown }) => {
     return findBy(state.stack, key, val);
   },
 
   // findBy is slow, so more efficient getter for id
-  byId: (state) => (id) => {
+  byId: (state: GrowlState) => (id: number) => {
     return state.stack.find((item) => item.id === id);
   }
 };
 
 export const mutations = {
-  add(state, data) {
+  add(state: GrowlState, data: GrowlData) {
     if (state.stack.length === MAX_GROWLS) {
       // Remove the last one
       state.stack.pop();
@@ -41,7 +78,7 @@ export const mutations = {
     ];
   },
 
-  remove(state, id) {
+  remove(state: GrowlState, id: number) {
     const obj = findBy(state.stack, 'id', id);
 
     if ( obj ) {
@@ -49,21 +86,21 @@ export const mutations = {
     }
   },
 
-  clear(state) {
+  clear(state: GrowlState) {
     clear(state.stack);
   }
 };
 
 export const actions = {
-  clear({ commit } ) {
+  clear({ commit }: GrowlContext ) {
     commit('clear');
   },
 
-  remove({ commit }, id ) {
+  remove({ commit }: GrowlContext, id: number ) {
     commit('remove', id);
   },
 
-  async close({ commit, dispatch, getters }, id ) {
+  async close({ commit, dispatch, getters }: GrowlContext, id: number ) {
     const growl = getters.byId(id);
 
     commit('remove', id);
@@ -74,9 +111,9 @@ export const actions = {
     }
   },
 
-  async success({ commit, dispatch }, data) {
+  async success({ commit, dispatch }: GrowlContext, data: GrowlData) {
     // Send a notification for the growl
-    const notification = await dispatch('notifications/fromGrowl', {
+    const notification: string = await dispatch('notifications/fromGrowl', {
       ...data,
       level: NotificationLevel.Success
     }, { root: true });
@@ -90,7 +127,7 @@ export const actions = {
     });
   },
 
-  info({ commit }, data) {
+  info({ commit }: GrowlContext, data: GrowlData) {
     commit('add', {
       color:   'info',
       icon:    'info',
@@ -99,9 +136,9 @@ export const actions = {
     });
   },
 
-  async warning({ commit, dispatch }, data) {
+  async warning({ commit, dispatch }: GrowlContext, data: GrowlData) {
     // Send a notification for the growl
-    const notification = await dispatch('notifications/fromGrowl', {
+    const notification: string = await dispatch('notifications/fromGrowl', {
       ...data,
       level: NotificationLevel.Warning
     }, { root: true });
@@ -115,9 +152,9 @@ export const actions = {
     });
   },
 
-  async error({ commit, dispatch }, data) {
+  async error({ commit, dispatch }: GrowlContext, data: GrowlData) {
     // Send a notification for the growl
-    const notification = await dispatch('notifications/fromGrowl', {
+    const notification: string = await dispatch('notifications/fromGrowl', {
       ...data,
       level: NotificationLevel.Error
     }, { root: true });
@@ -131,9 +168,9 @@ export const actions = {
     });
   },
 
-  async fromError({ commit, dispatch }, { title, err }) {
+  async fromError({ commit, dispatch }: GrowlContext, { title, err }: { title?: string, err?: unknown }) {
     // Send a notification for the growl
-    const notification = await dispatch('notifications/fromGrowl', {
+    const notification: string = await dispatch('notifications/fromGrowl', {
       title,
       message: stringify(err),
       level:   NotificationLevel.Error
@@ -154,8 +191,10 @@ export const actions = {
    *
    * Growls are only shown for Success, Warning and Error notifications
    */
-  notification({ commit }, notification) {
-    const growl = {
+  notification({ commit }: GrowlContext, notification: Notification) {
+    const growl: GrowlData & {
+      skip?: boolean;
+    } = {
       title:        notification.title,
       message:      notification.message,
       notification: notification.id,

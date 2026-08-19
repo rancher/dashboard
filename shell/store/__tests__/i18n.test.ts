@@ -34,18 +34,11 @@ function makeTranslations() {
 }
 
 type I18nState = ReturnType<typeof state>;
-type TestI18nState = Omit<I18nState, 'selected' | 'previous' | 'default' | 'available' | 'translations'> & {
-  selected: string | null;
-  previous: string | null;
-  default: string;
-  available: string[];
-  translations: Record<string, any>;
-};
 
-function makeState(overrides?: Partial<TestI18nState>): TestI18nState {
-  const base = state() as TestI18nState;
+function makeState(overrides?: Partial<I18nState>): I18nState {
+  const base = state();
 
-  base.translations = makeTranslations() as any;
+  base.translations = makeTranslations();
   base.selected = 'en-us';
   base.default = 'en-us';
   base.available = ['en-us', 'zh-hans'];
@@ -55,7 +48,7 @@ function makeState(overrides?: Partial<TestI18nState>): TestI18nState {
 
 // ----- helpers to build mock getters (for testing getters.withFallback / multiWithFallback) -----
 
-function makeMockGetters(st: TestI18nState) {
+function makeMockGetters(st: I18nState) {
   const g: Record<string, any> = {};
 
   g.t = getters.t(st);
@@ -193,6 +186,29 @@ describe('i18n store', () => {
         const translate = getters.t(s);
 
         expect(translate('template.message', { count: 3 })).toStrictEqual('Found 3 items');
+      });
+
+      it('formats an ICU argument that needs locale data when no locale has been selected yet', () => {
+        // `selected` is null until the setSelected mutation runs. IntlMessageFormat only
+        // substitutes its own default for `undefined`, so a null locale reaches Intl.* and
+        // throws. t() has to fall back to the store default instead.
+        const s = makeState({ selected: null });
+
+        (s.translations as any)['en-us'].preInitPlural = '{count, plural, one {# cluster} other {# clusters}}';
+
+        const translate = getters.t(s);
+
+        expect(translate('preInitPlural', { count: 2 })).toStrictEqual('2 clusters');
+      });
+
+      it('formats a number argument when no locale has been selected yet', () => {
+        const s = makeState({ selected: null });
+
+        (s.translations as any)['en-us'].preInitNumber = 'There are {count, number} items';
+
+        const translate = getters.t(s);
+
+        expect(translate('preInitNumber', { count: 1234 })).toStrictEqual('There are 1,234 items');
       });
 
       it('returns undefined when the key is not found in any locale', () => {
@@ -333,6 +349,20 @@ describe('i18n store', () => {
 
         // 'onlyInZh' is not in the default (en-us) translations
         expect(check('onlyInZh')).toBe(false);
+      });
+
+      it('shares the formatter cache with t() when no locale has been selected yet', () => {
+        // Both getters have to resolve the same locale, or exists() looks the message up
+        // under a different cache key than the one t() wrote it to.
+        const s = makeState({ selected: null });
+
+        (s.translations as any)['en-us'].preInitCached = '{count, plural, one {# cluster} other {# clusters}}';
+
+        getters.t(s)('preInitCached', { count: 1 });
+
+        delete (s.translations as any)['en-us'].preInitCached;
+
+        expect(getters.exists(s)('preInitCached')).toBe(true);
       });
 
       it('returns true for a key in the default translations regardless of selected locale', () => {

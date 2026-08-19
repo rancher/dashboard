@@ -308,7 +308,7 @@ describe('indent', () => {
   });
 
   it('handles null/undefined lines as empty array', () => {
-    expect(indent(null as unknown as string)).toStrictEqual('');
+    expect(indent(null)).toStrictEqual('');
   });
 
   it('indents after a regex match', () => {

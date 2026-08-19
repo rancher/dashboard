@@ -6,9 +6,9 @@ const mockRoute: any = { query: {} };
 jest.mock('vuex', () => ({ useStore: () => mockStore }));
 jest.mock('vue-router', () => ({ useRoute: () => mockRoute }));
 
-const mockGetVersionInfo = jest.fn(() => ({ fullVersion: '2.12.0' }));
+const mockGetVersionInfo = jest.fn<{ fullVersion: string | null | undefined }, [unknown]>(() => ({ fullVersion: '2.12.0' }));
 
-jest.mock('@shell/utils/version', () => ({ getVersionInfo: (...args: any[]) => mockGetVersionInfo(...args) }));
+jest.mock('@shell/utils/version', () => ({ getVersionInfo: (store: unknown) => mockGetVersionInfo(store) }));
 
 describe('useIsNewDetailPageEnabled', () => {
   beforeEach(() => {

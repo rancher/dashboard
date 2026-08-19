@@ -1,12 +1,16 @@
 import ChartMixin from '@shell/mixins/chart';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { mount } from '@vue/test-utils';
+import { defineComponent } from 'vue';
 import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
 
 describe('chartMixin', () => {
-  const testCases = {
+  const testCases: {
+    opa: [string | null, number][],
+    managedApps: [boolean, string, number][],
+  } = {
     opa: [
       [null, 0],
       [OPA_GATE_KEEPER_ID, 1],
@@ -40,10 +44,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const instance = mount(
         DummyComponent,
@@ -84,10 +88,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const instance = mount(
         DummyComponent,
@@ -128,10 +132,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -186,10 +190,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -254,10 +258,15 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      // `mode` is owned by the component hosting the mixin (see `shell/pages/c/_cluster/apps/charts/install.vue`),
+      // the mixin's `fetchChart` only sets it
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+        data(): { mode: string | null } {
+          return { mode: null };
+        },
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -283,10 +292,10 @@ describe('chartMixin', () => {
   });
 
   describe('action', () => {
-    const DummyComponent = {
+    const DummyComponent = defineComponent({
       mixins:   [ChartMixin],
       template: '<div></div>',
-    };
+    });
 
     const mockStore = {
       dispatch: jest.fn(() => Promise.resolve()),
@@ -433,10 +442,10 @@ describe('chartMixin', () => {
   });
 
   describe('isChartTargeted', () => {
-    const DummyComponent = {
+    const DummyComponent = defineComponent({
       mixins:   [ChartMixin],
       template: '<div></div>',
-    };
+    });
 
     const mockStore = {
       dispatch: jest.fn(() => Promise.resolve()),
@@ -525,10 +534,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -603,10 +612,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -624,7 +633,7 @@ describe('chartMixin', () => {
           }
         });
 
-      const result = (wrapper.vm as any).mappedVersions;
+      const result = wrapper.vm.mappedVersions;
 
       expect(result[0].label).toBe('1.0.0 (Current, Linux-only)');
     });
@@ -650,10 +659,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -671,7 +680,7 @@ describe('chartMixin', () => {
           }
         });
 
-      const result = (wrapper.vm as any).mappedVersions;
+      const result = wrapper.vm.mappedVersions;
 
       expect(result[0].label).toBe('1.0.0 (Current)');
     });
