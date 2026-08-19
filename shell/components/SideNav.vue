@@ -13,7 +13,7 @@ import {
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 
-import { HCI, UI, SCHEMA } from '@shell/config/types';
+import { HCI, UI, SCHEMA, COUNT } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { TYPE_MODES } from '@shell/store/type-map';
@@ -49,6 +49,17 @@ export default {
      * Keep this simple, we're only interested in new / removed schemas
      */
     allSchemasIds(a, b) {
+      if ( !sameContents(a, b) ) {
+        this.queueUpdate();
+      }
+    },
+
+    /**
+     * When new resource types appear in (or are removed from) the count data,
+     * it means a CRD was added or removed.  Re-build the nav so the new group
+     * shows up under "More Resources" without requiring a page refresh.
+     */
+    countTypes(a, b) {
       if ( !sameContents(a, b) ) {
         this.queueUpdate();
       }
@@ -175,6 +186,33 @@ export default {
 
       // This does take some up-front time, however avoids an even more costly getGroups call
       return this.$store.getters[`${ product.inStore }/all`](SCHEMA).map((s) => s.id).sort();
+    },
+
+    /**
+     * Returns the sorted list of resource type IDs that currently have
+     * resources in the COUNT data.
+     * Watching this allows the nav to react when a CRD type transitions from
+     * hidden to visible (count goes from 0 to >0) or vice-versa so it appears
+     * under "More Resources" without a page refresh.
+     */
+    countTypes() {
+      const managementReady = this.managementReady;
+      const product = this.currentProduct;
+
+      if ( !managementReady || !product ) {
+        return [];
+      }
+
+      const counts = this.$store.getters[`${ product.inStore }/all`](COUNT)?.[0]?.counts || {};
+
+      return Object.entries(counts)
+        .filter(([, entry]) => {
+          const n = entry?.summary?.count;
+
+          return typeof n === 'number' && n > 0;
+        })
+        .map(([type]) => type)
+        .sort();
     },
 
     namespaces() {
