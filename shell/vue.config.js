@@ -524,7 +524,7 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
  * https://webpack.js.org/configuration/watch/#watchoptionsignored
  * Example conversion:
  * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
- * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/ 
+ * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
  */
 const getWatcherIgnored = (excludes = []) => {
   const paths = [
