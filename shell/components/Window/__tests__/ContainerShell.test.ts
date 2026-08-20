@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils';
-import type { ComponentMountingOptions, VueWrapper } from '@vue/test-utils';
+import type { ComponentMountingOptions } from '@vue/test-utils';
 import ContainerShell from '@shell/components/Window/ContainerShell.vue';
 import Socket, {
   addEventListener, EVENT_CONNECTED, EVENT_CONNECTING, EVENT_DISCONNECTED, EVENT_MESSAGE, EVENT_CONNECT_ERROR
@@ -193,7 +193,7 @@ describe('component: ContainerShell', () => {
 
   it('creates a window on the page', async() => {
     resetMocks();
-    const wrapper: VueWrapper<InstanceType<typeof ContainerShell> & { [key: string]: any }> = await wrapperPostMounted(defaultContainerShellParams);
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
     const windowComponent = wrapper.findComponent(Window);
 
     expect(windowComponent.exists()).toBe(true);

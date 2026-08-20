@@ -13,6 +13,15 @@ type ExemptionsProp = InstanceType<typeof PodSecurityAdmission>['$props']['exemp
  */
 const asExemptions = (exemptions: object): ExemptionsProp => exemptions as ExemptionsProp;
 
+type PsaControlsData = InstanceType<typeof PodSecurityAdmission>['psaControls'];
+
+/**
+ * `psaControls` is declared as `Record<PSAMode, PSAControl>`, which demands every
+ * mode. The component reads each one defensively and these cases deliberately
+ * only enforce the `enforce` mode.
+ */
+const asPsaControls = (psaControls: object): PsaControlsData => psaControls as PsaControlsData;
+
 describe('component: PodSecurityAdmission', () => {
   it.each([
     ['updateLabels', {
@@ -150,17 +159,15 @@ describe('component: PodSecurityAdmission', () => {
               labelsPrefix: prefix
             },
             // Unable to toggle the checkbox, so we enforce the data
-            data(): any {
-              return {
-                psaControls: {
-                  enforce: {
-                    active:  true,
-                    level:   '',
-                    version: ''
-                  }
+            data: () => ({
+              psaControls: asPsaControls({
+                enforce: {
+                  active:  true,
+                  level:   '',
+                  version: ''
                 }
-              };
-            },
+              })
+            }),
           });
 
           // Unable to toggle the checkbox, so we use the input
@@ -185,17 +192,15 @@ describe('component: PodSecurityAdmission', () => {
               labelsPrefix: prefix
             },
             // Unable to toggle the checkbox, so we enforce the data
-            data(): any {
-              return {
-                psaControls: {
-                  enforce: {
-                    active:  true,
-                    level:   '',
-                    version: ''
-                  }
+            data: () => ({
+              psaControls: asPsaControls({
+                enforce: {
+                  active:  true,
+                  level:   '',
+                  version: ''
                 }
-              };
-            },
+              })
+            }),
           });
 
           // Unable to toggle the checkbox, so we enforce the data
@@ -223,17 +228,15 @@ describe('component: PodSecurityAdmission', () => {
               labelsPrefix: prefix
             },
             // Unable to toggle the checkbox, so we enforce the data
-            data(): any {
-              return {
-                psaControls: {
-                  enforce: {
-                    active:  true,
-                    level:   '',
-                    version: ''
-                  }
+            data: () => ({
+              psaControls: asPsaControls({
+                enforce: {
+                  active:  true,
+                  level:   '',
+                  version: ''
                 }
-              };
-            },
+              })
+            }),
           });
           const newLabels = {
             [`${ prefix }enforce`]:         'privileged',
@@ -319,17 +322,15 @@ describe('component: PodSecurityAdmission', () => {
       it('given disabled active status', () => {
         const wrapper = mount(PodSecurityAdmission, {
           props: { mode: 'edit' },
-          data(): any {
-            return {
-              psaControls: {
-                enforce: {
-                  active:  false,
-                  level:   '',
-                  version: ''
-                }
+          data:  () => ({
+            psaControls: asPsaControls({
+              enforce: {
+                active:  false,
+                level:   '',
+                version: ''
               }
-            };
-          },
+            })
+          }),
         });
 
         const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);

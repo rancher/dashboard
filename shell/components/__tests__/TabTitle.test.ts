@@ -22,7 +22,7 @@ describe('component: TabTitle', () => {
     };
 
     jest.spyOn(privateLabel, 'getVendor').mockReturnValue(mocks.vendor);
-    jest.spyOn(title, 'updatePageTitle').mockImplementation((...args: any[]) => {
+    jest.spyOn(title, 'updatePageTitle').mockImplementation((...args) => {
       mocks.updatePageTitleArgs = args;
     });
 

@@ -29,7 +29,7 @@ describe('page: diagnostic should', () => {
       configurable: true
     });
 
-    const mockTranslation = (key: string, args: any) => {
+    const mockTranslation = (key: string, args: Record<string, string> = {}) => {
       if (key === 'about.diagnostic.systemInformation.memJsHeapLimit') {
         return `Heap Size limit: ${ args.jsHeapSizeLimit }`;
       }
