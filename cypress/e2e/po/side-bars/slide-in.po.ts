@@ -2,7 +2,10 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class SlideInPo extends ComponentPo {
   constructor() {
-    super('[data-testid="slide-in-panel-resource-explain"]');
+    // The sliding aside, not the panel component inside it: the store unmounts
+    // the component 500ms after close, and `checkNotVisible` needs an element
+    // that stays in the DOM.
+    super('[data-testid="slide-in"]');
   }
 
   waitforContent() {
@@ -13,6 +16,6 @@ export default class SlideInPo extends ComponentPo {
   }
 
   closeButton() {
-    return this.self().get('[data-testid="slide-in-panel-close-resource-explain"');
+    return this.self().get('[data-testid="rc-drawer-close"]');
   }
 }

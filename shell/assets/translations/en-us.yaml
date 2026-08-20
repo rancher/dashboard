@@ -1380,6 +1380,7 @@ catalog:
         chartInfo:
           button: View Chart Info
           label: Chart Info
+          noReadme: This chart has no information to show
       helmCli:
         checkbox: Customize Helm options before install
         label: Helm Options
@@ -5579,7 +5580,6 @@ plugins:
   incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
   incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
-  closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
     isDeveloper: Developer Load
@@ -9506,17 +9506,14 @@ errors:
     withoutUrl: '{msg}'
 component:
   drawer:
-    chrome:
-      ariaLabel:
-        close: Close {target} drawer
-      close: Close
+    ariaLabel:
+      close: Close {target} drawer
+    close: Close
+    loading: Loading
     resourceDetailDrawer:
       title: "{resourceName} ({resourceType}) - Configuration"
       editConfig: Edit Config
       editYaml: Edit YAML
-      ariaLabel:
-        editConfig: Edit Config
-        editYaml: Edit YAML
       yamlTab:
         title: YAML
       configTab:

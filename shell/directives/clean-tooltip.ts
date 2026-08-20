@@ -8,6 +8,8 @@ import { purifyHTML } from '@shell/plugins/clean-html';
 let singleton: ReturnType<typeof createTooltip> | null = null;
 let currentTarget: HTMLElement | null = null;
 
+const DRAWER_SELECTOR = '.rc-drawer';
+
 interface TooltipDelay {
   show: number;
   hide: number;
@@ -49,7 +51,12 @@ function showSingletonTooltip(target: HTMLElement, options: TooltipOptions) {
 
   const tooltipConfig = {
     ...options,
-    content: purifiedContent,
+    content:   purifiedContent,
+    // A full-height drawer has to sit above the side menu, which puts it above
+    // the tooltip layer too, so a body-level popper renders behind it. Mount
+    // the popper inside the drawer instead. Anywhere else keeps floating-vue's
+    // default container.
+    container: target.closest(DRAWER_SELECTOR) || undefined,
   };
 
   // Create a new tooltip instance.

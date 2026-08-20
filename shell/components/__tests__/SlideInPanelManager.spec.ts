@@ -20,6 +20,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
     document.body.appendChild(slidesDiv);
 
     getters = {
+      'i18n/t':                      () => (key: string) => key,
       'slideInPanel/isOpen':         () => true,
       'slideInPanel/component':      () => MockComponent,
       'slideInPanel/componentProps': () => ({
@@ -52,7 +53,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
     const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
     const slideGlass = document.querySelector('[data-testid="slide-in-glass"]') as HTMLElement;
     const slideComponent = document.querySelector('[data-testid="slide-in-panel-component"]') as HTMLElement;
-    const headerTitle = document.querySelector('#slides .slide-in .header .title') as HTMLElement;
+    const headerTitle = document.querySelector('#slides .slide-in .rc-drawer__title') as HTMLElement;
 
     expect(slidePanel).toBeTruthy();
     expect(slideGlass).toBeTruthy();
@@ -76,7 +77,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
     factory();
     await nextTick();
 
-    const header = document.querySelector('#slides #slide-in-panel-manager .header') as HTMLElement;
+    const header = document.querySelector('#slides #slide-in-panel-manager .rc-drawer__header') as HTMLElement;
 
     expect(header).toBeNull();
   });
@@ -155,7 +156,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
     factory();
     await nextTick();
 
-    const closeIcon = document.querySelector('[data-testid="slide-in-close"]') as HTMLElement;
+    const closeIcon = document.querySelector('[data-testid="rc-drawer-close"]') as HTMLElement;
 
     closeIcon.click();
     await nextTick();
@@ -258,7 +259,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
       factory();
       await nextTick();
 
-      const header = document.querySelector('#slides .slide-in .header') as HTMLElement;
+      const header = document.querySelector('#slides .slide-in .rc-drawer__header') as HTMLElement;
 
       expect(header).toBeTruthy();
       expect(header.textContent?.trim()).toContain('My Panel');
@@ -273,9 +274,25 @@ describe('slideInPanelManager.vue with Teleport', () => {
       factory();
       await nextTick();
 
-      const header = document.querySelector('#slides .slide-in .header') as HTMLElement;
+      const header = document.querySelector('#slides .slide-in .rc-drawer__header') as HTMLElement;
 
       expect(header).toBeNull();
+    });
+
+    it('still renders the panel when no title is provided', async() => {
+      // The panel supplies its own chrome in this case, so it is passed through
+      // rather than wrapped.
+      getters['slideInPanel/componentProps'] = () => ({});
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const panel = document.querySelector('#slides .slide-in [data-testid="slide-in-panel-component"]') as HTMLElement;
+
+      expect(panel).toBeTruthy();
     });
 
     it('respects deprecated showHeader=true even without title', async() => {
@@ -287,7 +304,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
       factory();
       await nextTick();
 
-      const header = document.querySelector('#slides .slide-in .header') as HTMLElement;
+      const header = document.querySelector('#slides .slide-in .rc-drawer__header') as HTMLElement;
 
       expect(header).toBeTruthy();
     });
@@ -301,7 +318,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
       factory();
       await nextTick();
 
-      const header = document.querySelector('#slides .slide-in .header') as HTMLElement;
+      const header = document.querySelector('#slides .slide-in .rc-drawer__header') as HTMLElement;
 
       expect(header).toBeNull();
     });

@@ -25,8 +25,13 @@ export interface SlideInConfig {
   /**
    *
    * title for the Slide-In panel.
-   * When set, a header bar with the title and a close button is displayed.
-   * When omitted, no header is shown.
+   * When set, the panel is wrapped in the standard `RcDrawer` chrome: a header
+   * bar with the title and a close button, and a tinted body. When omitted, no
+   * chrome is added and the panel supplies its own.
+   *
+   * @deprecated Render `RcDrawer` as your panel's root component instead. Doing
+   * so gives the same chrome and additionally lets the panel contribute footer
+   * actions, which this shorthand cannot. Full deprecation expected in Rancher 2.17.
    *
    */
   title?: string;

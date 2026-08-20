@@ -5,7 +5,6 @@ import * as vuex from 'vuex';
 
 jest.mock('@shell/components/Drawer/ResourceDetailDrawer/helpers');
 jest.mock('vuex');
-jest.mock('@shell/composables/drawer');
 jest.mock('@shell/components/Drawer/ResourceDetailDrawer/index.vue', () => ({ name: 'ResourceDetailDrawer' } as any));
 jest.mock('vue', () => ({
   ...jest.requireActual('vue'),

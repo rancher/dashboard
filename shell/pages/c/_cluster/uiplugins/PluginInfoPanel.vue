@@ -2,52 +2,65 @@
 import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
-import { MANAGEMENT } from '@shell/config/types';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
-import { SETTING } from '@shell/config/settings';
-import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
 import { isChartVersionHigher, uiPluginHasAnnotation } from '@shell/config/uiplugins';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import Banner from '@components/Banner/Banner.vue';
-import RcButton from '@components/RcButton/RcButton.vue';
+import RcDrawer from '@components/RcDrawer/RcDrawer.vue';
+import RcDrawerCard from '@components/RcDrawer/RcDrawerCard.vue';
+import RcDrawerMessage from '@components/RcDrawer/RcDrawerMessage.vue';
+import { useDrawerClose } from '@components/RcDrawer/composables';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 
 export default {
-  emits: ['action'],
-
-  async fetch() {
-    const bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
-    const { showHeader, bannerHeader } = JSON.parse(bannerSetting.value);
-
-    if (showHeader === 'true') {
-      const headerBannerFontSize = Number(bannerHeader?.fontSize?.split('px')[0] ?? 0);
-
-      this.headerBannerSize = headerBannerFontSize * 2;
-    }
-  },
   components: {
     Banner,
     ChartReadme,
     LazyImage,
-    RcButton,
+    RcDrawer,
+    RcDrawerCard,
+    RcDrawerMessage,
     AppChartCardFooter
   },
+
+  setup() {
+    return { closeDrawer: useDrawerClose() };
+  },
+
+  props: {
+    /**
+     * The extension to describe, as built by the Extensions list.
+     */
+    info: {
+      type:     Object,
+      required: true
+    },
+
+    /**
+     * Called with the chosen action when the user picks one from the footer.
+     * The drawer is opened from a list page that owns the install/uninstall
+     * dialogs, so the action is handed back rather than performed here.
+     */
+    onAction: {
+      type:    Function,
+      default: () => {}
+    }
+  },
+
   data() {
     return {
-      showSlideIn:      false,
-      info:             undefined,
-      infoVersion:      undefined,
-      versionInfo:      undefined,
-      versionError:     undefined,
-      defaultIcon:      genericPluginSvg,
-      headerBannerSize: 0,
-      isActive:         false
+      infoVersion:  undefined,
+      versionInfo:  undefined,
+      versionError: undefined,
+      defaultIcon:  genericPluginSvg,
     };
   },
-  created() {
-    useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.showSlideIn, '#slide-in-content-element');
+
+  mounted() {
+    this.loadPluginVersionInfo();
   },
+
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
 
@@ -98,6 +111,18 @@ export default {
           });
         }
       } else {
+        // Pushed before the upgrade/downgrade action so that the footer reads
+        // "Close | Uninstall | Upgrade": the last slot is the primary one in
+        // every other drawer, and a destructive action does not belong there.
+        if (!this.info.builtin) {
+          actions.push({
+            label:  this.t('plugins.uninstall.label'),
+            action: 'uninstall',
+            role:   'secondary',
+            icon:   'icon-delete'
+          });
+        }
+
         if (selectedVersion && installedVersion && selectedVersion !== installedVersion) {
           if (isChartVersionHigher(selectedVersion, installedVersion)) {
             actions.push({
@@ -117,53 +142,29 @@ export default {
             });
           }
         }
-
-        if (!this.info.builtin) {
-          actions.push({
-            label:  this.t('plugins.uninstall.label'),
-            action: 'uninstall',
-            role:   'secondary',
-            icon:   'icon-delete'
-          });
-        }
       }
 
       return actions;
+    },
+
+    /**
+     * panelActions describes the actions; RcDrawer wants buttons. The two
+     * differ only in that `action` is an identifier here and a callback there.
+     */
+    drawerActions() {
+      return this.panelActions.map((button) => ({
+        label:   button.label,
+        icon:    button.icon,
+        variant: button.role,
+        action:  () => this.onButtonClick(button)
+      }));
     }
   },
-  watch: {
-    showSlideIn: {
-      handler(neu) {
-        // we register the global event on slidein visibility
-        // so that it doesn't collide with other global events
-        if (neu) {
-          document.addEventListener('keyup', this.handleEscapeKey);
-        } else {
-          document.removeEventListener('keyup', this.handleEscapeKey);
-        }
-      },
-      immediate: true
-    }
-  },
+
   methods: {
     onButtonClick(button) {
-      this.$emit('action', { ...button, plugin: this.info });
-      this.hide();
-    },
-
-    show(info) {
-      this.info = info;
-      this.showSlideIn = true;
-      this.version = null;
-      this.versionInfo = null;
-      this.versionError = null;
-      this.infoVersion = undefined;
-
-      this.loadPluginVersionInfo();
-    },
-
-    hide() {
-      this.showSlideIn = false;
+      this.onAction({ ...button, plugin: this.info });
+      this.closeDrawer();
     },
 
     async loadPluginVersionInfo(version) {
@@ -223,22 +224,6 @@ export default {
       return { 'version-active': version.version === this.infoVersion, disabled: !version.isVersionCompatible };
     },
 
-    onEnter() {
-      this.isActive = true; // Set active state after the transition
-    },
-
-    onLeave() {
-      this.isActive = false; // Remove active state when fully closed
-    },
-
-    handleEscapeKey(event) {
-      event.stopPropagation();
-
-      if (event.key === 'Escape') {
-        this.hide();
-      }
-    },
-
     getVersionLabel(version) {
       const label = getPluginChartVersionLabel(version);
 
@@ -251,396 +236,197 @@ export default {
   }
 };
 </script>
+
 <template>
-  <div
-    class="plugin-info-panel"
-    :style="`--banner-top-offset: ${headerBannerSize}px`"
+  <RcDrawer
+    :title="info.label"
+    :actions="drawerActions"
   >
-    <div
-      v-if="showSlideIn"
-      class="glass"
-      data-testid="extension-details-bg"
-      @click="hide()"
-    />
-    <transition
-      name="slide"
-      @after-enter="onEnter"
-      @after-leave="onLeave"
-    >
-      <aside
-        v-if="showSlideIn"
-        id="slide-in-content-element"
-        class="slideIn"
-        data-testid="extension-details"
-        :class="{'active': isActive}"
+    <template #title>
+      <span
+        class="plugin-icon"
+        :class="applyDarkModeBg"
       >
-        <div
-          v-if="info"
-          class="plugin-info-content"
+        <LazyImage
+          v-if="info.icon"
+          :initial-src="defaultIcon"
+          :error-src="defaultIcon"
+          :src="info.icon"
+          class="icon plugin-icon-img"
+        />
+        <img
+          v-else
+          :src="defaultIcon"
+          class="icon plugin-icon-img"
         >
-          <div class="plugin-header">
-            <div
-              class="plugin-icon"
-              :class="applyDarkModeBg"
-            >
-              <LazyImage
-                v-if="info.icon"
-                :initial-src="defaultIcon"
-                :error-src="defaultIcon"
-                :src="info.icon"
-                class="icon plugin-icon-img"
-              />
-              <img
-                v-else
-                :src="defaultIcon"
-                class="icon plugin-icon-img"
-              >
-            </div>
-            <div class="plugin-title">
-              <h2
-                class="slideIn__header"
-                data-testid="extension-details-title"
-              >
-                {{ info.label }}
-              </h2>
-              <p class="plugin-description">
-                {{ info.description }}
-              </p>
-            </div>
-            <div class="plugin-close">
-              <div class="slideIn__header__buttons">
-                <div
-                  class="slideIn__header__button"
-                  data-testid="extension-details-close"
-                  role="button"
-                  :aria-label="t('plugins.closePluginPanel')"
-                  tabindex="0"
-                  @click="hide()"
-                  @keydown.enter.space="hide()"
-                >
-                  <i class="icon icon-close" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <AppChartCardFooter
-            v-if="info.tags && info.tags.length"
-            :items="info.tags"
-            class="plugin-tags-container"
-          />
-          <Banner
-            v-for="(msg, i) in warningMessages"
-            :key="i"
-            color="warning"
-          >
-            {{ msg }}
-          </Banner>
+      </span>
+      <span data-testid="extension-details-title">{{ info.label }}</span>
+    </template>
 
-          <Banner
-            v-if="errorMessage"
-            color="error"
-          >
-            {{ errorMessage }}
-          </Banner>
+    <template #body>
+      <Banner
+        v-for="(msg, i) in warningMessages"
+        :key="i"
+        color="warning"
+      >
+        {{ msg }}
+      </Banner>
 
-          <div class="plugin-versions-container">
-            <h3>
-              {{ t('plugins.info.versions') }}
-            </h3>
-            <div v-if="!info.versions.length">
-              <div class="version-link version-active version-builtin">
-                {{ info.displayVersion }}
-              </div>
-            </div>
-            <div
-              v-else
-              class="plugin-versions"
-            >
-              <div
-                v-for="v in info.versions"
-                :key="`${v.name}-${v.version}`"
-              >
-                <a
-                  v-clean-tooltip="handleVersionBtnTooltip(v)"
-                  class="version-link"
-                  :class="handleVersionBtnClass(v)"
-                  :tabindex="!v.isVersionCompatible ? -1 : 0"
-                  role="button"
-                  :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
-                  @click="loadPluginVersionInfo(v.version)"
-                  @keyup.enter.space="loadPluginVersionInfo(v.version)"
-                >
-                  {{ getVersionLabel(v) }}
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="plugin-actions-container">
-            <h3>
-              {{ t('plugins.info.actions') }}
-            </h3>
-            <div class="plugin-actions">
-              <template v-if="panelActions.length">
-                <RcButton
-                  v-for="btn in panelActions"
-                  :key="btn.action"
-                  class="mmr-3 mmb-3"
-                  size="large"
-                  :variant="btn.role"
-                  @click="onButtonClick(btn)"
-                >
-                  <i :class="['icon', btn.icon, 'mmr-2']" />{{ btn.label }}
-                </RcButton>
-              </template>
-              <div
-                v-else
-                class="no-actions"
-              >
-                {{ t('plugins.info.noActions') }}
-              </div>
-            </div>
-          </div>
+      <Banner
+        v-if="errorMessage"
+        color="error"
+      >
+        {{ errorMessage }}
+      </Banner>
 
-          <div v-if="versionError">
-            {{ t('plugins.info.versionError') }}
-          </div>
-          <h3 v-if="versionInfo">
-            {{ t('plugins.info.detail') }}
-          </h3>
-          <div
-            v-if="versionInfo"
-            class="plugin-info-detail"
-          >
-            <ChartReadme
-              v-if="versionInfo"
-              :version-info="versionInfo"
-            />
+      <RcDrawerCard>
+        <p class="plugin-description">
+          {{ info.description }}
+        </p>
+
+        <AppChartCardFooter
+          v-if="info.tags && info.tags.length"
+          :items="info.tags"
+          class="plugin-tags-container"
+        />
+
+        <h3 class="plugin-versions-heading">
+          {{ t('plugins.info.versions') }}
+        </h3>
+        <div v-if="!info.versions.length">
+          <div class="version-link version-active version-builtin">
+            {{ info.displayVersion }}
           </div>
         </div>
-      </aside>
-    </transition>
-  </div>
+        <div
+          v-else
+          class="plugin-versions"
+        >
+          <div
+            v-for="v in info.versions"
+            :key="`${v.name}-${v.version}`"
+          >
+            <a
+              v-clean-tooltip="handleVersionBtnTooltip(v)"
+              class="version-link"
+              :class="handleVersionBtnClass(v)"
+              :tabindex="!v.isVersionCompatible ? -1 : 0"
+              role="button"
+              :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
+              @click="loadPluginVersionInfo(v.version)"
+              @keyup.enter.space="loadPluginVersionInfo(v.version)"
+            >
+              {{ getVersionLabel(v) }}
+            </a>
+          </div>
+        </div>
+
+        <template v-if="!panelActions.length">
+          <h3 class="plugin-versions-heading">
+            {{ t('plugins.info.actions') }}
+          </h3>
+          <div class="no-actions">
+            {{ t('plugins.info.noActions') }}
+          </div>
+        </template>
+      </RcDrawerCard>
+
+      <!--
+        The two are exclusive by construction: loadPluginVersionInfo clears both
+        before awaiting and only sets versionError in its catch.
+      -->
+      <RcDrawerCard v-if="versionError || versionInfo">
+        <RcDrawerMessage
+          v-if="versionError"
+          icon="icon-warning"
+        >
+          {{ t('plugins.info.versionError') }}
+        </RcDrawerMessage>
+        <template v-else>
+          <h3>{{ t('plugins.info.detail') }}</h3>
+          <ChartReadme :version-info="versionInfo" />
+        </template>
+      </RcDrawerCard>
+    </template>
+  </RcDrawer>
 </template>
+
 <style lang="scss" scoped>
-  .plugin-info-panel {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1;
+  .plugin-icon {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    flex-shrink: 0;
+    height: 32px;
+    width: 32px;
+    margin-right: 12px;
+    border-radius: 4px;
+    overflow: hidden;
 
-    $slideout-width: 35%;
-    $slideout-width: 35%;
-    --banner-top-offset: 0;
-    $header-height: calc(54px + var(--banner-top-offset));
-
-    .glass {
-      z-index: 9;
-      position: fixed;
-      top: $header-height;
-      height: calc(100% - $header-height);
-      left: 0;
-      width: 100%;
-      opacity: 0;
+    &.dark-mode {
+      // Deliberately theme-independent: extension logos are authored for a
+      // light background, so they need a white plate in dark mode. Same
+      // treatment as SelectIconGrid.
+      background-color: white;
     }
 
-    .slideIn {
-      border-left: var(--header-border-size) solid var(--header-border);
-      position: fixed;
-      top: $header-height;
-      right: -$slideout-width;
-      height: calc(100% - $header-height);
-      background-color: var(--topmenu-bg);
-      width: $slideout-width;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      padding: 12px;
+    .plugin-icon-img {
+      height: 28px;
+      width: 28px;
+      object-fit: contain;
+    }
+  }
 
-      &.active {
-        right: 0;
-      }
+  .plugin-description {
+    font-size: 15px;
+    margin: 0;
+  }
 
-      /* Enter animation */
-      &.slide-enter-active {
-        transition: right 0.5s ease; /* Animates both enter and leave */
-      }
+  .no-actions {
+    color: var(--disabled-text);
+  }
 
-      &.slide-leave-active {
-        transition: right 0.5s ease; /* Animates both enter and leave */
-      }
+  .plugin-tags-container {
+    margin-top: 16px;
+  }
 
-      &.slide-enter-from,
-      &.slide-leave-to {
-        right: -$slideout-width; /* Off-screen position */
-      }
+  .plugin-versions-heading {
+    margin-top: 24px;
+  }
 
-      &.slide-enter-to,
-      &.slide-leave-from {
-        right: 0; /* Fully visible position */
-      }
+  .plugin-versions {
+    display: flex;
+    flex-wrap: wrap;
+  }
 
-      &__header {
-        text-transform: capitalize;
-      }
+  .version-link {
+    cursor: pointer;
+    border: 1px solid var(--link);
+    padding: 2px 8px;
+    border-radius: 5px;
+    user-select: none;
+    margin: 0 4px 4px 0;
+    display: block;
 
-      .plugin-info-content {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
+    &.version-active {
+      color: var(--link-text);
+      background: var(--link);
+    }
 
-        .banner.warning,
-        .banner.error {
-          margin-top: 0;
-          margin-bottom: 32px;
-        }
+    &.disabled {
+      cursor: not-allowed;
+      color: var(--disabled-text) !important;
+      background-color: var(--disabled-bg) !important;
+      border-color: var(--disabled-bg) !important;
+      text-decoration: none !important;
+    }
 
-        .plugin-info-detail {
-          overflow: auto;
-        }
-      }
+    &.version-builtin {
+      display: inline-block;
+    }
 
-      h3 {
-        font-size: 14px;
-        margin-bottom: 12px;
-        color: var(--disabled-text);
-        text-transform: uppercase;
-      }
-
-      .plugin-header {
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        padding-bottom: 16px;
-        margin-bottom: 16px;
-
-        .plugin-title {
-          flex: 1;
-        }
-      }
-
-      .plugin-icon {
-        font-size: 40px;
-        margin-right: 12px;
-        width: 44px;
-        height: 44px;
-
-        &.dark-mode {
-          border-radius: calc(2 * var(--border-radius));
-          overflow: hidden;
-          background-color: white;
-        }
-
-        .plugin-icon-img {
-          height: 40px;
-          width: 40px;
-          -o-object-fit: contain;
-          object-fit: contain;
-          position: relative;
-          top: 2px;
-          left: 2px;
-        }
-      }
-
-      .plugin-tags-container {
-        margin-top: -8px;
-      }
-
-      .plugin-tags-container,
-      .plugin-versions-container,
-      .plugin-actions-container {
-        margin-bottom: 24px;
-      }
-
-      .plugin-versions,
-      .plugin-actions {
-        display: flex;
-        flex-wrap: wrap;
-      }
-
-      .no-actions {
-        color: var(--disabled-text);
-      }
-
-      .plugin-description {
-        font-size: 15px;
-      }
-
-      .version-link {
-        cursor: pointer;
-        border: 1px solid var(--link);
-        padding: 2px 8px;
-        border-radius: 5px;
-        user-select: none;
-        margin: 0 4px 4px 0;
-        display: block;
-
-        &.version-active {
-          color: var(--link-text);
-          background: var(--link);
-        }
-
-        &.disabled {
-          cursor: not-allowed;
-          color: var(--disabled-text) !important;
-          background-color: var(--disabled-bg) !important;
-          border-color: var(--disabled-bg) !important;
-          text-decoration: none !important;
-        }
-
-        &.version-builtin {
-          display: inline-block;
-        }
-
-        &:focus-visible {
-          @include focus-outline;
-        }
-      }
-
-      &__header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        &__buttons {
-          display: flex;
-        }
-
-        &__button {
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 2px;
-
-          > i {
-            font-size: 20px;
-            opacity: 0.5;
-          }
-
-          &:hover {
-            background-color: var(--wm-closer-hover-bg);
-          }
-
-          &:focus-visible {
-            @include focus-outline;
-            outline-offset: -2px;
-          }
-        }
-      }
-
-      .chart-content__tabs {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-
-        height: 0;
-
-        padding-bottom: 12px;
-
-        :deep() .chart-readmes {
-          flex: 1;
-          overflow: auto;
-        }
-      }
+    &:focus-visible {
+      @include focus-outline;
     }
   }
 </style>

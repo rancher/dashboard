@@ -34,3 +34,9 @@ export class OpenAPI {
     });
   }
 }
+
+/**
+ * Shared cache, so reopening the drawer for a cluster whose Open API data has
+ * already been fetched does not fetch it again.
+ */
+export const openAPICache = new OpenAPI();

@@ -3,7 +3,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
 import { useStore } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab.vue';
-import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import RcDrawerCard from '@components/RcDrawer/RcDrawerCard.vue';
 import { ConfigProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 
 const props = defineProps<ConfigProps>();
@@ -16,7 +16,7 @@ const i18n = useI18n(store);
     name="config-tab"
     :label="i18n.t('component.drawer.resourceDetailDrawer.configTab.title')"
   >
-    <DrawerCard>
+    <RcDrawerCard>
       <component
         :is="props.component"
         :value="props.resource"
@@ -29,7 +29,7 @@ const i18n = useI18n(store);
         :default-tab="props.defaultTab"
         as="config"
       />
-    </DrawerCard>
+    </RcDrawerCard>
   </Tab>
 </template>
 

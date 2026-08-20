@@ -931,21 +931,16 @@ export default class Resource {
   }
 
   showConfiguration(returnFocusSelector, defaultTab) {
-    const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
-
-    this.$ctx.commit('slideInPanel/open', {
-      component:      require(`@shell/components/Drawer/ResourceDetailDrawer/index.vue`).default,
-      componentProps: {
-        resource:           this,
-        onClose,
-        width:              'wide',
-        height:             'full',
-        closeOnRouteChange: ['name', 'params', 'query'],
-        triggerFocusTrap:   true,
-        returnFocusSelector,
+    this.currentShell().slideIn.open(require(`@shell/components/Drawer/ResourceDetailDrawer/index.vue`).default, {
+      width:              'wide',
+      height:             'full',
+      closeOnRouteChange: ['name', 'params', 'query'],
+      returnFocusSelector,
+      props:              {
+        resource: this,
         defaultTab
       }
-    }, { root: true });
+    });
   }
 
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
@@ -1418,6 +1413,10 @@ export default class Resource {
 
   currentRouter() {
     return window.$globalApp.$router;
+  }
+
+  currentShell() {
+    return window.$globalApp.$shell;
   }
 
   get isProdRegistrationV2TopLevelProductResoure() {
