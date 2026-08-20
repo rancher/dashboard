@@ -69,6 +69,7 @@
 
 ## Completed Work (Summary)
 
+- 2026-08-20: PR (test-assist/sort-utils-extra-tests): 56 new tests for sort.js typeOf, compare, parseField, sortableNumericSuffix, isNumeric; 79%→98% stmts, 41%→96% branches, 78%→100% fns.
 - 2026-08-19: PR (test-assist/project-ns-filtering-utils-tests): 23 new tests for projectAndNamespaceFiltering.utils.ts — isApplicable, isEnabled, createParam, checkAndCreateParam; 0%→100% stmts/fns/lines, 92.59% branches.
 - 2026-08-13: PR (test-assist/settings-utils-tests): 13 new tests for settings.ts async functions — fetchOrCreateSetting, fetchSetting, fetchInitialSettings, setSetting; 50%→100% stmts, 33%→100% fns.
 - 2026-08-12: PR (test-assist/i18n-store-actions-tests): 23 new tests for i18n.js actions — init, load, mergeLoad, switchTo; 72%→92.17% stmts, 83%→100% fns, 98.5%→94.49% branches.
@@ -90,6 +91,7 @@
 
 ## Task Round-Robin History
 
+- 2026-08-20: Task 3 (sort.js extra tests, 56 tests, 79%→98% stmts, 41%→96% branches, 78%→100% fns) + Task 7
 - 2026-08-19: Task 3 (projectAndNamespaceFiltering.utils.ts, 23 tests, 0%→100% stmts/fns/lines) + Task 7
 - 2026-08-13: Task 3 (settings.ts async functions, 13 tests, 50%→100% stmts, 33%→100% fns) + Task 7
 - 2026-08-10: Task 3 (focusTrap.ts, 19 tests, 0%→100%) + Task 7
