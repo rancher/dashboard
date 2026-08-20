@@ -98,7 +98,13 @@ export default {
     &.banner-text-left {
       .title {
         justify-content: left;
-        padding-left: 20px;
+        padding-left: 5%;
+      }
+
+      @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
+        .title {
+          padding-left: 20px;
+        }
       }
     }
   }
