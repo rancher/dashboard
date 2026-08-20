@@ -17,7 +17,10 @@ export const RcDropdownItem: DefineComponent;
 export const RcDropdownSeparator: DefineComponent;
 export const RcDropdownTrigger: DefineComponent;
 export const RcItemCard: DefineComponent;
+export const RcModal: DefineComponent;
 export const RcSeparator: DefineComponent;
+
+export type RcModalSize = 'small' | 'medium' | 'large';
 
 type ArrayListRow = {
     value: string;

@@ -1,5 +1,6 @@
 import { markRaw, Component } from 'vue';
 import { MutationTree, GetterTree, ActionTree } from 'vuex';
+import type { ModalSize } from '@shell/apis/intf/shell-api/modal';
 
 export interface ModalState {
   isOpen: boolean;
@@ -9,6 +10,8 @@ export interface ModalState {
   closeOnClickOutside: boolean;
   modalWidth: string;
   modalSticky: boolean;
+  title: string;
+  size: ModalSize | null;
 }
 
 const state = (): ModalState => ({
@@ -18,7 +21,9 @@ const state = (): ModalState => ({
   resources:           [],
   closeOnClickOutside: false,
   modalWidth:          '600px',
-  modalSticky:         false
+  modalSticky:         false,
+  title:               '',
+  size:                null
 });
 
 const getters: GetterTree<ModalState, any> = {
@@ -29,6 +34,8 @@ const getters: GetterTree<ModalState, any> = {
   closeOnClickOutside: (state) => state.closeOnClickOutside,
   modalWidth:          (state) => state.modalWidth,
   modalSticky:         (state) => state.modalSticky,
+  title:               (state) => state.title,
+  size:                (state) => state.size,
 };
 
 const mutations: MutationTree<ModalState> = {
@@ -39,6 +46,8 @@ const mutations: MutationTree<ModalState> = {
     closeOnClickOutside?: boolean;
     modalWidth?: string;
     modalSticky?: boolean;
+    title?: string;
+    size?: ModalSize;
   }) {
     state.isOpen = true;
     state.component = markRaw(payload.component);
@@ -47,6 +56,8 @@ const mutations: MutationTree<ModalState> = {
     state.closeOnClickOutside = payload.closeOnClickOutside ?? false;
     state.modalWidth = payload.modalWidth || '600px';
     state.modalSticky = payload.modalSticky ?? false;
+    state.title = payload.title || '';
+    state.size = payload.size ?? null;
   },
 
   closeModal(state) {
@@ -57,6 +68,8 @@ const mutations: MutationTree<ModalState> = {
     state.closeOnClickOutside = false;
     state.modalWidth = '600px';
     state.modalSticky = false;
+    state.title = '';
+    state.size = null;
   }
 };
 

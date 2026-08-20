@@ -1,0 +1,144 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcModalStories from './RcModal.stories';
+
+<Meta of={RcModalStories} />
+
+# RcModal
+
+`RcModal` is the standard modal. Use it for every new modal, and reach for
+`AppModal` directly only when you need a dialog with no chrome at all.
+
+It owns the behaviour modals already had - teleport into `#modals`, focus trap,
+`Esc` and click-outside close - and adds the layout that modals used to
+re-implement one by one: the heading, the body, the right-aligned actions, and
+the padding and spacing between them. `AppModal` is the older equivalent and
+will be replaced by `RcModal` in the shell.
+
+The first example starts open and the rest open on click. Each one covers the
+whole page, because a modal leaves its place in the markup for `#modals`: the
+container the shell renders once, at the end of the body.
+
+<Canvas of={RcModalStories.Default} />
+
+<Controls of={RcModalStories.Default} />
+
+## The API
+
+Visibility is the `show` prop, so the modal animates in and out instead of being
+added and removed with `v-if`. Everything about its content is a slot.
+
+| Slot | Renders |
+|---|---|
+| `title` | The heading. Defaults to the `title` prop, so most modals only set the prop. |
+| default | The body. Each direct child is a content section, separated by 24px. |
+| `primary-action` | Just the confirming button. The cancel button comes with it. |
+| `actions` | The whole footer, when the default pairing does not fit. |
+
+Give neither footer slot and no footer row is rendered. Buttons are
+right-aligned with 16px between them; use `RcButton` with `variant="primary"`
+for the action that proceeds.
+
+Both footer slots receive `cancel` and `close`, so a button can end the modal
+without the consumer wiring anything up:
+
+| Emitted | When |
+|---|---|
+| `cancel` | The user backed out: the cancel button, `Esc`, or a background click. Always followed by `close`. |
+| `close` | The modal should be taken down, whatever the outcome. |
+
+Attributes that are not props land on the dialog element, so `class` and
+`data-testid` work as usual:
+
+```html
+<RcModal
+  :show="showModal"
+  :title="t('promptRemove.title')"
+  size="small"
+  @close="showModal = false"
+>
+  <p>{{ t('promptRemove.attemptingToRemove', { type }) }}</p>
+  <template #primary-action="{ close }">
+    <RcButton variant="primary" @click="remove(close)">{{ t('generic.remove') }}</RcButton>
+  </template>
+</RcModal>
+```
+
+## Sizes
+
+There are three, and no arbitrary widths. Picking one of the three is what
+keeps modals looking like each other.
+
+| Size | Width | Use for |
+|---|---|---|
+| `small` | 480px | Confirmations and single-field prompts. |
+| `medium` | 640px | The default. Short forms. |
+| `large` | 960px | Long forms, tables, side-by-side content. |
+
+The size is the width of the body, and the modal grows to fit it. A modal that
+genuinely needs a width outside the three can override the custom property from
+its own class, so no prop is needed for it:
+
+```scss
+.my-modal {
+  --rc-modal-width: 820px;
+}
+```
+
+<Canvas of={RcModalStories.Confirmation} />
+
+## Content sections
+
+Each direct child of the default slot is a section, separated by 24px. Margins
+on the first and last child are trimmed, so content does not need to know it is
+inside a modal.
+
+<Canvas of={RcModalStories.WithSections} />
+
+## Tall content
+
+The modal is capped at 95% of the viewport height. Past that only the body
+scrolls: the title and the actions stay in view, so the primary action is never
+below the fold and the user can always see what the dialog is asking.
+
+<Canvas of={RcModalStories.TallContent} />
+
+## Headings that need markup
+
+Use the `title` slot when the heading is more than a string. The heading is
+still what names the dialog for assistive technology, via `aria-labelledby`.
+
+<Canvas of={RcModalStories.RichTitle} />
+
+## Accessibility
+
+- The dialog is `role="dialog"` with `aria-modal="true"`.
+- `RcModal` points `aria-labelledby` at its own heading, so the dialog is
+  announced by its title. Always give a modal a `title` or a `title` slot;
+  without one the dialog has no accessible name.
+- Focus is trapped inside the modal while it is open and returned to whatever
+  opened it when it closes. A modal holding nothing focusable takes focus on the
+  dialog itself.
+- The trap holds until the modal is gone. `Esc` and a click outside are handled
+  by the modal, so a modal with `click-to-close` false keeps focus rather than
+  letting the user out of the trap while it is still on screen.
+
+## Opening one from an extension
+
+`shell.modal.open()` takes `title` and `size`. Passing either opts the modal
+into `RcModal`, and your component renders as the body:
+
+```ts
+import { useShell } from '@shell/apis';
+import MyModalBody from './MyModalBody.vue';
+
+const shell = useShell();
+
+shell.modal.open(MyModalBody, {
+  title: 'Delete namespace?',
+  size:  'small',
+  props: { onConfirm: remove },
+});
+```
+
+Extensions can also import `RcModal` from `@rancher/components` and render it
+declaratively, which is the way to supply your own `actions` slot.

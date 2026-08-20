@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 
 import AppModal from '@shell/components/AppModal.vue';
+import { RcModal } from '@components/RcModal';
 
 const store = useStore();
 const componentRendered = ref(false);
@@ -13,7 +14,24 @@ const componentProps = computed(() => store.getters['modal/componentProps']);
 const resources = computed(() => store.getters['modal/resources']);
 const closeOnClickOutside = computed(() => store.getters['modal/closeOnClickOutside']);
 const modalWidth = computed(() => store.getters['modal/modalWidth']);
+const title = computed(() => store.getters['modal/title']);
+const size = computed(() => store.getters['modal/size']);
 // const modalSticky = computed(() => store.getters['modal/modalSticky']); // TODO: Implement sticky modals
+
+const isStandard = computed(() => !!title.value || !!size.value);
+
+const wrapperProps = computed(() => (isStandard.value ? {
+  show:         true,
+  title:        title.value,
+  size:         size.value,
+  clickToClose: closeOnClickOutside.value,
+} : {
+  clickToClose:                  closeOnClickOutside.value,
+  width:                         modalWidth.value,
+  style:                         { '--prompt-modal-width': modalWidth.value },
+  triggerFocusTrap:              true,
+  focusTrapWatcherBasedVariable: componentRendered.value,
+}));
 
 const backgroundClosing = ref<Function | null>(null);
 
@@ -41,25 +59,20 @@ function onSlotComponentMounted() {
 </script>
 
 <template>
-  <Teleport to="#modals">
-    <app-modal
-      v-if="isOpen && component"
-      :click-to-close="closeOnClickOutside"
-      :width="modalWidth"
-      :style="{ '--prompt-modal-width': modalWidth }"
-      :trigger-focus-trap="true"
-      :focus-trap-watcher-based-variable="componentRendered"
+  <component
+    :is="isStandard ? RcModal : AppModal"
+    v-if="isOpen && component"
+    v-bind="wrapperProps"
+    @close="close"
+  >
+    <component
+      :is="component"
+      v-bind="componentProps || {}"
+      data-testid="modal-manager-component"
+      :resources="resources"
+      :register-background-closing="registerBackgroundClosing"
+      @vue:mounted="onSlotComponentMounted"
       @close="close"
-    >
-      <component
-        :is="component"
-        v-bind="componentProps || {}"
-        data-testid="modal-manager-component"
-        :resources="resources"
-        :register-background-closing="registerBackgroundClosing"
-        @vue:mounted="onSlotComponentMounted"
-        @close="close"
-      />
-    </app-modal>
-  </Teleport>
+    />
+  </component>
 </template>

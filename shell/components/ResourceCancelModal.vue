@@ -1,10 +1,10 @@
 <script>
-import AppModal from '@shell/components/AppModal.vue';
+import { RcModal } from '@components/RcModal';
 
 export default {
   emits: ['cancel-cancel', 'confirm-cancel'],
 
-  components: { AppModal },
+  components: { RcModal },
 
   props: {
     isCancelModal: {
@@ -21,7 +21,11 @@ export default {
     return { showModal: false };
   },
 
-  watch: {},
+  computed: {
+    title() {
+      return this.isCancelModal ? this.t('generic.cancel') : this.t('cruResource.backToForm');
+    },
+  },
 
   methods: {
     show() {
@@ -50,33 +54,19 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
-    customClass="confirm-modal"
-    name="cancel-modal"
-    :width="440"
-    height="auto"
-    :trigger-focus-trap="true"
+  <RcModal
+    :show="showModal"
+    :title="title"
+    size="small"
     @close="cancelCancel"
   >
-    <div class="header">
-      <h4 class="text-default-text">
-        <t
-          v-if="isCancelModal"
-          k="generic.cancel"
-        />
-        <span v-else>{{ t("cruResource.backToForm") }}</span>
-      </h4>
-    </div>
-    <div class="body">
-      <p v-if="isCancelModal">
-        <t k="cruResource.cancelBody" />
-      </p>
-      <p v-else>
-        <t k="cruResource.backBody" />
-      </p>
-    </div>
-    <div class="footer">
+    <p v-if="isCancelModal">
+      <t k="cruResource.cancelBody" />
+    </p>
+    <p v-else>
+      <t k="cruResource.backBody" />
+    </p>
+    <template #actions>
       <button
         type="button"
         class="btn role-secondary"
@@ -89,40 +79,8 @@ export default {
         class="btn role-primary"
         @click="confirmCancel"
       >
-        <span v-if="isCancelModal">{{ t("cruResource.confirmCancel") }}</span>
-        <span v-else>{{ t("cruResource.confirmBack") }}</span>
+        {{ isCancelModal ? t("cruResource.confirmCancel") : t("cruResource.confirmBack") }}
       </button>
-    </div>
-  </app-modal>
+    </template>
+  </RcModal>
 </template>
-
-<style lang='scss' scoped>
- .confirm-modal {
-  .btn {
-    margin: 0 10px;
-  }
-
-  .body {
-    min-height: 75px;
-    padding: 10px 0 0 15px;
-    p {
-      margin-top: 10px;
-    }
-  }
-  .header {
-    background-color: var(--error);
-    padding: 15px 0 0 15px;
-    height: 50px;
-
-    h4 {
-      color: white;
-    }
-  }
-  .footer {
-    border-top: 1px solid var(--border);
-    text-align: center;
-    padding: 10px 0 0 15px;
-    height: 60px;
-  }
-}
-</style>

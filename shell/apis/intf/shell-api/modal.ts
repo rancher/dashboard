@@ -1,9 +1,48 @@
 import { Component } from 'vue';
 
 /**
+ * The three modal widths of the design system.
+ */
+export type ModalSize = 'small' | 'medium' | 'large';
+
+/**
  * Configuration object for opening a modal.
  */
 export interface ModalConfig {
+  /**
+   * The modal title.
+   *
+   * Supplying `title` or `size` opts the modal into `RcModal`, the standard
+   * modal of the Rancher design system: it supplies the heading, the padding,
+   * one of three standard widths, and names the dialog for assistive
+   * technology. Your component renders as the modal body.
+   *
+   * Without either, the modal keeps the older frameless behaviour and your
+   * component is responsible for its own heading and padding.
+   *
+   * Your component supplies the body only. This API cannot reach `RcModal`'s
+   * actions slot, so render your buttons inside your own component, or import
+   * `RcModal` from `@rancher/components` and render it yourself when you want
+   * the standard footer row.
+   *
+   * Example:
+   * ```ts
+   * shell.modal.open(MyCustomModal, { title: 'Delete namespace?', size: 'small' });
+   * ```
+   */
+  title?: string;
+
+  /**
+   * The modal width, as one of the three standard sizes: `small` (480px),
+   * `medium` (640px) or `large` (960px). Prefer this over `width`.
+   *
+   * Example:
+   * ```ts
+   * size: 'small'
+   * ```
+   */
+  size?: ModalSize;
+
   /**
    * Props to pass directly to the component rendered inside the modal.
    *
@@ -65,6 +104,9 @@ export interface ModalConfig {
    * width: '800px' // Width in pixels
    * width: '75%'   // Width as a percentage
    * ```
+   *
+   * @deprecated Use `size` instead, so the modal is one of the three widths the
+   * design system defines. `width` is ignored when `size` or `title` is given.
    */
   width?: string;
 

@@ -103,6 +103,22 @@ describe('modal store', () => {
 
         expect(s.modalSticky).toBe(false);
       });
+
+      it('defaults title and size to unset, so the modal stays frameless', () => {
+        modalStore.mutations.openModal(s, { component: fakeComponent });
+
+        expect(s.title).toStrictEqual('');
+        expect(s.size).toBeNull();
+      });
+
+      it('stores the title and size that opt the modal into RcModal', () => {
+        modalStore.mutations.openModal(s, {
+          component: fakeComponent, title: 'Delete namespace?', size: 'small'
+        });
+
+        expect(s.title).toStrictEqual('Delete namespace?');
+        expect(s.size).toStrictEqual('small');
+      });
     });
 
     describe('closeModal', () => {
