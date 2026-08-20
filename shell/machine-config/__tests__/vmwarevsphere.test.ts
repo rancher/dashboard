@@ -4,6 +4,13 @@ import { DEFAULT_VALUES, SENTINEL } from '@shell/machine-config/vmwarevsphere-co
 
 type LabelValue = { label: string, value: string };
 
+/** vSphere returns option lists as paths, some of which come back empty or absent. */
+type PathOption = string | null | undefined;
+
+type CustomAttribute = { name: string, key: string | number };
+
+type Tag = { id: string, name: string, category: string };
+
 /**
  * `vmwarevsphere.vue` is a plain-JS SFC built on the untyped `create-edit-view`
  * mixin, so `vue-tsc` cannot infer its `methods` block and every member of
@@ -14,15 +21,15 @@ type LabelValue = { label: string, value: string };
  * `<script lang="ts"> defineComponent`.
  */
 interface VSphereInstance {
-  value: Record<string, any>;
+  value: Record<string, unknown>;
   storageType: string;
   validationErrors: Record<string, string[] | undefined>;
-  mapPathOptionsToContent(pathOptions: any[]): LabelValue[];
-  mapHostOptionsToContent(hostOptions: any[]): LabelValue[];
-  mapFolderOptionsToContent(folderOptions: any[]): LabelValue[];
-  mapCustomAttributesToContent(customAttributes: any[]): LabelValue[];
-  mapTagsToContent(tags: any[]): LabelValue[];
-  resetValueIfNecessary(key: string, content: LabelValue[], options: any[], isArray?: boolean): void;
+  mapPathOptionsToContent(pathOptions: PathOption[]): LabelValue[];
+  mapHostOptionsToContent(hostOptions: PathOption[]): LabelValue[];
+  mapFolderOptionsToContent(folderOptions: PathOption[]): LabelValue[];
+  mapCustomAttributesToContent(customAttributes: CustomAttribute[]): LabelValue[];
+  mapTagsToContent(tags: Tag[]): (Tag & LabelValue)[];
+  resetValueIfNecessary(key: string, content: LabelValue[], options: PathOption[], isArray?: boolean): void;
   loadNetworks(): Promise<void>;
 }
 
@@ -131,7 +138,7 @@ describe('component: vmwarevsphere', () => {
   });
 
   describe('mapPathOptionsToContent', () => {
-    const testCases: [any[], LabelValue[]][] = [
+    const testCases: [PathOption[], LabelValue[]][] = [
       [['/Datacenter'], [{ label: '/Datacenter', value: '/Datacenter' }]],
       [['Datacenter'], [{ label: 'Datacenter', value: 'Datacenter' }]],
       [['/Datacenter/vm/datastore'], [{ label: '/Datacenter/vm/datastore', value: '/Datacenter/vm/datastore' }]],
@@ -149,7 +156,7 @@ describe('component: vmwarevsphere', () => {
       label: '%cluster.machineConfig.vsphere.hostOptions.any%',
       value: SENTINEL
     };
-    const testCases: [any[], LabelValue[]][] = [
+    const testCases: [PathOption[], LabelValue[]][] = [
       [[''], [hostPlaceholder]],
       [['host'], [{ label: 'host', value: 'host' }]],
     ];
@@ -166,7 +173,7 @@ describe('component: vmwarevsphere', () => {
       label: '\u00A0',
       value: ''
     };
-    const testCases: [any[], LabelValue[]][] = [
+    const testCases: [PathOption[], LabelValue[]][] = [
       [[undefined], [folderPlaceholder]],
       [[null], [folderPlaceholder]],
       [[''], [folderPlaceholder]],
@@ -181,7 +188,7 @@ describe('component: vmwarevsphere', () => {
   });
 
   describe('mapCustomAttributesToContent', () => {
-    const testCases: [any[], LabelValue[]][] = [
+    const testCases: [CustomAttribute[], LabelValue[]][] = [
       [[{ name: 'name', key: 'key' }], [{ label: 'name', value: 'key' }]],
       [[{ name: 'name', key: 111 }], [{ label: 'name', value: '111' }]],
     ];

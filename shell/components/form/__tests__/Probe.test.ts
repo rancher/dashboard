@@ -76,7 +76,7 @@ describe('component: Probe', () => {
 
     emitterOf(httpHeaders).$emit('update:value', [{ name: 'abc', value: 'def' }]);
 
-    const [[emittedValue]] = wrapper.emitted('update:value') as [[any]];
+    const [[emittedValue]] = wrapper.emitted('update:value') as [[unknown]];
 
     expect(emittedValue).toStrictEqual({
       exec: null, httpGet: { httpHeaders: [{ name: 'abc', value: 'def' }], scheme: 'HTTPS' }, tcpSocket: null
