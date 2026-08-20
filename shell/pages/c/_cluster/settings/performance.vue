@@ -81,7 +81,7 @@ export default {
     <div>
       <div class="ui-perf-setting">
         <!-- Websocket Notifications -->
-        <div class="mt-40">
+        <div class="mt-20">
           <h2>{{ t('performance.websocketNotification.label') }}</h2>
           <p>{{ t('performance.websocketNotification.description') }}</p>
           <Checkbox
