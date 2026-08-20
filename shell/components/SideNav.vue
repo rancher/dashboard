@@ -31,8 +31,6 @@ export default {
   setup() {
     const store = useStore();
 
-    // Nav state is only persisted in the cluster explorer; outside of it the
-    // cluster id resolves to '' and every storage method becomes a no-op.
     const explorerClusterId = () => (store.getters.isExplorer ? store.getters.clusterId : '');
 
     return { navStateStorage: useClusterLocalStorage('nav-group-state', explorerClusterId) };
