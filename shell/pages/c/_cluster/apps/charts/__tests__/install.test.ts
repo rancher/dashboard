@@ -630,4 +630,31 @@ describe('page: Install', () => {
       expect((newChartThirdParty.vm as any).monitoringChartWarning).toBeNull();
     });
   });
+
+  describe('chart info slide in', () => {
+    // The slide in is always rendered and parked off screen. Its contents are only made visible to
+    // the browser (and so to find-in-page) via the `slideIn__show` class, so that class must track
+    // `showSlideIn` exactly.
+    it('should not mark the slide in as shown while it is closed', () => {
+      const wrapper = mountInstall({ data: () => ({ showSlideIn: false }) });
+
+      expect(wrapper.find('.slideIn').classes()).not.toContain('slideIn__show');
+    });
+
+    it('should mark the slide in as shown once it is opened', async() => {
+      const wrapper = mountInstall({ data: () => ({ showSlideIn: false }) });
+
+      await wrapper.setData({ showSlideIn: true });
+
+      expect(wrapper.find('.slideIn').classes()).toContain('slideIn__show');
+    });
+
+    it('should stop marking the slide in as shown once it is closed again', async() => {
+      const wrapper = mountInstall({ data: () => ({ showSlideIn: true }) });
+
+      await wrapper.setData({ showSlideIn: false });
+
+      expect(wrapper.find('.slideIn').classes()).not.toContain('slideIn__show');
+    });
+  });
 });
