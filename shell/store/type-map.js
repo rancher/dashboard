@@ -717,10 +717,6 @@ export const getters = {
         } else if ( isBasic && !groupForBasicType ) {
           // If we want the basic tree only return basic types;
           continue;
-        } else if ( mode === TYPE_MODES.USED && count <= 0 ) {
-          // If there's none of this type, ignore this entry when viewing only in-use types
-          // Note: count is sometimes null, in js `null <= 0` is `true`.
-          continue;
         }
 
         const label = typeObj.labelKey ? rootGetters['i18n/t'](typeObj.labelKey) || typeObj.label : typeObj.label;
