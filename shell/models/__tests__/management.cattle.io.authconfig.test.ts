@@ -257,6 +257,23 @@ describe('class AuthConfig', () => {
       expect(clone.save).toHaveBeenCalledWith();
     });
 
+    // A named multi-IdP config advertises `actions.disable` and then 404s on it,
+    // so the advertised action can only be treated as a hint.
+    it('should fall back when the advertised action is not honoured', async() => {
+      const clone = { enabled: true, save: jest.fn() };
+      const norman = {
+        hasAction: () => true,
+        doAction:  jest.fn().mockRejectedValue({ code: 'ActionNotAvailable', status: 404 }),
+      };
+      const { config } = makeDisableable(norman, clone);
+
+      await config.disable();
+
+      expect(norman.doAction).toHaveBeenCalledWith('disable');
+      expect(clone.enabled).toBe(false);
+      expect(clone.save).toHaveBeenCalledWith();
+    });
+
     it('should report a failure rather than leaving it uncaught', async() => {
       const norman = {
         hasAction: () => true,

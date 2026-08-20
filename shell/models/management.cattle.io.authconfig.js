@@ -109,9 +109,7 @@ export default class AuthConfig extends SteveModel {
         opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.id }`, force: true },
       }, { root: true });
 
-      if (norman.hasAction('disable')) {
-        await norman.doAction('disable');
-      } else {
+      if (!await this.runDisableAction(norman)) {
         const clone = await this.$dispatch('rancher/clone', { resource: norman }, { root: true });
 
         clone.enabled = false;
@@ -126,6 +124,24 @@ export default class AuthConfig extends SteveModel {
         title: this.$rootGetters['i18n/t']('generic.notification.title.error'),
         err:   e.data || e,
       }, { root: true });
+    }
+  }
+
+  async runDisableAction(norman) {
+    if (!norman.hasAction('disable')) {
+      return false;
+    }
+
+    try {
+      await norman.doAction('disable');
+
+      return true;
+    } catch (e) {
+      if ((e?.code || e?.data?.code) === 'ActionNotAvailable') {
+        return false;
+      }
+
+      throw e;
     }
   }
 
