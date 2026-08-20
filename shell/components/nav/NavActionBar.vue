@@ -36,8 +36,6 @@ const store = useStore();
 const router = useRouter();
 const { t } = useI18n(store);
 
-// Recently "jumped to" section keys, persisted per cluster (explorer only; the
-// key resolves to '' elsewhere and the composable becomes a no-op).
 const explorerClusterId = () => (store.getters.isExplorer ? store.getters.clusterId : '');
 const history = useClusterLocalStorage<string[]>('nav-jump-history', explorerClusterId);
 
@@ -49,13 +47,9 @@ const recentKeys = ref<string[]>([]);
 watch(() => explorerClusterId(), () => {
   const saved = history.load();
 
-  // Anything else stored under the key (an older schema, a corrupt entry) is
-  // discarded rather than being let through to the template.
   recentKeys.value = Array.isArray(saved) ? saved : [];
 }, { immediate: true });
 
-// Opinionated fallback shown before any jump history exists. These are explorer
-// types, so outside the explorer they resolve to nothing (see `defaultResults`).
 const DEFAULT_KEYS = [POD, WORKLOAD_TYPES.DEPLOYMENT, SERVICE, CONFIG_MAP, NODE];
 
 const MAX_RESULTS = 10;
@@ -134,11 +128,6 @@ const firstLeafRoute = (node: any): any => {
   return null;
 };
 
-/**
- * Flatten the nav tree into a searchable list of jumpable sections, walking it
- * once to record each node's ancestor labels as a path. Sourced from the same
- * tree the sidebar renders, so paths match exactly where a section appears.
- */
 const items = computed<JumpItem[]>(() => {
   const byKey: Record<string, JumpItem> = {};
 
@@ -177,14 +166,10 @@ const itemsByKey = computed<Record<string, JumpItem>>(() => items.value.reduce((
   return acc;
 }, {} as Record<string, JumpItem>));
 
-/** Recently jumped-to sections, resolved against the current tree. */
 const recentItems = computed<JumpItem[]>(() => recentKeys.value.map((key) => itemsByKey.value[key]).filter(Boolean));
 
-/**
- * Recent jumps if any, else the hardcoded top 5. Outside the cluster explorer
- * there is no history and none of the default keys exist, so fall back to the
- * first sections of whatever product is showing rather than an empty dropdown.
- */
+// Outside the explorer there is no history and the default keys don't exist, so
+// fall back to the first sections of the current product rather than an empty list.
 const defaultResults = computed<JumpItem[]>(() => {
   if (recentItems.value.length) {
     return recentItems.value.slice(0, MAX_DEFAULT);
@@ -224,8 +209,6 @@ const searchResults = computed<JumpItem[]>(() => {
 
 const results = computed<JumpItem[]>(() => (query.value.trim() ? searchResults.value : defaultResults.value));
 
-// The listing hint above the results: none while searching, otherwise "recent"
-// when there is history and "popular" for the hardcoded fallback.
 const listHeadingKey = computed<string | null>(() => {
   if (query.value.trim()) {
     return null;
@@ -269,7 +252,6 @@ function jumpTo(item?: JumpItem) {
     return;
   }
 
-  // Move to the front of the history, de-duplicated and capped.
   const recent = [item.key, ...recentKeys.value.filter((key) => key !== item.key)].slice(0, MAX_HISTORY);
 
   recentKeys.value = recent;
@@ -349,8 +331,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
         fill="currentColor"
       /></svg>
     </button>
-    <!-- Teleported to body so the panel can overhang the nav without being
-         clipped; positioned under the toolbar via `dropdownStyle`. -->
     <Teleport to="body">
       <div
         v-if="open"
@@ -429,7 +409,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   padding: 0 var(--nav-toolbar-pad-x);
 }
 
-// Borderless input that blends into the toolbar.
 .jump-to-input {
   width: 100%;
   padding: 0;
@@ -451,8 +430,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   }
 }
 
-// Icon-only cell on the far right, divided from the input by a hairline. Shown
-// only while a group is expanded; collapses every section on all levels.
 .collapse-all-btn {
   position: relative;
   flex-shrink: 0;
@@ -509,9 +486,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   }
 }
 
-// Teleported to body and positioned (top/left) under the toolbar, so it can
-// overhang the nav column without being clipped. Wider than the column with
-// only the right corners rounded (Figma). Width is a fixed 300px per token.
 .jump-to-dropdown {
   // Defined here (not on the toolbar) because the panel is teleported out of it.
   --nav-toolbar-dropdown-width: 300px;
@@ -547,7 +521,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   overflow-y: auto;
 }
 
-// Each result is a card: label on top, full path beneath in muted text.
 .jump-to-option {
   display: flex;
   flex-direction: column;
