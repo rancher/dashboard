@@ -63,7 +63,11 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Can collapse an expanded menu group via its chevron', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().filter('.expanded').first().as('openGroup');
+    // `type: 'static'` is required: collapsing the group removes it from
+    // `.expanded`, so a default alias would re-run `.filter('.expanded').first()`
+    // against an empty set once no group is left open.
+    productNavPo.groups().filter('.expanded').first()
+      .as('openGroup', { type: 'static' });
     cy.get('@openGroup').find('i.toggle-accordion').first().click();
     cy.get('@openGroup').find('ul').should('have.length', 0);
   });
@@ -88,15 +92,15 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Going into resource detail should keep relevant group active', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.expandedGroup().first().as('openGroup');
-
     productNavPo.visibleNavTypes().eq(1).should('be.visible').click(); // Go into Workloads
 
     deploymentsListPage.goTo();
     deploymentsListPage.waitForPage();
     deploymentsListPage.goToDetailsPage(workloadName);
-    cy.get('@openGroup').should('be.visible');
-    cy.get('@openGroup').find('.router-link-active').should('have.length.gt', 0);
+
+    // Other groups may stay expanded now, so assert on the expanded group that
+    // owns the current resource rather than on whichever expands first.
+    productNavPo.groups().filter('.expanded').find('.router-link-active').should('have.length.gt', 0);
   });
 
   it('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
