@@ -2,8 +2,13 @@ import { mount } from '@vue/test-utils';
 import MembershipEditor from '@shell/components/form/Members/MembershipEditor.vue';
 
 const CachedPrincipal = {
-  props: ['value'],
-  data() {
+  props: {
+    value: {
+      type:     String,
+      required: true,
+    },
+  },
+  data(this: { value: string }): { principal: string } {
     return { principal: this.value };
   },
   template: '<span class="principal">{{ principal }}</span>',
@@ -20,7 +25,7 @@ describe('component: MembershipEditor removal', () => {
             principalId:    `local://user-${ number }`,
             roleDisplay:    `Member ${ number }`,
             roleTemplateId: 'member',
-          })),
+          })) as any,
         };
       },
       props: {
