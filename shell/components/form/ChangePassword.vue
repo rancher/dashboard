@@ -234,18 +234,23 @@ export default {
       });
     },
 
-    async save() {
+    async save(user) {
+      // The password change request targets a user by id. On create the user
+      // doesn't exist until createUser() has run, so the caller passes the
+      // freshly created user in; on change/edit we fall back to the prop.
+      const userId = user?.id || this.userId;
+
       if (this.isChange) {
-        await this.changePassword('change');
+        await this.changePassword('change', userId);
         if (this.form.deleteKeys) {
           await this.deleteKeys();
         }
-      } else if (this.isEdit) {
-        return this.changePassword('set');
+      } else if (this.isCreate || this.isEdit) {
+        return this.changePassword('set', userId);
       }
     },
 
-    async changePassword(mode) {
+    async changePassword(mode, userId = this.userId) {
       if (!this.canChangePassword) {
         this.errorMessages = [this.t('changePassword.errors.cannotChange')];
         throw new Error(this.t('changePassword.errors.cannotChange'));
@@ -253,7 +258,7 @@ export default {
 
       const spec = {
         newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP,
-        userID:      this.userId
+        userID:      userId
       };
 
       if (mode === 'change') {

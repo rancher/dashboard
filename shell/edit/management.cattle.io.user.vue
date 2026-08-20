@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT, SECRET } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import GlobalRoleBindings from '@shell/components/GlobalRoleBindings.vue';
 import ChangePassword from '@shell/components/form/ChangePassword';
@@ -9,7 +9,6 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { wait } from '@shell/utils/async';
-import { base64Encode } from '@shell/utils/crypto';
 
 export default {
   components: {
@@ -107,7 +106,7 @@ export default {
         if (this.isCreate) {
           const user = await this.createUser();
 
-          await this.createSecret(user);
+          await this.setPassword(user);
           await this.updateRoles(user);
 
           // Show success notification only after ALL operations complete
@@ -137,13 +136,15 @@ export default {
 
     async createUser() {
       // never use "password" as it's deprecated!
+      // Don't set mustChangePassword here: the password is set afterwards via
+      // the passwordChangeRequest API, which clears mustChangePassword. It's
+      // re-applied in setPassword() once the password is stored.
       const user = await this.$store.dispatch('management/create', {
-        type:               MANAGEMENT.USER,
-        description:        this.form.description,
-        enabled:            true,
-        mustChangePassword: this.form.password.userChangeOnLogin,
-        displayName:        this.form.displayName,
-        username:           this.form.username
+        type:        MANAGEMENT.USER,
+        description: this.form.description,
+        enabled:     true,
+        displayName: this.form.displayName,
+        username:    this.form.username
       });
 
       const userSaved = await user.save({
@@ -179,33 +180,35 @@ export default {
       return user;
     },
 
-    async createSecret(user) {
-      if (this.form.password.password) {
-        try {
-        // create secret to hold user password
-          const secret = await this.$store.dispatch('management/create', {
-            type:     SECRET,
-            metadata: {
-              namespace: 'cattle-local-user-passwords',
-              name:      user.id
-            },
-            data: { password: base64Encode(this.form.password.password) }
-          });
+    async setPassword(user) {
+      if (!this.form.password.password) {
+        return;
+      }
 
-          await secret.save();
-        } catch (err) {
-          if (this.isCreate) {
-            try {
-              // If secret creation fails, attempt to clean up the user to maintain consistency
-              await user.remove();
-            } catch (cleanupErr) {
-              // Log cleanup error but prioritize original error for user feedback
-              console.error('Failed to clean up user after secret creation failure:', cleanupErr); // eslint-disable-line no-console
-            }
-          }
+      try {
+        // Set the password via the passwordChangeRequest API so the backend
+        // hashes it and stores the secret with the required
+        // `cattle.io/password-hash` annotation and salt. Writing the secret
+        // directly from the UI would omit the hash and break login/password
+        // changes (rancher/rancher#55378).
+        await this.$refs.changePassword.save(user);
 
-          throw err;
+        // The passwordChangeRequest clears mustChangePassword, so re-apply it
+        // afterwards when requested (mirrors the edit flow).
+        if (this.form.password.userChangeOnLogin) {
+          user.mustChangePassword = true;
+          await user.save();
         }
+      } catch (err) {
+        try {
+          // If setting the password fails, clean up the user to maintain consistency
+          await user.remove();
+        } catch (cleanupErr) {
+          // Log cleanup error but prioritize original error for user feedback
+          console.error('Failed to clean up user after password creation failure:', cleanupErr); // eslint-disable-line no-console
+        }
+
+        throw err;
       }
     },
 
