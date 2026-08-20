@@ -21,6 +21,10 @@ describe('Cert Manager certificate detail', { tags: ['@extensions', '@adminUser'
 
       detail.goTo();
       detail.waitForPage();
+
+      // The stepper and issuance-history tab only fill in once the related types have loaded, so
+      // wait for those collection fetches before asserting on the reassembled chain.
+      cy.wait(['@certManager-certificaterequests', '@certManager-orders', '@certManager-challenges']);
     });
 
     it('renders the issuance progress stepper stage by stage', () => {

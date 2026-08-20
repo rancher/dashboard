@@ -11,8 +11,9 @@ import { CERT_MANAGER } from '../types';
 
 const props = defineProps<{ value: any }>();
 
-// Related resources are read from the store; a directly loaded detail page has none yet.
-useRelatedTypes([CERT_MANAGER.CERTIFICATE]);
+// Related resources are read from the store; a directly loaded detail page has none yet. Gate the
+// related-data parts of the template on `loaded` so they render against the populated store.
+const { loaded } = useRelatedTypes([CERT_MANAGER.CERTIFICATE]);
 
 const { t } = useI18n(useStore());
 
@@ -71,7 +72,7 @@ const isAcme = computed(() => props.value.configType === 'acme');
         :weight="20"
       >
         <ResourceTable
-          :rows="value.certificates"
+          :rows="loaded ? value.certificates : []"
           :headers="CERTIFICATE_HEADERS"
           :table-actions="false"
           :groupable="false"

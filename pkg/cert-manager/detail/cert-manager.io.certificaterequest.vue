@@ -14,8 +14,9 @@ import { CERT_MANAGER } from '../types';
 
 const props = defineProps<{ value: any }>();
 
-// Related resources are read from the store; a directly loaded detail page has none yet.
-useRelatedTypes([CERT_MANAGER.ORDER, CERT_MANAGER.CHALLENGE]);
+// Related resources are read from the store; a directly loaded detail page has none yet. Gate the
+// related-data parts of the template on `loaded` so they render against the populated store.
+const { loaded } = useRelatedTypes([CERT_MANAGER.ORDER, CERT_MANAGER.CHALLENGE]);
 
 const { t } = useI18n(useStore());
 
@@ -87,7 +88,7 @@ const csrIdentifiers = computed(() => [
         :weight="20"
       >
         <ResourceTable
-          :rows="value.orders"
+          :rows="loaded ? value.orders : []"
           :headers="ORDER_HEADERS"
           :table-actions="false"
           :groupable="false"

@@ -11,8 +11,9 @@ import { CERT_MANAGER } from '../types';
 
 defineProps<{ value: any }>();
 
-// Related resources are read from the store; a directly loaded detail page has none yet.
-useRelatedTypes([CERT_MANAGER.CERTIFICATE_REQUEST, CERT_MANAGER.ORDER, CERT_MANAGER.CHALLENGE]);
+// Related resources are read from the store; a directly loaded detail page has none yet. Gate the
+// related-data parts of the template on `loaded` so they render against the populated store.
+const { loaded } = useRelatedTypes([CERT_MANAGER.CERTIFICATE_REQUEST, CERT_MANAGER.ORDER, CERT_MANAGER.CHALLENGE]);
 
 const { t } = useI18n(useStore());
 
@@ -22,7 +23,7 @@ const { t } = useI18n(useStore());
   <div>
     <!-- A single stage is not progress; the widget only earns its place once there is a chain -->
     <IssuanceProgress
-      v-if="value.issuanceStages.length > 1"
+      v-if="loaded && value.issuanceStages.length > 1"
       :stages="value.issuanceStages"
     />
 
@@ -38,7 +39,7 @@ const { t } = useI18n(useStore());
         :weight="10"
       >
         <ResourceTable
-          :rows="value.certificateRequests"
+          :rows="loaded ? value.certificateRequests : []"
           :headers="CERTIFICATE_REQUEST_HEADERS"
           :table-actions="false"
           :groupable="false"
