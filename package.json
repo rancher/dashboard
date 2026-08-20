@@ -192,7 +192,7 @@
     "eslint-plugin-local-rules": "link:./eslint-plugin-local-rules",
     "eslint-plugin-n": "17.24.0",
     "eslint-plugin-node": "11.1.0",
-    "eslint-plugin-vue": "10.9.2",
+    "eslint-plugin-vue": "10.10.0",
     "express": "4.22.2",
     "flush-promises": "1.0.2",
     "frontmatter-markdown-loader": "3.7.0",
