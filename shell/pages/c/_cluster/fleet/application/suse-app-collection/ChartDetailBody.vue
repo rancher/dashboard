@@ -116,7 +116,7 @@ const formatVersionDate = (date: string | null): string => {
 
     <div class="chart-body">
       <ChartReadme
-        v-if="hasReadme"
+        v-if="versionInfo && hasReadme"
         :version-info="versionInfo"
         :show-app-readme="false"
         :hide-readme-first-title="false"
