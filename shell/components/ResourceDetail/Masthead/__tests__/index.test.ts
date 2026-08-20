@@ -8,11 +8,13 @@ jest.mock('@shell/composables/useIsNewDetailPageEnabled');
 jest.mock('@shell/components/ResourceDetail/Masthead/latest.vue', () => ({
   name:     'Latest',
   template: `<div>Latest</div>`,
-  props:    ['value', 'resourceSubtype', 'isCustomDetailOrEdit']
+  props:    ['value', 'resourceSubtype', 'isCustomDetailOrEdit', 'mode', 'resource', 'canViewYaml'],
+  emits:    ['apply-template', 'save-template'],
 }));
 jest.mock('@shell/components/ResourceDetail/Masthead/legacy.vue', () => ({
   name:     'Legacy',
-  template: `<div>Legacy</div>`
+  template: `<div>Legacy</div>`,
+  emits:    ['apply-template', 'save-template'],
 }));
 
 describe('component: Masthead/index', () => {
@@ -114,5 +116,65 @@ describe('component: Masthead/index', () => {
     const component = wrapper.getComponent({ name: 'Latest' });
 
     expect(component.props('isCustomDetailOrEdit')).toBe(false);
+  });
+
+  it('should pass mode/resource/canViewYaml to Latest and relay apply-template', async() => {
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
+    const props = {
+      value: { type: 'VALUE' }, mode: _VIEW, resource: 'apps.deployment', canViewYaml: true
+    };
+
+    const wrapper = mount(Index, { props });
+    const component = wrapper.getComponent({ name: 'Latest' });
+
+    expect(component.props('mode')).toBe(_VIEW);
+    expect(component.props('resource')).toBe('apps.deployment');
+    expect(component.props('canViewYaml')).toBe(true);
+
+    const configMap = { metadata: { namespace: 'default', name: 'my-template' } };
+
+    await component.vm.$emit('apply-template', configMap);
+
+    expect(wrapper.emitted('apply-template')).toBeTruthy();
+    expect(wrapper.emitted('apply-template')![0]).toStrictEqual([configMap]);
+  });
+
+  it('should relay apply-template from Legacy', async() => {
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
+    const props = { value: { type: 'VALUE' }, mode: _VIEW };
+
+    const wrapper = mount(Index, { props });
+    const component = wrapper.getComponent({ name: 'Legacy' });
+
+    const configMap = { metadata: { namespace: 'default', name: 'my-template' } };
+
+    await component.vm.$emit('apply-template', configMap);
+
+    expect(wrapper.emitted('apply-template')).toBeTruthy();
+    expect(wrapper.emitted('apply-template')![0]).toStrictEqual([configMap]);
+  });
+
+  it('should relay save-template from Latest', async() => {
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
+    const props = { value: { type: 'VALUE' }, mode: _VIEW };
+
+    const wrapper = mount(Index, { props });
+    const component = wrapper.getComponent({ name: 'Latest' });
+
+    await component.vm.$emit('save-template');
+
+    expect(wrapper.emitted('save-template')).toBeTruthy();
+  });
+
+  it('should relay save-template from Legacy', async() => {
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
+    const props = { value: { type: 'VALUE' }, mode: _VIEW };
+
+    const wrapper = mount(Index, { props });
+    const component = wrapper.getComponent({ name: 'Legacy' });
+
+    await component.vm.$emit('save-template');
+
+    expect(wrapper.emitted('save-template')).toBeTruthy();
   });
 });

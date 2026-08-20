@@ -22,6 +22,23 @@ export default {
       type:    String,
       default: 'create'
     },
+
+    /**
+     * When provided, renders a second AsyncButton alongside the primary one, offering the user
+     * a choice between two actions instead of a single confirm/cancel.
+     */
+    secondaryApplyAction: {
+      type:    Function,
+      default: null
+    },
+    secondaryApplyMode: {
+      type:    String,
+      default: 'apply'
+    },
+    secondaryActionColor: {
+      type:    String,
+      default: 'role-secondary',
+    },
     title: {
       type:    String,
       default: ''
@@ -76,6 +93,19 @@ export default {
         this.applyErrors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
+    },
+
+    async applySecondary(buttonDone) {
+      this.applyErrors = [];
+      try {
+        await this.secondaryApplyAction(buttonDone);
+        this.confirm(true);
+        this.$emit('close');
+      } catch (err) {
+        console.error(err); // eslint-disable-line
+        this.applyErrors = exceptionToErrorsArray(err);
+        buttonDone(false);
+      }
     }
   },
 };
@@ -121,6 +151,14 @@ export default {
           >
             {{ t('generic.cancel') }}
           </button>
+
+          <AsyncButton
+            v-if="secondaryApplyAction"
+            :mode="secondaryApplyMode"
+            :action-color="secondaryActionColor"
+            class="mr-10"
+            @click="applySecondary"
+          />
 
           <AsyncButton
             :mode="applyMode"

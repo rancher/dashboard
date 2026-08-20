@@ -83,6 +83,7 @@ To get started, follow the `Getting Started` section.
   - `shell/`: Core application logic, components, and pages.
   - `storybook/`: Component documentation source
 
+## Core Components
 When either created, editing, viewing or listing a kubernetes resource the following core components are used
 - Listing resources
   - Root component
@@ -101,7 +102,11 @@ When either created, editing, viewing or listing a kubernetes resource the follo
       - or a generic component for header, handling YAML or a custom component to show a form
     - custom components are either supplied via components in `shell/edit` (create/edit), `shell/detail` (detail) or externally via a UI Extension
 
-
+## Component guideline
+- use Composition API components instead of Option API
+- use Typescript for new components
+- for buttons that execute synchronous tasks use RcButton for buttons
+- for buttons that execute asynchronous tasks use AsyncButton for buttons
 ## Unit Tests
 
 Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://extensions.rancher.io/internal/testing/unit-test) for more information
@@ -213,6 +218,8 @@ Dependencies are managed via `package.json` and `yarn`
 - Pull requests must come from forks
 - Description should always reference the issue that the PR resolves e.g. `Fixes #1234`.
 - Pull Requests that update code in `shell/` should update existing or add new unit tests to cover the change in functionality
+- The Pull Request description should use the repositories template
+- The Pull Request description should be concise and not overly verbose
 - A Pull Request will only be merged once
   - The pull request checklist has been completed
   - ALL CI gates have passed
