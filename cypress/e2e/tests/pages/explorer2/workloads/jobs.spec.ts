@@ -81,18 +81,17 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         // create view jobs
         const workloadsJobDetailsPage = new WorkLoadsJobDetailsPagePo('local');
 
-        const namespaceField = workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().namespace();
+        cy.intercept('POST', 'v1/batch.jobs').as('createJob2');
 
-        namespaceField.selectCreateNew('Create a new Namespace');
-        namespaceField.createInput().set(namespaceName);
+        // The namespace was already created by the previous test; select the
+        // existing namespace rather than trying to create it again.
+        workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().selectNamespace(namespaceName);
         workloadsJobDetailsPage.resourceDetail().createEditView().nameNsDescription().name()
           .set(jobName2);
         workloadsJobDetailsPage.containerImage().set(containerImageName);
         workloadsJobDetailsPage.resourceDetail().createEditView().save();
+        cy.wait('@createJob2').its('response.statusCode').should('eq', 201);
 
-        // Saving returns the user to the list page (create-edit-view `done()` does a
-        // router.replace to `doneRoute`), so just wait for that navigation to settle
-        // before querying the table.
         workloadsJobsListPage.waitForPage();
         workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
           .should('exist');
