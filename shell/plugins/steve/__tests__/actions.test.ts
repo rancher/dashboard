@@ -115,7 +115,19 @@ describe('steve: actions:', () => {
       const ctx = baseCtx();
       const filters = [PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: 'default' })];
 
-      jest.spyOn(stevePaginationUtils, 'convertPaginationParams').mockReturnValue('filter=metadata.namespace%3Ddefault');
+      /**
+       * `convertPaginationParams` is `private`. Element access is enough to *call* it, but
+       * `jest.spyOn` takes the member name as a string argument and constrains it to `keyof T`,
+       * which never includes private members, so the element access escape hatch does not apply.
+       * The singleton is re-typed here instead. This is the only place in this change that needs a
+       * cast; everywhere else, private and protected members are reached by element access. The spy
+       * stays fully typed: a wrong `mockReturnValue` is still an error.
+       */
+      const spyablePaginationUtils = stevePaginationUtils as unknown as
+        { convertPaginationParams: (typeof stevePaginationUtils)['convertPaginationParams'] };
+
+      const convertParamsSpy = jest.spyOn(spyablePaginationUtils, 'convertPaginationParams').mockReturnValue('filter=metadata.namespace%3Ddefault');
+
       ctx.dispatch.mockResolvedValue({ count: 3, summary: null });
 
       await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name', filters } });
@@ -123,7 +135,7 @@ describe('steve: actions:', () => {
       const requestUrl = ctx.dispatch.mock.calls[0][1].opt.url;
 
       expect(requestUrl).toContain('filter=');
-      expect(stevePaginationUtils.convertPaginationParams).toHaveBeenCalledWith(expect.objectContaining({ filters }));
+      expect(convertParamsSpy).toHaveBeenCalledWith(expect.objectContaining({ filters }));
     });
 
     it('should return count and summary from the response', async() => {
