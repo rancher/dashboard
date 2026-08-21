@@ -4,9 +4,12 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 import cloneDeep from 'lodash/cloneDeep';
 import { generateRandomAlphaString } from '@shell/utils/string';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default defineComponent({
   name: 'Checkbox',
+
+  components: { RcIconTooltip },
 
   props: {
     /**
@@ -336,23 +339,14 @@ export default defineComponent({
             :id="idForLabel"
             :class="{ 'body-text-color': useBodyTextColor }"
           >{{ label }}</span>
-          <i
-            v-if="tooltipKey"
-            v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
-            v-stripped-aria-label="t(tooltipKey)"
-            class="checkbox-info icon icon-info icon-lg"
+          <rc-icon-tooltip
+            v-if="hasTooltip"
+            :content="tooltipKey ? t(tooltipKey) : tooltip"
+            class="checkbox-info"
             :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
-            role="tooltip"
-          />
-          <i
-            v-else-if="tooltip"
-            v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
-            v-stripped-aria-label="tooltip"
-            class="checkbox-info icon icon-info icon-lg"
-            :data-testid="componentTestid + '-info-icon'"
-            :tabindex="isDisabled ? -1 : 0"
-            role="tooltip"
+            @click.stop.prevent
+            @keydown.stop
           />
         </slot>
       </span>
@@ -427,9 +421,8 @@ $fontColor: var(--input-label);
     line-height: normal;
     margin-left: 4px;
 
-    &:focus-visible {
-      @include focus-outline;
-      outline-offset: 2px;
+    :deep(.rc-icon) {
+      line-height: normal;
     }
   }
 
