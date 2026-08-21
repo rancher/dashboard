@@ -187,6 +187,12 @@ export default {
     // — never inside PINNED / RECENT / ALL, not pinnable, never evicted (SURE-8192, rev 2). Pull it out
     // of the groups and render it as its own tile.
     localCluster() {
+      // The `hide-local-cluster` setting removes `local` from the nav entirely — its fixed slot must
+      // honor it too (the slice below fetches strictly by id and does NOT apply that filter). SURE-8192.
+      if (this.hideLocalCluster) {
+        return null;
+      }
+
       // `local` now comes from its own dedicated slice (helper.clustersLocal) — it's excluded from
       // pinned/recent/others/search, so it's never scavenged from those groups. SURE-8192.
       return (this.hasProvCluster ? this.helper.clustersLocal?.[0] : null) || null;
