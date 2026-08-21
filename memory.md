@@ -63,11 +63,14 @@
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
-2. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
-3. `shell/composables/drawer.ts` — thin store wrapper (low value)
+1. `shell/utils/uiplugins.ts` — async polling loops (`waitForUIExtension`, `waitForUIPackage`, `createHelmRepository`, `getHelmChart`) — require fake timers + retry sequencing (deferred)
+2. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
+3. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
+4. `shell/composables/drawer.ts` — thin store wrapper (low value)
 
 ## Completed Work (Summary)
+
+- 2026-08-21: PR (test-assist/uiplugins-extra-tests): 14 new tests for uiplugins.ts onExtensionsReady, getLatestExtensionVersion, installHelmChart; 34%→55% stmts, 15%→38% fns.
 
 - 2026-08-20: PR (test-assist/sort-utils-extra-tests): 56 new tests for sort.js typeOf, compare, parseField, sortableNumericSuffix, isNumeric; 79%→98% stmts, 41%→96% branches, 78%→100% fns.
 - 2026-08-19: PR (test-assist/project-ns-filtering-utils-tests): 23 new tests for projectAndNamespaceFiltering.utils.ts — isApplicable, isEnabled, createParam, checkAndCreateParam; 0%→100% stmts/fns/lines, 92.59% branches.
@@ -90,6 +93,8 @@
 - Earlier PRs: all merged ✅
 
 ## Task Round-Robin History
+
+- 2026-08-21: Task 3 (uiplugins.ts extra tests, 14 tests, 34%→55% stmts) + Task 7
 
 - 2026-08-20: Task 3 (sort.js extra tests, 56 tests, 79%→98% stmts, 41%→96% branches, 78%→100% fns) + Task 7
 - 2026-08-19: Task 3 (projectAndNamespaceFiltering.utils.ts, 23 tests, 0%→100% stmts/fns/lines) + Task 7
