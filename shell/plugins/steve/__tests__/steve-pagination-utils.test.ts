@@ -2,37 +2,11 @@
 import { PaginationFilterEquality, PaginationFilterField, PaginationParamFilter, PaginationParamProjectOrNamespace } from '@shell/types/store/pagination.types';
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '../steve-pagination-utils';
-import Schema from '@shell/models/schema';
+import { Schema } from '@shell/plugins/steve/schema';
 
-/**
- * The `NamespaceProjectFilters` class is a protected class within `steve-pagination-utils.ts`.
- * To test its protected methods, we extend it with a test class that exposes them.
- */
-class TestNamespaceProjectFilters {
-  public handlePrefAndSettingFilter(args: any) {
-    return stevePaginationUtils.handlePrefAndSettingFilter(args);
-  }
-
-  public handleSystemOrUserFilter(args: any) {
-    return stevePaginationUtils.handleSystemOrUserFilter(args);
-  }
-
-  public handleSelectionFilter(neu: string[], isLocalCluster: boolean) {
-    return stevePaginationUtils.handleSelectionFilter(neu, isLocalCluster);
-  }
-
-  public combineNsProjectFilterResults(a: any, b: any) {
-    return stevePaginationUtils.combineNsProjectFilterResults(a, b);
-  }
-
-  public createFiltersFromNamespaceProjectFilterResult(filterResult: any) {
-    return stevePaginationUtils.createFiltersFromNamespaceProjectFilterResult(filterResult);
-  }
-}
+type Namespaces = Parameters<(typeof stevePaginationUtils)['handlePrefAndSettingFilter']>[0]['allNamespaces'];
 
 describe('class: NamespaceProjectFilters', () => {
-  const testNamespaceProjectFilters = new TestNamespaceProjectFilters();
-
   const normalNs = {
     id: 'normal', name: 'normal', isObscure: false, isSystem: false
   };
@@ -46,11 +20,11 @@ describe('class: NamespaceProjectFilters', () => {
     id: 'obscure-system', name: 'obscure-system', isObscure: true, isSystem: true
   };
 
-  const allNamespaces = [normalNs, obscureNs, systemNs, obscureAndSystemNs];
+  const allNamespaces = [normalNs, obscureNs, systemNs, obscureAndSystemNs] as unknown as Namespaces;
 
   describe('method: handlePrefAndSettingFilter', () => {
     it('should return no filters if all namespaces are shown', () => {
-      const result = testNamespaceProjectFilters.handlePrefAndSettingFilter({
+      const result = stevePaginationUtils['handlePrefAndSettingFilter']({
         allNamespaces,
         showReservedRancherNamespaces: true,
         productHidesSystemNamespaces:  false,
@@ -60,7 +34,7 @@ describe('class: NamespaceProjectFilters', () => {
     });
 
     it('should filter obscure namespaces if showReservedRancherNamespaces is false', () => {
-      const result = testNamespaceProjectFilters.handlePrefAndSettingFilter({
+      const result = stevePaginationUtils['handlePrefAndSettingFilter']({
         allNamespaces,
         showReservedRancherNamespaces: false,
         productHidesSystemNamespaces:  false,
@@ -73,7 +47,7 @@ describe('class: NamespaceProjectFilters', () => {
     });
 
     it('should filter system namespaces if productHidesSystemNamespaces is true', () => {
-      const result = testNamespaceProjectFilters.handlePrefAndSettingFilter({
+      const result = stevePaginationUtils['handlePrefAndSettingFilter']({
         allNamespaces,
         showReservedRancherNamespaces: true,
         productHidesSystemNamespaces:  true,
@@ -86,7 +60,7 @@ describe('class: NamespaceProjectFilters', () => {
     });
 
     it('should filter both obscure and system namespaces when both settings are active', () => {
-      const result = testNamespaceProjectFilters.handlePrefAndSettingFilter({
+      const result = stevePaginationUtils['handlePrefAndSettingFilter']({
         allNamespaces,
         showReservedRancherNamespaces: false,
         productHidesSystemNamespaces:  true,
@@ -102,7 +76,7 @@ describe('class: NamespaceProjectFilters', () => {
 
   describe('method: handleSystemOrUserFilter', () => {
     it('should create an OR filter for system namespaces when isAllSystem is true', () => {
-      const result = testNamespaceProjectFilters.handleSystemOrUserFilter({
+      const result = stevePaginationUtils['handleSystemOrUserFilter']({
         allNamespaces,
         isAllSystem: true,
         isAllUser:   false,
@@ -115,7 +89,7 @@ describe('class: NamespaceProjectFilters', () => {
     });
 
     it('should create AND filters to exclude system namespaces when isAllUser is true', () => {
-      const result = testNamespaceProjectFilters.handleSystemOrUserFilter({
+      const result = stevePaginationUtils['handleSystemOrUserFilter']({
         allNamespaces,
         isAllSystem: false,
         isAllUser:   true,
@@ -132,7 +106,7 @@ describe('class: NamespaceProjectFilters', () => {
     it('should merge two results, prioritizing the first', () => {
       const a = { ns1: true, ns2: false };
       const b = { ns2: true, ns3: true };
-      const result = testNamespaceProjectFilters.combineNsProjectFilterResults(a, b);
+      const result = stevePaginationUtils['combineNsProjectFilterResults'](a, b);
 
       expect(result).toStrictEqual({
         ns1: true,
@@ -147,7 +121,7 @@ describe('class: NamespaceProjectFilters', () => {
       const input = {
         ns1: true, ns2: true, ns3: false
       };
-      const result = testNamespaceProjectFilters.createFiltersFromNamespaceProjectFilterResult(input);
+      const result = stevePaginationUtils['createFiltersFromNamespaceProjectFilterResult'](input);
 
       expect(result).toHaveLength(1);
       expect(result[0].fields[0]).toMatchObject({
@@ -159,7 +133,7 @@ describe('class: NamespaceProjectFilters', () => {
 
     it('should create NOT_IN filter if there are only excluded namespaces', () => {
       const input = { ns1: false, ns2: false };
-      const result = testNamespaceProjectFilters.createFiltersFromNamespaceProjectFilterResult(input);
+      const result = stevePaginationUtils['createFiltersFromNamespaceProjectFilterResult'](input);
 
       expect(result).toHaveLength(1);
       expect(result[0].fields[0]).toMatchObject({
@@ -171,7 +145,7 @@ describe('class: NamespaceProjectFilters', () => {
 
     it('should return empty array if input is empty', () => {
       const input = {};
-      const result = testNamespaceProjectFilters.createFiltersFromNamespaceProjectFilterResult(input);
+      const result = stevePaginationUtils['createFiltersFromNamespaceProjectFilterResult'](input);
 
       expect(result).toHaveLength(0);
     });
@@ -181,7 +155,7 @@ describe('class: NamespaceProjectFilters', () => {
     const selection = ['ns-1', `${ NAMESPACE_FILTER_P_FULL_PREFIX }p-1`];
 
     it('should create projectsOrNamespaces filter for a selection in a non-local cluster', () => {
-      const result = testNamespaceProjectFilters.handleSelectionFilter(selection, false);
+      const result = stevePaginationUtils['handleSelectionFilter'](selection, false);
 
       expect(result.projectsOrNamespaces).toHaveLength(1);
       const pnsFilter = result.projectsOrNamespaces[0] as PaginationParamProjectOrNamespace;
@@ -194,7 +168,7 @@ describe('class: NamespaceProjectFilters', () => {
     });
 
     it('should create projectsOrNamespaces and an exclusion filter for a selection in a local cluster', () => {
-      const result = testNamespaceProjectFilters.handleSelectionFilter(selection, true);
+      const result = stevePaginationUtils['handleSelectionFilter'](selection, true);
 
       // projectsOrNamespaces part
       expect(result.projectsOrNamespaces).toHaveLength(1);
@@ -219,7 +193,7 @@ describe('class: NamespaceProjectFilters', () => {
 
     it('should handle selections with only namespaces in a local cluster', () => {
       const nsSelection = ['ns-1', 'ns-2'];
-      const result = testNamespaceProjectFilters.handleSelectionFilter(nsSelection, true);
+      const result = stevePaginationUtils['handleSelectionFilter'](nsSelection, true);
 
       expect(result.projectsOrNamespaces).toHaveLength(1);
       const pnsFilter = result.projectsOrNamespaces[0] as PaginationParamProjectOrNamespace;
@@ -232,7 +206,7 @@ describe('class: NamespaceProjectFilters', () => {
 
     it('should handle selections with only projects in a local cluster', () => {
       const projectSelection = [`${ NAMESPACE_FILTER_P_FULL_PREFIX }p-1`, `${ NAMESPACE_FILTER_P_FULL_PREFIX }p-2`];
-      const result = testNamespaceProjectFilters.handleSelectionFilter(projectSelection, true);
+      const result = stevePaginationUtils['handleSelectionFilter'](projectSelection, true);
 
       expect(result.projectsOrNamespaces).toHaveLength(1);
       const pnsFilter = result.projectsOrNamespaces[0] as PaginationParamProjectOrNamespace;
@@ -260,27 +234,20 @@ describe('class: NamespaceProjectFilters', () => {
   });
 });
 
-class TestStevePaginationUtils {
-  public convertPaginationParams(args: any) {
-    return stevePaginationUtils.convertPaginationParams(args);
-  }
-}
-
 describe('class StevePaginationUtils', () => {
-  const testStevePaginationUtils = new TestStevePaginationUtils();
-  const schema = { id: 'pod' } as unknown as Schema;
+  const schema = { id: 'pod' } as Schema;
 
   describe('method: createParamsFromNsFilter', () => {
     const normalNs = {
       id: 'normal', name: 'normal', isObscure: false, isSystem: false
-    } as any;
+    };
     const obscureNs = {
       id: 'obscure', name: 'obscure', isObscure: true, isSystem: false
-    } as any;
+    };
     const systemNs = {
       id: 'system', name: 'system', isObscure: false, isSystem: true
-    } as any;
-    const allNamespaces = [normalNs, obscureNs, systemNs];
+    };
+    const allNamespaces = [normalNs, obscureNs, systemNs] as unknown as Namespaces;
 
     it('should return empty filters if all namespaces requested and settings allow all', () => {
       const result = stevePaginationUtils.createParamsFromNsFilter({
@@ -404,7 +371,7 @@ describe('class StevePaginationUtils', () => {
 
   describe('method: convertPaginationParams', () => {
     it('should return an empty string for no filters', () => {
-      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters: [] });
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters: [] });
 
       expect(result).toBe('');
     });
@@ -413,7 +380,7 @@ describe('class StevePaginationUtils', () => {
       const filters = [
         new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test' })] }),
       ];
-      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
 
       expect(result).toBe('filter=metadata.name=test');
     });
@@ -422,7 +389,7 @@ describe('class StevePaginationUtils', () => {
       const filters = [
         new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'te/st' })] }),
       ];
-      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
 
       expect(result).toBe('filter=metadata.name="te%2Fst"');
     });
@@ -436,7 +403,7 @@ describe('class StevePaginationUtils', () => {
           ],
         }),
       ];
-      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
 
       expect(result).toBe('filter=metadata.name=test1,metadata.namespace=ns1');
     });
@@ -446,7 +413,7 @@ describe('class StevePaginationUtils', () => {
         new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test1' })] }),
         new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.namespace', value: 'ns1' })] }),
       ];
-      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
 
       expect(result).toBe('filter=metadata.name=test1&filter=metadata.namespace=ns1');
     });
@@ -472,7 +439,7 @@ describe('class StevePaginationUtils', () => {
           ],
         }),
       ];
-      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
 
       expect(result).toBe('filter=spec.containers.image~nginx&filter=metadata.name!=test');
     });
@@ -486,7 +453,7 @@ describe('class StevePaginationUtils', () => {
       const filters = [
         new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: x })] }),
       ];
-      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
 
       expect(result).toBe(`filter=metadata.name=${ y }`);
     });
@@ -512,7 +479,7 @@ describe('class StevePaginationUtils', () => {
           ],
         }),
       ];
-      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
 
       expect(result).toBe('filter=metadata.name IN (test1,test2)&filter=metadata.namespace NOTIN (ns1,ns2)');
     });
@@ -528,7 +495,7 @@ describe('class StevePaginationUtils', () => {
       const filters = [
         new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: x })] }),
       ];
-      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
 
       expect(result).toBe(`filter=metadata.name=${ y }`);
     });
