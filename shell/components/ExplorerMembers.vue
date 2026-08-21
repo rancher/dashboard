@@ -13,6 +13,7 @@ import { canViewProjectMembershipEditor } from '@shell/components/form/Members/P
 import { allHash } from '@shell/utils/promise';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { RcButton } from '@components/RcButton';
+import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
 
 /**
  * Explorer members page.
@@ -51,10 +52,17 @@ export default {
 
     const projectRoleTemplateBindingSchema = this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
 
+    // SURE-8995: this page is now reachable by users with only project membership
+    // permissions, who have no access to CLUSTER role bindings. The norman CRTB
+    // schema can be present while the management (steve) one is not, so guard the
+    // cluster binding load on BOTH - otherwise `management/findAll` throws
+    // "Unknown schema for type: management.cattle.io.clusterroletemplatebinding".
+    const mgmtClusterRoleTemplateBindingSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
+
     this['normanClusterRTBSchema'] = clusterRoleTemplateBindingSchema;
     this['normanProjectRTBSchema'] = projectRoleTemplateBindingSchema;
 
-    if (clusterRoleTemplateBindingSchema) {
+    if (clusterRoleTemplateBindingSchema && mgmtClusterRoleTemplateBindingSchema) {
       Promise.all([
         this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING }, { root: true }),
         this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING })
@@ -62,6 +70,8 @@ export default {
         this['normanClusterRoleTemplateBindings'] = normanBindings;
         this.loadingClusterBindings = false;
       });
+    } else {
+      this.loadingClusterBindings = false;
     }
 
     if (projectRoleTemplateBindingSchema) {
@@ -73,7 +83,10 @@ export default {
     }
 
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
-      .then((projects) => (this['projects'] = projects));
+      .then((projects) => {
+        this['projects'] = projects;
+        this.loadProjectMembershipPermissions();
+      });
 
     const hydration = {
       normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
@@ -103,6 +116,10 @@ export default {
       normanClusterRoleTemplateBindings: [],
       projectRoleTemplateBindings:       [],
       projects:                          [],
+      // SURE-8995: per-project member-management capabilities ({ create, remove }),
+      // keyed by mgmt project id. Populated from the projects' `resourcePermissions`
+      // (steve `?checkPermissions=`) in fetch().
+      projectMembershipPermissions:      {},
       VIRTUAL_TYPES,
       projectRoleTemplateColumns:        [
         STATE,
@@ -218,6 +235,12 @@ export default {
     canManageMembers() {
       return canViewClusterPermissionsEditor(this.$store);
     },
+    // SURE-8995: the page is now reachable by users with only project membership permissions. Show the
+    // Cluster Membership tab only to users who can actually access cluster role bindings (the previous
+    // gate for the whole page), so project-only users don't see an empty/irrelevant cluster tab.
+    canViewClusterMembers() {
+      return !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
+    },
     canManageProjectMembers() {
       return canViewProjectMembershipEditor(this.$store);
     },
@@ -235,6 +258,27 @@ export default {
     },
   },
   methods: {
+    // SURE-8995: `canEditProjectMembers` (schema collectionMethods POST) is a
+    // GLOBAL flag - true if the user can create a binding on *any* project - so
+    // on its own it wrongly shows the Add/remove actions on every project. Read
+    // the per-project answer from each project's `resourcePermissions` instead
+    // (steve `?checkPermissions=`), so member actions only appear on projects
+    // the user can actually manage.
+    async loadProjectMembershipPermissions() {
+      if (!this.canEditProjectMembers) {
+        return; // can't create bindings anywhere - nothing to check
+      }
+
+      this.projectMembershipPermissions = await fetchProjectMembershipPermissions(this.$store);
+    },
+    canAddProjectMember(group) {
+      return !!this.projectMembershipPermissions[this.getMgmtProjectId(group)]?.create;
+    },
+    canRemoveProjectMember(row) {
+      const projectId = (row.projectId || '').replace(':', '/');
+
+      return !!this.projectMembershipPermissions[projectId]?.remove;
+    },
     getMgmtProjectId(group) {
       return group.group.key.replace(':', '/');
     },
@@ -303,6 +347,7 @@ export default {
     />
     <Tabbed>
       <Tab
+        v-if="canViewClusterMembers"
         name="cluster-membership"
         :label="t('members.clusterMembership')"
       >
@@ -357,7 +402,7 @@ export default {
               </div>
               <div class="right">
                 <button
-                  v-if="canEditProjectMembers"
+                  v-if="canAddProjectMember(group)"
                   type="button"
                   class="btn btn-sm role-secondary mr-10 right"
                   :data-testid="`add-project-member-${getProjectLabel(group).replace(' ', '').toLowerCase()}`"
@@ -386,6 +431,7 @@ export default {
                 {{ role.nameDisplay }}
               </span>
               <i
+                v-if="canRemoveProjectMember(row)"
                 class="icon icon-close"
                 :data-testid="`role-values-close-${j}`"
                 @click="removeRole(row, role, $event)"
