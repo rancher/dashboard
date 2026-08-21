@@ -54,7 +54,7 @@ jobs:
         with:
           app-id: ${{ env.APPID }}
           private-key: ${{ env.PRIVATEKEY }}
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - name: Assign milestone
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
@@ -87,7 +87,7 @@ jobs:
         with:
           app-id: ${{ env.APPID }}
           private-key: ${{ env.PRIVATEKEY }}
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - name: Sweep and assign milestones
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
