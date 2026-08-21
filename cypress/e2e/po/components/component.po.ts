@@ -68,11 +68,18 @@ export default class ComponentPo {
   }
 
   checkVisible(options?: GetOptions): Cypress.Chainable<boolean> {
-    return this.self(options).scrollIntoView().should('be.visible');
+    // Re-query after scrollIntoView instead of chaining `.should` onto the scrolled subject: if the
+    // page re-renders as a result of the scroll (async framework update), the scrolled element
+    // detaches and Cypress cannot requery it, failing with "subject no longer attached to the DOM".
+    this.self(options).scrollIntoView();
+
+    return this.self(options).should('be.visible');
   }
 
   checkNotVisible(): Cypress.Chainable<boolean> {
-    return this.self().scrollIntoView().should('not.be.visible');
+    this.self().scrollIntoView();
+
+    return this.self().should('not.be.visible');
   }
 
   checkExists(): Cypress.Chainable<boolean> {

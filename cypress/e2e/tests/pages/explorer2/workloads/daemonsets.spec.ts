@@ -4,6 +4,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateDaemonSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/daemonsets/daemonsets-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -24,6 +25,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       });
     }).as('daemonsetEdit');
 
+    // Idempotent across retries (testIsolation is off): the deterministic name would 409 on a
+    // re-create once a prior attempt created it, so remove any leftover first.
+    cy.deleteRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, false);
+
     // list view for daemonsets
     const workloadsDaemonsetsListPage = new WorkloadsDaemonsetsListPagePo(localCluster);
 
@@ -42,6 +47,12 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       .click();
 
     workloadsDaemonsetsListPage.waitForPage();
+    workloadsDaemonsetsListPage.baseResourceList().checkVisible();
+    // Confirm the list has finished loading before opening the edit form: we flick quickly
+    // between the list and the edit form, and if the list is still loading the SPA nav can
+    // land on a form whose tabs never render. Gating on the loading indicator (the same
+    // approach as the jobs.spec create flow) fixes the race without a direct-nav workaround.
+    workloadsDaemonsetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable()
       .rowElementWithName(daemonsetName)
       .should('be.visible');
@@ -49,6 +60,12 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       .click();
 
     // edit daemonset
+    // Opening the edit form is a SPA navigation + fetch. Clicking a tab before the form has mounted
+    // its tab bar leaves #DaemonSet unresolved and times out across retries (gating on the list
+    // loading indicator above isn't enough - the race is the edit form mounting). Wait for the edit
+    // route to commit and the tab bar to render before clicking a tab.
+    cy.url().should('include', `apps.daemonset/default/${ daemonsetName }`);
+    cy.get('.dashboard-root').find('#DaemonSet', LONG_TIMEOUT_OPT).should('be.visible');
     workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
     workloadsDaemonsetsEditPage.clickTab('#upgrading');
     workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
@@ -127,109 +144,105 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       WorkloadsDaemonsetsListPagePo.navTo();
       daemonSetsListPage.waitForPage();
 
+      // The extra daemonset is created separately (daemonsets2) and can propagate slightly
+      // later than the daemonsets1 batch. Wait for it to be queryable before deriving the count,
+      // otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'apps.daemonset', `${ nsName2 }/${ uniqueDaemonSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
       // check daemonsets count
-      const count = daemonSetNamesList.length + 1;
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      daemonSetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-      cy.waitForRancherResources('v1', 'apps.daemonset', count - 1, true).then((resp: Cypress.Response<any>) => {
-        // pagination is visible
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .checkVisible();
+      // pagination is visible
+      daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+        .checkVisible();
 
+      daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+        .paginationTotalCount()
+        .then((count: number) => {
         // basic checks on navigation buttons
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .isEnabled();
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .isEnabled();
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
 
-        // check text before navigation
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } DaemonSets`);
-          });
+          // check text before navigation
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } DaemonSets`);
 
-        // navigate to next page - right button
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .click();
+          // navigate to next page - right button
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
 
-        // check text and buttons after navigation
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } DaemonSets`);
-          });
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isEnabled();
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isEnabled();
+          // check text and buttons after navigation
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`11 - 20 of ${ count } DaemonSets`);
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
 
-        // navigate to first page - left button
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .click();
+          // navigate to first page - left button
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
 
-        // check text and buttons after navigation
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } DaemonSets`);
-          });
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
+          // check text and buttons after navigation
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } DaemonSets`);
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
 
-        // navigate to last page - end button
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .scrollIntoView()
-          .click();
+          // navigate to last page - end button
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
+            .click();
 
-        // row count on last page
-        let lastPageCount = count % 10;
+          // row count on last page
+          let lastPageCount = count % 10;
 
-        if (lastPageCount === 0) {
-          lastPageCount = 10;
-        }
+          if (lastPageCount === 0) {
+            lastPageCount = 10;
+          }
 
-        // check text after navigation
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } DaemonSets`);
-          });
+          // check text after navigation
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } DaemonSets`);
 
-        // navigate to first page - beginning button
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .click();
+          // navigate to first page - beginning button
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
 
-        // check text and buttons after navigation
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } DaemonSets`);
-          });
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        daemonSetsListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-      });
+          // check text and buttons after navigation
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } DaemonSets`);
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          daemonSetsListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+        });
     });
 
     it('sorting changes the order of paginated daemonsets data', () => {
@@ -299,7 +312,9 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       // generate small set of daemonsets data
       generateDaemonSetsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsDaemonsetsListPagePo.navTo();
+      // navTo is hardened against the workload-overview redirect to Deployments (it waits for
+      // the overview's summary fetch to settle and reloads/retries if it redirected).
+      WorkloadsDaemonsetsListPagePo.navTo(localCluster);
       cy.wait('@daemonSetsDataSmall');
       daemonSetsListPage.waitForPage();
 

@@ -2,6 +2,75 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { provisioningClusters, managementClusters, nodes, namespaces } from '@/cypress/e2e/blueprints/manager/hosted-cluster-mocks';
 import ClusterManagerDetailHostedPagePo from '~/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-hosted.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+
+// Known issue rancher/dashboard#18848: the tabbed component on a cluster detail page intermittently fails to
+// mount after an in-app (SPA) navigation and then never appears on that page load; the app should
+// render it reliably (or recover) rather than needing a fresh navigation.
+//
+// The tabbed component on a hosted cluster detail page intermittently fails to render after an
+// in-app navigation (it never appears in that page load). Rather than reload the page (which we
+// avoid), navigate from the cluster list and, if the tabs did not render, go back to the list and
+// try again a few times - the failure is intermittent, so a fresh navigation usually succeeds.
+//
+// Click the <a> link itself, not the surrounding cell: name() yields the <td> (column(2)) and
+// Cypress clicks an element's centre - in a column wider than the cluster name that centre lands on
+// cell padding beside the <a>, so the click silently does not navigate and waitForPage times out.
+const openHostedClusterDetail = (
+  clusterList: ClusterManagerListPagePo,
+  clusterName: string,
+  detailsPage: ClusterManagerDetailHostedPagePo,
+  navAttempt = 0
+): void => {
+  clusterList.list().name(clusterName).find('a').should('be.visible')
+    .click();
+  detailsPage.waitForPage();
+
+  // Poll for the tabbed component for a fair window before deciding the intermittent SPA-mount bug
+  // hit (where it never appears on that page load). We must only re-navigate on a genuine render
+  // failure - not on a page that simply has not finished rendering the tabs yet. Checking too early
+  // and recovering off the wrong state is exactly what made the logging recovery navigate when it
+  // did not need to.
+  const ensureTabsRendered = (poll = 0): void => {
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-testid="tabbed"]').length > 0) {
+        return; // tabs rendered - let the caller's checkVisible/tabNames assert on them
+      }
+
+      if (poll < 8) {
+        cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+        ensureTabsRendered(poll + 1);
+      } else if (navAttempt < 3) {
+        // The tabs genuinely did not render on this load; re-navigate to force a fresh render.
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        openHostedClusterDetail(clusterList, clusterName, detailsPage, navAttempt + 1);
+      }
+    });
+  };
+
+  ensureTabsRendered();
+};
+
+// A tab's label gains an inferred count suffix once its content is counted (e.g. "Node Pools" ->
+// "Node Pools (2)", see Tab.vue labelDisplay). That count populates asynchronously - before or after
+// these assertions run - so an exact tabNames().should('include', 'Node Pools') is racy and fails
+// once the count has appeared. Compare against the base label with any trailing " (N)" count
+// stripped, so the check holds whether or not the count has populated. This also fixes the negative
+// checks: a bare not.include('Autoscaler') would slip past an "Autoscaler (0)" tab.
+const stripTabCount = (name: string): string => name.replace(/\s*\(\d+\)$/, '').trim();
+
+const assertHasTab = (detailsPage: ClusterManagerDetailHostedPagePo, tabName: string): void => {
+  detailsPage.resourceDetail().tabs().tabNames().should((names: any) => {
+    expect((names as string[]).map(stripTabCount)).to.include(tabName);
+  });
+};
+
+const assertNoTab = (detailsPage: ClusterManagerDetailHostedPagePo, tabName: string): void => {
+  detailsPage.resourceDetail().tabs().tabNames().should((names: any) => {
+    expect((names as string[]).map(stripTabCount)).to.not.include(tabName);
+  });
+};
 
 describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
   // ids from hosted-cluster-mocks
@@ -97,6 +166,20 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     cy.login();
     HomePagePo.goTo();
+
+    // Wait for the home page to fully settle before any test navigates into a cluster detail.
+    // The home page fires the same provisioning/management cluster GETs the tests wait on; if we
+    // navigate away before they complete, the store is left half-loaded and the detail page's
+    // tabbed component fails to mount (the blank screen we see). Waiting here also *consumes* the
+    // home page's occurrence of these aliases, so each test's later
+    // cy.wait('@provClustersGet')/cy.wait('@mgmtClustersGet') correctly gates on the cluster LIST's
+    // request instead of resolving instantly against the home page's already-finished one.
+    const homePage = new HomePagePo();
+
+    homePage.waitForPage();
+    homePage.list().checkVisible(MEDIUM_TIMEOUT_OPT);
+    cy.wait('@provClustersGet');
+    cy.wait('@mgmtClustersGet');
   });
 
   it('should show a node pool tab in AKS cluster details', () => {
@@ -108,11 +191,12 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('aks-mock-cluster').find('a').should('be.visible')
-      .click();
-    aksDetailsPage.waitForPage();
+    // Use the shared open helper (like the EKS/GKE tests) so the intermittent SPA-mount bug - where
+    // the tabbed component never renders on a given page load - is recovered by re-navigation instead
+    // of failing outright with "[data-testid=tabbed] not found".
+    openHostedClusterDetail(clusterList, 'aks-mock-cluster', aksDetailsPage);
 
-    aksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
+    assertHasTab(aksDetailsPage, 'Node Pools');
 
     // ensure the node pool tab is the first tab
     aksDetailsPage.nodePoolTable().self().should('be.visible');
@@ -152,10 +236,9 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('eks-mock-cluster').find('a').should('be.visible')
-      .click();
-    eksDetailsPage.waitForPage();
-    eksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
+    openHostedClusterDetail(clusterList, 'eks-mock-cluster', eksDetailsPage);
+    eksDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
+    assertHasTab(eksDetailsPage, 'Node Pools');
 
     // ensure the node pool tab is the first tab
     eksDetailsPage.nodePoolTable().self().should('be.visible');
@@ -193,10 +276,9 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('gke-mock-cluster').find('a').should('be.visible')
-      .click();
-    gkeDetailsPage.waitForPage();
-    gkeDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
+    openHostedClusterDetail(clusterList, 'gke-mock-cluster', gkeDetailsPage);
+    gkeDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
+    assertHasTab(gkeDetailsPage, 'Node Pools');
 
     // ensure the node pool tab is the first tab
     gkeDetailsPage.nodePoolTable().self().should('be.visible');
@@ -249,16 +331,10 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
       cy.wait('@provClustersGet');
       cy.wait('@mgmtClustersGet');
 
-      // Click the link itself, not the surrounding cell. `name()` yields the <td>
-      // (`column(2)`), and Cypress clicks an element's centre — in a column wider than the
-      // cluster name that centre lands on cell padding beside the <a> rendered by the
-      // ClusterLink formatter, so the click silently doesn't navigate and `waitForPage`
-      // below times out with the URL still on the list.
-      clusterList.list().name(name).find('a').should('be.visible')
-        .click();
-      hostedDetailsPage.waitForPage();
+      openHostedClusterDetail(clusterList, name, hostedDetailsPage);
+      hostedDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
 
-      hostedDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Autoscaler');
+      assertNoTab(hostedDetailsPage, 'Autoscaler');
     });
   });
 
@@ -272,9 +348,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('imported-mock-cluster').find('a').should('be.visible')
-      .click();
-    importDetailsPage.waitForPage();
-    importDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Provisioning Log');
+    openHostedClusterDetail(clusterList, 'imported-mock-cluster', importDetailsPage);
+    importDetailsPage.resourceDetail().tabs().checkVisible(MEDIUM_TIMEOUT_OPT);
+    assertNoTab(importDetailsPage, 'Provisioning Log');
   });
 });

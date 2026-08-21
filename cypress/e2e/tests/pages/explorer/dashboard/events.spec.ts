@@ -50,6 +50,31 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
         };
       };
 
+      // k8s events are emitted (scheduler/kubelet/event-recorder) and indexed into /v1/events
+      // asynchronously. A fixed wait races that latency and, under the load of creating many pods at
+      // once, intermittently let the tests query before the unique pod's event had propagated - so the
+      // event "did not exist" yet. Poll until the unique pod's event actually exists before starting,
+      // instead of blindly waiting a fixed time (the event's id/name embeds the pod name).
+      const waitForUniquePodEvent = (retries = 30): void => {
+        cy.request({
+          method:           'GET',
+          url:              `${ Cypress.env('api') }/v1/events?filter=metadata.namespace=${ nsName2 }`,
+          failOnStatusCode: false,
+        }).then((resp) => {
+          const hasEvent = resp.status === 200 && (resp.body?.data || []).some(
+            (e: any) => `${ e.id || '' }|${ e.metadata?.name || '' }`.includes(uniquePod)
+          );
+
+          if (hasEvent || retries === 0) {
+            return;
+          }
+
+          cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+
+          waitForUniquePodEvent(retries - 1);
+        });
+      };
+
       cy.createManyNamespacedResources({
         context:        'events1',
         createResource: createPod(),
@@ -66,18 +91,20 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
         .then(({ ns, workloadNames }) => {
           uniquePod = workloadNames[0];
           nsName2 = ns;
-        });
-
-      // I'm loathed to do this, but the events created from the pods need to settle before we start
-      cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
+        })
+        .then(() => waitForUniquePodEvent());
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
       ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } });
 
       clusterDashboard.waitForPage(undefined, 'cluster-events');
+      // Capture the count from the list's OWN request. Events churn constantly (they GC/expire),
+      // so a separately-read API count can already disagree with what the list rendered.
+      countHelper.setupCount();
       EventsPageListPo.navTo();
       events.waitForPage();
+      countHelper.handleCount();
 
       cy.getRancherResource('v1', 'events')
         .then((resp: Cypress.Response<any>) => {
@@ -108,15 +135,18 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
             .endButton()
             .isEnabled();
 
-          // check text before navigation
+          // check text before navigation - assert against the count the list actually rendered
+          // (initialCount from the separate API read above can already be stale for volatile events).
           events.list().resourceTable().sortableTable().pagination()
             .self()
             .scrollIntoView();
-          events.list().resourceTable().sortableTable().pagination()
-            .paginationText()
-            .then((el) => {
-              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ initialCount } Events`);
-            });
+          countHelper.getCount().then((count) => {
+            return events.list().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
+              });
+          });
 
           // navigate to next page - right button
           countHelper.setupCount();
