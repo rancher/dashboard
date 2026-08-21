@@ -1424,4 +1424,40 @@ describe('page: UI plugins/Extensions', () => {
       expect(all[1]).toHaveProperty('helmError', true);
     });
   });
+
+  describe('tab panel', () => {
+    // The tabs render in `tabs-only` mode, so the card grid is the panel they control and has to be
+    // associated with them explicitly rather than just sitting next to them.
+    const mountLoaded = async() => {
+      const w = mountComponent();
+
+      await w.setData({ loading: false, activeTab: 'available' });
+
+      return w;
+    };
+
+    it('should expose the extension card grid as the tab panel', async() => {
+      const w = await mountLoaded();
+      const panel = w.find('.plugin-cards');
+
+      expect(panel.attributes('id')).toBe('extensions-tab-panel');
+      expect(panel.attributes('role')).toBe('tabpanel');
+      expect(panel.attributes('tabindex')).toBe('0');
+      expect(panel.attributes('aria-labelledby')).toBe('tab-available');
+    });
+
+    it('should tell the tabs which external panel they control', async() => {
+      const w = await mountLoaded();
+
+      expect(w.findComponent({ name: 'Tabbed' }).props('externalPanelId')).toBe('extensions-tab-panel');
+    });
+
+    it('should not label the panel before a tab has been selected', async() => {
+      const w = mountComponent();
+
+      await w.setData({ loading: false, activeTab: '' });
+
+      expect(w.find('.plugin-cards').attributes('aria-labelledby')).toBeUndefined();
+    });
+  });
 });

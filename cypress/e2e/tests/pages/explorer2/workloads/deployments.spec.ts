@@ -194,10 +194,10 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       deploymentsListPage.goToEditConfigPage(volumeDeploymentId);
 
       // open the pod tab
-      deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('li#pod');
+      deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('[data-testid="btn-pod"]');
 
       // open the pod storage tab
-      deploymentEditConfigPage.podTabs().clickTabWithSelector('li#storage-pod');
+      deploymentEditConfigPage.podTabs().clickTabWithSelector('[data-testid="btn-storage-pod"]');
 
       // check that there is a component rendered for each workload volume and that that component has rendered some information about the volume
       deploymentEditConfigPage.podStorage().nthVolumeComponent(0).yamlEditor().value()
@@ -209,7 +209,7 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       deploymentEditConfigPage.podStorage().nthVolumeComponent(0).yamlEditor().set('name: test-vol-changed\nprojected:\n    defaultMode: 420');
 
       // verify that the list of volumes in the container tab has updated
-      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('li#storage');
+      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('[data-testid="btn-storage"]');
       deploymentEditConfigPage.containerStorage().addVolumeButton().toggle();
       deploymentEditConfigPage.containerStorage().addVolumeButton().getOptions().should('contain', 'test-vol-changed (projected)');
       deploymentEditConfigPage.containerStorage().addVolumeButton().getOptions().should('not.contain', 'test-vol (projected)');
@@ -229,7 +229,7 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       deploymentsListPage.goTo();
       deploymentsListPage.waitForPage();
       deploymentsListPage.goToEditConfigPage(volumeDeploymentId);
-      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('li#storage');
+      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('[data-testid="btn-storage"]');
 
       deploymentEditConfigPage.containerStorage().addVolume('test-vol1');
 
@@ -247,7 +247,7 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       deploymentsListPage.goTo();
       deploymentsListPage.waitForPage();
       deploymentsListPage.goToEditConfigPage(volumeDeploymentId);
-      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('li#storage');
+      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('[data-testid="btn-storage"]');
       deploymentEditConfigPage.containerStorage().removeVolume(0);
       deploymentEditConfigPage.resourceDetail().cruResource().saveOrCreate().click();
 
@@ -264,7 +264,7 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       deploymentsCreatePage.goTo();
       deploymentsCreatePage.waitForPage();
 
-      deploymentsCreatePage.horizontalTabs().clickTabWithSelector('li#container-0');
+      deploymentsCreatePage.horizontalTabs().clickTabWithSelector('[data-testid="btn-container-0"]');
 
       deploymentsCreatePage.addEnvironmentVariable();
       deploymentsCreatePage.addEnvironmentVariable();
@@ -291,10 +291,10 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       deploymentsCreatePage.waitForPage();
 
       // open the pod tab
-      deploymentsCreatePage.horizontalTabs().clickTabWithSelector('li#pod');
+      deploymentsCreatePage.horizontalTabs().clickTabWithSelector('[data-testid="btn-pod"]');
 
       // open the pod storage tab
-      deploymentsCreatePage.podTabs().clickTabWithSelector('li#storage-pod');
+      deploymentsCreatePage.podTabs().clickTabWithSelector('[data-testid="btn-storage-pod"]');
 
       deploymentsCreatePage.podStorage().addVolumeButton().toggle();
       deploymentsCreatePage.podStorage().addVolumeButton().getOptions().should('contain', 'CSI');

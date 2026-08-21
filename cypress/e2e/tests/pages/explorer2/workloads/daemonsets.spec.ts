@@ -49,8 +49,8 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       .click();
 
     // edit daemonset
-    workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
-    workloadsDaemonsetsEditPage.clickTab('#upgrading');
+    workloadsDaemonsetsEditPage.clickTab('[data-testid="btn-DaemonSet"]');
+    workloadsDaemonsetsEditPage.clickTab('[data-testid="btn-upgrading"]');
     workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
     workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
       .click();

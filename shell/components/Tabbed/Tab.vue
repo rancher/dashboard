@@ -164,14 +164,24 @@ export default {
 };
 </script>
 
+<!--
+  Two things worth knowing about the panel below:
+
+  - it has no aria-hidden. v-show already keeps the inactive panels out of the accessibility tree,
+    and aria-hidden on a focusable (tabindex="0") element is a violation in its own right.
+  - this note sits outside the <template> on purpose. A comment at the template root turns the
+    component into a fragment, which silently breaks attribute fallthrough for the consumers that
+    pass a class straight to <Tab> (ConfigTab, YamlTab).
+-->
 <template>
   <section
     v-show="active"
     :id="name"
     ref="tab-summarized-container"
-    :aria-hidden="!active"
+    class="tab-panel"
     role="tabpanel"
     :aria-labelledby="`tab-${name}`"
+    tabindex="0"
   >
     <div
       v-if="shouldShowHeader"
@@ -192,6 +202,11 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.tab-panel:focus-visible {
+  @include focus-outline;
+  outline-offset: -2px;
+}
+
 .tab-header {
   display: flex;
   justify-content: space-between;
