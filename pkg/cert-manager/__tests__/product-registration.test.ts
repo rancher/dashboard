@@ -114,17 +114,23 @@ describe('extension: cert-manager product registration', () => {
     expect(configured).toStrictEqual(Object.values(CERT_MANAGER));
   });
 
-  it('should register client-side list columns for all six types', async() => {
+  it('should register server-side pagination list columns for all six types', async() => {
     const { dsl } = await applyExtension();
 
-    // `headers(type, localHeaders, paginationHeaders)` - these CRDs are not registered for
-    // server-side pagination, so only the local (second argument) columns are supplied.
+    // `headers(type, localHeaders, paginationHeaders)` - these CRDs are registered for server-side
+    // pagination, so the columns arrive as the pagination (third argument) set, not the local one.
     expect(dsl.headers.mock.calls.map(([type]) => type)).toStrictEqual(Object.values(CERT_MANAGER));
 
     dsl.headers.mock.calls.forEach(([, localHeaders, paginationHeaders]) => {
-      expect(localHeaders.length).toBeGreaterThan(0);
-      expect(paginationHeaders).toBeUndefined();
+      expect(localHeaders).toBeUndefined();
+      expect(paginationHeaders.length).toBeGreaterThan(0);
     });
+  });
+
+  it('should opt every type into server-side pagination', async() => {
+    const { plugin } = await applyExtension();
+
+    expect(plugin.enableServerSidePagination).toHaveBeenCalledWith({ cluster: { resources: { enableSome: { enabled: Object.values(CERT_MANAGER) } } } });
   });
 
   it('should register the overview page as a gated virtual type', async() => {

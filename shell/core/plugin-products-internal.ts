@@ -51,8 +51,14 @@ export type ProductChildCustomPageInternal = ProductChildCustomPage & {
 export type ProductChildResourcePageInternal = ProductChildResourcePage & {
   /** Control how all lists that show this resource behave  */
   listConfig?: {
-    /** Table headers for this resource type (client-side pagination) */
+    /** Table headers for this resource type when it renders client-side (no server-side pagination) */
     localHeaders?: PaginationHeaderOptions[];
+
+    /**
+     * Table headers for this resource type when it renders under server-side pagination. `sort`/`search`
+     * on these must be string paths to fields the backend indexes; see `enableServerSidePagination`.
+     */
+    headers?: PaginationHeaderOptions[];
 
     /**
      * Whether this custom page has list groups (definition for grouping items in the list view)

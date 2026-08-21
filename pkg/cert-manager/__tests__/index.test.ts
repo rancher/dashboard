@@ -7,11 +7,12 @@ jest.doMock('@rancher/auto-import', () => ({ importTypes: jest.fn() }), { virtua
 
 function createMockPlugin(): IPlugin {
   return {
-    extendProduct: jest.fn(),
-    addProduct:    jest.fn(),
-    addRoutes:     jest.fn(),
-    register:      jest.fn(),
-    metadata:      {},
+    extendProduct:              jest.fn(),
+    addProduct:                 jest.fn(),
+    addRoutes:                  jest.fn(),
+    enableServerSidePagination: jest.fn(),
+    register:                   jest.fn(),
+    metadata:                   {},
   } as any as IPlugin;
 }
 

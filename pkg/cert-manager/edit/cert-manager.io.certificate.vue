@@ -15,6 +15,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { _CREATE } from '@shell/config/query-params';
+import { RESOURCE_LABEL_SELECT_MODE } from '@shell/types/components/resourceLabeledSelect';
 import { CERT_MANAGER } from '../types';
 import {
   ISSUER_KINDS, ISSUER_GROUP, KEY_ALGORITHMS, KEY_SIZES, KEY_ENCODINGS, ROTATION_POLICIES, KEY_USAGES,
@@ -124,6 +125,16 @@ export default {
 
     issuerResourceType() {
       return this.isClusterIssuer ? CERT_MANAGER.CLUSTER_ISSUER : CERT_MANAGER.ISSUER;
+    },
+
+    /**
+     * The Issuer/ClusterIssuer list views opt into server-side pagination, which would otherwise
+     * flip this picker into its paginated path too. Issuers are low-cardinality and the picker needs
+     * client-side namespace filtering, so we force the fetch-all path instead. This also keeps
+     * `cluster/all` populated, which `hasNoIssuersInNamespace` reads.
+     */
+    issuerPaginateMode() {
+      return RESOURCE_LABEL_SELECT_MODE.ALL_RESOURCES;
     },
 
     /**
@@ -281,6 +292,7 @@ export default {
               :label="t('certManager.tableHeaders.issuer')"
               :mode="mode"
               :rules="fvGetAndReportPathRules('spec.issuerRef.name')"
+              :paginate-mode="issuerPaginateMode"
               :all-resources-settings="issuerSelectSettings"
               required
             />

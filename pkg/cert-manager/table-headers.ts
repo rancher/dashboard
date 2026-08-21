@@ -1,74 +1,60 @@
-import { STATE, NAME, NAMESPACE, AGE } from '@shell/config/table-headers';
+import { PaginationHeaderOptions } from '@shell/core/types';
+import { STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, STEVE_AGE_COL } from '@shell/config/pagination-table-headers';
 
-/**
- * The shape the shell's list views accept. `HeaderOptions` in `@shell/core/types` is a narrower,
- * extension-facing subset that omits `dashIfEmpty`, `align` and array `search`, and
- * `@shell/config/table-headers` is plain JS, so there is no accurate type to import.
- */
-export interface TableHeader {
-  name: string;
-  label?: string;
-  labelKey?: string;
-  value?: string;
-  getValue?: (row: any) => any;
-  sort?: string | string[] | boolean;
-  search?: string | string[] | boolean;
-  formatter?: string;
-  formatterOpts?: Record<string, any>;
-  dashIfEmpty?: boolean;
-  align?: string;
-  width?: number;
-  default?: string;
-  canBeVariable?: boolean;
-}
+// These lists render under server-side pagination (see `enableServerSidePagination` in index.ts).
+// Under SSP `sort`/`search` MUST be paths to fields the backend indexes - by default only
+// metadata.name/namespace, metadata.state.name, metadata.creationTimestamp and any CRD
+// additionalPrinterColumns. None of the cert-manager spec/status fields below are indexed, so they
+// are display-only (`sort`/`search: false`); the STEVE_* columns carry the sortable/searchable
+// paths. Sorting by expiry (`status.notAfter`/`status.renewalTime`) is the notable gap and needs
+// the backend to index those fields before it can be re-enabled here.
 
 /** Link to the Issuer or ClusterIssuer named by `spec.issuerRef`. */
 const ISSUER_REF = {
   name:          'issuer',
   labelKey:      'certManager.tableHeaders.issuer',
   value:         'spec.issuerRef.name',
-  sort:          ['spec.issuerRef.name'],
-  search:        ['spec.issuerRef.name'],
-  dashIfEmpty:   true,
+  sort:          false,
+  search:        false,
   formatter:     'LinkDetail',
   formatterOpts: { reference: 'issuerLocation' },
 };
 
 const REASON = {
-  name:        'reason',
-  labelKey:    'certManager.tableHeaders.reason',
-  value:       'status.reason',
-  sort:        ['status.reason'],
-  dashIfEmpty: true,
+  name:     'reason',
+  labelKey: 'certManager.tableHeaders.reason',
+  value:    'status.reason',
+  sort:     false,
+  search:   false,
 };
 
-export const CERTIFICATE_HEADERS: TableHeader[] = [
-  STATE,
-  NAME,
-  NAMESPACE,
+export const CERTIFICATE_HEADERS: PaginationHeaderOptions[] = [
+  STEVE_STATE_COL,
+  STEVE_NAME_COL,
+  STEVE_NAMESPACE_COL,
   ISSUER_REF,
   {
     name:          'secret',
     labelKey:      'certManager.tableHeaders.secret',
     value:         'spec.secretName',
-    sort:          ['spec.secretName'],
-    dashIfEmpty:   true,
+    sort:          false,
+    search:        false,
     formatter:     'LinkDetail',
     formatterOpts: { reference: 'secretLocation' },
   },
   {
     name:      'dnsNames',
     labelKey:  'certManager.tableHeaders.dnsNames',
-    getValue:  (row: any) => row.dnsNamesDisplay,
+    value:     (row: any) => row.dnsNamesDisplay,
     sort:      false,
-    search:    ['spec.commonName', 'spec.dnsNames'],
+    search:    false,
     formatter: 'List',
   },
   {
     name:      'expires',
     labelKey:  'certManager.tableHeaders.expires',
     value:     'status.notAfter',
-    sort:      ['status.notAfter'],
+    sort:      false,
     search:    false,
     formatter: 'LiveExpiryDate',
     width:     120,
@@ -77,49 +63,39 @@ export const CERTIFICATE_HEADERS: TableHeader[] = [
     name:      'renews',
     labelKey:  'certManager.tableHeaders.renews',
     value:     'status.renewalTime',
-    sort:      ['status.renewalTime'],
+    sort:      false,
     search:    false,
     formatter: 'LiveDate',
     width:     120,
   },
-  AGE,
+  STEVE_AGE_COL,
 ];
 
-const ISSUER_COMMON_HEADERS: TableHeader[] = [
+const ISSUER_COMMON_HEADERS: PaginationHeaderOptions[] = [
   {
-    name:        'configType',
-    labelKey:    'certManager.tableHeaders.type',
-    getValue:    (row: any) => row.issuerTypeDisplay,
-    sort:        false,
-    search:      ['spec.acme.server'],
-    dashIfEmpty: true,
-  },
-  {
-    name:     'certificates',
-    labelKey: 'certManager.tableHeaders.certificates',
-    getValue: (row: any) => row.certificates.length,
+    name:     'configType',
+    labelKey: 'certManager.tableHeaders.type',
+    value:    (row: any) => row.issuerTypeDisplay,
     sort:     false,
     search:   false,
-    align:    'right',
-    width:    110,
   },
-  AGE,
+  STEVE_AGE_COL,
 ];
 
-export const ISSUER_HEADERS: TableHeader[] = [STATE, NAME, NAMESPACE, ...ISSUER_COMMON_HEADERS];
+export const ISSUER_HEADERS: PaginationHeaderOptions[] = [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, ...ISSUER_COMMON_HEADERS];
 
-export const CLUSTER_ISSUER_HEADERS: TableHeader[] = [STATE, NAME, ...ISSUER_COMMON_HEADERS];
+export const CLUSTER_ISSUER_HEADERS: PaginationHeaderOptions[] = [STEVE_STATE_COL, STEVE_NAME_COL, ...ISSUER_COMMON_HEADERS];
 
-export const CERTIFICATE_REQUEST_HEADERS: TableHeader[] = [
-  STATE,
-  NAME,
-  NAMESPACE,
+export const CERTIFICATE_REQUEST_HEADERS: PaginationHeaderOptions[] = [
+  STEVE_STATE_COL,
+  STEVE_NAME_COL,
+  STEVE_NAMESPACE_COL,
   {
     name:          'certificate',
     labelKey:      'certManager.tableHeaders.certificate',
-    getValue:      (row: any) => row.ownerCertificateName,
+    value:         (row: any) => row.ownerCertificateName,
     sort:          false,
-    dashIfEmpty:   true,
+    search:        false,
     formatter:     'LinkDetail',
     formatterOpts: { reference: 'ownerCertificateLocation' },
   },
@@ -127,81 +103,69 @@ export const CERTIFICATE_REQUEST_HEADERS: TableHeader[] = [
   {
     name:      'approved',
     labelKey:  'certManager.tableHeaders.approved',
-    getValue:  (row: any) => row.isApproved,
+    value:     (row: any) => row.isApproved,
     sort:      false,
     search:    false,
-    align:     'center',
     width:     90,
     formatter: 'Checked',
   },
   {
-    name:        'revision',
-    labelKey:    'certManager.tableHeaders.revision',
-    getValue:    (row: any) => row.revision,
-    sort:        false,
-    search:      false,
-    align:       'right',
-    width:       90,
-    dashIfEmpty: true,
+    name:     'revision',
+    labelKey: 'certManager.tableHeaders.revision',
+    value:    (row: any) => row.revision,
+    sort:     false,
+    search:   false,
+    width:    90,
   },
-  AGE,
+  STEVE_AGE_COL,
 ];
 
-export const ORDER_HEADERS: TableHeader[] = [
-  STATE,
-  NAME,
-  NAMESPACE,
+export const ORDER_HEADERS: PaginationHeaderOptions[] = [
+  STEVE_STATE_COL,
+  STEVE_NAME_COL,
+  STEVE_NAMESPACE_COL,
   ISSUER_REF,
   {
     name:      'dnsNames',
     labelKey:  'certManager.tableHeaders.dnsNames',
-    getValue:  (row: any) => row.dnsNamesDisplay,
+    value:     (row: any) => row.dnsNamesDisplay,
     sort:      false,
-    search:    ['spec.commonName', 'spec.dnsNames'],
+    search:    false,
     formatter: 'List',
   },
   REASON,
-  {
-    name:     'challenges',
-    labelKey: 'certManager.tableHeaders.challenges',
-    getValue: (row: any) => row.challenges.length,
-    sort:     false,
-    search:   false,
-    align:    'right',
-    width:    110,
-  },
-  AGE,
+  STEVE_AGE_COL,
 ];
 
-export const CHALLENGE_HEADERS: TableHeader[] = [
-  STATE,
-  NAME,
-  NAMESPACE,
+export const CHALLENGE_HEADERS: PaginationHeaderOptions[] = [
+  STEVE_STATE_COL,
+  STEVE_NAME_COL,
+  STEVE_NAMESPACE_COL,
   {
     name:     'dnsName',
     labelKey: 'certManager.tableHeaders.dnsName',
-    getValue: (row: any) => row.dnsNameDisplay,
-    sort:     ['spec.dnsName'],
-    search:   ['spec.dnsName'],
+    value:    (row: any) => row.dnsNameDisplay,
+    sort:     false,
+    search:   false,
   },
   {
     name:     'challengeType',
     labelKey: 'certManager.tableHeaders.challengeType',
     value:    'spec.type',
-    sort:     ['spec.type'],
+    sort:     false,
+    search:   false,
     width:    100,
   },
   {
     name:      'presented',
     labelKey:  'certManager.tableHeaders.presented',
-    getValue:  (row: any) => row.isPresented,
+    value:     (row: any) => row.isPresented,
     sort:      false,
     search:    false,
-    align:     'center',
     width:     100,
     formatter: 'Checked',
   },
   // The single most useful field when ACME issuance is stuck.
   REASON,
-  AGE,
+  STEVE_AGE_COL,
 ];
