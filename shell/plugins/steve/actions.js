@@ -227,16 +227,23 @@ export default {
    *
    * Uses `summaryonly` by default so no resource data is returned.
    *
-   * @param {string} type - Resource type (e.g. 'pod', 'service')
-   * @param {object} [opt] - Options object
-   *   @param {string} opt.summaryField - Field to aggregate counts by.
-   *     Must be a field indexed by the VAI cache (see StevePaginationUtils.VALID_FIELDS in steve-pagination-utils.ts)
-   *   @param {string} [opt.namespace] - Namespace to scope the request to (only applies to namespaced resource types)
-   *   @param {boolean} [opt.summaryOnly=true] - Omit resource data from the response (set to false to include data)
-   *   @param {boolean} [opt.namespaceCounts] - Include per-namespace breakdowns in counts
-   *   @param {PaginationParamFilter[]} [opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
-   *   @param {KubeLabelSelector} [opt.labelSelector] - Kube label selector to filter by (converted via convertLabelSelectorPaginationParams)
+   * @param {object} ctx - Vuex action context
+   *   @param {object} ctx.getters
+   *   @param {Function} ctx.dispatch
+   * @param {object} payload
+   *   @param {string} payload.type - Resource type (e.g. 'pod', 'service')
+   *   @param {object} [payload.opt={}] - Options object
+   *     @param {string} [payload.opt.summaryField] - Field to aggregate counts by. Omitting it makes the action
+   *       warn and return `undefined`. Must be a field indexed by the VAI cache
+   *       (see StevePaginationUtils.VALID_FIELDS in steve-pagination-utils.ts)
+   *     @param {string} [payload.opt.namespace] - Namespace to scope the request to (only applies to namespaced resource types)
+   *     @param {boolean} [payload.opt.summaryOnly=true] - Omit resource data from the response (set to false to include data)
+   *     @param {boolean} [payload.opt.namespaceCounts] - Include per-namespace breakdowns in counts
+   *     @param {PaginationParamFilter[]} [payload.opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
+   *     @param {KubeLabelSelector} [payload.opt.labelSelector] - Kube label selector to filter by (converted via convertLabelSelectorPaginationParams)
    * @returns {Promise<{ count: number, summary: { property: string, counts: Record<string, { total: number, namespace?: Record<string, number> }> }[] | null } | undefined>}
+   *   Resolves `undefined` if the type has no schema, if `summaryField` is omitted, or if the request fails
+   *   (each logs a warning).
    *
    * @example
    * const result = await dispatch('fetchResourceSummary', {
