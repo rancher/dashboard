@@ -56,7 +56,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
     cy.setRancherResource('v3', 'settings', 'ui-brand', { value: 'suse' });
     // The stored form of the `light` theme preference is `ui-light` (see `mangleWrite` on `THEME` in
-    // `shell/store/prefs.js`). `true` verifies the preference actually landed.
+    // `shell/store/prefs.ts`). `true` verifies the preference actually landed.
     cy.setUserPreference({ theme: 'ui-light' }, true);
   });
 

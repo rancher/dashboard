@@ -14,7 +14,7 @@ function makeStore({
       'management/canList':           jest.fn().mockReturnValue(canList),
       'management/paginationEnabled': jest.fn().mockReturnValue(paginationEnabled),
     },
-    dispatch: jest.fn((action: string) => {
+    dispatch: jest.fn<Promise<any>, [action: string, payload: Record<string, any>]>((action) => {
       if (action === 'management/findAll') {
         return Promise.resolve(findAllResult);
       }

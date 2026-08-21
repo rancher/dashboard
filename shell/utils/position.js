@@ -50,6 +50,44 @@ export function screenRect() {
   };
 }
 
+/**
+ * @typedef {object} FitOnScreenOptions
+ * @property {string} [positionX] - Preferred horizontal position, `LEFT`, `CENTER`, `RIGHT` or
+ * `AUTO`. Defaults to `AUTO`, which picks whichever side leaves more room.
+ * @property {string} [positionY] - Preferred vertical position, `TOP`, `MIDDLE`, `BOTTOM` or
+ * `AUTO`. Defaults to `AUTO`.
+ * @property {number} [fudgeX] - Pixels to shift the result horizontally. Defaults to 0.
+ * @property {number} [fudgeY] - Pixels to shift the result vertically. Defaults to 0.
+ * @property {boolean} [overlapX] - Whether the content may sit on top of the trigger horizontally.
+ * Defaults to true.
+ * @property {boolean} [overlapY] - Whether the content may sit on top of the trigger vertically.
+ * Defaults to false.
+ */
+
+/**
+ * @typedef {object} FitOnScreenStyle
+ * @property {string} position - Always `absolute`.
+ * @property {string} [left] - The horizontal offset in `px`.
+ * @property {string} [top] - The vertical offset in `px`.
+ *
+ * `left` and `top` are optional only because TypeScript cannot see through the two switches below.
+ * `CENTER` and `MIDDLE` are both `'center'`, so between them the switches cover every value
+ * `positionX` and `positionY` can resolve to, and both properties are always assigned for legal
+ * input.
+ */
+
+/**
+ * Work out where to place a floating element so that it fits on screen next to its trigger.
+ *
+ * @param {Element | null | undefined} contentElem - The element being positioned. Its size is
+ * measured to decide which side it fits on; pass nothing together with `useDefaults`.
+ * @param {Element | Event} triggerElemOrEvent - What to position against, either the element the
+ * content hangs off or the event whose coordinates it hangs off.
+ * @param {FitOnScreenOptions} [opt] - How to position it.
+ * @param {boolean} [useDefaults] - Use a fixed 147x80 content size instead of measuring
+ * `contentElem`, for callers positioning something that has not been rendered yet.
+ * @returns {FitOnScreenStyle} Inline style for the content element.
+ */
 export function fitOnScreen(contentElem, triggerElemOrEvent, opt, useDefaults) {
   let {
     positionX = AUTO, // Preferred horizontal position

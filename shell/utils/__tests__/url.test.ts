@@ -1,5 +1,5 @@
 import {
-  addParam, addParams, removeParam, parseLinkHeader, isMaybeSecure, portMatch, parse, stringify
+  addParam, addParams, removeParam, parseLinkHeader, isMaybeSecure, portMatch, parse, stringify, QueryParams
 } from '@shell/utils/url';
 
 describe('fx: addParam', () => {
@@ -49,8 +49,10 @@ describe('fx: addParams', () => {
     expect(addParams('https://example.com', null)).toStrictEqual('https://example.com');
   });
 
+  // Deliberately passes a value the signature forbids: this models an untyped JS caller and covers
+  // the `typeof params === 'object'` guard, which is unreachable from TypeScript.
   it('should return the URL unchanged if params is a non-object value', () => {
-    expect(addParams('https://example.com', 'not-an-object')).toStrictEqual('https://example.com');
+    expect(addParams('https://example.com', 'not-an-object' as unknown as QueryParams)).toStrictEqual('https://example.com');
   });
 });
 

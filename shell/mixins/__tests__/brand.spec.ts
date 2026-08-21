@@ -15,7 +15,7 @@ describe('brandMixin', () => {
     };
 
     const store = {
-      dispatch: (action, ...args) => {
+      dispatch: (action: string, ...args: unknown[]): unknown => {
         switch (action) {
         case 'management/findAll':
           if (args[0] === MANAGEMENT.SETTING) {
