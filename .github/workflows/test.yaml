@@ -213,23 +213,38 @@ jobs:
           TEST_USERNAME: admin
           TEST_ONLY: setup
       - name: Run user tests
+        id: a11y-run
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-        env: 
+        env:
           RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           TEST_SKIP: setup
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_A11Y: true
-          TEST_NO_VIDEOS: true          
+          TEST_NO_VIDEOS: true
 
       - name: Upload report
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: accessibility-report
           path: cypress/accessibility
-        
+
+      # Runs report-only while A11Y_RATCHET_ENFORCE is unset/false. Set the repo
+      # variable to 'true' to fail CI on new A11y regressions.
+      #
+      # Runs even when the suite above failed — the report is still written, and a
+      # partial run is caught by the script's own completeness guard. Skipped when
+      # the suite never started (e.g. Rancher failed to come up), so a broken
+      # environment produces one failure rather than two.
+      - name: A11y ratchet
+        if: ${{ !cancelled() && steps.a11y-run.conclusion != 'skipped' }}
+        run: yarn a11y:compare
+        env:
+          A11Y_RATCHET_ENFORCE: ${{ vars.A11Y_RATCHET_ENFORCE }}
+
   unit-test:
     runs-on: ubuntu-latest
     steps:
