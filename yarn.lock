@@ -10637,14 +10637,14 @@ jszip@3.10.1:
     readable-stream "~2.3.6"
     setimmediate "^1.0.5"
 
-junit-report-merger@9.0.3:
-  version "9.0.3"
-  resolved "https://registry.yarnpkg.com/junit-report-merger/-/junit-report-merger-9.0.3.tgz#eea017d7fb2433e8b6b44fdb71dd8d7078124f4c"
-  integrity sha512-Z7r4qCVp2w/SwmcJPWseA4jgzlcAw6xgbd665tWlMHQGu5RGAo+fr/4tT93/VFgD+elP8gkFqidBcDwk2SQZcg==
+junit-report-merger@9.0.4:
+  version "9.0.4"
+  resolved "https://registry.yarnpkg.com/junit-report-merger/-/junit-report-merger-9.0.4.tgz#f913cc26b7aac268da186a6edf1e8252de38f803"
+  integrity sha512-xaUr0LND4X0/Q9hEcU55bKLznmgHqCDuLl6YWmniOVwRBxE4UzXr6e/1YOjwa4TsCN/Gw1YKTdPVVq72vQ4u7A==
   dependencies:
     commander "~14.0.0"
     tinyglobby "^0.2.15"
-    xmlbuilder2 "4.0.1"
+    xmlbuilder2 "4.0.3"
 
 keyv@^4.5.4:
   version "4.5.4"
@@ -14231,15 +14231,7 @@ timers-browserify@^2.0.4:
   dependencies:
     setimmediate "^1.0.4"
 
-tinyglobby@^0.2.13, tinyglobby@^0.2.15:
-  version "0.2.15"
-  resolved "https://registry.npmjs.org/tinyglobby/-/tinyglobby-0.2.15.tgz#e228dd1e638cea993d2fdb4fcd2d4602a79951c2"
-  integrity sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ==
-  dependencies:
-    fdir "^6.5.0"
-    picomatch "^4.0.3"
-
-tinyglobby@^0.2.14:
+tinyglobby@^0.2.13, tinyglobby@^0.2.14, tinyglobby@^0.2.15:
   version "0.2.17"
   resolved "https://registry.yarnpkg.com/tinyglobby/-/tinyglobby-0.2.17.tgz#562a9a6c9eb2b3b123d39719f9af5bb44fcd7631"
   integrity sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==
@@ -15324,6 +15316,16 @@ xmlbuilder2@4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/xmlbuilder2/-/xmlbuilder2-4.0.1.tgz#424d6b53e2e763d7f90c54684773d9f85c36bb9b"
   integrity sha512-vXeky0YRVjhx5pseJDQLk0F6u7gyA8++ceVOS88r4dWu4lWdY/ZjbL45QrN+g0GzZLg1D5AkzThpikZa98SC/g==
+  dependencies:
+    "@oozcitak/dom" "^2.0.2"
+    "@oozcitak/infra" "^2.0.2"
+    "@oozcitak/util" "^10.0.0"
+    js-yaml "^4.1.1"
+
+xmlbuilder2@4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/xmlbuilder2/-/xmlbuilder2-4.0.3.tgz#91660fa6d30f19d716f8b1194c567686d4402c63"
+  integrity sha512-bx8Q1STctnNaaDymWnkfQLKofs0mGNN7rLLapJlGuV3VlvegD7Ls4ggMjE3aUSWItCCzU0PEv45lI87iSigiCA==
   dependencies:
     "@oozcitak/dom" "^2.0.2"
     "@oozcitak/infra" "^2.0.2"
