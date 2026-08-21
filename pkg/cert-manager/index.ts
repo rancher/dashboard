@@ -4,7 +4,6 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { ProductChildCustomPage, ProductChildGroup } from '@shell/core/plugin-products-external';
 import { ProductChildResourcePageInternal } from '@shell/core/plugin-products-internal';
 import { CERT_MANAGER } from './types';
-import * as navOverview from './config/nav';
 import {
   CERTIFICATE_HEADERS, ISSUER_HEADERS, CLUSTER_ISSUER_HEADERS,
   CERTIFICATE_REQUEST_HEADERS, ORDER_HEADERS, CHALLENGE_HEADERS,
@@ -109,8 +108,4 @@ export default function(extension: IPlugin) {
   });
 
   extension.extendProduct(EXPLORER, [certManagerGroup]);
-  // Turns the overview into the group's landing page rather than a nav row of its own.
-  // `ProductFunction` is typed as callable, but the extension manager invokes `.init(plugin, store)`
-  // on whatever is registered - which is how the built-in products are wired up too.
-  extension.addProduct(navOverview as any);
 }

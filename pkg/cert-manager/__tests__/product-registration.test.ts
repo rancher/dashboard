@@ -2,7 +2,6 @@ import { IExtension, IPlugin } from '@shell/core/types';
 import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
 import { ProductChild } from '@shell/core/plugin-products-external';
 import { CERT_MANAGER } from '../types';
-import { OVERVIEW_NAV_ID, init as initNavOverview } from '../config/nav';
 
 jest.doMock('@rancher/auto-import', () => ({ importTypes: jest.fn() }), { virtual: true });
 
@@ -139,38 +138,5 @@ describe('extension: cert-manager product registration', () => {
 
     expect(config.labelKey).toBe('certManager.nav.overview');
     expect(config.ifHaveType).toBe(CERT_MANAGER.CERTIFICATE);
-  });
-
-  describe('the overview as the group landing page', () => {
-    it('should target the id the product registration actually builds', async() => {
-      // config/nav hard-codes this id because there is no API to reach the page's virtual type.
-      // If the `<product>-<group>-<page>` convention changes, the flag would silently miss.
-      const { dsl } = await applyExtension();
-      const registered = dsl.virtualType.mock.calls.map(([c]) => c.name);
-
-      expect(registered).toContain(OVERVIEW_NAV_ID);
-      expect(OVERVIEW_NAV_ID).toBe(OVERVIEW);
-    });
-
-    it('should flag it as the overview so Group.vue stops rendering it as a row', () => {
-      const virtualType = jest.fn();
-      const plugin = { DSL: jest.fn().mockReturnValue({ virtualType }) } as any;
-
-      initNavOverview(plugin, {});
-
-      expect(plugin.DSL).toHaveBeenCalledWith({}, 'explorer');
-      expect(virtualType).toHaveBeenCalledWith({
-        name: OVERVIEW_NAV_ID, overview: true, exact: true
-      });
-    });
-
-    it('should not carry a label, so the merge cannot clobber the registered one', () => {
-      // `virtualType` merges by name with Object.assign, so any key present here overwrites.
-      const virtualType = jest.fn();
-
-      initNavOverview({ DSL: () => ({ virtualType }) } as any, {});
-
-      expect(Object.keys(virtualType.mock.calls[0][0]).sort()).toStrictEqual(['exact', 'name', 'overview']);
-    });
   });
 });
