@@ -2565,6 +2565,8 @@ export function generateFakeClusterDataAndIntercepts({
   };
 
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
+  // The redesigned side-nav (SURE-8192) fetches the ALL CLUSTERS / "others" window with pagesize=10 —
+  // this intercept injects the fake cluster into that list (revealed when the search "door" opens).
   cy.intercept({
     method:   'GET',
     pathname: '/v1/management.cattle.io.clusters',
@@ -2575,6 +2577,20 @@ export function generateFakeClusterDataAndIntercepts({
       res.send(res.body);
     });
   }).as('mgmtClustersSideNav');
+
+  // The redesigned side-nav loads its "context" set (local + pinned + recent) via an id-filtered
+  // pagesize=100000 request on mount — this is the request to wait on for the nav to be ready (the old
+  // pagesize=10 request now only fires when the ALL CLUSTERS door is opened). SURE-8192.
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: '100000' }
+  }, (req) => {
+    req.continue((res) => {
+      update(res.body.data);
+      res.send(res.body);
+    });
+  }).as('mgmtClustersSideNavContext');
 
   cy.intercept({
     method:   'GET',

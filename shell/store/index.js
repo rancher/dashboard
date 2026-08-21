@@ -17,6 +17,7 @@ import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
 import Steve from '@shell/plugins/steve';
 import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
 import { CLUSTER as CLUSTER_PREF, LAST_NAMESPACE, NAMESPACE_FILTERS, WORKSPACE } from '@shell/store/prefs';
+import { recordClusterVisit } from '@shell/utils/cluster-pref-writer';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@shell/store/type-map';
 import { filterBy, findBy } from '@shell/utils/array';
 import { ApiError, ClusterNotFoundError } from '@shell/utils/error';
@@ -1002,6 +1003,11 @@ export const actions = {
     if ( id ) {
       // Remember the current cluster
       dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
+
+      // Record the visit in the app-bar RECENT shelf (SURE-8192). Serialized + idempotent so a
+      // double cluster-load doesn't fire two racing preference writes.
+      recordClusterVisit(getters, dispatch, id);
+
       commit('clusterId', id);
 
       // Use a pseudo cluster ID to pretend we have a cluster... to ensure some screens that don't care about a cluster but 'require' one to show
