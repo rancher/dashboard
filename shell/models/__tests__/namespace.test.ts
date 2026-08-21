@@ -10,6 +10,7 @@ jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
   __esModule: true,
   default:    {
     helper: {
+      clustersLocal:  [],
       clustersPinned: [],
       clustersOthers: [],
     },
@@ -333,8 +334,7 @@ describe('class Namespace', () => {
     it('should remove type Link formatter when in manager product without local cluster access', () => {
       const namespace = new Namespace({});
 
-      sideNavService.helper.clustersPinned.length = 0;
-      sideNavService.helper.clustersOthers.length = 0;
+      sideNavService.helper.clustersLocal.length = 0;
 
       jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
       jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: MANAGER });
@@ -358,9 +358,8 @@ describe('class Namespace', () => {
     it('should keep type Link formatter when in manager product with local cluster access', () => {
       const namespace = new Namespace({});
 
-      sideNavService.helper.clustersPinned.length = 0;
-      sideNavService.helper.clustersPinned.push({ id: LOCAL_CLUSTER } as any);
-      sideNavService.helper.clustersOthers.length = 0;
+      sideNavService.helper.clustersLocal.length = 0;
+      sideNavService.helper.clustersLocal.push({ id: LOCAL_CLUSTER } as any);
 
       jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
       jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: MANAGER });

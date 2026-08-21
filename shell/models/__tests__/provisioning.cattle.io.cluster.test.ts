@@ -14,6 +14,7 @@ jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
   __esModule: true,
   default:    {
     helper: {
+      clustersLocal:  [],
       clustersPinned: [],
       clustersOthers: []
     }
@@ -627,20 +628,18 @@ describe('class ProvCluster', () => {
   });
 
   describe('namespaceLocation', () => {
-    const setLocalClusterAccess = ({ pinned, others }: { pinned: boolean, others: boolean }) => {
-      sideNavService.helper.clustersPinned.length = 0;
-      sideNavService.helper.clustersOthers.length = 0;
+    // `local` lives only in the dedicated `clustersLocal` slice (SURE-8192) — excluded from the
+    // pinned/recent/others groups — so that slice is the single source of truth for local access.
+    const setLocalClusterAccess = (hasLocal: boolean) => {
+      sideNavService.helper.clustersLocal.length = 0;
 
-      if (pinned) {
-        sideNavService.helper.clustersPinned.push({ id: LOCAL_CLUSTER } as any);
-      }
-      if (others) {
-        sideNavService.helper.clustersOthers.push({ id: LOCAL_CLUSTER } as any);
+      if (hasLocal) {
+        sideNavService.helper.clustersLocal.push({ id: LOCAL_CLUSTER } as any);
       }
     };
 
-    it('should route to the local cluster explorer when local is in the pinned side-nav clusters', () => {
-      setLocalClusterAccess({ pinned: true, others: false });
+    it('should route to the local cluster explorer when local is accessible', () => {
+      setLocalClusterAccess(true);
       const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
 
       expect(cluster.namespaceLocation).toStrictEqual({
@@ -654,16 +653,8 @@ describe('class ProvCluster', () => {
       });
     });
 
-    it('should route to the local cluster explorer when local is in the unpinned side-nav clusters', () => {
-      setLocalClusterAccess({ pinned: false, others: true });
-      const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
-
-      expect(cluster.namespaceLocation?.params.cluster).toBe(LOCAL_CLUSTER);
-      expect(cluster.namespaceLocation?.params.product).toBe(EXPLORER);
-    });
-
     it('should return null when the user has no access to the local cluster', () => {
-      setLocalClusterAccess({ pinned: false, others: false });
+      setLocalClusterAccess(false);
       const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
 
       expect(cluster.namespaceLocation).toBeNull();
