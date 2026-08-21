@@ -207,7 +207,7 @@
     "mocha-junit-reporter": "2.2.1",
     "neostandard": "0.13.0",
     "nodemon": "2.0.22",
-    "nyc": "17.1.0",
+    "nyc": "18.0.0",
     "start-server-and-test": "2.0.10",
     "style-loader": "3.3.2",
     "ts-jest": "29.4.12",
