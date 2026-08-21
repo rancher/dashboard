@@ -1,0 +1,352 @@
+certManager:
+  nav:
+    overview: Overview
+    group:
+      certManager: Cert Manager
+      advanced: Advanced
+  overview:
+    title: Cert Manager Overview
+    error: Something went wrong loading the cert-manager overview.
+    noneOfType: None yet.
+    certificateCount: |-
+      {count, plural,
+        one {# certificate}
+        other {# certificates}
+      }
+    subtitle:
+      allNamespaces: For all namespaces
+      filtered: For the selected namespaces
+    sections:
+      issuers: Issuers
+      acme: ACME Activity
+    certificates:
+      title: Certificates
+    expiry:
+      title: Certificate Expiry
+      expired: Expired
+      within7: Within 7 days
+      within30: Within 30 days
+      within90: Within 90 days
+      beyond90: Beyond 90 days
+      expiringSoon: Soonest to Expire
+      none: No issued certificates yet.
+      days: |-
+        {count, plural,
+          one {# day}
+          other {# days}
+        }
+      more: |-
+        {count, plural,
+          one {# more certificate}
+          other {# more certificates}
+        }
+    empty:
+      title: Get started with cert-manager
+      message: cert-manager issues and renews TLS certificates for your cluster. A Certificate always references an Issuer or ClusterIssuer, so create one of those first - then you can request certificates against it.
+      createIssuer: Create Issuer
+      createClusterIssuer: Create Cluster Issuer
+      docsLink: Read the cert-manager documentation
+      noCertificates: No certificates yet. Create one from an issuer to get started.
+      createCertificate: Create a Certificate
+
+  action:
+    renew:
+      label: Force Renew
+      success:
+        title: Renewal triggered
+        message: Re-issuance of {name} has been triggered.
+      error:
+        title: Could not trigger renewal
+        forbidden: 'You do not have permission to update certificate status. Run `cmctl renew {name} -n {namespace}` instead.'
+
+  duration:
+    unitLabel: Unit
+    unit:
+      d: Days
+      h: Hours
+      m: Minutes
+      s: Seconds
+
+  issuance:
+    title: Issuance Progress
+    certificate: Certificate
+    certificateRequest: Certificate Request
+    order: ACME Order
+    challenge: ACME Challenge
+
+  tableHeaders:
+    issuer: Issuer
+    secret: Secret
+    dnsNames: DNS Names
+    dnsName: DNS Name
+    expires: Expires
+    renews: Renews
+    type: Type
+    certificates: Certificates
+    certificate: Certificate
+    approved: Approved
+    revision: Revision
+    reason: Reason
+    challenges: Challenges
+    challengeType: Challenge Type
+    presented: Presented
+
+  certificate:
+    lifecycleAndConfiguration: Lifecycle & Configuration
+    commonName: Common Name
+    commonNameTooltip: The X.509 Common Name, limited to 64 characters. Optional, and most deployments leave it empty in favour of DNS Names. If you do set one, it must also appear in the DNS Names or IP Addresses.
+    duration: Duration
+    durationTooltip: How long the certificate is valid for. cert-manager defaults to 90 days.
+    renewBefore: Renew Before
+    renewBeforeTooltip: How long before expiry to renew. cert-manager defaults to a third of the duration.
+    secretName: Secret Name
+    secretNameTooltip: Name of the Secret that will hold the issued certificate and private key. It is created in this namespace.
+    isCA: Mark this certificate as a certificate authority
+    isCATooltip: Sets the X.509 Basic Constraints CA flag. Enable this if you intend to use this certificate to sign other certificates (e.g., as the Secret for a CA Issuer).
+    dnsNames: DNS Names
+    ipAddresses: IP Addresses
+    uris: URIs
+    emailAddresses: Email Addresses
+    addDnsName: Add DNS Name
+    addIpAddress: Add IP Address
+    addUri: Add URI
+    addEmailAddress: Add Email Address
+    sans: Subject Alternative Names
+    secretNamePlaceholder: e.g. my-tls-secret
+    failedAttempts: Failed Issuance Attempts
+    lastFailure: Last Failure
+    plusMore: '+ {count} more'
+    noIssuersInNamespace: 'There are no Issuers in the {namespace} namespace. An Issuer must live in the same namespace as the certificate it signs - create one there, or use a Cluster Issuer instead.'
+    usages: Key Usages
+    usagesTooltip: X.509 key usages. If left empty, cert-manager defaults to Digital Signature and Key Encipherment.
+    revisionHistoryLimit: Revision History Limit
+    revisionHistoryLimitTooltip: The maximum number of CertificateRequest revisions to keep. Defaults to 1.
+    secretTemplate: Secret Template
+    issuerKind:
+      label: Issuer Scope
+      issuer: Issuer (this namespace)
+      clusterIssuer: Cluster Issuer (whole cluster)
+    privateKey:
+      label: Private Key
+      algorithm: Algorithm
+      size: Size
+      sizeFixed: This algorithm has a single fixed key size.
+      encoding: Encoding
+      rotationPolicy: Rotation Policy
+      rotationPolicyTooltip: Always generates a new private key on every renewal. Never reuses the existing one.
+    validation:
+      noIdentifiers: Set a common name or at least one subject alternative name.
+    tab:
+      basics: Basics
+      advanced: Advanced
+      issuanceHistory: Issuance History
+
+
+  issuer:
+    typeLabel: Issuer Type
+    type:
+      acme: ACME
+      ca: CA
+      selfSigned: Self Signed
+      vault: Vault
+      venafi: Venafi
+    typeDescription:
+      acme: Request certificates from an ACME server such as Let's Encrypt.
+      ca: Sign certificates with a certificate authority stored in a Kubernetes Secret.
+      selfSigned: Issue self signed certificates without a CA. Useful for testing.
+      vault: Request certificates from a HashiCorp Vault PKI backend.
+      venafi: Request certificates from Venafi TPP or Venafi Cloud.
+    selfSignedHelp: A self signed issuer signs certificates with their own private key. It needs no further configuration.
+    editAsYaml: '{type} issuers have configuration that this form does not cover. Switch to YAML to edit it. Anything already configured is preserved.'
+    acme:
+      server: ACME Server
+      serverUrl: ACME Server URL
+      serverChoice:
+        production: Let's Encrypt (Production)
+        staging: Let's Encrypt (Staging)
+        custom: Custom ACME Server
+      serverTooltip: The ACME directory URL. Pick a known provider or type your own.
+      email: Email
+      emailTooltip: Used by the CA to send expiry notices. Let's Encrypt strongly recommends setting it.
+      accountUri: Account URI
+      privateKeySecret: Account Private Key Secret
+      preferredChain: Preferred Chain
+      preferredChainTooltip: Issuer Common Name of the certificate chain to prefer, if the CA offers more than one.
+      skipTLSVerify: Skip TLS verification of the ACME server
+      secretNamespace: The Secret is read from this issuer's namespace. cert-manager creates it if it does not exist.
+      secretNamespaceCluster: The Secret is read from cert-manager's own namespace, not from the namespace of the certificates using it.
+    ca:
+      secretName: CA Secret
+      secretNameTooltip: Name of a Secret holding tls.crt and tls.key for the signing certificate authority.
+    vault:
+      server: Vault Server
+      path: Path
+    solver:
+      challengeType: Challenge Type
+      provider: Provider
+      selector: Selector
+      catchAll: All domains
+      none: This issuer has no solvers configured.
+    validation:
+      noConfigType: Choose an issuer type.
+      multipleConfigTypes: 'An issuer must have exactly one type, but found: {types}. Edit as YAML to resolve this.'
+      solverChallengeType: Every solver needs exactly one challenge type, either HTTP-01 or DNS-01.
+      solverIngress: An HTTP-01 solver can set only one of an ingress class name, an existing ingress name, or a legacy ingress class.
+      solverProvider: Choose a provider for every DNS-01 solver.
+    tab:
+      configuration: Configuration
+      solvers: Solvers
+      certificates: Certificates
+
+  solver:
+    add: Add Solver
+    challengeType: Challenge Type
+    http01: HTTP-01
+    http01Description: Solve challenges by serving a token over an HTTP ingress.
+    dns01: DNS-01
+    dns01Description: Solve challenges by creating TXT records in DNS. Required for wildcard certificates.
+    ingressMode:
+      label: Challenge Ingress
+      ingressClassName: Ingress Class Name
+      ingressClassNameDescription: cert-manager creates a temporary Ingress with this class to serve the challenge.
+      name: Existing Ingress Name
+      nameDescription: Add the challenge path to an existing Ingress instead of creating a temporary one.
+      class: Legacy Ingress Class
+      classDescription: Sets the class through the legacy annotation. Prefer the ingress class name unless your controller needs it.
+    gatewayHttpRoute: This solver is configured to use a Gateway API HTTPRoute. Switch to YAML to edit that configuration.
+    selector: Selector
+    catchAllHelp: With no selector this solver applies to every certificate issued by this issuer.
+    dnsZones: DNS Zones
+    dnsNames: DNS Names
+    addDnsZone: Add DNS Zone
+    addDnsName: Add DNS Name
+    matchLabels: Match Labels
+    noneWarning: An ACME issuer with no solvers cannot complete any challenge, so no certificate will be issued.
+
+  dns01:
+    providerLabel: Provider
+    unknownProvider: 'This solver uses the {provider} provider, which this form does not cover. Switch to YAML to edit it. The current configuration is shown below and is preserved on save.'
+    provider:
+      cloudflare: Cloudflare
+      route53: Amazon Route 53
+      azureDNS: Azure DNS
+      cloudDNS: Google Cloud DNS
+      digitalocean: DigitalOcean
+      akamai: Akamai
+      rfc2136: RFC2136
+      webhook: Webhook
+    cloudflare:
+      email: Email
+      apiToken:
+        name: API Token Secret Name
+        key: API Token Secret Key
+    route53:
+      region: Region
+      hostedZoneID: Hosted Zone ID
+      role: IAM Role ARN
+      accessKeyID: Access Key ID
+      secretAccessKey:
+        name: Secret Access Key Secret Name
+        key: Secret Access Key Secret Key
+    azureDNS:
+      subscriptionID: Subscription ID
+      resourceGroupName: Resource Group Name
+      hostedZoneName: Hosted Zone Name
+      tenantID: Tenant ID
+      clientID: Client ID
+      clientSecret:
+        name: Client Secret - Secret Name
+        key: Client Secret - Secret Key
+    cloudDNS:
+      project: Project ID
+      serviceAccount:
+        name: Service Account Secret Name
+        key: Service Account Secret Key
+    digitalocean:
+      token:
+        name: API Token Secret Name
+        key: API Token Secret Key
+    akamai:
+      serviceConsumerDomain: Service Consumer Domain
+      clientToken:
+        name: Client Token Secret Name
+        key: Client Token Secret Key
+      clientSecret:
+        name: Client Secret - Secret Name
+        key: Client Secret - Secret Key
+      accessToken:
+        name: Access Token Secret Name
+        key: Access Token Secret Key
+    rfc2136:
+      nameserver: Nameserver
+      tsigKeyName: TSIG Key Name
+      tsigAlgorithm: TSIG Algorithm
+      tsigSecret:
+        name: TSIG Secret Name
+        key: TSIG Secret Key
+
+  certificateRequest:
+    label: Certificate Request
+    certificate: Certificate
+    subject: Subject
+    signatureAlgorithm: Signature Algorithm
+    pem: Certificate Signing Request
+    denied: This request was denied.
+    csrUnreadable: The certificate signing request could not be decoded.
+    tab:
+      csr: CSR
+      orders: Orders
+
+  order:
+    label: Order
+    url: ACME Order URL
+    finalizeUrl: Finalize URL
+    identifier: Identifier
+    wildcard: Wildcard
+    challengeTypes: Challenge Types
+    noAuthorizations: This order has no authorizations yet.
+    tab:
+      authorizations: Authorizations
+      challenges: Challenges
+
+  challenge:
+    presented: Presented
+    processing: Processing
+    token: Token
+    key: Key
+    url: ACME Challenge URL
+    authorizationUrl: Authorization URL
+    tab:
+      details: Challenge Details
+
+typeLabel:
+  cert-manager.io.certificate: |-
+    {count, plural,
+      one { Certificate }
+      other { Certificates }
+    }
+  cert-manager.io.issuer: |-
+    {count, plural,
+      one { Issuer }
+      other { Issuers }
+    }
+  cert-manager.io.clusterissuer: |-
+    {count, plural,
+      one { Cluster Issuer }
+      other { Cluster Issuers }
+    }
+  cert-manager.io.certificaterequest: |-
+    {count, plural,
+      one { Certificate Request }
+      other { Certificate Requests }
+    }
+  acme.cert-manager.io.order: |-
+    {count, plural,
+      one { Order }
+      other { Orders }
+    }
+  acme.cert-manager.io.challenge: |-
+    {count, plural,
+      one { Challenge }
+      other { Challenges }
+    }
