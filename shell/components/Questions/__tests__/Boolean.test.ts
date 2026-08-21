@@ -1,4 +1,4 @@
-import Questions from '@shell/components/Questions';
+import Questions from '@shell/components/Questions/index.vue';
 import { mount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 import defaults from './utils/questions-defaults';
@@ -34,7 +34,7 @@ describe('the Boolean Component', () => {
     const labelFields = wrapper.findAll('[data-testid="boolean-row-var_name"] label');
 
     expect(labelFields).toHaveLength(1);
-    expect(labelFields.at(0).text()).toBe('var_name');
+    expect(labelFields.at(0)?.text()).toBe('var_name');
   });
 
   it('description is present', () => {
@@ -63,7 +63,7 @@ describe('the Boolean Component', () => {
     const descriptionFields = wrapper.findAll('[data-testid="boolean-description-var_name"]');
 
     expect(descriptionFields).toHaveLength(1);
-    expect(descriptionFields.at(0).text()).toBe('test description');
+    expect(descriptionFields.at(0)?.text()).toBe('test description');
   });
 
   it('label is present', () => {
@@ -92,7 +92,7 @@ describe('the Boolean Component', () => {
     const labelFields = wrapper.findAll('[data-testid="boolean-row-var_name"] label');
 
     expect(labelFields).toHaveLength(1);
-    expect(labelFields.at(0).text()).toBe('test label');
+    expect(labelFields.at(0)?.text()).toBe('test label');
   });
 
   it('tooltip is present', () => {

@@ -328,7 +328,7 @@ const mockRepo = {
   }
 };
 
-const mockStore = { getters: { 'i18n/withFallback': (key, opt, fallback) => fallback } };
+const mockStore = { getters: { 'i18n/withFallback': (key: string, opt: unknown, fallback: string) => fallback } };
 
 describe('component: FleetSummary', () => {
   it.each([

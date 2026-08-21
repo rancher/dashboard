@@ -1,6 +1,10 @@
 import { shallowMount } from '@vue/test-utils';
+import { Component } from 'vue';
 import Group from '@shell/components/nav/Group.vue';
 import Type from '@shell/components/nav/Type.vue';
+
+/** The shape `@vue/test-utils` accepts for `global.stubs`. */
+type GlobalStubs = Record<string, boolean | Component>;
 
 describe('component: Group', () => {
   it('isOverview ignores query parameters and hash strings when checking active state', () => {
@@ -263,7 +267,7 @@ describe('component: Group', () => {
       t: (key: string) => key,
     };
 
-    const mountGroupWithMocks = (group: any, extraProps: Record<string, unknown> = {}, stubs: Record<string, unknown> = {}) => shallowMount(Group as any, {
+    const mountGroupWithMocks = (group: any, extraProps: Record<string, unknown> = {}, stubs: GlobalStubs = {}) => shallowMount(Group as any, {
       props: {
         group,
         canCollapse: true,

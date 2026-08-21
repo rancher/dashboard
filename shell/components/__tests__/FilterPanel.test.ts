@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils';
+import { defineComponent } from 'vue';
 import FilterPanel from '@shell/components/FilterPanel.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
@@ -54,14 +55,14 @@ describe('component: FilterPanel', () => {
     deprecatedCheckbox?.vm.$emit('update:value', ['installed', 'deprecated']);
     await wrapper.vm.$nextTick();
 
-    const emitted = wrapper.emitted('update:modelValue');
+    const [[emittedValue]] = wrapper.emitted('update:modelValue') as [[{ status: string[] }]];
 
-    expect(emitted).toBeTruthy();
-    expect(emitted?.[0][0].status).toStrictEqual(['installed', 'deprecated']);
+    expect(emittedValue).toBeTruthy();
+    expect(emittedValue.status).toStrictEqual(['installed', 'deprecated']);
   });
 
   it('renders a custom component if provided in option', () => {
-    const CustomComponent = { template: '<div>Custom content</div>' };
+    const CustomComponent = defineComponent({ template: '<div>Custom content</div>' });
 
     const wrapper = mount(FilterPanel, {
       props: {

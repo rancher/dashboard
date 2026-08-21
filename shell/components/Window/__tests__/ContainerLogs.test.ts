@@ -13,9 +13,19 @@ const mockMyMethod = jest.fn();
 
 jest.mock('vue3-virtual-scroll-list', () => ({ myMethod: () => mockMyMethod() }));
 
+/**
+ * `ContainerLogs.vue` is a plain-JS SFC, so `vue-tsc` cannot infer its instance type.
+ * Describe just the surface these tests drive. Remove once the component is converted to
+ * `<script lang="ts"> defineComponent`.
+ */
+interface ContainerLogsInstance {
+  backlog: Array<{ rawMsg: string }>;
+  filtered: Array<unknown>;
+}
+
 const getDefaultOptions = () => {
   return {
-    propsData: {
+    props: {
       tab:    {},
       active: true,
       height: 100,
@@ -48,57 +58,61 @@ describe('component: ContainerLogs', () => {
   it('should receive messages correctly', async() => {
     jest.clearAllMocks();
     const wrapper = await shallowMount(ContainerLogs, getDefaultOptions());
+    const vm = wrapper.vm as unknown as ContainerLogsInstance;
 
     const data1 = 'container logs test1\n';
-    const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
+    const messageCallback = addEventListener.mock.calls.find(([e]: [string, unknown]) => e === 'message')?.[1] as (event: { detail: { data: string } }) => void;
 
     messageCallback({ detail: { data: base64Encode(data1) } });
 
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(1);
-    expect(wrapper.vm.backlog[0].rawMsg).toBe(data1.trimEnd());
+    expect(vm.backlog).toHaveLength(1);
+    expect(vm.backlog[0].rawMsg).toBe(data1.trimEnd());
     const data2 = 'container logs test2 中文日志内容测试\n';
 
     messageCallback({ detail: { data: base64Encode(data2) } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(2);
-    expect(wrapper.vm.backlog[1].rawMsg).toBe(data2.trimEnd());
+    expect(vm.backlog).toHaveLength(2);
+    expect(vm.backlog[1].rawMsg).toBe(data2.trimEnd());
   });
 
   it('should not fail for an empty message/string', async() => {
     jest.clearAllMocks();
     const wrapper = await shallowMount(ContainerLogs, getDefaultOptions());
+    const vm = wrapper.vm as unknown as ContainerLogsInstance;
 
     const data1 = '';
-    const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
+    const messageCallback = addEventListener.mock.calls.find(([e]: [string, unknown]) => e === 'message')?.[1] as (event: { detail: { data: string } }) => void;
 
     messageCallback({ detail: { data: base64Encode(data1) } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(0);
-    expect(wrapper.vm.filtered).toHaveLength(0);
+    expect(vm.backlog).toHaveLength(0);
+    expect(vm.filtered).toHaveLength(0);
   });
 
   it('should merge the message which be truncated line', async() => {
     jest.clearAllMocks();
     const wrapper = await shallowMount(ContainerLogs, getDefaultOptions());
+    const vm = wrapper.vm as unknown as ContainerLogsInstance;
     const part1 = 'container logs part1';
-    const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
+    const messageCallback = addEventListener.mock.calls.find(([e]: [string, unknown]) => e === 'message')?.[1] as (event: { detail: { data: string } }) => void;
 
     messageCallback({ detail: { data: base64Encode(part1) } });
     await nextTick();
 
-    expect(wrapper.vm.backlog).toHaveLength(0);
+    expect(vm.backlog).toHaveLength(0);
     const part2 = 'container logs part2\n';
 
     messageCallback({ detail: { data: base64Encode(part2) } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(1);
-    expect(wrapper.vm.backlog[0].rawMsg).toBe(`${ part1 }${ part2 }`.trimEnd());
+    expect(vm.backlog).toHaveLength(1);
+    expect(vm.backlog[0].rawMsg).toBe(`${ part1 }${ part2 }`.trimEnd());
   });
 
   it('should merge truncated 2-byte utf-8 character messages', async() => {
     jest.clearAllMocks();
     const wrapper = await shallowMount(ContainerLogs, getDefaultOptions());
+    const vm = wrapper.vm as unknown as ContainerLogsInstance;
     // Contains 2-byte utf-8 character message with one character truncation
     const message = '¡¢£¤¥\n';
     const arr = Buffer.from(message);
@@ -106,19 +120,20 @@ describe('component: ContainerLogs', () => {
     const part1 = arr.slice(0, 3).toString('base64');
     const part2 = arr.slice(3).toString('base64');
 
-    const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
+    const messageCallback = addEventListener.mock.calls.find(([e]: [string, unknown]) => e === 'message')?.[1] as (event: { detail: { data: string } }) => void;
 
     messageCallback({ detail: { data: part1 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(0);
+    expect(vm.backlog).toHaveLength(0);
     messageCallback({ detail: { data: part2 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(1);
-    expect(wrapper.vm.backlog[0].rawMsg).toBe(message.trimEnd());
+    expect(vm.backlog).toHaveLength(1);
+    expect(vm.backlog[0].rawMsg).toBe(message.trimEnd());
   });
   it('should merge truncated 3-byte utf-8 character messages', async() => {
     jest.clearAllMocks();
     const wrapper = await shallowMount(ContainerLogs, getDefaultOptions());
+    const vm = wrapper.vm as unknown as ContainerLogsInstance;
     // Contains 3-byte utf-8 character message with one character truncation
     const message = 'ࠀࠁࠂࠃ\n';
     const arr = Buffer.from(message);
@@ -126,15 +141,15 @@ describe('component: ContainerLogs', () => {
     const part1 = arr.slice(0, 4).toString('base64');
     const part2 = arr.slice(4).toString('base64');
 
-    const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
+    const messageCallback = addEventListener.mock.calls.find(([e]: [string, unknown]) => e === 'message')?.[1] as (event: { detail: { data: string } }) => void;
 
     messageCallback({ detail: { data: part1 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(0);
+    expect(vm.backlog).toHaveLength(0);
     messageCallback({ detail: { data: part2 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(1);
-    expect(wrapper.vm.backlog[0].rawMsg).toBe(message.trimEnd());
+    expect(vm.backlog).toHaveLength(1);
+    expect(vm.backlog[0].rawMsg).toBe(message.trimEnd());
 
     // Truncate at the fifth byte
     const part3 = arr.slice(0, 5).toString('base64');
@@ -142,16 +157,17 @@ describe('component: ContainerLogs', () => {
 
     messageCallback({ detail: { data: part3 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(1);
+    expect(vm.backlog).toHaveLength(1);
     messageCallback({ detail: { data: part4 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(2);
-    expect(wrapper.vm.backlog[1].rawMsg).toBe(message.trimEnd());
+    expect(vm.backlog).toHaveLength(2);
+    expect(vm.backlog[1].rawMsg).toBe(message.trimEnd());
   });
 
   it('should merge truncated 4-byte utf-8 character messages', async() => {
     jest.clearAllMocks();
     const wrapper = await shallowMount(ContainerLogs, getDefaultOptions());
+    const vm = wrapper.vm as unknown as ContainerLogsInstance;
     // Contains 4-byte utf-8 character message with one character truncation
     const message = '𐀀𐀁𐀂𐀃\n';
     const arr = Buffer.from(message);
@@ -160,15 +176,15 @@ describe('component: ContainerLogs', () => {
     const part1 = arr.slice(0, 5).toString('base64');
     const part2 = arr.slice(5).toString('base64');
 
-    const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
+    const messageCallback = addEventListener.mock.calls.find(([e]: [string, unknown]) => e === 'message')?.[1] as (event: { detail: { data: string } }) => void;
 
     messageCallback({ detail: { data: part1 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(0);
+    expect(vm.backlog).toHaveLength(0);
     messageCallback({ detail: { data: part2 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(1);
-    expect(wrapper.vm.backlog[0].rawMsg).toBe(message.trimEnd());
+    expect(vm.backlog).toHaveLength(1);
+    expect(vm.backlog[0].rawMsg).toBe(message.trimEnd());
 
     // Truncate at the sixth byte
     const part3 = arr.slice(0, 6).toString('base64');
@@ -176,11 +192,11 @@ describe('component: ContainerLogs', () => {
 
     messageCallback({ detail: { data: part3 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(1);
+    expect(vm.backlog).toHaveLength(1);
     messageCallback({ detail: { data: part4 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(2);
-    expect(wrapper.vm.backlog[1].rawMsg).toBe(message.trimEnd());
+    expect(vm.backlog).toHaveLength(2);
+    expect(vm.backlog[1].rawMsg).toBe(message.trimEnd());
 
     // Truncate at the seventh byte
     const part5 = arr.slice(0, 7).toString('base64');
@@ -188,10 +204,10 @@ describe('component: ContainerLogs', () => {
 
     messageCallback({ detail: { data: part5 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(2);
+    expect(vm.backlog).toHaveLength(2);
     messageCallback({ detail: { data: part6 } });
     await nextTick();
-    expect(wrapper.vm.backlog).toHaveLength(3);
-    expect(wrapper.vm.backlog[2].rawMsg).toBe(message.trimEnd());
+    expect(vm.backlog).toHaveLength(3);
+    expect(vm.backlog[2].rawMsg).toBe(message.trimEnd());
   });
 });

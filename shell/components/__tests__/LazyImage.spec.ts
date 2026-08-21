@@ -1,6 +1,14 @@
 import { mount } from '@vue/test-utils';
 import LazyImage from '@shell/components/LazyImage.vue';
 
+/**
+ * `IntersectionObserverCallback` is declared as `(entries, observer) => void`, but
+ * `LazyImage` only reads the entries, so these tests call it with one argument and
+ * with a partial entry. Describe that narrower signature rather than fabricating an
+ * observer and a full `IntersectionObserverEntry`.
+ */
+const asEntriesOnly = (callback: unknown) => callback as (entries: Partial<IntersectionObserverEntry>[]) => void;
+
 describe('component: LazyImage.vue', () => {
   const initialSrc = 'initial.jpg';
   const src = 'test.jpg';
@@ -13,7 +21,7 @@ describe('component: LazyImage.vue', () => {
 
   it('renders the initial source image', () => {
     const wrapper = mount(LazyImage, {
-      propsData: {
+      props: {
         initialSrc,
         src,
         errorSrc
@@ -27,17 +35,17 @@ describe('component: LazyImage.vue', () => {
 
   it('does not load the main src image if not in viewport', async() => {
     const wrapper = mount(LazyImage, {
-      propsData: {
+      props: {
         initialSrc,
         src,
         errorSrc
       },
     });
 
-    const callback = window.IntersectionObserver.mock.calls[0][0];
+    const callback = jest.mocked(window.IntersectionObserver).mock.calls[0][0];
 
     // eslint-disable-next-line node/no-callback-literal
-    callback([{ isIntersecting: false }]);
+    asEntriesOnly(callback)([{ isIntersecting: false }]);
     await wrapper.vm.$nextTick();
 
     const img = wrapper.find('img');
@@ -47,7 +55,7 @@ describe('component: LazyImage.vue', () => {
 
   it('loads the main src image when it enters the viewport', async() => {
     const wrapper = mount(LazyImage, {
-      propsData: {
+      props: {
         initialSrc,
         src,
         errorSrc
@@ -55,10 +63,10 @@ describe('component: LazyImage.vue', () => {
     });
 
     // Manually trigger the intersection observer
-    const callback = window.IntersectionObserver.mock.calls[0][0];
+    const callback = jest.mocked(window.IntersectionObserver).mock.calls[0][0];
 
     // eslint-disable-next-line node/no-callback-literal
-    callback([{ isIntersecting: true }]);
+    asEntriesOnly(callback)([{ isIntersecting: true }]);
 
     await wrapper.vm.$nextTick();
 
@@ -69,7 +77,7 @@ describe('component: LazyImage.vue', () => {
 
   it('loads the error image if the main src image fails to load', async() => {
     const wrapper = mount(LazyImage, {
-      propsData: {
+      props: {
         initialSrc,
         src,
         errorSrc
@@ -77,10 +85,10 @@ describe('component: LazyImage.vue', () => {
     });
 
     // Manually trigger the intersection observer
-    const callback = window.IntersectionObserver.mock.calls[0][0];
+    const callback = jest.mocked(window.IntersectionObserver).mock.calls[0][0];
 
     // eslint-disable-next-line node/no-callback-literal
-    callback([{ isIntersecting: true }]);
+    asEntriesOnly(callback)([{ isIntersecting: true }]);
 
     await wrapper.vm.$nextTick();
 
@@ -95,7 +103,7 @@ describe('component: LazyImage.vue', () => {
 
   it('loads a new src image if the src prop changes', async() => {
     const wrapper = mount(LazyImage, {
-      propsData: {
+      props: {
         initialSrc,
         src,
         errorSrc
@@ -103,10 +111,10 @@ describe('component: LazyImage.vue', () => {
     });
 
     // Manually trigger the intersection observer
-    const callback = window.IntersectionObserver.mock.calls[0][0];
+    const callback = jest.mocked(window.IntersectionObserver).mock.calls[0][0];
 
     // eslint-disable-next-line node/no-callback-literal
-    callback([{ isIntersecting: true }]);
+    asEntriesOnly(callback)([{ isIntersecting: true }]);
 
     await wrapper.vm.$nextTick();
 

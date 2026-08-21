@@ -62,7 +62,7 @@ describe('appModal', () => {
   });
 
   it('sets a width for the modal container', async() => {
-    const container = document.querySelector('.modal-container');
+    const container = document.querySelector('.modal-container') as HTMLElement;
 
     expect(container).toBeTruthy();
     expect(container?.style.width).toBe('600px');
@@ -70,7 +70,7 @@ describe('appModal', () => {
 
   it('sets a percentage width for the modal container', async() => {
     await wrapper.setProps({ width: '50%' });
-    const container = document.querySelector('.modal-container');
+    const container = document.querySelector('.modal-container') as HTMLElement;
 
     expect(container).toBeTruthy();
     expect(container?.style.width).toBe('50%');
@@ -82,7 +82,7 @@ describe('appModal', () => {
     consoleErrorSpy.mockImplementation(() => {});
 
     await wrapper.setProps({ width: '200px' });
-    const container = document.querySelector('.modal-container');
+    const container = document.querySelector('.modal-container') as HTMLElement;
 
     expect(container).toBeTruthy();
     expect(container?.style.width).toBe('200px');
@@ -96,7 +96,7 @@ describe('appModal', () => {
     consoleErrorSpy.mockImplementation(() => {});
 
     await wrapper.setProps({ width: 'FAIL' });
-    const container = document.querySelector('.modal-container');
+    const container = document.querySelector('.modal-container') as HTMLElement;
 
     expect(container).toBeTruthy();
     expect(container?.style.width).toBe('600px');

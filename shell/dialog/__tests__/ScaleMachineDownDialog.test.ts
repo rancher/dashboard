@@ -33,19 +33,18 @@ const defaultResource = {
 };
 
 describe('component: ScaleMachineDownDialog', () => {
-  const createWrapper = (propsData = {}, mocks = {}) => {
+  const createWrapper = (props = {}, mocks = {}) => {
     return shallowMount(ScaleMachineDownDialog, {
-      propsData: {
+      props: {
         resources: [defaultResource],
-        ...propsData
+        ...props
       },
       global: {
         mocks: {
           ...defaultMocks,
           ...mocks
         },
-        stubs:      defaultStubs,
-        directives: { 'clean-html': true }
+        stubs: defaultStubs,
       }
     });
   };

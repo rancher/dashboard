@@ -1,10 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import FleetSummaryGraph from '@shell/components/formatter/FleetSummaryGraph.vue';
 import { FLEET } from '@shell/config/types';
-import { ExtendedVue, Vue } from 'vue/types/vue';
-import { DefaultProps } from 'vue/types/options';
-
-const FleetSummaryGraphComponent = FleetSummaryGraph as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>;
 
 function makeRow({
   type = FLEET.GIT_REPO,
@@ -38,8 +34,8 @@ describe('component: FleetSummaryGraph', () => {
         desiredReady: 7,
         ready:        7,
       };
-      const wrapper = shallowMount(FleetSummaryGraphComponent, {
-        propsData: {
+      const wrapper = shallowMount(FleetSummaryGraph, {
+        props: {
           row: makeRow({
             resourceCounts,
             targetClusters: [{ id: 'cluster-1' }],
@@ -56,8 +52,8 @@ describe('component: FleetSummaryGraph', () => {
         ready:        2,
         modified:     1,
       };
-      const wrapper = shallowMount(FleetSummaryGraphComponent, {
-        propsData: {
+      const wrapper = shallowMount(FleetSummaryGraph, {
+        props: {
           row: makeRow({
             type:           FLEET.HELM_OP,
             resourceCounts,
@@ -74,8 +70,8 @@ describe('component: FleetSummaryGraph', () => {
         desiredReady: 5,
         ready:        5,
       };
-      const wrapper = shallowMount(FleetSummaryGraphComponent, {
-        propsData: {
+      const wrapper = shallowMount(FleetSummaryGraph, {
+        props: {
           row: makeRow({
             resourceCounts,
             targetClusters:                 [{ id: 'cluster-1' }],
@@ -99,8 +95,8 @@ describe('component: FleetSummaryGraph', () => {
       };
       const mockFn = jest.fn().mockReturnValue(perClusterData);
 
-      const wrapper = shallowMount(FleetSummaryGraphComponent, {
-        propsData: {
+      const wrapper = shallowMount(FleetSummaryGraph, {
+        props: {
           row:       makeRow({ statusResourceCountsForCluster: mockFn }),
           clusterId: 'cluster-1',
         },
@@ -111,7 +107,7 @@ describe('component: FleetSummaryGraph', () => {
     });
 
     it('returns empty object when status.resourceCounts is undefined', () => {
-      const wrapper = shallowMount(FleetSummaryGraphComponent, { propsData: { row: makeRow() } });
+      const wrapper = shallowMount(FleetSummaryGraph, { props: { row: makeRow() } });
 
       expect((wrapper.vm as any).summary).toStrictEqual({});
     });
@@ -119,8 +115,8 @@ describe('component: FleetSummaryGraph', () => {
 
   describe('show', () => {
     it('returns true when stateParts exist and row has targetClusters', () => {
-      const wrapper = shallowMount(FleetSummaryGraphComponent, {
-        propsData: {
+      const wrapper = shallowMount(FleetSummaryGraph, {
+        props: {
           row: makeRow({
             resourceCounts: {
               desiredReady: 5,
@@ -135,8 +131,8 @@ describe('component: FleetSummaryGraph', () => {
     });
 
     it('returns false when stateParts exist but targetClusters is empty', () => {
-      const wrapper = shallowMount(FleetSummaryGraphComponent, {
-        propsData: {
+      const wrapper = shallowMount(FleetSummaryGraph, {
+        props: {
           row: makeRow({
             resourceCounts: {
               desiredReady: 5,
@@ -151,8 +147,8 @@ describe('component: FleetSummaryGraph', () => {
     });
 
     it('returns true for FLEET.CLUSTER type even without targetClusters', () => {
-      const wrapper = shallowMount(FleetSummaryGraphComponent, {
-        propsData: {
+      const wrapper = shallowMount(FleetSummaryGraph, {
+        props: {
           row: makeRow({
             type:           FLEET.CLUSTER,
             resourceCounts: {
@@ -167,7 +163,7 @@ describe('component: FleetSummaryGraph', () => {
     });
 
     it('returns false when resourceCounts is empty', () => {
-      const wrapper = shallowMount(FleetSummaryGraphComponent, { propsData: { row: makeRow({ targetClusters: [{ id: 'cluster-1' }] }) } });
+      const wrapper = shallowMount(FleetSummaryGraph, { props: { row: makeRow({ targetClusters: [{ id: 'cluster-1' }] }) } });
 
       expect((wrapper.vm as any).show).toBeFalsy();
     });
@@ -175,8 +171,8 @@ describe('component: FleetSummaryGraph', () => {
 
   describe('stateParts', () => {
     it('filters out keys starting with "desired"', () => {
-      const wrapper = shallowMount(FleetSummaryGraphComponent, {
-        propsData: {
+      const wrapper = shallowMount(FleetSummaryGraph, {
+        props: {
           row: makeRow({
             resourceCounts: {
               desiredReady: 5,
@@ -193,8 +189,8 @@ describe('component: FleetSummaryGraph', () => {
     });
 
     it('filters out entries with value 0', () => {
-      const wrapper = shallowMount(FleetSummaryGraphComponent, {
-        propsData: {
+      const wrapper = shallowMount(FleetSummaryGraph, {
+        props: {
           row: makeRow({
             resourceCounts: {
               desiredReady: 5,

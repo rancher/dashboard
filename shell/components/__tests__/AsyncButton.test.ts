@@ -1,6 +1,18 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
 
+/**
+ * `AsyncButton.vue` is a plain-JS SFC, so `vue-tsc` cannot infer its computed block
+ * and `describedbyId` is missing from the public instance type.
+ */
+const describedbyIdOf = (wrapper: { vm: unknown }): string => (wrapper.vm as { describedbyId: string }).describedbyId;
+
+/** The callback `AsyncButton` passes as the sole payload of its `click` event. */
+type ClickCallback = (result: boolean | string) => void;
+
+/** `emitted()` reports payloads as `unknown[]`; this event always carries the callback. */
+const clickCallbackOf = (payloads: unknown[][] | undefined): ClickCallback => (payloads as [[ClickCallback]])[0][0];
+
 describe('component: AsyncButton', () => {
   it('should render appropriately with default config', () => {
     const mockExists = jest.fn().mockReturnValue(true);
@@ -62,15 +74,17 @@ describe('component: AsyncButton', () => {
 
     wrapper.find('button').trigger('click');
 
+    const cb = clickCallbackOf(wrapper.emitted('click'));
+
     expect(wrapper.emitted('click')).toHaveLength(1);
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.WAITING);
     expect(wrapper.vm.isSpinning).toBe(true);
     expect(wrapper.vm.appearsDisabled).toBe(true);
     // testing cb function has been emitted
-    expect(typeof wrapper.emitted('click')![0][0]).toBe('function');
+    expect(typeof cb).toBe('function');
 
     // trigger the cb function so that we test state changes on AsyncButton
-    wrapper.emitted('click')![0][0](true);
+    cb(true);
 
     expect(spyDone).toHaveBeenCalledWith(true);
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.SUCCESS);
@@ -101,12 +115,14 @@ describe('component: AsyncButton', () => {
 
     wrapper.find('button').trigger('click');
 
+    const cb = clickCallbackOf(wrapper.emitted('click'));
+
     expect(wrapper.emitted('click')).toHaveLength(1);
     // testing cb function has been emitted
-    expect(typeof wrapper.emitted('click')![0][0]).toBe('function');
+    expect(typeof cb).toBe('function');
 
     // trigger the cb function so that we test state changes on AsyncButton
-    wrapper.emitted('click')![0][0](false);
+    cb(false);
 
     expect(spyDone).toHaveBeenCalledWith(false);
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.ERROR);
@@ -135,12 +151,14 @@ describe('component: AsyncButton', () => {
 
     wrapper.find('button').trigger('click');
 
+    const cb = clickCallbackOf(wrapper.emitted('click'));
+
     expect(wrapper.emitted('click')).toHaveLength(1);
     // testing cb function has been emitted
-    expect(typeof wrapper.emitted('click')![0][0]).toBe('function');
+    expect(typeof cb).toBe('function');
 
     // trigger the cb function so that we test state changes on AsyncButton
-    wrapper.emitted('click')![0][0]('cancelled');
+    cb('cancelled');
 
     expect(spyDone).toHaveBeenCalledWith('cancelled');
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.ACTION);
@@ -181,7 +199,7 @@ describe('component: AsyncButton', () => {
     // rest of the checks
     expect(itemRole).toBe('button');
     expect(itemAriaDisabled).toBe('true');
-    expect(item.find('span[data-testid="async-btn-display-label"]').attributes('id')).toBe(wrapper.vm.describedbyId);
+    expect(item.find('span[data-testid="async-btn-display-label"]').attributes('id')).toBe(describedbyIdOf(wrapper));
     expect(item.find('i').attributes('alt')).toBeDefined();
   });
 });

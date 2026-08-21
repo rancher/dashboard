@@ -1,10 +1,37 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import KubeconfigClusters from '@shell/components/formatter/KubeconfigClusters.vue';
 
+interface MockClusterReference {
+  label: string;
+  /** The component declares `location?: object`; the tests also exercise an explicit `null`. */
+  location?: object | null;
+}
+
+type RowProp = InstanceType<typeof KubeconfigClusters>['$props']['row'];
+
+/**
+ * `KubeconfigClusters` declares `location?: object`, which excludes the explicit
+ * `null` a deleted cluster produces and which the template already handles. Build
+ * the fixtures against the shape the tests need and coerce at the prop boundary.
+ */
+const asRow = (clusters: MockClusterReference[]): RowProp => ({ id: 'test-row', sortedReferencedClusters: clusters }) as RowProp;
+
+/**
+ * `allClusters` and `remainingCount` are `<script setup>` bindings that are not
+ * re-exported via `defineExpose`, so they are absent from the component's public
+ * instance type even though @vue/test-utils surfaces them on `wrapper.vm`.
+ */
+interface KubeconfigClustersInternals {
+  allClusters: MockClusterReference[];
+  remainingCount: number;
+}
+
+const internalsOf = (wrapper: { vm: unknown }): KubeconfigClustersInternals => wrapper.vm as KubeconfigClustersInternals;
+
 describe('component: KubeconfigClusters', () => {
   const MAX_DISPLAY = 25;
 
-  const createCluster = (label: string, hasLocation = true) => ({
+  const createCluster = (label: string, hasLocation = true): MockClusterReference => ({
     label,
     location: hasLocation ? { name: 'cluster-detail', params: { cluster: label } } : null
   });
@@ -15,9 +42,9 @@ describe('component: KubeconfigClusters', () => {
 
   const defaultMocks = { t: (key: string, args: Record<string, unknown>) => `+ ${ args.remainingCount } more` };
 
-  const mountComponent = (clusters: unknown[] = [], mocks = defaultMocks) => {
+  const mountComponent = (clusters: MockClusterReference[] = [], mocks = defaultMocks) => {
     return mount(KubeconfigClusters, {
-      props:  { row: { id: 'test-row', sortedReferencedClusters: clusters } },
+      props:  { row: asRow(clusters) },
       global: {
         mocks,
         stubs: { 'router-link': RouterLinkStub }
@@ -105,21 +132,21 @@ describe('component: KubeconfigClusters', () => {
         }
       });
 
-      expect(wrapper.vm.allClusters).toStrictEqual([]);
+      expect(internalsOf(wrapper).allClusters).toStrictEqual([]);
     });
 
     it('should calculate remainingCount as 0 when clusters are at or below limit', () => {
       const clusters = createClusters(MAX_DISPLAY);
       const wrapper = mountComponent(clusters);
 
-      expect(wrapper.vm.remainingCount).toBe(0);
+      expect(internalsOf(wrapper).remainingCount).toBe(0);
     });
 
     it('should calculate correct remainingCount when clusters exceed limit', () => {
       const clusters = createClusters(MAX_DISPLAY + 15);
       const wrapper = mountComponent(clusters);
 
-      expect(wrapper.vm.remainingCount).toBe(15);
+      expect(internalsOf(wrapper).remainingCount).toBe(15);
     });
   });
 });
