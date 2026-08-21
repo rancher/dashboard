@@ -170,12 +170,6 @@ export default defineComponent({
 </script>
 
 <template>
-  <!--
-    Only offer the paginate fn when we're actually paginating. LabeledSelect's `canPaginate`
-    keys off `paginate` + `paginationEnabled(resourceType)`, so passing it unconditionally would
-    re-enable server-side pagination for an SSP-registered type even when `paginateMode` forced
-    ALL_RESOURCES - dropping the mapped `allOfType` options in favour of raw, unmapped pages.
-  -->
   <LabeledSelect
     v-bind="labelSelectAttributes"
     :loading="$fetchState.pending"
