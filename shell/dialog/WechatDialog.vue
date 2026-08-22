@@ -1,9 +1,15 @@
 <script>
+import { useModalTitleId } from '@components/utils/modalTitle';
+
 // i18n-ignore footer.wechat.modalText, footer.wechat.modalText2
 export default {
   emits: ['close'],
 
   name: 'WechatModal',
+
+  setup() {
+    return { modalTitleId: useModalTitleId() };
+  },
 
   methods: {
     close() {
@@ -15,7 +21,9 @@ export default {
 
 <template>
   <div class="wechat-modal">
-    <h1>{{ t('footer.wechat.modalText') }}</h1>
+    <h1 :id="modalTitleId">
+      {{ t('footer.wechat.modalText') }}
+    </h1>
     <h1>{{ t('footer.wechat.modalText2') }}</h1>
     <div class="qr-img" />
     <div>

@@ -4,11 +4,16 @@ import Group from '@shell/components/nav/Group';
 import { isMac } from '@shell/utils/platform';
 import { BOTH, TYPE_MODES } from '@shell/store/type-map';
 import { COUNT } from '@shell/config/types';
+import { useModalTitleId } from '@components/utils/modalTitle';
 
 export default {
   emits: ['close'],
 
   components: { Group },
+
+  setup() {
+    return { modalTitleId: useModalTitleId() };
+  },
 
   data() {
     return {
@@ -86,7 +91,9 @@ export default {
       {{ t('nav.resourceSearch.filteringDescription') }}
     </p>
     <div class="dialog-title">
-      <div>{{ t('nav.resourceSearch.label') }}</div>
+      <div :id="modalTitleId">
+        {{ t('nav.resourceSearch.label') }}
+      </div>
       <p>{{ t('nav.resourceSearch.prompt') }}</p>
     </div>
     <div class="search-box">
