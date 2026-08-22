@@ -11,6 +11,7 @@ exports[`component: Filters rendering & initial state should render with default
       <array-list-stub
         a11ylabel=""
         addallowed="true"
+        addbtnarialabel=""
         addclass=""
         adddisabled="false"
         addicon=""

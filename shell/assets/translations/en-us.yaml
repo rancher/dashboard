@@ -159,7 +159,9 @@ generic:
     key: Key for row {index}
     value: Value for row {index}
     remove: remove row {index}
+    keyValueRemove: Remove Key-Value pair in row {index}
     addKeyValue: Add a new Key-Value row
+    addBtnAriaLabel: "{label} in a Key-Value input"
     readKeyValue: read  Key-Values from file
     genericAddRow: Add a new row
     arrayList: Array list input
@@ -3271,7 +3273,10 @@ fleet:
       description1: The root folder is used by default. Fleet will scan recursively all folders and subfolders to find fleet.yaml files.
       description2: You can provide multiple different directories. You can also add subpaths to specify different YAML config file paths.
       ariaLabel: Enter paths for Git Repo
+      inputAriaLabel: Enter path {index} for Git Repo
+      removeBtn: Remove Path {index}
       placeholder: e.g. /directory/in/your/repo
+      addBtnAriaLabel: Add Path for Git Repo
       addLabel: Add Path
       enableBundles: Manually specify config files subpaths (Fleet won't scan subfolders recursively to find fleet.yaml files)
       subpaths:
