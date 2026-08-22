@@ -372,7 +372,7 @@ export default {
           v-else
           :class="{[customizations.logoClass]: !!customizations.logoClass}"
           :file-name="brandLogo"
-          :alt="t('login.landscapeAlt')"
+          :alt="t('login.logoAlt', { vendor })"
         />
         <h1 class="text-center login-welcome">
           {{ t(customizations.welcomeLabelKey, {vendor}) }}
@@ -532,7 +532,7 @@ export default {
         class="col span-6 landscape"
         data-testid="login-landscape__img"
         file-name="login-landscape.svg"
-        :alt="t('login.landscapeAlt')"
+        alt=""
       />
     </div>
   </div>

@@ -394,7 +394,7 @@ about:
   title: About
   versions:
     downloadImages: "Download {listName} images list"
-    downloadCli: "Download CLI for {os}"
+    downloadCli: "Download CLI for {os}: {file}"
     githubRepo: "Open GitHub repository for the {name} component"
     title: Versions
     component: Component
@@ -4546,7 +4546,7 @@ login:
   login: Login
   howdy: Howdy!
   welcome: Welcome to {vendor}
-  landscapeAlt: Landscape image
+  logoAlt: '{vendor} Logo'
   loggedOut: You have been logged out.
   loggedOutSessionIdle: You've been logged out of Rancher because your session has expired. Log in again to continue.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
@@ -7316,12 +7316,14 @@ user:
         disableAfter:
           checkbox: Disable user accounts after an inactivity period (duration since last login)
           input:
+            labelDisable: Inactivity period - Disable user accounts
             label: Inactivity period
             tooltip: Uses duration units (e.g. use 30h for 30 hours)
         deleteAfter:
           checkbox: Delete user accounts after an inactivity period (duration since last login)
           input:
             label: Inactivity period
+            labelDelete: Inactivity period - Delete user accounts
             tooltip: Uses duration units (e.g. use 30h for 30 hours)
             subLabel: This value must be larger than the Disable period, if it's active
         cron:
@@ -8898,7 +8900,7 @@ oidcclient:
 action:
   ariaLabel:
     hidePass: Hide {area}
-    showPass: Reveal {area}
+    showPass: Show {area}
   clone: Clone
   disable: Disable
   download: Download YAML
@@ -9202,6 +9204,7 @@ branding:
   directoryName: Brand Asset Directory Name
   logos:
     home: Product main page
+    logoLabel: Rancher Logo
     label: Logo
     tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview
