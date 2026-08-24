@@ -1,11 +1,13 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
 
 export default class LabeledInputPo extends ComponentPo {
-  static byLabel(self: CypressChainable, label: string): LabeledInputPo {
+  // `options` is forwarded to the `.contains` lookup, so callers can e.g. pass a longer timeout when a
+  // field renders slowly (a page object built from a chainable can't apply a timeout later via self()).
+  static byLabel(self: CypressChainable, label: string, options?: GetOptions): LabeledInputPo {
     return new LabeledInputPo(
       self
-        .contains('.labeled-input', label, { includeShadowDom: true })
+        .contains('.labeled-input', label, { includeShadowDom: true, ...options })
         .find('[id^="input-"], input')
     );
   }

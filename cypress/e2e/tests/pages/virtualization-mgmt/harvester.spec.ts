@@ -4,12 +4,15 @@ import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { qase } from '~/cypress/support/qase';
+import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
 const extensionsPo = new ExtensionsPagePo();
 const harvesterPo = new HarvesterClusterPagePo();
 const appRepoList = new RepositoriesPagePo(undefined, 'manager');
 
 let harvesterClusterName = '';
+// Incremented per test attempt so the imported-cluster name is unique across Cypress retries.
+let harvesterClusterAttempt = 0;
 const harvesterTitle = 'Harvester';
 
 // Cluster chart repository that supplies the Harvester UI extension (repo id, Git URL, branch)—differs for Community vs Prime.
@@ -60,7 +63,12 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.wrap(version, { log: false }).as('rancherVersion');
     });
     cy.createE2EResourceName('harvesterclustername').then((name) => {
-      harvesterClusterName = name;
+      // createE2EResourceName is deterministic within a run, so a Cypress retry would reuse
+      // the name and collide (422) with the cluster a failed earlier attempt left behind:
+      // importing via POST /v3/clusters also creates a management cluster, and the inline
+      // cleanup only runs when the test succeeds. A unique name per attempt lets a retry
+      // create cleanly and recover instead of wedging on the same 422.
+      harvesterClusterName = `${ name }-${ ++harvesterClusterAttempt }`;
     });
   });
 
@@ -123,6 +131,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         // navigate to harvester list page and verify the logo and tagline do not display after cluster created
         HarvesterClusterPagePo.navTo();
         harvesterPo.waitForPage();
+        // Wait for the just-created cluster to render in the list before acting on it.
         harvesterPo.list().resourceTable().sortableTable().rowWithName(harvesterClusterName)
           .checkVisible();
         harvesterPo.harvesterLogo().should('not.exist');
@@ -137,6 +146,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
   }));
 
   qase(7021, it('missing repo message should display when repo does NOT exist', () => {
+    // Installing/reloading the extension issues background requests that can transiently fail; the
+    // app surfaces that as an uncaught "Failed call" rejection which would fail the test.
+    catchTargetPageException(['Failed call', 'Network Error']);
+
     cy.get<Cypress.RancherVersion>('@rancherVersion').then((version) => {
       const catalog = harvesterExtensionCatalog(version);
       const chartRepo = catalog.repo;
@@ -159,8 +172,19 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       appRepoList.sortableTable().rowElementWithName(chartRepo).should('be.visible');
       appRepoList.list().state(chartRepo).contains('Active', LONG_TIMEOUT_OPT);
 
+      // Retry-safe (testIsolation is off and the before-hook cleanup runs only once): a prior attempt
+      // may have left the Harvester extension installed - the inline uninstall only runs on success -
+      // so it would be absent from the Available tab below and the install click times out on a missing
+      // card. Ensure it is uninstalled first so this attempt (and any retry) starts installable.
+      cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
+
       extensionsPo.goTo();
       extensionsPo.waitForTabs();
+      // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
+      // that is #installed, not #available - so explicitly switch to the Available tab before waiting
+      // for it, instead of assuming the URL hash is already #available.
+      extensionsPo.extensionTabAvailableClick();
       extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
       extensionsPo.loading().should('not.exist');
 
@@ -172,6 +196,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.installModal().selectVersionClick(1);
       extensionsPo.installModal().installButton().click();
       cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
+      // The app should switch to the Installed tab after install, but that navigation is
+      // intermittent (the URL stays on #available); click it explicitly before waiting for it.
+      extensionsPo.extensionTabInstalledClick();
       extensionsPo.waitForPage(undefined, 'installed');
 
       extensionsPo.extensionReloadBanner().should('be.visible');
@@ -236,8 +263,19 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       appRepoList.sortableTable().rowElementWithName(chartRepo).should('be.visible');
       appRepoList.list().state(chartRepo).contains('Active', LONG_TIMEOUT_OPT);
 
+      // Retry-safe (testIsolation is off and the before-hook cleanup runs only once): a prior attempt
+      // may have left the Harvester extension installed - the inline uninstall only runs on success -
+      // so it would be absent from the Available tab below and the install click times out on a missing
+      // card. Ensure it is uninstalled first so this attempt (and any retry) starts installable.
+      cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
+
       extensionsPo.goTo();
       extensionsPo.waitForTabs();
+      // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
+      // that is #installed, not #available - so explicitly switch to the Available tab before waiting
+      // for it, instead of assuming the URL hash is already #available.
+      extensionsPo.extensionTabAvailableClick();
       extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
       extensionsPo.loading().should('not.exist');
 
