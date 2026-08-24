@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 import { shallowMount, Wrapper } from '@vue/test-utils';
 import CodeMirror from '@shell/components/CodeMirror.vue';
-import { _EDIT, _YAML } from '@shell/config/query-params';
+import { _EDIT, _VIEW, _YAML } from '@shell/config/query-params';
 
 // eslint-disable-next-line jest/no-disabled-tests
 describe('component: CodeMirror.vue', () => {
@@ -88,6 +88,35 @@ describe('component: CodeMirror.vue', () => {
       keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
 
       expect(keyMapBox.exists()).toBe(false);
+    });
+  });
+
+  describe('keyboard tab navigation', () => {
+    const mountWithMode = (mode: string) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      propsData: { ...mountOptions.propsData, mode },
+    });
+
+    it('takes a read-only editor out of the tab order once ready', async() => {
+      const readOnlyWrapper = mountWithMode(_VIEW);
+      const inputField = { tabIndex: 0 };
+      const codeMirrorRef = { refresh: jest.fn(), getInputField: () => inputField };
+
+      readOnlyWrapper.vm.onReady(codeMirrorRef);
+      await nextTick();
+
+      expect(inputField.tabIndex).toBe(-1);
+    });
+
+    it('keeps an editable editor in the tab order', async() => {
+      const editWrapper = mountWithMode(_EDIT);
+      const inputField = { tabIndex: 0 };
+      const codeMirrorRef = { refresh: jest.fn(), getInputField: () => inputField };
+
+      editWrapper.vm.onReady(codeMirrorRef);
+      await nextTick();
+
+      expect(inputField.tabIndex).toBe(0);
     });
   });
 });

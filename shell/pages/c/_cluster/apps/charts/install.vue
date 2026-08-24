@@ -442,6 +442,9 @@ export default {
       showValuesComponent:                    true,
       showQuestions:                          true,
       showSlideIn:                            false,
+      // The element that opened the chart info drawer, so focus can return to it
+      // when the drawer closes (keyboard accessibility).
+      slideInTrigger:                         null,
       shownReadmeWindows:                     [],
       showCommandStep:                        false,
       showCustomRegistryInput:                false,
@@ -882,6 +885,16 @@ export default {
 
     async setImagePullSecretDataTrigger() {
       await this.setImagePullSecretData();
+    },
+
+    // When the chart info drawer opens, move keyboard focus into it so Tab
+    // navigation continues inside the panel rather than jumping to the editor.
+    // `preventScroll` stops the browser scrolling the off-screen panel into
+    // view, which otherwise yanks/animates the rest of the page.
+    showSlideIn(neu) {
+      if (neu) {
+        this.$nextTick(() => this.$refs.slideInPanel?.focus?.({ preventScroll: true }));
+      }
     },
 
     /*
@@ -1610,6 +1623,30 @@ export default {
       this.shownReadmeWindows.push(this.readmeWindowName);
     },
 
+    toggleSlideIn(ev) {
+      if (this.showSlideIn) {
+        this.closeSlideIn();
+      } else {
+        // Remember the trigger so focus can return to it when the drawer closes.
+        this.slideInTrigger = ev?.currentTarget || null;
+        this.showSlideIn = true;
+      }
+    },
+
+    closeSlideIn() {
+      if (!this.showSlideIn) {
+        return;
+      }
+
+      this.showSlideIn = false;
+      // Return focus to the button that opened the drawer so keyboard users
+      // aren't dropped back at the top of the document.
+      this.$nextTick(() => {
+        this.slideInTrigger?.focus?.();
+        this.slideInTrigger = null;
+      });
+    },
+
     updateStep(stepName, update) {
       const step = this.steps.find((step) => step.name === stepName);
 
@@ -1955,7 +1992,7 @@ export default {
               type="button"
               class="btn bg-primary btn-sm"
               :disabled="!hasReadme || showingReadmeWindow"
-              @click="showSlideIn = !showSlideIn"
+              @click="toggleSlideIn"
             >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
@@ -1996,7 +2033,7 @@ export default {
             <button
               type="button"
               class="btn bg-primary btn-sm"
-              @click="showSlideIn = !showSlideIn"
+              @click="toggleSlideIn"
             >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
@@ -2203,8 +2240,12 @@ export default {
       </template>
     </Wizard>
     <div
+      ref="slideInPanel"
       class="slideIn"
+      tabindex="-1"
       :class="{'hide': false, 'slideIn__show': showSlideIn}"
+      :inert="!showSlideIn || null"
+      @keydown.esc="closeSlideIn"
     >
       <h2 class="slideIn__header">
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
@@ -2212,13 +2253,23 @@ export default {
           <div
             v-clean-tooltip="t('catalog.install.slideIn.dock')"
             class="slideIn__header__button"
-            @click="showSlideIn = false; showReadmeWindow()"
+            role="button"
+            tabindex="0"
+            :aria-label="t('catalog.install.slideIn.dock')"
+            @click="closeSlideIn(); showReadmeWindow()"
+            @keydown.enter.prevent="closeSlideIn(); showReadmeWindow()"
+            @keydown.space.prevent="closeSlideIn(); showReadmeWindow()"
           >
             <i class="icon icon-dock" />
           </div>
           <div
             class="slideIn__header__button"
-            @click="showSlideIn = false"
+            role="button"
+            tabindex="0"
+            :aria-label="t('generic.close')"
+            @click="closeSlideIn"
+            @keydown.enter.prevent="closeSlideIn"
+            @keydown.space.prevent="closeSlideIn"
           >
             <i class="icon icon-close" />
           </div>
@@ -2458,6 +2509,10 @@ export default {
       display: flex;
       flex: 1;
       overflow: auto;
+      // Reserve the scrollbar space so focusing an editor doesn't shift the panes.
+      scrollbar-gutter: stable;
+      // Room for the editor's focus outline so it isn't clipped at the edges.
+      padding: 2px;
     }
   }
 

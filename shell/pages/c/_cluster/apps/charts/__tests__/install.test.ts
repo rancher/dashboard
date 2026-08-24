@@ -408,6 +408,56 @@ describe('page: Install', () => {
     });
   });
 
+  describe('chart info drawer accessibility', () => {
+    it('is inert while closed so keyboard navigation skips its off-screen content', async() => {
+      const wrapper = mountInstall({ data: () => ({ showSlideIn: false }) });
+
+      // inert removes the closed (off-screen) drawer from the tab order / a11y tree
+      expect(wrapper.find('.slideIn').attributes('inert')).toBeDefined();
+
+      await wrapper.setData({ showSlideIn: true });
+
+      // once open it must be interactive again
+      expect(wrapper.find('.slideIn').attributes('inert')).toBeUndefined();
+    });
+
+    it('opening the drawer moves keyboard focus into the panel', async() => {
+      const wrapper = mountInstall({ data: () => ({ showSlideIn: false }) });
+      const focus = jest.spyOn(wrapper.find('.slideIn').element as HTMLElement, 'focus');
+
+      await wrapper.setData({ showSlideIn: true });
+      await wrapper.vm.$nextTick();
+
+      // preventScroll stops the browser yanking the off-screen panel into view
+      expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    });
+
+    it('closes the drawer when Escape is pressed inside it', async() => {
+      const wrapper = mountInstall({ data: () => ({ showSlideIn: true }) });
+
+      await wrapper.find('.slideIn').trigger('keydown.esc');
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.showSlideIn).toBe(false);
+    });
+
+    it('closing the drawer returns focus to the element that opened it', async() => {
+      const wrapper = mountInstall({ data: () => ({ showSlideIn: false }) });
+      const trigger = { focus: jest.fn() };
+
+      wrapper.vm.toggleSlideIn({ currentTarget: trigger });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.showSlideIn).toBe(true);
+
+      wrapper.vm.closeSlideIn();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.showSlideIn).toBe(false);
+      expect(trigger.focus).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('finish()', () => {
     const createFinishWrapper = (overrides: Record<string, any> = {}) => {
       const mockDoAction = jest.fn().mockResolvedValue({

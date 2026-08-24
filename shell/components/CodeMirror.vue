@@ -149,7 +149,10 @@ export default {
         const codeMirrorEl = this.codeMirrorRef?.getInputField();
 
         if (codeMirrorEl) {
-          codeMirrorEl.tabIndex = neu ? -1 : 0;
+          // A read-only editor is a preview, not an input - keep it out of the
+          // tab order so keyboard navigation skips over it instead of getting
+          // trapped inside (it has nothing to edit and swallows Tab).
+          codeMirrorEl.tabIndex = this.isDisabled || neu ? -1 : 0;
         }
       },
       immediate: true
@@ -214,6 +217,17 @@ export default {
       this.$nextTick(() => {
         codeMirrorRef.refresh();
         this.codeMirrorRef = codeMirrorRef;
+
+        // The tabIndex watcher runs before the editor is ready, so read-only
+        // editors need to be taken out of the tab order once we have a handle
+        // on the input field (see the watcher for rationale).
+        if (this.isDisabled) {
+          const codeMirrorEl = codeMirrorRef?.getInputField?.();
+
+          if (codeMirrorEl) {
+            codeMirrorEl.tabIndex = -1;
+          }
+        }
       });
       this.$emit('onReady', codeMirrorRef);
     },
