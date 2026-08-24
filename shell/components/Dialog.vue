@@ -82,36 +82,38 @@ export default {
     @close="closeDialog(false)"
     @before-open="beforeOpen"
   >
-    <div class="modal-dialog">
-      <h4>
-        {{ title }}
-      </h4>
-      <slot />
-      <div class="dialog-buttons mt-20">
-        <slot name="buttons" />
-        <div v-if="!$slots.buttons">
-          <button
-            class="btn role-secondary"
-            @click="closeDialog(false)"
-          >
-            {{ t('generic.cancel') }}
-          </button>
-          <button
-            v-if="!mode"
-            class="btn role-primary ml-10"
-            @click="closeDialog(true)"
-          >
-            {{ t('generic.ok') }}
-          </button>
-          <AsyncButton
-            v-else
-            :mode="mode"
-            class="ml-10"
-            @click="ok"
-          />
+    <template #default="{ titleId }">
+      <div class="modal-dialog">
+        <h4 :id="titleId">
+          {{ title }}
+        </h4>
+        <slot />
+        <div class="dialog-buttons mt-20">
+          <slot name="buttons" />
+          <div v-if="!$slots.buttons">
+            <button
+              class="btn role-secondary"
+              @click="closeDialog(false)"
+            >
+              {{ t('generic.cancel') }}
+            </button>
+            <button
+              v-if="!mode"
+              class="btn role-primary ml-10"
+              @click="closeDialog(true)"
+            >
+              {{ t('generic.ok') }}
+            </button>
+            <AsyncButton
+              v-else
+              :mode="mode"
+              class="ml-10"
+              @click="ok"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </template>
   </app-modal>
 </template>
 
