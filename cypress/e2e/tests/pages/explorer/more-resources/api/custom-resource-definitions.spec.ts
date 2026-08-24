@@ -20,6 +20,13 @@ describe('CustomResourceDefinitions', { testIsolation: false, tags: ['@explorer'
     });
 
     it('can create a crd and see it in list view', () => {
+      // Idempotent across retries (testIsolation is off): attempt 1 can create the CRD (201) and then
+      // still fail on the list assertion below (list lag). On the retry the create then returns 409
+      // because the CRD already exists, so a plain retry can never pass. Delete any leftover first and
+      // wait for it to clear, so every attempt starts clean and the create returns 201.
+      cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName, false);
+      cy.waitForRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName, (resp: any) => resp?.status === 404, 20, { failOnStatusCode: false });
+
       ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } } );
 
       CustomResourceDefinitionsPagePo.navTo();

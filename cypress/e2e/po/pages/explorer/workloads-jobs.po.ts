@@ -1,8 +1,7 @@
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { navToWorkloadTypeViaSideMenu } from '@/cypress/e2e/po/side-bars/workload-side-nav';
 import { BaseDetailPagePo } from '~/cypress/e2e/po/pages/base/base-detail-page.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export class WorkloadsJobsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
@@ -18,12 +17,7 @@ export class WorkloadsJobsListPagePo extends BaseListPagePo {
   }
 
   static navTo(clusterId = 'local') {
-    const burgerMenu = new BurgerMenuPo();
-    const sideNav = new ProductNavPo();
-
-    burgerMenu.goToCluster(clusterId);
-    sideNav.navToSideMenuGroupByLabel('Workloads');
-    sideNav.navToSideMenuEntryByLabel('Jobs');
+    navToWorkloadTypeViaSideMenu(clusterId, 'Jobs');
   }
 }
 

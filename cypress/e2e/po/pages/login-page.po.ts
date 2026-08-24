@@ -54,6 +54,55 @@ export class LoginPagePo extends PagePo {
     return new ComponentPo('[data-testid="login-confirmation-accept-button"]', this.self());
   }
 
+  /**
+   * Selectors that indicate the login page has rendered past its loading spinner. Kept in sync with
+   * the accessors above/below: welcomeMessage (.login-welcome), username, useLocal and
+   * confirmationAcceptButton.
+   */
+  static readonly FORM_READY_SELECTOR = [
+    '.login-welcome',
+    '[data-testid="local-login-username"]',
+    '[data-testid="login-useLocal"]',
+    '[data-testid="login-confirmation-accept-button"]',
+  ].join(', ');
+
+  /**
+   * [CREATE ISSUE TO INVESTIGATE] The login page's async fetch (shell/pages/auth/login.vue) awaits
+   * settings/auth-provider requests with no timeout or retry and shows a <Loading> spinner while
+   * pending; if one of those requests hangs the page spins forever and the login form never renders.
+   * The app should time out / retry / surface an error rather than spinning indefinitely.
+   *
+   * Guard the shared login flow against that hang WITHOUT changing the happy path: poll for the login
+   * page to render past the spinner and, only if it never does within a normal load window (~10s),
+   * reload to re-fire the fetch. When the page loads normally this returns as soon as the form is
+   * present and the caller's flow runs unchanged. Uses DOM inspection (not a retrying assertion) so a
+   * missing form triggers recovery instead of failing the command.
+   */
+  ensureFormReady(poll = 0, reloads = 0): void {
+    cy.get('body').then(($body) => {
+      const rendered = $body.find(LoginPagePo.FORM_READY_SELECTOR).length > 0;
+
+      if (rendered) {
+        return; // page rendered past the spinner - proceed with the normal flow
+      }
+
+      if (poll < 20) {
+        // Still within a normal load window (~10s) - wait and re-check without reloading.
+        cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+
+        return this.ensureFormReady(poll + 1, reloads);
+      }
+
+      if (reloads < 2) {
+        // Genuinely stuck on the spinner - reload to re-fire the login page's fetch.
+        cy.reload();
+
+        return this.ensureFormReady(0, reloads + 1);
+      }
+      // Give up recovering; the caller's assertions surface the real failure.
+    });
+  }
+
   welcomeMessage() {
     return this.self(MEDIUM_TIMEOUT_OPT).find('.login-welcome');
   }

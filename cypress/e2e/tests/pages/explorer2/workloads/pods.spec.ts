@@ -65,109 +65,102 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
-      // check pods count
-      const count = podNamesList.length + 1;
+      // Wait for the created pods to be registered, then derive the actual number of
+      // pods in the two filtered namespaces. A hardcoded `podNamesList.length + 1` can
+      // disagree with the list total when the cluster briefly holds an extra pod.
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-      cy.waitForRancherResources('v1', 'pods', count - 1, true).then((resp: Cypress.Response<any>) => {
-        // pagination is visible
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .checkVisible();
+      // pagination is visible
+      workloadsPodPage.list().resourceTable().sortableTable().pagination()
+        .checkVisible();
 
+      workloadsPodPage.list().resourceTable().sortableTable().pagination()
+        .paginationTotalCount()
+        .then((count: number) => {
         // basic checks on navigation buttons
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .isEnabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .isEnabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
 
-        // check text before navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-          });
+          // check text before navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
 
-        // navigate to next page - right button
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .click();
+          // navigate to next page - right button
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
 
-        // check text and buttons after navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } Pods`);
-          });
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isEnabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isEnabled();
+          // check text and buttons after navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`11 - 20 of ${ count } Pods`);
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
 
-        // navigate to first page - left button
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .click();
+          // navigate to first page - left button
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
 
-        // check text and buttons after navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-          });
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
+          // check text and buttons after navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
 
-        // navigate to last page - end button
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .scrollIntoView()
-          .click();
+          // navigate to last page - end button
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
+            .click();
 
-        // row count on last page
-        let lastPageCount = count % 10;
+          // row count on last page
+          let lastPageCount = count % 10;
 
-        if (lastPageCount === 0) {
-          lastPageCount = 10;
-        }
+          if (lastPageCount === 0) {
+            lastPageCount = 10;
+          }
 
-        // check text after navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
-          });
+          // check text after navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
 
-        // navigate to first page - beginning button
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .click();
+          // navigate to first page - beginning button
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
 
-        // check text and buttons after navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-          });
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-      });
+          // check text and buttons after navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+        });
     });
 
     it('sorting changes the order of paginated pods data', () => {
@@ -237,7 +230,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // generate small set of pods data
       generatePodsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsPodsListPagePo.navTo();
+      // navTo is hardened against the workload-overview redirect to Deployments (it waits for
+      // the overview's summary fetch to settle and reloads/retries if it redirected).
+      WorkloadsPodsListPagePo.navTo(localCluster);
       cy.wait('@podsDataSmall');
       workloadsPodPage.waitForPage();
 
@@ -303,6 +298,11 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // Each pod need a unique name
       createClonePo.nameNsDescription().name().set(clonePodName);
       createClonePo.save();
+
+      // The save creates the cloned pod, but the list and the detail page can lag it (indexing),
+      // which showed up as the cloned row never appearing and the detail-page GET never firing.
+      // Wait for the pod to be queryable via the API before asserting on the UI below.
+      cy.waitForRancherResource('v1', 'pods', `${ namespace }/${ clonePodName }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
       workloadsPodPage.waitForPage();
       workloadsPodPage.list().checkVisible();

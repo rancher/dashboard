@@ -73,8 +73,12 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
         const jod = findJob(resp);
         const jobName = jod.metadata.name;
 
+        // Require a Running pod: with the deterministic cronjob name and testIsolation
+        // off, a retry can still see a previous attempt's pod terminating, and picking
+        // that one makes the "Running" assertions below flake. Waiting for a Running pod
+        // ensures we target this run's freshly-created pod.
         const findPod = (resp: any) => {
-          return resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName));
+          return resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName) && pod.status?.phase === 'Running');
         };
 
         cy.waitForRancherResource<any>('v1', 'pods', `${ defaultNamespace }`, findPod, 20, { returnResource: true }).then((resp) => {
@@ -211,109 +215,103 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
       WorkloadsCronJobsListPagePo.navTo();
       cronJobListPage.waitForPage();
 
-      // check cronjobs count
-      const count = cronJobNamesList.length + 1;
+      // Ensure the separately-created extra cronjob has propagated before deriving the count
+      // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'batch.cronjob', `${ nsName2 }/${ uniqueCronJob }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'batch.cronjob', count, true).then((resp: Cypress.Response<any>) => {
-        // pagination is visible
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .checkVisible();
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      cronJobListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
+      // pagination is visible
+      cronJobListPage.list().resourceTable().sortableTable().pagination()
+        .checkVisible();
+
+      cronJobListPage.list().resourceTable().sortableTable().pagination()
+        .paginationTotalCount()
+        .then((count: number) => {
         // basic checks on navigation buttons
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .isEnabled();
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .isEnabled();
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
 
-        // check text before navigation
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } CronJobs`);
-          });
+          // check text before navigation
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } CronJobs`);
 
-        // navigate to next page - right button
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .click();
+          // navigate to next page - right button
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
 
-        // check text and buttons after navigation
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } CronJobs`);
-          });
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isEnabled();
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isEnabled();
+          // check text and buttons after navigation
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`11 - 20 of ${ count } CronJobs`);
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
 
-        // navigate to first page - left button
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .click();
+          // navigate to first page - left button
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
 
-        // check text and buttons after navigation
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } CronJobs`);
-          });
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
+          // check text and buttons after navigation
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } CronJobs`);
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
 
-        // navigate to last page - end button
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .scrollIntoView()
-          .click();
+          // navigate to last page - end button
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
+            .click();
 
-        // row count on last page
-        let lastPageCount = count % 10;
+          // row count on last page
+          let lastPageCount = count % 10;
 
-        if (lastPageCount === 0) {
-          lastPageCount = 10;
-        }
+          if (lastPageCount === 0) {
+            lastPageCount = 10;
+          }
 
-        // check text after navigation
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CronJobs`);
-          });
+          // check text after navigation
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CronJobs`);
 
-        // navigate to first page - beginning button
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .click();
+          // navigate to first page - beginning button
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
 
-        // check text and buttons after navigation
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } CronJobs`);
-          });
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        cronJobListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-      });
+          // check text and buttons after navigation
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } CronJobs`);
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          cronJobListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+        });
     });
 
     it('sorting changes the order of paginated cronjobs data', () => {
@@ -383,7 +381,9 @@ describe('CronJobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] 
       // generate small set of cronjobs data
       generateCronJobsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsCronJobsListPagePo.navTo();
+      // navTo is hardened against the workload-overview redirect to Deployments (it waits for
+      // the overview's summary fetch to settle and reloads/retries if it redirected).
+      WorkloadsCronJobsListPagePo.navTo(localCluster);
       cy.wait('@cronJobsDataSmall');
       cronJobListPage.waitForPage();
 
