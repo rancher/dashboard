@@ -38,9 +38,6 @@ mkdir -p tmp/
 echo "Copying source files..."
 
 # Copy the main package structure to a temporary directory for processing
-# (no trailing slash on the source: macOS/BSD cp flattens src/'s contents
-# into dst/ when the source has a trailing slash, unlike GNU cp on Linux,
-# which always nests as dst/e2e - the relative-path math below assumes nesting)
 cp -r e2e tmp/
 cp -r support tmp/
 cp base-config.ts tmp/
@@ -68,8 +65,6 @@ find tmp/ -name "*.ts" -type f | while read file; do
   fi
   
   # Replace @/cypress/ with the relative path
-  # (-i.bak + rm is used instead of bare -i for portability between BSD sed on
-  # macOS, which requires a backup-extension argument, and GNU sed on Linux)
   sed -i.bak "s|@/cypress/|${relative_path}|g" "$file"
   # Also handle @/cypress without trailing slash
   sed -i.bak "s|@/cypress|${relative_path}|g" "$file"
