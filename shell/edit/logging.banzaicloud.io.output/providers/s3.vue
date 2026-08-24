@@ -71,7 +71,6 @@ export default {
           :options="knownRegions"
           :taggable="true"
           :searchable="true"
-          :tooltip="t('logging.s3.regionTooltip')"
           data-testid="s3-region"
           :label="t('logging.s3.region')"
         />
@@ -81,7 +80,6 @@ export default {
           v-model:value="value.s3_endpoint"
           :mode="mode"
           :disabled="disabled"
-          :tooltip="t('logging.s3.endpointTooltip')"
           :label="t('logging.s3.endpoint')"
         />
       </div>
