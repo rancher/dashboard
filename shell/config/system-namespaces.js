@@ -14,5 +14,6 @@ export default [
   'tekton-pipelines',
   'compliance-operator-system',
   'istio-system',
+  'k3k-system',
   'longhorn-system',
 ];
