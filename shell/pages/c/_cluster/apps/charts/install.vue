@@ -2397,9 +2397,6 @@ export default {
       flex: 1 1 50%;
       min-width: 0;
       min-height: 0;
-      // Reserve room for CodeMirror's absolutely-positioned Shift+Escape hint so
-      // it isn't clipped by the scroll container.
-      padding-bottom: 24px;
 
       &__header {
         margin-bottom: 16px;
@@ -2411,9 +2408,7 @@ export default {
       }
 
       &__description {
-        font-weight: normal;
         color: var(--input-label);
-        margin: 0;
       }
 
       &__editor {
