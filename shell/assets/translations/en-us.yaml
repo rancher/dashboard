@@ -4452,6 +4452,7 @@ logging:
   s3:
     keyId: Key Id from Secret
     secretKey: Secret Key from Secret
+    region: Region
     endpoint: Endpoint
     bucket: Bucket
     path: Path
