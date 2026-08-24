@@ -112,6 +112,10 @@ export default {
     },
 
     codeMirrorContainerTabIndex() {
+      if (this.isDisabled) {
+        return 0;
+      }
+
       return this.isCodeMirrorFocused ? 0 : -1;
     }
   },

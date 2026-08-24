@@ -118,5 +118,26 @@ describe('component: CodeMirror.vue', () => {
 
       expect(inputField.tabIndex).toBe(0);
     });
+
+    it('sets container tabindex to 0 for a read-only editor so it can be focused', () => {
+      const readOnlyWrapper = mountWithMode(_VIEW);
+
+      expect(readOnlyWrapper.vm.codeMirrorContainerTabIndex).toBe(0);
+    });
+
+    it('sets container tabindex to -1 for an unfocused editable editor', () => {
+      const editWrapper = mountWithMode(_EDIT);
+
+      expect(editWrapper.vm.codeMirrorContainerTabIndex).toBe(-1);
+    });
+
+    it('sets container tabindex to 0 for a focused editable editor', async() => {
+      const editWrapper = mountWithMode(_EDIT);
+
+      editWrapper.vm.onFocus();
+      await nextTick();
+
+      expect(editWrapper.vm.codeMirrorContainerTabIndex).toBe(0);
+    });
   });
 });
