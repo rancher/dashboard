@@ -126,8 +126,11 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     fleetClusterDetailsPage.waitForPage(null, 'applications');
     fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-applications"]');
 
-    // check cluster labels
-    fleetClusterDetailsPage.clusterLabels().contains('foo: bar').scrollIntoView().should('be.visible');
+    // check cluster labels - re-query the label after scrolling rather than chaining `.should` onto
+    // the scrolled subject: an async re-render (e.g. the app bundles list streaming in) detaches it
+    // and Cypress errors with "subject no longer attached to the DOM" on scrollIntoView.
+    fleetClusterDetailsPage.clusterLabels().contains('foo: bar').scrollIntoView();
+    fleetClusterDetailsPage.clusterLabels().contains('foo: bar').should('be.visible');
 
     // check state
     fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 1).contains('Active');
@@ -408,6 +411,11 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
 
     fleetClusterListPage.list().resourceTable().sortableTable()
       .checkLoadingIndicatorNotVisible();
+    // Wait for the cluster to reach Active on the list before opening its detail. The detail's
+    // Applications tab loads bundledeployments; navigating before the cluster (and steve's fleet
+    // caches) are ready leaves that request hanging, and with testIsolation off the hung load
+    // sticks across every retry. The passing 'bundle manifests' describe gates on Active the same way.
+    fleetClusterListPage.resourceTableDetails('local', 1).contains('Active', LONG_TIMEOUT_OPT);
     fleetClusterListPage.goToDetailsPage('local');
     fleetClusterDetailsPage.waitForPage(null, 'applications');
     fleetClusterDetailsPage.addAppButton().click();
@@ -498,8 +506,10 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
 
   after('clean up', () => {
     if (toRemove) {
-      // delete gitrepo
-      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ workspace }`, toRemove);
+      // delete gitrepo - tolerate a non-2xx (already gone / still finalizing) like the sibling
+      // cleanup above: a failed assertion here fails the after-all hook, which is not retried and
+      // surfaces as a confusing "cy.task() must only be invoked..." cascade that skips the spec.
+      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ workspace }`, toRemove, false);
     }
   });
 });

@@ -403,6 +403,11 @@ describe('Settings', { testIsolation: false }, () => {
   });
 
   it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Reset to a known page first. testIsolation is off and this test ends deep on the
+    // cluster-create page, so on a retry the burger-menu nav below would otherwise run
+    // against a page whose side-menu never renders.
+    HomePagePo.goTo();
+
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('system-default-registry');

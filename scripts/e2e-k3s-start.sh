@@ -201,8 +201,54 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
 # ----------------------------------------------------
 
 
+# On a readiness-check failure, a Rancher pod restart is not enough: it re-reads the persisted
+# k3s/etcd state and tends to leave CAPI/RBAC/impersonation half-broken. So instead of failing the
+# step outright, tear the WHOLE environment down (k3s-uninstall) and re-run this script from scratch
+# for a genuinely clean instance, up to PROVISION_MAX times; only then fail. $1 is the reason to log.
+# Defined here (before the first readiness check that uses it) so the rancher-rollout and
+# dashboard-availability waits below can rebuild rather than hang or hard-exit.
+reprovision() {
+  local reason="$1"
+
+  if [ "$PROVISION_ROLL" -ge "$PROVISION_MAX" ]; then
+    echo "$reason - and Rancher never converged after $PROVISION_MAX full rebuilds. Failing the step."
+    kubectl -n cattle-system logs deploy/rancher --tail=120 2>/dev/null || true
+    exit 1
+  fi
+
+  echo "$reason - REBUILDING the whole environment from scratch (rebuild $((PROVISION_ROLL + 1))/$PROVISION_MAX)..."
+  kubectl -n cattle-system logs deploy/rancher --tail=60 2>/dev/null || true
+
+  if [ "$KUBE_TYPE" = "K3S" ] && [ -x /usr/local/bin/k3s-uninstall.sh ]; then
+    echo "Tearing down k3s..."
+    sudo /usr/local/bin/k3s-uninstall.sh || echo "WARN: k3s-uninstall.sh returned non-zero (continuing to reinstall)"
+  elif [ "$KUBE_TYPE" = "K3S" ]; then
+    # k3s-uninstall.sh removes itself at the end of a run (see the earlier uninstall), so a second
+    # rebuild can find it gone while a wedged reinstall never recreated it. Re-running on that dirty
+    # k3s/etcd state is exactly what keeps the rebuild from ever converging, so do a best-effort
+    # manual teardown here instead of re-running on top of the broken instance.
+    echo "WARN: /usr/local/bin/k3s-uninstall.sh missing - best-effort manual teardown so the rebuild starts clean..."
+    sudo systemctl stop k3s k3s-agent 2>/dev/null || true
+    if [ -x /usr/local/bin/k3s-killall.sh ]; then
+      sudo /usr/local/bin/k3s-killall.sh 2>/dev/null || true
+    else
+      sudo pkill -9 -f 'k3s server' 2>/dev/null || true
+      sudo pkill -9 -f 'k3s agent' 2>/dev/null || true
+      sudo pkill -9 -f 'containerd-shim' 2>/dev/null || true
+    fi
+    sudo rm -rf /var/lib/rancher/k3s /etc/rancher /run/k3s /run/flannel /var/lib/kubelet 2>/dev/null || true
+  else
+    echo "WARN: cannot cleanly tear down (KUBE_TYPE=$KUBE_TYPE) - re-running anyway"
+  fi
+
+  echo "Re-running provisioning from scratch..."
+  exec env PROVISION_ROLL=$((PROVISION_ROLL + 1)) bash "$0" "${SCRIPT_ARGS[@]}"
+}
+
 echo "Waiting for Rancher to come up.........."
-kubectl -n cattle-system rollout status deploy/rancher
+# Bound the rollout wait: a wedged Rancher deployment (e.g. stuck at 0/1 replicas) should rebuild
+# from scratch rather than hang the step until the CI job times out.
+kubectl -n cattle-system rollout status deploy/rancher --timeout=600s || reprovision "Rancher deployment did not roll out in a reasonable time"
 
 echo "Waiting for dashboard UI to be reachable.........."
 
@@ -223,8 +269,7 @@ while [ $okay -lt 20 ]; do
 done
 
 if [ "$STATUS" != "200" ]; then
-  echo "Dashboard did not become available in a reasonable time"
-  exit 1
+  reprovision "Dashboard did not become available in a reasonable time"
 fi
 
 
@@ -234,8 +279,7 @@ if [ "$OVERRIDE_UIS" == "true" ]; then
   POD_NAME=$(kubectl get pods --selector=app=rancher -n $RANCHER_NAMESPACE | tail -n 1 | cut -d ' ' -f1)
   echo "POD NAME: $POD_NAME"
   if [ "$POD_NAME" == "" ]; then
-    echo "Failed to find rancher pod"
-    exit 1
+    reprovision "Failed to find rancher pod for the dev-build UI override"
   fi
 
   # Remove root folders that container UIs
@@ -251,9 +295,16 @@ if [ "$OVERRIDE_UIS" == "true" ]; then
   kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
   kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
 
-  # Final validation
-  STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
-  echo "Status: $STATUS"
+  # Final validation - give the pod a few seconds to serve the freshly-copied build before failing.
+  # A genuinely bad dev build won't be fixed by a rebuild, so this stays a hard exit (no reprovision).
+  okay=0
+  while [ $okay -lt 12 ]; do
+    STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
+    echo "Status: $STATUS (Try: $okay)"
+    [ "$STATUS" == "200" ] && break
+    okay=$((okay+1))
+    sleep 5
+  done
 
   if [ "$STATUS" != "200" ]; then
     echo "After updating dashboard with dev build it is no longer available"
@@ -262,33 +313,6 @@ if [ "$OVERRIDE_UIS" == "true" ]; then
 fi
 
 echo "Dashboard UI is ready"
-
-# On a readiness-check failure, a Rancher pod restart is not enough: it re-reads the persisted
-# k3s/etcd state and tends to leave CAPI/RBAC/impersonation half-broken. So instead of failing the
-# step outright, tear the WHOLE environment down (k3s-uninstall) and re-run this script from scratch
-# for a genuinely clean instance, up to PROVISION_MAX times; only then fail. $1 is the reason to log.
-reprovision() {
-  local reason="$1"
-
-  if [ "$PROVISION_ROLL" -ge "$PROVISION_MAX" ]; then
-    echo "$reason - and Rancher never converged after $PROVISION_MAX full rebuilds. Failing the step."
-    kubectl -n cattle-system logs deploy/rancher --tail=120 2>/dev/null || true
-    exit 1
-  fi
-
-  echo "$reason - REBUILDING the whole environment from scratch (rebuild $((PROVISION_ROLL + 1))/$PROVISION_MAX)..."
-  kubectl -n cattle-system logs deploy/rancher --tail=60 2>/dev/null || true
-
-  if [ "$KUBE_TYPE" = "K3S" ] && [ -x /usr/local/bin/k3s-uninstall.sh ]; then
-    echo "Tearing down k3s..."
-    sudo /usr/local/bin/k3s-uninstall.sh || echo "WARN: k3s-uninstall.sh returned non-zero (continuing to reinstall)"
-  else
-    echo "WARN: cannot cleanly tear down (KUBE_TYPE=$KUBE_TYPE, /usr/local/bin/k3s-uninstall.sh missing) - re-running anyway"
-  fi
-
-  echo "Re-running provisioning from scratch..."
-  exec env PROVISION_ROLL=$((PROVISION_ROLL + 1)) bash "$0" "${SCRIPT_ARGS[@]}"
-}
 
 # wait 10 minutes (sleep 10 seconds * 60 iteration = 600 seconds = 10 minutes)
 # if it regularly takes 10 minutes we have problems...
@@ -344,6 +368,60 @@ done
 
 if [ $okay -eq $wait ]; then
   reprovision "Rancher imperative api did not become ready in a reasonable time"
+fi
+
+# --- Final active readiness probe ---------------------------------------------------------------
+# The passive pod-Running waits above are necessary but not sufficient: steve's SQL cache and the
+# per-user impersonation machinery can still hang the FIRST authenticated request, which wedges the
+# first-run setup spec on "Logging in..." (401/500/timeout) and does not self-recover. So actively
+# verify the exact failing path before handing off to the tests: log in with the bootstrap password
+# (the same POST /v1-public/login the UI uses), then do authenticated steve GETs of the two caches
+# that flake during setup and the feature tests - management.cattle.io.users (impersonation) and
+# provisioning.cattle.io.clusters (cluster list). Require 2 consecutive all-200 rounds. The probe
+# only reads (it never sets the server URL / accepts the EULA / changes the password), so it does
+# not disturb the first-run state the setup spec asserts on. If it never converges, rebuild.
+API_URL="https://$DASHBOARD_URL"
+BOOTSTRAP_PW="${CATTLE_BOOTSTRAP_PASSWORD:-password}"
+PROBE_TIMEOUT="${PROBE_TIMEOUT:-20}"
+COOKIEJAR="$(mktemp)"
+
+probe_login() {   # -> prints HTTP code; captures the session cookie in $COOKIEJAR (responseType:cookie, as the UI does)
+  curl -sk -c "$COOKIEJAR" --max-time "$PROBE_TIMEOUT" -o /dev/null -w '%{http_code}' \
+    "$API_URL/v1-public/login" -H 'content-type: application/json' \
+    -d "{\"username\":\"admin\",\"password\":\"$BOOTSTRAP_PW\",\"description\":\"e2e readiness probe\",\"type\":\"localProvider\",\"responseType\":\"cookie\"}"
+}
+PROBE_RESOURCES="${PROBE_RESOURCES:-management.cattle.io.users provisioning.cattle.io.clusters}"
+probe_get() {   # $1 = steve resource type -> prints HTTP code (200 healthy; 000/empty = hang) for an AUTHENTICATED read
+  curl -sk -b "$COOKIEJAR" --max-time "$PROBE_TIMEOUT" -o /dev/null -w '%{http_code}' "$API_URL/v1/$1"
+}
+probe_healthy() {   # a round is "good" only if EVERY probed resource returns 200; need 2 consecutive good rounds
+  local i lc res gc good bad n=0
+  for i in 1 2 3 4 5 6 ; do
+    lc=$(probe_login)
+    if [ "$lc" != "200" ] ; then echo "  probe: login -> ${lc:-timeout} (retry)"; n=0; sleep 3; continue; fi
+    good=1; bad=""
+    for res in $PROBE_RESOURCES ; do
+      gc=$(probe_get "$res")
+      [ "$gc" = "200" ] || { good=0; bad="$bad $res=${gc:-timeout}"; }
+    done
+    if [ "$good" = "1" ] ; then
+      n=$((n+1)); echo "  probe: authenticated GET [$PROBE_RESOURCES] all 200 ($n/2 good)"
+      [ "$n" -ge 2 ] && return 0
+    else
+      echo "  probe: not converged yet -$bad"; n=0
+    fi
+    sleep 3
+  done
+  return 1
+}
+
+echo "Verifying steve can serve the setup-login path AND the feature resources (users + provisioning clusters)... (provision $PROVISION_ROLL/$PROVISION_MAX)"
+if probe_healthy ; then
+  echo "Steve/RBAC healthy - proceeding."
+  rm -f "$COOKIEJAR"
+else
+  rm -f "$COOKIEJAR"
+  reprovision "Steve/RBAC wedged - login or authenticated GET never converged"
 fi
 
 echo "Rancher is ready"

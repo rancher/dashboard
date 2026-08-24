@@ -65,6 +65,10 @@ const result = await this.$shell.proxy.request({
 
 See the [Making API Calls](./node-driver/proxying.md) page for the full API reference.
 
+### CAPI-backed Provisioners
+
+Some provisioners are backed by [Rancher Turtles](https://github.com/rancher/turtles) and upstream Cluster API instead of the classic node-driver flow. See [CAPI-backed Provisioners](./capi-provisioner.md) for the concepts and `IClusterProvisioner` members specific to that style of provisioner.
+
 ## Custom Components and Models
 Rancher provides mechanisms to overwrite or create new components. You can learn how to create custom [cloud credential](./cloud-credential.md) or [machine configuration](./node-driver/machine-config.md) components in this documentation.
 
@@ -100,7 +104,19 @@ this.normanCluster.save();
 You can see a more detailed example of it [here](./hosted-provider/cluster.md).
 
 ### Models
-In addition to adding [new models](../folder-structure#models), extensions allow extending existing model by using [IClusterModelExtension](https://github.com/rancher/dashboard/tree/master/shell/core/types-provisioning.ts):
+In addition to adding [new models](../folder-structure#models), extensions can register a class implementing [`IClusterModelExtension`](https://github.com/rancher/dashboard/tree/master/shell/core/types-provisioning.ts) via `plugin.addModelExtension(type, ExtensionClass)`.
+
+> `addModelExtension` is `@experimental` — it may change or be removed in a future release.
+
+Currently, only the `provisioning.cattle.io.cluster` model actually looks up and uses a registered extension, so `type` should be `'provisioning.cattle.io.cluster'`. For a given cluster, the model picks the first registered extension whose `useFor(cluster)` returns `true` and, through it, only these things can be customized:
+
+- `availableActions` — the actions shown for the cluster in the cluster table and detail page.
+- `postDelete` — run after the cluster resource has been deleted. 
+- `parentCluster` — the group label used to group the cluster under a parent in the cluster table.
+- `get detailTabs` — which of the built-in tabs are shown/hidden on the cluster's detail page.
+- `machineProviderDisplay` — the machine provider text shown in the cluster list/detail.
+- `provisionerDisplay` — the provisioner text shown in the cluster list/detail.
+
 ```ts
 // You do not have to specify all these getters and you can refer to the file linked above for more information on each getter
 export class NewModelExtension implements IClusterModelExtension {
@@ -128,7 +144,7 @@ export class NewModelExtension implements IClusterModelExtension {
     return 'New provider';
   }
   // Specify how you want your provisioner to be displayed
-  provisionerDisplay(cluster: ICluster): string {
+  provisionerDisplay(): string {
     return 'New provisioner'
   }
 

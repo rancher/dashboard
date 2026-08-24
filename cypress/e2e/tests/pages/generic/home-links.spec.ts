@@ -5,6 +5,21 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 describe('Home Page Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   const homePage = new HomePagePo();
 
+  before(() => {
+    // The external SUSE / Rancher Prime pages load a third-party telemetry pixel (cdn.vector.co) that
+    // asynchronously throws "No visitor ID available. Load may have failed." - often LATE, in the
+    // after-all hook, after the per-test catchTargetPageException (cy.on) handler's scope has ended,
+    // and Cypress does not retry hook failures. Register a spec-wide global handler so these known
+    // third-party errors never fail this spec's hooks; only the known messages are swallowed.
+    Cypress.on('uncaught:exception', (err) => {
+      if (RANCHER_PAGE_EXCEPTIONS.some((m) => (err?.message || '').includes(m))) {
+        return false;
+      }
+
+      return undefined;
+    });
+  });
+
   // Click the support links and verify user lands on the correct page
   beforeEach(() => {
     cy.login();
@@ -71,7 +86,22 @@ describe('Home Page Support Links', { tags: ['@generic', '@adminUser', '@standar
 
     // click Rancher Prime link (replaces old Commercial Support link)
     homePage.clickSupportLink(5, true);
-    cy.origin('https://www.suse.com', () => {
+    cy.origin('https://www.suse.com', { args: { RANCHER_PAGE_EXCEPTIONS } }, ({ RANCHER_PAGE_EXCEPTIONS }) => {
+      // The suse.com telemetry pixel (cdn.vector.co) rejects asynchronously and often LATE - after
+      // this test finishes, during the spec's after-all hook. By then the per-test `cy.on` handler
+      // registered by catchTargetPageException is already torn down, and Cypress does NOT retry hook
+      // failures, so the whole spec fails. `cy.on` scopes to the current test; `Cypress.on` scoped to
+      // THIS (suse.com) secondary origin persists for the rest of the spec, so it still swallows the
+      // known third-party rejection when it finally fires in the after-all hook. This must live inside
+      // cy.origin because the primary-context handler in `before()` does not see secondary-origin errors.
+      Cypress.on('uncaught:exception', (err) => {
+        if (RANCHER_PAGE_EXCEPTIONS.some((m) => (err?.message || '').includes(m))) {
+          return false;
+        }
+
+        return undefined;
+      });
+
       cy.url().should('include', 'suse.com/products/rancher');
     });
   }));

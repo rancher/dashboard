@@ -46,19 +46,34 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     cy.wait('@createClusterMembership');
 
     clusterMembership.waitForPageWithExactUrl();
-    cy.get('body tbody').then((el) => {
-      if (el.find('tr.no-rows').is(':visible')) {
-        cy.reload();
-      }
-      clusterMembership.listElementWithName(username).should('exist');
-      clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
-      // clear new line chars and white spaces
-        const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
 
-        // no string "loading..." next to name
-        // usecase https://github.com/rancher/dashboard/issues/8804
-        expect(sanitizedName).to.equal(username);
+    // After adding the member the list can lag the create (rancher/dashboard#18846), or the row can
+    // render with a still-loading principal (#8804), so the new member isn't queryable by name yet.
+    // Reload until the row
+    // resolves to the username. The previous reload-only-when-empty check missed the "rows present
+    // but the new member's name not resolved yet" case: attempt 1 then timed out here, and because
+    // the binding was already created the retry re-added a duplicate and got stuck on the create form.
+    const reloadUntilMemberResolved = (attempt = 0) => {
+      clusterMembership.sortableTable().self().then(($table) => {
+        if ($table.find(`tbody tr:contains("${ username }")`).length === 0 && attempt < 5) {
+          cy.reload();
+          clusterMembership.waitForPageWithExactUrl();
+          cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting -- let the list re-fetch and principals resolve
+          reloadUntilMemberResolved(attempt + 1);
+        }
       });
+    };
+
+    reloadUntilMemberResolved();
+
+    clusterMembership.listElementWithName(username).should('exist');
+    clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
+      // clear new line chars and white spaces
+      const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
+
+      // no string "loading..." next to name
+      // usecase https://github.com/rancher/dashboard/issues/8804
+      expect(sanitizedName).to.equal(username);
     });
   });
   it('Clicking cancel should return to Cluster and Project members ', () => {
@@ -97,12 +112,11 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
         cy.reload();
       }
 
+      // Assert on the permissions cell with a retrying assertion (not a one-shot invoke('text')):
+      // the cell can render its permissions incrementally, so a single read can catch only the first.
       projectMembership.projectTable().rowElementWithName(username).find('td:nth-of-type(3)').first()
-        .invoke('text')
-        .then((t) => {
-          expect(t).to.include('Create Namespaces');
-          expect(t).to.include('Manage Config Maps');
-        });
+        .should('include.text', 'Create Namespaces')
+        .and('include.text', 'Manage Config Maps');
     });
   });
 });

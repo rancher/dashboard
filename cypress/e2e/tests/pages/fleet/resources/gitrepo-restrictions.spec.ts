@@ -102,6 +102,10 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
 
       fleetRestrictionsListPage.goTo();
       fleetRestrictionsListPage.waitForPage();
+      // A fresh goTo does not reliably preserve the fleet-default workspace filter, and a restriction
+      // is only listed in its own workspace - so select it explicitly (as the create test does) before
+      // acting on the row. In another workspace the row is simply absent and no retry can find it.
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Clone')
         .click();
       fleetRestrictionCreateEditPage.waitForPage('mode=clone&as=yaml');
@@ -134,6 +138,8 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
 
       fleetRestrictionsListPage.goTo();
       fleetRestrictionsListPage.waitForPage();
+      // Re-select the workspace so the restriction is listed (see the Clone test above).
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Download YAML')
         .click();
 
@@ -151,6 +157,8 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
     it('can delete a gitrepo restriction', () => {
       fleetRestrictionsListPage.goTo();
       fleetRestrictionsListPage.waitForPage();
+      // Re-select the workspace so the restriction is listed (see the Clone test above).
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetRestrictionsListPage.list().actionMenu(`${ customRestrictionName }-clone`).getMenuItem('Delete')
         .click();
       fleetRestrictionsListPage.list().resourceTable().sortableTable()

@@ -31,6 +31,10 @@ Cypress.Commands.add('login', (
     }
     const loginPage = new LoginPagePo();
 
+    // Guard the shared login flow against the login page hanging on its loading spinner (see
+    // LoginPagePo.ensureFormReady - [CREATE ISSUE TO INVESTIGATE]). No-op on the happy path.
+    loginPage.ensureFormReady();
+
     loginPage.checkIsCurrentPage(!skipNavigation);
 
     if (!skipNavigation) {
@@ -690,6 +694,63 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
     _token = token || c;
 
     return retry();
+  });
+});
+
+/**
+ * Resolve the number of resources of `resourceType` that live in `namespaces`, waiting until that
+ * filtered count is STABLE across consecutive reads before returning it.
+ *
+ * Deriving an expected list total from a single `waitForRancherResources` snapshot is racy:
+ * that command returns as soon as the cluster-wide total crosses a threshold, which does not mean
+ * every resource the test created in the filtered namespaces has propagated yet. The client-side
+ * filter then reads a premature snapshot (e.g. 23) while the list, querying with the namespace
+ * filter a moment later, renders the fully-propagated set (e.g. 24) - so the pagination-text
+ * assertion disagrees. Waiting for the filtered count to settle closes that window and also absorbs
+ * a transient extra resource that later disappears.
+ */
+Cypress.Commands.add('waitForStableFilteredResourceCount', (prefix, resourceType, namespaces, config): Cypress.Chainable => {
+  const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
+  const requiredStableReads = config?.stableReads ?? 2;
+  const maxReads = config?.maxReads ?? 30;
+  const intervalMs = config?.intervalMs ?? 1500;
+  // Do not accept a "stable" count until at least this many resources are present in the filtered
+  // namespaces. The collection list is indexed separately from single-resource GETs, so it can read
+  // low (e.g. 23) and hold there for a couple of polls before the last-created resource appears -
+  // which then stabilises at the wrong value while the UI list, querying a moment later, renders the
+  // full set (24). Requiring the minimum first closes that premature-stabilisation gap.
+  const minCount = config?.minCount ?? 0;
+
+  let _token: { value: string };
+
+  const readCount = (): Cypress.Chainable<number> => cy.request({
+    method:  'GET',
+    url,
+    headers: {
+      'x-api-csrf': _token.value,
+      Accept:       'application/json'
+    }
+  }).then((resp) => (resp.body?.data || []).filter(
+    (r: any) => namespaces.includes(r.metadata?.namespace)
+  ).length);
+
+  const poll = (prev: number, stable: number, reads: number): Cypress.Chainable<number> => readCount().then((n) => {
+    // Only count consecutive-equal reads as "stable" once the minimum has been reached.
+    const nextStable = (n === prev && n >= minCount) ? stable + 1 : 0;
+
+    if (nextStable >= requiredStableReads || reads + 1 >= maxReads) {
+      return cy.wrap(n, { log: false });
+    }
+
+    cy.wait(intervalMs); // eslint-disable-line cypress/no-unnecessary-waiting
+
+    return poll(n, nextStable, reads + 1);
+  });
+
+  return cy.getCookie('CSRF').then((c) => {
+    _token = token || c;
+
+    return poll(-1, 0, 0);
   });
 });
 
