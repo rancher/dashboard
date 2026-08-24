@@ -356,10 +356,10 @@ export default {
       /*
         The editable YAML pane shows ONLY the user's overrides - the values that
         differ from the chart defaults - mirroring `helm install --values`. The
-        full chart defaults are shown read-only in the "Effective values" pane.
-        On a fresh install this is empty; on edit it is the previously-saved
-        overrides. Keeping the editor to overrides only is what stops removed
-        keys from being sent to Helm as `null` (SURE-8554).
+        full chart defaults are shown read-only in the "Final values preview"
+        pane. On a fresh install this is empty; on edit it is the
+        previously-saved overrides. Keeping the editor to overrides only is what
+        stops removed keys from being sent to Helm as `null`.
       */
       const overrides = diff(this.versionInfo?.values || {}, this.chartValues);
 
@@ -671,7 +671,7 @@ export default {
     },
 
     /*
-      The read-only "Effective values" pane: the chart's default values merged
+      The read-only "Final values preview" pane: the chart's default values merged
       with the user's overrides from the editable pane - i.e. what Helm actually
       renders with. Recomputes live as the user edits their overrides.
     */
@@ -898,7 +898,7 @@ export default {
     },
 
     /*
-      Keep the read-only "Effective values" pane in sync. YamlEditor does not
+      Keep the read-only "Final values preview" pane in sync. YamlEditor does not
       react to its `value` prop, so push the recomputed YAML in via its ref
       whenever the overrides (or the async-loaded chart defaults) change.
     */
@@ -1430,7 +1430,7 @@ export default {
           chart defaults so chartValues stays the full effective document - the
           same shape the form produces. actionInput then diffs this against the
           defaults, so only the overrides are sent (and never `null`s for keys
-          the user removed), matching `helm install --values` (SURE-8554).
+          the user removed), matching `helm install --values`.
         */
         const overrides = jsyaml.load(this.valuesYaml) || {};
 
