@@ -1,10 +1,10 @@
-import { shallowMount, Wrapper } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 import Wizard from '@shell/components/Wizard.vue';
 import { RcButton } from '@components/RcButton';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 
 describe('component: Wizard', () => {
-  let wrapper: Wrapper<InstanceType<typeof Wizard>>;
+  let wrapper: VueWrapper<InstanceType<typeof Wizard>>;
   const steps = [
     {
       name:  'step1',
@@ -52,8 +52,8 @@ describe('component: Wizard', () => {
 
     expect(rcButtons.length).toBe(2);
     // First is Cancel, second is Next
-    expect(rcButtons.at(0).attributes('tabindex')).toStrictEqual('0');
-    expect(rcButtons.at(1).attributes('tabindex')).toStrictEqual('0');
+    expect(rcButtons.at(0)?.attributes('tabindex')).toStrictEqual('0');
+    expect(rcButtons.at(1)?.attributes('tabindex')).toStrictEqual('0');
   });
 
   it('a11y: footer buttons Cancel and Back should render with tabindex="0" on step 2', () => {
@@ -69,8 +69,8 @@ describe('component: Wizard', () => {
 
     expect(rcButtons.length).toBe(2);
     // First is Cancel, second is Back
-    expect(rcButtons.at(0).attributes('tabindex')).toStrictEqual('0');
-    expect(rcButtons.at(1).attributes('tabindex')).toStrictEqual('0');
+    expect(rcButtons.at(0)?.attributes('tabindex')).toStrictEqual('0');
+    expect(rcButtons.at(1)?.attributes('tabindex')).toStrictEqual('0');
   });
 
   it('a11y: footer button Finish should render with tabIndex=0 for keyboard focus compatibility on the final step', () => {
