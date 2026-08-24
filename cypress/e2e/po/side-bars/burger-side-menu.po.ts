@@ -26,11 +26,23 @@ export default class BurgerMenuPo extends ComponentPo {
 
   /**
    * Navigates to a cluster on a top-level side menu entry by label
+   *
+   * `local` keeps its own fixed slot at the top of the cluster area, so it is always directly
+   * clickable. Every other cluster now lives behind the search "door" (the expanded shelf shows
+   * only pinned/recent) — focus the filter to reveal the ALL CLUSTERS directory before selecting.
+   * SURE-8192.
    * @returns {Cypress.Chainable}
    */
   static burgerMenuNavToClusterbyLabel(label: string): Cypress.Chainable {
+    if (label !== 'local') {
+      this.sideMenu().should('exist').find('.clusters-search input').click();
+
+      return this.sideMenu().find('.clustersList .cluster-name').contains(label)
+        .click({ force: true });
+    }
+
     return this.sideMenu().should('exist').find('.option .cluster-name').contains(label)
-      .click();
+      .click({ force: true });
   }
 
   /**
@@ -138,10 +150,40 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
-   * Get the first cluster icon in the side menu to use for hover actions
+   * Get the local cluster icon in the side menu to use for hover actions. `local` is the always-present
+   * cluster and now sits in its own fixed `.cluster-local` slot (SURE-8192).
    */
   firstClusterIcon(): Cypress.Chainable {
-    return this.allClusters().first().find('.rancher-provider-icon');
+    return this.self().find('.cluster-local .rancher-provider-icon');
+  }
+
+  /**
+   * Focus the cluster search "door", swapping the pinned/recent shelf for the ALL CLUSTERS directory.
+   */
+  openClusterSearch(): Cypress.Chainable {
+    return this.self().find('.clusters-search input').click();
+  }
+
+  /**
+   * A row in the ALL CLUSTERS directory matched by its visible label. The directory must be open
+   * (see openClusterSearch).
+   */
+  clusterListRowByLabel(label: string): Cypress.Chainable {
+    // Exact-match the cluster name (anchored regex) so a label that is a prefix of another
+    // (e.g. "loadtest-1" vs "loadtest-10") cannot select the wrong row. SURE-8192.
+    const exact = new RegExp(`^${ label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }$`);
+
+    return this.self().find('.clustersList [data-flip] .cluster-name > p').contains(exact)
+      .closest('[data-flip]');
+  }
+
+  /**
+   * Pin a cluster from the (open) ALL CLUSTERS directory by hovering its row and clicking the pin.
+   */
+  pinClusterByLabel(label: string): Cypress.Chainable {
+    return this.clusterListRowByLabel(label).first().trigger('mouseover').find('.pin')
+      .invoke('show')
+      .click();
   }
 
   goToCluster(clusterId = 'local', toggleOpen = true) {

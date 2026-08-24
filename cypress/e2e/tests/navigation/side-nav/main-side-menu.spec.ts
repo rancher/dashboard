@@ -27,8 +27,12 @@ describe('Side Menu: main', () => {
       const sideNav = new ProductNavPo();
       const pagePoFake = new PagePo('');
 
-      // nav to project/namespaces in the fake cluster
+      // Visit the downstream cluster (so it lands in RECENT and stays visible in the shelf), then return
+      // to local. The alt-combo only lights up when there is a ready cluster to jump to that isn't the
+      // current one — `local` is excluded from that set, so we sit on local with the downstream as the
+      // jump target. SURE-8192.
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
+      pagePoFake.navToClusterMenuEntry('local');
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
 
       BurgerMenuPo.burgerMenuGetNavClusterByLabel('local').should('exist');
@@ -37,29 +41,46 @@ describe('Side Menu: main', () => {
       // press key combo
       cy.get('body').focus().type('{alt}', { release: false });
 
-      // assert that icons are displayed for the key combo
+      // assert that the key-combo (jump) icon is displayed on both the local slot and the downstream row
       BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheckByLabel('local');
       BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheckByLabel(fakeProvClusterId);
-
-      // nav to local
-      pagePoFake.navToClusterMenuEntry('local');
-
-      // assert that we are on the expected page
-      cy.url().should('include', '/local');
-      cy.url().should('include', '/projectsnamespaces');
     });
 
-    it('Local cluster should show a name and description on the side menu and display a tooltip when hovering it show the full name and description', { tags: ['@navigation', '@adminUser'] }, () => {
-      BurgerMenuPo.toggle();
-
+    it('Local cluster shows a "Management cluster" subtitle in the expanded shelf and a tooltip when collapsed', { tags: ['@navigation', '@adminUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      // we cannot assert text truncation because it always adds to the HTML the full content
-      // truncation (text-overflow: ellipsis) is just a CSS gimmick thing that adds the ... visually
-      burgerMenuPo.getClusterDescription('local').should('include', longClusterDescription);
-      burgerMenuPo.showClusterDescriptionTooltip('local');
+      // Expanded: the local slot shows the cluster name + a fixed "Management cluster" subtitle. The
+      // redesign no longer inlines the cluster's own description here (SURE-8192).
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.checkOpen();
+      burgerMenuPo.getClusterDescription('local').should('include', 'Management cluster');
+
+      // Collapsed: hovering the local icon reveals a tooltip with the cluster name.
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.checkClosed();
+      burgerMenuPo.firstClusterIcon().realHover();
       burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', 'local').and('be.visible');
-      burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', longClusterDescription).and('be.visible');
+    });
+
+    it('Pinned and unpinned cluster', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
+      const burgerMenuPo = new BurgerMenuPo();
+
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.checkOpen();
+
+      // Reveal the ALL CLUSTERS directory (the whole estate lives behind the search "door"). Using the
+      // intercepted downstream cluster keeps this deterministic regardless of the environment's real
+      // topology, and `local` is no longer pinnable (it has its own fixed slot). SURE-8192.
+      burgerMenuPo.openClusterSearch();
+      burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'false');
+
+      // Pin it — the row reflects the pinned state immediately.
+      burgerMenuPo.pinClusterByLabel(fakeProvClusterId);
+      burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'true');
+
+      // Unpin it — back to the unpinned state.
+      burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').click();
+      burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'false');
     });
   });
 
@@ -75,19 +96,15 @@ describe('Side Menu: main', () => {
       BurgerMenuPo.checkClosed();
     });
 
-    it('Can display list of available clusters', { tags: ['@navigation', '@adminUser'] }, () => {
+    it('Can display the local cluster and open the cluster directory', { tags: ['@navigation', '@adminUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      burgerMenuPo.clusterNotPinnedList().should('exist');
-    });
+      // local is always shown in its fixed slot...
+      burgerMenuPo.getClusterIcon('local').should('exist');
 
-    it('Pinned and unpinned cluster', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
-      const burgerMenuPo = new BurgerMenuPo();
-
-      burgerMenuPo.pinFirstCluster();
-      burgerMenuPo.clusterPinnedList().should('exist');
-      burgerMenuPo.unpinFirstCluster();
-      burgerMenuPo.clusterPinnedList().should('not.exist');
+      // ...and the full estate opens behind the search "door" (SURE-8192).
+      burgerMenuPo.openClusterSearch();
+      burgerMenuPo.self().find('.clustersList').should('exist');
     });
 
     it('Can display at least one menu category label', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
