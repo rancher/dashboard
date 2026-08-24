@@ -272,9 +272,10 @@ export default {
 
   .codemirror-container  {
     position: relative;
+    background-color: var(--yaml-editor-bg);
 
     .CodeMirror {
-      background-color: var(--yaml-editor-bg);
+      background: none;
       & .CodeMirror-gutters {
         background-color: var(--yaml-editor-bg);
       }

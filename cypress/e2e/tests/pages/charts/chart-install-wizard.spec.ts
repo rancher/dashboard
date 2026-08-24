@@ -79,6 +79,72 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     });
   });
 
+  describe('YAML values editor - overrides and final values panes (SURE-8554)', () => {
+    const installChartPage = new InstallChartPage();
+    const chartPage = new ChartPage();
+
+    before(() => {
+      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+        type:     'catalog.cattle.io.clusterrepo',
+        metadata: { name: testChartsRepoName },
+        spec:     {
+          clientSecret: null, gitRepo: testChartsGitRepoUrl, gitBranch: testChartsBranchName
+        }
+      });
+    });
+
+    it('shows an editable overrides pane and a read-only final values pane that stays in sync', () => {
+      ChartPage.navTo(undefined, 'rancher-demo');
+      chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
+      chartPage.goToInstall();
+
+      installChartPage.chartName().type('rancher-demo-yaml');
+      installChartPage.nextPage().editYaml();
+
+      // Both panes render with their distinct titles
+      installChartPage.overridesPane().should('be.visible').and('contain.text', 'Your overrides');
+      installChartPage.finalValuesPane().should('be.visible').and('contain.text', 'Final values');
+
+      // An override typed into the editable pane appears in the read-only final
+      // values pane (the defaults + overrides merge kept in sync via the watcher).
+      // Read the live CodeMirror instance in a retrying assertion so we wait for
+      // the async ($nextTick) sync rather than reading its value once.
+      installChartPage.overridesEditor().set('e2eTestOverride: hello-e2e\n');
+
+      installChartPage.finalValuesEditor().self().should(($cm) => {
+        const finalValues = ($cm[0] as any).CodeMirror.getValue();
+
+        expect(finalValues).to.contain('e2eTestOverride');
+        expect(finalValues).to.contain('hello-e2e');
+      });
+
+      // The editable pane holds only the overrides, not the full merged document
+      installChartPage.overridesEditor().value().should('contain', 'e2eTestOverride');
+    });
+
+    it('keeps a single full-document diff in the Compare Changes view', () => {
+      ChartPage.navTo(undefined, 'rancher-demo');
+      chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
+      chartPage.goToInstall();
+
+      installChartPage.chartName().type('rancher-demo-diff');
+      installChartPage.nextPage().editYaml();
+
+      installChartPage.overridesEditor().set('e2eTestOverride: hello-e2e\n');
+      installChartPage.compareChanges();
+
+      // The two-pane layout must not leak into diff mode - only the single diff
+      // editor is shown, comparing the full baseline against the merged values
+      installChartPage.overridesPane().should('not.exist');
+      installChartPage.finalValuesPane().should('not.exist');
+    });
+
+    after('clean up', () => {
+      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    });
+  });
+
   describe('Custom registry', () => {
     const namespacePicker = new NamespaceFilterPo();
     const installChartPage = new InstallChartPage();

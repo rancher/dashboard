@@ -1,7 +1,9 @@
 
 import { mount } from '@vue/test-utils';
+import jsyaml from 'js-yaml';
 import Install from '@shell/pages/c/_cluster/apps/charts/install.vue';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { diff } from '@shell/utils/object';
 
 const defaultStubs = {
   Loading:             true,
@@ -303,6 +305,106 @@ describe('page: Install', () => {
       wrapper.vm.addGlobalValuesTo(values);
 
       expect(values.global.imagePullSecrets).toStrictEqual(['existing-secret']);
+    });
+  });
+
+  describe('YAML values editor (overrides only) - SURE-8554', () => {
+    const versionInfoValues = {
+      image: {
+        repository: 'my/repo', tag: '1.0.0', pullPolicy: 'IfNotPresent'
+      },
+      service: {
+        port: 80, targetPort: 8086, type: 'ClusterIP'
+      },
+      persistence: { enabled: true, size: '8Gi' },
+    };
+
+    const mountWithYaml = (valuesYaml: string) => mountInstall({
+      data: () => ({
+        repo:             { spec: {} },
+        currentCluster:   null,
+        serverUrlSetting: { value: '' },
+        versionInfo:      { values: versionInfoValues },
+        chartValues:      {},
+        valuesYaml,
+      })
+    });
+
+    it('applyYamlToValues merges the edited overrides onto the chart defaults', () => {
+      const wrapper = mountWithYaml('image:\n  pullSecrets:\n    - application-collection\n');
+
+      wrapper.vm.applyYamlToValues();
+
+      expect(wrapper.vm.chartValues).toStrictEqual({
+        image: {
+          repository: 'my/repo', tag: '1.0.0', pullPolicy: 'IfNotPresent', pullSecrets: ['application-collection']
+        },
+        service: {
+          port: 80, targetPort: 8086, type: 'ClusterIP'
+        },
+        persistence: { enabled: true, size: '8Gi' },
+      });
+    });
+
+    it('sends only the overrides with no null values for keys absent from the editor', () => {
+      const wrapper = mountWithYaml('image:\n  pullSecrets:\n    - application-collection\n');
+
+      wrapper.vm.applyYamlToValues();
+
+      const sent = diff(versionInfoValues, wrapper.vm.chartValues);
+
+      expect(sent).toStrictEqual({ image: { pullSecrets: ['application-collection'] } });
+      // regression guard: removed keys must not be nulled out (the InfluxDB service.port: 0 bug)
+      expect(JSON.stringify(sent)).not.toContain('null');
+    });
+
+    it('finalYaml shows the chart defaults merged with the edited overrides', () => {
+      const wrapper = mountWithYaml('image:\n  pullSecrets:\n    - application-collection\n');
+
+      expect(jsyaml.load(wrapper.vm.finalYaml)).toStrictEqual({
+        image: {
+          repository: 'my/repo', tag: '1.0.0', pullPolicy: 'IfNotPresent', pullSecrets: ['application-collection']
+        },
+        service: {
+          port: 80, targetPort: 8086, type: 'ClusterIP'
+        },
+        persistence: { enabled: true, size: '8Gi' },
+      });
+    });
+
+    it('preserves an explicit null the user deliberately sets in their overrides', () => {
+      const wrapper = mountWithYaml('service:\n  type: null\n');
+
+      wrapper.vm.applyYamlToValues();
+
+      const sent = diff(versionInfoValues, wrapper.vm.chartValues);
+
+      expect(sent).toStrictEqual({ service: { type: null } });
+    });
+
+    it('finalYaml falls back to chart defaults when the overrides YAML is invalid', () => {
+      const wrapper = mountWithYaml(':\n  not valid: :yaml');
+
+      expect(jsyaml.load(wrapper.vm.finalYaml)).toStrictEqual(versionInfoValues);
+    });
+
+    it('Compare Changes toggles the diff view without rewriting the overrides-only editor', async() => {
+      const wrapper = mountWithYaml('image:\n  pullSecrets:\n    - application-collection\n');
+      const overrides = wrapper.vm.valuesYaml;
+
+      // switching in from the YAML view enables the diff and keeps overrides-only content
+      wrapper.vm.formYamlOption = 'DIFF';
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.showDiff).toBe(true);
+      expect(wrapper.vm.valuesYaml).toBe(overrides);
+
+      // switching back to the YAML editor disables the diff view
+      wrapper.vm.formYamlOption = 'YAML';
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.showDiff).toBe(false);
+      expect(wrapper.vm.valuesYaml).toBe(overrides);
     });
   });
 

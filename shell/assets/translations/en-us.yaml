@@ -1341,6 +1341,12 @@ catalog:
       chartOptions: Edit Options
       valuesYaml: Edit YAML
       diff: Compare Changes
+      overrides:
+        label: Your overrides
+        hint: Only these values override the chart defaults and are saved.
+      finalValues:
+        label: Final values preview
+        hint: Chart defaults plus your overrides.
     slideIn:
       dock: Dock to shell
     steps:
