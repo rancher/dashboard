@@ -1,4 +1,5 @@
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+import { reply } from '../workload-reply';
 
 const deploymentsGetResponseSmallSet = {
   type:         'collection',
@@ -51,25 +52,6 @@ const deploymentsGetResponseSmallSet = {
     }
   }]
 };
-
-function reply(statusCode: number, body: any) {
-  return (req) => {
-    // The workload overview requests a per-type summary from this same collection URL (…&summaryonly).
-    // This mock is list-shaped (has `data`, no `summary`), so answering the summary request would make
-    // the overview treat it as an invalid response and redirect to the deployments list. Only mock the
-    // list request; let the summary request reach the real backend so the overview renders normally.
-    if (req.url.includes('summaryonly')) {
-      req.continue();
-
-      return;
-    }
-
-    req.reply({
-      statusCode,
-      body
-    });
-  };
-}
 
 export function generateDeploymentsDataSmall(): Cypress.Chainable<Response> {
   return cy.intercept('GET', '/v1/apps.deployments?*', reply(200, deploymentsGetResponseSmallSet)).as('deploymentsDataSmall');

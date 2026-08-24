@@ -4,6 +4,7 @@ import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/n
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
@@ -95,7 +96,7 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
 
       // Repository details step - wait for the step to finish rendering before filling it, so a
       // slow wizard transition does not flake the first field lookup.
-      cy.contains('.labeled-input', 'Repository URL', LONG_TIMEOUT_OPT).should('be.visible');
+      LabeledInputPo.byLabel(cy.get('body'), 'Repository URL', LONG_TIMEOUT_OPT).checkVisible();
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
       gitRepoCreatePage.setGitRepoPath(paths[0]);

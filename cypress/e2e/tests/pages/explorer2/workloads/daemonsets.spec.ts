@@ -37,7 +37,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     workloadsDaemonsetsListPage.baseResourceList().masthead().create();
 
     // create a new daemonset
-    const workloadsDaemonsetsEditPage = new WorkLoadsDaemonsetsEditPagePo(localCluster);
+    const workloadsDaemonsetsEditPage = new WorkLoadsDaemonsetsEditPagePo(daemonsetName);
 
     workloadsDaemonsetsEditPage.resourceDetail().createEditView().nameNsDescription()
       .name()
@@ -59,13 +59,11 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     workloadsDaemonsetsListPage.list().actionMenu(daemonsetName).getMenuItem('Edit Config')
       .click();
 
-    // edit daemonset
-    // Opening the edit form is a SPA navigation + fetch. Clicking a tab before the form has mounted
-    // its tab bar leaves #DaemonSet unresolved and times out across retries (gating on the list
-    // loading indicator above isn't enough - the race is the edit form mounting). Wait for the edit
-    // route to commit and the tab bar to render before clicking a tab.
-    cy.url().should('include', `apps.daemonset/default/${ daemonsetName }`);
-    cy.get('.dashboard-root').find('#DaemonSet', LONG_TIMEOUT_OPT).should('be.visible');
+    // edit daemonset - opening the edit form is a SPA navigation + fetch; wait for the edit route to
+    // commit and the tab bar to render before clicking a tab (gating on the list loading indicator
+    // above isn't enough - the race is the edit form mounting).
+    workloadsDaemonsetsEditPage.waitForPage();
+    workloadsDaemonsetsEditPage.waitForTab('#DaemonSet', LONG_TIMEOUT_OPT);
     workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
     workloadsDaemonsetsEditPage.clickTab('#upgrading');
     workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
