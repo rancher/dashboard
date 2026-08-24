@@ -47,6 +47,7 @@ import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { generateRandomAlphaString } from '@shell/utils/string';
 import { RcSeparator } from '@components/RcSeparator';
+import { RcDrawer, RcDrawerCard, RcDrawerMessage } from '@components/RcDrawer';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -101,6 +102,9 @@ export default {
     SelectOrCreateAuthSecret,
     PrivateRegistry,
     RcSeparator,
+    RcDrawer,
+    RcDrawerCard,
+    RcDrawerMessage,
   },
 
   mixins: [
@@ -489,6 +493,16 @@ export default {
 
   computed: {
     ...mapGetters({ inStore: 'catalog/inStore' }),
+
+    chartInfoActions() {
+      return [{
+        label:  this.t('catalog.install.slideIn.dock'),
+        action: () => {
+          this.showSlideIn = false;
+          this.showReadmeWindow();
+        }
+      }];
+    },
 
     monitoringChartWarning() {
       const annotations = this.version?.annotations || {};
@@ -2092,33 +2106,40 @@ export default {
         </div>
       </template>
     </Wizard>
+    <!--
+      Deliberately not opened through the slide-in API: this is a reference
+      panel you read while filling in the form, so it stays docked beside the
+      wizard rather than becoming a modal drawer over it. It uses RcDrawer for
+      its chrome so it looks like every other drawer.
+    -->
     <div
       class="slideIn"
-      :class="{'hide': false, 'slideIn__show': showSlideIn}"
+      :class="{'slideIn__show': showSlideIn}"
+      :inert="!showSlideIn"
+      @keydown.escape="showSlideIn = false"
     >
-      <h2 class="slideIn__header">
-        {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
-        <div class="slideIn__header__buttons">
-          <div
-            v-clean-tooltip="t('catalog.install.slideIn.dock')"
-            class="slideIn__header__button"
-            @click="showSlideIn = false; showReadmeWindow()"
+      <!--
+        `close` is bound because this drawer is not in a slide-in: it is
+        rendered inline here, so there is nothing above it providing a closer.
+      -->
+      <RcDrawer
+        :title="t('catalog.install.steps.helmValues.chartInfo.label')"
+        :modal="false"
+        :actions="chartInfoActions"
+        @close="showSlideIn = false"
+      >
+        <template #body>
+          <RcDrawerCard v-if="hasReadme">
+            <ChartReadme :version-info="versionInfo" />
+          </RcDrawerCard>
+          <RcDrawerMessage
+            v-else
+            icon="icon-book"
           >
-            <i class="icon icon-dock" />
-          </div>
-          <div
-            class="slideIn__header__button"
-            @click="showSlideIn = false"
-          >
-            <i class="icon icon-close" />
-          </div>
-        </div>
-      </h2>
-      <ChartReadme
-        v-if="hasReadme"
-        :version-info="versionInfo"
-        class="chart-content__tabs"
-      />
+            {{ t('catalog.install.steps.helmValues.chartInfo.noReadme') }}
+          </RcDrawerMessage>
+        </template>
+      </RcDrawer>
     </div>
   </div>
 </template>
@@ -2223,62 +2244,24 @@ export default {
   }
 
   .slideIn {
-    $slideout-width: 35%;
+    // Same width and edge as SlideInPanelManager's panel, so this drawer does
+    // not read as a different size to every other one. Viewport-relative
+    // because this panel is nested inside the wizard's content column, so a
+    // percentage here would resolve against that column instead.
+    $slideout-width: 33vw;
 
-    border-left: var(--header-border-size) solid var(--header-border);
+    border-left: 1px solid var(--border);
     position: absolute;
     top: 0;
     right: -$slideout-width;
     height: 100%;
-    background-color: var(--topmenu-bg);
+    background-color: var(--body-bg);
     width: $slideout-width;
     z-index: 10;
     display: flex;
     flex-direction: column;
 
-    padding: 10px;
-
     transition: right .5s ease;
-
-    &__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      &__buttons {
-        display: flex;
-      }
-
-      &__button {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2px;
-        > i {
-          font-size: 20px;
-          opacity: 0.5;
-        }
-        &:hover {
-          background-color: var(--wm-closer-hover-bg);
-        }
-      }
-    }
-
-    .chart-content__tabs {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-
-      height: 0;
-
-      padding-bottom: 10px;
-
-      :deep() .chart-readmes {
-        flex: 1;
-        overflow: auto;
-      }
-    }
 
     &__show {
       right: 0;

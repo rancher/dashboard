@@ -14,24 +14,31 @@ jest.mock('@shell/utils/uiplugins', () => ({
 
 const t = (key: string): string => key;
 
+const $store = {
+  getters:  { 'prefs/theme': 'light' },
+  dispatch: jest.fn(),
+  commit:   jest.fn(),
+};
+
 describe('component: PluginInfoPanel', () => {
   let wrapper: VueWrapper<any>;
 
-  const mountComponent = () => {
-    return shallowMount(PluginInfoPanel, { global: { mocks: { t } } });
+  const mountComponent = (info: Record<string, any> = {}) => {
+    return shallowMount(PluginInfoPanel, {
+      props:  { info },
+      global: { mocks: { t, $store } },
+    });
   };
 
   describe('panelActions', () => {
-    beforeEach(() => {
+    it('should be empty for an extension with no versions', () => {
       wrapper = mountComponent();
-    });
 
-    it('should be empty if no info is provided', () => {
       expect(wrapper.vm.panelActions).toStrictEqual([]);
     });
 
     it('should show install action if not installed and installable versions exist', () => {
-      wrapper.vm.info = { installed: false, installableVersions: [{ version: '1.0.0' }] };
+      wrapper = mountComponent({ installed: false, installableVersions: [{ version: '1.0.0' }] });
       wrapper.vm.infoVersion = '1.0.0';
       const actions = wrapper.vm.panelActions;
 
@@ -40,21 +47,21 @@ describe('component: PluginInfoPanel', () => {
     });
 
     it('should be empty if not installed and no installable versions exist', () => {
-      wrapper.vm.info = { installed: false, installableVersions: [] };
+      wrapper = mountComponent({ installed: false, installableVersions: [] });
       const actions = wrapper.vm.panelActions;
 
       expect(actions).toHaveLength(0);
     });
 
     it('should show uninstall action if installed and not builtin', () => {
-      wrapper.vm.info = { installed: true, builtin: false };
+      wrapper = mountComponent({ installed: true, builtin: false });
       const actions = wrapper.vm.panelActions;
 
       expect(actions.some((action: any) => action.action === 'uninstall')).toBe(true);
     });
 
     it('should show upgrade action for a higher active version', () => {
-      wrapper.vm.info = { installed: true, installedVersion: '1.0.0' };
+      wrapper = mountComponent({ installed: true, installedVersion: '1.0.0' });
       wrapper.vm.infoVersion = '1.1.0';
       const actions = wrapper.vm.panelActions;
 
@@ -62,7 +69,7 @@ describe('component: PluginInfoPanel', () => {
     });
 
     it('should show downgrade action for a lower active version', () => {
-      wrapper.vm.info = { installed: true, installedVersion: '1.0.0' };
+      wrapper = mountComponent({ installed: true, installedVersion: '1.0.0' });
       wrapper.vm.infoVersion = '0.9.0';
       const actions = wrapper.vm.panelActions;
 
@@ -70,7 +77,7 @@ describe('component: PluginInfoPanel', () => {
     });
 
     it('should not show upgrade/downgrade if active version is same as installed', () => {
-      wrapper.vm.info = { installed: true, installedVersion: '1.0.0' };
+      wrapper = mountComponent({ installed: true, installedVersion: '1.0.0' });
       wrapper.vm.infoVersion = '1.0.0';
       const actions = wrapper.vm.panelActions;
 
@@ -80,12 +87,8 @@ describe('component: PluginInfoPanel', () => {
   });
 
   describe('getVersionLabel', () => {
-    beforeEach(() => {
-      wrapper = mountComponent();
-    });
-
     it('should return the version label', () => {
-      wrapper.vm.info = { installed: false };
+      wrapper = mountComponent({ installed: false });
       const version = { version: '1.0.0' };
       const label = wrapper.vm.getVersionLabel(version);
 
@@ -93,7 +96,7 @@ describe('component: PluginInfoPanel', () => {
     });
 
     it('should append (current) for the installed version', () => {
-      wrapper.vm.info = { installed: true, installedVersion: '1.0.0' };
+      wrapper = mountComponent({ installed: true, installedVersion: '1.0.0' });
       const version = { version: '1.0.0' };
       const label = wrapper.vm.getVersionLabel(version);
 
@@ -102,51 +105,43 @@ describe('component: PluginInfoPanel', () => {
   });
 
   describe('errorMessage', () => {
-    beforeEach(() => {
-      wrapper = mountComponent();
-    });
-
     it('should return installedError if present', () => {
-      wrapper.vm.info = { installedError: 'install error' };
+      wrapper = mountComponent({ installedError: 'install error' });
 
       expect(wrapper.vm.errorMessage).toBe('install error');
     });
 
     it('should return translated helmError if present', () => {
-      wrapper.vm.info = { helmError: true };
+      wrapper = mountComponent({ helmError: true });
 
       expect(wrapper.vm.errorMessage).toBe('plugins.helmError');
     });
 
     it('should return null if no error', () => {
-      wrapper.vm.info = {};
+      wrapper = mountComponent({});
 
       expect(wrapper.vm.errorMessage).toBeNull();
     });
   });
 
   describe('warningMessages', () => {
-    beforeEach(() => {
-      wrapper = mountComponent();
-    });
-
     it('should include deprecated message if the extension chart has the deprecated annotation', () => {
-      wrapper.vm.info = { chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' } }] } };
+      wrapper = mountComponent({ chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' } }] } });
 
       expect(wrapper.vm.warningMessages).toContain('plugins.deprecatedExtension');
     });
 
     it('should include incompatibilityMessage if present', () => {
-      wrapper.vm.info = { incompatibilityMessage: 'incompatibility error' };
+      wrapper = mountComponent({ incompatibilityMessage: 'incompatibility error' });
 
       expect(wrapper.vm.warningMessages).toContain('incompatibility error');
     });
 
     it('should include both deprecated and incompatibility messages if both are present', () => {
-      wrapper.vm.info = {
+      wrapper = mountComponent({
         chart:                  { versions: [{ annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' } }] },
         incompatibilityMessage: 'incompatibility error'
-      };
+      });
 
       expect(wrapper.vm.warningMessages).toStrictEqual([
         'plugins.deprecatedExtension',
@@ -155,7 +150,7 @@ describe('component: PluginInfoPanel', () => {
     });
 
     it('should return an empty array if neither is present', () => {
-      wrapper.vm.info = { chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.CERTIFIED]: 'rancher' } }] } };
+      wrapper = mountComponent({ chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.CERTIFIED]: 'rancher' } }] } });
 
       expect(wrapper.vm.warningMessages).toStrictEqual([]);
     });

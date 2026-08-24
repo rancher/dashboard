@@ -13,5 +13,4 @@ export interface ConfigProps {
 export interface ResourceDetailDrawerProps {
     resource: any;
     defaultTab?: string;
-    onClose?: () => void;
 }

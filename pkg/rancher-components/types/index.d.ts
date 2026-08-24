@@ -16,6 +16,9 @@ export const RcDropdown: DefineComponent;
 export const RcDropdownItem: DefineComponent;
 export const RcDropdownSeparator: DefineComponent;
 export const RcDropdownTrigger: DefineComponent;
+export const RcDrawer: DefineComponent;
+export const RcDrawerCard: DefineComponent;
+export const RcDrawerMessage: DefineComponent;
 export const RcItemCard: DefineComponent;
 export const RcSeparator: DefineComponent;
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Drawer from '@shell/components/Drawer/Chrome.vue';
+import RcDrawer from '@components/RcDrawer/RcDrawer.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -7,14 +7,12 @@ import YamlTab, { Props as YamlProps } from '@shell/components/Drawer/ResourceDe
 import { useDefaultConfigTabProps, useDefaultYamlTabProps, useResourceDetailDrawerProvider } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import ConfigTab from '@shell/components/Drawer/ResourceDetailDrawer/ConfigTab.vue';
 import { computed, ref } from 'vue';
-import RcButton from '@components/RcButton/RcButton.vue';
 import StateDot from '@shell/components/StateDot/index.vue';
 import { ResourceDetailDrawerProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 
 const editBttnDataTestId = 'save-configuration-bttn';
 const componentTestid = 'configuration-drawer-tabbed';
 const props = defineProps<ResourceDetailDrawerProps>();
-const emit = defineEmits(['close']);
 const store = useStore();
 const i18n = useI18n(store);
 
@@ -38,29 +36,31 @@ const isConfig = computed(() => {
   return activeTab.value === 'config-tab';
 });
 
-const action = computed(() => {
-  const ariaLabel = isConfig.value ? i18n.t('component.drawer.resourceDetailDrawer.ariaLabel.editConfig') : i18n.t('component.drawer.resourceDetailDrawer.ariaLabel.editYaml');
-  const label = isConfig.value ? i18n.t('component.drawer.resourceDetailDrawer.ariaLabel.editConfig') : i18n.t('component.drawer.resourceDetailDrawer.ariaLabel.editYaml');
-  const action = isConfig.value ? () => props.resource.goToEdit() : () => props.resource.goToEditYaml();
-
-  return {
-    ariaLabel,
-    label,
-    action
-  };
-});
-
 const canEdit = computed(() => {
   return isConfig.value ? props.resource.canEdit : props.resource.canEditYaml;
+});
+
+const actions = computed(() => {
+  if (!canEdit.value) {
+    return [];
+  }
+
+  // No ariaLabel: it would duplicate the visible label, leaving a screen
+  // reader to announce the same words twice.
+  return [{
+    label:  isConfig.value ? i18n.t('component.drawer.resourceDetailDrawer.editConfig') : i18n.t('component.drawer.resourceDetailDrawer.editYaml'),
+    testid: editBttnDataTestId,
+    action: isConfig.value ? () => props.resource.goToEdit() : () => props.resource.goToEditYaml()
+  }];
 });
 
 useResourceDetailDrawerProvider();
 
 </script>
 <template>
-  <Drawer
-    :ariaTarget="title"
-    @close="emit('close')"
+  <RcDrawer
+    :title="title"
+    :actions="actions"
   >
     <template #title>
       <StateDot
@@ -88,17 +88,5 @@ useResourceDetailDrawerProvider();
         />
       </Tabbed>
     </template>
-    <template #additional-actions>
-      <RcButton
-        v-if="canEdit"
-        variant="primary"
-        size="large"
-        :aria-label="action.ariaLabel"
-        :data-testid="editBttnDataTestId"
-        @click="action.action"
-      >
-        {{ action.label }}
-      </RcButton>
-    </template>
-  </Drawer>
+  </RcDrawer>
 </template>

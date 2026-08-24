@@ -6,6 +6,13 @@ export interface SlideInPanelState {
   isClosing: boolean;
   component: Component | null;
   componentProps: Record<string, any>;
+  /**
+   * Bumped on every open. The panel component stays mounted for the length of
+   * the slide-out, so without this as a `key` a reopen inside that window
+   * patches the existing instance instead of remounting it, and any panel that
+   * loads its data in a lifecycle hook keeps showing the previous resource.
+   */
+  openCount: number;
 }
 
 let closeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -14,14 +21,16 @@ const state = (): SlideInPanelState => ({
   isOpen:         false,
   isClosing:      false,
   component:      null,
-  componentProps: {}
+  componentProps: {},
+  openCount:      0
 });
 
 const getters: GetterTree<SlideInPanelState, any> = {
   isOpen:         (state) => state.isOpen,
   isClosing:      (state) => state.isClosing,
   component:      (state) => state.component,
-  componentProps: (state) => state.componentProps
+  componentProps: (state) => state.componentProps,
+  openCount:      (state) => state.openCount
 };
 
 const mutations: MutationTree<SlideInPanelState> = {
@@ -35,6 +44,7 @@ const mutations: MutationTree<SlideInPanelState> = {
     state.isOpen = true;
     state.component = markRaw(payload.component);
     state.componentProps = payload.componentProps || {};
+    state.openCount++;
   },
   close(state) {
     if (closeTimer) {

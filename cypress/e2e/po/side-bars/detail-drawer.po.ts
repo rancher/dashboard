@@ -21,6 +21,6 @@ export default class DetailDrawer extends ComponentPo {
   }
 
   closeButton() {
-    return this.self().get('[data-testid="slide-in-panel-close-resource-explain"');
+    return this.self().get('[data-testid="rc-drawer-close"]');
   }
 }
