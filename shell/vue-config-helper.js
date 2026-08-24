@@ -114,9 +114,33 @@ function onProxyReqWs(proxyReq, req, socket, options, head) {
 }
 
 function onError(err, req, res) {
-  res.statusCode = 598;
   console.error('Proxy Error:', err); // eslint-disable-line no-console
-  res.write(JSON.stringify(err));
+
+  // Websocket upgrades don't have a normal `res` — bail out so http-proxy-middleware handles it.
+  if (!res || typeof res.writeHead !== 'function') {
+    return;
+  }
+
+  // Guard against writing to a response that already started (or a socket that's gone away).
+  if (res.headersSent || res.writableEnded) {
+    return;
+  }
+
+  // Serialize the error with its own properties (a bare `JSON.stringify(err)` on an Error yields "{}").
+  const body = JSON.stringify({
+    code:    err?.code,
+    errno:   err?.errno,
+    syscall: err?.syscall,
+    address: err?.address,
+    port:    err?.port,
+    message: err?.message || String(err),
+  });
+
+  // IMPORTANT: we must `end()` the response. Without it the browser sees the request as pending
+  // forever, so any code awaiting it (including console logging in `.catch()` blocks) never runs
+  // until the dev server is stopped and the socket drops. See rancher/dashboard#11591.
+  res.writeHead(504, { 'content-type': 'application/json' });
+  res.end(body);
 }
 
 module.exports = {
