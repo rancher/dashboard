@@ -16,6 +16,8 @@ import {
   ROWS_PER_PAGE,
   EXPANDED_GROUPS,
   NAMESPACE_FILTERS,
+  PINNED_CLUSTERS,
+  RECENT_CLUSTERS,
 } from '@shell/store/prefs';
 
 describe('prefs store', () => {
@@ -872,6 +874,115 @@ describe('prefs store', () => {
         } as any, { key: CLUSTER, value: 'x' });
 
         expect(result).toBeUndefined();
+      });
+    });
+
+    describe('merge writes (applyPrefsOptimistic + reconcilePrefs)', () => {
+      const loggedIn = { 'auth/loggedIn': true };
+
+      beforeEach(() => {
+        // Other tests mutate the shared definitions map — re-register the cluster prefs as JSON-parsed
+        // user preferences.
+        create(PINNED_CLUSTERS, [], { parseJSON: true });
+        create(RECENT_CLUSTERS, [], { parseJSON: true });
+      });
+
+      afterEach(async() => {
+        // A logged-out optimistic write populates module-level prefsBeforeLogin; drain it via loadServer so it
+        // doesn't leak into later tests (mirrors the `set` describe).
+        const mockServer = { data: {}, save: jest.fn().mockResolvedValue(undefined) };
+        const drainDispatch = jest.fn().mockResolvedValue([mockServer]);
+
+        await actions.loadServer({
+          state: state(), dispatch: drainDispatch, commit: jest.fn(), rootState: {}, rootGetters: {}
+        } as any, undefined);
+      });
+
+      const prepend = (item: string) => (arr: string[]) => [item, ...(arr || []).filter((x) => x !== item)];
+
+      // Logged-in run of the two phases (optimistic then reconcile) against a given server value; the writer
+      // drives these two directly (optimistic outside the queue, reconcile inside), so that's what we test.
+      const run = async(
+        clientValue: string[], serverValue: string[], apply: (a: string[]) => string[], key: string = RECENT_CLUSTERS
+      ) => {
+        const s: any = state();
+
+        s.data[key] = clientValue;
+
+        const commit = jest.fn((name: string, payload: any) => {
+          if (name === 'load') {
+            s.data[payload.key] = payload.value;
+          }
+        });
+        const server = {
+          data: { [key]: JSON.stringify(serverValue) },
+          save: jest.fn().mockResolvedValue(undefined),
+        };
+        const dispatch = jest.fn().mockResolvedValue(server); // loadServer
+        const ctx = {
+          dispatch, commit, rootGetters: loggedIn, state: s
+        } as any;
+        const mutations = [{ key, apply }];
+
+        const optimistic = actions.applyPrefsOptimistic(ctx, mutations);
+
+        await actions.reconcilePrefs(ctx, { mutations, optimistic });
+
+        return {
+          commit, server, dispatch
+        };
+      };
+
+      it('phase 1: commits the client-based result immediately, then does one GET', async() => {
+        const { commit, dispatch } = await run(['b'], ['b'], prepend('a'));
+
+        expect(commit).toHaveBeenCalledWith('load', { key: RECENT_CLUSTERS, value: ['a', 'b'] });
+        expect(dispatch).toHaveBeenCalledWith('loadServer', [RECENT_CLUSTERS]);
+      });
+
+      it('phase 2: when client === server, persists the reconciled value with no divergent re-commit', async() => {
+        const { commit, server } = await run(['b'], ['b'], prepend('a'));
+
+        const loads = commit.mock.calls.filter((c: any[]) => c[0] === 'load');
+
+        expect(loads).toHaveLength(1);
+        expect(server.data[RECENT_CLUSTERS]).toBe(JSON.stringify(['a', 'b']));
+        expect(server.save).toHaveBeenCalledTimes(1);
+      });
+
+      it('divergence: applies the action to the SERVER value and adopts it (server wins the base)', async() => {
+        // Client thinks recent = ['b'], but the server actually holds ['x','y','z'] (another tab / edit).
+        const { commit, server } = await run(['b'], ['x', 'y', 'z'], prepend('a'));
+
+        expect(commit).toHaveBeenCalledWith('load', { key: RECENT_CLUSTERS, value: ['a', 'b'] }); // optimistic
+        expect(commit).toHaveBeenCalledWith('load', { key: RECENT_CLUSTERS, value: ['a', 'x', 'y', 'z'] }); // adopted
+        expect(server.data[RECENT_CLUSTERS]).toBe(JSON.stringify(['a', 'x', 'y', 'z'])); // persisted server-based
+        expect(server.save).toHaveBeenCalledTimes(1);
+      });
+
+      it('no-op: skips the PUT when the action leaves the server value unchanged', async() => {
+        const { server } = await run(['a'], ['a'], prepend('a'));
+
+        expect(server.save).not.toHaveBeenCalled();
+      });
+
+      it('logged out: commits optimistically but never touches the server', async() => {
+        const s: any = state();
+
+        s.data[PINNED_CLUSTERS] = [];
+        const commit = jest.fn();
+        const dispatch = jest.fn();
+        const ctx = {
+          dispatch, commit, rootGetters: { 'auth/loggedIn': false }, state: s
+        } as any;
+        const mutations = [{ key: PINNED_CLUSTERS, apply: prepend('a') }];
+
+        const optimistic = actions.applyPrefsOptimistic(ctx, mutations);
+
+        await actions.reconcilePrefs(ctx, { mutations, optimistic });
+
+        expect(commit).toHaveBeenCalledWith('load', { key: PINNED_CLUSTERS, value: ['a'] });
+        expect(dispatch).not.toHaveBeenCalled();
       });
     });
 

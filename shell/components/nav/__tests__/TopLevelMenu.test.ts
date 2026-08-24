@@ -21,6 +21,7 @@ const generateStore = (clusters: any[], settings = [{}]) => {
   return {
     getters: {
       'management/byId':              jest.fn(),
+      'management/getSavedCount':     () => undefined,
       'management/schemaFor':         () => ({}),
       'management/paginationEnabled': () => false,
       'i18n/t':                       jest.fn(),
@@ -42,8 +43,10 @@ const generateStore = (clusters: any[], settings = [{}]) => {
         }
       },
       'prefs/get': (pref: string) => {
+        // The shelf is DERIVED from this pref: PINNED = the ids of the pinned clusters, in array
+        // order. `local` is the fixed top tile (its own slice), so it's never part of the pinned group.
         if (pref === PINNED_CLUSTERS) {
-          return [];
+          return clusters.filter((c: any) => c.pinned && c.id !== 'local').map((c: any) => c.id);
         }
       },
     },
@@ -131,7 +134,8 @@ describe('topLevelMenu', () => {
                 id:          'local',
                 mgmt:        { id: 'local' },
                 nameDisplay: 'local',
-                canExplore:  true
+                canExplore:  true,
+                isLocal:     true,
               },
             ])
           }
@@ -143,10 +147,13 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('a-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('c-cluster');
+    // v2 (SURE-8192): `local` is no longer forced to the top of the combined cluster list — it has its
+    // own fixed tile (`menu-cluster-local`) above the groups. The ALL CLUSTERS directory lists the rest
+    // of the estate alphabetically.
+    expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('a-cluster');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('b-cluster');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('c-cluster');
   });
 
   it('should show local cluster always on top of the list of clusters (unpinned and mix ready/unready clusters)', async() => {
@@ -194,10 +201,13 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('a-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('b-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('c-cluster');
+    // v2 (SURE-8192): `local` sits in its own fixed tile above the groups. The ALL CLUSTERS directory is
+    // sorted active (ready) first, then alphabetical — so the unready `a-cluster` sorts below the ready
+    // `b-cluster` / `c-cluster` (matching legacy behavior).
+    expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('b-cluster');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('c-cluster');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('a-cluster');
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and ready clusters)', async() => {
@@ -249,10 +259,12 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    // `local` is the fixed top tile (its own slice), not part of the pinned group. PINNED shows in PREF
+    // order (the pinned-clusters array), so c/a/b (an-id1/2/3).
+    expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('c-cluster');
     expect(wrapper.find('[data-testid="pinned-ready-cluster-1"] .cluster-name p').text()).toStrictEqual('a-cluster');
     expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-3"] .cluster-name p').text()).toStrictEqual('c-cluster');
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and mix ready/unready clusters)', async() => {
@@ -308,13 +320,20 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    // `local` is the fixed top tile (its own slice). PINNED shows in PREF order regardless of ready state,
+    // so c/a/b (an-id1/2/3) — b-cluster is not-ready but keeps its pref position.
+    expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('c-cluster');
     expect(wrapper.find('[data-testid="pinned-ready-cluster-1"] .cluster-name p').text()).toStrictEqual('a-cluster');
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('c-cluster');
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-3"] .cluster-name p').text()).toStrictEqual('b-cluster');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
   });
 
-  it('should show description if it is available on the prov cluster', async() => {
+  // v2 (SURE-8192): the row's `.description` line no longer renders the cluster `description` field (that
+  // moved to the row tooltip). It now shows the cluster META — `providerDisplay · kubernetesVersion` (see
+  // clusterMeta) — where providerDisplay resolves from the prov cluster's provisionerDisplay. This keeps
+  // the original coverage: the meta surfaces across all four row types (pinned ready/not-ready, unpinned
+  // ready/not-ready) and their distinct data-testids.
+  it('should show meta (provider/k8s version) resolved from the prov cluster', async() => {
     const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
@@ -323,39 +342,43 @@ describe('topLevelMenu', () => {
             ...generateStore([
               // pinned ready cluster
               {
-                name:        'whatever',
-                id:          'an-id1',
-                mgmt:        { id: 'an-id1' },
-                description: 'some-description1',
-                nameDisplay: 'some-label',
-                canExplore:  true,
-                pinned:      true
+                name:               'whatever',
+                id:                 'an-id1',
+                mgmt:               { id: 'an-id1' },
+                provisionerDisplay: 'provider-1',
+                kubernetesVersion:  'v1.31.1',
+                nameDisplay:        'some-label',
+                canExplore:         true,
+                pinned:             true
               },
               // pinned NOT ready cluster
               {
-                name:        'whatever',
-                id:          'an-id2',
-                mgmt:        { id: 'an-id2' },
-                description: 'some-description2',
-                nameDisplay: 'some-label',
-                pinned:      true
+                name:               'whatever',
+                id:                 'an-id2',
+                mgmt:               { id: 'an-id2' },
+                provisionerDisplay: 'provider-2',
+                kubernetesVersion:  'v1.31.2',
+                nameDisplay:        'some-label',
+                pinned:             true
               },
               // unpinned ready cluster
               {
-                name:        'whatever',
-                id:          'an-id3',
-                mgmt:        { id: 'an-id3' },
-                description: 'some-description3',
-                nameDisplay: 'some-label',
-                canExplore:  true
+                name:               'whatever',
+                id:                 'an-id3',
+                mgmt:               { id: 'an-id3' },
+                provisionerDisplay: 'provider-3',
+                kubernetesVersion:  'v1.31.3',
+                nameDisplay:        'some-label',
+                canExplore:         true
               },
               // unpinned NOT ready cluster
               {
-                name:        'whatever',
-                id:          'an-id4',
-                mgmt:        { id: 'an-id4' },
-                description: 'some-description4',
-                nameDisplay: 'some-label'
+                name:               'whatever',
+                id:                 'an-id4',
+                mgmt:               { id: 'an-id4' },
+                provisionerDisplay: 'provider-4',
+                kubernetesVersion:  'v1.31.4',
+                nameDisplay:        'some-label'
               },
             ])
           },
@@ -372,13 +395,15 @@ describe('topLevelMenu', () => {
     const description3 = wrapper.find('[data-testid="menu-cluster-an-id3"] .description');
     const description4 = wrapper.find('[data-testid="menu-cluster-disabled-an-id4"] .description');
 
-    expect(description1.text()).toStrictEqual('some-description1');
-    expect(description2.text()).toStrictEqual('some-description2');
-    expect(description3.text()).toStrictEqual('some-description3');
-    expect(description4.text()).toStrictEqual('some-description4');
+    expect(description1.text()).toStrictEqual('provider-1 · v1.31.1');
+    expect(description2.text()).toStrictEqual('provider-2 · v1.31.2');
+    expect(description3.text()).toStrictEqual('provider-3 · v1.31.3');
+    expect(description4.text()).toStrictEqual('provider-4 · v1.31.4');
   });
 
-  it('should show description if it is available on the mgmt cluster (relevant for RKE1/ember world)', async() => {
+  // As above, but the provider falls back to the MGMT cluster's `provider` field (no prov provisionerDisplay)
+  // — the RKE1/ember world. Verifies clusterMeta's provider resolution order still surfaces the meta line.
+  it('should show meta (provider/k8s version) resolved from the mgmt cluster (relevant for RKE1/ember world)', async() => {
     const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
@@ -387,39 +412,43 @@ describe('topLevelMenu', () => {
             ...generateStore([
               // pinned ready cluster
               {
-                name:        'whatever',
-                id:          'an-id1',
-                mgmt:        { id: 'an-id1' },
-                description: 'some-description1',
-                nameDisplay: 'some-label',
-                canExplore:  true,
-                pinned:      true
+                name:              'whatever',
+                id:                'an-id1',
+                mgmt:              { id: 'an-id1' },
+                provider:          'provider-1',
+                kubernetesVersion: 'v1.31.1',
+                nameDisplay:       'some-label',
+                canExplore:        true,
+                pinned:            true
               },
               // pinned NOT ready cluster
               {
-                name:        'whatever',
-                id:          'an-id2',
-                mgmt:        { id: 'an-id2' },
-                description: 'some-description2',
-                nameDisplay: 'some-label',
-                pinned:      true
+                name:              'whatever',
+                id:                'an-id2',
+                mgmt:              { id: 'an-id2' },
+                provider:          'provider-2',
+                kubernetesVersion: 'v1.31.2',
+                nameDisplay:       'some-label',
+                pinned:            true
               },
               // unpinned ready cluster
               {
-                name:        'whatever',
-                id:          'an-id3',
-                mgmt:        { id: 'an-id3' },
-                description: 'some-description3',
-                nameDisplay: 'some-label',
-                canExplore:  true
+                name:              'whatever',
+                id:                'an-id3',
+                mgmt:              { id: 'an-id3' },
+                provider:          'provider-3',
+                kubernetesVersion: 'v1.31.3',
+                nameDisplay:       'some-label',
+                canExplore:        true
               },
               // unpinned NOT ready cluster
               {
-                name:        'whatever',
-                id:          'an-id4',
-                mgmt:        { id: 'an-id4' },
-                description: 'some-description4',
-                nameDisplay: 'some-label'
+                name:              'whatever',
+                id:                'an-id4',
+                mgmt:              { id: 'an-id4' },
+                provider:          'provider-4',
+                kubernetesVersion: 'v1.31.4',
+                nameDisplay:       'some-label'
               },
             ]),
           }
@@ -436,10 +465,10 @@ describe('topLevelMenu', () => {
     const description3 = wrapper.find('[data-testid="menu-cluster-an-id3"] .description');
     const description4 = wrapper.find('[data-testid="menu-cluster-disabled-an-id4"] .description');
 
-    expect(description1.text()).toStrictEqual('some-description1');
-    expect(description2.text()).toStrictEqual('some-description2');
-    expect(description3.text()).toStrictEqual('some-description3');
-    expect(description4.text()).toStrictEqual('some-description4');
+    expect(description1.text()).toStrictEqual('provider-1 · v1.31.1');
+    expect(description2.text()).toStrictEqual('provider-2 · v1.31.2');
+    expect(description3.text()).toStrictEqual('provider-3 · v1.31.3');
+    expect(description4.text()).toStrictEqual('provider-4 · v1.31.4');
   });
 
   describe('searching a term', () => {
@@ -475,8 +504,6 @@ describe('topLevelMenu', () => {
 
       it('given no matched pinned clusters', async() => {
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data: () => ({ clusterFilter: 'whatever' }),
-
           global: {
             mocks: {
               $route: {},
@@ -495,6 +522,10 @@ describe('topLevelMenu', () => {
             stubs: ['BrandImage', 'router-link'],
           },
         });
+
+        // Set the filter AFTER mount so the `search` watcher fires and re-filters the ALL slice — the
+        // initial helper seed always runs with an empty term, so a data()-preset filter never narrows it.
+        await wrapper.setData({ clusterFilter: 'whatever' });
 
         await waitForIt();
 
@@ -595,7 +626,13 @@ describe('topLevelMenu', () => {
       jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
       const updateSpy = jest.fn();
       const mockHelper = {
-        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
+        update:         updateSpy,
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
       };
 
       jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
@@ -610,8 +647,11 @@ describe('topLevelMenu', () => {
         },
       });
 
+      // v2 (SURE-8192): data() seeds the helper with the watched context set — pinned + recent + search
+      // term — dropping the legacy `unPinnedMax` (the ALL list is now a separate page-increment slice).
+      // `recentIds` reads the RECENT_CLUSTERS pref, which this mock leaves unset (undefined).
       expect(updateSpy).toHaveBeenCalledWith({
-        pinnedIds: [], searchTerm: '', unPinnedMax: 10
+        pinnedIds: [], recentIds: undefined, searchTerm: ''
       });
     });
 
@@ -624,7 +664,13 @@ describe('topLevelMenu', () => {
       jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
       const updateSpy = jest.fn();
       const mockHelper = {
-        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
+        update:         updateSpy,
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
       };
 
       jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
@@ -639,8 +685,11 @@ describe('topLevelMenu', () => {
         },
       });
 
+      // v2 (SURE-8192): data() seeds the helper with the watched context set — pinned + recent + search
+      // term — dropping the legacy `unPinnedMax` (the ALL list is now a separate page-increment slice).
+      // `recentIds` reads the RECENT_CLUSTERS pref, which this mock leaves unset (undefined).
       expect(updateSpy).toHaveBeenCalledWith({
-        pinnedIds: [], searchTerm: '', unPinnedMax: 10
+        pinnedIds: [], recentIds: undefined, searchTerm: ''
       });
     });
 
@@ -653,7 +702,13 @@ describe('topLevelMenu', () => {
       jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
       const updateSpy = jest.fn();
       const mockHelper = {
-        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
+        update:         updateSpy,
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
       };
 
       jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);

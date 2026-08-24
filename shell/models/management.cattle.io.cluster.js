@@ -4,7 +4,7 @@ import {
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { insertAt, addObject, removeObject, uniq } from '@shell/utils/array';
+import { insertAt, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -16,6 +16,7 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
+import { pinCluster, unpinCluster } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -809,20 +810,15 @@ export default class MgmtCluster extends SteveModel {
     return this.$rootGetters['prefs/get'](PINNED_CLUSTERS).includes(this.id);
   }
 
+  // pin() writes PINNED_CLUSTERS only (a pinned cluster is just hidden from the RECENT group); unpin()
+  // also moves the cluster to the top of RECENT so it stays visible. Both go through the centralized
+  // serialized writer so cluster-preference PUTs never race. SURE-8192.
   pin() {
-    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
-
-    addObject(types, this.id);
-
-    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+    pinCluster((action, payload) => this.$dispatch(action, payload, { root: true }), this.id);
   }
 
   unpin() {
-    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
-
-    removeObject(types, this.id);
-
-    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+    unpinCluster((action, payload) => this.$dispatch(action, payload, { root: true }), this.id);
   }
 
   get canExplore() {

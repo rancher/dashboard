@@ -11,6 +11,12 @@ export default {
       type:    Boolean,
       default: false
     },
+    // Whether to render the small pinned overlay on the chip. The app-bar cluster switcher (SURE-8192)
+    // conveys pinned-ness with its own toggle + PINNED group, so it hides this redundant overlay.
+    showPin: {
+      type:    Boolean,
+      default: true
+    },
   },
   computed: {
     isEnabled() {
@@ -105,7 +111,7 @@ export default {
       </svg>
     </div>
     <i
-      v-if="!routeCombo && cluster.pinned"
+      v-if="!routeCombo && cluster.pinned && showPin"
       class="icon icon-pin cluster-pin-icon"
       :alt="t('nav.ariaLabel.pinCluster', { cluster: cluster.nameDisplay })"
     />
