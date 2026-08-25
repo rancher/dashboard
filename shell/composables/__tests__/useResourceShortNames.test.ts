@@ -3,14 +3,11 @@ import { useResourceShortNames } from '@shell/composables/useResourceShortNames'
 
 const request = jest.fn();
 
-// Schemas as steve reports them: the id the nav uses, plus the group and plural
-// resource name that discovery reports the same type against.
 const schemas = [
   { id: 'pod', attributes: { group: '', resource: 'pods' } },
   { id: 'configmap', attributes: { group: '', resource: 'configmaps' } },
   { id: 'apps.deployment', attributes: { group: 'apps', resource: 'deployments' } },
   { id: 'helm.cattle.io.helmchart', attributes: { group: 'helm.cattle.io', resource: 'helmcharts' } },
-  // No `resource`, so nothing in discovery can be matched to it.
   { id: 'schema', attributes: {} },
 ];
 
@@ -34,7 +31,6 @@ const GROUPS = {
   groups: [
     { preferredVersion: { groupVersion: 'apps/v1' } },
     { preferredVersion: { groupVersion: 'helm.cattle.io/v1' } },
-    // No schema in the store for this group, so it must never be requested.
     { preferredVersion: { groupVersion: 'secret.stuff/v1' } },
   ],
 };
@@ -43,15 +39,14 @@ const CORE = {
   resources: [
     { name: 'pods', shortNames: ['po'] },
     { name: 'configmaps', shortNames: ['cm'] },
-    { name: 'services' }, // no short names
-    { name: 'pods/log', shortNames: ['whatever'] }, // subresource
+    { name: 'services' },
+    { name: 'pods/log', shortNames: ['whatever'] },
   ]
 };
 
 const APPS = { resources: [{ name: 'deployments', shortNames: ['deploy'] }] };
 const HELM = { resources: [{ name: 'helmcharts', shortNames: ['HC'] }] };
 
-/** Resolve the fetch chain, which is several promises deep. */
 const settle = async() => {
   for (let i = 0; i < 5; i++) {
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -77,11 +72,6 @@ const respondNormally = () => request.mockImplementation((url: string) => {
 });
 
 describe('useResourceShortNames', () => {
-  // A fetched cluster is cached for the life of the tab, which is the point, so
-  // each test gets a cluster of its own. The id lives in its own ref too: the
-  // composable's watcher outlives a test here (in the app it is owned by the
-  // component that called it), and a shared ref would let a previous test's
-  // watcher start this test's fetch before its mock is in place.
   let clusterCount = 0;
   const newClusterId = () => ref(`c-${ ++clusterCount }`);
 
@@ -95,8 +85,6 @@ describe('useResourceShortNames', () => {
 
     await settle();
 
-    // Discovery reports these against a plural resource name, and the last of
-    // them is CRD-backed rather than built into Kubernetes.
     expect(shortNames.value).toStrictEqual({
       pod:                        ['po'],
       configmap:                  ['cm'],
@@ -116,7 +104,6 @@ describe('useResourceShortNames', () => {
 
     await settle();
 
-    // The HELM fixture reports `HC`.
     expect(shortNames.value['helm.cattle.io.helmchart']).toStrictEqual(['hc']);
   });
 
@@ -139,7 +126,6 @@ describe('useResourceShortNames', () => {
         return Promise.resolve(CORE);
       }
 
-      // Every group read is refused.
       return Promise.reject(new Error('403'));
     });
 

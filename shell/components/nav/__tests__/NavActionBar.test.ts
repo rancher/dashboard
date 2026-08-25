@@ -21,7 +21,6 @@ jest.mock('vue-router', () => ({ useRouter: () => mockRouter }));
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 jest.mock('@shell/composables/useClusterLocalStorage', () => ({ useClusterLocalStorage: () => mockHistory }));
 
-// Discovery is fetched in the background; these are the short names it lands with.
 const shortNames = ref<Record<string, string[]>>({});
 
 jest.mock('@shell/composables/useResourceShortNames', () => ({ useResourceShortNames: () => shortNames }));
@@ -295,8 +294,6 @@ describe('NavActionBar.vue', () => {
       name:     'cluster',
       label:    'Cluster',
       children: [
-        // "quota" is this type's short name, but as text it only appears at
-        // index 8 of `resourcequota`, so on text alone it would rank second.
         {
           name: 'resourcequota', label: 'Resource Quotas', route: { name: 'quota' }
         },
@@ -318,8 +315,6 @@ describe('NavActionBar.vue', () => {
     const wrapper = mountBar();
 
     await wrapper.find('.jump-to-input').trigger('focus');
-    // "c" is the first letter of the short names for ConfigMaps and CronJobs,
-    // but it is not a short name, so ranking stays on the text match.
     await wrapper.find('.jump-to-input').setValue('c');
     await nextTick();
 
@@ -335,7 +330,6 @@ describe('NavActionBar.vue', () => {
     await wrapper.find('.jump-to-input').setValue('cm');
     await nextTick();
 
-    // Nothing is called "cm", so until discovery lands there is nothing to show.
     expect(wrapper.findAll('.jump-to-option')).toHaveLength(0);
 
     shortNames.value = { configmap: ['cm'] };
@@ -345,8 +339,6 @@ describe('NavActionBar.vue', () => {
   });
 
   it('gives a nav entry the short names of the types it stands in for', async() => {
-    // "Projects/Namespaces" is one section listing two types, and its own name
-    // is not a schema id, so `ns` can only reach it through `navResources`.
     const custom = [{
       name:     'cluster',
       label:    'Cluster',
@@ -550,8 +542,6 @@ describe('NavActionBar.vue', () => {
 
     expect(wrapper.find('#jump-to-listbox').exists()).toBe(false);
 
-    // Escape leaves the input focused, so the next keystroke has to bring the
-    // list back rather than filtering one that isn't on screen.
     await wrapper.find('.jump-to-input').setValue('config');
     await nextTick();
 

@@ -8,25 +8,9 @@ import { SCHEMA } from '@shell/config/types';
 /** Schema id to the short names Kubernetes accepts for it, e.g. `pod` -> `['po']`. */
 export type ShortNameMap = Record<string, string[]>;
 
-/**
- * Short names are not on the steve schema, only on the Kubernetes API discovery
- * documents, and those are one document per API group. There is a form that
- * returns every group at once, but it is selected through a parameterised
- * `Accept` header on `/apis/`, and the steve request action strips the trailing
- * slash that form needs, so this walks the groups instead.
- *
- * That makes it one request per API group, which is why the result is cached for
- * the life of the tab and the fetch is never awaited by the caller.
- */
 const cache: Record<string, ShortNameMap> = {};
 const inFlight: Record<string, Promise<ShortNameMap>> = {};
 
-/**
- * Short names keyed by the schema id the nav uses, rather than by the plural
- * resource name discovery reports them against. The mapping comes from the
- * schemas already in the store, so no assumption is made about how an id is
- * spelled.
- */
 function indexSchemasByResource(store: Store<any>): Record<string, string> {
   const byResource: Record<string, string> = {};
 
@@ -45,15 +29,11 @@ async function fetchShortNames(store: Store<any>, clusterId: string): Promise<Sh
   const base = `/k8s/clusters/${ encodeURIComponent(clusterId) }`;
   const byResource = indexSchemasByResource(store);
 
-  // A group the user cannot read answers 403, and a group can disappear between
-  // the group list and the read. Neither should cost us the other groups.
   const discover = (url: string) => store.dispatch('cluster/request', { url, redirectUnauthorized: false })
     .then((d: any) => d, () => null);
 
   const groupList = await discover(`${ base }/apis`);
 
-  // Only groups the store already has a schema for, so an unreadable group is
-  // skipped rather than requested and refused.
   const known = new Set(Object.keys(byResource).map((key) => key.split('/')[0]));
   const groupVersions = (groupList?.groups || [])
     .map((group: any) => group.preferredVersion?.groupVersion)
@@ -69,7 +49,6 @@ async function fetchShortNames(store: Store<any>, clusterId: string): Promise<Sh
 
   for (const { group, d } of documents) {
     for (const resource of (d?.resources || [])) {
-      // Subresources (`pods/log`) are not navigable and never carry short names.
       if (resource.name?.includes('/') || !resource.shortNames?.length) {
         continue;
       }
@@ -122,8 +101,6 @@ export function useResourceShortNames(clusterId?: MaybeRefOrGetter<string>): Ref
       return;
     }
 
-    // Show nothing rather than the previous cluster's short names while the new
-    // cluster's are on the way.
     shortNames.value = {};
 
     inFlight[id] = inFlight[id] || fetchShortNames(store, id)
@@ -138,7 +115,6 @@ export function useResourceShortNames(clusterId?: MaybeRefOrGetter<string>): Ref
       });
 
     inFlight[id].then((result) => {
-      // The cluster may have changed again while this was in flight.
       if (activeClusterId.value === id) {
         shortNames.value = result;
       }

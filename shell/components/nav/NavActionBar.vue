@@ -22,7 +22,6 @@ interface JumpItem {
   label: string;
   path: string[];
   route: any;
-  /** The type's Kubernetes short names, empty for a group. */
   shortNames: string[];
 }
 
@@ -42,16 +41,8 @@ const { t } = useI18n(store);
 const explorerClusterId = () => (store.getters.isExplorer ? store.getters.clusterId : '');
 const history = useClusterLocalStorage<string[]>('nav-jump-history', explorerClusterId);
 
-// Fetched in the background, so results are searchable by type name immediately
-// and by short name as soon as discovery lands.
 const shortNames = useResourceShortNames();
 
-/**
- * The short names a nav entry answers to. An entry can stand in for types other
- * than its own, which is how a single "Projects/Namespaces" section lists both,
- * so it takes on the short names of everything it claims (`ns`) as well as any
- * of its own.
- */
 const shortNamesFor = (node: any): string[] => {
   const types = [node.name, ...(node.navResources || [])];
 
@@ -204,11 +195,6 @@ const defaultResults = computed<JumpItem[]>(() => {
  * match is. The type name is matched too so a resource is still findable by its
  * schema and API group (`provisioning.cattle`), as it was in the search dialog
  * this replaces.
- *
- * A whole-word Kubernetes short name outranks all of that: someone typing `cm`
- * wants ConfigMaps, not the seven sections with a `c` and an `m` in them. Only a
- * whole one counts, so a single letter doesn't drag every abbreviation starting
- * with it to the top of the list.
  */
 const searchResults = computed<JumpItem[]>(() => {
   const q = query.value.trim().toLowerCase();
@@ -258,9 +244,6 @@ function onFocus() {
   activeIndex.value = 0;
 }
 
-// Esc closes the list without taking focus off the input, so typing has to bring
-// it back or the field goes on filtering a list nobody can see. `close` clears
-// the query itself rather than through the input, so this can't undo an Esc.
 function onInput() {
   open.value = true;
 }
@@ -271,7 +254,6 @@ function close() {
 }
 
 function move(delta: number) {
-  // Arrowing after Esc reopens the list, for the same reason typing does.
   if (!open.value) {
     open.value = true;
 
@@ -479,7 +461,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   padding: 0;
   border: none;
   background: transparent;
-  // The glyph is a font icon, so this is what colours it (black in light mode).
   color: var(--body-text);
   cursor: pointer;
 
@@ -507,8 +488,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
     @include focus-outline;
   }
 
-  // Figma draws the glyph 11px tall. The font inks it at 0.68em, so 16px is the
-  // size that reproduces that height.
   .collapse-all-icon {
     font-size: 16px;
   }
@@ -557,15 +536,10 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   border-radius: var(--border-radius);
   cursor: pointer;
 
-  // Not `--dropdown-hover-bg`: in dark mode it is a slate light enough that the
-  // path below no longer clears 4.5:1 against it. A list row carries the same
-  // title-over-subtitle pairing and stays clear of both, so borrow its hover.
   &.active {
     background-color: var(--sortable-table-hover-bg);
   }
 
-  // Two shades of the same scale, so the type reads ahead of the path it sits in.
-  // Hovering moves the background only, so the pair holds its order either way.
   .jump-to-option-label {
     font-size: 14px;
     font-weight: 500;
@@ -575,8 +549,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
     text-overflow: ellipsis;
   }
 
-  // Not `--dropdown-secondary-text`: in dark mode it resolves to the primary text
-  // colour, which would leave the path indistinguishable from the type above it.
   .jump-to-option-path {
     font-size: 13px;
     line-height: 1.2;
