@@ -31,13 +31,13 @@ import GKENodePoolComponent from './GKENodePool.vue';
 import Config from './Config.vue';
 import Import from './Import.vue';
 import {
-  DEFAULT_GCP_ZONE, DEFAULT_GCP_SERVICE_ACCOUNT, GKEImageTypes, getGKEMachineTypes, getGKEServiceAccounts
+  DEFAULT_GCP_ZONE, DEFAULT_GCP_SERVICE_ACCOUNT, GKEImageTypes, getGKEMachineTypes, getGKEServiceAccounts, getGKEVersions
 } from '@shell/components/google/util/gcp';
-import type { getGKEMachineTypesResponse, getGKEServiceAccountsResponse } from '@shell/components/google/types/gcp.d.ts';
+import type { getGKEMachineTypesResponse, getGKEServiceAccountsResponse, getGKEVersionsResponse } from '@shell/components/google/types/gcp.d.ts';
 import type { GKEMachineTypeOption } from '@shell/components/google/types/index.d.ts';
 import debounce from 'lodash/debounce';
 import {
-  clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr, GKEInitialCount
+  clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr, GKEInitialCount, GKEKubernetesVersion
 } from '../util/validators';
 import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
@@ -116,9 +116,10 @@ const defaultGkeConfig = {
   },
   projectID: '',
 
-  region:     '',
-  subnetwork: '',
-  zone:       DEFAULT_GCP_ZONE
+  region:         '',
+  releaseChannel: 'REGULAR', // TODO nb constants
+  subnetwork:     '',
+  zone:           DEFAULT_GCP_ZONE
 };
 
 const defaultCluster = {
@@ -268,10 +269,11 @@ export default defineComponent({
 
       loadingMachineTypes:     false,
       loadingServiceAccounts:  false,
+      loadingVersions:         false,
       machineTypesResponse:    {} as getGKEMachineTypesResponse,
       serviceAccountsResponse: {} as getGKEServiceAccountsResponse,
-
-      fvFormRuleSets: isImport ? [{
+      versionsResponse:        {} as getGKEVersionsResponse,
+      fvFormRuleSets:          isImport ? [{
         path:  'clusterName',
         rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd']
       }, {
@@ -328,6 +330,10 @@ export default defineComponent({
         {
           path:  'privateRegistry',
           rules: ['privateRegistryRequired']
+        },
+        {
+          path:  'kubernetesVersion',
+          rules: ['kubernetesVersion']
         },
       ],
       isAuthenticated: false,
@@ -404,6 +410,7 @@ export default defineComponent({
         servicesIpv4CidrBlockFormat: ipv4WithCidr(this, 'gke.servicesIpv4CidrBlock.label', 'gkeConfig.ipAllocationPolicy.servicesIpv4CidrBlock'),
         clusterIpv4CidrFormat:       ipv4oripv6WithCidr(this, 'gke.clusterIpv4Cidr.label', 'gkeConfig.clusterIpv4Cidr'),
         initialNodeCount:            GKEInitialCount(this),
+        kubernetesVersion:           GKEKubernetesVersion(this, 'gkeConfig.kubernetesVersion'),
         /**
          * The nodepool validators below are performing double duty. When passed directly to an input, the val argument is provided and validated - this generates the error icon in the input component.
          * otherwise they're run in the fv mixin and ALL nodepools are validated - this disables the cruresource create button
@@ -620,6 +627,7 @@ export default defineComponent({
         if (this.config.projectID && this.config.googleCredentialSecret) {
           this.getMachineTypes();
           this.getServiceAccounts();
+          this.getVersions();
         }
       }
     },
@@ -654,6 +662,24 @@ export default defineComponent({
         errors.push(err);
       }
       this.loadingServiceAccounts = false;
+    },
+
+    async getVersions() {
+      this.loadingVersions = true;
+      const zone = this.config.zone || this.config.locations?.[0];
+
+      try {
+        const res = await getGKEVersions(this.$store, this.config.googleCredentialSecret, this.config.projectID, { zone, region: this.config.region });
+
+        this.versionsResponse = res;
+        if (res?.defaultImageType) {
+          this.defaultImageType = res.defaultImageType;
+        }
+      } catch (err:any) {
+        this.errors.push(err);
+      }
+
+      this.loadingVersions = false;
     },
 
     addPool(): void {
@@ -771,6 +797,7 @@ export default defineComponent({
       data-testid="crugke-form"
     >
       <Config
+        v-model:release-channel="config.releaseChannel"
         v-model:kubernetes-version="config.kubernetesVersion"
         v-model:zone="config.zone"
         v-model:region="config.region"
@@ -784,8 +811,11 @@ export default defineComponent({
         :cluster-id="normanCluster.id"
         :cluster-name="normanCluster.name"
         :cluster-description="normanCluster.description"
+        :versions-response="versionsResponse"
+        :loading-versions="loadingVersions"
         :rules="{
-          clusterName: fvGetAndReportPathRules('clusterName')
+          clusterName: fvGetAndReportPathRules('clusterName'),
+          kubernetesVersion: fvGetAndReportPathRules('kubernetesVersion')
         }"
         :is-import="isImport"
         @update:clusterName="setClusterName"

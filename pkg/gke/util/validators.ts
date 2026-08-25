@@ -85,3 +85,15 @@ export const GKEInitialCount = (ctx:any) => {
     return !!ctx.nodePools.find((pool: GKENodePool) => !valid(pool.initialNodeCount) ) ? ctx.t('gke.errors.initialNodeCount') : null;
   };
 };
+
+export const GKEKubernetesVersion = (ctx:any, clusterPath: string) => {
+  return () => {
+    const toValidate = get(ctx.normanCluster, clusterPath);
+    const selectedChannel = ctx?.config?.releaseChannel;
+
+    const versionsResponse = ctx?.versionsResponse || {};
+    const versionOptions = (versionsResponse?.channels || []).find((c) => c.channel === selectedChannel)?.validVersions;
+
+    return versionOptions && versionOptions.length && !versionOptions.includes(toValidate) ? ctx.t('gke.errors.versionNotSupported') : null;
+  };
+};

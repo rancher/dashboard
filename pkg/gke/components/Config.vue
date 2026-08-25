@@ -7,9 +7,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 import {
-  DEFAULT_GCP_REGION, DEFAULT_GCP_ZONE, getGKEZones, getGKERegionFromZone,
-  getGKEVersions, getGKEClusters,
-
+  DEFAULT_GCP_REGION, DEFAULT_GCP_ZONE, getGKEZones, getGKERegionFromZone, getGKEClusters
 } from '@shell/components/google/util/gcp';
 import { sortBy, sortableNumericSuffix } from '@shell/utils/sort';
 
@@ -24,7 +22,7 @@ import { mapGetters } from 'vuex';
 export default defineComponent({
   name: 'GKEConfig',
 
-  emits: ['update:kubernetesVersion', 'update:locations', 'update:zone', 'update:region', 'update:defaultImageType', 'error', 'update:clusterName', 'update:clusterDescription'],
+  emits: ['update:kubernetesVersion', 'update:locations', 'update:zone', 'update:region', 'update:defaultImageType', 'error', 'update:clusterName', 'update:clusterDescription', 'update:releaseChannel'],
 
   components: {
     RadioGroup,
@@ -94,12 +92,27 @@ export default defineComponent({
       default: ''
     },
 
+    releaseChannel: {
+      type:    String,
+      default: ''
+    },
+
     defaultImageType: {
       type:    String,
       default: ''
     },
 
     isImport: {
+      type:    Boolean,
+      default: false
+    },
+
+    versionsResponse: {
+      type:    Object as PropType<getGKEVersionsResponse>,
+      default: () => ({})
+    },
+
+    loadingVersions: {
       type:    Boolean,
       default: false
     },
@@ -123,10 +136,9 @@ export default defineComponent({
 
     return {
       debouncedLoadGCPData: (zones = true) => {},
-      loadingVersions:      false,
       loadingZones:         false,
+      versionTouched:       false, // track whether the user has set a k8s version. Changing release channel will only change version automatically if they haven't
 
-      versionsResponse: {} as getGKEVersionsResponse,
       /**
        * these are NOT cluster objects in the Rancher cluster (management.cattle.io.cluster provisioning.cattle.io.cluster etc)
        * this is a list of clusters in the user's GCP project, which, on edit, will include the current cluster
@@ -141,12 +153,6 @@ export default defineComponent({
   },
 
   watch: {
-    versionOptions(neu) {
-      if (neu && neu.length && !this.kubernetesVersion) {
-        this.$emit('update:kubernetesVersion', this.versionOptions[0].value);
-      }
-    },
-
     cloudCredentialId() {
       this.debouncedLoadGCPData();
     },
@@ -185,6 +191,12 @@ export default defineComponent({
           this.$emit('update:locations', [defaultExtraZone]);
         }
       }
+    },
+
+    defaultVersion(neu) {
+      if (this.isNewOrUnprovisioned && !this.versionTouched && neu) {
+        this.$emit('update:kubernetesVersion', neu);
+      }
     }
   },
 
@@ -199,7 +211,8 @@ export default defineComponent({
       return this.mode === _VIEW;
     },
 
-    releaseChannel(): string | undefined {
+    // older gke clusters might not have releaseChannel defined in the Rancher object
+    releaseChannelFallback(): string | undefined {
       const cluster = (this.clustersResponse?.clusters || []).find((c) => c.name === this.clusterName);
 
       return cluster?.releaseChannel?.channel;
@@ -285,7 +298,26 @@ export default defineComponent({
       return this.zones[0].name;
     },
 
-    // if editing an existing cluster use versions from relevant release channel
+    defaultVersion() {
+      if (!this.releaseChannel) {
+        return this.versionOptions[0]?.value;
+      }
+      const channelData = (this.versionsResponse?.channels || []).find((c) => c.channel === this.releaseChannel);
+
+      return channelData?.defaultVersion;
+    },
+
+    // todo nb put constants somewhere
+    releaseChannelOptions(): {label: string, value: string}[] {
+      return [
+        { value: 'RAPID', label: this.t('gke.channel.options.RAPID') },
+        { value: 'REGULAR', label: this.t('gke.channel.options.REGULAR') },
+        { value: 'STABLE', label: this.t('gke.channel.options.STABLE') },
+        { value: 'EXTENDED', label: this.t('gke.channel.options.EXTENDED') }
+      ];
+    },
+
+    // use versions from release channel
     // filter based off supported version range
     // if current cluster version is outside of supported range, show it anyway
     // disable versions more than one minor version away from the current version
@@ -294,9 +326,10 @@ export default defineComponent({
       let versions: string[] = [];
       const { supportedVersionRange, originalVersion } = this;
       const originalMinorVersion = !!originalVersion ? semver.parse(originalVersion).minor : null;
+      const releaseChannel = this.releaseChannel || this.releaseChannelFallback;
 
-      if (!!this.releaseChannel) {
-        versions = (this.versionsResponse?.channels || []).find((ch) => ch.channel === this.releaseChannel)?.validVersions || [];
+      if (!!releaseChannel) {
+        versions = (this.versionsResponse?.channels || []).find((ch) => ch.channel === releaseChannel)?.validVersions || [];
       }
       if (!versions || !versions.length) {
         versions = this.versionsResponse?.validMasterVersions || [];
@@ -327,7 +360,7 @@ export default defineComponent({
       }
 
       return out;
-    },
+    }
   },
   methods: {
     // when credential/region/zone change, fetch dependent resources from gcp
@@ -335,8 +368,6 @@ export default defineComponent({
       if (!this.isView) {
         // wont show a version picker when initially importing a cluster
         if (!this.isImport) {
-          this.loadingVersions = true;
-          this.getVersions();
         }
 
         if (loadZones) {
@@ -348,21 +379,6 @@ export default defineComponent({
           this.getClusters();
         }
       }
-    },
-
-    async getVersions() {
-      try {
-        const res = await getGKEVersions(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region });
-
-        this.versionsResponse = res;
-        if (res.defaultImageType) {
-          this.$emit('update:defaultImageType', res.defaultImageType);
-        }
-      } catch (err:any) {
-        this.$emit('error', err);
-      }
-
-      this.loadingVersions = false;
     },
 
     async getClusters() {
@@ -425,7 +441,7 @@ export default defineComponent({
 <template>
   <div>
     <div class="row mb-10">
-      <div :class="{col: true, 'span-4': !isImport, 'span-6': isImport}">
+      <div class="col span-6">
         <LabeledInput
           :value="clusterName"
           :mode="mode"
@@ -436,7 +452,7 @@ export default defineComponent({
           @update:value="$emit('update:clusterName', $event)"
         />
       </div>
-      <div :class="{col: true, 'span-4': !isImport, 'span-6': isImport}">
+      <div class="col span-6">
         <LabeledInput
           :value="clusterDescription"
           :mode="mode"
@@ -446,10 +462,23 @@ export default defineComponent({
           @update:value="$emit('update:clusterDescription', $event)"
         />
       </div>
-      <div
-        v-if="!isImport"
-        class="col span-4"
-      >
+    </div>
+
+    <div
+      v-if="!isImport"
+      class="row mb-10"
+    >
+      <div class="col span-6">
+        <LabeledSelect
+          label-key="gke.channel.label"
+          :options="releaseChannelOptions"
+          :value="releaseChannel"
+          data-testid="gke-release-channel-select"
+          :mode="mode"
+          @selecting="$emit('update:releaseChannel', $event)"
+        />
+      </div>
+      <div class="col span-6">
         <LabeledSelect
           :options="versionOptions"
           label-key="gke.version.label"
@@ -458,7 +487,8 @@ export default defineComponent({
           :loading="loadingVersions"
           data-testid="gke-version-select"
           :mode="mode"
-          @selecting="$emit('update:kubernetesVersion', $event)"
+          :rules="rules.kubernetesVersion"
+          @selecting="versionTouched=true; $emit('update:kubernetesVersion', $event)"
         />
       </div>
     </div>

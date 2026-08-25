@@ -52,6 +52,13 @@ gke:
     label: Auto Upgrade
   autoscaling:
     label: Autoscaling
+  channel:
+    label: Release Channel
+    options:
+      REGULAR: Regular
+      RAPID: Rapid
+      STABLE: Stable
+      EXTENDED: Extended
   clusterIpv4Cidr:
     label: Container Address Range
     placeholder: 10.0.0.0/14
@@ -91,6 +98,7 @@ gke:
     minNodeCount: Minimum Node Count must be at least 1.
     poolNamesUnique: Pool group names must be unique.
     ssdCount: SSD Count must be a positive number.
+    versionNotSupported: This version is not available in the selected release channel.
   groupDetails: Group Details
   groupName:
     label: Name
