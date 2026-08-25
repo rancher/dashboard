@@ -2096,7 +2096,10 @@ export default {
             <!-- Values (as YAML): editable overrides + read-only final values -->
             <template v-else>
               <div class="values-panes step__values__content">
-                <div class="values-pane">
+                <div
+                  class="values-pane"
+                  data-testid="chart-values-overrides-pane"
+                >
                   <div class="values-pane__header">
                     <h4 class="values-pane__title">
                       {{ t('catalog.install.section.overrides.label') }}
@@ -2109,13 +2112,17 @@ export default {
                     ref="yaml"
                     v-model:value="valuesYaml"
                     class="values-pane__editor"
+                    component-testid="chart-values-overrides"
                     :scrolling="true"
                     :initial-yaml-values="originalYamlValues"
                     :editor-mode="editorMode"
                     :hide-preview-buttons="true"
                   />
                 </div>
-                <div class="values-pane">
+                <div
+                  class="values-pane"
+                  data-testid="chart-values-final-pane"
+                >
                   <div class="values-pane__header">
                     <h4 class="values-pane__title">
                       {{ t('catalog.install.section.finalValues.label') }}
@@ -2128,6 +2135,7 @@ export default {
                     ref="finalEditor"
                     :value="finalYaml"
                     class="values-pane__editor values-pane__editor--readonly"
+                    component-testid="chart-values-final"
                     :scrolling="true"
                     mode="view"
                     :editor-mode="EDITOR_MODES.VIEW_CODE"
