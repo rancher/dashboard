@@ -107,8 +107,8 @@ describe('composable: useWorkloadSearch', () => {
       expect(mockDispatch).toHaveBeenCalledWith('cluster/findPage', expect.objectContaining({
         type,
         opt: expect.objectContaining({
-          transient: true,
-          watch:     false,
+          transient:  true,
+          watch:      false,
           pagination: expect.objectContaining({
             page:     1,
             pageSize: 10,
@@ -168,6 +168,7 @@ describe('composable: useWorkloadSearch', () => {
 
   it('sets loading while requests are in flight and clears it once resolved', async() => {
     let resolveDispatch: (value: any) => void = () => {};
+
     mockDispatch.mockReturnValue(new Promise((resolve) => {
       resolveDispatch = resolve;
     }));
