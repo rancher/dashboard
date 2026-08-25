@@ -23,9 +23,20 @@ jest.mock('vue-router', () => ({ useRouter: () => ({ push: mockRouterPush }) }))
 
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string, args?: Record<string, any>) => `%${ key }%${ args ? JSON.stringify(args) : '' }` }) }));
 
+jest.mock('@shell/plugins/steve/steve-pagination-utils', () => ({
+  __esModule: true,
+  default:    { createParamsFromNsFilter: jest.fn(() => ({ projectsOrNamespaces: [], filters: [] })) },
+}));
+
 const defaultGetters: Record<string, any> = {
   'cluster/schemaFor': () => ({ id: 'test' }),
   'cluster/canList':   () => true,
+  namespaceFilters:    [],
+  'cluster/all':       () => [],
+  isAllNamespaces:     true,
+  currentCluster:      { isLocal: true },
+  'prefs/get':         () => ({}),
+  currentProduct:      { hideSystemResources: false },
 };
 
 function setupGetters(overrides: Record<string, any> = {}) {
