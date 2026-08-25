@@ -645,14 +645,14 @@ export default {
         :key="i"
         color="error"
         :label="err"
-        class="banner-mb-15px"
+        class="chart-banner"
       />
       <Banner
         v-if="showAppCollectionBannerLogic"
         :key="i"
         color="info"
         closable
-        class="banner-mb-15px"
+        class="chart-banner"
         @close="closeSuseAppCollectionBanner"
       >
         <RichTranslation
@@ -983,8 +983,8 @@ export default {
   }
 }
 
-.banner-mb-15px {
-  margin: 0 0 15px 0;
+.chart-banner {
+  margin: 0 0 16px 0;
 }
 
 .banner-spacer {
