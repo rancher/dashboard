@@ -47,6 +47,10 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
       });
 
       cy.createRancherResource('v1', 'configmaps', configMapPayload);
+
+      // Wait for the git repo to finish cloning so its charts are in the catalog
+      // before we navigate, otherwise rancher-demo is missing ("No charts to show").
+      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
     });
 
     it('Resource dropdown picker has ConfigMaps listed', () => {
@@ -79,7 +83,7 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     });
   });
 
-  describe('YAML values editor - overrides and final values panes (SURE-8554)', () => {
+  describe('YAML values editor - overrides and final values panes', () => {
     const installChartPage = new InstallChartPage();
     const chartPage = new ChartPage();
 
@@ -91,6 +95,11 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
           clientSecret: null, gitRepo: testChartsGitRepoUrl, gitBranch: testChartsBranchName
         }
       });
+
+      // Creating the clusterrepo returns before the git repo has finished
+      // cloning, so wait for its charts to be downloaded before navigating -
+      // otherwise the catalog shows "No charts to show" and rancher-demo is missing.
+      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
     });
 
     it('shows an editable overrides pane and a read-only final values pane that stays in sync', () => {

@@ -308,7 +308,7 @@ describe('page: Install', () => {
     });
   });
 
-  describe('YAML values editor (overrides only) - SURE-8554', () => {
+  describe('YAML values editor (overrides only)', () => {
     const versionInfoValues = {
       image: {
         repository: 'my/repo', tag: '1.0.0', pullPolicy: 'IfNotPresent'
