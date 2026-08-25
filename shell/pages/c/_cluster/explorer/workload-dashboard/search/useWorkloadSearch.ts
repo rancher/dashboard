@@ -49,7 +49,11 @@ export function useWorkloadSearch() {
             projectsOrNamespaces: namespaceFilter.projectsOrNamespaces,
             filters:              [
               ...namespaceFilter.filters,
-              PaginationParamFilter.createSingleField({ field: 'metadata.name', value: term, exact: false }),
+              PaginationParamFilter.createSingleField({
+                field: 'metadata.name',
+                value: term,
+                exact: false,
+              }),
             ],
           },
           transient: true,
@@ -66,7 +70,11 @@ export function useWorkloadSearch() {
       const label = t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type;
 
       return [
-        { kind: 'group', label, uniqueId: `group-${ type }` },
+        {
+          kind:     'group',
+          label,
+          uniqueId: `group-${ type }`,
+        },
         ...data.map((resource) => ({
           label:     resource.metadata?.name || '',
           namespace: resource.metadata?.namespace,
