@@ -356,6 +356,25 @@ describe('topLevelMenu.helper', () => {
       // The context query returned no rows, so nothing is cached — the derived RECENT shelf is empty.
       expect(helper.clustersRecent).toHaveLength(0);
     });
+
+    it('always runs the ALL-count query excluding local, so the count is hide-local-invariant (SURE-8192 review)', async() => {
+      mockStore.getters['management/schemaFor'].mockReturnValue(true);
+
+      const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+      // paginationFilterClusters is mocked to [] (no harvester/hide-local filters). The OLD code short-
+      // circuited on an empty filter set and never refreshed the saved count (→ stale, wobbled ±1 on a
+      // hide-local toggle). Now `local` is excluded UNCONDITIONALLY, so the query ALWAYS runs and the saved
+      // count is the true non-local total regardless of the hide-local setting.
+      await helper.updateCount(7);
+
+      const findPageCall = mockStore.dispatch.mock.calls.find((c: any[]) => c[0] === 'management/findPage');
+
+      expect(findPageCall).toBeTruthy();
+      expect(findPageCall[1].opt.saveCountAs).toBe('k8sClusters');
+      // The query filters `local` out (id !== 'local').
+      expect(JSON.stringify(findPageCall[1].opt.pagination.filters)).toContain('local');
+    });
   });
 
   describe('class: TopLevelMenuHelperService', () => {

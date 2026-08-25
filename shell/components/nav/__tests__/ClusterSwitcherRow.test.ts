@@ -11,9 +11,6 @@ const cluster = (over = {}): any => ({
   pinned:            false,
   providerDisplay:   'EKS',
   kubernetesVersion: 'v1.31',
-  transitioning:     false,
-  stateDisplay:      '',
-  stateColor:        '',
   ...over,
 });
 

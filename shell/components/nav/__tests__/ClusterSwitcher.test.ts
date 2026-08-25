@@ -126,5 +126,36 @@ describe('component: ClusterSwitcher', () => {
       expect(html).toContain('cluster-switcher-opt-p1');
       expect(html).toContain('cluster-switcher-opt-p2');
     });
+
+    // the fixed `local` tile was keyboard-unreachable — its own listbox the combobox
+    // didn't control, and `rows` filtered it out. It now heads the navigation model and the combobox owns
+    // its listbox, while staying visually above the search door. SURE-8192.
+    it('keeps the fixed local tile above the door yet keyboard-reachable via the combobox', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2
+      });
+      const vm = wrapper.vm as any;
+      const input = () => wrapper.find('input.switcher-search-input');
+
+      // local heads the navigation model, but the visible results listbox still renders only the directory.
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'p1', 'p2']);
+      expect(vm.rows.map((c: any) => c.id)).toStrictEqual(['p1', 'p2']);
+      // The combobox owns BOTH the local listbox and the results listbox.
+      expect(input().attributes('aria-controls')).toBe('cluster-switcher-local-listbox cluster-switcher-listbox');
+
+      // On open the cursor lands on the first REAL cluster (not local), so Enter opens a browsable cluster.
+      vm.setOpen(true);
+      await vm.$nextTick();
+      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-p1');
+
+      // ArrowUp now reaches the local row (previously mouse-only)...
+      vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
+      await vm.$nextTick();
+      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-local');
+
+      // ...and Enter explores it.
+      vm.onKeydown({ key: 'Enter', preventDefault() {} });
+      expect(wrapper.emitted('select')?.[0]?.[0]).toMatchObject({ id: 'local' });
+    });
   });
 });

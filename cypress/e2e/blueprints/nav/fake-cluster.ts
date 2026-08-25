@@ -2603,6 +2603,21 @@ export function generateFakeClusterDataAndIntercepts({
     });
   }).as('mgmtClustersLists');
 
+  // The ALL CLUSTERS count query — a pageSize:1 findPage (saveCountAs) that ALWAYS excludes `local`. The
+  // real backend can't see the injected fake cluster, so surface it in the total (1 browsable, non-local);
+  // otherwise browsableClusterCount is 0 and the empty-state gate hides the search "door" / flyout that
+  // these specs rely on. `count` is read from the response body by saveCountAs. SURE-8192.
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: '1' }
+  }, (req) => {
+    req.continue((res) => {
+      res.body.count = 1;
+      res.send(res.body);
+    });
+  }).as('mgmtClustersCount');
+
   cy.intercept('GET', `/v1/management.cattle.io.clusters/${ fakeNavClusterData.mgmtClusterObj.id }?*`, (req) => {
     req.reply({
       statusCode: 200,

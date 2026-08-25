@@ -21,13 +21,9 @@ export interface TopLevelMenuCluster {
   isLocal: boolean,
   pinned: boolean,
   description: string,
-  // Meta shown on a cluster-switcher row: distro/provider (e.g. "RKE2", "EKS"), k8s version, and the
-  // cluster state (a status pill is shown while transitioning, e.g. "Updating"). SURE-8192.
+  // Meta shown on a cluster-switcher row: distro/provider (e.g. "RKE2", "EKS") and k8s version. SURE-8192.
   providerDisplay: string,
   kubernetesVersion: string,
-  stateDisplay: string,
-  stateColor: string,
-  transitioning: boolean,
   pin: () => void,
   unpin: () => void,
   clusterRoute: LocationAsRelativeRaw,
@@ -71,9 +67,6 @@ type MgmtCluster = {
   machineProviderDisplay?: string,
   provider?: string,
   kubernetesVersion?: string,
-  stateDisplay?: string,
-  stateColor?: string,
-  transitioning?: boolean,
   pin: () => void
   unpin: () => void
 }
@@ -291,9 +284,6 @@ export abstract class BaseTopLevelMenuHelper {
       description:       provCluster?.description || mgmtCluster.description,
       providerDisplay:   provCluster?.provisionerDisplay || mgmtCluster.machineProviderDisplay || mgmtCluster.provider || '',
       kubernetesVersion: mgmtCluster.kubernetesVersion || '',
-      stateDisplay:      mgmtCluster.stateDisplay || '',
-      stateColor:        mgmtCluster.stateColor || '',
-      transitioning:     !!mgmtCluster.transitioning,
       pin:               () => mgmtCluster.pin(),
       unpin:             () => mgmtCluster.unpin(),
       clusterRoute:      { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } },
@@ -597,16 +587,13 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clusterCount = count;
 
     try {
-      const commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
-
-      if (commonClusterFilters.length === 0) {
-        // We're not filtering out harvester clusters or local cluster, so no need to tweak the saved count for clusters
-        return;
-      }
-
       const args:ActionFindPageArgs = {
         pagination: {
-          filters:              commonClusterFilters,
+          // ALWAYS exclude `local`: the ALL CLUSTERS count never includes it (local has its own fixed
+          // tile), so the count must be identical whether or not the hide-local setting is on. Excluding
+          // local also guarantees a non-empty filter set, so this query always runs and the saved count
+          // never goes stale — which used to make the count wobble ±1 on a hide-local toggle. SURE-8192.
+          filters:              this.constructParams({ excludeLocal: true }),
           page:                 1,
           pageSize:             1,
           sort:                 [],

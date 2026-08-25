@@ -53,20 +53,13 @@ const meta = computed(() => {
   ].filter((p) => !!p).join(' · ');
 });
 
-const showStatus = computed(() => {
-  return !!props.cluster.transitioning && !!props.cluster.stateDisplay;
-});
-
 // A single, concise label for screen readers: the badge is decorative and the pin is a separate control,
-// so the option should announce just "<name>, <provider · version · current>, <state>". SURE-8192 (v2).
+// so the option should announce just "<name>, <provider · version · current>". SURE-8192 (v2).
 const ariaLabel = computed(() => {
   const parts = [props.cluster.label];
 
   if (meta.value) {
     parts.push(meta.value);
-  }
-  if (showStatus.value) {
-    parts.push(props.cluster.stateDisplay);
   }
   if (!props.cluster.ready) {
     parts.push(t('nav.switcher.aria.notReady'));
@@ -113,13 +106,6 @@ function select() {
         {{ meta }}
       </div>
     </div>
-    <span
-      v-if="showStatus"
-      class="row-status"
-      :style="cluster.stateColor ? { color: cluster.stateColor } : null"
-    >
-      {{ cluster.stateDisplay }}
-    </span>
     <Pinned
       v-if="pinnable"
       :cluster="cluster"
@@ -233,13 +219,6 @@ function select() {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-  }
-
-  .row-status {
-    flex: 0 0 auto;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--warning);
   }
 
   // The pin: 22×22 hover square with a 9px icon. Grey when not pinned, primary when pinned; faint until
