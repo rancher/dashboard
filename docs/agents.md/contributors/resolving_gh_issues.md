@@ -21,6 +21,11 @@
 - Ensure you have the latest of that branch `git pull --rebase`
 - Checkout the branch to commit the changes to `git checkout issue-${issueNumber}`. Replace `${issueNumber}` with the issue number.
 
+## Comments
+
+- Comments should only accompany a code change if the reason for the change is not clear and obvious.
+- Comments should be short and concise.
+
 ## Creating a commit
 
 - Follow the [Chris Beams](http://chris.beams.io/posts/git-commit/) 'seven rules of a great Git commit message'  for commit messages.
@@ -30,6 +35,7 @@
 - Pull requests must come from forks
 - Description should always reference the issue that the PR resolves e.g. `Fixes #1234`.
 - Pull Requests that update code in `shell/` should update existing or add new unit tests to cover the change in functionality
+- Pull Request descriptions should use the github template and be concise
 - A Pull Request will only be merged once
   - The pull request checklist has been completed
   - ALL CI gates have passed
