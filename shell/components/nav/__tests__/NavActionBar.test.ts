@@ -413,6 +413,40 @@ describe('NavActionBar.vue', () => {
     expect(wrapper.emitted('collapse-all')).toHaveLength(1);
   });
 
+  it('reopens the dropdown when typing resumes after escape', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('pod');
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'Escape' });
+    await nextTick();
+
+    expect(wrapper.find('#jump-to-listbox').exists()).toBe(false);
+
+    // Escape leaves the input focused, so the next keystroke has to bring the
+    // list back rather than filtering one that isn't on screen.
+    await wrapper.find('.jump-to-input').setValue('config');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['ConfigMaps']);
+  });
+
+  it('reopens the dropdown when arrowing after escape', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'Escape' });
+    await nextTick();
+
+    expect(wrapper.find('#jump-to-listbox').exists()).toBe(false);
+
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'ArrowDown' });
+    await nextTick();
+
+    expect(wrapper.find('#jump-to-listbox').exists()).toBe(true);
+    expect(wrapper.findAll('.jump-to-option')[0].classes()).toContain('active');
+  });
+
   it('closes the dropdown and clears the query on escape', async() => {
     const wrapper = mountBar();
 

@@ -232,15 +232,29 @@ function onFocus() {
   activeIndex.value = 0;
 }
 
+// Esc closes the list without taking focus off the input, so typing has to bring
+// it back or the field goes on filtering a list nobody can see. `close` clears
+// the query itself rather than through the input, so this can't undo an Esc.
+function onInput() {
+  open.value = true;
+}
+
 function close() {
   open.value = false;
   query.value = '';
 }
 
 function move(delta: number) {
+  // Arrowing after Esc reopens the list, for the same reason typing does.
+  if (!open.value) {
+    open.value = true;
+
+    return;
+  }
+
   const count = results.value.length;
 
-  if (!open.value || !count) {
+  if (!count) {
     return;
   }
 
@@ -301,6 +315,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
         :placeholder="t('nav.jumpTo.placeholder')"
         :title="t('nav.jumpTo.tooltip', { shortcut: shortcutLabel })"
         @focus="onFocus"
+        @input="onInput"
         @blur="close"
         @keydown.down.prevent="move(1)"
         @keydown.up.prevent="move(-1)"
