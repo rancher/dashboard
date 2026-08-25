@@ -29,6 +29,22 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
   before(() => {
     cy.login();
     cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
+
+    // Create the shared test-charts repo once for all the describe blocks that
+    // need rancher-demo. Creating the clusterrepo returns before the git repo
+    // has finished cloning, so wait for its charts to be downloaded - otherwise
+    // the catalog shows "No charts to show" and rancher-demo is missing. Deleting
+    // and recreating the repo per-block races the wait against the old resource's
+    // stale Downloaded condition, so it is created here exactly once.
+    cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+      type:     'catalog.cattle.io.clusterrepo',
+      metadata: { name: testChartsRepoName },
+      spec:     {
+        clientSecret: null, gitRepo: testChartsGitRepoUrl, gitBranch: testChartsBranchName
+      }
+    });
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
+
     HomePagePo.goTo();
   });
 
@@ -38,19 +54,7 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
     before(() => {
-      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
-        type:     'catalog.cattle.io.clusterrepo',
-        metadata: { name: testChartsRepoName },
-        spec:     {
-          clientSecret: null, gitRepo: testChartsGitRepoUrl, gitBranch: testChartsBranchName
-        }
-      });
-
       cy.createRancherResource('v1', 'configmaps', configMapPayload);
-
-      // Wait for the git repo to finish cloning so its charts are in the catalog
-      // before we navigate, otherwise rancher-demo is missing ("No charts to show").
-      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
     });
 
     it('Resource dropdown picker has ConfigMaps listed', () => {
@@ -77,7 +81,6 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
       cy.deleteRancherResource('v1', 'configmaps', `${ configMapPayload.metadata.namespace }/${ configMapPayload.metadata.name }` );
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });
@@ -86,21 +89,6 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
   describe('YAML values editor - overrides and final values panes', () => {
     const installChartPage = new InstallChartPage();
     const chartPage = new ChartPage();
-
-    before(() => {
-      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
-        type:     'catalog.cattle.io.clusterrepo',
-        metadata: { name: testChartsRepoName },
-        spec:     {
-          clientSecret: null, gitRepo: testChartsGitRepoUrl, gitBranch: testChartsBranchName
-        }
-      });
-
-      // Creating the clusterrepo returns before the git repo has finished
-      // cloning, so wait for its charts to be downloaded before navigating -
-      // otherwise the catalog shows "No charts to show" and rancher-demo is missing.
-      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
-    });
 
     it('shows an editable overrides pane and a read-only final values pane that stays in sync', () => {
       ChartPage.navTo(undefined, 'rancher-demo');
@@ -149,7 +137,6 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });
   });
@@ -229,6 +216,7 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
   });
 
   after(() => {
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
     cy.setUserPreference({ 'show-pre-release': false });
   });
 });
