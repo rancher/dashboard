@@ -3,38 +3,6 @@
 Written and maintained by the Dead Code Detector workflow
 (`.github/workflows/dead-code-detector.md`), which reads this file at the start of every run.
 
-## Unknown external usage
-
-Exported code with **no consumer in this repository** and **no way to prove it has none elsewhere**.
-
-Everything under `shell/` ships to npm as `@rancher/shell` (`shell/package.json` declares
-`"files": ["**/*"]`), so any exported symbol there can be imported by an out-of-tree UI extension
-as `@shell/...`. A repository-wide search cannot see those consumers. That makes "no importers
-here" an unprovable negative, and unprovable negatives are not removal candidates.
-
-This register is where they accumulate instead. Nothing on it is a bug, and nothing on it should
-be deleted on the strength of being listed — the list exists so the question can be answered once,
-by someone who knows the extension ecosystem, rather than re-asked by every run.
-
-### Rules
-
-- **Add** an entry when a run finds an exported symbol or a shipped file with zero in-repo
-  consumers. Do not file it as a removal issue as well; this register replaces that issue
-- **Never remove an entry because it is old.** Age is not evidence. An entry leaves only when
-  someone establishes the answer: a consumer is found (record it, note the resolution), or a
-  maintainer confirms nothing outside the repository uses it and the code is removed
-- **Re-check on each pull request** that touches this file, and update what the check found. If an
-  entry has gained an in-repo consumer since it was added, say so and resolve it — that is the
-  outcome this register exists to catch
-- **One row per exported symbol or file**, not per cluster. A cluster's members can resolve
-  differently
-
-### Register
-
-| Added | Symbol or file | Exported as | In-repo consumers | Last re-checked | Notes |
-| --- | --- | --- | --- | --- | --- |
-| _(empty — the first run to find one adds it here)_ | | | | | |
-
 ## Provenance and confidence
 
 Git history is what separates a guess from a judgement. For every candidate, establish how it
@@ -60,10 +28,6 @@ Establish the shape with a history search for the name across config and package
 a search for the commit where the last usage disappeared. Quote the commands and their real output
 in the issue — a confidence level with no commands behind it is an assertion, and the reviewer has
 no way to check it without redoing the work.
-
-None of this promotes an exported symbol into a removal candidate. Provenance explains how code
-became unreferenced _here_; it says nothing about consumers outside the repository, which is what
-the unknown-usage register above is for.
 
 ### Worked examples
 
@@ -321,4 +285,47 @@ do not cite issue numbers.
 
   ```bash
   wc -l <every file in the list> | tail -1
+  ```
+
+### 2026-08-25 — Convention directories are loaded by a template-literal import
+
+- **Trigger**: Files under the resource-type directories reported as orphaned because nothing imports
+  them — which is true of every file in those directories, the live ones included
+- **Rule**: These directories are addressed by Kubernetes resource type at runtime, not by import.
+  `shell/utils/dynamic-importer.js` builds the path from a string, so no static import to the file will
+  ever exist and no reference search can find one. Never report a file in `shell/models/`,
+  `shell/detail/`, `shell/edit/`, `shell/list/`, `shell/chart/`, `shell/cloud-credential/`,
+  `shell/machine-config/`, `shell/promptRemove/`, `shell/dialog/` or their `pkg/*/` equivalents as
+  unreferenced. The same shape hides a reference anywhere a component is named by a computed string —
+  `defineAsyncComponent`, `resolveComponent`, `<component :is="...">`, and any `import()` containing a
+  template literal. Search for the bare name as a quoted string before concluding anything
+- **Command**:
+
+  ```bash
+  sed -n '39,44p' shell/utils/dynamic-importer.js
+  # export function importList(name) {
+  #   if (!name) {
+  #     throw new Error('Name required');
+  #   }
+  #   return defineAsyncComponent(() => import(`@shell/list/${name}`));
+  # }
+  grep -rn "defineAsyncComponent\|resolveComponent" shell pkg \
+    --include="*.vue" --include="*.ts" --include="*.js" | grep -v node_modules | wc -l
+  # 43
+  ```
+
+### 2026-08-25 — Entry points have no importers by design
+
+- **Trigger**: Package entry points and API modules counted as dead because a repository-wide search
+  found nothing importing them
+- **Rule**: A module whose job is to be imported from outside the repository has no in-repo importer,
+  and that is what it is for rather than evidence against it. Never report `shell/apis/**`,
+  `pkg/*/index.ts`, `shell/initialize/entry.js`, `shell/config/router/routes.js`, store, plugin or
+  directive registration files, or anything named as a `main`, `types` or `exports` target in a
+  `package.json` or as an entry in build config
+- **Command**:
+
+  ```bash
+  python3 -c "import json;d=json.load(open('shell/package.json'));print({k:d.get(k) for k in ('types','files')})"
+  # {'types': 'types/shell/index.d.ts', 'files': ['**/*']}
   ```
