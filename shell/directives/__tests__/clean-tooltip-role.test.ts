@@ -1,7 +1,14 @@
 import { mount } from '@vue/test-utils';
 import cleanTooltip from '@shell/directives/clean-tooltip';
+import { waitForTooltip, waitUntil } from './utils/tooltip';
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Returns the popper that is currently shown, if there is one.
+ * @returns {Element | null} The shown popper element.
+ */
+function shownPopper(): Element | null {
+  return document.querySelector('.v-popper__popper--shown');
+}
 
 describe('clean-tooltip role="tooltip"', () => {
   afterEach(() => {
@@ -16,9 +23,9 @@ describe('clean-tooltip role="tooltip"', () => {
 
     wrapper.element.dispatchEvent(new MouseEvent('mouseenter'));
 
-    await wait(600);
+    await waitForTooltip();
 
-    expect(document.querySelector('.v-popper__popper')?.getAttribute('role')).toBe('tooltip');
+    expect(shownPopper()?.getAttribute('role')).toBe('tooltip');
 
     wrapper.unmount();
   });
@@ -40,17 +47,15 @@ describe('clean-tooltip role="tooltip"', () => {
     const elB = wrapper.find('#b').element;
 
     elA.dispatchEvent(new MouseEvent('mouseenter'));
-    await wait(600);
+    await waitForTooltip();
 
-    expect(document.querySelector('.v-popper__popper')?.getAttribute('role')).toBe('tooltip');
+    expect(shownPopper()?.getAttribute('role')).toBe('tooltip');
 
     elA.dispatchEvent(new MouseEvent('mouseleave'));
-    await wait(100);
-
     elB.dispatchEvent(new MouseEvent('mouseenter'));
-    await wait(600);
+    await waitUntil(() => !!shownPopper()?.textContent?.includes('Second'));
 
-    expect(document.querySelector('.v-popper__popper--shown')?.getAttribute('role')).toBe('tooltip');
+    expect(shownPopper()?.getAttribute('role')).toBe('tooltip');
 
     wrapper.unmount();
   });
