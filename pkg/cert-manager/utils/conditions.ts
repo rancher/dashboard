@@ -14,9 +14,11 @@ export function conditionOf(resource: any, type: string): Condition | undefined 
 const FAILURE_WHEN_TRUE = ['Failed', 'Denied', 'InvalidRequest'];
 
 /**
- * Steve only tags conditions with `error` for resource types it has mappings for, so cert-manager
- * conditions arrive unclassified and neither the Conditions table nor the tab's alert icon light
- * up. This applies the same judgement the models already make for the resource state.
+ * Steve leaves cert-manager conditions with `error: false` even when they report a failure - a
+ * failed CertificateRequest comes back with Ready=False, reason "Failed" and a real failure message,
+ * yet error:false / transitioning:true. The shell's default condition rendering keys off `error`, so
+ * neither the Conditions table nor the tab's alert icon light up. This re-applies the same judgement
+ * the models already make for the resource state.
  *
  * A merely-not-True condition is not enough on its own: a certificate part way through issuance
  * legitimately has Ready=False, and flagging that would cry wolf. So Ready-style conditions only
