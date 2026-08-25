@@ -6,6 +6,8 @@ import NavActionBar from '@shell/components/nav/NavActionBar.vue';
 // route doesn't change, so the return type is widened for the tests that do both.
 const mockRouter = { push: jest.fn((): Promise<any> => Promise.resolve()) };
 
+let activeNavItem: string | null = null;
+
 let stored: string[] | null = null;
 const mockHistory = {
   load: jest.fn(() => stored),
@@ -17,14 +19,17 @@ const mockHistory = {
 const mockStore = { getters: { isExplorer: true, clusterId: 'c-test' } };
 
 jest.mock('vuex', () => ({ useStore: () => mockStore }));
-jest.mock('vue-router', () => ({ useRouter: () => mockRouter }));
+jest.mock('vue-router', () => ({ useRouter: () => mockRouter, useRoute: () => ({ path: '/current' }) }));
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 jest.mock('@shell/composables/useClusterLocalStorage', () => ({ useClusterLocalStorage: () => mockHistory }));
 
 const shortNames = ref<Record<string, string[]>>({});
 
 jest.mock('@shell/composables/useResourceShortNames', () => ({ useResourceShortNames: () => shortNames }));
-jest.mock('@shell/utils/router', () => ({ filterLocationValidParams: (_router: any, route: any) => route }));
+jest.mock('@shell/utils/router', () => ({
+  filterLocationValidParams: (_router: any, route: any) => route,
+  isNavItemActive:           (_router: any, _to: any, navItem: any) => !!activeNavItem && navItem?.name === activeNavItem,
+}));
 jest.mock('@shell/utils/platform', () => ({ isMac: false }));
 
 // A small nav tree mirroring the curated explorer groups: a root whose children
@@ -82,6 +87,7 @@ const paths = (wrapper: any) => wrapper.findAll('.jump-to-option').map((n: any) 
 describe('NavActionBar.vue', () => {
   beforeEach(() => {
     stored = null;
+    activeNavItem = null;
     shortNames.value = {
       pod: ['po'], configmap: ['cm'], resourcequota: ['quota']
     };
@@ -406,6 +412,76 @@ describe('NavActionBar.vue', () => {
     // Workloads' first child is Pods, so the group jump lands there.
     expect(mockRouter.push).toHaveBeenCalledWith({ name: 'pod' });
     expect(mockHistory.save).toHaveBeenCalledWith(['workloads']);
+  });
+
+  it('does not move you when you jump to a group you are already inside', async() => {
+    activeNavItem = 'apps.deployment';
+
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('work');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['Workloads']);
+
+    await wrapper.findAll('.jump-to-option')[0].trigger('mousedown');
+    await nextTick();
+
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(wrapper.emitted('jumped')).toStrictEqual([[]]);
+    expect(mockHistory.save).toHaveBeenCalledWith(['workloads']);
+  });
+
+  it('still navigates to a group that is merely open, rather than holding you', async() => {
+    const custom = groups.map((group) => (group.name === 'workloads' ? { ...group, expanded: true } : group));
+
+    activeNavItem = 'configmap';
+
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('work');
+    await nextTick();
+
+    await wrapper.findAll('.jump-to-option')[0].trigger('mousedown');
+    await nextTick();
+
+    expect(mockRouter.push).toHaveBeenCalledWith({ name: 'pod' });
+  });
+
+  it('holds you in a collapsed group you are inside, as well as an open one', async() => {
+    const custom = groups.map((group) => (group.name === 'workloads' ? { ...group, expanded: false } : group));
+
+    activeNavItem = 'apps.deployment';
+
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('work');
+    await nextTick();
+
+    await wrapper.findAll('.jump-to-option')[0].trigger('mousedown');
+    await nextTick();
+
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(wrapper.emitted('jumped')).toStrictEqual([[]]);
+  });
+
+  it('does not re-navigate to the section already on screen', async() => {
+    activeNavItem = 'pod';
+
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('pods');
+    await nextTick();
+
+    await wrapper.findAll('.jump-to-option')[0].trigger('mousedown');
+    await nextTick();
+
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(wrapper.emitted('jumped')).toStrictEqual([[]]);
   });
 
   it('shows only matching sections and an empty state for no matches', async() => {

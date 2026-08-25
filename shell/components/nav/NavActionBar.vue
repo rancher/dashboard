@@ -3,14 +3,14 @@ import {
   computed, nextTick, onBeforeUnmount, ref, watch
 } from 'vue';
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import { useClusterLocalStorage } from '@shell/composables/useClusterLocalStorage';
 import {
   POD, SERVICE, CONFIG_MAP, NODE, WORKLOAD_TYPES
 } from '@shell/config/types';
 import { useResourceShortNames } from '@shell/composables/useResourceShortNames';
-import { filterLocationValidParams } from '@shell/utils/router';
+import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
 import { isMac } from '@shell/utils/platform';
 
 /**
@@ -23,6 +23,7 @@ interface JumpItem {
   path: string[];
   route: any;
   shortNames: string[];
+  node: any;
 }
 
 const props = defineProps<{
@@ -36,6 +37,7 @@ const emit = defineEmits<{(e: 'collapse-all'): void; (e: 'jumped'): void }>();
 
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
 const { t } = useI18n(store);
 
 const explorerClusterId = () => (store.getters.isExplorer ? store.getters.clusterId : '');
@@ -138,6 +140,14 @@ const firstLeafRoute = (node: any): any => {
   return null;
 };
 
+const holdsCurrentRoute = (node: any): boolean => {
+  if (node.route && isNavItemActive(router, route, node)) {
+    return true;
+  }
+
+  return (node.children || []).some(holdsCurrentRoute);
+};
+
 const items = computed<JumpItem[]>(() => {
   const byKey: Record<string, JumpItem> = {};
 
@@ -155,7 +165,7 @@ const items = computed<JumpItem[]>(() => {
       // entry), since the group itself already represents that jump.
       if (!node.isRoot && label && route && label !== parentLabel && !byKey[node.name]) {
         byKey[node.name] = {
-          key: node.name, label, path: [...path], route, shortNames: shortNamesFor(node)
+          key: node.name, label, path: [...path], route, shortNames: shortNamesFor(node), node
         };
       }
 
@@ -281,6 +291,12 @@ function jumpTo(item?: JumpItem) {
 
   close();
   input.value?.blur();
+
+  if (holdsCurrentRoute(item.node)) {
+    emit('jumped');
+
+    return;
+  }
 
   // Navigating triggers SideNav's route sync, which expands the ancestor groups
   // to reveal the target without collapsing anything else.
