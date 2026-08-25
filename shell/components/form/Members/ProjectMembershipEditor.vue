@@ -1,10 +1,18 @@
 <script>
 import { NORMAN } from '@shell/config/types';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-import MembershipEditor, { canViewMembershipEditor } from '@shell/components/form/Members/MembershipEditor';
+import MembershipEditor, { canViewMembershipEditor, canViewMembershipEditorList } from '@shell/components/form/Members/MembershipEditor';
 
 export function canViewProjectMembershipEditor(store) {
   return canViewMembershipEditor(store, true);
+}
+
+// SURE-8995: read-only view gate for the project members list (see
+// `canViewMembershipEditorList`). Used to show the Members tab to users who can
+// see project members but not fully manage them (e.g. a cluster-owner on a
+// `user-base` global role).
+export function canViewProjectMembershipList(store) {
+  return canViewMembershipEditorList(store, true);
 }
 
 export default {

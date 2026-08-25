@@ -88,11 +88,25 @@ export default {
         this.loadProjectMembershipPermissions();
       });
 
-    const hydration = {
-      normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
-      mgmt:              this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }),
-      mgmtRoleTemplates: this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
-    };
+    // SURE-8995: a user with only membership permissions (e.g. a cluster-owner on
+    // a `user-base` global role) may not have access to the principal, user or
+    // role-template schemas. Guard each hydration dispatch on its schema so
+    // `findAll` doesn't throw "Unknown schema for type: ..." and break the whole
+    // page - the members list still renders (with reduced principal/role name
+    // resolution) for a view-only user.
+    const hydration = {};
+
+    if (this.$store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL)) {
+      hydration.normanPrincipals = this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL });
+    }
+
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
+      hydration.mgmt = this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
+    }
+
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE)) {
+      hydration.mgmtRoleTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE });
+    }
 
     await allHash(hydration);
   },
@@ -232,6 +246,11 @@ export default {
 
       return Object.values(userRoles);
     },
+    // SURE-8995: whether the user can MUTATE cluster members (the Add action opens
+    // the create-CRTB form, which needs the role-template + user reads to pick a
+    // role and search principals). A cluster-owner on a `user-base` global role
+    // lacks these, so the cluster Add is hidden and they get a read-only view -
+    // mirroring the project side (`canManageProjectMembers`).
     canManageMembers() {
       return canViewClusterPermissionsEditor(this.$store);
     },
@@ -241,8 +260,22 @@ export default {
     canViewClusterMembers() {
       return !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
     },
+    // SURE-8995: whether the current user can MUTATE project members from this page
+    // (add / remove). This requires the full membership editor schemas (role
+    // templates + principals), which the add flow depends on to pick a role and
+    // search principals. A cluster-owner on a `user-base` global role lacks these,
+    // so they get a read-only view (see `canViewProjectMembers`).
     canManageProjectMembers() {
       return canViewProjectMembershipEditor(this.$store);
+    },
+    // SURE-8995: whether to show the Project Membership tab at all. Viewing the
+    // members list only needs access to the project role bindings themselves - it
+    // must NOT require the role-template/principal reads (those only gate the
+    // add/remove actions). Otherwise a cluster-owner on a `user-base` global role -
+    // who can genuinely see and manage project members on the backend - is shown no
+    // tab. Name/role resolution degrades gracefully when those reads are absent.
+    canViewProjectMembers() {
+      return !!this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
     },
     isLocal() {
       return this.$store.getters['currentCluster'].isLocal;
@@ -352,7 +385,7 @@ export default {
         :label="t('members.clusterMembership')"
       >
         <div
-          v-if="canEditClusterMembers"
+          v-if="canManageMembers && canEditClusterMembers"
           class="row mb-10 cluster-add"
         >
           <rc-button
@@ -377,7 +410,7 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="canManageProjectMembers && !isHarvester"
+        v-if="canViewProjectMembers && !isHarvester"
         name="project-membership"
         :label="t('members.projectMembership')"
       >
@@ -402,7 +435,7 @@ export default {
               </div>
               <div class="right">
                 <button
-                  v-if="canAddProjectMember(group)"
+                  v-if="canManageProjectMembers && canAddProjectMember(group)"
                   type="button"
                   class="btn btn-sm role-secondary mr-10 right"
                   :data-testid="`add-project-member-${getProjectLabel(group).replace(' ', '').toLowerCase()}`"
@@ -431,7 +464,7 @@ export default {
                 {{ role.nameDisplay }}
               </span>
               <i
-                v-if="canRemoveProjectMember(row)"
+                v-if="canManageProjectMembers && canRemoveProjectMember(row)"
                 class="icon icon-close"
                 :data-testid="`role-values-close-${j}`"
                 @click="removeRole(row, role, $event)"
