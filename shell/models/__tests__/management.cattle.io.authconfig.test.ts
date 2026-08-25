@@ -305,6 +305,19 @@ describe('class AuthConfig', () => {
 
   // Auth configs are edited through their own route, so the inherited menu's
   // `goToEdit` would otherwise land on the generic resource page.
+  describe('canCustomEdit', () => {
+    it('should find the form for an instance of the provider', () => {
+      const config = new AuthConfig({ id: 'github-5', _type: 'githubConfig' }, {
+        rootGetters: {
+          ...rootGetters,
+          'type-map/hasCustomEdit': (type: string, subType: string) => subType === 'github',
+        }
+      } as any);
+
+      expect(config.canCustomEdit).toBe(true);
+    });
+  });
+
   describe('detailLocation', () => {
     it('should point at the auth config page for this config', () => {
       const config = new AuthConfig(

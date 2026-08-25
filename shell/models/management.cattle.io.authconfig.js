@@ -170,16 +170,40 @@ export default class AuthConfig extends SteveModel {
     };
   }
 
+  /**
+   * Whether the form to edit this config exists.
+   *
+   * Forms are registered per provider, so the base class' lookup by id finds
+   * nothing for a config named anything other than its provider - which would
+   * take `Edit Config` off the menu for every instance but the first.
+   */
+  get canCustomEdit() {
+    return this.$rootGetters['type-map/hasCustomEdit'](this.type, providerKey(this._type));
+  }
+
+  /**
+   * Several configs of a provider all carry the provider's label, so an instance
+   * that is not the provider's own singleton is named as well - otherwise eight
+   * GitHub configs are eight identical page titles.
+   */
   get nameDisplay() {
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.name."${ this.id }"`, null, this.provider);
+    const label = this.$rootGetters['i18n/withFallback'](`model.authConfig.name."${ this.id }"`, null, this.provider);
+
+    if (this.id === providerKey(this._type)) {
+      return label;
+    }
+
+    return this.description || `${ label } (${ this.id })`;
   }
 
   get provider() {
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.id }"`, null, this.id);
+    // Keyed off `_type` rather than `id` so that several configs of the same
+    // provider (each with its own arbitrary name) all resolve to one label.
+    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ providerKey(this._type) }"`, null, this.id);
   }
 
   get configType() {
-    return configTypeForProvider(this.id);
+    return configTypeForProvider(this._type);
   }
 
   get sideLabel() {
