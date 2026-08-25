@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { nextTick } from 'vue';
+import { nextTick, ref } from 'vue';
 import NavActionBar from '@shell/components/nav/NavActionBar.vue';
 
 // `push` resolves with undefined on success and with a NavigationFailure when the
@@ -20,6 +20,11 @@ jest.mock('vuex', () => ({ useStore: () => mockStore }));
 jest.mock('vue-router', () => ({ useRouter: () => mockRouter }));
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 jest.mock('@shell/composables/useClusterLocalStorage', () => ({ useClusterLocalStorage: () => mockHistory }));
+
+// Discovery is fetched in the background; these are the short names it lands with.
+const shortNames = ref<Record<string, string[]>>({});
+
+jest.mock('@shell/composables/useResourceShortNames', () => ({ useResourceShortNames: () => shortNames }));
 jest.mock('@shell/utils/router', () => ({ filterLocationValidParams: (_router: any, route: any) => route }));
 jest.mock('@shell/utils/platform', () => ({ isMac: false }));
 
@@ -78,6 +83,9 @@ const paths = (wrapper: any) => wrapper.findAll('.jump-to-option').map((n: any) 
 describe('NavActionBar.vue', () => {
   beforeEach(() => {
     stored = null;
+    shortNames.value = {
+      pod: ['po'], configmap: ['cm'], resourcequota: ['quota']
+    };
     jest.clearAllMocks();
   });
 
@@ -270,6 +278,80 @@ describe('NavActionBar.vue', () => {
     // Both match at index 0 (one on its type name, one on its label), so the tie
     // is broken alphabetically
     expect(labels(wrapper)).toStrictEqual(['Cluster Pods', 'Pod Security']);
+  });
+
+  it('finds a type by its Kubernetes short name', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('cm');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['ConfigMaps']);
+  });
+
+  it('ranks a short name above an earlier text match', async() => {
+    const custom = [{
+      name:     'cluster',
+      label:    'Cluster',
+      children: [
+        // "quota" is this type's short name, but as text it only appears at
+        // index 8 of `resourcequota`, so on text alone it would rank second.
+        {
+          name: 'resourcequota', label: 'Resource Quotas', route: { name: 'quota' }
+        },
+        {
+          name: 'quotapolicy', label: 'Quota Policies', route: { name: 'quotapolicy' }
+        },
+      ]
+    }];
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('quota');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['Resource Quotas', 'Quota Policies']);
+  });
+
+  it('matches a short name whole, not as a prefix', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    // "c" is the first letter of the short names for ConfigMaps and CronJobs,
+    // but it is not a short name, so ranking stays on the text match.
+    await wrapper.find('.jump-to-input').setValue('c');
+    await nextTick();
+
+    expect(labels(wrapper)[0]).toStrictEqual('ConfigMaps');
+    expect(labels(wrapper)).toContain('Service Discovery');
+  });
+
+  it('picks up short names when discovery lands after the list is already open', async() => {
+    shortNames.value = {};
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('cm');
+    await nextTick();
+
+    // Nothing is called "cm", so until discovery lands there is nothing to show.
+    expect(wrapper.findAll('.jump-to-option')).toHaveLength(0);
+
+    shortNames.value = { configmap: ['cm'] };
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['ConfigMaps']);
+  });
+
+  it('leaves types with no short name searchable by text alone', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('service');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['Service Discovery', 'Services']);
   });
 
   it('includes groups as options and jumps to a group\'s first section', async() => {

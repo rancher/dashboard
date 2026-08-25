@@ -9,6 +9,7 @@ import { useClusterLocalStorage } from '@shell/composables/useClusterLocalStorag
 import {
   POD, SERVICE, CONFIG_MAP, NODE, WORKLOAD_TYPES
 } from '@shell/config/types';
+import { useResourceShortNames } from '@shell/composables/useResourceShortNames';
 import { filterLocationValidParams } from '@shell/utils/router';
 import { isMac } from '@shell/utils/platform';
 
@@ -21,6 +22,8 @@ interface JumpItem {
   label: string;
   path: string[];
   route: any;
+  /** The type's Kubernetes short names, empty for a group. */
+  shortNames: string[];
 }
 
 const props = defineProps<{
@@ -38,6 +41,10 @@ const { t } = useI18n(store);
 
 const explorerClusterId = () => (store.getters.isExplorer ? store.getters.clusterId : '');
 const history = useClusterLocalStorage<string[]>('nav-jump-history', explorerClusterId);
+
+// Fetched in the background, so results are searchable by type name immediately
+// and by short name as soon as discovery lands.
+const shortNames = useResourceShortNames();
 
 // A reactive mirror of the persisted history so the default list re-renders when
 // a jump is recorded (localStorage reads on their own aren't reactive). Reloaded
@@ -145,7 +152,7 @@ const items = computed<JumpItem[]>(() => {
       // entry), since the group itself already represents that jump.
       if (!node.isRoot && label && route && label !== parentLabel && !byKey[node.name]) {
         byKey[node.name] = {
-          key: node.name, label, path: [...path], route
+          key: node.name, label, path: [...path], route, shortNames: shortNames.value[node.name] || []
         };
       }
 
@@ -185,6 +192,11 @@ const defaultResults = computed<JumpItem[]>(() => {
  * match is. The type name is matched too so a resource is still findable by its
  * schema and API group (`provisioning.cattle`), as it was in the search dialog
  * this replaces.
+ *
+ * A whole-word Kubernetes short name outranks all of that: someone typing `cm`
+ * wants ConfigMaps, not the seven sections with a `c` and an `m` in them. Only a
+ * whole one counts, so a single letter doesn't drag every abbreviation starting
+ * with it to the top of the list.
  */
 const searchResults = computed<JumpItem[]>(() => {
   const q = query.value.trim().toLowerCase();
@@ -200,9 +212,11 @@ const searchResults = computed<JumpItem[]>(() => {
   };
 
   return items.value
-    .map((item) => ({ item, idx: matchIndex(item) }))
-    .filter((scored) => scored.idx >= 0)
-    .sort((a, b) => a.idx - b.idx || a.item.label.localeCompare(b.item.label))
+    .map((item) => ({
+      item, idx: matchIndex(item), isShortName: item.shortNames.includes(q)
+    }))
+    .filter((scored) => scored.isShortName || scored.idx >= 0)
+    .sort((a, b) => Number(b.isShortName) - Number(a.isShortName) || a.idx - b.idx || a.item.label.localeCompare(b.item.label))
     .slice(0, MAX_RESULTS)
     .map((scored) => scored.item);
 });
