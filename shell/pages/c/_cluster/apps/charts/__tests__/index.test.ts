@@ -1,5 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import Charts from '@shell/pages/c/_cluster/apps/charts/index.vue';
+import AsyncButton from '@shell/components/AsyncButton';
 import { UI_PLUGIN_ANNOTATION } from '@shell/config/uiplugins';
 
 describe('page: Charts Index', () => {
@@ -105,6 +106,55 @@ describe('page: Charts Index', () => {
 
       expect(ctx.isLoadingMore).toBe(false);
       expect(ctx._loadMoreTimer).toBeNull();
+    });
+  });
+
+  describe('progressive loading', () => {
+    const mountCharts = (pending: boolean) => shallowMount(Charts, {
+      global: {
+        mocks: {
+          t:           (key: string) => key,
+          $fetchState: { pending },
+          $route:      { params: { cluster: 'c-1' }, query: {} },
+          $store:      {
+            getters: {
+              currentCluster:      { status: { provider: 'other' }, workerOSs: [] },
+              'catalog/charts':    [],
+              'catalog/errors':    [],
+              'catalog/repos':     [],
+              'prefs/get':         () => false,
+              'i18n/withFallback': (_key: string, _fallback: any, val: string) => val,
+              clusterId:           'c-1',
+              productId:           'apps',
+            },
+          },
+        },
+        directives: { shortkey: () => {} },
+      },
+    });
+
+    it('should render the header, search bar and refresh button while fetching', () => {
+      const wrapper = mountCharts(true);
+
+      expect(wrapper.find('[data-testid="charts-header-title"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="charts-filter-input"]').exists()).toBe(true);
+      expect(wrapper.findComponent(AsyncButton).exists()).toBe(true);
+    });
+
+    it('should disable the search bar and refresh button and show the loading indicator while fetching', () => {
+      const wrapper = mountCharts(true);
+
+      expect(wrapper.find('[data-testid="charts-filter-input"]').attributes('disabled')).toBeDefined();
+      expect(wrapper.findComponent(AsyncButton).props('disabled')).toBe(true);
+      expect(wrapper.find('[data-testid="charts-loading"]').exists()).toBe(true);
+    });
+
+    it('should enable the controls and hide the loading indicator once fetching completes', () => {
+      const wrapper = mountCharts(false);
+
+      expect(wrapper.find('[data-testid="charts-filter-input"]').attributes('disabled')).toBeUndefined();
+      expect(wrapper.findComponent(AsyncButton).props('disabled')).toBe(false);
+      expect(wrapper.find('[data-testid="charts-loading"]').exists()).toBe(false);
     });
   });
 
