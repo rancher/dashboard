@@ -35,7 +35,7 @@
     "@eslint/js": "10.0.1",
     "@novnc/novnc": "1.2.0",
     "@popperjs/core": "2.11.8",
-    "@rancher/icons": "2.0.62",
+    "@rancher/icons": "2.0.63",
     "@smithy/fetch-http-handler": "5.1.1",
     "@types/is-url": "1.2.30",
     "@types/node": "25.3.3",

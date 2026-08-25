@@ -399,6 +399,12 @@ describe('NavActionBar.vue', () => {
     expect(wrapper.find('.collapse-all-btn').exists()).toBe(true);
   });
 
+  it('draws the collapse-all control with the shared icon font glyph', () => {
+    const wrapper = mountBar({ hasExpandedGroup: true });
+
+    expect(wrapper.find('.collapse-all-btn .icon').classes()).toContain('icon-collapse-all');
+  });
+
   it('emits collapse-all when the collapse-all control is clicked', async() => {
     const wrapper = mountBar({ hasExpandedGroup: true });
 

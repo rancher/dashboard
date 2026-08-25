@@ -317,19 +317,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
       :title="t('nav.ariaLabel.collapseAllSections')"
       @click="emit('collapse-all')"
     >
-      <!-- Double-chevron glyph, inlined (as the sibling nav components do) so it
-           takes the button's colour through `currentColor`. -->
-      <svg
-        class="collapse-all-icon"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 8 11"
-        fill="none"
-        aria-hidden="true"
-        focusable="false"
-      ><path
-        d="M3.63899 7.03885C3.86086 6.90606 4.13898 6.90614 4.36088 7.03885L4.46677 7.11676L7.82392 10.0847C8.0391 10.2751 8.0598 10.6053 7.87088 10.8221C7.68202 11.0387 7.355 11.0603 7.13978 10.8703L3.99994 8.09341L0.861012 10.8703C0.645775 11.0606 0.317941 11.0389 0.128996 10.8221C-0.0599063 10.6053 -0.0383461 10.275 0.176876 10.0847L3.5331 7.11676L3.63899 7.03885ZM7.13886 0.129968C7.354 -0.0602732 7.68189 -0.0392754 7.87088 0.17727C8.05982 0.394077 8.03823 0.724302 7.823 0.914625L4.46677 3.88352C4.19988 4.11952 3.79999 4.11952 3.5331 3.88352L0.175955 0.914625C-0.038956 0.724254 -0.059847 0.39396 0.128996 0.17727C0.317989 -0.0392091 0.645891 -0.0602524 0.861012 0.129968L3.99902 2.90502L7.13886 0.129968Z"
-        fill="currentColor"
-      /></svg>
+      <i class="icon icon-collapse-all collapse-all-icon" />
     </button>
     <Teleport to="body">
       <div
@@ -450,7 +438,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   padding: 0;
   border: none;
   background: transparent;
-  // The glyph is drawn in `currentColor`, so this tints it (black in light mode).
+  // The glyph is a font icon, so this is what colours it (black in light mode).
   color: var(--body-text);
   cursor: pointer;
 
@@ -478,11 +466,10 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
     @include focus-outline;
   }
 
-  // The glyph occupies an 8x12 box (Figma). Its 8x11 viewBox is scaled to fit and
-  // centred within that box by the default `preserveAspectRatio`.
+  // Figma draws the glyph 11px tall. The font inks it at 0.68em, so 16px is the
+  // size that reproduces that height.
   .collapse-all-icon {
-    width: 8px;
-    height: 12px;
+    font-size: 16px;
   }
 }
 
