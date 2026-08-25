@@ -492,7 +492,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
 
 .jump-to-heading {
   padding: var(--nav-toolbar-inset);
-  color: var(--dropdown-secondary-text);
+  color: var(--deemphasized);
   font-size: 13px;
   line-height: 1.2;
 }
@@ -516,10 +516,15 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   border-radius: var(--border-radius);
   cursor: pointer;
 
+  // Not `--dropdown-hover-bg`: in dark mode it is a slate light enough that the
+  // path below no longer clears 4.5:1 against it. A list row carries the same
+  // title-over-subtitle pairing and stays clear of both, so borrow its hover.
   &.active {
-    background-color: var(--dropdown-hover-bg);
+    background-color: var(--sortable-table-hover-bg);
   }
 
+  // Two shades of the same scale, so the type reads ahead of the path it sits in.
+  // Hovering moves the background only, so the pair holds its order either way.
   .jump-to-option-label {
     font-size: 14px;
     font-weight: 500;
@@ -529,10 +534,12 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
     text-overflow: ellipsis;
   }
 
+  // Not `--dropdown-secondary-text`: in dark mode it resolves to the primary text
+  // colour, which would leave the path indistinguishable from the type above it.
   .jump-to-option-path {
     font-size: 13px;
     line-height: 1.2;
-    color: var(--dropdown-secondary-text);
+    color: var(--deemphasized);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -541,7 +548,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
 
 .jump-to-empty {
   padding: var(--nav-toolbar-inset);
-  color: var(--muted);
+  color: var(--deemphasized);
   font-size: 13px;
 }
 </style>
