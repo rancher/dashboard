@@ -38,7 +38,15 @@ describe('component: MembershipEditor', () => {
       },
       global: {
         mocks: {
-          $store:      { getters: { 'rancher/schemaFor': () => ({ type: 'object' }) } },
+          $store: {
+            getters: {
+              'rancher/schemaFor':    () => ({ type: 'object' }),
+              // SURE-8995: `canManageMembers` (which gates add/remove) reads the
+              // management role-template/PRTB schemas - provide them so the manage
+              // actions render for this manage-capable user.
+              'management/schemaFor': () => ({ type: 'object' }),
+            }
+          },
           $fetchState: { pending: false },
         },
         stubs: { Principal: true },
