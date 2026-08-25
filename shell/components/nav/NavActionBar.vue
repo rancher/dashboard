@@ -46,6 +46,18 @@ const history = useClusterLocalStorage<string[]>('nav-jump-history', explorerClu
 // and by short name as soon as discovery lands.
 const shortNames = useResourceShortNames();
 
+/**
+ * The short names a nav entry answers to. An entry can stand in for types other
+ * than its own, which is how a single "Projects/Namespaces" section lists both,
+ * so it takes on the short names of everything it claims (`ns`) as well as any
+ * of its own.
+ */
+const shortNamesFor = (node: any): string[] => {
+  const types = [node.name, ...(node.navResources || [])];
+
+  return Array.from(new Set(types.flatMap((type: string) => shortNames.value[type] || [])));
+};
+
 // A reactive mirror of the persisted history so the default list re-renders when
 // a jump is recorded (localStorage reads on their own aren't reactive). Reloaded
 // whenever the active cluster changes.
@@ -152,7 +164,7 @@ const items = computed<JumpItem[]>(() => {
       // entry), since the group itself already represents that jump.
       if (!node.isRoot && label && route && label !== parentLabel && !byKey[node.name]) {
         byKey[node.name] = {
-          key: node.name, label, path: [...path], route, shortNames: shortNames.value[node.name] || []
+          key: node.name, label, path: [...path], route, shortNames: shortNamesFor(node)
         };
       }
 

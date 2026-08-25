@@ -344,6 +344,51 @@ describe('NavActionBar.vue', () => {
     expect(labels(wrapper)).toStrictEqual(['ConfigMaps']);
   });
 
+  it('gives a nav entry the short names of the types it stands in for', async() => {
+    // "Projects/Namespaces" is one section listing two types, and its own name
+    // is not a schema id, so `ns` can only reach it through `navResources`.
+    const custom = [{
+      name:     'cluster',
+      label:    'Cluster',
+      children: [{
+        name:         'projects-namespaces',
+        label:        'Projects/Namespaces',
+        navResources: ['management.cattle.io.project', 'namespace'],
+        route:        { name: 'projectsnamespaces' },
+      }]
+    }];
+
+    shortNames.value = { namespace: ['ns'] };
+
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('ns');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['Projects/Namespaces']);
+  });
+
+  it('does not repeat a short name claimed by both the entry and its resources', async() => {
+    const custom = [{
+      name:     'cluster',
+      label:    'Cluster',
+      children: [{
+        name: 'namespace', label: 'Namespaces', navResources: ['namespace'], route: { name: 'namespace' }
+      }]
+    }];
+
+    shortNames.value = { namespace: ['ns'] };
+
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('ns');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['Namespaces']);
+  });
+
   it('leaves types with no short name searchable by text alone', async() => {
     const wrapper = mountBar();
 
