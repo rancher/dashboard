@@ -84,8 +84,13 @@ describe('Side Menu: main', () => {
     });
   });
 
-  describe('No intercepts needed before route navigation', () => {
+  describe('With a browsable cluster estate', () => {
     beforeEach(() => {
+      // Inject a fake downstream cluster so there IS something browsable — the redesigned nav hides the
+      // search "door" / flyout entirely when the estate is local-only (browsableClusterCount === 0), and
+      // this CI Rancher has only `local`. SURE-8192.
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
+
       HomePagePo.goTo();
       BurgerMenuPo.toggle();
     });

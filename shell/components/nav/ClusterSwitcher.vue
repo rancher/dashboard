@@ -72,6 +72,18 @@ const directory = computed<TopLevelMenuCluster[]>(() => props.all.filter((c) => 
 // else the ALL CLUSTERS directory (v2 — no PINNED/RECENT groups in the flyout). SURE-8192.
 const rows = computed<TopLevelMenuCluster[]>(() => (searching.value ? props.searchResults.filter((c) => !c.isLocal) : directory.value));
 
+// `local` stays a FIXED tile ABOVE the search door (visual layout unchanged), but the combobox must still
+// OWN it for the keyboard — otherwise ↑↓ + Enter skip the row most people switch to. So the NAVIGATION
+// model puts `local` at the head (index 0); the results listbox below still renders only `rows`, and the
+// template offsets each results row by `localOffset` so highlight + activeIndex stay in lock-step.
+// SURE-8192
+const localOffset = computed<number>(() => (props.local ? 1 : 0));
+const navRows = computed<TopLevelMenuCluster[]>(() => (props.local ? [props.local, ...rows.value] : rows.value));
+
+// Land the cursor on the first ALL/MATCH row, not the fixed `local` tile, so Enter opens a cluster you
+// actually searched for; `local` is one ArrowUp away. Clamp for a local-only list. SURE-8192.
+const firstResultIndex = () => Math.min(localOffset.value, Math.max(0, navRows.value.length - 1));
+
 // How many estate clusters are NOT currently shown — drives the "… N more — type to narrow" foot.
 // Only meaningful in the resting list (a search narrows to matches). SURE-8192 (v2).
 const moreCount = computed(() => (searching.value ? 0 : Math.max(0, props.clusterCount - directory.value.length)));
@@ -91,9 +103,12 @@ const truncatedSearch = computed(() => {
 // at via aria-activedescendant, so a screen reader announces the ↑↓-highlighted cluster WITHOUT moving
 // DOM focus off the input. A polite live region echoes the result count / empty / loading state. v2.
 const listboxId = 'cluster-switcher-listbox';
+// `local` sits in its own single-option listbox above the door; the combobox references BOTH via
+// aria-controls so it legitimately owns the local option too. SURE-8192.
+const localListboxId = 'cluster-switcher-local-listbox';
 const optionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-${ c.id }`;
 const activeDescendant = computed(() => {
-  const c = rows.value[activeIndex.value];
+  const c = navRows.value[activeIndex.value];
 
   return c ? optionId(c) : undefined;
 });
@@ -113,7 +128,7 @@ const statusMessage = computed(() => {
 // toggle or an infinite-scroll load-more mutates `rows` without changing what the user is looking at,
 // and resetting then would yank the highlight up to the top row. Open resets via setOpen. SURE-8192.
 watch(() => props.search, () => {
-  activeIndex.value = 0;
+  activeIndex.value = firstResultIndex();
 });
 
 const setOpen = (value: boolean) => {
@@ -121,7 +136,7 @@ const setOpen = (value: boolean) => {
   emit('update:open', value);
 
   if (value) {
-    activeIndex.value = 0;
+    activeIndex.value = firstResultIndex();
     // Actual focus happens on the dropdown's `apply-show` (see focusSearchInput) — by then the
     // teleported popper is mounted. Focusing here is too early (the input doesn't exist yet).
   }
@@ -186,7 +201,7 @@ const onKeydown = (e: KeyboardEvent) => {
   switch (e.key) {
   case 'ArrowDown':
     e.preventDefault();
-    activeIndex.value = Math.min(activeIndex.value + 1, rows.value.length - 1);
+    activeIndex.value = Math.min(activeIndex.value + 1, navRows.value.length - 1);
     break;
   case 'ArrowUp':
     e.preventDefault();
@@ -194,7 +209,7 @@ const onKeydown = (e: KeyboardEvent) => {
     break;
   case 'Enter': {
     e.preventDefault();
-    explore(rows.value[activeIndex.value]);
+    explore(navRows.value[activeIndex.value]);
     break;
   }
   case 'Escape':
@@ -210,6 +225,7 @@ const onKeydown = (e: KeyboardEvent) => {
 defineExpose({
   searching,
   rows,
+  navRows,
   placeholder,
   activeIndex,
   open,
@@ -277,6 +293,7 @@ defineExpose({
              the option is never orphaned outside a listbox. SURE-8192 (v2). -->
         <div
           v-if="local"
+          :id="localListboxId"
           class="switcher-local"
           role="listbox"
           :aria-label="t('nav.switcher.managementCluster')"
@@ -286,8 +303,10 @@ defineExpose({
             :cluster="local"
             :subtitle="t('nav.switcher.managementCluster')"
             :pinnable="false"
+            :active="activeIndex === 0"
             :current="local.id === currentClusterId"
             @select="explore"
+            @hover="activeIndex = 0"
           />
         </div>
 
@@ -304,7 +323,7 @@ defineExpose({
             aria-expanded="true"
             aria-haspopup="listbox"
             aria-autocomplete="list"
-            :aria-controls="listboxId"
+            :aria-controls="local ? `${ localListboxId } ${ listboxId }` : listboxId"
             :aria-activedescendant="activeDescendant"
             @input="onInput"
           >
@@ -368,10 +387,10 @@ defineExpose({
                 :id="optionId(c)"
                 :key="c.id"
                 :cluster="c"
-                :active="activeIndex === i"
+                :active="activeIndex === i + localOffset"
                 :current="c.id === currentClusterId"
                 @select="explore"
-                @hover="activeIndex = i"
+                @hover="activeIndex = i + localOffset"
               />
             </div>
             <div
@@ -404,10 +423,10 @@ defineExpose({
                 :id="optionId(c)"
                 :key="c.id"
                 :cluster="c"
-                :active="activeIndex === i"
+                :active="activeIndex === i + localOffset"
                 :current="c.id === currentClusterId"
                 @select="explore"
-                @hover="activeIndex = i"
+                @hover="activeIndex = i + localOffset"
               />
             </div>
           </template>
@@ -488,8 +507,9 @@ defineExpose({
   display: flex;
   flex-direction: column;
   width: 380px;
-  // 660px cap, but never taller than the viewport (keeps the centred panel fully on-screen).
-  max-height: min(660px, calc(100vh - 32px));
+  // 660px cap, but never taller than the viewport minus the flyout's 60px top offset + 16px breathing
+  // room, so the footer stays on-screen on short viewports (the popper is position:fixed, can't scroll).
+  max-height: min(660px, calc(100vh - 76px));
   background: var(--dropdown-bg, var(--body-bg));
   color: var(--body-text);
 

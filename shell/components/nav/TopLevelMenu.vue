@@ -261,29 +261,24 @@ export default {
       return this.helper.counts?.others || 0;
     },
 
-    // Exact count of clusters browsable in the ALL list — accurate at any estate size (not capped by
-    // the rail's paginated slices). Uses the server-filtered total the app ALREADY fetches: updateCount
-    // issues a findPage (pageSize 1 → returns the count, not the rows) with `paginationFilterClusters`
-    // — the same Harvester + hide-local filters the rail applies — and saves it as
-    // SAVED_COUNTS.K8S_CLUSTERS. So no extra query is needed here, just a read.
-    //
-    // Two adjustments vs that saved count:
-    //  • local — the ALL list ALWAYS excludes `local` (its own fixed slot). The saved count still
-    //    includes local UNLESS the hide-local-cluster setting removed it, so drop 1 only when not hidden.
-    //  • fallback — updateCount short-circuits when NO filters apply (harvester shown + local not
-    //    hidden), leaving the saved count unset; fall back to the raw management-cluster COUNT summary.
-    // SURE-8192.
+    // Exact count of clusters browsable in the ALL list — accurate at any estate size (not capped by the
+    // rail's paginated slices). The saved count comes from a findPage that ALWAYS excludes `local` (and
+    // Harvester) — see the helper's `updateCount` — so it IS the ALL CLUSTERS total directly: no
+    // client-side adjustment, and it can't move when the hide-local setting toggles. SURE-8192.
     browsableClusterCount() {
       const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
+
+      if (typeof savedCount === 'number') {
+        return savedCount;
+      }
+
+      // Fallback for the brief window before that query resolves: the live /v1/counts summary is the RAW
+      // total (includes local), so drop local for a close-enough placeholder until savedCount lands. `local`
+      // is only in that raw total when the user can actually see it, so gate the −1 on clustersLocal. SURE-8192.
       const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
       const rawTotal = counts[MANAGEMENT.CLUSTER]?.summary?.count || 0;
-      const base = typeof savedCount === 'number' ? savedCount : rawTotal;
 
-      const hideLocalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
-      const hideLocal = (hideLocalSetting.value || hideLocalSetting.default || 'false') === 'true';
-      const localAdjust = hideLocal ? 0 : 1; // ALL never shows local; filtered count still has it unless hidden
-
-      return Math.max(0, base - localAdjust);
+      return Math.max(0, rawTotal - (this.helper.clustersLocal.length ? 1 : 0));
     },
 
     // Id of the cluster currently being explored — marked `current` in the switcher. Only a route that is
@@ -1072,8 +1067,12 @@ export default {
               </router-link>
             </div>
             <!-- CLUSTERS section label — replaces the home/local divider line; same label style as
-                 PINNED / RECENT (v2 — no divider lines, labels are the separators). SURE-8192. -->
-            <div class="cluster-group-label">
+                 PINNED / RECENT (v2 — no divider lines, labels are the separators). Hidden entirely when
+                 the cluster area is empty: no local AND nothing browsable. SURE-8192. -->
+            <div
+              v-if="localCluster || browsableClusterCount > 0"
+              class="cluster-group-label"
+            >
               {{ t('nav.switcher.clusters') }}
             </div>
             <!-- local (management cluster): fixed slot at the top of the cluster area (SURE-8192 rev 2) -->
@@ -1114,9 +1113,11 @@ export default {
             <!-- The "door" (SURE-8192 v2): ONE slot below local. Expanded = the estate filter (focusing it
                  swaps the PINNED/RECENT shelf for the ALL CLUSTERS directory; blur returns to the shelf);
                  collapsed = the count-badge that opens the switcher flyout. Same container so the two morph
-                 in place rather than reflowing. -->
+                 in place rather than reflowing. Gated on the BROWSABLE count (not the raw total, which
+                 includes local), so there's no empty "0" flyout/filter when local is the only cluster.
+                 SURE-8192. -->
             <div
-              v-if="!!allClustersCount"
+              v-if="browsableClusterCount > 0"
               class="cluster-door"
             >
               <div
