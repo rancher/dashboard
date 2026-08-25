@@ -3,8 +3,9 @@ import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
 import debounce from 'lodash/debounce';
 import { useI18n } from '@shell/composables/useI18n';
-import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PaginationParamFilter, type PaginationParamProjectOrNamespace } from '@shell/types/store/pagination.types';
 import { WORKLOAD_RESOURCE_TYPES } from '../types';
+import { getWorkloadNamespaceFilterParams } from '../namespaceFilter';
 import {
   WORKLOAD_SEARCH_DEBOUNCE_MS,
   WORKLOAD_SEARCH_RESULTS_PER_TYPE,
@@ -28,7 +29,11 @@ export function useWorkloadSearch() {
   // Guards against a slower, earlier search response overwriting a later one.
   let requestId = 0;
 
-  async function fetchOptionsForType(type: string, term: string): Promise<WorkloadSearchOption[]> {
+  async function fetchOptionsForType(
+    type: string,
+    term: string,
+    namespaceFilter: { projectsOrNamespaces: PaginationParamProjectOrNamespace[]; filters: PaginationParamFilter[] }
+  ): Promise<WorkloadSearchOption[]> {
     if (!store.getters['cluster/schemaFor'](type) || !store.getters['cluster/canList'](type)) {
       return [];
     }
@@ -38,10 +43,14 @@ export function useWorkloadSearch() {
         type,
         opt: {
           pagination: {
-            page:     1,
-            pageSize: WORKLOAD_SEARCH_RESULTS_PER_TYPE,
-            sort:     [{ field: 'metadata.name', asc: true }],
-            filters:  [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: term, exact: false })],
+            page:                 1,
+            pageSize:             WORKLOAD_SEARCH_RESULTS_PER_TYPE,
+            sort:                 [{ field: 'metadata.name', asc: true }],
+            projectsOrNamespaces: namespaceFilter.projectsOrNamespaces,
+            filters:              [
+              ...namespaceFilter.filters,
+              PaginationParamFilter.createSingleField({ field: 'metadata.name', value: term, exact: false }),
+            ],
           },
           transient: true,
           watch:     false,
@@ -76,7 +85,10 @@ export function useWorkloadSearch() {
     loading.value = true;
 
     try {
-      const results = await Promise.all(WORKLOAD_RESOURCE_TYPES.map((type) => fetchOptionsForType(type, term)));
+      const namespaceFilter = getWorkloadNamespaceFilterParams(store);
+      const results = await Promise.all(
+        WORKLOAD_RESOURCE_TYPES.map((type) => fetchOptionsForType(type, term, namespaceFilter))
+      );
 
       if (currentRequestId !== requestId) {
         return;
