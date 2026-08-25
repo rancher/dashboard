@@ -334,7 +334,7 @@ export default {
       }), {});
     },
     isFullPageOverride() {
-      return this.isView && this.value?.fullDetailPageOverride && !this.isYaml;
+      return this.isView && this.isDetail && this.value?.fullDetailPageOverride;
     }
   },
 
