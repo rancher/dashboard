@@ -3,6 +3,7 @@ import { mount, type VueWrapper, flushPromises } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 
 import GitHub from '@shell/edit/auth/github.vue';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -132,6 +133,22 @@ describe('github.vue', () => {
 
         expect(saveButton.disabled).toBe(false);
       });
+    });
+  });
+
+  // Name and description belong to the config, so the form edits them alongside
+  // everything else - the way every other edit form renders NameNsDescription.
+  describe('identity', () => {
+    it('should render the name and description of the config', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup() });
+
+      expect(wrapper.findComponent(AuthConfigIdentity).exists()).toBe(true);
+    });
+
+    it('should not offer to rename a config that already exists', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup() });
+
+      expect(wrapper.findComponent(AuthConfigIdentity).props('nameFixed')).toBe(true);
     });
   });
 

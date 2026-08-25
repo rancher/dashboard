@@ -6,6 +6,7 @@ import { toTypedSchema } from '@vee-validate/zod';
 import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -62,6 +63,7 @@ const SIGNATURE_METHODS = [
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     LabeledInput,
@@ -250,6 +252,13 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="!isCreate"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"

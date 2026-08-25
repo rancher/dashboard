@@ -10,6 +10,7 @@ import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import config from '@shell/edit/auth/ldap/config';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import Password from '@shell/components/form/Password';
@@ -22,6 +23,7 @@ const AUTH_TYPE = 'ldap';
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     LabeledInput,
@@ -159,6 +161,13 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="!isCreate"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"

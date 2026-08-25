@@ -10,6 +10,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import AuthBanner from '@shell/components/auth/AuthBanner';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
@@ -60,6 +61,7 @@ const ENDPOINT_MAPPING = {
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     InfoBox,
@@ -403,6 +405,13 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="!isCreate"
+        :name-error="configNameError"
+      />
+
       <template v-if="editMemberConfig">
         <AuthBanner
           :t-args="tArgs"
