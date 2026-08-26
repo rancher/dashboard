@@ -1586,6 +1586,8 @@ compliance:
   testsToSkip: Tests to Skip
   alerting: Alerting
   detail:
+    noReport: 'No scan report is available yet. Current scan state: {state}. The report will appear here once the scan completes.'
+    noReportWithMessage: 'No scan report is available yet. Current scan state: {state} - {message}. The report will appear here once the scan completes.'
     subRow:
       noNodes: No Additional Information
 
