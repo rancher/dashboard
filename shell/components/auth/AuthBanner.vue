@@ -17,6 +17,7 @@ export default {
       required: true,
       default:  () => { },
     },
+    name: { type: String, default: '' },
     disable: {
       type:     Function,
       required: true,
@@ -45,7 +46,7 @@ export default {
         dispatch:  (action, payload) => this.$store.dispatch(action, payload),
         getters:   this.$store.getters,
         id:        this.providerId,
-        name:      this.tArgs?.provider,
+          name:      this.name || this.tArgs?.provider,
         disableCb: () => {
           this.disable();
         }

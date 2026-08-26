@@ -185,6 +185,12 @@ export default class AuthConfig extends SteveModel {
    * Several configs of a provider all carry the provider's label, so an instance
    * that is not the provider's own singleton is named as well - otherwise eight
    * GitHub configs are eight identical page titles.
+   *
+   * The id rather than the description, which is a sentence about the config
+   * ("For contractors and partner organisations in the SUSE tenant.") and shown
+   * in its own right on the provider list. Naming the instance matters most on
+   * the disable confirmation, where the description would not say which of the
+   * eight is about to be deleted.
    */
   get nameDisplay() {
     const label = this.$rootGetters['i18n/withFallback'](`model.authConfig.name."${ this.id }"`, null, this.provider);
@@ -193,7 +199,7 @@ export default class AuthConfig extends SteveModel {
       return label;
     }
 
-    return this.description || `${ label } (${ this.id })`;
+    return `${ label } — ${ this.id }`;
   }
 
   get provider() {

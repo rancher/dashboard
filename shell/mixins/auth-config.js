@@ -95,6 +95,17 @@ export default {
     },
 
     /**
+     * How this config is named in the UI, e.g. `GitHub — github-2`. Mirrors the
+     * Steve model's `nameDisplay`, which these pages cannot reach - they work
+     * from a Norman clone. A provider's own singleton is just the provider.
+     */
+    authConfigDisplayName() {
+      const name = this.configName;
+
+      return !name || name === this.NAME ? this.displayName : `${ this.displayName } — ${ name }`;
+    },
+
+    /**
      * The provider a config is an instance of, e.g. `github` for a config named
      * `github-2`. Forms are per provider, so their labels, defaults and branching
      * all key off this rather than off the config's own name.

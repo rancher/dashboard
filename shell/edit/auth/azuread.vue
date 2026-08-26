@@ -415,6 +415,7 @@ export default {
       <template v-if="editMemberConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
           :provider-id="model.id"

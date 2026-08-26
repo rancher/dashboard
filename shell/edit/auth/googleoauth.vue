@@ -90,6 +90,7 @@ export default {
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
           :provider-id="model.id"
