@@ -38,7 +38,11 @@ Cypress.Commands.add('login', (
     loginPage.checkIsCurrentPage(!skipNavigation);
 
     if (!skipNavigation) {
-      loginPage.isWelcomeMessage();
+      cy.getRancherVersion().then((version) => {
+        const expectedMessage = version.RancherPrime === 'true' ? 'Login' : 'Welcome to Rancher';
+
+        loginPage.isWelcomeMessage('Rancher', expectedMessage);
+      });
     }
 
     if (!!acceptConfirmation) {
@@ -495,12 +499,9 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
  */
 Cypress.Commands.add('getRancherVersion', () => {
   return cy.request({
-    method:  'GET',
-    url:     `${ Cypress.env('api') }/rancherversion`,
-    headers: {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
+    method:           'GET',
+    url:              `${ Cypress.env('api') }/rancherversion`,
+    headers:          { Accept: 'application/json' },
     failOnStatusCode: false
   }).then((resp) => {
     expect(resp.status).to.eq(200);
