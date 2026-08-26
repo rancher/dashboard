@@ -406,6 +406,44 @@ describe('page: Install', () => {
       expect(wrapper.vm.showDiff).toBe(false);
       expect(wrapper.vm.valuesYaml).toBe(overrides);
     });
+
+    describe('sameYamlOverrides', () => {
+      it.each([
+        ['both empty', '', ''],
+        ['empty vs whitespace-only newline', '', '\n'],
+        ['empty vs blank lines', '', '  \n\n'],
+        ['same content with a trailing newline difference', 'foo: bar', 'foo: bar\n'],
+      ])('treats %s as no change', (_label, a, b) => {
+        const wrapper = mountWithYaml('');
+
+        expect(wrapper.vm.sameYamlOverrides(a, b)).toBe(true);
+      });
+
+      it.each([
+        ['added content', '', 'foo: bar\n'],
+        ['changed value', 'foo: bar\n', 'foo: baz\n'],
+      ])('treats %s as a change', (_label, a, b) => {
+        const wrapper = mountWithYaml('');
+
+        expect(wrapper.vm.sameYamlOverrides(a, b)).toBe(false);
+      });
+    });
+
+    it('disables Compare Changes once an override is typed then removed', () => {
+      const wrapper = mountWithYaml('');
+      const diffOption = () => wrapper.vm.formYamlOptions.find((o: { value: string }) => o.value === 'DIFF');
+
+      // No overrides yet - nothing to compare
+      expect(diffOption().disabled).toBe(true);
+
+      // Typing an override enables the diff
+      wrapper.setData({ valuesYaml: 'e2eTestOverride: hello\n' });
+      expect(diffOption().disabled).toBe(false);
+
+      // Removing it leaves a residual newline, but there is no real change so it is disabled again
+      wrapper.setData({ valuesYaml: '\n' });
+      expect(diffOption().disabled).toBe(true);
+    });
   });
 
   describe('chart info drawer accessibility', () => {

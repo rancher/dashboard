@@ -717,9 +717,9 @@ export default {
       }, {
         labelKey: 'catalog.install.section.diff',
         value:    VALUES_STATE.DIFF,
-        // === quite obviously shouldn't work, but has been and still does. When the magic breaks address with heavier stringify/jsyaml.dump
         // The editable pane holds overrides only, so compare against the overrides (diff), not the full merged chartValues.
-        disabled: this.formYamlOption === VALUES_STATE.FORM ? this.originalYamlValues === saferDump(diff(this.versionInfo?.values || {}, this.chartValues || {})) : this.originalYamlValues === this.valuesYaml,
+        // Compare parsed content so editor whitespace (e.g. a leftover newline after typing then deleting) doesn't count as a change.
+        disabled: this.formYamlOption === VALUES_STATE.FORM ? this.sameYamlOverrides(this.originalYamlValues, saferDump(diff(this.versionInfo?.values || {}, this.chartValues || {}))) : this.sameYamlOverrides(this.originalYamlValues, this.valuesYaml),
       });
 
       return options;
@@ -986,6 +986,26 @@ export default {
   },
 
   methods: {
+    /**
+     * Compare two override YAML strings by their parsed content rather than
+     * raw text. Typing then deleting in the editor can leave residual
+     * whitespace (e.g. a trailing newline) that makes the strings differ even
+     * though there are no real changes, which would wrongly enable the
+     * "Compare Changes" diff. Empty/whitespace-only or unparseable input is
+     * treated as an empty document.
+     */
+    sameYamlOverrides(a, b) {
+      const parse = (yaml) => {
+        try {
+          return JSON.stringify(jsyaml.load(yaml || '') || {});
+        } catch {
+          return yaml;
+        }
+      };
+
+      return parse(a) === parse(b);
+    },
+
     /**
      * The custom registry UI fields (checkbox and input) are not directly bound to chartValues.
      * Before calculating the diff to carry over user customizations, we must
