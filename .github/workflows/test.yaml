@@ -62,7 +62,6 @@ jobs:
           echo "runtime-rancher-version=$VERSION" >> "$GITHUB_OUTPUT"
 
   e2e-ui-build:
-    needs: extract-e2e-runtime-rancher-version
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: extract-e2e-runtime-rancher-version
     runs-on: ubuntu-latest
