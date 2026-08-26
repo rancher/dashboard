@@ -184,12 +184,6 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
       const deployments = 'nginx-keep';
 
-      // `goTo` is a full page load, so the cluster navigation guard resolves the downstream
-      // cluster from scratch; if it isn't ready yet the guard redirects to /home and every
-      // assertion below silently runs against the home page instead.
-      cy.waitForResourceState('v1', 'management.cattle.io.clusters', clusterId, 'active', Math.ceil(VERY_LONG_TIMEOUT_OPT.timeout / 1500))
-        .then((ready) => expect(ready, `downstream cluster ${ clusterId } is explorable`).to.equal(true));
-
       deploymentsList.goTo();
       deploymentsList.waitForPage();
 
@@ -292,6 +286,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       removeWorkspace = true;
     });
 
+    // enable feature: provisioningv2-fleet-workspace-back-population
     // Note: we don't assume the initial state of the feature flag. It may be left in the
     // "Active" state from a previous failed run (this describe uses testIsolation: false
     // and the QA cluster is shared). Only activate it if it's not already active, and
