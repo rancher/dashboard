@@ -309,6 +309,10 @@ function jumpTo(item?: JumpItem) {
 }
 
 function onEnter() {
+  if (!open.value) {
+    return;
+  }
+
   jumpTo(results.value[activeIndex.value]);
 }
 

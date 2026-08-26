@@ -640,6 +640,33 @@ describe('NavActionBar.vue', () => {
     expect(wrapper.findAll('.jump-to-option')[0].classes()).toContain('active');
   });
 
+  it('does nothing on enter while the list is closed', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('pod');
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'Escape' });
+    await nextTick();
+
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'Enter' });
+    await nextTick();
+
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(wrapper.emitted('jumped')).toBeUndefined();
+  });
+
+  it('picks the highlighted option on enter while the list is open', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await nextTick();
+
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'Enter' });
+    await nextTick();
+
+    expect(mockRouter.push).toHaveBeenCalledWith({ name: 'pod' });
+  });
+
   it('closes the dropdown and clears the query on escape', async() => {
     const wrapper = mountBar();
 
