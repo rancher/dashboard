@@ -80,7 +80,7 @@ export default {
     class="about"
   >
     <BackLink :link="backLink" />
-    <div class="title-block mt-20 mb-40">
+    <div class="title-block mb-20">
       <h1>
         <TabTitle breadcrumb="vendor-only">
           {{ t('about.title') }}
