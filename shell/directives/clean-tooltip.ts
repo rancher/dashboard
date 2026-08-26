@@ -14,6 +14,9 @@ const observedTargets = new Set<TooltipHTMLElement>();
 let descriptionContainer: HTMLElement | null = null;
 let descriptionCount = 0;
 
+let currentPopper: HTMLElement | null = null;
+let hideTimer: ReturnType<typeof setTimeout> | null = null;
+
 const DESCRIBED_BY_OBSERVER_OPTIONS = { attributeFilter: ['aria-describedby'] };
 
 const DEFAULT_SHOW_DELAY = 200;
@@ -34,7 +37,6 @@ export interface TooltipOptions {
   triggers?: string[];
   hideTriggers?: (triggers: string[]) => string[];
   popperTriggers?: string[];
-  onApplyHide?: () => void;
 }
 
 interface TooltipHTMLElement extends HTMLElement {
@@ -153,6 +155,10 @@ function onDescribedByChange(target: TooltipHTMLElement) {
 
   if (popper) {
     popper.setAttribute('role', 'tooltip');
+
+    if (isHoverable(target.__tooltipOptions__)) {
+      holdPopper(popper);
+    }
   } else {
     syncDescription(target);
   }
@@ -183,6 +189,74 @@ function unobserveDescribedBy(target: TooltipHTMLElement) {
 
   describedByObserver?.disconnect();
   observedTargets.forEach((el) => describedByObserver?.observe(el, DESCRIBED_BY_OBSERVER_OPTIONS));
+}
+
+/**
+ * Cancels a hide that was scheduled while the pointer was on its way somewhere.
+ */
+function cancelScheduledHide() {
+  if (hideTimer) {
+    clearTimeout(hideTimer);
+    hideTimer = null;
+  }
+}
+
+/**
+ * Hides the tooltip after a grace period rather than the moment the pointer leaves, so the pointer
+ * can travel from the trigger onto the tooltip without it vanishing on the way (WCAG 1.4.13).
+ * @param {TooltipHTMLElement} target The element the tooltip is attached to.
+ */
+function scheduleHide(target: TooltipHTMLElement) {
+  cancelScheduledHide();
+
+  const delay = target.__tooltipOptions__?.delay?.hide ?? HOVERABLE_HIDE_DELAY;
+
+  hideTimer = setTimeout(() => {
+    hideTimer = null;
+    hideSingletonTooltip(target);
+  }, delay);
+}
+
+/**
+ * Keeps the tooltip up while the pointer is on it, and starts the grace period again when it
+ * leaves. floating-vue's own hover handling does not reach a tooltip created through its
+ * imperative API, so the singleton has to do this itself.
+ */
+function onPopperEnter() {
+  cancelScheduledHide();
+}
+
+/**
+ * Starts the grace period once the pointer leaves the tooltip itself.
+ */
+function onPopperLeave() {
+  if (currentTarget) {
+    scheduleHide(currentTarget);
+  }
+}
+
+/**
+ * Stops tracking the pointer over the tooltip.
+ */
+function releasePopper() {
+  currentPopper?.removeEventListener('mouseenter', onPopperEnter);
+  currentPopper?.removeEventListener('mouseleave', onPopperLeave);
+  currentPopper = null;
+}
+
+/**
+ * Tracks the pointer over the tooltip so it can be reached without dismissing it.
+ * @param {HTMLElement} popper The element holding the tooltip content.
+ */
+function holdPopper(popper: HTMLElement) {
+  if (currentPopper === popper) {
+    return;
+  }
+
+  releasePopper();
+  currentPopper = popper;
+  popper.addEventListener('mouseenter', onPopperEnter);
+  popper.addEventListener('mouseleave', onPopperLeave);
 }
 
 /**
@@ -226,7 +300,6 @@ function getTooltipConfig(target: TooltipHTMLElement, options: TooltipOptions, c
       show: options.delay?.show ?? DEFAULT_SHOW_DELAY,
       hide: options.delay?.hide ?? HOVERABLE_HIDE_DELAY,
     };
-    config.onApplyHide = () => hideSingletonTooltip(target);
   }
 
   return config;
@@ -254,12 +327,14 @@ function showSingletonTooltip(target: TooltipHTMLElement, options: TooltipOption
   // Create a new tooltip instance.
   singleton = createTooltip(target, getTooltipConfig(target, options, purifiedContent), {});
 
+  cancelScheduledHide();
+
   singleton.show();
   currentTarget = target;
 
   observeDescribedBy(target);
 
-  document.addEventListener('keydown', onDocumentKeyDown);
+  document.addEventListener('keydown', onDocumentKeyDown, true);
 }
 
 /**
@@ -274,7 +349,10 @@ function hideSingletonTooltip(target: TooltipHTMLElement) {
   singleton = null;
   currentTarget = null;
 
-  document.removeEventListener('keydown', onDocumentKeyDown);
+  cancelScheduledHide();
+  releasePopper();
+
+  document.removeEventListener('keydown', onDocumentKeyDown, true);
   destroyTooltip(target);
 
   syncDescription(target);
@@ -390,7 +468,11 @@ const cleanTooltipDirective: Directive = {
 function onMouseEnter(e: MouseEvent | FocusEvent) {
   const el = e.currentTarget as TooltipHTMLElement;
 
+  // The pointer coming back to a trigger it just left calls off the hide that leaving started,
+  // rather than rebuilding the tooltip and making the user wait out the show delay again.
   if (currentTarget === el) {
+    cancelScheduledHide();
+
     return;
   }
 
@@ -405,6 +487,8 @@ function onMouseLeave(e: MouseEvent | FocusEvent) {
   const el = e.currentTarget as TooltipHTMLElement;
 
   if (isHoverable(el.__tooltipOptions__)) {
+    scheduleHide(el);
+
     return;
   }
 
@@ -426,7 +510,9 @@ function onMouseClick(e: MouseEvent) {
 }
 
 /**
- * Document level handler dismissing the shown tooltip on Escape, wherever focus happens to be.
+ * Document level handler dismissing the shown tooltip on Escape, wherever focus happens to be. It
+ * listens in the capture phase because consumers stop the keydown on their own triggers, which
+ * would otherwise keep Escape from ever reaching the document.
  * @param {KeyboardEvent} e The keyboard event object.
  */
 function onDocumentKeyDown(e: KeyboardEvent) {

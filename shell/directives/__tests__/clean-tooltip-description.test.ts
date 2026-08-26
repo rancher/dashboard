@@ -2,10 +2,10 @@ import { defineComponent } from 'vue';
 import { mount } from '@vue/test-utils';
 import DOMPurify from 'dompurify';
 import cleanTooltip from '@shell/directives/clean-tooltip';
+import { waitUntil } from './utils/tooltip';
 
 let sanitize: jest.SpyInstance;
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const mountOptions = {
   global:   { directives: { 'clean-tooltip': cleanTooltip } },
@@ -40,12 +40,12 @@ describe('clean-tooltip accessible description', () => {
     const el = wrapper.element;
 
     el.dispatchEvent(new MouseEvent('mouseenter'));
-    await wait(600);
+    await waitUntil(() => !!document.querySelector('.v-popper__popper--shown'));
 
     expect(el.getAttribute('aria-describedby')).toBe(document.querySelector('.v-popper__popper')?.id);
 
     el.dispatchEvent(new MouseEvent('mouseleave'));
-    await wait(600);
+    await waitUntil(() => describedText(el) === 'Pull secrets');
 
     expect(describedText(el)).toBe('Pull secrets');
 
@@ -64,12 +64,12 @@ describe('clean-tooltip accessible description', () => {
     const a = wrapper.find('#a').element;
 
     a.dispatchEvent(new MouseEvent('mouseenter'));
-    await wait(600);
+    await waitUntil(() => !!document.querySelector('.v-popper__popper--shown'));
 
     expect(a.getAttribute('aria-describedby')).toBe(document.querySelector('.v-popper__popper')?.id);
 
     wrapper.find('#b').element.dispatchEvent(new FocusEvent('focus'));
-    await wait(600);
+    await waitUntil(() => describedText(a) === 'Pull secrets');
 
     expect(describedText(a)).toBe('Pull secrets');
 
@@ -88,12 +88,12 @@ describe('clean-tooltip accessible description', () => {
     const a = wrapper.find('#a').element;
 
     a.dispatchEvent(new MouseEvent('mouseenter'));
-    await wait(600);
+    await waitUntil(() => !!document.querySelector('.v-popper__popper--shown'));
 
     expect(a.getAttribute('aria-describedby')).toBe(document.querySelector('.v-popper__popper')?.id);
 
     wrapper.find('#b').element.dispatchEvent(new FocusEvent('focus'));
-    await wait(600);
+    await waitUntil(() => describedText(a) === 'Pull secrets');
 
     expect(describedText(a)).toBe('Pull secrets');
 

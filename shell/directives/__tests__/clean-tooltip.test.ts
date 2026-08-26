@@ -1,3 +1,5 @@
+import { waitUntil } from './utils/tooltip';
+
 const mockCreateTooltip = jest.fn();
 const mockDestroyTooltip = jest.fn();
 const mockPurifyHTML = jest.fn((content) => (content || '').trim());
@@ -184,12 +186,11 @@ describe('clean-tooltip.ts', () => {
         content:        'Handler Test',
         delay:          { show: 1, hide: 1 },
         popperTriggers: ['hover'],
-        onApplyHide:    expect.any(Function),
       }, {});
       expect(mockTooltipInstance.show).toHaveBeenCalledTimes(1);
     });
 
-    it('onMouseLeave should leave a hover tooltip for floating-vue to hide', () => {
+    it('onMouseLeave should hide a hover tooltip only once the grace period is up', async() => {
       const enterEvent = new MouseEvent('mouseenter');
 
       Object.defineProperty(enterEvent, 'currentTarget', { value: el });
@@ -200,9 +201,10 @@ describe('clean-tooltip.ts', () => {
       Object.defineProperty(leaveEvent, 'currentTarget', { value: el });
       onMouseLeave(leaveEvent);
 
+      // The pointer gets the grace period to reach the tooltip before it goes
       expect(mockDestroyTooltip).not.toHaveBeenCalled();
 
-      mockCreateTooltip.mock.calls[0][1].onApplyHide();
+      await waitUntil(() => mockDestroyTooltip.mock.calls.length > 0);
 
       expect(mockDestroyTooltip).toHaveBeenCalledTimes(1);
       expect(mockDestroyTooltip).toHaveBeenCalledWith(el);
