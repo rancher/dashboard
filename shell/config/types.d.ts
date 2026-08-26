@@ -195,7 +195,6 @@ export const MANAGEMENT: {
     GLOBAL_ROLE_BINDING: string;
     PSA: string;
     MANAGED_CHART: string;
-    USER_NOTIFICATION: string;
     GLOBAL_DNS_PROVIDER: string;
     RKE_TEMPLATE: string;
     RKE_TEMPLATE_REVISION: string;
@@ -205,7 +204,6 @@ export const MANAGEMENT: {
 };
 export const BRAND: {
     SUSE: string;
-    CSP: string;
     FEDERAL: string;
     RGS: string;
 };
