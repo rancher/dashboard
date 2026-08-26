@@ -122,7 +122,7 @@ const mockedGKEVersionsResponse = {
     'WINDOWS_SAC',
     'WINDOWS_SAC_CONTAINERD'],
   validMasterVersions: [],
-  validNodeVersions: ['1.29.4-gke.1447000',
+  validNodeVersions:   ['1.29.4-gke.1447000',
     '1.29.4-gke.1043000',
     '1.29.3-gke.1282001',
     '1.29.3-gke.1282000',
