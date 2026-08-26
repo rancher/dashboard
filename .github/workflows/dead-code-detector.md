@@ -42,6 +42,19 @@ safe-outputs:
     # `dead-code/new-<slug>` form a same-run pair uses.
     allowed-branches:
       - "dead-code/*"
+    # Use the branch name the agent asked for, verbatim. Without this the
+    # handler appends 16 hex characters of collision salt, turning
+    # `dead-code/75-poller-sequential` into
+    # `dead-code/75-poller-sequential-39272520176721d9`.
+    preserve-branch-name: true
+    # Required alongside the above. With preserve-branch-name on, a branch name
+    # that already exists on the remote is a hard error and the pull request is
+    # dropped — and these names collide by design, since re-picking issue 75
+    # regenerates `dead-code/75-...`. A leftover branch here only ever belongs
+    # to a pull request that was closed or merged, so recreating it is safe:
+    # anything still open would have been filtered out by the budget check
+    # before a fix was attempted.
+    recreate-ref: true
     # Exclusive allowlist: a patch touching anything outside this set is refused.
     # A dead code removal has no business anywhere else.
     allowed-files:
