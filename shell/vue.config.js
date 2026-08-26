@@ -603,28 +603,25 @@ module.exports = function(dir, appConfig = {}) {
     chainWebpack: (context) => {
       // Only include the bundle analyzer when ANALYZE_LICENSES is set — the report.json
       // it emits is what scripts/analyze-licenses reads to enumerate bundled packages.
-      const analyzeLicenses = (process.env.ANALYZE_LICENSES === 'true');
+      if (process.env.ANALYZE_LICENSES !== 'true') return;
 
-      if (analyzeLicenses) {
+      // Generate report.html (and stats.json) in the dist folder
+      context
+        .plugin('webpack-bundle-analyzer-html')
+        .use(BundleAnalyzerPlugin)
+        .init((Plugin) => new Plugin({
+          analyzerMode:      'static',
+          openAnalyzer:      false,
+          generateStatsFile: true
+        }));
 
-        // Generate report.html in the dist folder (and stats.json)
-        context
-          .plugin('webpack-bundle-analyzer-html')
-          .use(BundleAnalyzerPlugin)
-          .init((Plugin) => new Plugin({
-            analyzerMode: 'static',
-            openAnalyzer: false,
-            generateStatsFile: true
-          }));
-
-        // Generate report.json in the dist folder
-        context
-          .plugin('webpack-bundle-analyzer-json')
-          .use(BundleAnalyzerPlugin)
-          .init((Plugin) => new Plugin({ analyzerMode: 'json' }));
-      }
+      // Generate report.json in the dist folder
+      context
+        .plugin('webpack-bundle-analyzer-json')
+        .use(BundleAnalyzerPlugin)
+        .init((Plugin) => new Plugin({ analyzerMode: 'json' }));
     },
-    
+
     configureWebpack(config) {
       // Keep NODE_ENV unchanged; webpack defaults this to 'development' in dev mode,
       // but dashboard tooling relies on our existing 'dev' value.

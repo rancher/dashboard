@@ -7,10 +7,6 @@ export default {
   components: { Markdown },
 
   props: {
-    packageName: {
-      type:     String,
-      required: true
-    },
     licenseId: {
       type:    String,
       default: null
@@ -38,10 +34,6 @@ export default {
 
     plainText() {
       return this.content?.text || null;
-    },
-
-    hasContent() {
-      return !!(this.markdownText || this.plainText);
     }
   }
 };
@@ -50,12 +42,10 @@ export default {
 <template>
   <div class="license-slide-in">
     <header class="meta-header">
-      <div class="meta-row">
-        <span
-          v-if="licenseId"
-          class="license-badge"
-        >{{ licenseId }}</span>
-      </div>
+      <span
+        v-if="licenseId"
+        class="license-badge"
+      >{{ licenseId }}</span>
       <div
         v-if="licenseField && licenseField !== licenseId"
         class="raw-license"
@@ -108,16 +98,10 @@ export default {
 .meta-header {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 6px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
-}
-
-.meta-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 .license-badge {

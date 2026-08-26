@@ -86,11 +86,10 @@ export default {
       this.$store.commit('slideInPanel/open', {
         component:      LicenseSlideIn,
         componentProps: {
-          packageName:  pkg.name,
           licenseId:    pkg.license,
-          licenseField: pkg.licenseField || null,
-          home:         pkg.home || null,
-          content:      content || null,
+          licenseField: pkg.licenseField,
+          home:         pkg.home,
+          content,
           title:        pkg.name,
           width:        'wide'
         }
@@ -106,20 +105,18 @@ export default {
     v-else
     class="licenses-page"
   >
-    <div class="title-block mb-10">
-      <h1 class="breadcrumb-title">
-        <router-link
-          :to="{ name: 'about' }"
-          class="crumb"
-        >
-          {{ t('about.title') }}
-        </router-link>
-        <span class="separator">/</span>
-        <TabTitle breadcrumb="vendor-only">
-          {{ t('about.licenses.page.title') }}
-        </TabTitle>
-      </h1>
-    </div>
+    <h1 class="breadcrumb-title mt-20">
+      <router-link
+        :to="{ name: 'about' }"
+        class="crumb"
+      >
+        {{ t('about.title') }}
+      </router-link>
+      <span class="separator">/</span>
+      <TabTitle breadcrumb="vendor-only">
+        {{ t('about.licenses.page.title') }}
+      </TabTitle>
+    </h1>
 
     <Banner
       v-if="notFound"
@@ -173,17 +170,11 @@ export default {
   flex-direction: column;
   min-height: 100%;
 
-  .title-block {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
   .breadcrumb-title {
     display: flex;
     align-items: baseline;
     gap: 10px;
-    margin: 0;
+    margin: 0 0 10px 0;
 
     .crumb {
       color: var(--link);
