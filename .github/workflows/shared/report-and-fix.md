@@ -13,21 +13,38 @@ Neither phase is a fallback for the other. A full backlog does not excuse skippi
 
 ### The pull request budget
 
-Only so many pull requests carrying this workflow's bot label may be open at a time. The workflow-specific section below states the number and the label; substitute both literally wherever this protocol writes `<bot-label>`. List what is open before doing anything else:
-
-```bash
-gh pr list --label <bot-label> --state open --json number,title,files
-```
+Only so many pull requests carrying this workflow's bot label may be open at a time. The workflow-specific section below states the number and the label; substitute both literally wherever this protocol writes `<bot-label>`. Before doing anything else, call `list_pull_requests` with `state: "open"` and keep the ones carrying `<bot-label>`.
 
 The budget counts pull requests **open**, not pull requests opened by this run: two already open leaves room for one more, not for three.
 
 - **The budget is full** — open no pull request and change no code. A queue of unreviewed pull requests is exactly the backlog this shape exists to prevent. Spend the run on refutation and on filing issues, which costs no slot
 - **There is room** — carry the number of free slots through the rest of the run. Slots remediation does not use are available to same-run fixes
 
+### Keeping the open pull requests mergeable
+
+An open pull request that has fallen behind the base branch blocks its own merge, and a dead-code removal goes stale faster than most: the lines it deletes get edited underneath it. So before opening anything new, check the ones already open. For each pull request from the list above, call `pull_request_read` with `method: "get"` and read `mergeable` and `mergeable_state`:
+
+- `mergeable_state` of `clean` or `unstable` — nothing to do
+- `mergeable_state` of `behind` — it only needs the base branch merged in. Say so in the comment below; do not rebase it by hand
+- `mergeable` of `false`, or `mergeable_state` of `dirty` — it genuinely conflicts
+
+Where a rebase is needed, **do not push to that branch.** Its patch was reviewed under the branch protections of the run that opened it, and re-driving it from here bypasses them. Instead add one comment to it, using an `add-comment` slot, naming the state and what has to happen:
+
+```markdown
+This pull request is `<mergeable_state>` against `<base branch>` as of <short sha>.
+
+<For `behind`:> Merge the base branch in to bring it up to date; no content change is needed.
+<For `dirty`:> It conflicts in <files, from `get_files`>. <One line on whether the finding still holds against current code: re-run the reference check and say so.>
+```
+
+If re-checking a conflicted pull request shows its finding no longer holds — the code it deletes has since been referenced, or someone else already deleted it — say that in the same comment and recommend closing it. That is a more useful outcome than a rebase.
+
+Each comment costs one `add-comment` slot out of the run's budget, so cap this at the oldest three that need attention and note in the run summary if more were skipped.
+
 ### Selecting from the backlog
 
-1. List open issues with `gh issue list --label <bot-label> --state open --json number,title,body`
-2. Discard any already covered by an open pull request. **Checking for a `Closes`/`Fixes` link is not enough** — list the changed files of every open pull request carrying the label with `gh pr diff <n> --name-only`, and discard any issue whose files overlap that set at all. A partial overlap counts: two pull requests touching some of the same files will conflict on merge
+1. List open issues: `list_issues` with `labels: ["<bot-label>"], state: "open"`, then `issue_read` each one for its body
+2. Discard any already covered by an open pull request. **Checking for a `Closes`/`Fixes` link is not enough** — get the changed files of every open pull request carrying the label with `pull_request_read` / `method: "get_files"`, and discard any issue whose files overlap that set at all. A partial overlap counts: two pull requests touching some of the same files will conflict on merge
 3. Discard anything a lessons entry has already ruled out
 4. Discard the duplicates. A finding is routinely filed several times over, in different words. Pick the **oldest** issue describing it, and keep the numbers of its restatements — the fix resolves them all and the pull request has to close them all
 5. From what remains, order by stated confidence and then by blast radius, and take as many as the budget allows. A three-file finding is a better candidate than an eighteen-file grab bag
@@ -69,11 +86,16 @@ create_pull_request   → body contains "Closes #aw_dc1"
 
 The substitution happens before the body is posted, so `Closes #aw_dc1` becomes a real `Closes #123` and GitHub auto-closes the issue on merge. Use it for every same-run pair.
 
+**Call `create_pull_request` before `create_issue`.** Substitution is order-independent — `#aw_<id>` resolves whichever way round the two are emitted — but the runtime is not. A watchdog starts counting from the first safe output of the run and terminates the agent after a short idle period, and `create_pull_request` is by far the slower of the two calls: it stages a branch and pushes it, and produces no output while it does. Emitted second, it is the call that gets killed, and the issue it was paired with is left advertising a pull request that does not exist. Emitted first, it completes before the clock starts.
+
+The same applies to a run that opens several pairs: emit every pull request first, then the issues, then any comments. Cheap calls last.
+
 Rules:
 
 - Never invent an issue number and never guess at the next one. Either use the real number of a backlog issue, or use `#aw_<id>`
 - Only GitHub's own closing keywords auto-close. End the pull request body with `Closes #N` (or `Closes #aw_<id>`) and one more such line for **every** duplicate issue the same change resolves. Prose like "also resolves #A" leaves the issue open and it returns as a candidate on a later run
 - **Do not pair a finding you could not fix.** If the change failed a gate, exceeded the budget, or turned out larger than the issue describes, file the issue alone and say in it why no pull request came with it. An issue claiming a fix that does not exist is worse than an issue on its own
+- **Write the "Fixed by" line only after the pull request call has returned.** Because the pull request goes first, you always know before composing the issue whether it exists. If `create_pull_request` returned an error, or you never called it, the issue's Fix section takes the "no pull request accompanies this issue" form — never `#aw_<id>` pointing at a call that did not succeed. An unresolved `#aw_` marker left in a posted body is the visible symptom of getting this wrong
 
 Evidence is quoted once, where it is used: the pull request body carries the commands and their output, and the issue it closes is referenced by number rather than summarised back.
 
