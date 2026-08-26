@@ -31,6 +31,24 @@ env:
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
 jobs:
+  # Verify licenses.json is up to date with the packages that end up in the
+  # bundle. Fails the PR when a dependency was added, removed, or upgraded
+  # without regenerating licenses.json (see scripts/analyze-licenses).
+  check-licenses:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
+      - name: Build with bundle analyzer
+        run: ANALYZE_LICENSES=true yarn build
+      - name: Verify licenses.json is up to date
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node ./scripts/analyze-licenses
+
   extract-e2e-runtime-rancher-version:
     runs-on: ubuntu-latest
     outputs:
