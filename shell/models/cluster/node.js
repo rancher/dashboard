@@ -217,12 +217,20 @@ export default class ClusterNode extends SteveModel {
     return ((this.ramUsage * 100) / this.ramCapacity).toString();
   }
 
-  get ramReserved() {
+  get ramAllocatable() {
     return parseSi(this.status?.allocatable?.memory);
   }
 
-  get ramReservedPercentage() {
-    return ((this.ramUsage * 100) / this.ramReserved).toString();
+  get ramReserved() {
+    return parseSi(this.podRequests?.memory);
+  }
+
+  get cpuReserved() {
+    return parseSi(this.podRequests?.cpu);
+  }
+
+  get podReserved() {
+    return parseSi(this.podRequests?.pods);
   }
 
   get podUsage() {
@@ -265,6 +273,10 @@ export default class ClusterNode extends SteveModel {
 
   get isCordoned() {
     return !!this.spec.unschedulable;
+  }
+
+  get isSchedulable() {
+    return !this.spec.unschedulable;
   }
 
   get drainedState() {
