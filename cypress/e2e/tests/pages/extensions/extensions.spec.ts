@@ -150,7 +150,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForTitle();
 
     // if rancher prime, title should be Rancher Prime - Extensions, otherewise Rancher - Extensions
-    cy.getRancherVersion().then((version) => {
+    cy.getRancherVersion(true).then((version) => {
       const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Extensions' : 'Rancher - Extensions';
 
       cy.title().should('eq', expectedTitle);

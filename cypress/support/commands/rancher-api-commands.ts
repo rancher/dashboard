@@ -9,6 +9,7 @@ import { base64Encode } from '@/cypress/support/utils/shell';
 // It includes the `login` command to store the `token` to use
 
 let token: any;
+let rancherVersion: Cypress.RancherVersion | undefined;
 
 /**
  * Login local authentication, including first login and bootstrap if not cached
@@ -496,17 +497,26 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
 
 /**
  * Get Rancher version info from /rancherversion (includes RancherPrime for product type).
+ * @param forceRefresh Bypass the cached response, for example after mocking /rancherversion.
  */
-Cypress.Commands.add('getRancherVersion', () => {
+Cypress.Commands.add('getRancherVersion', (forceRefresh = false): Cypress.Chainable<Cypress.RancherVersion> => {
+  if (rancherVersion && !forceRefresh) {
+    return cy.wrap<Cypress.RancherVersion>(rancherVersion);
+  }
+
   return cy.request({
     method:           'GET',
     url:              `${ Cypress.env('api') }/rancherversion`,
     headers:          { Accept: 'application/json' },
     failOnStatusCode: false
-  }).then((resp) => {
+  }).then<Cypress.RancherVersion>((resp) => {
     expect(resp.status).to.eq(200);
 
-    return JSON.parse(resp.body);
+    const version: Cypress.RancherVersion = JSON.parse(resp.body);
+
+    rancherVersion = version;
+
+    return version;
   });
 });
 
