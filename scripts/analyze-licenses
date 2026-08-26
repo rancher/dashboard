@@ -31,7 +31,6 @@ const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const REPORT = path.join(DIST, 'report.json');
 const COMMITTED_LICENSES = path.join(ROOT, 'licenses.json');
-const STALE_LICENSES_DIR = path.join(DIST, 'licenses');
 const MIT_TEMPLATE_PATH = path.join(__dirname, 'lib', 'MIT.license.md');
 const ALLOWED_LICENSES = ['MIT', 'Apache-2.0', 'BSD-3-Clause', 'ISC', 'BSD'];
 const ALLOWED_LICENSE_SET = new Set(ALLOWED_LICENSES);
@@ -500,10 +499,6 @@ function licenseSlug(license) {
  * is 'text' or 'markdown', so the raw content lives under that key.
  */
 async function processLicenses(entries) {
-  // Old runs of this script wrote individual files into dist/licenses/.
-  // Clean that up if it's lying around.
-  fs.rmSync(STALE_LICENSES_DIR, { recursive: true, force: true });
-
   // Load the MIT template eagerly so the script fails fast if it's missing.
   const mitTemplate = fs.readFileSync(MIT_TEMPLATE_PATH, 'utf8');
 
