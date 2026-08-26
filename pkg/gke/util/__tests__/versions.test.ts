@@ -96,7 +96,7 @@ describe('getAllKubernetesVersions', () => {
 
     const result = getAllKubernetesVersions(versionsResponse);
 
-    expect(result).toEqual([]);
+    expect(result).toStrictEqual([]);
   });
 
   it('ignores validMasterVersions and only uses channel versions', () => {
@@ -138,7 +138,7 @@ describe('getAllKubernetesVersions', () => {
 
     const result = getAllKubernetesVersions(versionsResponse);
 
-    expect(result).toEqual([]);
+    expect(result).toStrictEqual([]);
   });
 
   it('handles channels with empty validVersions arrays', () => {
@@ -159,7 +159,7 @@ describe('getAllKubernetesVersions', () => {
 
     const result = getAllKubernetesVersions(versionsResponse);
 
-    expect(result).toEqual([]);
+    expect(result).toStrictEqual([]);
   });
 
   it('correctly sorts mixed major/minor versions', () => {
