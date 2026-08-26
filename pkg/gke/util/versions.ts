@@ -20,5 +20,5 @@ export const getAllKubernetesVersions = (versionsResponse: getGKEVersionsRespons
 
   const sorted = sortBy(versionObjects, 'sort', true);
 
-  return sorted.map((v) => v.value);
+  return sorted.map((v: {value: string, sort: string}) => v.value);
 };
