@@ -21,7 +21,7 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@rancher/icons": "^2.0.63",
+    "@rancher/icons": "2.0.63",
     "lodash.debounce": "4.0.8"
   },
   "devDependencies": {
@@ -34,7 +34,7 @@
     "@vue/test-utils": "2.4.6",
     "core-js": "3.48.0",
     "cron-validator": "1.4.0",
-    "cronstrue": "2.53.0",
+    "cronstrue": "3.9.0",
     "eslint": "10.8.1",
     "eslint-plugin-cypress": "4.3.0",
     "eslint-plugin-import": "2.32.0",
@@ -48,14 +48,14 @@
     "neostandard": "0.13.0",
     "sass": "1.97.3",
     "sass-loader": "12.6.0",
-    "typescript": "5.6.3",
+    "typescript": "5.9.3",
     "typescript-eslint": "8.62.0",
-    "vee-validate": "4.15.0",
+    "vee-validate": "4.15.1",
     "vue": "3.5.29",
     "vue-eslint-parser": "10.4.1"
   },
   "peerDependencies": {
-    "core-js": "3.40.0",
-    "vue": "^3.2.13"
+    "core-js": "3.48.0",
+    "vue": "3.5.29"
   }
 }
