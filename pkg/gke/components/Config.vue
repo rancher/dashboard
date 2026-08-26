@@ -12,6 +12,7 @@ import {
 
 } from '@shell/components/google/util/gcp';
 import { sortBy, sortableNumericSuffix } from '@shell/utils/sort';
+import { getAllKubernetesVersions } from '../util/versions';
 
 import semver from 'semver';
 
@@ -299,7 +300,7 @@ export default defineComponent({
         versions = (this.versionsResponse?.channels || []).find((ch) => ch.channel === this.releaseChannel)?.validVersions || [];
       }
       if (!versions || !versions.length) {
-        versions = this.versionsResponse?.validMasterVersions || [];
+        versions = getAllKubernetesVersions(this.versionsResponse);
       }
 
       out = versions.reduce((opts, v) => {
