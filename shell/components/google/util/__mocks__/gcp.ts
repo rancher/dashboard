@@ -410,8 +410,12 @@ const mockedGKESharedSubnetworksResponse = {
 
 const mockedGKEClustersResponse = {
   clusters: [
-    { name: 'test1', status: 'RUNNING' },
-    { name: 'test2', status: 'ERROR' },
+    {
+      name: 'test1', status: 'RUNNING', releaseChannel: { channel: 'REGULAR' }
+    },
+    {
+      name: 'test2', status: 'ERROR', releaseChannel: { channel: 'RAPID' }
+    },
     { name: 'test3', status: 'PROVISIONING' }
   ]
 };
