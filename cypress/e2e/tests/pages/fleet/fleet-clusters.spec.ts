@@ -23,7 +23,7 @@ const branch = 'master';
 const paths = 'qa-test-apps/nginx-app';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployment into the downstream cluster', { testIsolation: false, tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
+describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployment into the downstream cluster', { testIsolation: false, tags: ['@fixfleet', '@fleet', '@adminUser', '@jenkins'] }, () => {
   const region = 'us-west-1';
   const namespace = 'fleet-default';
   let removeCluster = false;
@@ -85,6 +85,12 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
   qase(9691, it('data is populated in fleet cluster list and detail view', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
+    // Provisioning clusters can briefly render "Active" in the UI as soon as the resource
+    // is created, before the backend has finished computing its real status (it then flips
+    // back to Provisioning/Updating for several minutes). Waiting on the UI text alone can
+    // therefore produce a false positive here, so poll the underlying resource via the API
+    // until it reports a real, non-transitioning "active" state before checking the UI.
+    cy.waitForResourceState('v1', `provisioning.cattle.io.clusters/${ namespace }`, clusterName, 'active', Math.ceil(VERY_LONG_TIMEOUT_OPT.timeout / 1500));
     clusterList.list().state(clusterName).contains('Active', VERY_LONG_TIMEOUT_OPT);
 
     // create gitrepo
@@ -92,8 +98,12 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       removeGitRepo = true;
     });
 
-    // go to fleet gitrepo and wait until git repo is in active state
-    fleetAppBundlesListPage.navTo();
+    // Go to fleet gitrepo and wait until git repo is in active state.
+    // Don't use navTo() here: it asserts the sortable table is visible as part of the navigation
+    // itself, and the session starts on the fleet-local workspace, which has no App Bundles and
+    // so renders the empty state instead of a table. Visit the list directly and switch to
+    // fleet-default (the workspace the git repo was created in) before asserting on any row.
+    fleetAppBundlesListPage.goTo();
     fleetAppBundlesListPage.waitForPage();
     headerPo.selectWorkspace(namespace);
     fleetAppBundlesListPage.resourceTableDetails(gitRepo, 1).contains('Active', LONG_TIMEOUT_OPT);
@@ -107,8 +117,14 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
 
     // check name
     fleetClusterListPage.resourceTableDetails(clusterName, 2).should('be.visible');
-    // check cluster state in fleet
-    fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Not Ready', MEDIUM_TIMEOUT_OPT);
+    // check cluster state in fleet.
+    // A freshly provisioned downstream cluster is Active in provisioning.cattle.io long before it
+    // is Active in fleet: the fleet cluster sits in "Wait Check-In" until the fleet agent deployed
+    // into the downstream cluster registers back, which can take several minutes. Don't assert on
+    // that intermediate state (whether we catch it at all is a race), and don't wait it out purely
+    // through the UI either - poll the fleet cluster resource until it really is active, then
+    // assert the list reflects it.
+    cy.waitForResourceState('v1', `fleet.cattle.io.clusters/${ namespace }`, clusterName, 'active', Math.ceil(VERY_LONG_TIMEOUT_OPT.timeout / 1500));
     fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Active', EXTRA_LONG_TIMEOUT_OPT);
     // check Git Repos ready
     fleetClusterListPage.resourceTableDetails(clusterName, 3).should('have.text', '1');
@@ -142,8 +158,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 4).contains('rancher/fleet-test-data');
     // check target
     fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 5).contains('All');
-    // check cluster resources
-    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 7).should('contain.text', '—');
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 7).should('contain.text', '1');
   }));
 
   it('check all tabs are available in the details view', () => {
@@ -168,6 +183,12 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     cy.getClusterIdByName(clusterName).then((clusterId) => {
       const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
       const deployments = 'nginx-keep';
+
+      // `goTo` is a full page load, so the cluster navigation guard resolves the downstream
+      // cluster from scratch; if it isn't ready yet the guard redirects to /home and every
+      // assertion below silently runs against the home page instead.
+      cy.waitForResourceState('v1', 'management.cattle.io.clusters', clusterId, 'active', Math.ceil(VERY_LONG_TIMEOUT_OPT.timeout / 1500))
+        .then((ready) => expect(ready, `downstream cluster ${ clusterId } is explorable`).to.equal(true));
 
       deploymentsList.goTo();
       deploymentsList.waitForPage();
@@ -271,16 +292,21 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       removeWorkspace = true;
     });
 
-    // enable feature: provisioningv2-fleet-workspace-back-population
+    // Note: we don't assume the initial state of the feature flag. It may be left in the
+    // "Active" state from a previous failed run (this describe uses testIsolation: false
+    // and the QA cluster is shared). Only activate it if it's not already active, and
+    // always mark it for cleanup so the after() hook can reset the environment.
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.waitForPage();
-    featureFlagsPage.list().details(feature, 0).should('include.text', 'Disabled');
-    featureFlagsPage.list().clickRowActionMenuItem(feature, 'Activate');
-    featureFlagsPage.clickCardActionButtonAndWait('Activate', feature, true, { waitForModal: true, waitForRequest: true });
-    featureFlagsPage.list().details(feature, 0).should('include.text', 'Active').then(() => {
-      disableFeature = true;
+    // Mark for cleanup up-front so a mid-test failure still triggers the after() reset.
+    disableFeature = true;
+    featureFlagsPage.list().details(feature, 0).invoke('text').then((text) => {
+      if (!text.includes('Active')) {
+        featureFlagsPage.list().clickRowActionMenuItem(feature, 'Activate');
+        featureFlagsPage.clickCardActionButtonAndWait('Activate', feature, true, { waitForModal: true, waitForRequest: true });
+      }
     });
-
+    featureFlagsPage.list().details(feature, 0).should('include.text', 'Active');
     const loadingPo = new LoadingPo('.loading-indicator');
 
     // go to fleet clusters
