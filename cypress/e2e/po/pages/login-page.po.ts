@@ -58,8 +58,13 @@ export class LoginPagePo extends PagePo {
     return this.self(MEDIUM_TIMEOUT_OPT).find('.login-welcome');
   }
 
-  isWelcomeMessage(vendor = 'Rancher') {
-    return this.welcomeMessage().contains(`Welcome to ${ vendor }`).should('be.visible');
+  /**
+   * Assert the login page heading has rendered.
+   * Don't assert its text: the heading renders `t(welcomeLabelKey, { vendor })`, and both the label
+   * key and the vendor change with the `ui-brand` and `ui-pl` settings.
+   */
+  isWelcomeMessage() {
+    return this.welcomeMessage().should('be.visible');
   }
 
   /**
