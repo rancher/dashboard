@@ -650,7 +650,11 @@ module.exports = function(dir, appConfig = {}) {
       config.plugins.push(new CopyWebpackPlugin({
         patterns: [
           { from: path.join(SHELL_ABS, 'static'), to: '.' },
-          { from: path.join(dir, 'licenses.json'), to: '.', noErrorOnMissing: true }
+          {
+            from:             path.join(dir, 'licenses.json'),
+            to:               '.',
+            noErrorOnMissing: true
+          }
         ]
       }));
 
