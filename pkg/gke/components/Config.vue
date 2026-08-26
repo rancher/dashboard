@@ -79,8 +79,14 @@ export default defineComponent({
       type:    String,
       default: ''
     },
-
+    // norman cluster name property
     clusterName: {
+      type:    String,
+      default: ''
+    },
+    // name of the cluster in gkeConfig/name of the cluster in GCP
+    // provisioned clusters will match clusterName; imported clusters may not
+    gkeClusterName: {
       type:    String,
       default: ''
     },
@@ -201,7 +207,7 @@ export default defineComponent({
     },
 
     releaseChannel(): string | undefined {
-      const cluster = (this.clustersResponse?.clusters || []).find((c) => c.name === this.clusterName);
+      const cluster = (this.clustersResponse?.clusters || []).find((c) => c.name === this.gkeClusterName);
 
       return cluster?.releaseChannel?.channel;
     },
