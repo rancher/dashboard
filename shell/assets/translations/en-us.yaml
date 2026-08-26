@@ -438,6 +438,23 @@ about:
     modal:
       title: Response times have not yet been generated.
       body: Generate response times to offer more specific information.
+  licenses:
+    title: Open Source Licenses
+    description: This dashboard is built on top of other open source software. Click below to view the full list of third-party packages and their licenses.
+    viewLicenses: View Licenses
+    page:
+      title: Open Source Licenses
+      hint: Click a license to view its full text.
+      notFound: "{file} is not available in this build. Generate it by running `ANALYZE_LICENSES=true yarn build && node ./scripts/analyze-licenses -u` locally and rebuilding."
+      error: "Failed to load licenses ({status}). Please try again later."
+    table:
+      package: Package
+      license: License
+      viewFor: "View {license} license text for {name}"
+    panel:
+      none: No license content is available for this package.
+      declaredAs: "Declared license: {license}"
+      rawLicense: "Original expression: {expression}"
 
 accountAndKeys:
   title: Account and API Keys

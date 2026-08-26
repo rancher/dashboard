@@ -89,6 +89,11 @@ export default [
         name:      'diagnostic'
       },
       {
+        path:      '/licenses',
+        component: () => interopDefault(import('@shell/pages/licenses.vue')),
+        name:      'licenses'
+      },
+      {
         path:      '/prefs',
         component: () => interopDefault(import('@shell/pages/prefs.vue')),
         name:      'prefs'
