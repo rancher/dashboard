@@ -59,14 +59,24 @@ safe-outputs:
       # .github/workflows/.
       exclude:
         - .github/agents/lessons/
-  # Refuting a wrong issue and correcting an incomplete one are both done by
-  # commenting rather than by filing a corrected duplicate.
+  # Refuting a wrong issue, correcting an incomplete one, and flagging an open
+  # pull request that has fallen behind its base are all done by commenting
+  # rather than by filing a corrected duplicate or force-pushing someone's
+  # branch. Six slots so the rebase notices do not crowd out the refutations.
   add-comment:
     target: "*"
-    max: 3
+    max: 6
 tools:
   github:
     min-integrity: none
+env:
+  # The Copilot harness arms an inactivity watchdog as soon as the run's first
+  # safe output lands, and SIGTERMs the agent when it next goes quiet. The
+  # default is 20s, which `create_pull_request` cannot survive: staging and
+  # pushing a branch takes longer than that and emits nothing while it runs, so
+  # the call is aborted and the run ends with an issue but no pull request.
+  # Ten minutes covers a push on a repository this size.
+  GH_AW_HARNESS_WATCHDOG_TIMEOUT_MS: "600000"
 # Remediation runs `yarn lint` and `yarn test:ci` before opening a pull request,
 # and a UI removal additionally builds and records the dashboard, so the budget
 # has to cover a dependency install, a full unit test run and a dev build.
@@ -84,7 +94,7 @@ Read them together. Wherever the shared protocol says "finding", it means a [**c
 - **Bot label**: `bot/dead-code-detector`
 - **Branch prefix**: `dead-code/` — a pull request on any other branch is rejected before it is opened
 - **Lessons file**: `.github/agents/lessons/dead-code.md`
-- **Budgets**: at most **three** open pull requests carrying the bot label at a time, and at most **three** issues filed per run
+- **Budgets**: at most **three** open pull requests carrying the bot label at a time, at most **three** issues filed per run, and at most **six** comments — shared between refutations, corrections and the rebase notices in "Keeping the open pull requests mergeable"
 
 The lessons file holds the search idioms that have produced false findings here and the confidence rubric under "Provenance and confidence". It binds this run with the same force as this section, so nothing below repeats it. Read it before composing a search, not after.
 
