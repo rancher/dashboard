@@ -256,6 +256,7 @@ export const MANAGEMENT = {
   GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
   PSA:                           'management.cattle.io.podsecurityadmissionconfigurationtemplate',
   MANAGED_CHART:                 'management.cattle.io.managedchart',
+  USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
