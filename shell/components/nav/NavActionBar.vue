@@ -96,7 +96,7 @@ watch(() => explorerClusterId(), () => {
 
 const DEFAULT_KEYS = [POD, WORKLOAD_TYPES.DEPLOYMENT, SERVICE, CONFIG_MAP, NODE];
 
-const MAX_RESULTS = 10;
+const MAX_RESULTS = 8;
 const MAX_HISTORY = 10;
 const MAX_DEFAULT = 5;
 
@@ -620,8 +620,6 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   margin: 0;
   padding: 0;
   list-style: none;
-  max-height: 60vh;
-  overflow-y: auto;
 }
 
 .jump-to-option {
