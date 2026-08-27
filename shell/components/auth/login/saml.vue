@@ -1,7 +1,9 @@
 <script>
+import { RcButton } from '@components/RcButton';
 import Login from '@shell/mixins/login';
 export default {
-  mixins: [Login],
+  components: { RcButton },
+  mixins:     [Login],
 
   methods: {
     async login() {
@@ -83,15 +85,16 @@ export default {
         </div>
       </template>
     </div>
-    <button
+    <RcButton
       v-if="!invalidCLILogin"
       ref="btn"
-      class="btn bg-primary"
-      style="font-size: 18px;"
+      variant="primary"
+      size="large"
+      data-testid="login-provider-submit"
       @click="login"
     >
       {{ t('login.loginWithProvider', {provider: displayName}) }}
-    </button>
+    </RcButton>
   </div>
 </template>
 <style lang="scss" scoped>
