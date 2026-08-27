@@ -288,7 +288,7 @@ export default {
             <RcIcon
               v-if="repoVisual.icon"
               :type="repoVisual.icon"
-              size="small"
+              size="large"
             />
             <img
               v-else-if="repoVisual.src"
@@ -351,7 +351,7 @@ export default {
 
       <h3>{{ t('catalog.repo.detail.status') }}</h3>
       <div class="row mb-20">
-        <div class="col span-6">
+        <div class="col span-3">
           <label class="text-label charts-label">
             {{ t('catalog.repo.detail.charts.label') }}
             <i
@@ -397,7 +397,7 @@ export default {
 
       <h3>{{ t('catalog.repo.detail.security') }}</h3>
       <div class="row mb-20">
-        <div class="col span-6">
+        <div class="col span-3">
           <label class="text-label">{{ t('catalog.repo.detail.authentication') }}</label>
           <div class="value">
             <router-link
@@ -431,13 +431,13 @@ export default {
         v-if="isOci"
         class="row mb-20"
       >
-        <div class="col span-6">
+        <div class="col span-3">
           <label class="text-label">{{ t('catalog.repo.detail.caBundle') }}</label>
           <div class="value">
             {{ caBundleDisplay }}
           </div>
         </div>
-        <div class="col span-6">
+        <div class="col span-3">
           <label class="text-label">{{ t('catalog.repo.detail.exponentialBackOff') }}</label>
           <div class="value">
             {{ backOffDisplay }}
@@ -477,8 +477,8 @@ export default {
   gap: var(--gap);
 
   &__img {
-    width: 16px;
-    height: 16px;
+    width: 22px;
+    height: 22px;
     object-fit: contain;
   }
 }
