@@ -539,7 +539,7 @@ export default {
 
       case 'saml':
         this.model.accessMode = 'unrestricted';
-        if (this.model.id === 'genericsaml') {
+        if (this.NAME === 'genericsaml') {
           this.model.nameIDFormat = this.model.nameIDFormat || 'unspecified';
           this.model.signatureMethod = this.model.signatureMethod || 'RSA-SHA256';
         }
