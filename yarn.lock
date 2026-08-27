@@ -6653,12 +6653,12 @@ cypress-multi-reporters@1.6.4:
     debug "^4.3.4"
     lodash "^4.17.21"
 
-cypress-qase-reporter@3.6.4:
-  version "3.6.4"
-  resolved "https://registry.yarnpkg.com/cypress-qase-reporter/-/cypress-qase-reporter-3.6.4.tgz#841f02d156fc4b760a119b7d82ff4936cbd657b1"
-  integrity sha512-tVmAV+JT1129Mnk7yAgKsnozmbdYLb3tk/pMfIfCSB+TQoqnLNwXDMFK2L3Qd3EBesn14byqfoqN6hqwKwaz/Q==
+cypress-qase-reporter@3.7.0:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/cypress-qase-reporter/-/cypress-qase-reporter-3.7.0.tgz#ae069089dfd64cfc28f0fcf355d3aa95bfb9d6a4"
+  integrity sha512-T/3m9otdB3Wp5+AlTDf39Goz4csDWU3fQzj9lbgrBe0X+bLmmTjk82D8m30xSfN3JTi6T1EcQJeKXOw7N6gPWg==
   dependencies:
-    qase-javascript-commons "~2.7.3"
+    qase-javascript-commons "~2.9.0"
     uuid "11.1.1"
 
 cypress-real-events@1.15.0:
@@ -12762,18 +12762,18 @@ qase-api-client@~1.1.9:
     axios "^1.16.0"
     axios-retry "^4.5.0"
 
-qase-api-v2-client@~1.0.9:
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/qase-api-v2-client/-/qase-api-v2-client-1.0.10.tgz#a43a59e5f6f54ed62bd51e8cf06b6fb6b852288f"
-  integrity sha512-ab9SwmWcL7QUFzL99k90P093RCleWvMUdXt2DT2Olrqdx2s/K21xjUvn0gibItB11W/W6lg/EHHMdAL5tAQHUw==
+qase-api-v2-client@~1.0.10:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/qase-api-v2-client/-/qase-api-v2-client-1.0.11.tgz#5ee6b03a96aac4f729ae25f54f3f0bd4eb4df4da"
+  integrity sha512-f5OoNSwpwl8aac91O/S6442pOTDeKvsXMSOhH5mbBjQrFEQyMfIMqcl44uOE5Nk4tZKTxwqDUpy8Iw6pF0jtGQ==
   dependencies:
     axios "^1.18.1"
     axios-retry "^4.5.0"
 
-qase-javascript-commons@~2.7.3:
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/qase-javascript-commons/-/qase-javascript-commons-2.7.6.tgz#3baba6cb46429af701d77004b2dbbc1046c1841d"
-  integrity sha512-Mo8pbxJlyiqAv+wpTRfJOdOYTMwLgXCv0PQL/d2MZBiR8R5OR7oy1AQ7Cv5qU01oOvR0n+fy9c0NVcmVkSFQ/A==
+qase-javascript-commons@~2.9.0:
+  version "2.9.2"
+  resolved "https://registry.yarnpkg.com/qase-javascript-commons/-/qase-javascript-commons-2.9.2.tgz#f16e8cb3667969c93f02a319f4a6328045f4f5e1"
+  integrity sha512-N7RgYEuW/c6ebrI4gBRwY9lgGceIsFbCQb5U0f9AEpIADbkR6rrQELbHMhEMaoeVsazqFRVA3QqWkw24FCAeqw==
   dependencies:
     ajv "^8.18.0"
     async-mutex "~0.5.0"
@@ -12784,7 +12784,7 @@ qase-javascript-commons@~2.7.3:
     lodash.mergewith "^4.6.2"
     mime-types "^2.1.35"
     qase-api-client "~1.1.9"
-    qase-api-v2-client "~1.0.9"
+    qase-api-v2-client "~1.0.10"
     strip-ansi "^6.0.1"
     uuid "11.1.1"
 
