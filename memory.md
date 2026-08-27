@@ -43,6 +43,7 @@
 - auth.js: `jest.mock('@shell/utils/uiplugins', ...)` needed for isLoggedIn; store getters with schemaFor are function-getters (return functions, not values); `notLoggedIn` — 'index'.includes('auth')=false so setAuthRedirect IS called for index route; `openAuthPopup` deferred (Popup + BroadcastChannel complexity)
 - favicon.js: `favIconSet` and `defaultFavIcon` are module-level; use `jest.resetModules()` + dynamic `require()` in beforeEach; mock `@shell/utils/require-asset`; use `link.getAttribute('href')` (not `link.href`) to avoid jsdom URL resolution
 - useLabeledFormElement.ts: no lifecycle hooks, no store — use ref/computed directly; `raised` is initialized once (not reactive to prop changes); `rule.name` detection requires named `function` declarations not arrow functions; `rule(value)` at line 115 is NOT null-guarded (code inconsistency); emit is jest.Mock for 'update:validation'
+- grafana.js: mock `@shell/utils/monitoring` with `jest.mock()`; `dashboardExists` URL must contain proxy path for `split(delimiter)` to work; unused imports cause no-unused-vars lint failures
 
 ## Testing Notes (composables)
 
@@ -67,8 +68,11 @@
 2. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
 3. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
 4. `shell/composables/drawer.ts` — thin store wrapper (low value)
+5. `shell/utils/grafana.js` — `allDashboardsExist` (skipped; thin wrapper over dashboardExists)
 
 ## Completed Work (Summary)
+
+- 2026-08-27: PR (test-assist/grafana-utils-tests): 17 new tests for grafana.js computeDashboardUrl, dashboardExists, queryGrafana, hasLeader, leaderChanges, failedProposals; 28%→94% stmts, 100% branches, 30%→90% fns.
 
 - 2026-08-21: PR (test-assist/uiplugins-extra-tests): 14 new tests for uiplugins.ts onExtensionsReady, getLatestExtensionVersion, installHelmChart; 34%→55% stmts, 15%→38% fns.
 
@@ -93,6 +97,8 @@
 - Earlier PRs: all merged ✅
 
 ## Task Round-Robin History
+
+- 2026-08-27: Task 3 (grafana.js extra tests, 17 new tests, 28%→94% stmts, 100% branches, 30%→90% fns) + Task 7
 
 - 2026-08-21: Task 3 (uiplugins.ts extra tests, 14 tests, 34%→55% stmts) + Task 7
 
