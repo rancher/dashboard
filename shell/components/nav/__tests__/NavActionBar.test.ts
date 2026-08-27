@@ -255,31 +255,37 @@ describe('NavActionBar.vue', () => {
     expect(labels(wrapper)).toStrictEqual(['Clusters']);
   });
 
-  it('ranks a section on the label it shows, not on its hidden type name', async() => {
+  it('finds a section by its own bare type name, whatever its label is translated to', async() => {
     const custom = [{
-      name:     'storage',
-      label:    'Storage',
+      name:     'cluster',
+      label:    '集群',
       children: [
         {
-          name: 'pod', label: 'Cluster Pods', route: { name: 'pod' }
+          name: 'endpoints', label: '端点', route: { name: 'endpoints' }
         },
         {
-          name: 'policy', label: 'Pod Security', route: { name: 'policy' }
+          name: 'discovery.k8s.io.endpointslice', label: 'EndpointSlices', route: { name: 'endpointslice' }
+        },
+        {
+          name:  'operation.cattle.io.encryptionkeyrotation',
+          label: 'EncryptionKeyRotations',
+          route: { name: 'ekr' },
         },
       ]
     }];
     const wrapper = mountBar({ groups: custom });
 
     await wrapper.find('.jump-to-input').trigger('focus');
-    await wrapper.find('.jump-to-input').setValue('pod');
+    await wrapper.find('.jump-to-input').setValue('ep');
     await nextTick();
 
-    // 'Cluster Pods' matches its own type name at index 0, but what the user
-    // reads is the label, where 'Pod Security' matches first
-    expect(labels(wrapper)).toStrictEqual(['Pod Security', 'Cluster Pods']);
+    // A translated label leaves an abbreviation nothing to match, so `endpoints`
+    // is all that still answers to `ep`. It is a name, so it ranks with the
+    // labels around it; behind them, every untranslated type buries it
+    expect(labels(wrapper)).toStrictEqual(['端点', 'EndpointSlices', 'EncryptionKeyRotations']);
   });
 
-  it('ranks a section matched only on its type name below every label match', async() => {
+  it('ranks a section matched only on its qualified type name below every label match', async() => {
     const custom = [{
       name:     'cluster',
       label:    'Cluster',

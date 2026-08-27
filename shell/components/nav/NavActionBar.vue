@@ -22,13 +22,13 @@ interface JumpItem {
   label: string;
   /**
    * The names this entry answers to: its label, then the bare names of the
-   * types it stands in for. `Projects/Namespaces` is the entry you want when
-   * you type `ns`, and only the `namespace` it covers says so.
+   * types it is or stands in for. `Projects/Namespaces` is the entry you want
+   * when you type `ns`, and only the `namespace` it covers says so.
    */
   names: string[];
   /**
-   * The schema ids behind it: its own type name, then the qualified ids of the
-   * types it stands in for. Matched last, see `searchResults`.
+   * The API-group-qualified schema ids behind it. Matched last, see
+   * `searchResults`.
    */
   types: string[];
   path: string[];
@@ -174,17 +174,19 @@ const items = computed<JumpItem[]>(() => {
       // a child that repeats its parent group's label (the group's overview
       // entry), since the group itself already represents that jump.
       if (!node.isRoot && label && route && label !== parentLabel && !byKey[node.name]) {
-        // A type this entry stands in for is a name when it is bare
-        // (`namespace`) and a schema id once it carries an API group
-        // (`management.cattle.io.project`), which is the half nobody reads.
-        const navResources: string[] = node.navResources || [];
+        // A type is a name when it is bare (`endpoints`, `namespace`) and a
+        // schema id once it carries an API group (`management.cattle.io.project`),
+        // which is the half nobody reads. The entry's own type is read the same
+        // way as the ones it stands in for: its bare name is all a translated
+        // label leaves an abbreviation to match, since `ep` is nowhere in `端点`.
+        const types: string[] = [node.name, ...(node.navResources || [])];
         const qualified = (type: string) => type.includes('.');
 
         byKey[node.name] = {
           key:   node.name,
           label,
-          names: [label, ...navResources.filter((type) => !qualified(type))],
-          types: [node.name, ...navResources.filter(qualified)],
+          names: [label, ...types.filter((type) => !qualified(type))],
+          types: types.filter(qualified),
           path:  [...path],
           route,
           node
