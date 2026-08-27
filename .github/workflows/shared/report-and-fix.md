@@ -145,12 +145,27 @@ Fixed by the pull request #aw_<pull request temporary id> from this same run.
 
 ### Pull request body
 
+**Start from this repository's own pull request template.** Read `.github/pull_request_template.md` out of the workspace at the point you compose the body, and reproduce it section for section: same headings, same order, and the HTML comments under each one left in place. Do not reconstruct it from this prompt or from another pull request — the template is maintained by the repository and gains sections over time, and a body missing one reads as a body nobody filled in.
+
+Read it from the file for a second reason: the comments are stripped out of this prompt before you see it, so a copy written here would be missing exactly the guidance each section carries.
+
+Fill every section, and add the three marked **added** below. Those carry the evidence this workflow is judged on and the template has nowhere to put them.
+
+- **Summary** — the template opens with `Fixes #`. Complete it with the issue number, then one sentence on what is being deleted and why it is dead
+- **Occurred changes and/or fixed issues** — the file table
+- **Technical notes summary** — what a reviewer would otherwise have to reverse-engineer from the diff: a deletion that forced a signature change, a barrel export that had to be re-pointed, a test that moved rather than went
+- **Areas or cases that should be tested** — what to exercise to be satisfied the deletion is safe. Name the screens or commands; "regression test the app" is not an answer
+- **Areas which could experience regressions** — what could still break, and why it was ruled out
+- **Screenshot/Video** — the assets, or one line saying why there are none
+- **Checklist** — tick a box only where this run genuinely satisfies it, and leave the rest unticked. An unticked box is a working signal that something still needs a human; ticking one you did not satisfy hides that work instead of reporting it. Several of them cannot be satisfied from inside a run at all — a milestone, an assigned reviewer, a self review — and those stay unticked
+
 ````markdown
-# <emoji> <What this changes>
+### Summary
+Fixes #N
 
-Resolves #N, after re-verifying every item against the current code.
+[One sentence: what is deleted, and what makes it dead.]
 
-## What changed
+### Occurred changes and/or fixed issues
 
 | File | Lines | Why |
 | --- | --- | --- |
@@ -158,7 +173,11 @@ Resolves #N, after re-verifying every item against the current code.
 
 Total: [N files, N lines, from `wc -l`]
 
-## Re-verification
+### Technical notes summary
+
+- [Anything in the diff that is not a plain deletion, and why it was necessary. Omit the section's bullets entirely if every change is a straight removal.]
+
+### Re-verification (added)
 
 The evidence in the issue was not reused. Every check below was re-run against the code as of this branch.
 
@@ -166,14 +185,26 @@ The evidence in the issue was not reused. Every check below was re-run against t
 - Control: `[same command against something known to be live]` → [hit count]
 - [Whatever else this workflow's own verification section requires]
 
-## Gates
+### Gates (added)
 
 Both must have actually executed. "Expected to pass", "cannot run" or "no source file was modified so nothing can break" are not results, and a pull request carrying one of them should not have been opened.
 
 - `yarn lint` — [pass, or the failure output]
 - `yarn test:ci` — [pass, with the suite/test counts it printed]
 
-## Evidence
+### Lessons (added)
+
+[Omit this section if the run learned nothing. Otherwise the entries appended to the lessons file, one line each on what misled the run and the rule now recorded.]
+
+### Areas or cases that should be tested
+
+- [The screens, routes or commands that exercise what was removed.]
+
+### Areas which could experience regressions
+
+- [What could still break, and why it was ruled out]
+
+### Screenshot/Video
 
 [When the change touches the UI, per "Capturing UI evidence":]
 
@@ -184,17 +215,13 @@ Both must have actually executed. "Expected to pass", "cannot run" or "no source
 - Screens walked: [each screen, and what changed on it]
 - Console: `playwright-cli console error` on each of the above → [no errors]
 
-[When it does not touch the UI:] Not applicable — the change is confined to [paths], which render nothing.
+[When it does not touch the UI:] N/A — the change is confined to [paths], which render nothing.
 
 [When it touches the UI but no video exists:] No recording. [The dev build did not finish inside the timeout / the recording could not be produced — say which, and quote what was printed.] A screenshot is attached instead.
 
-## Risk
+### Checklist
 
-- [What could still break, and why it was ruled out]
-
-## Lessons
-
-[Omit if the run learned nothing. Otherwise the entries appended to the lessons file, one line each on what misled the run and the rule now recorded.]
+[Every box from the template, in the template's order and wording. Ticked where this run satisfies the item, left unticked where it does not.]
 
 Closes #N
 ````
