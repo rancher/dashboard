@@ -1,5 +1,6 @@
 import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/useKubernetesVersions';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { MANAGEMENT } from '@shell/config/types';
 
 const mockGetters: Record<string, any> = {};
 const mockDispatch = jest.fn();
@@ -161,7 +162,7 @@ describe('composable: useKubernetesVersions', () => {
   });
 
   describe('fetchRke2Versions', () => {
-    const buildDispatch = ({ channelResponses = {} as Record<string, any[]> } = {}) => {
+    const buildDispatch = ({ channelResponses = {} as Record<string, any[]>, psas = [] as any[] } = {}) => {
       return jest.fn((action: string, args: any = {}) => {
         const { url } = args;
 
@@ -181,7 +182,7 @@ describe('composable: useKubernetesVersions', () => {
         }
 
         if (action === 'management/findAll') {
-          return Promise.resolve([]);
+          return Promise.resolve(psas);
         }
 
         return Promise.resolve();
@@ -234,6 +235,41 @@ describe('composable: useKubernetesVersions', () => {
 
       expect(defaultRke2.value).toBe('v1.29.0+rke2r1');
       expect(defaultK3s.value).toBe('v1.29.0+k3s1');
+    });
+
+    it('fetches all PSAs when management/canList allows listing PSA', async() => {
+      const psas = [{ id: 'psa-1' }, { id: 'psa-2' }];
+
+      mockDispatch.mockImplementation(buildDispatch({ psas }));
+      mockGetters['management/canList'] = jest.fn(() => true);
+      mockGetters['management/all'] = () => [
+        { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
+        { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
+      ];
+
+      const { fetchRke2Versions, allPSAs } = useKubernetesVersions(baseProps());
+
+      await fetchRke2Versions();
+
+      expect(mockGetters['management/canList']).toHaveBeenCalledWith(MANAGEMENT.PSA);
+      expect(mockDispatch).toHaveBeenCalledWith('management/findAll', { type: MANAGEMENT.PSA });
+      expect(allPSAs.value).toStrictEqual(psas);
+    });
+
+    it('does not fetch PSAs when management/canList disallows listing PSA', async() => {
+      mockDispatch.mockImplementation(buildDispatch({ psas: [{ id: 'psa-1' }] }));
+      mockGetters['management/canList'] = jest.fn(() => false);
+      mockGetters['management/all'] = () => [
+        { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
+        { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
+      ];
+
+      const { fetchRke2Versions, allPSAs } = useKubernetesVersions(baseProps());
+
+      await fetchRke2Versions();
+
+      expect(mockDispatch).not.toHaveBeenCalledWith('management/findAll', expect.anything());
+      expect(allPSAs.value).toStrictEqual([]);
     });
 
     it('throws when no version info is returned for either distro', async() => {
