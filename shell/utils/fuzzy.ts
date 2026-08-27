@@ -96,6 +96,43 @@ function startsWord(text: string, index: number): boolean {
 }
 
 /**
+ * Scratch space for `suffixStarts`, reused between calls. The matcher runs over
+ * every name in the nav on every keystroke, and one small array per call costs
+ * more than the whole rest of the search; nothing reads it across a call, since
+ * `disjointMatch` is synchronous and fills it before looking at it.
+ */
+const starts: number[] = [];
+
+/**
+ * The latest index each suffix of `query` can still start matching at, so
+ * `starts[i]` is the last place `query.slice(i)` fits in `haystack`. Returns
+ * `false` when the query is not a subsequence of the haystack at all, which is
+ * exactly when no split of it matches: every run may be a single character, so
+ * a split exists as soon as the characters appear in order.
+ *
+ * This is what lets the search below reject, in constant time, a run that would
+ * strand the rest of the query, and so prefer the longest run without that
+ * preference ever dead-ending a query some shorter run could have matched.
+ */
+function suffixStarts(haystack: string, query: string): boolean {
+  let at = haystack.length;
+
+  starts[query.length] = at;
+
+  for (let i = query.length - 1; i >= 0; i--) {
+    at = at > 0 ? haystack.lastIndexOf(query[i], at - 1) : -1;
+
+    if (at < 0) {
+      return false;
+    }
+
+    starts[i] = at;
+  }
+
+  return true;
+}
+
+/**
  * Match `query` against `text` by splitting it into as few contiguous runs as
  * possible, each found in order and without overlapping, so an abbreviation
  * finds the name it abbreviates: `netpol` matches `NetworkPolicies`, `cm`
@@ -103,7 +140,9 @@ function startsWord(text: string, index: number): boolean {
  *
  * Each run is taken as long as it can be, which keeps the obvious reading of a
  * query (`pol` in `Pod Policies` is one run at `Policies`, not `p` + `ol`) and
- * keeps a plain substring match a single run, ranked above any split.
+ * keeps a plain substring match a single run, ranked above any split. Only as
+ * long as it can be while the rest of the query still fits after it, though, so
+ * every query that has a valid split finds one.
  *
  * @param text - The text to search, in its original casing.
  * @param query - What to look for, already lowercased and trimmed.
@@ -119,6 +158,11 @@ export function disjointMatch(text: string, query: string): DisjointMatch | null
   // code units), leaving indexes into `haystack` meaningless in `text`. Fall
   // back to the lowercased copy when it does, losing only the camel humps.
   const cased = haystack.length === text.length ? text : haystack;
+
+  if (!suffixStarts(haystack, query)) {
+    return null;
+  }
+
   let runs = 0;
   let strays = 0;
   let index = -1;
@@ -132,6 +176,13 @@ export function disjointMatch(text: string, query: string): DisjointMatch | null
 
     // The longest run wins; among equals the earliest, so the match sits as far
     // left as it can. Stops as soon as a run swallows the rest of the query.
+    //
+    // A run is only taken if what is left of the query still fits after it: the
+    // longest run is not always part of a match, and preferring it blindly loses
+    // queries that do match ('med' takes the 'me' of MachineDeployments and
+    // strands the 'd' that only occurs before it). Since a run can be shortened
+    // to a single character, and `starts` grows by at least one per character, a
+    // run whose whole length doesn't fit has no shorter form that does.
     while (at >= 0 && bestLen < query.length - matched) {
       let len = 1;
 
@@ -139,7 +190,7 @@ export function disjointMatch(text: string, query: string): DisjointMatch | null
         len++;
       }
 
-      if (len > bestLen) {
+      if (len > bestLen && at + len <= starts[matched + len]) {
         bestAt = at;
         bestLen = len;
       }
@@ -147,6 +198,8 @@ export function disjointMatch(text: string, query: string): DisjointMatch | null
       at = haystack.indexOf(query[matched], at + 1);
     }
 
+    // `starts` already proved a run fits here, so this is only a guard against
+    // looping forever if that ever stops being true.
     if (bestAt < 0) {
       return null;
     }

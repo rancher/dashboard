@@ -140,6 +140,22 @@ describe('fx: disjointMatch', () => {
     });
   });
 
+  it('should shorten a run rather than let it strand the rest of the query', () => {
+    // The longest 'me' is the one in 'DeployMEnts', which leaves no 'd' after
+    // it; the match is the earlier 'm' plus the 'ed' of 'MachinED...'
+    expect(disjointMatch('MachineDeployments', 'med')).toStrictEqual({
+      runs: 2, strays: 1, span: 8, index: 0
+    });
+  });
+
+  it('should give up the longest run when the query cannot finish after it', () => {
+    // The longest run of 'abc' is the 'ab' at the end, which leaves no 'c'; the
+    // 'a' at the front plus the 'bc' after it is the match
+    expect(disjointMatch('aXbcYab', 'abc')).toStrictEqual({
+      runs: 2, strays: 1, span: 4, index: 0
+    });
+  });
+
   it('should match runs in order and never reuse text', () => {
     expect(disjointMatch('Policies Pod', 'podpol')).toBeNull();
     expect(disjointMatch('Pod Policies', 'podpol')).toStrictEqual({
