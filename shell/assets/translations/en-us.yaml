@@ -3105,6 +3105,8 @@ fleet:
     applicationTarget: Target
     applicationClustersReady: Clusters Ready
     applicationResourcesSummary: Resources
+  jumpTo:
+    sectionsHeading: Continuous Delivery sections
   dashboard:
     pageTitle: Continuous Delivery Dashboard
     menuLabel: Dashboard

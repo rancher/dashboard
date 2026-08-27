@@ -33,6 +33,10 @@ export function init(store) {
     showClusterSwitcher:   false,
     showWorkspaceSwitcher: true,
     extendable:            true,
+    // Nothing here is a Kubernetes resource type the way the explorer's sections
+    // are, and this product is not scoped to a cluster, so the default heading
+    // fits neither half of it.
+    navSearch:             { popularHeading: 'fleet.jumpTo.sectionsHeading' },
     to:                    {
       name:   'c-cluster-fleet',
       params: { cluster: BLANK_CLUSTER }
