@@ -96,7 +96,6 @@ watch(() => explorerClusterId(), () => {
 
 const DEFAULT_KEYS = [POD, WORKLOAD_TYPES.DEPLOYMENT, SERVICE, CONFIG_MAP, NODE];
 
-const MAX_RESULTS = 8;
 const MAX_HISTORY = 10;
 const MAX_DEFAULT = 5;
 
@@ -107,6 +106,7 @@ const open = ref(false);
 const activeIndex = ref(0);
 const input = ref<HTMLInputElement | null>(null);
 const toolbar = ref<HTMLElement | null>(null);
+const list = ref<HTMLElement | null>(null);
 
 // The dropdown is teleported to <body> so it can overhang the nav column without
 // being clipped by its `overflow` ancestors; it is positioned under the toolbar.
@@ -301,7 +301,6 @@ const searchResults = computed<JumpItem[]>(() => {
       compareDisjointMatches(a.match, b.match) ||
       a.item.label.length - b.item.label.length ||
       a.item.label.localeCompare(b.item.label))
-    .slice(0, MAX_RESULTS)
     .map((scored) => scored.item);
 });
 
@@ -315,10 +314,23 @@ const listHeadingKey = computed<string | null>(() => {
   return recentItems.value.length ? labels.value.recentHeading : labels.value.popularHeading;
 });
 
+/**
+ * Keep the highlighted option on screen in the scrolling list. `nearest` scrolls
+ * by as little as it can, so it does nothing while the option is already
+ * visible. Only the keyboard and a reset call this: doing it on hover would drag
+ * the list out from under the pointer.
+ */
+function scrollActiveIntoView() {
+  // After the render that moved the highlight, so the option to scroll to exists.
+  nextTick(() => (list.value?.children[activeIndex.value] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest' }));
+}
+
 // Reset the highlight to the top on open and while typing, but not when the
-// underlying nav tree merely re-renders.
+// underlying nav tree merely re-renders. The list keeps whatever scroll position
+// the last query left it at, so put it back with the highlight.
 watch([query, open], () => {
   activeIndex.value = 0;
+  scrollActiveIntoView();
 });
 
 function focusInput() {
@@ -353,6 +365,7 @@ function move(delta: number) {
   }
 
   activeIndex.value = (activeIndex.value + delta + count) % count;
+  scrollActiveIntoView();
 }
 
 function jumpTo(item?: JumpItem) {
@@ -462,6 +475,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
         <ul
           v-else
           id="jump-to-listbox"
+          ref="list"
           class="jump-to-results"
           role="listbox"
         >
@@ -620,6 +634,8 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   margin: 0;
   padding: 0;
   list-style: none;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .jump-to-option {

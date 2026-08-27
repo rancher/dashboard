@@ -29,6 +29,12 @@ jest.mock('@shell/utils/router', () => ({
 }));
 jest.mock('@shell/utils/platform', () => ({ isMac: false }));
 
+// jsdom has no layout and no `scrollIntoView`, so the list never really scrolls.
+// What these tests can check is which option was asked to come into view.
+const scrollIntoView = jest.fn();
+
+Element.prototype.scrollIntoView = scrollIntoView;
+
 // A small nav tree mirroring the curated explorer groups: a root whose children
 // sit at the top level, plus categorised groups.
 const groups = [
@@ -238,6 +244,35 @@ describe('NavActionBar.vue', () => {
 
     expect(options[0].classes()).not.toContain('active');
     expect(options[1].classes()).toContain('active');
+  });
+
+  it('scrolls the highlighted option into view when the arrow keys move it', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'ArrowDown' });
+    await nextTick();
+    await nextTick();
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+    expect(scrollIntoView.mock.instances[scrollIntoView.mock.instances.length - 1]).toStrictEqual(
+      wrapper.findAll('.jump-to-option')[1].element
+    );
+  });
+
+  it('does not scroll the list when the pointer moves the highlight', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await nextTick();
+    scrollIntoView.mockClear();
+
+    await wrapper.findAll('.jump-to-option')[2].trigger('mouseenter');
+    await nextTick();
+    await nextTick();
+
+    // Scrolling under the pointer would move the row out from beneath it
+    expect(scrollIntoView).not.toHaveBeenCalled();
   });
 
   it('shows no heading while searching', async() => {
