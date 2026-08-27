@@ -3,6 +3,7 @@ import flushPromises from 'flush-promises';
 
 import Config from '@pkg/gke/components/Config.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 const mockedStore = (versionSetting: any) => {
   return {
