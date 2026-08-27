@@ -157,10 +157,10 @@ export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2
 
 // Maximum number of clusters to show in the slide-in menu
 export const MENU_MAX_CLUSTERS = 10;
-// Maximum number of recently-visited clusters kept / shown in the app-bar shelf (SURE-8192)
+// Maximum number of recently-visited clusters kept / shown in the app-bar shelf
 export const MENU_MAX_RECENT_CLUSTERS = 10;
-// Max chars of the search term echoed back in the "no clusters match …" message before it is
-// ellipsized — shared by the expanded nav and the flyout so the two surfaces cannot drift (SURE-8192)
+// Max chars of the echoed search term in the "no clusters match …" message; shared by the
+// expanded nav and the flyout so the two surfaces cannot drift.
 export const SEARCH_ECHO_MAX = 30;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
@@ -401,19 +401,13 @@ export const actions = {
     }
   },
 
-  // A merge-write is a read-modify-write of the user preference expressed as `mutations`: an array of
-  // { key, apply } where `apply(currentValue) => newValue` is a PURE transform (must not mutate its input).
-  // It runs in TWO phases, split so callers can make the UI feel instant:
-  //   • applyPrefsOptimistic — apply against the CLIENT's current value and commit NOW. Runs OUTSIDE any
-  //     write queue, so the UI (the derived pinned/recent shelf + its FLIP) updates the moment the user acts.
-  //   • reconcilePrefs — the ONE GET-then-PUT the write needs; runs the SAME apply() against the SERVER's
-  //     live value, adopting it if the server drifted (another tab, a manual edit). Callers SERIALIZE this
-  //     (overlapping read-modify-writes on the shared Preference would 409), but never the optimistic phase.
-  // Callers dispatch the two directly (see cluster-pref-writer's commitAndReconcile). SURE-8192.
+  // A merge-write is a read-modify-write of a preference via a PURE apply(currentValue) => newValue, split
+  // into two phases so the UI can feel instant: applyPrefsOptimistic commits against the client value now
+  // (outside any write queue), and reconcilePrefs does the one GET-then-PUT against the server's live value.
+  // Callers serialize reconcile (overlapping writes on the shared Preference would 409), never the optimistic phase.
 
-  // Phase 1 — optimistic. Commits each transform against the client's current value and RETURNS the values
-  // it committed, so the reconcile can detect drift without re-deriving the wrong base. SYNC (no awaits), so
-  // the commits land in the same tick it's dispatched. SURE-8192.
+  // Phase 1 — optimistic. SYNC (no awaits) so the commits land in the same tick; returns the committed
+  // values so reconcilePrefs can detect server drift without re-deriving the wrong base.
   applyPrefsOptimistic(
     { commit, rootGetters, state }: PrefsActionContext,
     mutations: Array<{ key: string, apply: (value: any) => any }>
@@ -446,10 +440,9 @@ export const actions = {
     return optimistic;
   },
 
-  // Phase 2 — reconcile + persist. Runs the SAME transforms against the SERVER's live value; if it drifted
-  // from what we optimistically committed (`optimistic`), adopts the server-based result (re-commit) so an
-  // external change is merged, not clobbered. Persists only the keys the transform actually changed. The
-  // caller serializes THIS (the GET-then-PUT), never the optimistic phase. SURE-8192.
+  // Phase 2 — reconcile + persist. Re-runs the transforms against the server's live value and adopts that
+  // result if it drifted from what we optimistically committed, so an external change (another tab / manual
+  // edit) is merged, not clobbered. Persists only the keys a transform actually changed.
   async reconcilePrefs(
     {
       dispatch, commit, rootGetters, state

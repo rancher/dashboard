@@ -59,25 +59,24 @@ export default {
         searchTerm: '',
       };
 
-      // `update` refreshes only the watched context set (local/pinned/recent). The ALL list loads lazily
-      // on the open/scroll triggers, not here. SURE-8192.
+      // `update` refreshes only the watched context set (local/pinned/recent); the ALL list loads lazily
+      // on the open/scroll triggers, not here.
       helper.update(args);
     }
 
     return {
       shown:               false,
-      // PINNED + RECENT are always shown (no collapse). The estate lives behind the search "door":
-      // focusing the filter swaps the shelf for the ALL CLUSTERS directory. SURE-8192 (v2).
+      // PINNED + RECENT are always shown; the estate lives behind the search "door" (focusing the
+      // filter swaps the shelf for the ALL CLUSTERS directory).
       allClustersExpanded: false,
       displayVersion,
       fullVersion,
-      // The single search term shared by BOTH the expanded-nav search box AND the collapsed-rail flyout,
-      // so a query typed in one is still there (with the same filtered list) when the other is opened. It
-      // drives the ONE `clustersOthers` pipeline (`search` → resetOthers). SURE-8192 (v2).
+      // Shared by BOTH the expanded-nav search box and the collapsed-rail flyout, so a query typed in one
+      // persists in the other; drives the one `clustersOthers` pipeline (`search` → resetOthers).
       clusterFilter:       '',
       hasProvCluster,
       loadingMoreOthers:   false,
-      // A search request is in flight (drives the flyout's initial search skeleton). SURE-8192.
+      // A search request is in flight (drives the flyout's initial search skeleton).
       searchLoading:       false,
       routeCombo:          false,
 
@@ -87,7 +86,7 @@ export default {
       debouncedHelperUpdateMedium: debounce((...args) => this.helper.update(...args), 750),
       debouncedHelperUpdateQuick:  debounce((...args) => this.helper.update(...args), 200),
       // The ALL list is unwatched + page-increment: reset to page 1 on the open/search triggers, debounced
-      // so search typing doesn't spam requests. SURE-8192.
+      // so search typing doesn't spam requests.
       debouncedResetOthers:        debounce(() => this.resetOthersList(), 200),
       provClusters,
       mgmtClusters,
@@ -136,16 +135,14 @@ export default {
       return !!this.search;
     },
 
-    // The estate "door" is OPEN whenever the filter has been focused (allClustersExpanded) OR while it
-    // holds any search text (searchActive). It STAYS open when the text is deleted — emptying the query
-    // must NOT snap back to the PINNED/RECENT shelf. The only way back to the shelf is the explicit clear
-    // (the X → exitSearch); losing focus or clearing the text never closes it. SURE-8192 (v2).
+    // The estate "door" is OPEN once the filter is focused or holds search text, and STAYS open when the
+    // text is deleted — only the explicit clear (X → exitSearch) returns to the PINNED/RECENT shelf.
     searchMode() {
       return this.allClustersExpanded || this.searchActive;
     },
 
-    // The "no clusters match" line echoes the query back; cap a very long query with an ellipsis so it
-    // can't overflow. Mirrors the flyout's truncatedSearch (same 30-char limit). SURE-8192 (v2).
+    // The "no clusters match" line echoes the query back; cap a long query with an ellipsis so it can't
+    // overflow (mirrors the flyout's truncatedSearch, same limit).
     truncatedSearch() {
       const s = this.clusterFilter || '';
 
@@ -170,23 +167,21 @@ export default {
       return this.hasProvCluster ? this.helper.clustersOthers : [];
     },
 
-    // Recently-visited clusters for the switcher shelf (SURE-8192).
     recentClusters() {
       return this.hasProvCluster ? this.helper.clustersRecent : [];
     },
 
-    // `local` (the management cluster) is a FIXED slot at the top of the cluster area on every surface
-    // — never inside PINNED / RECENT / ALL, not pinnable, never evicted (SURE-8192, rev 2). Pull it out
-    // of the groups and render it as its own tile.
+    // `local` (the management cluster) is a FIXED slot at the top of the cluster area — never inside
+    // PINNED / RECENT / ALL, not pinnable, never evicted — so pull it out and render its own tile.
     localCluster() {
       // The `hide-local-cluster` setting removes `local` from the nav entirely — its fixed slot must
-      // honor it too (the slice below fetches strictly by id and does NOT apply that filter). SURE-8192.
+      // honor it too (the slice below fetches strictly by id and does NOT apply that filter).
       if (this.hideLocalCluster) {
         return null;
       }
 
-      // `local` now comes from its own dedicated slice (helper.clustersLocal) — it's excluded from
-      // pinned/recent/others/search, so it's never scavenged from those groups. SURE-8192.
+      // `local` comes from its own dedicated slice (helper.clustersLocal) — excluded from
+      // pinned/recent/others/search, so it's never scavenged from those groups.
       return (this.hasProvCluster ? this.helper.clustersLocal?.[0] : null) || null;
     },
 
@@ -198,13 +193,9 @@ export default {
       return this.recentClusters.filter((c) => !c.isLocal);
     },
 
-    // ALL CLUSTERS lists the COMPLETE estate. It is fetched SERVER-SIDE (DEFAULT_SORT: internal, then
-    // connected/active, then name) and PAGINATED, so we PRESERVE that order rather than re-sorting the
-    // loaded window client-side — otherwise "active first" would only hold within the current page, not
-    // across the whole (paginated) estate. Pinned and recent come from the always-loaded context fetch;
-    // append any not yet present in the loaded `others` page so they still show, without disturbing the
-    // server ordering of what's loaded. Local excluded (its own fixed slot). While searching this is the
-    // flat match list (also server-sorted, connected-first). SURE-8192 rev 2.
+    // ALL CLUSTERS is fetched server-side (sorted + paginated), so PRESERVE that order rather than
+    // re-sorting the loaded window (else "active first" would hold only within a page). Pinned/recent
+    // are appended from the always-loaded context fetch; local is excluded (its own slot).
     railAll() {
       if (this.searchActive) {
         return this.clustersFiltered.filter((c) => !c.isLocal);
@@ -217,9 +208,8 @@ export default {
       return [...others, ...extras];
     },
 
-    // ── Expanded-nav shelf (SURE-8192 v2) ────────────────────────────────────────────────────────────
-    // PINNED + RECENT are ALWAYS shown (no collapse). The whole estate lives behind the search "door":
-    // focusing the filter swaps this shelf for the ALL CLUSTERS directory (see `allClustersExpanded`).
+    // Expanded-nav shelf: PINNED + RECENT are always shown; focusing the search "door" swaps this shelf
+    // for the ALL CLUSTERS directory (see `allClustersExpanded`).
     pinnedRows() {
       return this.appBar.pinFiltered;
     },
@@ -228,19 +218,17 @@ export default {
       return this.appBar.recentFiltered;
     },
 
-    // A stable signature of the shelf's row ORDER, used as the cue to play the FLIP animation on pin/unpin.
-    // The pinned and recent groups are kept SEPARATE (the `|`): a row crossing the pinned↔recent boundary
-    // (last-pinned ↔ first-recent) leaves the CONCATENATED order unchanged, so without the separator the
-    // signature wouldn't change and the FLIP wouldn't fire for exactly those two positions. SURE-8192 (v2).
+    // Signature of the shelf's row ORDER, the cue to play the FLIP on pin/unpin. Pinned and recent are
+    // kept SEPARATE (the `|`): a row crossing the pinned↔recent boundary leaves the concatenated order
+    // unchanged, so without the separator the FLIP wouldn't fire for those two positions.
     shelfOrder() {
       const ids = (rows) => rows.map((c) => c.id).join(',');
 
       return `${ ids(this.pinnedRows) }|${ ids(this.recentRows) }`;
     },
 
-    // Expanded: shown when its accordion section is open OR a search is active (results live here).
-    // Collapsed: the ALL list is CSS-hidden (the rail uses the flyout), so return the full list to
-    // match legacy behavior — it never renders visibly either way.
+    // Expanded: shown when the section is open OR a search is active. Collapsed: the ALL list is
+    // CSS-hidden (rail uses the flyout), so return the full list to match legacy — never visibly rendered.
     allRows() {
       if (!this.shown) {
         return this.appBar.clustersFiltered;
@@ -250,21 +238,20 @@ export default {
     },
 
     // Infinite-scroll: more rows exist when the loaded window is smaller than the server-side total.
-    // `others` backs the ALL list + the expanded-nav search; `search` backs the flyout search. SURE-8192.
+    // `others` backs the ALL list + expanded-nav search; `search` backs the flyout search.
     hasMoreOthers() {
       return this.clustersFiltered.length < (this.helper.counts?.others || 0);
     },
 
     // Total clusters matching the current search (page-1 response total), shown in the flyout's MATCHES
-    // caption. Shared with the expanded nav — same `clustersOthers` pipeline. SURE-8192 (v2).
+    // caption. Shared with the expanded nav — same `clustersOthers` pipeline.
     switcherSearchCount() {
       return this.helper.counts?.others || 0;
     },
 
-    // Exact count of clusters browsable in the ALL list — accurate at any estate size (not capped by the
-    // rail's paginated slices). The saved count comes from a findPage that ALWAYS excludes `local` (and
-    // Harvester) — see the helper's `updateCount` — so it IS the ALL CLUSTERS total directly: no
-    // client-side adjustment, and it can't move when the hide-local setting toggles. SURE-8192.
+    // Exact count of clusters browsable in the ALL list (not capped by the rail's paginated slices). The
+    // saved count comes from a findPage that ALWAYS excludes `local` (and Harvester) — see the helper's
+    // `updateCount` — so it IS the ALL CLUSTERS total directly, and can't move when hide-local toggles.
     browsableClusterCount() {
       const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
 
@@ -272,19 +259,18 @@ export default {
         return savedCount;
       }
 
-      // Fallback for the brief window before that query resolves: the live /v1/counts summary is the RAW
-      // total (includes local), so drop local for a close-enough placeholder until savedCount lands. `local`
-      // is only in that raw total when the user can actually see it, so gate the −1 on clustersLocal. SURE-8192.
+      // Fallback before that query resolves: the live /v1/counts summary is the RAW total (includes
+      // local), so drop local for a close-enough placeholder. `local` is only in that raw total when the
+      // user can actually see it, so gate the −1 on clustersLocal.
       const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
       const rawTotal = counts[MANAGEMENT.CLUSTER]?.summary?.count || 0;
 
       return Math.max(0, rawTotal - (this.helper.clustersLocal.length ? 1 : 0));
     },
 
-    // Id of the cluster currently being explored — marked `current` in the switcher. Only a route that is
-    // actually scoped to a real cluster counts: on global pages (Home, Cluster Management, prefs…) the
-    // store keeps `clusterId` set behind the scenes so the header/nav context persists, but nothing in the
-    // switcher should still look selected there. So gate on the route's cluster param. SURE-8192 (v2).
+    // Id of the cluster currently being explored — marked `current` in the switcher. Gate on the route's
+    // cluster param: on global pages the store keeps `clusterId` set behind the scenes, but nothing in the
+    // switcher should look selected there.
     currentClusterId() {
       const routeCluster = this.$route?.params?.cluster;
 
@@ -435,11 +421,9 @@ export default {
         });
       });
 
-      // Pass 2 — light up the FIRST item matching the current route. Kept SEPARATE from the reset
-      // above: rev-2's ALL list (clustersFiltered = railAll) shares cluster object refs with
-      // pinFiltered/recentFiltered, so a combined reset+set pass let the later ALL section's
-      // unconditional reset clobber the flag an earlier section had set — leaving the current cluster
-      // (almost always also in RECENT/PINNED) un-highlighted. SURE-8192.
+      // Pass 2 — light up the FIRST item matching the current route. Kept SEPARATE from the reset above:
+      // the ALL list shares cluster object refs with pinFiltered/recentFiltered, so a combined reset+set
+      // pass would let ALL's reset clobber a flag an earlier section set — un-highlighting the current row.
       Object.keys(appBar).forEach((menuSection) => {
         if (activeFound) {
           return;
@@ -478,8 +462,8 @@ export default {
       this.shown = false;
     },
 
-    // Expanding shows the PINNED/RECENT shelf (v2) — the ALL directory loads only when the user focuses
-    // the door, so we neither auto-focus nor preload the estate on expand. SURE-8192 (v2).
+    // Expanding shows the PINNED/RECENT shelf — the ALL directory loads only when the user focuses the
+    // door, so we neither auto-focus nor preload the estate on expand.
     shown(neu) {
       if (!neu) {
         // Leaving directory mode when the nav collapses.
@@ -495,10 +479,9 @@ export default {
     // 1. When SSP enabled reduce http spam
     // 2. When SSP is disabled (legacy) reduce fn churn (this was a known performance customer issue)
 
-    // The shelf is DERIVED from these prefs (helper.clustersPinned/Recent read them), so it re-materializes
-    // on its own whenever a pref changes — the optimistic commit AND the reconcile commit each flow
-    // straight through. These watchers just (1) snapshot positions so the FLIP can animate the change, and
-    // (2) refresh the context fetch/watch so a newly-pinned cluster's data loads. SURE-8192.
+    // The shelf is DERIVED from these prefs, so it re-materializes on its own when a pref changes. These
+    // watchers just (1) snapshot positions so the FLIP can animate the change and (2) refresh the context
+    // fetch/watch so a newly-pinned cluster's data loads.
     pinnedIds: {
       handler(neu, old) {
         if (sameContents(neu, old)) {
@@ -538,8 +521,7 @@ export default {
     },
 
     // Once the shelf actually reorders (after updateClusters lands), FLIP-animate the rows from their
-    // snapshotted positions to the new ones. Covers BOTH the expanded shelf and the collapsed rail (same
-    // DOM). SURE-8192 (v2).
+    // snapshotted positions to the new ones. Covers BOTH the expanded shelf and the collapsed rail.
     shelfOrder(neu, old) {
       if (neu !== old && this._flipBefore) {
         this.$nextTick(() => this.playFlip());
@@ -548,7 +530,7 @@ export default {
 
     search() {
       // Search term changed → refresh the watched context (so pin flags stay correct) AND reset the ALL
-      // list to page 1 with the new term (debounced so typing doesn't spam requests). SURE-8192.
+      // list to page 1 with the new term (debounced so typing doesn't spam requests).
       this.updateClusters(this.pinnedIds, this.canPagination ? 'medium' : 'quick');
       this.debouncedResetOthers();
     },
@@ -624,7 +606,7 @@ export default {
 
     clusterMenuClick(ev, cluster) {
       // Navigating to a cluster clears the shared search, so the shelf (PINNED/RECENT) — not a stale
-      // filtered list — is what greets the next open of either the nav or the flyout. SURE-8192 (v2).
+      // filtered list — greets the next open of either the nav or the flyout.
       this.clusterFilter = '';
 
       if (this.routeComboActive) {
@@ -646,19 +628,17 @@ export default {
       return this.$router.push(cluster.clusterRoute);
     },
 
-    // ── Cluster-switcher flyout wiring (SURE-8192) ──────────────────────────────
-    // Explore keeps the current view where possible (reuses the route-combo logic); manage + the footer
-    // link go to Cluster Management. `hide()` closes the rail after a switch, matching the chip flow.
+    // Explore keeps the current view where possible (reuses the route-combo logic); `hide()` closes the
+    // rail after a switch, matching the chip flow.
     switcherExplore(cluster) {
       this.clusterMenuClick({ preventDefault: () => {} }, cluster);
       this.hide();
     },
 
     // The flyout writes into the SHARED `clusterFilter`, so its query is the same one the expanded nav
-    // uses (and vice versa). The `search` watcher then drives the one `clustersOthers` pipeline via
-    // `debouncedResetOthers`; the skeleton flag is cleared when that resolves (resetOthersList). SURE-8192.
+    // uses (and vice versa); the `search` watcher then drives the one `clustersOthers` pipeline.
     onSwitcherSearch(term) {
-      // Show the loading skeleton immediately (cleared when the debounced request resolves). SURE-8192.
+      // Show the loading skeleton immediately (cleared when the debounced request resolves).
       this.searchLoading = !!term;
       this.clusterFilter = term;
     },
@@ -669,10 +649,8 @@ export default {
       }
     },
 
-    // Cmd (Mac) / Alt (Windows/Linux) + J toggles the cluster-switcher flyout — press again to close.
-    // The flyout lives on the collapsed rail (ClusterSwitcher renders only when !shown), so the shortcut
-    // acts when that ref is present. `e.code` keys off the physical J so Mac's Option-J (which yields a
-    // different `e.key`) still matches. SURE-8192 (v2).
+    // Cmd (Mac) / Alt (Windows/Linux) + J toggles the cluster-switcher flyout. `e.code` keys off the
+    // physical J so Mac's Option-J (which yields a different `e.key`) still matches.
     onSwitcherHotkey(e) {
       const isJ = e.code === 'KeyJ' || (e.key || '').toLowerCase() === 'j';
 
@@ -699,9 +677,8 @@ export default {
       this.shown = !this.shown;
     },
 
-    // The "door": focusing the filter swaps the shelf for the ALL CLUSTERS directory (page-1 trigger).
-    // Leaving ALL mode is EXPLICIT — the clear (X) button or Esc — NOT blur, so clicking away from an
-    // (even empty) search no longer snaps back to the PINNED/RECENT shelf. SURE-8192 (v2).
+    // The "door": focusing the filter swaps the shelf for the ALL CLUSTERS directory. Leaving ALL mode is
+    // EXPLICIT — the clear (X) or Esc, NOT blur — so clicking away from a search doesn't snap back.
     onFilterFocus() {
       this.allClustersExpanded = true;
       this.resetOthersList();
@@ -713,16 +690,15 @@ export default {
       this.allClustersExpanded = false;
     },
 
-    // Same meta line as the flyout rows: distro/provider · k8s version (e.g. "EKS · v1.31.2"). SURE-8192.
+    // Same meta line as the flyout rows: distro/provider · k8s version (e.g. "EKS · v1.31.2").
     clusterMeta(c) {
       return [c.providerDisplay, c.kubernetesVersion].filter((p) => !!p).join(' · ');
     },
 
 
-    // The [data-flip] shelf rows to animate — VISIBLE ones only. When collapsed, the (CSS-hidden) ALL
-    // CLUSTERS list renders the SAME cluster ids with data-flip; including those would double-key the FLIP
-    // Map and make it measure/animate the wrong (hidden, top≈0) element, breaking the collapsed-rail
-    // animation. `offsetParent === null` for a display:none element skips the hidden duplicates. SURE-8192.
+    // The [data-flip] shelf rows to animate — VISIBLE ones only. When collapsed, the CSS-hidden ALL list
+    // renders the SAME ids with data-flip; including those would double-key the FLIP Map and animate the
+    // wrong (hidden) element. `offsetParent === null` skips the display:none duplicates.
     flipRows() {
       const root = this.$el;
 
@@ -734,8 +710,7 @@ export default {
     },
 
     // FLIP animation for the pin/unpin shelf reorder (see the `pinnedIds`/`recentIds`/`shelfOrder`
-    // watchers). Adapted from the kwwii/ux prototype; works on both the expanded shelf and the collapsed
-    // rail (same `[data-flip]` rows). SURE-8192 (v2).
+    // watchers); works on both the expanded shelf and the collapsed rail (same `[data-flip]` rows).
     captureFlip() {
       this._flipBefore = new Map();
       this.flipRows().forEach((n) => {
@@ -761,7 +736,7 @@ export default {
         const b = before.get(n.dataset.flip);
 
         // A row that wasn't on the shelf before is ENTERING — fade + slide it in (flyin) rather than
-        // relocate it. SURE-8192 (v2).
+        // relocate it.
         if (b === undefined) {
           this.retrigger(n, 'flyin');
 
@@ -791,7 +766,7 @@ export default {
         }
       });
 
-      // Flash the just-toggled row once it has landed (wash) — the VISIBLE one. SURE-8192 (v2).
+      // Flash the just-toggled row once it has landed (wash) — the VISIBLE one.
       if (washId) {
         const washRow = rows.find((n) => n.dataset.flip === washId);
 
@@ -821,20 +796,18 @@ export default {
     },
 
     // Fetch page 1 of the ALL directory with the CURRENT pinned/recent/search context — the shared handler
-    // for every "show me the ALL list" trigger (door focus, flyout open/chevron). `.catch` swallows the
-    // pagination wrapper's benign concurrent-request de-dup rejection. SURE-8192.
+    // for every "show me the ALL list" trigger. `.catch` swallows the wrapper's benign de-dup rejection.
     resetOthersList() {
       this.helper.resetOthers({
         pinnedIds:  this.pinnedIds,
         recentIds:  this.recentIds,
         searchTerm: this.search,
       }).catch(() => {}).finally(() => {
-        // Clear the flyout's initial-search skeleton once the shared results land. SURE-8192 (v2).
+        // Clear the flyout's initial-search skeleton once the shared results land.
         this.searchLoading = false;
       });
     },
 
-    // ── Infinite scroll (SURE-8192) ─────────────────────────────────────────────────────────────────
     // Append the NEXT page of the ALL list (select-style page-increment: fixed page size, concat). The
     // helper owns the page counter; the component only guards re-entry.
     async loadMoreOthers() {
@@ -848,16 +821,15 @@ export default {
         await this.helper.loadMoreOthers();
       } catch (e) {
         // Best-effort load-more — swallow a benign concurrent-request de-dup rejection; the next scroll
-        // re-fetches the next page. SURE-8192.
+        // re-fetches the next page.
       } finally {
         this.loadingMoreOthers = false;
       }
     },
 
-    // Expanded-nav ALL / MATCHES list scroll → load the next window as it nears the bottom. `.clusters`
-    // is the SAME element on the collapsed rail (pinned/recent chips), but there the ALL list is hidden
-    // and browsing happens in the flyout (its own load-more) — so only paginate when the expanded ALL or
-    // search list is actually the scrollable content, never on the collapsed rail. SURE-8192.
+    // Expanded-nav ALL / MATCHES scroll → load the next window near the bottom. `.clusters` is the SAME
+    // element on the collapsed rail, but there the ALL list is hidden and browsing happens in the flyout,
+    // so only paginate when the expanded list is the scrollable content, never on the collapsed rail.
     onClustersScroll(e) {
       if (!this.shown || !this.searchMode) {
         return;
@@ -876,7 +848,7 @@ export default {
     },
 
     // Flyout opened (the collapsed-rail "ALL" button) → page-1 trigger for the (unwatched) ALL list.
-    // Non-conditional: always re-fetch page 1 so the flyout's list is fresh on open. SURE-8192.
+    // Non-conditional: always re-fetch page 1 so the flyout's list is fresh on open.
     onFlyoutOpen(open) {
       if (open) {
         this.resetOthersList();
@@ -934,7 +906,7 @@ export default {
           content = !this.shown ? contentText : null;
         } else {
           // No hover tooltip in the EXPANDED nav — the full label + description already shows in the row.
-          // The collapsed rail keeps its tooltip via the showWhenClosed calls above. SURE-8192 (v2).
+          // The collapsed rail keeps its tooltip via the showWhenClosed calls above.
           content = null;
         }
       }
@@ -1066,16 +1038,16 @@ export default {
                 </div>
               </router-link>
             </div>
-            <!-- CLUSTERS section label — replaces the home/local divider line; same label style as
-                 PINNED / RECENT (v2 — no divider lines, labels are the separators). Hidden entirely when
-                 the cluster area is empty: no local AND nothing browsable. SURE-8192. -->
+            <!-- CLUSTERS section label — same style as PINNED / RECENT (labels are the separators, no
+                 divider lines). Hidden entirely when the cluster area is empty: no local AND nothing
+                 browsable. -->
             <div
               v-if="localCluster || browsableClusterCount > 0"
               class="cluster-group-label"
             >
               {{ t('nav.switcher.clusters') }}
             </div>
-            <!-- local (management cluster): fixed slot at the top of the cluster area (SURE-8192 rev 2) -->
+            <!-- local (management cluster): fixed slot at the top of the cluster area -->
             <div
               v-if="localCluster"
               class="cluster-local"
@@ -1110,12 +1082,10 @@ export default {
                 </div>
               </button>
             </div>
-            <!-- The "door" (SURE-8192 v2): ONE slot below local. Expanded = the estate filter (focusing it
-                 swaps the PINNED/RECENT shelf for the ALL CLUSTERS directory; blur returns to the shelf);
-                 collapsed = the count-badge that opens the switcher flyout. Same container so the two morph
-                 in place rather than reflowing. Gated on the BROWSABLE count (not the raw total, which
-                 includes local), so there's no empty "0" flyout/filter when local is the only cluster.
-                 SURE-8192. -->
+            <!-- The "door": ONE slot below local. Expanded = the estate filter; collapsed = the
+                 count-badge that opens the switcher flyout (same container so the two morph in place).
+                 Gated on the BROWSABLE count (not the raw total, which includes local), so there's no
+                 empty "0" flyout when local is the only cluster. -->
             <div
               v-if="browsableClusterCount > 0"
               class="cluster-door"
@@ -1141,9 +1111,9 @@ export default {
                     :class="{ active: clusterFilter }"
                     aria-hidden="true"
                   />
-                  <!-- Clear (X): a real button (keyboard-operable), shown whenever we're in ALL mode (even
-                       with an empty search) since it's the explicit way back to the PINNED/RECENT shelf.
-                       mousedown.prevent keeps the input from blurring first so the click lands. v2. -->
+                  <!-- Clear (X): a real button (keyboard-operable), shown whenever we're in ALL mode since
+                       it's the explicit way back to the shelf. mousedown.prevent keeps the input from
+                       blurring so the click lands. -->
                   <button
                     v-if="searchMode"
                     type="button"
@@ -1175,9 +1145,9 @@ export default {
                   @update:open="onFlyoutOpen"
                   @select="switcherExplore"
                 >
-                  <!-- Trigger reuses the app-bar's own cluster-button structure so the ALL tile matches
-                       the pinned/recent rows exactly; the count sits in the icon lane so the collapsed
-                       rail shows the estate size. SURE-8192 (v2). -->
+                  <!-- Trigger reuses the app-bar's cluster-button structure so the ALL tile matches the
+                       pinned/recent rows exactly; the count sits in the icon lane so the collapsed rail
+                       shows the estate size. -->
                   <template #trigger="{ toggle: toggleSwitcher, open: switcherOpen, count: switcherCount }">
                     <button
                       type="button"
@@ -1339,7 +1309,7 @@ export default {
                 </div>
               </div>
 
-              <!-- Recent Clusters (SURE-8192) -->
+              <!-- Recent Clusters -->
               <div
                 v-if="railRecent.length && (!shown || !searchMode)"
                 class="clustersRecent"
@@ -1422,8 +1392,8 @@ export default {
                 </div>
               </div>
 
-              <!-- ALL CLUSTERS directory — the estate, revealed only when the filter "door" is focused
-                   (allClustersExpanded); hidden on the collapsed rail (uses the flyout). SURE-8192 (v2). -->
+              <!-- ALL CLUSTERS directory — the estate, revealed only when the filter "door" is focused;
+                   hidden on the collapsed rail (uses the flyout). -->
               <div
                 v-if="!shown || searchMode"
                 class="clustersList"
@@ -1536,7 +1506,7 @@ export default {
               </div>
 
               <!-- No clusters message — same text + styling as the flyout's empty state. Announced via a
-                   polite live region so screen-reader users hear it as they type. SURE-8192 (v2). -->
+                   polite live region so screen-reader users hear it as they type. -->
               <div
                 v-if="clustersFiltered.length === 0 && searchActive"
                 data-testid="top-level-menu-no-results"
@@ -1645,7 +1615,7 @@ export default {
 
 <style lang="scss">
   // Nav tooltips must layer above the cluster-switcher flyout (z-index 102) and its page overlay (100).
-  // Their poppers are teleported to <body>, so this global (unscoped) rule reaches them. SURE-8192 (v2).
+  // Their poppers are teleported to <body>, so this global (unscoped) rule reaches them.
   .v-popper__popper.v-popper--theme-tooltip {
     z-index: 103;
   }
@@ -1700,19 +1670,19 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
-  // Type scale — the shelf + flyout only use these three sizes. SURE-8192 (v2).
+  // Type scale — the shelf + flyout only use these three sizes.
   $font-size-label: 10px;  // shelf group labels (CLUSTERS / PINNED / RECENT), small captions
   $font-size-sm:    12px;  // meta / status / footer / counts
   $font-size-body:  14px;  // option row text
 
-  // The cluster "chip": the app-bar icon badge (ClusterIconMenu) sets 42×32 / radius 5px; the count
-  // chips mirror it and the icon lane is sized to hold it. SURE-8192 (v2).
+  // The cluster "chip": the app-bar icon badge (ClusterIconMenu) is 42×32 / radius 5px; the count chips
+  // mirror it and the icon lane is sized to hold it.
   $chip-width:  42px;
   $chip-height: 32px;
   $chip-radius: 5px;
 
   // Spacing rhythm (4px base) + the shared nav transition, so the repeated paddings/margins/gaps and
-  // the show/hide easing come from one place. SURE-8192 (v2).
+  // the show/hide easing come from one place.
   $space-1: 4px;
   $space-2: 8px;
   $space-4: 16px;
@@ -1720,8 +1690,7 @@ export default {
   $transition-nav: all 0.25s ease-in-out;
 
   // Row action icons (gear + pin): a header-style hover "square" — a 22×22 box holding a 16px icon that
-  // fills with a subtle grey on hover. Centres the glyph via line-height so it works whether the element
-  // is display:block (pin toggle) or flex. SURE-8192 (v2).
+  // fills with a subtle grey on hover. Centres the glyph via line-height (works for display:block or flex).
   @mixin icon-hover-square {
     box-sizing: border-box;
     align-items: center;
@@ -1744,20 +1713,20 @@ export default {
     }
   }
 
-  // local (management cluster) fixed tile at the top of the cluster area (SURE-8192 rev 2).
+  // local (management cluster) fixed tile at the top of the cluster area.
   .cluster-local {
     margin-bottom: 0;
   }
 
-  // A shelf row mid-FLIP (pin/unpin reorder) sits above its neighbours so it glides over them, and turns
-  // off pointer events so the transient transform doesn't swallow clicks. SURE-8192 (v2).
+  // A shelf row mid-FLIP sits above its neighbours so it glides over them, and turns off pointer events
+  // so the transient transform doesn't swallow clicks.
   [data-flip].flipping {
     position: relative;
     z-index: 2;
     pointer-events: none;
   }
 
-  // A row ENTERING the shelf (newly pinned/recent) fades + slides in from the left. SURE-8192 (v2).
+  // A row ENTERING the shelf (newly pinned/recent) fades + slides in from the left.
   [data-flip].flyin {
     animation: cluster-flyin 0.16s ease-out;
   }
@@ -1774,7 +1743,7 @@ export default {
     }
   }
 
-  // The just-toggled row flashes a brief primary tint that fades to transparent. SURE-8192 (v2).
+  // The just-toggled row flashes a brief primary tint that fades to transparent.
   [data-flip].wash {
     animation: cluster-wash 0.6s ease-out;
   }
@@ -1794,10 +1763,9 @@ export default {
   // (The shelf already conveys pinned-ness via the PINNED group + pin toggle, so ClusterIconMenu's
   // redundant pin overlay is hidden with :show-pin="false" on each chip — no scoped-style piercing.)
 
-  // ALL: reuses the app-bar cluster-button (.option.cluster.selector) so it sits in the shelf like the
-  // home / cluster rows, but its "icon" is a count chip (mirrors the ClusterIconMenu badge: 42×32,
-  // filled, bordered) showing the estate size + a chevron. The chip lives in the same left icon lane so
-  // the collapsed rail shows just the chip. SURE-8192 (v2).
+  // ALL: reuses the app-bar cluster-button so it sits in the shelf like the home / cluster rows, but its
+  // "icon" is a count chip (mirrors the ClusterIconMenu badge) showing the estate size + a chevron, in
+  // the same left icon lane so the collapsed rail shows just the chip.
   .cluster-all .cluster-all-lane {
     position: relative;
     display: flex;
@@ -1815,7 +1783,7 @@ export default {
     gap: 1px;
     width: $chip-width;
     height: $chip-height;
-    // Same colour as the HOME icon/text (the app-bar link colour). SURE-8192 (v2).
+    // Same colour as the HOME icon/text (the app-bar link colour).
     color: var(--on-tertiary, var(--link));
     font-weight: bold;
     font-size: $font-size-sm;
@@ -1825,16 +1793,15 @@ export default {
     border-radius: $chip-radius;
   }
   // Override the app-bar's broad `.body .option svg { margin-right: 16px }` (which would shove the
-  // chevron and knock "N ›" off-centre in the chip). SURE-8192 (v2).
+  // chevron and knock "N ›" off-centre in the chip).
   .cluster-all .cluster-all-badge .cluster-all-chevron {
     flex: 0 0 auto;
     margin-right: 0 !important;
   }
 
-  // This tile is NOT a cluster you can be "in", so it must never take the hover/active treatment the
-  // real cluster rows use — the green fill + white font is the "current cluster" cue. Freeze it: the
-  // row stays transparent and the chip keeps its badge background + link-coloured "N ›" in every state,
-  // including while the flyout is open. (High-specificity prefix beats `.body .option:hover`.) SURE-8192.
+  // This tile is NOT a cluster you can be "in", so it must never take the hover/active treatment (the
+  // green fill + white font is the "current cluster" cue). Freeze it: the row stays transparent and the
+  // chip keeps its badge in every state, including while the flyout is open.
   .side-menu .body .option.cluster-all,
   .side-menu .body .option.cluster-all:hover,
   .side-menu .body .option.cluster-all:focus {
@@ -1851,24 +1818,22 @@ export default {
   }
 
   // Hover (only) tints the chip border with the text/link colour — a plain clickable affordance, not an
-  // active/selected state (the flyout being open doesn't light it up). SURE-8192 (v2).
+  // active/selected state (the flyout being open doesn't light it up).
   .side-menu .body .option.cluster-all:hover .cluster-all-badge {
     border-color: var(--on-tertiary, var(--link));
   }
 
   // The "door" slot below local: holds the search input (expanded) OR the count-badge (collapsed) in the
-  // SAME box, so the two states occupy one consistent slot and morph in place. SURE-8192 (v2).
+  // SAME box, so the two states occupy one consistent slot and morph in place.
   .cluster-door {
     display: flex;
     align-items: center;
     height: 43px;
   }
 
-  // ALL: the trigger tile that opens the switcher flyout (bottom of the shelf). It reuses the app-bar
-  // cluster-button, so — exactly like the local/pinned rows — it flows at the full EXPANDED width and
-  // left-aligns; the collapsed rail's overflow clips the name, leaving just the count chip in the icon
-  // lane. (The flyout no longer anchors to this element — it is CSS fixed-positioned — so the trigger
-  // no longer needs to be shrunk to the visible rail.) SURE-8192 (v2).
+  // ALL: the trigger tile that opens the switcher flyout. It reuses the app-bar cluster-button, so it
+  // flows at full EXPANDED width; the collapsed rail's overflow clips the name, leaving just the count
+  // chip in the icon lane.
   .clustersAll {
     flex: 1 1 auto;
     min-width: 0;
@@ -1878,9 +1843,8 @@ export default {
     }
   }
 
-  // Shelf group labels (CLUSTERS / PINNED / RECENT). IDENTICAL in collapsed and expanded — a 70px-lane
-  // centred 9px label — so it never reflows between states (mirror principle). The wider ALL CLUSTERS
-  // directory caption is special-cased below. SURE-8192 (v2).
+  // Shelf group labels (CLUSTERS / PINNED / RECENT). IDENTICAL in collapsed and expanded so they never
+  // reflow between states; the wider ALL CLUSTERS directory caption is special-cased below.
   .cluster-group-label {
     display: inline-flex;
     align-items: center;
@@ -1893,7 +1857,7 @@ export default {
     font-weight: 600;
     letter-spacing: 0;
     text-transform: uppercase;
-    // Black, matching the GLOBAL APPS / CONFIGURATION section titles (.category-title). SURE-8192 (v2).
+    // Black, matching the GLOBAL APPS / CONFIGURATION section titles (.category-title).
     color: var(--body-text);
 
     // Count badge: a neutral pill (Figma rev 2), shared by ALL CLUSTERS + MATCHES.
@@ -1960,7 +1924,7 @@ export default {
   }
 
   // Scroll-edge shadow fade (see `.clusters::after`): visible while scrolling, gone at the bottom.
-  // Driven by animation-timeline: scroll(), so 0% = top of scroll, 100% = bottom. SURE-8192.
+  // Driven by animation-timeline: scroll(), so 0% = top of scroll, 100% = bottom.
   @keyframes cluster-scroll-shadow {
     0%, 88% {
       opacity: 1;
@@ -1970,27 +1934,26 @@ export default {
     }
   }
 
-  // The ALL CLUSTERS directory caption is wider than the 70px lane (it carries a count badge), and is
-  // EXPANDED-only (the collapsed rail uses the flyout), so it never reflows — give it the full-width,
-  // left-aligned treatment. SURE-8192 (v2).
+  // The ALL CLUSTERS directory caption is wider than the 70px lane (it carries a count badge) and is
+  // EXPANDED-only, so give it the full-width, left-aligned treatment.
   .clustersList .cluster-group-label {
     // Pinned to the top of the scrolling `.clusters` viewport so the ALL CLUSTERS caption stays put while
-    // the directory scrolls under it (opaque bg so rows don't show through). SURE-8192 (v2).
+    // the directory scrolls under it (opaque bg so rows don't show through).
     position: sticky;
     top: 0;
     z-index: 1;
     background: var(--topmenu-bg);
-    // Full width so the sticky background spans the row and nothing scrolls past its side. SURE-8192.
+    // Full width so the sticky background spans the row and nothing scrolls past its side.
     width: 100%;
-    // Match the PINNED / RECENT group labels (line-height 18px + 8/4 padding = 30px): the count pill would
-    // otherwise make the ALL CLUSTERS / MATCHES caption a couple of px shorter. Pin it to 30px. SURE-8192 (v2).
+    // Match the PINNED / RECENT group labels (30px): the count pill would otherwise make the ALL CLUSTERS /
+    // MATCHES caption a couple of px shorter. Pin it to 30px.
     box-sizing: border-box;
     height: 30px;
     padding: 8px 16px 4px;
     justify-content: flex-start;
   }
-  // Collapsed rail shows only PINNED + RECENT chips (Figma P1); the full ALL CLUSTERS list is expanded
-  // -nav only — reachable via the flyout when collapsed. SURE-8192.
+  // Collapsed rail shows only PINNED + RECENT chips; the full ALL CLUSTERS list is expanded-nav only —
+  // reachable via the flyout when collapsed.
   .side-menu.menu-close .clustersList {
     display: none;
   }
@@ -1999,7 +1962,7 @@ export default {
   }
 
   // The pin's base opacity:0 lives deep inside `.side-menu .body .option .pin`, so its hover-reveal must
-  // match that depth to win (the top-level form above was being overridden). SURE-8192 (v2).
+  // match that depth to win (the top-level form above was being overridden).
   .side-menu .body .cluster.selector:hover .pin:not(.is-pinned),
   .side-menu .body .option:hover .pin:not(.is-pinned) {
     opacity: 1;
@@ -2114,7 +2077,7 @@ export default {
         }
       }
 
-      // (v2) No divider lines in the nav — labels are the only separators (incl. above Global Apps).
+      // No divider lines in the nav — labels are the only separators (incl. above Global Apps).
 
       .option {
         align-items: center;
@@ -2136,17 +2099,16 @@ export default {
 
         .pin {
           @include icon-hover-square;
-          // Smaller glyph than the gear (16px), centred in the same 22×22 square. SURE-8192 (v2).
+          // Smaller glyph than the gear (16px), centred in the same 22×22 square.
           font-size: 12px;
           // The gear (before it) carries the margin-left:auto that pushes the pair right, so the pin
-          // just trails it 10px behind — no auto margin of its own. SURE-8192 (v2).
+          // just trails it 10px behind — no auto margin of its own.
           margin-left: 0;
           display: none;
           transition: opacity 0.1s ease-in-out, background-color 0.1s ease-in-out;
 
-          // PINNED: always shown, primary. NOT-PINNED: hidden until row hover (like the gear), grey — no
-          // empty outline pin (the glyph is always the filled icon-pin; only colour/visibility differ).
-          // !important beats the legacy recolour rules. SURE-8192 (v2).
+          // PINNED: always shown, primary. NOT-PINNED: hidden until row hover (like the gear), grey.
+          // !important beats the legacy recolour rules.
           &.is-pinned {
             opacity: 1;
             color: var(--primary) !important;
@@ -2161,8 +2123,8 @@ export default {
         }
 
         .cluster-name {
-          // Grow to fill the row so the gear + pin sit at the end via flow (like the flyout), instead of
-          // being floated there with margin-left:auto. min-width:0 lets the name ellipsis. SURE-8192 (v2).
+          // Grow to fill the row so the gear + pin sit at the end via flow, instead of being floated there
+          // with margin-left:auto. min-width:0 lets the name ellipsis.
           flex: 1 1 auto;
           min-width: 0;
           line-height: normal;
@@ -2173,16 +2135,15 @@ export default {
             overflow: hidden;
             text-overflow: ellipsis;
             text-align: left;
-            // Name: matches the flyout row-name (13px / 600, 16px line). Black like the GLOBAL APPS
-            // titles, and !important so the app-bar hover/active recolour rules can't turn it primary or
-            // blend it away. SURE-8192 (v2).
+            // Name: matches the flyout row-name (13px / 600). Black like the GLOBAL APPS titles, and
+            // !important so the app-bar hover/active recolour rules can't turn it primary or blend it away.
             font-size: 13px;
             font-weight: 600;
             line-height: 16px;
             color: var(--body-text) !important;
 
-            // Meta (distro · k8s): matches the flyout row-meta (10px / muted, 12px line); stays muted on
-            // hover (was disappearing when the hover recoloured it). SURE-8192 (v2).
+            // Meta (distro · k8s): matches the flyout row-meta (10px / muted); stays muted on hover (was
+            // disappearing when the hover recoloured it).
             &.description {
               font-size: 10px;
               font-weight: normal;
@@ -2205,8 +2166,8 @@ export default {
         &:hover {
           text-decoration: none;
 
-          // Row hover reveals the pin but must NOT recolour it — keep grey (unpinned) / primary
-          // (pinned); only the pin's own hover adds the grey square behind it. SURE-8192 (v2).
+          // Row hover reveals the pin but must NOT recolour it — keep grey (unpinned) / primary (pinned);
+          // only the pin's own hover adds the grey square behind it.
           .pin {
             color: var(--muted);
 
@@ -2281,8 +2242,8 @@ export default {
             color: var(--on-active, var(--default));
           }
 
-          // Current row (selected): white name + pinned pin; light meta + light-grey not-pinned
-          // pin. !important overrides the base black/muted name+pin invariants. SURE-8192 (v2).
+          // Current row (selected): white name + pinned pin; light meta + light-grey not-pinned pin.
+          // !important overrides the base black/muted name+pin invariants.
           .cluster-name > p {
             color: var(--on-active, var(--primary-hover-text)) !important;
 
@@ -2345,7 +2306,7 @@ export default {
       }
 
       .option, .option-disabled {
-        // No right padding — the pin's own 22×22 square provides the right-edge breathing room. SURE-8192.
+        // No right padding — the pin's own 22×22 square provides the right-edge breathing room.
         padding: $option-padding 0 $option-padding $option-padding-left;
       }
 
@@ -2374,8 +2335,8 @@ export default {
             }
           }
         }
-        // Clear (X): now a real <button> (keyboard-operable) — reset the native chrome so the icon-font
-        // glyph sits exactly where the old <i> did, and give it a visible focus ring. SURE-8192 (v2).
+        // Clear (X): a real <button> (keyboard-operable) — reset the native chrome so the icon-font glyph
+        // sits where the old <i> did, and give it a visible focus ring.
         > .icon-close {
           position: absolute;
           font-size: $font-size-sm;
@@ -2404,18 +2365,14 @@ export default {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
 
-        // Bound the height so the cluster list scrolls INTERNALLY (which fires @scroll →
-        // infinite scroll) instead of overflowing into the outer nav body (`.body` is
-        // overflow:auto, so an unbounded `.clusters` just scrolls the whole nav and the
-        // handler never triggers). SURE-8192.
+        // Bound the height so the cluster list scrolls INTERNALLY (which fires @scroll → infinite scroll)
+        // instead of overflowing into the outer nav body (an unbounded `.clusters` scrolls the whole nav
+        // and the handler never triggers).
         max-height: calc(100vh - 320px);
 
-        // Bottom scroll-edge shadow that paints OVER the rows. A `background` gradient sits behind the
-        // element's content, so the opaque badge chips occlude it; instead a sticky pseudo-element pinned
-        // to the bottom of the scroll viewport renders after the rows and layers on top. A CSS scroll-
-        // driven animation (animation-timeline: scroll) fades it out as the list reaches the bottom — no
-        // JS. `margin-top` pulls it back over content so it adds no scroll height; `pointer-events: none`
-        // keeps the pins clickable. Identical overlay to the flyout's `.switcher-scroll`. SURE-8192.
+        // Bottom scroll-edge shadow that paints OVER the rows: a sticky pseudo-element renders after the
+        // rows and layers on top (a `background` gradient would be occluded by the opaque chips). A
+        // scroll-driven animation fades it out at the bottom; `pointer-events: none` keeps pins clickable.
         &::after {
           content: "";
           position: sticky;
@@ -2425,13 +2382,13 @@ export default {
           margin-top: -8px;
           pointer-events: none;
           background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%);
-          // Hidden by default; only the scroll-driven animation (below) reveals it. When the list ISN'T
-          // scrollable the scroll timeline is inactive, the animation doesn't apply, and this base value
-          // wins — so no stray shadow on a short/collapsed list. SURE-8192.
+          // Hidden by default; only the scroll-driven animation reveals it. When the list ISN'T scrollable
+          // the scroll timeline is inactive and this base value wins — so no stray shadow on a
+          // short/collapsed list.
           opacity: 0;
           // Scroll position drives the fade: fully visible while scrolling, gone at the bottom. Where
-          // scroll-driven animations aren't supported (e.g. Safari) the timeline is ignored and the base
-          // opacity:0 wins — the shadow simply never shows (no breakage). SURE-8192.
+          // scroll-driven animations aren't supported (e.g. Safari) the base opacity:0 wins — the shadow
+          // never shows.
           animation: cluster-scroll-shadow linear both;
           animation-timeline: scroll(nearest block);
         }
@@ -2444,8 +2401,8 @@ export default {
           display: flex;
           align-items: center;
           width: 100%;
-          // Align the search with the cluster chips/local tile (which sit at $option-padding-left) now
-          // that the old count badge (which provided that left offset) is gone. SURE-8192.
+          // Align the search with the cluster chips/local tile (at $option-padding-left) now that the old
+          // count badge (which provided that left offset) is gone.
           padding: 0 $option-padding-left;
 
           .search {
@@ -2461,15 +2418,14 @@ export default {
               height: 100%;
             }
 
-            // Vertically centre the overlaid icons via the flex align (their abspos static position),
-            // instead of a fixed top offset. SURE-8192 (v2).
+            // Vertically centre the overlaid icons via the flex align, instead of a fixed top offset.
             .magnifier {
               top: auto;
             }
 
             .icon-close {
               top: auto;
-              // Black while shown, primary/green on hover. SURE-8192 (v2).
+              // Black while shown, primary/green on hover.
               color: var(--body-text);
 
               &:hover {
@@ -2480,8 +2436,8 @@ export default {
         }
       }
 
-      // Mirrors the flyout's `.switcher-empty`: left-aligned muted caption that wraps a long query
-      // instead of overflowing. SURE-8192 (v2).
+      // Mirrors the flyout's `.switcher-empty`: left-aligned muted caption that wraps a long query instead
+      // of overflowing.
       .none-matching {
         width: 100%;
         padding: 18px 14px 10px;

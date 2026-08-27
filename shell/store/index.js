@@ -1001,9 +1001,8 @@ export const actions = {
     }
 
     if ( id ) {
-      // Remember the current cluster AND record the visit in the app-bar RECENT shelf, in ONE merge write.
-      // Writing CLUSTER separately (via prefs/set) raced the recent write on the shared Preference and
-      // clobbered the shelf until reload — batching avoids that. Serialized + idempotent. SURE-8192.
+      // Remember the current cluster AND record the visit in the app-bar RECENT shelf in ONE merge write:
+      // writing CLUSTER separately raced the recent write on the shared Preference and clobbered the shelf.
       recordClusterNavigation(dispatch, id);
 
       commit('clusterId', id);

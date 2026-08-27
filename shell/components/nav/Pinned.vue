@@ -24,9 +24,8 @@ const { t } = useI18n(store);
 
 const pinned = computed(() => props.cluster.pinned);
 
-// Pop the pin (scale bounce) on toggle — matches the prototype's `pinpop`. Driven reactively: clear the
-// class, wait a tick so Vue removes it from the DOM, then re-add so the animation restarts (the template's
-// @animationend resets it). Keeps the one-shot retrigger inside Vue — no direct DOM manipulation. SURE-8192.
+// Restart the one-shot pop animation on each toggle: clear the class, wait a tick so Vue drops it from the
+// DOM, then re-add so the animation replays — keeps the retrigger reactive with no direct DOM manipulation.
 const popping = ref(false);
 
 async function toggle() {
@@ -58,8 +57,7 @@ async function toggle() {
 </template>
 
 <style lang="scss" scoped>
-  // Matches the prototype's icon-button feel (all transforms keep the scaleX(-1) flip): slightly bigger
-  // on hover, presses DOWN on click, and pops after the toggle. SURE-8192 (v2).
+  // Every transform keeps the scaleX(-1) flip: bigger on hover, presses down on click, pops after toggle.
   .icon {
     font-size: 14px;
     transform: scaleX(-1);
