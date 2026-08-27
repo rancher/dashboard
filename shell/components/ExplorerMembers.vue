@@ -4,15 +4,16 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@shell/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
+import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import Banner from '@components/Banner/Banner.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable';
 import { mapGetters } from 'vuex';
-import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { allHash } from '@shell/utils/promise';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { RcButton } from '@components/RcButton';
+import Loading from '@shell/components/Loading';
 import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
 
 /**
@@ -24,6 +25,7 @@ export default {
 
   components: {
     Banner,
+    Loading,
     Masthead,
     ResourceTable,
     Tabbed,
@@ -52,15 +54,11 @@ export default {
 
     const projectRoleTemplateBindingSchema = this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
 
-    // SURE-8995: this page is now reachable by users with only project membership
-    // permissions, who have no access to CLUSTER role bindings. The norman CRTB
-    // schema can be present while the management (steve) one is not, so guard the
-    // cluster binding load on BOTH - otherwise `management/findAll` throws
-    // "Unknown schema for type: management.cattle.io.clusterroletemplatebinding".
+    // The norman CRTB schema can be present while the management (steve) one is not, so guard
+    // the cluster binding load on BOTH - otherwise `management/findAll` throws "Unknown schema".
     const mgmtClusterRoleTemplateBindingSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
 
     this['normanClusterRTBSchema'] = clusterRoleTemplateBindingSchema;
-    this['normanProjectRTBSchema'] = projectRoleTemplateBindingSchema;
 
     if (clusterRoleTemplateBindingSchema && mgmtClusterRoleTemplateBindingSchema) {
       Promise.all([
@@ -82,18 +80,16 @@ export default {
         });
     }
 
-    this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
-      .then((projects) => {
-        this['projects'] = projects;
-        this.loadProjectMembershipPermissions();
-      });
+    // Await projects (RBAC-filtered) before fetch resolves so the project-membership tab's `v-if`
+    // is settled before <Tabbed> reads the URL hash — otherwise a `#project-membership` deep link
+    // arrives before the tab exists and never activates.
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
+      this['projects'] = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+      await this.loadProjectMembershipPermissions();
+    }
 
-    // SURE-8995: a user with only membership permissions (e.g. a cluster-owner on
-    // a `user-base` global role) may not have access to the principal, user or
-    // role-template schemas. Guard each hydration dispatch on its schema so
-    // `findAll` doesn't throw "Unknown schema for type: ..." and break the whole
-    // page - the members list still renders (with reduced principal/role name
-    // resolution) for a view-only user.
+    // A view-only user may lack the principal / user / role-template schemas; guard each hydration
+    // dispatch on its schema so `findAll` doesn't throw "Unknown schema" and break the whole page.
     const hydration = {};
 
     if (this.$store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL)) {
@@ -126,13 +122,9 @@ export default {
       },
       resource:                          MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       normanClusterRTBSchema:            null,
-      normanProjectRTBSchema:            null,
       normanClusterRoleTemplateBindings: [],
       projectRoleTemplateBindings:       [],
       projects:                          [],
-      // SURE-8995: per-project member-management capabilities ({ create, remove }),
-      // keyed by mgmt project id. Populated from the projects' `resourcePermissions`
-      // (steve `?checkPermissions=`) in fetch().
       projectMembershipPermissions:      {},
       VIRTUAL_TYPES,
       projectRoleTemplateColumns:        [
@@ -196,7 +188,9 @@ export default {
       return Object.keys(this.filteredProjects).reduce((all, projectId) => {
         const project = this.filteredProjects[projectId];
 
-        if ( !inUse.includes(projectId)) {
+        // management/findAll is RBAC-filtered, so a member-less project here is one the user can
+        // access - list it so its Add button is reachable and the first member can be added.
+        if (!inUse.includes(projectId)) {
           all.push(project);
         }
 
@@ -227,6 +221,13 @@ export default {
         const userOrGroup = userId || groupPrincipalId;
 
         if (!userOrGroup) {
+          // keep the empty-project placeholder (keyed by project) so the project still
+          // renders as a group with its Add button; the main-row slot fills the row.
+          if (!rows[projectId]) {
+            rows[projectId] = curr;
+            rows[projectId].allRoles = [];
+          }
+
           return rows;
         }
 
@@ -246,42 +247,27 @@ export default {
 
       return Object.values(userRoles);
     },
-    // SURE-8995: whether the user can MUTATE cluster members (the Add action opens
-    // the create-CRTB form, which needs the role-template + user reads to pick a
-    // role and search principals). A cluster-owner on a `user-base` global role
-    // lacks these, so the cluster Add is hidden and they get a read-only view -
-    // mirroring the project side (`canManageProjectMembers`).
+    // Can MUTATE cluster members: the Add flow needs the role-template + user reads; a user
+    // lacking them gets a read-only view.
     canManageMembers() {
       return canViewClusterPermissionsEditor(this.$store);
     },
-    // SURE-8995: the page is now reachable by users with only project membership permissions. Show the
-    // Cluster Membership tab only to users who can actually access cluster role bindings (the previous
-    // gate for the whole page), so project-only users don't see an empty/irrelevant cluster tab.
     canViewClusterMembers() {
       return !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
     },
-    // SURE-8995: whether the current user can MUTATE project members from this page
-    // (add / remove). This requires the full membership editor schemas (role
-    // templates + principals), which the add flow depends on to pick a role and
-    // search principals. A cluster-owner on a `user-base` global role lacks these,
-    // so they get a read-only view (see `canViewProjectMembers`).
+    // Can operate the project member editor (Add/Remove): needs the role-template + principal reads
+    // the add dialog depends on. A user lacking them gets a read-only list.
     canManageProjectMembers() {
       return canViewProjectMembershipEditor(this.$store);
     },
-    // SURE-8995: whether to show the Project Membership tab at all. Viewing the
-    // members list only needs access to the project role bindings themselves - it
-    // must NOT require the role-template/principal reads (those only gate the
-    // add/remove actions). Otherwise a cluster-owner on a `user-base` global role -
-    // who can genuinely see and manage project members on the backend - is shown no
-    // tab. Name/role resolution degrades gracefully when those reads are absent.
+    // management/findAll is RBAC-filtered, so project visibility == access. The Norman schema can't
+    // gate this: /v3/schemas returns projectRoleTemplateBinding to every authenticated user.
     canViewProjectMembers() {
-      return !!this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
+      return Object.keys(this.filteredProjects).length > 0 ||
+        this.filteredProjectRoleTemplateBindings.length > 0;
     },
     isLocal() {
       return this.$store.getters['currentCluster'].isLocal;
-    },
-    canEditProjectMembers() {
-      return this.normanProjectRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
     canEditClusterMembers() {
       return this.normanClusterRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
@@ -291,17 +277,9 @@ export default {
     },
   },
   methods: {
-    // SURE-8995: `canEditProjectMembers` (schema collectionMethods POST) is a
-    // GLOBAL flag - true if the user can create a binding on *any* project - so
-    // on its own it wrongly shows the Add/remove actions on every project. Read
-    // the per-project answer from each project's `resourcePermissions` instead
-    // (steve `?checkPermissions=`), so member actions only appear on projects
-    // the user can actually manage.
+    // Global schema collectionMethods only say whether the user can create on *any* project;
+    // read each project's `resourcePermissions` for the per-project answer.
     async loadProjectMembershipPermissions() {
-      if (!this.canEditProjectMembers) {
-        return; // can't create bindings anywhere - nothing to check
-      }
-
       this.projectMembershipPermissions = await fetchProjectMembershipPermissions(this.$store);
     },
     canAddProjectMember(group) {
@@ -378,7 +356,8 @@ export default {
       color="error"
       :label="t('members.localClusterWarning')"
     />
-    <Tabbed>
+    <Loading v-if="$fetchState.pending" />
+    <Tabbed v-else>
       <Tab
         v-if="canViewClusterMembers"
         name="cluster-membership"

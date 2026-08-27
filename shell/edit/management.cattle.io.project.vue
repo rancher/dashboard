@@ -55,10 +55,8 @@ export default {
   computed: {
     ...mapGetters(['currentCluster', 'isStandaloneHarvester']),
 
-    // SURE-8995: show the Members tab to anyone who can view the members list. Add
-    // and remove within the editor are separately gated on full manage rights, so a
-    // cluster-owner on a `user-base` global role gets a read-only members view
-    // instead of no tab at all.
+    // Show the Members tab to anyone who can view the list; add/remove are separately gated on
+    // full manage rights, so a view-only user gets a read-only members view instead of no tab.
     canViewMembers() {
       return canViewProjectMembershipList(this.$store);
     },

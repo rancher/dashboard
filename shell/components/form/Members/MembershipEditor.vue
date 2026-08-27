@@ -17,12 +17,8 @@ export function canViewMembershipEditor(store, needsProject = false) {
     !!store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL);
 }
 
-// SURE-8995: whether the user can VIEW the membership list (read-only). Unlike
-// `canViewMembershipEditor` - which gates add/remove and therefore needs the
-// role-template + principal reads the add flow depends on - viewing only needs
-// access to the role-binding schema itself. This lets a cluster-owner on a
-// `user-base` global role, who can see project members on the backend but lacks
-// the global role-template/principal reads, still see the members list.
+// Can the user VIEW the membership list (read-only)? Unlike `canViewMembershipEditor` (which gates
+// add/remove and needs the role-template + principal reads), viewing needs only the binding schema.
 export function canViewMembershipEditorList(store, needsProject = false) {
   const bindingType = needsProject ? NORMAN.PROJECT_ROLE_TEMPLATE_BINDING : NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING;
 
@@ -79,11 +75,8 @@ export default {
     if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId) {
       Object.assign(roleBindingRequestParams, { opt: { filter: { projectId: this.parentId.split('/').join(':') }, force: true } });
     }
-    // SURE-8995: guard the principal / role-template / user hydration on their
-    // schemas so a view-only user (e.g. a cluster-owner on a `user-base` global
-    // role) doesn't hit "Unknown schema for type: ..." - the bindings still load
-    // and render read-only. Only the bindings (index 0) are consumed below; the
-    // rest hydrate the store for name/role resolution when the user can read them.
+    // Guard each hydration dispatch on its schema so a view-only user doesn't hit "Unknown schema";
+    // only the bindings (index 0) are consumed below, the rest hydrate name/role resolution.
     const userHydration = [
       this.schema ? this.$store.dispatch(`rancher/findAll`, roleBindingRequestParams) : []
     ];
@@ -117,15 +110,14 @@ export default {
 
     this['bindings'] = bindings;
 
-    // SURE-8995: only offer "Add" when the user can actually create a binding in
-    // THIS project. Schema methods are global, so read the per-project answer
-    // from the project's `resourcePermissions` (steve `?checkPermissions=`). Only
-    // applies when editing an existing project's members; cluster members and the
-    // create-project flow are unaffected.
+    // Schema methods are global, so read the per-project answer from the project's
+    // `resourcePermissions` to only offer "Add" where the user can create a binding in THIS project.
     if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId && this.mode !== _CREATE) {
       const permissions = await fetchProjectMembershipPermissions(this.$store, this.parentId);
+      const permission = permissions[normalizeId(this.parentId)];
 
-      this['canAddMember'] = !!permissions[normalizeId(this.parentId)]?.create;
+      this['canAddMember'] = !!permission?.create;
+      this['canRemoveMember'] = !!permission?.remove;
     }
   },
 
@@ -135,6 +127,7 @@ export default {
       bindings:          [],
       lastSavedBindings: [],
       canAddMember:      true,
+      canRemoveMember:   true,
     };
   },
 
@@ -176,8 +169,7 @@ export default {
       return this.mode === _VIEW;
     },
 
-    // SURE-8995: whether the user can add/remove members here. The add flow needs
-    // the role-template + principal reads (to pick a role and search principals),
+    // Can add/remove members here? The add flow needs the role-template + principal reads,
     // so when those are absent the editor is shown read-only.
     canManageMembers() {
       return canViewMembershipEditor(this.$store, this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
@@ -254,7 +246,9 @@ export default {
       </button>
     </template>
     <template #remove-button="{remove, i}">
-      <span v-if="(isCreate && i === 0) || isView || !canManageMembers" />
+      <!-- Hide Remove on an EXISTING binding (a saved row has an id) when the user lacks
+           delete permission; newly-added, unsaved rows stay removable. -->
+      <span v-if="(isCreate && i === 0) || isView || !canManageMembers || (!canRemoveMember && !!bindings[i]?.id)" />
       <button
         v-else
         type="button"

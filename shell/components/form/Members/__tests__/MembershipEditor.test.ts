@@ -41,9 +41,8 @@ describe('component: MembershipEditor', () => {
           $store: {
             getters: {
               'rancher/schemaFor':    () => ({ type: 'object' }),
-              // SURE-8995: `canManageMembers` (which gates add/remove) reads the
-              // management role-template/PRTB schemas - provide them so the manage
-              // actions render for this manage-capable user.
+              // `canManageMembers` (gates add/remove) reads the management role-template/PRTB
+              // schemas - provide them so the manage actions render.
               'management/schemaFor': () => ({ type: 'object' }),
             }
           },

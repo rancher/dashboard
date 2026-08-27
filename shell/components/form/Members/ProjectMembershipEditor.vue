@@ -7,10 +7,8 @@ export function canViewProjectMembershipEditor(store) {
   return canViewMembershipEditor(store, true);
 }
 
-// SURE-8995: read-only view gate for the project members list (see
-// `canViewMembershipEditorList`). Used to show the Members tab to users who can
-// see project members but not fully manage them (e.g. a cluster-owner on a
-// `user-base` global role).
+// Read-only view gate for the project members list (see `canViewMembershipEditorList`): shows the
+// Members tab to users who can see project members but not fully manage them.
 export function canViewProjectMembershipList(store) {
   return canViewMembershipEditorList(store, true);
 }

@@ -223,9 +223,8 @@ export const IF_HAVE = {
   ADMIN:                      'admin-user',
   MCM_DISABLED:               'mcm-disabled',
   NOT_STANDALONE_HARVESTER:   'not-standalone-harvester',
-  // Show if the user can access cluster OR project role template bindings. Used by the
-  // "Cluster and Project Members" nav so a user with only project-level membership permissions
-  // (e.g. Manage Project Members) can reach it, not just cluster-level ones (SURE-8995).
+  // Show if the user can access cluster OR project role template bindings, so a project-only
+  // member can reach the "Cluster and Project Members" nav, not just cluster-level ones.
   CLUSTER_OR_PROJECT_MEMBERS: 'cluster-or-project-members',
 };
 
@@ -2061,9 +2060,7 @@ function ifHave(getters, option) {
     return !getters['isStandaloneHarvester'];
   }
   case IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS: {
-    // SURE-8995: the Cluster and Project Members page is reachable if the user can access EITHER
-    // cluster role template bindings (cluster owner/member) OR project ones (e.g. Manage Project
-    // Members). Previously it was gated on cluster bindings alone, hiding it from project members.
+    // Reachable if the user can access EITHER cluster OR project role template bindings.
     return !!getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) ||
            !!getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
   }

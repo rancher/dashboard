@@ -633,8 +633,8 @@ export function init(store) {
     exact:        false,
     'exact-path': true,
     navResources: [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING],
-    // SURE-8995: show if the user can access cluster OR project role bindings (not cluster-only), so a
-    // user with only "Manage Project Members" can reach the Cluster and Project Members page.
+    // Show if the user can access cluster OR project role bindings, so a user with only
+    // "Manage Project Members" can reach the Cluster and Project Members page.
     ifHave:       IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS
   });
 

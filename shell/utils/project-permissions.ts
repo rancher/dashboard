@@ -12,12 +12,10 @@ export interface ProjectMembershipPermission {
 /**
  * Determine, per project, whether the current user can manage its members.
  *
- * Uses steve's `?checkPermissions=` query parameter (rancher/steve#594, built
- * for rancher#48788 / SURE-8995): the API returns a `resourcePermissions` map on
- * each project listing the verbs the user is granted on the given resource *in
- * that project's namespace*. This is the per-project answer that the global
- * schema `collectionMethods` can't give, delivered on the project data itself -
- * one request for all projects, no per-project fan-out.
+ * Uses steve's `?checkPermissions=` query parameter: the API returns a
+ * `resourcePermissions` map on each project listing the verbs the user is granted
+ * on the given resource *in that project's namespace* — the per-project answer the
+ * global schema `collectionMethods` can't give, in one request for all projects.
  *
  * @param store     Vuex store
  * @param projectId optional single mgmt project id (e.g. `local/p-abc`); when
@@ -32,6 +30,9 @@ export async function fetchProjectMembershipPermissions(
   const collection = schema?.links?.collection;
 
   if (!collection) {
+    // eslint-disable-next-line no-console
+    console.warn('management.cattle.io.project schema has no collection link; cannot check per-project member permissions — hiding member actions (fail-closed).');
+
     return {};
   }
 
@@ -42,8 +43,10 @@ export async function fetchProjectMembershipPermissions(
   try {
     res = await store.dispatch('management/request', { url });
   } catch (e) {
-    // Fail closed: without a definitive answer, don't offer member actions.
-    // The server still enforces access regardless of what the UI shows.
+    // Fail closed (the server still enforces access); log it so a false-deny isn't silent.
+    // eslint-disable-next-line no-console
+    console.warn(`project membership permission check failed for ${ projectId || 'all projects' } — hiding member actions (fail-closed):`, e);
+
     return {};
   }
 
