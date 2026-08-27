@@ -4590,6 +4590,17 @@ login:
   loginWithLocal: Log in with Local User
   useProvider: Use a {provider} user
   useNonLocal: Use a non-local user
+  providers:
+    heading: Choose how to sign in
+    or: Or
+    chooseDifferent: Choose a different provider
+    meta: "{vendor} · {protocol}"
+    remember: Remember my choice on this device
+    rememberHint: Applies to whichever provider you choose. Saved in this browser only.
+    local:
+      name: Local account
+      description: Sign into Rancher with a username and password.
+      meta: Username and password
   remember:
     label: Remember Username
   cli:
