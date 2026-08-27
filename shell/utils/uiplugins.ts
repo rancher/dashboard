@@ -213,7 +213,7 @@ export async function installHelmChartWithRetry(
 
       const nextAttempt = attempt + 1;
 
-      console.log(`Installing harvester helm chart failed, attempt ${nextAttempt}, wait ${ACTION_RETRY_DELAYS[nextAttempt]/1000} second(s) and retry... `); // eslint-disable-line no-console
+      console.log(`Installing harvester helm chart failed, attempt ${ nextAttempt }, wait ${ ACTION_RETRY_DELAYS[nextAttempt] / 1000 } second(s) and retry... `); // eslint-disable-line no-console
 
       onRetry?.(nextAttempt, ACTION_RETRY_DELAYS.length);
 
