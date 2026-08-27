@@ -9,10 +9,7 @@ export const DOCS_BASE = `https://ranchermanager.docs.rancher.com/v${ CURRENT_RA
 
 const STANDARD_VENDOR = 'Rancher';
 const STANDARD_PRODUCT = 'Explorer';
-const CUSTOM_VENDOR = {
-  suse: 'Rancher Prime',
-  csp:  'SUSE Rancher'
-};
+const CUSTOM_VENDOR = { suse: 'Rancher Prime' };
 
 let mode = STANDARD;
 let vendor = STANDARD_VENDOR;
