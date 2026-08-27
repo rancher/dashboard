@@ -48,7 +48,7 @@ interface ScoredItem {
 const props = defineProps<{
   /** The nav tree (SideNav's groups), the source of jumpable sections. */
   groups: any[];
-  /** The product's `navSearch` option: `true`, or the labels it overrides. */
+  /** The root product's `navSearch` option: `true`, or the labels it overrides. */
   navSearch: boolean | NavSearchLabels;
   /** Whether any nav group is currently expanded (gates the collapse-all control). */
   hasExpandedGroup: boolean;
@@ -78,7 +78,7 @@ const explorerClusterId = () => (store.getters.isExplorer ? store.getters.cluste
 const history = useClusterLocalStorage<string[]>('nav-jump-history', explorerClusterId);
 
 /**
- * Wording that suits any product's nav. A product enabling the search can
+ * Wording that suits any product's nav. A root product enabling the search can
  * replace any of these through its `navSearch` option, so it never has to
  * inherit a label that describes something it does not have.
  */

@@ -122,7 +122,7 @@ describe('component: SideNav', () => {
     }]);
   });
 
-  describe('the nav toolbar is opt-in per product', () => {
+  describe('the nav toolbar is opt-in per root product', () => {
     const toolbar = (wrapper: any) => wrapper.findComponent({ name: 'NavActionBar' });
 
     it('shows the toolbar for a product that asked for it', () => {
@@ -163,12 +163,17 @@ describe('component: SideNav', () => {
       expect(toolbar(mountNav()).exists()).toBe(true);
     });
 
-    it('leaves it out on a sub-product of a root product that did not', () => {
-      getters.productId = 'harvesterManager';
-      getters.rootProduct = { name: 'manager' };
+    it('ignores a sub-product\'s own option, so it cannot label a nav that is not its own', () => {
+      // The other half of the same rule: `apps` opting in would put a toolbar
+      // above the explorer's tree, carrying labels written for a product that
+      // tree does not show. The root's option is the only one that decides.
+      getters.productId = 'apps';
+      getters.rootProduct = { name: 'explorer' };
       registerProducts([
-        { name: 'manager', inStore: 'management' },
-        { name: 'harvesterManager', inStore: 'management' },
+        { name: 'explorer', inStore: 'cluster' },
+        {
+          name: 'apps', inStore: 'cluster', navSearch: true
+        },
       ]);
 
       expect(toolbar(mountNav()).exists()).toBe(false);
