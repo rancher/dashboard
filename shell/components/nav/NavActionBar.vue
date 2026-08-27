@@ -21,11 +21,16 @@ interface JumpItem {
   key: string;
   label: string;
   /**
-   * Everything this entry answers to: its label, then the types it stands in
-   * for. `Projects/Namespaces` is the entry you want when you type `ns`, and
-   * only the `namespace` it covers says so.
+   * The names this entry answers to: its label, then the bare names of the
+   * types it stands in for. `Projects/Namespaces` is the entry you want when
+   * you type `ns`, and only the `namespace` it covers says so.
    */
   names: string[];
+  /**
+   * The schema ids behind it: its own type name, then the qualified ids of the
+   * types it stands in for. Matched last, see `searchResults`.
+   */
+  types: string[];
   path: string[];
   route: any;
   node: any;
@@ -35,7 +40,7 @@ interface JumpItem {
 interface ScoredItem {
   item: JumpItem;
   match: DisjointMatch;
-  /** Whether it matched one of its names rather than only its type name. */
+  /** Whether it matched one of its names rather than only a schema id. */
   named: boolean;
 }
 
@@ -169,8 +174,20 @@ const items = computed<JumpItem[]>(() => {
       // a child that repeats its parent group's label (the group's overview
       // entry), since the group itself already represents that jump.
       if (!node.isRoot && label && route && label !== parentLabel && !byKey[node.name]) {
+        // A type this entry stands in for is a name when it is bare
+        // (`namespace`) and a schema id once it carries an API group
+        // (`management.cattle.io.project`), which is the half nobody reads.
+        const navResources: string[] = node.navResources || [];
+        const qualified = (type: string) => type.includes('.');
+
         byKey[node.name] = {
-          key: node.name, label, names: [label, ...(node.navResources || [])], path: [...path], route, node
+          key:   node.name,
+          label,
+          names: [label, ...navResources.filter((type) => !qualified(type))],
+          types: [node.name, ...navResources.filter(qualified)],
+          path:  [...path],
+          route,
+          node
         };
       }
 
@@ -206,18 +223,19 @@ const defaultResults = computed<JumpItem[]>(() => {
 });
 
 /**
- * Sections whose label or type name matches the query, best match first.
+ * Sections whose name or schema id matches the query, best match first.
  *
  * The query does not have to appear in one piece: it is split into as few runs
  * as it takes to find it, so a Kubernetes short name finds its resource
  * (`netpol` -> NetworkPolicies, `cm` -> ConfigMaps) without the nav having to
  * ask the cluster what the short names are. Whole matches still rank first.
  *
- * An entry's own type name is matched last, so a resource stays findable by its
- * schema and API group (`provisioning.cattle`), as it was in the search dialog
- * this replaces. Only last, though: a row ranked highly by a type name nobody
- * can see reads as a mismatch, and API groups are full of accidental hits (`cm`
- * is in `acme.cert-manager.io.challenge` twice over).
+ * Schema ids are matched last, so a resource stays findable by its type and API
+ * group (`provisioning.cattle`), as it was in the search dialog this replaces.
+ * Only last, though: a row ranked highly by an id nobody can see reads as a
+ * mismatch, and API groups are full of accidental hits (`cm` is in
+ * `acme.cert-manager.io.challenge` twice over, and `mc` in every
+ * `management.cattle.io` type).
  */
 const searchResults = computed<JumpItem[]>(() => {
   const q = query.value.trim().toLowerCase();
@@ -228,19 +246,25 @@ const searchResults = computed<JumpItem[]>(() => {
 
   // Looped rather than mapped and sorted: this runs over the whole nav on every
   // keystroke, and all but a handful of entries have a single name.
-  const score = (item: JumpItem) => {
-    let named: DisjointMatch | null = null;
+  const bestMatch = (names: string[]) => {
+    let best: DisjointMatch | null = null;
 
-    for (const name of item.names) {
+    for (const name of names) {
       const match = disjointMatch(name, q);
 
-      if (match && (!named || compareDisjointMatches(match, named) < 0)) {
-        named = match;
+      if (match && (!best || compareDisjointMatches(match, best) < 0)) {
+        best = match;
       }
     }
 
+    return best;
+  };
+
+  const score = (item: JumpItem) => {
+    const named = bestMatch(item.names);
+
     return {
-      item, match: named || disjointMatch(item.key, q), named: !!named
+      item, match: named || bestMatch(item.types), named: !!named
     };
   };
 

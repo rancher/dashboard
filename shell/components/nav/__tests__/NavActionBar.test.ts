@@ -397,8 +397,56 @@ describe('NavActionBar.vue', () => {
     await nextTick();
 
     // On its label alone 'Projects/Namespaces' matches late and loses to
-    // 'Navlinks'; the `namespace` it covers is what makes it the better answer
+    // 'Navlinks'; the bare `namespace` it covers is what makes it the better
+    // answer
     expect(labels(wrapper)).toStrictEqual(['Projects/Namespaces', 'Navlinks']);
+  });
+
+  it('ranks a nav entry matched only on a resource\'s API group below every label match', async() => {
+    const custom = [{
+      name:     'cluster',
+      label:    'Cluster',
+      children: [
+        {
+          name:         'cluster-members',
+          label:        'Cluster and Project Members',
+          navResources: ['management.cattle.io.clusterroletemplatebinding'],
+          route:        { name: 'members' },
+        },
+        {
+          name: 'cluster.x-k8s.io.machineset', label: 'MachineSets', route: { name: 'machineset' }
+        },
+      ]
+    }];
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('mc');
+    await nextTick();
+
+    // 'mc' falls out of `management.cattle` cleanly and out of 'MachineSets'
+    // only mid-word, but an API group is not a name anyone reads
+    expect(labels(wrapper)).toStrictEqual(['MachineSets', 'Cluster and Project Members']);
+  });
+
+  it('still finds a nav entry by the API group of a resource it stands in for', async() => {
+    const custom = [{
+      name:     'cluster',
+      label:    'Cluster',
+      children: [{
+        name:         'cluster-members',
+        label:        'Cluster and Project Members',
+        navResources: ['management.cattle.io.clusterroletemplatebinding'],
+        route:        { name: 'members' },
+      }]
+    }];
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('management.cattle');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['Cluster and Project Members']);
   });
 
   it('ranks the tighter of two equally good matches first', async() => {
