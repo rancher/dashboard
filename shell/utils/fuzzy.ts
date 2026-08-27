@@ -177,6 +177,12 @@ export function disjointMatch(text: string, query: string): DisjointMatch | null
     // The longest run wins; among equals the earliest, so the match sits as far
     // left as it can. Stops as soon as a run swallows the rest of the query.
     //
+    // Earliest, and not whichever starts a word: a word start would spare
+    // `Replication Controllers` the stray it takes on `rc`, but it also lets
+    // `ServiceCIDRs` put the `c` of `svc` on its `C` and outrank `Services`.
+    // Over every short name a cluster advertises that trades two names people
+    // type daily for one legacy one.
+    //
     // A run is only taken if what is left of the query still fits after it: the
     // longest run is not always part of a match, and preferring it blindly loses
     // queries that do match ('med' takes the 'me' of MachineDeployments and

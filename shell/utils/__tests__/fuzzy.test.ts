@@ -133,6 +133,23 @@ describe('fx: disjointMatch', () => {
     expect(disjointMatch(text, query)).toStrictEqual(expected);
   });
 
+  it('should take the earliest of two equal runs, not the one that starts a word', () => {
+    // The 'c' could land on the 'C' of 'CIDRs' and save a stray, which would put
+    // ServiceCIDRs above Services for 'svc'; the earliest run leaves both with
+    // the same match, and the shorter label wins the tie
+    expect(disjointMatch('ServiceCIDRs', 'svc')).toStrictEqual({
+      runs: 3, strays: 2, span: 6, index: 0
+    });
+    expect(disjointMatch('Services', 'svc')).toStrictEqual(disjointMatch('ServiceCIDRs', 'svc'));
+  });
+
+  it('should stay in the first word when a later word could start a run', () => {
+    // 'rc' takes the 'c' of 'Replication', not the one starting 'Controllers'
+    expect(disjointMatch('Replication Controllers', 'rc')).toStrictEqual({
+      runs: 2, strays: 1, span: 6, index: 0
+    });
+  });
+
   it('should take the longest run it can rather than the earliest', () => {
     // 'p' + 'ol' at the front would also match, but 'pol' whole is the obvious read
     expect(disjointMatch('Pod Policies', 'pol')).toStrictEqual({
