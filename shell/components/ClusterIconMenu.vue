@@ -11,8 +11,8 @@ export default {
       type:    Boolean,
       default: false
     },
-    // Whether to render the small pinned overlay on the chip. The app-bar cluster switcher (SURE-8192)
-    // conveys pinned-ness with its own toggle + PINNED group, so it hides this redundant overlay.
+    // Whether to render the small pinned overlay on the chip. The app-bar cluster switcher conveys
+    // pinned-ness with its own toggle + PINNED group, so it hides this otherwise-redundant overlay.
     showPin: {
       type:    Boolean,
       default: true

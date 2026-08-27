@@ -21,7 +21,7 @@ export interface TopLevelMenuCluster {
   isLocal: boolean,
   pinned: boolean,
   description: string,
-  // Meta shown on a cluster-switcher row: distro/provider (e.g. "RKE2", "EKS") and k8s version. SURE-8192.
+  // Meta shown on a cluster-switcher row: distro/provider (e.g. "RKE2", "EKS") and k8s version.
   providerDisplay: string,
   kubernetesVersion: string,
   pin: () => void,
@@ -40,9 +40,8 @@ interface UpdateArgs {
 }
 
 /**
- * Order `clusters` by their position in `ids` (most-recent-first for the RECENT group), dropping any
- * cluster not present in `ids`, and cap the result. Used to render the recent-clusters shelf in the
- * exact visit order the pref records, independent of the API's default sort. SURE-8192.
+ * Order `clusters` by their position in `ids`, drop any not in `ids`, and cap — so a shelf renders in
+ * the pref's recorded order rather than the API's default sort.
  */
 function orderByIdsAndCap(clusters: TopLevelMenuCluster[], ids: string[] = [], max: number): TopLevelMenuCluster[] {
   const byId = new Map(clusters.map((c) => [c.id, c]));
@@ -97,59 +96,25 @@ const DEFAULT_SORT: Array<PaginationSort> = [
 ];
 
 export interface TopLevelMenuHelper {
-  /**
-  * Filter mgmt clusters by
-  * 1. If harvester or not (filterOnlyKubernetesClusters)
-  * 2. If local or not (filterHiddenLocalCluster)
-  * 3. Is pinned
-  *
-  * Sort By
-  * 1. is local cluster (appears at top)
-  * 2. ready
-  * 3. name
-  */
+  /** Pinned clusters (uncapped); excludes local. */
   clustersPinned: Array<TopLevelMenuCluster>;
 
-  /**
-  * Filter mgmt clusters by
-  * 1. If harvester or not (filterOnlyKubernetesClusters)
-  * 2. If local or not (filterHiddenLocalCluster)
-  * 3.
-  * a) if search term, filter on it
-  * b) if no search term, filter on pinned
-  *
-  * Sort By
-  * 1. is local cluster (appears at top)
-  * 2. ready
-  * 3. name
-  */
+  /** The ALL list: whole estate, or search matches while searching. */
   clustersOthers: Array<TopLevelMenuCluster>;
 
-  /**
-  * The recently-visited clusters (SURE-8192), most-recent-first and capped at MENU_MAX_RECENT_CLUSTERS.
-  * Excludes pinned clusters (a pinned cluster shows under PINNED, never duplicated into RECENT) and is
-  * empty while searching (search shows a single flat match list, not the resting groups).
-  */
+  /** Recently-visited clusters, most-recent-first, capped and pinned-excluded; empty while searching. */
   clustersRecent: Array<TopLevelMenuCluster>;
 
-  /**
-   * The `local` (management) cluster — fetched by its OWN request so the fixed top tile is always
-   * present and live, independent of pinned/recent/others (which all filter local out). SURE-8192.
-   */
+  /** The `local` cluster, fetched by its own request as the fixed top tile (every other slice filters it out). */
   clustersLocal: Array<TopLevelMenuCluster>;
 
-  /**
-   * Total matching count for the ALL list — the UI compares the loaded length against it to know whether
-   * infinite-scroll has more rows to load. SURE-8192.
-   */
+  /** Server-side total for the ALL list; the UI compares loaded length against it to know if more remain. */
   counts: { others: number };
 
-  /** Flip every cached cluster's `pinned` flag from the pinned pref (keeps the pin icon in sync). SURE-8192. */
+  /** Flip every cached cluster's `pinned` flag from the pinned pref (keeps the pin icon in sync). */
   syncPinnedFlags: (pinnedIds: string[]) => void;
 
-  /**
-   * Fetch all cluster resources
-   */
+  /** Refresh the watched context set (local/pinned/recent). */
   update: (args: UpdateArgs) => Promise<void>;
 
   /** Fetch page 1 of the ALL list, replacing what's loaded (open / search / chevron triggers). */
@@ -159,9 +124,7 @@ export interface TopLevelMenuHelper {
   /** Whether more ALL-list pages remain. */
   hasMoreOthers: () => boolean;
 
-  /**
-   * Cleanup on destroy of TopLevelMenu
-   */
+  /** Cleanup on destroy of TopLevelMenu. */
   destroy: () => Promise<void>;
 
   updateCount: (count: number) => Promise<void>;
@@ -170,23 +133,9 @@ export interface TopLevelMenuHelper {
 export abstract class BaseTopLevelMenuHelper {
   protected $store: VuexStore;
 
-  /**
-  * Filter mgmt clusters by
-  * 1. If harvester or not (filterOnlyKubernetesClusters)
-  * 2. If local or not (filterHiddenLocalCluster)
-  * 3. Is pinned
-  *
-  * Why aren't we filtering these by search term? Because we don't show pinned when filtering on search term
-  *
-  * Sort By
-  * 1. is local cluster (appears at top)
-  * 2. ready
-  * 3. name
-  */
-  // Every fetched cluster, id-keyed. The pinned/recent/local shelf slices below are DERIVED from this cache
-  // × the pinned/recent PREFS — so membership + order ALWAYS follow the pref (no seed, no lock, cross-tab
-  // safe) and the fetch only supplies live row data. The shelf is a view of the pref, not
-  // a hand-maintained copy. SURE-8192 (v2).
+  // Every fetched cluster, id-keyed. The pinned/recent/local shelf slices are DERIVED from this cache ×
+  // the prefs, so membership + order always follow the pref (cross-tab safe) and the fetch only supplies
+  // live row data.
   protected clusterCache: Record<string, TopLevelMenuCluster> = reactive({});
 
   private get pinnedPref(): string[] {
@@ -197,36 +146,18 @@ export abstract class BaseTopLevelMenuHelper {
     return this.$store.getters['prefs/get'](RECENT_CLUSTERS) || [];
   }
 
-  // Cached clusters minus `local` (the fixed top tile, never part of the pinned/recent groups). A stale
-  // `local` id left in the pinned pref is therefore harmlessly ignored by the getters below.
+  // Cached clusters minus `local` (the fixed top tile); a stale `local` id in the pinned pref is thus ignored.
   private get cachedNonLocal(): TopLevelMenuCluster[] {
     return Object.values(this.clusterCache).filter((c) => !c.isLocal);
   }
 
-  // PINNED = the pinned pref (membership + order), matched to whatever data the cache holds. Uncapped.
+  // PINNED = the pinned pref (membership + order), matched to cached data. Uncapped.
   public get clustersPinned(): Array<TopLevelMenuCluster> {
     return orderByIdsAndCap(this.cachedNonLocal, this.pinnedPref, this.pinnedPref.length);
   }
 
-  /**
-  * Filter mgmt clusters by
-  * 1. If harvester or not (filterOnlyKubernetesClusters)
-  * 2. If local or not (filterHiddenLocalCluster)
-  * 3.
-  * a) if search term, filter on it
-  * b) if no search term, filter on pinned
-  *
-  * Sort By
-  * 1. is local cluster (appears at top)
-  * 2. ready
-  * 3. name
-  */
   public clustersOthers: Array<TopLevelMenuCluster> = reactive([]);
 
-  /**
-  * Recently-visited clusters (SURE-8192). Ordered most-recent-first per the `recent-clusters` pref,
-  * excludes pinned, capped at MENU_MAX_RECENT_CLUSTERS, and empty while a search term is active.
-  */
   // RECENT = the recent pref (most-recent-first), minus pinned, capped — matched to cached data.
   public get clustersRecent(): Array<TopLevelMenuCluster> {
     const recentIds = visibleRecentClusters(this.recentPref, this.pinnedPref, MENU_MAX_RECENT_CLUSTERS);
@@ -241,10 +172,8 @@ export abstract class BaseTopLevelMenuHelper {
     return c ? [c] : [];
   }
 
-  // Flip every cached cluster's `pinned` flag from the pinned pref, so the pin ICON on ANY surface (shelf,
-  // flyout, ALL) updates the instant the pref changes — in lockstep with the shelf membership + FLIP —
-  // instead of lagging until the next fetch. The membership follows the pref already; this keeps the icon
-  // in sync. SURE-8192.
+  // Flip every cached cluster's `pinned` flag from the pref so the pin icon on any surface updates the
+  // instant the pref changes, instead of lagging until the next fetch.
   public syncPinnedFlags(pinnedIds: string[]): void {
     const pinned = new Set(pinnedIds || []);
 
@@ -253,10 +182,7 @@ export abstract class BaseTopLevelMenuHelper {
     });
   }
 
-  /**
-   * Total matching count (server-side) for the ALL list (`others`) — the UI compares the loaded length
-   * against it to know whether infinite-scroll has more rows to load. SURE-8192.
-   */
+  // Server-side total for the ALL list; the UI compares loaded length against it to know if more remain.
   public counts = reactive({ others: 0 });
 
   constructor({ $store }: {
@@ -265,10 +191,9 @@ export abstract class BaseTopLevelMenuHelper {
     this.$store = $store;
   }
 
-  // Convert a mgmt cluster to a shelf row AND upsert it into the shared cache (id-keyed). On a repeat it
-  // copies fresh fields INTO the existing cached object so its identity is stable (kept across fetches — the
-  // FLIP and any per-row flags survive), and every list — shelf, ALL, search — references the same object.
-  // Returns the cached object. SURE-8192 (v2).
+  // Convert a mgmt cluster to a shelf row and upsert it into the shared cache (id-keyed). On a repeat it
+  // copies fresh fields into the existing object so its identity is stable across fetches and every list
+  // references the same object.
   protected convertToCluster(mgmtCluster: MgmtCluster, provCluster?: ProvCluster): TopLevelMenuCluster {
     const next: TopLevelMenuCluster = {
       id:                mgmtCluster.id,
@@ -309,12 +234,11 @@ export abstract class BaseTopLevelMenuHelper {
 export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
   private args?: UpdateArgs;
 
-  // local + pinned + recent share ONE query + watch — the "context" set (the clusters you care about),
-  // small enough for a single id-IN fetch; split client-side. SURE-8192.
+  // local + pinned + recent share ONE query + watch — the "context" set, small enough for a single
+  // id-IN fetch; split client-side.
   private clustersContextWrapper: PaginationWrapper<any>;
-  // The ALL list is UNWATCHED, select-style page-increment (fetched on open + scroll): a page counter grows
-  // by one page per load and the new page is appended (`concat`), same as `useLabeledSelectPagination`.
-  // `othersPages` is the server-side total page count → `hasMore = page < pages`. SURE-8192.
+  // The ALL list is unwatched, select-style page-increment (fetched on open + scroll): grows a page per
+  // load, appending each new page. `othersPages` is the server-side total page count.
   private clustersOthersWrapper: PaginationWrapper<any>;
   private othersPage = 1;
   private othersPages = 0;
@@ -326,10 +250,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }) {
     super({ $store });
 
-    // local + pinned + recent are all id lookups on the same resource — the "context" set (the clusters
-    // you care about). Fetch them in ONE `id IN (...)` query with ONE watch, then split client-side.
-    // Because `local` is always in the union the query always runs, so the watch is always established —
-    // a newly-pinned/visited cluster goes live immediately (no empty-watch gap). SURE-8192.
+    // local + pinned + recent fetched in ONE `id IN (...)` query with ONE watch, split client-side.
+    // `local` is always in the union so the query (and its watch) always runs — a newly-pinned/visited
+    // cluster goes live immediately (no empty-watch gap).
     this.clustersContextWrapper = new PaginationWrapper({
       $store,
       id:       'top-level-menu-context-clusters',
@@ -352,8 +275,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       },
       formatResponse: { classify: true }
     });
-    // ALL list — the whole estate (unpinned window). UNWATCHED, select-style page-increment: fetched on
-    // open + grown on scroll (see `updateOthers`/`loadMoreOthers`). SURE-8192.
+    // ALL list — the whole estate. Unwatched, select-style page-increment: fetched on open, grown on scroll.
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
       id:         'top-level-menu-unpinned-clusters',
@@ -369,16 +291,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }
 
   /**
-   * Populate `clustersLocal` with the `local` (management) cluster via its own request. Local is the
-   * fixed top tile and is always shown when the user has access, so this fetches strictly by id and
-   * doesn't apply the Harvester/hide-local filters the other slices use. SURE-8192.
-   */
-  /**
-   * Fetch the "context" set — local + pinned + recent — in ONE `id IN (...)` query. This is the ONLY watched
-   * cluster request: its onChange re-runs this to keep those rows live. `local` is always in the union, so
-   * the query (and its watch) always runs. Converting the rows upserts them into the shared cache; the shelf
-   * slices (clustersPinned/Recent/Local) are DERIVED from that cache × the prefs, so there's nothing to seed
-   * or split here — a cluster whose data lands on any fetch simply appears. SURE-8192.
+   * Fetch the "context" set — local + pinned + recent — in ONE `id IN (...)` query. The only watched
+   * request: its onChange re-runs this to keep those rows live. Converted rows upsert into the shared cache;
+   * the shelf slices are derived from that cache, so there's nothing to seed or split here.
    */
   private async updateContext(args: UpdateArgs): Promise<void> {
     const pinnedIds = args.pinnedIds || [];
@@ -400,19 +315,16 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       revision: args.mgmtClusterRevision
     });
 
-    // Converting caches each row (id-keyed); the derived getters pick up membership + order from the pref.
-    // This request has no explicit pageSize, so it uses the store default (100000) — far larger than the
-    // id-IN union, so the whole requested set comes back in one page and "a requested id is absent" reliably
-    // means "that cluster no longer exists" (the basis for the prune below). SURE-8192.
+    // No explicit pageSize → store default (100000), far larger than the id-IN union, so the whole
+    // requested set returns in one page and "a requested id is absent" reliably means the cluster no
+    // longer exists (the basis for the prune below).
     const returnedIds = new Set<string>(r.data.map((c: MgmtCluster) => c.id));
 
     r.data.forEach((mgmtCluster: MgmtCluster) => this.convertToCluster(mgmtCluster));
 
-    // Prune deleted clusters: any id we ASKED for but the server did NOT return no longer exists (deleted)
-    // or is no longer visible, so drop it from the cache — it leaves the pinned/recent shelf at once, the
-    // way removing a cluster used to remove it from the switcher before SURE-8192's cache. We only prune
-    // ids we actually requested (never rows the ALL-list fetch cached) and we don't backfill: the shelf
-    // simply shows fewer rows until a fresh visit/pin. SURE-8192.
+    // Prune deleted clusters: any id we asked for but the server didn't return is gone/invisible, so drop
+    // it so it leaves the pinned/recent shelf at once. Only prune ids we actually requested (never rows the
+    // ALL-list fetch cached); no backfill — the shelf just shows fewer rows until a fresh visit/pin.
     contextIds.forEach((id) => {
       if (!returnedIds.has(id)) {
         delete this.clusterCache[id];
@@ -421,13 +333,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }
 
   // ---------- requests ----------
-  // The watched "context" set (local/pinned/recent) and the unwatched ALL list are independent: this
-  // refreshes both, but pin/visit only need the context (the ALL list is fetched on open/scroll and
-  // `railAll` dedupes, so a stale `others` still renders correctly). SURE-8192.
-  //
-  // `update` refreshes ONLY the watched context set (local/pinned/recent) — called on init and on every
-  // pin/unpin/visit. The ALL list is fetched separately by `resetOthers`/`loadMoreOthers` on the explicit
-  // open/scroll triggers (not here), so a pin doesn't re-page the list. SURE-8192.
+  // Refreshes ONLY the watched context set (local/pinned/recent); called on init and every pin/unpin/visit.
+  // The ALL list is fetched separately by `resetOthers`/`loadMoreOthers` on open/scroll, so a pin doesn't
+  // re-page it.
   async update(args: UpdateArgs) {
     this.args = args;
 
@@ -440,11 +348,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }
 
   /**
-   * Helper function
-   *
-   * This extracts all the functionality previously in TopLevelMenu
-   *
-   * Construct SSP filter params
+   * Construct SSP filter params.
    */
   private constructParams({
     pinnedIds,
@@ -495,8 +399,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     }
 
     if (excludeLocal) {
-      // `local` is fetched by its own dedicated request and shown as the fixed top tile, so keep it out
-      // of every other slice's results (pinned / recent / others / search). SURE-8192.
+      // `local` has its own request and fixed top tile, so keep it out of every other slice's results.
       filters.push(PaginationParamFilter.createSingleField({
         field: 'id', equals: false, value: 'local'
       }));
@@ -506,10 +409,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }
 
   /**
-   * The ALL list (`clustersOthers`) — UNWATCHED, select-style page-increment. Fetches one FIXED-size page
-   * and either replaces (reset → page 1, on open/search) or appends (loadMore → next page, on scroll) the
-   * accumulated rows, exactly like `useLabeledSelectPagination`. `local` has its own fixed slot so it's
-   * excluded; no pinned-exclusion (railAll dedupes). SURE-8192.
+   * Fetch one fixed-size page of the ALL list, either replacing (reset → page 1) or appending
+   * (loadMore → next page) the accumulated rows. `local` is excluded; no pinned-exclusion (railAll dedupes).
    */
   private async fetchOthers(reset: boolean): Promise<void> {
     const args = this.args;
@@ -552,10 +453,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersOthers.push(...data);
   }
 
-  /**
-   * Fetch page 1 of the ALL list, replacing what's loaded (open / search / chevron triggers). Accepts the
-   * current args (pinned/recent/searchTerm) so the reset always uses the live search term. SURE-8192.
-   */
+  /** Fetch page 1 of the ALL list, replacing what's loaded; accepts current args so it uses the live search term. */
   public resetOthers(args?: UpdateArgs): Promise<void> {
     if (args) {
       this.args = args;
@@ -564,21 +462,17 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     return this.fetchOthers(true);
   }
 
-  /** Append the next page of the ALL list (infinite scroll). SURE-8192. */
+  /** Append the next page of the ALL list (infinite scroll). */
   public loadMoreOthers(): Promise<void> {
     return this.fetchOthers(false);
   }
 
-  /** More ALL-list pages remain to load. SURE-8192. */
+  /** More ALL-list pages remain to load. */
   public hasMoreOthers(): boolean {
     return this.othersPage < this.othersPages;
   }
 
-  /**
-   * Update the cluster count used when showing lists of home page + resource menu cluster count
-   *
-   * This is a convenient place to make the request
-   */
+  /** Update the saved cluster count used by the home page + resource menu. */
   public async updateCount(count: number) {
     if (count === this.clusterCount) {
       return;
@@ -589,10 +483,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     try {
       const args:ActionFindPageArgs = {
         pagination: {
-          // ALWAYS exclude `local`: the ALL CLUSTERS count never includes it (local has its own fixed
-          // tile), so the count must be identical whether or not the hide-local setting is on. Excluding
-          // local also guarantees a non-empty filter set, so this query always runs and the saved count
-          // never goes stale — which used to make the count wobble ±1 on a hide-local toggle. SURE-8192.
+          // Always exclude `local` (it has its own tile) so the count is the same regardless of the
+          // hide-local setting. It also guarantees a non-empty filter set, so the query always runs and the
+          // saved count never goes stale — which used to make the count wobble ±1 on a hide-local toggle.
           filters:              this.constructParams({ excludeLocal: true }),
           page:                 1,
           pageSize:             1,
@@ -619,8 +512,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
   protected hasProvCluster: boolean;
 
-  // Everything is in memory here, so "pagination" is just a growing slice over the full list — but the
-  // page-increment API (reset/loadMore/hasMore) matches the SSP helper so the component is agnostic.
+  // Everything is in memory, so "pagination" is a growing slice over the full list — but the page-increment
+  // API matches the SSP helper so the component is agnostic.
   private othersLimit = MENU_MAX_CLUSTERS;
   private othersFull: TopLevelMenuCluster[] = [];
 
@@ -637,16 +530,13 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
   }
 
   async update(args: UpdateArgs) {
-    // `updateClusters` converts every in-memory cluster, which upserts them into the shared cache — so the
-    // derived shelf getters (clustersPinned/Recent/Local) see the full set. Non-SSP has everything in
-    // memory, so there's never an incomplete "seed". SURE-8192.
+    // `updateClusters` upserts every in-memory cluster into the shared cache, so the derived shelf getters
+    // see the full set (everything is in memory, so there's never an incomplete seed).
     const clusters = this.updateClusters();
     const nonLocal = clusters.filter((c) => !c.isLocal);
 
-    // Prune deleted clusters from the shared cache: legacy holds the FULL live estate in memory, so any
-    // cached row whose cluster is no longer present was removed — drop it so it also leaves the derived
-    // pinned/recent shelf (matching pre-SURE-8192, where removing a cluster removed it from the switcher).
-    // `local` is preserved (fixed top tile). SURE-8192.
+    // Prune deleted clusters: legacy holds the full live estate in memory, so any cached row no longer
+    // present was removed — drop it so it leaves the derived pinned/recent shelf. `local` is preserved.
     const liveIds = new Set(clusters.map((c) => c.id));
 
     Object.keys(this.clusterCache).forEach((id) => {
@@ -655,7 +545,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
       }
     });
 
-    // Keep the FULL ALL list; the visible slice is applied by `applyOthers` (reset/loadMore). SURE-8192.
+    // Keep the full ALL list; the visible slice is applied by `applyOthers` (reset/loadMore).
     this.othersFull = this.clustersFiltered(nonLocal, args);
     this.counts.others = this.othersFull.length;
 
@@ -689,14 +579,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     return this.clustersOthers.length < this.othersFull.length;
   }
 
-  /**
-   * Filter mgmt clusters by
-   * 1. Harvester type 1 (filterOnlyKubernetesClusters)
-   * 2. Harvester type 2 (filterHiddenLocalCluster)
-   * 3. There's a matching prov cluster
-   *
-   * Convert remaining clusters to special format
-   */
+  /** Filter mgmt clusters (Harvester filters + a matching prov cluster) and convert the remainder to rows. */
   private updateClusters(): TopLevelMenuCluster[] {
     if (!this.hasProvCluster) {
       // We're filtering out mgmt clusters without prov clusters, so if the user can't see any prov clusters at all
@@ -729,23 +612,12 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     }, []);
   }
 
-  /**
-   * Filter clusters by
-   * 1. Not pinned
-   * 2. Includes search term
-   *
-   * Sort remaining clusters
-   *
-   * Reduce number of clusters if too many too show
-   *
-   * Important! This is used to show unpinned clusters OR results of search
-   */
+  /** Build the ALL list (or search results): narrow to search matches when searching, then sort. */
   private clustersFiltered(clusters: TopLevelMenuCluster[], args: UpdateArgs): TopLevelMenuCluster[] {
     const search = (args.searchTerm || '').toLowerCase();
 
-    // ALL lists the WHOLE estate — no pinned-exclusion and no cap (the groups are independent and may
-    // overlap). `local` is already excluded upstream (its own fixed slot). While searching, narrow to
-    // matches. SURE-8192.
+    // ALL lists the whole estate — no pinned-exclusion, no cap (groups are independent and may overlap).
+    // `local` is already excluded upstream. While searching, narrow to matches.
     const filtered = clusters.filter((c) => !search || c.label?.toLowerCase().includes(search));
 
     return sortBy(filtered, ['ready:desc', 'label']);

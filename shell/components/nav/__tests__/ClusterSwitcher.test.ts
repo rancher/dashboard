@@ -127,9 +127,8 @@ describe('component: ClusterSwitcher', () => {
       expect(html).toContain('cluster-switcher-opt-p2');
     });
 
-    // the fixed `local` tile was keyboard-unreachable — its own listbox the combobox
-    // didn't control, and `rows` filtered it out. It now heads the navigation model and the combobox owns
-    // its listbox, while staying visually above the search door. SURE-8192.
+    // The fixed `local` tile heads the nav model and the combobox owns its listbox, so it stays
+    // above the search door yet is keyboard-reachable.
     it('keeps the fixed local tile above the door yet keyboard-reachable via the combobox', async() => {
       const wrapper = mountSwitcher({
         local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2

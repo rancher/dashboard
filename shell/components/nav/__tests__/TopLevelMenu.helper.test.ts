@@ -185,7 +185,7 @@ describe('topLevelMenu.helper', () => {
     it('should initialize PaginationWrappers', () => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
       new TopLevelMenuHelperPagination({ $store: mockStore });
-      // context (local+pinned+recent fetched in ONE id-IN query) + unpinned/ALL (SURE-8192)
+      // context (local+pinned+recent fetched in ONE id-IN query) + unpinned/ALL
       expect(PaginationWrapper).toHaveBeenCalledTimes(2);
     });
 
@@ -362,10 +362,8 @@ describe('topLevelMenu.helper', () => {
 
       const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
 
-      // paginationFilterClusters is mocked to [] (no harvester/hide-local filters). The OLD code short-
-      // circuited on an empty filter set and never refreshed the saved count (→ stale, wobbled ±1 on a
-      // hide-local toggle). Now `local` is excluded UNCONDITIONALLY, so the query ALWAYS runs and the saved
-      // count is the true non-local total regardless of the hide-local setting.
+      // paginationFilterClusters is mocked to [] (no filters). `local` is excluded unconditionally, so the
+      // count query always runs and stays the true non-local total regardless of the hide-local setting.
       await helper.updateCount(7);
 
       const findPageCall = mockStore.dispatch.mock.calls.find((c: any[]) => c[0] === 'management/findPage');
@@ -407,7 +405,6 @@ describe('topLevelMenu.helper', () => {
       TopLevelMenuHelperService.init(mockStore);
       const helper1 = TopLevelMenuHelperService.helper;
 
-      // Change condition
       mockStore.getters['management/paginationEnabled'].mockReturnValue(true);
       TopLevelMenuHelperService.init(mockStore);
       const helper2 = TopLevelMenuHelperService.helper;

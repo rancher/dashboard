@@ -7,15 +7,8 @@ import type { TopLevelMenuCluster } from '@shell/components/nav/TopLevelMenu.hel
 import { SEARCH_ECHO_MAX } from '@shell/store/prefs';
 
 /**
- * The cluster-switcher flyout (SURE-8192 / rancher/dashboard#11043).
- *
- * A search-first popover for the COLLAPSED app-bar that mirrors the EXPANDED nav's cluster area 1:1 —
- * search box, the fixed `local` (management-cluster) tile, then the ALL CLUSTERS directory. Typing
- * narrows to a flat match list over the whole estate. A row click (or Enter on the ↑↓ cursor) EXPLORES
- * the cluster without leaving the page. Pin/unpin happens inline on each row.
- *
- * Data (local / all / searchResults / clusterCount) is supplied by the parent from
- * sideNavService, so this component stays presentational and testable.
+ * Search-first cluster-switcher popover for the collapsed app-bar. Data (local / all / searchResults /
+ * clusterCount) comes from the parent's sideNavService, keeping this component presentational.
  */
 type Props = {
   /** The `local` management cluster — a FIXED tile at the top, never in the groups (or null). */
@@ -26,10 +19,10 @@ type Props = {
   searchResults?: TopLevelMenuCluster[];
   /** Estate size — shown in the ALL CLUSTERS count and the search placeholder. */
   clusterCount?: number;
-  /** Total number of clusters matching the current search (from the page-1 response), so MATCHES shows
-   * the real total, not just the loaded page. SURE-8192 (v2). */
+  /** Total clusters matching the search (from the page-1 response), so MATCHES shows the real total, not
+   * just the loaded page. */
   searchCount?: number;
-  /** A search request is in flight — drives the initial search skeleton. SURE-8192 (v2). */
+  /** A search request is in flight — drives the initial search skeleton. */
   searchLoading?: boolean;
   /** Id of the cluster currently being explored (marked `current`). */
   currentClusterId?: string;
@@ -68,43 +61,37 @@ const searching = computed<boolean>(() => !!props.search);
 // The ALL directory (local is a separate fixed tile, never listed here).
 const directory = computed<TopLevelMenuCluster[]>(() => props.all.filter((c) => !c.isLocal));
 
-// The flat, top-to-bottom list the ↑↓ cursor and Enter operate over: the match list while searching,
-// else the ALL CLUSTERS directory (v2 — no PINNED/RECENT groups in the flyout). SURE-8192.
+// The flat list the ↑↓ cursor and Enter operate over: matches while searching, else the ALL directory.
 const rows = computed<TopLevelMenuCluster[]>(() => (searching.value ? props.searchResults.filter((c) => !c.isLocal) : directory.value));
 
-// `local` stays a FIXED tile ABOVE the search door (visual layout unchanged), but the combobox must still
-// OWN it for the keyboard — otherwise ↑↓ + Enter skip the row most people switch to. So the NAVIGATION
-// model puts `local` at the head (index 0); the results listbox below still renders only `rows`, and the
-// template offsets each results row by `localOffset` so highlight + activeIndex stay in lock-step.
-// SURE-8192
+// `local` is a fixed tile above the search door, but the combobox must own it for the keyboard — so nav
+// puts it at index 0 while the listbox renders only `rows`, offset by `localOffset` to stay in lock-step.
 const localOffset = computed<number>(() => (props.local ? 1 : 0));
 const navRows = computed<TopLevelMenuCluster[]>(() => (props.local ? [props.local, ...rows.value] : rows.value));
 
-// Land the cursor on the first ALL/MATCH row, not the fixed `local` tile, so Enter opens a cluster you
-// actually searched for; `local` is one ArrowUp away. Clamp for a local-only list. SURE-8192.
+// Land the cursor on the first result row, not the fixed `local` tile, so Enter opens a searched cluster;
+// `local` is one ArrowUp away. Clamp for a local-only list.
 const firstResultIndex = () => Math.min(localOffset.value, Math.max(0, navRows.value.length - 1));
 
-// How many estate clusters are NOT currently shown — drives the "… N more — type to narrow" foot.
-// Only meaningful in the resting list (a search narrows to matches). SURE-8192 (v2).
+// Estate clusters not currently shown — drives the "… N more" foot. Only meaningful in the resting list.
 const moreCount = computed(() => (searching.value ? 0 : Math.max(0, props.clusterCount - directory.value.length)));
 
 const placeholder = computed(() => (props.clusterCount ? t('nav.switcher.searchPlaceholder', { count: props.clusterCount }) : t('nav.switcher.searchPlaceholderSimple')));
 
-// The "no clusters match" line echoes the query back; a very long query would overflow the popover, so
-// cap it with an ellipsis (the closing quote stays put). Limit shared with the expanded nav. SURE-8192.
+// The "no clusters match" line echoes the query back; cap a very long query with an ellipsis so it can't
+// overflow the popover.
 const truncatedSearch = computed(() => {
   const s = props.search || '';
 
   return s.length > SEARCH_ECHO_MAX ? `${ s.slice(0, SEARCH_ECHO_MAX) }…` : s;
 });
 
-// ── Accessibility: WAI-ARIA combobox + listbox ────────────────────────────────────────────────────
-// The search input is a combobox that owns the results listbox; each row is an `option` the input points
-// at via aria-activedescendant, so a screen reader announces the ↑↓-highlighted cluster WITHOUT moving
-// DOM focus off the input. A polite live region echoes the result count / empty / loading state. v2.
+// Accessibility: the search input is a combobox owning the results listbox; each row is an `option` the
+// input points at via aria-activedescendant, so a screen reader announces the highlighted cluster without
+// moving DOM focus off the input.
 const listboxId = 'cluster-switcher-listbox';
-// `local` sits in its own single-option listbox above the door; the combobox references BOTH via
-// aria-controls so it legitimately owns the local option too. SURE-8192.
+// `local` sits in its own single-option listbox above the door; the combobox references both via
+// aria-controls so it owns the local option too.
 const localListboxId = 'cluster-switcher-local-listbox';
 const optionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-${ c.id }`;
 const activeDescendant = computed(() => {
@@ -124,9 +111,8 @@ const statusMessage = computed(() => {
   return t('nav.switcher.aria.results', { count });
 });
 
-// Reset the ↑↓ cursor to the top when the SEARCH term changes. NOT on every `rows` change: a pin
-// toggle or an infinite-scroll load-more mutates `rows` without changing what the user is looking at,
-// and resetting then would yank the highlight up to the top row. Open resets via setOpen. SURE-8192.
+// Reset the cursor to the top on SEARCH change only — not on every `rows` change, or a pin toggle or
+// load-more would yank the highlight to the top. Open resets via setOpen.
 watch(() => props.search, () => {
   activeIndex.value = firstResultIndex();
 });
@@ -137,8 +123,8 @@ const setOpen = (value: boolean) => {
 
   if (value) {
     activeIndex.value = firstResultIndex();
-    // Actual focus happens on the dropdown's `apply-show` (see focusSearchInput) — by then the
-    // teleported popper is mounted. Focusing here is too early (the input doesn't exist yet).
+    // Focus happens on the dropdown's `apply-show` (focusSearchInput) — here is too early, the teleported
+    // input isn't mounted yet.
   }
 };
 
@@ -146,8 +132,8 @@ const toggle = () => {
   setOpen(!open.value);
 };
 
-// Focus the search once the popper is actually shown/mounted (floating-vue's `apply-show`). It
-// grabs focus for its own container on show, so we retry a few frames until the input keeps focus.
+// Focus the search once the popper is mounted (floating-vue's `apply-show`). It grabs focus for its own
+// container on show, so retry a few frames until the input keeps focus.
 const focusSearchInput = () => {
   const tryFocus = (attempts: number) => {
     const el = searchInput.value;
@@ -170,7 +156,7 @@ const onInput = (e: Event) => {
   emit('update:search', (e.target as HTMLInputElement).value);
 };
 
-// Clear the flyout search (the X), then keep focus in the input. SURE-8192 (v2).
+// Clear the search (the X), then keep focus in the input.
 const clearSearch = () => {
   emit('update:search', '');
   searchInput.value?.focus();
@@ -221,7 +207,7 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 };
 
-// Exposed for the unit tests, which drive these internals directly. SURE-8192.
+// Exposed for the unit tests, which drive these internals directly.
 defineExpose({
   searching,
   rows,
@@ -250,9 +236,8 @@ defineExpose({
     @apply-show="focusSearchInput"
     @apply-hide="setOpen(false)"
   >
-    <!-- Trigger: the parent supplies it via #trigger so it reuses the app-bar's own cluster-button
-         structure (`.option.cluster.selector`) rather than a bespoke control. The bare-count button is
-         only a fallback for standalone use. SURE-8192 (v2). -->
+    <!-- Trigger: the parent supplies it via #trigger to reuse the app-bar's own cluster-button structure;
+         the bare-count button is only a fallback for standalone use. -->
     <slot
       name="trigger"
       :toggle="toggle"
@@ -278,8 +263,8 @@ defineExpose({
         role="none"
         @keydown="onKeydown"
       >
-        <!-- Polite live region: announces the result count / empty / loading state as the user types,
-             without stealing focus. Visually hidden. SURE-8192 (v2). -->
+        <!-- Polite live region: announces result count / empty / loading as the user types, without
+             stealing focus. Visually hidden. -->
         <div
           class="sr-only"
           role="status"
@@ -288,9 +273,8 @@ defineExpose({
           {{ statusMessage }}
         </div>
 
-        <!-- local — FIXED tile ABOVE the search "door", mirroring the expanded nav (local → door). Always
-             shown when the user has access to it (even while searching). Its own single-option listbox so
-             the option is never orphaned outside a listbox. SURE-8192 (v2). -->
+        <!-- local — fixed tile above the search door, shown even while searching. Its own single-option
+             listbox so the option is never orphaned outside a listbox. -->
         <div
           v-if="local"
           :id="localListboxId"
@@ -310,7 +294,7 @@ defineExpose({
           />
         </div>
 
-        <!-- Search "door" — a combobox that owns the results listbox below. SURE-8192 (v2). -->
+        <!-- Search "door" — a combobox that owns the results listbox below. -->
         <div class="switcher-search">
           <input
             ref="searchInput"
@@ -402,8 +386,7 @@ defineExpose({
             </div>
           </template>
 
-          <!-- Resting: the ALL CLUSTERS directory only (v2 — no PINNED/RECENT in the flyout). Always
-               shown; lazy-loaded via @scroll → load-more. -->
+          <!-- Resting: the ALL CLUSTERS directory only, lazy-loaded via @scroll → load-more. -->
           <template v-else>
             <div
               v-if="clusterCount"
@@ -451,8 +434,7 @@ defineExpose({
           </div>
         </div>
 
-        <!-- Foot: "… N more — type to narrow" when the list is capped (there are clusters not shown).
-             The searching-with-no-results case shows its own empty message in the body above. SURE-8192 (v2). -->
+        <!-- Foot: "… N more — type to narrow" when the list is capped. -->
         <div
           v-if="moreCount > 0"
           class="switcher-footer"
@@ -463,9 +445,8 @@ defineExpose({
     </template>
   </v-dropdown>
 
-  <!-- Page overlay while the flyout is open — the app's standard scrim; clicking it closes the flyout.
-       Teleported to <body> so it sits above the app but below the (fixed-positioned) flyout popper.
-       SURE-8192 (v2). -->
+  <!-- Page scrim while the flyout is open; click to close. Teleported to <body> so it sits above the app
+       but below the fixed-positioned flyout popper. -->
   <Teleport to="body">
     <div
       v-if="open"
@@ -476,8 +457,7 @@ defineExpose({
 </template>
 
 <style lang="scss" scoped>
-// Fallback trigger for standalone use (the app-bar supplies its own via #trigger): a compact "N ›"
-// count badge. SURE-8192 (v2).
+// Fallback trigger for standalone use (the app-bar supplies its own via #trigger): a compact "N ›" badge.
 .cluster-count-trigger {
   display: inline-flex;
   align-items: center;
@@ -507,13 +487,13 @@ defineExpose({
   display: flex;
   flex-direction: column;
   width: 380px;
-  // 660px cap, but never taller than the viewport minus the flyout's 60px top offset + 16px breathing
-  // room, so the footer stays on-screen on short viewports (the popper is position:fixed, can't scroll).
+  // Cap at 660px but never taller than the viewport (60px top offset + 16px), so the footer stays
+  // on-screen on short viewports — the popper is position:fixed and can't scroll.
   max-height: min(660px, calc(100vh - 76px));
   background: var(--dropdown-bg, var(--body-bg));
   color: var(--body-text);
 
-  // Exactly the expanded-nav search: 32px input, magnifier on the left, clear X on the right. SURE-8192.
+  // Exactly the expanded-nav search: 32px input, magnifier left, clear X right.
   .switcher-search {
     position: relative;
     padding: 8px 14px 6px;
@@ -555,7 +535,7 @@ defineExpose({
       right: 20px;
       top: 50%;
       transform: translateY(-50%);
-      // Button resets so the icon-font glyph sits like the old <i>. SURE-8192 (v2).
+      // Button resets so the icon-font glyph sits like the old <i>.
       appearance: none;
       border: none;
       background: transparent;
@@ -580,7 +560,7 @@ defineExpose({
   // local: fixed, non-scrolling. Its divider comes from the row's own border-bottom (full width).
   .switcher-local {
     flex: 0 0 auto;
-    // 14px above the first (local) row — the local row itself carries 9px, so top it up by 5. SURE-8192.
+    // 14px above the first (local) row — it carries 9px, so top it up by 5.
     padding-top: 5px;
   }
 
@@ -589,12 +569,9 @@ defineExpose({
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 
-    // Bottom scroll-edge shadow that paints OVER the rows (identical overlay to the expanded nav's
-    // `.clusters::after`). A `background` gradient sits behind the element's content, so the opaque badge
-    // chips occlude it; instead a sticky pseudo-element pinned to the bottom of the scroll viewport
-    // renders after the rows and layers on top. A CSS scroll-driven animation fades it out as the list
-    // reaches the bottom — no JS. `margin-top` pulls it back over content so it adds no scroll height;
-    // `pointer-events: none` keeps the rows/pins clickable. SURE-8192.
+    // Bottom scroll-edge shadow painting OVER the rows: a sticky pseudo-element (a `background` gradient
+    // would sit behind the opaque badge chips). `margin-top` pulls it back so it adds no scroll height;
+    // `pointer-events: none` keeps rows clickable. A scroll-driven animation fades it at the bottom.
     &::after {
       content: "";
       position: sticky;
@@ -604,20 +581,17 @@ defineExpose({
       margin-top: -8px;
       pointer-events: none;
       background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%);
-      // Hidden by default; only the scroll-driven animation (below) reveals it. When the list ISN'T
-      // scrollable the scroll timeline is inactive, the animation doesn't apply, and this base value wins
-      // — so no stray shadow on a short list. SURE-8192.
+      // Hidden by default; only the scroll-driven animation reveals it. On a non-scrollable list the
+      // timeline is inactive and this base value wins — no stray shadow on a short list.
       opacity: 0;
-      // Scroll position drives the fade: visible while scrolling, gone at the bottom. Where scroll-driven
-      // animations aren't supported (e.g. Safari) the timeline is ignored and the base opacity:0 wins —
-      // the shadow simply never shows (no breakage). SURE-8192.
+      // Scroll position drives the fade. Where scroll-driven animations aren't supported (e.g. Safari) the
+      // timeline is ignored and base opacity:0 wins — the shadow just never shows (no breakage).
       animation: switcher-scroll-shadow linear both;
       animation-timeline: scroll(nearest block);
     }
   }
 
-  // Scroll-edge shadow fade (see `.switcher-scroll::after`): visible while scrolling, gone at the bottom.
-  // Driven by animation-timeline: scroll(), so 0% = top of scroll, 100% = bottom. SURE-8192.
+  // Scroll-edge shadow fade (see `.switcher-scroll::after`): 0% = top of scroll, 100% = bottom.
   @keyframes switcher-scroll-shadow {
     0%, 88% {
       opacity: 1;
@@ -627,11 +601,10 @@ defineExpose({
     }
   }
 
-  // Group header (ALL CLUSTERS / MATCHES): a static caption. Metrics match the expanded nav's section
-  // label (6 top / 4 bottom / 16 sides, 18px content). SURE-8192.
+  // Group header (ALL CLUSTERS / MATCHES): a static caption matching the expanded nav's section label.
   .switcher-group-label {
-    // Pinned to the top of the scroll viewport so the ALL CLUSTERS / MATCHES caption never scrolls away
-    // (opaque background so the rows scroll under it). SURE-8192 (v2).
+    // Pinned to the top of the scroll viewport so the caption never scrolls away (opaque background so
+    // rows scroll under it).
     position: sticky;
     top: 0;
     z-index: 1;
@@ -680,7 +653,7 @@ defineExpose({
     text-align: left;
     font-size: 12px;
     color: var(--muted);
-    // A long, unbroken query must wrap inside the popover rather than overflow its edge. SURE-8192 (v2).
+    // A long, unbroken query must wrap inside the popover rather than overflow its edge.
     overflow-wrap: anywhere;
   }
 
@@ -738,9 +711,9 @@ defineExpose({
     }
   }
 
-  // Foot: a single muted "… N more — type to narrow" line. No border (v2 — the flyout has no lines).
+  // Foot: a single muted "… N more — type to narrow" line, no border.
   .switcher-footer {
-    // Left inset (81px) aligns the footer text with the row names (past the badge lane). SURE-8192 (v2).
+    // Left inset (81px) aligns the footer text with the row names (past the badge lane).
     padding: 8px 14px 14px 81px;
     font-size: 12px;
     color: var(--muted);
@@ -749,14 +722,10 @@ defineExpose({
 </style>
 
 <style lang="scss">
-// The switcher popper is teleported to <body>, out of reach of scoped styles, so target it here
-// (namespaced by popper-class so nothing else is affected). Figma rev 2: the flyout floats free of
-// the rail — 16px off the collapsed app-bar and vertically centred in the viewport — rather than
-// anchoring to the small "N ›" trigger. `!important` overrides floating-ui's inline transform (it
-// sets `transform`/`inset` inline without !important, and re-applies on scroll/resize, so we always win).
-// Page scrim behind the open flyout — the app's standard overlay; click to close (see the component).
-// Starts at the rail's right edge so the nav bar itself is NOT dimmed (the rail sits in a nested
-// stacking context and can't be lifted above a body-level overlay, so we just don't cover it). SURE-8192.
+// The popper is teleported to <body>, out of reach of scoped styles, so target it here (namespaced by
+// popper-class). `!important` overrides floating-ui's inline transform, which it re-applies on
+// scroll/resize. The overlay starts at the rail's right edge so the nav bar isn't dimmed — the rail sits
+// in a nested stacking context and can't be lifted above a body-level overlay.
 .cluster-switcher-overlay {
   position: fixed;
   top: 0;
@@ -781,8 +750,7 @@ defineExpose({
   display: none;
 }
 
-// Drop floating-vue's default 10px inner padding — the flyout manages its own spacing edge-to-edge
-// (full-width rows / dividers). Namespaced by popper-class, so no :deep and no effect on other poppers.
+// Drop floating-vue's default 10px inner padding — the flyout manages its own edge-to-edge spacing.
 .cluster-switcher-popper .v-popper__inner {
   padding: 0;
 }

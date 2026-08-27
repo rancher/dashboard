@@ -1,17 +1,11 @@
 import { MENU_MAX_RECENT_CLUSTERS } from '@shell/store/prefs';
 
 /**
- * Pure helper for the app-bar "recently visited clusters" list (SURE-8192 / #11043).
+ * Prepend `id` to the "recently visited clusters" list (most-recent-first, de-duped).
  *
- * RECENT is a "last-seen" list of EVERY cluster the user has visited, most-recent-first and de-duped.
- * It is written ONLY on a cluster visit (never by pin/unpin) — a cluster can be both recent and pinned
- * in storage; being pinned just hides it from the RECENT group at display time (the shelf filters out
- * pinned ids, then shows the latest MENU_MAX_RECENT_CLUSTERS). So the list can grow up to the size of
- * the estate; it is a plain visit-order log, not a curated 3-item list.
- *
- * The list is UNCAPPED — it's a plain "recently viewed" log that grows with every distinct cluster
- * visited (bounded in practice by the size of the estate). Only DISPLAY is capped (pinned filtered
- * out, latest few shown — see `visibleRecentClusters`). `max` stays overridable for tests.
+ * The stored list is UNCAPPED — a plain visit-order log written only on a visit (never by pin/unpin),
+ * growing with the estate. Only DISPLAY is capped, by `visibleRecentClusters`. `max` stays overridable
+ * for tests.
  */
 export function addRecentCluster(
   recents: string[] = [],
@@ -24,8 +18,7 @@ export function addRecentCluster(
     return current.slice(0, max);
   }
 
-  // Move the just-visited cluster to the front, de-duping. Pinned status is irrelevant here — it only
-  // affects display (see MENU_MAX_RECENT_CLUSTERS and the side-nav helper's recent filtering).
+  // Pinned status is irrelevant here — it only affects display, not the stored visit log.
   return [id, ...current.filter((r) => r !== id)].slice(0, max);
 }
 

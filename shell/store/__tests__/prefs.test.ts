@@ -701,9 +701,8 @@ describe('prefs store', () => {
       });
 
       afterEach(async() => {
-        // `set` populates the module-level `prefsBeforeLogin` when called while
-        // logged out. Drain it via a mock loadServer so it does not leak into
-        // subsequent loadServer tests (which would then try to call server.save).
+        // `set` populates module-level `prefsBeforeLogin` when logged out; drain it via a mock loadServer so
+        // it doesn't leak into later loadServer tests.
         const mockServer = { data: {}, save: jest.fn().mockResolvedValue(undefined) };
         const drainDispatch = jest.fn().mockResolvedValue([mockServer]);
 

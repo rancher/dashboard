@@ -40,10 +40,8 @@ describe('fx: cluster-pref-writer', () => {
     });
   });
 
-  // Mock store modelling the split write: `applyPrefsOptimistic` mutates the CLIENT immediately (and returns
-  // the values it wrote); `reconcilePrefs` runs the transforms against the SERVER and writes only changed
-  // keys. Client === server initially for these unit tests (the client-vs-server drift lives in the prefs
-  // store's reconcile tests). `data` exposes the client. dispatch simulates both prefs actions.
+  // Mock store modelling the split write: `applyPrefsOptimistic` mutates the client immediately;
+  // `reconcilePrefs` runs the transforms against the server and writes only changed keys (here client === server).
   const makeStore = (initial: Record<string, PrefValue>) => {
     const clientData: Record<string, PrefValue> = { ...initial };
     const serverData: Record<string, PrefValue> = { ...initial };

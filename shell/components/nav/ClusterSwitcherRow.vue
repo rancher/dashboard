@@ -7,11 +7,10 @@ import Pinned from '@shell/components/nav/Pinned.vue';
 import type { TopLevelMenuCluster } from '@shell/components/nav/TopLevelMenu.helper';
 
 /**
- * A single cluster row in the cluster-switcher flyout (SURE-8192 / #11043).
+ * A single cluster row in the cluster-switcher flyout.
  *
- * Layout mirrors the Figma switcher rows: badge · name · (distro · k8s · current) · status pill · pin.
- * Clicking the row (or pressing Enter while it is active) EXPLORES the cluster; the pin toggle is the
- * only pin/unpin affordance and mutates the pref directly via the reused `Pinned` control.
+ * Clicking the row (or Enter while active) explores the cluster; the pin toggle is the only pin/unpin
+ * affordance and mutates the pref via the reused `Pinned` control.
  */
 interface Props {
   /** The cluster this row represents. */
@@ -53,8 +52,8 @@ const meta = computed(() => {
   ].filter((p) => !!p).join(' · ');
 });
 
-// A single, concise label for screen readers: the badge is decorative and the pin is a separate control,
-// so the option should announce just "<name>, <provider · version · current>". SURE-8192 (v2).
+// Single screen-reader label — the badge is decorative and the pin is a separate control, so the
+// option announces just "<name>, <provider · version · current>".
 const ariaLabel = computed(() => {
   const parts = [props.cluster.label];
 
@@ -116,8 +115,7 @@ function select() {
 </template>
 
 <style lang="scss" scoped>
-// Row action icons (gear + pin): a header-style hover "square" — a 22×22 box holding an icon that fills
-// with a subtle grey on hover. Icon size varies (gear 16px, pin 9px). SURE-8192 (v2).
+// Row action icons (gear + pin): a 22×22 hover square holding an icon that fills with subtle grey on hover.
 @mixin icon-hover-square($icon-size) {
   box-sizing: border-box;
   display: inline-flex;
@@ -144,8 +142,7 @@ function select() {
   display: flex;
   align-items: center;
   gap: 10px;
-  // Full-line, edge-to-edge, no rounding. No row divider (v2 — the flyout has no lines). Height matches
-  // the expanded-nav rows (43px). SURE-8192.
+  // Height matches the expanded-nav rows (43px); full-line, no rounding or divider.
   min-height: 43px;
   padding: 9px 14px 9px 14px;
   border-radius: 0;
@@ -161,8 +158,7 @@ function select() {
     background: color-mix(in srgb, var(--body-text) 6%, transparent);
   }
 
-  // The cluster currently being explored — a FILLED primary row with white content (matches the
-  // expanded nav's active row). SURE-8192 (v2).
+  // The cluster currently being explored — a filled primary row matching the expanded nav's active row.
   &.current {
     background: var(--active-nav, var(--primary-hover-bg));
 
@@ -171,11 +167,8 @@ function select() {
       background: var(--active-hover, var(--primary-hover-bg));
     }
 
-    // Name + meta use the SAME theme tokens as the expanded-nav active row (`--on-active` — the
-    // on-primary text colour that flips per theme: light text on the light-mode dark-green fill, dark
-    // text on the dark-mode light-green fill). The `!important` beats the equal-specificity base
-    // `.row-body .row-{name,meta}` rules that follow in source order (without it the tokens never apply
-    // and the name stays black / the meta stays muted). SURE-8192 (v2).
+    // `!important` beats the equal-specificity base `.row-body .row-{name,meta}` rules that follow in
+    // source order; without it the `--on-active` tokens never apply and the name/meta keep base colours.
     .row-name {
       color: var(--on-active, var(--primary-hover-text)) !important;
     }
@@ -192,8 +185,8 @@ function select() {
   }
 
   .row-badge {
-    // Pinned-ness is shown by the row's own pin toggle, so ClusterIconMenu's pin overlay on the chip
-    // is redundant in the flyout — hidden via :show-pin="false" (no scoped-style piercing). SURE-8192.
+    // The row has its own pin toggle, so ClusterIconMenu's pin overlay on the chip is redundant here —
+    // hidden via :show-pin="false".
     flex: 0 0 auto;
   }
 
@@ -221,8 +214,7 @@ function select() {
     }
   }
 
-  // The pin: 22×22 hover square with a 9px icon. Grey when not pinned, primary when pinned; faint until
-  // hover/active or while pinned (relocation is the feedback). SURE-8192 (v2).
+  // The pin: faint until hover/active or while pinned (its relocation is the feedback); primary when pinned.
   .row-pin {
     @include icon-hover-square(12px);
     flex: 0 0 auto;
