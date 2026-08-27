@@ -162,6 +162,62 @@ describe('mixin: authConfigMixin', () => {
     });
   });
 
+  // Which config is being applied is read from the root of the request, so that
+  // it does not have to be dug out of the provider config nested inside it.
+  describe('naming the config being applied', () => {
+    const createInstance = (toSave: any, model: any, id: string) => {
+      const FakeComponent = {
+        render() {},
+        mixins:   [authConfigMixin, childHook],
+        methods:  { applyHooks: jest.fn() },
+        computed: { toSave: () => toSave },
+      };
+
+      return mount(FakeComponent, {
+        data: () => ({
+          value: { configType: 'ldap' },
+          model,
+        }),
+        global: {
+          mocks: {
+            $store: { dispatch: (action: string) => (action === 'rancher/findAll' ? [] : model) },
+            $route: {
+              params: { id },
+              query:  { mode: 'edit' },
+            },
+          }
+        }
+      }).vm as any;
+    };
+
+    it('should name the config at the root of the request', async() => {
+      const model = {
+        id: 'github-2', type: 'githubConfig', enabled: false, doAction: jest.fn(), save: jest.fn()
+      };
+      const toSave = { enabled: true, githubConfig: model };
+      const instance = createInstance(toSave, model, 'github-2');
+
+      await instance.save(jest.fn());
+
+      expect(model.doAction).toHaveBeenCalledWith(
+        'testAndApply',
+        { ...toSave, configName: 'github-2' },
+        { redirectUnauthorized: false }
+      );
+    });
+
+    it('should leave the config a form filled in alone', async() => {
+      const model = {
+        id: 'github-2', type: 'githubConfig', enabled: false, doAction: jest.fn(), save: jest.fn()
+      };
+      const instance = createInstance({ enabled: true, githubConfig: model }, model, 'github-2');
+
+      await instance.save(jest.fn());
+
+      expect(model).not.toHaveProperty('configName');
+    });
+  });
+
   // Adding a second provider of a type creates a config of its own. Nothing is
   // written until the form saves, because `metadata.name` cannot be changed once
   // the config exists.

@@ -152,6 +152,26 @@ describe('github.vue', () => {
     });
   });
 
+  // The config is sent as the form filled it in. Which config it is belongs to
+  // the root of the request, and the mixin that saves puts it there.
+  describe('what is saved', () => {
+    it('should send the config the form filled in', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup() });
+
+      expect(wrapper.vm.toSave).toStrictEqual({
+        enabled:      true,
+        githubConfig: wrapper.vm.model,
+        description:  'Enable GitHub',
+      });
+    });
+
+    it('should not name the config within the config itself', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup() });
+
+      expect(wrapper.vm.toSave.githubConfig).not.toHaveProperty('configName');
+    });
+  });
+
   describe('GitHub App provider', () => {
     let wrapper: VueWrapper<any, any>;
 

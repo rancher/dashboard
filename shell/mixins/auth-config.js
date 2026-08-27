@@ -288,11 +288,13 @@ export default {
         return;
       }
 
-      let obj = this.toSave;
+      // Which of a provider's configs is being applied is read from the root of
+      // the request, rather than from the provider's own config nested in it.
+      const obj = {
+        ...(this.toSave || this.model),
+        configName: this.configName,
+      };
 
-      if (!obj) {
-        obj = this.model;
-      }
       try {
         if (this.editConfig || !wasEnabled) {
           if (configType === 'oauth' || configType === 'oidc') {
