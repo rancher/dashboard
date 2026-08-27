@@ -1,5 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import VersionNumberPo from '~/cypress/e2e/po/components/version-number.po';
+import NavActionBarPo from '@/cypress/e2e/po/side-bars/nav-action-bar.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 /**
@@ -15,10 +16,17 @@ export default class ProductNavPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   groups(): Cypress.Chainable {
-    // Scope to top-level (depth-0) groups only. The app implements the
-    // "one open group collapses its siblings" behaviour at the top level, so
-    // matching nested subgroups here breaks collapse-on-click assertions.
+    // Scope to top-level (depth-0) groups only, so a group's own subgroups aren't
+    // counted alongside it when asserting on the groups of the nav.
     return this.self().find('.accordion.depth-0.has-children');
+  }
+
+  /**
+   * Get a top-level navigation accordion group by its label
+   * @returns {Cypress.Chainable}
+   */
+  groupByLabel(label: string): Cypress.Chainable {
+    return this.self().contains('.accordion.depth-0.has-children', label);
   }
 
   /**
@@ -49,7 +57,13 @@ export default class ProductNavPo extends ComponentPo {
    * Navigate to a side menu group by label
    */
   navToSideMenuGroupByLabel(label: string): Cypress.Chainable {
-    return cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist').contains('.accordion.has-children', label, LONG_TIMEOUT_OPT).click();
+    // Click the group's header specifically. Clicking the accordion container
+    // would land on a child link when the group is already expanded (groups now
+    // stay expanded across navigation), so target the header to always navigate
+    // into the group's overview.
+    return cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist').contains('.accordion.has-children', label, LONG_TIMEOUT_OPT).find('.header')
+      .first()
+      .click();
   }
 
   sideMenuEntryByLabelCount(label: string): Cypress.Chainable {
@@ -107,6 +121,13 @@ export default class ProductNavPo extends ComponentPo {
    */
   version() {
     return new VersionNumberPo('.side-menu .version');
+  }
+
+  /**
+   * Get the jump-to / collapse-all toolbar above the nav
+   */
+  actionBar() {
+    return new NavActionBarPo();
   }
 
   /**

@@ -90,8 +90,4 @@ export class HeaderPo extends ComponentPo {
   getKubectlExplainTooltipContent(): Cypress.Chainable {
     return cy.get('.v-popper--theme-tooltip .v-popper__inner');
   }
-
-  resourceSearchButton(): Cypress.Chainable {
-    return cy.get('[data-testid="header-resource-search"]');
-  }
 }

@@ -35,7 +35,6 @@ import DigitalOceanCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/clou
 import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import UserRetentionPo from '@/cypress/e2e/po/pages/users-and-auth/user.retention.po';
-import ResourceSearchDialog from '@/cypress/e2e/po/prompts/ResourceSearchDialog.po';
 import { StorageClassesPagePo } from '@/cypress/e2e/po/pages/explorer/storage-classes.po';
 import { BrandingPagePo } from '@/cypress/e2e/po/pages/global-settings/branding.po';
 import { BannersPagePo } from '@/cypress/e2e/po/pages/global-settings/banners.po';
@@ -490,22 +489,6 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
           header.kubectlShell().closeTerminal();
         });
-
-        it('Resource Search', () => {
-          const dialog = new ResourceSearchDialog();
-
-          header.resourceSearchButton().click();
-          dialog.searchBox().should('be.visible');
-
-          cy.injectAxe();
-
-          dialog.self().then((el: any) => {
-            cy.checkElementAccessibility(el);
-          });
-
-          dialog.close();
-          dialog.checkNotExists();
-        });
       });
     });
 
@@ -850,6 +833,38 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
           sideNav.self().then((el: any) => {
             cy.checkElementAccessibility(el);
           });
+        });
+      });
+
+      it('Side navigation jump-to', () => {
+        const clusterDashboard = new ClusterDashboardPagePo('local');
+
+        clusterDashboard.goTo();
+        clusterDashboard.waitForPage();
+
+        const actionBar = new ProductNavPo().actionBar();
+
+        actionBar.openJumpTo();
+        actionBar.jumpToResults().should('have.length.gt', 0);
+
+        cy.injectAxe();
+
+        // The results are teleported out of the nav, so both halves of the
+        // combobox are checked
+        actionBar.self().then((el: any) => {
+          cy.checkElementAccessibility(el);
+        });
+
+        actionBar.jumpToDropdown().then((el: any) => {
+          cy.checkElementAccessibility(el);
+        });
+
+        // The empty state renders different markup, so check it too
+        actionBar.searchJumpTo('zzzzzz');
+        actionBar.jumpToResults().should('have.length', 0);
+
+        actionBar.jumpToDropdown().then((el: any) => {
+          cy.checkElementAccessibility(el);
         });
       });
     });

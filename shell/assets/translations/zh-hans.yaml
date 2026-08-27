@@ -188,10 +188,6 @@ nav:
   search:
     placeholder: 输入关键词，搜索集群
     noResults: 没有匹配的集群
-  resourceSearch:
-    label: 资源搜索
-    toolTip: 资源搜索 {key}
-    placeholder: 输入关键词，搜索资源
   header:
     setLoginPage: 设置为登录页面
   userMenu:
