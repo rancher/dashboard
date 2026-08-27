@@ -23,7 +23,8 @@ import {
   getHelmRepositoryMatch,
   createHelmRepository,
   refreshHelmRepository,
-  installHelmChart,
+  installHelmChartWithRetry,
+  INSTALL_ACTION_MAX_RETRIES,
   waitForUIExtension,
   waitForUIPackage,
 } from '@shell/utils/uiplugins';
@@ -91,6 +92,7 @@ export default {
       harvesterRepositoryError:       false,
       harvesterExtensionInstallError: false,
       harvesterExtensionUpdateError:  false,
+      harvesterActionRetryAttempt:    0,
       clusterRepoLink:                {
         name:   'c-cluster-product-resource',
         params: {
@@ -243,7 +245,32 @@ export default {
 
       // No custom rows limit; 'Table Rows Per Page' preference will be used.
       return null;
-    }
+    },
+
+    // Return the logo information based on whether is is Harvester or SUSE Virtualization.
+    logo() {
+      const isSuseVirtualization = this.$store.getters['i18n/global']('Harvester') === 'SUSE Virtualization';
+
+      return !isSuseVirtualization ? {
+        name:   'harvester.png',
+        height: 64
+      } : {
+        name:   'suse-virtualization.svg',
+        height: 36
+      };
+    },
+
+    // Overrides the AsyncButton's waiting label while an install/upgrade action is being retried
+    harvesterActionRetryLabel() {
+      if (!this.harvesterActionRetryAttempt) {
+        return null;
+      }
+
+      return this.t('harvesterManager.extension.action.retrying', {
+        attempt: this.harvesterActionRetryAttempt,
+        max:     INSTALL_ACTION_MAX_RETRIES,
+      });
+    },
   },
 
   methods: {
@@ -274,6 +301,8 @@ export default {
     async installHarvesterExtension(btnCb) {
       let installed = false;
 
+      this.harvesterActionRetryAttempt = 0;
+
       try {
         let harvesterRepository = this.harvesterRepository;
 
@@ -295,7 +324,7 @@ export default {
           return;
         }
 
-        await installHelmChart(
+        await installHelmChartWithRetry(
           harvesterRepository,
           {
             ...HARVESTER_CHART,
@@ -303,7 +332,10 @@ export default {
           },
           {},
           UI_PLUGIN_NAMESPACE,
-          'install'
+          'install',
+          (attempt) => {
+            this.harvesterActionRetryAttempt = attempt;
+          },
         );
 
         const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name, 20);
@@ -312,6 +344,7 @@ export default {
       } catch (error) {
       }
 
+      this.harvesterActionRetryAttempt = 0;
       this.harvesterExtensionInstallError = !installed;
 
       btnCb(installed);
@@ -323,6 +356,8 @@ export default {
 
     async updateHarvesterExtension(btnCb) {
       let updated = false;
+
+      this.harvesterActionRetryAttempt = 0;
 
       try {
         if (this.harvester.missingRepository) {
@@ -337,7 +372,7 @@ export default {
           return;
         }
 
-        await installHelmChart(
+        await installHelmChartWithRetry(
           this.harvesterRepository,
           {
             ...HARVESTER_CHART,
@@ -345,7 +380,10 @@ export default {
           },
           {},
           UI_PLUGIN_NAMESPACE,
-          'upgrade'
+          'upgrade',
+          (attempt) => {
+            this.harvesterActionRetryAttempt = attempt;
+          },
         );
 
         const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
@@ -354,6 +392,7 @@ export default {
       } catch (error) {
       }
 
+      this.harvesterActionRetryAttempt = 0;
       this.harvesterExtensionUpdateError = !updated;
 
       btnCb(updated);
@@ -525,6 +564,7 @@ export default {
           >
             <AsyncButton
               :mode="harvester.toInstall ? 'install' : 'update'"
+              :waiting-label="harvesterActionRetryLabel"
               @click="harvester.action"
             />
           </div>
