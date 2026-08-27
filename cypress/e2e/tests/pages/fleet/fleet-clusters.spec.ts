@@ -187,7 +187,12 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       deploymentsList.goTo();
       deploymentsList.waitForPage();
 
-      deploymentsList.details(deployments, 1).contains('Active', { timeout: 15000 });
+      // Note: Fleet still has to roll the bundle out to the downstream cluster and have its agent
+      // apply it, which takes far longer than the default command timeout. Wait for the row to
+      // exist first: `details()` looks the row up with the default timeout, so passing a longer
+      // timeout to the state assertion alone doesn't help while the deployment doesn't exist yet.
+      deploymentsList.sortableTable().rowElementWithName(deployments, EXTRA_LONG_TIMEOUT_OPT).should('exist');
+      deploymentsList.details(deployments, 1).contains('Active', MEDIUM_TIMEOUT_OPT);
     });
   });
 
