@@ -328,6 +328,11 @@ export default {
         // user, so it must not overwrite what they asked to be remembered.
         this.selectedProviderId = fallback.id;
         this.showLocal = fallback.isLocal;
+
+        // The box speaks for the provider on screen, and the page has just
+        // stepped onto one the user didn't ask for - so it stops claiming a
+        // choice is saved. Only the saved id survives, for them to come back to.
+        this.rememberProvider = false;
       }
 
       this.listExpanded = true;

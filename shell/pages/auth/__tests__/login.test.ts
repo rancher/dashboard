@@ -249,6 +249,36 @@ describe('page: login', () => {
       expect(window.localStorage.getItem(REMEMBERED_PROVIDER_KEY)).toBe('local');
     });
 
+    // The box is a statement about the provider on screen, so leaving it ticked
+    // against the one the page just stepped onto would claim a choice was saved
+    // that signing in from here would not honour.
+    it('should stop claiming to remember once it steps off the remembered provider', async() => {
+      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+      await runFetch(wrapper);
+
+      expect(wrapper.vm.rememberProvider).toBe(true);
+
+      wrapper.vm.expandProviderList();
+
+      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
+      expect(wrapper.vm.rememberProvider).toBe(false);
+    });
+
+    // Ticking the box from here is the user choosing, so it saves the provider
+    // they are actually looking at rather than the one they arrived on.
+    it('should save the stepped-onto provider when the box is ticked again', async() => {
+      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.expandProviderList();
+      wrapper.vm.setRememberProvider(true);
+
+      expect(window.localStorage.getItem(REMEMBERED_PROVIDER_KEY)).toBe('gh-community');
+    });
+
     // Otherwise the list would stay open behind the next form.
     it('should collapse the list again once a provider is chosen from it', async() => {
       const wrapper = createWrapper([LOCAL, AD, GITHUB]);

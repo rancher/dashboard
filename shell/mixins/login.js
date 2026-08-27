@@ -23,7 +23,9 @@ export default {
   computed: {
     displayName() {
       const key = providerKey(this.type);
-      const providerString = this.t(`model.authConfig.provider.${ key }`);
+      // `t` yields undefined for a provider nothing has been translated for, so
+      // the key stands in - the same fallback the provider list is built with.
+      const providerString = this.t(`model.authConfig.provider.${ key }`) || key;
 
       // A config named after its provider is the provider as far as anyone
       // signing in is concerned, so it is labelled with the vendor's name. One

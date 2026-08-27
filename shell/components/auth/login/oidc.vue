@@ -6,17 +6,6 @@ export default {
   components: { RcButton },
   mixins:     [Login],
 
-  computed: {
-    uniqueDisplayName() {
-      switch (this.name) {
-      case 'cognito':
-        return this.t('model.authConfig.description.cognito');
-      default:
-        return this.t('model.authConfig.description.oidc');
-      }
-    },
-  },
-
   methods: {
     login() {
       this.$store.dispatch('auth/redirectTo', { provider: this.name });
@@ -34,7 +23,7 @@ export default {
       data-testid="login-provider-submit"
       @click="login"
     >
-      {{ t('login.loginWithProvider', {provider: uniqueDisplayName}) }}
+      {{ t('login.loginWithProvider', {provider: displayName}) }}
     </RcButton>
   </div>
 </template>

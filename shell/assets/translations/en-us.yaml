@@ -8201,6 +8201,7 @@ model:
       genericsaml: Generic SAML
       keycloakoidc: Keycloak
       cognito: Amazon Cognito
+      oidc: OIDC
 
 
   cluster:

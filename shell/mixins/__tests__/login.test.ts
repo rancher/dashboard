@@ -41,6 +41,17 @@ describe('mixin: login', () => {
 
       expect(wrapper.vm.displayName).toBe('gh-community');
     });
+
+    // `t` yields undefined rather than the key, so the button would otherwise
+    // read "Log in with undefined" for a provider nothing is translated for.
+    it('should fall back to the provider key when there is no translation', () => {
+      const wrapper = shallowMount(Host, {
+        props:  { focusOnMount: false, name: 'oidc', type: 'oidcProvider' },
+        global: { mocks: { t: () => undefined } },
+      });
+
+      expect(wrapper.vm.displayName).toBe('oidc');
+    });
   });
 
   describe('focus', () => {
