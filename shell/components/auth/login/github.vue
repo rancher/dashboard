@@ -8,7 +8,7 @@ export default {
 
   methods: {
     login() {
-      this.$store.dispatch('auth/redirectTo', { provider: 'github' });
+      this.$store.dispatch('auth/redirectTo', { provider: this.name });
     },
   },
 };

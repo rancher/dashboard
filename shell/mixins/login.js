@@ -1,3 +1,5 @@
+import { providerKey } from '@shell/models/management.cattle.io.authconfig';
+
 export default {
   props: {
     focusOnMount: {
@@ -5,15 +7,29 @@ export default {
       required: true,
     },
 
+    /** The authconfig's name, which an admin is free to choose. */
     name: {
       type:     String,
       required: true
+    },
+
+    /** The provider the config is for, e.g. `githubProvider`. */
+    type: {
+      type:     String,
+      required: true,
     }
   },
 
   computed: {
     displayName() {
-      return this.t(`model.authConfig.provider.${ this.name }`);
+      const key = providerKey(this.type);
+      const providerString = this.t(`model.authConfig.provider.${ key }`);
+
+      // A config named after its provider is the provider as far as anyone
+      // signing in is concerned, so it is labelled with the vendor's name. One
+      // an admin has named is labelled with the name they gave it, which is the
+      // only thing telling it apart from its siblings.
+      return this.name?.toLowerCase() === key ? providerString : this.name;
     }
   },
 
@@ -25,7 +41,8 @@ export default {
 
   methods: {
     focus() {
-      this.$refs.btn.focus();
+      // SAML's control is absent while a CLI login is being rejected.
+      this.$refs.btn?.focus();
     },
   },
 };
