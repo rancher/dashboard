@@ -46,7 +46,9 @@ describe('mixin: login', () => {
     // read "Log in with undefined" for a provider nothing is translated for.
     it('should fall back to the provider key when there is no translation', () => {
       const wrapper = shallowMount(Host, {
-        props:  { focusOnMount: false, name: 'oidc', type: 'oidcProvider' },
+        props: {
+          focusOnMount: false, name: 'oidc', type: 'oidcProvider'
+        },
         global: { mocks: { t: () => undefined } },
       });
 
