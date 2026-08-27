@@ -9,9 +9,9 @@ import { useClusterLocalStorage } from '@shell/composables/useClusterLocalStorag
 import {
   POD, SERVICE, CONFIG_MAP, NODE, WORKLOAD_TYPES
 } from '@shell/config/types';
-import { useResourceShortNames } from '@shell/composables/useResourceShortNames';
 import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
 import { isMac } from '@shell/utils/platform';
+import { compareDisjointMatches, disjointMatch, type DisjointMatch } from '@shell/utils/fuzzy';
 
 /**
  * A jumpable nav section: a leaf resource type or a group overview, tagged with
@@ -20,10 +20,23 @@ import { isMac } from '@shell/utils/platform';
 interface JumpItem {
   key: string;
   label: string;
+  /**
+   * Everything this entry answers to: its label, then the types it stands in
+   * for. `Projects/Namespaces` is the entry you want when you type `ns`, and
+   * only the `namespace` it covers says so.
+   */
+  names: string[];
   path: string[];
   route: any;
-  shortNames: string[];
   node: any;
+}
+
+/** A `JumpItem` the query matched, and how well. */
+interface ScoredItem {
+  item: JumpItem;
+  match: DisjointMatch;
+  /** Whether it matched one of its names rather than only its type name. */
+  named: boolean;
 }
 
 const props = defineProps<{
@@ -42,14 +55,6 @@ const { t } = useI18n(store);
 
 const explorerClusterId = () => (store.getters.isExplorer ? store.getters.clusterId : '');
 const history = useClusterLocalStorage<string[]>('nav-jump-history', explorerClusterId);
-
-const shortNames = useResourceShortNames();
-
-const shortNamesFor = (node: any): string[] => {
-  const types = [node.name, ...(node.navResources || [])];
-
-  return Array.from(new Set(types.flatMap((type: string) => shortNames.value[type] || [])));
-};
 
 // A reactive mirror of the persisted history so the default list re-renders when
 // a jump is recorded (localStorage reads on their own aren't reactive). Reloaded
@@ -165,7 +170,7 @@ const items = computed<JumpItem[]>(() => {
       // entry), since the group itself already represents that jump.
       if (!node.isRoot && label && route && label !== parentLabel && !byKey[node.name]) {
         byKey[node.name] = {
-          key: node.name, label, path: [...path], route, shortNames: shortNamesFor(node), node
+          key: node.name, label, names: [label, ...(node.navResources || [])], path: [...path], route, node
         };
       }
 
@@ -201,10 +206,18 @@ const defaultResults = computed<JumpItem[]>(() => {
 });
 
 /**
- * Sections whose label or type name contains the query, ranked by how early the
- * match is. The type name is matched too so a resource is still findable by its
+ * Sections whose label or type name matches the query, best match first.
+ *
+ * The query does not have to appear in one piece: it is split into as few runs
+ * as it takes to find it, so a Kubernetes short name finds its resource
+ * (`netpol` -> NetworkPolicies, `cm` -> ConfigMaps) without the nav having to
+ * ask the cluster what the short names are. Whole matches still rank first.
+ *
+ * An entry's own type name is matched last, so a resource stays findable by its
  * schema and API group (`provisioning.cattle`), as it was in the search dialog
- * this replaces.
+ * this replaces. Only last, though: a row ranked highly by a type name nobody
+ * can see reads as a mismatch, and API groups are full of accidental hits (`cm`
+ * is in `acme.cert-manager.io.challenge` twice over).
  */
 const searchResults = computed<JumpItem[]>(() => {
   const q = query.value.trim().toLowerCase();
@@ -213,18 +226,33 @@ const searchResults = computed<JumpItem[]>(() => {
     return [];
   }
 
-  const matchIndex = (item: JumpItem) => {
-    const indexes = [item.label.toLowerCase().indexOf(q), item.key.toLowerCase().indexOf(q)].filter((idx) => idx >= 0);
+  // Looped rather than mapped and sorted: this runs over the whole nav on every
+  // keystroke, and all but a handful of entries have a single name.
+  const score = (item: JumpItem) => {
+    let named: DisjointMatch | null = null;
 
-    return indexes.length ? Math.min(...indexes) : -1;
+    for (const name of item.names) {
+      const match = disjointMatch(name, q);
+
+      if (match && (!named || compareDisjointMatches(match, named) < 0)) {
+        named = match;
+      }
+    }
+
+    return {
+      item, match: named || disjointMatch(item.key, q), named: !!named
+    };
   };
 
   return items.value
-    .map((item) => ({
-      item, idx: matchIndex(item), isShortName: item.shortNames.includes(q)
-    }))
-    .filter((scored) => scored.isShortName || scored.idx >= 0)
-    .sort((a, b) => Number(b.isShortName) - Number(a.isShortName) || a.idx - b.idx || a.item.label.localeCompare(b.item.label))
+    .map(score)
+    .filter((scored): scored is ScoredItem => !!scored.match)
+    // Between two equally good matches the shorter label is the tighter fit
+    // ('po' is more of `Pods` than of `PodDisruptionBudgets`).
+    .sort((a, b) => Number(b.named) - Number(a.named) ||
+      compareDisjointMatches(a.match, b.match) ||
+      a.item.label.length - b.item.label.length ||
+      a.item.label.localeCompare(b.item.label))
     .slice(0, MAX_RESULTS)
     .map((scored) => scored.item);
 });
