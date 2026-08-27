@@ -412,15 +412,15 @@ describe('page: Install', () => {
       const diffOption = () => wrapper.vm.formYamlOptions.find((o: { value: string }) => o.value === 'DIFF');
 
       // No overrides yet - nothing to compare
-      expect(diffOption().disabled).toBe(true);
+      expect(diffOption()?.disabled).toBe(true);
 
       // Typing an override enables the diff
       wrapper.setData({ valuesYaml: 'e2eTestOverride: hello\n' });
-      expect(diffOption().disabled).toBe(false);
+      expect(diffOption()?.disabled).toBe(false);
 
       // Removing it leaves a residual newline, but there is no real change so it is disabled again
       wrapper.setData({ valuesYaml: '\n' });
-      expect(diffOption().disabled).toBe(true);
+      expect(diffOption()?.disabled).toBe(true);
     });
   });
 
