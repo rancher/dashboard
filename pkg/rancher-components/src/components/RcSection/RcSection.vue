@@ -9,6 +9,33 @@
  *   <p>Section content here</p>
  * </RcSection>
  *
+ * The default slot is one content group: whatever is written into it is
+ * stacked 16px apart, so form elements go straight in and no call site needs a
+ * wrapper div for the spacing.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <LabeledInput label="Name" />
+ *   <LabeledInput label="Description" />
+ * </RcSection>
+ *
+ * The `groups` slot replaces that group, for a section that needs several. The
+ * section spaces the groups it is given 24px apart, and each group stacks its
+ * own content 16px apart. `groups` and the default slot are mutually
+ * exclusive: when both are given, `groups` wins and the default slot content
+ * is dropped.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <template #groups>
+ *     <RcContentGroup>
+ *       <LabeledInput label="Name" />
+ *       <LabeledInput label="Description" />
+ *     </RcContentGroup>
+ *     <RcContentGroup>
+ *       <LabeledInput label="Namespace" />
+ *     </RcContentGroup>
+ *   </template>
+ * </RcSection>
+ *
  * <RcSection title="Section title" type="secondary" mode="with-header" expandable v-model:expanded="expanded" background="secondary">
  *   <template #counter>
  *     <RcCounterBadge :count="99" type="inactive" />
@@ -34,9 +61,10 @@
  * </RcSection>
  */
 import {
-  computed, inject, provide, useTemplateRef, type Ref
+  computed, inject, onUpdated, provide, useSlots, useTemplateRef, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
+import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
@@ -44,6 +72,19 @@ import type { RcSectionProps, SectionBackground } from './types';
 const RC_SECTION_BG_KEY = 'rc-section-background';
 
 const props = withDefaults(defineProps<RcSectionProps>(), { title: '' });
+
+const slots = useSlots();
+
+if (process.env.NODE_ENV !== 'production') {
+  const warnOnSlotMisuse = () => {
+    if (slots.groups && slots.default) {
+      console.warn('[RcSection]: Both the `groups` slot and the default slot were given. The `groups` slot replaces the default one, so the default slot content is not rendered.'); // eslint-disable-line no-console
+    }
+  };
+
+  warnOnSlotMisuse();
+  onUpdated(warnOnSlotMisuse);
+}
 
 const parentBackground = inject<Ref<SectionBackground> | null>(RC_SECTION_BG_KEY, null);
 
@@ -133,7 +174,12 @@ function toggle() {
           <slot name="title">
             {{ props.title }}
           </slot>
-          <slot name="counter" />
+          <div
+            v-if="$slots.counter"
+            class="counter"
+          >
+            <slot name="counter" />
+          </div>
           <slot name="errors" />
         </div>
       </div>
@@ -160,7 +206,11 @@ function toggle() {
       v-if="expanded"
       :class="contentClass"
     >
-      <slot />
+      <slot name="groups">
+        <RcContentGroup>
+          <slot />
+        </RcContentGroup>
+      </slot>
     </div>
   </div>
 </template>
@@ -192,6 +242,11 @@ function toggle() {
 
   &.bg-secondary {
     background-color: var(--rc-section-background-secondary);
+
+    > .section-header .counter {
+      --rc-counter-badge-inactive-background: var(--rc-section-counter-background);
+      --rc-counter-badge-inactive-border: var(--rc-section-counter-border);
+    }
   }
 }
 
@@ -225,6 +280,11 @@ function toggle() {
   font-size: 18px;
   line-height: 1.2;
   color: var(--body-text, inherit);
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
 }
 
 // TODO: Considering removing specificity override when RcButton sizes are refactored (#18062)
@@ -262,7 +322,7 @@ function toggle() {
 .section-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--gap-lg, 24px);
   padding: 0 0 16px;
   color: var(--body-text);
 
