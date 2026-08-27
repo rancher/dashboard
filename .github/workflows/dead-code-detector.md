@@ -27,7 +27,6 @@ safe-outputs:
   create-issue:
     title-prefix: "[dead-code] "
     labels: [bot/dead-code-detector, bot/skip-grooming]
-    group: true
     max: 3
   create-pull-request:
     draft: true
