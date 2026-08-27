@@ -28,9 +28,12 @@ const getters: Record<string, any> = {
 const mockStore = {
   // clusterReady false keeps `created()`'s getGroups from building a real tree,
   // so each test can drive the methods with a tree of its own.
-  state:    { managementReady: true, clusterReady: false },
-  getters:  new Proxy(getters, { get: (target, prop: string) => target[prop] }),
-  dispatch: jest.fn(),
+  state:                { managementReady: true, clusterReady: false },
+  getters:              new Proxy(getters, { get: (target, prop: string) => target[prop] }),
+  dispatch:             jest.fn(),
+  // `mapGetters('type-map', ...)` resolves the namespace through this before it
+  // reads the getter, so a mock without it throws as soon as one is read.
+  _modulesNamespaceMap: { 'type-map/': {} },
 };
 
 /**
@@ -100,7 +103,11 @@ describe('component: SideNav', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     navStateStorage.load.mockReturnValue(null);
-    getters.currentProduct = { inStore: 'cluster', navSearch: true };
+    getters.productId = 'explorer';
+    getters.currentProduct = { name: 'explorer', inStore: 'cluster' };
+    getters['type-map/activeProducts'] = [{
+      name: 'explorer', inStore: 'cluster', navSearch: true
+    }];
   });
 
   describe('the nav toolbar is opt-in per product', () => {
@@ -111,19 +118,35 @@ describe('component: SideNav', () => {
     });
 
     it('shows it for a product that only overrode the labels', () => {
-      getters.currentProduct = { inStore: 'cluster', navSearch: { recentHeading: 'fleet.jumpTo.recentHeading' } };
+      getters['type-map/activeProducts'] = [{
+        name: 'explorer', inStore: 'cluster', navSearch: { recentHeading: 'fleet.jumpTo.recentHeading' }
+      }];
 
       expect(toolbar(mountNav()).exists()).toBe(true);
     });
 
     it('leaves it out entirely for a product that did not, collapse-all included', () => {
-      getters.currentProduct = { inStore: 'cluster' };
+      getters['type-map/activeProducts'] = [{ name: 'explorer', inStore: 'cluster' }];
 
       const wrapper = mountNav();
 
       expect(toolbar(wrapper).exists()).toBe(false);
       // The nav starts at the first group rather than at an empty strip
       expect(wrapper.find('.side-nav').element.firstElementChild?.className).toContain('nav');
+    });
+
+    it('reads this product\'s option, not whichever one currentProduct fell back to', () => {
+      // `currentProduct` answers with an unrelated product while this one is
+      // still registering, and that product's option must not decide this one
+      getters.productId = 'explorer';
+      getters['type-map/activeProducts'] = [{
+        name: 'apps', inStore: 'cluster', navSearch: true
+      }];
+      getters.currentProduct = {
+        name: 'apps', inStore: 'cluster', navSearch: true
+      };
+
+      expect(toolbar(mountNav()).exists()).toBe(false);
     });
   });
 

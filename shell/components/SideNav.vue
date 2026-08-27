@@ -197,12 +197,18 @@ export default {
     },
 
     /**
-     * Whether this product asked for the nav toolbar. It carries the collapse-all
-     * control as well as the search, so a product that has not opted in gets
-     * neither and its nav starts at the first group.
+     * This product's nav toolbar option, or undefined if it did not ask for one.
+     * The toolbar carries the collapse-all control as well as the search, so a
+     * product that has not opted in gets neither and its nav starts at the first
+     * group.
+     *
+     * Looked up by name rather than read off `currentProduct`: that getter
+     * answers with an unrelated product when this one has not registered yet,
+     * and we would show or hide the toolbar on that product's option instead of
+     * this one's.
      */
-    hasNavSearch() {
-      return !!this.currentProduct?.navSearch;
+    navSearch() {
+      return (this.activeProducts || []).find((p) => p.name === this.productId)?.navSearch;
     },
 
     /**
@@ -544,8 +550,9 @@ export default {
          products that asked for it. The collapse-all control only appears
          while a group is expanded. -->
     <NavActionBar
-      v-if="hasNavSearch"
+      v-if="navSearch"
       :groups="groups"
+      :nav-search="navSearch"
       :has-expanded-group="hasExpandedGroup"
       @collapse-all="collapseAll()"
       @jumped="onJumped"

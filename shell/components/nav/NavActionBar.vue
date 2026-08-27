@@ -48,6 +48,8 @@ interface ScoredItem {
 const props = defineProps<{
   /** The nav tree (SideNav's groups), the source of jumpable sections. */
   groups: any[];
+  /** The product's `navSearch` option: `true`, or the labels it overrides. */
+  navSearch: boolean | NavSearchLabels;
   /** Whether any nav group is currently expanded (gates the collapse-all control). */
   hasExpandedGroup: boolean;
 }>();
@@ -76,12 +78,10 @@ const DEFAULT_LABELS: Required<NavSearchLabels> = {
   recentHeading:  'nav.jumpTo.recentHeading',
 };
 
-const labels = computed<Required<NavSearchLabels>>(() => {
-  const configured = store.getters.currentProduct?.navSearch;
-
+const labels = computed<Required<NavSearchLabels>>(() => (
   // `true` opts in without saying anything about wording.
-  return typeof configured === 'object' ? { ...DEFAULT_LABELS, ...configured } : DEFAULT_LABELS;
-});
+  typeof props.navSearch === 'object' ? { ...DEFAULT_LABELS, ...props.navSearch } : DEFAULT_LABELS
+));
 
 // A reactive mirror of the persisted history so the default list re-renders when
 // a jump is recorded (localStorage reads on their own aren't reactive). Reloaded

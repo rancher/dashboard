@@ -16,11 +16,7 @@ const mockHistory = {
   }),
 };
 
-const mockStore = {
-  getters: {
-    isExplorer: true, clusterId: 'c-test', currentProduct: undefined as any
-  }
-};
+const mockStore = { getters: { isExplorer: true, clusterId: 'c-test' } };
 
 jest.mock('vuex', () => ({ useStore: () => mockStore }));
 jest.mock('vue-router', () => ({ useRouter: () => mockRouter, useRoute: () => ({ path: '/current' }) }));
@@ -73,7 +69,7 @@ const groups = [
 
 const mountBar = (props: Record<string, any> = {}) => mount(NavActionBar, {
   props: {
-    groups, hasExpandedGroup: false, ...props
+    groups, navSearch: true, hasExpandedGroup: false, ...props
   },
   global: {
     directives: { shortkey: {} },
@@ -89,7 +85,6 @@ describe('NavActionBar.vue', () => {
   beforeEach(() => {
     stored = null;
     activeNavItem = null;
-    mockStore.getters.currentProduct = { navSearch: true };
     jest.clearAllMocks();
   });
 
@@ -100,10 +95,9 @@ describe('NavActionBar.vue', () => {
   });
 
   it('takes the labels a product overrides, and keeps the default for the rest', async() => {
-    mockStore.getters.currentProduct = { navSearch: { placeholder: 'fleet.jumpTo.placeholder', recentHeading: 'fleet.jumpTo.recentHeading' } };
     stored = ['configmap'];
 
-    const wrapper = mountBar();
+    const wrapper = mountBar({ navSearch: { placeholder: 'fleet.jumpTo.placeholder', recentHeading: 'fleet.jumpTo.recentHeading' } });
     const input = wrapper.find('.jump-to-input');
 
     expect(input.attributes('placeholder')).toStrictEqual('%fleet.jumpTo.placeholder%');
@@ -117,9 +111,7 @@ describe('NavActionBar.vue', () => {
   });
 
   it('keeps every default label for a product that opts in without wording', async() => {
-    mockStore.getters.currentProduct = { navSearch: true };
-
-    const wrapper = mountBar();
+    const wrapper = mountBar({ navSearch: true });
 
     await wrapper.find('.jump-to-input').trigger('focus');
     await wrapper.find('.jump-to-input').setValue('zzz');
