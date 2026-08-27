@@ -272,7 +272,7 @@ describe('composable: useKubernetesVersions', () => {
       expect(allPSAs.value).toStrictEqual([]);
     });
 
-    it('throws when no version info is returned for either distro', async() => {
+    it('records an error instead of throwing when no version info is returned for either distro', async() => {
       mockDispatch.mockImplementation((action: string, args: any = {}) => {
         const { url } = args;
 
@@ -285,9 +285,92 @@ describe('composable: useKubernetesVersions', () => {
       mockGetters['management/canList'] = () => false;
       mockGetters['management/all'] = () => [];
 
-      const { fetchRke2Versions } = useKubernetesVersions(baseProps());
+      const { fetchRke2Versions, fetchVersionsErrors } = useKubernetesVersions(baseProps());
 
-      await expect(fetchRke2Versions()).rejects.toThrow('No version info found in KDM');
+      await expect(fetchRke2Versions()).resolves.toBeUndefined();
+      expect(fetchVersionsErrors.value).toStrictEqual(['No version info found in KDM']);
+    });
+
+    it('records a per-request error without losing data that loaded successfully from other requests', async() => {
+      mockDispatch.mockImplementation((action: string, args: any = {}) => {
+        const { url } = args;
+
+        if (action === 'management/request' && url === '/v1-rke2-release/releases') {
+          return Promise.reject(new Error('rke2 releases request failed'));
+        }
+
+        return buildDispatch()(action, args);
+      });
+      mockGetters['management/canList'] = () => false;
+      mockGetters['management/all'] = () => [
+        { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
+        { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
+      ];
+
+      const {
+        fetchRke2Versions, rke2Versions, k3sVersions, fetchVersionsErrors
+      } = useKubernetesVersions(baseProps());
+
+      await fetchRke2Versions();
+
+      expect(fetchVersionsErrors.value).toStrictEqual(['rke2 releases request failed']);
+      expect(rke2Versions.value).toBeNull();
+      expect(k3sVersions.value).toStrictEqual([{ id: 'v1.28.0+k3s1', serverArgs: {} }]);
+    });
+
+    it('records an error without throwing when the PSA request fails', async() => {
+      mockDispatch.mockImplementation((action: string, args: any = {}) => {
+        if (action === 'management/findAll') {
+          return Promise.reject(new Error('PSA request failed'));
+        }
+
+        return buildDispatch()(action, args);
+      });
+      mockGetters['management/canList'] = jest.fn(() => true);
+      mockGetters['management/all'] = () => [
+        { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
+        { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
+      ];
+
+      const {
+        fetchRke2Versions, allPSAs, rke2Versions, fetchVersionsErrors
+      } = useKubernetesVersions(baseProps());
+
+      await expect(fetchRke2Versions()).resolves.toBeUndefined();
+
+      expect(fetchVersionsErrors.value).toStrictEqual(['PSA request failed']);
+      expect(allPSAs.value).toStrictEqual([]);
+      // the failure is isolated to the PSA request - version data still loads normally
+      expect(rke2Versions.value).toStrictEqual([{ id: 'v1.28.0+rke2r1', serverArgs: {} }]);
+    });
+
+    it('retries a previously failed request on the next call, rather than treating the failure as "loaded"', async() => {
+      let rke2ReleasesShouldFail = true;
+
+      mockDispatch.mockImplementation((action: string, args: any = {}) => {
+        const { url } = args;
+
+        if (action === 'management/request' && url === '/v1-rke2-release/releases' && rke2ReleasesShouldFail) {
+          return Promise.reject(new Error('rke2 releases request failed'));
+        }
+
+        return buildDispatch()(action, args);
+      });
+      mockGetters['management/canList'] = () => false;
+      mockGetters['management/all'] = () => [
+        { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
+        { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
+      ];
+
+      const { fetchRke2Versions, rke2Versions } = useKubernetesVersions(baseProps());
+
+      await fetchRke2Versions();
+      expect(rke2Versions.value).toBeNull();
+
+      rke2ReleasesShouldFail = false;
+      await fetchRke2Versions();
+
+      expect(rke2Versions.value).toStrictEqual([{ id: 'v1.28.0+rke2r1', serverArgs: {} }]);
     });
   });
 });

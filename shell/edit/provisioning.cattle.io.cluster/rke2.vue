@@ -154,6 +154,7 @@ export default {
 
   async fetch() {
     await this.fetchRke2Versions();
+    this.errors = this.errors.concat(this.fetchVersionsErrors);
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();

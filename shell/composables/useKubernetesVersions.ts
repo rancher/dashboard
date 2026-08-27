@@ -106,22 +106,55 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
    */
   const chartVersions = computed(() => selectedVersion.value?.charts || {});
 
+  const fetchVersionsErrors = ref<string[]>([]);
+
+  /**
+   * Each request is caught individually so that one failing endpoint (e.g. PSAs, or one distro's
+   * releases/channels) doesn't wipe out data that loaded successfully from the others, and doesn't
+   * abort the caller's fetch() - the caller reads `fetchVersionsErrors` afterward and displays it
+   * (e.g. via `this.errors`) instead of the whole page failing to load.
+   */
+  async function safeRequest(url: string) {
+    try {
+      return await store.dispatch('management/request', { url });
+    } catch (e: any) {
+      fetchVersionsErrors.value.push(e?.message || String(e));
+
+      return undefined;
+    }
+  }
+
   async function fetchRke2Versions() {
     if (rke2Versions.value) {
       return;
     }
 
+    fetchVersionsErrors.value = [];
+
     const hash: Record<string, any> = {
-      rke2Versions: store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
-      k3sVersions:  store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
+      rke2Versions: safeRequest('/v1-rke2-release/releases'),
+      k3sVersions:  safeRequest('/v1-k3s-release/releases'),
     };
 
+    let nextAllPSAs: any[] | undefined;
+
     if (store.getters['management/canList'](MANAGEMENT.PSA)) {
-      hash.allPSAs = await store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
+      try {
+        nextAllPSAs = await store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
+      } catch (e: any) {
+        fetchVersionsErrors.value.push(e?.message || String(e));
+      }
     }
 
     // Get the latest versions from the global settings if possible
-    const globalSettings = await store.getters['management/all'](MANAGEMENT.SETTING) || [];
+    let globalSettings: any[] = [];
+
+    try {
+      globalSettings = (await store.getters['management/all'](MANAGEMENT.SETTING)) || [];
+    } catch (e: any) {
+      fetchVersionsErrors.value.push(e?.message || String(e));
+    }
+
     const defaultRke2Setting = globalSettings.find((setting: any) => setting.id === 'rke2-default-version') || {};
     const defaultK3sSetting = globalSettings.find((setting: any) => setting.id === 'k3s-default-version') || {};
 
@@ -130,37 +163,42 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
 
     // RKE2: Use the channel if we can not get the version from the settings
     if (!nextDefaultRke2) {
-      hash.rke2Channels = store.dispatch('management/request', { url: '/v1-rke2-release/channels' });
+      hash.rke2Channels = safeRequest('/v1-rke2-release/channels');
     }
 
     // K3S: Use the channel if we can not get the version from the settings
     if (!nextDefaultK3s) {
-      hash.k3sChannels = store.dispatch('management/request', { url: '/v1-k3s-release/channels' });
+      hash.k3sChannels = safeRequest('/v1-k3s-release/channels');
     }
 
     const res = await allHash(hash);
 
-    const nextRke2Versions = res.rke2Versions.data || [];
-    const nextK3sVersions = res.k3sVersions.data || [];
+    const nextRke2Versions = res.rke2Versions?.data || [];
+    const nextK3sVersions = res.k3sVersions?.data || [];
 
-    allPSAs.value = res.allPSAs || [];
-    rke2Versions.value = nextRke2Versions;
-    k3sVersions.value = nextK3sVersions;
+    allPSAs.value = nextAllPSAs || [];
 
-    if (!nextDefaultRke2) {
+    if (res.rke2Versions) {
+      rke2Versions.value = nextRke2Versions;
+    }
+    if (res.k3sVersions) {
+      k3sVersions.value = nextK3sVersions;
+    }
+
+    if (!nextDefaultRke2 && res.rke2Channels) {
       const rke2Channels = res.rke2Channels.data || [];
 
       nextDefaultRke2 = rke2Channels.find((x: any) => x.id === 'default')?.latest;
     }
 
-    if (!nextDefaultK3s) {
+    if (!nextDefaultK3s && res.k3sChannels) {
       const k3sChannels = res.k3sChannels.data || [];
 
       nextDefaultK3s = k3sChannels.find((x: any) => x.id === 'default')?.latest;
     }
 
     if (!nextRke2Versions.length && !nextK3sVersions.length) {
-      throw new Error('No version info found in KDM');
+      fetchVersionsErrors.value.push('No version info found in KDM');
     }
 
     // Store default versions
@@ -182,6 +220,7 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
     agentArgs,
     chartVersions,
     fetchRke2Versions,
+    fetchVersionsErrors,
   };
 }
 
