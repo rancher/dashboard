@@ -4581,15 +4581,12 @@ login:
   clientError: Invalid username or password. Please try again.
   userUnauthorized: You are not authorized to use this system.
   specificError: 'An error occurred logging in: {msg}'
-  useLocal: Use a local user
   loginWithProvider: Log in with {provider}
   username: Username
   password: Password
   loggingIn: Logging in...
   loggedIn: Logged in
   loginWithLocal: Log in with Local User
-  useProvider: Use a {provider} user
-  useNonLocal: Use a non-local user
   providers:
     heading: Choose how to sign in
     or: Or
