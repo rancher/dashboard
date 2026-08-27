@@ -282,7 +282,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
 
   it('can assign cluster to different fleet workspaces', () => {
     // create workspace
-    cy.createRancherResource('v3', 'fleetworkspaces', `{"type":"fleetworkspace","name":"${ customWorkspace }","annotations":{},"labels":{}}`).then(() => {
+    // Note: tolerate a 409 (AlreadyExists). The resource name is generated once per run, so on a
+    // Cypress retry the workspace created by the previous attempt is still there.
+    cy.createRancherResource('v3', 'fleetworkspaces', `{"type":"fleetworkspace","name":"${ customWorkspace }","annotations":{},"labels":{}}`, false).then(() => {
       removeWorkspace = true;
     });
 
@@ -352,7 +354,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
 
       // delete gitrepo
-      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ namespace }`, gitRepo).then(() => {
+      // Note: tolerate a 404 (NotFound). On a Cypress retry the git repo may already have been
+      // deleted by the previous attempt before it failed further down.
+      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ namespace }`, gitRepo, false).then(() => {
         removeGitRepo = false;
       });
 
