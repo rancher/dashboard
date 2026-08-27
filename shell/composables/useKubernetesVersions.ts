@@ -125,7 +125,7 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
   }
 
   async function fetchRke2Versions() {
-    if (rke2Versions.value) {
+    if (rke2Versions.value !== null && k3sVersions.value !== null) {
       return;
     }
 

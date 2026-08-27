@@ -189,14 +189,34 @@ describe('composable: useKubernetesVersions', () => {
       });
     };
 
-    it('does nothing when versions are already loaded', async() => {
-      const { fetchRke2Versions, rke2Versions } = useKubernetesVersions(baseProps());
+    it('does nothing when both distros are already loaded', async() => {
+      const { fetchRke2Versions, rke2Versions, k3sVersions } = useKubernetesVersions(baseProps());
 
       rke2Versions.value = [{ id: 'cached' }];
+      k3sVersions.value = [{ id: 'cached' }];
 
       await fetchRke2Versions();
 
       expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('retries when one distro loaded but the other is still null (e.g. it previously failed)', async() => {
+      mockDispatch.mockImplementation(buildDispatch());
+      mockGetters['management/canList'] = () => false;
+      mockGetters['management/all'] = () => [
+        { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
+        { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
+      ];
+
+      const { fetchRke2Versions, rke2Versions, k3sVersions } = useKubernetesVersions(baseProps());
+
+      rke2Versions.value = [{ id: 'cached' }];
+      // k3sVersions left null, as if a prior call's k3s request failed
+
+      await fetchRke2Versions();
+
+      expect(mockDispatch).toHaveBeenCalledWith('management/request', { url: '/v1-k3s-release/releases' });
+      expect(k3sVersions.value).toStrictEqual([{ id: 'v1.28.0+k3s1', serverArgs: {} }]);
     });
 
     it('populates versions and default versions from global settings when present', async() => {
@@ -362,15 +382,17 @@ describe('composable: useKubernetesVersions', () => {
         { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
       ];
 
-      const { fetchRke2Versions, rke2Versions } = useKubernetesVersions(baseProps());
+      const { fetchRke2Versions, rke2Versions, fetchVersionsErrors } = useKubernetesVersions(baseProps());
 
       await fetchRke2Versions();
       expect(rke2Versions.value).toBeNull();
+      expect(fetchVersionsErrors.value).toStrictEqual(['rke2 releases request failed']);
 
       rke2ReleasesShouldFail = false;
       await fetchRke2Versions();
 
       expect(rke2Versions.value).toStrictEqual([{ id: 'v1.28.0+rke2r1', serverArgs: {} }]);
+      expect(fetchVersionsErrors.value).toStrictEqual([]);
     });
   });
 });
