@@ -407,28 +407,6 @@ describe('page: Install', () => {
       expect(wrapper.vm.valuesYaml).toBe(overrides);
     });
 
-    describe('sameYamlOverrides', () => {
-      it.each([
-        ['both empty', '', ''],
-        ['empty vs whitespace-only newline', '', '\n'],
-        ['empty vs blank lines', '', '  \n\n'],
-        ['same content with a trailing newline difference', 'foo: bar', 'foo: bar\n'],
-      ])('treats %s as no change', (_label, a, b) => {
-        const wrapper = mountWithYaml('');
-
-        expect(wrapper.vm.sameYamlOverrides(a, b)).toBe(true);
-      });
-
-      it.each([
-        ['added content', '', 'foo: bar\n'],
-        ['changed value', 'foo: bar\n', 'foo: baz\n'],
-      ])('treats %s as a change', (_label, a, b) => {
-        const wrapper = mountWithYaml('');
-
-        expect(wrapper.vm.sameYamlOverrides(a, b)).toBe(false);
-      });
-    });
-
     it('disables Compare Changes once an override is typed then removed', () => {
       const wrapper = mountWithYaml('');
       const diffOption = () => wrapper.vm.formYamlOptions.find((o: { value: string }) => o.value === 'DIFF');

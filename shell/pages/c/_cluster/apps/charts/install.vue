@@ -20,6 +20,7 @@ import Questions from '@shell/components/Questions';
 import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
+import YamlOverridesEditor from '@shell/components/YamlOverridesEditor';
 import Wizard from '@shell/components/Wizard';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
@@ -39,6 +40,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
+import { mergeOverrides, overridesFromValues, sameYamlOverrides } from '@shell/utils/chart-values';
 import { addParam } from '@shell/utils/url';
 import { WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
@@ -97,6 +99,7 @@ export default {
     Tabbed,
     UnitInput,
     YamlEditor,
+    YamlOverridesEditor,
     Wizard,
     SelectOrCreateAuthSecret,
     PrivateRegistry,
@@ -361,9 +364,7 @@ export default {
         previously-saved overrides. Keeping the editor to overrides only is what
         stops removed keys from being sent to Helm as `null`.
       */
-      const overrides = diff(this.versionInfo?.values || {}, this.chartValues);
-
-      this.valuesYaml = Object.keys(overrides).length ? saferDump(overrides) : '';
+      this.valuesYaml = overridesFromValues(this.versionInfo?.values || {}, this.chartValues);
 
       /* For YAML diff */
       if ( !this.loadedVersion ) {
@@ -676,22 +677,7 @@ export default {
       renders with. Recomputes live as the user edits their overrides.
     */
     finalYaml() {
-      let overrides = {};
-
-      try {
-        overrides = jsyaml.load(this.valuesYaml) || {};
-      } catch (e) {
-        // While the user is mid-edit the YAML may be invalid; keep the last
-        // valid defaults-only view rather than throwing.
-        overrides = {};
-      }
-
-      const combined = mergeWithReplace(
-        merge({}, this.versionInfo?.values || {}),
-        overrides,
-      );
-
-      return saferDump(combined);
+      return mergeOverrides(this.versionInfo?.values || {}, this.valuesYaml);
     },
 
     showingYaml() {
@@ -719,7 +705,7 @@ export default {
         value:    VALUES_STATE.DIFF,
         // The editable pane holds overrides only, so compare against the overrides (diff), not the full merged chartValues.
         // Compare parsed content so editor whitespace (e.g. a leftover newline after typing then deleting) doesn't count as a change.
-        disabled: this.formYamlOption === VALUES_STATE.FORM ? this.sameYamlOverrides(this.originalYamlValues, saferDump(diff(this.versionInfo?.values || {}, this.chartValues || {}))) : this.sameYamlOverrides(this.originalYamlValues, this.valuesYaml),
+        disabled: this.formYamlOption === VALUES_STATE.FORM ? sameYamlOverrides(this.originalYamlValues, overridesFromValues(this.versionInfo?.values || {}, this.chartValues || {})) : sameYamlOverrides(this.originalYamlValues, this.valuesYaml),
       });
 
       return options;
@@ -897,18 +883,6 @@ export default {
       }
     },
 
-    /*
-      Keep the read-only "Final values preview" pane in sync. YamlEditor does not
-      react to its `value` prop, so push the recomputed YAML in via its ref
-      whenever the overrides (or the async-loaded chart defaults) change.
-    */
-    finalYaml(neu) {
-      this.$nextTick(() => {
-        this.$refs.finalEditor?.updateValue(neu);
-        this.$refs.finalEditor?.refresh();
-      });
-    },
-
     preFormYamlOption(neu, old) {
       if (neu === VALUES_STATE.FORM && this.valuesYaml !== this.previousYamlValues && !!this.$refs.cancelModal) {
         this.$refs.cancelModal.show();
@@ -932,7 +906,7 @@ export default {
         // Show the YAML preview. The editable pane holds overrides only, so seed
         // it with the diff between the chart defaults and the form's values.
         if (old === VALUES_STATE.FORM) {
-          this.valuesYaml = saferDump(diff(this.versionInfo?.values || {}, this.chartValues || {}));
+          this.valuesYaml = overridesFromValues(this.versionInfo?.values || {}, this.chartValues || {});
           this.previousYamlValues = this.valuesYaml;
         }
 
@@ -945,7 +919,7 @@ export default {
         // Show the YAML diff. The editable pane holds overrides only, so seed it
         // with the diff between the chart defaults and the form's values.
         if (old === VALUES_STATE.FORM) {
-          this.valuesYaml = saferDump(diff(this.versionInfo?.values || {}, this.chartValues || {}));
+          this.valuesYaml = overridesFromValues(this.versionInfo?.values || {}, this.chartValues || {});
           this.previousYamlValues = this.valuesYaml;
         }
 
@@ -986,26 +960,6 @@ export default {
   },
 
   methods: {
-    /**
-     * Compare two override YAML strings by their parsed content rather than
-     * raw text. Typing then deleting in the editor can leave residual
-     * whitespace (e.g. a trailing newline) that makes the strings differ even
-     * though there are no real changes, which would wrongly enable the
-     * "Compare Changes" diff. Empty/whitespace-only or unparseable input is
-     * treated as an empty document.
-     */
-    sameYamlOverrides(a, b) {
-      const parse = (yaml) => {
-        try {
-          return JSON.stringify(jsyaml.load(yaml || '') || {});
-        } catch {
-          return yaml;
-        }
-      };
-
-      return parse(a) === parse(b);
-    },
-
     /**
      * The custom registry UI fields (checkbox and input) are not directly bound to chartValues.
      * Before calculating the diff to carry over user customizations, we must
@@ -1182,9 +1136,7 @@ export default {
     },
 
     updateValue(value) {
-      if (this.$refs.yaml) {
-        this.$refs.yaml.updateValue(value);
-      }
+      this.$refs.valuesEditor?.updateOverrides(value);
     },
 
     async loadValuesComponent() {
@@ -2115,54 +2067,19 @@ export default {
             </template>
             <!-- Values (as YAML): editable overrides + read-only final values -->
             <template v-else>
-              <div class="values-panes step__values__content">
-                <div
-                  class="values-pane"
-                  data-testid="chart-values-overrides-pane"
-                >
-                  <div class="values-pane__header">
-                    <h4 class="values-pane__title">
-                      {{ t('catalog.install.section.overrides.label') }}
-                    </h4>
-                    <p class="values-pane__description">
-                      {{ t('catalog.install.section.overrides.hint') }}
-                    </p>
-                  </div>
-                  <YamlEditor
-                    ref="yaml"
-                    v-model:value="valuesYaml"
-                    class="values-pane__editor"
-                    component-testid="chart-values-overrides"
-                    :scrolling="true"
-                    :initial-yaml-values="originalYamlValues"
-                    :editor-mode="editorMode"
-                    :hide-preview-buttons="true"
-                  />
-                </div>
-                <div
-                  class="values-pane"
-                  data-testid="chart-values-final-pane"
-                >
-                  <div class="values-pane__header">
-                    <h4 class="values-pane__title">
-                      {{ t('catalog.install.section.finalValues.label') }}
-                    </h4>
-                    <p class="values-pane__description">
-                      {{ t('catalog.install.section.finalValues.hint') }}
-                    </p>
-                  </div>
-                  <YamlEditor
-                    ref="finalEditor"
-                    :value="finalYaml"
-                    class="values-pane__editor values-pane__editor--readonly"
-                    component-testid="chart-values-final"
-                    :scrolling="true"
-                    mode="view"
-                    :editor-mode="EDITOR_MODES.VIEW_CODE"
-                    :hide-preview-buttons="true"
-                  />
-                </div>
-              </div>
+              <YamlOverridesEditor
+                ref="valuesEditor"
+                v-model:value="valuesYaml"
+                class="step__values__content"
+                :preview="finalYaml"
+                :editor-mode="editorMode"
+                :initial-yaml-values="originalYamlValues"
+                :overrides-label="t('catalog.install.section.overrides.label')"
+                :overrides-hint="t('catalog.install.section.overrides.hint')"
+                :final-label="t('catalog.install.section.finalValues.label')"
+                :final-hint="t('catalog.install.section.finalValues.hint')"
+                testid-prefix="chart-values"
+              />
             </template>
           </div>
         </div>
@@ -2408,50 +2325,6 @@ export default {
         }
       }
 
-    }
-  }
-
-  .values-panes {
-    display: flex;
-    gap: var(--gap-lg);
-    min-height: 0;
-    // Size each pane to its own content so the editable pane isn't stretched by
-    // the taller read-only pane.
-    align-items: flex-start;
-
-    .values-pane {
-      display: flex;
-      flex-direction: column;
-      flex: 1 1 50%;
-      min-width: 0;
-      min-height: 0;
-
-      &__header {
-        margin-bottom: 16px;
-      }
-
-      &__title {
-        font-weight: 600;
-        margin: 0 0 4px 0;
-      }
-
-      &__description {
-        color: var(--input-label);
-      }
-
-      &__editor {
-        &--readonly {
-          :deep(.CodeMirror),
-          :deep(.CodeMirror .CodeMirror-gutters) {
-            background-color: var(--body-bg);
-          }
-
-          // Read-only preview: the blur hint "Press Shift+Esc..." is meaningless here
-          :deep(.escape-text) {
-            display: none;
-          }
-        }
-      }
     }
   }
 
