@@ -206,9 +206,16 @@ export default {
      * answers with an unrelated product when this one has not registered yet,
      * and we would show or hide the toolbar on that product's option instead of
      * this one's.
+     *
+     * From the registered products rather than `activeProducts`, which is
+     * filtered by the schemas the current user can see. The nav itself is not:
+     * `getGroups` renders the current product whether or not it survives that
+     * filter, so reading the option from the filtered list would leave a
+     * Standard User the nav and take away its toolbar. `navSearch` is static
+     * product config, so visibility has no say in it.
      */
     navSearch() {
-      return (this.activeProducts || []).find((p) => p.name === this.productId)?.navSearch;
+      return this.$store.getters['type-map/productByName'](this.productId)?.navSearch;
     },
 
     /**

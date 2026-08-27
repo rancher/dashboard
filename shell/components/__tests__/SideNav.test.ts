@@ -19,6 +19,7 @@ const getters: Record<string, any> = {
   'i18n/selectedLocaleLabel': 'English',
   'i18n/hasMultipleLocales':  false,
   'type-map/activeProducts':  [],
+  'type-map/productByName':   () => undefined,
   'prefs/get':                () => [],
   'cluster/schemaFor':        () => null,
   'cluster/all':              () => [],
@@ -74,6 +75,16 @@ const GroupStub = {
   },
 };
 
+/**
+ * Registers products with the store mock. `activeProducts` is what the user can
+ * see; `type-map/productByName` answers from the full registered list, which is
+ * every product passed here.
+ */
+const registerProducts = (products: any[], visible = products) => {
+  getters['type-map/activeProducts'] = visible;
+  getters['type-map/productByName'] = (name: string) => products.find((p) => p.name === name);
+};
+
 // `wrapper.vm.groups` resolves to the `ref="groups"` template refs, so go through
 // `$data` to reach (and reactively mutate) the nav tree itself.
 const navGroups = (wrapper: any, groups?: any[]) => {
@@ -105,9 +116,9 @@ describe('component: SideNav', () => {
     navStateStorage.load.mockReturnValue(null);
     getters.productId = 'explorer';
     getters.currentProduct = { name: 'explorer', inStore: 'cluster' };
-    getters['type-map/activeProducts'] = [{
+    registerProducts([{
       name: 'explorer', inStore: 'cluster', navSearch: true
-    }];
+    }]);
   });
 
   describe('the nav toolbar is opt-in per product', () => {
@@ -118,15 +129,15 @@ describe('component: SideNav', () => {
     });
 
     it('shows it for a product that only overrode the labels', () => {
-      getters['type-map/activeProducts'] = [{
+      registerProducts([{
         name: 'explorer', inStore: 'cluster', navSearch: { recentHeading: 'fleet.jumpTo.recentHeading' }
-      }];
+      }]);
 
       expect(toolbar(mountNav()).exists()).toBe(true);
     });
 
     it('leaves it out entirely for a product that did not, collapse-all included', () => {
-      getters['type-map/activeProducts'] = [{ name: 'explorer', inStore: 'cluster' }];
+      registerProducts([{ name: 'explorer', inStore: 'cluster' }]);
 
       const wrapper = mountNav();
 
@@ -139,14 +150,29 @@ describe('component: SideNav', () => {
       // `currentProduct` answers with an unrelated product while this one is
       // still registering, and that product's option must not decide this one
       getters.productId = 'explorer';
-      getters['type-map/activeProducts'] = [{
+      registerProducts([{
         name: 'apps', inStore: 'cluster', navSearch: true
-      }];
+      }]);
       getters.currentProduct = {
         name: 'apps', inStore: 'cluster', navSearch: true
       };
 
       expect(toolbar(mountNav()).exists()).toBe(false);
+    });
+
+    it('shows it for a product the current user cannot see in activeProducts', () => {
+      // `activeProducts` drops a product whose schemas this user lacks, but the
+      // nav still renders it: a Standard User on Continuous Delivery would
+      // otherwise get the nav with no toolbar at all.
+      getters.productId = 'fleet';
+      registerProducts(
+        [{
+          name: 'fleet', inStore: 'management', navSearch: true
+        }],
+        [{ name: 'explorer', inStore: 'cluster' }]
+      );
+
+      expect(toolbar(mountNav()).exists()).toBe(true);
     });
   });
 

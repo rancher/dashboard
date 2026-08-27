@@ -398,7 +398,7 @@ function validateProductName(product) {
 let loading = null;
 
 /**
- * Registers every product, once per session.
+ * Registers the built-in products, once per session.
  *
  * Callers get the same promise, so a navigation that arrives while the products
  * are still loading waits for them like the first one did. It used to raise a
@@ -406,6 +406,13 @@ let loading = null;
  * behind, which let a route render against a half-registered product list -
  * and `currentProduct` answers for a product that has not registered yet by
  * falling back to an unrelated one.
+ *
+ * Only the built-in ones: `loadProducts` returns nothing to await, inits each
+ * plugin's products in an un-awaited `forEach`, and in any case only reaches
+ * plugins already loaded - external ones arrive later through
+ * `loadPluginAsync`. So an extension product can still register after a route
+ * has rendered, exactly as it could before. Awaiting extension products is a
+ * change to the extension API, not to this function.
  *
  * A failed load clears the promise so the next navigation can try again, rather
  * than leaving every later caller inheriting the failure.
