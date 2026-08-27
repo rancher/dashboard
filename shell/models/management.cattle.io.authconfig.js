@@ -76,6 +76,11 @@ export default class AuthConfig extends SteveModel {
     super.goToEdit({ [EDIT_CONFIG]: 'true', ...moreQuery });
   }
 
+  /**
+   * The base class parts each action from the next, which leaves a menu that is
+   * mostly rules. These read as two groups instead: what you can do with the
+   * config, and what takes it away.
+ */
   get _availableActions() {
     const inherited = super._availableActions.filter((a) => !a.divider);
     const disable = {
