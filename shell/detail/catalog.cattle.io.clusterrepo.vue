@@ -463,7 +463,7 @@ export default {
 .charts-label {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--gap);
 
   &__info {
     color: var(--muted);
@@ -474,7 +474,7 @@ export default {
 .repo-type {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--gap);
 
   &__img {
     width: 16px;
