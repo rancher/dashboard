@@ -12,6 +12,7 @@ import {
 import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
 import { isMac } from '@shell/utils/platform';
 import { compareDisjointMatches, disjointMatch, type DisjointMatch } from '@shell/utils/fuzzy';
+import type { NavSearchLabels } from '@shell/types/store/type-map';
 
 /**
  * A jumpable nav section: a leaf resource type or a group overview, tagged with
@@ -60,6 +61,27 @@ const { t } = useI18n(store);
 
 const explorerClusterId = () => (store.getters.isExplorer ? store.getters.clusterId : '');
 const history = useClusterLocalStorage<string[]>('nav-jump-history', explorerClusterId);
+
+/**
+ * Wording that suits any product's nav. A product enabling the search can
+ * replace any of these through its `navSearch` option, so it never has to
+ * inherit a label that describes something it does not have.
+ */
+const DEFAULT_LABELS: Required<NavSearchLabels> = {
+  placeholder:    'nav.jumpTo.placeholder',
+  tooltip:        'nav.jumpTo.tooltip',
+  ariaLabel:      'nav.jumpTo.ariaLabel',
+  noResults:      'nav.jumpTo.noResults',
+  popularHeading: 'nav.jumpTo.popularHeading',
+  recentHeading:  'nav.jumpTo.recentHeading',
+};
+
+const labels = computed<Required<NavSearchLabels>>(() => {
+  const configured = store.getters.currentProduct?.navSearch;
+
+  // `true` opts in without saying anything about wording.
+  return typeof configured === 'object' ? { ...DEFAULT_LABELS, ...configured } : DEFAULT_LABELS;
+});
 
 // A reactive mirror of the persisted history so the default list re-renders when
 // a jump is recorded (localStorage reads on their own aren't reactive). Reloaded
@@ -290,7 +312,7 @@ const listHeadingKey = computed<string | null>(() => {
     return null;
   }
 
-  return recentItems.value.length ? 'nav.jumpTo.recentHeading' : 'nav.jumpTo.popularHeading';
+  return recentItems.value.length ? labels.value.recentHeading : labels.value.popularHeading;
 });
 
 // Reset the highlight to the top on open and while typing, but not when the
@@ -393,9 +415,9 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
         aria-haspopup="listbox"
         :aria-expanded="open"
         :aria-activedescendant="open && results.length ? optionId(activeIndex) : undefined"
-        :aria-label="t('nav.jumpTo.ariaLabel')"
-        :placeholder="t('nav.jumpTo.placeholder')"
-        :title="t('nav.jumpTo.tooltip', { shortcut: shortcutLabel })"
+        :aria-label="t(labels.ariaLabel)"
+        :placeholder="t(labels.placeholder)"
+        :title="t(labels.tooltip, { shortcut: shortcutLabel })"
         @focus="onFocus"
         @input="onInput"
         @blur="close"
@@ -435,7 +457,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
           v-if="!results.length"
           class="jump-to-empty"
         >
-          {{ t('nav.jumpTo.noResults') }}
+          {{ t(labels.noResults) }}
         </div>
         <ul
           v-else

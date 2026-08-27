@@ -196,7 +196,8 @@ nav:
     ariaLabel: Jump to a navigation section
     noResults: No matching sections
     popularHeading: Popular resource types
-    recentHeading: Last used in this cluster
+    recentHeading: Last used
+    recentHeadingInCluster: Last used in this cluster
   ariaLabel:
     clusterIconKeyCombo: Cluster keyboard shortcut combination icon
     localClusterIcon: Local Cluster icon

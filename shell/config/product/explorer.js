@@ -65,6 +65,9 @@ export function init(store) {
     showNamespaceFilter: true,
     icon:                'compass',
     extendable:          true,
+    // The jump-to history is scoped to the cluster being explored, so this is
+    // the one product that can say so.
+    navSearch:           { recentHeading: 'nav.jumpTo.recentHeadingInCluster' },
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',

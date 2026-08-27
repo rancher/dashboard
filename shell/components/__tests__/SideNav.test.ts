@@ -100,6 +100,31 @@ describe('component: SideNav', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     navStateStorage.load.mockReturnValue(null);
+    getters.currentProduct = { inStore: 'cluster', navSearch: true };
+  });
+
+  describe('the nav toolbar is opt-in per product', () => {
+    const toolbar = (wrapper: any) => wrapper.findComponent({ name: 'NavActionBar' });
+
+    it('shows the toolbar for a product that asked for it', () => {
+      expect(toolbar(mountNav()).exists()).toBe(true);
+    });
+
+    it('shows it for a product that only overrode the labels', () => {
+      getters.currentProduct = { inStore: 'cluster', navSearch: { recentHeading: 'fleet.jumpTo.recentHeading' } };
+
+      expect(toolbar(mountNav()).exists()).toBe(true);
+    });
+
+    it('leaves it out entirely for a product that did not, collapse-all included', () => {
+      getters.currentProduct = { inStore: 'cluster' };
+
+      const wrapper = mountNav();
+
+      expect(toolbar(wrapper).exists()).toBe(false);
+      // The nav starts at the first group rather than at an empty strip
+      expect(wrapper.find('.side-nav').element.firstElementChild?.className).toContain('nav');
+    });
   });
 
   describe('persisted expand/collapse state', () => {

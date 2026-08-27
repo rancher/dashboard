@@ -1,6 +1,26 @@
 import { PluginRouteRecordRaw } from '@shell/core/types';
 
 /**
+ * Translation keys for the nav toolbar's labels, so a product can word the
+ * search for what its nav actually contains. Anything left out keeps the
+ * default, which is written to suit any product.
+ */
+export interface NavSearchLabels {
+  /** Placeholder in the search input. */
+  placeholder?: string;
+  /** Title attribute on the search input, given the keyboard shortcut. */
+  tooltip?: string;
+  /** Accessible name for the search input. */
+  ariaLabel?: string;
+  /** Shown in place of the list when nothing matches. */
+  noResults?: string;
+  /** Heads the default list before anything has been jumped to. */
+  popularHeading?: string;
+  /** Heads the default list once there is history to show. */
+  recentHeading?: string;
+}
+
+/**
  * The product as seen by the type-map
  */
 export interface TypeMapProduct {
@@ -88,6 +108,18 @@ export interface TypeMapProduct {
    * Show the namespace filter in the header
    */
   showNamespaceFilter?: boolean;
+
+  /**
+   * Show the nav toolbar (the jump-to search and the collapse-all control) for
+   * this product. Off by default: the search is only worth its place in a
+   * product with a nav big enough to get lost in.
+   *
+   * `true` uses the default labels. Pass an object to enable it and override
+   * individual labels, whose values are translation keys, so a product does not
+   * inherit wording that does not fit it (the default "last used" heading says
+   * nothing about clusters; the explorer overrides it to say it does).
+   */
+  navSearch?: boolean | NavSearchLabels;
 
   /**
    * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.

@@ -197,6 +197,15 @@ export default {
     },
 
     /**
+     * Whether this product asked for the nav toolbar. It carries the collapse-all
+     * control as well as the search, so a product that has not opted in gets
+     * neither and its nav starts at the first group.
+     */
+    hasNavSearch() {
+      return !!this.currentProduct?.navSearch;
+    },
+
+    /**
      * Whether anything is expanded anywhere in the tree, which is what gates the
      * collapse-all control. Read from the tree rather than from the rendered
      * groups, so a group nested inside a collapsed parent still counts.
@@ -531,9 +540,11 @@ export default {
     role="navigation"
     :aria-label="t('nav.ariaLabel.sideNav')"
   >
-    <!-- Jump-to + collapse-all bar, pinned above the scrolling nav. The
-         collapse-all control only appears while a group is expanded. -->
+    <!-- Jump-to + collapse-all bar, pinned above the scrolling nav, for the
+         products that asked for it. The collapse-all control only appears
+         while a group is expanded. -->
     <NavActionBar
+      v-if="hasNavSearch"
       :groups="groups"
       :has-expanded-group="hasExpandedGroup"
       @collapse-all="collapseAll()"

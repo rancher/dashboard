@@ -16,7 +16,11 @@ const mockHistory = {
   }),
 };
 
-const mockStore = { getters: { isExplorer: true, clusterId: 'c-test' } };
+const mockStore = {
+  getters: {
+    isExplorer: true, clusterId: 'c-test', currentProduct: undefined as any
+  }
+};
 
 jest.mock('vuex', () => ({ useStore: () => mockStore }));
 jest.mock('vue-router', () => ({ useRouter: () => mockRouter, useRoute: () => ({ path: '/current' }) }));
@@ -85,6 +89,7 @@ describe('NavActionBar.vue', () => {
   beforeEach(() => {
     stored = null;
     activeNavItem = null;
+    mockStore.getters.currentProduct = { navSearch: true };
     jest.clearAllMocks();
   });
 
@@ -92,6 +97,36 @@ describe('NavActionBar.vue', () => {
     const wrapper = mountBar();
 
     expect(wrapper.find('.jump-to-input').attributes('placeholder')).toStrictEqual('%nav.jumpTo.placeholder%');
+  });
+
+  it('takes the labels a product overrides, and keeps the default for the rest', async() => {
+    mockStore.getters.currentProduct = { navSearch: { placeholder: 'fleet.jumpTo.placeholder', recentHeading: 'fleet.jumpTo.recentHeading' } };
+    stored = ['configmap'];
+
+    const wrapper = mountBar();
+    const input = wrapper.find('.jump-to-input');
+
+    expect(input.attributes('placeholder')).toStrictEqual('%fleet.jumpTo.placeholder%');
+    // Untouched labels are not dragged along by the ones that were overridden
+    expect(input.attributes('aria-label')).toStrictEqual('%nav.jumpTo.ariaLabel%');
+
+    await input.trigger('focus');
+    await nextTick();
+
+    expect(wrapper.find('.jump-to-heading').text()).toStrictEqual('%fleet.jumpTo.recentHeading%');
+  });
+
+  it('keeps every default label for a product that opts in without wording', async() => {
+    mockStore.getters.currentProduct = { navSearch: true };
+
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('zzz');
+    await nextTick();
+
+    expect(wrapper.find('.jump-to-input').attributes('placeholder')).toStrictEqual('%nav.jumpTo.placeholder%');
+    expect(wrapper.find('.jump-to-empty').text()).toStrictEqual('%nav.jumpTo.noResults%');
   });
 
   it('shows the hardcoded top 5 with their nav paths when there is no history', async() => {

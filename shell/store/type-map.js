@@ -238,6 +238,7 @@ export function DSL(store, product, module = 'type-map') {
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
+        navSearch:           false,
         public:              true,
         filterMode:          'namespaces',
         ...inOpt
