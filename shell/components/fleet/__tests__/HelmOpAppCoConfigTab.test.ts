@@ -22,10 +22,11 @@ describe('component: HelmOpAppCoConfigTab', () => {
       },
       global: {
         stubs: {
-          RcSection: { template: '<div><slot /></div>' },
-          RcIcon:    true,
-          Tab:       { template: '<div><slot /></div>' },
-          Tabbed:    { template: '<div><slot /></div>' },
+          RcSection:      { template: '<div><slot /></div>' },
+          RcIcon:         true,
+          Tab:            { template: '<div><slot /></div>' },
+          Tabbed:         { template: '<div><slot /></div>' },
+          RcContentGroup: false,
         }
       }
     });
@@ -47,10 +48,11 @@ describe('component: HelmOpAppCoConfigTab', () => {
         },
         global: {
           stubs: {
-            RcSection: { template: '<div><slot /></div>' },
-            RcIcon:    true,
-            Tab:       { template: '<div><slot /></div>' },
-            Tabbed:    { template: '<div><slot /></div>' },
+            RcSection:      { template: '<div><slot /></div>' },
+            RcIcon:         true,
+            Tab:            { template: '<div><slot /></div>' },
+            Tabbed:         { template: '<div><slot /></div>' },
+            RcContentGroup: false,
           }
         }
       });
