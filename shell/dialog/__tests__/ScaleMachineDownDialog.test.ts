@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import ScaleMachineDownDialog from '@shell/dialog/ScaleMachineDownDialog.vue';
 import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
+import { CAPI } from '@shell/config/types';
 
 const defaultStubs = { GenericPrompt: true };
 
@@ -20,23 +21,34 @@ const defaultCluster = {
   save:     jest.fn()
 };
 
-const defaultResource = {
-  cluster:       defaultCluster,
-  isWorker:      true,
-  poolName:      'pool1',
-  pool:          { scalePool: jest.fn() },
-  save:          jest.fn(),
-  setAnnotation: jest.fn(),
-  nameDisplay:   'machine-1',
-  namespace:     'default',
-  schema:        'machine'
+const createResource = (overrides = {}) => {
+  const resource = {
+    id:            'default/machine-1',
+    cluster:       defaultCluster,
+    isWorker:      true,
+    poolName:      'pool1',
+    pool:          { scalePool: jest.fn() },
+    save:          jest.fn(),
+    setAnnotation: jest.fn((key, value) => {
+      resource.metadata.annotations[key] = value;
+    }),
+    nameDisplay: 'machine-1',
+    namespace:   'default',
+    schema:      'machine',
+    metadata:    { annotations: {} },
+    ...overrides
+  };
+
+  return resource;
 };
 
 describe('component: ScaleMachineDownDialog', () => {
   const createWrapper = (propsData = {}, mocks = {}) => {
+    const resources = propsData.resources || [createResource()];
+
     return shallowMount(ScaleMachineDownDialog, {
       propsData: {
-        resources: [defaultResource],
+        resources,
         ...propsData
       },
       global: {
@@ -73,12 +85,11 @@ describe('component: ScaleMachineDownDialog', () => {
         isRke2:   true,
         machines: [{ isControlPlane: true }]
       };
-      const resource = {
-        ...defaultResource,
+      const resource = createResource({
         cluster,
         isControlPlane: true,
         isWorker:       false
-      };
+      });
 
       const wrapper = createWrapper({ resources: [resource] });
 
@@ -91,12 +102,11 @@ describe('component: ScaleMachineDownDialog', () => {
         isRke2:   true,
         machines: [{ isControlPlane: true }, { isControlPlane: true }]
       };
-      const resource = {
-        ...defaultResource,
+      const resource = createResource({
         cluster,
         isControlPlane: true,
         isWorker:       false
-      };
+      });
 
       const wrapper = createWrapper({ resources: [resource] });
 
@@ -121,15 +131,91 @@ describe('component: ScaleMachineDownDialog', () => {
 
   describe('remove', () => {
     it('should perform RKE2 removal steps', async() => {
-      const wrapper = createWrapper();
-      const resource = (wrapper.vm as any).resources[0];
+      const resource = createResource();
+      const wrapper = createWrapper({ resources: [resource] });
+
+      (wrapper.vm as any).$store.dispatch.mockImplementation((action) => {
+        if (action === 'management/find') {
+          return Promise.resolve(resource);
+        }
+
+        return Promise.resolve([]);
+      });
 
       await (wrapper.vm as any).remove();
 
       expect(resource.setAnnotation).toHaveBeenCalledWith(CAPI_LABELS.DELETE_MACHINE, 'true');
       expect(resource.save).toHaveBeenCalledWith();
+      expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith('management/find', {
+        type: CAPI.MACHINE,
+        id:   'default/machine-1',
+        opt:  {
+          force: true,
+          watch: false
+        }
+      });
       expect(resource.pool.scalePool).toHaveBeenCalledWith(-1, false);
       expect(resource.cluster.save).toHaveBeenCalledWith();
+    });
+
+    it('should not scale down the pool if the machine is already deleted', async() => {
+      const resource = createResource();
+      const wrapper = createWrapper({ resources: [resource] });
+
+      (wrapper.vm as any).$store.dispatch.mockImplementation((action) => {
+        if (action === 'management/find') {
+          return Promise.reject({ _status: 404 });
+        }
+
+        return Promise.resolve([]);
+      });
+
+      await expect((wrapper.vm as any).remove()).rejects.toThrow('promptScaleMachineDown.machineAlreadyDeleted');
+      expect(resource.setAnnotation).toHaveBeenCalledWith(CAPI_LABELS.DELETE_MACHINE, 'true');
+      expect(resource.save).toHaveBeenCalledWith();
+      expect(resource.pool.scalePool).not.toHaveBeenCalled();
+      expect(resource.cluster.save).not.toHaveBeenCalled();
+    });
+
+    it('should not scale down the pool if the machine is already deleting', async() => {
+      const resource = createResource();
+      const liveResource = createResource({
+        metadata: {
+          annotations:       { [CAPI_LABELS.DELETE_MACHINE]: 'true' },
+          deletionTimestamp: '2026-08-27T00:00:00Z'
+        }
+      });
+      const wrapper = createWrapper({ resources: [resource] });
+
+      (wrapper.vm as any).$store.dispatch.mockImplementation((action) => {
+        if (action === 'management/find') {
+          return Promise.resolve(liveResource);
+        }
+
+        return Promise.resolve([]);
+      });
+
+      await expect((wrapper.vm as any).remove()).rejects.toThrow('promptScaleMachineDown.machineAlreadyDeleted');
+      expect(resource.pool.scalePool).not.toHaveBeenCalled();
+      expect(resource.cluster.save).not.toHaveBeenCalled();
+    });
+
+    it('should not scale down the pool if the delete annotation is missing after refresh', async() => {
+      const resource = createResource();
+      const liveResource = createResource({ metadata: { annotations: {} } });
+      const wrapper = createWrapper({ resources: [resource] });
+
+      (wrapper.vm as any).$store.dispatch.mockImplementation((action) => {
+        if (action === 'management/find') {
+          return Promise.resolve(liveResource);
+        }
+
+        return Promise.resolve([]);
+      });
+
+      await expect((wrapper.vm as any).remove()).rejects.toThrow('promptScaleMachineDown.machineDeleteAnnotationMissing');
+      expect(resource.pool.scalePool).not.toHaveBeenCalled();
+      expect(resource.cluster.save).not.toHaveBeenCalled();
     });
 
     it('should perform non-RKE2 removal steps', async() => {

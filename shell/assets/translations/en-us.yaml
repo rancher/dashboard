@@ -6013,6 +6013,8 @@ promptForceRemove:
 promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
   attemptingToScaleDown: "You are attempting to scale down {type}"
+  machineAlreadyDeleted: "Machine {name} is already being deleted or has been recreated. The machine pool was not scaled down."
+  machineDeleteAnnotationMissing: "Machine {name} could not be marked for deletion. The machine pool was not scaled down."
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
   scaling: |-
