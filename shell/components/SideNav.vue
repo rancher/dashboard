@@ -197,15 +197,23 @@ export default {
     },
 
     /**
-     * This product's nav toolbar option, or undefined if it did not ask for one.
-     * The toolbar carries the collapse-all control as well as the search, so a
-     * product that has not opted in gets neither and its nav starts at the first
-     * group.
+     * The nav toolbar option of the product whose nav is on screen, or undefined
+     * if it did not ask for one. The toolbar carries the collapse-all control as
+     * well as the search, so a product that has not opted in gets neither and
+     * its nav starts at the first group.
+     *
+     * Read from the root product rather than from `productId`, because that is
+     * whose tree `getGroups` builds: every `inStore: 'cluster'` product roots
+     * into the explorer, so on Apps or monitoring the nav is the explorer's own
+     * while the route's product is one that never opted in. Keying on the root
+     * also keeps the toolbar still as you move around inside one nav.
      *
      * Looked up by name rather than read off `currentProduct`: that getter
      * answers with an unrelated product when this one has not registered yet,
      * and we would show or hide the toolbar on that product's option instead of
-     * this one's.
+     * this one's. `rootProduct` is only set once the route's product registers,
+     * so `productId` stands in until then and answers with nothing, which is
+     * what an unregistered product should get.
      *
      * From the registered products rather than `activeProducts`, which is
      * filtered by the schemas the current user can see. The nav itself is not:
@@ -215,7 +223,7 @@ export default {
      * product config, so visibility has no say in it.
      */
     navSearch() {
-      return this.$store.getters['type-map/productByName'](this.productId)?.navSearch;
+      return this.$store.getters['type-map/productByName'](this.rootProduct?.name || this.productId)?.navSearch;
     },
 
     /**

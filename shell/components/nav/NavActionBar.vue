@@ -67,7 +67,9 @@ const { t } = useI18n(store);
  * cluster to name.
  *
  * An empty id disables `useClusterLocalStorage` outright, so in every other
- * product the "Last used" list lasts the session and is gone after a reload.
+ * product the "Last used" list is never stored: it lives in `recentKeys` for as
+ * long as nothing reloads it, which a refresh ends and so does any trip into a
+ * cluster and back, since the watch below re-reads storage and finds nothing.
  * That is deliberate, and the same as SideNav's `nav-group-state`, which is
  * explorer-only for the same reason. Persisting it elsewhere needs a scope
  * those products don't have yet (Fleet's would be its workspace).

@@ -115,6 +115,7 @@ describe('component: SideNav', () => {
     jest.clearAllMocks();
     navStateStorage.load.mockReturnValue(null);
     getters.productId = 'explorer';
+    getters.rootProduct = { name: 'explorer' };
     getters.currentProduct = { name: 'explorer', inStore: 'cluster' };
     registerProducts([{
       name: 'explorer', inStore: 'cluster', navSearch: true
@@ -146,6 +147,33 @@ describe('component: SideNav', () => {
       expect(wrapper.find('.side-nav').element.firstElementChild?.className).toContain('nav');
     });
 
+    it('shows it on a sub-product of a root product that asked for it', () => {
+      // Charts is `apps`, but its nav is the explorer's: `inStore: 'cluster'`
+      // roots it into the explorer, and `getGroups` builds that whole tree. The
+      // toolbar belongs to the tree on screen, not to the route's product.
+      getters.productId = 'apps';
+      getters.rootProduct = { name: 'explorer' };
+      registerProducts([
+        {
+          name: 'explorer', inStore: 'cluster', navSearch: true
+        },
+        { name: 'apps', inStore: 'cluster' },
+      ]);
+
+      expect(toolbar(mountNav()).exists()).toBe(true);
+    });
+
+    it('leaves it out on a sub-product of a root product that did not', () => {
+      getters.productId = 'harvesterManager';
+      getters.rootProduct = { name: 'manager' };
+      registerProducts([
+        { name: 'manager', inStore: 'management' },
+        { name: 'harvesterManager', inStore: 'management' },
+      ]);
+
+      expect(toolbar(mountNav()).exists()).toBe(false);
+    });
+
     it('reads this product\'s option, not whichever one currentProduct fell back to', () => {
       // `currentProduct` answers with an unrelated product while this one is
       // still registering, and that product's option must not decide this one
@@ -165,6 +193,7 @@ describe('component: SideNav', () => {
       // nav still renders it: a Standard User on Continuous Delivery would
       // otherwise get the nav with no toolbar at all.
       getters.productId = 'fleet';
+      getters.rootProduct = { name: 'fleet' };
       registerProducts(
         [{
           name: 'fleet', inStore: 'management', navSearch: true
