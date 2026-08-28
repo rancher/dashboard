@@ -305,6 +305,16 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
       loginPage.password().checkVisible();
       loginPage.chooseDifferentProvider().checkVisible();
     });
+
+    // With one provider there is no choice between providers to save.
+    it('Does not offer to remember the choice', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.waitForPage();
+
+      loginPage.providerList().checkVisible();
+      loginPage.rememberProviderCheckbox().checkNotExists();
+    });
   });
 
   it('Cannot login with invalid credentials', () => {

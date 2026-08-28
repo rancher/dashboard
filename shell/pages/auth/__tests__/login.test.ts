@@ -417,5 +417,44 @@ describe('page: login', () => {
 
       expect(window.localStorage.getItem(REMEMBERED_PROVIDER_KEY)).toBeNull();
     });
+
+    // There is nothing to save unless the page is asking which external provider
+    // to use. One of them alongside local is answered the same way every time.
+    describe('with fewer than two external providers', () => {
+      it.each([
+        ['a single external provider alongside local', [LOCAL, OKTA_CORP]],
+        ['a single external provider on its own', [OKTA_CORP]],
+        ['only local', [LOCAL]],
+      ])('should not offer the box with %s', async(_label, drivers) => {
+        const wrapper = createWrapper(drivers);
+
+        await runFetch(wrapper);
+
+        expect(wrapper.vm.canRememberProvider).toBe(false);
+        expect(wrapper.find('[data-testid="login-provider-remember"]').exists()).toBe(false);
+      });
+
+      it('should offer the box once a second external provider is configured', async() => {
+        const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+        await runFetch(wrapper);
+
+        expect(wrapper.vm.canRememberProvider).toBe(true);
+        expect(wrapper.find('[data-testid="login-provider-remember"]').exists()).toBe(true);
+      });
+
+      // The admin can remove a provider out from under a saved choice, leaving an
+      // entry the page no longer gives the user any way to clear.
+      it('should ignore a choice saved before the providers were reduced', async() => {
+        window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
+        const wrapper = createWrapper([LOCAL, OKTA_CORP]);
+
+        await runFetch(wrapper);
+
+        expect(wrapper.vm.selectedProviderId).toBe('okta-corp');
+        expect(wrapper.vm.showLocal).toBe(false);
+        expect(wrapper.vm.rememberProvider).toBe(false);
+      });
+    });
   });
 });

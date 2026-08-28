@@ -111,6 +111,15 @@ export default {
       return this.providerOptions.length > 1;
     },
 
+    /**
+     * Saving a choice is only worth offering where there are several external
+     * providers to pick between. With one, the list is really just offering local
+     * as the way round it, and the page opens on that provider regardless.
+     */
+    canRememberProvider() {
+      return this.providers.length > 1;
+    },
+
     isCredentialForm() {
       return this.showLocal || this.selectedProvider?.category === 'ldap';
     },
@@ -226,13 +235,14 @@ export default {
     const hasLocal = providerOptions.some((x) => x.isLocal);
     const hasOthers = hasLocal && !!providers.length;
 
-    const rememberedId = getRememberedProviderId();
-    const initial = resolveInitialProvider(providerOptions, rememberedId);
-
     this.vendor = getVendor();
     this.providerOptions = providerOptions;
     this.providers = providers;
     this.hasLocal = hasLocal;
+
+    const rememberedId = this.rememberedProviderId();
+    const initial = resolveInitialProvider(providerOptions, rememberedId);
+
     this.selectedProviderId = initial?.id || null;
     // Only reflect the checkbox as ticked when the saved provider still exists;
     // a stale entry shouldn't claim the page is remembering something.
@@ -302,6 +312,15 @@ export default {
     },
 
     /**
+     * The saved choice, read only where the box that sets it is on offer. An entry
+     * left over from when more providers were configured must not steer a page
+     * that gives the user no way to clear it.
+     */
+    rememberedProviderId() {
+      return this.canRememberProvider ? getRememberedProviderId() : null;
+    },
+
+    /**
      * Picking a provider only changes what the page is offering -- the user still
      * confirms with the primary button, so SSO, LDAP and local all behave alike.
      */
@@ -321,7 +340,7 @@ export default {
 
     expandProviderList() {
       const alternatives = this.providerOptions.filter((option) => option.id !== this.selectedProviderId);
-      const fallback = resolveInitialProvider(alternatives, getRememberedProviderId());
+      const fallback = resolveInitialProvider(alternatives, this.rememberedProviderId());
 
       if (fallback) {
         // Deliberately not `selectProvider`: the page is choosing here, not the
@@ -608,7 +627,10 @@ export default {
               :selected-id="selectedProviderId"
               @select="selectProvider"
             />
-            <div class="login-remember mt-20">
+            <div
+              v-if="canRememberProvider"
+              class="login-remember mt-20"
+            >
               <Checkbox
                 :value="rememberProvider"
                 :label="t('login.providers.remember')"
