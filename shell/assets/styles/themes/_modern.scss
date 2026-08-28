@@ -795,6 +795,8 @@ BODY, .theme-dark {
   $drag-over: #DCDEE7;
   $body-bg  : #25282F;
 
+  $form-control-border : #6C7A8F;
+
   $slate: #4B4F6B;
 
   --body-border: #38404B;
@@ -902,7 +904,7 @@ BODY, .theme-dark {
   --shadow                     : #{rgba($darkest, 0.9)};
 
   --checkbox-tick              : var(--on-active);
-  --checkbox-border            : #627084;
+  --checkbox-border            : #{$form-control-border};
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : var(--active);
@@ -929,8 +931,7 @@ BODY, .theme-dark {
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
   --input-placeholder          : #{$disabled};
-  // One step lighter than #627084 to hold 3:1 on raised $grey-80 surfaces
-  --input-border               : #6C7A8F;
+  --input-border               : #{$form-control-border};
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);
