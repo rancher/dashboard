@@ -436,13 +436,15 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
     class="nav-action-bar"
     @shortkey="focusInput"
   >
-    <div class="jump-to">
+    <div
+      class="jump-to"
+      :class="{ 'keyboard-focus': keyboardFocus }"
+    >
       <input
         ref="input"
         v-model="query"
         type="text"
         class="jump-to-input"
-        :class="{ 'keyboard-focus': keyboardFocus }"
         data-testid="nav-jump-to-input"
         role="combobox"
         aria-controls="jump-to-listbox"
@@ -546,11 +548,29 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
 }
 
 .jump-to {
+  position: relative;
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
   padding: 0 var(--nav-toolbar-pad-x);
+
+  // The keyboard focus ring, in the app's focus colour. Drawn here rather than
+  // as the input's own outline because `outline-offset` is uniform, and this
+  // cell is ten times wider than it is tall: one offset cannot sit evenly
+  // inside the toolbar on both axes. So it reaches out past the text line
+  // vertically and pulls in from the cell edges horizontally, which lands it an
+  // even distance inside the toolbar all the way round.
+  //
+  // A border rather than a box-shadow, which forced-colors modes drop.
+  &.keyboard-focus:focus-within::after {
+    content: '';
+    position: absolute;
+    inset: -5px 5px;
+    border: 2px solid var(--primary-keyboard-focus);
+    border-radius: var(--border-radius);
+    pointer-events: none;
+  }
 }
 
 .jump-to-input {
@@ -568,24 +588,10 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
     font-weight: 500;
   }
 
+  // The ring is drawn on the cell instead, see `.jump-to`.
   &:focus,
   &:focus-visible {
     outline: none;
-  }
-
-  // The keyboard ring, in the app's focus style, as the collapse-all control
-  // beside it has. The input's own box is only its 20px line, so the offset
-  // carries the ring out to the toolbar's inner edge, level with that control's
-  // ring rather than drawn tight around the placeholder.
-  //
-  // `!important` because `_basic.scss` clears the outline on every focused
-  // `input[type="text"]` at a specificity no scoped rule can reach - the control
-  // beside this one escapes that only by being a `<button>`. `focus-outline`'s
-  // own comment calls for it. It stays an `outline` rather than a `box-shadow`,
-  // which forced-colors modes drop.
-  &.keyboard-focus:focus {
-    outline: 2px solid var(--primary-keyboard-focus) !important;
-    outline-offset: 7px;
   }
 }
 
