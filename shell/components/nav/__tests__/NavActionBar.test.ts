@@ -233,6 +233,37 @@ describe('NavActionBar.vue', () => {
     expect(options[1].classes()).toContain('active');
   });
 
+  it('rings the input when the keyboard focuses it, but not a pointer', async() => {
+    const wrapper = mountBar();
+    const input = wrapper.find('.jump-to-input');
+
+    // Tab and the Ctrl/Cmd+K shortcut both arrive with no pointer press first
+    await input.trigger('focus');
+    await nextTick();
+    expect(input.classes()).toContain('keyboard-focus');
+
+    await input.trigger('blur');
+    await input.trigger('mousedown');
+    await input.trigger('focus');
+    await nextTick();
+    expect(input.classes()).not.toContain('keyboard-focus');
+  });
+
+  it('drops the input ring when a pointer presses it while it already has focus', async() => {
+    const wrapper = mountBar();
+    const input = wrapper.find('.jump-to-input');
+
+    await input.trigger('focus');
+    await nextTick();
+    expect(input.classes()).toContain('keyboard-focus');
+
+    // No second focus event fires here, so mousedown has to clear it itself
+    await input.trigger('mousedown');
+    await nextTick();
+
+    expect(input.classes()).not.toContain('keyboard-focus');
+  });
+
   it('rings the highlighted option only while the keyboard is driving', async() => {
     const wrapper = mountBar();
 

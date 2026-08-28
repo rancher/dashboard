@@ -100,6 +100,13 @@ const activeIndex = ref(0);
 // `aria-activedescendant` - so `:focus-visible` can never match here and the
 // focus ring has to be drawn by hand, on the same terms: keyboard only.
 const keyboardActive = ref(false);
+// Whether the keyboard brought focus to the input. A text input always matches
+// `:focus-visible`, even under a pointer, because the browser expects typing
+// next - so the ring cannot be left to CSS or it would follow a click too.
+const keyboardFocus = ref(false);
+// A pointer press lands before the focus event, which is how the two are told
+// apart. Not a ref: nothing renders from it.
+let pointerFocus = false;
 const input = ref<HTMLInputElement | null>(null);
 const toolbar = ref<HTMLElement | null>(null);
 const list = ref<HTMLElement | null>(null);
@@ -329,14 +336,24 @@ watch([query, open], () => {
   scrollActiveIntoView();
 });
 
+/** The `Ctrl`/`Cmd`+`K` shortcut, so focus is arriving by keyboard. */
 function focusInput() {
   input.value?.focus();
+}
+
+/** Also clears the ring when a pointer presses an input that already has focus. */
+function onMousedown() {
+  pointerFocus = true;
+  keyboardFocus.value = false;
 }
 
 function onFocus() {
   open.value = true;
   activeIndex.value = 0;
   keyboardActive.value = false;
+  // Tab and the shortcut both land here with no pointer press before them.
+  keyboardFocus.value = !pointerFocus;
+  pointerFocus = false;
 }
 
 /** Hovering moves the highlight, but a pointer never draws the focus ring. */
@@ -425,6 +442,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
         v-model="query"
         type="text"
         class="jump-to-input"
+        :class="{ 'keyboard-focus': keyboardFocus }"
         data-testid="nav-jump-to-input"
         role="combobox"
         aria-controls="jump-to-listbox"
@@ -435,6 +453,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
         :aria-label="t('nav.jumpTo.ariaLabel')"
         :placeholder="t('nav.jumpTo.placeholder')"
         :title="t('nav.jumpTo.tooltip', { shortcut: shortcutLabel })"
+        @mousedown="onMousedown"
         @focus="onFocus"
         @input="onInput"
         @blur="close"
@@ -552,6 +571,20 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   &:focus,
   &:focus-visible {
     outline: none;
+  }
+
+  // The keyboard ring, in the app's focus style, as the collapse-all control
+  // beside it has. That control is inset to give its ring room; this one fills
+  // its cell, so the offset does the same job.
+  //
+  // `!important` because `_basic.scss` clears the outline on every focused
+  // `input[type="text"]` at a specificity no scoped rule can reach - the control
+  // beside this one escapes that only by being a `<button>`. `focus-outline`'s
+  // own comment calls for it. It stays an `outline` rather than a `box-shadow`,
+  // which forced-colors modes drop.
+  &.keyboard-focus:focus {
+    outline: 2px solid var(--primary-keyboard-focus) !important;
+    outline-offset: 2px;
   }
 }
 
