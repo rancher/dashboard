@@ -233,6 +233,30 @@ describe('NavActionBar.vue', () => {
     expect(options[1].classes()).toContain('active');
   });
 
+  it('rings the highlighted option only while the keyboard is driving', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await nextTick();
+
+    // Opening with the pointer highlights the first option without ringing it
+    expect(wrapper.findAll('.jump-to-option')[0].classes()).toContain('active');
+    expect(wrapper.findAll('.jump-to-option')[0].classes()).not.toContain('keyboard-active');
+
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'ArrowDown' });
+    await nextTick();
+
+    expect(wrapper.findAll('.jump-to-option')[1].classes()).toContain('keyboard-active');
+
+    // The pointer taking the highlight back drops the ring with it
+    await wrapper.findAll('.jump-to-option')[3].trigger('mouseenter');
+    await nextTick();
+
+    expect(wrapper.findAll('.jump-to-option')[3].classes()).toContain('active');
+    expect(wrapper.findAll('.jump-to-option')[3].classes()).not.toContain('keyboard-active');
+    expect(wrapper.findAll('.jump-to-option').filter((o: any) => o.classes().includes('keyboard-active'))).toHaveLength(0);
+  });
+
   it('scrolls the highlighted option into view when the arrow keys move it', async() => {
     const wrapper = mountBar();
 

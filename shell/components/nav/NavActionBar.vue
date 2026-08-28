@@ -95,6 +95,11 @@ const open = ref(false);
 // The option Enter would pick. Always highlighted, so the dropdown never shows
 // a selection the user can't see; arrow keys and hovering both move it.
 const activeIndex = ref(0);
+// Whether the keyboard put the highlight where it is. An option never holds DOM
+// focus - the input keeps it and names the active one through
+// `aria-activedescendant` - so `:focus-visible` can never match here and the
+// focus ring has to be drawn by hand, on the same terms: keyboard only.
+const keyboardActive = ref(false);
 const input = ref<HTMLInputElement | null>(null);
 const toolbar = ref<HTMLElement | null>(null);
 const list = ref<HTMLElement | null>(null);
@@ -331,6 +336,13 @@ function focusInput() {
 function onFocus() {
   open.value = true;
   activeIndex.value = 0;
+  keyboardActive.value = false;
+}
+
+/** Hovering moves the highlight, but a pointer never draws the focus ring. */
+function hover(index: number) {
+  activeIndex.value = index;
+  keyboardActive.value = false;
 }
 
 function onInput() {
@@ -356,6 +368,7 @@ function move(delta: number) {
   }
 
   activeIndex.value = (activeIndex.value + delta + count) % count;
+  keyboardActive.value = true;
   scrollActiveIntoView();
 }
 
@@ -475,12 +488,12 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
             :id="optionId(i)"
             :key="item.key"
             class="jump-to-option"
-            :class="{ active: i === activeIndex }"
+            :class="{ active: i === activeIndex, 'keyboard-active': keyboardActive && i === activeIndex }"
             data-testid="nav-jump-to-option"
             role="option"
             :aria-selected="i === activeIndex"
             @mousedown.prevent="jumpTo(item)"
-            @mouseenter="activeIndex = i"
+            @mouseenter="hover(i)"
           >
             <span class="jump-to-option-label">{{ item.label }}</span>
             <span
@@ -639,6 +652,14 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
 
   &.active {
     background-color: var(--sortable-table-hover-bg);
+  }
+
+  // Drawn inside the row: the options sit 2px apart, so an outward ring would
+  // overlap its neighbours.
+  &.keyboard-active {
+    @include focus-outline;
+
+    outline-offset: -2px;
   }
 
   .jump-to-option-label {
