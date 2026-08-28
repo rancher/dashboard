@@ -797,6 +797,10 @@ BODY, .theme-dark {
 
   $form-control-border : #6C7A8F;
 
+  $toggle-border : #98A0B0;
+
+  $tertiary-hover-fill : #1E3C73;
+
   $slate: #4B4F6B;
 
   --body-border: #38404B;
@@ -811,7 +815,7 @@ BODY, .theme-dark {
   --on-secondary: #{$primary-60};
   --secondary-hover: var(--non-primary-hover);
 
-  --tertiary                  : transparent;
+  --tertiary                  : var(--non-primary-hover);
   --tertiary-header           : transparent;
   --tertiary-border           : transparent;
   --tertiary-header-hover     : var(--non-primary-hover);
@@ -819,7 +823,7 @@ BODY, .theme-dark {
   --on-tertiary-header        : var(--link);
   --on-tertiary-header-hover  : var(--link);
   --on-tertiary-hover         : var(--link);
-  --tertiary-hover            : var(--non-primary-hover);
+  --tertiary-hover            : #{$tertiary-hover-fill};
   --tertiary-hover-app-bar    : var(--link);
 
   --active                : #{$primary-50};
@@ -913,7 +917,7 @@ BODY, .theme-dark {
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
 
   --dropdown-bg                : #{mix($medium, $dark, 10%)};
-  --dropdown-border            : #{$light};
+  --dropdown-border            : #{$form-control-border};
   --dropdown-divider           : #{$light};
   --dropdown-text              : #{$lightest};
   --dropdown-active-text       : #{$lightest};
@@ -930,7 +934,7 @@ BODY, .theme-dark {
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
-  --input-placeholder          : #{$disabled};
+  --input-placeholder          : var(--muted);
   --input-border               : #{$form-control-border};
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($dark, 3%)};
@@ -1072,9 +1076,9 @@ BODY, .theme-dark {
   
   --rc-active-background: #{$gray006};
   --rc-active-disabled-background: #{$gray006};
-  --rc-active-border: #{$gray005};
+  --rc-active-border: #{$toggle-border};
 
-  --rc-inactive-border: #{$gray005};
+  --rc-inactive-border: #{$toggle-border};
   --rc-inactive-background: #{$gray005};
   --rc-inactive-disabled-border: #{$gray004};
 
