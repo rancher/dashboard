@@ -2,7 +2,7 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import { getters, state, mutations } from '@shell/store/i18n.js';
+import { getters, state, mutations, I18nState } from '@shell/store/i18n';
 
 // The i18n store imports the en-us yaml, which jest can't parse. The tests below load the small
 // subset of translations they need explicitly, via `loadTranslations`.
@@ -371,7 +371,7 @@ describe('component: KeyValue', () => {
 
     const store = createStore({
       state,
-      getters: { 'i18n/t': getters.t },
+      getters: { 'i18n/t': (s: I18nState) => getters.t(s) },
       mutations,
     });
 
