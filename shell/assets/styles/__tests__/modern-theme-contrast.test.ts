@@ -117,14 +117,30 @@ describe('modern theme colour contrast (WCAG 2.1 AA)', () => {
 
   describe('dark theme', () => {
     it.each([
+      // Form control boundaries - 1.4.11
       ['--input-border', '--body-bg', NON_TEXT],
       ['--input-border', '--box-bg', NON_TEXT],
       // Kept in step with --input-border; both come from the same $form-control-border
       ['--checkbox-border', '--body-bg', NON_TEXT],
       ['--checkbox-border', '--box-bg', NON_TEXT],
+      ['--dropdown-border', '--dropdown-bg', NON_TEXT],
+      // Toggle borders sit on their own fill, not on the page
+      ['--rc-active-border', '--rc-active-background', NON_TEXT],
+      ['--rc-inactive-border', '--rc-inactive-background', NON_TEXT],
+
+      // Text - 1.4.3
+      ['--input-placeholder', '--input-bg', TEXT],
+      ['--input-placeholder', '--box-bg', TEXT],
+      ['--on-tertiary', '--tertiary', TEXT],
+      ['--on-tertiary-hover', '--tertiary-hover', TEXT],
       ['--on-active', '--active', TEXT],
     ])('%s on %s meets %s:1', (foreground, background, min) => {
       expect(ratio(dark, foreground, background)).toBeGreaterThanOrEqual(min);
+    });
+
+    it('gives tertiary buttons a fill distinct from their hover state', () => {
+      expect(resolve(dark, '--tertiary')).not.toBe('transparent');
+      expect(resolve(dark, '--tertiary')).not.toBe(resolve(dark, '--tertiary-hover'));
     });
   });
 });
