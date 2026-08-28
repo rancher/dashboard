@@ -182,9 +182,13 @@ export type LocationConfig = {
   /**
    * Context specific params.
    *
-   * Components can provide additional context specific params that this value must match
+   * Components can provide additional context specific params that this value must match.
+   *
+   * Matched as a subset, recursively: only the keys named here have to match, and the context
+   * may carry others. Values may be nested objects, so an enhancement can bind to a single
+   * entry of a map the component provides (eg. one of a resource's annotations).
    */
-  context?: { [key: string]: string},
+  context?: { [key: string]: any },
 };
 
 /**

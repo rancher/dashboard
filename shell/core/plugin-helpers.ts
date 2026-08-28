@@ -51,6 +51,28 @@ function checkRouteMode({ name, query, meta }: {name: string, query: any, meta: 
   return false;
 }
 
+function isObject(val: any): boolean {
+  return typeof val === 'object' && val !== null && !Array.isArray(val);
+}
+
+/**
+ * Does `context` satisfy the requirements in `configContext`?
+ *
+ * This is a subset match, applied recursively: every key named in the locationConfig must be
+ * present in the context with a matching value, while keys the locationConfig doesn't mention
+ * are ignored. That lets a component expose a bag of values - a resource's annotations, say -
+ * without every extension having to enumerate the whole thing to match one entry.
+ *
+ * Arrays and primitives are compared exactly.
+ */
+function contextMatches(configContext: any, context: any): boolean {
+  if (!isObject(configContext) || !isObject(context)) {
+    return isEqual(configContext, context);
+  }
+
+  return Object.keys(configContext).every((key) => key in context && contextMatches(configContext[key], context[key]));
+}
+
 function checkExtensionRouteBinding($route: any, locationConfig: any, context: any) {
   // if no configuration is passed, consider it as global
   if (!Object.keys(locationConfig).length) {
@@ -100,8 +122,8 @@ function checkExtensionRouteBinding($route: any, locationConfig: any, context: a
             // Match exact resource but also allow resource of '*' to match any resource
             res = (params[param] && locationConfigParam === '*') || locationConfigParam === params[param];
           } else if (param === 'context') {
-            // Need all keys and values to match
-            res = isEqual(locationConfigParam, context);
+            // Every key named here must match, but the context may carry others besides
+            res = contextMatches(locationConfigParam, context);
             // evaluate queryParam in route
           } else if (param === 'queryParam') {
             res = isEqual(locationConfigParam, $route.query);

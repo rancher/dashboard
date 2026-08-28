@@ -72,9 +72,55 @@ The admissible parameters for the `LocationConfig` object are:
 |`cluster`| `v2.7.2` | Array | Array of the cluster identifier. Ex: `local` |
 |`id`| `v2.7.2` | Array | Array of the identifier for a given resource. Ex: `deployment-unt6xmz` |
 |`mode`| `v2.7.2` + `v2.7.7` | Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissible values are: `edit` (v2.7.2), `config` (v2.7.2), `detail` (v2.7.2), `list` (v2.7.2) and `create` (v2.7.7) |
-|`context`| `v2.7.2`| Object | Requirements set by the context itself. This is a key value object that must match the object provided where the feature is used. For instance if a ResourceTab should only include a tab given specific information where the ResourceTab is used. Ex `{ provider: "digitalocean" }` |
+|`context`| `v2.7.2` | Object | Requirements set by the context itself. This is a key value object matched against the object provided where the feature is used. For instance if a ResourceTab should only include a tab given specific information where the ResourceTab is used. Ex `{ provider: "digitalocean" }`. Matching is a **subset** match, applied recursively: only the keys you name have to match, and the context may carry others. See [Context matching](#context-matching) |
 | `queryParam`| `v2.7.2` | Object | This is a key value object that must match the url's query param key values |
 |`hash`| `v2.8.0` | Array | Array of strings for url hash identifiers, commonly used in Tabs Ex: On a details view of a `provisioning.cattle.io.cluster`, you have several tabs identified in the hash portion of the url such as `node-pools`, `conditions` and `related`  |
+
+### Context matching
+
+`context` is matched as a **subset**, recursively: every key you name must be present with a
+matching value, and any other keys the host component provides are ignored. Arrays and primitives
+are compared exactly.
+
+This means you only have to name the part of the context you care about. Given a context of:
+
+```ts
+{
+  provider:    'k3k',
+  annotations: {
+    'ui.rancher/provider':       'k3k',
+    'ui.rancher/parent-cluster': 'c-m-abc123',
+    'ui.rancher/k3k-mode':       'hcp'
+  }
+}
+```
+
+all of these match:
+
+```ts
+{ context: { provider: 'k3k' } }
+{ context: { annotations: { 'ui.rancher/k3k-mode': 'hcp' } } }
+{ context: { provider: 'k3k', annotations: { 'ui.rancher/k3k-mode': 'hcp' } } }
+```
+
+while these do not:
+
+```ts
+{ context: { provider: 'eks' } }                                  // wrong value
+{ context: { annotations: { 'ui.rancher/k3k-mode': 'shared' } } } // wrong value
+{ context: { somethingElse: true } }                              // key not in the context
+```
+
+#### Contexts provided by Rancher
+
+| Location | Context |
+|---|---|
+| `provisioning.cattle.io.cluster` detail page | `annotations` (the cluster's annotations), plus `provider` (the machine provider or provisioner) when a `provisioner` extension or model extension is registered for that cluster |
+| `service` edit page | `showHarvesterAddOnConfig` (a stringified boolean) |
+
+> NOTE: prior to the subset behaviour, `context` required an exact match on the whole object. Any
+> `context` that matched before still matches, so this is a backwards-compatible relaxation - but a
+> `context` that names fewer keys now matches more broadly than it used to.
 
 ### LocationConfig Examples
 
