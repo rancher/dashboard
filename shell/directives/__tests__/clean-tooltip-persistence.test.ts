@@ -165,5 +165,66 @@ describe('clean-tooltip content on hover or focus', () => {
 
       wrapper.unmount();
     });
+
+    it('should keep the dismissing keypress from reaching a dialog underneath', async() => {
+      const focusable = `<button v-clean-tooltip="{ content: 'Pull secrets', triggers: ['hover', 'focus'] }" type="button" />`;
+      const wrapper = mount({ template: focusable }, mountOptions);
+      const onDialogEscape = jest.fn();
+
+      document.addEventListener('keydown', onDialogEscape);
+
+      wrapper.element.focus();
+      wrapper.element.dispatchEvent(new FocusEvent('focus'));
+      await waitForTooltip();
+
+      const escape = () => wrapper.element.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Escape', bubbles: true, cancelable: true
+      }));
+
+      // A dialog closes on Escape from a document listener of its own, so the press that dismisses
+      // the tooltip has to stop there. The next one is the one that closes the dialog.
+      escape();
+      await waitForNoTooltip();
+
+      expect(isShown()).toBe(false);
+      expect(onDialogEscape).not.toHaveBeenCalled();
+
+      escape();
+
+      expect(onDialogEscape).toHaveBeenCalledTimes(1);
+
+      document.removeEventListener('keydown', onDialogEscape);
+      wrapper.unmount();
+    });
+
+    it('should leave the keypress alone when the trigger is only under the pointer', async() => {
+      const onEscape = jest.fn();
+      const wrapper = mount({
+        template: `
+          <div>
+            <button id="trigger" v-clean-tooltip="'Pull secrets'" type="button" />
+            <div id="menu" tabindex="0" @keydown.escape="onEscape" />
+          </div>
+        `,
+        methods: { onEscape },
+      }, mountOptions);
+      const menu = wrapper.find('#menu').element as HTMLElement;
+
+      wrapper.find('#trigger').element.dispatchEvent(new MouseEvent('mouseenter'));
+      await waitForTooltip();
+
+      menu.focus();
+      menu.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Escape', bubbles: true, cancelable: true
+      }));
+      await waitForNoTooltip();
+
+      // The pointer happening to rest on a tooltip elsewhere must not swallow an Escape the user
+      // aimed at whatever they are actually on.
+      expect(isShown()).toBe(false);
+      expect(onEscape).toHaveBeenCalled();
+
+      wrapper.unmount();
+    });
   });
 });

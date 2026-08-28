@@ -516,8 +516,19 @@ function onMouseClick(e: MouseEvent) {
  * @param {KeyboardEvent} e The keyboard event object.
  */
 function onDocumentKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && currentTarget) {
-    hideSingletonTooltip(currentTarget);
+  if (e.key !== 'Escape' || !currentTarget) {
+    return;
+  }
+
+  const ownsFocus = currentTarget.contains(document.activeElement);
+
+  hideSingletonTooltip(currentTarget);
+
+  // Only the trigger the user is actually on gets to consume the keypress, so a dialog underneath
+  // does not close on the same Escape. A tooltip merely under the pointer leaves the key for
+  // whatever has focus.
+  if (ownsFocus) {
+    e.stopPropagation();
   }
 }
 
