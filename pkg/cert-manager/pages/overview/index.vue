@@ -3,6 +3,7 @@ import { useStore } from 'vuex';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading.vue';
 import Masthead from '@shell/components/ResourceList/Masthead.vue';
+import RichTranslation from '@shell/components/RichTranslation.vue';
 import SubtleLink from '@shell/components/SubtleLink.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { CERT_MANAGER } from '../../types';
@@ -44,6 +45,11 @@ const {
     </Banner>
 
     <!-- ━━━ Empty state: nothing to work with yet ━━━ -->
+    <!--
+      Matches the Workloads overview empty-state container. The docs link lives inside the tips,
+      above the CTAs - the create actions are the last thing in the block (nothing after the main
+      call to action).
+    -->
     <div
       v-if="!hasContent"
       class="empty-state"
@@ -52,9 +58,23 @@ const {
       <h1 class="mm-0">
         {{ t('certManager.overview.empty.title') }}
       </h1>
-      <p class="empty-message">
-        {{ t('certManager.overview.empty.message') }}
-      </p>
+      <div class="empty-state-tips">
+        <p>{{ t('certManager.overview.empty.message') }}</p>
+        <RichTranslation
+          k="certManager.overview.empty.docsMessage"
+          tag="div"
+        >
+          <template #docsLink="{ content }">
+            <SubtleLink
+              :href="CERT_MANAGER_DOCS"
+              target="_blank"
+              :open-in-new-tab-label="t('generic.opensInNewTab')"
+            >
+              {{ content }}
+            </SubtleLink>
+          </template>
+        </RichTranslation>
+      </div>
       <div class="empty-actions">
         <router-link
           class="btn role-primary"
@@ -69,13 +89,6 @@ const {
           {{ t('certManager.overview.empty.createClusterIssuer') }}
         </router-link>
       </div>
-      <SubtleLink
-        :href="CERT_MANAGER_DOCS"
-        target="_blank"
-        :open-in-new-tab-label="t('generic.opensInNewTab')"
-      >
-        {{ t('certManager.overview.empty.docsLink') }}
-      </SubtleLink>
     </div>
 
     <template v-else>
@@ -139,23 +152,25 @@ const {
     padding: 72px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: var(--gap-md);
+    gap: 16px;
 
     h1 {
       line-height: 38px;
     }
 
-    .empty-message {
+    .empty-state-tips {
       font-size: 16px;
       line-height: 29px;
-      max-width: 620px;
-      margin: 0;
+
+      p {
+        margin: 0;
+      }
     }
 
     .empty-actions {
       display: flex;
       gap: 12px;
+      justify-content: center;
     }
   }
 }

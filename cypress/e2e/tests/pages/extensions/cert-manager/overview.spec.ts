@@ -25,6 +25,12 @@ describe('Cert Manager overview', { tags: ['@extensions', '@adminUser'] }, () =>
       overview.emptyState().find('.btn.role-primary').should('be.visible');
       overview.emptyState().find('.btn.role-secondary').should('be.visible');
 
+      // The docs link is folded into the tips text, above the CTAs - not a trailing link.
+      overview.emptyState().find('.empty-state-tips').contains('a', 'documentation').should('be.visible');
+      // Golden rule: the create actions are the last thing in the empty state - nothing after the
+      // main call to action.
+      overview.emptyState().children().last().should('have.class', 'empty-actions');
+
       // No summary content until there is something to summarise.
       overview.cards().should('not.exist');
     });
@@ -125,6 +131,13 @@ describe('Cert Manager overview', { tags: ['@extensions', '@adminUser'] }, () =>
 
       overview.certificatesEmpty().should('be.visible');
       overview.createCertificateButton().should('be.visible');
+
+      // Tips offer a namespace reset and a docs link, matching the Workloads empty-state container.
+      overview.certificatesEmpty().find('.empty-state-tips').contains('a', 'reset the namespaces filter').should('be.visible');
+      overview.certificatesEmpty().find('.empty-state-tips').contains('a', 'documentation').should('be.visible');
+      // Golden rule: the create-certificate CTA is the last thing in the empty state.
+      overview.certificatesEmpty().children().last().find('[data-testid="cert-manager-overview-create-certificate"]')
+        .should('exist');
 
       // No cluster issuers exist, so that card shows its empty message and an inline create action.
       overview.issuersSection().contains('No cluster issuers available').should('be.visible');

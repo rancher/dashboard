@@ -44,10 +44,10 @@ certManager:
         }
     empty:
       title: Get started with cert-manager
-      message: cert-manager issues and renews TLS certificates for your cluster. A Certificate always references an Issuer or ClusterIssuer, so create one of those first - then you can request certificates against it.
+      message: cert-manager issues and renews TLS certificates for your cluster. A Certificate always references an Issuer (or a Cluster Issuer) - you need to create one first. Afterwards, you can request certificates against it.
+      docsMessage: Want to learn more about cert-manager? Read our <docsLink>documentation</docsLink>.
       createIssuer: Create Issuer
       createClusterIssuer: Create Cluster Issuer
-      docsLink: Read the cert-manager documentation
       createCertificate: Create Certificate
 
   action:
