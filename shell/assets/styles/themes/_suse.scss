@@ -4,20 +4,25 @@
   $lighter-green-jungle: #72EEB3;
 
   $jungle-120: #008657;
+  $jungle-140: #006B46;
+
+  $green-30: #D6F5E9;
+
+  $dark-tertiary-hover: #2A4F3C;
 
   --title-font-family : 'SUSE', 'Lato', sans-serif;
   
   &.theme-light {
     --primary: #{$jungle-120};
     --primary-text: #FFFFFF;
-    --primary-hover: #006B46;
-    --primary-hover-bg: #006B46;
+    --primary-hover: #{$jungle-140};
+    --primary-hover-bg: #{$jungle-140};
     --primary-border: #{$green-120};
 
     --link: #4871C7;
     --active-nav: #{$green-140};
 
-    --non-primary-text: #{$green-120};
+    --non-primary-text: #{$jungle-140};
     --non-primary-hover: #{$green-20};
 
     --secondary: var(--body-bg);
@@ -25,12 +30,12 @@
     --on-secondary: var(--non-primary-text);
     --secondary-hover: var(--non-primary-hover);
 
-    --tertiary: transparent;
+    --tertiary: var(--non-primary-hover);
     --on-tertiary: var(--non-primary-text);
     --on-tertiary-hover: var(--non-primary-text);
     --on-tertiary-header: var(--non-primary-text);
     --on-tertiary-header-hover: var(--non-primary-text);
-    --tertiary-hover: var(--non-primary-hover);
+    --tertiary-hover: #{$green-30};
     --tertiary-hover-app-bar: var(--non-primary-text);
 
     $super-light-green: #F4F6F5;
@@ -55,6 +60,7 @@
     --primary-text: #{$grey-90};
     --primary-hover: #{$lighter-green-jungle};
     --primary-hover-bg: #{$lighter-green-jungle};
+    --primary-hover-text: #{$grey-90};
     --primary-border: #{$lighter-green-jungle};
 
     --non-primary-text: #{$lighter-green-jungle};
@@ -65,12 +71,12 @@
     --on-secondary: var(--non-primary-text);
     --secondary-hover: var(--non-primary-hover);
 
-    --tertiary: transparent;
+    --tertiary: var(--non-primary-hover);
     --on-tertiary: var(--non-primary-text);
     --on-tertiary-hover: var(--non-primary-text);
     --on-tertiary-header: var(--non-primary-text);
     --on-tertiary-header-hover: var(--non-primary-text);
-    --tertiary-hover: var(--non-primary-hover);
+    --tertiary-hover: #{$dark-tertiary-hover};
     --tertiary-hover-app-bar: var(--non-primary-text);
 
     $category-active:#303633;
