@@ -97,7 +97,7 @@ BODY, .theme-light {
 
   --secondary        : var(--body-bg);
   --secondary-border : #{$primary};
-  --on-secondary     : #{$primary};
+  --on-secondary     : var(--link);
   --secondary-hover  : var(--non-primary-hover);
 
   --tertiary                  : #{$primary-20};
@@ -224,7 +224,7 @@ BODY, .theme-light {
       }
   }
 
-  --muted                      : #6F6F8B;
+  --muted                      : #6A6A85;
   --deemphasized               : #6C6C76;
 
   .text-muted {
