@@ -195,9 +195,8 @@ nav:
     tooltip: Start typing to quickly find and jump to a particular section ({shortcut})
     ariaLabel: Jump to a navigation section
     noResults: No matching sections
-    popularHeading: Popular resource types
-    recentHeading: Last used
-    recentHeadingInCluster: Last used in this cluster
+    popularHeading: Popular entries
+    recentHeading: Recently used
   ariaLabel:
     clusterIconKeyCombo: Cluster keyboard shortcut combination icon
     localClusterIcon: Local Cluster icon
@@ -3105,8 +3104,6 @@ fleet:
     applicationTarget: Target
     applicationClustersReady: Clusters Ready
     applicationResourcesSummary: Resources
-  jumpTo:
-    sectionsHeading: Continuous Delivery sections
   dashboard:
     pageTitle: Continuous Delivery Dashboard
     menuLabel: Dashboard

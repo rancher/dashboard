@@ -567,7 +567,6 @@ export default {
     <NavActionBar
       v-if="navSearch"
       :groups="groups"
-      :nav-search="navSearch"
       :has-expanded-group="hasExpandedGroup"
       @collapse-all="collapseAll()"
       @jumped="onJumped"

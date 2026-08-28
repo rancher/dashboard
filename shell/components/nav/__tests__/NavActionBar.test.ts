@@ -75,7 +75,7 @@ const groups = [
 
 const mountBar = (props: Record<string, any> = {}) => mount(NavActionBar, {
   props: {
-    groups, navSearch: true, hasExpandedGroup: false, ...props
+    groups, hasExpandedGroup: false, ...props
   },
   global: {
     directives: { shortkey: {} },
@@ -100,30 +100,17 @@ describe('NavActionBar.vue', () => {
     expect(wrapper.find('.jump-to-input').attributes('placeholder')).toStrictEqual('%nav.jumpTo.placeholder%');
   });
 
-  it('takes the labels a product overrides, and keeps the default for the rest', async() => {
-    stored = ['configmap'];
-
-    const wrapper = mountBar({ navSearch: { placeholder: 'fleet.jumpTo.placeholder', recentHeading: 'fleet.jumpTo.recentHeading' } });
-    const input = wrapper.find('.jump-to-input');
-
-    expect(input.attributes('placeholder')).toStrictEqual('%fleet.jumpTo.placeholder%');
-    // Untouched labels are not dragged along by the ones that were overridden
-    expect(input.attributes('aria-label')).toStrictEqual('%nav.jumpTo.ariaLabel%');
-
-    await input.trigger('focus');
-    await nextTick();
-
-    expect(wrapper.find('.jump-to-heading').text()).toStrictEqual('%fleet.jumpTo.recentHeading%');
-  });
-
-  it('keeps every default label for a product that opts in without wording', async() => {
-    const wrapper = mountBar({ navSearch: true });
+  it('heads an empty query and an empty result set in the shared wording', async() => {
+    const wrapper = mountBar();
 
     await wrapper.find('.jump-to-input').trigger('focus');
+    await nextTick();
+
+    expect(wrapper.find('.jump-to-heading').text()).toStrictEqual('%nav.jumpTo.popularHeading%');
+
     await wrapper.find('.jump-to-input').setValue('zzz');
     await nextTick();
 
-    expect(wrapper.find('.jump-to-input').attributes('placeholder')).toStrictEqual('%nav.jumpTo.placeholder%');
     expect(wrapper.find('.jump-to-empty').text()).toStrictEqual('%nav.jumpTo.noResults%');
   });
 

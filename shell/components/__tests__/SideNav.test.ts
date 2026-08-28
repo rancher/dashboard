@@ -129,14 +129,6 @@ describe('component: SideNav', () => {
       expect(toolbar(mountNav()).exists()).toBe(true);
     });
 
-    it('shows it for a product that only overrode the labels', () => {
-      registerProducts([{
-        name: 'explorer', inStore: 'cluster', navSearch: { recentHeading: 'fleet.jumpTo.recentHeading' }
-      }]);
-
-      expect(toolbar(mountNav()).exists()).toBe(true);
-    });
-
     it('leaves it out entirely for a product that did not, collapse-all included', () => {
       registerProducts([{ name: 'explorer', inStore: 'cluster' }]);
 
