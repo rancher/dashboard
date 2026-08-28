@@ -119,6 +119,9 @@ describe('modern theme colour contrast (WCAG 2.1 AA)', () => {
     it.each([
       ['--input-border', '--body-bg', NON_TEXT],
       ['--input-border', '--box-bg', NON_TEXT],
+      // Kept in step with --input-border; both come from the same $form-control-border
+      ['--checkbox-border', '--body-bg', NON_TEXT],
+      ['--checkbox-border', '--box-bg', NON_TEXT],
       ['--on-active', '--active', TEXT],
     ])('%s on %s meets %s:1', (foreground, background, min) => {
       expect(ratio(dark, foreground, background)).toBeGreaterThanOrEqual(min);
