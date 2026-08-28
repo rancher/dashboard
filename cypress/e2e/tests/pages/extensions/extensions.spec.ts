@@ -562,7 +562,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // Install unauthenticated extension
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=install`).as('installUnauthenticated');
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
-    extensionsPo.installModal().checkVisible();
+    // Fixed-position modal: assert visibility without scrolling (scrollIntoView detaches it mid-animation,
+    // which can leave the install interaction flaky and the reload banner/script import never appearing).
+    extensionsPo.installModal().self().should('be.visible');
     extensionsPo.installModal().installButton().click();
     // Wait for the install request to be accepted before reloading. Reloading while the install is
     // still in flight leaves the Extensions page stuck on "Loading..." - the other install tests in
