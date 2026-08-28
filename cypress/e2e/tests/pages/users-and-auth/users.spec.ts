@@ -603,6 +603,16 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('User creation should throw an error if creating a user with a higher permission set, the error should be removable, and creation should succeed once permissions are appropriately lowered', () => {
+      // Idempotent across Cypress retries (testIsolation off): the fixed-name standard user survives a
+      // failed attempt and collides on re-create (the create then never fires its request). Remove it.
+      cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
+        const existing = (resp.body.data || []).find((u: any) => u.username === standardUsername);
+
+        if (existing) {
+          cy.deleteRancherResource('v1', 'management.cattle.io.users', existing.id, false);
+        }
+      });
+
       // create standard user
       usersPo.goTo();
       usersPo.waitForPage();
@@ -657,8 +667,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
 
       // save and assert that the new user exists
-      usersPo.goTo();
-      usersPo.waitForPage();
+      // Wait for the users list GET to resolve before asserting, so the new row isn't queried mid-load.
+      usersPo.waitForRequests();
       usersPo.list().elementWithName(adminUsername).should('exist');
     });
   });

@@ -46,6 +46,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
       .click();
 
+    // Wait for the daemonset to be queryable before opening the edit form below: it races the create,
+    // and if the resource isn't indexed yet the edit form (and its #DaemonSet tab) never mounts.
+    cy.waitForRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
     workloadsDaemonsetsListPage.waitForPage();
     workloadsDaemonsetsListPage.baseResourceList().checkVisible();
     // Confirm the list has finished loading before opening the edit form: we flick quickly
