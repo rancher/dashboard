@@ -670,7 +670,7 @@ export const getters = {
     return function getTree(productId, mode, allTypes, clusterId, namespaceMode, currentType, search) {
       // getTree has four modes:
       // - `basic` matches data types that should always be shown (even if there are 0 of them).
-      // - `used` matches the data types where there are more than 0 of them in the current set of namespaces.
+      // - `used` matches the data types that have been used, shown regardless of their current count.
       // - `all` matches all types.
       // - `favorite` matches starred types.
       // namespaceMode: 'namespaced', 'cluster', or 'both'
@@ -716,10 +716,6 @@ export const getters = {
           // If this is the type currently being shown, always show it
         } else if ( isBasic && !groupForBasicType ) {
           // If we want the basic tree only return basic types;
-          continue;
-        } else if ( mode === TYPE_MODES.USED && count <= 0 ) {
-          // If there's none of this type, ignore this entry when viewing only in-use types
-          // Note: count is sometimes null, in js `null <= 0` is `true`.
           continue;
         }
 

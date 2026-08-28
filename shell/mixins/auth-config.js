@@ -350,6 +350,10 @@ export default {
 
       case 'saml':
         this.model.accessMode = 'unrestricted';
+        if (this.model.id === 'genericsaml') {
+          this.model.nameIDFormat = this.model.nameIDFormat || 'unspecified';
+          this.model.signatureMethod = this.model.signatureMethod || 'RSA-SHA256';
+        }
         break;
       case 'ldap':
         this.model.servers = [];

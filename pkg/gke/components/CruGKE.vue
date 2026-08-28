@@ -783,6 +783,7 @@ export default defineComponent({
         :original-version="originalVersion"
         :cluster-id="normanCluster.id"
         :cluster-name="normanCluster.name"
+        :gke-cluster-name="config.clusterName"
         :cluster-description="normanCluster.description"
         :rules="{
           clusterName: fvGetAndReportPathRules('clusterName')

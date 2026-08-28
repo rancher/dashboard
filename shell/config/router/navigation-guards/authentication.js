@@ -101,6 +101,10 @@ export async function authenticate(to, from, next, { store }) {
         } else {
           if ( status === 401 ) {
             notLoggedIn(store, next, to);
+          } else if (status === 598) {
+            store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
+
+            return next('/fail-whale');
           } else {
             store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
           }

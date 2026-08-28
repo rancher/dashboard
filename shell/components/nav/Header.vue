@@ -4,7 +4,7 @@ import debounce from 'lodash/debounce';
 import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
-import { isAlternate, isMac } from '@shell/utils/platform';
+import { isAlternate } from '@shell/utils/platform';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct, getVendor } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
@@ -64,7 +64,6 @@ export default {
   },
 
   data() {
-    const searchShortcut = isMac ? '(\u2318-K)' : '(Ctrl+K)';
     const shellShortcut = '(Ctrl+`)';
 
     return {
@@ -74,7 +73,6 @@ export default {
       isUserMenuOpen:          false,
       isPageActionMenuOpen:    false,
       kubeConfigCopying:       false,
-      searchShortcut,
       shellShortcut,
       LOGGED_OUT,
       navHeaderRight:          null,
@@ -232,10 +230,6 @@ export default {
       return !!this.currentCluster?.actions?.apply;
     },
 
-    showSearch() {
-      return this.rootProduct?.inStore === 'cluster';
-    },
-
     showImportYaml() {
       return this.rootProduct?.inStore !== 'harvester';
     },
@@ -368,17 +362,6 @@ export default {
         height:         'auto',
         styles:         'max-height: 90vh;',
         componentProps: { cluster: this.currentCluster }
-      });
-    },
-
-    openSearch() {
-      this.$store.dispatch('cluster/promptModal', {
-        component:           'SearchDialog',
-        testId:              'search-modal',
-        modalWidth:          '50%',
-        height:              'auto',
-        styles:              'max-height: 90vh;',
-        returnFocusSelector: '#header-btn-search'
       });
     },
 
@@ -689,23 +672,6 @@ export default {
             />
           </button>
         </template>
-
-        <button
-          v-if="showSearch"
-          id="header-btn-search"
-          v-clean-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
-          v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
-          type="button"
-          class="btn header-btn role-tertiary"
-          data-testid="header-resource-search"
-          role="button"
-          tabindex="0"
-          :aria-label="t('nav.resourceSearch.toolTip', {key: ''})"
-          @shortkey="openSearch()"
-          @click="openSearch()"
-        >
-          <i class="icon icon-search icon-lg" />
-        </button>
       </div>
 
       <!-- Extension header actions -->

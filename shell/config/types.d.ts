@@ -205,7 +205,6 @@ export const MANAGEMENT: {
 };
 export const BRAND: {
     SUSE: string;
-    CSP: string;
     FEDERAL: string;
     RGS: string;
 };

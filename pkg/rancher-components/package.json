@@ -21,13 +21,13 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@rancher/icons": "^2.0.62",
+    "@rancher/icons": "^2.0.63",
     "lodash.debounce": "4.0.8"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@typescript-eslint/eslint-plugin": "8.62.0",
-    "@typescript-eslint/parser": "8.62.0",
+    "@typescript-eslint/parser": "8.67.0",
     "@vue/cli-plugin-babel": "5.0.9",
     "@vue/cli-plugin-typescript": "5.0.9",
     "@vue/cli-service": "5.0.9",

@@ -36,7 +36,7 @@ Runs automatically **Tue–Sat at 4:00 AM PST** (11:00 UTC) via GitHub Actions, 
 | `INSPECTOR_GITHUB_PROJECT_NUMBER` | Repo variable | Project board number |
 | `INSPECTOR_BUILD_WINDOW` | Repo variable | Number of recent builds to scan for the batch anchor (default: `50`) |
 | `INSPECTOR_ANCHOR_DESCRIPTION` | Repo variable | Jenkins build description that marks the batch start (default: `head · community · @adminUser`) |
-| `INSPECTOR_SLACK_THRESHOLD` | Repo variable | Unique failure count above which a Slack alert is sent instead of creating issues (default: `10`) |
+| `INSPECTOR_SLACK_THRESHOLD` | Repo variable | Unique failure count above which a Slack alert is sent instead of creating issues (default: `10`). The alert breaks the failures down into ones with an open issue, ones whose issue would be reopened, and untracked ones |
 | `INSPECTOR_SLACK_NOTIFICATION` | Repo variable | Set to `false` to disable Slack alerts (default: `true`) |
 | `INSPECTOR_COPILOT_MODEL` | Repo variable | Copilot model used for AI fix suggestions (default: `gpt-5.6-luna`). Set this if the default model is retired — the model must support the `/responses` API |
 | `GITHUB_ORG` | Workflow env | Target org (default: `rancher`) |
@@ -49,5 +49,5 @@ Runs automatically **Tue–Sat at 4:00 AM PST** (11:00 UTC) via GitHub Actions, 
 | `src/inspect.js` | Entrypoint — orchestrates the full inspection run |
 | `src/jenkins-client.js` | Jenkins REST API client — fetches builds and test results |
 | `src/github-client.js` | GitHub REST/GraphQL client — manages issues and project board |
-| `src/slack-client.js` | Slack client — sends high-failure alerts to the UI QA channel |
+| `src/slack-client.js` | Slack client — sends high-failure alerts to the UI QA channel, including a known-vs-new failure breakdown |
 | `src/fetch-utils.js` | Shared fetch utility — timeout and retry logic for all HTTP calls |

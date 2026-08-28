@@ -44,6 +44,7 @@ describe('class Namespace', () => {
 
     assertionsArr.push(['c-whatever-system', false]);
     assertionsArr.push(['cattle-whatever', false]);
+    assertionsArr.push(['k3k-system', true]);
     assertionsArr.push(['', false]);
 
     it.each(assertionsArr)('should return true if it belongs to the curated list of namespaces', (name, expectation) => {

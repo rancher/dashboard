@@ -94,7 +94,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.wait('@updateChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
       cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT);
       harvesterPo.waitForPage();
-      cy.wait('@updateChart', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+      // Don't wait for a 2nd @updateChart PUT - the app sends it a variable number of times, so a fixed
+      // count hangs ("no request occurred"). Gate on the outcome instead (the warning clears).
       harvesterPo.extensionWarning(MEDIUM_TIMEOUT_OPT).should('not.exist');
 
       // verify harvester extension added to extensions page
@@ -190,7 +191,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       // click on install button on card
       extensionsPo.extensionCardInstallClick(harvesterTitle);
-      extensionsPo.installModal().checkVisible();
+      // The modal is fixed-position, so checkVisible()'s scrollIntoView is pointless and detaches the
+      // subject while the dialog animates in - assert visibility without scrolling.
+      extensionsPo.installModal().self().should('be.visible');
 
       // select latest version and click install
       extensionsPo.installModal().selectVersionClick(1);
