@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import FleetGitRepoPaths, { Subpath, getRelevantPrefixes } from '@shell/components/fleet/FleetGitRepoPaths.vue';
-import { getters, state, mutations } from '@shell/store/i18n.js';
+import { getters, state, mutations, I18nState } from '@shell/store/i18n';
 
 // The i18n store imports the en-us yaml, which jest can't parse. The a11y tests below load the
 // small subset of translations they need explicitly, via `loadTranslations`.
@@ -291,7 +291,7 @@ describe('a11y: unique path row labels', () => {
 
   const store = createStore({
     state,
-    getters: { 'i18n/t': getters.t },
+    getters: { 'i18n/t': (s: I18nState) => getters.t(s) },
     mutations,
   });
 
