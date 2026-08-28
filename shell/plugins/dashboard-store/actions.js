@@ -905,8 +905,8 @@ export default {
     return resource;
   },
 
-  cleanForDownload(ctx, resource) {
-    return resource;
+  cleanForDownload(ctx, { yaml }) {
+    return yaml;
   },
 
   // Wait for a schema that is expected to exist that may not have been loaded yet (for instance when loadCluster is still running).

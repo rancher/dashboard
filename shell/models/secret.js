@@ -528,12 +528,12 @@ export default class Secret extends SteveModel {
     return val;
   }
 
-  async cleanForDownload(yaml) {
+  async cleanForDownload(yaml, opt = {}) {
     // secret resource contains the type attribute
     // ref: https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/secret-v1/
     // ref: https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
 
-    return steveCleanForDownload(yaml, { rootKeys: ['id', 'links', 'actions'] });
+    return steveCleanForDownload(yaml, { rootKeys: ['id', 'links', 'actions'], ...opt });
   }
 
   /**

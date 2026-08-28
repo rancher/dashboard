@@ -1724,8 +1724,8 @@ export default class Resource {
     this.$dispatch(`cleanForDiff`, this.toJSON());
   }
 
-  async cleanForDownload(yaml) {
-    return this.$dispatch(`cleanForDownload`, yaml);
+  async cleanForDownload(yaml, opt = {}) {
+    return this.$dispatch(`cleanForDownload`, { yaml, opt });
   }
 
   yamlForSave(yaml) {

@@ -434,9 +434,10 @@ export default {
     return resource;
   },
 
-  // remove fields added by steve before showing/downloading yamls
-  cleanForDownload(ctx, yaml) {
-    return steveCleanForDownload(yaml);
+  // remove fields added by steve before showing/downloading yamls.
+  // When editing, also hide server-managed metadata fields not suitable for editing.
+  cleanForDownload(ctx, { yaml, opt }) {
+    return steveCleanForDownload(yaml, opt);
   }
 };
 
