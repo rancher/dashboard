@@ -258,6 +258,45 @@ describe('model: cert-manager.io.certificate', () => {
     });
   });
 
+  describe('detail cards', () => {
+    // A CertificateRequest owned by this certificate, so the chain reaches two stages and the
+    // Issuance Status card is not suppressed.
+    const request = { metadata: { namespace: 'default', annotations: { 'cert-manager.io/certificate-name': 'my-cert' } }, orders: [] };
+    const chained = () => certificate({}, {}, { rows: [request] });
+
+    it('should render through the standard full detail page layout', () => {
+      expect(certificate().fullDetailPageOverride).toBe(true);
+    });
+
+    it('should build an Issuance Status card from the applicable stages', () => {
+      const card = chained().issuanceStatusCard;
+
+      expect(card.component).toBeDefined();
+      expect(card.props.title).toBe('certManager.issuance.title');
+      expect(card.props.stages.map((s: any) => s.labelKey)).toStrictEqual([
+        'certManager.issuance.certificate',
+        'certManager.issuance.certificateRequest',
+      ]);
+    });
+
+    it('should suppress the Issuance Status card when only the certificate stage applies', () => {
+      // A lone stage is not a chain to track, so the card is omitted rather than showing one row.
+      expect(certificate({}, {}, { rows: [] }).issuanceStatusCard).toBeNull();
+    });
+
+    it('should place the Issuance Status card first in the detail card row', () => {
+      expect(chained().cards[0].props.title).toBe('certManager.issuance.title');
+    });
+
+    it('should add the shell Insights card and drop Resources when there are no relationships', () => {
+      const titles = certificate({}, {}, { rows: [] }).cards.map((c: any) => c.props.title);
+
+      // resourcesCard returns null without relationships, so it is filtered out of the row.
+      expect(titles).toContain('component.resource.detail.card.insightsCard.title');
+      expect(titles).not.toContain('component.resource.detail.card.resourcesCard.title');
+    });
+  });
+
   describe('masthead chips', () => {
     it('should show the first subject alternative name plus a count', () => {
       // Mirrors how the shell shows a TLS Secret's certificate names; the full list is in the YAML.

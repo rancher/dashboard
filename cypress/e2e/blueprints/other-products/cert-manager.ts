@@ -304,7 +304,7 @@ export function generateCertManagerForIssuerCreate(): void {
 
 /**
  * Backs the Certificate detail page with a full ACME issuance chain
- * (Certificate -> CertificateRequest -> Order -> Challenge) so the IssuanceProgress stepper renders
+ * (Certificate -> CertificateRequest -> Order -> Challenge) so the Issuance Status card renders
  * every stage and the issuance-history tab lists the request. The certificate is stubbed both as a
  * collection row and by id, since the detail page loads it directly.
  */

@@ -1,4 +1,5 @@
 import day from 'dayjs';
+import { markRaw, defineAsyncComponent } from 'vue';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { SECRET } from '@shell/config/types';
@@ -183,6 +184,42 @@ export default class Certificate extends SteveModel {
     }
 
     return stages;
+  }
+
+  /**
+   * Render the certificate detail page through the shell's standard detail layout (new masthead
+   * plus the card row), the same as ConfigMaps and Secrets, so it gains the regular Resources and
+   * Insights cards alongside our own Issuance Status card. See `cards`.
+   */
+  get fullDetailPageOverride(): boolean {
+    return true;
+  }
+
+  /** The Issuance Status card shown in the detail masthead - the issuance chain and each stage's state. */
+  get issuanceStatusCard(): any {
+    const stages = this.issuanceStages;
+
+    // A lone Certificate stage is not a chain to track, and the masthead already shows its state,
+    // so there is nothing for the card to add. Suppress it (Cards.vue filters out the null).
+    if (stages.length <= 1) {
+      return null;
+    }
+
+    return {
+      component: markRaw(defineAsyncComponent(() => import('../components/IssuanceStatusCard.vue'))),
+      props:     {
+        title: this.t('certManager.issuance.title'),
+        stages,
+      },
+    };
+  }
+
+  /**
+   * Cards shown in the detail masthead. Issuance Status is ours; Resources and Insights are the
+   * shell's standard cards (defined on the base resource class), opted into here.
+   */
+  get cards(): any[] {
+    return [this.issuanceStatusCard, this.resourcesCard, this.insightCard].filter((c) => c);
   }
 
   /** Every subject alternative name, in the order cert-manager lists them. */

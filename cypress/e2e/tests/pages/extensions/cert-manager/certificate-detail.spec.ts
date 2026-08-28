@@ -2,7 +2,7 @@ import CertificateDetailPo from '@/cypress/e2e/po/pages/extensions/cert-manager/
 import { generateCertManagerCertificateDetail, generateCertManagerCertificateDetailNoChain } from '@/cypress/e2e/blueprints/other-products/cert-manager';
 
 /**
- * Detail-page coverage for the cert-manager Certificate, focused on the IssuanceProgress stepper.
+ * Detail-page coverage for the cert-manager Certificate, focused on the Issuance Status card.
  * The CRDs are not installed on the CI cluster, so the certificate and its issuance chain
  * (CertificateRequest -> Order -> Challenge) are mocked (see blueprints/other-products/cert-manager).
  * The chain is wired with the annotations and owner references cert-manager uses, so the model
@@ -27,17 +27,17 @@ describe('Cert Manager certificate detail', { tags: ['@extensions', '@adminUser'
       cy.wait(['@certManager-certificaterequests', '@certManager-orders', '@certManager-challenges']);
     });
 
-    it('renders the issuance progress stepper stage by stage', () => {
+    it('renders the issuance status card stage by stage', () => {
       const detail = new CertificateDetailPo();
 
-      detail.issuanceProgress().should('be.visible');
+      detail.issuanceStatusCard().should('be.visible');
 
       // Certificate -> CertificateRequest -> Order -> Challenge, in chain order.
       detail.issuanceStages().should('have.length', 4);
       detail.issuanceStage(0).should('contain.text', 'Certificate');
       detail.issuanceStage(1).should('contain.text', 'Certificate Request');
-      detail.issuanceStage(2).should('contain.text', 'ACME Order');
-      detail.issuanceStage(3).should('contain.text', 'ACME Challenge');
+      detail.issuanceStage(2).should('contain.text', 'Order');
+      detail.issuanceStage(3).should('contain.text', 'Challenge');
     });
 
     it('lists the certificate requests in the issuance history tab', () => {
@@ -49,7 +49,7 @@ describe('Cert Manager certificate detail', { tags: ['@extensions', '@adminUser'
   });
 
   describe('without an issuance chain', () => {
-    it('omits the stepper when the certificate is the only stage', () => {
+    it('omits the card when the certificate is the only stage', () => {
       generateCertManagerCertificateDetailNoChain();
 
       const detail = new CertificateDetailPo();
@@ -57,8 +57,8 @@ describe('Cert Manager certificate detail', { tags: ['@extensions', '@adminUser'
       detail.goTo();
       detail.waitForPage();
 
-      // A single stage is not progress, so the widget is suppressed entirely.
-      detail.issuanceProgress().should('not.exist');
+      // A single stage is not a chain to track, so the card is suppressed entirely.
+      detail.issuanceStatusCard().should('not.exist');
     });
   });
 });

@@ -19,12 +19,12 @@ export default class CertificateDetailPo extends PagePo {
     super(CertificateDetailPo.detailPath(namespace, name, clusterId));
   }
 
-  /** The IssuanceProgress stepper, present only when the certificate has an issuance chain. */
-  issuanceProgress() {
-    return this.self().find('[data-testid="cert-manager-issuance-progress"]');
+  /** The Issuance Status card, present only when the certificate has an issuance chain. */
+  issuanceStatusCard() {
+    return this.self().find('[data-testid="cert-manager-issuance-status-card"]');
   }
 
-  /** Every stage in the stepper, in chain order. */
+  /** Every stage in the card, in chain order. */
   issuanceStages() {
     return this.self().find('[data-testid^="cert-manager-issuance-stage-"]');
   }

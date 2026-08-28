@@ -69,11 +69,11 @@ certManager:
       s: Seconds
 
   issuance:
-    title: Issuance Progress
+    title: Issuance Status
     certificate: Certificate
     certificateRequest: Certificate Request
-    order: ACME Order
-    challenge: ACME Challenge
+    order: Order
+    challenge: Challenge
 
   tableHeaders:
     issuer: Issuer
