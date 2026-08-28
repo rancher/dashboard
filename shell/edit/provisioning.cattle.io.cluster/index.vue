@@ -468,19 +468,45 @@ export default {
       return `color${ SORT_GROUPS[obj.group] || 1 }`;
     },
 
-    clickedType(obj) {
+    /**
+     * Resolve the cluster a (cluster-scoped) chart should be installed against.
+     *
+     * Cluster Management is a global area, so we must not rely on the current cluster context
+     * (e.g. a downstream cluster the user last visited). Cluster-template charts install against
+     * the local cluster, so resolve it explicitly by id. Scanning `management/all` is unreliable
+     * because the cluster list may be server-side paginated and only hold the current page, so a
+     * targeted `find` is used instead.
+     *
+     * If the user cannot access the local cluster, fall back to the blank cluster.
+     */
+    async installClusterId() {
+      if (!this.$store.getters['management/canList'](MANAGEMENT.CLUSTER)) {
+        return BLANK_CLUSTER;
+      }
+
+      try {
+        const localCluster = await this.$store.dispatch('management/find', {
+          type: MANAGEMENT.CLUSTER,
+          id:   'local',
+          opt:  { watch: false }
+        });
+
+        return localCluster?.id || BLANK_CLUSTER;
+      } catch (e) {
+        // No access to the local cluster (e.g. a 404) - fall back to the blank cluster
+        return BLANK_CLUSTER;
+      }
+    },
+
+    async clickedType(obj) {
       const id = obj.id;
       const parts = id.split(':', 2);
 
       if ( parts[0] === 'chart' ) {
         const chart = this.$store.getters['catalog/chart']({ key: parts[1] });
-        let localCluster;
+        const clusterId = await this.installClusterId();
 
-        if (this.$store.getters[`management/canList`](MANAGEMENT.CLUSTER)) {
-          localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find((x) => x.isLocal);
-        }
-
-        chart.goToInstall(FROM_CLUSTER, localCluster?.id || BLANK_CLUSTER, true);
+        chart.goToInstall(FROM_CLUSTER, clusterId, true);
 
         return;
       }
