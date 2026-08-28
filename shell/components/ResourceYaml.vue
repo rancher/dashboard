@@ -294,6 +294,16 @@ export default {
       }
     },
 
+    /**
+     * Push a template's yaml into the editor. Triggered externally (from the
+     * ResourceTemplateSelector now living in the page Masthead) via a ref, once the caller has
+     * already applied the template to `value` and shown any confirmation.
+     */
+    applyTemplateYaml(yaml) {
+      this.currentYaml = yaml;
+      this.updateValue(yaml);
+    },
+
     refresh() {
       this.$refs.yamleditor.refresh();
     },

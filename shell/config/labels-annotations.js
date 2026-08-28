@@ -24,6 +24,8 @@ export const UI_PROJECT_SECRET_CLUSTER = 'management.cattle.io/project-scoped-se
 
 export const SERVICE_LINKS = 'ui.rancher/service-links';
 export const NODE_DRIVER_FIELD_HINTS = 'io.cattle.nodedriver/ui-field-hints';
+export const CATTLE_UI_RESOURCE_TEMPLATE = 'ui.rancher/resource-template';
+export const CATTLE_UI_RESOURCE_TEMPLATE_APPLIED = 'ui.rancher/resource-template-applied';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
