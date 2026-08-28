@@ -905,7 +905,12 @@ export default {
     return resource;
   },
 
-  cleanForDownload(ctx, { yaml }) {
+  cleanForDownload(ctx, payload) {
+    // Backwards compatibility: older callers (e.g. extensions built against a
+    // previous shell) dispatch the yaml string directly rather than a
+    // { yaml, opt } payload. Accept either shape.
+    const { yaml } = typeof payload === 'string' ? { yaml: payload } : (payload || {});
+
     return yaml;
   },
 

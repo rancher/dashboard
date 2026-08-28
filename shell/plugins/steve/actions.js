@@ -436,7 +436,12 @@ export default {
 
   // remove fields added by steve before showing/downloading yamls.
   // When editing, also hide server-managed metadata fields not suitable for editing.
-  cleanForDownload(ctx, { yaml, opt }) {
+  cleanForDownload(ctx, payload) {
+    // Backwards compatibility: older callers (e.g. extensions built against a
+    // previous shell) dispatch the yaml string directly rather than a
+    // { yaml, opt } payload. Accept either shape.
+    const { yaml, opt } = typeof payload === 'string' ? { yaml: payload } : (payload || {});
+
     return steveCleanForDownload(yaml, opt);
   }
 };
