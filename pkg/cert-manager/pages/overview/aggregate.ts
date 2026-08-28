@@ -2,7 +2,7 @@ import { stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resour
 import type { StateColor } from '@shell/utils/style';
 import { CERT_MANAGER } from '../../types';
 import type {
-  StatefulResource, OverviewStatRow, OverviewStatusCard, OverviewExpiryTile, ExpiringSoonRow,
+  StatefulResource, OverviewStatRow, OverviewStatusCard, OverviewCreateAction, ExpiringSoonRow,
   ExpiringCertificate, OverviewRouteFn,
 } from './types';
 
@@ -16,8 +16,10 @@ interface StateCount {
 }
 
 /**
- * The order states are listed in the certificate summary card, healthiest first. Anything not named
- * here (an unexpected state) still renders, just after these.
+ * Health cards list states most critical (red) first, down to least critical (green), so the eye
+ * lands on problems first - the same convention as the workload dashboard. The primary sort is the
+ * state's colour (see COLOR_SEVERITY); these per-card orders only break ties between states that
+ * share a colour. Anything not named here still renders, just after its same-coloured peers.
  */
 const CERTIFICATE_STATE_ORDER = [
   STATES_ENUM.ACTIVE,
@@ -41,27 +43,13 @@ const ACME_STATE_ORDER = [
 const DAY_MS = 86_400_000;
 
 /**
- * Time-to-expiry buckets, soonest first. A certificate lands in the first bucket whose `maxDays`
- * still covers its remaining days; `beyond90` catches everything healthier. The colours darken as
- * expiry approaches, so a glance at the tiles reads as a risk gradient.
+ * Severity by state colour, most critical first. Drives the row/segment order on every health card
+ * so red reads before green. A colour maps directly to severity, so this covers any state - including
+ * issuer-only ones like `warning`/`evaluating` that no per-card order lists.
  */
-const EXPIRY_BUCKETS: { key: string; labelKey: string; color: StateColor; maxDays: number }[] = [
-  {
-    key: 'expired', labelKey: 'certManager.overview.expiry.expired', color: 'error', maxDays: 0
-  },
-  {
-    key: 'within7', labelKey: 'certManager.overview.expiry.within7', color: 'error', maxDays: 7
-  },
-  {
-    key: 'within30', labelKey: 'certManager.overview.expiry.within30', color: 'warning', maxDays: 30
-  },
-  {
-    key: 'within90', labelKey: 'certManager.overview.expiry.within90', color: 'info', maxDays: 90
-  },
-  {
-    key: 'beyond90', labelKey: 'certManager.overview.expiry.beyond90', color: 'success', maxDays: Infinity
-  },
-];
+const COLOR_SEVERITY: Record<StateColor, number> = {
+  error: 0, warning: 1, info: 2, success: 3, disabled: 4,
+};
 
 function indexIn(order: string[], state: string): number {
   const i = order.indexOf(state);
@@ -97,8 +85,10 @@ function toSegments(counts: StateCount[], total: number): { color: StateColor; p
 }
 
 /**
- * Build a stacked-bar + rows card from a set of resources, ordered by `order`. `routeFor` turns a
- * state into a link to the pre-filtered list, so every row is clickable.
+ * Build a stacked-bar + rows card from a set of resources, ordered by `order`. `routeFor` links the
+ * whole card to the resource list. Rows are not links: the list filters on Steve's generic
+ * `metadata.state.name`, not the domain state this model computes (expiring, in-progress, ...), so a
+ * per-state deep-link would return empty or mismatched results. See utils/state.ts.
  */
 export function buildStatusCard(
   key: string,
@@ -109,14 +99,13 @@ export function buildStatusCard(
   routeFor: OverviewRouteFn,
 ): OverviewStatusCard {
   const counts = countByState(resources)
-    .sort((a, b) => indexIn(order, a.state) - indexIn(order, b.state));
+    .sort((a, b) => COLOR_SEVERITY[a.color] - COLOR_SEVERITY[b.color] || indexIn(order, a.state) - indexIn(order, b.state));
   const total = resources.length;
 
   const rows: OverviewStatRow[] = counts.map((c) => ({
     label: stateDisplay(c.state, true),
     color: c.color,
     count: c.count,
-    to:    routeFor(type, [c.state]),
   }));
 
   return {
@@ -150,40 +139,6 @@ export function daysUntilExpiry(expiresAt: string, now: number): number {
   return Math.ceil((new Date(expiresAt).getTime() - now) / DAY_MS);
 }
 
-function bucketFor(days: number) {
-  // `beyond90` has maxDays Infinity, so a match is guaranteed.
-  return EXPIRY_BUCKETS.find((b) => days <= b.maxDays) as typeof EXPIRY_BUCKETS[number];
-}
-
-/**
- * Coloured tiles counting certificates by how soon they expire. Certificates with no `expiresAt`
- * (never issued) have no expiry to bucket and are skipped; empty buckets are dropped, so only the
- * windows that actually contain a certificate render.
- */
-export function buildExpiryTiles(
-  certificates: ExpiringCertificate[],
-  now: number,
-  t: Translate,
-): OverviewExpiryTile[] {
-  const counts: Record<string, number> = {};
-
-  for (const c of certificates) {
-    if (!c.expiresAt) {
-      continue;
-    }
-
-    const bucket = bucketFor(daysUntilExpiry(c.expiresAt, now));
-
-    counts[bucket.key] = (counts[bucket.key] || 0) + 1;
-  }
-
-  return EXPIRY_BUCKETS
-    .filter((b) => counts[b.key])
-    .map((b) => ({
-      key: b.key, color: b.color, count: counts[b.key], label: t(b.labelKey)
-    }));
-}
-
 /**
  * The `limit` certificates closest to expiring, soonest first, each linking to its detail page.
  * Certificates with no expiry are skipped - there is nothing to count down to.
@@ -210,15 +165,26 @@ export function buildExpiringSoon(
     });
 }
 
-/** A readiness card for one issuer kind (Issuer or ClusterIssuer), by state. */
+/**
+ * A readiness card for one issuer kind (Issuer or ClusterIssuer), by state. Issuers and
+ * ClusterIssuers are user-authored, so their cards carry a "create" action; ACME resources do not.
+ */
 export function buildIssuerCard(
   key: string,
   title: string,
   type: string,
   issuers: StatefulResource[],
   routeFor: OverviewRouteFn,
+  createAction?: OverviewCreateAction,
+  emptyLabel?: string,
 ): OverviewStatusCard {
-  return buildStatusCard(key, title, type, issuers, ISSUER_STATE_ORDER, routeFor);
+  const card = buildStatusCard(key, title, type, issuers, ISSUER_STATE_ORDER, routeFor);
+
+  return {
+    ...card,
+    ...(createAction ? { createAction } : {}),
+    ...(emptyLabel ? { emptyLabel } : {}),
+  };
 }
 
 /** An ACME activity card (Orders or Challenges) by state. */

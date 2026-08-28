@@ -44,16 +44,17 @@ export default class CertManagerOverviewPo extends PagePo {
     return this.expiringSoonList().find('.expiring-row');
   }
 
-  expiringMoreLink() {
-    return this.self().get('[data-testid="cert-manager-overview-expiring-more"]');
-  }
-
   issuersSection() {
     return this.self().get('[data-testid="cert-manager-overview-issuers"]');
   }
 
   acmeSection() {
     return this.self().get('[data-testid="cert-manager-overview-acme"]');
+  }
+
+  /** The status cards within the ACME activity section (Orders only - Challenges are not shown). */
+  acmeCards() {
+    return this.acmeSection().find('[data-testid="cert-manager-overview-card"]');
   }
 
   /** Every status card across the sections. */

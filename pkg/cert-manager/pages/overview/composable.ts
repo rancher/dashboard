@@ -4,20 +4,20 @@ import type { RouteLocationRaw } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { CERT_MANAGER } from '../../types';
-import {
-  buildCertificateSummary, buildExpiryTiles, buildExpiringSoon, buildIssuerCard, buildAcmeCard,
-} from './aggregate';
+import { buildCertificateSummary, buildExpiringSoon, buildIssuerCard, buildAcmeCard } from './aggregate';
 import type { OverviewRouteFn } from './types';
 
-/** How many certificates the "Expiring Soonest" list shows before it stops. */
-const EXPIRING_SOON_LIMIT = 3;
+/** How many certificates the "Next to Expire" list shows before it stops. */
+const EXPIRING_SOON_LIMIT = 5;
 
+// Challenges are deliberately absent: they are transient, auto-created and GC'd within a single
+// issuance, so they add churn without signal on an overview. A stuck challenge already surfaces via
+// its Order and the Certificate's state.
 const OVERVIEW_TYPES = [
   CERT_MANAGER.CERTIFICATE,
   CERT_MANAGER.ISSUER,
   CERT_MANAGER.CLUSTER_ISSUER,
   CERT_MANAGER.ORDER,
-  CERT_MANAGER.CHALLENGE,
 ];
 
 /** cert-manager's own documentation, linked from the empty state. */
@@ -55,24 +55,19 @@ export function useCertManagerOverview() {
   const issuers = computed<any[]>(() => (store.getters['cluster/all'](CERT_MANAGER.ISSUER) || []).filter(inSelectedNamespace));
   const clusterIssuers = computed<any[]>(() => store.getters['cluster/all'](CERT_MANAGER.CLUSTER_ISSUER) || []);
   const orders = computed<any[]>(() => (store.getters['cluster/all'](CERT_MANAGER.ORDER) || []).filter(inSelectedNamespace));
-  const challenges = computed<any[]>(() => (store.getters['cluster/all'](CERT_MANAGER.CHALLENGE) || []).filter(inSelectedNamespace));
 
   // ── Routing ──
 
-  const resourceRoute: OverviewRouteFn = (type: string, stateNames?: string[]): RouteLocationRaw => {
-    const loc: { name: string; params: Record<string, string>; query?: Record<string, string> } = {
-      name:   'c-cluster-product-resource',
-      params: {
-        cluster: clusterId.value, product: 'explorer', resource: type
-      },
-    };
-
-    if (stateNames?.length) {
-      loc.query = { stateFilter: stateNames.join(',') };
-    }
-
-    return loc;
-  };
+  // Links a card to its resource list. We deliberately do not pre-filter by state: the list filters
+  // on Steve's generic `metadata.state.name`, which does not match the domain state this overview
+  // computes (expiring, in-progress, ...), so a `?stateFilter=` deep-link returns empty or
+  // mismatched results. See utils/state.ts.
+  const resourceRoute: OverviewRouteFn = (type: string): RouteLocationRaw => ({
+    name:   'c-cluster-product-resource',
+    params: {
+      cluster: clusterId.value, product: 'explorer', resource: type
+    },
+  });
 
   function createRoute(type: string): RouteLocationRaw {
     return {
@@ -89,37 +84,28 @@ export function useCertManagerOverview() {
   const hasIssuers = computed<boolean>(() => issuers.value.length > 0 || clusterIssuers.value.length > 0);
   const hasContent = computed<boolean>(() => hasCertificates.value || hasIssuers.value);
 
-  const hasAcmeIssuer = computed<boolean>(() => [...issuers.value, ...clusterIssuers.value].some((i) => i.configType === 'acme'));
-
   // ── View models ──
 
   const certificateSummary = computed(() => buildCertificateSummary(certificates.value, t, resourceRoute));
 
-  // Time-to-expiry is measured against a single "now", captured once so the tiles and the list agree
-  // and do not drift while the page is open.
+  // Time-to-expiry is measured against a single "now", captured once so the list does not drift
+  // while the page is open.
   const now = Date.now();
 
-  const expiryTiles = computed(() => buildExpiryTiles(certificates.value, now, t));
   const expiringSoon = computed(() => buildExpiringSoon(certificates.value, now, EXPIRING_SOON_LIMIT, t));
 
-  // Every certificate the "Expiring Soonest" list does not show, so the "N more" link accounts for
-  // the full list it navigates to - including never-issued certificates, which have no expiry to
-  // rank and so never appear in the list itself.
-  const expiringSoonOverflow = computed(() => Math.max(0, certificates.value.length - expiringSoon.value.length));
-
-  const certificatesRoute = computed<RouteLocationRaw>(() => resourceRoute(CERT_MANAGER.CERTIFICATE));
-
   const issuerCards = computed(() => [
-    buildIssuerCard('issuers', t('typeLabel."cert-manager.io.issuer"', { count: 2 }).trim(), CERT_MANAGER.ISSUER, issuers.value, resourceRoute),
-    buildIssuerCard('clusterIssuers', t('typeLabel."cert-manager.io.clusterissuer"', { count: 2 }).trim(), CERT_MANAGER.CLUSTER_ISSUER, clusterIssuers.value, resourceRoute),
+    buildIssuerCard('issuers', t('typeLabel."cert-manager.io.issuer"', { count: 2 }).trim(), CERT_MANAGER.ISSUER, issuers.value, resourceRoute, { to: createRoute(CERT_MANAGER.ISSUER), label: t('certManager.overview.create.issuer') }, t('certManager.overview.emptyCard.issuers')),
+    buildIssuerCard('clusterIssuers', t('typeLabel."cert-manager.io.clusterissuer"', { count: 2 }).trim(), CERT_MANAGER.CLUSTER_ISSUER, clusterIssuers.value, resourceRoute, { to: createRoute(CERT_MANAGER.CLUSTER_ISSUER), label: t('certManager.overview.create.clusterIssuer') }, t('certManager.overview.emptyCard.clusterIssuers')),
   ]);
 
+  // Orders (and only Orders) make up ACME activity. The card is hidden entirely when there are no
+  // orders - they are auto-created, never authored, so an empty card would be noise.
   const acmeCards = computed(() => [
     buildAcmeCard('orders', t('typeLabel."acme.cert-manager.io.order"', { count: 2 }).trim(), CERT_MANAGER.ORDER, orders.value, resourceRoute),
-    buildAcmeCard('challenges', t('typeLabel."acme.cert-manager.io.challenge"', { count: 2 }).trim(), CERT_MANAGER.CHALLENGE, challenges.value, resourceRoute),
   ]);
 
-  const showAcmeSection = computed<boolean>(() => hasAcmeIssuer.value);
+  const showAcmeSection = computed<boolean>(() => orders.value.length > 0);
   const showIssuersSection = computed<boolean>(() => hasIssuers.value);
 
   // ── Subtitle ──
@@ -156,10 +142,7 @@ export function useCertManagerOverview() {
     hasCertificates,
     subtitle,
     certificateSummary,
-    expiryTiles,
     expiringSoon,
-    expiringSoonOverflow,
-    certificatesRoute,
     issuerCards,
     acmeCards,
     showAcmeSection,

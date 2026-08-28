@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, useSlots } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
@@ -13,18 +12,13 @@ import type { OverviewStatusCard } from './types';
 
 /**
  * A stacked-bar-plus-rows card, matching the workload dashboard's "by type" cards. The whole card
- * is a link to the resource list; individual rows deep-link to the list pre-filtered by state.
- *
- * An optional `#aside` slot adds a second column beside the rows - used by the Certificates card to
- * carry the "Expiring Soonest" list, so both certificate summaries read as one two-column panel.
+ * is a link to the resource list. Rows are informational only - see aggregate.ts for why they do
+ * not deep-link to a state-filtered list.
  */
 const props = defineProps<{ card: OverviewStatusCard }>();
 
 const router = useRouter();
 const { t } = useI18n(useStore());
-
-const slots = useSlots();
-const hasAside = computed(() => !!slots.aside);
 
 // Let text selection and inner links work, but treat a plain click anywhere on the card as "open
 // the list" - the same affordance the workload cards give.
@@ -52,76 +46,52 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     @keyup.enter="handleClick"
   >
     <template #heading>
-      <div
-        class="overview-heading"
-        :class="{ 'has-aside': hasAside }"
-      >
-        <div class="title-cell">
-          <span class="title-text">{{ card.title }}</span>
-          <RcCounterBadge
-            :count="card.total"
-            type="inactive"
-            :aria-label="`${ card.total } ${ card.title }`"
-          />
-        </div>
+      <div class="title-cell">
+        <span class="title-text">{{ card.title }}</span>
       </div>
     </template>
 
-    <div
-      class="card-body"
-      :class="{ 'has-aside': hasAside }"
-    >
-      <div class="main">
-        <StatusBar
-          v-if="card.segments.length"
-          :segments="card.segments"
-          class="align-center"
-          aria-hidden="true"
-        />
-        <VerticalGap />
-        <ul
-          v-if="card.rows.length"
-          class="rows"
-        >
-          <li
-            v-for="row in card.rows"
-            :key="row.label"
-            class="status-row"
-          >
-            <span
-              class="indicator"
-              :style="{ backgroundColor: stateColorCssVar(row.color) }"
-              aria-hidden="true"
-            />
-            <span class="label">
-              <SubtleLink
-                v-if="row.to"
-                :to="row.to"
-              >
-                {{ row.label }}
-              </SubtleLink>
-              <span v-else>{{ row.label }}</span>
-            </span>
-            <RcCounterBadge
-              :count="row.count"
-              type="inactive"
-              :aria-label="`${ row.count } ${ row.label }`"
-            />
-          </li>
-        </ul>
-        <div
-          v-else
-          class="text-muted empty"
-        >
-          {{ t('certManager.overview.noneOfType') }}
-        </div>
-      </div>
-
-      <div
-        v-if="hasAside"
-        class="aside"
+    <div class="card-body">
+      <StatusBar
+        v-if="card.segments.length"
+        :segments="card.segments"
+        class="align-center"
+        aria-hidden="true"
+      />
+      <VerticalGap />
+      <ul
+        v-if="card.rows.length"
+        class="rows"
       >
-        <slot name="aside" />
+        <li
+          v-for="row in card.rows"
+          :key="row.label"
+          class="status-row"
+        >
+          <span
+            class="indicator"
+            :style="{ backgroundColor: stateColorCssVar(row.color) }"
+            aria-hidden="true"
+          />
+          <span class="label">{{ row.label }}</span>
+          <RcCounterBadge
+            :count="row.count"
+            type="inactive"
+            :aria-label="`${ row.count } ${ row.label }`"
+          />
+        </li>
+      </ul>
+      <div
+        v-else
+        class="empty"
+      >
+        <span class="text-muted">{{ card.emptyLabel || t('certManager.overview.noneOfType') }}</span>
+        <SubtleLink
+          v-if="card.createAction"
+          :to="card.createAction.to"
+        >
+          {{ card.createAction.label }}
+        </SubtleLink>
       </div>
     </div>
   </Card>
@@ -145,57 +115,15 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     display: flex;
   }
 
-  // The header fills the row so the title sits left and, without an aside, the total badge sits on
-  // the far right - the workload-card look the Issuer and ACME cards keep.
-  .overview-heading {
+  .title-cell {
     align-items: center;
     display: flex;
-    flex: 1;
-
-    .title-cell {
-      align-items: center;
-      display: flex;
-      flex: 1;
-      gap: var(--gap);
-      justify-content: space-between;
-    }
+    gap: var(--gap);
 
     .title-text {
       font-size: 18px;
       font-weight: 600;
       line-height: 21px;
-    }
-
-    // With an aside, the left half is a body column, so keep the title's total at the end of the bar
-    // (this column's right edge) rather than the full card width.
-    &.has-aside {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--gap-lg);
-
-      .title-cell {
-        flex: none;
-      }
-    }
-  }
-
-  // With an aside, split the body into two aligned columns: the bar and rows on the left, the
-  // slotted content (the Expiring Soonest list) on the right.
-  .card-body.has-aside {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--gap-lg);
-    align-items: start;
-
-    // Each row's count stays right-aligned to the end of the bar (the right edge of this column),
-    // matching the workload cards.
-    //
-    // Nudge the aside down so its first row sits nearer the state rows, which start below the bar
-    // rather than at the top of the column.
-    .aside {
-      display: flex;
-      flex-direction: column;
-      gap: var(--gap);
     }
   }
 
@@ -226,6 +154,9 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
   }
 
   .empty {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
     line-height: 24px;
   }
 }

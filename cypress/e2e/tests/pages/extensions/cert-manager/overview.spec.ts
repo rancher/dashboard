@@ -49,25 +49,46 @@ describe('Cert Manager overview', { tags: ['@extensions', '@adminUser'] }, () =>
       overview.certificatesEmpty().should('not.exist');
     });
 
-    it('lists the soonest-to-expire certificates and links to the rest', () => {
+    it('lists the soonest-to-expire certificates', () => {
       const overview = new CertManagerOverviewPo();
 
-      // Only the three soonest are listed (EXPIRING_SOON_LIMIT).
-      overview.expiringSoonRows().should('have.length', 3);
+      // Five of the six certificates have an expiry; pending-cert has none and is skipped. All five
+      // fit within EXPIRING_SOON_LIMIT (5), soonest first.
+      overview.expiringSoonRows().should('have.length', 5);
       overview.expiringSoonRows().first().should('contain.text', 'expired-cert');
-
-      // Six certificates total, three shown, so an overflow link accounts for the remainder.
-      overview.expiringMoreLink().should('be.visible');
     });
 
-    it('always shows both issuer scopes and the ACME activity cards', () => {
+    it('shows both issuer scopes and the ACME activity (orders only)', () => {
       const overview = new CertManagerOverviewPo();
 
-      // Issuers (with data) + Cluster Issuers (with data) + Orders + Challenges (always shown).
       overview.issuersSection().should('be.visible');
       overview.acmeSection().should('be.visible');
-      // Certificates + 2 issuer cards + 2 ACME cards.
-      overview.cards().should('have.length', 5);
+      // ACME activity is Orders only - Challenges are transient and not shown on the overview.
+      overview.acmeCards().should('have.length', 1);
+      // Certificates + 2 issuer cards + 1 Orders card.
+      overview.cards().should('have.length', 4);
+    });
+  });
+
+  describe('ACME activity without orders', () => {
+    it('hides the ACME section when there are no orders', () => {
+      generateCertManagerWithData();
+      // Override the orders collection so the ACME section has nothing to show.
+      cy.intercept('GET', '/k8s/clusters/local/v1/acme.cert-manager.io.order?*', {
+        statusCode: 200,
+        body:       {
+          type: 'collection', resourceType: 'acme.cert-manager.io.order', count: 0, data: []
+        },
+      }).as('certManager-orders-empty');
+
+      const overview = new CertManagerOverviewPo();
+
+      overview.goTo();
+      overview.waitForPage();
+
+      overview.acmeSection().should('not.exist');
+      // Certificates + 2 issuer cards, no ACME card.
+      overview.cards().should('have.length', 3);
     });
   });
 
@@ -104,6 +125,10 @@ describe('Cert Manager overview', { tags: ['@extensions', '@adminUser'] }, () =>
 
       overview.certificatesEmpty().should('be.visible');
       overview.createCertificateButton().should('be.visible');
+
+      // No cluster issuers exist, so that card shows its empty message and an inline create action.
+      overview.issuersSection().contains('No cluster issuers available').should('be.visible');
+      overview.issuersSection().contains('a', 'Create Cluster Issuer').should('be.visible');
     });
   });
 });

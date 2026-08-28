@@ -1,13 +1,13 @@
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { CERT_MANAGER } from '../../../types';
 import {
-  countByState, buildStatusCard, buildCertificateSummary, daysUntilExpiry, buildExpiryTiles,
+  countByState, buildStatusCard, buildCertificateSummary, daysUntilExpiry,
   buildExpiringSoon, buildIssuerCard,
 } from '../aggregate';
 import type { StatefulResource, ExpiringCertificate, OverviewRouteFn } from '../types';
 
 const t = (key: string, args?: Record<string, unknown>) => (args ? `${ key }:${ args.count }` : key);
-const routeFor: OverviewRouteFn = (type: string, stateNames?: string[]) => ({ type, stateNames } as any);
+const routeFor: OverviewRouteFn = (type: string) => ({ type } as any);
 
 const res = (state: string, stateSimpleColor: any): StatefulResource => ({ state, stateSimpleColor });
 
@@ -56,11 +56,12 @@ describe('cert-manager overview aggregate', () => {
       );
 
       expect(card.total).toBe(3);
-      // ordered active-before-error even though error was first in
-      expect(card.rows.map((r) => r.color)).toStrictEqual(['success', 'error']);
-      expect(card.rows[0].count).toBe(2);
-      expect(card.rows[0].to).toStrictEqual({ type: CERT_MANAGER.ISSUER, stateNames: [STATES_ENUM.ACTIVE] });
-      expect(card.to).toStrictEqual({ type: CERT_MANAGER.ISSUER, stateNames: undefined });
+      // ordered most-critical first: error before active, regardless of input order
+      expect(card.rows.map((r) => r.color)).toStrictEqual(['error', 'success']);
+      expect(card.rows[0].count).toBe(1);
+      // rows are informational, not links - the list cannot filter on our computed states
+      expect((card.rows[0] as any).to).toBeUndefined();
+      expect(card.to).toStrictEqual({ type: CERT_MANAGER.ISSUER });
     });
 
     it('should produce segments that fill the bar', () => {
@@ -69,8 +70,8 @@ describe('cert-manager overview aggregate', () => {
       ], order, routeFor);
 
       expect(card.segments).toStrictEqual([
-        { color: 'success', percent: 50 },
         { color: 'error', percent: 50 },
+        { color: 'success', percent: 50 },
       ]);
     });
 
@@ -84,16 +85,16 @@ describe('cert-manager overview aggregate', () => {
   });
 
   describe('buildCertificateSummary', () => {
-    it('should build a certificate-typed status card ordered healthiest first', () => {
+    it('should build a certificate-typed status card ordered most-critical first', () => {
       const card = buildCertificateSummary(
-        [res(STATES_ENUM.ERROR, 'error'), res(STATES_ENUM.ACTIVE, 'success')],
+        [res(STATES_ENUM.ACTIVE, 'success'), res(STATES_ENUM.ERROR, 'error')],
         t,
         routeFor,
       );
 
       expect(card.title).toBe('certManager.overview.certificates.title');
-      expect(card.to).toStrictEqual({ type: CERT_MANAGER.CERTIFICATE, stateNames: undefined });
-      expect(card.rows.map((r) => r.color)).toStrictEqual(['success', 'error']);
+      expect(card.to).toStrictEqual({ type: CERT_MANAGER.CERTIFICATE });
+      expect(card.rows.map((r) => r.color)).toStrictEqual(['error', 'success']);
     });
   });
 
@@ -105,40 +106,6 @@ describe('cert-manager overview aggregate', () => {
 
     it('should be zero or negative once expired', () => {
       expect(daysUntilExpiry(inDays(-3), NOW)).toBe(-3);
-    });
-  });
-
-  describe('buildExpiryTiles', () => {
-    it('should bucket by window and drop the empty ones', () => {
-      const tiles = buildExpiryTiles([
-        cert(inDays(-1)), // expired
-        cert(inDays(3)), // within 7
-        cert(inDays(3)), // within 7
-        cert(inDays(200)), // beyond 90
-        cert(undefined), // never issued - skipped
-      ], NOW, t);
-
-      expect(tiles).toStrictEqual([
-        {
-          key: 'expired', color: 'error', count: 1, label: 'certManager.overview.expiry.expired'
-        },
-        {
-          key: 'within7', color: 'error', count: 2, label: 'certManager.overview.expiry.within7'
-        },
-        {
-          key: 'beyond90', color: 'success', count: 1, label: 'certManager.overview.expiry.beyond90'
-        },
-      ]);
-    });
-
-    it('should keep the buckets in soonest-first order regardless of input order', () => {
-      const tiles = buildExpiryTiles([cert(inDays(200)), cert(inDays(20)), cert(inDays(-1))], NOW, t);
-
-      expect(tiles.map((tile) => tile.key)).toStrictEqual(['expired', 'within30', 'beyond90']);
-    });
-
-    it('should be empty when no certificate has an expiry', () => {
-      expect(buildExpiryTiles([cert(undefined)], NOW, t)).toStrictEqual([]);
     });
   });
 
@@ -175,8 +142,16 @@ describe('cert-manager overview aggregate', () => {
       );
 
       expect(card.total).toBe(2);
-      expect(card.rows.map((r) => r.color)).toStrictEqual(['success', 'error']);
-      expect(card.to).toStrictEqual({ type: CERT_MANAGER.ISSUER, stateNames: undefined });
+      expect(card.rows.map((r) => r.color)).toStrictEqual(['error', 'success']);
+      expect(card.to).toStrictEqual({ type: CERT_MANAGER.ISSUER });
+      expect(card.createAction).toBeUndefined();
+    });
+
+    it('should carry a create action when one is given', () => {
+      const createAction = { to: { name: 'create' } as any, label: 'Create Issuer' };
+      const card = buildIssuerCard('issuers', 'Issuers', CERT_MANAGER.ISSUER, [], routeFor, createAction);
+
+      expect(card.createAction).toStrictEqual(createAction);
     });
   });
 });

@@ -3,23 +3,20 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { RcButton } from '@components/RcButton';
 import SubtleLink from '@shell/components/SubtleLink.vue';
+import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import { stateColorCssVar } from '@shell/utils/style';
 import type { RouteLocationRaw } from 'vue-router';
 import OverviewCard from './OverviewCard.vue';
-import OverviewStat from './OverviewStat.vue';
-import type { OverviewStatusCard, OverviewExpiryTile, ExpiringSoonRow } from './types';
+import type { OverviewStatusCard, ExpiringSoonRow } from './types';
 
 /**
- * Certificates: a by-state summary card, coloured tiles counting how soon certificates expire, and a
- * short list of the ones expiring soonest. When there are no certificates yet, an inline prompt takes
- * their place - the issuer sections still render below, so the user can see what to build against.
+ * The overview's "Highlights" row: the by-state certificate summary card beside a short list of the
+ * certificates closest to expiring. When there are no certificates yet, an inline prompt takes their
+ * place - the issuer sections still render below, so the user can see what to build against.
  */
 defineProps<{
   summary: OverviewStatusCard;
-  tiles: OverviewExpiryTile[];
   expiringSoon: ExpiringSoonRow[];
-  expiringSoonOverflow: number;
-  listRoute: RouteLocationRaw;
   hasCertificates: boolean;
   createRoute: RouteLocationRaw;
 }>();
@@ -34,55 +31,34 @@ const { t } = useI18n(useStore());
   >
     <template v-if="hasCertificates">
       <h4 class="mm-0 text-deemphasized">
-        {{ t('certManager.overview.expiry.title') }}
+        {{ t('certManager.overview.sections.highlights') }}
       </h4>
 
-      <div
-        v-if="tiles.length"
-        class="expiry-grid"
-      >
-        <OverviewStat
-          v-for="tile in tiles"
-          :key="tile.key"
-          :card="tile"
-        />
-      </div>
+      <div class="card-grid">
+        <OverviewCard :card="summary" />
 
-      <OverviewCard :card="summary">
-        <template #aside>
-          <h4 class="mm-0 text-deemphasized">
-            {{ t('certManager.overview.expiry.expiringSoon') }}
-          </h4>
-
-          <template v-if="expiringSoon.length">
-            <ul
-              class="expiring-soon"
-              data-testid="cert-manager-overview-expiring-soon"
+        <Card :title="t('certManager.overview.expiry.expiringSoon')">
+          <ul
+            v-if="expiringSoon.length"
+            class="expiring-soon"
+            data-testid="cert-manager-overview-expiring-soon"
+          >
+            <li
+              v-for="row in expiringSoon"
+              :key="row.name"
+              class="expiring-row"
             >
-              <li
-                v-for="row in expiringSoon"
-                :key="row.name"
-                class="expiring-row"
-              >
-                <span
-                  class="dot"
-                  :style="{ backgroundColor: stateColorCssVar(row.color) }"
-                  aria-hidden="true"
-                />
-                <span class="name">
-                  <SubtleLink :to="row.to">{{ row.name }}</SubtleLink>
-                </span>
-                <span class="detail text-muted">{{ row.detail }}</span>
-              </li>
-            </ul>
-            <SubtleLink
-              v-if="expiringSoonOverflow > 0"
-              :to="listRoute"
-              data-testid="cert-manager-overview-expiring-more"
-            >
-              {{ t('certManager.overview.expiry.more', { count: expiringSoonOverflow }) }}
-            </SubtleLink>
-          </template>
+              <span
+                class="dot"
+                :style="{ backgroundColor: stateColorCssVar(row.color) }"
+                aria-hidden="true"
+              />
+              <span class="name">
+                <SubtleLink :to="row.to">{{ row.name }}</SubtleLink>
+              </span>
+              <span class="detail text-muted">{{ row.detail }}</span>
+            </li>
+          </ul>
 
           <div
             v-else
@@ -90,8 +66,8 @@ const { t } = useI18n(useStore());
           >
             {{ t('certManager.overview.expiry.none') }}
           </div>
-        </template>
-      </OverviewCard>
+        </Card>
+      </div>
     </template>
 
     <div
@@ -125,15 +101,13 @@ const { t } = useI18n(useStore());
   }
 }
 
-// Fixed-width tracks left-aligned: fewer tiles keep their width rather than stretching to fill.
-.expiry-grid {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 15px;
+  align-items: start;
 }
 
-// The Expiring Soonest list lives in the card's right column, so it stays borderless and shares the
-// left column's row rhythm rather than reading as a nested box.
 .expiring-soon {
   display: flex;
   flex-direction: column;

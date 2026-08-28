@@ -12,7 +12,12 @@ export interface OverviewStatRow {
   label: string;
   color: StateColor;
   count: number;
-  to?: RouteLocationRaw;
+}
+
+/** An optional "create" call-to-action rendered in a card's header. */
+export interface OverviewCreateAction {
+  to: RouteLocationRaw;
+  label: string;
 }
 
 /** A stacked-bar + rows card (Certificates summary, an Issuer type, an ACME resource). */
@@ -23,17 +28,12 @@ export interface OverviewStatusCard {
   total: number;
   segments: { color: StateColor; percent: number }[];
   rows: OverviewStatRow[];
+  createAction?: OverviewCreateAction;
+  /** Message shown when the card has no resources. Falls back to a generic string when unset. */
+  emptyLabel?: string;
 }
 
-/** A single coloured, count-plus-label tile - one certificate expiry window. */
-export interface OverviewExpiryTile {
-  key: string;
-  color: StateColor;
-  count: number;
-  label: string;
-}
-
-/** One row of the "Expiring Soonest" list: a certificate and how long it has left. */
+/** One row of the "Next to Expire" list: a certificate and how long it has left. */
 export interface ExpiringSoonRow {
   name: string;
   to: RouteLocationRaw;
@@ -50,4 +50,4 @@ export interface ExpiringCertificate {
   stateSimpleColor: StateColor;
 }
 
-export type OverviewRouteFn = (type: string, stateNames?: string[]) => RouteLocationRaw;
+export type OverviewRouteFn = (type: string) => RouteLocationRaw;

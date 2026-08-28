@@ -10,35 +10,33 @@ certManager:
     noneOfType: None yet.
     certificateCount: |-
       {count, plural,
-        one {# certificate}
-        other {# certificates}
+        =0 {(no certificates)}
+        one {(# certificate)}
+        other {(# certificates)}
       }
     subtitle:
       allNamespaces: For all namespaces
       filtered: For the selected namespaces
     sections:
+      highlights: Highlights
       issuers: Issuers
       acme: ACME Activity
     certificates:
       title: Certificates
+    create:
+      issuer: Create Issuer
+      clusterIssuer: Create Cluster Issuer
+    emptyCard:
+      issuers: No issuers available
+      clusterIssuers: No cluster issuers available
     expiry:
-      title: Certificate Expiry
       expired: Expired
-      within7: Within 7 days
-      within30: Within 30 days
-      within90: Within 90 days
-      beyond90: Beyond 90 days
-      expiringSoon: Soonest to Expire
+      expiringSoon: Next to Expire
       none: No issued certificates yet.
       days: |-
         {count, plural,
           one {# day}
           other {# days}
-        }
-      more: |-
-        {count, plural,
-          one {# more certificate}
-          other {# more certificates}
         }
     empty:
       title: Get started with cert-manager

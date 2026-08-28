@@ -19,10 +19,7 @@ const {
   hasCertificates,
   subtitle,
   certificateSummary,
-  expiryTiles,
   expiringSoon,
-  expiringSoonOverflow,
-  certificatesRoute,
   issuerCards,
   acmeCards,
   showAcmeSection,
@@ -101,10 +98,7 @@ const {
       <div class="overview-content">
         <CertificatesSection
           :summary="certificateSummary"
-          :tiles="expiryTiles"
           :expiring-soon="expiringSoon"
-          :expiring-soon-overflow="expiringSoonOverflow"
-          :list-route="certificatesRoute"
           :has-certificates="hasCertificates"
           :create-route="createRoute(CERT_MANAGER.CERTIFICATE)"
         />
