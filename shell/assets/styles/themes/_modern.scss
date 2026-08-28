@@ -24,6 +24,9 @@ $dark      : #B6B6C2;
 //light border and buttons
 $medium    : #DCDEE7;
 
+//light form control boundaries (inputs, dropdowns, toggles)
+$form-control-border : #84849A;
+
 //light inputs
 $light     : #EEEFF4;
 
@@ -46,6 +49,7 @@ $primary-75      : #454F68; // Category active dark
 $primary-60      : #75A1FF;
 $primary-55      : #81AEFC;
 $primary-50      : #A7BFF1; // Active dark
+$primary-30      : #DBE4F9; // Tertiary hover light
 $primary-20      : #EDF2FC;
 $primary-15      : #EEF1F6; // Category active light
 
@@ -96,7 +100,7 @@ BODY, .theme-light {
   --on-secondary     : #{$primary};
   --secondary-hover  : var(--non-primary-hover);
 
-  --tertiary                  : transparent;
+  --tertiary                  : #{$primary-20};
   --tertiary-header           : transparent;
   --tertiary-border           : transparent;
   --tertiary-header-hover     : var(--non-primary-hover);
@@ -104,11 +108,11 @@ BODY, .theme-light {
   --on-tertiary-header        : var(--link);
   --on-tertiary-header-hover  : var(--link);
   --on-tertiary-hover         : var(--link);
-  --tertiary-hover            : var(--non-primary-hover);
+  --tertiary-hover            : #{$primary-30};
   --tertiary-hover-app-bar    : var(--link);
 
-  --active            : #{$primary-110};
-  --active-nav        : #{$primary-110};
+  --active            : #{$primary-120};
+  --active-nav        : #{$primary-120};
   --on-active         : #{$grey-0};
   --toggle-on-bg      : var(--active);
   --toggle-on-color   : var(--on-active);
@@ -116,8 +120,8 @@ BODY, .theme-light {
   --toggle-off-color  : #{$grey-50};
   --toggle-off-hover  : #{$grey-10};
 
-  --active-hover          : #{lighten($primary-110, 5%)};
-  --category-active       : #{$primary-15};
+  --active-hover          : #{lighten($primary-120, 5%)};
+  --category-active       : #{$primary-20};
   --category-active-hover : #{$grey-20};
 
   .text-primary {
@@ -490,7 +494,7 @@ BODY, .theme-light {
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
 
   --dropdown-bg                : #{$lightest};
-  --dropdown-border            : #{$medium};
+  --dropdown-border            : #{$form-control-border};
   --dropdown-divider           : #{$medium};
   --dropdown-text              : #{$darkest};
   --dropdown-active-text       : #{$lightest};
@@ -512,8 +516,8 @@ BODY, .theme-light {
 
   --input-text                 : #{$darkest};
   --input-label                : #{$secondary};
-  --input-placeholder          : #{darken($disabled, 10%)};
-  --input-border               : var(--border);
+  --input-placeholder          : var(--muted);
+  --input-border               : #{$form-control-border};
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($light, 2%)};
   --input-hover-bg             : var(--box-bg);
@@ -697,7 +701,7 @@ BODY, .theme-light {
 
 
   // These are meant to be the colors used within rancher-components. They will eventually be removed from shell once we have theming working in the components
-  --rc-info: #{$blue001};
+  --rc-info: #1D61CE;
   --rc-info-secondary: #{$blue002};
 
   --rc-success: #{$green001};
@@ -715,12 +719,12 @@ BODY, .theme-light {
   --rc-none: #{$gray004};
   --rc-none-secondary: #{$gray002};
 
-  --rc-primary-hover: #{$blue003};
+  --rc-primary-hover: #{$primary-120};
 
   --rc-active-background: #{$gray003};
   --rc-active-disabled-background: #{$gray001};
-  --rc-active-border: #{$gray002};
-  --rc-inactive-border: #{$gray001};
+  --rc-active-border: #{$form-control-border};
+  --rc-inactive-border: #{$form-control-border};
   --rc-inactive-background: #{$gray001};
   --rc-inactive-disabled-border: #{$gray001};
   --rc-disabled-background: #{$gray001};
@@ -925,7 +929,8 @@ BODY, .theme-dark {
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
   --input-placeholder          : #{$disabled};
-  --input-border               : #627084;
+  // One step lighter than #627084 to hold 3:1 on raised $grey-80 surfaces
+  --input-border               : #6C7A8F;
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);
