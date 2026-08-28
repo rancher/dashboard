@@ -4,7 +4,10 @@ import Oidc from '@shell/components/auth/login/oidc.vue';
 const createWrapper = (props: { name: string, type: string }) => shallowMount(Oidc, {
   props:  { focusOnMount: false, ...props },
   global: {
-    mocks: {
+    // The label these tests are about lives in the button's default slot, which a
+    // stub drops, leaving nothing to read.
+    renderStubDefaultSlot: true,
+    mocks:                 {
       t:      (key: string, args?: Record<string, string>) => (args ? `${ key }:${ args.provider }` : key),
       $store: { dispatch: jest.fn() },
     },
