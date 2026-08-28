@@ -1478,7 +1478,6 @@ catalog:
       source: Source
       type: Type
       status: Status
-      security: Security
       authentication: Authentication
       caBundle: CA Cert Bundle
       exponentialBackOff: Exponential Back Off (min / max / retries)

@@ -380,7 +380,7 @@ export default {
             {{ t('catalog.repo.detail.extensions.count', { count: extensionCount }) }}
           </router-link>
         </div>
-        <div class="col span-6">
+        <div class="col span-3">
           <label class="text-label">{{ t('catalog.repo.downloaded.label') }}</label>
           <div class="value">
             <LiveDate
@@ -393,10 +393,6 @@ export default {
             </template>
           </div>
         </div>
-      </div>
-
-      <h3>{{ t('catalog.repo.detail.security') }}</h3>
-      <div class="row mb-20">
         <div class="col span-3">
           <label class="text-label">{{ t('catalog.repo.detail.authentication') }}</label>
           <div class="value">
@@ -411,26 +407,24 @@ export default {
             </template>
           </div>
         </div>
-        <template v-if="isOci">
-          <div class="col span-3">
-            <label class="text-label">{{ t('catalog.repo.oci.skipTlsVerifications') }}</label>
-            <div class="value">
-              {{ skipTlsDisplay }}
-            </div>
-          </div>
-          <div class="col span-3">
-            <label class="text-label">{{ t('catalog.repo.oci.insecurePlainHttp') }}</label>
-            <div class="value">
-              {{ insecurePlainHttpDisplay }}
-            </div>
-          </div>
-        </template>
       </div>
 
       <div
         v-if="isOci"
         class="row mb-20"
       >
+        <div class="col span-3">
+          <label class="text-label">{{ t('catalog.repo.oci.skipTlsVerifications') }}</label>
+          <div class="value">
+            {{ skipTlsDisplay }}
+          </div>
+        </div>
+        <div class="col span-3">
+          <label class="text-label">{{ t('catalog.repo.oci.insecurePlainHttp') }}</label>
+          <div class="value">
+            {{ insecurePlainHttpDisplay }}
+          </div>
+        </div>
         <div class="col span-3">
           <label class="text-label">{{ t('catalog.repo.detail.caBundle') }}</label>
           <div class="value">
