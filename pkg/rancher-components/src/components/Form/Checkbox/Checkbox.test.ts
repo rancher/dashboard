@@ -170,6 +170,33 @@ describe('checkbox.vue', () => {
     expect(wrapper.emitted('update:value')).toBeUndefined();
   });
 
+  it('a11y: Escape on the info icon should still reach the surrounding dialog', async() => {
+    const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = mount(
+      Checkbox,
+      {
+        props: {
+          value: false, label: 'some-label', tooltip: 'Pull secrets'
+        },
+        attachTo: document.body,
+      }
+    );
+    const onDocumentEscape = jest.fn();
+
+    document.addEventListener('keydown', onDocumentEscape);
+
+    wrapper.find('button.checkbox-info').element.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'Escape', bubbles: true, cancelable: true
+    }));
+    await wrapper.vm.$nextTick();
+
+    // A dialog listens for Escape on the document, so swallowing every keydown here would leave it
+    // impossible to close while the info icon has focus.
+    expect(onDocumentEscape).toHaveBeenCalled();
+
+    document.removeEventListener('keydown', onDocumentEscape);
+    wrapper.unmount();
+  });
+
   it('a11y: activating the info icon should not toggle the checkbox', async() => {
     const wrapper: VueWrapper<InstanceType<typeof Checkbox>> = mount(
       Checkbox,

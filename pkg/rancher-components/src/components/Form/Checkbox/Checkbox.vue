@@ -346,7 +346,8 @@ export default defineComponent({
             :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
             @click.stop.prevent
-            @keydown.stop
+            @keydown.enter.stop
+            @keydown.space.stop
           />
         </slot>
       </span>
