@@ -43,6 +43,7 @@ describe('Rancher as an OIDC Provider', { tags: ['@globalSettings', '@adminUser'
 
   qase(9761, it('should be able to create an OIDC client application', () => {
     cy.intercept('POST', `/v1/management.cattle.io.oidcclients`).as('createRequest');
+    cy.intercept('GET', '/v1/management.cattle.io.oidcclients?*').as('oidcListGet');
 
     // Retry-independence: this test creates an OIDC client with a fixed name, so a failed attempt
     // leaves it behind and the retry's create then returns 409 (already exists), never getting a
@@ -57,6 +58,8 @@ describe('Rancher as an OIDC Provider', { tags: ['@globalSettings', '@adminUser'
     // check title and list view
     oidcClientsPage.list().title().should('contain', 'OIDC Apps');
     oidcClientsPage.list().resourceTable().sortableTable().checkVisible();
+    // Wait for the list fetch to resolve so the loading indicator clears within the check's 10s window.
+    cy.wait('@oidcListGet');
     oidcClientsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     // should be able to copy OIDC urls on list view
