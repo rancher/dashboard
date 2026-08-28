@@ -78,6 +78,12 @@ export function useCertManagerOverview() {
     };
   }
 
+  // Clears the namespace filter - offered from the partial empty state, since a filtered-out
+  // namespace is a common reason to see no certificates.
+  function resetNamespaceFilter(): void {
+    store.dispatch('switchNamespaces', { ids: [], key: clusterId.value });
+  }
+
   // ── Presence flags ──
 
   const hasCertificates = computed<boolean>(() => certificates.value.length > 0);
@@ -148,5 +154,6 @@ export function useCertManagerOverview() {
     showAcmeSection,
     showIssuersSection,
     createRoute,
+    resetNamespaceFilter,
   };
 }

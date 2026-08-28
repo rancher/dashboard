@@ -23,6 +23,10 @@ certManager:
       acme: ACME Activity
     certificates:
       title: Certificates
+    certificatesEmpty:
+      title: No certificates to show
+      message: 'Tips: update the namespace filter above or <resetLink>reset the namespaces filter</resetLink>.'
+      docsMessage: Want to learn more about the Cert Manager? Read our <docsLink>documentation</docsLink>.
     create:
       issuer: Create Issuer
       clusterIssuer: Create Cluster Issuer
@@ -44,8 +48,7 @@ certManager:
       createIssuer: Create Issuer
       createClusterIssuer: Create Cluster Issuer
       docsLink: Read the cert-manager documentation
-      noCertificates: No certificates yet. Create one from an issuer to get started.
-      createCertificate: Create a Certificate
+      createCertificate: Create Certificate
 
   action:
     renew:

@@ -25,6 +25,7 @@ const {
   showAcmeSection,
   showIssuersSection,
   createRoute,
+  resetNamespaceFilter,
 } = useCertManagerOverview();
 </script>
 
@@ -101,6 +102,7 @@ const {
           :expiring-soon="expiringSoon"
           :has-certificates="hasCertificates"
           :create-route="createRoute(CERT_MANAGER.CERTIFICATE)"
+          :reset-namespace-filter="resetNamespaceFilter"
         />
 
         <CardsSection
