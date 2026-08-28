@@ -574,8 +574,9 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   }
 
   // The keyboard ring, in the app's focus style, as the collapse-all control
-  // beside it has. That control is inset to give its ring room; this one fills
-  // its cell, so the offset does the same job.
+  // beside it has. The input's own box is only its 20px line, so the offset
+  // carries the ring out to the toolbar's inner edge, level with that control's
+  // ring rather than drawn tight around the placeholder.
   //
   // `!important` because `_basic.scss` clears the outline on every focused
   // `input[type="text"]` at a specificity no scoped rule can reach - the control
@@ -584,7 +585,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   // which forced-colors modes drop.
   &.keyboard-focus:focus {
     outline: 2px solid var(--primary-keyboard-focus) !important;
-    outline-offset: 2px;
+    outline-offset: 7px;
   }
 }
 
