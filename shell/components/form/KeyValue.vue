@@ -285,6 +285,9 @@ export default {
     _addLabel() {
       return this.addLabel || this.t('generic.add');
     },
+    _addBtnAriaLabel() {
+      return this.addLabel ? this.t('generic.ariaLabel.addBtnAriaLabel', { label: this.addLabel }) : this.t('generic.ariaLabel.addKeyValue');
+    },
 
     isView() {
       return this.mode === _VIEW;
@@ -893,7 +896,7 @@ export default {
                   type="button"
                   role="button"
                   :disabled="isView || disabled"
-                  :aria-label="t('generic.ariaLabel.remove', {index: i+1})"
+                  :aria-label="t('generic.ariaLabel.keyValueRemove', {index: i+1})"
                   class="btn role-link"
                   @click="remove(i)"
                 >
@@ -924,7 +927,7 @@ export default {
           :class="[addClass]"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
-          :aria-label="t('generic.ariaLabel.addKeyValue')"
+          :aria-label="_addBtnAriaLabel"
           @click="add()"
         >
           <i
@@ -940,7 +943,7 @@ export default {
           :class="[addClass]"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
-          :aria-label="t('generic.ariaLabel.addKeyValue')"
+          :aria-label="_addBtnAriaLabel"
           @click="add()"
         >
           <i

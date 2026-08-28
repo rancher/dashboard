@@ -263,4 +263,52 @@ describe('the ArrayList', () => {
       expect(wrapper.find('[data-testid="array-list-remove-item-1"]').exists()).toBe(true);
     });
   });
+
+  describe('addBtnAriaLabel', () => {
+    const mountArrayList = (props: Record<string, unknown> = {}) => mount(ArrayList, {
+      props: {
+        value: ['string 0'],
+        mode:  _EDIT,
+        ...props,
+      } as any,
+    });
+
+    const addButton = (wrapper: ReturnType<typeof mountArrayList>) => wrapper.find('[data-testid="array-list-button"]');
+
+    it('should label the add button with addBtnAriaLabel when one is given', () => {
+      const wrapper = mountArrayList({ addLabel: 'Add Path', addBtnAriaLabel: 'Add Path for Git Repo' });
+
+      expect(addButton(wrapper).attributes('aria-label')).toStrictEqual('Add Path for Git Repo');
+    });
+
+    it('should keep the visible add button text as addLabel, independent of the aria-label', () => {
+      const wrapper = mountArrayList({ addLabel: 'Add Path', addBtnAriaLabel: 'Add Path for Git Repo' });
+
+      expect(addButton(wrapper).text()).toStrictEqual('Add Path');
+      expect(addButton(wrapper).attributes('aria-label')).toStrictEqual('Add Path for Git Repo');
+    });
+
+    it.each([
+      ['no addBtnAriaLabel and an addLabel', { addLabel: 'Add Path' }, 'Add Path'],
+      ['an empty addBtnAriaLabel', { addLabel: 'Add Path', addBtnAriaLabel: '' }, 'Add Path'],
+      ['neither label', {}, '%generic.ariaLabel.genericAddRow%'],
+      ['no addLabel but an addBtnAriaLabel', { addBtnAriaLabel: 'Add Path for Git Repo' }, 'Add Path for Git Repo'],
+    ])('should fall back to the add label with %s', (_: string, props: Record<string, unknown>, expected: string) => {
+      const wrapper = mountArrayList(props);
+
+      expect(addButton(wrapper).attributes('aria-label')).toStrictEqual(expected);
+    });
+
+    it('should give two lists on the same page distinct add button labels', () => {
+      const paths = mountArrayList({ addLabel: 'Add', addBtnAriaLabel: 'Add Path for Git Repo' });
+      const other = mountArrayList({ addLabel: 'Add', addBtnAriaLabel: 'Add a new resource' });
+
+      const pathsAdd = addButton(paths).attributes('aria-label');
+      const otherAdd = addButton(other).attributes('aria-label');
+
+      expect(pathsAdd).toStrictEqual('Add Path for Git Repo');
+      expect(otherAdd).toStrictEqual('Add a new resource');
+      expect(pathsAdd).not.toStrictEqual(otherAdd);
+    });
+  });
 });
