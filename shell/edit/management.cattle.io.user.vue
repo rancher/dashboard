@@ -126,10 +126,18 @@ export default {
         this.$router.replace({ name: this.doneRoute });
         buttonDone(true);
       } catch (err) {
-        if (err?.message?.includes('errors due to escalation')) {
-          this.errors = [this.t('rbac.errors.escalation')];
+        const roleError = err?.message?.includes('errors due to escalation') ? [this.t('rbac.errors.escalation')] : exceptionToErrorsArray(err);
+
+        if (this.isCreate && err?.userCleanupFailed) {
+          // Roles failed AND the partially-created user could not be removed, so a role-less
+          // account is left behind. Tell the admin so they can review or delete it.
+          this.errors = [this.t('user.edit.roleUpdateFailed.orphaned', { username: this.form.username })];
+        } else if (this.isCreate && err?.userRolledBack) {
+          // Roles failed on create but the incomplete user was rolled back. Explain both why
+          // it failed and that nothing was saved, so it's not mistaken for a partial account.
+          this.errors = [...roleError, this.t('user.edit.roleUpdateFailed.rolledBack')];
         } else {
-          this.errors = exceptionToErrorsArray(err);
+          this.errors = roleError;
         }
         buttonDone(false);
       }
@@ -223,9 +231,13 @@ export default {
           try {
             // If GRB creation fails, clean up the user to maintain consistency
             await user.remove();
+            // The incomplete user was rolled back, so no account is left behind
+            err.userRolledBack = true;
           } catch (cleanupErr) {
             // Log cleanup error but prioritize original error for user feedback
             console.error('Failed to clean up user after GRB creation failure:', cleanupErr); // eslint-disable-line no-console
+            // Cleanup failed, so a role-less account remains and the admin must be told
+            err.userCleanupFailed = true;
           }
         }
         throw err;

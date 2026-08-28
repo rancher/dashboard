@@ -7326,6 +7326,9 @@ user:
       userDescription:
         label: Description
         placeholder: e.g. This account is for John Smith
+    roleUpdateFailed:
+      rolledBack: No user was created because the selected roles could not be assigned. Adjust the permissions and try again.
+      orphaned: 'The user "{username}" was created, but its roles could not be assigned and the incomplete account could not be removed automatically. Open the users list to review or delete it.'
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
   retention:
