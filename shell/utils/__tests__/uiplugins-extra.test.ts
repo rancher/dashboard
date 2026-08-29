@@ -2,6 +2,9 @@ import {
   onExtensionsReady,
   getLatestExtensionVersion,
   installHelmChart,
+  installHelmChartWithRetry,
+  isTransientChartActionError,
+  INSTALL_ACTION_MAX_RETRIES,
 } from '@shell/utils/uiplugins';
 
 import { isSupportedChartVersion } from '@shell/config/uiplugins';
@@ -259,6 +262,139 @@ describe('shell/utils/uiplugins', () => {
       const [, installRequest] = repo.doAction.mock.calls[0];
 
       expect(installRequest.charts[0].values).toStrictEqual(values);
+    });
+  });
+
+  describe('isTransientChartActionError', () => {
+    it('returns false when status is not 500', () => {
+      const error = { _status: 404, message: 'failed to find chart harvester version v1.8.1 Not found 404' };
+
+      expect(isTransientChartActionError(error)).toBe(false);
+    });
+
+    it('returns true for a 500 with the catalog "chart not found" wording (error.message)', () => {
+      const error = { _status: 500, message: 'failed to find chartName harvester version v1.8.1 Not found 404' };
+
+      expect(isTransientChartActionError(error)).toBe(true);
+    });
+
+    it('returns true when the message is nested under error.data.message', () => {
+      const error = { status: 500, data: { message: 'failed to find chart harvester version 1.0.0 not found' } };
+
+      expect(isTransientChartActionError(error)).toBe(true);
+    });
+
+    it('is case-insensitive and tolerant of extra whitespace before "found"', () => {
+      const error = { _status: 500, message: 'FAILED TO FIND CHART harvester VERSION 1.0.0 NOT   FOUND 404' };
+
+      expect(isTransientChartActionError(error)).toBe(true);
+    });
+
+    it('returns false for a 500 with an unrelated message', () => {
+      const error = { _status: 500, message: 'permission denied' };
+
+      expect(isTransientChartActionError(error)).toBe(false);
+    });
+
+    it('returns false when there is no message at all', () => {
+      expect(isTransientChartActionError({ _status: 500 })).toBe(false);
+    });
+
+    it('prefers error._status over error.status', () => {
+      const error = {
+        _status: 500, status: 404, message: 'failed to find chart foo version 1.0.0 not found'
+      };
+
+      expect(isTransientChartActionError(error)).toBe(true);
+    });
+  });
+
+  describe('installHelmChartWithRetry', () => {
+    const chart = {
+      name:     'harvester-extension',
+      version:  '1.9.0',
+      repoType: 'helm',
+      repoName: 'official',
+    };
+    const transientError = { _status: 500, message: 'failed to find chart harvester-extension version 1.9.0 Not found 404' };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('resolves on the first try without retrying', async() => {
+      const repo = { doAction: jest.fn().mockResolvedValue({ id: 'ok' }) };
+      const onRetry = jest.fn();
+
+      const result = await installHelmChartWithRetry(repo, chart, {}, 'default', 'install', onRetry);
+
+      expect(result).toStrictEqual({ id: 'ok' });
+      expect(repo.doAction).toHaveBeenCalledTimes(1);
+      expect(onRetry).not.toHaveBeenCalled();
+    });
+
+    it('throws immediately without retrying for a non-transient error', async() => {
+      const error = { _status: 500, message: 'permission denied' };
+      const repo = { doAction: jest.fn().mockRejectedValue(error) };
+      const onRetry = jest.fn();
+
+      await expect(installHelmChartWithRetry(repo, chart, {}, 'default', 'install', onRetry)).rejects.toBe(error);
+
+      expect(repo.doAction).toHaveBeenCalledTimes(1);
+      expect(onRetry).not.toHaveBeenCalled();
+    });
+
+    it('retries a transient error and eventually succeeds, notifying onRetry each time', async() => {
+      const repo = {
+        doAction: jest.fn()
+          .mockRejectedValueOnce(transientError)
+          .mockRejectedValueOnce(transientError)
+          .mockResolvedValueOnce({ id: 'ok-after-retry' }),
+      };
+      const onRetry = jest.fn();
+
+      const promise = installHelmChartWithRetry(repo, chart, {}, 'default', 'install', onRetry);
+
+      // Flush the two backoff waits so the retried attempts get a chance to run
+      await jest.advanceTimersByTimeAsync(10000);
+
+      const result = await promise;
+
+      expect(result).toStrictEqual({ id: 'ok-after-retry' });
+      expect(repo.doAction).toHaveBeenCalledTimes(3);
+      expect(onRetry).toHaveBeenNthCalledWith(1, 1, INSTALL_ACTION_MAX_RETRIES);
+      expect(onRetry).toHaveBeenNthCalledWith(2, 2, INSTALL_ACTION_MAX_RETRIES);
+    });
+
+    it('throws the transient error once retries are exhausted', async() => {
+      const repo = { doAction: jest.fn().mockRejectedValue(transientError) };
+      const onRetry = jest.fn();
+
+      const promise = installHelmChartWithRetry(repo, chart, {}, 'default', 'install', onRetry);
+
+      // Swallow the rejection so advancing timers below doesn't trigger an unhandled rejection;
+      // the actual assertion happens afterwards once all backoff waits have fired.
+      promise.catch(() => {});
+
+      await jest.advanceTimersByTimeAsync(30000);
+
+      await expect(promise).rejects.toBe(transientError);
+
+      // Initial attempt + one retry per configured backoff delay
+      expect(repo.doAction).toHaveBeenCalledTimes(INSTALL_ACTION_MAX_RETRIES + 1);
+      expect(onRetry).toHaveBeenCalledTimes(INSTALL_ACTION_MAX_RETRIES);
+    });
+
+    it('passes through install/upgrade action and namespace like installHelmChart', async() => {
+      const repo = { doAction: jest.fn().mockResolvedValue({}) };
+
+      await installHelmChartWithRetry(repo, chart, {}, 'cattle-ui-plugin-system', 'upgrade');
+
+      expect(repo.doAction).toHaveBeenCalledWith('upgrade', expect.objectContaining({ namespace: 'cattle-ui-plugin-system' }));
     });
   });
 });
