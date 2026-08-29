@@ -4,8 +4,12 @@ export default class FixedBannerPo extends ComponentPo {
   // The banner content is in a div with the class 'banner'
   // The text is in a P element within that
 
-  text() {
-    return this.self().find('.banner').first().invoke('text')
+  banners() {
+    return this.self().find('.banner');
+  }
+
+  text(index = 0) {
+    return this.self().find('.banner').eq(index).invoke('text')
       .then((text) => text.trim());
   }
 

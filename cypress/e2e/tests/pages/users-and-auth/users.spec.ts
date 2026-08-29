@@ -657,9 +657,9 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const banner = new FixedBannerPo('#cru-errors');
 
       banner.checkExists();
-      cy.get('#cru-errors .banner').should('have.length', 2);
+      banner.banners().should('have.length', 2);
       banner.text().should('eq', 'You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.');
-      cy.get('#cru-errors .banner').eq(1).should('contain', 'No user was created because the selected roles could not be assigned');
+      banner.text(1).should('contain', 'No user was created because the selected roles could not be assigned');
 
       // close both error banners before updating the Global Permissions
       banner.close();
