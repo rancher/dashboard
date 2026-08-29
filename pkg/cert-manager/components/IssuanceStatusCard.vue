@@ -73,7 +73,9 @@ function iconFor(resource: any): string[] {
           v-else
           class="label"
         >{{ t(stage.labelKey) }}</span>
-        <BadgeState :value="stage.resource" />
+        <span class="badge-wrap">
+          <BadgeState :value="stage.resource" />
+        </span>
       </li>
     </ul>
   </Card>
@@ -111,6 +113,10 @@ function iconFor(resource: any): string[] {
   // Let the link take the slack so the state badge sits flush to the right edge of the card.
   .label {
     flex-grow: 1;
+  }
+
+  .badge-wrap {
+    line-height: 1.15;
   }
 }
 </style>
