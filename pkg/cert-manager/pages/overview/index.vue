@@ -59,10 +59,20 @@ const {
         {{ t('certManager.overview.empty.title') }}
       </h1>
       <div class="empty-state-tips">
-        <p>{{ t('certManager.overview.empty.message') }}</p>
+        <RichTranslation
+          k="certManager.overview.empty.message"
+          tag="p"
+        >
+          <template #issuer="{ content }">
+            <em>{{ content }}</em>
+          </template>
+          <template #clusterIssuer="{ content }">
+            <em>{{ content }}</em>
+          </template>
+        </RichTranslation>
         <RichTranslation
           k="certManager.overview.empty.docsMessage"
-          tag="div"
+          tag="p"
         >
           <template #docsLink="{ content }">
             <SubtleLink
@@ -148,11 +158,13 @@ const {
   }
 
   .empty-state {
+    max-width: 700px;
+    margin: 0 auto;
     text-align: center;
-    padding: 72px;
+    padding: 72px 16px;
     display: flex;
     flex-direction: column;
-    gap: var(--gap-md);
+    gap: var(--gap-lg);
 
     h1 {
       line-height: 38px;
@@ -169,8 +181,9 @@ const {
 
     .empty-actions {
       display: flex;
-      gap: 12px;
+      gap: var(--gap-md);
       justify-content: center;
+      margin-top: 8px;
     }
   }
 }
