@@ -152,7 +152,7 @@ const {
     padding: 72px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--gap-md);
 
     h1 {
       line-height: 38px;

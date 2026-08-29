@@ -42,6 +42,6 @@ defineProps<{
 .card-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
+  gap: var(--gap-md);
 }
 </style>

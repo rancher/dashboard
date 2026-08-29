@@ -156,7 +156,7 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
   .empty {
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: var(--gap);
     line-height: 24px;
   }
 }

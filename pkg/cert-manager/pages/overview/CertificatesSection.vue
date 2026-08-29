@@ -137,7 +137,7 @@ const { t } = useI18n(useStore());
 .card-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
+  gap: var(--gap-md);
   // Stretch both cards to a shared height (the taller of the two) so the row reads as one
   // band - matching the workload overview.
   align-items: stretch;
@@ -152,7 +152,7 @@ const { t } = useI18n(useStore());
 .expiring-soon {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--gap);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -160,7 +160,7 @@ const { t } = useI18n(useStore());
   .expiring-row {
     align-items: center;
     display: flex;
-    gap: 12px;
+    gap: var(--gap);
     line-height: 24px;
 
     .dot {
@@ -181,7 +181,7 @@ const { t } = useI18n(useStore());
   padding: 72px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--gap-md);
 
   h1 {
     line-height: 38px;
