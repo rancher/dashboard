@@ -14,6 +14,7 @@ import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { RcButton } from '@components/RcButton';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default {
   name: 'KeyValue',
@@ -26,7 +27,8 @@ export default {
     TextAreaAutoGrow,
     FileSelector,
     LabeledTooltip,
-    RcButton
+    RcButton,
+    RcIconTooltip
   },
   props: {
     value: {
@@ -639,13 +641,10 @@ export default {
               aria-colindex="1"
             >
               {{ _keyLabel }}
-              <i
+              <rc-icon-tooltip
                 v-if="_protip && !isView && addAllowed"
-                v-clean-tooltip="{content: _protip, triggers: ['hover', 'touch', 'focus'] }"
-                v-stripped-aria-label="_protip"
-                class="icon icon-info"
-                tabindex="0"
-                role="tooltip"
+                :content="_protip"
+                :label="t('generic.hintFor', {label: _keyLabel})"
               />
             </div>
             <div
@@ -654,13 +653,10 @@ export default {
               aria-colindex="2"
             >
               {{ _valueLabel }}
-              <i
+              <rc-icon-tooltip
                 v-if="protipValue && !isView && addAllowed"
-                v-clean-tooltip="{content: protipValue, triggers: ['hover', 'touch', 'focus'] }"
-                v-stripped-aria-label="protipValue"
-                class="icon icon-info"
-                tabindex="0"
-                role="tooltip"
+                :content="protipValue"
+                :label="t('generic.hintFor', {label: _valueLabel})"
               />
             </div>
             <div

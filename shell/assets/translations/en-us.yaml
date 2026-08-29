@@ -106,6 +106,7 @@ generic:
   type: Type
   unknown: Unknown
   upload: Upload
+  warning: Warning
   provisioning: '—'
   key: Key
   value: Value
@@ -126,7 +127,6 @@ generic:
         1d: 1d
         7d: 7d
         30d: 30d
-  tooltip: Tooltip
   completed: Completed
   enable: Enable
   disable: Disable
@@ -144,6 +144,7 @@ generic:
   tag: Tag
   placeholder: "e.g. {text}"
   moreInfo: More Info
+  hintFor: "{label} hint"
   selectors:
     label: Selector
     matchingResources:
