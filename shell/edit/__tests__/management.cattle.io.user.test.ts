@@ -93,7 +93,7 @@ describe('management.cattle.io.user create: role assignment failure feedback', (
     await (wrapper.vm as any).save(buttonDone);
 
     expect(user.remove).toHaveBeenCalledTimes(1);
-    expect(wrapper.vm.errors).toStrictEqual(['user.edit.roleUpdateFailed.orphaned']);
+    expect(wrapper.vm.errors).toStrictEqual(['rbac.errors.escalation', 'user.edit.roleUpdateFailed.orphaned']);
     expect(buttonDone).toHaveBeenCalledWith(false);
   });
 

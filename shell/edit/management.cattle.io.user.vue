@@ -130,8 +130,9 @@ export default {
 
         if (this.isCreate && err?.userCleanupFailed) {
           // Roles failed AND the partially-created user could not be removed, so a role-less
-          // account is left behind. Tell the admin so they can review or delete it.
-          this.errors = [this.t('user.edit.roleUpdateFailed.orphaned', { username: this.form.username })];
+          // account is left behind. Surface why the assignment failed as well as the orphan
+          // notice, so the admin can fix the permissions before reviewing or deleting it.
+          this.errors = [...roleError, this.t('user.edit.roleUpdateFailed.orphaned', { username: this.form.username })];
         } else if (this.isCreate && err?.userRolledBack) {
           // Roles failed on create but the incomplete user was rolled back. Explain both why
           // it failed and that nothing was saved, so it's not mistaken for a partial account.
