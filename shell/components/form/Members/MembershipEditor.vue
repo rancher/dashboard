@@ -60,6 +60,21 @@ export default {
     }
   },
 
+  setup() {
+    const bindingKeys = new Map();
+    let nextBindingKey = 0;
+
+    const getBindingKey = (binding) => {
+      if (!bindingKeys.has(binding)) {
+        bindingKeys.set(binding, nextBindingKey++);
+      }
+
+      return bindingKeys.get(binding);
+    };
+
+    return { getBindingKey };
+  },
+
   async fetch() {
     const roleBindingRequestParams = { type: this.type, opt: { force: true } };
 
@@ -184,6 +199,7 @@ export default {
       <div class="columns row">
         <div class="col span-6">
           <Principal
+            :key="getBindingKey(row.value)"
             :value="row.value.principalId"
           />
         </div>
