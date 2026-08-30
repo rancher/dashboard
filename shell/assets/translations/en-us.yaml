@@ -6689,8 +6689,10 @@ sortableTable:
     lastPageBtn: Last page of results icon
     sortingIconDesc: Table header descending sort icon
     sortingIconAsc: Table header ascending sort icon
-  genericGroupCheckbox: Table group selection checkbox
-  genericRowCheckbox: Table row selection checkbox for item {item}
+  genericGroupCheckbox: Select all rows
+  genericRowCheckbox: Select {item}
+  genericRowCheckboxNoItem: Select row
+  selectAllResources: Select all {resource}
   tableActionsLabel: More actions - { resource }
   tableActionsImgAlt: More actions icon
   bulkActions:
