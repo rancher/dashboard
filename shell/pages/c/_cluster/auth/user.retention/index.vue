@@ -239,6 +239,8 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
             :tooltip="t('user.retention.edit.form.disableAfter.input.tooltip')"
             class="input-field"
             :label="t('user.retention.edit.form.disableAfter.input.label')"
+            :override-aria-label="true"
+            :aria-label="t('user.retention.edit.form.disableAfter.input.labelDisable')"
             :disabled="!disableAfterPeriod"
           />
         </div>
@@ -255,6 +257,8 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
             :tooltip="t('user.retention.edit.form.deleteAfter.input.tooltip')"
             class="input-field"
             :label="t('user.retention.edit.form.deleteAfter.input.label')"
+            :override-aria-label="true"
+            :aria-label="t('user.retention.edit.form.deleteAfter.input.labelDelete')"
             :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
             :disabled="!deleteAfterPeriod"
           />

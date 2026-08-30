@@ -116,6 +116,14 @@ export default defineComponent({
     },
 
     /**
+     * Optionally use force usage of custom aria-label instead of the label for accessibility
+     */
+    overrideAriaLabel: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
      * Optionally use this to comply with a11y IF there's no label
      * associated with the input
      */
@@ -236,6 +244,13 @@ export default defineComponent({
   },
 
   computed: {
+    strippedAriaLabel(): string | undefined {
+      if (this.overrideAriaLabel) {
+        return this.ariaLabel || undefined;
+      }
+
+      return !this.hasLabel && this.ariaLabel ? this.ariaLabel : undefined;
+    },
     /**
      * Determines if the Labeled Input should display a label.
      */
@@ -546,7 +561,7 @@ export default defineComponent({
         :id="inputId"
         ref="value"
         v-bind="$attrs"
-        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+        v-stripped-aria-label="strippedAriaLabel"
         :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
@@ -565,7 +580,7 @@ export default defineComponent({
         v-else
         :id="inputId"
         ref="value"
-        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+        v-stripped-aria-label="strippedAriaLabel"
         :role="nativeType === 'number' ? undefined : 'textbox'"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"

@@ -227,6 +227,100 @@ describe('component: LabeledInput', () => {
     expect(wrapper.find('label').text()).toBe(label);
   });
 
+  describe('a11y: "overrideAriaLabel" prop', () => {
+    const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
+    const label = 'Inactivity period';
+    const ariaLabel = 'Inactivity period - Disable user accounts';
+
+    it.each([
+      ['text', 'input'],
+      ['multiline', 'textarea'],
+    ])('for type %p should render the "aria-label" alongside a visible label when enabled', (type, fieldTag) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type, label, ariaLabel, overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+
+      const field = wrapper.find(fieldTag);
+
+      // the visible label is still rendered, the aria-label just takes over the accessible name
+      expect(wrapper.find('label').text()).toBe(label);
+      expect(field.attributes('aria-label')).toBe(ariaLabel);
+    });
+
+    it('should not render the "aria-label" alongside a visible label when disabled', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel, overrideAriaLabel: false
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should default to disabled, keeping the visible label as the accessible name', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should not render an empty "aria-label" when enabled without an "ariaLabel" value', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel: '', overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should still render the "aria-label" when there is no visible label and it is disabled', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', ariaLabel, overrideAriaLabel: false
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('label').exists()).toBe(false);
+      expect(wrapper.find('input').attributes('aria-label')).toBe(ariaLabel);
+    });
+
+    it('should give two inputs sharing the same visible label unique accessible names', () => {
+      const disableAriaLabel = 'Inactivity period - Disable user accounts';
+      const deleteAriaLabel = 'Inactivity period - Delete user accounts';
+
+      const disableWrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel: disableAriaLabel, overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+      const deleteWrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel: deleteAriaLabel, overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+
+      const disableName = disableWrapper.find('input').attributes('aria-label');
+      const deleteName = deleteWrapper.find('input').attributes('aria-label');
+
+      expect(disableName).toBe(disableAriaLabel);
+      expect(deleteName).toBe(deleteAriaLabel);
+      expect(disableName).not.toBe(deleteName);
+    });
+  });
+
   describe('clear button functionality', () => {
     const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
 
