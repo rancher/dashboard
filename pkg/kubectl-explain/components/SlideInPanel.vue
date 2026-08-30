@@ -3,6 +3,7 @@ import ExplainPanel from './ExplainPanel';
 import { KEY } from '@shell/utils/platform';
 import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
+import { isExplainPanelOpen } from '../slide-in';
 
 const HEADER_HEIGHT = 55;
 
@@ -53,6 +54,14 @@ export default {
 
   computed: {
 
+    // The panel stays mounted when closed (it's only moved off-screen), so without `inert` all of its
+    // links and buttons remain in the tab order and can be reached by tabbing past the end of the page.
+    // Returns `undefined` rather than `false` when open so that Vue drops the attribute entirely -
+    // `inert="false"` would still be inert, since `inert` is a boolean attribute.
+    isPanelInert() {
+      return this.isOpen ? undefined : true;
+    },
+
     top() {
       const banner = document.getElementById('banner-header');
       let height = HEADER_HEIGHT;
@@ -73,12 +82,14 @@ export default {
     open() {
       this.busy = true;
       this.isOpen = true;
+      isExplainPanelOpen.value = true;
       this.addCloseKeyHandler();
       this.right = '0';
     },
 
     close() {
       this.isOpen = false;
+      isExplainPanelOpen.value = false;
       this.removeCloseKeyHandler();
       this.right = `-${ this.width }`;
     },
@@ -210,6 +221,11 @@ export default {
       :class="{ 'slide-in-open': isOpen }"
       :style="{ width, right, top, height }"
       data-testid="slide-in-panel-resource-explain"
+      role="dialog"
+      aria-modal="true"
+      :aria-hidden="!isOpen"
+      :inert="isPanelInert"
+      :aria-label="t('kubectl-explain.title')"
     >
       <div
         ref="resizer"
@@ -268,14 +284,15 @@ export default {
             v-if="!busy && !noResource && definition"
             class="icon icon-sort mr-10"
             role="button"
-            :aria-label="t('kubectl-explain.expandAll')"
+            :aria-label="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
+            :aria-expanded="expandAll"
             tabindex="0"
             @click="toggleAll()"
             @keydown.space.enter.stop.prevent="toggleAll()"
           />
           <i
             role="button"
-            :aria-label="t('kubectl-explain.scrollToTop')"
+            :aria-label="t('kubectl-explain.close')"
             class="icon icon-close"
             data-testid="slide-in-panel-close-resource-explain"
             tabindex="0"
