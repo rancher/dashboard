@@ -161,7 +161,7 @@ export default {
             v-else
             class="field-type"
           >
-            {{ t('kubectl-explain.object') }}
+            {{ field.type === 'array' && field.items?.type ? field.items.type : t('kubectl-explain.object') }}
           </div>
         </div>
       </div>
