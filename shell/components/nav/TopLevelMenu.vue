@@ -1976,7 +1976,7 @@ export default {
       & .category {
         & a.router-link-active {
           &:hover {
-            color: var(--on-active, var(--default));
+            color: var(--on-active-nav, var(--default));
           }
         }
       }
@@ -2111,37 +2111,37 @@ export default {
           }
 
           background: var(--active-nav, var(--primary-hover-bg));
-          color: var(--on-active, var(--primary-hover-text));
+          color: var(--on-active-nav, var(--primary-hover-text));
 
           svg {
-            fill: var(--on-active, var(--primary-hover-text));
+            fill: var(--on-active-nav, var(--primary-hover-text));
           }
 
           i {
-            color: var(--on-active, var(--primary-hover-text));
+            color: var(--on-active-nav, var(--primary-hover-text));
           }
 
           // Current row (selected): white name + pinned pin; light meta + light-grey not-pinned pin.
           // !important overrides the base black/muted name+pin invariants.
           .cluster-name > p {
-            color: var(--on-active, var(--primary-hover-text)) !important;
+            color: var(--on-active-nav, var(--primary-hover-text)) !important;
           }
           .pin.is-pinned {
-            color: var(--on-active, var(--primary-hover-text)) !important;
+            color: var(--on-active-nav, var(--primary-hover-text)) !important;
           }
           .pin:not(.is-pinned) {
-            color: color-mix(in srgb, var(--on-active, var(--primary-hover-text)) 65%, transparent) !important;
+            color: color-mix(in srgb, var(--on-active-nav, var(--primary-hover-text)) 65%, transparent) !important;
           }
 
           &:hover {
-            background: var(--active-hover, var(--primary-hover-bg));
+            background: var(--nav-active-hover, var(--primary-hover-bg));
 
             div {
-              color: var(--on-active, var(--default));
+              color: var(--on-active-nav, var(--default));
             }
 
             svg {
-              fill: var(--on-active, var(--primary-hover-text));
+              fill: var(--on-active-nav, var(--primary-hover-text));
             }
           }
         }
