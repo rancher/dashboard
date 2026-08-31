@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { nextTick, ref } from 'vue';
+import { nextTick } from 'vue';
 import NavActionBar from '@shell/components/nav/NavActionBar.vue';
 
 // `push` resolves with undefined on success and with a NavigationFailure when the
@@ -23,14 +23,17 @@ jest.mock('vue-router', () => ({ useRouter: () => mockRouter, useRoute: () => ({
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 jest.mock('@shell/composables/useClusterLocalStorage', () => ({ useClusterLocalStorage: () => mockHistory }));
 
-const shortNames = ref<Record<string, string[]>>({});
-
-jest.mock('@shell/composables/useResourceShortNames', () => ({ useResourceShortNames: () => shortNames }));
 jest.mock('@shell/utils/router', () => ({
   filterLocationValidParams: (_router: any, route: any) => route,
   isNavItemActive:           (_router: any, _to: any, navItem: any) => !!activeNavItem && navItem?.name === activeNavItem,
 }));
 jest.mock('@shell/utils/platform', () => ({ isMac: false }));
+
+// jsdom has no layout and no `scrollIntoView`, so the list never really scrolls.
+// What these tests can check is which option was asked to come into view.
+const scrollIntoView = jest.fn();
+
+Element.prototype.scrollIntoView = scrollIntoView;
 
 // A small nav tree mirroring the curated explorer groups: a root whose children
 // sit at the top level, plus categorised groups.
@@ -88,9 +91,6 @@ describe('NavActionBar.vue', () => {
   beforeEach(() => {
     stored = null;
     activeNavItem = null;
-    shortNames.value = {
-      pod: ['po'], configmap: ['cm'], resourcequota: ['quota']
-    };
     jest.clearAllMocks();
   });
 
@@ -98,6 +98,20 @@ describe('NavActionBar.vue', () => {
     const wrapper = mountBar();
 
     expect(wrapper.find('.jump-to-input').attributes('placeholder')).toStrictEqual('%nav.jumpTo.placeholder%');
+  });
+
+  it('heads an empty query and an empty result set in the shared wording', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await nextTick();
+
+    expect(wrapper.find('.jump-to-heading').text()).toStrictEqual('%nav.jumpTo.popularHeading%');
+
+    await wrapper.find('.jump-to-input').setValue('zzz');
+    await nextTick();
+
+    expect(wrapper.find('.jump-to-empty').text()).toStrictEqual('%nav.jumpTo.noResults%');
   });
 
   it('shows the hardcoded top 5 with their nav paths when there is no history', async() => {
@@ -219,6 +233,90 @@ describe('NavActionBar.vue', () => {
     expect(options[1].classes()).toContain('active');
   });
 
+  it('rings the input when the keyboard focuses it, but not a pointer', async() => {
+    const wrapper = mountBar();
+    const input = wrapper.find('.jump-to-input');
+
+    // Tab and the Ctrl/Cmd+K shortcut both arrive with no pointer press first
+    await input.trigger('focus');
+    await nextTick();
+    expect(wrapper.find('.jump-to').classes()).toContain('keyboard-focus');
+
+    await input.trigger('blur');
+    await input.trigger('mousedown');
+    await input.trigger('focus');
+    await nextTick();
+    expect(wrapper.find('.jump-to').classes()).not.toContain('keyboard-focus');
+  });
+
+  it('drops the input ring when a pointer presses it while it already has focus', async() => {
+    const wrapper = mountBar();
+    const input = wrapper.find('.jump-to-input');
+
+    await input.trigger('focus');
+    await nextTick();
+    expect(wrapper.find('.jump-to').classes()).toContain('keyboard-focus');
+
+    // No second focus event fires here, so mousedown has to clear it itself
+    await input.trigger('mousedown');
+    await nextTick();
+
+    expect(wrapper.find('.jump-to').classes()).not.toContain('keyboard-focus');
+  });
+
+  it('rings the highlighted option only while the keyboard is driving', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await nextTick();
+
+    // Opening with the pointer highlights the first option without ringing it
+    expect(wrapper.findAll('.jump-to-option')[0].classes()).toContain('active');
+    expect(wrapper.findAll('.jump-to-option')[0].classes()).not.toContain('keyboard-active');
+
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'ArrowDown' });
+    await nextTick();
+
+    expect(wrapper.findAll('.jump-to-option')[1].classes()).toContain('keyboard-active');
+
+    // The pointer taking the highlight back drops the ring with it
+    await wrapper.findAll('.jump-to-option')[3].trigger('mouseenter');
+    await nextTick();
+
+    expect(wrapper.findAll('.jump-to-option')[3].classes()).toContain('active');
+    expect(wrapper.findAll('.jump-to-option')[3].classes()).not.toContain('keyboard-active');
+    expect(wrapper.findAll('.jump-to-option').filter((o: any) => o.classes().includes('keyboard-active'))).toHaveLength(0);
+  });
+
+  it('scrolls the highlighted option into view when the arrow keys move it', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').trigger('keydown', { key: 'ArrowDown' });
+    await nextTick();
+    await nextTick();
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+    expect(scrollIntoView.mock.instances[scrollIntoView.mock.instances.length - 1]).toStrictEqual(
+      wrapper.findAll('.jump-to-option')[1].element
+    );
+  });
+
+  it('does not scroll the list when the pointer moves the highlight', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await nextTick();
+    scrollIntoView.mockClear();
+
+    await wrapper.findAll('.jump-to-option')[2].trigger('mouseenter');
+    await nextTick();
+    await nextTick();
+
+    // Scrolling under the pointer would move the row out from beneath it
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
   it('shows no heading while searching', async() => {
     const wrapper = mountBar();
 
@@ -236,11 +334,11 @@ describe('NavActionBar.vue', () => {
     await wrapper.find('.jump-to-input').setValue('s');
     await nextTick();
 
-    // Best 's' index of label and type name: Service Discovery/Services/Storage(0,
-    // alpha), Deployments(3, on 'apps.deployment') and Pods(3, alpha), Nodes(4),
-    // Workloads(8), ConfigMaps(9). Groups are included.
+    // Storage/Services/Service Discovery start with 's' (shortest label first),
+    // then the mid-word matches by index: Pods(3), Nodes(4), Workloads(8),
+    // ConfigMaps(9), Deployments(10). Groups are included.
     expect(labels(wrapper)).toStrictEqual([
-      'Service Discovery', 'Services', 'Storage', 'Deployments', 'Pods', 'Nodes', 'Workloads', 'ConfigMaps'
+      'Storage', 'Services', 'Service Discovery', 'Pods', 'Nodes', 'Workloads', 'ConfigMaps', 'Deployments'
     ]);
   });
 
@@ -261,140 +359,214 @@ describe('NavActionBar.vue', () => {
     expect(labels(wrapper)).toStrictEqual(['Clusters']);
   });
 
-  it('ranks a section on whichever of its label and type name matches earliest', async() => {
+  it('finds a section by its own bare type name, whatever its label is translated to', async() => {
+    const custom = [{
+      name:     'cluster',
+      label:    '集群',
+      children: [
+        {
+          name: 'endpoints', label: '端点', route: { name: 'endpoints' }
+        },
+        {
+          name: 'discovery.k8s.io.endpointslice', label: 'EndpointSlices', route: { name: 'endpointslice' }
+        },
+        {
+          name:  'operation.cattle.io.encryptionkeyrotation',
+          label: 'EncryptionKeyRotations',
+          route: { name: 'ekr' },
+        },
+      ]
+    }];
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('ep');
+    await nextTick();
+
+    // A translated label leaves an abbreviation nothing to match, so `endpoints`
+    // is all that still answers to `ep`. It is a name, so it ranks with the
+    // labels around it; behind them, every untranslated type buries it
+    expect(labels(wrapper)).toStrictEqual(['端点', 'EndpointSlices', 'EncryptionKeyRotations']);
+  });
+
+  it('ranks a section matched only on its qualified type name below every label match', async() => {
+    const custom = [{
+      name:     'cluster',
+      label:    'Cluster',
+      children: [
+        {
+          name: 'provisioning.cattle.io.cluster', label: 'Clusters', route: { name: 'clusters' }
+        },
+        {
+          name: 'mgmt-cluster', label: 'Provisioning Log', route: { name: 'log' }
+        },
+      ]
+    }];
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('provisioning');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['Provisioning Log', 'Clusters']);
+  });
+
+  it('finds a type by an abbreviation of its name, without asking the cluster for one', async() => {
+    const wrapper = mountBar();
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('cm');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['ConfigMaps']);
+  });
+
+  it('finds a type by an abbreviation spanning its words', async() => {
+    const custom = [{
+      name:     'service-discovery',
+      label:    'Service Discovery',
+      children: [{
+        name: 'networking.k8s.io.networkpolicy', label: 'NetworkPolicies', route: { name: 'netpol' }
+      }]
+    }];
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('netpol');
+    await nextTick();
+
+    expect(labels(wrapper)).toStrictEqual(['NetworkPolicies']);
+  });
+
+  it('ranks a type sharing the query\'s first letter above one hiding it mid-name', async() => {
+    const custom = [{
+      name:     'cluster',
+      label:    'Cluster',
+      children: [
+        {
+          name: 'apps.daemonset', label: 'DaemonSets', route: { name: 'daemonset' }
+        },
+        {
+          name: 'namespace', label: 'Namespaces', route: { name: 'namespace' }
+        },
+      ]
+    }];
+    const wrapper = mountBar({ groups: custom });
+
+    await wrapper.find('.jump-to-input').trigger('focus');
+    await wrapper.find('.jump-to-input').setValue('ns');
+    await nextTick();
+
+    // 'DaemonSets' contains 'ns' outright, but 'Namespaces' starts with it
+    expect(labels(wrapper)).toStrictEqual(['Namespaces', 'DaemonSets']);
+  });
+
+  it('ranks a whole match above an abbreviated one', async() => {
     const custom = [{
       name:     'storage',
       label:    'Storage',
       children: [
         {
-          name: 'pod', label: 'Cluster Pods', route: { name: 'pod' }
+          name: 'persistentvolume', label: 'PersistentVolumes', route: { name: 'pv' }
         },
         {
-          name: 'policy', label: 'Pod Security', route: { name: 'policy' }
+          name: 'pod', label: 'Pods', route: { name: 'pod' }
         },
       ]
     }];
     const wrapper = mountBar({ groups: custom });
 
     await wrapper.find('.jump-to-input').trigger('focus');
-    await wrapper.find('.jump-to-input').setValue('pod');
+    await wrapper.find('.jump-to-input').setValue('po');
     await nextTick();
 
-    // Both match at index 0 (one on its type name, one on its label), so the tie
-    // is broken alphabetically
-    expect(labels(wrapper)).toStrictEqual(['Cluster Pods', 'Pod Security']);
+    // 'Pods' contains 'po' outright; 'PersistentVolumes' has to be split
+    expect(labels(wrapper)).toStrictEqual(['Pods', 'PersistentVolumes']);
   });
 
-  it('finds a type by its Kubernetes short name', async() => {
-    const wrapper = mountBar();
-
-    await wrapper.find('.jump-to-input').trigger('focus');
-    await wrapper.find('.jump-to-input').setValue('cm');
-    await nextTick();
-
-    expect(labels(wrapper)).toStrictEqual(['ConfigMaps']);
-  });
-
-  it('ranks a short name above an earlier text match', async() => {
+  it('matches a nav entry on the types it stands in for, not just its label', async() => {
     const custom = [{
       name:     'cluster',
       label:    'Cluster',
       children: [
         {
-          name: 'resourcequota', label: 'Resource Quotas', route: { name: 'quota' }
+          name: 'ui.cattle.io.navlink', label: 'Navlinks', route: { name: 'navlink' }
         },
         {
-          name: 'quotapolicy', label: 'Quota Policies', route: { name: 'quotapolicy' }
+          name:         'projects-namespaces',
+          label:        'Projects/Namespaces',
+          navResources: ['management.cattle.io.project', 'namespace'],
+          route:        { name: 'projectsnamespaces' },
         },
       ]
     }];
     const wrapper = mountBar({ groups: custom });
 
     await wrapper.find('.jump-to-input').trigger('focus');
-    await wrapper.find('.jump-to-input').setValue('quota');
+    await wrapper.find('.jump-to-input').setValue('ns');
     await nextTick();
 
-    expect(labels(wrapper)).toStrictEqual(['Resource Quotas', 'Quota Policies']);
+    // On its label alone 'Projects/Namespaces' matches late and loses to
+    // 'Navlinks'; the bare `namespace` it covers is what makes it the better
+    // answer
+    expect(labels(wrapper)).toStrictEqual(['Projects/Namespaces', 'Navlinks']);
   });
 
-  it('matches a short name whole, not as a prefix', async() => {
-    const wrapper = mountBar();
+  it('ranks a nav entry matched only on a resource\'s API group below every label match', async() => {
+    const custom = [{
+      name:     'cluster',
+      label:    'Cluster',
+      children: [
+        {
+          name:         'cluster-members',
+          label:        'Cluster and Project Members',
+          navResources: ['management.cattle.io.clusterroletemplatebinding'],
+          route:        { name: 'members' },
+        },
+        {
+          name: 'cluster.x-k8s.io.machineset', label: 'MachineSets', route: { name: 'machineset' }
+        },
+      ]
+    }];
+    const wrapper = mountBar({ groups: custom });
 
     await wrapper.find('.jump-to-input').trigger('focus');
-    await wrapper.find('.jump-to-input').setValue('c');
+    await wrapper.find('.jump-to-input').setValue('mc');
     await nextTick();
 
-    expect(labels(wrapper)[0]).toStrictEqual('ConfigMaps');
-    expect(labels(wrapper)).toContain('Service Discovery');
+    // 'mc' falls out of `management.cattle` cleanly and out of 'MachineSets'
+    // only mid-word, but an API group is not a name anyone reads
+    expect(labels(wrapper)).toStrictEqual(['MachineSets', 'Cluster and Project Members']);
   });
 
-  it('picks up short names when discovery lands after the list is already open', async() => {
-    shortNames.value = {};
-    const wrapper = mountBar();
-
-    await wrapper.find('.jump-to-input').trigger('focus');
-    await wrapper.find('.jump-to-input').setValue('cm');
-    await nextTick();
-
-    expect(wrapper.findAll('.jump-to-option')).toHaveLength(0);
-
-    shortNames.value = { configmap: ['cm'] };
-    await nextTick();
-
-    expect(labels(wrapper)).toStrictEqual(['ConfigMaps']);
-  });
-
-  it('gives a nav entry the short names of the types it stands in for', async() => {
+  it('still finds a nav entry by the API group of a resource it stands in for', async() => {
     const custom = [{
       name:     'cluster',
       label:    'Cluster',
       children: [{
-        name:         'projects-namespaces',
-        label:        'Projects/Namespaces',
-        navResources: ['management.cattle.io.project', 'namespace'],
-        route:        { name: 'projectsnamespaces' },
+        name:         'cluster-members',
+        label:        'Cluster and Project Members',
+        navResources: ['management.cattle.io.clusterroletemplatebinding'],
+        route:        { name: 'members' },
       }]
     }];
-
-    shortNames.value = { namespace: ['ns'] };
-
     const wrapper = mountBar({ groups: custom });
 
     await wrapper.find('.jump-to-input').trigger('focus');
-    await wrapper.find('.jump-to-input').setValue('ns');
+    await wrapper.find('.jump-to-input').setValue('management.cattle');
     await nextTick();
 
-    expect(labels(wrapper)).toStrictEqual(['Projects/Namespaces']);
+    expect(labels(wrapper)).toStrictEqual(['Cluster and Project Members']);
   });
 
-  it('does not repeat a short name claimed by both the entry and its resources', async() => {
-    const custom = [{
-      name:     'cluster',
-      label:    'Cluster',
-      children: [{
-        name: 'namespace', label: 'Namespaces', navResources: ['namespace'], route: { name: 'namespace' }
-      }]
-    }];
-
-    shortNames.value = { namespace: ['ns'] };
-
-    const wrapper = mountBar({ groups: custom });
-
-    await wrapper.find('.jump-to-input').trigger('focus');
-    await wrapper.find('.jump-to-input').setValue('ns');
-    await nextTick();
-
-    expect(labels(wrapper)).toStrictEqual(['Namespaces']);
-  });
-
-  it('leaves types with no short name searchable by text alone', async() => {
+  it('ranks the tighter of two equally good matches first', async() => {
     const wrapper = mountBar();
 
     await wrapper.find('.jump-to-input').trigger('focus');
     await wrapper.find('.jump-to-input').setValue('service');
     await nextTick();
 
-    expect(labels(wrapper)).toStrictEqual(['Service Discovery', 'Services']);
+    expect(labels(wrapper)).toStrictEqual(['Services', 'Service Discovery']);
   });
 
   it('includes groups as options and jumps to a group\'s first section', async() => {

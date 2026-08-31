@@ -65,6 +65,7 @@ export function init(store) {
     showNamespaceFilter: true,
     icon:                'compass',
     extendable:          true,
+    navSearch:           true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
