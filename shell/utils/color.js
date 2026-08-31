@@ -41,7 +41,9 @@ export function createCssVars(color, theme = 'light', name = 'primary') {
       '--active':            color,
       '--active-nav':        color,
       '--active-hover':      lighten(color, -10),
+      '--nav-active-hover':  lighten(color, -10),
       '--on-active':         contrastColor(color, contrastOpts),
+      '--on-active-nav':     contrastColor(color, contrastOpts),
       '--category-active':   opacity(color, 0.15),
       '--non-primary-hover': opacity(color, 0.1),
       // Secondary (outlined/ghost) buttons draw their border and text from these, which the

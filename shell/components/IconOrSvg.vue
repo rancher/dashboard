@@ -36,7 +36,7 @@ const colors = {
     hover:          '--tertiary-hover-app-bar',
     colorFallback:  '--on-tertiary',
     hoverFallback:  '--primary-hover-text',
-    active:         '--on-active',
+    active:         '--on-active-nav',
     activeFallback: '--primary-hover-text',
   }
 };
