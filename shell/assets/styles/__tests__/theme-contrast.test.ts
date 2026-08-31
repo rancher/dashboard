@@ -140,8 +140,10 @@ const SHARED_PAIRS: [string, string, number][] = [
   ['--on-active-nav', '--active-nav', TEXT],
   ['--on-active-nav', '--nav-active-hover', TEXT],
   ['--body-text', '--category-active', TEXT],
+  ['--body-text', '--category-active-hover', TEXT],
   ['--primary-text', '--primary', TEXT],
   ['--primary-hover-text', '--primary-hover-bg', TEXT],
+  ['--primary-active-text', '--primary-active-bg', TEXT],
   ['--rc-info', '--rc-info-secondary', TEXT],
 ];
 
@@ -162,11 +164,14 @@ describe('theme colour contrast (WCAG 2.1 AA)', () => {
       expect(ratio(themes[key], foreground, background)).toBeGreaterThanOrEqual(min);
     });
 
+    // The selected nav item borrows the CTA's hover fill rather than its rest fill, so it
+    // reads as the same family without being mistakable for a button, and steps to the
+    // pressed fill when hovered.
     it('paints the active nav item with the primary button family', () => {
       const tokens = themes[key];
 
-      expect(resolve(tokens, '--active-nav')).toBe(resolve(tokens, '--primary'));
-      expect(resolve(tokens, '--nav-active-hover')).toBe(resolve(tokens, '--primary-hover-bg'));
+      expect(resolve(tokens, '--active-nav')).toBe(resolve(tokens, '--primary-hover-bg'));
+      expect(resolve(tokens, '--nav-active-hover')).toBe(resolve(tokens, '--primary-active-bg'));
       expect(resolve(tokens, '--on-active-nav')).toBe(resolve(tokens, '--primary-text'));
     });
 
