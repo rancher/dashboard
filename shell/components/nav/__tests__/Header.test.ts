@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import { isReactive } from 'vue';
+import { isReactive, markRaw } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
 
 describe('component: Header', () => {
@@ -250,8 +250,10 @@ describe('component: Header', () => {
   });
 
   describe('navHeaderRight', () => {
-    it('should store the dynamic component non-reactively (markRaw) to avoid the Vue reactive-component warning', () => {
-      const navHeaderRightComponent = { name: 'NavHeaderRight', render: () => null };
+    it('should store the raw dynamic component from getDynamic without making it reactive', () => {
+      // getDynamic marks component definitions raw; the stored value must stay
+      // non-reactive so Vue does not warn / add overhead when rendering it.
+      const navHeaderRightComponent = markRaw({ name: 'NavHeaderRight', render: () => null });
       const wrapper = createWrapper({}, {}, { getDynamic: jest.fn(() => navHeaderRightComponent) });
 
       const stored = (wrapper.vm as any).navHeaderRight;
