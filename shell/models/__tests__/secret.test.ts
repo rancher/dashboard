@@ -587,14 +587,15 @@ describe('class Secret', () => {
       getters:     { schemaFor: () => ({ id: 'secret' }) },
       rootGetters: {
         'type-map/labelFor': () => 'Secret',
-        'i18n/t':            (key: string) => key
+        'i18n/t':            (key: string) => key,
+        'i18n/withFallback': (_key: string, _args: any, fallback: string) => fallback
       }
     };
 
-    it('includes only the type by default', () => {
+    it('includes the secret sub-type (not the kind) by default', () => {
       const secret = new Secret({ _type: TYPES.OPAQUE, metadata: {} }, ctx);
 
-      expect(secret.details).toStrictEqual([{ label: 'secret.type', content: 'Secret' }]);
+      expect(secret.details).toStrictEqual([{ label: 'secret.type', content: 'Opaque' }]);
     });
 
     it('includes a Service Account link for service account secrets', () => {
