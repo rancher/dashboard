@@ -1,4 +1,5 @@
 <script>
+import { markRaw } from 'vue';
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
@@ -295,7 +296,11 @@ export default {
           this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
           this.updateExtensionActionsEnabled();
 
-          this.navHeaderRight = this.$extension?.getDynamic('component', 'NavHeaderRight');
+          const navHeaderRight = this.$extension?.getDynamic('component', 'NavHeaderRight');
+
+          // Component definitions must not be made reactive, otherwise Vue warns and
+          // incurs unnecessary reactivity overhead when rendered via <component :is>.
+          this.navHeaderRight = navHeaderRight ? markRaw(navHeaderRight) : null;
         }
       },
       immediate: true,
