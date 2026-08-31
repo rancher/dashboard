@@ -49,6 +49,63 @@ export function mergeOverrides(defaults: object, overridesYaml: string): string 
 }
 
 /**
+ * Whether the overrides YAML merges cleanly onto the defaults: true when empty or
+ * a mapping, false when it fails to parse or is a bare scalar/array (which
+ * `mergeOverrides` silently drops). Lets callers detect a mid-edit document a
+ * merged view wouldn't faithfully represent.
+ */
+export function overridesAreMergeable(overridesYaml: string): boolean {
+  let parsed: unknown;
+
+  try {
+    parsed = jsyaml.load(overridesYaml || '');
+  } catch (e) {
+    return false;
+  }
+
+  // Empty overrides are fine; otherwise it must be a mapping to merge cleanly.
+  return parsed === undefined || parsed === null || isPlainObject(parsed);
+}
+
+/**
+ * Like `mergeOverrides`, but when the overrides don't parse it keeps the raw lines
+ * instead of collapsing to the defaults: the longest valid leading part is merged
+ * (keeping untouched siblings for context) and the rest is appended verbatim, so a
+ * mid-edit diff still shows the whole document. It can't place a stray line exactly
+ * where it sat, but it shows all of them.
+ */
+export function mergeOverridesRawText(defaults: object, overridesYaml: string): string {
+  const text = overridesYaml || '';
+
+  if (overridesAreMergeable(text)) {
+    return mergeOverrides(defaults, text);
+  }
+
+  // Find the longest run of leading lines that still parses to a mapping.
+  const lines = text.split('\n');
+  let validCount = 0;
+
+  for (let i = lines.length - 1; i >= 1; i--) {
+    if (overridesAreMergeable(lines.slice(0, i).join('\n'))) {
+      validCount = i;
+      break;
+    }
+  }
+
+  // Merge the valid part (keeps untouched sibling fields as context) ...
+  const merged = mergeOverrides(defaults, lines.slice(0, validCount).join('\n'));
+  // ... and append whatever the user typed after it, verbatim.
+  const remainder = lines.slice(validCount).join('\n').replace(/\n+$/, '');
+
+  if (!remainder.trim()) {
+    return merged;
+  }
+
+  // `merged` already ends with a trailing newline from the YAML serializer.
+  return `${ merged }${ remainder }\n`;
+}
+
+/**
  * Compare two override YAML strings by their parsed content rather than raw
  * text. Typing then deleting in the editor can leave residual whitespace (e.g.
  * a trailing newline) that makes the strings differ even though there are no

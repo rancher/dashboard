@@ -32,6 +32,26 @@ export default {
       type:    Boolean,
       default: false
     },
+    /**
+     * Opt in to the changed-line highlight. When false (default) `highlightLines`
+     * is a no-op, so highlighting only happens where a consumer turns it on.
+     */
+    highlightEnabled: {
+      type:    Boolean,
+      default: false,
+    },
+    /**
+     * Timing (ms) for the changed-line highlight, as `fadeIn` / `hold` / `fadeOut`.
+     * Each phase feeds a CSS custom property and their sum drives the class-removal
+     * timer, so animation and timer stay in step. Defaulted for the overrides
+     * editor (highlighting's first use) so callers needn't set it.
+     */
+    highlightTiming: {
+      type:    Object,
+      default: () => ({
+        fadeIn: 300, hold: 2000, fadeOut: 800
+      })
+    },
   },
 
   data() {
@@ -42,13 +62,44 @@ export default {
       hasLintErrors:          false,
       currFocusedElem:        undefined,
       isCodeMirrorFocused:    false,
-      codeMirrorContainerRef: undefined
+      codeMirrorContainerRef: undefined,
+      highlightTimer:         null,
     };
   },
 
   computed: {
     isDisabled() {
       return this.mode === _VIEW;
+    },
+
+    /** The highlight timing prop with each phase defaulted, so partial objects are safe. */
+    highlightPhases() {
+      const { fadeIn = 0, hold = 0, fadeOut = 0 } = this.highlightTiming || {};
+
+      return {
+        fadeIn, hold, fadeOut
+      };
+    },
+
+    /** Total lifetime of the highlight - drives the class-removal timer. */
+    highlightDuration() {
+      const { fadeIn, hold, fadeOut } = this.highlightPhases;
+
+      return fadeIn + hold + fadeOut;
+    },
+
+    /**
+     * CSS custom properties for the chained highlight animations; fade-out is
+     * delayed until fade-in and hold have elapsed so the phases run back to back.
+     */
+    highlightStyle() {
+      const { fadeIn, hold, fadeOut } = this.highlightPhases;
+
+      return {
+        '--highlight-fade-in':        `${ fadeIn }ms`,
+        '--highlight-fade-out':       `${ fadeOut }ms`,
+        '--highlight-fade-out-delay': `${ fadeIn + hold }ms`,
+      };
     },
 
     combinedOptions() {
@@ -141,6 +192,10 @@ export default {
     const el = this.$refs.codeMirrorContainer;
 
     el.removeEventListener('keydown', this.handleKeyPress);
+
+    if (this.highlightTimer) {
+      clearTimeout(this.highlightTimer);
+    }
   },
 
   watch: {
@@ -260,6 +315,42 @@ export default {
       }
     },
 
+    /**
+     * Briefly flash the given (0-based) lines to draw the eye to what changed.
+     * Adds a background class per line that the fade animation runs once, then
+     * removes it after `highlightDuration` so a later call can retrigger.
+     */
+    highlightLines(lineNumbers = []) {
+      if (!this.highlightEnabled) {
+        return;
+      }
+
+      const cm = this.$refs.codeMirrorRef?.cminstance;
+
+      if (!cm) {
+        return;
+      }
+
+      if (this.highlightTimer) {
+        clearTimeout(this.highlightTimer);
+        this.highlightTimer = null;
+      }
+
+      const lineCount = cm.lineCount();
+      const highlighted = lineNumbers.filter((n) => n >= 0 && n < lineCount);
+
+      highlighted.forEach((n) => cm.addLineClass(n, 'background', 'line-changed-highlight'));
+
+      if (!highlighted.length) {
+        return;
+      }
+
+      this.highlightTimer = setTimeout(() => {
+        highlighted.forEach((n) => cm.removeLineClass(n, 'background', 'line-changed-highlight'));
+        this.highlightTimer = null;
+      }, this.highlightDuration);
+    },
+
     closeKeyMapInfo() {
       this.removeKeyMapBox = true;
     },
@@ -273,6 +364,7 @@ export default {
     :tabindex="codeMirrorContainerTabIndex"
     class="code-mirror code-mirror-container"
     :class="{['as-text-area']: asTextArea}"
+    :style="highlightStyle"
     @focusin="focusChanged"
     @blur="focusChanged($event, true)"
   >
@@ -501,6 +593,33 @@ export default {
           }
         }
       }
+    }
+
+    // Flashed lines fade in, hold, then fade out once. The two animations are
+    // chained via `--highlight-fade-out-delay` (fade-in + hold); each phase length
+    // comes from the `highlightTiming` prop, whose sum also drives the removal timer.
+    .CodeMirror-linebackground.line-changed-highlight {
+      animation:
+        fadeInHighlight var(--highlight-fade-in, 300ms) ease forwards,
+        fadeOutHighlight var(--highlight-fade-out, 300ms) ease var(--highlight-fade-out-delay, 1200ms) forwards;
+    }
+  }
+
+  @keyframes fadeInHighlight {
+    from {
+      background-color: transparent;
+    }
+    to {
+      background-color: var(--info-banner-bg);
+    }
+  }
+
+  @keyframes fadeOutHighlight {
+    from {
+      background-color: var(--info-banner-bg);
+    }
+    to {
+      background-color: transparent;
     }
   }
 

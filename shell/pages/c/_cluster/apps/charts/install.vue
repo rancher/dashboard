@@ -40,7 +40,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { mergeOverrides, overridesFromValues, sameYamlOverrides } from '@shell/utils/chart-values';
+import { mergeOverrides, mergeOverridesRawText, overridesFromValues, sameYamlOverrides } from '@shell/utils/chart-values';
 import { addParam } from '@shell/utils/url';
 import { WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
@@ -369,8 +369,6 @@ export default {
       /* For YAML diff */
       if ( !this.loadedVersion ) {
         this.originalYamlValues = this.valuesYaml;
-        // Full-document baseline for the "Compare Changes" diff.
-        this.originalYamlFull = this.finalYaml;
       }
 
       this.loadedVersionValues = this.versionInfo?.values || {};
@@ -416,10 +414,6 @@ export default {
       chartValues:                            null,
       clusterRegistry:                        '',
       originalYamlValues:                     null,
-      // Full (defaults + overrides) baseline at load time, used as the "before"
-      // side of the "Compare Changes" diff so it stays a full-document diff even
-      // though the editable pane now only holds overrides.
-      originalYamlFull:                       null,
       previousYamlValues:                     null,
       errors:                                 null,
       existing:                               null,
@@ -672,12 +666,42 @@ export default {
     },
 
     /*
-      The read-only "Final values preview" pane: the chart's default values merged
-      with the user's overrides from the editable pane - i.e. what Helm actually
-      renders with. Recomputes live as the user edits their overrides.
+      The "before" side of the Compare Changes diff: defaults + the originally-saved
+      overrides (none on a fresh install). Serialized like `diffFinalYaml` so only
+      real changes show.
     */
-    finalYaml() {
-      return mergeOverrides(this.versionInfo?.values || {}, this.valuesYaml);
+    originalYamlFull() {
+      return mergeOverrides(this.versionInfo?.values || {}, this.originalYamlValues || '');
+    },
+
+    /*
+      The "after" side of the diff: defaults + edited overrides. Mid-edit/invalid
+      overrides keep their raw lines (via mergeOverridesRawText) so the diff shows
+      the whole document instead of hiding them or collapsing to defaults.
+    */
+    diffFinalYaml() {
+      return mergeOverridesRawText(this.versionInfo?.values || {}, this.valuesYaml);
+    },
+
+    /*
+      Whether the full document actually changed. False only when the overrides
+      change nothing (e.g. empty), where we fall back to a raw overrides diff so
+      the tab is never a blank "no changes".
+    */
+    diffHasFullDocChanges() {
+      return this.diffFinalYaml !== this.originalYamlFull;
+    },
+
+    /*
+      Compare Changes shows the full document; only when it has no changes does it
+      fall back to the raw overrides text, so the tab stays honest and never blank.
+    */
+    diffValue() {
+      return this.diffHasFullDocChanges ? this.diffFinalYaml : this.valuesYaml;
+    },
+
+    diffOriginal() {
+      return this.diffHasFullDocChanges ? this.originalYamlFull : this.originalYamlValues;
     },
 
     showingYaml() {
@@ -2053,16 +2077,19 @@ export default {
                 :target-namespace="targetNamespace"
               />
             </Tabbed>
-            <!-- Values (as YAML diff): unchanged "Compare Changes" full-document diff -->
+            <!-- Values (as YAML diff): full-document diff of original vs final merged
+                 values; invalid mid-edit overrides keep their raw lines so the diff
+                 is never empty. See diffValue / diffOriginal. -->
             <template v-else-if="showDiff">
               <YamlEditor
                 ref="diffEditor"
-                :value="finalYaml"
+                :value="diffValue"
                 class="step__values__content"
                 :scrolling="true"
-                :initial-yaml-values="originalYamlFull"
+                :initial-yaml-values="diffOriginal"
                 :editor-mode="editorMode"
                 :hide-preview-buttons="true"
+                :allow-empty-diff-base="true"
               />
             </template>
             <!-- Values (as YAML): editable overrides + read-only final values -->
@@ -2071,7 +2098,7 @@ export default {
                 ref="valuesEditor"
                 v-model:value="valuesYaml"
                 class="step__values__content"
-                :preview="finalYaml"
+                :defaults="versionInfo?.values || {}"
                 :editor-mode="editorMode"
                 :initial-yaml-values="originalYamlValues"
                 :overrides-label="t('catalog.install.section.overrides.label')"

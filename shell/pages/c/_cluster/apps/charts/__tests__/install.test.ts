@@ -4,6 +4,7 @@ import jsyaml from 'js-yaml';
 import Install from '@shell/pages/c/_cluster/apps/charts/install.vue';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { diff } from '@shell/utils/object';
+import { mergeOverrides } from '@shell/utils/chart-values';
 
 const defaultStubs = {
   Loading:             true,
@@ -45,6 +46,7 @@ const mountInstall = (options: {
   data?: () => Record<string, any>;
   getters?: Record<string, any>;
   mocks?: Record<string, any>;
+  stubs?: Record<string, any>;
 } = {}) => {
   const mockStore = {
     dispatch: jest.fn((action) => {
@@ -69,7 +71,7 @@ const mountInstall = (options: {
         t:           (key: string) => key,
         ...options.mocks
       },
-      stubs: defaultStubs
+      stubs: { ...defaultStubs, ...options.stubs }
     },
     data: options.data
   });
@@ -358,18 +360,32 @@ describe('page: Install', () => {
       expect(JSON.stringify(sent)).not.toContain('null');
     });
 
-    it('finalYaml shows the chart defaults merged with the edited overrides', () => {
-      const wrapper = mountWithYaml('image:\n  pullSecrets:\n    - application-collection\n');
-
-      expect(jsyaml.load(wrapper.vm.finalYaml)).toStrictEqual({
-        image: {
-          repository: 'my/repo', tag: '1.0.0', pullPolicy: 'IfNotPresent', pullSecrets: ['application-collection']
+    it('feeds the chart defaults to the overrides editor so it can compute the final values preview', async() => {
+      const wrapper = mountInstall({
+        data: () => ({
+          value:            { metadata: { name: '', namespace: '' } },
+          chart:            {},
+          repo:             { spec: {} },
+          currentCluster:   null,
+          serverUrlSetting: { value: '' },
+          versionInfo:      { values: versionInfoValues },
+          chartValues:      {},
+          valuesYaml:       'image:\n  pullSecrets:\n    - application-collection\n',
+        }),
+        stubs: {
+          Wizard:              { template: '<div><slot name="helmValues"/></div>' },
+          YamlOverridesEditor: {
+            template: '<div/>', props: ['defaults'], methods: { updateOverrides() {} }
+          },
         },
-        service: {
-          port: 80, targetPort: 8086, type: 'ClusterIP'
-        },
-        persistence: { enabled: true, size: '8Gi' },
       });
+
+      wrapper.vm.formYamlOption = 'YAML';
+      await wrapper.vm.$nextTick();
+
+      // The preview (defaults merged with overrides) is now computed inside
+      // YamlOverridesEditor's smart mode - install.vue just supplies the defaults.
+      expect(wrapper.findComponent({ ref: 'valuesEditor' }).props('defaults')).toStrictEqual(versionInfoValues);
     });
 
     it('preserves an explicit null the user deliberately sets in their overrides', () => {
@@ -380,12 +396,6 @@ describe('page: Install', () => {
       const sent = diff(versionInfoValues, wrapper.vm.chartValues);
 
       expect(sent).toStrictEqual({ service: { type: null } });
-    });
-
-    it('finalYaml falls back to chart defaults when the overrides YAML is invalid', () => {
-      const wrapper = mountWithYaml(':\n  not valid: :yaml');
-
-      expect(jsyaml.load(wrapper.vm.finalYaml)).toStrictEqual(versionInfoValues);
     });
 
     it('Compare Changes toggles the diff view without rewriting the overrides-only editor', async() => {
@@ -407,6 +417,160 @@ describe('page: Install', () => {
       expect(wrapper.vm.valuesYaml).toBe(overrides);
     });
 
+    it('Compare Changes diffs the full values document so both the old and new values show (as on master)', async() => {
+      // Render the wizard's helmValues slot so the diff editor is in the tree.
+      // Stub YamlOverridesEditor to a no-op so switching to DIFF (which pushes the
+      // overrides via its ref) doesn't error on the stubbed inner editors.
+      const wrapper = mountInstall({
+        data: () => ({
+          value:            { metadata: { name: '', namespace: '' } },
+          chart:            {},
+          repo:             { spec: {} },
+          currentCluster:   null,
+          serverUrlSetting: { value: '' },
+          versionInfo:      { values: versionInfoValues },
+          chartValues:      {},
+          valuesYaml:       '',
+        }),
+        stubs: {
+          Wizard:              { template: '<div><slot name="helmValues"/></div>' },
+          YamlOverridesEditor: { template: '<div/>', methods: { updateOverrides() {} } },
+        },
+      });
+
+      // fresh install (no saved overrides) that changes an existing default value
+      wrapper.setData({ originalYamlValues: '' });
+      wrapper.setData({ valuesYaml: 'service:\n  port: 9090\n' });
+      wrapper.vm.formYamlOption = 'DIFF';
+      await wrapper.vm.$nextTick();
+
+      const diffEditor = wrapper.findComponent({ ref: 'diffEditor' });
+
+      // the diff compares the full original document (chart defaults) against the
+      // full merged document, so both old and new values show with context
+      expect(diffEditor.props('value')).toBe(mergeOverrides(versionInfoValues, 'service:\n  port: 9090\n'));
+      expect(diffEditor.props('initialYamlValues')).toBe(mergeOverrides(versionInfoValues, ''));
+
+      const oldSide = jsyaml.load(diffEditor.props('initialYamlValues')) as any;
+      const newSide = jsyaml.load(diffEditor.props('value')) as any;
+
+      expect(oldSide.service.port).toBe(80);
+      expect(newSide.service.port).toBe(9090);
+      // untouched keys are present on both sides so the diff has context
+      expect(oldSide.persistence).toStrictEqual({ enabled: true, size: '8Gi' });
+      expect(newSide.persistence).toStrictEqual({ enabled: true, size: '8Gi' });
+    });
+
+    it('diffs against the previously-saved overrides when editing an existing release', async() => {
+      const wrapper = mountInstall({
+        data: () => ({
+          value:            { metadata: { name: '', namespace: '' } },
+          chart:            {},
+          repo:             { spec: {} },
+          currentCluster:   null,
+          serverUrlSetting: { value: '' },
+          versionInfo:      { values: versionInfoValues },
+          chartValues:      {},
+          valuesYaml:       '',
+        }),
+        stubs: {
+          Wizard:              { template: '<div><slot name="helmValues"/></div>' },
+          YamlOverridesEditor: { template: '<div/>', methods: { updateOverrides() {} } },
+        },
+      });
+
+      // an existing release already overrides service.port; the user now bumps it
+      wrapper.setData({ originalYamlValues: 'service:\n  port: 8080\n' });
+      wrapper.setData({ valuesYaml: 'service:\n  port: 9090\n' });
+      wrapper.vm.formYamlOption = 'DIFF';
+      await wrapper.vm.$nextTick();
+
+      const diffEditor = wrapper.findComponent({ ref: 'diffEditor' });
+
+      // baseline is defaults + saved overrides, not the bare defaults
+      expect(diffEditor.props('initialYamlValues')).toBe(mergeOverrides(versionInfoValues, 'service:\n  port: 8080\n'));
+      expect((jsyaml.load(diffEditor.props('initialYamlValues')) as any).service.port).toBe(8080);
+      expect((jsyaml.load(diffEditor.props('value')) as any).service.port).toBe(9090);
+    });
+
+    it('shows the full old+new diff with the raw mid-edit lines kept, as on master', async() => {
+      // The document as a whole doesn't parse (the last line is incomplete), but
+      // the valid overrides above it still merge (keeping sibling context) and the
+      // raw line the user is typing is kept in the document rather than dropped.
+      const wrapper = mountInstall({
+        data: () => ({
+          value:            { metadata: { name: '', namespace: '' } },
+          chart:            {},
+          repo:             { spec: {} },
+          currentCluster:   null,
+          serverUrlSetting: { value: '' },
+          versionInfo:      { values: versionInfoValues },
+          chartValues:      {},
+          valuesYaml:       '',
+        }),
+        stubs: {
+          Wizard:              { template: '<div><slot name="helmValues"/></div>' },
+          YamlOverridesEditor: { template: '<div/>', methods: { updateOverrides() {} } },
+        },
+      });
+
+      // fresh install; a valid `service.port` override with an incomplete last line
+      wrapper.setData({ originalYamlValues: '' });
+      wrapper.setData({ valuesYaml: 'service:\n  port: 9090\nimagePullSecre' });
+      wrapper.vm.formYamlOption = 'DIFF';
+      await wrapper.vm.$nextTick();
+
+      const diffEditor = wrapper.findComponent({ ref: 'diffEditor' });
+      const newSide = diffEditor.props('value');
+
+      // baseline is the full original document, so old values show with context
+      const oldSide = jsyaml.load(diffEditor.props('initialYamlValues')) as any;
+
+      expect(oldSide.service.port).toBe(80);
+      expect(oldSide.persistence).toStrictEqual({ enabled: true, size: '8Gi' });
+
+      // the new side merges the valid override (keeping untouched siblings) and
+      // keeps the raw mid-edit line the user typed, rather than hiding it
+      expect(newSide).toContain('port: 9090');
+      expect(newSide).toContain('targetPort: 8086');
+      expect(newSide.endsWith('imagePullSecre\n')).toBe(true);
+    });
+
+    it('keeps the raw overrides in the full document when nothing parses', async() => {
+      // Even when no part of the overrides parses to a mapping, the diff keeps the
+      // full defaults for context and shows the raw text - never an empty state.
+      const wrapper = mountInstall({
+        data: () => ({
+          value:            { metadata: { name: '', namespace: '' } },
+          chart:            {},
+          repo:             { spec: {} },
+          currentCluster:   null,
+          serverUrlSetting: { value: '' },
+          versionInfo:      { values: versionInfoValues },
+          chartValues:      {},
+          valuesYaml:       '',
+        }),
+        stubs: {
+          Wizard:              { template: '<div><slot name="helmValues"/></div>' },
+          YamlOverridesEditor: { template: '<div/>', methods: { updateOverrides() {} } },
+        },
+      });
+
+      // fresh install; the overrides are a bare scalar that can never merge
+      wrapper.setData({ originalYamlValues: '' });
+      wrapper.setData({ valuesYaml: 'broken' });
+      wrapper.vm.formYamlOption = 'DIFF';
+      await wrapper.vm.$nextTick();
+
+      const diffEditor = wrapper.findComponent({ ref: 'diffEditor' });
+
+      // baseline is the full original document; the new side is that document with
+      // the raw line the user typed appended (no empty "no changes" state)
+      expect((jsyaml.load(diffEditor.props('initialYamlValues')) as any).service.port).toBe(80);
+      expect(diffEditor.props('value')).toContain('port: 80');
+      expect(diffEditor.props('value').endsWith('broken\n')).toBe(true);
+    });
+
     it('disables Compare Changes once an override is typed then removed', () => {
       const wrapper = mountWithYaml('');
       const diffOption = () => wrapper.vm.formYamlOptions.find((o: { value: string }) => o.value === 'DIFF');
@@ -421,6 +585,100 @@ describe('page: Install', () => {
       // Removing it leaves a residual newline, but there is no real change so it is disabled again
       wrapper.setData({ valuesYaml: '\n' });
       expect(diffOption()?.disabled).toBe(true);
+    });
+
+    // The tests above stub YamlEditor, so they only verify the props install passes.
+    // These render the real YamlEditor and capture what FileDiff actually receives -
+    // the render path where "only the new value showed" regressions live. FileDiff is
+    // stubbed because its diff2html draw() needs a real DOM element jsdom lacks.
+    describe('rendered diff (real YamlEditor)', () => {
+      const FileDiffStub = {
+        name:     'FileDiff',
+        props:    ['orig', 'neu'],
+        template: '<div class="file-diff-stub"/>',
+      };
+
+      const mountDiff = (data: Record<string, any>) => mountInstall({
+        data: () => ({
+          value:            { metadata: { name: '', namespace: '' } },
+          chart:            {},
+          repo:             { spec: {} },
+          currentCluster:   null,
+          serverUrlSetting: { value: '' },
+          versionInfo:      { values: versionInfoValues },
+          chartValues:      {},
+          showDiff:         true,
+          formYamlOption:   'DIFF',
+          ...data,
+        }),
+        stubs: {
+          Wizard:              { template: '<div><slot name="helmValues"/></div>' },
+          YamlOverridesEditor: { template: '<div/>', methods: { updateOverrides() {} } },
+          YamlEditor:          false,
+          FileDiff:            FileDiffStub,
+        },
+      });
+
+      it('renders both the old and new values with context when the overrides are valid', async() => {
+        const wrapper = mountDiff({ originalYamlValues: '', valuesYaml: 'service:\n  port: 9090\n' });
+
+        await wrapper.vm.$nextTick();
+
+        const fileDiff = wrapper.findComponent(FileDiffStub);
+
+        expect(fileDiff.exists()).toBe(true);
+
+        const oldSide = jsyaml.load(fileDiff.props('orig')) as any;
+        const newSide = jsyaml.load(fileDiff.props('neu')) as any;
+
+        // old value present on the left, new value on the right - not just the change
+        expect(oldSide.service.port).toBe(80);
+        expect(newSide.service.port).toBe(9090);
+        // untouched keys give the diff surrounding context on both sides
+        expect(oldSide.persistence).toStrictEqual({ enabled: true, size: '8Gi' });
+        expect(newSide.persistence).toStrictEqual({ enabled: true, size: '8Gi' });
+      });
+
+      it('renders the old values with context and keeps the raw mid-edit line', async() => {
+        // Matches the "typing a new line" case: the document doesn't parse yet, but
+        // the valid override above still shows old + new values with context, and the
+        // raw line the user is typing is kept in the diff rather than hidden.
+        const wrapper = mountDiff({ originalYamlValues: '', valuesYaml: 'service:\n  port: 9090\nimagePullSecre' });
+
+        await wrapper.vm.$nextTick();
+
+        const fileDiff = wrapper.findComponent(FileDiffStub);
+
+        expect(fileDiff.exists()).toBe(true);
+
+        // old values on the left with surrounding context
+        const oldSide = jsyaml.load(fileDiff.props('orig')) as any;
+
+        expect(oldSide.service.port).toBe(80);
+        expect(oldSide.persistence).toStrictEqual({ enabled: true, size: '8Gi' });
+
+        // new side merges the valid override (keeping siblings) and keeps the raw line
+        const newSide = fileDiff.props('neu');
+
+        expect(newSide).toContain('port: 9090');
+        expect(newSide).toContain('targetPort: 8086');
+        expect(newSide.endsWith('imagePullSecre\n')).toBe(true);
+      });
+
+      it('renders an honest, non-empty diff keeping the raw text when nothing parses', async() => {
+        const wrapper = mountDiff({ originalYamlValues: '', valuesYaml: 'broken' });
+
+        await wrapper.vm.$nextTick();
+
+        const fileDiff = wrapper.findComponent(FileDiffStub);
+
+        expect(fileDiff.exists()).toBe(true);
+        // full defaults kept for context (no "file without changes"/empty state) ...
+        expect((jsyaml.load(fileDiff.props('orig')) as any).service.port).toBe(80);
+        // ... with the raw line the user typed shown at the end
+        expect(fileDiff.props('neu')).toContain('port: 80');
+        expect(fileDiff.props('neu').endsWith('broken\n')).toBe(true);
+      });
     });
   });
 

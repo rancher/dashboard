@@ -1,14 +1,19 @@
 <script>
+import { diffLines } from 'diff';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
+import { mergeOverrides, overridesAreMergeable } from '@shell/utils/chart-values';
 
 /**
  * Two-pane YAML values editor: a LEFT editable "overrides" pane and a RIGHT
- * read-only "final values" preview. The parent owns the data (what the defaults
- * are, how the preview is computed) - this component is purely presentational.
+ * read-only "final values" preview.
  *
- * The preview must be supplied via the `preview` prop; YamlEditor does not react
- * to changes of its `value` prop, so this component pushes the recomputed
- * preview into the read-only editor via its ref whenever `preview` changes.
+ * Preview modes:
+ *  - Smart (recommended): pass `defaults` and the component merges the overrides
+ *    (`value`) onto them, keeping the last valid preview while mid-edit/invalid.
+ *  - Controlled: leave `defaults` unset and pass a ready-made `preview` string.
+ *
+ * YamlEditor doesn't react to its `value` prop, so the recomputed preview is
+ * pushed into the read-only editor via its ref when the effective preview changes.
  */
 export default {
   name: 'YamlOverridesEditor',
@@ -21,10 +26,18 @@ export default {
       type:    String,
       default: '',
     },
-    /** Read-only "final values" YAML shown in the right pane. */
+    /** Controlled-mode preview shown in the right pane. Ignored in smart mode. */
     preview: {
       type:    String,
       default: '',
+    },
+    /**
+     * Smart-mode base values: when set, the component computes the preview by
+     * merging the overrides (`value`) onto these. Leave unset to drive `preview`.
+     */
+    defaults: {
+      type:    Object,
+      default: null,
     },
     /** Editor mode for the editable pane (e.g. EDIT_CODE / DIFF_CODE). */
     editorMode: {
@@ -66,10 +79,46 @@ export default {
   emits: ['update:value'],
 
   data() {
-    return { EDITOR_MODES };
+    return {
+      EDITOR_MODES,
+      // Smart mode: last preview that came from valid overrides, kept so the
+      // preview doesn't revert to the bare defaults while the user is mid-edit.
+      lastValidPreview: null,
+    };
   },
 
   computed: {
+    /** Whether the component computes the preview itself (see `defaults`). */
+    smartMode() {
+      return this.defaults !== null;
+    },
+
+    /**
+     * Smart mode: defaults merged with the current overrides, or null when they're
+     * mid-edit/invalid (a plain merge would collapse to bare defaults). The null
+     * lets `effectivePreview` hold the last valid preview.
+     */
+    mergeablePreview() {
+      if (!this.smartMode || !overridesAreMergeable(this.value)) {
+        return null;
+      }
+
+      return mergeOverrides(this.defaults || {}, this.value);
+    },
+
+    /**
+     * The preview shown in the right pane: the `preview` prop in controlled mode,
+     * or the sticky computed merge in smart mode (defaults until something valid
+     * is typed).
+     */
+    effectivePreview() {
+      if (!this.smartMode) {
+        return this.preview;
+      }
+
+      return this.mergeablePreview ?? this.lastValidPreview ?? mergeOverrides(this.defaults || {}, '');
+    },
+
     overridesPaneTestid() {
       return `${ this.testidPrefix }-overrides-pane`;
     },
@@ -85,10 +134,26 @@ export default {
   },
 
   watch: {
-    preview(neu) {
+    // Smart mode: remember the last valid merge so `effectivePreview` can keep
+    // showing it while the overrides are mid-edit/invalid. Immediate to seed on load.
+    mergeablePreview: {
+      handler(neu) {
+        if (neu !== null) {
+          this.lastValidPreview = neu;
+        }
+      },
+      immediate: true,
+    },
+
+    effectivePreview(neu, old) {
+      // Work out which lines changed before we replace the document, then flash
+      // them once the new content is in place to draw the eye to the change.
+      const changed = this.changedLineNumbers(old, neu);
+
       this.$nextTick(() => {
         this.$refs.finalEditor?.updateValue(neu);
         this.$refs.finalEditor?.refresh();
+        this.$refs.finalEditor?.highlightLines(changed);
       });
     },
   },
@@ -101,6 +166,37 @@ export default {
      */
     updateOverrides(value) {
       this.$refs.overridesEditor?.updateValue(value);
+    },
+
+    /**
+     * The 0-based line numbers in `neu` that were added or changed relative to
+     * `old`. Skips the initial population (empty `old`) so the whole preview
+     * doesn't flash the first time it is filled in.
+     */
+    changedLineNumbers(old, neu) {
+      if (!old) {
+        return [];
+      }
+
+      const lines = [];
+      let lineNo = 0;
+
+      diffLines(old || '', neu || '').forEach((part) => {
+        if (part.removed) {
+          // Removed lines aren't in the new document, so don't advance the counter.
+          return;
+        }
+
+        if (part.added) {
+          for (let i = 0; i < part.count; i++) {
+            lines.push(lineNo + i);
+          }
+        }
+
+        lineNo += part.count;
+      });
+
+      return lines;
     },
   },
 };
@@ -147,12 +243,13 @@ export default {
       <YamlEditor
         ref="finalEditor"
         class="values-pane__editor values-pane__editor--readonly"
-        :value="preview"
+        :value="effectivePreview"
         :component-testid="finalTestid"
         :scrolling="true"
         mode="view"
         :editor-mode="EDITOR_MODES.VIEW_CODE"
         :hide-preview-buttons="true"
+        :highlight-enabled="true"
       />
     </div>
   </div>
