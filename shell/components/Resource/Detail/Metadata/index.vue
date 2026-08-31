@@ -27,6 +27,7 @@ const store = useStore();
 const i18n = useI18n(store);
 
 const showBothEmpty = computed(() => labels.length === 0 && annotations.length === 0);
+const hasIdentifyingInformation = computed(() => identifyingInformation.length > 0);
 </script>
 
 <template>
@@ -34,7 +35,9 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     class="metadata"
     v-bind="$attrs"
   >
+    <!-- Only reserve the first column when there is header info to show, so with no identifying info the labels/annotations stay left-aligned instead of being pushed to the middle. -->
     <div
+      v-if="hasIdentifyingInformation"
       class="identifying-info"
     >
       <IdentifyingInformation :rows="identifyingInformation" />
