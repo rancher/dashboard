@@ -3,6 +3,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 export class LoginPagePo extends PagePo {
@@ -38,9 +39,15 @@ export class LoginPagePo extends PagePo {
     return useLocal ? useLocal.click() : cy;
   }
 
+  /**
+   * The way through to the local form, wherever the page has put it: a card in
+   * the provider list, or a link where a single external provider makes a list
+   * of two unnecessary. Absent when local is the only way in, because the form
+   * is already on screen.
+   */
   useLocal() {
     return this.self().then(($page) => {
-      const elements = $page.find('[data-testid="login-useLocal"]');
+      const elements = $page.find(LoginPagePo.USE_LOCAL_SELECTOR);
 
       return elements?.[0];
     });
@@ -50,9 +57,66 @@ export class LoginPagePo extends PagePo {
     return new AsyncButtonPo('[data-testid="login-submit"]', this.self());
   }
 
+  /**
+   * The primary "Log in with <provider>" button for the currently selected
+   * auth provider.
+   */
+  providerSubmitButton(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-submit"]', this.self());
+  }
+
+  /**
+   * The list of alternative providers. Rendered once there are several external
+   * providers to choose between; a single one alongside local is offered as a
+   * link instead.
+   */
+  providerList(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-list"]');
+  }
+
+  /**
+   * The scrolling part of the list, which holds the external providers. Local
+   * sits outside it so that it is always in reach.
+   */
+  providerScrollList(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-scroll"]');
+  }
+
+  /**
+   * A provider in the list, keyed by its authconfig name. The provider on the
+   * primary button is not repeated here.
+   */
+  providerOption(id: string): ComponentPo {
+    return new ComponentPo(`[data-testid="login-provider-option-${ id }"]`);
+  }
+
+  selectProvider(id: string): Cypress.Chainable {
+    return this.providerOption(id).self().click();
+  }
+
+  /**
+   * The link back off the local form: to the list where there is one, or
+   * straight to the single external provider where there is not. Shown in place
+   * of the list while a username and password form has the panel.
+   */
+  chooseDifferentProvider(): ComponentPo {
+    return new ComponentPo('[data-testid="login-provider-choose"]');
+  }
+
+  rememberProviderCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid="login-provider-remember"]');
+  }
+
   confirmationAcceptButton(): ComponentPo {
     return new ComponentPo('[data-testid="login-confirmation-accept-button"]', this.self());
   }
+
+  static readonly LOCAL_OPTION_SELECTOR = '[data-testid="login-provider-option-local"]';
+
+  static readonly USE_LOCAL_SELECTOR = [
+    LoginPagePo.LOCAL_OPTION_SELECTOR,
+    '[data-testid="login-useLocal"]',
+  ].join(', ');
 
   /**
    * Selectors that indicate the login page has rendered past its loading spinner. Kept in sync with
@@ -62,7 +126,7 @@ export class LoginPagePo extends PagePo {
   static readonly FORM_READY_SELECTOR = [
     '.login-welcome',
     '[data-testid="local-login-username"]',
-    '[data-testid="login-useLocal"]',
+    LoginPagePo.USE_LOCAL_SELECTOR,
     '[data-testid="login-confirmation-accept-button"]',
   ].join(', ');
 
