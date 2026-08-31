@@ -2,13 +2,12 @@
 import difference from 'lodash/difference';
 import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
-import merge from 'lodash/merge';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/useKubernetesVersions';
+import { useMachinePools, syncMachineConfigWithLatest } from '@shell/composables/useMachinePools';
 import { normalizeName } from '@shell/utils/kube';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
-import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 
 import {
   CAPI,
@@ -22,7 +21,7 @@ import {
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
-import { removeObject, clear } from '@shell/utils/array';
+import { clear } from '@shell/utils/array';
 import { createYaml } from '@shell/utils/create-yaml';
 import {
   clone, diff, set, get, isEmpty, mergeWithReplace
@@ -73,23 +72,6 @@ const GOOGLE = 'google';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
-/**
- * Classes to be adopted by the node badges in Machine pools
- */
-const NODE_TOTAL = {
-  error: {
-    color: 'bg-error',
-    icon:  'icon-x',
-  },
-  warning: {
-    color: 'bg-warning',
-    icon:  'icon-warning',
-  },
-  success: {
-    color: 'bg-success',
-    icon:  'icon-checkmark'
-  }
-};
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 const REGISTRIES_TAB_NAME = 'registry';
@@ -149,7 +131,10 @@ export default {
   },
 
   setup(props) {
-    return useKubernetesVersions(props);
+    return {
+      ...useKubernetesVersions(props),
+      ...useMachinePools(),
+    };
   },
 
   async fetch() {
@@ -242,7 +227,6 @@ export default {
       credentialId:                    '',
       credential:                      null,
       initialMachinePoolsValues:       {},
-      machinePools:                    null,
       s3Backup:                        false,
       /**
        * All info related to a specific version of the chart
@@ -268,10 +252,8 @@ export default {
       complianceOverride:                       false,
       truncateLimit:                            this.value.defaultHostnameLengthLimit || 0,
       busy:                                     false,
-      machinePoolValidation:                    {}, // map of validation states for each machine pool
       infrastructureClusterValid:               true,
       provisioningClusterValid:                 true,
-      machinePoolErrors:                        {},
       addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
       stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasOnlyIpv6Pools
       allNamespaces:                            [],
@@ -441,10 +423,6 @@ export default {
       return true;
     },
 
-    unremovedMachinePools() {
-      return (this.machinePools || []).filter((x) => !x.remove);
-    },
-
     /**
      * Extension provider where being provisioned by an extension
      */
@@ -497,70 +475,6 @@ export default {
       }
 
       return this.$store.getters['management/schemaFor'](schema);
-    },
-
-    nodeTotals() {
-      const roles = ['etcd', 'controlPlane', 'worker'];
-      const counts = {};
-      const out = {
-        color:   {},
-        label:   {},
-        icon:    {},
-        tooltip: {},
-      };
-
-      for (const role of roles) {
-        counts[role] = 0;
-        out.color[role] = NODE_TOTAL.success.color;
-        out.icon[role] = NODE_TOTAL.success.icon;
-      }
-
-      for (const row of this.machinePools || []) {
-        if (row.remove) {
-          continue;
-        }
-
-        const qty = parseInt(row.pool.quantity, 10);
-
-        if (isNaN(qty)) {
-          continue;
-        }
-
-        for (const role of roles) {
-          counts[role] = counts[role] + (row.pool[`${ role }Role`] ? qty : 0);
-        }
-      }
-
-      for (const role of roles) {
-        out.label[role] = this.t(`cluster.machinePool.nodeTotals.label.${ role }`, { count: counts[role] });
-        out.tooltip[role] = this.t(`cluster.machinePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
-      }
-
-      if (counts.etcd <= 0) {
-        out.color.etcd = NODE_TOTAL.error.color;
-        out.icon.etcd = NODE_TOTAL.error.icon;
-      } else if (counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7) {
-        out.color.etcd = NODE_TOTAL.warning.color;
-        out.icon.etcd = NODE_TOTAL.warning.icon;
-      }
-
-      if (counts.controlPlane <= 0) {
-        out.color.controlPlane = NODE_TOTAL.error.color;
-        out.icon.controlPlane = NODE_TOTAL.error.icon;
-      } else if (counts.controlPlane === 1) {
-        out.color.controlPlane = NODE_TOTAL.warning.color;
-        out.icon.controlPlane = NODE_TOTAL.warning.icon;
-      }
-
-      if (counts.worker <= 0) {
-        out.color.worker = NODE_TOTAL.error.color;
-        out.icon.worker = NODE_TOTAL.error.icon;
-      } else if (counts.worker === 1) {
-        out.color.worker = NODE_TOTAL.warning.color;
-        out.icon.worker = NODE_TOTAL.warning.icon;
-      }
-
-      return out;
     },
 
     showCni() {
@@ -799,14 +713,6 @@ export default {
       } else {
         return false;
       }
-    },
-
-    hasOnlyIpv6Pools() {
-      return !(this.machinePools || []).find((p) => !p.isIpv6 || p.isDualStack);
-    },
-
-    hasDualStackPools() {
-      return !!(this.machinePools || []).find((p) => p.isDualStack);
     },
 
     validationPassed() {
@@ -1337,49 +1243,8 @@ export default {
       });
     },
 
-    removeMachinePool(idx) {
-      const entry = this.machinePools[idx];
-
-      if (!entry) {
-        return;
-      }
-
-      if (entry.create) {
-        // If this is a new pool that isn't saved yet, it can just be dropped
-        removeObject(this.machinePools, entry);
-      } else {
-        // Mark for removal on save
-        entry.remove = true;
-      }
-    },
-
     async syncMachineConfigWithLatest(machinePool) {
-      if (machinePool?.config?.id) {
-        // Use management/request instead of management/find to avoid overwriting the current machine pool in the store
-        const _latestConfig = await this.$store.dispatch('management/request', { url: `/v1/${ machinePool.config.type }s/${ machinePool.config.id }` });
-        const latestConfig = await this.$store.dispatch('management/create', _latestConfig);
-
-        const _initialMachinePoolValue = this.initialMachinePoolsValues[machinePool?.config?.id] || {};
-        const initialMachinePoolValue = await this.$store.dispatch('management/create', _initialMachinePoolValue);
-
-        // if there's the initial machine pool config, we are in a good position to apply the handleConflict function
-        // to deal with out-of-sync data between machinePools configs. This also mutates the data inside machinePool.config through object reference
-        const conflict = await handleConflict(
-          initialMachinePoolValue,
-          machinePool.config,
-          latestConfig,
-          {
-            dispatch: this.$store.dispatch,
-            getters:  this.$store.getters
-          },
-          'management'
-        );
-
-        // if there's conflicts, throw Error stops save process and surfaces error to user
-        if (conflict) {
-          throw Error(conflict);
-        }
-      }
+      return syncMachineConfigWithLatest(this.$store, this.initialMachinePoolsValues, machinePool);
     },
 
     async saveMachinePools(hookContext) {
@@ -1548,13 +1413,6 @@ export default {
           },
         });
       });
-    },
-
-    /**
-     * Ensure that all the existing node roles pool are at least 1 each
-     */
-    hasRequiredNodes() {
-      return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every((color) => color !== NODE_TOTAL.error.color);
     },
 
     cancelCredential() {
@@ -2162,16 +2020,6 @@ export default {
     handleShowDeprecatedPatchVersionsChanged(value) {
       this.showDeprecatedPatchVersions = value;
     },
-    /**
-     * Track Machine Pool validation status
-     */
-    machinePoolValidationChanged(id, value) {
-      if (value === undefined) {
-        delete this.machinePoolValidation[id];
-      } else {
-        this.machinePoolValidation[id] = value;
-      }
-    },
 
     updateNginxConfiguration(disabledServerConfig) {
       // We only need to explicitly set INGRESS_CONTROLLER for RKE2, we continue to rely on disable list for K3s
@@ -2219,35 +2067,9 @@ export default {
     },
 
     handleMachinePoolError(error) {
-      this.machinePoolErrors = merge(this.machinePoolErrors, error);
+      const errors = this.recordMachinePoolError(error);
 
-      const errors = Object.entries(this.machinePoolErrors)
-        .map((x) => {
-          if (!x[1].length) {
-            return;
-          }
-
-          const formattedFields = (() => {
-            switch (x[1].length) {
-            case 1:
-              return x[1][0];
-            case 2:
-              return `${ x[1][0] } and ${ x[1][1] }`;
-            default: {
-              const [head, ...rest] = x[1];
-
-              return `${ rest.join(', ') }, and ${ head }`;
-            }
-            }
-          })();
-
-          return this.t('cluster.banner.machinePoolError', {
-            count: x[1].length, pool_name: x[0], fields: formattedFields
-          }, true);
-        })
-        .filter((x) => x);
-
-      if (!errors) {
+      if (!errors.length) {
         return;
       }
 
