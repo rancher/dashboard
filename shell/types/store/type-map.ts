@@ -90,6 +90,21 @@ export interface TypeMapProduct {
   showNamespaceFilter?: boolean;
 
   /**
+   * Show the nav toolbar (the jump-to search and the collapse-all control) above
+   * this product's nav. Off by default: the search is only worth its place in a
+   * nav big enough to get lost in.
+   *
+   * Only read from a root product, because the toolbar belongs to the tree it
+   * sits above and that tree is the root's: every `inStore: 'cluster'` product
+   * is rooted into the explorer, and on one of those routes `getGroups` builds
+   * the explorer's whole nav rather than the route product's. So setting this on
+   * a product that roots into another has no effect - its own nav is never the
+   * one on screen - and the explorer's setting covers Apps, monitoring and every
+   * chart-installed product with it.
+   */
+  navSearch?: boolean;
+
+  /**
    * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
    */
   weight?: number;

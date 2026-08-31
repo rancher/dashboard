@@ -85,7 +85,30 @@ jobs:
           if [[ $MILESTONE =~ (v[0-9]\.[0-9]+) ]]; then
               NEW_TITLE="[${TYPE} ${MILESTONE}] ${ORIGINAL_TITLE}"
           fi
-          ORIGINAL_LABELS=$(gh issue view -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --json labels --jq '.labels[].name' | grep -v '^\[zube\]:' | paste -sd "," -)
+          # Labels that describe the state of the *original* issue rather than the
+          # problem itself must not be copied onto the port issue. Each entry is an
+          # extended regex matched against the full label name.
+          EXCLUDED_LABELS=(
+              '^\[zube\]:'                     # zube board columns
+              '^bot/'                          # agentic workflow state/instructions
+              '^status/backport-candidate$'    # only the root issue is the candidate
+              '^status/stale$'                 # a freshly created port is not stale
+              '^Stale$'
+              '^Stale/close$'
+              '^auto-close$'
+              '^status/duplicate$'             # resolutions of the original issue
+              '^status/wontfix$'
+              '^status/not-reproducible$'
+              '^status/needs-info$'            # info was requested on the original
+              '^needs-info$'
+              '^status/waiting-response$'
+              '^status/dev-validate$'          # progress state of the original fix
+              '^status/release-note-added$'    # the port needs its own release note
+              '^Epic$'                         # a port of an epic is not an epic
+              '^headline$'                     # tracked at the root issue only
+          )
+          EXCLUDE_PATTERN=$(IFS='|'; echo "${EXCLUDED_LABELS[*]}")
+          ORIGINAL_LABELS=$(gh issue view -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --json labels --jq '.labels[].name' | grep -vE "${EXCLUDE_PATTERN}" | paste -sd "," -)
           if [ -n "$ORIGINAL_LABELS" ]; then
               additional_cmd+=("--label")
               additional_cmd+=("${ORIGINAL_LABELS}")

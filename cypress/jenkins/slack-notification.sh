@@ -58,12 +58,28 @@ read_from_file() {
 }
 
 # Function to read value from notification_values.txt
+# Trims surrounding whitespace only — values such as build dates contain spaces.
+# Double quotes and backslashes are dropped because the value is interpolated into
+# the JSON payload, where they would otherwise produce a malformed request.
 read_notification_value() {
 	local key="$1"
 	local file_path="${WORKSPACE}/notification_values.txt"
 
 	if [ -f "$file_path" ]; then
-		grep "^${key}=" "$file_path" | cut -d'=' -f2- | tr -d '[:space:]'
+		grep "^${key}=" "$file_path" | head -1 | cut -d'=' -f2- |
+			sed 's/[\\"]//g; s/^[[:space:]]*//; s/[[:space:]]*$//'
+	fi
+}
+
+# Emit a "• *Label:* value" message line, or nothing when the value is unavailable.
+# Fields are skipped gracefully so the message stays correct as the playbook gains
+# or drops keys in notification_values.txt.
+append_field() {
+	local label="$1"
+	local value="$2"
+
+	if [ -n "$value" ] && [ "$value" != "Unknown" ]; then
+		printf '• *%s:* %s\\n' "$label" "$value"
 	fi
 }
 
@@ -74,13 +90,14 @@ send_jenkins_e2e_failure_notification() {
 	local build_number="${BUILD_NUMBER:-Unknown}"
 	local build_url="${BUILD_URL:-}"
 
-	# Job-specific variables from init.sh
+	# Job-specific variables from the playbook's notification_values.txt
 	local rancher_version=$(read_notification_value "RANCHER_VERSION")
 	local rancher_image_tag=$(read_notification_value "RANCHER_IMAGE_TAG")
 	local rancher_chart_url=$(read_notification_value "RANCHER_CHART_URL")
 	local rancher_helm_repo=$(read_notification_value "RANCHER_HELM_REPO")
-	local helm_repo_name=$(read_notification_value "HELM_REPO_NAME")
 	local cypress_tags=$(read_notification_value "CYPRESS_TAGS")
+	local kubernetes_version=$(read_notification_value "KUBERNETES_VERSION")
+	local dashboard_branch=$(read_notification_value "DASHBOARD_BRANCH")
 
 	# Get Slack bot token and channel from Secrets Manager
 	local slack_bot_token="${UI_SLACK_BOT_TOKEN:-}"
@@ -111,25 +128,21 @@ send_jenkins_e2e_failure_notification() {
 		message+="• *Build:* #$build_number\n"
 	fi
 
-	if [ -n "$rancher_version" ] && [ "$rancher_version" != "Unknown" ]; then
-		message+="• *Rancher Version:* $rancher_version\n"
+	# Test totals, published by the Jenkinsfile from the junit step's own summary
+	local test_summary=""
+
+	if [ -n "${TESTS_TOTAL:-}" ] && [ "${TESTS_TOTAL}" -gt 0 ] 2>/dev/null; then
+		test_summary="${TESTS_TOTAL} run, ${TESTS_FAILED:-0} failed"
 	fi
 
-	if [ -n "$rancher_image_tag" ] && [ "$rancher_image_tag" != "Unknown" ]; then
-		message+="• *Rancher Image:* $rancher_image_tag\n"
-	fi
-
-	if [ -n "$rancher_chart_url" ] && [ "$rancher_chart_url" != "Unknown" ]; then
-		message+="• *Chart URL:* $rancher_chart_url\n"
-	fi
-
-	if [ -n "$rancher_helm_repo" ] && [ "$rancher_helm_repo" != "Unknown" ]; then
-		message+="• *Helm Repo:* $rancher_helm_repo\n"
-	fi
-
-	if [ -n "$cypress_tags" ] && [ "$cypress_tags" != "Unknown" ]; then
-		message+="• *Cypress Tags:* $cypress_tags\n"
-	fi
+	message+=$(append_field "Tests" "$test_summary")
+	message+=$(append_field "Rancher Version" "$rancher_version")
+	message+=$(append_field "Rancher Image" "$rancher_image_tag")
+	message+=$(append_field "K8s Version" "$kubernetes_version")
+	message+=$(append_field "Chart URL" "$rancher_chart_url")
+	message+=$(append_field "Helm Repo" "$rancher_helm_repo")
+	message+=$(append_field "Dashboard Branch" "$dashboard_branch")
+	message+=$(append_field "Cypress Tags" "$cypress_tags")
 
 	message+="• *Timestamp:* $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 

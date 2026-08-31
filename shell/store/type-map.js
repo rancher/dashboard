@@ -238,6 +238,7 @@ export function DSL(store, product, module = 'type-map') {
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
+        navSearch:           false,
         public:              true,
         filterMode:          'namespaces',
         ...inOpt
@@ -394,27 +395,50 @@ function validateProductName(product) {
   }
 }
 
-let called = false;
+let loading = null;
 
+/**
+ * Registers the built-in products, once per session.
+ *
+ * Callers get the same promise, so a navigation that arrives while the products
+ * are still loading waits for them like the first one did. It used to raise a
+ * flag before the loads finished and return immediately to anyone who came in
+ * behind, which let a route render against a half-registered product list -
+ * and `currentProduct` answers for a product that has not registered yet by
+ * falling back to an unrelated one.
+ *
+ * Only the built-in ones: `loadProducts` returns nothing to await, inits each
+ * plugin's products in an un-awaited `forEach`, and in any case only reaches
+ * plugins already loaded - external ones arrive later through
+ * `loadPluginAsync`. So an extension product can still register after a route
+ * has rendered, exactly as it could before. Awaiting extension products is a
+ * change to the extension API, not to this function.
+ *
+ * A failed load clears the promise so the next navigation can try again, rather
+ * than leaving every later caller inheriting the failure.
+ */
 export async function applyProducts(store, $extension) {
-  if (called) {
-    return;
-  }
+  loading = loading || (async() => {
+    for ( const product of listProducts() ) {
+      const impl = await loadProduct(product);
 
-  called = true;
-  for ( const product of listProducts() ) {
-    const impl = await loadProduct(product);
-
-    if ( impl?.init ) {
-      impl.init(store);
+      if ( impl?.init ) {
+        impl.init(store);
+      }
     }
-  }
-  // Load the products from all plugins
-  $extension.loadProducts();
+    // Load the products from all plugins
+    $extension?.loadProducts();
+  })().catch((e) => {
+    loading = null;
+
+    throw e;
+  });
+
+  return loading;
 }
 
 export function productsLoaded() {
-  return called;
+  return !!loading;
 }
 
 export const state = function() {

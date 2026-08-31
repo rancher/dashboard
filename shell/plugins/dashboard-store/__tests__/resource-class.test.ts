@@ -173,6 +173,37 @@ describe('class: Resource', () => {
       });
     });
 
+    it('should restore metadata.resourceVersion on update when the edit YAML omits it', async() => {
+      // While editing, server-managed metadata (incl. resourceVersion) is hidden from the YAML. It must
+      // be restored before saving or a norman-managed resource rejects the update with a 500
+      // ("metadata.resourceVersion is required for update"). uid/generation/etc. are NOT restored (the
+      // server ignores/repopulates them).
+      const instance = new Resource({
+        id:       'default-id',
+        type:     'default-type',
+        metadata: {
+          namespace: 'aaa', name: 'my-resource', resourceVersion: 42
+        },
+      }, mockStore);
+
+      jest.spyOn(instance, 'followLink').mockResolvedValueOnce({ id: 'test-id', type: 'testType' });
+
+      // The stripped edit YAML has NO resourceVersion (it was hidden while editing).
+      const strippedYaml = jsyaml.dump({
+        metadata: { namespace: 'aaa', name: 'my-resource' },
+        spec:     { replicas: 3 },
+      });
+
+      await instance._saveYaml(strippedYaml);
+
+      expect(instance.followLink).toHaveBeenCalledTimes(1);
+      // The PUT payload must carry the restored resourceVersion (jsyaml.dump renders it as `resourceVersion: 42`).
+      expect(instance.followLink).toHaveBeenCalledWith('update', expect.objectContaining({
+        method: 'PUT',
+        data:   expect.stringContaining('resourceVersion: 42'),
+      }));
+    });
+
     it('should resolve 409 conflict automatically and re-save if no actual conflicts', async() => {
       resourceInstance.id = 'test-id-auto-resolve';
       resourceInstance.type = 'testType';
