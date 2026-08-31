@@ -113,9 +113,10 @@ BODY, .theme-light {
 
   --active            : #{$primary-120};
   --on-active         : #{$grey-0};
-  // The selected nav item is the primary affordance on the page, so it wears the primary
-  // button's fill and follows the button's darken-on-hover rather than lightening.
-  --active-nav        : var(--primary);
+  // Selection borrows a known button state rather than introducing a third blue: the
+  // selected nav item wears the CTA's *hover* fill, so it reads as the same family without
+  // being mistakable for a button at rest, and steps to the pressed fill when hovered.
+  --active-nav        : var(--primary-hover-bg);
   --on-active-nav     : var(--primary-text);
   --toggle-on-bg      : var(--active);
   --toggle-on-color   : var(--on-active);
@@ -449,7 +450,7 @@ BODY, .theme-light {
   --nav-bg                     : #{$lightest};
   --nav-active                 : #{$light};
   --nav-hover                  : #{$grey-10};
-  --nav-active-hover           : var(--primary-hover-bg);
+  --nav-active-hover           : var(--primary-active-bg);
   --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
@@ -831,7 +832,7 @@ BODY, .theme-dark {
 
   --active                : #{$primary-50};
   --on-active             : #{$grey-90};
-  --active-nav            : var(--primary);
+  --active-nav            : var(--primary-hover-bg);
   --on-active-nav         : var(--primary-text);
   --active-hover          : #{darken($primary-50, 5%)};
   --category-active       : #{$primary-75};
@@ -884,7 +885,7 @@ BODY, .theme-dark {
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
   --nav-hover                  : #{lighten($body-bg, 10%)};
-  --nav-active-hover           : var(--primary-hover-bg);
+  --nav-active-hover           : var(--primary-active-bg);
   --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};

@@ -17,6 +17,9 @@
     --primary-text: #FFFFFF;
     --primary-hover: #{$jungle-140};
     --primary-hover-bg: #{$jungle-140};
+    // Without these the pressed state falls through to the modern theme's blue
+    --primary-active-bg: #{$green-140};
+    --primary-active-text: #{$grey-0};
     --primary-border: #{$green-120};
 
     --link: #4871C7;
@@ -30,19 +33,19 @@
     --secondary-hover: var(--non-primary-hover);
 
     --tertiary: var(--non-primary-hover);
-    --on-tertiary: var(--non-primary-text);
-    --on-tertiary-hover: var(--non-primary-text);
+    // Tertiary text is the darkest green so it clears 4.5:1 on both the rest and hover fills
+    --on-tertiary: #{$green-140};
+    --on-tertiary-hover: #{$green-140};
     --on-tertiary-header: var(--non-primary-text);
     --on-tertiary-header-hover: var(--non-primary-text);
-    --tertiary-hover: #{$green-30};
+    --tertiary-hover: #{$green-40};
     --tertiary-hover-app-bar: var(--non-primary-text);
 
-    $super-light-green: #F4F6F5;
     --active: #{$green-140};
     --on-active: #{$grey-0};
     --active-hover: #{lighten($green-140, 5%)};
-    --category-active: #{$super-light-green};
-    --category-active-hover: #e8eeeb;
+    --category-active: #{$green-20};
+    --category-active-hover: #{$green-30};
 
     --checkbox-tick              : var(--on-active);
     --checkbox-border            : var(--body-border);
@@ -59,6 +62,9 @@
     --primary-hover: #{$lighter-green-jungle};
     --primary-hover-bg: #{$lighter-green-jungle};
     --primary-hover-text: #{$grey-90};
+    // Without these the pressed state falls through to the modern theme's blue
+    --primary-active-bg: #{$green-40};
+    --primary-active-text: #{$grey-90};
     --primary-border: #{$lighter-green-jungle};
 
     --non-primary-text: #{$lighter-green-jungle};
