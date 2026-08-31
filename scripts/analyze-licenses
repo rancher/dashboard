@@ -1,0 +1,780 @@
+#!/usr/bin/env node
+
+/*
+ * Reads dist/report.json (webpack-bundle-analyzer) and produces licenses.json:
+ * every node_modules package that appears in the bundle, with its name,
+ * declared license, homepage URL, and a `licenseRef` into a deduplicated
+ * `licenses` map containing the full license text (from LICENSE files, README
+ * License sections, or the GitHub Contents API as a last resort).
+ *
+ * The same package may appear at multiple versions (e.g. a top-level install
+ * plus a nested node_modules install). Each unique package directory is
+ * reported separately so different versions are preserved.
+ *
+ * Default mode compares the generated bundle against the committed
+ * licenses.json at the repo root and exits non-zero if it's out of date or if
+ * any package uses a disallowed license. `-u` writes the bundle to the repo
+ * root instead. The `check-licenses` CI job runs this script with no flags.
+ *
+ * dist/report.json must already exist — run `ANALYZE_LICENSES=true yarn
+ * build` first to produce it. The script exits non-zero with a hint when
+ * it isn't there.
+ */
+
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const ROOT = path.resolve(__dirname, '..');
+const DIST = path.join(ROOT, 'dist');
+const REPORT = path.join(DIST, 'report.json');
+const COMMITTED_LICENSES = path.join(ROOT, 'licenses.json');
+const MIT_TEMPLATE_PATH = path.join(__dirname, 'lib', 'MIT.license.md');
+const ALLOWED_LICENSES = ['MIT', 'Apache-2.0', 'BSD-3-Clause', 'ISC', 'BSD'];
+const ALLOWED_LICENSE_SET = new Set(ALLOWED_LICENSES);
+
+// ANSI colors, matching the convention used by scripts/check-i18n.
+const reset = '\x1b[0m';
+const cyan = '\x1b[96m';
+const yellow = '\x1b[33m';
+const green = '\x1b[92m';
+const white = '\x1b[97m';
+const bold = '\x1b[1m';
+const bg_red = '\x1b[41m';
+
+const USAGE = `Usage: analyze-licenses [options]
+
+Verifies the bundled packages match the committed licenses.json at the repo
+root, and that every package uses an allowed license
+(${ ALLOWED_LICENSES.join(', ') }).
+
+Requires dist/report.json from \`ANALYZE_LICENSES=true yarn build\` — the
+script exits non-zero when that file is missing.
+
+Options:
+  -u, --update        Write the generated bundle to licenses.json at the
+                      repo root instead of checking against it.
+  -h, --help          Show this help.
+`;
+
+/*
+ * Walk the webpack-bundle-analyzer report tree and collect every `path`
+ * string found on a module-like node, recursing into `groups` and `modules`.
+ */
+function collectPaths(node, out) {
+  if (Array.isArray(node)) {
+    for (const item of node) collectPaths(item, out);
+    return;
+  }
+  if (node && typeof node === 'object') {
+    if (typeof node.path === 'string') out.add(node.path);
+    if (node.groups) collectPaths(node.groups, out);
+    if (node.modules) collectPaths(node.modules, out);
+  }
+}
+
+/*
+ * Given a webpack-analyzer path that includes one or more `node_modules`
+ * segments, return the directory of the package that owns the file. We use
+ * the LAST occurrence of `node_modules` so that nested installs (e.g.
+ * `node_modules/A/node_modules/B`) resolve to the inner package, which is
+ * what the bundler actually pulled in.
+ *
+ * Returns null if the path is not under node_modules.
+ */
+function packageDirFromPath(p) {
+  // Strip webpack-analyzer concatenation suffixes like
+  // `... + 53 modules (concatenated)/...`. Everything after such a suffix
+  // is a virtual sub-tree that shouldn't change which package we resolve.
+  const concatIdx = p.indexOf(' + ');
+  if (concatIdx !== -1) p = p.slice(0, concatIdx);
+
+  const segs = p.split('/');
+  const lastNm = segs.lastIndexOf('node_modules');
+  if (lastNm === -1) return null;
+
+  const first = segs[lastNm + 1];
+  if (!first) return null;
+
+  const end = first.startsWith('@') ? lastNm + 3 : lastNm + 2;
+  return segs.slice(0, end).join('/');
+}
+
+/*
+ * Find and parse the nearest package.json starting at `startDir` and walking
+ * up toward ROOT (stops at ROOT's parent). Returns
+ * `{ pkgJsonPath, data }` or null if none is found / the file is unreadable
+ * or unparseable.
+ */
+function readPackageJsonWalkingUp(startDir) {
+  let dir = path.resolve(ROOT, startDir);
+  const stop = path.resolve(ROOT, '..');
+  while (dir.startsWith(ROOT) || dir === ROOT) {
+    const candidate = path.join(dir, 'package.json');
+    if (fs.existsSync(candidate)) {
+      try {
+        return { pkgJsonPath: candidate, data: JSON.parse(fs.readFileSync(candidate, 'utf8')) };
+      } catch (e) {
+        console.warn(`Failed to parse ${ path.relative(ROOT, candidate) }: ${ e.message }`);
+        return null;
+      }
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir || parent === stop) break;
+    dir = parent;
+  }
+  return null;
+}
+
+/*
+ * Pull the raw license string out of a package.json shape. Handles all four
+ * historical forms: `license: "MIT"`, `license: { type: ... }`,
+ * `licenses: [{ type: ... }, ...]` (joined with OR), and `licenses: { type }`.
+ */
+function rawLicense(pkg) {
+  if (!pkg) return null;
+  if (typeof pkg.license === 'string') return pkg.license;
+  if (pkg.license && typeof pkg.license === 'object' && pkg.license.type) return pkg.license.type;
+  if (Array.isArray(pkg.licenses)) {
+    return pkg.licenses.map((l) => (typeof l === 'string' ? l : l && l.type)).filter(Boolean).join(' OR ') || null;
+  }
+  if (pkg.licenses && typeof pkg.licenses === 'object' && pkg.licenses.type) return pkg.licenses.type;
+  return null;
+}
+
+/*
+ * Simplify a license string to a single SPDX identifier where possible.
+ *
+ *  - `MIT (https://url)`        → `MIT`           (URL annotation stripped)
+ *  - `(MIT OR GPL-3.0-or-later)` → `MIT`           (prefer MIT, then Apache-2.0)
+ *  - `(MPL-2.0 OR Apache-2.0)`  → `Apache-2.0`    (prefer MIT, then Apache-2.0)
+ *  - `(A OR B)` with neither preferred → first listed
+ *  - Anything else (single id, or AND expression) → left as-is
+ *
+ * When the simplified value differs from the raw value, `licenseField` is
+ * returned alongside so the original expression is preserved on the entry.
+ */
+function simplifyLicense(raw) {
+  if (!raw) return { license: null };
+
+  let license = raw;
+
+  const urlMatch = license.match(/^([A-Za-z0-9.+-]+)\s*\(https?:\/\/[^)]+\)\s*$/);
+  if (urlMatch) {
+    license = urlMatch[1];
+  } else {
+    const stripped = license.replace(/^\((.*)\)$/, '$1').trim();
+    if (/\bOR\b/.test(stripped) && !/\bAND\b/.test(stripped)) {
+      const parts = stripped.split(/\s+OR\s+/).map((s) => s.trim()).filter(Boolean);
+      const preferred = ['MIT', 'Apache-2.0'];
+      license = preferred.find((p) => parts.includes(p)) || parts[0];
+    }
+  }
+
+  return license === raw ? { license } : { license, licenseField: raw };
+}
+
+/*
+ * Convert a package.json `repository` field into a browsable web URL.
+ * Strips `git+` / `.git` decorations, rewrites `git@host:` and `git://` to
+ * https, and rewrites the `github:owner/repo` shorthand. Returns null when
+ * we don't recognise the format.
+ */
+function repositoryHomeUrl(repository) {
+  if (!repository) return null;
+  const raw = typeof repository === 'string' ? repository : repository.url;
+  if (!raw || typeof raw !== 'string') return null;
+
+  let url = raw.replace(/^git\+/, '').replace(/\.git(?=$|[?#])/, '');
+
+  const ssh = url.match(/^git@([^:]+):(.+)$/);
+  if (ssh) url = `https://${ ssh[1] }/${ ssh[2] }`;
+  else if (url.startsWith('ssh://')) url = `https://${ url.slice('ssh://'.length) }`.replace('git@', '');
+  else if (url.startsWith('git://')) url = `https://${ url.slice('git://'.length) }`;
+  else {
+    const prefixed = url.match(/^(github|gitlab|bitbucket|gist):(.+)$/);
+    if (prefixed) {
+      const host = prefixed[1] === 'gist' ? 'gist.github.com' : `${ prefixed[1] }.com`;
+      url = `https://${ host }/${ prefixed[2] }`;
+    } else if (/^[^/:@\s]+\/[^/:@\s]+$/.test(url)) {
+      // npm shorthand: `owner/repo` defaults to GitHub
+      url = `https://github.com/${ url }`;
+    }
+  }
+
+  return /^https?:\/\//.test(url) ? url : null;
+}
+
+/*
+ * Parse a package.json `repository` field (string or { url, directory }) into
+ * { owner, repo, directory } when the URL points at github.com. Returns null
+ * for anything we don't recognise.
+ */
+function parseGitHubRepo(repository) {
+  if (!repository) return null;
+  const raw = typeof repository === 'string' ? repository : repository.url;
+  if (!raw || typeof raw !== 'string') return null;
+
+  const url = raw.replace(/^git\+/, '').replace(/\.git$/, '');
+
+  let owner = null;
+  let repo = null;
+
+  const ssh = url.match(/^git@github\.com:([^/]+)\/([^/?#]+)/);
+  if (ssh) { owner = ssh[1]; repo = ssh[2]; }
+  if (!owner) {
+    const http = url.match(/^(?:https?|git):\/\/(?:www\.)?github\.com\/([^/]+)\/([^/?#]+)/);
+    if (http) { owner = http[1]; repo = http[2]; }
+  }
+  if (!owner) {
+    const short = url.match(/^github:([^/]+)\/([^/?#]+)/);
+    if (short) { owner = short[1]; repo = short[2]; }
+  }
+  if (!owner) return null;
+
+  const directory = (typeof repository === 'object' && typeof repository.directory === 'string')
+    ? repository.directory.replace(/^\/+|\/+$/g, '') : '';
+  return { owner, repo, directory };
+}
+
+/*
+ * Wrap `fetch` with the headers GitHub asks for, and turn auth / rate-limit
+ * responses into useful errors. Returns the parsed JSON body, or null on
+ * 404. Set `GITHUB_TOKEN` to raise the unauthenticated 60/hr rate limit.
+ */
+async function ghFetch(url) {
+  const headers = {
+    'User-Agent':           'rancher-dashboard-analyze-licenses',
+    Accept:                 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+  if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${ process.env.GITHUB_TOKEN }`;
+
+  const res = await fetch(url, { headers });
+  if (res.status === 404) return null;
+  if (res.status === 403 || res.status === 429) {
+    const remaining = res.headers.get('x-ratelimit-remaining');
+    throw new Error(`GitHub rate-limited (status ${ res.status }, remaining=${ remaining }) — set GITHUB_TOKEN to raise the limit`);
+  }
+  if (!res.ok) throw new Error(`GitHub ${ res.status } ${ res.statusText } for ${ url }`);
+  return res.json();
+}
+
+/*
+ * Read the webpack-bundle-analyzer report and build one entry per unique
+ * package directory found in it. Each entry carries the resolved package.json
+ * basics (name/version/license/home/repository/path). Returns
+ * `{ entries, missing }`; the caller can warn on `missing` paths.
+ */
+function buildBundledEntries(reportPath = REPORT) {
+  if (!fs.existsSync(reportPath)) {
+    throw new Error(`Cannot find ${ reportPath }. Run \`ANALYZE_LICENSES=true yarn build\` first.`);
+  }
+  const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+  const paths = new Set();
+  collectPaths(report, paths);
+
+  const byDir = new Map();
+  const missing = new Set();
+
+  for (const p of paths) {
+    const pkgDir = packageDirFromPath(p);
+    if (!pkgDir) continue;
+    if (byDir.has(pkgDir) || missing.has(pkgDir)) continue;
+
+    const resolved = readPackageJsonWalkingUp(pkgDir);
+    if (!resolved) { missing.add(pkgDir); continue; }
+
+    const { license, licenseField } = simplifyLicense(rawLicense(resolved.data));
+    const home = repositoryHomeUrl(resolved.data.repository);
+    byDir.set(pkgDir, {
+      name:    resolved.data.name || null,
+      version: resolved.data.version || null,
+      license,
+      ...(licenseField ? { licenseField } : {}),
+      ...(home ? { home } : {}),
+      repository: resolved.data.repository || null,
+      path:    path.relative(ROOT, path.dirname(resolved.pkgJsonPath)) || '.'
+    });
+  }
+
+  const entries = Array.from(byDir.values()).sort((a, b) => {
+    const n = (a.name || '').localeCompare(b.name || '');
+    return n !== 0 ? n : (a.version || '').localeCompare(b.version || '');
+  });
+
+  return { entries, missing };
+}
+
+/*
+ * Find a LICENSE, LICENSE.md, or LICENSE.txt file in the package directory
+ * (case-insensitive match). Returns the absolute path or null.
+ */
+function findLicenseFile(pkgDir) {
+  let entries;
+  try {
+    entries = fs.readdirSync(pkgDir);
+  } catch {
+    return null;
+  }
+  const match = entries.find((name) => {
+    const lower = name.toLowerCase();
+    return lower === 'license' || lower === 'license.md' || lower === 'license.txt';
+  });
+  if (!match) return null;
+  const full = path.join(pkgDir, match);
+  try {
+    if (!fs.statSync(full).isFile()) return null;
+  } catch {
+    return null;
+  }
+  return full;
+}
+
+/*
+ * Find a README file and return the License section text, if any. Supports
+ * both ATX headings (`## License`) and setext headings (`License\n=====`),
+ * and stops at the next heading of equal-or-higher level (or EOF).
+ */
+function extractLicenseFromReadme(pkgDir) {
+  let entries;
+  try {
+    entries = fs.readdirSync(pkgDir);
+  } catch {
+    return null;
+  }
+  const readme = entries.find((n) => /^readme(\.(md|markdown|txt|rst))?$/i.test(n));
+  if (!readme) return null;
+
+  let txt;
+  try {
+    txt = fs.readFileSync(path.join(pkgDir, readme), 'utf8');
+  } catch {
+    return null;
+  }
+
+  const lines = txt.split('\n');
+  const HEADING_RE = /^(licen[cs]e|licensing)s?\s*:?\s*$/i;
+
+  let startIdx = -1;
+  let level = 0;
+  let setext = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const atx = lines[i].match(/^(#{1,6})\s+(licen[cs]e|licensing)s?\s*:?\s*#*\s*$/i);
+    if (atx) {
+      startIdx = i;
+      level = atx[1].length;
+      break;
+    }
+    if (i + 1 < lines.length && HEADING_RE.test(lines[i])) {
+      if (/^=+\s*$/.test(lines[i + 1])) { startIdx = i; level = 1; setext = true; break; }
+      if (/^-+\s*$/.test(lines[i + 1])) { startIdx = i; level = 2; setext = true; break; }
+    }
+  }
+
+  if (startIdx === -1) return null;
+
+  let endIdx = lines.length;
+  const scanFrom = startIdx + (setext ? 2 : 1);
+  for (let i = scanFrom; i < lines.length; i++) {
+    const atx = lines[i].match(/^(#{1,6})\s+\S/);
+    if (atx && atx[1].length <= level) { endIdx = i; break; }
+    if (i + 1 < lines.length && lines[i].trim()) {
+      if (/^=+\s*$/.test(lines[i + 1])) { endIdx = i; break; }
+      if (level >= 2 && /^-{3,}\s*$/.test(lines[i + 1]) && !/^\s*$/.test(lines[i])) { endIdx = i; break; }
+    }
+  }
+
+  const section = lines.slice(startIdx, endIdx).join('\n').trim();
+  return section || null;
+}
+
+/*
+ * For a repository field, list the candidate directory on GitHub and look for
+ * a LICENSE, LICENSE.md, or LICENSE.txt file (case-insensitive). When the
+ * package.json specifies a `directory` (monorepo), check that subdirectory
+ * first and fall back to the repo root.
+ *
+ * Returns { content: Buffer, filename } or null.
+ */
+async function fetchLicenseFromGitHub(repository) {
+  const gh = parseGitHubRepo(repository);
+  if (!gh) return null;
+
+  const candidates = new Set(['license', 'license.md', 'license.txt']);
+  const dirs = gh.directory ? [gh.directory, ''] : [''];
+
+  for (const dir of dirs) {
+    const listUrl = `https://api.github.com/repos/${ gh.owner }/${ gh.repo }/contents/${ dir }`;
+    const listing = await ghFetch(listUrl);
+    if (!Array.isArray(listing)) continue;
+
+    const match = listing.find((item) => item.type === 'file' && candidates.has(item.name.toLowerCase()));
+    if (!match) continue;
+
+    const file = await ghFetch(match.url);
+    if (!file || typeof file.content !== 'string') continue;
+    const content = Buffer.from(file.content, file.encoding || 'base64');
+    return { content, filename: match.name };
+  }
+
+  return null;
+}
+
+/*
+ * Classify license content based on the source filename. `.md` / `.markdown`
+ * map to 'markdown'; everything else (including README-section extractions,
+ * which we always treat as markdown) is handled by the caller.
+ */
+function licenseTypeFromFilename(filename) {
+  if (!filename) return 'text';
+  const ext = path.extname(filename).toLowerCase();
+  return (ext === '.md' || ext === '.markdown') ? 'markdown' : 'text';
+}
+
+/*
+ * Pull a plain author name out of a package.json. Handles the string form
+ * (`"Name <email> (url)"`), the object form (`{ name, email, url }`), and
+ * falls back to the first entry of `contributors` / `maintainers`. Returns
+ * null when nothing usable is found.
+ */
+function extractAuthorName(pkgJson) {
+  if (!pkgJson) return null;
+
+  const fromField = (value) => {
+    if (typeof value === 'string') {
+      const cleaned = value.replace(/\s*<[^>]+>/g, '').replace(/\s*\([^)]*\)/g, '').trim();
+      return cleaned || null;
+    }
+    if (value && typeof value === 'object' && typeof value.name === 'string') {
+      const cleaned = value.name.trim();
+      return cleaned || null;
+    }
+    return null;
+  };
+
+  const fromAuthor = fromField(pkgJson.author);
+  if (fromAuthor) return fromAuthor;
+
+  for (const list of [pkgJson.contributors, pkgJson.maintainers]) {
+    if (!Array.isArray(list)) continue;
+    for (const item of list) {
+      const name = fromField(item);
+      if (name) return name;
+    }
+  }
+  return null;
+}
+
+/*
+ * Synthesize an MIT license body from the lib/MIT.license.md template, using
+ * the package's author and the current year. Falls back to a generic
+ * "<name> contributors" attribution when no author is declared so the
+ * generated text is still attributable.
+ */
+function fillMitTemplate(template, pkgJson, entryName) {
+  const year = new Date().getUTCFullYear();
+  const author = extractAuthorName(pkgJson) || `${ entryName } contributors`;
+  return template.replace('<YEAR>', String(year)).replace('<AUTHOR>', author);
+}
+
+/*
+ * Turn a license identifier into a filename-safe slug. Strips characters that
+ * aren't alphanumeric, dot, plus or dash. Falls back to `UNKNOWN` when null.
+ */
+function licenseSlug(license) {
+  if (!license) return 'UNKNOWN';
+  const cleaned = license.replace(/[^A-Za-z0-9.+-]+/g, '_').replace(/^_|_$/g, '');
+  return cleaned || 'UNKNOWN';
+}
+
+/*
+ * For each entry, locate its LICENSE/LICENSE.md file, hash the contents, and
+ * record a deduplicated entry per unique md5. Each entry is updated with
+ * `licenseRef`, the `<type>-<md5>` key that indexes into the returned
+ * `licenses` map. Each license value is `{ [type]: content }` where `type`
+ * is 'text' or 'markdown', so the raw content lives under that key.
+ */
+async function processLicenses(entries) {
+  // Load the MIT template eagerly so the script fails fast if it's missing.
+  const mitTemplate = fs.readFileSync(MIT_TEMPLATE_PATH, 'utf8');
+
+  const byMd5 = new Map();
+  const entryMd5 = new Map(); // entry -> md5, so we can backfill licenseRef after dedup
+  const md5BySource = { file: 0, readme: 0, github: 0, template: 0 };
+  const ghErrors = [];
+
+  for (const entry of entries) {
+    const pkgDir = path.resolve(ROOT, entry.path);
+
+    // Read package.json once per entry; we may need it for the GitHub
+    // fallback (repository) and for the MIT template fallback (author).
+    let pj;
+    try {
+      pj = JSON.parse(fs.readFileSync(path.join(pkgDir, 'package.json'), 'utf8'));
+    } catch { pj = null; }
+
+    let content = null;
+    let source = null;
+    let type = null;
+    const licensePath = findLicenseFile(pkgDir);
+    if (licensePath) {
+      content = fs.readFileSync(licensePath);
+      source = 'file';
+      type = licenseTypeFromFilename(licensePath);
+    } else {
+      const readmeSection = extractLicenseFromReadme(pkgDir);
+      if (readmeSection) {
+        content = Buffer.from(`${ readmeSection }\n`, 'utf8');
+        source = 'readme';
+        type = 'markdown';
+      }
+    }
+
+    if (!content && pj && pj.repository) {
+      // Try GitHub for the LICENSE file. Done sequentially because only a
+      // handful of packages should ever reach this branch.
+      process.stderr.write(`  ${ cyan }github${ reset }: ${ entry.name }@${ entry.version }...`);
+      try {
+        const gh = await fetchLicenseFromGitHub(pj.repository);
+        if (gh) {
+          content = gh.content;
+          source = 'github';
+          type = licenseTypeFromFilename(gh.filename);
+          process.stderr.write(` ${ green }found${ reset } ${ gh.filename }\n`);
+        } else {
+          process.stderr.write(` ${ yellow }not found${ reset }\n`);
+        }
+      } catch (err) {
+        ghErrors.push({ pkg: `${ entry.name }@${ entry.version }`, error: err.message });
+        process.stderr.write(` ${ yellow }error${ reset }: ${ err.message }\n`);
+      }
+    }
+
+    if (!content && entry.license === 'MIT') {
+      // Last-resort: synthesize an MIT license from the local template.
+      // Applies only when the declared license is MIT and every prior
+      // lookup failed — many small npm packages declare MIT but ship
+      // without a LICENSE file.
+      const filled = fillMitTemplate(mitTemplate, pj, entry.name || 'package');
+      content = Buffer.from(filled, 'utf8');
+      source = 'template';
+      type = 'markdown';
+    }
+
+    if (!content) continue;
+
+    const md5 = crypto.createHash('md5').update(content).digest('hex');
+
+    entryMd5.set(entry, md5);
+    md5BySource[source]++;
+    if (!byMd5.has(md5)) byMd5.set(md5, { content, license: entry.license, type });
+  }
+
+  if (ghErrors.length) {
+    console.warn(`${ yellow }GitHub license lookup failed for ${ ghErrors.length } package(s)${ reset }: ${ ghErrors.map((e) => `${ e.pkg } (${ e.error })`).join('; ') }`);
+  }
+
+  const md5ToKey = new Map();
+  const licenses = {};
+  for (const [md5, { content, license, type }] of byMd5) {
+    const key = `${ licenseSlug(license) }-${ md5 }`;
+    licenses[key] = { [type]: content.toString('utf8') };
+    md5ToKey.set(md5, key);
+  }
+
+  for (const [entry, md5] of entryMd5) {
+    entry.licenseRef = md5ToKey.get(md5);
+  }
+
+  const withoutLicense = entries.filter((e) => !e.licenseRef);
+  return {
+    licenses,
+    unique:       byMd5.size,
+    fromFile:     md5BySource.file,
+    fromReadme:   md5BySource.readme,
+    fromGithub:   md5BySource.github,
+    fromTemplate: md5BySource.template,
+    missing:      {
+      count:    withoutLicense.length,
+      packages: withoutLicense.map((e) => `${ e.name }@${ e.version }`)
+    }
+  };
+}
+
+/*
+ * Count how many packages use each license identifier and return a map sorted
+ * by descending count (ties broken alphabetically) for stable JSON output.
+ */
+function buildLicenseSummary(entries) {
+  const counts = {};
+  for (const e of entries) {
+    const key = e.license || 'unknown';
+    counts[key] = (counts[key] || 0) + 1;
+  }
+  return Object.fromEntries(
+    Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  );
+}
+
+/*
+ * Project an internal entry into the per-package shape written to
+ * licenses.json. Version is intentionally omitted from the shipped file —
+ * it's not something we want to expose in the bundle. `licenseField` and
+ * `home` are only emitted when set.
+ */
+function licenseEntry(e) {
+  return {
+    name:    e.name,
+    license: e.license,
+    ...(e.licenseField ? { licenseField: e.licenseField } : {}),
+    ...(e.home ? { home: e.home } : {}),
+    ...(e.licenseRef ? { licenseRef: e.licenseRef } : {})
+  };
+}
+
+/*
+ * Print a report of packages that violate the allow-list (disallowed
+ * license identifier) or that have no license content at all, and return
+ * true when at least one violation was found.
+ */
+function reportLicenseViolations(entries, licenseStats) {
+  const disallowed = entries.filter((e) => !ALLOWED_LICENSE_SET.has(e.license));
+  const missing = licenseStats.missing.packages;
+
+  if (!disallowed.length && !missing.length) return false;
+
+  if (disallowed.length) {
+    console.error(`\n${ yellow }${ disallowed.length } package(s) use a disallowed license${ reset } (allowed: ${ cyan }${ ALLOWED_LICENSES.join(', ') }${ reset }):`);
+    for (const e of disallowed) {
+      console.error(`  ${ yellow }${ e.name }@${ e.version }${ reset } — ${ e.license || '(no license declared)' }`);
+    }
+  }
+  if (missing.length) {
+    console.error(`\n${ yellow }${ missing.length } package(s) have no license content${ reset }:`);
+    for (const pkg of missing) console.error(`  ${ yellow }${ pkg }${ reset }`);
+  }
+  return true;
+}
+
+/*
+ * Parse the small set of CLI flags (`-u` / `--update`, `-h`). Exits with
+ * code 2 on an unknown argument.
+ */
+function parseArgs(argv) {
+  const opts = { help: false, update: false };
+  for (const a of argv) {
+    if (a === '-h' || a === '--help') opts.help = true;
+    else if (a === '-u' || a === '--update') opts.update = true;
+    else {
+      console.error(`${ yellow }Unknown argument${ reset }: ${ a }`);
+      console.error(USAGE);
+      process.exit(2);
+    }
+  }
+  return opts;
+}
+
+/*
+ * Print the recovery instructions shown when the check fails, then exit 1.
+ * Written as a distinct helper so the message stays in one place — this is
+ * the failure surface a contributor sees when their PR trips the CI gate.
+ */
+function failCheck(reason) {
+  console.error('');
+  console.error(`${ bold }${ bg_red }${ white } licenses.json is out of date ${ reset } ${ reason }`);
+  console.error('');
+  console.error('  A dependency was added, removed, or upgraded without refreshing');
+  console.error(`  the committed ${ cyan }licenses.json${ reset }. To fix, run locally and commit the result:`);
+  console.error('');
+  console.error(`    ${ cyan }ANALYZE_LICENSES=true yarn build${ reset }`);
+  console.error(`    ${ cyan }node ./scripts/analyze-licenses -u${ reset }`);
+  console.error(`    ${ cyan }git add licenses.json && git commit${ reset }`);
+  console.error('');
+  process.exit(1);
+}
+
+/*
+ * Print a "run the build first" error and exit 1. Called when
+ * dist/report.json is not present — this script deliberately does not run
+ * the build itself.
+ */
+function failMissingReport(update) {
+  console.error('');
+  console.error(`${ bold }${ bg_red }${ white } ${ path.relative(ROOT, REPORT) } not found ${ reset }`);
+  console.error('');
+  console.error(`  This script needs ${ cyan }dist/report.json${ reset } from webpack-bundle-analyzer.`);
+  console.error(`  Run the analyzer-enabled build first, then re-run this script:`);
+  console.error('');
+  console.error(`    ${ cyan }ANALYZE_LICENSES=true yarn build${ reset }`);
+  console.error(`    ${ cyan }node ./scripts/analyze-licenses${ update ? ' -u' : '' }${ reset }`);
+  console.error('');
+  process.exit(1);
+}
+
+/*
+ * Orchestrate the licenses pipeline: parse args, read the bundle report,
+ * process licenses, and enforce the allow-list. Default mode compares the
+ * generated bundle to the committed licenses.json and fails on drift; `-u`
+ * writes the bundle to licenses.json at the repo root instead.
+ */
+async function main() {
+  const opts = parseArgs(process.argv.slice(2));
+  if (opts.help) { process.stdout.write(USAGE); return; }
+
+  console.log('======================================');
+  console.log(`${ cyan }Analyzing bundled package licenses${ reset }`);
+  console.log('======================================');
+
+  if (!fs.existsSync(REPORT)) failMissingReport(opts.update);
+
+  const { entries, missing } = buildBundledEntries(REPORT);
+
+  const licenseStats = await processLicenses(entries);
+  console.log(`Resolved ${ cyan }${ entries.length }${ reset } packages (${ cyan }${ licenseStats.fromFile }${ reset } via LICENSE file, ${ cyan }${ licenseStats.fromReadme }${ reset } via README, ${ cyan }${ licenseStats.fromGithub }${ reset } via GitHub, ${ cyan }${ licenseStats.fromTemplate }${ reset } via MIT template, ${ cyan }${ licenseStats.missing.count }${ reset } missing; ${ cyan }${ licenseStats.unique }${ reset } unique).`);
+
+  const licenseSummary = buildLicenseSummary(entries);
+  const summaryRows = Object.entries(licenseSummary)
+    .map(([id, count]) => `  ${ cyan }${ String(id).padEnd(24) }${ reset } ${ count }`)
+    .join('\n');
+  console.log(`License summary:\n${ summaryRows }`);
+
+  if (missing.size) console.warn(`${ yellow }Could not find package.json for ${ missing.size } path(s)${ reset }: ${ Array.from(missing).slice(0, 5).join(', ') }${ missing.size > 5 ? ', ...' : '' }`);
+
+  const hasViolations = reportLicenseViolations(entries, licenseStats);
+
+  const generated = `${ JSON.stringify({
+    packages: entries.map(licenseEntry),
+    licenses: licenseStats.licenses
+  }, null, 2) }\n`;
+
+  if (opts.update) {
+    fs.writeFileSync(COMMITTED_LICENSES, generated);
+    console.log('');
+    console.log(`${ green }✓${ reset } Wrote license bundle to ${ cyan }${ path.relative(ROOT, COMMITTED_LICENSES) }${ reset }`);
+  } else {
+    if (!fs.existsSync(COMMITTED_LICENSES)) {
+      failCheck(`${ path.relative(ROOT, COMMITTED_LICENSES) } is missing`);
+    }
+    const committed = fs.readFileSync(COMMITTED_LICENSES, 'utf8');
+    if (committed !== generated) {
+      failCheck(`the generated bundle differs from ${ path.relative(ROOT, COMMITTED_LICENSES) }`);
+    }
+    console.log('');
+    console.log(`${ green }✓ licenses.json is up to date${ reset }`);
+  }
+
+  if (hasViolations) {
+    console.error('');
+    console.error(`${ bold }${ bg_red }${ white } Disallowed or missing licenses found — see report above ${ reset }`);
+    process.exit(1);
+  }
+}
+
+main().catch((e) => {
+  console.error(`${ bold }${ bg_red }${ white } ${ e.message } ${ reset }`);
+  process.exit(1);
+});
