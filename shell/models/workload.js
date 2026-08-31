@@ -1,5 +1,5 @@
 import { findBy, insertAt } from '@shell/utils/array';
-import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, KUBECTL_RESTARTED_AT, TIMESTAMP } from '@shell/config/labels-annotations';
 import {
   WORKLOAD_TYPES, SERVICE, INGRESS, POD, GATEWAY_API
 } from '@shell/config/types';
@@ -248,6 +248,15 @@ export default class Workload extends WorkloadService {
 
       return total;
     }, 0);
+  }
+
+  get deployedTimestamp() {
+    const podTemplate = this.type === WORKLOAD_TYPES.CRON_JOB ? this?.spec?.jobTemplate?.spec?.template : this.spec?.template;
+    const annotations = podTemplate?.metadata?.annotations || {};
+
+    // A redeploy (Rancher's "Redeploy" action or `kubectl rollout restart`) stamps the pod
+    // template with the time of the last roll-out. Fall back to creation for never-redeployed workloads.
+    return annotations[KUBECTL_RESTARTED_AT] || annotations[TIMESTAMP] || this.creationTimestamp;
   }
 
   get hasSidecars() {
