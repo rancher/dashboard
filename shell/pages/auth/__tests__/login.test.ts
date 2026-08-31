@@ -2,7 +2,7 @@ import { shallowMount } from '@vue/test-utils';
 import Login from '@shell/pages/auth/login.vue';
 import AuthProviderList from '@shell/components/auth/login/AuthProviderList.vue';
 import { Banner } from '@components/Banner';
-import { LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@shell/config/query-params';
+import { LOCAL as LOCAL_QUERY, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@shell/config/query-params';
 import { REMEMBERED_PROVIDER_KEY } from '@shell/utils/auth-providers';
 
 jest.mock('@shell/utils/require-asset', () => {
@@ -23,6 +23,13 @@ const OKTA_CORP = { id: 'okta-corp', type: 'oktaProvider' };
 const OKTA_PARTNER = { id: 'okta-partner', type: 'oktaProvider' };
 const GITHUB = { id: 'gh-community', type: 'githubProvider' };
 const AD = { id: 'ad-corp', type: 'activeDirectoryProvider' };
+
+/**
+ * Held out here so the tests have something typed to assert on: `applyQuery` is
+ * bolted onto the router at runtime by `@shell/plugins/extend-router`, so it is
+ * not part of vue-router's own `Router` type.
+ */
+const applyQuery = jest.fn();
 
 const createWrapper = (drivers: object[], query: Record<string, string | null> = {}) => {
   const dispatch = jest.fn((action: string) => {
@@ -51,7 +58,7 @@ const createWrapper = (drivers: object[], query: Record<string, string | null> =
           },
         },
         $route:      { query },
-        $router:     { applyQuery: jest.fn(), push: jest.fn() },
+        $router:     { applyQuery, push: jest.fn() },
         $fetchState: { pending: false },
       },
     },
@@ -67,7 +74,10 @@ const runFetch = async(wrapper: any) => {
 };
 
 describe('page: login', () => {
-  beforeEach(() => window.localStorage.clear());
+  beforeEach(() => {
+    window.localStorage.clear();
+    applyQuery.mockClear();
+  });
 
   describe('messages', () => {
     it('should show an error message in an error banner', () => {
@@ -110,14 +120,15 @@ describe('page: login', () => {
       expect(wrapper.vm.showProviderList).toBe(true);
     });
 
-    // Local is one of the ways in, so a single external provider alongside it is
-    // still a choice, and it is offered from the list like any other.
-    it('should offer the list for a single provider alongside local', async() => {
+    // A list of two, one of which is local, says less than the pair of links the
+    // page has always shown for it.
+    it('should not offer the list for a single provider alongside local', async() => {
       const wrapper = createWrapper([LOCAL, OKTA_CORP]);
 
       await runFetch(wrapper);
 
-      expect(wrapper.vm.showProviderList).toBe(true);
+      expect(wrapper.vm.hasProviderChoice).toBe(true);
+      expect(wrapper.vm.showProviderList).toBe(false);
       expect(wrapper.vm.providerOptions.map((o: any) => o.id)).toStrictEqual(['okta-corp', 'local']);
     });
 
@@ -313,13 +324,10 @@ describe('page: login', () => {
   });
 
   describe('offering local', () => {
-    // Local used to be reached through a "Use a local user" link. It is a card in
-    // the list now, so the link is gone and the list has to carry local instead.
-    it.each([
-      ['a single external provider', [LOCAL, OKTA_CORP]],
-      ['several external providers', [LOCAL, OKTA_CORP, GITHUB]],
-    ])('should offer local from the list with %s', async(_label, drivers) => {
-      const wrapper = createWrapper(drivers);
+    // Once there are several external providers to weigh local against, it is a
+    // card in the list like any other of them.
+    it('should offer local from the list with several external providers', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
 
       await runFetch(wrapper);
 
@@ -328,6 +336,59 @@ describe('page: login', () => {
       expect(list.exists()).toBe(true);
       expect((list.props('options') as any[]).some((o) => o.isLocal)).toBe(true);
       expect(wrapper.find('[data-testid="login-useLocal"]').exists()).toBe(false);
+    });
+
+    // With one provider the page opens on it and offers local as the way round it.
+    it('should offer local from a link with a single external provider', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP]);
+
+      await runFetch(wrapper);
+
+      expect(wrapper.findComponent(AuthProviderList).exists()).toBe(false);
+      expect(wrapper.find('[data-testid="login-useLocal"]').exists()).toBe(true);
+    });
+
+    it('should swap to the local form and back from that link', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP]);
+
+      await runFetch(wrapper);
+      wrapper.vm.toggleLocal();
+
+      expect(wrapper.vm.showLocal).toBe(true);
+      expect(wrapper.vm.selectedProviderId).toBe('local');
+
+      wrapper.vm.toggleLocal();
+
+      expect(wrapper.vm.showLocal).toBe(false);
+      expect(wrapper.vm.selectedProviderId).toBe('okta-corp');
+    });
+
+    // A reload should land back where the user left off, so the flag comes off
+    // the URL on the way out as well as going on on the way in.
+    it('should carry the swap in the query both ways', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP]);
+
+      await runFetch(wrapper);
+      wrapper.vm.toggleLocal();
+
+      expect(applyQuery).toHaveBeenCalledWith({ [LOCAL_QUERY]: true }, { [LOCAL_QUERY]: false });
+
+      wrapper.vm.toggleLocal();
+
+      expect(applyQuery).toHaveBeenCalledWith({ [LOCAL_QUERY]: false }, { [LOCAL_QUERY]: false });
+    });
+
+    // Coming back is the same request as it is from the list, so it reads the
+    // same way and answers to the same handle.
+    it('should offer the way back once the local form is showing', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP]);
+
+      await runFetch(wrapper);
+      wrapper.vm.toggleLocal();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="login-useLocal"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="login-provider-choose"]').exists()).toBe(true);
     });
 
     it('should show the local form on its own when local is all there is', async() => {
@@ -430,7 +491,7 @@ describe('page: login', () => {
 
         await runFetch(wrapper);
 
-        expect(wrapper.vm.canRememberProvider).toBe(false);
+        expect(wrapper.vm.hasProviderList).toBe(false);
         expect(wrapper.find('[data-testid="login-provider-remember"]').exists()).toBe(false);
       });
 
@@ -439,7 +500,7 @@ describe('page: login', () => {
 
         await runFetch(wrapper);
 
-        expect(wrapper.vm.canRememberProvider).toBe(true);
+        expect(wrapper.vm.hasProviderList).toBe(true);
         expect(wrapper.find('[data-testid="login-provider-remember"]').exists()).toBe(true);
       });
 

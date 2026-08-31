@@ -40,12 +40,14 @@ export class LoginPagePo extends PagePo {
   }
 
   /**
-   * Local is offered from the provider list like any other provider. It is absent
-   * when local is the only way in, because the form is already on screen.
+   * The way through to the local form, wherever the page has put it: a card in
+   * the provider list, or a link where a single external provider makes a list
+   * of two unnecessary. Absent when local is the only way in, because the form
+   * is already on screen.
    */
   useLocal() {
     return this.self().then(($page) => {
-      const elements = $page.find(LoginPagePo.LOCAL_OPTION_SELECTOR);
+      const elements = $page.find(LoginPagePo.USE_LOCAL_SELECTOR);
 
       return elements?.[0];
     });
@@ -64,8 +66,9 @@ export class LoginPagePo extends PagePo {
   }
 
   /**
-   * The list of alternative providers. Rendered whenever there is more than one
-   * way in, counting local, so a single external provider still gets a list.
+   * The list of alternative providers. Rendered once there are several external
+   * providers to choose between; a single one alongside local is offered as a
+   * link instead.
    */
   providerList(): ComponentPo {
     return new ComponentPo('[data-testid="login-provider-list"]');
@@ -92,8 +95,9 @@ export class LoginPagePo extends PagePo {
   }
 
   /**
-   * The link that reveals the list again. Shown in place of the list while a
-   * username and password form has the panel.
+   * The link back off the local form: to the list where there is one, or
+   * straight to the single external provider where there is not. Shown in place
+   * of the list while a username and password form has the panel.
    */
   chooseDifferentProvider(): ComponentPo {
     return new ComponentPo('[data-testid="login-provider-choose"]');
@@ -109,6 +113,11 @@ export class LoginPagePo extends PagePo {
 
   static readonly LOCAL_OPTION_SELECTOR = '[data-testid="login-provider-option-local"]';
 
+  static readonly USE_LOCAL_SELECTOR = [
+    LoginPagePo.LOCAL_OPTION_SELECTOR,
+    '[data-testid="login-useLocal"]',
+  ].join(', ');
+
   /**
    * Selectors that indicate the login page has rendered past its loading spinner. Kept in sync with
    * the accessors above/below: welcomeMessage (.login-welcome), username, useLocal and
@@ -117,7 +126,7 @@ export class LoginPagePo extends PagePo {
   static readonly FORM_READY_SELECTOR = [
     '.login-welcome',
     '[data-testid="local-login-username"]',
-    LoginPagePo.LOCAL_OPTION_SELECTOR,
+    LoginPagePo.USE_LOCAL_SELECTOR,
     '[data-testid="login-confirmation-accept-button"]',
   ].join(', ');
 

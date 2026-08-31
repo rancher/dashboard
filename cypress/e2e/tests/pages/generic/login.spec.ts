@@ -262,8 +262,8 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
     });
   });
 
-  // Local is one of the ways in, so one external provider alongside it is still
-  // a choice, and it is made from the same list as any other.
+  // One external provider alongside local is a straight swap between two, which
+  // the page offers as a link rather than as a list of two cards.
   describe('A single external authentication provider', () => {
     beforeEach(() => {
       cy.intercept('GET', '/v1-public/authproviders*', {
@@ -285,25 +285,38 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
       cy.wait('@authProviders');
     });
 
-    it('Offers local from the list rather than from a link', () => {
+    it('Offers local from a link rather than from the list', () => {
       const loginPage = new LoginPagePo();
 
       loginPage.waitForPage();
 
       loginPage.providerSubmitButton().shouldContainText('okta-corp');
-      loginPage.providerList().checkVisible();
-      loginPage.providerOption('local').checkVisible();
-      cy.get('[data-testid="login-useLocal"]').should('not.exist');
+      loginPage.providerList().checkNotExists();
+      cy.get('[data-testid="login-useLocal"]').should('be.visible');
     });
 
-    it('Reveals the local form when local is chosen', () => {
+    it('Reveals the local form from that link', () => {
       const loginPage = new LoginPagePo();
 
-      loginPage.selectProvider('local');
+      loginPage.waitForPage();
+      cy.get('[data-testid="login-useLocal"]').click();
 
       loginPage.username().checkVisible();
       loginPage.password().checkVisible();
       loginPage.chooseDifferentProvider().checkVisible();
+    });
+
+    // The link back goes straight to the provider, there being no list to open.
+    it('Returns to the provider from the local form', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.waitForPage();
+      cy.get('[data-testid="login-useLocal"]').click();
+      loginPage.chooseDifferentProvider().self().click();
+
+      loginPage.providerSubmitButton().shouldContainText('okta-corp');
+      loginPage.username().checkNotExists();
+      loginPage.providerList().checkNotExists();
     });
 
     // With one provider there is no choice between providers to save.
@@ -312,7 +325,6 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
 
       loginPage.waitForPage();
 
-      loginPage.providerList().checkVisible();
       loginPage.rememberProviderCheckbox().checkNotExists();
     });
   });

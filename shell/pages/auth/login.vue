@@ -17,6 +17,7 @@ import Password from '@shell/components/form/Password';
 import { configTypeForProvider } from '@shell/models/management.cattle.io.authconfig';
 import AuthProviderList from '@shell/components/auth/login/AuthProviderList.vue';
 import OrDivider from '@shell/components/auth/login/OrDivider.vue';
+import { LOCAL_AUTH_ID } from '@shell/utils/auth';
 import {
   clearRememberedProviderId,
   getRememberedProviderId,
@@ -104,19 +105,20 @@ export default {
 
     /**
      * Counted over the options rather than the external providers, because local
-     * is one of the ways in and is offered from the list like any other. One
-     * external provider alongside local is still a choice to be made.
+     * is one of the ways in. One external provider alongside local is still a
+     * choice, even though the page offers it as a link rather than as a list.
      */
     hasProviderChoice() {
       return this.providerOptions.length > 1;
     },
 
     /**
-     * Saving a choice is only worth offering where there are several external
-     * providers to pick between. With one, the list is really just offering local
-     * as the way round it, and the page opens on that provider regardless.
+     * A list is how the page asks which external provider to use. One of them
+     * alongside local is a straight swap between two, which reads better as a
+     * link -- and leaves nothing worth remembering, since the page opens on that
+     * provider either way.
      */
-    canRememberProvider() {
+    hasProviderList() {
       return this.providers.length > 1;
     },
 
@@ -125,7 +127,7 @@ export default {
     },
 
     showProviderList() {
-      return this.hasProviderChoice && (!this.isCredentialForm || this.listExpanded);
+      return this.hasProviderList && (!this.isCredentialForm || this.listExpanded);
     },
 
     /**
@@ -317,7 +319,7 @@ export default {
      * that gives the user no way to clear it.
      */
     rememberedProviderId() {
-      return this.canRememberProvider ? getRememberedProviderId() : null;
+      return this.hasProviderList ? getRememberedProviderId() : null;
     },
 
     /**
@@ -332,6 +334,22 @@ export default {
       if (this.rememberProvider) {
         setRememberedProviderId(option.id);
       }
+
+      this.$nextTick(() => {
+        this.focusSomething();
+      });
+    },
+
+    /**
+     * The swap between the single external provider and local. There is no list
+     * to choose from with only two ways in, so the link moves the panel itself.
+     */
+    toggleLocal() {
+      this.showLocal = !this.showLocal;
+      this.selectedProviderId = this.showLocal ? LOCAL_AUTH_ID : this.providers[0]?.id || null;
+      // Carried in the URL so a reload lands back where the user left off, which
+      // means dropping the flag on the way out as well as setting it on the way in.
+      this.$router.applyQuery({ [LOCAL]: this.showLocal }, { [LOCAL]: false });
 
       this.$nextTick(() => {
         this.focusSomething();
@@ -607,41 +625,65 @@ export default {
           class="login-alternatives mt-20"
         >
           <OrDivider />
+          <!--
+            Several external providers are weighed up in a list. One alongside
+            local is a straight swap between two, offered as a link instead.
+          -->
+          <template v-if="hasProviderList">
+            <div
+              v-if="!showProviderList"
+              class="mt-20 text-center"
+            >
+              <RcButton
+                variant="link"
+                data-testid="login-provider-choose"
+                @click="expandProviderList"
+              >
+                {{ t('login.providers.chooseDifferent') }}
+              </RcButton>
+            </div>
+            <template v-else>
+              <AuthProviderList
+                ref="providerList"
+                class="mt-20"
+                :options="providerOptions"
+                :selected-id="selectedProviderId"
+                @select="selectProvider"
+              />
+              <div class="login-remember mt-20">
+                <Checkbox
+                  :value="rememberProvider"
+                  :label="t('login.providers.remember')"
+                  data-testid="login-provider-remember"
+                  @update:value="setRememberProvider"
+                />
+                <p class="login-remember__hint">
+                  {{ t('login.providers.rememberHint') }}
+                </p>
+              </div>
+            </template>
+          </template>
           <div
-            v-if="!showProviderList"
+            v-else
             class="mt-20 text-center"
           >
             <RcButton
+              v-if="showLocal"
               variant="link"
               data-testid="login-provider-choose"
-              @click="expandProviderList"
+              @click="toggleLocal"
             >
               {{ t('login.providers.chooseDifferent') }}
             </RcButton>
-          </div>
-          <template v-else>
-            <AuthProviderList
-              ref="providerList"
-              class="mt-20"
-              :options="providerOptions"
-              :selected-id="selectedProviderId"
-              @select="selectProvider"
-            />
-            <div
-              v-if="canRememberProvider"
-              class="login-remember mt-20"
+            <RcButton
+              v-else
+              variant="link"
+              data-testid="login-useLocal"
+              @click="toggleLocal"
             >
-              <Checkbox
-                :value="rememberProvider"
-                :label="t('login.providers.remember')"
-                data-testid="login-provider-remember"
-                @update:value="setRememberProvider"
-              />
-              <p class="login-remember__hint">
-                {{ t('login.providers.rememberHint') }}
-              </p>
-            </div>
-          </template>
+              {{ t('login.providers.useLocal') }}
+            </RcButton>
+          </div>
         </div>
         <div
           v-if="showLocaleSelector && hasMultipleLocales && !isHarvester"

@@ -4591,6 +4591,7 @@ login:
     heading: Choose how to sign in
     or: Or
     chooseDifferent: Choose a different provider
+    useLocal: Log in as a local user
     meta: "{vendor} · {protocol}"
     remember: Remember my choice on this device
     rememberHint: Applies to whichever provider you choose. Saved in this browser only.
