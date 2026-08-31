@@ -592,10 +592,17 @@ describe('class Secret', () => {
       }
     };
 
-    it('includes the secret sub-type (not the kind) by default', () => {
+    it('includes the raw secret type (not the kind) by default', () => {
       const secret = new Secret({ _type: TYPES.OPAQUE, metadata: {} }, ctx);
 
       expect(secret.details).toStrictEqual([{ label: 'secret.type', content: 'Opaque' }]);
+    });
+
+    it('shows the raw secret type, matching the list column, rather than the friendly label', () => {
+      const secret = new Secret({ _type: TYPES.DOCKER_JSON, metadata: {} }, ctx);
+      const typeDetail = secret.details.find((d: any) => d.label === 'secret.type');
+
+      expect(typeDetail?.content).toBe('kubernetes.io/dockerconfigjson');
     });
 
     it('includes a Service Account link for service account secrets', () => {

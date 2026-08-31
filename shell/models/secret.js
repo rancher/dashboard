@@ -148,7 +148,7 @@ export default class Secret extends SteveModel {
     const out = [
       {
         label:   this.t('secret.type'),
-        content: this.subTypeDisplay
+        content: this._type
       }
     ];
 
