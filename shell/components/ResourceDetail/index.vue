@@ -29,7 +29,7 @@ function modeFor(route) {
   }
 }
 
-async function getYaml(store, model) {
+async function getYaml(store, model, editing = false) {
   let yaml;
   const opt = { headers: { accept: 'application/yaml' } };
 
@@ -37,7 +37,7 @@ async function getYaml(store, model) {
     yaml = (await model.followLink('view', opt)).data;
   }
 
-  return model.cleanForDownload(yaml);
+  return model.cleanForDownload(yaml, { editing });
 }
 
 export default {
@@ -214,7 +214,7 @@ export default {
         initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
 
         if ( as === _YAML ) {
-          yaml = await getYaml(this.$store, liveModel);
+          yaml = await getYaml(this.$store, liveModel, realMode !== _VIEW);
         }
       } catch (e) {
         console.warn(`Could not set 'model' for '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
@@ -222,7 +222,7 @@ export default {
       }
       if ( as === _YAML ) {
         try {
-          yaml = await getYaml(this.$store, liveModel);
+          yaml = await getYaml(this.$store, liveModel, realMode !== _VIEW);
         } catch (e) {
           this.errors.push(e);
         }

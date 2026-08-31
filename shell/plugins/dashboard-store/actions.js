@@ -905,8 +905,13 @@ export default {
     return resource;
   },
 
-  cleanForDownload(ctx, resource) {
-    return resource;
+  cleanForDownload(ctx, payload) {
+    // Backwards compatibility: older callers (e.g. extensions built against a
+    // previous shell) dispatch the yaml string directly rather than a
+    // { yaml, opt } payload. Accept either shape.
+    const { yaml } = typeof payload === 'string' ? { yaml: payload } : (payload || {});
+
+    return yaml;
   },
 
   // Wait for a schema that is expected to exist that may not have been loaded yet (for instance when loadCluster is still running).
