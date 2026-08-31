@@ -194,7 +194,9 @@ describe('shell/utils/color', () => {
         '--active',
         '--active-nav',
         '--active-hover',
+        '--nav-active-hover',
         '--on-active',
+        '--on-active-nav',
         '--category-active',
         '--non-primary-hover',
         '--secondary-border',
@@ -213,7 +215,9 @@ describe('shell/utils/color', () => {
       expect(vars['--active']).toStrictEqual('#4a90d9');
       expect(vars['--active-nav']).toStrictEqual('#4a90d9');
       expect(vars['--active-hover']).toBeDefined();
+      expect(vars['--nav-active-hover']).toStrictEqual(vars['--primary-hover-bg']);
       expect(vars['--on-active']).toBeDefined();
+      expect(vars['--on-active-nav']).toStrictEqual(vars['--on-active']);
       expect(vars['--category-active']).toContain('rgba');
       expect(vars['--non-primary-hover']).toContain('rgba');
       expect(vars['--secondary-border']).toStrictEqual('#4a90d9');

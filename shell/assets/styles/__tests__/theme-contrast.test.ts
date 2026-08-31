@@ -137,6 +137,8 @@ const SHARED_PAIRS: [string, string, number][] = [
   ['--on-secondary', '--secondary-hover', TEXT],
   ['--on-active', '--active', TEXT],
   ['--on-active', '--active-hover', TEXT],
+  ['--on-active-nav', '--active-nav', TEXT],
+  ['--on-active-nav', '--nav-active-hover', TEXT],
   ['--body-text', '--category-active', TEXT],
   ['--primary-text', '--primary', TEXT],
   ['--primary-hover-text', '--primary-hover-bg', TEXT],
@@ -158,6 +160,14 @@ describe('theme colour contrast (WCAG 2.1 AA)', () => {
   ] as const)('%s', (_label, key) => {
     it.each(SHARED_PAIRS)('%s on %s meets %s:1', (foreground, background, min) => {
       expect(ratio(themes[key], foreground, background)).toBeGreaterThanOrEqual(min);
+    });
+
+    it('paints the active nav item with the primary button family', () => {
+      const tokens = themes[key];
+
+      expect(resolve(tokens, '--active-nav')).toBe(resolve(tokens, '--primary'));
+      expect(resolve(tokens, '--nav-active-hover')).toBe(resolve(tokens, '--primary-hover-bg'));
+      expect(resolve(tokens, '--on-active-nav')).toBe(resolve(tokens, '--primary-text'));
     });
 
     it('gives tertiary buttons a fill distinct from their hover state', () => {
