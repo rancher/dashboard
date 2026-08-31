@@ -1,8 +1,13 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class ListRowPo extends ComponentPo {
-  column(index: number) {
-    return this.self().find('td').eq(index);
+  /**
+   * @param options timeout for the column lookup. Cypress timeouts are per
+   * command, so the timeout given to whatever produced the row does not carry
+   * over and the column otherwise falls back to `defaultCommandTimeout`.
+   */
+  column(index: number, options?: GetOptions) {
+    return this.self().find('td', options).eq(index);
   }
 
   /**
