@@ -213,11 +213,12 @@ describe('shell/utils/color', () => {
       const vars = createCssVars('#4a90d9', 'light', 'primary');
 
       expect(vars['--active']).toStrictEqual('#4a90d9');
-      expect(vars['--active-nav']).toStrictEqual('#4a90d9');
       expect(vars['--active-hover']).toBeDefined();
-      expect(vars['--nav-active-hover']).toStrictEqual(vars['--primary-hover-bg']);
       expect(vars['--on-active']).toBeDefined();
-      expect(vars['--on-active-nav']).toStrictEqual(vars['--on-active']);
+      // The selected nav item wears the CTA's hover fill and steps to its pressed fill
+      expect(vars['--active-nav']).toStrictEqual(vars['--primary-hover-bg']);
+      expect(vars['--nav-active-hover']).toStrictEqual(vars['--primary-active-bg']);
+      expect(vars['--on-active-nav']).toStrictEqual(contrastColor(vars['--active-nav']));
       expect(vars['--category-active']).toContain('rgba');
       expect(vars['--non-primary-hover']).toContain('rgba');
       expect(vars['--secondary-border']).toStrictEqual('#4a90d9');
