@@ -173,7 +173,12 @@ export const getters = {
       const substituted = hasGlobal ? substituteGlobals(msg, rootState?.$extension) : msg;
 
       if ( substituted?.includes('{')) {
-        formatter = new IntlMessageFormat(substituted, locale);
+        // ignoreTag: intl-messageformat v10+ parses `<tag>…</tag>` as ICU rich-text markup and throws
+        // at format() time (INVALID_TAG / "context variable <tagName> was not provided") on the many
+        // translations that embed literal HTML (e.g. `<span>Cluster:</span> {name}`). We render such
+        // markup ourselves, so tell the formatter to treat angle brackets as plain text (the pre-v10
+        // behaviour) instead of markup.
+        formatter = new IntlMessageFormat(substituted, locale, undefined, { ignoreTag: true });
       } else {
         formatter = substituted;
       }
