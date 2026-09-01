@@ -375,8 +375,8 @@ export default {
                     :id="step.name"
                     :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
                   >
-                    <button
-                      type="button"
+                    <RcButton
+                      variant="ghost"
                       class="controls"
                       :aria-current="step.name === activeStep.name ? 'step' : null"
                       :disabled="!isAvailable(step)"
@@ -389,7 +389,7 @@ export default {
                       <span>
                         {{ step.label }}
                       </span>
-                    </button>
+                    </RcButton>
                   </li>
                   <li
                     v-if="idx!==visibleSteps.length-1"
@@ -572,18 +572,24 @@ $spacer: 10px;
         }
 
         & .controls {
-          // A step is a button so it can be reached and pressed from the
-          // keyboard; it still has to look like the plain marker it was.
-          background: none;
-          border: none;
-          color: inherit;
-          font: inherit;
+          // RcButton's ghost variant already drops the background and padding.
+          // A step marker stacks its dot over its label and keeps the
+          // surrounding type, so undo the button's row layout and sizing.
           display: flex;
           flex-direction: column;
           align-items: center;
+          font: inherit;
+          min-height: 0;
+          gap: 0;
           width: 40px;
           overflow: visible;
           padding-top: 7px;
+
+          // The ghost variant defines no disabled state, so an out of reach
+          // step would otherwise pick up the global button's grey chip.
+          &:disabled {
+            background: transparent;
+          }
 
           & > span {
             padding-bottom: 3px;
