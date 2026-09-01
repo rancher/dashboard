@@ -340,8 +340,6 @@ describe('component: RcSection', () => {
     });
 
     it('should drop the default slot content when both the groups and default slots are given', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-
       const wrapper = mount(RcSection, {
         props: { ...defaultProps, expanded: true },
         slots: {
@@ -352,8 +350,6 @@ describe('component: RcSection', () => {
 
       expect(wrapper.find('.section-content > .test-groups').exists()).toBe(true);
       expect(wrapper.find('.test-default').exists()).toBe(false);
-
-      warn.mockRestore();
     });
 
     it('should not render the default content group when collapsed', () => {
@@ -396,51 +392,26 @@ describe('component: RcSection', () => {
     });
   });
 
-  describe('slot misuse warnings', () => {
-    let warn: jest.SpyInstance;
-
-    beforeEach(() => {
-      warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    });
-
-    afterEach(() => warn.mockRestore());
-
-    const mountWithSlots = (slots: Record<string, string>) => mount(RcSection, {
-      props:  { ...defaultProps, expanded: true },
-      global: { components: { RcContentGroup } },
-      slots,
-    });
-
-    it('should not warn when only the default slot is given', () => {
-      mountWithSlots({ default: '<p>Content</p>' });
-
-      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('[RcSection]'));
-    });
-
-    it('should warn when both the groups and default slots are given', () => {
-      mountWithSlots({ groups: '<RcContentGroup />', default: '<p>Content</p>' });
-
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining('Both the `groups` slot and the default slot were given'));
-    });
-
-    it('should warn when the groups slot only appears after mount', async() => {
+  describe('groups slot appearing after mount', () => {
+    it('should replace the default slot content once the groups slot is given', async() => {
       const Parent = defineComponent({
         components: { RcSection, RcContentGroup },
         props:      { hasGroups: { type: Boolean, default: false } },
         template:   `
           <RcSection type="primary" mode="with-header" :expandable="false" title="Test title">
-            <template v-if="hasGroups" #groups><RcContentGroup /></template>
-            <p>Content</p>
+            <template v-if="hasGroups" #groups><RcContentGroup class="test-groups" /></template>
+            <p class="test-default">Content</p>
           </RcSection>`,
       });
 
       const wrapper = mount(Parent, { props: { hasGroups: false } });
 
-      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('[RcSection]'));
+      expect(wrapper.find('.test-default').exists()).toBe(true);
 
       await wrapper.setProps({ hasGroups: true });
 
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining('Both the `groups` slot and the default slot were given'));
+      expect(wrapper.find('.test-groups').exists()).toBe(true);
+      expect(wrapper.find('.test-default').exists()).toBe(false);
     });
   });
 });

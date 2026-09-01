@@ -61,7 +61,7 @@
  * </RcSection>
  */
 import {
-  computed, inject, onUpdated, provide, useSlots, useTemplateRef, type Ref
+  computed, inject, provide, useTemplateRef, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
@@ -72,19 +72,6 @@ import type { RcSectionProps, SectionBackground } from './types';
 const RC_SECTION_BG_KEY = 'rc-section-background';
 
 const props = withDefaults(defineProps<RcSectionProps>(), { title: '' });
-
-const slots = useSlots();
-
-if (process.env.NODE_ENV !== 'production') {
-  const warnOnSlotMisuse = () => {
-    if (slots.groups && slots.default) {
-      console.warn('[RcSection]: Both the `groups` slot and the default slot were given. The `groups` slot replaces the default one, so the default slot content is not rendered.'); // eslint-disable-line no-console
-    }
-  };
-
-  warnOnSlotMisuse();
-  onUpdated(warnOnSlotMisuse);
-}
 
 const parentBackground = inject<Ref<SectionBackground> | null>(RC_SECTION_BG_KEY, null);
 
