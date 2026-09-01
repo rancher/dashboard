@@ -30,9 +30,16 @@ describe('component: YamlOverridesEditor', () => {
   });
 
   beforeEach(() => {
+    // The preview push is debounced, so drive it with fake timers.
+    jest.useFakeTimers();
     updateValue.mockClear();
     refresh.mockClear();
     highlightLines.mockClear();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   it('renders an editable overrides pane and a read-only final values pane', () => {
@@ -77,10 +84,29 @@ describe('component: YamlOverridesEditor', () => {
     const wrapper = mountEditor();
 
     await wrapper.setProps({ preview: 'foo: bar\nnew: value\n' });
+    jest.runAllTimers();
     await wrapper.vm.$nextTick();
 
     expect(updateValue).toHaveBeenCalledWith('foo: bar\nnew: value\n');
     expect(refresh).toHaveBeenCalledWith();
+  });
+
+  it('debounces preview updates so rapid changes push only once', async() => {
+    const wrapper = mountEditor();
+
+    await wrapper.setProps({ preview: 'a: 1\n' });
+    await wrapper.setProps({ preview: 'a: 2\n' });
+    await wrapper.setProps({ preview: 'a: 3\n' });
+
+    // nothing is pushed while the changes are still arriving
+    expect(updateValue).not.toHaveBeenCalled();
+
+    jest.runAllTimers();
+    await wrapper.vm.$nextTick();
+
+    // only the final value is pushed, once
+    expect(updateValue).toHaveBeenCalledTimes(1);
+    expect(updateValue).toHaveBeenCalledWith('a: 3\n');
   });
 
   it('updateOverrides pushes a new value into the editable editor via its ref', () => {
@@ -96,6 +122,7 @@ describe('component: YamlOverridesEditor', () => {
 
     // insert a line between b and c - only the new line (index 2) should flash
     await wrapper.setProps({ preview: 'a: 1\nb: 2\nnew: 4\nc: 3\n' });
+    jest.runAllTimers();
     await wrapper.vm.$nextTick();
 
     expect(highlightLines).toHaveBeenCalledWith([2]);
@@ -119,26 +146,26 @@ describe('component: YamlOverridesEditor', () => {
     it('computes the preview by merging the overrides onto the defaults', () => {
       const wrapper = mountEditor({ defaults, value: 'service:\n  port: 9090\n' });
 
-      expect(jsyaml.load((wrapper.vm as any).effectivePreview)).toStrictEqual(merged9090);
+      expect(jsyaml.load((wrapper.vm as any).resolvedPreview)).toStrictEqual(merged9090);
     });
 
     it('falls back to the bare defaults when the overrides are invalid from the start', () => {
       const wrapper = mountEditor({ defaults, value: ':\n  not valid: :yaml' });
 
-      expect(jsyaml.load((wrapper.vm as any).effectivePreview)).toStrictEqual(defaults);
+      expect(jsyaml.load((wrapper.vm as any).resolvedPreview)).toStrictEqual(defaults);
     });
 
     it('keeps the last valid preview while the overrides are mid-edit/invalid', async() => {
       const wrapper = mountEditor({ defaults, value: 'service:\n  port: 9090\n' });
 
       // a valid override shows in the preview ...
-      expect(jsyaml.load((wrapper.vm as any).effectivePreview)).toStrictEqual(merged9090);
+      expect(jsyaml.load((wrapper.vm as any).resolvedPreview)).toStrictEqual(merged9090);
 
       // ... and starting an incomplete/invalid new line must not revert it
       await wrapper.setProps({ value: 'service:\n  port: 9090\nimagePullSecre' });
       await wrapper.vm.$nextTick();
 
-      expect(jsyaml.load((wrapper.vm as any).effectivePreview)).toStrictEqual(merged9090);
+      expect(jsyaml.load((wrapper.vm as any).resolvedPreview)).toStrictEqual(merged9090);
     });
 
     it('ignores the preview prop when defaults are supplied', () => {
@@ -146,14 +173,14 @@ describe('component: YamlOverridesEditor', () => {
         defaults, value: 'service:\n  port: 9090\n', preview: 'ignored: true\n'
       });
 
-      expect((wrapper.vm as any).effectivePreview).not.toContain('ignored');
+      expect((wrapper.vm as any).resolvedPreview).not.toContain('ignored');
     });
   });
 
   it('uses the preview prop directly in controlled mode (no defaults)', () => {
     const wrapper = mountEditor({ value: 'a: 1\n', preview: 'a: 1\nb: 2\n' });
 
-    expect((wrapper.vm as any).effectivePreview).toBe('a: 1\nb: 2\n');
+    expect((wrapper.vm as any).resolvedPreview).toBe('a: 1\nb: 2\n');
   });
 
   describe('changedLineNumbers', () => {

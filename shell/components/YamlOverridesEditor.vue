@@ -1,7 +1,13 @@
 <script>
 import { diffLines } from 'diff';
+import debounce from 'lodash/debounce';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { mergeOverrides, overridesAreMergeable } from '@shell/utils/chart-values';
+
+// Delay before the preview recomputes after the last keystroke. The merge +
+// serialize + diff + full editor replace is O(document), so we defer it until
+// typing pauses to keep the editable pane responsive on large values files.
+const PREVIEW_DEBOUNCE_MS = 250;
 
 /**
  * Two-pane YAML values editor: a LEFT editable "overrides" pane and a RIGHT
@@ -12,8 +18,10 @@ import { mergeOverrides, overridesAreMergeable } from '@shell/utils/chart-values
  *    (`value`) onto them, keeping the last valid preview while mid-edit/invalid.
  *  - Controlled: leave `defaults` unset and pass a ready-made `preview` string.
  *
- * YamlEditor doesn't react to its `value` prop, so the recomputed preview is
- * pushed into the read-only editor via its ref when the effective preview changes.
+ * The merge is kept off the render path: the read-only pane is bound to the
+ * `previewValue` data field, which is updated only by the debounced
+ * `recomputePreview` (YamlEditor doesn't react to its `value` prop after mount,
+ * so the new content is pushed in via its ref).
  */
 export default {
   name: 'YamlOverridesEditor',
@@ -81,6 +89,9 @@ export default {
   data() {
     return {
       EDITOR_MODES,
+      // Content currently shown in the read-only pane. Updated only by the
+      // debounced recomputePreview so the merge stays off the keystroke path.
+      previewValue:     '',
       // Smart mode: last preview that came from valid overrides, kept so the
       // preview doesn't revert to the bare defaults while the user is mid-edit.
       lastValidPreview: null,
@@ -96,7 +107,9 @@ export default {
     /**
      * Smart mode: defaults merged with the current overrides, or null when they're
      * mid-edit/invalid (a plain merge would collapse to bare defaults). The null
-     * lets `effectivePreview` hold the last valid preview.
+     * lets `resolvedPreview` hold the last valid preview. Lazy - read only from
+     * recomputePreview (and tests), never from the template, so the merge doesn't
+     * run on every keystroke.
      */
     mergeablePreview() {
       if (!this.smartMode || !overridesAreMergeable(this.value)) {
@@ -107,11 +120,11 @@ export default {
     },
 
     /**
-     * The preview shown in the right pane: the `preview` prop in controlled mode,
-     * or the sticky computed merge in smart mode (defaults until something valid
-     * is typed).
+     * The preview that should be shown: the `preview` prop in controlled mode, or
+     * the sticky merge in smart mode (defaults until something valid is typed).
+     * Lazy, like mergeablePreview - the template binds `previewValue` instead.
      */
-    effectivePreview() {
+    resolvedPreview() {
       if (!this.smartMode) {
         return this.preview;
       }
@@ -133,22 +146,55 @@ export default {
     },
   },
 
+  // Watch the cheap raw inputs (not the merge computeds, which would then run
+  // eagerly on every keystroke) and defer the heavy recompute until typing stops.
   watch: {
-    // Smart mode: remember the last valid merge so `effectivePreview` can keep
-    // showing it while the overrides are mid-edit/invalid. Immediate to seed on load.
-    mergeablePreview: {
-      handler(neu) {
-        if (neu !== null) {
-          this.lastValidPreview = neu;
-        }
-      },
-      immediate: true,
+    value() {
+      this.queuePreview();
     },
+    defaults() {
+      this.queuePreview();
+    },
+    preview() {
+      this.queuePreview();
+    },
+  },
 
-    effectivePreview(neu, old) {
+  created() {
+    this.queuePreview = debounce(this.recomputePreview, PREVIEW_DEBOUNCE_MS);
+
+    // Seed the preview synchronously so the read-only pane is correct on mount
+    // (mount is not a "change", so it must not go through the debounce).
+    if (this.mergeablePreview !== null) {
+      this.lastValidPreview = this.mergeablePreview;
+    }
+    this.previewValue = this.resolvedPreview;
+  },
+
+  beforeUnmount() {
+    this.queuePreview?.cancel();
+  },
+
+  methods: {
+    /**
+     * Recompute the preview and push it into the read-only editor. Debounced (via
+     * queuePreview) so the merge/serialize/diff/replace only runs once typing
+     * pauses, keeping the editable pane responsive on large values files.
+     */
+    recomputePreview() {
+      // Remember the last valid merge so the preview holds it while the overrides
+      // are mid-edit/invalid instead of reverting to the bare defaults.
+      if (this.mergeablePreview !== null) {
+        this.lastValidPreview = this.mergeablePreview;
+      }
+
+      const neu = this.resolvedPreview;
+      const old = this.previewValue;
       // Work out which lines changed before we replace the document, then flash
       // them once the new content is in place to draw the eye to the change.
       const changed = this.changedLineNumbers(old, neu);
+
+      this.previewValue = neu;
 
       this.$nextTick(() => {
         this.$refs.finalEditor?.updateValue(neu);
@@ -156,9 +202,7 @@ export default {
         this.$refs.finalEditor?.highlightLines(changed);
       });
     },
-  },
 
-  methods: {
     /**
      * Push a new value into the editable overrides editor. YamlEditor does not
      * react to its `value` prop, so a programmatic change to the overrides (e.g.
@@ -243,7 +287,7 @@ export default {
       <YamlEditor
         ref="finalEditor"
         class="values-pane__editor values-pane__editor--readonly"
-        :value="effectivePreview"
+        :value="previewValue"
         :component-testid="finalTestid"
         :scrolling="true"
         mode="view"
