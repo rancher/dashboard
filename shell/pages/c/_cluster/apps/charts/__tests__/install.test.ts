@@ -712,7 +712,7 @@ describe('page: Install', () => {
       await wrapper.vm.setImagePullSecretData();
 
       // the chosen secret is applied to the working values ...
-      expect(wrapper.vm.chartValues.global.imagePullSecrets).toStrictEqual(['my-pull-secret']);
+      expect((wrapper.vm.chartValues as any).global.imagePullSecrets).toStrictEqual(['my-pull-secret']);
 
       // ... and the editable pane holds overrides only - the diff from the defaults
       expect(jsyaml.load(wrapper.vm.valuesYaml)).toStrictEqual({ global: { imagePullSecrets: ['my-pull-secret'] } });
