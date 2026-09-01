@@ -662,7 +662,7 @@ export default {
           </Tabbed>
         </Tab>
         <template #tab-row-extras>
-          <li class="tablist-controls">
+          <div class="tablist-controls">
             <button
               v-if="!isView"
               type="button"
@@ -672,7 +672,7 @@ export default {
             >
               <i class="icon icon-plus pr-5" /> {{ t('workload.container.addContainer') }}
             </button>
-          </li>
+          </div>
         </template>
       </Tabbed>
     </CruResource>
