@@ -211,13 +211,14 @@ export async function installHelmChartWithRetry(
         throw error;
       }
 
+      const delay = ACTION_RETRY_DELAYS[attempt];
       const nextAttempt = attempt + 1;
 
-      console.log(`Installing harvester helm chart failed, attempt ${ nextAttempt }, wait ${ ACTION_RETRY_DELAYS[nextAttempt] / 1000 } second(s) and retry... `); // eslint-disable-line no-console
+      console.log(`Installing harvester helm chart failed, attempt ${ nextAttempt }, wait ${ delay / 1000 } second(s) and retry... `); // eslint-disable-line no-console
 
       onRetry?.(nextAttempt, ACTION_RETRY_DELAYS.length);
 
-      await new Promise((resolve) => setTimeout(resolve, ACTION_RETRY_DELAYS[nextAttempt]));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 }
