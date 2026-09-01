@@ -27,6 +27,20 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       .checkExists();
   });
 
+  // Issue 16894: create button should be disabled unless name is filled in
+  it('create namespace screen should only enable Create once the name is filled in', () => {
+    projectsNamespacesPage.createNamespaceButton().click();
+    createNamespacePage.resourceDetail().createEditView()
+      .createButton()
+      .expectToBeDisabled();
+    createNamespacePage.resourceDetail().createEditView().nameNsDescription()
+      .name()
+      .set('test-1234');
+    createNamespacePage.resourceDetail().createEditView()
+      .createButton()
+      .expectToBeEnabled();
+  });
+
   describe('Project creation', () => {
     beforeEach(() => {
       cy.createE2EResourceName('proj').as('projectName');
