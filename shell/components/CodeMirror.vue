@@ -49,7 +49,7 @@ export default {
     highlightTiming: {
       type:    Object,
       default: () => ({
-        fadeIn: 300, hold: 2000, fadeOut: 800
+        fadeIn: 600, hold: 2000, fadeOut: 800
       })
     },
   },

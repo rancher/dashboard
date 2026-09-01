@@ -128,6 +128,22 @@ describe('component: YamlOverridesEditor', () => {
     expect(highlightLines).toHaveBeenCalledWith([2]);
   });
 
+  it('still highlights the changed line in a huge preview', async() => {
+    const lines = Array.from({ length: 600 }, (_, i) => `k${ i }: ${ i }`);
+    const wrapper = mountEditor({ preview: `${ lines.join('\n') }\n` });
+
+    // change only the first line - it must still flash despite the doc's size
+    const changedLines = [...lines];
+
+    changedLines[0] = 'k0: changed';
+
+    await wrapper.setProps({ preview: `${ changedLines.join('\n') }\n` });
+    jest.runAllTimers();
+    await wrapper.vm.$nextTick();
+
+    expect(highlightLines).toHaveBeenCalledWith([0]);
+  });
+
   describe('smart mode (defaults provided)', () => {
     const defaults = {
       service: {
@@ -210,6 +226,18 @@ describe('component: YamlOverridesEditor', () => {
       const wrapper = mountEditor();
 
       expect((wrapper.vm as any).changedLineNumbers('a: 1\n', 'a: 1\n')).toStrictEqual([]);
+    });
+
+    it('pinpoints a single changed line deep in a large document', () => {
+      const wrapper = mountEditor();
+      const oldLines = Array.from({ length: 1000 }, (_, i) => `k${ i }: ${ i }`);
+      const neuLines = [...oldLines];
+
+      neuLines[500] = 'k500: changed';
+
+      const changed = (wrapper.vm as any).changedLineNumbers(`${ oldLines.join('\n') }\n`, `${ neuLines.join('\n') }\n`);
+
+      expect(changed).toStrictEqual([500]);
     });
   });
 });

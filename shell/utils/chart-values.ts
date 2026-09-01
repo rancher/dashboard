@@ -68,6 +68,33 @@ export function overridesAreMergeable(overridesYaml: string): boolean {
 }
 
 /**
+ * Single-parse combination of `overridesAreMergeable` + `mergeOverrides`: returns
+ * the merged "final values" document when the overrides merge cleanly, or null for
+ * mid-edit/invalid overrides (a parse error or a bare scalar/array) that a merge
+ * would silently drop. Lets a caller get both answers from one parse.
+ */
+export function mergeOverridesIfMergeable(defaults: object, overridesYaml: string): string | null {
+  let overrides: unknown;
+
+  try {
+    overrides = jsyaml.load(overridesYaml || '');
+  } catch (e) {
+    return null;
+  }
+
+  if (overrides === undefined || overrides === null) {
+    overrides = {};
+  } else if (!isPlainObject(overrides)) {
+    // A bare scalar/array isn't a Helm values mapping - not mergeable.
+    return null;
+  }
+
+  const combined = mergeWithReplace(merge({}, defaults || {}), overrides);
+
+  return saferDump(combined);
+}
+
+/**
  * Like `mergeOverrides`, but when the overrides don't parse it keeps the raw lines
  * instead of collapsing to the defaults: the longest valid leading part is merged
  * (keeping untouched siblings for context) and the rest is appended verbatim, so a

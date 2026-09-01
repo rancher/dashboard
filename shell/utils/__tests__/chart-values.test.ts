@@ -1,6 +1,6 @@
 import jsyaml from 'js-yaml';
 import {
-  mergeOverrides, mergeOverridesRawText, overridesFromValues, sameYamlOverrides, overridesAreMergeable
+  mergeOverrides, mergeOverridesIfMergeable, mergeOverridesRawText, overridesFromValues, sameYamlOverrides, overridesAreMergeable
 } from '@shell/utils/chart-values';
 
 describe('fx: chart-values', () => {
@@ -92,6 +92,49 @@ describe('fx: chart-values', () => {
       ['a top-level array', '- a\n- b'],
     ])('treats %s as not mergeable', (_label, input) => {
       expect(overridesAreMergeable(input)).toBe(false);
+    });
+  });
+
+  describe('mergeOverridesIfMergeable', () => {
+    it('returns the merged document when the overrides merge cleanly', () => {
+      const merged = mergeOverridesIfMergeable(defaults, 'service:\n  port: 9090\n');
+
+      expect(jsyaml.load(merged as string)).toStrictEqual({
+        image: {
+          repository: 'my/repo', tag: '1.0.0', pullPolicy: 'IfNotPresent'
+        },
+        service: {
+          port: 9090, targetPort: 8086, type: 'ClusterIP'
+        },
+        persistence: { enabled: true, size: '8Gi' },
+      });
+    });
+
+    it.each([
+      ['empty', ''],
+      ['null', null as any],
+      ['whitespace only', '  \n\n'],
+    ])('merges %s down to the bare defaults', (_label, input) => {
+      expect(jsyaml.load(mergeOverridesIfMergeable(defaults, input) as string)).toStrictEqual(defaults);
+    });
+
+    it.each([
+      ['invalid YAML', ':\n  not valid: :yaml'],
+      ['a bare string', 'foo'],
+      ['a scalar number', '42'],
+      ['a top-level array', '- a\n- b'],
+    ])('returns null for %s (not mergeable)', (_label, input) => {
+      expect(mergeOverridesIfMergeable(defaults, input)).toBeNull();
+    });
+
+    it('agrees with overridesAreMergeable + mergeOverrides', () => {
+      const inputs = ['service:\n  port: 9090\n', '', 'foo', '- a\n- b', ':\n  bad: :yaml'];
+
+      inputs.forEach((input) => {
+        const expected = overridesAreMergeable(input) ? mergeOverrides(defaults, input) : null;
+
+        expect(mergeOverridesIfMergeable(defaults, input)).toStrictEqual(expected);
+      });
     });
   });
 

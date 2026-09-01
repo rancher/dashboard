@@ -2,12 +2,12 @@
 import { diffLines } from 'diff';
 import debounce from 'lodash/debounce';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
-import { mergeOverrides, overridesAreMergeable } from '@shell/utils/chart-values';
+import { mergeOverrides, mergeOverridesIfMergeable } from '@shell/utils/chart-values';
 
 // Delay before the preview recomputes after the last keystroke. The merge +
 // serialize + diff + full editor replace is O(document), so we defer it until
 // typing pauses to keep the editable pane responsive on large values files.
-const PREVIEW_DEBOUNCE_MS = 250;
+const PREVIEW_DEBOUNCE_MS = 200;
 
 /**
  * Two-pane YAML values editor: a LEFT editable "overrides" pane and a RIGHT
@@ -112,11 +112,11 @@ export default {
      * run on every keystroke.
      */
     mergeablePreview() {
-      if (!this.smartMode || !overridesAreMergeable(this.value)) {
+      if (!this.smartMode) {
         return null;
       }
 
-      return mergeOverrides(this.defaults || {}, this.value);
+      return mergeOverridesIfMergeable(this.defaults || {}, this.value);
     },
 
     /**
@@ -216,16 +216,52 @@ export default {
      * The 0-based line numbers in `neu` that were added or changed relative to
      * `old`. Skips the initial population (empty `old`) so the whole preview
      * doesn't flash the first time it is filled in.
+     *
+     * A typical edit only touches a small contiguous region, so we first trim the
+     * common leading/trailing lines (an O(n) scan) and run the diff on just that
+     * window. This keeps highlighting fast on huge values files without capping it.
      */
     changedLineNumbers(old, neu) {
       if (!old) {
         return [];
       }
 
+      const oldLines = (old || '').split('\n');
+      const neuLines = (neu || '').split('\n');
+
+      // Common leading lines: unchanged, and their indices line up in both docs.
+      let prefix = 0;
+
+      while (prefix < oldLines.length && prefix < neuLines.length && oldLines[prefix] === neuLines[prefix]) {
+        prefix++;
+      }
+
+      // Common trailing lines, not overlapping the prefix already matched.
+      let suffix = 0;
+
+      while (
+        suffix < oldLines.length - prefix &&
+        suffix < neuLines.length - prefix &&
+        oldLines[oldLines.length - 1 - suffix] === neuLines[neuLines.length - 1 - suffix]
+      ) {
+        suffix++;
+      }
+
+      // Diff only the changed window, then shift the results back to full-doc
+      // indices. Each window keeps a trailing newline so diffLines tokenizes its
+      // last line the same way on both sides (tokens carry their own newline).
+      const oldWindow = `${ oldLines.slice(prefix, oldLines.length - suffix).join('\n') }\n`;
+      const neuWindow = `${ neuLines.slice(prefix, neuLines.length - suffix).join('\n') }\n`;
+
+      return this.addedLineNumbers(oldWindow, neuWindow).map((n) => n + prefix);
+    },
+
+    /** The 0-based indices of lines added/changed in `neu` relative to `old`. */
+    addedLineNumbers(old, neu) {
       const lines = [];
       let lineNo = 0;
 
-      diffLines(old || '', neu || '').forEach((part) => {
+      diffLines(old, neu).forEach((part) => {
         if (part.removed) {
           // Removed lines aren't in the new document, so don't advance the counter.
           return;
