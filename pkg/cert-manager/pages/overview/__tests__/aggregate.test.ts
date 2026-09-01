@@ -7,7 +7,7 @@ import {
 import type { StatefulResource, ExpiringCertificate, OverviewRouteFn } from '../types';
 
 const t = (key: string, args?: Record<string, unknown>) => (args ? `${ key }:${ args.count }` : key);
-const routeFor: OverviewRouteFn = (type: string) => ({ type } as any);
+const routeFor: OverviewRouteFn = (type: string, state?: string) => (state ? { type, query: { stateFilter: state } } : { type }) as any;
 
 const res = (state: string, stateSimpleColor: any): StatefulResource => ({ state, stateSimpleColor });
 
@@ -59,8 +59,9 @@ describe('cert-manager overview aggregate', () => {
       // ordered most-critical first: error before active, regardless of input order
       expect(card.rows.map((r) => r.color)).toStrictEqual(['error', 'success']);
       expect(card.rows[0].count).toBe(1);
-      // rows are informational, not links - the list cannot filter on our computed states
-      expect((card.rows[0] as any).to).toBeUndefined();
+      // each row deep-links to the list filtered to its state
+      expect(card.rows[0].to).toStrictEqual({ type: CERT_MANAGER.ISSUER, query: { stateFilter: STATES_ENUM.ERROR } });
+      expect(card.rows[1].to).toStrictEqual({ type: CERT_MANAGER.ISSUER, query: { stateFilter: STATES_ENUM.ACTIVE } });
       expect(card.to).toStrictEqual({ type: CERT_MANAGER.ISSUER });
     });
 

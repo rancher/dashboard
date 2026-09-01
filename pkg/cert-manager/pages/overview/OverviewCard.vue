@@ -12,8 +12,8 @@ import type { OverviewStatusCard } from './types';
 
 /**
  * A stacked-bar-plus-rows card, matching the workload dashboard's "by type" cards. The whole card
- * is a link to the resource list. Rows are informational only - see aggregate.ts for why they do
- * not deep-link to a state-filtered list.
+ * links to the resource list; each state row deep-links to that list filtered to its state. A plain
+ * click on the card body (not on a row link) still opens the unfiltered list - see handleClick.
  */
 const props = defineProps<{ card: OverviewStatusCard }>();
 
@@ -73,7 +73,17 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
             :style="{ backgroundColor: stateColorCssVar(row.color) }"
             aria-hidden="true"
           />
-          <span class="label">{{ row.label }}</span>
+          <router-link
+            v-if="row.to"
+            :to="row.to"
+            class="label link"
+          >
+            {{ row.label }}
+          </router-link>
+          <span
+            v-else
+            class="label"
+          >{{ row.label }}</span>
           <RcCounterBadge
             :count="row.count"
             type="inactive"

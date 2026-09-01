@@ -86,9 +86,9 @@ function toSegments(counts: StateCount[], total: number): { color: StateColor; p
 
 /**
  * Build a stacked-bar + rows card from a set of resources, ordered by `order`. `routeFor` links the
- * whole card to the resource list. Rows are not links: the list filters on Steve's generic
- * `metadata.state.name`, not the domain state this model computes (expiring, in-progress, ...), so a
- * per-state deep-link would return empty or mismatched results. See utils/state.ts.
+ * whole card to the resource list, and each row deep-links to that list filtered to its state. The
+ * list filters client-side on the same model `state` getter these rows are built from, so the two
+ * always agree - including for states the backend cannot filter (expiring, in-progress, ...).
  */
 export function buildStatusCard(
   key: string,
@@ -106,6 +106,7 @@ export function buildStatusCard(
     label: stateDisplay(c.state, true),
     color: c.color,
     count: c.count,
+    to:    routeFor(type, c.state),
   }));
 
   return {

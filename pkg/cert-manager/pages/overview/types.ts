@@ -12,6 +12,8 @@ export interface OverviewStatRow {
   label: string;
   color: StateColor;
   count: number;
+  /** Links to the resource list filtered to this state (via `?stateFilter=`). */
+  to?: RouteLocationRaw;
 }
 
 /** An optional "create" call-to-action rendered in a card's header. */
@@ -50,4 +52,4 @@ export interface ExpiringCertificate {
   stateSimpleColor: StateColor;
 }
 
-export type OverviewRouteFn = (type: string) => RouteLocationRaw;
+export type OverviewRouteFn = (type: string, state?: string) => RouteLocationRaw;

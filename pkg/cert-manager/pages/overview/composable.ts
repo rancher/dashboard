@@ -58,15 +58,16 @@ export function useCertManagerOverview() {
 
   // ── Routing ──
 
-  // Links a card to its resource list. We deliberately do not pre-filter by state: the list filters
-  // on Steve's generic `metadata.state.name`, which does not match the domain state this overview
-  // computes (expiring, in-progress, ...), so a `?stateFilter=` deep-link returns empty or
-  // mismatched results. See utils/state.ts.
-  const resourceRoute: OverviewRouteFn = (type: string): RouteLocationRaw => ({
+  // Links to a resource list. With a `state`, deep-links to that list filtered to the state via
+  // `?stateFilter=`. The list filters client-side on the same model `state` getter these buckets are
+  // built from (see list/cert-manager.io.certificate.vue), so bucket and filter always agree -
+  // including for states the backend does not store under `metadata.state.name` (expiring, ...).
+  const resourceRoute: OverviewRouteFn = (type: string, state?: string): RouteLocationRaw => ({
     name:   'c-cluster-product-resource',
     params: {
       cluster: clusterId.value, product: 'explorer', resource: type
     },
+    ...(state ? { query: { stateFilter: state } } : {}),
   });
 
   function createRoute(type: string): RouteLocationRaw {
