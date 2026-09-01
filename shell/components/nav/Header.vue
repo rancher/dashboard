@@ -295,7 +295,9 @@ export default {
           this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
           this.updateExtensionActionsEnabled();
 
-          this.navHeaderRight = this.$extension?.getDynamic('component', 'NavHeaderRight');
+          // getDynamic marks component definitions raw, so they stay out of the
+          // reactivity system (avoids the Vue reactive-component warning + overhead).
+          this.navHeaderRight = this.$extension?.getDynamic('component', 'NavHeaderRight') || null;
         }
       },
       immediate: true,
