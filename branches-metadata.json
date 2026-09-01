@@ -9,12 +9,12 @@
         "rancher-image": {
           "namespace": "rancher",
           "name": "rancher",
-          "tag": "head"
+          "tag": "v2.16-f7438dd41feff6f30a6c265ba3514e09ede36186-head"
         },
         "rancher-agent": {
           "namespace": "rancher",
           "name": "rancher-agent",
-          "tag": "head"
+          "tag": "v2.16-f7438dd41feff6f30a6c265ba3514e09ede36186-head"
         },
         "runtime-rancher-version": "2.15.0",
         "helm": {
