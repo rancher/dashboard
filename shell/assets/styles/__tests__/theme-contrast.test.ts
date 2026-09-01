@@ -188,4 +188,25 @@ describe('theme colour contrast (WCAG 2.1 AA)', () => {
       expect(ratio(themes.light, '#FFFFFF', '--rc-primary-hover')).toBeGreaterThanOrEqual(TEXT);
     });
   });
+
+  describe('prime light', () => {
+    // Prime's selection used to be a solid $green-140, off the jungle ramp the buttons are
+    // built from. Pointing it at the CTA's hover and pressed fills keeps it in that family.
+    it('paints selection with the primary button family', () => {
+      const tokens = themes.primeLight;
+
+      expect(resolve(tokens, '--active')).toBe(resolve(tokens, '--primary-hover'));
+      expect(resolve(tokens, '--active-hover')).toBe(resolve(tokens, '--primary-active-bg'));
+    });
+
+    // $green-20/$green-40 read minty as UI surfaces, so the tinted surfaces use a
+    // desaturated sage pair instead. One pair, shared, rather than a tint per component.
+    it('tints every surface from a single sage pair', () => {
+      const tokens = themes.primeLight;
+
+      expect(resolve(tokens, '--category-active')).toBe(resolve(tokens, '--tertiary'));
+      expect(resolve(tokens, '--category-active-hover')).toBe(resolve(tokens, '--tertiary-hover'));
+      expect(resolve(tokens, '--secondary-hover')).toBe(resolve(tokens, '--tertiary'));
+    });
+  });
 });
