@@ -178,7 +178,6 @@ export default {
 
       this.breadcrumbs = breadcrumbs;
       this.definition = this.definitions[goto.id];
-      this.expanded = {};
       this.expandAll = false;
       this.notFound = false;
 

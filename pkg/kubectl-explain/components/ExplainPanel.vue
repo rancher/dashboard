@@ -37,6 +37,13 @@ export default {
   },
 
   watch: {
+    // Expansion is keyed by field name, so it would otherwise carry over to the
+    // next definition shown in this panel - a Pod with 'spec' open would leave
+    // Deployment's 'spec' open too.
+    definition() {
+      this.expanded = {};
+    },
+
     expandAll(neu, old) {
       if (neu !== old) {
         this.fields.forEach((field) => {
