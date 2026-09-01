@@ -30,7 +30,7 @@ import {
   TYPE,
 } from '@shell/config/table-headers';
 
-import { DSL } from '@shell/store/type-map';
+import { DSL, IF_HAVE } from '@shell/store/type-map';
 import {
   STEVE_AGE_COL, STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_EVENT_TYPE, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL,
   STEVE_WORKLOAD_HEALTH_SCALE
@@ -397,8 +397,7 @@ export function init(store) {
   );
   headers(WORKLOAD_TYPES.REPLICA_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL],
-    // STEVE_WORKLOAD_HEALTH_SCALE should added once https://github.com/rancher/rancher/issues/56210 is resolved
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE],
   );
   headers(WORKLOAD_TYPES.STATEFUL_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
@@ -634,10 +633,9 @@ export function init(store) {
     exact:        false,
     'exact-path': true,
     navResources: [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING],
-    ifHaveType:   {
-      type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-      store: 'management'
-    }
+    // Show if the user can access cluster OR project role bindings, so a user with only
+    // "Manage Project Members" can reach the Cluster and Project Members page.
+    ifHave:       IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS
   });
 
   virtualType({
