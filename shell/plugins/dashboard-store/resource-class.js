@@ -1,0 +1,2374 @@
+import { NORMAN_NAME } from '@shell/config/labels-annotations';
+import { getVersionData } from '@shell/config/version';
+import { parseRancherVersion } from '@shell/config/uiplugins';
+import semver from 'semver';
+import {
+  _CLONE,
+  _CONFIG,
+  _EDIT,
+  _UNFLAG,
+  _VIEW,
+  _YAML,
+  AS,
+  MODE
+} from '@shell/config/query-params';
+import { EVENT } from '@shell/config/types';
+import { VIEW_IN_API, DEV } from '@shell/store/prefs';
+import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
+import CustomValidators from '@shell/utils/custom-validators';
+import { downloadFile, generateZip } from '@shell/utils/download';
+import { clone, get } from '@shell/utils/object';
+import { eachLimit } from '@shell/utils/promise';
+import { sortableNumericSuffix } from '@shell/utils/sort';
+import { escapeHtml, ucFirst } from '@shell/utils/string';
+import {
+  validateChars,
+  validateDnsLikeTypes,
+  validateLength,
+} from '@shell/utils/validators';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import { waitFor } from '@shell/utils/async';
+import jsyaml from 'js-yaml';
+import compact from 'lodash/compact';
+import forIn from 'lodash/forIn';
+import isEmpty from 'lodash/isEmpty';
+import isFunction from 'lodash/isFunction';
+import isString from 'lodash/isString';
+import { defineAsyncComponent, markRaw } from 'vue';
+
+import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
+import { ExtensionPoint, ActionLocation } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { parse } from '@shell/utils/selector';
+import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+
+export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
+
+const REMAP_STATE = {
+  disabled:                 'inactive',
+  notapplied:               'Not Applied',
+  notready:                 'Not Ready',
+  waitapplied:              'Wait Applied',
+  outofsync:                'Out of Sync',
+  'in-progress':            'In Progress',
+  gitupdating:              'Git Updating',
+  errapplied:               'Err Applied',
+  waitcheckin:              'Wait Check-In',
+  off:                      'Disabled',
+  waitingforinfrastructure: 'Waiting for Infra',
+  waitingfornoderef:        'Waiting for Node Ref'
+};
+
+const DEFAULT_COLOR = 'warning';
+const DEFAULT_ICON = 'x';
+
+const DEFAULT_WAIT_INTERVAL = 1000;
+const DEFAULT_WAIT_TIMEOUT = 30000;
+
+export const STATES_ENUM = {
+  IN_USE:           'in-use',
+  IN_PROGRESS:      'in-progress',
+  PENDING_ROLLBACK: 'pending-rollback',
+  PENDING_UPGRADE:  'pending-upgrade',
+  ABORTED:          'aborted',
+  ACTIVATING:       'activating',
+  ACTIVE:           'active',
+  AVAILABLE:        'available',
+  BACKED_UP:        'backedup',
+  BOUND:            'bound',
+  BUILDING:         'building',
+  COMPLETED:        'completed',
+  CORDONED:         'cordoned',
+  CANCELLED:        'cancelled',
+  COUNT:            'count',
+  CREATED:          'created',
+  CREATING:         'creating',
+  DEACTIVATING:     'deactivating',
+  DEGRADED:         'degraded',
+  DENIED:           'denied',
+  DEPLOYED:         'deployed',
+  DEPLOYING:        'deploying',
+  DISABLED:         'disabled',
+  DISCONNECTED:     'disconnected',
+  DRAINED:          'drained',
+  DRAINING:         'draining',
+  ENABLED:          'enabled',
+  ERR_APPLIED:      'errapplied',
+  ERROR:            'error',
+  ERRORING:         'erroring',
+  ERRORS:           'errors',
+  EXPIRED:          'expired',
+  EXPIRING:         'expiring',
+  FAIL:             'fail',
+  FAILED:           'failed',
+  HEALTHY:          'healthy',
+  INACTIVE:         'inactive',
+  INFO:             'info',
+  INITIALIZING:     'initializing',
+  INPROGRESS:       'inprogress',
+  LOCKED:           'locked',
+  MIGRATING:        'migrating',
+  MISSING:          'missing',
+  MODIFIED:         'modified',
+  NOT_APPLICABLE:   'notApplicable',
+  NOT_APLLIED:      'notapplied',
+  NOT_READY:        'notready',
+  OFF:              'off',
+  ORPHANED:         'orphaned',
+  OTHER:            'other',
+  OUT_OF_SYNC:      'outofsync',
+  ON_GOING:         'on-going',
+  PASS:             'pass',
+  PASSED:           'passed',
+  PAUSED:           'paused',
+  PENDING:          'pending',
+  PROVISIONING:     'provisioning',
+  PROVISIONED:      'provisioned',
+  PURGED:           'purged',
+  PURGING:          'purging',
+  READY:            'ready',
+  RECONNECTING:     'reconnecting',
+  REGISTERING:      'registering',
+  REINITIALIZING:   'reinitializing',
+  RELEASED:         'released',
+  REMOVED:          'removed',
+  REMOVING:         'removing',
+  REQUESTED:        'requested',
+  RESTARTING:       'restarting',
+  RESTORING:        'restoring',
+  RESIZING:         'resizing',
+  RUNNING:          'running',
+  SKIP:             'skip',
+  SKIPPED:          'skipped',
+  STARTING:         'starting',
+  STOPPED:          'stopped',
+  STOPPING:         'stopping',
+  SUCCEEDED:        'succeeded',
+  SUCCESS:          'success',
+  SUCCESSFUL:       'successful',
+  SUPERSEDED:       'superseded',
+  SUSPENDED:        'suspended',
+  UNAVAILABLE:      'unavailable',
+  UNHEALTHY:        'unhealthy',
+  UNINSTALLED:      'uninstalled',
+  UNINSTALLING:     'uninstalling',
+  UNKNOWN:          'unknown',
+  UNTRIGGERED:      'untriggered',
+  UPDATING:         'updating',
+  WAIT_APPLIED:     'waitapplied',
+  WAIT_CHECKIN:     'waitcheckin',
+  WAITING:          'waiting',
+  WARNING:          'warning',
+};
+
+export function mapStateToEnum(statusString) {
+  // e.g. in fleet Status is Capitalized. This function will map it to the enum
+  return Object.values(STATES_ENUM).find((val) => {
+    return val.toLowerCase() === statusString.toLocaleLowerCase();
+  });
+}
+
+export const STATES = {
+  [STATES_ENUM.IN_USE]: {
+    color: 'success', icon: 'dot-open', label: 'In Use', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.IN_PROGRESS]: {
+    color: 'info', icon: 'tag', label: 'In Progress', compoundIcon: 'info'
+  },
+  [STATES_ENUM.PENDING_ROLLBACK]: {
+    color: 'info', icon: 'dot-half', label: 'Pending Rollback', compoundIcon: 'info'
+  },
+  [STATES_ENUM.PENDING_UPGRADE]: {
+    color: 'info', icon: 'dot-half', label: 'Pending Update', compoundIcon: 'info'
+  },
+  [STATES_ENUM.ABORTED]: {
+    color: 'warning', icon: 'error', label: 'Aborted', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.ACTIVATING]: {
+    color: 'info', icon: 'tag', label: 'Activating', compoundIcon: 'info'
+  },
+  [STATES_ENUM.ACTIVE]: {
+    color: 'success', icon: 'dot-open', label: 'Active', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.AVAILABLE]: {
+    color: 'success', icon: 'dot-open', label: 'Available', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.BACKED_UP]: {
+    color: 'success', icon: 'backup', label: 'Backed Up', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.BOUND]: {
+    color: 'success', icon: 'dot', label: 'Bound', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.BUILDING]: {
+    color: 'success', icon: 'dot-open', label: 'Building', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.COMPLETED]: {
+    color: 'success', icon: 'dot', label: 'Completed', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.CORDONED]: {
+    color: 'info', icon: 'tag', label: 'Cordoned', compoundIcon: 'info'
+  },
+  [STATES_ENUM.CANCELLED]: {
+    color: 'warning', icon: 'error', label: 'Cancelled', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.COUNT]: {
+    color: 'success', icon: 'dot-open', label: 'Count', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.CREATED]: {
+    color: 'info', icon: 'tag', label: 'Created', compoundIcon: 'info'
+  },
+  [STATES_ENUM.CREATING]: {
+    color: 'info', icon: 'tag', label: 'Creating', compoundIcon: 'info'
+  },
+  [STATES_ENUM.DEACTIVATING]: {
+    color: 'info', icon: 'adjust', label: 'Deactivating', compoundIcon: 'info'
+  },
+  [STATES_ENUM.DEGRADED]: {
+    color: 'warning', icon: 'error', label: 'Degraded', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.DENIED]: {
+    color: 'error', icon: 'adjust', label: 'Denied', compoundIcon: 'error'
+  },
+  [STATES_ENUM.DEPLOYED]: {
+    color: 'success', icon: 'dot-open', label: 'Deployed', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.DISABLED]: {
+    color: 'warning', icon: 'error', label: 'Disabled', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.DISCONNECTED]: {
+    color: 'warning', icon: 'error', label: 'Disconnected', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.DRAINED]: {
+    color: 'info', icon: 'tag', label: 'Drained', compoundIcon: 'info'
+  },
+  [STATES_ENUM.DRAINING]: {
+    color: 'warning', icon: 'tag', label: 'Draining', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.ENABLED]: {
+    color: 'success', icon: 'dot-open', label: 'Enabled', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.ERR_APPLIED]: {
+    color: 'error', icon: 'error', label: 'Error Applied', compoundIcon: 'error'
+  },
+  [STATES_ENUM.ERROR]: {
+    color: 'error', icon: 'error', label: 'Error', compoundIcon: 'error'
+  },
+  [STATES_ENUM.ERRORING]: {
+    color: 'error', icon: 'error', label: 'Erroring', compoundIcon: 'error'
+  },
+  [STATES_ENUM.ERRORS]: {
+    color: 'error', icon: 'error', label: 'Errors', compoundIcon: 'error'
+  },
+  [STATES_ENUM.EXPIRED]: {
+    color: 'error', icon: 'error', label: 'Expired', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.EXPIRING]: {
+    color: 'warning', icon: 'error', label: 'Expiring', compoundIcon: 'error'
+  },
+  [STATES_ENUM.FAIL]: {
+    color: 'error', icon: 'error', label: 'Fail', compoundIcon: 'error'
+  },
+  [STATES_ENUM.FAILED]: {
+    color: 'error', icon: 'error', label: 'Failed', compoundIcon: 'error'
+  },
+  [STATES_ENUM.HEALTHY]: {
+    color: 'success', icon: 'dot-open', label: 'Healthy', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.INACTIVE]: {
+    color: 'error', icon: 'dot', label: 'Inactive', compoundIcon: 'error'
+  },
+  [STATES_ENUM.INITIALIZING]: {
+    color: 'warning', icon: 'error', label: 'Initializing', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.INPROGRESS]: {
+    color: 'info', icon: 'spinner', label: 'In Progress', compoundIcon: 'info'
+  },
+  [STATES_ENUM.INFO]: {
+    color: 'info', icon: 'info', label: 'Info', compoundIcon: 'info'
+  },
+  [STATES_ENUM.LOCKED]: {
+    color: 'warning', icon: 'adjust', label: 'Locked', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.MIGRATING]: {
+    color: 'info', icon: 'info', label: 'Migrated', compoundIcon: 'info'
+  },
+  [STATES_ENUM.MISSING]: {
+    color: 'warning', icon: 'adjust', label: 'Missing', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.MODIFIED]: {
+    color: 'warning', icon: 'edit', label: 'Modified', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.NOT_APPLICABLE]: {
+    color: 'warning', icon: 'tag', label: 'Not Applicable', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.NOT_APLLIED]: {
+    color: 'warning', icon: 'tag', label: 'Not Applied', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.NOT_READY]: {
+    color: 'warning', icon: 'tag', label: 'Not Ready', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.OFF]: {
+    color: 'darker', icon: 'error', label: 'Off'
+  },
+  [STATES_ENUM.ON_GOING]: {
+    color: 'info', icon: 'info', label: 'Info', compoundIcon: 'info'
+  },
+  [STATES_ENUM.ORPHANED]: {
+    color: 'warning', icon: 'tag', label: 'Orphaned', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.OTHER]: {
+    color: 'info', icon: 'info', label: 'Other', compoundIcon: 'info'
+  },
+  [STATES_ENUM.OUT_OF_SYNC]: {
+    color: 'warning', icon: 'tag', label: 'Out Of Sync', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.PASS]: {
+    color: 'success', icon: 'dot-dotfill', label: 'Pass', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.PASSED]: {
+    color: 'success', icon: 'dot-dotfill', label: 'Passed', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.PAUSED]: {
+    color: 'info', icon: 'info', label: 'Paused', compoundIcon: 'info'
+  },
+  [STATES_ENUM.PENDING]: {
+    color: 'info', icon: 'tag', label: 'Pending', compoundIcon: 'info'
+  },
+  [STATES_ENUM.PROVISIONING]: {
+    color: 'info', icon: 'dot', label: 'Provisioning', compoundIcon: 'info'
+  },
+  [STATES_ENUM.PROVISIONED]: {
+    color: 'success', icon: 'dot', label: 'Provisioned', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.PURGED]: {
+    color: 'error', icon: 'purged', label: 'Purged', compoundIcon: 'error'
+  },
+  [STATES_ENUM.PURGING]: {
+    color: 'info', icon: 'purged', label: 'Purging', compoundIcon: 'info'
+  },
+  [STATES_ENUM.READY]: {
+    color: 'success', icon: 'dot-open', label: 'Ready', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.RECONNECTING]: {
+    color: 'error', icon: 'error', label: 'Reconnecting', compoundIcon: 'error'
+  },
+  [STATES_ENUM.REGISTERING]: {
+    color: 'info', icon: 'tag', label: 'Registering', compoundIcon: 'info'
+  },
+  [STATES_ENUM.REINITIALIZING]: {
+    color: 'warning', icon: 'error', label: 'Reinitializing', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.RELEASED]: {
+    color: 'warning', icon: 'error', label: 'Released', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.REMOVED]: {
+    color: 'error', icon: 'trash', label: 'Removed', compoundIcon: 'error'
+  },
+  [STATES_ENUM.REMOVING]: {
+    color: 'info', icon: 'trash', label: 'Removing', compoundIcon: 'info'
+  },
+  [STATES_ENUM.REQUESTED]: {
+    color: 'info', icon: 'tag', label: 'Requested', compoundIcon: 'info'
+  },
+  [STATES_ENUM.RESTARTING]: {
+    color: 'info', icon: 'adjust', label: 'Restarting', compoundIcon: 'info'
+  },
+  [STATES_ENUM.RESTORING]: {
+    color: 'info', icon: 'medicalcross', label: 'Restoring', compoundIcon: 'info'
+  },
+  [STATES_ENUM.RESIZING]: {
+    color: 'warning', icon: 'dot', label: 'Resizing', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.RUNNING]: {
+    color: 'success', icon: 'dot-open', label: 'Running', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.SKIP]: {
+    color: 'info', icon: 'dot-open', label: 'Skip', compoundIcon: 'info'
+  },
+  [STATES_ENUM.SKIPPED]: {
+    color: 'info', icon: 'dot-open', label: 'Skipped', compoundIcon: 'info'
+  },
+  [STATES_ENUM.STARTING]: {
+    color: 'info', icon: 'adjust', label: 'Starting', compoundIcon: 'info'
+  },
+  [STATES_ENUM.STOPPED]: {
+    color: 'error', icon: 'dot', label: 'Stopped', compoundIcon: 'error'
+  },
+  [STATES_ENUM.STOPPING]: {
+    color: 'info', icon: 'adjust', label: 'Stopping', compoundIcon: 'info'
+  },
+  [STATES_ENUM.SUCCEEDED]: {
+    color: 'success', icon: 'dot-dotfill', label: 'Succeeded', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.SUCCESS]: {
+    color: 'success', icon: 'dot-open', label: 'Success', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.SUCCESSFUL]: {
+    color: 'success', icon: 'dot-open', label: 'Successful'
+  },
+  [STATES_ENUM.SUPERSEDED]: {
+    color: 'info', icon: 'dot-open', label: 'Superseded', compoundIcon: 'info'
+  },
+  [STATES_ENUM.SUSPENDED]: {
+    color: 'info', icon: 'pause', label: 'Suspended', compoundIcon: 'info'
+  },
+  [STATES_ENUM.UNAVAILABLE]: {
+    color: 'error', icon: 'error', label: 'Unavailable', compoundIcon: 'error'
+  },
+  [STATES_ENUM.UNHEALTHY]: {
+    color: 'error', icon: 'error', label: 'Unhealthy', compoundIcon: 'error'
+  },
+  [STATES_ENUM.UNINSTALLED]: {
+    color: 'info', icon: 'trash', label: 'Uninstalled', compoundIcon: 'info'
+  },
+  [STATES_ENUM.UNINSTALLING]: {
+    color: 'info', icon: 'trash', label: 'Uninstalling', compoundIcon: 'info'
+  },
+  [STATES_ENUM.UNKNOWN]: {
+    color: 'warning', icon: 'x', label: 'Unknown', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.UNTRIGGERED]: {
+    color: 'success', icon: 'tag', label: 'Untriggered', compoundIcon: 'checkmark'
+  },
+  [STATES_ENUM.UPDATING]: {
+    color: 'warning', icon: 'tag', label: 'Updating', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.WAIT_APPLIED]: {
+    color: 'info', icon: 'tag', label: 'Wait Applied', compoundIcon: 'info'
+  },
+  [STATES_ENUM.WAIT_CHECKIN]: {
+    color: 'warning', icon: 'tag', label: 'Wait Checkin', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.WAITING]: {
+    color: 'info', icon: 'tag', label: 'Waiting', compoundIcon: 'info'
+  },
+  [STATES_ENUM.WARNING]: {
+    color: 'warning', icon: 'error', label: 'Warning', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.DEPLOYING]: {
+    color: 'info', icon: 'info', label: 'Deploying', compoundIcon: 'info'
+  },
+};
+
+export function getStatesByType(type = 'info') {
+  const out = {
+    info:    [],
+    error:   [],
+    success: [],
+    warning: [],
+    unknown: [],
+  };
+
+  forIn(STATES, (state, stateKey) => {
+    if (state.color) {
+      if (out[state.color]) {
+        out[state.color].push(stateKey);
+      } else {
+        out.unknown.push(stateKey);
+      }
+    }
+  });
+
+  return out;
+}
+
+const SORT_ORDER = {
+  error:    1,
+  warning:  2,
+  info:     3,
+  success:  4,
+  ready:    5,
+  notready: 6,
+  other:    7,
+};
+
+export function getStateLabel(state) {
+  const lowercaseState = state.toLowerCase();
+
+  return STATES[lowercaseState] ? STATES[lowercaseState].label : STATES[STATES_ENUM.UNKNOWN].label;
+}
+
+export function colorForState(state, isError, isTransitioning) {
+  if ( isError ) {
+    return 'text-error';
+  }
+
+  if ( isTransitioning ) {
+    return 'text-info';
+  }
+
+  const key = (state || 'active').toLowerCase();
+  let color;
+
+  if ( STATES[key] && STATES[key].color ) {
+    color = maybeFn.call(this, STATES[key].color);
+  }
+
+  if ( !color ) {
+    color = DEFAULT_COLOR;
+  }
+
+  return `text-${ color }`;
+}
+
+export function simpleColorForState(state, isError = false, isTransitioning = false) {
+  return colorForState(state, isError, isTransitioning).replace('text-', '') || 'disabled';
+}
+
+export function stateDisplay(state, preserveOriginal = false) {
+  // @TODO use translations
+  const key = (state || 'active').toLowerCase();
+
+  if ( REMAP_STATE[key] ) {
+    return REMAP_STATE[key];
+  }
+
+  // Preserves the original state name returned by the
+  if ( preserveOriginal ) {
+    return ucFirst(state);
+  }
+
+  return key.split(/-/).map(ucFirst).join('-');
+}
+
+export function primaryDisplayStatusFromCount(status) {
+  const statusOrder = [
+    STATES_ENUM.ERROR,
+    STATES_ENUM.FAILED,
+    STATES_ENUM.WARNING,
+    STATES_ENUM.MODIFIED,
+    STATES_ENUM.WAIT_APPLIED,
+    STATES_ENUM.ORPHANED,
+    STATES_ENUM.MISSING,
+    STATES_ENUM.UNKNOWN,
+    STATES_ENUM.NOT_READY,
+    STATES_ENUM.READY,
+  ];
+
+  // sort status by order of statusOrder
+  const existingStatuses = Object.keys(status).filter((key) => {
+    return status[key] > 0 && statusOrder.includes(key.toLowerCase());
+  }).sort((a, b) => statusOrder.indexOf(a.toLowerCase()) - statusOrder.indexOf(b.toLowerCase()));
+
+  return existingStatuses[0] ? existingStatuses[0] : STATES_ENUM.UNKNOWN;
+}
+
+export function stateSort(color, display) {
+  color = color.replace(/^(text|bg)-/, '');
+
+  return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ display }`;
+}
+
+export function isConditionReadyAndWaiting(condition) {
+  if (!condition) {
+    return false;
+  }
+
+  return condition?.type?.toLowerCase() === 'ready' && condition?.reason?.toLowerCase() === 'waiting';
+}
+
+function maybeFn(val) {
+  if ( isFunction(val) ) {
+    return val(this);
+  }
+
+  return val;
+}
+
+export default class Resource {
+  constructor(data, ctx = {}, rehydrateNamespace = null, setClone = false) {
+    for ( const k in data ) {
+      this[k] = data[k];
+    }
+
+    Object.defineProperty(this, '$ctx', {
+      value:      markRaw(ctx),
+      enumerable: false,
+    });
+
+    if ( rehydrateNamespace ) {
+      Object.defineProperty(this, '__rehydrate', {
+        value:        rehydrateNamespace,
+        enumerable:   true,
+        configurable: true
+      });
+    }
+
+    if ( setClone ) {
+      Object.defineProperty(this, '__clone', {
+        value:        true,
+        enumerable:   true,
+        configurable: true,
+        writable:     true
+      });
+    }
+  }
+
+  get '$getters'() {
+    return this.$ctx.getters;
+  }
+
+  get '$rootGetters'() {
+    return this.$ctx.rootGetters;
+  }
+
+  get '$dispatch'() {
+    return this.$ctx.dispatch;
+  }
+
+  get '$state'() {
+    return this.$ctx.state;
+  }
+
+  get '$rootState'() {
+    return this.$ctx.rootState;
+  }
+
+  /**
+   * '$extension' is the current root state key for the extension manager, but Rancher versions
+   * before that rename only ever set '$plugin'. Extensions ship a compiled copy of this shell,
+   * so this code can end up running inside one of those older hosts - fall back to '$plugin'
+   * there rather than resolving 'undefined'.
+   */
+  get '$plugin'() {
+    return this.$ctx.rootState?.$extension || this.$ctx.rootState?.$plugin;
+  }
+
+  get '$extension'() {
+    return this.$ctx.rootState?.$extension || this.$ctx.rootState?.$plugin;
+  }
+
+  get customValidationRules() {
+    return [
+      /**
+       * Essentially a fake schema object with additional params to extend validation
+       *
+       * @param {nullable} Value is nullable
+       * @param {path} Path on the resource to the value to validate
+       * @param {required} Value required
+       * @param {requiredIf} Value required if value at path not empty
+       * @param {translationKey} Human readable display key for param in path e.g. metadata.name === Name
+       * @param {type} Type of field to validate
+       * @param {validators} array of strings where item is name of exported validator function in custom-validators, args can be passed by prepending args separated by colon. e.g maxLength:63
+       */
+      /* {
+        nullable:       false,
+        path:           'spec.ports',
+        required:       true,
+        type:           'array',
+        validators:     ['servicePort'],
+      } */
+    ];
+  }
+
+  get _key() {
+    const m = this.metadata;
+
+    if ( m ) {
+      if ( m.uid ) {
+        return m.uid;
+      }
+
+      if ( m.namespace ) {
+        return `${ this.type }/${ m.namespace }/${ m.name }`;
+      }
+    }
+
+    if ( this.id ) {
+      return `${ this.type }/${ this.id }`;
+    }
+
+    return `${ this.type }/${ Math.random() }`;
+  }
+
+  get schema() {
+    return this.$getters['schemaFor'](this.type);
+  }
+
+  toString() {
+    return `[${ this.type }: ${ this.id }]`;
+  }
+
+  get typeDisplay() {
+    const schema = this.schema;
+
+    if ( schema ) {
+      return this.$rootGetters['type-map/labelFor'](schema);
+    }
+
+    return '?';
+  }
+
+  get nameDisplay() {
+    return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.name || this.metadata?.name || this.id;
+  }
+
+  get nameSort() {
+    return sortableNumericSuffix(this.nameDisplay).toLowerCase();
+  }
+
+  get namespacedName() {
+    const namespace = this.metadata?.namespace;
+    const name = this.nameDisplay;
+
+    if ( namespace ) {
+      return `${ namespace }:${ name }`;
+    }
+
+    return name;
+  }
+
+  get namespacedNameSort() {
+    return sortableNumericSuffix(this.namespacedName).toLowerCase();
+  }
+
+  get groupByLabel() {
+    const name = this.metadata?.namespace;
+    let out;
+
+    if ( name ) {
+      out = this.t('resourceTable.groupLabel.namespace', { name: escapeHtml(name) });
+    } else {
+      out = this.t('resourceTable.groupLabel.notInANamespace');
+    }
+
+    return out;
+  }
+
+  setLabels(/* val */) {
+    throw new Error('Implement setLabels in subclass');
+  }
+
+  setLabel(/* key, val */) {
+    throw new Error('Implement setLabel in subclass');
+  }
+
+  setAnnotations(val) {
+    throw new Error('Implement setAnnotations in subclass');
+  }
+
+  setAnnotation(key, val) {
+    throw new Error('Implement setAnnotation in subclass');
+  }
+
+  // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)
+  get stateDisplay() {
+    return stateDisplay(this.state);
+  }
+
+  get stateColor() {
+    return colorForState.call(
+      this,
+      this.state,
+      this.stateObj?.error,
+      this.stateObj?.transitioning
+    );
+  }
+
+  get stateColorPair() {
+    return {
+      state: this.stateDisplay,
+      color: this.stateSimpleColor
+    };
+  }
+
+  get stateSimpleColor() {
+    return simpleColorForState(this.state, this.stateObj?.error, this.stateObj?.transitioning);
+  }
+
+  get stateBackground() {
+    return this.stateColor.replace('text-', 'bg-');
+  }
+
+  get stateIcon() {
+    let trans = false;
+    let error = false;
+
+    if ( this.metadata && this.metadata.state ) {
+      trans = this.metadata.state.transitioning;
+      error = this.metadata.state.error;
+    }
+
+    if ( trans ) {
+      return 'icon icon-spinner icon-spin';
+    }
+
+    if ( error ) {
+      return 'icon icon-error';
+    }
+
+    const key = (this.state || '').toLowerCase();
+    let icon;
+
+    if ( STATES[key] && STATES[key].icon ) {
+      icon = maybeFn.call(this, STATES[key].icon);
+    }
+
+    if ( !icon ) {
+      icon = DEFAULT_ICON;
+    }
+
+    return `icon icon-${ icon }`;
+  }
+
+  get stateSort() {
+    return stateSort(this.stateColor, this.stateDisplay);
+  }
+
+  get stateDescription() {
+    const trans = this.stateObj?.transitioning || false;
+    const error = this.stateObj?.error || false;
+    const message = this.stateObj?.message;
+
+    return trans || error ? ucFirst(message) : '';
+  }
+
+  get stateObj() {
+    return this.metadata?.state;
+  }
+
+  // ------------------------------------------------------------------
+
+  waitForTestFn(fn, msg, timeoutMs, intervalMs) {
+    return waitFor(() => fn.apply(this), msg, timeoutMs || DEFAULT_WAIT_TIMEOUT, intervalMs || DEFAULT_WAIT_INTERVAL, true);
+  }
+
+  waitForState(state, timeout, interval) {
+    return this.waitForTestFn(() => {
+      return (this.state || '').toLowerCase() === state.toLowerCase();
+    }, `state=${ state }`, timeout, interval);
+  }
+
+  waitForTransition() {
+    return this.waitForTestFn(() => {
+      return !this.transitioning;
+    }, 'transition completion', undefined, undefined);
+  }
+
+  waitForAction(name) {
+    return this.waitForTestFn(() => {
+      return this.hasAction(name);
+    }, `action=${ name }`, undefined, undefined);
+  }
+
+  waitForLink(name) {
+    return this.waitForTestFn(() => {
+      return this.hasLink(name);
+    }, `link=${ name }`, undefined, undefined);
+  }
+
+  hasCondition(condition) {
+    return this.isCondition(condition, null);
+  }
+
+  isCondition(condition, withStatus = 'True') {
+    if ( !this.status || !this.status.conditions ) {
+      return false;
+    }
+
+    const entry = findBy((this.status.conditions || []), 'type', condition);
+
+    if ( !entry ) {
+      return false;
+    }
+
+    if ( !withStatus ) {
+      return true;
+    }
+
+    return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
+  }
+
+  waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
+    return this.waitForTestFn(() => {
+      return this.isCondition(name, withStatus);
+    }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
+  }
+
+  // ------------------------------------------------------------------
+
+  get canEdit() {
+    return this.canUpdate && this.canCustomEdit;
+  }
+
+  get availableActions() {
+    const all = this._availableActions;
+
+    // Remove disabled items and consecutive dividers
+    let last = null;
+    const out = all.filter((item) => {
+      if ( item.enabled === false ) {
+        return false;
+      }
+
+      const cur = item.divider;
+      const ok = !cur || (cur && !last);
+
+      last = cur;
+
+      return ok;
+    });
+
+    // Remove dividers at the beginning
+    while ( out.length && out[0].divider ) {
+      out.shift();
+    }
+
+    // Remove dividers at the end
+    while ( out.length && out[out.length - 1].divider ) {
+      out.pop();
+    }
+
+    // Remove consecutive dividers in the middle
+    for ( let i = 1 ; i < out.length ; i++ ) {
+      if ( out[i].divider && out[i - 1].divider ) {
+        removeAt(out, i, 1);
+        i--;
+      }
+    }
+
+    return out;
+  }
+
+  showConfiguration(returnFocusSelector, defaultTab) {
+    const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
+
+    this.$ctx.commit('slideInPanel/open', {
+      component:      require(`@shell/components/Drawer/ResourceDetailDrawer/index.vue`).default,
+      componentProps: {
+        resource:           this,
+        onClose,
+        width:              'wide',
+        height:             'full',
+        closeOnRouteChange: ['name', 'params', 'query'],
+        triggerFocusTrap:   true,
+        returnFocusSelector,
+        defaultTab
+      }
+    }, { root: true });
+  }
+
+  // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
+  get _availableActions() {
+    // get menu actions available by plugins configuration
+    const currentRoute = this.currentRouter().currentRoute.value;
+    const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
+
+    const currRancherVersionData = getVersionData();
+    const parsedRancherVersion = parseRancherVersion(currRancherVersionData.Version);
+
+    // "showConfiguration" table action is only compatible with Rancher 2.13 and onwards
+    // defence against extension issue https://github.com/rancher/dashboard/issues/15564
+    // where mostly likely extension CRD model is extending from resource-class
+    const isResourceDetailDrawerCompatibleWithRancherSystem = semver.satisfies(parsedRancherVersion, '>= 2.13.0');
+
+    // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
+    const showConfigEnabled = isResourceDetailDrawerCompatibleWithRancherSystem && this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml);
+
+    const all = [
+      {
+        action:  'showConfiguration',
+        label:   this.t('action.showConfiguration'),
+        icon:    'icon icon-document',
+        enabled: showConfigEnabled,
+      },
+      { divider: true },
+      {
+        action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
+        label:   this.t(this.canUpdate ? 'action.edit' : 'action.view'),
+        icon:    'icon icon-edit',
+        enabled: this.canCustomEdit,
+      },
+      {
+        action:  this.canEditYaml ? 'goToEditYaml' : 'goToViewYaml',
+        label:   this.t(this.canEditYaml ? 'action.editYaml' : 'action.viewYaml'),
+        icon:    'icon icon-file',
+        enabled: this.canYaml && (this.canEditYaml || !showConfigEnabled), // Hide "View YAML" when "Show Configuration" is available since it already includes YAML viewing
+      },
+      {
+        action:  (this.canCustomEdit ? 'goToClone' : 'cloneYaml'),
+        label:   this.t('action.clone'),
+        icon:    'icon icon-copy',
+        enabled: this.canClone && this.canCreate && (this.canCustomEdit || this.canYaml),
+      },
+      { divider: true },
+      {
+        action:     'download',
+        label:      this.t('action.download'),
+        icon:       'icon icon-download',
+        bulkable:   true,
+        bulkAction: 'downloadBulk',
+        enabled:    this.canYaml,
+        weight:     -9,
+      },
+      {
+        action:  'viewInApi',
+        label:   this.t('action.viewInApi'),
+        icon:    'icon icon-external-link',
+        enabled: this.canViewInApi,
+      },
+      {
+        action:     'promptRemove',
+        altAction:  'remove',
+        label:      this.t('action.remove'),
+        icon:       'icon icon-trash',
+        bulkable:   true,
+        enabled:    this.canDelete,
+        bulkAction: 'promptRemove',
+        weight:     -10, // Delete always goes last
+      },
+    ];
+
+    // Extension actions get added to the end, so add a divider if there are any
+    if (extensionMenuActions.length) {
+      // Add a divider first
+      all.push({ divider: true });
+
+      extensionMenuActions.forEach((action) => {
+        const newActionInstance = { ...action };
+
+        const enabledFn = newActionInstance.enabled;
+        const typeofEnabled = typeof enabledFn;
+
+        switch (typeofEnabled) {
+        case 'undefined':
+          newActionInstance.enabled = true;
+          break;
+        case 'function':
+          Object.defineProperty(newActionInstance, 'enabled', { get: () => enabledFn(this) });
+          break;
+        case 'boolean':
+          // no op, just use it directly
+          break;
+        default:
+          // unsupported value
+          console.warn(`Unsupported 'enabled' property type for action: ${ action.label || action.labelKey }` ); // eslint-disable-line no-console
+          delete newActionInstance.enabled;
+          break;
+        }
+
+        all.push(newActionInstance);
+      });
+    }
+
+    return all;
+  }
+
+  // ------------------------------------------------------------------
+
+  get canDelete() {
+    return this._canDelete;
+  }
+
+  get _canDelete() {
+    return this.hasLink('remove') && this.$rootGetters['type-map/optionsFor'](this.type).isRemovable;
+  }
+
+  get canClone() {
+    return true;
+  }
+
+  get canUpdate() {
+    return this.hasLink('update') && this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
+  }
+
+  get canCustomEdit() {
+    return this.$rootGetters['type-map/hasCustomEdit'](this.type, this.id);
+  }
+
+  get canCreate() {
+    if ( this.schema && !this.schema?.collectionMethods.find((x) => x.toLowerCase() === 'post') ) {
+      return false;
+    }
+
+    return this.$rootGetters['type-map/optionsFor'](this.type).isCreatable;
+  }
+
+  get canViewInApi() {
+    try {
+      return this.hasLink('self') && this.$rootGetters['prefs/get'](VIEW_IN_API);
+    } catch {
+      return this.hasLink('self') && this.$rootGetters['prefs/get'](DEV);
+    }
+  }
+
+  get canYaml() {
+    return this.hasLink('view');
+  }
+
+  get canEditYaml() {
+    return this.schema?.resourceMethods?.find((x) => x === 'blocked-PUT') ? false : this.canUpdate;
+  }
+
+  // ------------------------------------------------------------------
+
+  hasLink(linkName) {
+    return !!this.linkFor(linkName);
+  }
+
+  linkFor(linkName) {
+    return (this.links || {})[linkName];
+  }
+
+  followLink(linkName, opt = {}) {
+    if ( !opt.url ) {
+      opt.url = (this.links || {})[linkName];
+    }
+
+    if ( opt.urlSuffix ) {
+      opt.url += opt.urlSuffix;
+    }
+
+    if ( !opt.url ) {
+      throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
+    }
+
+    return this.$dispatch('request', { opt, type: this.type } );
+  }
+
+  // ------------------------------------------------------------------
+
+  hasAction(actionName) {
+    return !!this.actionLinkFor(actionName);
+  }
+
+  actionLinkFor(actionName) {
+    return (this.actions || this.actionLinks || {})[actionName];
+  }
+
+  doAction(actionName, body, opt = {}) {
+    return this.$dispatch('resourceAction', {
+      resource: this,
+      actionName,
+      body,
+      opt,
+    });
+  }
+
+  async doActionGrowl(actionName, body, opt = {}) {
+    try {
+      return await this.$dispatch('resourceAction', {
+        resource: this,
+        actionName,
+        body,
+        opt,
+      });
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('generic.notification.title.error'),
+        err:   err.data || err,
+      }, { root: true });
+    }
+  }
+
+  // ------------------------------------------------------------------
+
+  patch(data, opt = {}, merge = false, alertOnError = false) {
+    if ( !opt.url ) {
+      // Workaround for the links not being correct - view link is the only one that seems correct
+      opt.url = this.linkFor('view') || this.linkFor('self');
+    }
+
+    opt.method = 'patch';
+    opt.headers = opt.headers || {};
+
+    if (!opt.headers['content-type']) {
+      const contentType = merge ? 'application/strategic-merge-patch+json' : 'application/json-patch+json';
+
+      opt.headers['content-type'] = contentType;
+    }
+    opt.data = data;
+
+    const dispatch = this.$dispatch('request', { opt, type: this.type } );
+
+    return !alertOnError ? dispatch : dispatch.catch((e) => {
+      const title = this.t('resource.errors.update', { name: this.name });
+
+      console.error(title, e); // eslint-disable-line no-console
+
+      this.$dispatch('growl/error', {
+        title,
+        message: e?.message,
+        timeout: 5000
+      }, { root: true });
+    });
+  }
+
+  save() {
+    return this._save(...arguments);
+  }
+
+  _collectionUrl() {
+    const schema = this.$getters['schemaFor'](this.type);
+
+    if ( !schema ) {
+      // Schema not found - likely due to lack of permissions to view this resource type
+      throw new Error(`${ this.type }: ${ this.t('validation.createResourceFailed', { type: this.typeDisplay }, true) }`);
+    }
+
+    let url = schema.linkFor('collection');
+
+    if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
+      url += `/${ this.metadata.namespace }`;
+    }
+
+    return url;
+  }
+
+  async dryRunCreate(data) {
+    try {
+      const url = this._collectionUrl();
+      const separator = url.includes('?') ? '&' : '?';
+      const body = data || this.cleanForSave(this.toSave() || JSON.parse(JSON.stringify(this)), true);
+
+      return this.$dispatch('request', {
+        opt: {
+          method:  'post',
+          url:     `${ url }${ separator }dryRun=All`,
+          data:    body,
+          headers: {
+            'content-type': 'application/json',
+            accept:         'application/json'
+          }
+        },
+        type: this.type
+      });
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+
+  /**
+   * Remove any unwanted properties from the object that will be saved
+   */
+  cleanForSave(data, forNew) {
+    delete data.__rehydrate;
+    delete data.__clone;
+
+    return data;
+  }
+
+  /**
+   * Allow to handle the response of the save request
+   * @param {*} res Full request response
+   */
+  processSaveResponse(res, opt = {}) { }
+
+  async _save(opt = { }) {
+    const forNew = !this.id;
+    let errors;
+
+    if (!opt.skipUIValidation) {
+      errors = this.validationErrors(this, opt);
+    }
+
+    if (!isEmpty(errors)) {
+      return Promise.reject(errors);
+    }
+
+    if ( this.metadata?.resourceVersion ) {
+      this.metadata.resourceVersion = `${ this.metadata.resourceVersion }`;
+    }
+    try {
+      if ( !opt.url ) {
+        if ( forNew ) {
+          opt.url = this._collectionUrl();
+        } else {
+          opt.url = this.linkFor('update') || this.linkFor('self');
+        }
+      }
+    } catch (e) {
+      return Promise.reject(e);
+    }
+
+    if ( !opt.method ) {
+      opt.method = ( forNew ? 'post' : 'put' );
+    }
+
+    if ( !opt.headers ) {
+      opt.headers = {};
+    }
+
+    if ( !opt.headers['content-type'] ) {
+      opt.headers['content-type'] = 'application/json';
+    }
+
+    if ( !opt.headers['accept'] ) {
+      opt.headers['accept'] = 'application/json';
+    }
+
+    // @TODO remove this once the API maps steve _type <-> k8s type in both directions
+    // `JSON.parse(JSON.stringify` - Completely disconnect the object we're going to send and `this`. This ensures that properties
+    // removed from opt.data before sending (as part of cleanForSave) are not stripped from where they're still needed (`this`)
+    if (!(opt.method === 'patch')) {
+      opt.data = this.toSave() || JSON.parse(JSON.stringify(this));
+    }
+
+    if (opt.data._type) {
+      opt.data.type = opt.data._type;
+    }
+
+    if (opt.data._name) {
+      opt.data.name = opt.data._name;
+    }
+
+    if (opt.data._labels) {
+      opt.data.labels = opt.data._labels;
+    }
+
+    if (opt.data._annotations) {
+      opt.data.annotations = opt.data._annotations;
+    }
+
+    if (!(opt.method === 'patch')) {
+      opt.data = this.cleanForSave(opt.data, forNew);
+    }
+
+    // handle "replace" opt as a query param _replace=true for norman PUT requests
+    if (opt?.replace && opt.method === 'put') {
+      const argParam = opt.url.includes('?') ? '&' : '?';
+
+      opt.url = `${ opt.url }${ argParam }_replace=true`;
+      delete opt.replace;
+    }
+
+    // Will loading this resource invalidate the resources in the cache that represent a page (resource is not from page)
+    // By default we set this to no, it won't pollute the cache. Most likely either
+    // 1. The resource came from a list already (loaded resource is already in the page that is in the cache)
+    // 2. UI is not on a page with a list (cache doesn't represent a list)
+    const invalidatePageCache = opt.invalidatePageCache || false;
+
+    try {
+      const res = await this.$dispatch('request', { opt, type: this.type } );
+
+      // Allow to process response independently from the related models
+      this.processSaveResponse(res, opt);
+
+      // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
+      if ( res && res.kind !== 'Table') {
+        const keyField = this.$getters.keyFieldForType(this.type);
+        const id = res[keyField];
+
+        // only items with ID will be added to the store, this prevents "new" resources that return an empty body OR no ID from being added to the store with an ID of "undefined"
+        if (id) {
+          await this.$dispatch('load', {
+            data: res, existing: (forNew ? this : undefined ), invalidatePageCache
+          });
+        }
+      }
+    } catch (e) {
+      if ( this.type && this.id && e?._status === 409) {
+        // If there's a conflict, try to load the new version
+        await this.$dispatch('find', {
+          type: this.type,
+          id:   this.id,
+          opt:  {
+            // We want to update the value in cache, so force the request
+            force: true,
+            // We're not interested in opening a watch for this specific resource
+            watch: false,
+            // Unless overridden, this will be false, we're probably from a list and we don't want to clear it's state
+            invalidatePageCache
+          }
+        });
+      }
+
+      return Promise.reject(e);
+    }
+
+    return this;
+  }
+
+  remove() {
+    return this._remove(...arguments);
+  }
+
+  async _remove(opt = {}) {
+    if ( !opt.url ) {
+      opt.url = this.linkFor('self');
+    }
+
+    opt.method = 'delete';
+
+    const res = await this.$dispatch('request', { opt, type: this.type } );
+
+    // In theory...
+    // 200 - resource could have finalizer (could hang around, keep resource to show deleting state)
+    // 204 - resource should be gone gone (so remove immediately)
+    // However...
+    // 200 - this is the only status code returned
+    if ( res?._status === 200 ) {
+      // Show state (probably terminating) immediately, don't wait for resource.change or debounced resource.changes update
+      // It would be neater to only do this in the debounced resource.changes world, but there's no neat / complete way to do this (paginationUtils will cause dep issues if imported)
+      await this.$dispatch('load', {
+        data: res, existing: this, invalidatePageCache: false
+      });
+    } else if ( res?._status === 204 ) {
+      // If there's no body, assume the resource was immediately deleted
+      // and drop it from the store as if a remove event happened.
+      await this.$dispatch('ws.resource.remove', { data: this });
+    }
+  }
+
+  // ------------------------------------------------------------------
+
+  currentRoute() {
+    return window.$globalApp.$route;
+  }
+
+  currentRouter() {
+    return window.$globalApp.$router;
+  }
+
+  get isProdRegistrationV2TopLevelProductResoure() {
+    // this is the logic to determine if the resource is top level product or not
+    // changes c-cluster-product-resource to product-c-cluster-resource
+    // this is for the new extension product registration model
+    let currPluginName = '';
+    const plugins = this.$extension.getPlugins();
+
+    Object.keys(plugins).forEach((key) => {
+      if (plugins[key].productNames.includes(this.$rootGetters['productId'])) {
+        currPluginName = key;
+      }
+    });
+
+    // the flag "topLevelProduct" only exists in the V2 product registration model
+    return plugins[currPluginName]?.topLevelProduct || false;
+  }
+
+  get listLocation() {
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      return {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource`,
+        params: {
+          product:  this.$rootGetters['productId'],
+          cluster:  this.$rootGetters['clusterId'],
+          resource: this.type,
+        }
+      };
+    }
+
+    return {
+      name:   `c-cluster-product-resource`,
+      params: {
+        product:  this.$rootGetters['productId'],
+        cluster:  this.$rootGetters['clusterId'],
+        resource: this.type,
+      }
+    };
+  }
+
+  get _detailLocation() {
+    const schema = this.$getters['schemaFor'](this.type);
+    const isNamespaced = schema?.attributes?.namespaced;
+
+    const id = this.id?.replace(/.*\//, '');
+
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      return {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+        params: {
+          product:   this.$rootGetters['productId'],
+          cluster:   this.$rootGetters['clusterId'],
+          resource:  this.type,
+          namespace: isNamespaced && this.metadata?.namespace ? this.metadata.namespace : undefined,
+          id,
+        }
+      };
+    }
+
+    // normal cluster scoped resource route as we know
+    return {
+      name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+      params: {
+        product:   this.$rootGetters['productId'],
+        cluster:   this.$rootGetters['clusterId'],
+        resource:  this.type,
+        namespace: isNamespaced && this.metadata?.namespace ? this.metadata.namespace : undefined,
+        id,
+      }
+    };
+  }
+
+  get detailLocation() {
+    return this._detailLocation;
+  }
+
+  /**
+   * Override this getter to provide additional action buttons or a custom component
+   * for the detail page title bar.
+   *
+   * @returns {undefined|object|Array} A Vue component definition, an array of RcButton props, or undefined
+   *
+   * @example
+   * // Using an array of button props with the new variant/size props
+   * get detailPageAdditionalActions() {
+   *   return [
+   *     { label: 'Action 1', variant: 'secondary', onClick: () => this.doAction1() },
+   *     { label: 'Action 2', variant: 'primary', size: 'large', onClick: () => this.doAction2() }
+   *   ];
+   * }
+   *
+   * @example
+   * // Using defineComponent with h() render function for custom rendering
+   * import { defineComponent, h } from 'vue';
+   * import RcButton from '@components/RcButton/RcButton.vue';
+   *
+   * get detailPageAdditionalActions() {
+   *   return defineComponent({
+   *     render() {
+   *       return h(RcButton, {
+   *         variant: 'primary',
+   *         onClick: () => console.log('clicked')
+   *       }, () => 'Click Me');
+   *     }
+   *   });
+   * }
+   *
+   * @example
+   * // Using dynamic import for a custom component
+   * import { defineAsyncComponent } from 'vue';
+   *
+   * get detailPageAdditionalActions() {
+   *   return defineAsyncComponent(() => import('@shell/components/MyCustomActions.vue'));
+   * }
+   */
+  get detailPageAdditionalActions() {
+    return undefined;
+  }
+
+  goToDetail() {
+    this.currentRouter().push(this.detailLocation);
+  }
+
+  /**
+   * Resource action redirects to the detail page with a query parameter 'clone'
+   * When the query parameter is present, the view will fetch the resource to clone define in the parameter
+   * E.g.: /my-id?mode=clone
+   * @param {*} moreQuery
+   */
+  goToClone(moreQuery = {}) {
+    const location = this.detailLocation;
+
+    location.query = {
+      ...location.query,
+      [MODE]: _CLONE,
+      [AS]:   _UNFLAG,
+      ...moreQuery
+    };
+
+    this.currentRouter().push(location);
+  }
+
+  goToEdit(moreQuery = {}, location = this.detailLocation) {
+    location.query = {
+      ...location.query,
+      [MODE]: _EDIT,
+      [AS]:   _UNFLAG,
+      ...moreQuery
+    };
+
+    this.currentRouter().push(location);
+  }
+
+  goToViewConfig(moreQuery = {}) {
+    const location = this.detailLocation;
+
+    location.query = {
+      ...location.query,
+      [MODE]: _VIEW,
+      [AS]:   _CONFIG,
+      ...moreQuery
+    };
+
+    this.currentRouter().push(location);
+  }
+
+  goToEditYaml() {
+    const location = this.detailLocation;
+
+    location.query = {
+      ...location.query,
+      [MODE]: _EDIT,
+      [AS]:   _YAML
+    };
+
+    this.currentRouter().push(location);
+  }
+
+  goToViewYaml() {
+    const location = this.detailLocation;
+
+    location.query = {
+      ...location.query,
+      [MODE]: _VIEW,
+      [AS]:   _YAML
+    };
+
+    this.currentRouter().push(location);
+  }
+
+  cloneYaml(moreQuery = {}) {
+    const location = this.detailLocation;
+
+    location.query = {
+      ...location.query,
+      [MODE]: _CLONE,
+      [AS]:   _YAML,
+      ...moreQuery
+    };
+
+    this.currentRouter().push(location);
+  }
+
+  async download() {
+    const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
+    const data = await this.cleanForDownload(value.data);
+
+    downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
+  }
+
+  async downloadBulk(items) {
+    const files = {};
+    const names = [];
+
+    for ( const item of items ) {
+      let name = `${ item.nameDisplay }.yaml`;
+      let i = 2;
+
+      while ( names.includes(name) ) {
+        name = `${ item.nameDisplay }_${ i++ }.yaml`;
+      }
+
+      names.push(name);
+    }
+
+    await eachLimit(items, 10, (item, idx) => {
+      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then(async(data) => {
+        const yaml = data.data || data;
+        const cleanedYaml = await this.cleanForDownload(yaml);
+
+        files[`resources/${ names[idx] }`] = cleanedYaml;
+      });
+    });
+
+    const zip = await generateZip(files);
+
+    downloadFile('resources.zip', zip, 'application/zip');
+  }
+
+  viewInApi() {
+    window.open(this.links.self, '_blank');
+  }
+
+  promptRemove(resources) {
+    if ( !resources ) {
+      resources = this;
+    }
+
+    this.$dispatch('promptRemove', resources);
+  }
+
+  get confirmRemove() {
+    return false;
+  }
+
+  applyDefaults() {
+  }
+
+  get urlFromAttrs() {
+    const schema = this.$getters['schemaFor'](this.type);
+    const { metadata:{ namespace = 'default' } } = this;
+    let url = schema.links.collection;
+
+    const attributes = schema?.attributes;
+
+    if (!attributes) {
+      throw new Error('Attributes must be present on the schema');
+    }
+    const { group, resource } = attributes;
+
+    url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/namespaces/${ namespace }/${ resource }`;
+
+    return url;
+  }
+
+  // convert yaml to object, clean for new if creating/cloning
+  // map _type to type
+  cleanYaml(yaml, mode = 'edit') {
+    try {
+      const obj = jsyaml.load(yaml);
+
+      if (mode !== 'edit') {
+        this.$dispatch(`cleanForNew`, obj);
+      }
+
+      if (obj._type) {
+        obj.type = obj._type;
+        delete obj._type;
+      }
+      const out = jsyaml.dump(obj, { skipInvalid: true });
+
+      return out;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  cleanForNew() {
+    this.$dispatch(`cleanForNew`, this);
+  }
+
+  cleanForDiff() {
+    this.$dispatch(`cleanForDiff`, this.toJSON());
+  }
+
+  async cleanForDownload(yaml, opt = {}) {
+    return this.$dispatch(`cleanForDownload`, { yaml, opt });
+  }
+
+  yamlForSave(yaml) {
+    try {
+      const obj = jsyaml.load(yaml);
+
+      if (obj) {
+        if (this._type) {
+          obj._type = obj.type;
+        }
+
+        return jsyaml.dump(obj);
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async saveYaml(yaml, initialYaml) {
+    await this._saveYaml(yaml, initialYaml);
+  }
+
+  async _saveYaml(yaml, initialYaml, depth = 0) {
+    /* Multipart support, but need to know the right cluster and work for management store
+      and "apply" seems to only work for create, not update.
+
+    const ary = jsyaml.loadAll(yaml); // will throw on invalid yaml, and return one or more documents (usually one)
+
+    if ( ary.length > 1 ) {
+      await this.$rootGetters['currentCluster'].doAction('apply', {
+        yaml,
+        defaultNamespace: this.metadata.namespace,
+      });
+    }
+
+    const parsed = ary[0];
+    */
+
+    const parsed = jsyaml.load(yaml); // will throw on invalid yaml, and return one or more documents (usually one)
+
+    if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
+      const err = this.$rootGetters['i18n/t']('resourceYaml.errors.namespaceRequired');
+
+      throw err;
+    }
+
+    let res;
+    const isCreate = !this.id;
+
+    // On UPDATE, metadata.resourceVersion is required — norman-managed management.cattle.io resources
+    // (globalroles, roletemplates, users, …) reject an update without it with a 500
+    // ("metadata.resourceVersion is required for update"). When editing, server-managed metadata is
+    // hidden from the YAML (see steveCleanForDownload / EDIT_HIDDEN_METADATA_KEYS), which also drops
+    // resourceVersion from what gets saved. Restore the live value before saving so the update keeps
+    // its optimistic-concurrency token. The other hidden fields (uid/generation/creationTimestamp/
+    // managedFields) are ignored or repopulated by the server on update and need no restoration.
+    if ( !isCreate && parsed?.metadata && !parsed.metadata.resourceVersion && this.metadata?.resourceVersion ) {
+      parsed.metadata.resourceVersion = this.metadata.resourceVersion;
+      yaml = jsyaml.dump(parsed);
+    }
+
+    const headers = {
+      'content-type': 'application/yaml',
+      accept:         'application/json',
+    };
+
+    if ( isCreate ) {
+      res = await this.schema.followLink('collection', {
+        method: 'POST',
+        headers,
+        data:   yaml
+      });
+    } else {
+      try {
+        res = await this.followLink('update', {
+          method: 'PUT',
+          headers,
+          data:   yaml
+        });
+      } catch (err) {
+        const IS_ERR_409 = err.status === 409 || err._status === 409;
+
+        // Conflict, the resource being edited has changed since starting editing
+        if (IS_ERR_409 && depth === 0 && initialYaml) {
+          const inStore = this.$rootGetters['currentStore'](this.type);
+
+          const initialValue = jsyaml.load(initialYaml);
+          const value = jsyaml.load(yaml);
+          const liveValue = this.$rootGetters[`${ inStore }/byId`](this.type, this.id);
+
+          const handledConflictErr = await handleConflict(
+            initialValue,
+            value,
+            liveValue,
+            {
+              dispatch: this.$dispatch,
+              getters:  this.$rootGetters
+            },
+            this.$rootGetters['currentStore'](this.type),
+            (v) => v.toJSON ? v.toJSON() : v
+          );
+
+          if (handledConflictErr === false) {
+            // It was automatically figured out, save again
+            await this._saveYaml(jsyaml.dump(value), null, depth + 1);
+          } else {
+            throw handledConflictErr;
+          }
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    if (res) {
+      await this.$dispatch(`load`, {
+        data:     res,
+        existing: (isCreate ? this : undefined)
+      });
+
+      if (this.isSpoofed) {
+        await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });
+      }
+    }
+  }
+
+  get modelValidationRules() {
+    const rules = [];
+
+    const customValidationRulesets = this?.customValidationRules
+      .filter((rule) => !!rule.validators || !!rule.required)
+      .map((rule) => {
+        const formRules = formRulesGenerator(this.t, { key: rule?.translationKey ? this.t(rule.translationKey) : 'Value' });
+
+        return {
+          path:  rule.path,
+          rules: [
+            ...(rule.validators || []),
+            ...rule.required ? ['required'] : [],
+            ...['dnsLabel', 'dnsLabelRestricted', 'hostname'].includes(rule.type) ? [rule.type] : []
+          ]
+            .map((rule) => {
+              if (rule.includes(':')) {
+                const [ruleKey, ruleArg] = rule.split(':');
+
+                return formRules[ruleKey](ruleArg);
+              }
+
+              return formRules[rule];
+            }
+            )
+            .filter((rule) => !!rule)
+        };
+      })
+      .filter((ruleset) => ruleset.rules.length > 0);
+
+    rules.push(...customValidationRulesets);
+
+    return rules;
+  }
+
+  customValidationErrors(data, ignorePaths = []) {
+    const errors = [];
+
+    let { customValidationRules } = this;
+
+    if (!isEmpty(customValidationRules)) {
+      if (isFunction(customValidationRules)) {
+        customValidationRules = customValidationRules();
+      }
+
+      customValidationRules.filter((rule) => !ignorePaths.includes(rule.path)).forEach((rule) => {
+        const {
+          path,
+          requiredIf: requiredIfPath,
+          validators = [],
+          type: fieldType,
+        } = rule;
+        let pathValue = get(data, path);
+
+        const parsedRules = compact((validators || []));
+        let displayKey = path;
+
+        if (rule.translationKey && this.$rootGetters['i18n/exists'](rule.translationKey)) {
+          displayKey = this.t(rule.translationKey);
+        }
+
+        if (isString(pathValue)) {
+          pathValue = pathValue.trim();
+        }
+        if (requiredIfPath) {
+          const reqIfVal = get(data, requiredIfPath);
+
+          if (!isEmpty(reqIfVal) && (isEmpty(pathValue) && pathValue !== 0)) {
+            errors.push(this.t('validation.required', { key: displayKey }));
+          }
+        }
+
+        validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
+        validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
+
+        if ( !isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
+          // DNS types should be lowercase
+          const tolower = (pathValue || '').toLowerCase();
+
+          if ( tolower !== pathValue ) {
+            pathValue = tolower;
+
+            data[path] = pathValue;
+          }
+
+          errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));
+        }
+
+        parsedRules.forEach((validator) => {
+          const validatorAndArgs = validator.split(':');
+          const validatorName = validatorAndArgs.slice(0, 1);
+          const validatorArgs = validatorAndArgs.slice(1) || null;
+          const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
+
+          if (!isEmpty(validatorName) && validatorExists) {
+            CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
+          } else if (!isEmpty(validatorName) && !validatorExists) {
+            // Check if validator is imported from plugin
+            const pluginValidator = this.$rootState.$extension?.getValidator(validatorName);
+
+            if (pluginValidator) {
+              pluginValidator(pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
+            } else {
+              // eslint-disable-next-line
+              console.warn(this.t('validation.custom.missing', { validatorName }));
+            }
+          }
+        });
+      });
+    }
+
+    return errors;
+  }
+
+  /**
+   * Check this instance is valid against
+   * - any custom dashboard validation
+   *
+   * Models can override this and call super.validationErrors
+   */
+  validationErrors(data = this, opts = { }) {
+    return this.customValidationErrors(data);
+  }
+
+  get ownersByType() {
+    const ownerReferences = this.metadata?.ownerReferences || [];
+    const ownersByType = {};
+
+    ownerReferences.forEach((owner) => {
+      if (!ownersByType[owner.kind]) {
+        ownersByType[owner.kind] = [owner];
+      } else {
+        ownersByType[owner.kind].push(owner);
+      }
+    });
+
+    return ownersByType;
+  }
+
+  get owners() {
+    const owners = [];
+
+    for ( const kind in this.ownersByType) {
+      const schema = this.$rootGetters['cluster/schema'](kind);
+
+      if (schema) {
+        const type = schema.id;
+        const allOfResourceType = this.$rootGetters['cluster/all']( type );
+
+        this.ownersByType[kind].forEach((resource, idx) => {
+          const resourceInstance = allOfResourceType.find((resourceByType) => resourceByType?.metadata?.uid === resource.uid);
+
+          if (resourceInstance) {
+            owners.push(resourceInstance);
+          }
+        });
+      }
+    }
+
+    return owners;
+  }
+
+  get details() {
+    return this._details;
+  }
+
+  get _details() {
+    const details = [];
+
+    if (this.owners?.length > 0) {
+      details.push({
+        label:     this.t('resourceDetail.detailTop.ownerReferences', { count: this.owners.length }),
+        formatter: 'ListLinkDetail',
+        content:   this.owners.map((owner) => ({
+          key:   owner.id,
+          row:   owner,
+          col:   {},
+          value: owner.metadata.name
+        }))
+      });
+    }
+
+    if (get(this, 'metadata.deletionTimestamp')) {
+      details.push({
+        label:         this.t('resourceDetail.detailTop.deleted'),
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
+        content:       get(this, 'metadata.deletionTimestamp')
+      });
+    }
+
+    return details;
+  }
+
+  get glance() {
+    return this._glance;
+  }
+
+  get _glance() {
+    const type = this.parentNameOverride || this.$rootGetters['type-map/labelFor'](this.schema);
+    let toRoute = null;
+
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      toRoute = {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource-id`,
+        params: {
+          product:  this.$rootGetters['currentProduct']?.id,
+          cluster:  this.$rootGetters['currentCluster']?.id,
+          resource: this.type,
+        }
+      };
+    } else {
+      toRoute = {
+        name:     `c-cluster-product-resource-id`,
+        product:  this.$rootGetters['currentProduct']?.id,
+        cluster:  this.$rootGetters['currentCluster']?.id,
+        resource: this.type
+      };
+    }
+
+    return [
+      {
+        name:          'state',
+        label:         this.t('component.resource.detail.glance.state'),
+        formatter:     'BadgeStateFormatter',
+        formatterOpts: { row: this },
+        content:       this.stateDisplay
+      },
+      {
+        name:          'type',
+        label:         this.t('component.resource.detail.glance.type'),
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.listLocation, row: {}, options: { internal: true }
+        },
+        content: type
+      },
+      {
+        name:          'namespace',
+        label:         this.t('component.resource.detail.glance.namespace'),
+        formatter:     this.$rootGetters['currentProduct']?.id && this.$rootGetters['currentCluster']?.id ? 'Link' : undefined,
+        formatterOpts: {
+          to:      toRoute,
+          row:     {},
+          options: { internal: true }
+        },
+        content: this.namespacedName
+      },
+      {
+        name:      'age',
+        label:     this.t('component.resource.detail.glance.age'),
+        formatter: 'LiveDate',
+        content:   this.creationTimestamp
+      }
+    ];
+  }
+
+  get t() {
+    return this.$rootGetters['i18n/t'];
+  }
+
+  // Returns array of MODELS that own this resource (async, network call)
+  findOwners() {
+    return this._getRelationship('owner', 'from');
+  }
+
+  // Returns array of {type, namespace, id} objects that own this resource (sync)
+  getOwners() {
+    return this._getRelationship('owner', 'from');
+  }
+
+  findOwned() {
+    return this._findRelationship('owner', 'to');
+  }
+
+  _relationshipsFor(rel, direction) {
+    const out = { selectors: [], ids: [] };
+
+    if ( !this.metadata?.relationships?.length ) {
+      return out;
+    }
+
+    for ( const r of this.metadata.relationships ) {
+      if ( rel !== 'any' && r.rel !== rel ) {
+        continue;
+      }
+
+      if ( !r[`${ direction }Type`] ) {
+        continue;
+      }
+
+      if ( r.selector ) {
+        // A selector is a stringified version of a matchLabel (https://github.com/kubernetes/apimachinery/blob/master/pkg/labels/selector.go#L1010)
+        addObject(out.selectors, {
+          type:      r.toType,
+          namespace: r.toNamespace,
+          selector:  r.selector
+        });
+      } else {
+        const type = r[`${ direction }Type`];
+        let namespace = r[`${ direction }Namespace`];
+        let name = r[`${ direction }Id`];
+
+        if ( !namespace && name?.includes('/') ) {
+          const idx = name.indexOf('/');
+
+          namespace = name.substr(0, idx);
+          name = name.substr(idx + 1);
+        }
+
+        const id = (namespace ? `${ namespace }/` : '') + name;
+
+        addObject(out.ids, {
+          type,
+          namespace,
+          name,
+          id,
+        });
+      }
+    }
+
+    return out;
+  }
+
+  _getRelationship(rel, direction) {
+    const res = this._relationshipsFor(rel, direction);
+
+    if ( res.selectors?.length ) {
+      // eslint-disable-next-line no-console
+      console.warn('Sync request for a relationship that is a selector');
+    }
+
+    return res.ids || [];
+  }
+
+  async _findRelationship(rel, direction) {
+    // Find resources for this resource's metadata.relationships (steve prop)
+    // These will either reference a selector (stringified matchLabels) OR specific resources (ids)
+    const { selectors, ids } = this._relationshipsFor(rel, direction);
+    const out = [];
+
+    // Find all the resources that match the selector
+    for ( const sel of selectors ) {
+      const {
+        type,
+        selector,
+        namespace,
+        opt,
+      } = sel;
+      const matching = await this.$dispatch('findLabelSelector', {
+        type,
+        matching: {
+          namespace,
+          labelSelector: { matchExpressions: parse(selector) }
+        },
+        opts: {
+          transient: true,
+          ...opt,
+        },
+      });
+
+      addObjects(out, matching.data);
+    }
+
+    // Find all the resources that match the required id's
+    for ( const obj of ids ) {
+      const { type, id } = obj;
+      let matching = this.$getters['byId'](type, id);
+
+      if ( !matching ) {
+        try {
+          matching = await this.$dispatch('find', { type, id });
+        } catch {
+        }
+      }
+      if (matching) {
+        addObject(out, matching);
+      }
+    }
+
+    return out;
+  }
+
+  get shortId() {
+    const splitId = this.id.split('/');
+
+    return splitId.length > 1 ? splitId[1] : splitId[0];
+  }
+
+  toJSON() {
+    const out = {};
+    const keys = Object.keys(this);
+
+    for ( const k of keys ) {
+      if ( this[k]?.toJSON ) {
+        out[k] = this[k].toJSON();
+      } else {
+        out[k] = clone(this[k]);
+      }
+    }
+
+    return out;
+  }
+
+  /**
+   * Allow models to override the object that is sent when saving this resource
+   */
+  toSave() {
+    return undefined;
+  }
+
+  get creationTimestamp() {
+    return this.metadata?.creationTimestamp;
+  }
+
+  /**
+   * Allows model to specify JSON Paths that should be folded in the YAML editor by default
+   */
+  get yamlFolding() {
+    return [];
+  }
+
+  get resourceConditions() {
+    return (this.status?.conditions || []).map((cond) => {
+      let message = cond.message || '';
+
+      if ( cond.reason ) {
+        message = `[${ cond.reason }] ${ message }`.trim();
+      }
+
+      return {
+        condition:        cond.type || 'Unknown',
+        status:           cond.status || 'Unknown',
+        stateSimpleColor: cond.error ? 'error' : 'disabled',
+        error:            cond.error,
+        time:             cond.lastProbeTime || cond.lastUpdateTime || cond.lastTransitionTime,
+        message,
+      };
+    });
+  }
+
+  get resourceEvents() {
+    return this.$rootGetters['cluster/all'](EVENT)
+      .filter((e) => e.involvedObject?.uid === this.metadata?.uid);
+  }
+
+  get insightCardProps() {
+    const rows = [
+      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.conditions'), this.resourceConditions, undefined, 'condition', '#conditions'),
+      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.events'), this.resourceEvents, 'insightsColor', 'eventType', '#events'),
+    ];
+
+    return {
+      title: this.t('component.resource.detail.card.insightsCard.title'),
+      rows
+    };
+  }
+
+  get insightCard() {
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StateCard/index.vue'))),
+      props:     this.insightCardProps
+    };
+  }
+
+  get _resourcesCardRows() {
+    const rows = [];
+    const relationships = this.metadata?.relationships || [];
+
+    const referredToByRels = relationships.filter((r) => r.fromType && r.fromId && !r.selector);
+    const refersToRels = relationships.filter((r) => r.toType && r.toId && !r.selector && !r.fromType);
+
+    if (referredToByRels.length) {
+      rows.push(useResourceCardRowFromRelationships(
+        this.t('component.resource.detail.card.resourcesCard.rows.referredToBy'),
+        referredToByRels,
+        { hash: '#related' }
+      ));
+    }
+
+    if (refersToRels.length) {
+      rows.push(useResourceCardRowFromRelationships(
+        this.t('component.resource.detail.card.resourcesCard.rows.refersTo'),
+        refersToRels,
+        { hash: '#related' }
+      ));
+    }
+
+    return rows;
+  }
+
+  get resourcesCardRows() {
+    return this._resourcesCardRows;
+  }
+
+  get resourcesCard() {
+    const rows = this.resourcesCardRows;
+
+    if (!rows.length) {
+      return null;
+    }
+
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StateCard/index.vue'))),
+      props:     {
+        title: this.t('component.resource.detail.card.resourcesCard.title'),
+        rows
+      }
+    };
+  }
+
+  get _cards() {
+    // All cards are opt in, we're leaving the insights card as part of the base resource since it should proliferate to most resources
+    return [];
+  }
+
+  get cards() {
+    return [this.resourcesCard, ...this._cards].filter((c) => c);
+  }
+}

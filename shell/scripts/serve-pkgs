@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+
+const fs = require('fs-extra');
+const path = require('path');
+const { exit } = require('process');
+
+const dir = path.resolve('.');
+const pkgs = path.join(dir, 'dist-pkg');
+let port = 4500;
+
+if (!fs.existsSync(pkgs)) {
+  console.log(`\n\x1B[31m%s\x1B[0m\n`, `Error: The 'dist-pkg directory doesn't exist. You likely need to run the 'yarn build-pkg <pkg name>' command first.`);
+  exit(1);
+}
+
+const express = require('express');
+const serveStatic = require('serve-static');
+
+const app = express();
+
+function catalog(res) {
+  const response = [];
+
+  fs.readdirSync(pkgs).forEach((f) => {
+    const pkgFile = path.join(pkgs, f, 'package.json');
+
+    if (fs.existsSync(pkgFile)) {
+      const rawdata = fs.readFileSync(pkgFile);
+      const pkg = JSON.parse(rawdata);
+
+      response.push(pkg);
+    }
+  });
+
+  res.json(response);
+}
+
+app.use('/', (req, res, next) => {
+  if (req.url === '/') {
+    return catalog(res);
+  }
+
+  return next();
+});
+
+app.use(serveStatic(pkgs));
+
+if (process.env.PORT) {
+  port = parseInt(process.env.PORT);
+}
+
+const base = `http://127.0.0.1:${ port }`;
+
+console.log('');
+console.log(`Serving packages:`);
+console.log('');
+fs.readdirSync(pkgs).forEach((f) => {
+  let main = `${ f }.umd.min.js`;
+
+  if (fs.existsSync(path.join(pkgs, f, main))) {
+    console.log(`  ${ f } available at: ${ base }/${ f }/${ main }`);
+  } else {
+    main = `${ f }.umd.js`;
+
+    if (fs.existsSync(path.join(pkgs, f, main))) {
+      console.log(`  ${ f } available at: ${ base }/${ f }/${ main }`);
+    }
+  }
+});
+
+app.listen(port);

@@ -1,0 +1,462 @@
+import { CURRENT_RANCHER_VERSION } from '@/cypress/support/utils/version';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
+import * as path from 'path';
+import * as jsyaml from 'js-yaml';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+
+const chartBranch = `release-${ CURRENT_RANCHER_VERSION }`;
+const gitRepoUrl = 'https://github.com/rancher/charts';
+
+describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.clearAllSessions();
+    cy.login();
+  });
+  it('validating repositories page with percy', () => {
+    const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
+
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.list().resourceTable().sortableTable().checkVisible();
+    repositoriesPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    repositoriesPage.waitForPage();
+
+    // Ignoring the user profile picture
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]');
+    // Ignore dinamic data inside rows 5 y 4(age and branch)
+    cy.hideElementBySelector("[data-testid^='sortable-cell-'][data-testid$='-5']");
+    cy.hideElementBySelector("[data-testid^='sortable-cell-'][data-testid$='-4']");
+    // Ignoring the side navbar counters
+    cy.hideElementBySelector("[data-testid='type-count']");
+    // takes percy snapshot.
+    cy.percySnapshot('repositories Page');
+  });
+});
+
+describe('Cluster Management Helm Repositories', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
+  const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
+  const downloadsFolder = Cypress.config('downloadsFolder');
+  // Generated at runtime in the before hook (see below) so no private key is committed.
+  let sshPrivateKey = 'privateKey';
+
+  before(() => {
+    cy.clearAllSessions();
+    cy.login();
+    // Generate a throwaway, valid SSH keypair at runtime - real, parseable key material
+    // (unlike the old 'privateKey' placeholder), authorised nowhere, so purely test data
+    // and never written to the repo.
+    const keyPath = '/tmp/e2e-ssh-repo-key';
+
+    cy.exec(`rm -f ${ keyPath } ${ keyPath }.pub && ssh-keygen -t ed25519 -N '' -C e2e-test -f ${ keyPath } -q`);
+    cy.readFile(keyPath).then((key) => {
+      sshPrivateKey = key;
+    });
+  });
+
+  beforeEach(() => {
+    cy.createE2EResourceName('repo').as('repoName');
+    cy.createE2EResourceName('repo-oci').as('ociRepoName');
+  });
+
+  it('can create a repository', function() {
+    // Idempotent across retries: on the first attempt the list can intermittently omit the
+    // freshly-created repo from its rendered rows even though it exists (issue 17554), failing
+    // the row lookup. With the deterministic name the retry's re-create then returns 409, so
+    // remove any leftover before starting.
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName, false);
+
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+
+    repositoriesPage.create();
+    repositoriesPage.createEditRepositories().waitForPage();
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
+    repositoriesPage.createEditRepositories().selectGitRepoCard();
+    repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
+    repositoriesPage.waitForPage();
+
+    // check list details
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
+    // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
+    // Wait for the row to render in the list before asserting its state - it can briefly drop
+    // out of the rendered rows after create (issue 17554).
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
+  });
+
+  it('can edit a repository', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    // Wait for the repo created above to render in the list before opening its action menu.
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
+    repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-desc-edit`);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`);
+    repositoriesPage.waitForPage();
+
+    // check details page
+    repositoriesPage.list().details(this.repoName, 2).click();
+    cy.contains(`${ this.repoName }-desc-edit`).should('be.visible');
+  });
+
+  it('can clone a repository', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    // Wait for the repo created above to render in the list before opening its action menu.
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Clone').click();
+    repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=clone');
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }-clone`);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-desc-clone`);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
+    repositoriesPage.waitForPage();
+
+    // check list details
+    repositoriesPage.list().details(`${ this.repoName }-clone`, 2).should('be.visible');
+  });
+
+  it('can download YAML', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    // Wait for the repo created above to render in the list before opening its action menu.
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
+
+    const downloadedFilename = path.join(downloadsFolder, `${ this.repoName }.yaml`);
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // Basic checks on the downloaded YAML
+      expect(obj.apiVersion).to.equal('catalog.cattle.io/v1');
+      expect(obj.metadata.name).to.equal(this.repoName);
+      expect(obj.kind).to.equal('ClusterRepo');
+    });
+  });
+
+  it('can refresh a repository', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+
+    // EXPERIMENT (PR review): instead of reloading to pick up the repo's latest resourceVersion, retry
+    // the Refresh action if it 409s. On a Cypress retry the previous attempt already refreshed (and
+    // bumped) the repo, so the list's cached copy can be briefly stale and the Refresh PUT comes back
+    // 409; the cache should refresh shortly (socket update), so re-clicking Refresh then succeeds with
+    // the latest resourceVersion. (If the cache does not self-refresh without a reload this will loop
+    // and fail - then we revert to the reload.)
+    cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`).as('refreshRepo');
+
+    const refreshUntilOk = (attempt = 0): void => {
+      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click({ force: true });
+      cy.wait('@refreshRepo').its('response.statusCode').then((status) => {
+        if (status !== 200 && attempt < 5) {
+          cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting -- let the list cache pick up the latest resourceVersion
+          refreshUntilOk(attempt + 1);
+        } else {
+          expect(status).to.eq(200);
+        }
+      });
+    };
+
+    refreshUntilOk();
+
+    // check list details
+    // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
+    // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
+  });
+
+  it('can delete a repository', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    // Wait for the cloned repo created above to render in the list before deleting it.
+    repositoriesPage.list().details(`${ this.repoName }-clone`, 2).should('be.visible');
+
+    // delete cloned Repository
+    repositoriesPage.list().resourceTable().sortableTable().rowNames()
+      .then((names) => {
+        if (names.filter((name) => name === `${ this.repoName }-clone`).length > 1) {
+          cy.reload(); // need page reload here in case multiple entries are created. reload should resolve the duplicate issue
+        }
+      });
+
+    repositoriesPage.list().actionMenu(`${ this.repoName }-clone`).getMenuItem('Delete').click();
+
+    const promptRemove = new PromptRemove();
+
+    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }-clone`).as('deleteRepository');
+
+    promptRemove.remove();
+    cy.wait('@deleteRepository');
+    repositoriesPage.waitForPage();
+
+    // check list details
+    cy.contains(`${ this.repoName }-clone`).should('not.exist');
+  });
+
+  it('can create a repository with basic auth', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    repositoriesPage.create();
+    repositoriesPage.createEditRepositories().waitForPage();
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }basic`);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
+    repositoriesPage.createEditRepositories().selectGitRepoCard();
+    repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
+    repositoriesPage.waitForPage();
+
+    // check list details
+    repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
+  });
+
+  it('can create a repository with SSH key', function() {
+    // Idempotent across retries (mirrors the plain create test): remove any leftover SSH
+    // repo so the retry's re-create does not 409 and strand the list render.
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, false);
+
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    repositoriesPage.create();
+    repositoriesPage.createEditRepositories().waitForPage();
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }ssh`);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
+    repositoriesPage.createEditRepositories().selectGitRepoCard();
+    repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth(sshPrivateKey, 'publicKey');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
+    repositoriesPage.waitForPage();
+
+    // check list details
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
+    // The rancher/charts clone is large and slow in CI (~30s for the plain repo, and slower
+    // here with several repos downloading), so the default 10s Active check is too short. Wait
+    // for the download to finish at the API level, then for the row to render, before asserting
+    // Active with the long timeout - the same pattern the plain create test uses.
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, 40);
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
+  });
+
+  it('can delete repositories via bulk actions', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+
+    // delete Repositories
+    repositoriesPage.list().resourceTable().sortableTable().rowNames()
+      .then((names) => {
+        if (names.filter((name1) => name1 === (this.repoName || `${ this.repoName }basic` || `${ this.repoName }ssh`)).length > 1) {
+          cy.reload(); // need page reload here in case multiple entries are created. reload should resolve the duplicate issue
+        }
+      });
+
+    repositoriesPage.list().resourceTable().sortableTable().rowSelectCtlWithName(this.repoName)
+      .set();
+    repositoriesPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.repoName }basic`)
+      .set();
+    repositoriesPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.repoName }ssh`)
+      .set();
+    repositoriesPage.list().openBulkActionDropdown();
+
+    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
+    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }basic`).as('deleteRepositoryBasic');
+    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }ssh`).as('deleteRepositorySsh');
+
+    repositoriesPage.list().bulkActionButton('Delete').click();
+
+    const promptRemove = new PromptRemove();
+
+    promptRemove.remove();
+    cy.wait('@deleteRepository');
+    cy.wait('@deleteRepositoryBasic');
+    cy.wait('@deleteRepositorySsh');
+    repositoriesPage.waitForPage();
+
+    // check list details
+    cy.contains(this.repoName).should('not.exist');
+    cy.contains(`${ this.repoName }basic`).should('not.exist');
+    cy.contains(`${ this.repoName }ssh`).should('not.exist');
+  });
+
+  it('can create an oci repository with basic auth', function() {
+    // Clean up any existing repository with the same name from previous failed test runs
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.ociRepoName, false);
+
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
+    repositoriesPage.create();
+    repositoriesPage.createEditRepositories().waitForPage();
+    const ociUrl = 'oci://test.rancher.io/charts/mychart';
+    const ociMinWait = '2';
+    const ociMaxWait = '7';
+    const refreshInterval = '12';
+
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.ociRepoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.ociRepoName }-description`);
+    repositoriesPage.createEditRepositories().selectOciUrlCard();
+    repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
+    repositoriesPage.createEditRepositories().refreshIntervalInput().set(refreshInterval);
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
+    repositoriesPage.createEditRepositories().ociMinWaitInput().setValue(ociMinWait);
+    // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().setValue(ociMaxWait);
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
+
+    cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createRepository');
+
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
+
+    cy.wait('@createRepository', { requestTimeout: 10000 }).then((req) => {
+      expect(req.response?.statusCode).to.equal(201);
+      expect(req.request?.body?.spec.url).to.equal(ociUrl);
+      expect(req.request?.body?.spec.exponentialBackOffValues.minWait).to.equal(Number(ociMinWait));
+      expect(req.request?.body?.spec.exponentialBackOffValues).to.not.have.property('maxWait');
+      // insecurePlainHttp should always be included in the payload for oci repo creation
+      expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
+      // check refreshInterval (input value × hours unit = seconds)
+      expect(req.request?.body?.spec.refreshInterval).to.equal(Number(refreshInterval) * 3600);
+    });
+
+    repositoriesPage.waitForPage();
+
+    // check list details
+    repositoriesPage.list().details(this.ociRepoName, 2).should('be.visible');
+
+    // delete repo
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.ociRepoName);
+  });
+});
+
+describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
+  const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
+  let repoName: string;
+
+  before(() => {
+    cy.clearAllSessions();
+    cy.login();
+    // The context menu can slightly clip at the top of the screen. This ensures it's visible.
+    cy.viewport(1280, 720);
+
+    cy.createE2EResourceName('repo').then((name) => {
+      repoName = name;
+      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+        type:     'catalog.cattle.io.clusterrepo',
+        metadata: { name },
+        spec:     {
+          gitRepo:   gitRepoUrl,
+          gitBranch: chartBranch
+        }
+      }).then(() => {
+        // Wait for repository to be downloaded and ready
+        cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
+      });
+    });
+  });
+
+  it('can disable a repository', () => {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
+      // Check if repository is already disabled, if so skip
+      repositoriesPage.list().details(repoName, 1).then(($el) => {
+        if ($el.text().includes('Disabled')) {
+          cy.log(`Repository ${ repoName } is already disabled, skipping disable action`);
+
+          return;
+        }
+
+        repositoriesPage.list().actionMenu(repoName).getMenuItem('Disable').click();
+        // The 'Disabled' State badge is derived purely from spec.enabled === false
+        // (shell/models/catalog.cattle.io.clusterrepo.js), which is applied via a save + websocket
+        // round-trip; give it a longer timeout so a slow round-trip does not flake the assertion.
+        repositoriesPage.list().details(repoName, 1).contains('Disabled', MEDIUM_TIMEOUT_OPT).should('be.visible');
+      });
+    });
+
+    // Confirm the disable persisted at the API level, so tests that rely on this state (below) get a
+    // durable precondition rather than a transient badge that could revert.
+    cy.waitForRancherResource(
+      'v1',
+      'catalog.cattle.io.clusterrepos',
+      repoName,
+      (resp: Cypress.Response<any>) => resp?.body?.spec?.enabled === false,
+    );
+  });
+
+  it('refresh menu item is not displayed for disabled repository', () => {
+    // This test verifies the Refresh action is hidden for a disabled repo; it must not silently
+    // depend on the previous test having left it disabled (retry-independence). The 'Disabled' State
+    // badge is derived purely from spec.enabled === false, so guarantee that precondition via API and
+    // wait for the backend to reflect it before loading the list.
+    cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos', repoName).then((resp) => {
+      const repo = resp.body;
+
+      if (repo.spec?.enabled !== false) {
+        repo.spec = { ...repo.spec, enabled: false };
+        cy.setRancherResource('v1', 'catalog.cattle.io.clusterrepos', repoName, repo);
+      }
+    });
+    cy.waitForRancherResource(
+      'v1',
+      'catalog.cattle.io.clusterrepos',
+      repoName,
+      (resp: Cypress.Response<any>) => resp?.body?.spec?.enabled === false,
+    );
+
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    // After re-navigating to the list the state badge can take longer than the default
+    // timeout to settle back to 'Disabled', so use a longer timeout (matches the 'can enable'
+    // test's Active check below).
+    repositoriesPage.list().details(repoName, 1).contains('Disabled', MEDIUM_TIMEOUT_OPT).should('be.visible');
+
+    // Open the action menu and verify refresh is not displayed for disabled repo
+    const actionMenu = repositoriesPage.list().actionMenu(repoName);
+
+    actionMenu.self().should('be.visible');
+
+    // Verify refresh is not displayed for disabled repo
+    actionMenu.getMenuItem('Refresh').should('not.exist');
+
+    // Close action menu
+    repositoriesPage.list().actionMenuClose(repoName);
+  });
+
+  it('can enable a repository', () => {
+    // Ensure repository exists before enabling
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
+      // Check if repository is already enabled, if so skip
+      repositoriesPage.list().details(repoName, 1).then(($el) => {
+        if ($el.text().includes('Active')) {
+          cy.log(`Repository ${ repoName } is already enabled, skipping enable action`);
+
+          return;
+        }
+
+        repositoriesPage.list().actionMenu(repoName).getMenuItem('Enable').click();
+        repositoriesPage.list().details(repoName, 1).contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
+      });
+    });
+  });
+
+  after(() => {
+    if (repoName) {
+      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', repoName, false);
+    }
+  });
+});

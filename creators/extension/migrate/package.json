@@ -1,0 +1,23 @@
+{
+  "name": "@rancher/create-migration",
+  "description": "Rancher UI Vue3 migration helper",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "author": "SUSE",
+  "private": false,
+  "bin": "./init",
+  "files": [
+    "**/*.*",
+    "init"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "diff": "^8.0.3",
+    "fs-extra": "^10.0.0",
+    "glob": "^11.0.0",
+    "path": "^0.12.7",
+    "semver": "^7.6.3"
+  }
+}

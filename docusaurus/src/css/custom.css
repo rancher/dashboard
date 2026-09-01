@@ -1,0 +1,235 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #3D98D3;
+  --ifm-color-primary-dark: #29784c;
+  --ifm-color-primary-darker: #277148;
+  --ifm-color-primary-darkest: #205d3b;
+  --ifm-color-primary-light: #33925d;
+  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-color-body: #141419;
+  --ifm-menu-color: #141419;
+  --default-border-color: #DCDEE7;
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --ifm-color-primary: #3D98D3;
+  --ifm-color-primary-dark: #21af90;
+  --ifm-color-primary-darker: #1fa588;
+  --ifm-color-primary-darkest: #1a8870;
+  --ifm-color-primary-light: #29d5b0;
+  --ifm-color-primary-lighter: #32d8b4;
+  --ifm-color-primary-lightest: #4fddbf;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-body: #ffffff;
+  --ifm-menu-color: #ffffff;
+  --default-border-color: #6c6c76;
+}
+
+
+
+body {
+  font-family: 'Lato', sans-serif;
+  color: var( --ifm-color-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: normal;
+}
+
+.navbar {
+  height: auto;
+}
+
+.navbar__logo {
+  height: 4rem;
+}
+.container {
+  padding: 0 2rem;
+}
+
+.homepage-banner {
+  text-align: left;
+  min-height: 300px;
+  background: url(@site/static/img/footer-bg.png) no-repeat right bottom;
+  background-size: 75%;
+  padding: 50px;
+}
+
+.homepage-banner p {
+  width: 50%;
+}
+
+.featureSvg_src-components-HomepageFeatures-styles-module {
+  width: 150px;
+}
+
+section {
+  padding: 50px 0;
+}
+
+a.guideLink,
+a.gettingStartedLink,
+a.contributeLink,
+a.featureLink {
+  color: var(--ifm-color-body);
+  display: flex;
+  border: 1px solid transparent;
+  padding: 1rem;
+  height: 100%;
+  transition: 0.4s ease;
+}
+
+a.guideLink:hover,
+a.gettingStartedLink:hover,
+a.contributeLink:hover,
+a.featureLink:hover {
+  color: var(--ifm-color-body);
+  border: solid 1px #BEC1D2;
+  text-decoration: none;
+}
+
+a.gettingStartedLink,
+a.contributeLink {
+  display: block;
+  height: 100%;
+}
+
+a.contributeLink p {
+  margin: 0;
+}
+
+h2 {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.link-icon {
+  width: 16px;
+  display: none;
+  margin-left: auto;
+}
+
+.show {
+  display: block;
+}
+
+.contributeLink img {
+  height: 75px;
+}
+
+.resourcesSvg {
+  background-color: #4DA6DA;
+  padding: 25px;
+  display: flex;
+  max-height: 180px;
+}
+
+.resourcesSvg svg {
+  width: 120px;
+  height: 120px;
+  margin: auto;
+}
+
+a.gettingStartedLink .resourcesSvg {
+  padding: 25px 15px;
+  margin-bottom: 25px;
+}
+
+a.gettingStartedLink .resourcesSvg svg {
+  height: 80px;
+}
+
+.midnight-blue {
+  background-color: #192072;
+}
+.jungle-green {
+  background-color: #30BA78;
+}
+.primary-active {
+  background-color: #1B5276;
+}
+.waterhole-blue {
+  background-color: #2453FF;
+}
+.pine-green {
+  background-color: #0C322C;
+}
+.primary-hover {
+  background-color: #297DB4;
+}
+
+.footer{
+  padding: 16px;
+}
+
+hr {
+  margin: 2rem 0;
+}
+
+/* Fixes for CSS issues with auto generated docs */
+/* Fixes anchor styling methods subtitle */
+h4.anchor {
+  font-size: 20px;
+}
+
+/* Fixes anchor styling for method params */
+h5.anchor {
+  font-size: 18px;
+  text-decoration: underline;
+}
+
+/* Make "Inherited from" sections footnote-style */
+h4[id^="inherited-from"],
+h5[id^="inherited-from"] {
+  font-size: 0.85rem;
+  font-weight: normal;
+  color: var(--ifm-color-emphasis-600);
+  margin-top: 0.35rem;
+  margin-bottom: 0.2rem;
+}
+
+h4[id^="inherited-from"] + div pre,
+h5[id^="inherited-from"] + div pre {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  background-color: transparent !important;
+}
+
+h4[id^="inherited-from"] + div pre code,
+h5[id^="inherited-from"] + div pre code {
+  font-size: 0.8rem;
+  background: transparent;
+  color: var(--ifm-color-emphasis-600);
+  padding: 0.10rem;
+}
+
+@media screen and (max-width: 996px) {
+  .homepage-banner {
+    padding: 30px 30px;
+    background-size: 100%;
+  }
+
+  .homepage-banner p {
+    width: 55%;
+  }
+}
+
+#__docusaurus {
+  min-height: 100vh !important;
+}

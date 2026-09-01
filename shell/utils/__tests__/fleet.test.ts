@@ -1,0 +1,617 @@
+import { BundleDeployment, BundleDeploymentStatus } from '@shell/types/resources/fleet';
+import { Target } from '@shell/types/fleet';
+import FleetUtils from '@shell/utils/fleet';
+import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-class';
+
+describe('fx: util.getTargetMode', () => {
+  const util = FleetUtils.Application;
+
+  // getTargetMode declares a third `areHarvesterHostsVisible` argument but never reads it, so the
+  // value passed here makes no difference to any of the expectations below.
+
+  it('should return "all" when targets contain excludeHarvesterRule and namespace is not fleet-local', () => {
+    const targets = [{
+      clusterSelector: {
+        matchExpressions: [{
+          key:      'provider.cattle.io',
+          operator: 'NotIn',
+          values:   ['harvester'],
+        }],
+      },
+    }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('all');
+  });
+
+  it('should return "clusters" when targets include clusterName and clusterSelector', () => {
+    const targets = [{ clusterName: 'fleet-5-france' }, { clusterSelector: { matchLabels: { foo: 'true' } } }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('clusters');
+  });
+
+  it('should return "clusters" when targets only include multiple clusterSelectors', () => {
+    const targets: Target[] = [{ clusterSelector: { matchLabels: { foo: 'true' } } }, { clusterSelector: { matchLabels: { hci: 'true' } } }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('clusters');
+  });
+
+  it('should return "advanced" when a target contains clusterGroupSelector', () => {
+    const targets = [{ clusterGroupSelector: {} }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('advanced');
+  });
+
+  it('should return "advanced" when any target contains clusterGroup or clusterGroupSelector', () => {
+    const targets = [{
+      clusterGroup:         'cg1',
+      clusterGroupSelector: {
+        matchExpressions: [{
+          key:      'string',
+          operator: 'string',
+          values:   ['string']
+        }],
+        matchLabels: { foo: 'bar' }
+      },
+      clusterName:     'pippo',
+      clusterSelector: {
+        matchExpressions: [{
+          key:      'string',
+          operator: 'string',
+          values:   ['vvv']
+        }],
+        matchLabels: { foo: 'bar' }
+      },
+      name: 'tt1',
+    }, {
+      clusterGroup:         'cg2',
+      clusterGroupSelector: {
+        matchExpressions: [{
+          key:      'string',
+          operator: 'string',
+          values:   ['string']
+        }],
+        matchLabels: { foo: 'bar' }
+      },
+      clusterName:     'pippo',
+      clusterSelector: {
+        matchExpressions: [{
+          key:      'string',
+          operator: 'string',
+          values:   ['vvv']
+        }],
+        matchLabels: { foo: 'bar' }
+      },
+      name: 'tt1',
+    }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('advanced');
+  });
+
+  it('should return "none" when targets is an empty array', () => {
+    const targets: Target[] = [];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('none');
+  });
+
+  it('should return "local" when namespace is "fleet-local" regardless of targets', () => {
+    const targets: Target[] = [{ clusterSelector: { matchLabels: { foo: 'true' } } }, { clusterSelector: { matchLabels: { hci: 'true' } } }];
+    const namespace = 'fleet-local';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('local');
+  });
+
+  it('should return "all" if no specific target type (clusterName, clusterSelector, clusterGroup, clusterGroupSelector) is present', () => {
+    const targets = [{ name: 'target1' }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('all');
+  });
+
+  it('should return "clusters" if multiple targets include only clusterName', () => {
+    const targets = [{ clusterName: 'cluster-a' }, { clusterName: 'cluster-b' }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('clusters');
+  });
+
+  it('should return "clusters" if a mix of clusterName and empty clusterSelector is present', () => {
+    const targets = [{ clusterName: 'cluster-c' }, { clusterSelector: {} },
+    ];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('clusters');
+  });
+
+  it('should return "clusters" if one target has clusterGroup but others have clusterName or clusterSelector', () => {
+    const targets = [{ clusterName: 'cluster-x' }, { clusterGroup: 'my-group' }, { clusterSelector: { matchLabels: { env: 'prod' } } }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('clusters');
+  });
+
+  it('should return "advanced" if one target has clusterGroupSelector but others have clusterName or clusterSelector', () => {
+    const targets = [{ clusterName: 'cluster-x' }, { clusterGroupSelector: {} }, { clusterSelector: { matchLabels: { env: 'prod' } } }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('advanced');
+  });
+
+  it('should return "all" when targets contain excludeHarvesterRule along with other irrelevant properties', () => {
+    const targets = [{
+      clusterSelector: {
+        matchExpressions: [{
+          key:      'provider.cattle.io',
+          operator: 'NotIn',
+          values:   ['harvester'],
+        }],
+      },
+      name: 'some-other-name'
+    }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace, false)).toBe('all');
+  });
+});
+
+describe('fleet: quacksLikeAHash', () => {
+  it.each([
+    {
+      desc: '40-char lowercase hex string', input: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', expected: true
+    },
+    {
+      desc: '40-char uppercase hex string', input: 'A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2', expected: true
+    },
+    {
+      desc: '64-char sha256 hex string', input: 'a'.repeat(64), expected: true
+    },
+    {
+      desc: '39-char hex string (too short)', input: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1', expected: false
+    },
+    {
+      desc: 'non-hex characters', input: 'z1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', expected: false
+    },
+    {
+      desc: 'empty string', input: '', expected: false
+    },
+    {
+      desc: 'semantic version string', input: 'v1.2.3', expected: false
+    },
+    {
+      desc: 'branch name', input: 'main', expected: false
+    },
+  ])('$desc', ({ input, expected }) => {
+    expect(FleetUtils.quacksLikeAHash(input as string)).toBe(expected);
+  });
+});
+
+describe('fleet: parseSSHUrl', () => {
+  it('parses a standard git ssh url', () => {
+    const result = FleetUtils.parseSSHUrl('git@github.com:rancher/dashboard.git');
+
+    expect(result).toStrictEqual({ sshUserAndHost: 'git@github.com', repoPath: 'rancher/dashboard' });
+  });
+
+  it('handles url with no colon', () => {
+    const result = FleetUtils.parseSSHUrl('git@github.com');
+
+    expect(result).toStrictEqual({ sshUserAndHost: 'git@github.com', repoPath: undefined });
+  });
+
+  it('handles empty string', () => {
+    const result = FleetUtils.parseSSHUrl('');
+
+    expect(result).toStrictEqual({ sshUserAndHost: '', repoPath: undefined });
+  });
+});
+
+describe('fleet: resourceId', () => {
+  it.each([
+    {
+      desc:     'namespace/name when namespace is present',
+      resource: {
+        kind: 'Pod', apiVersion: 'v1', namespace: 'default', name: 'my-pod'
+      },
+      expected: 'default/my-pod'
+    },
+    {
+      desc:     'only name when namespace is absent',
+      resource: {
+        kind: 'ClusterRole', apiVersion: 'rbac.authorization.k8s.io/v1', name: 'my-role'
+      },
+      expected: 'my-role'
+    },
+    {
+      desc:     'only name when namespace is empty string',
+      resource: {
+        kind: 'Pod', apiVersion: 'v1', namespace: '', name: 'my-pod'
+      },
+      expected: 'my-pod'
+    },
+  ])('returns $desc', ({ resource, expected }) => {
+    expect(FleetUtils.resourceId(resource)).toBe(expected);
+  });
+});
+
+describe('fleet: resourceType', () => {
+  it.each([
+    {
+      desc:     'lowercase kind when apiVersion is v1',
+      resource: {
+        kind: 'Pod', apiVersion: 'v1', name: 'p', state: 'ready'
+      },
+      expected: 'pod'
+    },
+    {
+      desc:     'lowercase kind when apiVersion is absent',
+      resource: {
+        kind: 'Pod', apiVersion: '', name: 'p', state: 'ready'
+      },
+      expected: 'pod'
+    },
+    {
+      desc:     'group prefix for non-core resources',
+      resource: {
+        kind: 'Deployment', apiVersion: 'apps/v1', name: 'd', state: 'ready'
+      },
+      expected: 'apps.deployment'
+    },
+    {
+      desc:     'first segment of apiVersion as group',
+      resource: {
+        kind: 'Certificate', apiVersion: 'cert-manager.io/v1', name: 'c', state: 'ready'
+      },
+      expected: 'cert-manager.io.certificate'
+    },
+  ])('returns $desc', ({ resource, expected }) => {
+    expect(FleetUtils.resourceType(resource)).toBe(expected);
+  });
+});
+
+describe('fleet: bundleDeploymentState', () => {
+  const makeDeployment = (overrides: Partial<BundleDeployment> = {}): BundleDeployment => ({
+    spec:   { deploymentId: 'dep-1', stagedDeploymentId: 'dep-1' },
+    status: {
+      appliedDeploymentId: 'dep-1',
+      ready:               true,
+      nonModified:         true,
+      conditions:          [],
+    },
+    ...overrides,
+  });
+
+  it('returns ready when all conditions are nominal', () => {
+    expect(FleetUtils.bundleDeploymentState(makeDeployment())).toBe(STATES_ENUM.READY);
+  });
+
+  it('returns errapplied when appliedDeploymentId differs and Deployed condition is false', () => {
+    const bd = makeDeployment({
+      status: {
+        appliedDeploymentId: 'dep-0', ready: true, nonModified: true, conditions: []
+      }
+    });
+
+    expect(FleetUtils.bundleDeploymentState(bd)).toBe(STATES_ENUM.ERR_APPLIED);
+  });
+
+  it('returns waitapplied when appliedDeploymentId differs and Deployed condition is true', () => {
+    const bd = makeDeployment({
+      status: {
+        appliedDeploymentId: 'dep-0',
+        ready:               true,
+        nonModified:         true,
+        conditions:          [{ type: 'Deployed', status: 'True' }],
+      },
+    });
+
+    expect(FleetUtils.bundleDeploymentState(bd)).toBe(STATES_ENUM.WAIT_APPLIED);
+  });
+
+  it('returns notready when applied matches but not ready', () => {
+    const bd = makeDeployment({
+      status: {
+        appliedDeploymentId: 'dep-1', ready: false, nonModified: true, conditions: []
+      }
+    });
+
+    expect(FleetUtils.bundleDeploymentState(bd)).toBe(STATES_ENUM.NOT_READY);
+  });
+
+  it('returns outofsync when deploymentId differs from stagedDeploymentId', () => {
+    const bd: BundleDeployment = {
+      spec:   { deploymentId: 'dep-1', stagedDeploymentId: 'dep-2' },
+      status: {
+        appliedDeploymentId: 'dep-1',
+        ready:               true,
+        nonModified:         true,
+        conditions:          [],
+      },
+    };
+
+    expect(FleetUtils.bundleDeploymentState(bd)).toBe(STATES_ENUM.OUT_OF_SYNC);
+  });
+
+  it('returns modified when nonModified is false', () => {
+    const bd = makeDeployment({
+      status: {
+        appliedDeploymentId: 'dep-1', ready: true, nonModified: false, conditions: []
+      }
+    });
+
+    expect(FleetUtils.bundleDeploymentState(bd)).toBe(STATES_ENUM.MODIFIED);
+  });
+});
+
+describe('fleet: resourcesFromBundleDeploymentStatus', () => {
+  it('returns empty array for empty status', () => {
+    const result = FleetUtils.resourcesFromBundleDeploymentStatus({} as BundleDeploymentStatus);
+
+    expect(result).toStrictEqual([]);
+  });
+
+  it('marks resources as ready when only in status.resources', () => {
+    const status: BundleDeploymentStatus = {
+      resources: [{
+        kind: 'Pod', apiVersion: 'v1', namespace: 'ns', name: 'pod-1'
+      }],
+      ready:       true,
+      nonModified: true,
+      conditions:  [],
+    };
+    const result = FleetUtils.resourcesFromBundleDeploymentStatus(status);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].state).toBe(STATES_ENUM.READY);
+    expect(result[0].name).toBe('pod-1');
+  });
+
+  it('marks resource as missing when in modifiedStatus with missing=true', () => {
+    const status: BundleDeploymentStatus = {
+      modifiedStatus: [{
+        kind: 'Pod', apiVersion: 'v1', namespace: 'ns', name: 'pod-1', missing: true, patch: ''
+      }],
+      ready:       true,
+      nonModified: true,
+      conditions:  [],
+    };
+    const result = FleetUtils.resourcesFromBundleDeploymentStatus(status);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].state).toBe(STATES_ENUM.MISSING);
+  });
+
+  it('marks resource as orphaned when in modifiedStatus with delete=true', () => {
+    const status: BundleDeploymentStatus = {
+      modifiedStatus: [{
+        kind: 'Pod', apiVersion: 'v1', namespace: 'ns', name: 'pod-1', delete: true, patch: ''
+      }],
+      ready:       true,
+      nonModified: true,
+      conditions:  [],
+    };
+    const result = FleetUtils.resourcesFromBundleDeploymentStatus(status);
+
+    expect(result[0].state).toBe(STATES_ENUM.ORPHANED);
+  });
+
+  it('marks resource as modified when in modifiedStatus without missing/delete', () => {
+    const status: BundleDeploymentStatus = {
+      modifiedStatus: [{
+        kind: 'Pod', apiVersion: 'v1', namespace: 'ns', name: 'pod-1', patch: 'diff'
+      }],
+      ready:       true,
+      nonModified: true,
+      conditions:  [],
+    };
+    const result = FleetUtils.resourcesFromBundleDeploymentStatus(status);
+
+    expect(result[0].state).toBe(STATES_ENUM.MODIFIED);
+  });
+
+  it('updates state of a resource that appears in both resources and modifiedStatus', () => {
+    const status: BundleDeploymentStatus = {
+      resources: [{
+        kind: 'Pod', apiVersion: 'v1', namespace: 'ns', name: 'pod-1'
+      }],
+      modifiedStatus: [{
+        kind: 'Pod', apiVersion: 'v1', namespace: 'ns', name: 'pod-1', missing: true, patch: ''
+      }],
+      ready:       true,
+      nonModified: true,
+      conditions:  [],
+    };
+    const result = FleetUtils.resourcesFromBundleDeploymentStatus(status);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].state).toBe(STATES_ENUM.MISSING);
+  });
+});
+
+describe('fleet: clusterIdFromBundleDeploymentLabels', () => {
+  it('returns namespace/name from labels', () => {
+    const labels = {
+      [FLEET_LABELS.CLUSTER_NAMESPACE]: 'fleet-default',
+      [FLEET_LABELS.CLUSTER]:           'cluster-1',
+    };
+
+    expect(FleetUtils.clusterIdFromBundleDeploymentLabels(labels)).toBe('fleet-default/cluster-1');
+  });
+
+  it('returns undefined/undefined when labels are absent', () => {
+    expect(FleetUtils.clusterIdFromBundleDeploymentLabels(undefined)).toBe('undefined/undefined');
+  });
+});
+
+describe('fleet: bundleIdFromBundleDeploymentLabels', () => {
+  it('returns namespace/name from labels', () => {
+    const labels = {
+      [FLEET_LABELS.BUNDLE_NAMESPACE]: 'fleet-default',
+      [FLEET_LABELS.BUNDLE_NAME]:      'my-bundle',
+    };
+
+    expect(FleetUtils.bundleIdFromBundleDeploymentLabels(labels)).toBe('fleet-default/my-bundle');
+  });
+
+  it('returns undefined/undefined when labels are absent', () => {
+    expect(FleetUtils.bundleIdFromBundleDeploymentLabels(undefined)).toBe('undefined/undefined');
+  });
+});
+
+describe('fleet: getDashboardStateId', () => {
+  it.each([
+    {
+      desc: 'strips "text-" prefix from stateColor', stateColor: 'text-error', expected: 'error'
+    },
+    {
+      desc: 'returns "warning" when stateColor is falsy', stateColor: '', expected: 'warning'
+    },
+    {
+      desc: 'returns stateColor unchanged when no "text-" prefix', stateColor: 'success', expected: 'success'
+    },
+  ])('$desc', ({ stateColor, expected }) => {
+    expect(FleetUtils.getDashboardStateId({ stateColor })).toBe(expected);
+  });
+});
+
+describe('fleet: getDashboardState', () => {
+  it('returns the matching dashboard state for a known stateColor', () => {
+    const state = FleetUtils.getDashboardState({ stateColor: 'text-error' }) as { id: string };
+
+    expect(state.id).toBe('error');
+  });
+
+  it('returns empty object for an unknown stateColor', () => {
+    expect(FleetUtils.getDashboardState({ stateColor: 'text-unknown-state' })).toStrictEqual({});
+  });
+
+  it('returns warning state when stateColor is empty', () => {
+    const state = FleetUtils.getDashboardState({ stateColor: '' }) as { id: string };
+
+    expect(state.id).toBe('warning');
+  });
+});
+
+describe('fleet: bundleDeploymentState (conditionIsTrue with no conditions)', () => {
+  it('returns errapplied when conditions is undefined', () => {
+    const bd: BundleDeployment = {
+      spec:   { deploymentId: 'dep-1', stagedDeploymentId: 'dep-1' },
+      status: {
+        appliedDeploymentId: 'dep-0',
+        ready:               true,
+        nonModified:         true,
+        conditions:          undefined as any,
+      },
+    };
+
+    // conditionIsTrue returns false when conditions is undefined → errapplied path
+    expect(FleetUtils.bundleDeploymentState(bd)).toBe(STATES_ENUM.ERR_APPLIED);
+  });
+});
+
+describe('fleet: detailLocation', () => {
+  it('returns undefined when state is missing', () => {
+    const r = {
+      kind: 'Pod', apiVersion: 'v1', namespace: 'ns', name: 'pod-1', state: STATES_ENUM.MISSING
+    };
+
+    expect(FleetUtils.detailLocation(r, 'local')).toBeUndefined();
+  });
+
+  it('returns namespaced route location when resource has namespace and state is not missing', () => {
+    const r = {
+      kind: 'Pod', apiVersion: 'v1', namespace: 'default', name: 'pod-1', state: STATES_ENUM.READY
+    };
+    const location = FleetUtils.detailLocation(r, 'local');
+
+    expect(location).toBeDefined();
+    expect(location.name).toBe('c-cluster-product-resource-namespace-id');
+    expect(location.params.cluster).toBe('local');
+    expect(location.params.namespace).toBe('default');
+    expect(location.params.id).toBe('pod-1');
+  });
+
+  it('returns non-namespaced route location when resource has no namespace', () => {
+    const r = {
+      kind: 'Node', apiVersion: 'v1', namespace: '', name: 'node-1', state: STATES_ENUM.READY
+    };
+    const location = FleetUtils.detailLocation(r, 'local');
+
+    expect(location).toBeDefined();
+    expect(location.name).toBe('c-cluster-product-resource-id');
+    expect(location.params.namespace).toBeUndefined();
+    expect(location.params.id).toBe('node-1');
+  });
+});
+
+describe('fleet: getResourcesDefaultState', () => {
+  const labelGetter = (key: string, _args: any, fallback: any) => fallback;
+
+  it('returns an object keyed by the expected resource states', () => {
+    const result = FleetUtils.getResourcesDefaultState(labelGetter, 'fleet.resources');
+    const expectedStates = [
+      STATES_ENUM.READY,
+      STATES_ENUM.NOT_READY,
+      STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.MODIFIED,
+      STATES_ENUM.MISSING,
+      STATES_ENUM.ORPHANED,
+      STATES_ENUM.UNKNOWN,
+    ];
+
+    expect(Object.keys(result)).toStrictEqual(expectedStates);
+  });
+
+  it('initializes each state entry with count 0 and correct color', () => {
+    const result = FleetUtils.getResourcesDefaultState(labelGetter, 'fleet.resources');
+
+    expect(result[STATES_ENUM.READY].count).toBe(0);
+    expect(result[STATES_ENUM.READY].color).toBe(STATES[STATES_ENUM.READY].color);
+    expect(result[STATES_ENUM.READY].status).toBe(STATES_ENUM.READY);
+  });
+
+  it('uses the labelGetter fallback as the label', () => {
+    const result = FleetUtils.getResourcesDefaultState(labelGetter, 'fleet.resources');
+
+    expect(result[STATES_ENUM.READY].label).toBe(STATES[STATES_ENUM.READY].label);
+  });
+});
+
+describe('fleet: getBundlesDefaultState', () => {
+  const labelGetter = (key: string, _args: any, fallback: any) => fallback;
+
+  it('returns an object keyed by the expected bundle states', () => {
+    const result = FleetUtils.getBundlesDefaultState(labelGetter, 'fleet.bundles');
+    const expectedStates = [
+      STATES_ENUM.READY,
+      STATES_ENUM.INFO,
+      STATES_ENUM.WARNING,
+      STATES_ENUM.NOT_READY,
+      STATES_ENUM.ERROR,
+      STATES_ENUM.ERR_APPLIED,
+      STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.UNKNOWN,
+    ];
+
+    expect(Object.keys(result)).toStrictEqual(expectedStates);
+  });
+
+  it('initializes each state entry with count 0 and correct color', () => {
+    const result = FleetUtils.getBundlesDefaultState(labelGetter, 'fleet.bundles');
+
+    expect(result[STATES_ENUM.NOT_READY].count).toBe(0);
+    expect(result[STATES_ENUM.NOT_READY].color).toBe(STATES[STATES_ENUM.NOT_READY].color);
+    expect(result[STATES_ENUM.NOT_READY].status).toBe(STATES_ENUM.NOT_READY);
+  });
+
+  it('uses the labelGetter fallback as the label', () => {
+    const result = FleetUtils.getBundlesDefaultState(labelGetter, 'fleet.bundles');
+
+    expect(result[STATES_ENUM.ERROR].label).toBe(STATES[STATES_ENUM.ERROR].label);
+  });
+});

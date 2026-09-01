@@ -1,0 +1,231 @@
+import { CustomResourceDefinitionsPagePo } from '@/cypress/e2e/po/pages/explorer/custom-resource-definitions.po';
+import { generateCrdsDataSmall } from '@/cypress/e2e/blueprints/explorer/more-resources/api/custom-resource-definition-get';
+import * as jsyaml from 'js-yaml';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+
+const cluster = 'local';
+const crdsPage = new CustomResourceDefinitionsPagePo(cluster);
+const crdName = `e2etests.${ +new Date() }.example.com`;
+const crdGroup = `${ +new Date() }.example.com`;
+
+describe('CustomResourceDefinitions', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+  });
+
+  describe('List', { tags: ['@explorer', '@adminUser'] }, () => {
+    before(() => {
+      cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{\"local\":[]}', { delay: true });
+    });
+
+    it('can create a crd and see it in list view', () => {
+      // Idempotent across retries (testIsolation is off): attempt 1 can create the CRD (201) and then
+      // still fail on the list assertion below (list lag). On the retry the create then returns 409
+      // because the CRD already exists, so a plain retry can never pass. Delete any leftover first and
+      // wait for it to clear, so every attempt starts clean and the create returns 201.
+      cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName, false);
+      cy.waitForRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName, (resp: any) => resp?.status === 404, 20, { failOnStatusCode: false });
+
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } } );
+
+      CustomResourceDefinitionsPagePo.navTo();
+      crdsPage.waitForPage();
+      crdsPage.create();
+
+      cy.readFile('cypress/e2e/blueprints/explorer/more-resources/api/custom-resource-definition.yml').then((crdYaml) => {
+      // convert yaml into json to update name and group values
+        const json: any = jsyaml.load(crdYaml);
+
+        json.metadata.name = crdName;
+        json.spec.group = crdGroup;
+
+        crdsPage.yamlEditor().set(jsyaml.dump(json));
+      });
+
+      cy.intercept('POST', 'v1/apiextensions.k8s.io.customresourcedefinitions').as('createCRD');
+      crdsPage.crdCreateEditPo().saveCreateForm().resourceYaml().saveOrCreate()
+        .click();
+      cy.wait('@createCRD').its('response.statusCode').should('eq', 201);
+      crdsPage.waitForPage();
+      crdsPage.sortableTable().filter(crdName);
+      crdsPage.sortableTable().rowWithName(crdName)
+        .column(1)
+        .scrollIntoView()
+        .should('be.visible');
+
+      // check table headers
+      const expectedHeaders = ['State', 'Name', 'Resource', 'Age'];
+
+      crdsPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
+      crdsPage.sortableTable().filter('{selectAll}{del}');
+    });
+
+    it('pagination is visible and user is able to navigate through crd data', () => {
+      HomePagePo.goTo();
+      // get crd count
+      cy.getRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions').then((resp: Cypress.Response<any>) => {
+        const count = resp.body.count;
+
+        crdsPage.goTo(); // Remove any odd state from previous create (which can result in additional table row not from backend)
+        crdsPage.waitForPage();
+
+        // pagination is visible
+        crdsPage.sortableTable().pagination().checkVisible();
+
+        // basic checks on navigation buttons
+        crdsPage.sortableTable().pagination().beginningButton().isDisabled();
+        crdsPage.sortableTable().pagination().leftButton().isDisabled();
+        crdsPage.sortableTable().pagination().rightButton().isEnabled();
+        crdsPage.sortableTable().pagination().endButton().isEnabled();
+
+        // check text before navigation
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `1 - 10 of ${ count } CustomResourceDefinitions`
+          }
+        );
+
+        // navigate to next page - right button
+        crdsPage.sortableTable().pagination().rightButton().click();
+
+        // check text and buttons after navigation
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `11 - 20 of ${ count } CustomResourceDefinitions`
+          }
+        );
+        crdsPage.sortableTable().pagination().beginningButton().isEnabled();
+        crdsPage.sortableTable().pagination().leftButton().isEnabled();
+
+        // navigate to first page - left button
+        crdsPage.sortableTable().pagination().leftButton().click();
+
+        // check text and buttons after navigation
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `1 - 10 of ${ count } CustomResourceDefinitions`
+          }
+        );
+
+        crdsPage.sortableTable().pagination().beginningButton().isDisabled();
+        crdsPage.sortableTable().pagination().leftButton().isDisabled();
+
+        // navigate to last page - end button
+        crdsPage.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
+
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
+
+        // check text after navigation
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CustomResourceDefinitions`
+          }
+        );
+
+        // navigate to first page - beginning button
+        crdsPage.sortableTable().pagination().beginningButton().click();
+
+        // check text and buttons after navigation
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `1 - 10 of ${ count } CustomResourceDefinitions`
+          }
+        );
+        crdsPage.sortableTable().pagination().beginningButton().isDisabled();
+        crdsPage.sortableTable().pagination().leftButton().isDisabled();
+      });
+    });
+
+    it('filter CRDs', () => {
+      CustomResourceDefinitionsPagePo.navTo();
+      crdsPage.waitForPage();
+
+      crdsPage.sortableTable().checkVisible();
+      crdsPage.sortableTable().checkLoadingIndicatorNotVisible();
+
+      // filter by name
+      crdsPage.sortableTable().filter(crdName);
+      crdsPage.waitForPage(`q=${ crdName }`);
+      crdsPage.sortableTable().rowElementWithPartialName(crdName)
+        .should('have.length.lte', 1);
+      crdsPage.sortableTable().rowElementWithPartialName(crdName).should('be.visible');
+    });
+
+    it('sorting changes the order of paginated CRDs data', () => {
+      const filter = 'catalog.cattle.io';
+      const app = 'apps.catalog.cattle.io';
+
+      CustomResourceDefinitionsPagePo.navTo();
+      crdsPage.waitForPage();
+      crdsPage.sortableTable().checkVisible();
+      crdsPage.sortableTable().checkNoRowsNotVisible();
+      crdsPage.sortableTable().filter(filter);
+      crdsPage.waitForPage(`q=${ filter }`);
+
+      // Wait for the filter to apply (vai on -- http request -- populate results)
+      // This is brittle, we should wait for the response for the page to be received
+      crdsPage.sortableTable().checkRowCount(false, 4);
+
+      let indexBeforeSort: number;
+
+      crdsPage.sortableTable().rowNames().then((rows) => {
+        const sortedRows = rows.sort();
+
+        indexBeforeSort = sortedRows.indexOf(app);
+      });
+
+      // check table is sorted by `name` in ASC order by default
+      crdsPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
+
+      // crd name should be visible on first page (sorted in ASC order)
+      crdsPage.sortableTable().rowElementWithPartialName(app).scrollIntoView().should('be.visible');
+
+      // sort by name in DESC order
+      crdsPage.sortableTable().sort(2).click();
+      crdsPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'up');
+
+      // check sort order
+      crdsPage.sortableTable().rowNames().then((rows) => {
+        const sortedRows = rows.sort();
+        const indexAfterSort = sortedRows.indexOf(crdName);
+
+        expect(indexAfterSort).not.eq(indexBeforeSort);
+      });
+    });
+
+    it('pagination is hidden', () => {
+      // generate small set of crds data
+      generateCrdsDataSmall();
+      HomePagePo.goTo(); // this is needed here for the intercept to work
+      CustomResourceDefinitionsPagePo.navTo();
+      cy.wait('@crdsDataSmall');
+      crdsPage.waitForPage();
+
+      crdsPage.sortableTable().checkVisible();
+      crdsPage.sortableTable().checkLoadingIndicatorNotVisible();
+      crdsPage.sortableTable().checkRowCount(false, 2);
+      crdsPage.sortableTable().pagination().checkNotExists();
+    });
+
+    after('clean up', () => {
+      // delete crd
+      cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName);
+    });
+  });
+});

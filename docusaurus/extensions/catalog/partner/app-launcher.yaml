@@ -1,0 +1,6 @@
+name: Krumware
+author: Krumware
+authorUrl: https://www.krum.io
+description: App Launcher extension for Rancher
+url: https://github.com/krumIO/krum-rancher-extensions
+icon: https://raw.githubusercontent.com/krumIO/krum-rancher-extensions/main/pkg/app-launcher/icon.svg

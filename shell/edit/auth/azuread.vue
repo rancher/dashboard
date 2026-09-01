@@ -1,0 +1,680 @@
+<script>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import isEqual from 'lodash/isEqual';
+import Loading from '@shell/components/Loading';
+import CreateEditView from '@shell/mixins/create-edit-view';
+import CruResource from '@shell/components/CruResource';
+import InfoBox from '@shell/components/InfoBox';
+import { RadioGroup } from '@components/Form/Radio';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
+import AuthBanner from '@shell/components/auth/AuthBanner';
+import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
+import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
+import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
+import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
+import { get } from '@shell/utils/object';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import { useFormValidation } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
+import { RcSeparator } from '@components/RcSeparator';
+
+const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
+
+// Azure AD Graph will be deprecated end of 2022, see: https://docs.microsoft.com/en-us/graph/migrate-azure-ad-graph-overview
+export const OLD_ENDPOINTS = {
+  standard: {
+    graphEndpoint: 'https://graph.windows.net/',
+    tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/token`,
+    authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/authorize`
+  },
+  china: {
+    graphEndpoint: 'https://graph.chinacloudapi.cn/',
+    tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/token`,
+    authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/authorize`
+  }
+};
+
+const ENDPOINT_MAPPING = {
+  standard: {
+    endpoint:      'https://login.microsoftonline.com/',
+    graphEndpoint: 'https://graph.microsoft.com',
+    tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
+    authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`
+  },
+  china: {
+    endpoint:      'https://login.partner.microsoftonline.cn/',
+    graphEndpoint: 'https://microsoftgraph.chinacloudapi.cn',
+    tokenEndpoint: `https://login.partner.microsoftonline.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
+    authEndpoint:  `https://login.partner.microsoftonline.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`
+  },
+  custom: {
+    endpoint:      'https://login.microsoftonline.com/',
+    graphEndpoint: '',
+    tokenEndpoint: '',
+    authEndpoint:  ''
+  }
+};
+
+export default {
+  components: {
+    Loading,
+    CruResource,
+    InfoBox,
+    RadioGroup,
+    LabeledInput,
+    Checkbox,
+    CopyToClipboardText,
+    AllowedPrincipals,
+    AuthBanner,
+    AuthProviderWarningBanners,
+    RcSeparator,
+  },
+
+  mixins: [CreateEditView, AuthConfig],
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+
+    const editMemberConfigRef = ref(false);
+    const isLogoutAllSupported = ref(false);
+    const sloTypeRef = ref(null);
+    const sloEndSessionEndpointUiEnabled = computed(() => (
+      sloTypeRef.value === SLO_OPTION_VALUES.all || sloTypeRef.value === SLO_OPTION_VALUES.both
+    ));
+
+    const urlRule = formRulesGenerator(t, {}).genericUrl;
+
+    const extraRules = {
+      applicationSecretRequired: (value) => {
+        if (!editMemberConfigRef.value && !value) {
+          return t('validation.required', { key: t('authConfig.azuread.applicationSecret.label') });
+        }
+
+        return undefined;
+      },
+      endSessionEndpointRequiredAndValid: (value) => {
+        if (!isLogoutAllSupported.value || !sloEndSessionEndpointUiEnabled.value) {
+          return undefined;
+        }
+        if (!value) {
+          return t('validation.required', { key: t('authConfig.azuread.endSessionEndpoint.title') });
+        }
+
+        return urlRule(value);
+      },
+    };
+
+    const { getRules, isFormValid } = useFormValidation(t, [
+      {
+        path: 'tenantId', rules: ['required'], translationKey: 'authConfig.azuread.tenantId.label'
+      },
+      {
+        path: 'applicationId', rules: ['required'], translationKey: 'authConfig.azuread.applicationId.label'
+      },
+      { path: 'applicationSecret', rules: ['applicationSecretRequired'] },
+      {
+        path: 'endpoint', rules: ['required', 'url'], translationKey: 'authConfig.azuread.endpoint.label'
+      },
+      {
+        path: 'graphEndpoint', rules: ['required', 'url'], translationKey: 'authConfig.azuread.graphEndpoint.label'
+      },
+      {
+        path: 'tokenEndpoint', rules: ['required', 'url'], translationKey: 'authConfig.azuread.tokenEndpoint.label'
+      },
+      {
+        path: 'authEndpoint', rules: ['required', 'url'], translationKey: 'authConfig.azuread.authEndpoint.label'
+      },
+      { path: 'endSessionEndpoint', rules: ['endSessionEndpointRequiredAndValid'] },
+    ], extraRules);
+
+    return {
+      getRules,
+      isFormValid,
+      editMemberConfigRef,
+      isLogoutAllSupported,
+      sloTypeRef,
+      sloEndSessionEndpointUiEnabled,
+    };
+  },
+
+  async fetch() {
+    await this.reloadModel();
+
+    if ( this.value?.graphEndpoint ) {
+      this.setInitialEndpoint(this.value.graphEndpoint);
+    }
+
+    await this.mixinFetch();
+  },
+
+  data() {
+    return {
+      isGroupMembershipFilterEnabled: !!this.value.groupMembershipFilter,
+      endpoint:                       'standard',
+      oldEndpoint:                    false,
+      SLO_OPTION_VALUES,
+
+      // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
+      // override the steve authconfig with a norman config the applicationSecret is lost
+      applicationSecret: this.value.applicationSecret
+    };
+  },
+
+  computed: {
+    tArgs() {
+      return {
+        baseUrl:  this.baseUrl,
+        provider: this.displayName,
+        username: this.principal.loginName || this.principal.name
+      };
+    },
+
+    replyUrl() {
+      return `${ this.serverUrl }/verify-auth-azure`;
+    },
+
+    tenantId() {
+      return this.model?.tenantId;
+    },
+
+    toSave() {
+      const applicationSecret = this.getNewApplicationSecret();
+
+      if (applicationSecret) {
+        this.model['applicationSecret'] = applicationSecret;
+      }
+
+      return {
+        config: {
+          ...this.model,
+          enabled:     true,
+          description: 'Enable Microsoft Entra ID'
+        }
+      };
+    },
+
+    needsUpdate() {
+      return (
+        get(this.model, `annotations."${ AZURE_MIGRATED }"`) !== 'true'
+      );
+    },
+
+    modalConfig() {
+      return {
+        applyAction: this.updateEndpoint,
+        applyMode:   'update',
+        title:       this.t('authConfig.azuread.updateEndpoint.modal.title'),
+        body:        this.t('authConfig.azuread.updateEndpoint.modal.body', null, { raw: true })
+      };
+    },
+    editMemberConfig() {
+      return this.model.enabled && !this.isEnabling && !this.editConfig;
+    },
+
+    displayName() {
+      return this.t('model.authConfig.name.azuread');
+    },
+
+    sloOptions() {
+      return [
+        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.slo.sloOptions.onlyRancher', { name: this.displayName }) },
+        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.slo.sloOptions.logoutAll', { name: this.displayName }) },
+        { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.slo.sloOptions.choose') },
+      ];
+    },
+
+    sloTypeText() {
+      const sloOptionSelected = this.sloOptions.find((item) => item.value === this.sloType);
+
+      return sloOptionSelected?.label || '';
+    },
+
+  },
+
+  watch: {
+    editMemberConfig: {
+      handler(val) {
+        this.editMemberConfigRef = val;
+      },
+      immediate: true,
+    },
+
+    'model.logoutAllSupported': {
+      handler(val) {
+        this.isLogoutAllSupported = !!val;
+      },
+      immediate: true,
+    },
+
+    endpoint(value) {
+      this.setEndpoints(value);
+    },
+
+    tenantId() {
+      if (this.endpoint !== 'custom') {
+        this.setEndpoints(this.endpoint);
+      }
+    },
+
+    // sloType is defined on shell/mixins/auth-config.js
+    sloType: {
+      handler(neu) {
+        this.sloTypeRef = neu;
+        switch (neu) {
+        case SLO_OPTION_VALUES.rancher:
+          this.model.logoutAllEnabled = false;
+          this.model.logoutAllForced = false;
+          break;
+        case SLO_OPTION_VALUES.all:
+          this.model.logoutAllEnabled = true;
+          this.model.logoutAllForced = true;
+          break;
+        case SLO_OPTION_VALUES.both:
+          this.model.logoutAllEnabled = true;
+          this.model.logoutAllForced = false;
+          break;
+        }
+      },
+      immediate: true,
+    },
+
+    model: {
+      deep: true,
+      handler() {
+        this.model.accessMode = this.model.accessMode || 'unrestricted';
+        this.model.rancherUrl = this.model.rancherUrl || this.replyUrl;
+
+        if (this.model.applicationSecret) {
+          this['applicationSecret'] = this.model.applicationSecret;
+        }
+      }
+    },
+
+  },
+
+  methods: {
+    toggleGroupMembershipFilter(enabled) {
+      // reset the value of groupMembershipFilter when its filter gets disabled
+      if (!enabled) {
+        this.model.groupMembershipFilter = '';
+      }
+    },
+
+    setEndpoints(endpoint) {
+      if (this.editConfig || !this.model.enabled) {
+        const endpointType = this.oldEndpoint && endpoint !== 'custom' ? OLD_ENDPOINTS : ENDPOINT_MAPPING;
+
+        Object.keys(endpointType[endpoint]).forEach((key) => {
+          this.model[key] = endpointType[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId);
+        });
+      }
+    },
+
+    setInitialEndpoint(endpoint) {
+      const newEndpointKey = this.determineEndpointKeyType(ENDPOINT_MAPPING);
+      const oldEndpointKey = Object.keys(OLD_ENDPOINTS).find((key) => OLD_ENDPOINTS[key].graphEndpoint === endpoint);
+
+      if ( oldEndpointKey ) {
+        this.endpoint = this.determineEndpointKeyType(OLD_ENDPOINTS);
+        this.oldEndpoint = true;
+      } else {
+        this.endpoint = newEndpointKey;
+      }
+    },
+
+    determineEndpointKeyType(endpointTypes) {
+      let out = 'custom';
+
+      for ( const [endpointKey, endpointKeyValues] of Object.entries(endpointTypes) ) {
+        const mappedValues = Object.values(endpointKeyValues).map((endpoint) => endpoint.replace(TENANT_ID_TOKEN, this.model?.tenantId));
+        const valuesToCheck = Object.keys(endpointKeyValues).map((key) => this.value[key]);
+
+        if ( isEqual(mappedValues, valuesToCheck) ) {
+          out = endpointKey;
+        }
+      }
+
+      return out;
+    },
+
+    getNewApplicationSecret() {
+      const applicationSecretOrId =
+        this.model.applicationSecret || this.applicationSecret;
+
+      // The application secret comes back as an ID from steve API and this indicates
+      // that the current application secret isn't new
+      if (applicationSecretOrId.includes('cattle-global-data')) {
+        return null;
+      }
+
+      return applicationSecretOrId;
+    },
+
+    promptUpdate() {
+      this.$store.dispatch('management/promptModal', {
+        component:      'GenericPrompt',
+        componentProps: this.modalConfig
+      });
+    },
+
+    // update the authconfig to change the azure ad graph endpoint to the microsoft graph endpoint
+    // only relevant for setups upgrading to 2.6.6 with azuread auth already enabled
+    updateEndpoint(btnCB) {
+      if (this.needsUpdate) {
+        this.model
+          .doAction('upgrade')
+          .then(() => {
+            this.reloadModel();
+            this.$store.dispatch('growl/success', { message: 'Graph endpoint updated successfully.' });
+            btnCB(true);
+          })
+          .catch((err) => {
+            this.$store.dispatch('growl/fromError', {
+              title: 'Error updating graph endpoint',
+              err
+            });
+            btnCB(false);
+          });
+      }
+    },
+  }
+};
+</script>
+
+<template>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
+    <CruResource
+      :done-route="doneRoute"
+      :mode="mode"
+      :resource="model"
+      :subtypes="[]"
+      :validation-passed="isFormValid"
+      :finish-button-mode="model && model.enabled ? 'edit' : 'enable'"
+      :can-yaml="false"
+      :errors="errors"
+      :show-cancel="showCancel"
+      :cancel-event="true"
+      @error="e=>errors = e"
+      @finish="save"
+      @cancel="cancel"
+    >
+      <template v-if="editMemberConfig">
+        <AuthBanner
+          :t-args="tArgs"
+          :disable="disable"
+          :edit="goToEdit"
+        >
+          <template #rows>
+            <tr>
+              <td>{{ t(`authConfig.azuread.tenantId.label`) }}:</td>
+              <td>{{ model.tenantId }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.applicationId.label`) }}:</td>
+              <td>{{ model.applicationId }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.endpoint.label`) }}:</td>
+              <td>{{ model.endpoint }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.graphEndpoint.label`) }}:</td>
+              <td>{{ model.graphEndpoint }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.tokenEndpoint.label`) }}:</td>
+              <td>{{ model.tokenEndpoint }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.authEndpoint.label`) }}:</td>
+              <td>{{ model.authEndpoint }}</td>
+            </tr>
+            <tr v-if="isLogoutAllSupported">
+              <td>{{ t('authConfig.slo.sloTitle') }}:</td>
+              <td>{{ sloTypeText }}</td>
+            </tr>
+            <tr v-if="isLogoutAllSupported && sloEndSessionEndpointUiEnabled">
+              <td>{{ t('authConfig.azuread.endSessionEndpoint.title') }}:</td>
+              <td>{{ model.endSessionEndpoint }}</td>
+            </tr>
+          </template>
+          <template
+            v-if="needsUpdate"
+            #actions
+          >
+            <button
+              type="button"
+              class="btn btn-sm role-secondary mr-10 update"
+              @click="promptUpdate"
+            >
+              {{ t('authConfig.azuread.updateEndpoint.button') }}
+            </button>
+          </template>
+        </AuthBanner>
+
+        <RcSeparator />
+
+        <AllowedPrincipals
+          provider="azuread"
+          :auth-config="model"
+          :mode="mode"
+        />
+      </template>
+
+      <template v-else>
+        <AuthProviderWarningBanners
+          v-if="!model.enabled"
+          :t-args="tArgs"
+        />
+
+        <InfoBox
+          v-if="!model.enabled"
+          id="reply-info"
+          class="mt-20 mb-20 p-10"
+        >
+          {{ t('authConfig.azuread.reply.info') }}
+          <br>
+          <label class="reply-url">{{ t('authConfig.azuread.reply.label') }} </label>
+          <CopyToClipboardText
+            :plain="true"
+            :aria-label="t('authConfig.azuread.reply.ariaLabel')"
+            :text="replyUrl"
+          />
+        </InfoBox>
+
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledInput
+              id="tenant-id"
+              v-model:value="model.tenantId"
+              name="tenantId"
+              :label="t('authConfig.azuread.tenantId.label')"
+              :mode="mode"
+              :required="true"
+              :rules="getRules('tenantId')"
+              :tooltip="t('authConfig.azuread.tenantId.tooltip')"
+              :placeholder="t('authConfig.azuread.tenantId.placeholder')"
+              data-testid="input-azureAD-tenantId"
+            />
+          </div>
+        </div>
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledInput
+              id="application-id"
+              v-model:value="model.applicationId"
+              name="applicationId"
+              :label="t('authConfig.azuread.applicationId.label')"
+              :mode="mode"
+              :required="true"
+              :rules="getRules('applicationId')"
+              :placeholder="t('authConfig.azuread.applicationId.placeholder')"
+              data-testid="input-azureAD-applcationId"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              id="application-secret"
+              v-model:value="model.applicationSecret"
+              name="applicationSecret"
+              type="password"
+              :label="t('authConfig.azuread.applicationSecret.label')"
+              :required="true"
+              :rules="getRules('applicationSecret')"
+              :mode="mode"
+              data-testid="input-azureAD-applicationSecret"
+            />
+          </div>
+        </div>
+        <div class="row mb-20">
+          <div class="col span-12">
+            <Checkbox
+              v-model:value="isGroupMembershipFilterEnabled"
+              class="mb-10 mr-10"
+              :mode="mode"
+              :label="t('authConfig.azuread.groupMembershipFilter.enable')"
+              :tooltip="t('authConfig.azuread.groupMembershipFilter.tooltip')"
+              data-testid="checkbox-azureAD-groupMembershipFilter"
+              @update:value="toggleGroupMembershipFilter"
+            />
+            <div v-if="isGroupMembershipFilterEnabled">
+              <LabeledInput
+                v-model:value="model.groupMembershipFilter"
+                :label="t('authConfig.azuread.groupMembershipFilter.label')"
+                placeholder="e.g. (displayName eq 'group1') or (displayName eq 'group2')"
+                :mode="mode"
+                class="mb-10"
+                data-testid="input-azureAD-groupMembershipFilter"
+              />
+              <a
+                :href="t('authConfig.azuread.groupMembershipFilter.externalHelpLink')"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                {{ t('authConfig.azuread.groupMembershipFilter.externalHelp') }} <i class="icon icon-external-link" />
+              </a>
+            </div>
+          </div>
+        </div>
+        <RadioGroup
+          v-model:value="endpoint"
+          class="mb-20"
+          :required="true"
+          :label="t('authConfig.azuread.endpoints.label')"
+          name="endpoints"
+          :options="['standard', 'china', 'custom']"
+          :mode="mode"
+          :labels="[t('authConfig.azuread.endpoints.standard'), t('authConfig.azuread.endpoints.china'), t('authConfig.azuread.endpoints.custom')]"
+          data-testid="endpoints-radio-input"
+        />
+        <div v-if="endpoint === 'custom'">
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.endpoint"
+                name="endpoint"
+                :label="t('authConfig.azuread.endpoint.label')"
+                :mode="mode"
+                :required="true"
+                :rules="getRules('endpoint')"
+                data-testid="input-azureAD-endpoint"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.graphEndpoint"
+                name="graphEndpoint"
+                :label="t('authConfig.azuread.graphEndpoint.label')"
+                :required="true"
+                :rules="getRules('graphEndpoint')"
+                :mode="mode"
+                data-testid="input-azureAD-graphEndpoint"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.tokenEndpoint"
+                name="tokenEndpoint"
+                :label="t('authConfig.azuread.tokenEndpoint.label')"
+                :mode="mode"
+                :required="true"
+                :rules="getRules('tokenEndpoint')"
+                data-testid="input-azureAD-tokenEndpoint"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.authEndpoint"
+                name="authEndpoint"
+                :label="t('authConfig.azuread.authEndpoint.label')"
+                :required="true"
+                :rules="getRules('authEndpoint')"
+                :mode="mode"
+                data-testid="input-azureAD-authEndpoint"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- SLO logout -->
+        <div
+          v-if="isLogoutAllSupported"
+          class="mb-20"
+        >
+          <div class="row">
+            <div class="col span-12">
+              <h3>{{ t('authConfig.slo.sloTitle') }}</h3>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-4">
+              <RadioGroup
+                v-model:value="sloType"
+                :mode="mode"
+                :options="sloOptions"
+                :disabled="!model.logoutAllSupported"
+                name="sloTypeRadio"
+                data-testid="azuread-sloType"
+              />
+            </div>
+          </div>
+          <div
+            v-if="sloEndSessionEndpointUiEnabled"
+            class="row mt-20"
+          >
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.endSessionEndpoint"
+                name="endSessionEndpoint"
+                :tooltip="t('authConfig.azuread.endSessionEndpoint.tooltip', { name: displayName, tenantId: `${ tenantId || 'tenant-id' }` }, true)"
+                :label="t('authConfig.azuread.endSessionEndpoint.title')"
+                :mode="mode"
+                :rules="getRules('endSessionEndpoint')"
+                :required="true"
+                data-testid="azuread-endSessionEndpoint"
+              />
+            </div>
+          </div>
+        </div>
+      </template>
+    </CruResource>
+  </div>
+</template>
+
+<style lang="scss">
+#reply-info {
+  flex-grow: 0;
+}
+
+.reply-url {
+  color: inherit;
+  font-weight: 700;
+}
+</style>

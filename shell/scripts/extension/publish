@@ -1,0 +1,504 @@
+#!/usr/bin/env bash
+# set -eo pipefail comment out for now because of a Harvester issue
+
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+BASE_DIR="$(pwd)"
+
+CYAN="\033[96m"
+YELLOW="\033[93m"
+RESET="\033[0m"
+BOLD="\033[1m"
+NORMAL="\033[22m"
+CHECK="\xE2\x9C\x94"
+
+PUSH=""
+REGISTRY=""
+REGISTRY_ORG=""
+IMAGE_PREFIX="ui-extension-"
+FORCE="false"
+GITHUB_BUILD="true"
+GITHUB_RELEASE_TAG=""
+PODMAN_CONTAINER="false"
+UPDATE_OLD_PACKAGES="true"
+UPDATE_LATEST_PACAKGES="true"
+VERBOSE="${CI:-false}"
+
+GITHUB_SOURCE=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/')
+GITHUB_BRANCH="main"
+
+debug_log() {
+  if [ "${VERBOSE}" == "true" ]; then
+    echo -e "${YELLOW}[debug] $*${RESET}"
+  fi
+}
+
+usage() {
+  echo "Usage: $0 [<options>] [extensions]"
+  echo " options:"
+  echo "  -s <repo>    Specify destination GitHub repository (org/name) - defaults to the git origin"
+  echo "  -b <branch>  Specify destination GitHub branch"
+  echo "  -t <tag>     Specify the Github release tag to build when a release has been tagged and published"
+  echo "  -f           Force building the chart even if it already exists"
+  echo "  -c           Build as a container image rather than publishing to Github"
+  echo "  -p           Push container images on build"
+  echo "  -r <name>    Specify destination container registry for built images"
+  echo "  -o <name>    Specify destination container registry organization for built images"
+  echo "  -i <prefix>  Specify prefix for the built container image (default: 'ui-extension-')"
+  echo "  -l           Specify Podman container build"
+  echo "  -n           Do not check for updates to existing Charts (Chart.yaml)"
+  echo "  -e           Only check for updates to existing Charts (Chart.yaml)"
+  echo "  -v           Enable verbose/debug output (enabled automatically in CI)"
+  exit 1
+}
+
+while getopts "hvr:o:pi:fcb:t:s:lne" opt; do
+  case $opt in
+    h)
+      usage
+      ;;
+    p)
+      PUSH="--push"
+      ;;
+    r)
+      REGISTRY="${OPTARG%/}/"
+      ;;
+    o)
+      REGISTRY_ORG="${OPTARG}"
+      ;;
+    i)
+      IMAGE_PREFIX="${OPTARG}"
+      ;;
+    f)
+      FORCE="true"
+      ;;      
+    c)
+      GITHUB_BUILD="false"
+      ;;
+    s)
+      GITHUB_BUILD="true"
+      GITHUB_SOURCE="${OPTARG}"
+      ;;
+    b)
+      GITHUB_BUILD="true"
+      GITHUB_BRANCH="${OPTARG}"
+      ;;
+    t)
+      GITHUB_RELEASE_TAG="${OPTARG}"
+      ;;
+    l)
+      PODMAN_CONTAINER="true"
+      ;;
+    n)
+      UPDATE_OLD_PACKAGES="false"
+      ;;
+    e)
+      UPDATE_OLD_PACKAGES="true"
+      UPDATE_LATEST_PACAKGES="false"
+      ;;
+    v)
+      VERBOSE="true"
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
+PLUGINS=( "$@" )
+BUILT="false"
+
+echo -e "${CYAN}${BOLD}Publishing UI Extensions${RESET}"
+
+pushd ${BASE_DIR} > /dev/null
+
+if [ "${GITHUB_BUILD}" == "true" ]; then
+  # Determine if gh-pages build is possible
+  if [[ "${GITHUB_BRANCH}" == "gh-pages" ]] && ! git show-ref -q gh-pages; then
+    echo -e "${YELLOW}'gh-pages' branch not found, this branch must exist before running this script${RESET}"
+    exit 1
+  fi
+
+  echo -e "${CYAN}${BOLD}Build Configuration${RESET}"
+  echo -e "${CYAN}  Mode        : GitHub Pages${RESET}"
+  echo -e "${CYAN}  Repository  : ${GITHUB_SOURCE}${RESET}"
+  echo -e "${CYAN}  Branch      : ${GITHUB_BRANCH}${RESET}"
+  if [[ -n "${GITHUB_RELEASE_TAG}" ]]; then
+    echo -e "${CYAN}  Release Tag : ${GITHUB_RELEASE_TAG}${RESET}"
+  fi
+else
+  echo -e "${CYAN}${BOLD}Build Configuration${RESET}"
+  echo -e "${CYAN}  Mode        : Container Image${RESET}"
+  echo -e "${CYAN}  Registry    : ${REGISTRY:-<dockerhub>}${RESET}"
+  echo -e "${CYAN}  Org         : ${REGISTRY_ORG:-<inferred from git>}${RESET}"
+  echo -e "${CYAN}  Image Prefix: ${IMAGE_PREFIX}${RESET}"
+fi
+echo -e "${CYAN}  Force Build : ${FORCE}${RESET}"
+if [[ ${#PLUGINS[@]} -gt 0 ]]; then
+  echo -e "${CYAN}  Extensions  : ${PLUGINS[*]}${RESET}"
+else
+  echo -e "${CYAN}  Extensions  : all${RESET}"
+fi
+
+# --------------------------------------------------------------------------------
+# Check that we have the required commands avaialble for this script
+# --------------------------------------------------------------------------------
+
+if ! [[ -f ${BASE_DIR}/package.json ]]; then
+  echo -e "${YELLOW}You must run from the top-level folder${RESET}"
+  exit 1
+fi
+
+# Check this is a Rancher extension
+IS_SHELL=$(grep "\"@rancher/shell" package.json -c)
+
+if [ "${IS_SHELL}" -ne 1 ]; then
+  echo -e "${YELLOW}Current folder does not appear to contain Rancher Extensions${RESET}"
+  exit 1
+fi
+
+if ! [[ -d ${BASE_DIR}/node_modules ]]; then
+  echo -e "${YELLOW}You must run ${BOLD}yarn install${NORMAL} before running this script${RESET}"
+  exit 1
+fi
+
+COMMANDS=("node" "jq" "yq" "git" "helm" "yarn")
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  if [ "${PODMAN_CONTAINER}" == "true" ]; then
+    COMMANDS+=("podman")
+  else
+    COMMANDS+=("docker")
+  fi
+fi
+
+HAVE_COMMANDS="true"
+for CMD in "${COMMANDS[@]}"
+do
+  if ! command -v ${CMD} >/dev/null; then
+    echo -e "${YELLOW}This script requires ${BOLD}${CMD}${NORMAL} to be installed and on your PATH${RESET}"
+    HAVE_COMMANDS="false"
+  fi
+done
+
+if [ "${HAVE_COMMANDS}" == "false" ]; then
+  exit 1
+fi
+
+# --------------------------------------------------------------------------------
+# Only do container args checks if not GitHub publish
+# --------------------------------------------------------------------------------
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  BASE_EXT=$(jq -r .name ${BASE_DIR}/package.json)
+  EXT_VERSION=$(jq -r .version ${BASE_DIR}/package.json)
+
+  if [ -z ${EXT_VERSION} ]; then
+    EXT_VERSION="0.0.0"
+  fi
+
+  if [[ -z ${REGISTRY_ORG} ]]; then
+    # Infer that the user has the same Docker registry org as their GitHub org
+    GITHUB_REPO=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/')
+    REGISTRY_ORG=$(dirname ${GITHUB_REPO})
+    echo -e "Inferring built images will reside in registry organization ${CYAN}${BOLD}${REGISTRY}${REGISTRY_ORG}${RESET} based on configured origin remote pointing to ${CYAN}${BOLD}${GITHUB_REPO}${RESET}"
+  fi
+
+  if [[ -z ${REGISTRY_ORG} ]]; then
+    # Inferring from the git config still failed
+    echo "Cannot build images without valid organization for Docker images. Unable to infer REGISTRY_ORG="
+    exit 1
+  fi
+
+  if [ -n "${GITHUB_RELEASE_TAG}" ] && [[ ${GITHUB_RELEASE_TAG} != "${BASE_EXT}-${EXT_VERSION}" ]]; then
+    echo -e "${YELLOW}Github tagged release name does not match ${RESET}${BOLD}${BASE_EXT}-${EXT_VERSION}${RESET}"
+    echo -e "${YELLOW}Stopping build${RESET}"
+    exit 1
+  fi
+
+  if [ "${PODMAN_CONTAINER}" == "false" ]; then
+    docker images > /dev/null
+    if [ $? -ne 0 ]; then
+      echo "docker is not running - this is required to build container images for the UI Extensions"
+      exit 1
+    fi
+  fi
+fi
+
+ASSETS=${BASE_DIR}/assets
+CHARTS=${BASE_DIR}/charts
+mkdir -p ${ASSETS}
+mkdir -p ${CHARTS}
+
+TMP=${BASE_DIR}/tmp
+CHART_TMP=${BASE_DIR}/tmp/_charts
+rm -rf ${TMP}
+mkdir -p ${TMP}
+
+# --------------------------------------------------------------------------------
+# Copy the plugin server template into the temporary folder
+# --------------------------------------------------------------------------------
+pushd ${TMP} > /dev/null
+cp -r ${SCRIPT_DIR}/helm .
+popd > /dev/null
+
+CHART_TEMPLATE=${BASE_DIR}/tmp/helm
+ROOT_INDEX=${BASE_DIR}/index.yaml
+
+# --------------------------------------------------------------------------------
+# Iterate through all existing charts and look for updates/removals
+# --------------------------------------------------------------------------------
+if [ "${UPDATE_OLD_PACKAGES}" = "true" ]; then
+  pushd ${ASSETS} > /dev/null
+  echo -e "${CYAN}${BOLD}Checking existing charts for updates ...${RESET}"
+
+  for FOLDER_NAME in */ ; do
+    EXT_NAME=${FOLDER_NAME::${#FOLDER_NAME}-1}
+    echo -e "${CYAN}${EXT_NAME}${RESET}"
+
+    for CHART_ARCHIVE in ${EXT_NAME}/*.tgz ; do
+      rm -f ${TMP}/Chart.yaml
+
+      # path in chart may be different to tar file name, so extratct the Chart.yaml file to the top-level folder
+      tar --strip-components=1 -C ${TMP} -xf ${CHART_ARCHIVE} */Chart.yaml
+
+      EXISTING_MD5=$(md5 -q ${TMP}/Chart.yaml)
+      VERSION=$(yq eval .version ${TMP}/Chart.yaml)
+
+      CHART_FOLDER=${CHARTS}/${EXT_NAME}/${VERSION}
+      LATEST=${CHART_FOLDER}/Chart.yaml
+
+      if [ ! -f "${LATEST}" ]; then
+        echo "  - Chart for ${EXT}-${VERSION} appears to have been deleted - removing chart archive: ${CHART_ARCHIVE}"
+        rm -f ${ASSETS}/${CHART_ARCHIVE}
+        BUILT="true"
+      else
+        # Re-package the helm chart so that the Chart.yaml is processed in the same way so we can compare it
+        mkdir -p ${TMP}/tmp_chart
+        helm package ${CHART_FOLDER} -d ${TMP}/tmp_chart > /dev/null
+        rm ${TMP}/Chart.yaml
+
+        # path in chart may be different to tar file name, so list the files to find what the chart archive is named
+        FILENAME=$(cd ${TMP}/tmp_chart; ls)
+
+        # path in chart may be different to tar file name, so extratct the Chart.yaml file to the top-level folder
+        tar --strip-components=1 -C ${TMP} -xf ${TMP}/tmp_chart/${FILENAME} */Chart.yaml
+        LATEST_MD5=$(md5 -q ${TMP}/Chart.yaml)
+
+        rm -f $TMP/tmp_chart/${FILENAME}
+
+        if [ "${EXISTING_MD5}" != "${LATEST_MD5}" ]; then
+          BUILT="true"
+
+          echo "  + Chart.yaml has changed for ${CHART_ARCHIVE}"
+          # Chart was already re-generated - update ir
+          rm ${CHART_ARCHIVE}
+          helm package ${CHART_FOLDER} -d ${ASSETS}/${EXT_NAME}
+        fi
+      fi
+
+      rm -d ${TMP}/tmp_chart
+      rm ${TMP}/Chart.yaml
+      
+    done
+  done
+
+  popd > /dev/null
+fi
+
+# --------------------------------------------------------------------------------
+# Iterate through all packages - built them all or build only those specified on the command line
+# --------------------------------------------------------------------------------
+if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
+  for d in pkg/*/ ; do
+    pkg=$(basename $d)
+
+    if [ -z "$1" ] || [[ " ${PLUGINS[*]} " =~ " ${pkg} " ]]; then
+      # Check we don't already have a published version by looking in the assets folder
+      PKG_VERSION=$(jq -r .version ./pkg/${pkg}/package.json)
+      PKG_NAME="${pkg}-${PKG_VERSION}"
+      PKG_ASSET=${ASSETS}/${pkg}/${PKG_NAME}.tgz
+
+      # Skip the build for a package that does not match the tagged release name
+      if [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ ${GITHUB_BUILD} == "true" ] && [[ ${GITHUB_RELEASE_TAG} != ${PKG_NAME} ]]; then
+        echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} does not match asset name${RESET}"
+        echo -e "${YELLOW}Skipping ${RESET}${BOLD}${PKG_NAME}${RESET}"
+        continue
+      fi
+
+      echo -e "${CYAN}${BOLD}Building extension: ${pkg} (${PKG_VERSION}) ${RESET}"
+
+      echo "Package version: ${PKG_VERSION}"
+      echo "Package folder:  ${PKG_NAME}"
+      debug_log "Asset path   : ${PKG_ASSET}"
+      debug_log "Chart folder : ${CHARTS}/${pkg}/${PKG_VERSION}"
+      debug_log "Ext folder   : ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}"
+      debug_log "Dist folder  : ${BASE_DIR}/dist-pkg/${PKG_NAME}"
+
+      # --------------------------------------------------------------------------------
+      # Build the plugin from source
+      # --------------------------------------------------------------------------------
+      echo -e "${CYAN}Building extension from source code${RESET}"
+      FORCE_COLOR=1 yarn build-pkg $pkg | cat
+
+      echo -e "${CYAN}Adding extension code ...${RESET}"
+
+      EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
+      PKG_DIST="${BASE_DIR}/dist-pkg/${PKG_NAME}"
+
+      rm -rf ${EXT_FOLDER}
+
+      mkdir -p ${EXT_FOLDER}/plugin
+
+      # Copy the code into the folder
+      cp -R ${PKG_DIST}/* ${EXT_FOLDER}/plugin
+
+      pushd ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION} > /dev/null
+      rm -f plugin/report.html
+      find plugin -type f | sort > files.txt
+      popd > /dev/null
+
+      # --------------------------------------------------------------------------------
+      # Package extensions into tgz for the compressedEndpoint
+      # --------------------------------------------------------------------------------
+      echo -e "${CYAN}Packaging extension into tgz${RESET}"
+      tar -czf ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}.tgz -C ${BASE_DIR}/extensions/${pkg} ${PKG_VERSION}
+
+      # --------------------------------------------------------------------------------
+      # Create the Helm chart
+      # --------------------------------------------------------------------------------
+
+      if [ -f ${PKG_ASSET} ] && [ "${FORCE}" == "false" ]; then
+        echo -e "${YELLOW}Helm chart has already been created - skipping (run with -f to force build)${RESET}"
+        continue;
+      fi
+
+      CHART_FOLDER=${CHARTS}/${pkg}/${PKG_VERSION}
+
+      mkdir -p ${ASSETS}/${pkg}
+      rm -rf ${CHART_FOLDER}
+      mkdir -p ${CHART_FOLDER}
+
+      cp -R ${CHART_TEMPLATE}/charts/ui-plugin-server/* ${CHART_FOLDER}
+
+      # Update Chart.yaml and values.yaml from the package file metadata
+      # Use the script from the template repository
+      echo -e "${CYAN}Patching Helm chart template${RESET}"
+
+      debug_log "Patch env: REGISTRY='${REGISTRY}' ORG='${REGISTRY_ORG}' PACKAGE_JSON='${BASE_DIR}/pkg/${pkg}/package.json'"
+      CHART=${CHART_FOLDER} REGISTRY="${REGISTRY}" ORG="${REGISTRY_ORG}" PACKAGE_JSON=${BASE_DIR}/pkg/${pkg}/package.json ${CHART_TEMPLATE}/scripts/patch
+
+      # Copy README file from the plugin to the Helm chart, if there is one
+      if [ -f "./pkg/${pkg}/README.md" ]; then
+        cp ./pkg/${pkg}/README.md ${CHART_FOLDER}/README.md
+      fi
+
+      export GITHUB_BUILD
+      export IMAGE_PREFIX
+      export BASE_EXT
+      export GITHUB_SOURCE
+      export GITHUB_BRANCH
+
+      # Additional patches
+      ${SCRIPT_DIR}/helmpatch ${CHART_FOLDER} "${BASE_DIR}/pkg/${pkg}/package.json"
+
+      # Package into a .tgz helm chart
+      helm package ${CHART_FOLDER} -d ${ASSETS}/${pkg}
+      debug_log "Chart packaged to: ${ASSETS}/${pkg}/${PKG_NAME}.tgz"
+
+      BUILT="true"
+    fi
+  done
+fi
+
+# Update the Helm Index for all charts, if changes were made
+if [ "${BUILT}" == "true" ]; then
+  # --------------------------------------------------------------------------------
+  # Update the helm index for all charts
+  # --------------------------------------------------------------------------------
+  HELM_INDEX=${BASE_DIR}/index.yaml
+
+  echo "Updating Helm Index file"
+
+  if [ -f "${HELM_INDEX}" ]; then
+    UPDATE="--merge ${HELM_INDEX}"
+  elif [ "${GITHUB_BUILD}" == "true" ] && [[ -n ${GITHUB_SOURCE} ]]; then
+    # Check if git branch contains index.yaml
+    GITHUB_SOURCE=$(echo -e "${GITHUB_SOURCE}" | sed 's/https:\/\///g')
+
+    wget -P ${BASE_DIR} https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/index.yaml 2>/dev/null
+    HELM_INDEX="${BASE_DIR}/index.yaml"
+
+    if [ -f "${HELM_INDEX}" ]; then
+      UPDATE="--merge ${HELM_INDEX}"
+    fi
+  fi
+
+  # Base URL referencing assets directly from GitHub
+  BASE_URL="assets/"
+
+  # Relative URL references assets within the container deployment
+  RELATIVE_URL="plugin/"
+  
+  if [ "${GITHUB_BUILD}" == "true" ]; then
+    helm repo index ${ASSETS} --url ${BASE_URL} ${UPDATE}
+  elif ! [ -e "${HELM_INDEX}" ]; then
+    helm repo index ${ASSETS} --url ${RELATIVE_URL}
+  fi
+fi
+
+if [ "${GITHUB_BUILD}" == "true" ] && [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ "${BUILT}" == "false" ]; then
+  echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} did not match any package name.${RESET}"
+  echo -e "${YELLOW}Stopping build${RESET}"
+
+  rm -rf ${CHART_TMP}
+  rm -rf ${TMP} 
+  exit 1
+fi
+
+if [ -f ${ROOT_INDEX} ] && [ "${GITHUB_BUILD}" == "false" ]; then
+  UPDATE="--merge ${ROOT_INDEX}"
+  helm repo index ${ASSETS} ${UPDATE}
+fi
+
+if [ -f ${ASSETS}/index.yaml ] && ! [ -e "${ROOT_INDEX}" ]; then
+  cp ${ASSETS}/index.yaml ${BASE_DIR}
+fi
+
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  echo -e "${CYAN}Base extension: ${BASE_EXT}${RESET}"
+  echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
+
+  # Build the container image
+  ${SCRIPT_DIR}/bundle "${BASE_EXT}" "${EXT_VERSION}" "${REGISTRY}" "${REGISTRY_ORG}" "${IMAGE_PREFIX}" "${PUSH}" "${PODMAN_CONTAINER}"
+else
+  rm -rf ${CHART_TEMPLATE}
+fi
+
+if [ "${GITHUB_BUILD}" == "true" ] && [ -f ${ROOT_INDEX} ]; then
+  if [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ -f ${ASSETS}/index.yaml ]; then
+    cp ${ASSETS}/index.yaml tmp
+  else
+    cp ${ROOT_INDEX} tmp
+  fi
+fi
+
+if [ "${GITHUB_BUILD}" == "true" ] && [ "${BUILT}" == "true" ]; then
+  echo -e "${BOLD}${CYAN}Packaging for Github Build${RESET}"
+  # Make temp directory for workflow build artifact
+  mkdir -p tmp/{assets,charts,extensions}
+
+  cp -r ${ASSETS}/* tmp/assets
+  cp -r ${CHARTS}/* tmp/charts
+  cp -r ${BASE_DIR}/extensions/* tmp/extensions
+fi
+
+if [ "${BUILT}" == "true" ]; then
+  echo -e "${CYAN}${BOLD}${CHECK} One or more packages built${RESET}"
+fi
+
+# Clean up
+rm -rf ${CHART_TMP}
+
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  rm -rf ${TMP} ${ASSETS} ${CHARTS} ${BASE_DIR}/extensions ${BASE_DIR}/dist-pkg ${ROOT_INDEX}
+fi

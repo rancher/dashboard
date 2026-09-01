@@ -1,0 +1,278 @@
+/* eslint-disable no-console */
+import { defineConfig } from 'cypress';
+import websocketTasks from './support/utils/webSocket-utils';
+import { CypressFailedAttempt, formatFailedCypressAttempt } from './support/utils/retry-logging';
+import path from 'path';
+import * as os from 'os';
+const { removeDirectory } = require('cypress-delete-downloads-folder');
+const { beforeRunHook, afterRunHook } = require('cypress-mochawesome-reporter/lib');
+
+// Required for env vars to be available in cypress
+require('dotenv').config();
+
+/**
+ * Filter test spec paths based on env var configuration
+ */
+const getSpecPattern = (dirs: string[], envs: NodeJS.ProcessEnv): string[] => {
+  // Gets paths with only
+  const onlyDirs = dirs.filter((dir) => (envs.TEST_ONLY?.split(',').map((env) => env.trim()).includes(dir)));
+
+  // List the test directories to be included
+  const activeDirs = dirs.filter((dir) => !(envs.TEST_SKIP?.split(',').map((env) => env.trim()).includes(dir)));
+
+  const finalDirs = onlyDirs.length ? onlyDirs : activeDirs;
+  const paths = finalDirs.map((dir) => `cypress/e2e/tests/${ dir }/**/*.spec.ts`);
+
+  if (process.env.NODE_ENV !== 'test') {
+    // eslint-disable-next-line no-console
+    console.log(`Running tests for paths: ${ paths.join(', ') }`);
+  }
+
+  return paths;
+};
+
+// Helper function to calculate CPU usage
+const getCpuUsage = (): Promise<number> => {
+  return new Promise((resolve) => {
+    const startUsage = process.cpuUsage();
+    const startTime = Date.now();
+
+    setTimeout(() => {
+      const endUsage = process.cpuUsage();
+      const endTime = Date.now();
+      const elapsedTime = (endTime - startTime) * 1000; // microseconds
+
+      const userTime = endUsage.user - startUsage.user;
+      const systemTime = endUsage.system - startUsage.system;
+
+      const totalCpuTime = (userTime + systemTime) / elapsedTime;
+      const cpuPercentage = totalCpuTime * 100;
+
+      resolve(cpuPercentage);
+    }, 100); // Sample over 100ms
+  });
+};
+
+/**
+ * VARIABLES
+ */
+const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
+let testDirs = ['priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
+const skipSetup = process.env.TEST_SKIP?.includes('setup');
+const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
+const DEFAULT_USERNAME = 'admin';
+const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
+const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
+const rancherVersion = process.env.RANCHER_VERSION;
+
+if (process.env.TEST_A11Y) {
+  testDirs = ['accessibility'];
+}
+
+/**
+ * LOGS:
+ * Summary of the environment variables that we have detected (or are going ot use)
+ * We won't show any passwords
+ */
+console.log('E2E Test Configuration');
+console.log('');
+console.log(`    Username: ${ username }`);
+
+if (!process.env.CATTLE_BOOTSTRAP_PASSWORD && !process.env.TEST_PASSWORD) {
+  console.log(' ❌ You must provide either CATTLE_BOOTSTRAP_PASSWORD or TEST_PASSWORD');
+}
+if (process.env.CATTLE_BOOTSTRAP_PASSWORD && process.env.TEST_PASSWORD) {
+  console.log(' ❗ If both CATTLE_BOOTSTRAP_PASSWORD and TEST_PASSWORD are provided, the first will be used');
+}
+if (!skipSetup && !process.env.CATTLE_BOOTSTRAP_PASSWORD) {
+  console.log(' ❌ You must provide CATTLE_BOOTSTRAP_PASSWORD when running setup tests');
+}
+if (skipSetup && !process.env.TEST_PASSWORD) {
+  console.log(' ❌ You must provide TEST_PASSWORD when running the tests without the setup tests');
+}
+
+console.log(`    Setup tests will ${ skipSetup ? 'NOT' : '' } be run`);
+console.log(`    Dashboard URL: ${ baseUrl }`);
+console.log(`    Rancher API URL: ${ apiUrl }`);
+console.log(`    Rancher version: ${ rancherVersion || 'not provided' }`);
+
+// Check API - sometimes in dev, you might have API set to a different system to the base url - this won't work
+// as the login cookie will be for the base url and any API requests will fail as not authenticated
+if (apiUrl && !baseUrl.startsWith(apiUrl)) {
+  console.log('\n ❗ API variable is different to TEST_BASE_URL - tests may fail due to authentication issues');
+}
+
+console.log('');
+
+/**
+ * Base Cypress configuration for Rancher Dashboard E2E tests
+ */
+const baseConfig = defineConfig({
+  defaultCommandTimeout:        process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
+  trashAssetsBeforeRuns:        true,
+  chromeWebSecurity:            false,
+  // Don't retain per-test DOM snapshots across the run. Otherwise these accumulate
+  // over a 24-spec run until the runner is memory-starved and Chrome can't relaunch
+  // between specs, crashing with "Missing browserCriClient in connectToNewSpec".
+  // 0 = keep none.
+  numTestsKeptInMemory:         0,
+  // Let Cypress actively release Chrome renderer memory between tests. Combined with
+  // numTestsKeptInMemory: 0 this reduces the long-run browser crashes that surface as
+  // "Timed out waiting for the browser to connect" late in a 20+ spec job.
+  experimentalMemoryManagement: true,
+  retries:                      {
+    runMode:  2,
+    openMode: 0
+  },
+  // `expose` (Cypress 15.10+) is read via `Cypress.expose()`. Both @cypress/grep v6 and
+  // @cypress/code-coverage v4 read their settings from here and NOT from `env` — the grep
+  // plugin silently no-ops if `config.expose` is absent, so these must not live in `env`.
+  expose: {
+    grepFilterSpecs:  true,
+    grepOmitFiltered: true,
+    grepTags:         process.env.GREP_TAGS,
+    coverage:         hasCoverage,
+    codeCoverage:     {
+      exclude: [
+        'cypress/**/*.*',
+        '**/__tests__/**/*.*',
+        '**/__mocks__/**/*.*',
+        '**/shell/scripts/**/*.*',
+        'docusaurus/**/*.*',
+        'stories/**/*.*',
+        'drone/**/*.*',
+      ],
+      include: [
+        'shell/**/*.{vue,ts,js}',
+        'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
+      ]
+    },
+  },
+  env: {
+    baseUrl,
+    rancherVersion,
+    api:                      apiUrl,
+    username,
+    password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
+    bootstrapPassword:        process.env.CATTLE_BOOTSTRAP_PASSWORD,
+    // the below env vars are only available to tests that run in Jenkins
+    awsAccessKey:             process.env.AWS_ACCESS_KEY_ID,
+    awsSecretKey:             process.env.AWS_SECRET_ACCESS_KEY,
+    azureSubscriptionId:      process.env.AZURE_AKS_SUBSCRIPTION_ID,
+    azureClientId:            process.env.AZURE_CLIENT_ID,
+    azureClientSecret:        process.env.AZURE_CLIENT_SECRET,
+    customNodeIp:             process.env.CUSTOM_NODE_IP,
+    customNodeKey:            process.env.CUSTOM_NODE_KEY,
+    customNodeUser:           process.env.CUSTOM_NODE_USER || 'ec2-user',
+    accessibility:            !!process.env.TEST_A11Y, // Are we running accessibility tests?
+    a11yFolder:               path.join('.', 'cypress', 'accessibility'),
+    gkeServiceAccount:        process.env.GKE_SERVICE_ACCOUNT,
+    // Set to 'true' to allow skipping when a chart is filtered from the UI catalog.
+    allowFilteredCatalogSkip: process.env.CYPRESS_ALLOW_FILTERED_CATALOG_SKIP,
+  },
+  reporter:        'cypress-mochawesome-reporter',
+  reporterOptions: {
+    saveJson:        true,
+    saveAllAttempts: true,
+    reportDir:       'cypress/reports'
+  },
+  e2e: {
+    fixturesFolder: 'cypress/e2e/blueprints',
+    setupNodeEvents(on, config) {
+      // For more info: https://docs.cypress.io/guides/tooling/code-coverage
+      require('@cypress/code-coverage/task')(on, config);
+      // @cypress/grep v6 moved the plugin to `@cypress/grep/plugin` and exports it as a
+      // named `plugin` function (the old `@cypress/grep/src/plugin` path is gone).
+      require('@cypress/grep/plugin').plugin(config);
+      // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
+
+      // On CI runners Chrome can crash between specs (small /dev/shm) or be too
+      // slow to connect on first launch under CPU contention, both surfacing as
+      // "Timed out waiting for the browser to connect" / "Missing browserCriClient
+      // in connectToNewSpec". Point shared memory at /tmp (disk), and drop the GPU
+      // + sandbox startup work Chrome can't use headless so it launches faster and
+      // connects within Cypress' fixed 60s window.
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          launchOptions.args.push('--disable-dev-shm-usage');
+          launchOptions.args.push('--disable-gpu');
+          launchOptions.args.push('--no-sandbox');
+        }
+
+        return launchOptions;
+      });
+
+      on('task', {
+        removeDirectory,
+        getHostStats: async() => {
+          const totalMem = os.totalmem();
+          const freeMem = os.freemem();
+          const usedMem = totalMem - freeMem;
+          const memUsagePercent = (usedMem / totalMem) * 100;
+          const cpuUsage = await getCpuUsage();
+
+          return {
+            memory:     `${ (usedMem / 1024 / 1024).toFixed(2) }MB (${ memUsagePercent.toFixed(2) }%)`,
+            processCpu: `${ cpuUsage.toFixed(2) }%`,
+          };
+        },
+        // Prints a retried test's failure to the terminal. Without this only the last
+        // attempt's error is shown, see `support/utils/retry-logging.ts`.
+        logFailedAttempt: (failure: CypressFailedAttempt) => {
+          console.log(formatFailedCypressAttempt(failure));
+
+          // Cypress tasks must not return undefined
+          return null;
+        },
+      });
+      // Signals to the shared `afterEach` in `support/e2e.ts` that the `getHostStats`
+      // task has been registered by this config. Consumers of `@rancher/cypress` that
+      // supply their own `setupNodeEvents` (e.g. Jenkins runners) won't set this
+      // flag, so the `afterEach` will skip calling the task and avoid failing the
+      // hook (which would skip all remaining tests in the spec).
+      config.env.hasHostStats = true;
+      // Same again for the `logFailedAttempt` task
+      config.env.hasRetryLogging = true;
+      websocketTasks(on, config);
+
+      require('cypress-terminal-report/src/installLogsPrinter')(on, {
+        outputRoot:           `${ config.projectRoot }/browser-logs/`,
+        outputTarget:         { 'out.html': 'html' },
+        logToFilesOnAfterRun: true,
+        printLogsToConsole:   'never',
+        // printLogsToFile:      'always', // default prints on failures
+      });
+
+      // Load Accessibility plugin if configured
+      // as per https://github.com/rancher/dashboard/pull/15865 load order matters
+      // this need to go after "cypress-terminal-report" always
+      if (process.env.TEST_A11Y) {
+        require('./support/plugins/accessibility').default(on, config);
+      } else {
+        // Add in the cypress-mochawesome-reporter reporter hooks
+        on('before:run', async(details) => {
+          await beforeRunHook(details);
+        });
+
+        // Done this way to catch errors when there are no tests run
+        on('after:run', async() => {
+          try {
+            await afterRunHook();
+          } catch (error) {
+            console.error(error); // eslint-disable-line no-console
+          }
+        });
+      }
+
+      return config;
+    },
+    specPattern: getSpecPattern(testDirs, process.env),
+    baseUrl
+  },
+  videoCompression:       15,
+  screenshotOnRunFailure: process.env.TEST_NO_SCREENSHOTS !== 'true',
+  video:                  process.env.TEST_NO_VIDEOS !== 'true'
+});
+
+// Default export is the base config
+export default baseConfig;

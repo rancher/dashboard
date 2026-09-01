@@ -1,0 +1,239 @@
+import OidcClientsPagePo from '@/cypress/e2e/po/pages/users-and-auth/oidc-client.po';
+import OidcClientCreateEditPo from '~/cypress/e2e/po/edit/management.cattle.io.oidcclient.po';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
+import OIDCClientDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.oidcclient.po';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { qase } from '@/cypress/support/qase';
+
+describe('Rancher as an OIDC Provider', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  const OIDC_CREATE_DATA = {
+    APP_NAME: 'some-app-name',
+    APP_DESC: 'some-app-desc',
+    CB_URLS:  [
+      'https://some-dummy-url-1.com',
+      'https://some-dummy-url-2.com'
+    ],
+    REF_TOKEN_EXP: 3800,
+    TOKEN_EXP:     800
+  };
+
+  const OIDC_EDIT_DATA = {
+    APP_NAME: 'some-app-name',
+    APP_DESC: 'some-app-desc1',
+    CB_URLS:  [
+      'https://some-dummy-url-11.com',
+      'https://some-dummy-url-21.com'
+    ],
+    REF_TOKEN_EXP: 3801,
+    TOKEN_EXP:     801
+  };
+
+  const clusterId = '_';
+
+  const oidcClientsPage = new OidcClientsPagePo(clusterId);
+  const oidcClientDetailPage = new OIDCClientDetailPo(clusterId, OIDC_CREATE_DATA.APP_NAME);
+  const oidcClientCreatePage = new OidcClientCreateEditPo(clusterId);
+  const oidcClientEditPage = new OidcClientCreateEditPo(clusterId, OIDC_CREATE_DATA.APP_NAME, true);
+
+  beforeEach(() => {
+    cy.login();
+  });
+
+  qase(9761, it('should be able to create an OIDC client application', () => {
+    cy.intercept('POST', `/v1/management.cattle.io.oidcclients`).as('createRequest');
+    cy.intercept('GET', '/v1/management.cattle.io.oidcclients?*').as('oidcListGet');
+
+    // Retry-independence: this test creates an OIDC client with a fixed name, so a failed attempt
+    // leaves it behind and the retry's create then returns 409 (already exists), never getting a
+    // real chance to pass. Delete it first if present (failOnStatusCode: false tolerates the
+    // not-found case on a clean first run).
+    cy.deleteRancherResource('v1', 'management.cattle.io.oidcclients', OIDC_CREATE_DATA.APP_NAME, false);
+
+    HomePagePo.goTo();
+    OidcClientsPagePo.navTo(); // Do not use goTo() here — deep link (going directly to the list page) makes the full-secret copy row behavior flaky.
+    oidcClientsPage.waitForUrlPathWithoutContext();
+
+    // check title and list view
+    oidcClientsPage.list().title().should('contain', 'OIDC Apps');
+    oidcClientsPage.list().resourceTable().sortableTable().checkVisible();
+    // Wait for the list fetch to resolve so the loading indicator clears within the check's 10s window.
+    cy.wait('@oidcListGet');
+    oidcClientsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // should be able to copy OIDC urls on list view
+    oidcClientsPage.list().issuerURL().copyToClipboard();
+    oidcClientsPage.list().discoveryDocument().copyToClipboard();
+    oidcClientsPage.list().jwksURI().copyToClipboard();
+
+    // let's create an oidc client
+    oidcClientsPage.createOidcClient();
+    oidcClientCreatePage.waitForUrlPathWithoutContext();
+
+    oidcClientCreatePage.nameNsDescription().name().set(OIDC_CREATE_DATA.APP_NAME);
+    oidcClientCreatePage.nameNsDescription().description().set(OIDC_CREATE_DATA.APP_DESC);
+    oidcClientCreatePage.callbackUrls().setValueAtIndex(OIDC_CREATE_DATA.CB_URLS[0], 0, 'Add Callback URL');
+    oidcClientCreatePage.callbackUrls().setValueAtIndex(OIDC_CREATE_DATA.CB_URLS[1], 1, 'Add Callback URL');
+    oidcClientCreatePage.refreshTokenExpiration().setValue(OIDC_CREATE_DATA.REF_TOKEN_EXP);
+    oidcClientCreatePage.tokenExpiration().setValue(OIDC_CREATE_DATA.TOKEN_EXP);
+
+    oidcClientCreatePage.saveCreateForm().createEditView().create();
+
+    // check data from network request
+    cy.wait('@createRequest').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(response?.body.metadata.name).to.equal(OIDC_CREATE_DATA.APP_NAME);
+      expect(response?.body.spec.description).to.equal(OIDC_CREATE_DATA.APP_DESC);
+      expect(response?.body.spec.redirectURIs).to.include(OIDC_CREATE_DATA.CB_URLS[0]);
+      expect(response?.body.spec.redirectURIs).to.include(OIDC_CREATE_DATA.CB_URLS[1]);
+      expect(response?.body.spec.refreshTokenExpirationSeconds).to.equal(OIDC_CREATE_DATA.REF_TOKEN_EXP);
+      expect(response?.body.spec.tokenExpirationSeconds).to.equal(OIDC_CREATE_DATA.TOKEN_EXP);
+    });
+
+    oidcClientDetailPage.waitForUrlPathWithoutContext();
+
+    // Known issue rancher/dashboard#18847: while the client ID is still being generated (async, pushed over a
+    // websocket after create), the OIDC app detail page shows the definitive "No Client Id found ...
+    // please recreate the application" message instead of a pending/generating state, and can appear
+    // stuck. It should show a pending state and update in place when the client ID arrives.
+    //
+    // The client ID (and, once the client status lands, the secret) is generated by a backend
+    // controller after creation and pushed to this detail page over a websocket subscription, so it
+    // can take longer than the default timeout to appear - the page shows "No Client Id found" until
+    // then. Wait for it with a longer timeout before asserting/copying. (If it never arrives - the
+    // "please recreate" case - the retry above recreates the client from scratch.)
+    oidcClientDetailPage.clientID().self(LONG_TIMEOUT_OPT).should('exist');
+    oidcClientDetailPage.clientFullSecretCopy(0).self(LONG_TIMEOUT_OPT).should('exist');
+
+    oidcClientDetailPage.clientID().copyToClipboard();
+    oidcClientDetailPage.clientFullSecretCopy(0).copyToClipboard();
+  }));
+
+  qase(9762, it('should be able to edit an OIDC client application', () => {
+    cy.intercept('PUT', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('editRequest');
+
+    OidcClientsPagePo.goTo();
+    oidcClientsPage.waitForPage();
+    oidcClientsPage.list().actionMenu(OIDC_CREATE_DATA.APP_NAME).getMenuItem('Edit Config').scrollIntoView()
+      .click();
+
+    oidcClientEditPage.nameNsDescription().description().set(OIDC_EDIT_DATA.APP_DESC);
+    oidcClientEditPage.callbackUrls().clearListItem(0);
+    oidcClientEditPage.callbackUrls().clearListItem(1);
+    oidcClientEditPage.callbackUrls().setValueAtIndex(OIDC_EDIT_DATA.CB_URLS[0], 0, 'Add Callback URL', undefined, false);
+    oidcClientEditPage.callbackUrls().setValueAtIndex(OIDC_EDIT_DATA.CB_URLS[1], 1, 'Add Callback URL', undefined, false);
+    oidcClientEditPage.refreshTokenExpiration().setValue(OIDC_EDIT_DATA.REF_TOKEN_EXP);
+    oidcClientEditPage.tokenExpiration().setValue(OIDC_EDIT_DATA.TOKEN_EXP);
+
+    oidcClientEditPage.saveCreateForm().createEditView().save();
+
+    // check data from network request
+    cy.wait('@editRequest').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(response?.body.metadata.name).to.equal(OIDC_CREATE_DATA.APP_NAME);
+      expect(response?.body.spec.description).to.equal(OIDC_EDIT_DATA.APP_DESC);
+      expect(response?.body.spec.redirectURIs).to.include(OIDC_EDIT_DATA.CB_URLS[0]);
+      expect(response?.body.spec.redirectURIs).to.include(OIDC_EDIT_DATA.CB_URLS[1]);
+      expect(response?.body.spec.refreshTokenExpirationSeconds).to.equal(OIDC_EDIT_DATA.REF_TOKEN_EXP);
+      expect(response?.body.spec.tokenExpirationSeconds).to.equal(OIDC_EDIT_DATA.TOKEN_EXP);
+    });
+  }));
+
+  qase(9763, it('should be able to add a new secret for an OIDC provider', () => {
+    cy.intercept('PUT', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('addNewSecret');
+
+    HomePagePo.goTo();
+    OidcClientsPagePo.navTo(); // Do not use goTo() here — deep link (going directly to the detail page) makes the full-secret copy row behavior flaky.
+    oidcClientsPage.waitForUrlPathWithoutContext();
+    oidcClientsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    oidcClientsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
+    oidcClientsPage.list().resourceTable().goToDetailsPage(OIDC_CREATE_DATA.APP_NAME);
+    oidcClientDetailPage.waitForUrlPathWithoutContext();
+    oidcClientDetailPage.addNewSecretBtnClick();
+
+    // check data from network request
+    cy.wait('@addNewSecret', MEDIUM_TIMEOUT_OPT).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-create']).to.equal('true');
+    });
+
+    // Wait for the page to refresh and show the new secret with proper timeout
+    oidcClientDetailPage.waitForUrlPathWithoutContext();
+
+    // Wait for the secret element to appear before trying to interact with it
+    oidcClientDetailPage.clientFullSecretCopy(1).checkVisible();
+
+    oidcClientDetailPage.clientFullSecretCopy(1).exists();
+    oidcClientDetailPage.clientFullSecretCopy(1).copyToClipboard();
+  }));
+
+  qase(9764, it('should be able to regenerate a secret for an OIDC provider', () => {
+    cy.intercept('PUT', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('regenSecret');
+
+    HomePagePo.goTo();
+    OidcClientsPagePo.navTo(); // Do not use goTo() here — deep link (going directly to the detail page) makes the full-secret copy row behavior flaky.
+    oidcClientsPage.waitForUrlPathWithoutContext();
+    oidcClientsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    oidcClientsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
+    oidcClientsPage.list().resourceTable().goToDetailsPage(OIDC_CREATE_DATA.APP_NAME);
+    oidcClientDetailPage.waitForUrlPathWithoutContext();
+
+    // let's regen the secret we've added the step before
+    oidcClientDetailPage.secretCardActionMenuToggle(1);
+    oidcClientDetailPage.secretCardMenu().getMenuItem('Regenerate').click();
+
+    promptModal().getBody().should('be.visible');
+    promptModal().clickActionButton('Regenerate Secret');
+
+    // check data from network request
+    cy.wait('@regenSecret').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-regenerate']).to.equal('client-secret-2');
+    });
+
+    oidcClientDetailPage.clientFullSecretCopy(1).exists();
+    oidcClientDetailPage.clientFullSecretCopy(1).copyToClipboard();
+  }));
+
+  qase(9765, it('should be able to delete a secret for an OIDC provider', () => {
+    cy.intercept('PUT', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('deleteSecret');
+
+    oidcClientDetailPage.goTo();
+    oidcClientDetailPage.waitForPage();
+
+    // let's remove the secret
+    oidcClientDetailPage.secretCardActionMenuToggle(1);
+    oidcClientDetailPage.secretCardMenu().getMenuItem('Delete').click();
+
+    promptModal().getBody().should('be.visible');
+    promptModal().clickActionButton('Delete Secret');
+
+    // check data from network request
+    cy.wait('@deleteSecret').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-remove']).to.equal('client-secret-2');
+    });
+
+    // check that the card doesn't exist anymore
+    cy.get('[data-testid="item-card-client-secret-2"]').should('not.exist');
+  }));
+
+  qase(9766, it('should be able to delete an OIDC client application', () => {
+    cy.intercept('DELETE', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('deleteRequest');
+
+    OidcClientsPagePo.goTo();
+    oidcClientsPage.waitForPage();
+
+    oidcClientsPage.list().actionMenu(OIDC_CREATE_DATA.APP_NAME).getMenuItem('Delete').scrollIntoView()
+      .click();
+
+    const promptRemove = new PromptRemove();
+
+    promptRemove.remove();
+    cy.wait('@deleteRequest');
+
+    oidcClientsPage.waitForPage();
+    cy.contains(OIDC_CREATE_DATA.APP_NAME).should('not.exist');
+  }));
+});

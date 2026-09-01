@@ -1,0 +1,290 @@
+<script>
+import { mapGetters } from 'vuex';
+import Favorite from '@shell/components/nav/Favorite';
+import TypeDescription from '@shell/components/TypeDescription';
+import { RcButton } from '@components/RcButton';
+import { get } from '@shell/utils/object';
+import { AS, _YAML } from '@shell/config/query-params';
+import ResourceLoadingIndicator from './ResourceLoadingIndicator';
+import TabTitle from '@shell/components/TabTitle';
+
+/**
+ * Resource List Masthead component.
+ */
+export default {
+
+  name: 'MastheadResourceList',
+
+  components: {
+    Favorite,
+    RcButton,
+    TypeDescription,
+    ResourceLoadingIndicator,
+    TabTitle
+  },
+  props: {
+    resource: {
+      type:     String,
+      required: true,
+    },
+    favoriteResource: {
+      type:    String,
+      default: null
+    },
+    schema: {
+      type:    Object,
+      default: null,
+    },
+    typeDisplay: {
+      type:    String,
+      default: null,
+    },
+    isCreatable: {
+      type:    Boolean,
+      default: null,
+    },
+    isYamlCreatable: {
+      type:    Boolean,
+      default: null,
+    },
+    createLocation: {
+      type:    Object,
+      default: null,
+    },
+    yamlCreateLocation: {
+      type:    Object,
+      default: null,
+    },
+    createButtonLabel: {
+      type:    String,
+      default: null
+    },
+    loadResources: {
+      type:    Array,
+      default: () => []
+    },
+
+    loadIndeterminate: {
+      type:    Boolean,
+      default: false
+    },
+
+    showIncrementalLoadingIndicator: {
+      type:    Boolean,
+      default: false
+    },
+
+    showFavorite: {
+      type:    Boolean,
+      default: true
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'masthead'
+    }
+  },
+
+  data() {
+    const params = { ...this.$route.params };
+
+    // Determine if the current product has a topLevelProduct defined, and if so,
+    // use that for the formRoute instead of the current route's product.
+    // This allows resources from extensions (new product registration) to use the correct route for creation,
+    // which may be different from the route of the resource list.
+    let currPluginName = '';
+    let formRoute;
+    let overrideCreateLocationByExtension = false;
+    // `data()` runs during the very first render, which is before Vue assigns `__vue_app__`,
+    // so the `$extension`/`$plugin` compat shim in `@shell/pkg/auto-import` cannot have run
+    // yet when this component is bundled into an extension loaded on an older Rancher.
+    // Fall through to `{}` there: `topLevelProduct` is a V2 product registration flag that
+    // doesn't exist on those versions, so the non-override branch below is correct for them.
+    const plugins = this.$extension?.getPlugins?.() || {};
+
+    Object.keys(plugins).forEach((key) => {
+      if (plugins[key].productNames.includes(this.$store.getters['productId'])) {
+        currPluginName = key;
+      }
+    });
+
+    if (currPluginName && plugins[currPluginName]?.topLevelProduct) {
+      // override create route for extension resource lists
+      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: this.$store.getters['productId'] } };
+      overrideCreateLocationByExtension = true;
+    } else {
+      // this was the original logic before the topLevelProduct override was added
+      formRoute = { name: `${ this.$route.name }-create`, params };
+    }
+
+    const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](this.resource);
+
+    const yamlRoute = {
+      name:  `${ this.$route.name }-create`,
+      params,
+      query: { [AS]: _YAML },
+    };
+
+    return {
+      overrideCreateLocationByExtension,
+      formRoute,
+      yamlRoute,
+      hasEditComponent,
+    };
+  },
+
+  computed: {
+    get,
+    ...mapGetters(['isExplorer', 'currentCluster']),
+
+    resourceName() {
+      if (this.schema) {
+        return this.$store.getters['type-map/labelFor'](this.schema);
+      }
+
+      return this.resource;
+    },
+
+    _typeDisplay() {
+      if ( this.typeDisplay !== null) {
+        return this.typeDisplay;
+      }
+
+      if ( !this.schema ) {
+        return '?';
+      }
+
+      return this.$store.getters['type-map/labelFor'](this.schema, 99);
+    },
+
+    _isYamlCreatable() {
+      if ( this.isYamlCreatable !== null) {
+        return this.isYamlCreatable;
+      }
+
+      return this.schema && this._isCreatable && this.$store.getters['type-map/optionsFor'](this.resource).canYaml;
+    },
+
+    _isCreatable() {
+      // Does not take into account hasEditComponent, such that _isYamlCreatable works
+      if ( this.isCreatable !== null) {
+        return this.isCreatable;
+      }
+
+      // blocked-post means you can post through norman, but not through steve.
+      if ( this.schema && this.schema?.collectionMethods && !this.schema?.collectionMethods.find((x) => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
+        return false;
+      }
+
+      return this.$store.getters['type-map/optionsFor'](this.resource).isCreatable;
+    },
+
+    _createLocation() {
+      return this.overrideCreateLocationByExtension ? this.formRoute : this.createLocation || this.formRoute;
+    },
+
+    _yamlCreateLocation() {
+      return this.yamlCreateLocation || this.yamlRoute;
+    },
+
+    _createButtonlabel() {
+      const overrideLabel = this.$store.getters['type-map/optionsFor'](this.resource).listCreateButtonLabelKey;
+
+      if (overrideLabel) {
+        return this.t(overrideLabel);
+      }
+
+      return this.createButtonLabel || this.t('resourceList.head.create');
+    },
+  }
+};
+</script>
+
+<template>
+  <header class="with-subheader">
+    <slot name="typeDescription">
+      <TypeDescription :resource="resource" />
+    </slot>
+    <div class="title">
+      <h1 class="m-0">
+        <TabTitle>{{ _typeDisplay }}</TabTitle> <Favorite
+          v-if="isExplorer && showFavorite"
+          :resource="favoriteResource || resource"
+        />
+      </h1>
+      <ResourceLoadingIndicator
+        v-if="showIncrementalLoadingIndicator"
+        :resources="loadResources"
+        :indeterminate="loadIndeterminate"
+      />
+    </div>
+    <div class="sub-header">
+      <slot name="subHeader">
+        <!--Slot content-->
+      </slot>
+    </div>
+    <div class="actions-container">
+      <slot name="actions">
+        <div class="actions">
+          <slot name="extraActions" />
+
+          <slot name="createButton">
+            <RcButton
+              v-if="hasEditComponent && _isCreatable"
+              variant="primary"
+              size="large"
+              :data-testid="componentTestid+'-create'"
+              :to="_createLocation"
+            >
+              {{ _createButtonlabel }}
+            </RcButton>
+            <RcButton
+              v-else-if="_isYamlCreatable"
+              variant="primary"
+              size="large"
+              :data-testid="componentTestid+'-create-yaml'"
+              :to="_yamlCreateLocation"
+            >
+              {{ t("resourceList.head.createFromYaml") }}
+            </RcButton>
+          </slot>
+        </div>
+      </slot>
+    </div>
+  </header>
+</template>
+
+<style lang="scss" scoped>
+  .title {
+    align-items: center;
+    display: flex;
+    h1 {
+      margin: 0;
+    }
+  }
+
+  header {
+    margin-bottom: 20px;
+  }
+
+  header.with-subheader {
+    grid-template-areas:
+      'type-banner type-banner'
+      'title actions'
+      'sub-header sub-header'
+      'state-banner state-banner';
+    margin-bottom: 24px;
+  }
+
+  .sub-header {
+    grid-area: sub-header;
+
+    a {
+      display: inline-block;
+    }
+  }
+</style>

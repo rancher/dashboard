@@ -1,0 +1,39 @@
+<style>
+.initial-load-spinner-container {
+  align-items: center;
+  background-color: #f8f8f8;
+  display: flex;
+  justify-content: center;
+  height: 100vh;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100vw;
+}
+
+.initial-load-spinner {
+  animation: initial-load-animate 1s infinite linear;
+  background-color: transparent;
+  box-sizing: border-box;
+  border: 5px solid #008ACF;
+  border-radius: 50%;
+  border-top-color: #00B2E2;
+  display: inline-block;
+  height: 80px;
+  margin: 0 auto;
+  width: 80px;
+}
+
+@keyframes initial-load-animate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(359deg);
+  }
+}
+</style>
+<div class="initial-load-spinner-container">
+  <i class="initial-load-spinner"></i>
+</div>

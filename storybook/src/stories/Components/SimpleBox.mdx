@@ -1,0 +1,20 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/blocks';
+import * as SimpleBoxStories from './SimpleBox.stories';
+
+<Meta of={SimpleBoxStories} />
+
+# SimpleBox
+
+Simple box to wrap an HTML content.
+
+### Description
+
+- Box can be closed by clicking the top-right button x.
+
+### Default
+
+<Canvas of={SimpleBoxStories.Default} />
+
+### Basic
+
+<Canvas of={SimpleBoxStories.Basic} />

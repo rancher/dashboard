@@ -1,0 +1,22 @@
+import { Meta, Canvas, Story } from '@storybook/blocks';
+import * as FileSelectorStories from './FileSelector.stories';
+
+<Meta of={FileSelectorStories} />
+
+# File Selector
+
+Input elements with type ‘file’ allows the user to select files from their file system or device storage.
+
+### Description
+
+- Associate a label to every file input for good accessibility. Do not include a colon at the end of the label.
+- Use only to upload file.
+- Set a maximum file size in order to prevent a potential service outage.
+
+### Default
+
+<Story of={FileSelectorStories.Default} />
+
+### Disabled
+
+<Story of={FileSelectorStories.Disabled} />

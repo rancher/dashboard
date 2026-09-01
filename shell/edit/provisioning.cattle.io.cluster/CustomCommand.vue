@@ -1,0 +1,331 @@
+<script>
+import { Banner } from '@components/Banner';
+import InfoBox from '@shell/components/InfoBox';
+import { Checkbox } from '@components/Form/Checkbox';
+import CopyCode from '@shell/components/CopyCode';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import KeyValue from '@shell/components/form/KeyValue';
+import Taints from '@shell/components/form/Taints';
+import { MANAGEMENT } from '@shell/config/types';
+import { STACK_PREFS } from './tabs/networking/index.vue';
+
+import { sanitizeKey, sanitizeIP, sanitizeValue } from '@shell/utils/string';
+import { RcSeparator } from '@components/RcSeparator';
+
+export default {
+  emits: ['copied-windows'],
+
+  components: {
+    Banner, Checkbox, CopyCode, InfoBox, KeyValue, LabeledInput, Taints, RcSeparator
+  },
+
+  props: {
+    cluster: {
+      type:     Object,
+      required: true,
+    },
+
+    clusterToken: {
+      type:     Object,
+      required: true,
+    }
+  },
+
+  async fetch() {
+    await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+  },
+
+  created() {
+    if (this.isIpv6OrDualStack) {
+      this.showAdvanced = true;
+    }
+  },
+
+  data() {
+    return {
+      showAdvanced:    false,
+      etcd:            true,
+      controlPlane:    true,
+      worker:          true,
+      insecure:        false,
+      insecureWindows: false,
+      address:         '',
+      internalAddress: '',
+      nodeName:        '',
+      labels:          {},
+      taints:          []
+    };
+  },
+
+  computed: {
+    linuxCommand() {
+      const out = this.insecure ? [this.clusterToken.insecureNodeCommand] : [this.clusterToken.nodeCommand];
+      const sanitizedAddresses = this.address.split(',').map((a) => sanitizeIP(a)).join(',');
+      const sanitizedInternalAddresses = this.internalAddress.split(',').map((a) => sanitizeIP(a)).join(',');
+
+      this.etcd && out.push('--etcd');
+      this.controlPlane && out.push('--controlplane');
+      this.worker && out.push('--worker');
+      this.address && out.push(`--address ${ sanitizedAddresses }`);
+      this.internalAddress && out.push(`--internal-address ${ sanitizedInternalAddresses }`);
+      this.nodeName && out.push(`--node-name ${ sanitizeValue(this.nodeName) }`);
+
+      for ( const key in this.labels ) {
+        const k = sanitizeKey(key);
+        const v = sanitizeValue(this.labels[k]);
+
+        if ( k && v ) {
+          out.push(`--label ${ k }=${ v }`);
+        }
+      }
+
+      for ( const t of this.taints ) {
+        const k = sanitizeKey(t.key);
+        const v = sanitizeValue(t.value);
+        const e = sanitizeValue(t.effect);
+
+        if ( k && v && e ) {
+          out.push(`--taints ${ k }=${ v }:${ e }`);
+        }
+      }
+
+      return out.join(' ');
+    },
+
+    windowsCommand() {
+      const out = this.insecureWindows ? [this.clusterToken.insecureWindowsNodeCommand] : [this.clusterToken.windowsNodeCommand];
+      const sanitizedAddresses = this.address.split(',').map((a) => sanitizeIP(a)).join(',');
+      const sanitizedInternalAddresses = this.internalAddress.split(',').map((a) => sanitizeIP(a)).join(',');
+
+      this.address && out.push(`-Address "${ sanitizedAddresses }"`);
+      this.internalAddress && out.push(`-InternalAddress "${ sanitizedInternalAddresses }"`);
+      this.nodeName && out.push(`-NodeName "${ sanitizeValue(this.nodeName) }"`);
+
+      for ( const key in this.labels ) {
+        const k = sanitizeKey(key);
+        const v = sanitizeValue(this.labels[k]);
+
+        if ( k && v ) {
+          out.push(`-Label "${ k }=${ v }"`);
+        }
+      }
+
+      for ( const t of this.taints ) {
+        const k = sanitizeKey(t.key);
+        const v = sanitizeValue(t.value);
+        const e = sanitizeValue(t.effect);
+
+        if ( k && v && e ) {
+          out.push(`-Taint "${ k }=${ v }:${ e }"`);
+        }
+      }
+
+      return out.join(' ');
+    },
+
+    // Clusters need linux nodes with etcd, controlplane, and worker roles before windows nodes can be registration
+    readyForWindows() {
+      if (!this.cluster.mgmt || !this.cluster.mgmt.isReady) {
+        return false;
+      }
+      const nodes = this.cluster.nodes || [];
+
+      const allRoles = nodes.reduce((all, node) => {
+        const { isWorker, isEtcd, isControlPlane } = node;
+
+        if (isWorker && !all.includes('worker')) {
+          all.push('worker');
+        }
+        if (isEtcd && !all.includes('etcd')) {
+          all.push('etcd');
+        }
+        if (isControlPlane && !all.includes('controlPlane')) {
+          all.push('controlPlane');
+        }
+
+        return all;
+      }, []);
+
+      return allRoles.length === 3;
+    },
+
+    isIpv6OrDualStack() {
+      const stackPreference = this.cluster?.spec?.rkeConfig?.networking?.stackPreference;
+
+      return stackPreference === STACK_PREFS.IPV6 || stackPreference === STACK_PREFS.DUAL;
+    }
+
+  },
+
+  methods: {
+    toggleAdvanced() {
+      this.showAdvanced = !this.showAdvanced;
+    },
+
+    copiedWindows() {
+      this.$emit('copied-windows');
+    }
+  },
+};
+
+</script>
+
+<template>
+  <div>
+    <InfoBox
+      :step="1"
+      class="step-box"
+    >
+      <h3 v-t="'cluster.custom.nodeRole.label'" />
+      <h4 v-t="'cluster.custom.nodeRole.detail'" />
+      <Checkbox
+        v-model:value="etcd"
+        label-key="model.machine.role.etcd"
+      />
+      <Checkbox
+        v-model:value="controlPlane"
+        label-key="model.machine.role.controlPlane"
+      />
+      <Checkbox
+        v-model:value="worker"
+        label-key="model.machine.role.worker"
+      />
+      <Banner
+        v-if="!etcd || !controlPlane || !worker"
+        data-testid="node-role-warning"
+        color="warning"
+        :label="t('cluster.custom.nodeRole.warning')"
+      />
+    </InfoBox>
+
+    <InfoBox
+      v-if="showAdvanced"
+      :step="2"
+      class="step-box"
+    >
+      <h3 v-t="'cluster.custom.advanced.label'" />
+      <h4 v-t="'cluster.custom.advanced.detail'" />
+      <Banner
+        v-if="isIpv6OrDualStack"
+        color="warning"
+        data-testid="rke2-custom-command-ipv6-banner"
+      >
+        <t
+          k="cluster.custom.advanced.ipv6"
+          raw
+        />
+      </Banner>
+      <div class="row mb-10">
+        <div class="col span-4">
+          <LabeledInput
+            v-model:value="nodeName"
+            label-key="cluster.custom.advanced.nodeName"
+            data-testid="rke2-custom-command-node-name"
+          />
+        </div>
+        <div class="col span-4">
+          <LabeledInput
+            v-model:value="address"
+            label-key="cluster.custom.advanced.publicIp"
+          />
+        </div>
+        <div class="col span-4">
+          <LabeledInput
+            v-model:value="internalAddress"
+            label-key="cluster.custom.advanced.privateIp"
+          />
+        </div>
+      </div>
+
+      <KeyValue
+        v-model:value="labels"
+        class="mb-10"
+        mode="edit"
+        :title="t('cluster.custom.advanced.nodeLabel.title')"
+        :add-label="t('cluster.custom.advanced.nodeLabel.label')"
+        :read-allowed="false"
+      />
+
+      <Taints
+        v-model:value="taints"
+        class="mb-10"
+        mode="edit"
+        :value="taints"
+      />
+
+      <a
+        v-t="'generic.hideAdvanced'"
+        @click="toggleAdvanced"
+      />
+    </InfoBox>
+
+    <div
+      v-else
+      class="mb-20"
+    >
+      <a
+        v-t="'generic.showAdvanced'"
+        @click="toggleAdvanced"
+      />
+    </div>
+
+    <InfoBox
+      :step="showAdvanced ? 3 : 2"
+      class="step-box"
+    >
+      <h3 v-t="'cluster.custom.registrationCommand.label'" />
+      <h4 v-t="'cluster.custom.registrationCommand.linuxDetail'" />
+      <CopyCode
+        id="copiedLinux"
+        class="m-10 p-10"
+      >
+        {{ linuxCommand }}
+      </CopyCode>
+      <Checkbox
+        v-if="clusterToken.insecureNodeCommand"
+        v-model:value="insecure"
+        label-key="cluster.custom.registrationCommand.insecure"
+      />
+
+      <template v-if="cluster.supportsWindows">
+        <RcSeparator class="mt-20 mb-20" />
+        <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
+        <Banner
+          v-if="readyForWindows"
+          color="info"
+          label-key="cluster.custom.registrationCommand.windowsWorkersOnly"
+          data-testid="ready-for-windows"
+        />
+        <Banner
+          v-if="cluster.isRke1"
+          color="warning"
+          :label="t('cluster.custom.registrationCommand.windowsDeprecatedForRKE1')"
+        />
+        <template v-if="readyForWindows">
+          <CopyCode
+            id="copiedWindows"
+            class="m-10 p-10"
+            @copied="copiedWindows"
+          >
+            {{ windowsCommand }}
+          </CopyCode>
+          <Checkbox
+            v-if="clusterToken.insecureWindowsNodeCommand"
+            v-model:value="insecureWindows"
+            label-key="cluster.custom.registrationCommand.insecure"
+          />
+          <Banner
+            color="info"
+            :label="t('cluster.custom.registrationCommand.windowsWarning')"
+          />
+        </template>
+        <Banner
+          v-else
+          color="info"
+          label-key="cluster.custom.registrationCommand.windowsNotReady"
+          data-testid="windows-not-ready"
+        />
+      </template>
+    </InfoBox>
+  </div>
+</template>

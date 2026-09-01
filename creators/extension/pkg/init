@@ -1,0 +1,148 @@
+#!/usr/bin/env node
+/* eslint-disable no-console */
+
+const fs = require('fs-extra');
+const path = require('path');
+
+const files = [
+  'tsconfig.json',
+  'vue.config.js',
+  'babel.config.js',
+  'index.ts'
+];
+
+const topLevelScripts = {
+  'build-pkg':      './node_modules/@rancher/shell/scripts/build-pkg.sh',
+  'serve-pkgs':     './node_modules/@rancher/shell/scripts/serve-pkgs',
+  'publish-pkgs':   './node_modules/@rancher/shell/scripts/extension/publish',
+  'parse-tag-name': './node_modules/@rancher/shell/scripts/extension/parse-tag-name'
+};
+
+const typeFolders = [
+  'l10n',
+  'models',
+  'edit',
+  'list',
+  'detail'
+];
+
+console.log('');
+console.log('Creating Skeleton UI Package');
+
+const args = process.argv;
+
+const name = args[2];
+const folder = path.resolve('.');
+const pkgFolder = path.join(folder, 'pkg', name);
+
+let addTypeFolders = true;
+
+if ( args.length >= 3 ) {
+  for ( let i = 3; i < args.length; i++ ) {
+    switch (args[i]) {
+    case '--skip-templates':
+    case '-t':
+      addTypeFolders = false;
+      break;
+    default:
+      break;
+    }
+  }
+}
+
+const isNodeModulesShell = !fs.existsSync(path.join(folder, 'shell'));
+
+if (!isNodeModulesShell) {
+  Object.keys(topLevelScripts).forEach((script) => {
+    topLevelScripts[script] = topLevelScripts[script].replace('./node_modules/@rancher/shell', './shell');
+  });
+}
+
+console.log(`  Creating package folder: ${ pkgFolder }`);
+
+fs.ensureDirSync(pkgFolder);
+
+console.log('  Creating package.json');
+fs.copySync(path.join(__dirname, 'pkg.package.json'), path.join(pkgFolder, 'package.json'));
+
+const rawdata = fs.readFileSync(path.join(pkgFolder, 'package.json'));
+const pkg = JSON.parse(rawdata);
+
+pkg.name = name;
+pkg.description = `${ name } plugin`;
+
+writePackageJson();
+
+function writePackageJson() {
+  fs.writeFileSync(path.join(pkgFolder, 'package.json'), JSON.stringify(pkg, null, 2));
+}
+
+// Create type folders if needed
+if (addTypeFolders) {
+  typeFolders.forEach((dir) => {
+    const dest = path.join(path.join(pkgFolder, dir));
+
+    if (!fs.existsSync(dest)) {
+      console.log(`  Creating folder: ${ dir }`);
+      fs.mkdirSync(dest);
+    }
+  });
+}
+
+// Copy base files
+files.forEach((file) => {
+  const src = path.join(__dirname, 'files', file);
+  const dest = path.join(path.join(pkgFolder, file));
+
+  if (!fs.existsSync(dest)) {
+    console.log(`  Adding file: ${ file }`);
+    fs.copySync(src, dest);
+  }
+});
+
+const topLevelRawdata = fs.readFileSync(path.join(folder, 'package.json'));
+const topLevelPkg = JSON.parse(topLevelRawdata);
+let updated = false;
+
+Object.keys(topLevelScripts).forEach((target) => {
+  if (!topLevelPkg.scripts[target]) {
+    topLevelPkg.scripts[target] = topLevelScripts[target];
+    console.log(`  Adding script '${ target }' to top-level package.json`);
+    updated = true;
+  }
+});
+
+if (updated) {
+  fs.writeFileSync(path.join(folder, 'package.json'), JSON.stringify(topLevelPkg, null, 2));
+}
+
+// Update tsconfig if needed
+if (!isNodeModulesShell) {
+  const tsconfig = require(path.join(pkgFolder, 'tsconfig.json'));
+
+  tsconfig.include = updateArray(tsconfig.include);
+
+  Object.keys(tsconfig.compilerOptions.paths).forEach((p) => {
+    tsconfig.compilerOptions.paths[p] = updateArray(tsconfig.compilerOptions.paths[p]);
+  });
+
+  // Update typeRoots
+  tsconfig.compilerOptions.typeRoots = updateArray(tsconfig.compilerOptions.typeRoots);
+
+  fs.writeFileSync(path.join(pkgFolder, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
+  console.log('  Updated tsconfig.json for shell folder location');
+}
+
+console.log('');
+
+function updateArray(data) {
+  const updated = [];
+
+  data.forEach((inc) => {
+    updated.push(inc.replace('../../node_modules/@rancher/shell', '../../shell'));
+  });
+
+  return updated;
+}
+
+/* eslint-enable no-console */

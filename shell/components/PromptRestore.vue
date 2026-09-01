@@ -1,0 +1,367 @@
+<script>
+import { mapState, mapGetters } from 'vuex';
+import AsyncButton from '@shell/components/AsyncButton';
+import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
+import Date from '@shell/components/formatter/Date.vue';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { exceptionToErrorsArray } from '@shell/utils/error';
+import { CAPI, SNAPSHOT, OPERATION, MANAGEMENT } from '@shell/config/types';
+import { set } from '@shell/utils/object';
+import ChildHook, { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { escapeHtml } from '@shell/utils/string';
+import day from 'dayjs';
+import { sortBy } from '@shell/utils/sort';
+import AppModal from '@shell/components/AppModal.vue';
+import { createOperationCR } from '@shell/utils/operation-cr';
+export default {
+  components: {
+    Card,
+    AsyncButton,
+    Banner,
+    Date,
+    LabeledSelect,
+    RadioGroup,
+    AppModal,
+  },
+
+  name: 'PromptRestore',
+
+  mixins: [
+    ChildHook,
+  ],
+
+  data() {
+    return {
+      errors:           [],
+      labels:           {},
+      restoreMode:      'all',
+      loaded:           false,
+      allSnapshots:     {},
+      sortedSnapshots:  [],
+      selectedSnapshot: null,
+    };
+  },
+
+  computed: {
+    // toRestore can be a provisioning.cattle.io.cluster or a rke.cattle.io.etcdsnapshot resource
+    ...mapState('action-menu', ['showPromptRestore', 'toRestore']),
+    ...mapGetters({ t: 'i18n/t' }),
+
+    // Was the dialog opened to restore a specific snapshot, or opened on a cluster to choose
+    isCluster() {
+      const isSnapshot = this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
+
+      return !isSnapshot;
+    },
+
+    snapshot() {
+      return !this.isCluster ? this.toRestore[0] : this.allSnapshots[this.selectedSnapshot];
+    },
+
+    hasSnapshot() {
+      return !!this.snapshot;
+    },
+
+    targetCluster() {
+      if (this.isCluster) {
+        return this.toRestore?.[0] || null;
+      }
+
+      if (this.snapshot?.cluster) {
+        return this.snapshot.cluster;
+      }
+
+      const snapshotClusterName = this.snapshot?.spec?.clusterName || this.snapshot?.clusterName;
+      const snapshotClusterId = this.snapshot?.clusterId || (snapshotClusterName ? `${ this.snapshot?.metadata?.namespace }/${ snapshotClusterName }` : null);
+
+      if (!snapshotClusterId) {
+        return null;
+      }
+
+      return this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, snapshotClusterId);
+    },
+
+    targetMgmtCluster() {
+      if (this.targetCluster?.mgmt) {
+        return this.targetCluster.mgmt;
+      }
+
+      const mgmtClusterId = this.snapshot?.spec?.clusterName;
+
+      if (!mgmtClusterId) {
+        return null;
+      }
+
+      return this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, mgmtClusterId);
+    },
+
+    isImported() {
+      return !!(this.targetCluster?.isImported || this.targetMgmtCluster?.isImported);
+    },
+
+    clusterSnapshots() {
+      if (this.sortedSnapshots) {
+        return this.sortedSnapshots.map((snapshot) => ({ label: this.snapshotLabel(snapshot), value: snapshot.name }));
+      } else {
+        return [];
+      }
+    },
+    restoreModeLabels() {
+      return [
+        this.t('promptRestore.restoreMode.onlyEtcd'),
+        this.t('promptRestore.restoreMode.kubernetesVersionAndEtcd'),
+        this.t('promptRestore.restoreMode.clusterConfigKubernetesVersionAndEtcd')
+      ];
+    },
+    restoreModeOptions() {
+      return ['none', 'kubernetesVersion', 'all'];
+    }
+  },
+
+  watch: {
+    async showPromptRestore(show) {
+      if (show) {
+        this.loaded = true;
+        await this.fetchSnapshots();
+        this.selectDefaultSnapshot();
+      } else {
+        this.loaded = false;
+      }
+    }
+  },
+
+  methods: {
+    close() {
+      this.errors = [];
+      this.labels = {};
+      this.$store.commit('action-menu/togglePromptRestore');
+      this.selectedSnapshot = null;
+    },
+
+    // If the user needs to choose a snapshot, fetch all snapshots for the cluster
+    async fetchSnapshots() {
+      if (!this.isCluster) {
+        return;
+      }
+
+      const cluster = this.toRestore?.[0];
+      const promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
+        const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
+
+        return snapshots.filter((s) => s?.restoreEnabled && s.clusterName === toRestoreClusterName
+        );
+      });
+
+      // Map of snapshots by name
+      const allSnapshots = await promise.then((snapshots) => {
+        return snapshots.reduce((v, s) => {
+          v[s.name] = s;
+
+          return v;
+        }, {});
+      }).catch((err) => {
+        this.errors = exceptionToErrorsArray(err);
+      });
+
+      this.allSnapshots = allSnapshots;
+      this.sortedSnapshots = sortBy(Object.values(this.allSnapshots), ['snapshotFile.createdAt', 'created', 'metadata.creationTimestamp'], true);
+    },
+
+    selectDefaultSnapshot() {
+      if (this.selectedSnapshot) {
+        return;
+      }
+
+      const defaultSnapshot = this.toRestore[0]?.type === SNAPSHOT ? this.toRestore[0].name : this.clusterSnapshots[0]?.value;
+
+      this['selectedSnapshot'] = defaultSnapshot;
+    },
+
+    async apply(buttonDone) {
+      try {
+        const cluster = this.targetCluster;
+        const mgmtCluster = cluster?.mgmt || this.targetMgmtCluster;
+
+        const isImportedWithDayTwoOps = cluster?.isImportedWithDayTwoOps || mgmtCluster?.isDayTwoOpsEnabled;
+
+        await this.applyHooks(BEFORE_SAVE_HOOKS);
+
+        // For imported clusters with day 2 ops enabled, create an operation CR
+        if (isImportedWithDayTwoOps) {
+          if (!mgmtCluster) {
+            throw new Error(this.t('promptRestore.error.unableToResolveTargetCluster'));
+          }
+          const namespace = mgmtCluster?.id;
+          const safePrefix = mgmtCluster?.id;
+          const spec = {
+            clusterRef: {
+              apiVersion: 'management.cattle.io/v3',
+              kind:       'Cluster',
+              name:       mgmtCluster?.id,
+            },
+            args: { name: this.snapshot?.metadata?.name },
+          };
+
+          createOperationCR(this.$store.dispatch, OPERATION.ETCD_SNAPSHOT_RESTORE, spec, namespace, safePrefix);
+        } else {
+          const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
+
+          set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
+            generation:       now + 1,
+            name:             this.snapshot.name,
+            restoreRKEConfig: this.restoreMode,
+          });
+
+          await cluster.save();
+        }
+
+        this.$store.dispatch('growl/success', {
+          title:   this.t('promptRestore.notification.title'),
+          message: this.t('promptRestore.notification.message', { selectedSnapshot: this.selectedSnapshot })
+        }, { root: true });
+
+        buttonDone(true);
+        this.close();
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        buttonDone(false);
+      }
+    },
+    snapshotLabel(snapshot) {
+      const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+
+      const created = snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp;
+      const d = day(created).format(dateFormat);
+      const t = day(created).format(timeFormat);
+
+      return `${ d } ${ t } : ${ snapshot.nameDisplay }`;
+    }
+  }
+};
+</script>
+
+<template>
+  <app-modal
+    v-if="loaded"
+    custom-class="promptrestore-modal"
+    name="promptRestore"
+    styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
+    height="auto"
+    :scrollable="true"
+    :trigger-focus-trap="true"
+    @close="close"
+  >
+    <Card
+      v-if="loaded"
+      class="prompt-restore"
+      :show-highlight-border="false"
+    >
+      <template #title>
+        <h4
+          v-clean-html="t('promptRestore.title', null, true)"
+          class="text-default-text"
+        />
+      </template>
+
+      <template #body>
+        <div class="pl-10 pr-10">
+          <form>
+            <h3 v-t="'promptRestore.name'" />
+            <div v-if="!isCluster">
+              {{ snapshot.nameDisplay }}
+            </div>
+
+            <LabeledSelect
+              v-if="isCluster"
+              v-model:value="selectedSnapshot"
+              :label="t('promptRestore.label')"
+              :placeholder="t('promptRestore.placeholder')"
+              :options="clusterSnapshots"
+            />
+
+            <div class="spacer" />
+
+            <h3 v-t="'promptRestore.date'" />
+            <div>
+              <p>
+                <Date
+                  v-if="snapshot"
+                  :value="snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp"
+                />
+              </p>
+            </div>
+            <div v-if="!isImported">
+              <div class="spacer" />
+              <RadioGroup
+                v-model:value="restoreMode"
+                name="restoreMode"
+                :label="t('promptRestore.restoreMode.label')"
+                :labels="restoreModeLabels"
+                :options="restoreModeOptions"
+              />
+            </div>
+          </form>
+        </div>
+      </template>
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
+      <template #actions>
+        <div class="dialog-actions">
+          <button
+            class="btn role-secondary"
+            @click="close"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+
+          <AsyncButton
+            mode="restore"
+            :disabled="!hasSnapshot"
+            @click="apply"
+          />
+        </div>
+      </template>
+    </Card>
+  </app-modal>
+</template>
+
+<style lang='scss' scoped>
+  .promptrestore-modal {
+    border-radius: var(--border-radius);
+    overflow: scroll;
+    max-height: 100vh;
+    & ::-webkit-scrollbar-corner {
+      background: rgba(0,0,0,0);
+    }
+
+    .prompt-restore form p {
+      min-height: 16px;
+    }
+
+    // Position dialog buttons on the right-hand side of the dialog
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+
+  .prompt-restore :deep() .card-wrap .card-actions {
+    display: block;
+
+    button:not(:last-child) {
+      margin-right: 10px;
+    }
+
+    .banner {
+      display: flex;
+    }
+  }
+</style>

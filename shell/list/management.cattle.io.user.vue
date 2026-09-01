@@ -1,0 +1,190 @@
+<script>
+import AsyncButton from '@shell/components/AsyncButton';
+import { EXT } from '@shell/config/types';
+import { NAME } from '@shell/config/product/auth';
+import ResourceTable from '@shell/components/ResourceTable';
+import Masthead from '@shell/components/ResourceList/Masthead';
+import ResourceFetch from '@shell/mixins/resource-fetch';
+import { isAdminUser } from '@shell/store/type-map';
+import TableDataUserIcon from '@shell/components/TableDataUserIcon';
+import { RcButton } from '@components/RcButton';
+import { allHash } from '@shell/utils/promise';
+import Loading from '@shell/components/Loading.vue';
+
+export default {
+  components: {
+    AsyncButton,
+    ResourceTable,
+    Masthead,
+    TableDataUserIcon,
+    RcButton,
+    Loading
+  },
+  mixins: [ResourceFetch],
+  props:  {
+    resource: {
+      type:     String,
+      required: true,
+    },
+
+    loadIndeterminate: {
+      type:    Boolean,
+      default: false
+    },
+
+    incrementalLoadingIndicator: {
+      type:    Boolean,
+      default: false
+    },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
+  },
+  async fetch() {
+    const promises = {
+      resources:                 this.$fetchType(this.resource),
+      localProviderEnabled:      this.$store.dispatch('auth/getLocalProviderEnabled'),
+      membershipRefreshRequests: this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS }),
+    };
+
+    const res = await allHash(promises);
+
+    this.localProviderEnabled = res.localProviderEnabled;
+    this.membershipRefreshRequests = res.membershipRefreshRequests;
+    this.canRefreshMemberships = !!this.membershipRefreshRequests?.canRefreshMemberships;
+  },
+
+  data() {
+    const getters = this.$store.getters;
+
+    const schema = getters[`management/schemaFor`](this.resource);
+
+    return {
+      schema,
+      membershipRefreshRequests: undefined,
+      canRefreshMemberships:     false
+    };
+  },
+
+  $loadingResources() {
+    // results are filtered so we wouldn't get the correct count on indicator...
+    return { loadIndeterminate: true };
+  },
+
+  computed: {
+    headers() {
+      return this.$store.getters['type-map/headersFor'](this.schema);
+    },
+
+    groupBy() {
+      return this.$store.getters['type-map/groupByFor'](this.schema);
+    },
+
+    users() {
+      if ( !this.rows ) {
+        return [];
+      }
+
+      // Update the list of users
+      // 1) Only show system users in explorer/users and not in auth/users
+      // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)
+      const params = { ...this.$route.params };
+
+      return params.product === NAME ? this.rows.filter((a) => !a.isSystem) : this.rows;
+    },
+
+    isAdmin() {
+      return isAdminUser(this.$store.getters);
+    },
+
+    canCreateUsers() {
+      const userCan = !!this.schema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+      const systemCan = this.localProviderEnabled;
+
+      return userCan && systemCan;
+    },
+  },
+
+  methods: {
+    async refreshGroupMemberships(buttonDone) {
+      try {
+        // userId specifies the user ID. Use '*' for all users. Check the schemaDefinition for more details.
+        this.membershipRefreshRequests.spec = { userId: '*' };
+        await this.membershipRefreshRequests.save();
+        buttonDone(true);
+      } catch (err) {
+        this.$store.dispatch('growl/fromError', { title: this.t('user.list.errorRefreshingGroupMemberships'), err }, { root: true });
+        buttonDone(false);
+      }
+    },
+  },
+};
+</script>
+
+<template>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
+    <Masthead
+      :schema="schema"
+      :resource="resource"
+      :show-incremental-loading-indicator="incrementalLoadingIndicator"
+      :load-resources="loadResources"
+      :load-indeterminate="loadIndeterminate"
+      :is-creatable="canCreateUsers"
+    >
+      <template #extraActions>
+        <AsyncButton
+          v-if="canRefreshMemberships"
+          mode="refresh"
+          :action-label="t('authGroups.actions.refresh')"
+          :waiting-label="t('authGroups.actions.refresh')"
+          :success-label="t('authGroups.actions.refresh')"
+          :error-label="t('authGroups.actions.refresh')"
+          @click="refreshGroupMemberships"
+        />
+      </template>
+      <template
+        v-if="isAdmin"
+        #subHeader
+      >
+        <rc-button
+          variant="link"
+          class="btn-user-retention"
+          :to="{ name: 'c-cluster-auth-user.retention'}"
+          data-testid="router-link-user-retention"
+        >
+          <template #before>
+            <i class="icon icon-gear" />
+          </template>
+          {{ t('user.retention.button.label') }}
+        </rc-button>
+      </template>
+    </Masthead>
+
+    <ResourceTable
+      :schema="schema"
+      :rows="users"
+      :group-by="groupBy"
+      :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+    >
+      <template #col:user-state="{row}">
+        <td>
+          <TableDataUserIcon
+            :user-state="row.stateDisplay"
+            :is-active="row.state === 'active'"
+          />
+        </td>
+      </template>
+    </ResourceTable>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+  a.rc-button.variant-link.btn-user-retention {
+    padding: 0; //retain the padding override for left-alignment with the header
+  }
+</style>

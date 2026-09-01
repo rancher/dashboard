@@ -1,0 +1,27 @@
+<script>
+import { h } from 'vue';
+import { NAME as SETTINGS } from '@shell/config/product/settings';
+import { MANAGEMENT } from '@shell/config/types';
+
+export default {
+  render() {
+    // Suppress warning: Component is missing template or render function
+    return h('div');
+  },
+  beforeCreate() {
+    const hasSettings = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
+
+    return this.$router.replace({
+      name:   'c-cluster-product-resource',
+      params: {
+        ...this.$route.params,
+        product:  SETTINGS,
+        // Will have one or t'other
+        resource: hasSettings ? MANAGEMENT.SETTING : MANAGEMENT.FEATURE,
+      },
+      // Used to keep the route on the redirected page when coming from a link with a hash
+      hash: this.$route.hash
+    });
+  }
+};
+</script>

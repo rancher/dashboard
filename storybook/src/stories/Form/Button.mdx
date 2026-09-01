@@ -1,0 +1,152 @@
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import * as Button from './Button.stories';
+
+<Meta
+  title="Button"
+  of={Button}
+/>
+
+# Button
+
+Button with async feature.
+
+## Description
+
+Further usage case are present in the [documentation](https://rancher.github.io/dashboard/code-base-works/forms-and-validation).
+
+
+### Button types
+
+Note: Simple button component is not present in this UI Kit and it's simply repeated the markup like:
+
+```html
+<button
+  class="btn role-primary"
+  @click="buttonAction"
+>
+  {{ buttonText }}
+</button>
+```
+
+
+#### Primary Button
+
+Use class `role-primary`:
+
+<button className="btn role-primary">Primary Button</button>
+<button className="btn role-primary" disabled>Primary Button</button>
+<button className="btn role-primary focused">Primary Button (Focus)</button>
+<button className="btn role-primary _hover">Primary Button (Hover)</button>
+
+#### Secondary Button
+
+Use class `role-secondary`:
+
+<button className="btn role-secondary">Secondary Button</button>
+<button className="btn role-secondary" disabled>Secondary Button</button>
+<button className="btn role-secondary focused">Secondary Button (Focus)</button>
+<button className="btn role-secondary _hover">Secondary Button (Hover)</button>
+
+#### Tertiary Button
+
+Use class `role-tertiary`:
+
+<button className="btn role-tertiary">Tertiary Button</button>
+<button className="btn role-tertiary" disabled>Tertiary Button</button>
+<button className="btn role-tertiary focused">Tertiary Button (Focus)</button>
+<button className="btn role-tertiary _hover">Tertiary Button (Hover)</button>
+
+
+### Default
+
+<Canvas of={Button.Default} />
+
+### Phases
+
+The `Button` component includes 4 different phases: `action`, `waiting`, `success`, `error`. 
+These values can be enforced with `currentPhase`.
+
+<div style={{display: 'flex', gap: '10px'}}>
+  <Story of={Button.PhaseAction} actionLabel="bananas"/>
+  <Story of={Button.PhaseWaiting} />
+  <Story of={Button.PhaseSuccess} />
+  <Story of={Button.PhaseError} />
+</div>
+
+#### Phase class overrides
+
+Phase style can be changed by overriding the current class.
+
+The props used for each state are: `actionColor`, `waitingColor`, `successColor`, `errorColor`.
+
+Example removing default values:
+
+<div style={{display: 'flex', gap: '10px'}}>
+  <Story of={Button.PhaseClassAction} />
+  <Story of={Button.PhaseClassWaiting} />
+  <Story of={Button.PhaseClassSuccess} />
+  <Story of={Button.PhaseClassError} />
+</div>
+
+#### Phase labels overrides
+
+Phase labels can be changed by overriding the label, usually for UX purposes, e.g. waiting labelling.
+
+The props used for each state are: `actionLabel`, `waitingLabel`, `successLabel`, `errorLabel`.
+
+<div style={{display: 'flex', gap: '10px'}}>
+  <Story of={Button.PhaseLabelAction} />
+  <Story of={Button.PhaseLabelWaiting} />
+  <Story of={Button.PhaseLabelSuccess} />
+  <Story of={Button.PhaseLabelError} />
+</div>
+
+#### Manual Phases
+
+It is possible to avoid automatic cycles of the button enabling the `manual` prop.
+
+<Canvas of={Button.Manual} />
+
+### Modes
+
+The modes are used to define a set of i18n labels for the 4 phases.
+
+<div style={{display: 'flex', gap: '10px'}}>
+  <Story of={Button.ModeEdit} />
+  <Story of={Button.ModeContinue} />
+  <Story of={Button.ModeApply} />
+</div>
+
+### Delay
+
+Default time to disable the button without prior feedback.
+
+<Canvas of={Button.Delay} />
+
+### Disabled
+
+Enforce disabled status.
+
+<Canvas of={Button.Disabled} />
+
+### Types
+
+<div style={{display: 'flex', gap: '10px'}}>
+  <Story of={Button.TypeSubmit} />
+  <Story of={Button.TypeButton} />
+</div>  
+
+### Icon
+
+Add icon to the button, based on existing value.
+List is available [here](https://rancher.github.io/icons/).
+
+<Canvas of={Button.Icon} />
+
+### Size
+
+Define button size from existing classes: 
+Note: This case seems not used.
+
+<Canvas of={Button.SizeSm} />
+

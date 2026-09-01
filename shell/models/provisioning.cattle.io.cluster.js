@@ -1,0 +1,1077 @@
+import {
+  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
+  CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
+  EVENT, OPERATION
+} from '@shell/config/types';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
+import SteveModel from '@shell/plugins/steve/steve-class';
+import { findBy } from '@shell/utils/array';
+import { get, set } from '@shell/utils/object';
+import { compare } from '@shell/utils/version';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
+import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { SETTING } from '@shell/config/settings';
+import { createOperationCR } from '@shell/utils/operation-cr';
+import jsyaml from 'js-yaml';
+import { defineAsyncComponent, markRaw } from 'vue';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+
+const RKE1_ALLOWED_ACTIONS = [
+  'promptRemove',
+  'openShell',
+  'downloadKubeConfig',
+  'copyKubeConfig',
+  'download',
+  'viewInApi'
+];
+
+const AUTOSCALER_STATUS = {
+  PROVISIONING: 'provisioning',
+  UNAVAILABLE:  'unavailable'
+};
+
+/**
+ * Class representing Cluster resource.
+ * @extends SteveModel
+ */
+export default class ProvCluster extends SteveModel {
+  isAnnotationIgnored(key) {
+    if (key === CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME) {
+      return false;
+    }
+
+    return super.isAnnotationIgnored(key);
+  }
+
+  get allowedSystemAnnotationKeys() {
+    // Allow this annotation to bypass the cattle.io/ regex protection in the Labels UI
+    // so that users can set it during cluster creation
+    if (!this.id) {
+      return [CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME];
+    }
+
+    return [];
+  }
+
+  get readOnlyAnnotationKeys() {
+    // On edit, show the annotation with a warning that changes will not be persisted
+    if (this.id && this.metadata?.annotations?.[CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME]) {
+      return [CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME];
+    }
+
+    return [];
+  }
+
+  get details() {
+    const out = [
+      {
+        label:   this.t('cluster.detail.provisioner'),
+        content: this.provisionerDisplay || this.t('generic.none'),
+      },
+      {
+        label:   this.t('cluster.detail.machineProvider'),
+        content: this.machineProvider ? this.machineProviderDisplay : null,
+      },
+      {
+        label:   this.t('cluster.detail.kubernetesVersion'),
+        content: this.kubernetesVersion,
+      },
+      {
+        label:   this.t('cluster.detail.machinePools'),
+        content: this.pools.length,
+      },
+      {
+        label:   this.t('cluster.detail.machines'),
+        content: this.desired,
+      },
+      {
+        label:         'Autoscaler',
+        content:       this.isAutoscalerEnabled,
+        valueOverride: {
+          component: markRaw(defineAsyncComponent(() => import('@shell/components/formatter/Autoscaler.vue'))),
+          props:     {
+            value: true,
+            row:   this
+          }
+        }
+      }
+    ].filter((x) => !!x.content);
+
+    if (!this.machineProvider) {
+      out.splice(1, 1);
+
+      return out;
+    }
+
+    return out;
+  }
+
+  // using this computed because on the provisioning cluster we are
+  // displaying the oldest age between provisioning.cluster and management.cluster
+  // so that on a version upgrade of Rancher (ex: 2.5.x to 2.6.x)
+  // we can have the correct age of the cluster displayed on the UI side
+  get creationTimestamp() {
+    const provCreationTimestamp = Date.parse(this.metadata?.creationTimestamp);
+    const mgmtCreationTimestamp = Date.parse(this.mgmt?.metadata?.creationTimestamp);
+
+    if (mgmtCreationTimestamp && mgmtCreationTimestamp < provCreationTimestamp) {
+      return this.mgmt?.metadata?.creationTimestamp;
+    }
+
+    return super.creationTimestamp;
+  }
+
+  get canExplore() {
+    return this.mgmt?.canExplore;
+  }
+
+  get canEdit() {
+    // If the cluster is a KEV1 cluster, Harvester cluster, or v2 provisioning cluster that uses upstream capi infrastructure providers, then prevent edit
+    if (this.isKev1 || this.isHarvester || this.isCapiWithoutExtension) {
+      return false;
+    }
+
+    return super.canEdit;
+  }
+
+  get canCustomEdit() {
+    return !this.isCapiWithoutExtension && super.canCustomEdit;
+  }
+
+  get _availableActions() {
+    const out = super._availableActions;
+    const isLocal = this.mgmt?.isLocal;
+
+    // Don't let the user delete the local cluster from the UI
+    if (isLocal) {
+      const remove = out.findIndex((a) => a.action === 'promptRemove');
+
+      if (remove > -1) {
+        out.splice(remove, 1);
+      }
+    }
+    const ready = this.mgmt?.isReady;
+
+    const canDayTwoOps = ready && this.isDayTwoOpsEnabled && this.canUpdate;
+    const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
+
+    const actions = [
+      // Note: Actions are not supported in the Steve API, so we check
+      // available actions for RKE1 clusters, but not RKE2 clusters.
+      {
+        action:  'openShell',
+        label:   this.$rootGetters['i18n/t']('nav.shell'),
+        icon:    'icon icon-terminal',
+        enabled: !!this.mgmt?.links.shell && ready,
+      }, {
+        action:     'downloadKubeConfig',
+        bulkAction: 'downloadKubeConfigBulk',
+        label:      this.$rootGetters['i18n/t']('nav.kubeconfig.download'),
+        icon:       'icon icon-download',
+        bulkable:   true,
+        enabled:    this.mgmt?.canCreateKubeconfig,
+      }, {
+        action:     'copyKubeConfig',
+        bulkAction: 'copyKubeConfigBulk',
+        label:      this.t('cluster.copyConfig'),
+        bulkable:   true,
+        enabled:    this.mgmt?.canCreateKubeconfig,
+        icon:       'icon icon-copy',
+      }, {
+        action:     'snapshotAction',
+        label:      this.$rootGetters['i18n/t']('nav.takeSnapshot'),
+        icon:       'icon icon-snapshot',
+        bulkAction: 'snapshotBulk',
+        bulkable:   true,
+        enabled:    canDayTwoOps,
+      }, {
+        action:  'restoreSnapshotAction',
+        label:   this.$rootGetters['i18n/t']('nav.restoreSnapshot'),
+        icon:    'icon icon-backup-restore',
+        enabled: canDayTwoOps,
+      }, {
+        action:  'rotateCertificates',
+        label:   this.$rootGetters['i18n/t']('nav.rotateCertificates'),
+        icon:    'icon icon-backup',
+        enabled: canEditRKE2cluster || (this.mgmt?.hasAction('rotateCertificates') && ready),
+      }, {
+        action:  'rotateEncryptionKey',
+        label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
+        icon:    'icon icon-refresh',
+        enabled: canDayTwoOps
+      },
+      {
+        action:  'toggleAutoscalerRunner',
+        label:   this.isAutoscalerPaused ? 'Resume Autoscaler' : 'Pause Autoscaler',
+        icon:    `icon ${ this.isAutoscalerPaused ? 'icon-play' : 'icon-pause' }`,
+        enabled: this.canPauseResumeAutoscaler
+      },
+      { divider: true }];
+
+    const all = actions.concat(out);
+
+    // If the cluster is a KEV1 cluster or Harvester cluster then prevent edit
+    if (this.isKev1 || this.isHarvester) {
+      const edit = all.find((action) => action.action === 'goToEdit');
+
+      if (edit) {
+        edit.enabled = false;
+      }
+    }
+
+    // If RKE1, then remove most of the actions
+    if (this.isRke1) {
+      all.forEach((action) => {
+        if (!action.divider && !RKE1_ALLOWED_ACTIONS.includes(action.action)) {
+          action.enabled = false;
+        }
+      });
+    }
+
+    // If we have a helper that wants to modify the available actions, let it do it
+    if (this.customProvisionerHelper?.availableActions) {
+      // Provider can either modify the provided list or return one of its own
+      return this.customProvisionerHelper?.availableActions(this, all) || all;
+    }
+
+    return all;
+  }
+
+  get detailLocation() {
+    // Prevent going to detail page for a KEV1 cluster
+    if (this.isKev1) {
+      return undefined;
+    }
+
+    return super.detailLocation;
+  }
+
+  get normanCluster() {
+    return this.mgmt?.normanCluster;
+  }
+
+  async findNormanCluster() {
+    return this.mgmt?.findNormanCluster();
+  }
+
+  explore() {
+    const location = {
+      name:   'c-cluster',
+      params: { cluster: this.mgmt.id }
+    };
+
+    this.currentRouter().push(location);
+  }
+
+  async goToHarvesterCluster() {
+    return this.mgmt?.goToHarvesterCluster();
+  }
+
+  get canDelete() {
+    return super.canDelete && this.stateObj?.name !== 'removing';
+  }
+
+  get canEditYaml() {
+    if (!this.isRke2) {
+      return false;
+    }
+
+    return super.canEditYaml;
+  }
+
+  get isHostedKubernetesProvider() {
+    return this.mgmt?.isHostedKubernetesProvider;
+  }
+
+  get providerConfig() {
+    if ( this.isRke2 ) {
+      return this.spec.rkeConfig;
+    }
+    if (this.mgmt && this.mgmt.config) {
+      return this.mgmt.config;
+    }
+
+    return null;
+  }
+
+  get isPrivateHostedProvider() {
+    return this.mgmt?.isPrivateHostedProvider || false;
+  }
+
+  get isLocal() {
+    return this.mgmt?.isLocal;
+  }
+
+  // Is the cluster a legacy (unsupported) KEV1 cluster?
+  get isKev1() {
+    return this.mgmt?.isKev1;
+  }
+
+  get isImported() {
+    if (this.isLocal) {
+      return false;
+    }
+
+    return this.mgmt?.isImported;
+  }
+
+  get isCustom() {
+    return this.mgmt?.isCustom;
+  }
+
+  get confirmRemove() {
+    return true;
+  }
+
+  get isImportedK3s() {
+    return this.mgmt?.isImportedK3s;
+  }
+
+  get isImportedRke2() {
+    return this.mgmt?.isImportedRke2;
+  }
+
+  get isImportedRke2K3s() {
+    return this.isImportedRke2 || this.isImportedK3s;
+  }
+
+  /**
+   * Whether day 2 operations (snapshot, restore, cert rotation, encryption key rotation)
+   * are enabled for this cluster.
+   */
+  get isDayTwoOpsEnabled() {
+    return !!(this.isRke2 || this.isImportedWithDayTwoOps);
+  }
+
+  get isDayTwoOpsFeatureEnabled() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.FEATURE, IMPORTED_DAY_2_OPS)?.enabled || false;
+  }
+
+  /**
+   * Whether this is an imported RKE2/K3s cluster with day 2 operations enabled.
+   */
+  get isImportedWithDayTwoOps() {
+    const annotationExists = typeof this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
+    const annotationEnabled = this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+    const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+    const annotationOrGlobalEnabled = annotationEnabled || (!annotationExists && globalDefaultIsTrue);
+    const canGetOpSchema = this.$getters['schemaFor'](OPERATION.ETCD_SNAPSHOT);
+
+    return !this.isLocal && canGetOpSchema && this.isDayTwoOpsFeatureEnabled && this.isImportedRke2K3s && annotationOrGlobalEnabled;
+  }
+
+  get isK3s() {
+    return this.mgmt?.isK3s;
+  }
+
+  get isRke2() {
+    // This isn't mapped to mgmt isRke2 to ensure the create flow --> edit yaml (where no mgmt cluster exists) works correctly
+    return !!this.spec?.rkeConfig;
+  }
+
+  get isRke1() {
+    return false;
+  }
+
+  get isHarvester() {
+    return !!this.mgmt?.isHarvester;
+  }
+
+  // identify v2 provisioning clusters created using upstream capi infrastructure providers instead of rancher/machine
+  get isCapiWithoutExtension() {
+    return this.mgmt?.isCapiHybrid && !this.mgmt?.isCAPIProvider;
+  }
+
+  get mgmtClusterId() {
+    if (this.status?.clusterName) {
+      return this.status.clusterName;
+    }
+
+    // when a cluster is created `this` instance isn't immediately updated with `status.clusterName`
+    // Workaround - Get fresh copy from the store
+    const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
+
+    return pCluster?.status?.clusterName;
+  }
+
+  get mgmt() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.mgmtClusterId);
+  }
+
+  get isReady() {
+    return !!this.mgmt?.isReady;
+  }
+
+  // nodeGroups can be undefined for an EKS cluster that has just been created and has not
+  // had any node groups added to it
+  get eksNodeGroups() {
+    return this.mgmt?.eksNodeGroups || [];
+  }
+
+  waitForProvisioner(timeout, interval) {
+    return this.waitForTestFn(() => {
+      return !!this.provisioner;
+    }, `set provisioner`, timeout, interval);
+  }
+
+  waitForMgmt(timeout = 60000, interval) {
+    return this.waitForTestFn(() => {
+      const mgmtId = this.mgmtClusterId;
+
+      try {
+        if (mgmtId) {
+          // Just in case we're not generically watching all mgmt clusters and...
+          // thus won't receive new mgmt cluster over socket...
+          // fire and forget a request to fetch it (this won't make multiple requests if one is already running)
+          this.$dispatch('find', { type: MANAGEMENT.CLUSTER, id: mgmtId });
+        }
+      } catch {}
+
+      return mgmtId && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, mgmtId);
+    }, this.$rootGetters['i18n/t']('cluster.managementTimeout', { type: MANAGEMENT.CLUSTER, name: this.mgmtClusterId }), timeout, interval);
+  }
+
+  get provisioner() {
+    return this.mgmt?.provisioner;
+  }
+
+  get provisionerDisplay() {
+    return this.mgmt?.provisionerDisplay;
+  }
+
+  get providerLogo() {
+    return this.mgmt?.providerLogo;
+  }
+
+  get architecture() {
+    return this.mgmt?.architecture;
+  }
+
+  get kubernetesVersion() {
+    return this.mgmt?.kubernetesVersion;
+  }
+
+  get machineProvider() {
+    return this.mgmt?.machineProvider?.toLowerCase();
+  }
+
+  get machineProviderDisplay() {
+    return this.mgmt?.machineProviderDisplay;
+  }
+
+  get machinePoolDefaults() {
+    return this.spec.rkeConfig?.machinePoolDefaults;
+  }
+
+  set defaultHostnameLengthLimit(value) {
+    this.spec.rkeConfig = this.spec.rkeConfig || {};
+    this.spec.rkeConfig.machinePoolDefaults = this.spec.rkeConfig.machinePoolDefaults || {};
+    this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit = value;
+  }
+
+  get defaultHostnameLengthLimit() {
+    return this.spec.rkeConfig?.machinePoolDefaults?.hostnameLengthLimit;
+  }
+
+  removeDefaultHostnameLengthLimit() {
+    if (this.machinePoolDefaults?.hostnameLengthLimit) {
+      delete this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit;
+
+      if (Object.keys(this.spec?.rkeConfig?.machinePoolDefaults).length === 0) {
+        delete this.spec.rkeConfig.machinePoolDefaults;
+      }
+    }
+  }
+
+  get nodes() {
+    return this.mgmt?.nodes || [];
+  }
+
+  get machines() {
+    return this.mgmt?.machines || [];
+  }
+
+  get displayName() {
+    return this.mgmt?.nameDisplay || null;
+  }
+
+  get pools() {
+    return this.mgmt?.pools || [];
+  }
+
+  get desired() {
+    return this.mgmt?.desired || 0;
+  }
+
+  get pending() {
+    return this.mgmt?.pending || 0;
+  }
+
+  get outdated() {
+    return this.mgmt?.outdated || 0;
+  }
+
+  get ready() {
+    return this.mgmt?.ready || 0;
+  }
+
+  get unavailable() {
+    return this.mgmt?.unavailable || 0;
+  }
+
+  get unavailableMachines() {
+    return this.mgmt?.unavailableMachines || '';
+  }
+
+  get stateParts() {
+    return this.mgmt?.stateParts;
+  }
+
+  async getOrCreateToken() {
+    await this.waitForMgmt();
+
+    if ( !this.mgmt ) {
+      return;
+    }
+
+    const tokens = await this.$dispatch('rancher/findAll', { type: NORMAN.CLUSTER_TOKEN, force: true }, { root: true });
+
+    let token = findBy(tokens, 'clusterId', this.mgmt.id);
+
+    if ( token ) {
+      return token;
+    }
+
+    if ( !this.links.update ) {
+      return;
+    }
+
+    token = await this.$dispatch('rancher/create', {
+      type:      NORMAN.CLUSTER_TOKEN,
+      clusterId: this.mgmt.id
+    }, { root: true });
+
+    return token.save();
+  }
+
+  openShell() {
+    return this.mgmt?.openShell();
+  }
+
+  generateKubeConfig() {
+    return this.mgmt?.generateKubeConfig();
+  }
+
+  async copyKubeConfig() {
+    await this.mgmt?.copyKubeConfig();
+
+    this.$dispatch('growl/info', {
+      title:   this.t('cluster.copiedConfig'),
+      timeout: 3000,
+    }, { root: true });
+  }
+
+  downloadKubeConfig() {
+    return this.mgmt?.downloadKubeConfig();
+  }
+
+  downloadKubeConfigBulk(items) {
+    return this.mgmt?.downloadKubeConfigBulk(items);
+  }
+
+  copyKubeConfigBulk(items) {
+    return this.mgmt?.copyKubeConfigBulk(items);
+  }
+
+  async snapshotAction() {
+    try {
+      await this.takeSnapshot();
+      this.$dispatch('growl/info', {
+        title:   this.$rootGetters['i18n/t']('cluster.snapshot.successTitle', { name: this.nameDisplay }),
+        message: this.$rootGetters['i18n/t']('cluster.snapshot.successMessage', { name: this.nameDisplay })
+      }, { root: true });
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('cluster.snapshot.errorTitle', { name: this.nameDisplay }),
+        err,
+      }, { root: true });
+    }
+  }
+
+  async snapshotBulk(items) {
+    const res = await Promise.allSettled(items.map((row) => {
+      return row.takeSnapshot();
+    }));
+
+    const successful = res.filter( (x) => x.status === 'fulfilled').length;
+
+    if ( successful ) {
+      this.$dispatch('growl/info', {
+        title:   this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessTitle'),
+        message: this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessMessage', { count: successful })
+      }, { root: true });
+    }
+
+    for ( let i = 0 ; i < res.length ; i++ ) {
+      if ( res[i].status !== 'fulfilled' ) {
+        this.$dispatch('growl/fromError', {
+          title: this.$rootGetters['i18n/t']('cluster.snapshot.errorTitle', { name: items[i].nameDisplay }),
+          err:   res[i].value,
+        }, { root: true });
+      }
+    }
+  }
+
+  takeSnapshot() {
+    if ( this.isRke1 ) {
+      return this.$dispatch('rancher/request', {
+        url:    `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
+        method: 'post',
+      }, { root: true });
+    } else if ( this.isImportedWithDayTwoOps ) {
+      // For imported clusters with day 2 ops, create an operation CRD
+      const namespace = this.mgmt?.id;
+      const safePrefix = this.mgmt?.metadata?.name || this.mgmt?.id;
+      const spec = {
+        clusterRef: {
+          apiVersion: 'management.cattle.io/v3',
+          kind:       'Cluster',
+          name:       this.mgmt?.id,
+        }
+      };
+
+      return createOperationCR(this.$dispatch, OPERATION.ETCD_SNAPSHOT, spec, namespace, safePrefix);
+    } else if (this.isImportedRke2K3s && !this.isDayTwoOpsFeatureEnabled) {
+      throw new Error(this.$rootGetters['i18n/t']('cluster.snapshot.day2OpsNotEnabled'));
+    } else {
+      const now = this.spec?.rkeConfig?.etcdSnapshotCreate?.generation || 0;
+      const args = { generation: now + 1 };
+
+      if ( this.spec?.rkeConfig?.etcd?.s3 ) {
+        args.s3 = this.spec.rkeConfig.etcd.s3;
+      }
+
+      set(this.spec.rkeConfig, 'etcdSnapshotCreate', args);
+
+      return this.save();
+    }
+  }
+
+  get etcdSnapshots() {
+    const allSnapshots = this.$rootGetters['management/all']({ type: SNAPSHOT });
+
+    if (this.isImportedWithDayTwoOps) {
+      return allSnapshots
+        .filter((s) => s.metadata.namespace === this.mgmt?.id && s.spec?.clusterName === this.mgmt?.metadata?.name );
+    }
+
+    return allSnapshots
+      .filter((s) => s.metadata.namespace === this.namespace && s.clusterName === this.name );
+  }
+
+  restoreSnapshotAction(resource = this) {
+    this.$dispatch('promptRestore', [resource]);
+  }
+
+  rotateCertificates(cluster = this) {
+    this.$dispatch('promptModal', {
+      componentProps: { cluster },
+      component:      'RotateCertificatesDialog'
+    });
+  }
+
+  rotateEncryptionKey(cluster = this) {
+    this.$dispatch('promptModal', {
+      componentProps: { cluster },
+      component:      'RotateEncryptionKeyDialog'
+    });
+  }
+
+  get stateObj() {
+    return this._stateObj;
+  }
+
+  get _stateObj() {
+    if (!this.isRke2) {
+      return this.mgmt?.stateObj || this.metadata?.state;
+    }
+
+    return this.metadata?.state;
+  }
+
+  get supportsWindows() {
+    if (this.isK3s || this.isImportedK3s) {
+      return false;
+    }
+
+    if ( this.isRke1 ) {
+      return this.mgmt?.spec?.windowsPreferedCluster || false;
+    }
+
+    if ( !this.isRke2 ) {
+      return false;
+    }
+
+    if ( !this.kubernetesVersion || compare(this.kubernetesVersion, 'v1.21.0') < 0 ) {
+      return false;
+    }
+
+    const cni = this.spec?.rkeConfig?.machineGlobalConfig?.cni;
+
+    if ( cni === 'flannel' && compare(this.kubernetesVersion, 'v1.29.2') < 0 ) {
+      return false;
+    }
+
+    if ( cni && cni !== 'calico' && cni !== 'flannel' ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  get customValidationRules() {
+    return [
+      {
+        path:           'metadata.name',
+        translationKey: 'cluster.name.label',
+        validators:     [`clusterName:${ this.isRke2 }`],
+        maxLength:      63,
+      },
+    ];
+  }
+
+  get agentConfig() {
+    // The one we want is the first one with no selector.
+    // If there are multiple with no selector, that will fall under the unsupported message below.
+    return this.spec.rkeConfig?.machineSelectorConfig
+      ?.find((x) => !x.machineLabelSelector)?.config || { };
+  }
+
+  get cloudProvider() {
+    return this.agentConfig?.['cloud-provider-name'];
+  }
+
+  get canClone() {
+    return false;
+  }
+
+  async remove(opt = {}) {
+    if ( !opt.url ) {
+      opt.url = (this.links || {})['self'];
+    }
+
+    opt.method = 'delete';
+
+    const res = await this.$dispatch('request', opt);
+
+    const pool = (this.spec?.rkeConfig?.machinePools || [])[0];
+
+    if (pool?.machineConfigRef?.kind === 'HarvesterConfig') {
+      const cloudCredentialSecretName = this.spec.cloudCredentialSecretName;
+
+      await this.$dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL }, { root: true });
+
+      const credential = this.$rootGetters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, cloudCredentialSecretName);
+
+      if (credential) {
+        const harvesterClusterId = get(credential, 'decodedData.clusterId');
+
+        try {
+          const poolConfig = await this.$dispatch('management/find', {
+            type: `${ CAPI.MACHINE_CONFIG_GROUP }.${ (pool?.machineConfigRef?.kind || '').toLowerCase() }`,
+            id:   `${ this.metadata.namespace }/${ pool?.machineConfigRef?.name }`,
+          }, { root: true });
+
+          await this.$dispatch('management/request', {
+            url:    `/k8s/clusters/${ harvesterClusterId }/v1/harvester/serviceaccounts/${ poolConfig.vmNamespace }/${ this.metadata.name }`,
+            method: 'DELETE',
+          }, { root: true });
+        } catch (e) {
+          console.error(e); // eslint-disable-line no-console
+        }
+      }
+    }
+
+    if ( res?._status === 204 ) {
+      await this.$dispatch('ws.resource.remove', { data: this });
+    }
+
+    // If this cluster has a custom provisioner, allow it to do custom deletion
+    if (this.customProvisionerHelper?.postDelete) {
+      return this.customProvisionerHelper?.postDelete(this);
+    }
+  }
+
+  /**
+   * Get the custom provisioner helper for this model
+   */
+  get customProvisionerHelper() {
+    // Find the first model extension that says it can be used for this model
+    return this.modelExtensions.find((modelExt) => modelExt.useFor ? modelExt.useFor(this) : false);
+  }
+
+  get groupByParent() {
+    // Customer helper can report if the cluster has a parent cluster
+    return this.customProvisionerHelper?.parentCluster?.(this) || this.t('resourceTable.groupLabel.notInACluster');
+  }
+
+  get hasError() {
+    return this.mgmt ? this.mgmt.hasError : true;
+  }
+
+  get namespaceLocation() {
+    // Check side nav for local cluster access — `management/byId` only reflects what's
+    // currently cached, which on a downstream detail page is just the downstream cluster
+    // (so admins would falsely look like they have no local access). The side nav reflects
+    // permission, not cache state, so it's accurate for both admins and downstream-only users.
+    const hasLocalCluster = sideNavService.helper.clustersPinned.some((c) => c.id === LOCAL_CLUSTER) ||
+      sideNavService.helper.clustersOthers.some((c) => c.id === LOCAL_CLUSTER);
+
+    if (!hasLocalCluster) {
+      return null;
+    }
+
+    return {
+      name:   'c-cluster-product-resource-id',
+      params: {
+        cluster:  LOCAL_CLUSTER,
+        product:  EXPLORER,
+        resource: NAMESPACE,
+        id:       this.namespace
+      }
+    };
+  }
+
+  /**
+   * Gets the options for fields that should be commented out in the YAML representation
+   * of the model. This is particularly useful for conditionally commenting out certain
+   * fields based on the model's configuration.
+   *
+   * @returns {null | Array.<{path: string, key: string}>}
+   * - `path`: A dot-separated string indicating the path to the object containing the key.
+   * - `key`: The specific key within the object at the given path that should be commented out.
+   */
+  get commentFieldsOptions() {
+    if ( this.isRke2 ) {
+      return [
+        {
+          path: 'spec.rkeConfig.machineGlobalConfig',
+          key:  'profile'
+        }
+      ];
+    }
+
+    return null;
+  }
+
+  // JSON Paths that should be folded in the YAML editor by default
+  get yamlFolding() {
+    return [
+      'spec.rkeConfig.machinePools.dynamicSchemaSpec',
+    ];
+  }
+
+  get description() {
+    return super.description || this.mgmt?.description;
+  }
+
+  get disableResourceDetailDrawerConfigTab() {
+    return !!this.isHarvester || this.isCapiWithoutExtension;
+  }
+
+  get fullDetailPageOverride() {
+    return true;
+  }
+
+  async loadAutoscalerEvents() {
+    const autoscalerConfigMap = await this.loadAutoscalerConfigMap();
+    const eventSchema = this.$rootGetters['management/schemaFor'](EVENT);
+    const fields = [new PaginationFilterField({
+      field: 'involvedObject.uid',
+      value: autoscalerConfigMap.metadata.uid,
+      exact: true,
+    }),
+    new PaginationFilterField({
+      field: 'metadata.namespace',
+      value: 'kube-system',
+      exact: true,
+    })];
+    const pagination = {
+      page:     1,
+      pageSize: 200,
+      filters:  [
+        new PaginationParamFilter({ fields })
+      ]
+
+    };
+    const params = stevePaginationUtils.createParamsForPagination({ schema: eventSchema, opt: { pagination } });
+    const url = `/k8s/clusters/${ this.mgmtClusterId }/v1/${ EVENT }?${ params }`;
+
+    const events = (await this.$dispatch('cluster/request', { url }, { root: true }))?.data || [];
+
+    return events.filter((event) => event.involvedObject.name === 'cluster-autoscaler-status');
+  }
+
+  get hasAccessToAutoscalerConfigMap() {
+    // This may change but for now this is the best proxy we have for access to the configmap without attempting to access it and getting a 404.
+    return this.canEdit;
+  }
+
+  async loadAutoscalerConfigMap() {
+    const url = `/k8s/clusters/${ this.mgmtClusterId }/v1/${ CONFIG_MAP }/${ AUTOSCALER_CONFIG_MAP_ID }`;
+
+    return await this.$dispatch('cluster/request', { url }, { root: true });
+  }
+
+  get canPauseResumeAutoscaler() {
+    return this.isAutoscalerEnabled && this.canExplore && this.hasAccessToAutoscalerConfigMap;
+  }
+
+  async loadAutoscalerStatus() {
+    if (!this.canExplore) {
+      return AUTOSCALER_STATUS.PROVISIONING;
+    }
+
+    if (!this.hasAccessToAutoscalerConfigMap) {
+      return AUTOSCALER_STATUS.UNAVAILABLE;
+    }
+
+    try {
+      const configMap = await this.loadAutoscalerConfigMap();
+      const yaml = configMap?.data?.status || '';
+
+      return jsyaml.load(yaml);
+    } catch (ex) {
+      console.error(ex); // eslint-disable-line no-console
+
+      return AUTOSCALER_STATUS.UNAVAILABLE;
+    }
+  }
+
+  async loadAutoscalerDetails() {
+    const out = [];
+
+    if (this.isAutoscalerPaused) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: this.t('autoscaler.card.details.paused')
+      });
+
+      return out;
+    }
+
+    const status = await this.loadAutoscalerStatus();
+
+    if (status === AUTOSCALER_STATUS.UNAVAILABLE) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: this.t('autoscaler.card.details.unavailable')
+      });
+
+      return out;
+    }
+
+    if (status === AUTOSCALER_STATUS.PROVISIONING) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: this.t('autoscaler.card.details.provisioning')
+      });
+
+      return out;
+    }
+
+    if (status.autoscalerStatus) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: status.autoscalerStatus
+      });
+    }
+
+    if (status.clusterWide?.health?.status) {
+      const statusValue = status.clusterWide.health.status;
+
+      out.push({
+        label: this.t('autoscaler.card.details.health'),
+        value: {
+          component: 'BadgeStateFormatter',
+          props:     {
+            value: statusValue, arbitrary: true, row: {}
+          },
+        }
+      });
+    }
+
+    if (status.clusterWide?.scaleDown?.lastTransitionTime) {
+      out.push({
+        label: this.t('autoscaler.card.details.scaleDown'),
+        value: {
+          component: 'LiveDate',
+          props:     {
+            value:     status.clusterWide.scaleDown.lastTransitionTime,
+            addSuffix: true
+          }
+        }
+      });
+    }
+
+    if (status.clusterWide?.scaleUp?.lastTransitionTime) {
+      out.push({
+        label: this.t('autoscaler.card.details.scaleUp'),
+        value: {
+          component: 'LiveDate',
+          props:     {
+            value:     status.clusterWide.scaleUp.lastTransitionTime,
+            addSuffix: true
+          }
+        }
+      });
+    }
+
+    if (status.clusterWide?.health?.nodeCounts?.registered) {
+      out.push({ label: this.t('autoscaler.card.details.nodes') });
+
+      out.push({
+        label: this.t('autoscaler.card.details.ready'),
+        value: status.clusterWide.health.nodeCounts.registered.ready || '0'
+      });
+      out.push({
+        label: this.t('autoscaler.card.details.notStarted'),
+        value: status.clusterWide.health.nodeCounts.registered.notStarted || '0'
+      });
+      out.push({
+        label: this.t('autoscaler.card.details.inTotal'),
+        value: status.clusterWide.health.nodeCounts.registered.total || '0'
+      });
+    }
+
+    return out;
+  }
+
+  get isAutoscalerEnabled() {
+    return this.mgmt?.isAutoscalerEnabled;
+  }
+
+  get isAutoscalerPaused() {
+    return !!this.metadata?.annotations?.[CAPI_ANNOTATIONS.AUTOSCALER_CLUSTER_PAUSE];
+  }
+
+  pauseAutoscaler() {
+    this.setAnnotation(CAPI_ANNOTATIONS.AUTOSCALER_CLUSTER_PAUSE, 'true');
+  }
+
+  resumeAutoscaler() {
+    this.setAnnotation(CAPI_ANNOTATIONS.AUTOSCALER_CLUSTER_PAUSE, undefined);
+  }
+
+  toggleAutoscalerRunner() {
+    if (this.isAutoscalerPaused) {
+      this.resumeAutoscaler();
+    } else {
+      this.pauseAutoscaler();
+    }
+
+    return this.save();
+  }
+}

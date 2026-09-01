@@ -1,0 +1,19 @@
+kubectl-explain:
+  externalLink: External link
+  areaExpanded: area expanded
+  areaCollapsed: area collapsed
+  externalLinkInfo: External link for resource {name} information
+  errorLoading: Error loading information
+  informationLoading: Information loading
+  navigateToBreadcrumb: Navigate to breadcrumb {breadcrumb}
+  scrollToTop: Scroll to top
+  action: "Explain ..."
+  errors:
+    load: Could not load the Open API data from the cluster
+    notFound: Could not find OpenAPI definition for this resource
+  expandAll: Expand/Collapse All
+  fields: Fields
+  object: Object
+  prompt: Select a Kubernetes resource to get the resource explanation
+  title: Kubernetes Explain
+  tooltip: Describe Resource

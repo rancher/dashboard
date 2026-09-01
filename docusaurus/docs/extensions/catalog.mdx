@@ -1,0 +1,44 @@
+# Extensions Catalog
+
+import Catalog from '../../plugins/catalog/Catalog.tsx'
+
+For information on adding your extension to this page, see [here](#add-your-extension).
+
+**Prime**
+
+Prime Extensions are developed by [SUSE](https://www.suse.com/) and available to [Rancher Prime](https://www.rancher.com/products/rancher-platform) customers.
+
+<Catalog group="prime"/>
+
+**Partner**
+
+Partner Extensions are developed by [SUSE Partners](https://www.suse.com/partners/) and are available to all Rancher users form the partner extensions catalog that is installed by default.
+
+<Catalog group="partner"/>
+
+**Community**
+
+Community Extensions cover all other extensions developed by the community. **SUSE has not vetted, reviewed or verified these extensions and takes no liability for them. Use of
+these extensions is at your own risk**. SUSE reserves the right to reject or remove extensions which are broken, dangerous, or expose known vulnerabilities. To report an issue with an
+extension on this page, contact SUSE via the #extensions channel on the [Rancher User's Slack](https://rancher-users.slack.com/archives/C04PPGWAWNR).
+
+<Catalog/>
+
+## <a name="add-your-extension"></a>Add your extension to this page
+
+Fork this repository and create a new yaml file in the `docusaurus/docs/extensions/catalog`, name it with the name of your extension and a file extension of `.yaml`.
+
+The content for this file should be based off of this template:
+
+```
+name: <Name of your extension>
+author: <Name to show as the author of the extension>
+authorUrl: <URL to open in a new tab when the user clicks on the author name>
+description: <Short description of the extension - please limit to around 120 characters>
+url: <URL to open in a new tab when the user clicks on the 'Learn More...' link>
+icon: <URL for the icon to show for your extension - this should be sized 48x48 pixels>
+```
+
+Open a PR that adds your yaml file. The team will review your PR and once approved and merged, your extension will appear here.
+
+For examples, see https://github.com/rancher/dashboard/tree/master/docusaurus/extensions/catalog

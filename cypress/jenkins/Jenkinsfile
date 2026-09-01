@@ -1,0 +1,196 @@
+#!groovy
+// Jenkinsfile — CI pipeline for Rancher Dashboard E2E tests
+//
+// Stages: Pre-Clean → Preflight → Checkout → Disk → Run Tests → Grab Results
+//   finally: Clean Test Environment → Cleanup Executor → Test Report
+
+def branch = "${env.BRANCH}" != 'null' && "${env.BRANCH}" != '' ? "${env.BRANCH}" : 'master'
+def testExecutionResult = null
+def testsTotal = 0
+def testsFailed = 0
+def testExitCode = null
+
+timeout(time: 270, unit: 'MINUTES') {
+node('harvester-vpn-1') {
+  ansiColor('xterm') {
+    withFolderProperties {
+      def paramsMap = []
+      params.each {
+        paramsMap << "$it.key=$it.value"
+      }
+      withCredentials([ string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                        string(credentialsId: 'AZURE_AKS_SUBSCRIPTION_ID', variable: 'AZURE_AKS_SUBSCRIPTION_ID'),
+                        string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
+                        string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
+                        string(credentialsId: 'GKE_SERVICE_ACCOUNT', variable: 'GKE_SERVICE_ACCOUNT'),
+                        string(credentialsId: 'PERCY_TOKEN', variable: 'PERCY_TOKEN'),
+                        string(credentialsId: 'QASE_AUTOMATION_TOKEN', variable: 'QASE_AUTOMATION_TOKEN'),
+                        string(credentialsId: 'UI_SLACK_BOT_TOKEN', variable: 'UI_SLACK_BOT_TOKEN'),
+                        string(credentialsId: 'UI_SLACK_CHANNEL', variable: 'UI_SLACK_CHANNEL')
+                        ]) {
+        withEnv(paramsMap) {
+          timeout(time: 240, unit: 'MINUTES') {
+            try {
+              stage('Pre-Clean') {
+                sh """#!/bin/bash
+                  set +x
+                  docker rm -f \$(docker ps -aq --filter ancestor=dashboard-test:\${EXECUTOR_NUMBER}) 2>/dev/null || true
+                  docker rm -f \$(docker ps -aq --filter ancestor=dashboard-e2e-runner:\${EXECUTOR_NUMBER}) 2>/dev/null || true
+                  docker rmi -f dashboard-test:\${EXECUTOR_NUMBER} 2>/dev/null || true
+                  docker rmi -f dashboard-e2e-runner:\${EXECUTOR_NUMBER} 2>/dev/null || true
+                """
+              }
+              stage('Preflight') {
+                sh '''#!/bin/sh
+                  avail_kb=$(df -P "${WORKSPACE}" | awk 'NR==2 {print $4}')
+                  avail_gb=$(( avail_kb / 1024 / 1024 ))
+                  echo "[preflight] ${avail_gb}GB available on executor"
+                  if [ "${avail_gb}" -lt 5 ]; then
+                    echo "[preflight] ERROR: Less than 5GB free — aborting to protect executor"
+                    exit 1
+                  fi
+                '''
+                def tag = (env.VARS_YAML_CONFIG ?: '').find(/rancher_image_tag:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.RANCHER_IMAGE_TAG ?: 'unknown')
+                def cypress = (env.VARS_YAML_CONFIG ?: '').find(/cypress_tags:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.CYPRESS_TAGS ?: '')
+                def repo = (env.VARS_YAML_CONFIG ?: '').find(/rancher_helm_repo:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.RANCHER_HELM_REPO ?: 'rancher-com-rc')
+                def edition = repo.startsWith('rancher-com') || repo == 'rancher-community' ? 'community' : 'prime'
+                currentBuild.description = "${tag} · ${edition} · ${cypress}"
+              }
+              stage('Checkout') {
+                deleteDir()
+                checkout([
+                  $class: 'GitSCM',
+                  branches: [[name: "*/${branch}"]],
+                  extensions: scm.extensions.findAll {
+                    !(it instanceof hudson.plugins.git.extensions.impl.CleanCheckout ||
+                      it instanceof hudson.plugins.git.extensions.impl.WipeWorkspace)
+                  },
+                  userRemoteConfigs: scm.userRemoteConfigs
+                ])
+                // init.sh clones qa-infra-automation at runtime
+              }
+              // In the repo, so it cannot run before Checkout.
+              stage('Disk') {
+                sh 'cypress/jenkins/disk-report.sh before'
+              }
+              stage('Run Tests') {
+                timeout(time: 180, unit: 'MINUTES') {
+                  testExitCode = sh(script: 'cypress/jenkins/init.sh', returnStatus: true)
+                  if (testExitCode != 0) {
+                    echo "init.sh exited with code ${testExitCode}"
+                  }
+                }
+              }
+            } catch (err) {
+              echo "Pipeline error: ${err}"
+              currentBuild.result = 'FAILURE'
+            } finally {
+              stage('Grab Results') {
+                // init.sh copies results to workspace root; verify they exist
+                sh 'test -f results.xml && echo "results.xml found" || echo "results.xml not found"'
+                sh 'test -d html && echo "html/ report found" || echo "html/ report not found"'
+              }
+              // Always destroy infra unless CLEANUP is explicitly set to false/no/0
+              def skipCleanup = "${env.CLEANUP}".toLowerCase() in ['false', 'no', '0']
+              if (!skipCleanup) {
+                try {
+                  stage('Clean Test Environment') {
+                    timeout(time: 15, unit: 'MINUTES') {
+                      sh """#!/bin/bash
+                        set +x
+                        bash cypress/jenkins/init.sh destroy || true
+                      """
+                    }
+                  }
+                } catch (destroyErr) {
+                  echo "Destroy stage failed or timed out: ${destroyErr} — continuing with executor cleanup"
+                }
+              }
+              stage('Cleanup Executor') {
+                sh """#!/bin/bash
+                  set +x
+                  # Remove only this build's containers (label-based isolation)
+                  docker rm -f \$(docker ps -aq --filter label=jenkins_build="\${BUILD_TAG}") 2>/dev/null || true
+                  docker rmi -f dashboard-test:\${EXECUTOR_NUMBER} 2>/dev/null || true
+                  docker rmi -f dashboard-e2e-runner:\${EXECUTOR_NUMBER} 2>/dev/null || true
+                  # Wipe credentials from executor disk
+                  rm -f "${WORKSPACE}/qa-infra-automation/ansible/testing/dashboard-e2e/vars.yaml" 2>/dev/null || true
+                  rm -f "${WORKSPACE}/qa-infra-automation/ansible/testing/dashboard-e2e/.env" 2>/dev/null || true
+                """
+                if (fileExists('cypress/jenkins/disk-report.sh')) {
+                  sh 'cypress/jenkins/disk-report.sh after'
+                }
+              }
+              try {
+                stage('Test Report') {
+                  if (fileExists('results.xml')) {
+                    // The junit step returns a TestResultSummary — reuse its counts for the
+                    // Slack message rather than parsing results.xml a second time by hand.
+                    def summary = junit testResults: '**/results.xml', allowEmptyResults: true
+                    if (summary != null) {
+                      testsTotal = summary.totalCount
+                      testsFailed = summary.failCount
+                    }
+
+                    def resultsContent = readFile('results.xml').trim()
+                    if (resultsContent.contains('<failure')) {
+                      testExecutionResult = 'FAILURE'
+                    } else if (resultsContent.contains('<testcase')) {
+                      testExecutionResult = 'SUCCESS'
+                    } else {
+                      testExecutionResult = null
+                    }
+                  } else {
+                    testExecutionResult = null
+                  }
+                  if (fileExists('html')) {
+                    publishHTML(target: [allowMissing: true,
+                      alwaysLinkToLastBuild: true,
+                      keepAll: true,
+                      reportDir: 'html',
+                      reportFiles: 'index.html',
+                      reportName: 'html-report',
+                      reportTitles: 'Report'])
+                  }
+                }
+              } catch (err) {
+                echo 'Error in Test Report stage: ' + err
+                if (testExecutionResult == null && fileExists('results.xml')) {
+                  def resultsContent = readFile('results.xml').trim()
+                  if (resultsContent.contains('<testcase')) {
+                    if (resultsContent.contains('<failure')) {
+                      testExecutionResult = 'FAILURE'
+                    } else {
+                      testExecutionResult = 'SUCCESS'
+                    }
+                  }
+                }
+              }
+
+              // Final build result: green = tests passed, yellow = tests failed, red = infra/pipeline error
+              if (testExecutionResult == 'SUCCESS' && currentBuild.result != 'FAILURE') {
+                currentBuild.result = 'SUCCESS'
+              } else if (testExecutionResult == 'FAILURE') {
+                currentBuild.result = 'UNSTABLE'
+              } else if (currentBuild.result != 'FAILURE') {
+                currentBuild.result = 'FAILURE'
+              }
+
+              if (currentBuild.result != 'SUCCESS') {
+                if ("${env.SLACK_NOTIFICATION}".toLowerCase() != 'false') {
+                  withEnv(["SLACK_BUILD_STATUS=${currentBuild.result}",
+                           "TESTS_TOTAL=${testsTotal}",
+                           "TESTS_FAILED=${testsFailed}"]) {
+                    sh 'cypress/jenkins/slack-notification.sh $SLACK_BUILD_STATUS'
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+}

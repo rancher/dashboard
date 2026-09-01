@@ -1,0 +1,158 @@
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
+import { createDeploymentBlueprint } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+
+const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
+const deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
+
+Cypress.config();
+describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');
+
+    deploymentsListPage.goTo();
+    deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
+  });
+  beforeEach(() => {
+    cy.login();
+
+    HomePagePo.goTo();
+    const burgerMenuPo = new BurgerMenuPo();
+
+    burgerMenuPo.goToCluster('local');
+  });
+
+  it('Can access to first navigation link on click', () => {
+    const productNavPo = new ProductNavPo();
+
+    productNavPo.visibleNavTypes().eq(0).should('be.visible').click()
+      .then((link) => {
+        cy.url().should('equal', link.prop('href'));
+      });
+  });
+
+  it('Can open second menu groups on click', () => {
+    const productNavPo = new ProductNavPo();
+
+    // `type: 'static'` is required, not optional. A default alias is re-queried on every
+    // `cy.get('@closedGroup')`, and the group we click becomes `.expanded` - so the
+    // re-run of `.not('.expanded').eq(0)` would then resolve to a *different* group than
+    // the one we clicked, which has no `ul`/`li.nav-type>a` because it isn't expanded.
+    productNavPo.groups().not('.expanded').eq(0)
+      .as('closedGroup', { type: 'static' });
+    cy.get('@closedGroup').should('be.visible').click();
+    cy.get('@closedGroup').find('ul').should('have.length.gt', 0);
+    productNavPo.expandedGroup().should('have.length.gte', 1);
+  });
+
+  it('Opening another menu group keeps already-open groups expanded', () => {
+    const productNavPo = new ProductNavPo();
+
+    productNavPo.groups().filter('.expanded').its('length').then((expandedCount) => {
+      // Opening a different, collapsed group must not collapse the open one(s)
+      productNavPo.groups().not('.expanded').eq(0).should('be.visible')
+        .click();
+      productNavPo.groups().filter('.expanded').should('have.length', expandedCount + 1);
+    });
+  });
+
+  it('Can collapse an expanded menu group via its chevron', () => {
+    const productNavPo = new ProductNavPo();
+
+    // `type: 'static'` is required: collapsing the group removes it from
+    // `.expanded`, so a default alias would re-run `.filter('.expanded').first()`
+    // against an empty set once no group is left open.
+    productNavPo.groups().filter('.expanded').first()
+      .as('openGroup', { type: 'static' });
+    cy.get('@openGroup').find('i.toggle-accordion').first().click();
+    cy.get('@openGroup').find('ul').should('have.length', 0);
+  });
+
+  it('Should flag second menu group as active on navigation', () => {
+    const productNavPo = new ProductNavPo();
+
+    // `type: 'static'` is required, not optional. A default alias is re-queried on every
+    // `cy.get('@closedGroup')`, and the group we click becomes `.expanded` - so the
+    // re-run of `.not('.expanded').eq(0)` would then resolve to a *different* group than
+    // the one we clicked, which has no `ul`/`li.nav-type>a` because it isn't expanded.
+    productNavPo.groups().not('.expanded').eq(0)
+      .as('closedGroup', { type: 'static' });
+    cy.get('@closedGroup').should('be.visible').click();
+    // Wait for the group to expand and then click the first visible link
+    cy.get('@closedGroup').find('li.nav-type>a').should('have.length.gt', 0).first()
+      .click();
+    // Now verify the clicked link is active
+    cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
+  });
+
+  it('Going into resource detail should keep relevant group active', () => {
+    const productNavPo = new ProductNavPo();
+
+    productNavPo.visibleNavTypes().eq(1).should('be.visible').click(); // Go into Workloads
+
+    deploymentsListPage.goTo();
+    deploymentsListPage.waitForPage();
+    deploymentsListPage.goToDetailsPage(workloadName);
+
+    // Other groups may stay expanded now, so assert on the expanded group that
+    // owns the current resource rather than on whichever expands first.
+    productNavPo.groups().filter('.expanded').find('.router-link-active').should('have.length.gt', 0);
+  });
+
+  it('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
+    const productNavPo = new ProductNavPo();
+    // iterate through top-level groups
+
+    productNavPo.groups().each((_, index) => {
+      const group = productNavPo.groups().eq(index);
+
+      // Select and expand current top-level group
+      group.click();
+      // check if it has sub-groups and expand them
+      productNavPo.groups().eq(index).then((group) => {
+        // FIXME: #5966: This may lead to flaky tests and should be replace after ensuring the navigation to be stable
+        if (group.find('.accordion').length) {
+          cy.wrap(group).get('.accordion .accordion').should('be.visible').click({ multiple: true });
+        }
+        // ensure group is expanded
+        cy.wrap(group).find('ul').should('have.length.gt', 0);
+      });
+
+      // Visit each link and confirm the app has navigated to that location
+      productNavPo.visibleNavTypes().each((link, idx) => {
+        productNavPo.visibleNavTypes().eq(idx)
+          .click({ force: true })
+          .then((linkEl) => cy.url().should('contain', linkEl.prop('href')));
+      });
+    });
+  });
+
+  it('Clicking on the tab header should navigate', () => {
+    const productNavPo = new ProductNavPo();
+    const group = productNavPo.groups().eq(0); // first group is 'Cluster'
+
+    // Select and expand current top-level group
+    group.click();
+    const clusterDashboard = new ClusterDashboardPagePo('local');
+
+    clusterDashboard.waitForPage();
+
+    // Go to the second subgroup
+    productNavPo.visibleNavTypes().eq(2).click({ force: true });
+
+    // Clicking back should take us back to clusters
+    productNavPo.tabHeaders().eq(0).click(1, 1);
+    clusterDashboard.waitForPage();
+  });
+
+  after(() => {
+    cy.login();
+    deploymentsListPage?.goTo();
+
+    deploymentsListPage.deleteWithKubectl(workloadName, namespace);
+  });
+});

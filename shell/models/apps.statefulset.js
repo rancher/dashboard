@@ -1,0 +1,47 @@
+import Workload from './workload';
+import { WORKLOAD_TYPES, WORKLOAD_TYPE_TO_KIND_MAPPING } from '@shell/config/types';
+
+export default class StatefulSet extends Workload {
+  async rollBack(cluster, statefulSet, revision) {
+    const body = [
+      {
+        op:    'replace',
+        path:  '/spec/template',
+        value: {
+          metadata: revision.data.spec.template.metadata,
+          spec:     revision.data.spec.template.spec
+        }
+      }, {
+        op:    'replace',
+        path:  '/metadata/generation',
+        value: revision.revision,
+      }
+    ];
+
+    await this.rollBackWorkload(cluster, statefulSet, 'statefulsets', body);
+  }
+
+  /**
+   * See fetchPods description for more info
+   */
+  get pods() {
+    if (this.podMatchExpression) {
+      // Given https://github.com/rancher/dashboard/issues/7555 we want to avoid scenarios where we show pods that have an applicable label but aren't applicable (?!)
+      // super.pods is the pods that match the statefulsets podSelector, so start from that and then filter further by pod's owner
+      return super.pods.filter((pod) => {
+        // a bit of a duplication of podRelationship, but always safe to check...
+        if (pod.metadata?.ownerReferences?.length) {
+          const ownerReferencesStatefulSet = pod.metadata?.ownerReferences?.find((own) => own.kind === WORKLOAD_TYPE_TO_KIND_MAPPING[WORKLOAD_TYPES.STATEFUL_SET]);
+
+          if (ownerReferencesStatefulSet) {
+            return `${ pod.metadata.namespace }/${ ownerReferencesStatefulSet.name }` === this.id;
+          }
+        }
+
+        return false;
+      });
+    }
+
+    return [];
+  }
+}

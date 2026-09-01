@@ -1,0 +1,941 @@
+import { CATALOG, EXPERIMENTAL, DEPRECATED, CATALOG_SORT_OPTIONS } from '@shell/config/types';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { addParams } from '@shell/utils/url';
+import { allHash, allHashSettled } from '@shell/utils/promise';
+import { clone } from '@shell/utils/object';
+import { findBy, addObject, filterBy, isArray } from '@shell/utils/array';
+import { stringify } from '@shell/utils/error';
+import { classify } from '@shell/plugins/dashboard-store/classify';
+import { sortBy } from '@shell/utils/sort';
+import { ensureRegex } from '@shell/utils/string';
+import { isPrerelease } from '@shell/utils/version';
+import difference from 'lodash/difference';
+import { lookup } from '@shell/plugins/dashboard-store/model-loader';
+import { ActionContext, MutationTree } from 'vuex';
+
+const ALLOWED_CATEGORIES = [
+  'Storage',
+  'Monitoring',
+  'Database',
+  'Repository',
+  'Security',
+  'Networking',
+  'PaaS',
+  'Infrastructure',
+  'Applications',
+];
+
+const CERTIFIED_SORTS = {
+  [CATALOG_ANNOTATIONS._RANCHER]: 1,
+  [CATALOG_ANNOTATIONS._PARTNER]: 2,
+  other:                          3,
+};
+
+export const APP_STATUS = {
+  INSTALLED:   'installed',
+  DEPRECATED:  'deprecated',
+  UPGRADEABLE: 'upgradeable'
+};
+
+export const APP_UPGRADE_STATUS = {
+  NOT_APPLICABLE:    'not_applicable', // managed by fleet
+  NO_UPGRADE:        'no_upgrade', // no upgrade found
+  SINGLE_UPGRADE:    'single_upgrade', // a version available to upgrade to
+  MULTIPLE_UPGRADES: 'multiple_upgrades' // more than one match found
+};
+
+export const WINDOWS = 'windows';
+export const LINUX = 'linux';
+
+/**
+ * Charts, repos and version info are model instances from the steve store, which is untyped, so
+ * they are `any` here.
+ */
+export interface CatalogState {
+  loaded: Record<string, boolean>;
+  clusterRepos: any[];
+  namespacedRepos: any[];
+  charts: Record<string, any>;
+  /** Version info by `repoType/repoName/chartName/versionName`. */
+  versionInfos: Record<string, any>;
+  config: { namespace: string };
+  /** Which store the repos were loaded from, `cluster` or `management`. */
+  inStore: string | undefined;
+  /** Set by `setCharts`, so unset until the first load. */
+  errors?: string[];
+}
+
+type CatalogContext = ActionContext<CatalogState, any>;
+
+export const state = function(): CatalogState {
+  return {
+    loaded:          {},
+    clusterRepos:    [],
+    namespacedRepos: [],
+    charts:          {},
+    versionInfos:    {},
+    config:          { namespace: 'catalog' },
+    inStore:         undefined,
+  };
+};
+
+/**
+ * The getters are annotated one by one rather than as a vuex `GetterTree`, because `Getter`
+ * declares all four of its arguments as required and the unit tests call these with two.
+ */
+export const getters = {
+  isLoaded(state: CatalogState) {
+    return (repo: any) => {
+      return !!state.loaded[repo._key];
+    };
+  },
+
+  repos(state: CatalogState) {
+    const clustered = state.clusterRepos || [];
+    const namespaced = state.namespacedRepos || [];
+
+    return [...clustered, ...namespaced].filter((r) => r.spec?.enabled !== false);
+  },
+
+  // Raw charts
+  rawCharts(state: CatalogState) {
+    return state.charts;
+  },
+
+  repo(state: CatalogState, getters: any) {
+    return ({ repoType, repoName }: { repoType?: string, repoName?: string }) => {
+      const ary = (repoType === 'cluster' ? state.clusterRepos : state.namespacedRepos);
+
+      return findBy(ary, 'metadata.name', repoName);
+    };
+  },
+
+  charts(state: CatalogState, getters: any, rootState: any, rootGetters: any) {
+    const repoKeys = getters.repos.map((x: any) => x._key);
+    let cluster = rootGetters['currentCluster'];
+
+    if ( rootGetters['currentProduct']?.inStore === 'management' ) {
+      cluster = null;
+    }
+
+    // Filter out charts for repos that are no longer in the store, rather
+    // than trying to clear them when a repo is removed.
+    // And ones that are for the wrong kind of cluster
+    const out = Object.values(state.charts).filter((chart) => {
+      if ( !repoKeys.includes(chart.repoKey) ) {
+        return false;
+      }
+
+      if ( cluster && chart.scope && chart.scope !== cluster.scope ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    return sortBy(out, ['certifiedSort', 'repoName', 'chartName']);
+  },
+
+  chart(state: CatalogState, getters: any) {
+    return ({
+      key, repoType, repoName, chartName, includeHidden, showDeprecated, multiple
+    }: {
+      key?: string,
+      repoType?: string,
+      repoName?: string,
+      chartName?: string,
+      includeHidden?: boolean,
+      showDeprecated?: boolean,
+      multiple?: boolean,
+    }) => {
+      if ( key && !repoType && !repoName && !chartName) {
+        const parsed = parseKey(key);
+
+        repoType = parsed.repoType;
+        repoName = parsed.repoName;
+        chartName = parsed.chartName;
+      }
+
+      let matchingCharts = filterBy(getters.charts, {
+        repoType,
+        repoName,
+        chartName,
+        deprecated: !!showDeprecated,
+      });
+
+      if ( includeHidden === false ) {
+        matchingCharts = matchingCharts.filter((x: any) => !x.hidden);
+      }
+
+      if ( !matchingCharts.length ) {
+        return;
+      }
+
+      if (multiple) {
+        return matchingCharts;
+      }
+
+      return matchingCharts[0];
+    };
+  },
+
+  isInstalled(state: CatalogState, getters: any, rootState: any, rootGetters: any) {
+    return ({ gvr }: { gvr: string }) => {
+      let name, version;
+      const idx = gvr.indexOf('/');
+
+      if ( idx > 0 ) {
+        name = gvr.substr(0, idx);
+        version = gvr.substr(idx + 1);
+      } else {
+        name = gvr;
+      }
+
+      const inStore = rootGetters['currentProduct'].inStore;
+      const schema = rootGetters[`${ inStore }/schemaFor`](name);
+
+      if ( schema && (!version || schema.attributes.version === version) ) {
+        return true;
+      }
+
+      return false;
+    };
+  },
+
+  versionSatisfying(state: CatalogState, getters: any) {
+    return ({
+      repoType, repoName, constraint, chartVersion
+    }: {
+      repoType?: string, repoName?: string, constraint: string, chartVersion: string
+    }) => {
+      let name, wantVersion;
+      const idx = constraint.indexOf('=');
+
+      if ( idx > 0 ) {
+        name = constraint.substr(0, idx);
+        wantVersion = normalizeVersion(constraint.substr(idx + 1));
+      } else {
+        name = constraint;
+        wantVersion = 'latest';
+      }
+
+      name = name.toLowerCase().trim();
+      chartVersion = normalizeVersion(chartVersion);
+
+      const matching = getters.charts.filter((chart: any) => chart.chartName.toLowerCase().trim() === name);
+
+      if ( !matching.length ) {
+        return;
+      }
+
+      if ( repoType && repoName ) {
+        preferSameRepo(matching, repoType, repoName);
+      }
+
+      const chart = matching[0];
+      let version;
+
+      if ( wantVersion === 'latest' ) {
+        version = chart.versions[0];
+      } else if ( wantVersion === 'match' || wantVersion === 'matching' ) {
+        version = chart.versions.find((v: any) => normalizeVersion(v.version) === chartVersion);
+      } else {
+        version = chart.versions.find((v: any) => normalizeVersion(v.version) === wantVersion);
+      }
+
+      if ( version ) {
+        return clone(version);
+      }
+    };
+  },
+
+  versionProviding(state: CatalogState, getters: any) {
+    return ({ repoType, repoName, gvr }: { repoType?: string, repoName?: string, gvr: string }) => {
+      const matching = getters.charts.filter((chart: any) => chart.provides.includes(gvr) );
+
+      if ( !matching.length ) {
+        return;
+      }
+
+      if ( repoType && repoName ) {
+        preferSameRepo(matching, repoType, repoName);
+      }
+
+      const version = matching[0].versions.find((version: any) => version.annotations?.[CATALOG_ANNOTATIONS.PROVIDES] === gvr);
+
+      if ( version ) {
+        return clone(version);
+      }
+    };
+  },
+
+  version(state: CatalogState, getters: any) {
+    return ({
+      repoType, repoName, chartName, versionName, showDeprecated
+    }: {
+      repoType?: string,
+      repoName?: string,
+      chartName?: string,
+      versionName?: string,
+      showDeprecated?: boolean,
+    }) => {
+      const chart = getters['chart']({
+        repoType, repoName, chartName, showDeprecated
+      });
+
+      if ( !chart ) {
+        return null;
+      }
+
+      let version;
+
+      if ( versionName ) {
+        version = findBy(chart.versions, 'version', versionName);
+      } else {
+        version = chart.versions[0];
+      }
+
+      if ( version ) {
+        return clone(version);
+      }
+    };
+  },
+
+  errors(state: CatalogState) {
+    return state.errors || [];
+  },
+
+  haveComponent(state: CatalogState, getters: any) {
+    return (name: string) => {
+      return getters['type-map/hasCustomChart'](name);
+    };
+  },
+
+  importComponent(state: CatalogState, getters: any) {
+    return (name: string) => {
+      return getters['type-map/importChart'](name);
+    };
+  },
+
+  inStore(state: CatalogState) {
+    return state.inStore;
+  },
+
+  classify: (state: CatalogState, getters: any, rootState: any) => (obj: any) => {
+    return lookup(state.config.namespace, obj?.type, obj?.metadata?.name, rootState);
+  },
+};
+
+export const mutations: MutationTree<CatalogState> = {
+  reset(currentState) {
+    const newState = state();
+
+    Object.assign(currentState, newState);
+  },
+
+  setInStore(state, inStore: string) {
+    state.inStore = inStore;
+  },
+
+  setRepos(state, { cluster, namespaced }: { cluster: any[], namespaced: any[] }) {
+    state.clusterRepos = cluster;
+    state.namespacedRepos = namespaced;
+  },
+
+  addClusterRepo(state, repo: any) {
+    if (!state.clusterRepos) {
+      state.clusterRepos = [];
+    }
+
+    if (!state.clusterRepos.find((r) => r.metadata?.name === repo.metadata?.name)) {
+      state.clusterRepos.push(repo);
+    }
+  },
+
+  setCharts(state, { charts, errors = [], loaded = [] }: { charts: Record<string, any>, errors?: string[], loaded?: any[] }) {
+    state.charts = charts;
+    state.errors = errors;
+
+    for ( const repo of loaded ) {
+      state.loaded[repo._key] = true;
+    }
+  },
+
+  setVersions(state, versions: Record<string, any>) {
+    state.versionInfos = versions;
+  },
+
+  cacheVersion(state, { key, info }: { key: string, info: any }) {
+    state.versionInfos[key] = info;
+  }
+};
+
+export const actions = {
+  /**
+   * force: Always refresh catalog's helm repo by re-fetching index.yaml
+   *
+   * reset: clear existing charts and version cache
+   *
+   * repoKeys: Optional array of specific repo keys (IDs) to refresh. When provided, only these specific
+   * repos will be fetched, and only their existing charts will be cleared from the cache to avoid
+   * duplicate chart entries or wiping out unrelated chart data.
+   */
+  async load(ctx: CatalogContext, { force, reset, repoKeys = [] }: { force?: boolean, reset?: boolean, repoKeys?: string[] } = {}) {
+    const {
+      state, getters, rootGetters, commit, dispatch
+    } = ctx;
+
+    let promises: Record<string, Promise<any>> = {};
+    // Installing an app? This is fine (in cluster store)
+    // Fetching list of cluster templates? This is fine (in management store)
+    // Installing a cluster template? This isn't fine (in cluster store as per installing app, but if there is no cluster we need to default to management)
+
+    const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
+
+    if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {
+      promises.cluster = dispatch(`${ inStore }/findAll`, { type: CATALOG.CLUSTER_REPO }, { root: true });
+    }
+
+    if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.REPO) ) {
+      promises.namespaced = dispatch(`${ inStore }/findAll`, { type: CATALOG.REPO }, { root: true });
+    }
+
+    const hash = await allHash(promises);
+
+    // As per comment above, when there are no clusters this will be management. Store it such that it can be used for those cases
+    commit('setInStore', inStore);
+    hash.cluster = hash.cluster?.filter((repo: any) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
+
+    commit('setRepos', hash);
+
+    const repos: any[] = getters['repos'];
+    const loaded = [];
+
+    promises = {};
+
+    for ( const repo of repos ) {
+      let shouldLoad = false;
+
+      if (repoKeys.length) {
+        // If repoKeys are explicitly provided (e.g. refreshing a single repo from the UI),
+        // we ONLY want to load the repos in that array. We intentionally ignore `!getters.isLoaded(repo)`
+        // here so we don't accidentally fetch other unrelated repos just because they haven't loaded yet.
+        shouldLoad = repoKeys.includes(repo._key);
+      } else {
+        // Default behavior: load if explicitly forced, OR if the repo hasn't been loaded into state yet.
+        shouldLoad = force === true || !getters.isLoaded(repo);
+      }
+
+      if ( shouldLoad && repo.canLoad ) {
+        console.info('Loading index for repo', repo.name, `(${ repo._key })`); // eslint-disable-line no-console
+        promises[repo._key] = repo.followLink('index');
+      }
+    }
+
+    const res = await allHashSettled(promises);
+    const charts: Record<string, any> = reset ? {} : { ...state.charts };
+    let versionInfos: Record<string, any> | null = null;
+
+    if (reset) {
+      versionInfos = {};
+    } else if (repoKeys.length) {
+      versionInfos = { ...state.versionInfos };
+    }
+
+    const errors = [];
+
+    for ( const key of Object.keys(res) ) {
+      const obj = res[key];
+      const repo = findBy(repos, '_key', key);
+
+      if ( obj.status === 'rejected' ) {
+        errors.push(stringify(obj.reason));
+        continue;
+      }
+
+      // We are targeting specific repos. To prevent duplicate chart versions from appearing,
+      // we must remove the old charts for this specific repo before appending the newly fetched ones,
+      // but ONLY if the fetch was successful.
+      if (repoKeys.length && repoKeys.includes(key)) {
+        for (const chartKey in charts) {
+          if (charts[chartKey].repoKey === key) {
+            delete charts[chartKey];
+          }
+        }
+
+        // Also clear out cached version info for this repo so we don't display stale READMEs/values
+        const repoType = repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace';
+        const repoName = repo.metadata.name;
+        const versionPrefix = `${ repoType }/${ repoName }/`;
+
+        for (const versionKey in versionInfos) {
+          if (versionKey.startsWith(versionPrefix)) {
+            delete versionInfos[versionKey];
+          }
+        }
+      }
+
+      for ( const k in obj.value.entries ) {
+        for ( const entry of obj.value.entries[k] ) {
+          addChart(ctx, charts, entry, repo);
+        }
+      }
+
+      loaded.push(repo);
+    }
+
+    commit('setCharts', {
+      charts,
+      errors,
+      loaded,
+    });
+
+    if (versionInfos) {
+      commit('setVersions', versionInfos);
+    }
+  },
+
+  async loadRepo(ctx: CatalogContext, { repoName }: { repoName: string }) {
+    const {
+      state, getters, rootGetters, commit, dispatch
+    } = ctx;
+
+    const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
+
+    let repo = rootGetters[`${ inStore }/byId`](CATALOG.CLUSTER_REPO, repoName);
+
+    if (!repo) {
+      try {
+        repo = await dispatch(`${ inStore }/find`, { type: CATALOG.CLUSTER_REPO, id: repoName }, { root: true });
+      } catch (e) {
+        return;
+      }
+    }
+
+    if (!repo) {
+      return;
+    }
+
+    commit('addClusterRepo', repo);
+
+    if (getters.isLoaded(repo)) {
+      return;
+    }
+
+    try {
+      const index = await repo.followLink('index');
+      const charts = { ...state.charts };
+
+      for (const k in index?.entries) {
+        for (const entry of index.entries[k]) {
+          addChart(ctx, charts, entry, repo);
+        }
+      }
+
+      commit('setCharts', {
+        charts,
+        errors: state.errors,
+        loaded: [repo],
+      });
+    } catch (e) {
+      console.error(`Failed to load repo ${ repoName }:`, e); // eslint-disable-line no-console
+    }
+  },
+
+  /**
+   * Globally refreshes all loaded repositories by triggering their refresh actions concurrently,
+   * bypassing individual catalog loads, and then performs a single, global catalog/load.
+   */
+  async refresh({ getters, commit, dispatch }: Pick<CatalogContext, 'getters' | 'commit' | 'dispatch'>) {
+    const promises = getters.repos.map((x: any) => x.refresh(false));
+
+    // @TODO wait for repo state to indicate they're done once the API has that
+
+    await Promise.allSettled(promises);
+
+    await dispatch('load', { force: true, reset: true });
+  },
+
+  /*
+    Fetch full information about a specific version of a Helm chart,
+    including the standard values and README.
+  */
+  async getVersionInfo({ state, getters, commit }: Pick<CatalogContext, 'state' | 'getters' | 'commit'>, {
+    repoType, repoName, chartName, versionName
+  }: {
+    repoType: string, repoName: string, chartName: string, versionName: string
+  }) {
+    const key = `${ repoType }/${ repoName }/${ chartName }/${ versionName }`;
+    let info = state.versionInfos[key];
+
+    if ( !info ) {
+      const repo = getters['repo']({ repoType, repoName });
+
+      if ( !repo ) {
+        throw new Error('Repo not found');
+      }
+
+      info = await repo.followLink('info', {
+        url: addParams(repo.links.info, {
+          chartName,
+          version: versionName
+        })
+      });
+
+      commit('cacheVersion', { key, info });
+    }
+
+    return info;
+  },
+
+  rehydrate(ctx: CatalogContext) {
+    const { state, commit } = ctx;
+    const charts = state.charts || {};
+
+    Object.entries(state.charts).forEach(([key, chart]) => {
+      if (chart.__rehydrate) {
+        charts[key] = classify(ctx, chart);
+      }
+    });
+    commit('setCharts', {
+      charts,
+      errors: state.errors,
+    });
+  }
+};
+
+export function generateKey(repoType: string, repoName: string, chartName: string) {
+  return `${ repoType }/${ repoName }/${ chartName }`;
+}
+
+export function parseKey(key: string) {
+  const parts = key.split('/');
+
+  return {
+    repoType:  parts[0],
+    repoName:  parts[1],
+    chartName: parts[2],
+  };
+}
+
+function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, repo: any) {
+  const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
+  const repoName = repo.metadata.name;
+  const key = generateKey(repoType, repoName, chart.name);
+  let obj = map[key];
+
+  const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
+
+  let certified = null;
+  let sideLabel = null;
+
+  if ( repo.isRancher ) {
+    certified = CATALOG_ANNOTATIONS._RANCHER;
+  } else if ( repo.isPartner ) {
+    certified = CATALOG_ANNOTATIONS._PARTNER;
+  } else {
+    certified = CATALOG_ANNOTATIONS._OTHER;
+  }
+
+  const isDeprecated = !!chart.deprecated || chart.annotations?.[CATALOG_ANNOTATIONS.DEPRECATED] === 'true';
+
+  if ( isDeprecated ) {
+    sideLabel = DEPRECATED;
+  } else if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
+    sideLabel = EXPERIMENTAL;
+  } else if (
+    !repo.isRancherSource &&
+    certifiedAnnotation &&
+    certifiedAnnotation !== CATALOG_ANNOTATIONS._RANCHER &&
+    certified === CATALOG_ANNOTATIONS._OTHER
+  ) {
+    // But anybody can set the side label
+    sideLabel = certifiedAnnotation;
+  }
+
+  if ( !obj ) {
+    if ( ctx ) { }
+
+    const primeOnly = chart.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
+    const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
+
+    const isRancherRepoFlag = isRancherRepo(repo, chart);
+    const permittedSystems = getPermittedOSs(chart.annotations, isRancherRepoFlag);
+    const windowsIncompatible = permittedSystems.length > 0 && !permittedSystems.includes('windows');
+    const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
+    const tags = [];
+
+    if (primeOnly) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('generic.primeOnly'));
+    }
+    if (experimental) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('generic.experimental'));
+    }
+    if (windowsIncompatible) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('catalog.charts.windowsIncompatible'));
+    }
+    if (deploysOnWindows) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('catalog.charts.deploysOnWindows'));
+    }
+
+    obj = classify(ctx, {
+      key,
+      type:             'chart',
+      id:               key,
+      certified,
+      sideLabel,
+      repoType,
+      repoName,
+      repoNameDisplay:  ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
+      certifiedSort:    CERTIFIED_SORTS[certified] || 99,
+      icon:             chart.icon,
+      color:            repo.color,
+      chartType:        chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
+      chartName:        chart.name,
+      chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
+      chartDescription: chart.description,
+      featured:         chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
+      featuredIndex:    chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED] ? Number(chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED]) : Number.MAX_SAFE_INTEGER,
+      repoKey:          repo._key,
+      versions:         [],
+      keywords:         chart.keywords || [],
+      categories:       filterCategories(chart.keywords),
+      deprecated:       isDeprecated,
+      primeOnly,
+      experimental,
+      hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
+      targetNamespace:  chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
+      targetName:       chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
+      scope:            chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
+      provides:         [],
+      windowsIncompatible,
+      deploysOnWindows,
+      isRancherRepo:    isRancherRepoFlag,
+      tags
+    });
+
+    map[key] = obj;
+  }
+
+  chart.key = `${ key }/${ chart.version }`;
+  chart.repoType = repoType;
+  chart.repoName = repoName;
+
+  const provides = chart.annotations?.[CATALOG_ANNOTATIONS.PROVIDES];
+
+  if ( provides ) {
+    addObject(obj.provides, provides);
+  }
+
+  obj.versions.push(chart);
+
+  if (!obj.durationSinceRelease) {
+    obj.durationSinceRelease = Date.now() - new Date(obj.versions[0].created).getTime();
+  }
+}
+
+function preferSameRepo(matching: any[], repoType: string, repoName: string) {
+  matching.sort((a, b) => {
+    const aSameRepo = a.repoType === repoType && a.repoName === repoName ? 1 : 0;
+    const bSameRepo = b.repoType === repoType && b.repoName === repoName ? 1 : 0;
+
+    if ( aSameRepo && !bSameRepo ) {
+      return -1;
+    } else if ( !aSameRepo && bSameRepo ) {
+      return 1;
+    }
+
+    return 0;
+  });
+}
+
+function normalizeVersion(v: string) {
+  return v.replace(/^v/i, '').toLowerCase().trim();
+}
+
+function filterCategories(categories?: string[]) {
+  categories = (categories || []).map((x) => normalizeCategory(x));
+
+  const out: string[] = [];
+
+  for ( const c of ALLOWED_CATEGORIES ) {
+    if ( categories.includes(normalizeCategory(c)) ) {
+      addObject(out, c);
+    }
+  }
+
+  return out;
+}
+
+function normalizeCategory(c: string) {
+  return c.replace(/\s+/g, '').toLowerCase();
+}
+
+export function normalizeFilterQuery(value?: string | string[] | null) {
+  if (Array.isArray(value)) {
+    return value.map((v) => v.toLowerCase());
+  } else if (value) {
+    return [value.toLowerCase()];
+  }
+
+  return undefined;
+}
+
+/*
+catalog.cattle.io/deplys-on-os: OS -> requires global.cattle.OS.enabled: true
+  default: nothing
+catalog.cattle.io/permits-os: OS -> will break on clusters containing nodes that are not OS
+  default if not found: catalog.cattle.io/permits-os: linux
+*/
+export function compatibleVersionsFor(chart: any, os?: string | string[], includePrerelease = true): any[] {
+  const versions = chart.versions;
+
+  if (os && !isArray(os)) {
+    // `isArray` is not a type predicate, so tell the compiler what it just checked
+    os = [os as string];
+  }
+
+  return versions.filter((ver: any) => {
+    const osPermitted = getPermittedOSs(ver?.annotations, chart?.isRancherRepo);
+
+    if ( !includePrerelease && isPrerelease(ver.version) ) {
+      return false;
+    }
+
+    if ( !os || osPermitted.length === 0 || difference(os, osPermitted).length === 0) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
+export interface FilterChartsOptions {
+  clusterProvider?: string;
+  /** Single os or a list of them, as taken by `compatibleVersionsFor`. */
+  operatingSystems?: string | string[];
+  category?: string[];
+  tag?: string[];
+  searchQuery?: string;
+  /**
+   * Which order to sort in, one of the `CATALOG_SORT_OPTIONS` values. When unset, the charts are
+   * sorted by certification, then repo, then name.
+   */
+  sort?: string;
+  showDeprecated?: boolean;
+  showHidden?: boolean;
+  showPrerelease?: boolean;
+  hideRepos?: string[];
+  /** Repo keys to keep, which callers build from a repo that may not have loaded. */
+  showRepos?: (string | undefined)[];
+  /** Single type or a list of them. `provisioning.cattle.io.cluster/index.vue` passes a bare string. */
+  showTypes?: string | string[];
+  hideTypes?: string[];
+}
+
+/**
+ * Filter a list of charts and sort what is left.
+ *
+ * @param charts - The charts to filter.
+ */
+export function filterAndArrangeCharts(charts: any[], {
+  clusterProvider = '',
+  operatingSystems,
+  category,
+  tag,
+  searchQuery,
+  sort,
+  showDeprecated = false,
+  showHidden = false,
+  showPrerelease = true,
+  hideRepos = [],
+  showRepos = [],
+  showTypes = [],
+  hideTypes = [],
+}: FilterChartsOptions = {}): any[] {
+  const out = charts.filter((c) => {
+    if (
+      ( c.deprecated && !showDeprecated ) ||
+      ( c.hidden && !showHidden ) ||
+      ( hideRepos?.length && hideRepos.includes(c.repoKey) ) ||
+      ( showRepos?.length && !showRepos.includes(c.repoKey) ) ||
+      ( hideTypes?.length && hideTypes.includes(c.chartType) ) ||
+      ( showTypes?.length && !showTypes.includes(c.chartType) ) ||
+      (c.chartName === 'rancher-wins-upgrader' && clusterProvider === 'rke2')
+    ) {
+      return false;
+    }
+
+    if (compatibleVersionsFor(c, operatingSystems, showPrerelease).length <= 0) {
+      // There's no versions compatible with the specified os
+      return false;
+    }
+
+    if (category?.length && !c.categories.some((cat: string) => category.includes(cat.toLowerCase()))) {
+      // The category filter doesn't match
+      return false;
+    }
+
+    if (tag?.length && !c.tags.some((t: string) => tag.includes(t.toLowerCase()))) {
+      // The tag filter doesn't match
+      return false;
+    }
+
+    if ( searchQuery ) {
+      // The search filter doesn't match
+      const searchTokens = searchQuery.split(/\s*[, ]\s*/).map((x) => ensureRegex(x, false));
+      const chartDescription = c.chartDescription || '';
+      const keywords = c.keywords || [];
+
+      for (const token of searchTokens) {
+        const nameMatch = c.chartNameDisplay.match(token);
+        const descMatch = chartDescription.match(token);
+        const keywordMatch = keywords.some((k: string) => k.match(token));
+
+        if (!nameMatch && !descMatch && !keywordMatch) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  });
+
+  if (sort === CATALOG_SORT_OPTIONS.RECOMMENDED) {
+    return sortBy(out, ['featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+  }
+
+  if (sort === CATALOG_SORT_OPTIONS.LAST_UPDATED_DESC) {
+    return sortBy(out, ['durationSinceRelease', 'featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+  }
+
+  if (sort === CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC) {
+    return sortBy(out, ['chartNameDisplay', 'featuredIndex', 'certifiedSort', 'repoName']);
+  }
+
+  if (sort === CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC) {
+    return sortBy(out, ['chartNameDisplay'], true);
+  }
+
+  return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
+}
+
+/**
+ * Detects if a repository is a Rancher repository.
+ */
+export function isRancherRepo(repo: any, chart: any) {
+  return !!(chart?.isRancherRepo || repo?.isRancherSource);
+}
+
+/**
+ * Returns an array of permitted operating systems for a given chart or version.
+ * If the chart explicitly defines permitted OSs via annotation, those are returned.
+ * Otherwise, if the chart is from a Rancher repository, it defaults to Linux.
+ * External charts with no annotations have no OS restrictions (returns empty array).
+ */
+export function getPermittedOSs(annotations?: Record<string, string>, isRancher?: boolean) {
+  const permittedOs = annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
+  const fallbackOs = isRancher ? LINUX : '';
+
+  return (permittedOs || fallbackOs).split(',').filter(Boolean);
+}

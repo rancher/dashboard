@@ -1,0 +1,184 @@
+<script>
+import { useStore } from 'vuex';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import { RadioGroup } from '@components/Form/Radio';
+import { useFormRules } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
+import { decodeDockerAuthEntry } from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/auth-types';
+
+export default {
+  components: { LabeledInput, RadioGroup },
+
+  props: {
+    value: {
+      type:     Object,
+      required: true,
+    },
+
+    mode: {
+      type:     String,
+      required: true,
+    }
+  },
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const { getRules } = useFormRules(
+      t,
+      [
+        {
+          path:           'registryUrl',
+          rules:          ['required'],
+          translationKey: 'secret.registry.domainName',
+        },
+        {
+          path:           'username',
+          rules:          ['required'],
+          translationKey: 'secret.registry.username',
+        },
+        {
+          path:           'password',
+          rules:          ['required'],
+          translationKey: 'secret.registry.password',
+        },
+      ]
+    );
+
+    return { getRules };
+  },
+
+  data() {
+    let registryProvider = 'Custom';
+
+    let auths;
+
+    try {
+      const parsed = JSON.parse(this.value.decodedData['.dockerconfigjson']);
+
+      auths = parsed.auths;
+    } catch (e) {}
+
+    auths = auths || {};
+
+    const registryUrl = Object.keys(auths)[0] || '';
+
+    if (registryUrl === 'index.docker.io/v1/') {
+      registryProvider = 'DockerHub';
+    } else if (registryUrl === 'quay.io') {
+      registryProvider = 'Quay.io';
+    } else if (registryUrl.includes('artifactory')) {
+      registryProvider = 'Artifactory';
+    }
+
+    // Supports both Rancher's username/password fields and the base64 `auth` field written by `docker login`.
+    const { username, password } = decodeDockerAuthEntry(auths[registryUrl]);
+
+    return {
+      registryProvider,
+      username,
+      password,
+      registryUrl,
+    };
+  },
+
+  computed: {
+    registryAddresses() {
+      return ['Custom', 'DockerHub', 'Quay.io', 'Artifactory'];
+    },
+
+    needsDockerServer() {
+      return this.registryProvider === 'Artifactory' || this.registryProvider === 'Custom';
+    },
+
+    dockerconfigjson() {
+      let dockerServer = this.registryProvider === 'DockerHub' ? 'index.docker.io/v1/' : 'quay.io';
+
+      if (this.needsDockerServer) {
+        dockerServer = this.registryUrl;
+      }
+
+      if (dockerServer) {
+        const config = {
+          auths: {
+            [dockerServer]: {
+              username: this.username,
+              password: this.password,
+            }
+          }
+        };
+        const json = JSON.stringify(config);
+
+        return json;
+      } else {
+        return null;
+      }
+    },
+  },
+
+  watch: {
+    registryProvider: 'update',
+    registryUrl:      'update',
+    username:         'update',
+    password:         'update',
+  },
+
+  methods: {
+    update() {
+      this.value.setData('.dockerconfigjson', this.dockerconfigjson);
+    },
+  }
+};
+</script>
+
+<template>
+  <div>
+    <div class="row mb-10">
+      <div class="col span-12">
+        <RadioGroup
+          v-model:value="registryProvider"
+          name="registryProvider"
+          :mode="mode"
+          :options="registryAddresses"
+        />
+      </div>
+    </div>
+    <div
+      v-if="needsDockerServer"
+      class="row mb-20"
+    >
+      <LabeledInput
+        v-model:value="registryUrl"
+        name="registryUrl"
+        required
+        :label="t('secret.registry.domainName')"
+        placeholder="e.g. index.docker.io"
+        :mode="mode"
+        :rules="getRules('registryUrl')"
+      />
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="username"
+          name="username"
+          required
+          :label="t('secret.registry.username')"
+          :mode="mode"
+          :rules="getRules('username')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="password"
+          name="password"
+          required
+          :label="t('secret.registry.password')"
+          :mode="mode"
+          type="password"
+          :rules="getRules('password')"
+        />
+      </div>
+    </div>
+  </div>
+</template>

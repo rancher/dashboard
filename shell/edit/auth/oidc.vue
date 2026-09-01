@@ -1,0 +1,762 @@
+<script>
+import { ref, computed, provide } from 'vue';
+import { useStore } from 'vuex';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
+import Loading from '@shell/components/Loading';
+import CreateEditView from '@shell/mixins/create-edit-view';
+import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
+import CruResource from '@shell/components/CruResource';
+import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
+import FileSelector from '@shell/components/form/FileSelector';
+import { Banner } from '@components/Banner';
+import AuthBanner from '@shell/components/auth/AuthBanner';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+import AdvancedSection from '@shell/components/AdvancedSection.vue';
+import ArrayList from '@shell/components/form/ArrayList';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import { RadioGroup } from '@components/Form/Radio';
+import { Checkbox } from '@components/Form/Checkbox';
+import { BASE_SCOPES } from '@shell/store/auth';
+import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
+import { useI18n } from '@shell/composables/useI18n';
+import { RcSeparator } from '@components/RcSeparator';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
+
+const PKCE_S256 = 'S256';
+
+export default {
+  components: {
+    Banner,
+    Loading,
+    CruResource,
+    AllowedPrincipals,
+    FileSelector,
+    AuthBanner,
+    AuthProviderWarningBanners,
+    AdvancedSection,
+    ArrayList,
+    LabeledInput,
+    RadioGroup,
+    Checkbox,
+    CopyToClipboardText,
+    RcSeparator,
+  },
+
+  emits: ['validationChanged'],
+
+  mixins: [CreateEditView, AuthConfig],
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+
+    // These refs sync mixin-state for the composition api
+    const modelId = ref(null);
+    const sloTypeRef = ref(null);
+    const customEndpointEnabled = ref(false);
+
+    const requiredScopes = computed(() => {
+      const scopes = BASE_SCOPES[modelId.value]?.[0];
+
+      return scopes ? scopes.split(' ') : [];
+    });
+    const isAmazonCognito = computed(() => modelId.value === 'cognito');
+    const isKeycloak = computed(() => modelId.value === 'keycloakoidc');
+    const isGenericOidc = computed(() => modelId.value === 'genericoidc');
+    const supportsCustomClaims = computed(() => isKeycloak.value || isGenericOidc.value);
+    const supportsGroupSearch = computed(() => modelId.value !== 'cognito');
+    const requiresCert = computed(() => modelId.value !== 'cognito');
+    const requiresAuthEndpoint = computed(() => ['genericoidc', 'keycloakoidc'].includes(modelId.value));
+    const sloEndSessionEndpointUiEnabled = computed(() => [SLO_OPTION_VALUES.all, SLO_OPTION_VALUES.both].includes(sloTypeRef.value));
+
+    const { field } = zodValidators(t);
+
+    // Reactive schema uses computed to reshape when provider or endpoint mode
+    // changes.
+    const validationSchema = computed(() => toTypedSchema(
+      z.object({
+        clientId:     field('authConfig.oidc.clientId').required(),
+        clientSecret: field('authConfig.oidc.clientSecret').required(),
+
+        url:   !customEndpointEnabled.value && !isAmazonCognito.value ? field('authConfig.oidc.url').required().url() : field(),
+        realm: !customEndpointEnabled.value && !isAmazonCognito.value ? field('authConfig.oidc.realm').required() : field(),
+
+        rancherUrl: customEndpointEnabled.value && !isAmazonCognito.value ? field('authConfig.oidc.rancherUrl').required() : field(),
+        issuer:     customEndpointEnabled.value || isAmazonCognito.value ? field('authConfig.oidc.issuer').required() : field(),
+
+        authEndpoint: requiresAuthEndpoint.value ? field('authConfig.oidc.authEndpoint').required().url() : field(),
+
+        endSessionEndpoint: sloEndSessionEndpointUiEnabled.value ? field('authConfig.oidc.endSessionEndpoint.title').required().url() : field(),
+
+        scope: z.preprocess(
+          (v) => (Array.isArray(v) ? v : []),
+          z.array(z.string()).refine(
+            (arr) => requiredScopes.value?.every((s) => arr.includes(s)),
+            (arr) => {
+              const missing = requiredScopes.value?.filter((s) => !arr.includes(s));
+
+              return { message: t('authConfig.oidc.scope.missingRequired', { scopes: missing?.join(', '), count: missing?.length }) };
+            }
+          )
+        ),
+      })
+    ));
+
+    const showAllErrors = ref(false);
+
+    provide('vee-show-all-errors', showAllErrors);
+
+    const { errors, validate } = useForm({ validationSchema });
+    const isFormValid = computed(() => Object.keys(errors.value).length === 0);
+
+    const validateAllFields = async() => {
+      await validate();
+      showAllErrors.value = true;
+    };
+
+    return {
+      PKCE_S256,
+      isFormValid,
+      validateAllFields,
+      modelId,
+      sloTypeRef,
+      customEndpointEnabled,
+      isAmazonCognito,
+      isKeycloak,
+      isGenericOidc,
+      supportsCustomClaims,
+      supportsGroupSearch,
+      requiresCert,
+      requiresAuthEndpoint,
+      sloEndSessionEndpointUiEnabled,
+      requiredScopes,
+    };
+  },
+
+  data() {
+    return {
+      customEndpoint: {
+        value:  false,
+        labels: [
+          this.t('authConfig.oidc.customEndpoint.standard'),
+          this.t('authConfig.oidc.customEndpoint.custom'),
+        ],
+        options: [
+          false,
+          true
+        ]
+      },
+      oidcUrls: {
+        url:              null,
+        realm:            null,
+        jwksUrl:          null,
+        tokenEndpoint:    null,
+        userInfoEndpoint: null,
+      },
+      // TODO #13457: this is duplicated due wrong format
+      oidcScope:       [],
+      SLO_OPTION_VALUES,
+      addCustomClaims: false,
+    };
+  },
+
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
+
+  computed: {
+    tArgs() {
+      return {
+        baseUrl:  this.serverSetting,
+        provider: this.displayName,
+        username: this.principal.loginName || this.principal.name,
+      };
+    },
+
+    toSave() {
+      return {
+        enabled:    true,
+        oidcConfig: this.model
+      };
+    },
+
+    validationPassed() {
+      if ( this.model?.enabled && !this.editConfig ) {
+        return true;
+      }
+
+      return this.isFormValid;
+    },
+
+    isLogoutAllSupported() {
+      return this.model?.logoutAllSupported;
+    },
+
+    sloOptions() {
+      return [
+        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.slo.sloOptions.onlyRancher', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.slo.sloOptions.logoutAll', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.slo.sloOptions.choose') },
+      ];
+    },
+
+    sloTypeText() {
+      const sloOptionSelected = this.sloOptions.find((item) => item.value === this.sloType);
+
+      return sloOptionSelected?.label || '';
+    },
+  },
+
+  watch: {
+    validationPassed(newValue) {
+      this.$emit('validationChanged', !!newValue);
+    },
+
+    'model.id': {
+      handler(newVal) {
+        this.modelId = newVal;
+      },
+      immediate: true,
+    },
+
+    'customEndpoint.value'(v) {
+      this.customEndpointEnabled = v;
+    },
+
+    'oidcUrls.url'() {
+      this.updateEndpoints();
+    },
+
+    'oidcUrls.realm'() {
+      this.updateEndpoints();
+    },
+
+    'model.enabled'(neu) {
+      // TODO #13457: Refactor scopes to be an array of terms
+      // Cover case where oidc gets disabled and we return to the edit screen with a reset model
+      if (!neu) {
+        this.oidcUrls = {
+          url:              null,
+          realm:            null,
+          jwksUrl:          null,
+          tokenEndpoint:    null,
+          userInfoEndpoint: null,
+        };
+        this.customEndpoint.value = false;
+        // TODO #13457: Refactor scopes to be an array of terms
+        this.oidcScope = this.model?.scope?.split(' ');
+      } else {
+        // TODO #13457: Refactor scopes to be an array of terms
+        this.oidcScope = this.model?.scope?.split(' ');
+      }
+    },
+
+    editConfig(neu, old) {
+      // Cover use case where user edits existing oidc (oidcUrls aren't persisted, so if we have issuer set custom endpoints to true)
+      if (!old && neu) {
+        this.customEndpoint.value = !this.oidcUrls.url && !!this.model.issuer;
+      }
+    },
+
+    // sloType is defined on shell/mixins/auth-config.js
+    sloType(neu) {
+      this.sloTypeRef = neu;
+      switch (neu) {
+      case SLO_OPTION_VALUES.rancher:
+        this.model.logoutAllEnabled = false;
+        this.model.logoutAllForced = false;
+        break;
+      case SLO_OPTION_VALUES.all:
+        this.model.logoutAllEnabled = true;
+        this.model.logoutAllForced = true;
+        break;
+      case SLO_OPTION_VALUES.both:
+        this.model.logoutAllEnabled = true;
+        this.model.logoutAllForced = false;
+        break;
+      }
+    },
+
+    model: {
+      handler(newVal) {
+        if (newVal?.nameClaim || newVal?.groupsClaim || newVal?.emailClaim) {
+          this.addCustomClaims = true;
+        }
+      },
+      once: true
+    }
+  },
+
+  methods: {
+    updateEndpoints() {
+      const isKeycloak = this.model.id === 'keycloakoidc';
+
+      if (!this.oidcUrls.url) {
+        this.model.issuer = '';
+        if (isKeycloak) {
+          this.model.authEndpoint = '';
+        }
+
+        return;
+      }
+
+      const url = this.oidcUrls.url.replaceAll(' ', '');
+      const realmsPath = 'realms';
+
+      this.model.issuer = `${ url }/${ realmsPath }/${ this.oidcUrls.realm || '' }`;
+
+      if ( isKeycloak || this.isGenericOidc ) {
+        this.model.authEndpoint = `${ this.model.issuer || '' }/protocol/openid-connect/auth`;
+      }
+    },
+
+    updateScope() {
+      this.model.scope = this.oidcScope.join(' ');
+    },
+
+    willSave() {
+      if (this.supportsCustomClaims && !this.addCustomClaims) {
+        this.model.nameClaim = undefined;
+        this.model.groupsClaim = undefined;
+        this.model.emailClaim = undefined;
+      }
+    }
+  }
+};
+</script>
+
+<template>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
+    <CruResource
+      :cancel-event="true"
+      :done-route="doneRoute"
+      :mode="mode"
+      :resource="model"
+      :subtypes="[]"
+      :validation-passed="validationPassed"
+      :finish-button-mode="model.enabled ? 'edit' : 'enable'"
+      :can-yaml="false"
+      :errors="errors"
+      :show-cancel="showCancel"
+      @error="e=>errors = e"
+      @finish="save"
+      @cancel="cancel"
+    >
+      <template v-if="model.enabled && !isEnabling && !editConfig">
+        <AuthBanner
+          :t-args="tArgs"
+          :disable="disable"
+          :edit="goToEdit"
+        >
+          <template #rows>
+            <tr><td>{{ t('authConfig.oidc.rancherUrl') }}: </td><td>{{ model.rancherUrl }}</td></tr>
+            <tr><td>{{ t('authConfig.oidc.clientId') }}: </td><td>{{ model.clientId }}</td></tr>
+            <tr><td>{{ t('authConfig.oidc.issuer') }}: </td><td>{{ model.issuer }}</td></tr>
+            <tr v-if="model.authEndpoint">
+              <td>{{ t('authConfig.oidc.authEndpoint') }}: </td><td>{{ model.authEndpoint }}</td>
+            </tr>
+            <tr v-if="model.pkceMethod">
+              <td>{{ t('authConfig.oidc.pkceMethod.label') }}: </td><td>{{ model.pkceMethod }}</td>
+            </tr>
+            <tr v-if="isLogoutAllSupported">
+              <td>{{ t('authConfig.slo.sloTitle') }}: </td><td>{{ sloTypeText }}</td>
+            </tr>
+            <tr v-if="isLogoutAllSupported && sloEndSessionEndpointUiEnabled">
+              <td>
+                {{ t('authConfig.oidc.endSessionEndpoint.title') }}:
+              </td><td>{{ model.endSessionEndpoint }}</td>
+            </tr>
+          </template>
+        </AuthBanner>
+
+        <RcSeparator />
+
+        <AllowedPrincipals
+          :provider="NAME"
+          :auth-config="model"
+          :mode="mode"
+        />
+      </template>
+
+      <template v-else>
+        <AuthProviderWarningBanners
+          v-if="!model.enabled"
+          :t-args="tArgs"
+        />
+
+        <h3>{{ t(`authConfig.oidc.${NAME}`) }}</h3>
+
+        <Banner
+          v-if="!model.enabled && isAmazonCognito"
+          color="info"
+          class="mb-20 mt-0"
+          data-testid="oidc-cognito-banner"
+        >
+          <div>
+            <div
+              v-clean-html="t('authConfig.oidc.cognitoHelp', {}, true)"
+            />
+            <div class="mt-10">
+              <CopyToClipboardText
+                :plain="true"
+                :text="model.rancherUrl"
+              />
+            </div>
+          </div>
+        </Banner>
+
+        <!-- Auth credentials -->
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledInput
+              v-model:value="model.clientId"
+              name="clientId"
+              :label="t(`authConfig.oidc.clientId`)"
+              :mode="mode"
+              required
+              data-testid="oidc-client-id"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model:value="model.clientSecret"
+              name="clientSecret"
+              :label="t(`authConfig.oidc.clientSecret`)"
+              :mode="mode"
+              required
+              data-testid="oidc-client-secret"
+            />
+          </div>
+        </div>
+
+        <!-- Key/Certificate -->
+        <div
+          v-if="requiresCert"
+          class="row mb-20"
+        >
+          <div class="col span-6">
+            <LabeledInput
+              v-model:value="model.privateKey"
+              :label="t(`authConfig.oidc.key.label`)"
+              :placeholder="t(`authConfig.oidc.key.placeholder`)"
+              :mode="mode"
+              type="multiline"
+            />
+            <FileSelector
+              class="role-tertiary add mt-5"
+              :label="t('generic.readFromFile')"
+              :mode="mode"
+              @selected="model.privateKey = $event"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model:value="model.certificate"
+              :label="t(`authConfig.oidc.cert.label`)"
+              :placeholder="t(`authConfig.oidc.cert.placeholder`)"
+              :mode="mode"
+              type="multiline"
+            />
+            <FileSelector
+              class="role-tertiary add mt-5"
+              :label="t('generic.readFromFile')"
+              :mode="mode"
+              @selected="model.certificate = $event"
+            />
+          </div>
+        </div>
+
+        <div
+          class="row mb-20"
+        >
+          <div class="col span-6 checkbox-flex">
+            <!-- Allow group search -->
+            <Checkbox
+              v-model:value="model.pkceMethod"
+              :value-when-true="PKCE_S256"
+              :label="t('authConfig.oidc.pkce.label')"
+              :tooltip="t('authConfig.oidc.pkce.tooltip')"
+            />
+            <Checkbox
+              v-if="supportsGroupSearch"
+              v-model:value="model.groupSearchEnabled"
+              data-testid="input-group-search"
+              :label="t('authConfig.oidc.groupSearch.label')"
+              :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
+              :mode="mode"
+            />
+            <Checkbox
+              v-if="isKeycloak"
+              v-model:value="model.clientAuthenticatedSearch"
+              data-testid="input-client-authenticated-group-search"
+              :label="t('authConfig.oidc.clientAuthenticatedSearch.label')"
+              :tooltip="t('authConfig.oidc.clientAuthenticatedSearch.tooltip')"
+              :mode="mode"
+            />
+            <Checkbox
+              v-if="supportsCustomClaims"
+              v-model:value="addCustomClaims"
+              data-testid="input-add-custom-claims"
+              :label="t('authConfig.oidc.customClaims.enable.label')"
+              :tooltip="t('authConfig.oidc.customClaims.enable.tooltip')"
+              :mode="mode"
+            />
+          </div>
+        </div>
+
+        <!-- Custom Claims -->
+        <template v-if="addCustomClaims && supportsCustomClaims">
+          <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.nameClaim"
+                data-testid="input-name-claim"
+                :label="t(`authConfig.oidc.customClaims.nameClaim.label`)"
+                :mode="mode"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.groupsClaim"
+                data-testid="input-groups-claim"
+                :label="t(`authConfig.oidc.customClaims.groupsClaim.label`)"
+                :mode="mode"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.emailClaim"
+                data-testid="input-email-claim"
+                :label="t(`authConfig.oidc.customClaims.emailClaim.label`)"
+                :mode="mode"
+              />
+            </div>
+          </div>
+        </template>
+
+        <template v-if="!isAmazonCognito">
+          <!-- Generated vs Specific Endpoints -->
+          <div class="row mb-20">
+            <div class="col span-6">
+              <RadioGroup
+                v-model:value="customEndpoint.value"
+                name="customEndpoint"
+                label-key="authConfig.oidc.customEndpoint.label"
+                :labels="customEndpoint.labels"
+                :options="customEndpoint.options"
+                data-testid="oidc-custom-endpoint"
+              >
+                <template #label>
+                  <h4>{{ t('authConfig.oidc.customEndpoint.label') }}</h4>
+                </template>
+              </RadioGroup>
+            </div>
+          </div>
+
+          <!-- Generated endpoints -->
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="oidcUrls.url"
+                name="url"
+                :label="t(`authConfig.oidc.url`)"
+                :mode="mode"
+                :required="!customEndpoint.value"
+                :disabled="customEndpoint.value"
+                data-testid="oidc-url"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="oidcUrls.realm"
+                name="realm"
+                :label="t(`authConfig.oidc.realm`)"
+                :mode="mode"
+                :required="!customEndpoint.value"
+                :disabled="customEndpoint.value"
+                data-testid="oidc-realm"
+              />
+            </div>
+          </div>
+
+          <!-- Specific Endpoints -->
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.rancherUrl"
+                name="rancherUrl"
+                :label="t(`authConfig.oidc.rancherUrl`)"
+                :mode="mode"
+                required
+                :disabled="!customEndpoint.value"
+                data-testid="oidc-rancher-url"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.issuer"
+                name="issuer"
+                :label="t(`authConfig.oidc.issuer`)"
+                :mode="mode"
+                required
+                :disabled="!customEndpoint.value"
+                data-testid="oidc-issuer"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.authEndpoint"
+                name="authEndpoint"
+                :label="t(`authConfig.oidc.authEndpoint`)"
+                :mode="mode"
+                :disabled="!customEndpoint.value"
+                :required="requiresAuthEndpoint"
+                data-testid="oidc-auth-endpoint"
+              />
+            </div>
+          </div>
+
+          <!-- Advanced section -->
+          <AdvancedSection
+            class="mb-40"
+            :mode="mode"
+          >
+            <div class="row mb-20">
+              <div class="col span-6">
+                <LabeledInput
+                  v-model:value="model.jwksUrl"
+                  :label="t(`authConfig.oidc.jwksUrl`)"
+                  :mode="mode"
+                  :disabled="!customEndpoint.value"
+                />
+              </div>
+              <div class="col span-6">
+                <LabeledInput
+                  v-model:value="model.tokenEndpoint"
+                  :label="t(`authConfig.oidc.tokenEndpoint`)"
+                  :mode="mode"
+                  :disabled="!customEndpoint.value"
+                />
+              </div>
+            </div>
+
+            <div class="row mb-20">
+              <div class="col span-6">
+                <LabeledInput
+                  v-model:value="model.userInfoEndpoint"
+                  :label="t(`authConfig.oidc.userInfoEndpoint`)"
+                  :mode="mode"
+                  :disabled="!customEndpoint.value"
+                />
+              </div>
+              <div class="col span-6">
+                <LabeledInput
+                  v-model:value="model.acrValue"
+                  :label="t(`authConfig.oidc.acrValue`)"
+                  :mode="mode"
+                  :disabled="!customEndpoint.value"
+                />
+              </div>
+            </div>
+          </AdvancedSection>
+        </template>
+
+        <template v-if="isAmazonCognito">
+          <h3>{{ t(`authConfig.oidc.cognitoIssuer`) }}</h3>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.issuer"
+                name="issuer"
+                :label="t(`authConfig.oidc.issuer`)"
+                :mode="mode"
+                required
+                data-testid="oidc-issuer"
+              />
+            </div>
+          </div>
+        </template>
+
+        <!-- Scopes -->
+        <div class="row mb-20">
+          <div class="col span-6">
+            <ArrayList
+              v-model:value="oidcScope"
+              name="scope"
+              :mode="mode"
+              :title="t('authConfig.oidc.scope.label')"
+              :value-placeholder="t('authConfig.oidc.scope.placeholder')"
+              :protip="t('authConfig.oidc.scope.protip', {}, true)"
+              :disabled-list="requiredScopes"
+              @update:value="updateScope"
+            />
+          </div>
+        </div>
+
+        <!-- SLO logout -->
+        <div
+          v-if="isLogoutAllSupported"
+          class="mb-20"
+        >
+          <div class="row">
+            <div class="col span-12">
+              <h3>{{ t('authConfig.slo.sloTitle') }}</h3>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-4">
+              <RadioGroup
+                v-model:value="sloType"
+                :mode="mode"
+                :options="sloOptions"
+                :disabled="!model.logoutAllSupported"
+                name="sloTypeRadio"
+              />
+            </div>
+          </div>
+          <div
+            v-if="sloEndSessionEndpointUiEnabled"
+            class="row mt-20"
+          >
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.endSessionEndpoint"
+                name="endSessionEndpoint"
+                :tooltip="t('authConfig.oidc.endSessionEndpoint.tooltip')"
+                :label="t('authConfig.oidc.endSessionEndpoint.title')"
+                :mode="mode"
+                required
+                data-testid="oidc-endSessionEndpoint"
+              />
+            </div>
+          </div>
+        </div>
+      </template>
+    </CruResource>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+  .banner {
+    display: block;
+
+    &:deep() code {
+      padding: 0 3px;
+      margin: 0 3px;
+    }
+  }
+
+  .checkbox-flex {
+    display: flex;
+    flex-direction: column;
+  }
+</style>

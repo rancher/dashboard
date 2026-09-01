@@ -1,0 +1,70 @@
+
+<script>
+import { FLEET } from '@shell/config/types';
+import { NAME } from '@shell/config/product/fleet';
+import { RcButton } from '@components/RcButton';
+export default {
+  name: 'NoWorkspaces',
+
+  components: { RcButton },
+
+  props: {
+    canView: {
+      type:    Boolean,
+      default: false,
+    },
+  },
+  data() {
+    const formRoute = {
+      name:   `c-cluster-product-resource-create`,
+      params: { resource: FLEET.WORKSPACE, product: NAME }
+    };
+
+    return { hasWorkspaces: false, formRoute };
+  },
+};
+</script>
+<template>
+  <div
+    class="intro-box"
+    :data-testid="'fleet-no-workspaces'"
+  >
+    <i class="icon icon-repository" />
+    <div class="title">
+      <span v-clean-html="t('fleet.gitRepo.repo.noWorkspaces', null, true)" />
+    </div>
+    <div
+      v-if="canView"
+      class="actions"
+    >
+      <rc-button
+        size="large"
+        variant="secondary"
+        :to="formRoute"
+      >
+        {{ t('fleet.gitRepo.workspace.addWorkspace') }}
+      </rc-button>
+    </div>
+  </div>
+</template>
+<style lang="scss" scoped>
+.intro-box {
+  height: calc(100vh - var(--header-height)*2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.title {
+  margin-bottom: 15px;
+  font-size: $font-size-h2;
+  text-align: center;
+  max-width: 600px;
+}
+
+.icon-repository {
+  font-size: 96px;
+  margin-bottom: 32px;
+}
+</style>

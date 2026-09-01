@@ -1,0 +1,10 @@
+nameOverride: ""
+fullnameOverride: ""
+plugin:
+  enabled: true
+  versionOverride: ""
+  endpoint: ""
+  compressedEndpoint: ""
+  noCache: false
+  noAuth: false
+  metadata: {}

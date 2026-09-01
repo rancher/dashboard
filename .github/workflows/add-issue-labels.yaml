@@ -1,0 +1,21 @@
+name: Add Issues Labels
+on:
+  issues:
+    types:
+      - opened
+jobs:
+  add_qa_label_to_issues:
+    if: ${{ github.repository_owner == 'rancher' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+    - name: Use Node.js
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      with:
+        node-version-file: '.nvmrc'
+    - name: script
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: node .github/workflows/scripts/add-issue-labels.js

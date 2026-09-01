@@ -1,0 +1,162 @@
+@import "./mixins";
+
+// -----------------------------------------------------------------------------
+// This file contains very basic styles.
+// -----------------------------------------------------------------------------
+
+//
+HTML {
+  box-sizing: border-box;
+  height: 100%;
+}
+
+BODY {
+  color: var(--body-text);
+  direction: ltr;
+  position: relative;
+  margin: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+
+  &.overflow-hidden {
+    overflow: hidden;
+  }
+}
+
+.dashboard-body {
+  // this was moved to its own class because the background color prop conflicts with storybookjs addon "backgrounds".
+  // decoupling this style allows us to preview components in both light and dark themes
+  background: var(--body-bg);
+}
+
+::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb) !important;
+  border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track) !important;
+}
+
+/*
+ * Make all elements from the DOM inherit from the parent box-sizing
+ * Since `*` has a specificity of 0, it does not override the `html` value
+ * making all elements inheriting from the root box-sizing value
+ * See: https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
+ */
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+SELECT,
+TEXTAREA,
+.checkbox-custom {
+  &:focus, &.focused {
+    @include form-focus;
+  }
+}
+
+INPUT,
+.labeled-input,
+.radio-custom,
+.labeled-select,
+.unlabeled-select {
+  &:focus-visible, &.focused {
+    @include focus-outline;
+    outline-offset: -1px;
+  }
+}
+
+.labeled-input,
+.labeled-select,
+.unlabeled-select {
+  &.focused {
+    border-color: var(--primary-border);
+  }
+}
+
+.unlabeled-select {
+  &:focus-visible, &.focused {
+    @include focus-outline;
+  }
+}
+
+A {
+  @include link-color(var(--link), var(--body-text));
+
+  text-decoration: none;
+
+  &:hover,
+  &:active {
+    text-decoration: underline;
+    color: var(--body-text);
+  }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
+  }
+
+  &.secondary {
+    color: var(--body-text);
+    text-decoration: underline;
+
+    &:hover,
+    &:active {
+      text-decoration: none;
+    }
+  }
+}
+
+HR {
+  height: 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  width: 100%;
+
+  &.dark {
+    border-color: var(--nav-bg);
+  }
+}
+
+HR.vertical {
+  border-top: 0;
+  border-left: 1px solid var(--border);
+  height: 100%;
+  position: absolute;
+  left: 50%;
+  margin-left: -1px;
+  top: 0;
+}
+
+// --------------------------------------------------------------------------------------------------------
+// These were declared in _mixins, but that results in these styles being declared for every Vue component
+// Moved here, as these are styles and mixins should only include mixing definitions, not style definitions
+// --------------------------------------------------------------------------------------------------------
+
+.clearfix         { @include clearfix; }
+.list-unstyled    { @include list-unstyled }
+.no-select        { @include no-select }
+.no-resize        { @include no-resize }
+.hand             { @include hand }
+.fixed            { @include fixed }
+.clip             { @include clip }
+.force-wrap       { @include force-wrap }
+.bordered-section { @include bordered-section }
+.section-divider  { @include section-divider }
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin-inline: 0;
+}

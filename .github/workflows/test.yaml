@@ -1,0 +1,405 @@
+name: Tests
+on:
+  push:
+    branches:
+      - master
+      - 'release-*'
+  pull_request:
+    branches:
+      - master
+      - 'release-*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
+
+env:
+  TEST_USERNAME: admin
+  TEST_PASSWORD: password
+  CATTLE_BOOTSTRAP_PASSWORD: password
+  TEST_BASE_URL: https://127.0.0.1.sslip.io
+  API: https://127.0.0.1.sslip.io
+  # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
+  BUILD_DASHBOARD: true
+
+  E2E_RANCHER_LOG: rancher.log
+  E2E_BUILD_DIST_NAME: dist
+  E2E_BUILD_DIST_DIR: dist
+  E2E_BUILD_DIST_EMBER_NAME: dist_ember
+  E2E_BUILD_DIST_EMBER_DIR: dist_ember
+
+jobs:
+  extract-e2e-runtime-rancher-version:
+    runs-on: ubuntu-latest
+    outputs:
+      runtime-rancher-version: ${{ steps.extract.outputs.runtime-rancher-version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Extract Rancher version
+        id: extract
+        run: |
+          BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${{ github.base_ref || github.ref_name }} --local 2>/dev/null)
+          VERSION=$(echo "$BRANCH_DATA" | jq -r '.e2e["runtime-rancher-version"]')
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Warning: Rancher version not found for branch '${{ github.base_ref || github.ref_name }}', 'runtime-rancher-version' will be empty."
+          fi
+          echo "runtime-rancher-version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  e2e-ui-build:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: extract-e2e-runtime-rancher-version
+    runs-on: ubuntu-latest
+    outputs:
+      runtime-rancher-version: ${{ needs.extract-e2e-runtime-rancher-version.outputs.runtime-rancher-version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
+      - name: Build e2e
+        run: yarn e2e:build
+      - name: Upload e2e build
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.E2E_BUILD_DIST_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_DIR }}/
+          if-no-files-found: error
+          retention-days: 10
+          compression-level: 9
+      - name: Upload e2e build ember
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
+          if-no-files-found: error
+          retention-days: 10
+          compression-level: 9
+
+  e2e-test:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: e2e-ui-build
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [
+          { username: 'admin', tag: '@adminUser' }, 
+          { username: 'standard_user', tag: '@standardUser' }
+        ]
+        features:  [
+          ['@navigation', '@extensions'],
+          ['@charts'],
+          ['@explorer'],
+          ['@explorer2'],
+          ['@virtualizationMgmt', '@fleet'],
+          ['@generic', '@globalSettings'],
+          ['@manager'],
+          ['@userMenu', '@usersAndAuths'],
+          ['@components'],
+        ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
+
+      # Installing fixed version of Chrome since latest version does not work (128 didn't work)
+      # Leaving this here again in case we need to pin to a specific Chrome version in the future
+      # - name: Install Chrome
+      #   uses: ./.github/actions/install-chrome
+      #   with:
+      #     chrome-version: '143.0.7499.192-1'
+      #     chrome-version-checksum:
+
+      - name: Download e2e build
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+         name: ${{ env.E2E_BUILD_DIST_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_DIR }}
+      - name: Download e2e build ember
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+         name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
+      
+      - name: Run Rancher
+        run: yarn e2e:k3s
+      
+      - name: Setup Rancher and user
+        run: |
+          yarn e2e:prod
+        env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: admin
+          TEST_ONLY: setup
+      - name: Run user tests
+        run: |
+          yarn e2e:prod
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+        env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
+          TEST_SKIP: setup
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.role.username }}
+
+      - name: Fetch Rancher Logs
+        if: ${{ failure() }}
+        run: yarn k3s:local:logs
+
+      - name: Create Artifacts Folder
+        if: ${{ always() }}
+        run: |
+          mkdir artifacts
+          cp -r cypress/screenshots artifacts 2>/dev/null || :
+          cp -r cypress/videos artifacts 2>/dev/null || :
+          cp -r cypress/reports/* artifacts || :
+          cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
+          cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 5
+          compression-level: 9
+
+  a11y-test:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: e2e-ui-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
+
+      # - name: Install Chrome
+      #   uses: ./.github/actions/install-chrome
+      #   with:
+      #     chrome-version: '143.0.7499.192-1'
+      #     chrome-version-checksum:
+
+      - name: Download e2e build
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ env.E2E_BUILD_DIST_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_DIR }}
+      - name: Download e2e build ember
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
+      
+      - name: Run Rancher
+        run: yarn e2e:docker
+      
+      - name: Setup Rancher and user
+        run: |
+          yarn e2e:prod
+        env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
+          GREP_TAGS: "@adminUserSetup+@accessibility --@jenkins"
+          TEST_USERNAME: admin
+          TEST_ONLY: setup
+      - name: Run user tests
+        run: |
+          yarn e2e:prod
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+        env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
+          TEST_SKIP: setup
+          GREP_TAGS: "@adminUser+@accessibility --@jenkins"
+          TEST_USERNAME: admin
+          TEST_A11Y: true
+          TEST_NO_VIDEOS: true          
+
+      - name: Upload report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: accessibility-report
+          path: cypress/accessibility
+        
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      
+      - name: Run tests
+        uses: ./.github/actions/unit-tests
+
+      - name: Collect Coverage
+        run: |
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
+          cp -r coverage/unit/ coverage-artifacts/coverage/unit/
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          path: coverage-artifacts/**/*
+
+      - name: Upload unit test junit file
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-unit-tests
+          path: unit-test-reports/*
+
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+
+      - name: Run i18n lint
+        uses: ./.github/actions/i18n-lint
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+
+      - name: Run tests
+        uses: ./.github/actions/lint
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+
+      - name: Run type check
+        uses: ./.github/actions/type-check
+
+  check-i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version-file: '.nvmrc'
+      
+      - name: Install packages
+        run: yarn install:ci
+      
+      - name: Run i18n string check
+        run: |
+          # Falure won't fail the job (remove -x when all current issues are fixed)
+          ./scripts/check-i18n -s -x
+
+  check-i18n-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version-file: '.nvmrc'
+      
+      - name: Install packages
+        run: yarn install:ci
+      
+      - name: Run check of all http links in the i18n files (broken link check)
+        run: |
+          ./scripts/check-i18n-links
+
+  # coverage:
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - unit-test
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 1
+
+  #     - uses: actions/setup-node@v6
+  #       with:
+  #         node-version-file: '.nvmrc'
+
+  #     - name: Download Coverage Artifacts
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+
+  #     - name: Install Codecov CLI
+  #       uses : .github/workflows/scripts/install-codecov.sh
+  #       with:
+  #         codecov-version:
+  #         codecov-version-checksum:
+
+  #     - name: Upload tests coverage report to Codecov
+  #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
+
+  check-e2e-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version-file: '.nvmrc'
+      - name: Check e2e tags
+        run: |
+          ./scripts/check-e2e-tests-for-tags
+
+  check-cypress-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version-file: '.nvmrc'
+      - name: Verify Cypress build
+        working-directory: ./cypress
+        run: |
+          yarn install --frozen-lockfile
+          yarn build-pkg --verify
+
+  # Store the PR number in an artifact for use in TestHub registration since workflow_run triggered by PRs doesn't include the PR number in the head branch or commit message
+  store-origin:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    steps:
+      - name: Save PR number or Branch name
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          mkdir -p ./origin
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "Storing PR number ${PR_NUMBER} for TestHub registration"
+            echo "pr/$PR_NUMBER" > ./origin/origin
+          else
+            echo "Storing branch name ${GITHUB_REF_NAME} for TestHub registration"
+            echo "branch/$GITHUB_REF_NAME" > ./origin/origin
+          fi
+
+          cat ./origin/origin
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        name: Upload origin artifact
+        with:
+          name: origin
+          path: origin/

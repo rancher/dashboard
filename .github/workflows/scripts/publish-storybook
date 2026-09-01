@@ -1,0 +1,50 @@
+#!/bin/bash
+DIST=publish-storybook
+STORYBOOK_PATH=./storybook/storybook-static/
+
+echo "Building and publishing Storybook"
+
+if [ -z "${STORYBOOK_TOKEN}" ]; then
+  echo "Missing environment variable STORYBOOK_TOKEN"
+  exit 1
+fi
+
+if [ ! -d "${STORYBOOK_PATH}" ]; then
+  ls
+  echo "Storybook has not been built"
+  exit 1
+fi
+
+set -e
+
+mkdir -p ~/.ssh
+echo -e "${STORYBOOK_TOKEN}" > ~/.ssh/id_rsa
+chmod 700 ~/.ssh/id_rsa
+
+# Clone the storybook repo into the dist folder
+git clone git@github.com:rancher/storybook.git ${DIST}
+
+pushd ${DIST}/docs
+rm *.js
+rm *.txt
+rm *.map
+popd
+
+cp -R ${STORYBOOK_PATH}* ${DIST}/docs
+
+MSG=$(git log -1  --pretty='%s')
+echo $MSG
+
+echo "Publishing ..."
+
+git config --global user.email "rancher.storybook@suse.com"
+git config --global user.name "Rancher Storybook"
+
+cd ${DIST}
+git add -A
+git commit -m "Storybook Update: ${MSG}"
+git push origin
+
+rm -rf ~/.ssh/id_rsa_storybook.github
+
+echo "Updated Storybook has been published"

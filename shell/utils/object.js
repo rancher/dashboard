@@ -1,0 +1,649 @@
+import { toRaw } from 'vue';
+import cloneDeep from 'lodash/cloneDeep';
+import flattenDeep from 'lodash/flattenDeep';
+import compact from 'lodash/compact';
+import { JSONPath } from 'jsonpath-plus';
+import transform from 'lodash/transform';
+import isObject from 'lodash/isObject';
+import isArray from 'lodash/isArray';
+import isEqual from 'lodash/isEqual';
+import difference from 'lodash/difference';
+import mergeWith from 'lodash/mergeWith';
+import { splitObjectPath, joinObjectPath } from '@shell/utils/string';
+import { addObject } from '@shell/utils/array';
+
+export function set(obj, path, value) {
+  let ptr = obj;
+
+  if (!ptr) {
+    return;
+  }
+
+  const parts = splitObjectPath(path);
+
+  for (let i = 0; i < parts.length; i++) {
+    const key = parts[i];
+
+    if ( i === parts.length - 1 ) {
+      ptr[key] = value;
+    } else if ( !ptr[key] ) {
+      // Make sure parent keys exist
+      ptr[key] = {};
+    }
+
+    ptr = ptr[key];
+  }
+
+  return obj;
+}
+
+export function getAllValues(obj, path) {
+  const keysInOrder = path.split('.');
+  let currentValue = [obj];
+
+  keysInOrder.forEach((currentKey) => {
+    currentValue = currentValue.map((indexValue) => {
+      if (Array.isArray(indexValue)) {
+        return indexValue.map((arr) => arr[currentKey]).flat();
+      } else if (indexValue) {
+        return indexValue[currentKey];
+      } else {
+        return null;
+      }
+    }).flat();
+  });
+
+  return currentValue.filter((val) => val !== null);
+}
+
+export function get(obj, path) {
+  if ( !path) {
+    throw new Error('Cannot translate an empty input. The t function requires a string.');
+  }
+  if ( path.startsWith('$') ) {
+    try {
+      return JSONPath({
+        path,
+        json: obj,
+        wrap: false,
+      });
+    } catch (e) {
+      console.log('JSON Path error', e, path, obj); // eslint-disable-line no-console
+
+      return '(JSON Path err)';
+    }
+  }
+  if ( !path.includes('.') ) {
+    return obj?.[path];
+  }
+
+  const parts = splitObjectPath(path);
+
+  for (let i = 0; i < parts.length; i++) {
+    if (!obj) {
+      return;
+    }
+
+    obj = obj[parts[i]];
+  }
+
+  return obj;
+}
+
+export function remove(obj, path, pruneEmptyParents = false) {
+  const parentAry = splitObjectPath(path);
+
+  // Remove the very last part of the path
+
+  if (parentAry.length === 1) {
+    obj[path] = undefined;
+    delete obj[path];
+  } else {
+    const leafKey = parentAry.pop();
+    const parent = get(obj, joinObjectPath(parentAry));
+
+    if ( parent ) {
+      parent[leafKey] = undefined;
+      delete parent[leafKey];
+
+      if ( pruneEmptyParents ) {
+        // Walk back up the path, deleting any ancestor objects that are now empty,
+        // stopping as soon as one still has content.
+        while ( parentAry.length ) {
+          const ancestorKey = parentAry.pop();
+          const ancestor = parentAry.length ? get(obj, joinObjectPath(parentAry)) : obj;
+
+          if ( ancestor && isEmpty(ancestor[ancestorKey]) ) {
+            delete ancestor[ancestorKey];
+          } else {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return obj;
+}
+
+/**
+ * `delete` a property at the given path.
+ *
+ * This is similar to `remove` but doesn't need any fancy kube obj path splitting
+ * and doesn't use `Vue.set` (avoids reactivity)
+ */
+export function deleteProperty(obj, path) {
+  const pathAr = path.split('.');
+  const propToDelete = pathAr.pop();
+
+  // Walk down path until final prop, then delete final prop
+  delete pathAr.reduce((o, k) => o[k] || {}, obj)[propToDelete];
+}
+
+export function getter(path) {
+  return function(obj) {
+    return get(obj, path);
+  };
+}
+
+export function clone(obj) {
+  return cloneDeep(obj);
+}
+
+export function isEmpty(obj) {
+  if ( !obj ) {
+    return true;
+  }
+
+  return !Object.keys(obj).length;
+}
+
+/**
+ * Checks to see if the object is a simple key value pair where all values are
+ * just primitives.
+ * @param {any} obj
+ */
+export function isSimpleKeyValue(obj) {
+  return obj !== null &&
+    !Array.isArray(obj) &&
+    typeof obj === 'object' &&
+    Object.values(obj || {}).every((v) => typeof v !== 'object');
+}
+
+/*
+returns an object with no key/value pairs (including nested) where the value is:
+  empty array
+  empty object
+  null
+  undefined
+*/
+export function cleanUp(obj) {
+  if ( !obj || typeof obj !== 'object') {
+    return obj;
+  }
+  Object.keys(obj).map((key) => {
+    const val = obj[key];
+
+    if ( Array.isArray(val) ) {
+      obj[key] = val.map((each) => {
+        if (each !== null && each !== undefined) {
+          return cleanUp(each);
+        }
+      });
+      if (obj[key].length === 0) {
+        delete obj[key];
+      }
+    } else if (typeof val === 'undefined' || val === null) {
+      delete obj[key];
+    } else if ( isObject(val) ) {
+      if (isEmpty(val)) {
+        delete obj[key];
+      }
+      obj[key] = cleanUp(val);
+    }
+  });
+
+  return obj;
+}
+
+export function definedKeys(obj) {
+  const keys = Object.keys(obj).map((key) => {
+    const val = obj[key];
+
+    if ( Array.isArray(val) ) {
+      return `"${ key }"`;
+    } else if ( isObject(val) ) {
+      // no need for quotes around the subkey since the recursive call will fill that in via one of the other two statements in the if block
+      return ( definedKeys(val) || [] ).map((subkey) => `"${ key }".${ subkey }`);
+    } else {
+      return `"${ key }"`;
+    }
+  });
+
+  return compact(flattenDeep(keys));
+}
+
+export function diff(from, to, preventNull = false) {
+  from = from || {};
+  to = to || {};
+
+  // Copy values in 'to' that are different than from
+  const out = transform(to, (res, toVal, k) => {
+    const fromVal = from[k];
+
+    if ( isEqual(toVal, fromVal) ) {
+      return;
+    }
+
+    if ( Array.isArray(toVal) || Array.isArray(fromVal) ) {
+      // Don't diff arrays, just use the whole value
+      res[k] = toVal;
+    } else if ( isObject(toVal) && isObject(fromVal) ) {
+      const nested = diff(fromVal, toVal, preventNull);
+
+      if (isEmpty(toVal) && !isEmpty(fromVal)) {
+        res[k] = {};
+      } else if (!isEmpty(nested)) {
+        res[k] = nested;
+      }
+    } else {
+      res[k] = toVal;
+    }
+  });
+
+  const fromKeys = definedKeys(from);
+  const toKeys = definedKeys(to);
+
+  // Return keys that are in 'from' but not 'to.'
+  const missing = difference(fromKeys, toKeys);
+
+  for ( const k of missing ) {
+    // we need to gate this in order to prevent unforseen problems with addonConfig
+    const hasDescendant = toKeys.some(
+      (tk) => tk.startsWith(`${ k }.`)
+    );
+
+    if (hasDescendant) {
+      continue;
+    }
+
+    // If we already have a value in 'out' for any parent of this missing key, do NOT nullify the child.
+    const parts = splitObjectPath(k);
+    let hasUpdatedParent = false;
+
+    for (let i = 1; i < parts.length; i++) {
+      const parentPath = joinObjectPath(parts.slice(0, i));
+
+      if (get(out, parentPath) !== undefined) {
+        hasUpdatedParent = true;
+        break;
+      }
+    }
+
+    if (hasUpdatedParent) {
+      continue;
+    }
+
+    if (preventNull) {
+      // keys that come from "definedKeys" method are strings with "" chars inside... We need to clean them up
+      // so that we can access the value of the obj property
+      let key = k;
+
+      if (!k.includes('.')) {
+        key = k.replaceAll('"', '');
+      }
+
+      // // if value exists in "from" but is missing in "to", let's add it, otherwise we just set it null as we did before
+      if (from[key] !== undefined && from[key] !== null) {
+        set(out, key, from[key]);
+      } else {
+        set(out, key, null);
+      }
+    } else {
+      const parts = splitObjectPath(k);
+
+      // Skip any missing nested key whose parent path in out is already a
+      // non-object. We don't want to attempt to null out the key that appeared
+      // in the diff when a pre-defined key
+      // (githubConfigSecret.github_token: '') gets updated to
+      // (githubConfigSecret: 'preexisting-secret')
+      const skip = parts.some((part) => {
+        const existingVal = out?.[part];
+
+        if (existingVal !== undefined && !isObject(existingVal)) {
+          return true;
+        }
+      });
+
+      if (!skip) {
+        set(out, k, null);
+      }
+    }
+  }
+
+  return out;
+}
+
+/**
+ * Super simple lodash isEqual equivalent.
+ *
+ * Only checks root properties for strict equality
+ */
+function isEqualBasic(from, to) {
+  const fromKeys = Object.keys(from || {});
+  const toKeys = Object.keys(to || {});
+
+  if (fromKeys.length !== toKeys.length) {
+    return false;
+  }
+
+  for (let i = 0; i < fromKeys.length; i++) {
+    const fromValue = from[fromKeys[i]];
+    const toValue = to[fromKeys[i]];
+
+    if (fromValue !== toValue) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export { isEqualBasic as isEqual };
+
+export function changeset(from, to, parentPath = []) {
+  let out = {};
+
+  if ( isEqual(from, to) ) {
+    return out;
+  }
+
+  for ( const k in from ) {
+    const path = joinObjectPath([...parentPath, k]);
+
+    if ( !(k in to) ) {
+      out[path] = { op: 'remove', path };
+    } else if ( (isObject(from[k]) && isObject(to[k])) || (isArray(from[k]) && isArray(to[k])) ) {
+      out = { ...out, ...changeset(from[k], to[k], [...parentPath, k]) };
+    } else if ( !isEqual(from[k], to[k]) ) {
+      out[path] = {
+        op: 'change', from: from[k], value: to[k]
+      };
+    }
+  }
+
+  for ( const k in to ) {
+    if ( !(k in from) ) {
+      const path = joinObjectPath([...parentPath, k]);
+
+      out[path] = { op: 'add', value: to[k] };
+    }
+  }
+
+  return out;
+}
+
+export function changesetConflicts(a, b) {
+  let keys = Object.keys(a).sort();
+  const out = [];
+  const seen = {};
+
+  for ( const k of keys ) {
+    let ok = true;
+    const aa = a[k];
+    const bb = b[k];
+
+    // If we've seen a change for a parent of this key before (e.g. looking at `spec.replicas` and there's already been a change to `spec`), assume they conflict
+    for ( const parentKey of parentKeys(k) ) {
+      if ( seen[parentKey] ) {
+        ok = false;
+        break;
+      }
+    }
+
+    seen[k] = true;
+
+    if ( ok && bb ) {
+      switch ( `${ aa.op }-${ bb.op }` ) {
+      case 'add-add':
+      case 'add-change':
+      case 'change-add':
+      case 'change-change':
+        ok = isEqual(aa.value, bb.value);
+        break;
+
+      case 'add-remove':
+      case 'change-remove':
+      case 'remove-add':
+      case 'remove-change':
+        ok = false;
+        break;
+
+      case 'remove-remove':
+      default:
+        ok = true;
+        break;
+      }
+    }
+
+    if ( !ok ) {
+      addObject(out, k);
+    }
+  }
+
+  // Check parent keys going the other way
+  keys = Object.keys(b).sort();
+  for ( const k of keys ) {
+    let ok = true;
+
+    for ( const parentKey of parentKeys(k) ) {
+      if ( seen[parentKey] ) {
+        ok = false;
+        break;
+      }
+    }
+
+    seen[k] = true;
+
+    if ( !ok ) {
+      addObject(out, k);
+    }
+  }
+
+  return out.sort();
+
+  function parentKeys(k) {
+    const out = [];
+    const parts = splitObjectPath(k);
+
+    parts.pop();
+
+    while ( parts.length ) {
+      const path = joinObjectPath(parts);
+
+      out.push(path);
+      parts.pop();
+    }
+
+    return out;
+  }
+}
+
+export function applyChangeset(obj, changeset) {
+  let entry;
+
+  for ( const path in changeset ) {
+    entry = changeset[path];
+
+    if ( entry.op === 'add' || entry.op === 'change' ) {
+      set(obj, path, entry.value);
+    } else if ( entry.op === 'remove' ) {
+      remove(obj, path);
+    } else {
+      throw new Error(`Unknown operation:${ entry.op }`);
+    }
+  }
+
+  return obj;
+}
+
+/**
+ * Creates an object composed of the `object` properties `predicate` returns
+ */
+export function pickBy(obj = {}, predicate = (value, key) => false) {
+  return Object.entries(obj)
+    .reduce((res, [key, value]) => {
+      if (predicate(value, key)) {
+        res[key] = value;
+      }
+
+      return res;
+    }, {});
+}
+
+/**
+ * Convert list to dictionary from a given function
+ * @param {*} array
+ * @param {*} callback
+ * @returns
+ */
+export const toDictionary = (array, callback) => Object.assign(
+  {}, ...array.map((item) => ({ [item]: callback(item) }))
+);
+
+export function dropKeys(obj, keys) {
+  if ( !obj ) {
+    return;
+  }
+
+  for ( const k of keys ) {
+    delete obj[k];
+  }
+}
+
+/**
+ * Recursively convert a reactive object to a raw object
+ * @param {*} obj
+ * @param {*} cache
+ * @returns
+ */
+export function deepToRaw(obj, cache = new WeakSet()) {
+  if (obj === null || typeof obj !== 'object') {
+    // If obj is null or a primitive, return it as is
+    return obj;
+  }
+
+  // If the object has already been processed, return it to prevent circular references
+  if (cache.has(obj)) {
+    return obj;
+  }
+  cache.add(obj);
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => deepToRaw(item, cache));
+  } else {
+    const rawObj = toRaw(obj);
+    const result = {};
+
+    for (const key in rawObj) {
+      if (typeof rawObj[key] === 'function' || typeof rawObj[key] === 'symbol') {
+        result[key] = null;
+      } else {
+        result[key] = deepToRaw(rawObj[key], cache);
+      }
+    }
+
+    return result;
+  }
+}
+
+/**
+ * Helper function to alter Lodash merge function default behaviour on merging
+ * arrays and objects.
+ *
+ * In rke2.vue, the syncMachineConfigWithLatest function updates machine pool configuration by
+ * merging the latest configuration received from the backend with the current configuration updated by the user.
+ * However, Lodash's merge function treats arrays like object so index values are merged and not appended to arrays
+ * resulting in undesired outcomes for us, Example:
+ *
+ * const lastSavedConfigFromBE = { a: ["test"] };
+ * const currentConfigByUser = { a: [] };
+ * merge(lastSavedConfigFromBE, currentConfigByUser); // returns { a: ["test"] }; but we expect { a: [] };
+ *
+ * More info: https://github.com/lodash/lodash/issues/1313
+
+ * This helper function addresses the issue by always replacing the old array with the new array during the merge process.
+ *
+ * This helper is also used for another case in rke2.vue to handle merging addon chart default values with the user's current values.
+ * It fixed https://github.com/rancher/dashboard/issues/12418
+ *
+ * If `mutateOriginal` is true, the merge is done directly into `obj1` (mutating it).
+ * This is useful in cases like:
+ *   machinePool.config = mergeWithReplace(clonedLatestConfig, clonedCurrentConfig, { mutateOriginal: true })
+ * where merging into a new empty object may lead to incomplete structure.
+ *
+ * Use `mutateOriginal` when you want to preserve obj1’s original shape, references,
+ * or when assigning the result directly to an existing object.
+ *
+ * @param {Object} [obj1={}] - The first object to merge
+ * @param {Object} [obj2={}] - The second object to merge
+ * @param {Object} [options={}] - Options for customizing merge behavior
+ * @param {boolean} [options.mutateOriginal=false] - true: mutates obj1
+ *                  directly. false: returns a new object
+ * @param {boolean} [options.replaceArray=true] - true: replaces arrays in obj1
+ *                  with arrays in obj2 when both properties are arrays
+ *                  false: default lodash merge behavior - recursively merges
+ *                  array members
+ */
+export function mergeWithReplace(
+  obj1 = {},
+  obj2 = {},
+  {
+    mutateOriginal = false,
+    replaceArray = true,
+  } = {}
+) {
+  const destination = mutateOriginal ? obj1 : {};
+
+  return mergeWith(destination, obj1, obj2, (obj1Value, obj2Value) => {
+    if (replaceArray && Array.isArray(obj1Value) && Array.isArray(obj2Value)) {
+      return obj2Value;
+    }
+  });
+}
+/**
+ * Converts Object into a string of a format "key1, val1, key2, val2"
+ * @param {Object} input - KV object to convert
+ * @returns string
+ */
+export const convertKVToString = (input) => {
+  if (!input || typeof input !== 'object') return '';
+
+  return Object.entries(input)
+    .flatMap(([key, value]) => [key, String(value)])
+    .join(',');
+};
+
+/**
+ * Converts kv string into object
+ * @param {string} input - a string of a format "key1, val1, key2, val2"
+ * @returns
+ */
+export const convertStringToKV = ( input ) => {
+  if (!input?.trim()) return {};
+
+  const parts = input.split(',').map((part) => part.trim());
+  const result = {};
+
+  for (let i = 0; i < parts.length - 1; i += 2) {
+    const key = parts[i];
+    const value = parts[i + 1];
+
+    // Accept empty keys but ignore undefined values
+    if (typeof key === 'string') {
+      result[key] = value ?? '';
+    }
+  }
+
+  return result;
+};

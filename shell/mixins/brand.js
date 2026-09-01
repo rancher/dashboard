@@ -1,0 +1,140 @@
+import { mapGetters } from 'vuex';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
+import { createCssVars } from '@shell/utils/color';
+import { setTitle } from '@shell/config/private-label';
+import { requireJson } from '@shell/utils/require-asset';
+import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
+import { fetchInitialSettings } from '@shell/utils/settings';
+
+export default {
+  async fetch() {
+    try {
+      await fetchInitialSettings(this.$store);
+
+      // The favicon is implicitly dependent on the initial settings having already been fetched
+      if (!haveSetFavIcon()) {
+        setFavIcon(this.$store);
+      }
+    } catch (e) { }
+  },
+
+  computed: {
+    ...mapGetters({ brand: 'management/brand' }),
+
+    // added to fix https://github.com/rancher/dashboard/issues/10788
+    // because on logout the brand mixin is mounted, but then a management store reset happens
+    // since login view get loaded, another fetchInitialSettings get's done
+    // which in turn will populate again globalSettings
+    globalSettings() {
+      return this.$store.getters['management/all'](MANAGEMENT.SETTING);
+    },
+
+    color() {
+      const setting = this.globalSettings?.find((gs) => gs.id === SETTING.PRIMARY_COLOR);
+
+      return setting?.value;
+    },
+
+    linkColor() {
+      const setting = this.globalSettings?.find((gs) => gs.id === SETTING.LINK_COLOR);
+
+      return setting?.value;
+    },
+
+    theme() {
+      const setting = this.globalSettings?.find((gs) => gs.id === SETTING.THEME);
+
+      // This handles cases where the settings update after the page loads (like on log out)
+      if (setting?.value) {
+        return setting?.value;
+      }
+
+      return this.$store.getters['prefs/theme'];
+    },
+  },
+
+  watch: {
+    color: {
+      handler(neu) {
+        if (neu) {
+          this.setCustomColor(neu);
+        } else {
+          this.removeCustomColor();
+        }
+      },
+      immediate: true
+    },
+    linkColor: {
+      handler(neu) {
+        if (neu) {
+          this.setCustomColor(neu, 'link');
+        } else {
+          this.removeCustomColor('link');
+        }
+      },
+      immediate: true
+    },
+    theme: {
+      handler() {
+        if (this.color) {
+          this.setCustomColor(this.color);
+        }
+        if (this.linkColor) {
+          this.setCustomColor(this.linkColor, 'link');
+        }
+        this.setBodyClass();
+      },
+      immediate: true
+    },
+    brand: {
+      handler() {
+        this.setBodyClass();
+      },
+      immediate: true
+    }
+
+  },
+  mounted() {
+    this.setBodyClass();
+    setTitle();
+  },
+  methods: {
+    setCustomColor(color, name = 'primary') {
+      const vars = createCssVars(color, this.theme, name);
+
+      for (const prop in vars) {
+        document.body.style.setProperty(prop, vars[prop]);
+      }
+    },
+
+    removeCustomColor(name = 'primary') {
+      const vars = createCssVars('rgb(0,0,0)', this.theme, name);
+
+      for (const prop in vars) {
+        document.body.style.removeProperty(prop);
+      }
+    },
+    setBodyClass() {
+      const body = document.getElementsByTagName('body')[0];
+      const isStandalone = this.$route?.meta?.standalone;
+      const cssClass = isStandalone ? 'dashboard-body' : 'overflow-hidden dashboard-body';
+      let bodyClass = `theme-${ this.theme } ${ cssClass }`;
+
+      if ( this.brand ) {
+        try {
+          const brandMeta = requireJson(`~shell/assets/brand/${ this.brand }/metadata.json`);
+
+          if (brandMeta?.hasStylesheet === 'true') {
+            bodyClass = `${ cssClass } ${ this.brand } theme-${ this.theme }`;
+          } else {
+            bodyClass = `theme-${ this.theme } overflow-hidden dashboard-body`;
+            this.$store.dispatch('prefs/setBrandStyle', this.theme === 'dark');
+          }
+        } catch {}
+      }
+      body.className = bodyClass;
+    }
+  }
+
+};

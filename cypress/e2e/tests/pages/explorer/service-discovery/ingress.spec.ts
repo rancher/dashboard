@@ -1,0 +1,406 @@
+import { IngressListPagePo, IngressCreateEditPo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
+import { generateIngressesDataSmall, ingressesNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/ingresses-get';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+
+const cluster = 'local';
+const ingressListPagePo = new IngressListPagePo();
+let ingressName = '';
+let secretsNamesList: string[] = [];
+let servicesNamesList: string[] = [];
+const secretsCount = 4;
+const servicesCount = 4;
+let namespace: string;
+
+describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+  });
+
+  it('does not show console warning due to lack of secondary schemas needed to load data on list view', () => {
+    // pattern as per https://docs.cypress.io/faq/questions/using-cypress-faq#How-do-I-spy-on-consolelog
+    cy.visit(ingressListPagePo.urlPath(), {
+      onBeforeLoad(win) {
+        cy.stub(win.console, 'warn').as('consoleWarn');
+      },
+    });
+
+    const warnMsg = "pathExistsInSchema requires schema networking.k8s.io.ingress to have resources fields via schema definition but none were found. has the schema 'fetchResourceFields' been called?";
+
+    // testing https://github.com/rancher/dashboard/issues/11086
+    cy.get('@consoleWarn').should('not.be.calledWith', warnMsg);
+
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Ingresses' : 'Rancher - local - Ingresses';
+
+      cy.log(`Expected title is: ${ expectedTitle }`);
+      cy.title().should('eq', expectedTitle);
+    });
+  });
+
+  it('can open "Edit as YAML"', () => {
+    ingressListPagePo.goTo();
+    ingressListPagePo.baseResourceList().masthead().create();
+
+    const ingressCreatePagePo = new IngressCreateEditPo();
+
+    ingressCreatePagePo.resourceDetail().createEditView().editAsYaml();
+    ingressCreatePagePo.resourceDetail().resourceYaml().codeMirror().checkExists();
+  });
+
+  describe('Create/Edit', { tags: ['@adminUser'] }, () => {
+    before('set up', () => {
+      cy.createE2EResourceName('ingress').then((name) => {
+        ingressName = name;
+      });
+
+      cy.createManyNamespacedResources({
+        context:        'ingress',
+        createResource: ({ ns, i }: {ns: string, i: number}) => {
+          const name = Cypress._.uniqueId(`secret-${ Date.now().toString() }-${ i }`);
+
+          return cy.createSecret(ns, name).then((n) => ({ body: { metadata: { name: n } } }));
+        },
+        count: secretsCount
+      }).then(({ ns, workloadNames }) => {
+        secretsNamesList = workloadNames;
+        namespace = ns;
+      }).then(() => cy.createManyNamespacedResources({
+        namespace,
+        createResource: ({ ns, i }: {ns: string, i: number}) => {
+          const name = Cypress._.uniqueId(`service-${ Date.now().toString() }-${ i }`);
+
+          return cy.createService(ns, name).then((n) => ({ body: { metadata: { name: n } } }));
+        },
+        count: servicesCount
+      })).then(({ workloadNames }) => {
+        servicesNamesList = workloadNames;
+      });
+    });
+
+    it('can select rules and certificates in Create mode', () => {
+      cy.viewport(1440, 900);
+
+      ingressListPagePo.goTo();
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
+      ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+      ingressListPagePo.baseResourceList().masthead().create();
+
+      const ingressCreatePagePo = new IngressCreateEditPo();
+
+      cy.intercept('GET', `/v1/secrets/${ namespace }?*`).as('getsSecrets');
+      cy.intercept('GET', `/v1/services/${ namespace }?*`).as('getsServices');
+
+      ingressCreatePagePo.waitForPage(null, 'rules');
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
+        .set(ingressName);
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
+        .toggle();
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
+        .clickOptionWithLabel(namespace);
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().description()
+        .set(`${ ingressName } description`);
+
+      cy.wait('@getsServices').its('response.statusCode').should('eq', 200);
+      cy.wait('@getsSecrets').its('response.statusCode').should('eq', 200);
+
+      // Add two rules
+      ingressCreatePagePo.setRuleRequestHostValue(0, 'example1.com');
+      ingressCreatePagePo.setPathTypeByLabel(0, 'ImplementationSpecific');
+      ingressCreatePagePo.setTargetServiceValueByLabel(0, servicesNamesList[0]);
+      ingressCreatePagePo.setPortValueByLabel(0, '8080');
+      ingressCreatePagePo.rulesList().clickAdd('Add Rule');
+      ingressCreatePagePo.setRuleRequestHostValue(1, 'example2.com');
+      ingressCreatePagePo.setPathTypeByLabel(1, 'ImplementationSpecific');
+      ingressCreatePagePo.setTargetServiceValueByLabel(1, servicesNamesList[1]);
+      ingressCreatePagePo.setPortValueByLabel(1, '8080');
+
+      // Add two certificates
+      ingressCreatePagePo.resourceDetail().tabs().clickTabWithName('certificates');
+      ingressCreatePagePo.waitForPage(null, 'certificates');
+      ingressCreatePagePo.certificatesList().clickAdd('Add Certificate');
+      ingressCreatePagePo.setSecretNameValueByLabel(0, secretsNamesList[0]);
+      ingressCreatePagePo.setHostValueByIndex(0, 'bar0');
+      ingressCreatePagePo.certificatesList().clickAdd('Add Certificate');
+      ingressCreatePagePo.setSecretNameValueByLabel(1, secretsNamesList[1]);
+      ingressCreatePagePo.setHostValueByIndex(1, 'bar1');
+
+      ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', 'v1/networking.k8s.io.ingresses')
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(response?.body.metadata).to.have.property('name', ingressName);
+
+          // Validate rules
+          expect(response?.body.spec).to.have.property('rules').that.is.an('array').with.length(2);
+          expect(response?.body.spec.rules[0]).to.have.property('host', 'example1.com');
+          expect(response?.body.spec.rules[1]).to.have.property('host', 'example2.com');
+
+          // Validate TLS certificates
+          expect(response?.body.spec).to.have.property('tls').that.is.an('array').with.length(2);
+          expect(response?.body.spec.tls[0]).to.have.property('secretName', secretsNamesList[0]);
+          expect(response?.body.spec.tls[1]).to.have.property('secretName', secretsNamesList[1]);
+        });
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+        .checkVisible();
+    });
+
+    it('can select rules and certificates in Edit mode', () => {
+      cy.viewport(1440, 900);
+      cy.intercept('GET', `/v1/secrets/${ namespace }?*`).as('getsSecrets');
+      cy.intercept('GET', `/v1/services/${ namespace }?*`).as('getsServices');
+
+      ingressListPagePo.goTo();
+      ingressListPagePo.waitForPage();
+      // Wait for the ingress created by the previous test to render in the list before acting on it.
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+        .checkVisible();
+      // Confirm the list has finished loading before opening the row action menu: the row can
+      // render before its action button, so a still-loading list makes actionMenu miss it
+      // ([data-testid*="action-button"] never found).
+      ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      // The row's per-resource action button hydrates after its cells (available actions load
+      // separately), so the table load-gate above is not always enough - wait for the button
+      // itself, with a longer timeout, before opening the menu.
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+        .actionBtn(LONG_TIMEOUT_OPT)
+        .should('be.visible');
+      ingressListPagePo.list().actionMenu(ingressName).getMenuItem('Edit Config').click();
+
+      const ingressEditPage = new IngressCreateEditPo('local', namespace, ingressName);
+
+      cy.wait('@getsServices').its('response.statusCode').should('eq', 200);
+      cy.wait('@getsSecrets').its('response.statusCode').should('eq', 200);
+
+      // Add two more rules
+      ingressEditPage.waitForPage('mode=edit', 'rules');
+      ingressEditPage.rulesList().clickAdd('Add Rule');
+      ingressEditPage.setRuleRequestHostValue(2, 'example3.com');
+      ingressEditPage.setPathTypeByLabel(2, 'ImplementationSpecific');
+      ingressEditPage.setTargetServiceValueByLabel(2, servicesNamesList[2]);
+      ingressEditPage.setPortValueByLabel(2, '8080');
+      ingressEditPage.rulesList().clickAdd('Add Rule');
+      ingressEditPage.setRuleRequestHostValue(3, 'example4.com');
+      ingressEditPage.setPathTypeByLabel(3, 'ImplementationSpecific');
+      ingressEditPage.setTargetServiceValueByLabel(3, servicesNamesList[3]);
+      ingressEditPage.setPortValueByLabel(3, '8080');
+
+      // Add two more certificates
+      ingressEditPage.resourceDetail().tabs().clickTabWithName('certificates');
+      ingressEditPage.waitForPage('mode=edit', 'certificates');
+      ingressEditPage.certificatesList().clickAdd('Add Certificate');
+      ingressEditPage.setSecretNameValueByLabel(2, secretsNamesList[2]);
+      ingressEditPage.setHostValueByIndex(2, 'bar2');
+      ingressEditPage.certificatesList().clickAdd('Add Certificate');
+      ingressEditPage.setSecretNameValueByLabel(3, secretsNamesList[3]);
+      ingressEditPage.setHostValueByIndex(3, 'bar3');
+
+      ingressEditPage.resourceDetail().createEditView().saveAndWaitForRequests('PUT', `/v1/networking.k8s.io.ingresses/${ namespace }/${ ingressName }`)
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
+          expect(response?.body.metadata).to.have.property('name', ingressName);
+
+          // Validate all four rules
+          expect(response?.body.spec).to.have.property('rules').that.is.an('array').with.length(4);
+          response?.body.spec.rules.forEach((rule, index) => {
+            expect(rule).to.have.property('host', `example${ index + 1 }.com`);
+            expect(rule).to.have.property('http').that.has.property('paths').that.is.an('array').with.length(1);
+            const path = rule.http.paths[0];
+
+            expect(path).to.have.property('pathType', 'ImplementationSpecific');
+            expect(path.backend.service).to.deep.include({
+              name: servicesNamesList[index],
+              port: { number: 8080 }
+            });
+          });
+
+          // Validate all four certificates
+          expect(response?.body.spec).to.have.property('tls').that.is.an('array').with.length(4);
+          response?.body.spec.tls.forEach((tlsEntry, index) => {
+            expect(tlsEntry).to.have.property('hosts').that.is.an('array').with.length(1);
+            expect(tlsEntry.hosts[0]).to.equal(`bar${ index }`);
+            expect(tlsEntry).to.have.property('secretName', secretsNamesList[index]);
+          });
+        });
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+        .checkVisible();
+    });
+
+    it('can create an Ingress targeting a headless service and wait for Active state', () => {
+      const headlessServiceName = Cypress._.uniqueId(`headless-svc-${ Date.now().toString() }`);
+      const ingressHeadlessName = Cypress._.uniqueId(`ingress-headless-${ Date.now().toString() }`);
+
+      cy.createService(namespace, headlessServiceName, {
+        spec: {
+          clusterIP: 'None',
+          ports:     [{
+            name:       'myport',
+            port:       8080,
+            protocol:   'TCP',
+            targetPort: 80
+          }],
+          type: 'ClusterIP'
+        }
+      });
+      // Ensure the service is queryable before the ingress form loads, so its target-service
+      // dropdown lists it. Otherwise the selection silently no-ops and the submitted rule comes
+      // back with no http backend/paths (spec.rules[0].http missing).
+      cy.waitForRancherResource('v1', 'services', `${ namespace }/${ headlessServiceName }`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
+
+      ingressListPagePo.goTo();
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
+
+      ingressListPagePo.baseResourceList().masthead().create();
+
+      const ingressCreatePagePo = new IngressCreateEditPo();
+
+      ingressCreatePagePo.waitForPage(null, 'rules');
+      // Known issue rancher/dashboard#18845: the ingress create form's target-service dropdown is
+      // populated from the persisted services store rather than a fresh fetch on open, so a service
+      // created after the store was last populated is missing from the options - and selecting a
+      // missing option silently no-ops, producing a saved rule with no http backend. This e2e test
+      // depends on that fix; the reload below is the workaround until it lands.
+      //
+      // With testIsolation off, the target-service dropdown is populated from the persisted services
+      // store, which earlier Create/Edit tests filled before this test created its headless service.
+      // The list-page full visit + waitForRancherResource guard are NOT sufficient: the create form is
+      // reached by an in-app navigation (masthead().create()) that reuses the already-populated store,
+      // so the new headless service can be absent from the options and the selection silently no-ops -
+      // the submitted rule then comes back with no http backend ("{ host } to have property http").
+      // Reload the freshly-opened form (nothing entered yet) to force a fresh services fetch that
+      // includes the new service. (A prior commit removed this reload assuming goTo alone sufficed;
+      // that regressed this test, so it is restored.)
+      cy.reload();
+      ingressCreatePagePo.waitForPage(null, 'rules');
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
+        .set(ingressHeadlessName);
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
+        .toggle();
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
+        .clickOptionWithLabel(namespace);
+
+      ingressCreatePagePo.setRuleRequestHostValue(0, 'example-headless.com');
+      ingressCreatePagePo.setPathTypeByLabel(0, 'ImplementationSpecific');
+      ingressCreatePagePo.setTargetServiceValueByLabel(0, headlessServiceName);
+      ingressCreatePagePo.setPortValueByLabel(0, '8080');
+
+      ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/networking.k8s.io.ingresses')
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(response?.body.metadata).to.have.property('name', ingressHeadlessName);
+
+          const rule = response?.body?.spec?.rules?.[0];
+
+          expect(rule).to.have.property('host', 'example-headless.com');
+          expect(rule).to.have.property('http');
+          expect(rule.http.paths).to.be.an('array').with.length.greaterThan(0);
+
+          const path = rule.http.paths[0];
+
+          expect(path).to.have.property('pathType', 'ImplementationSpecific');
+          expect(path.backend.service).to.deep.include({
+            name: headlessServiceName,
+            port: { number: 8080 }
+          });
+        });
+
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressHeadlessName)
+        .checkVisible();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressHeadlessName)
+        .column(1)
+        .should('contain.text', 'Active');
+    });
+
+    after('clean up namespaced resources', () => {
+      if (namespace) {
+        cy.deleteNamespace([namespace]);
+      }
+    });
+  });
+
+  describe('List', { tags: ['@adminUser'] }, () => {
+    before('set up', () => {
+      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
+    });
+
+    it('validate services table in empty state', () => {
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } });
+
+      ingressesNoData();
+      IngressListPagePo.navTo();
+      ingressListPagePo.waitForPage();
+      cy.wait('@ingressesNoData');
+
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Target', 'Default', 'Ingress Class', 'Age'];
+
+      ingressListPagePo.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
+
+      ingressListPagePo.list().resourceTable().sortableTable().checkRowCount(true, 1);
+    });
+
+    it('flat list: validate ingresses table', () => {
+      generateIngressesDataSmall();
+      ingressListPagePo.goTo();
+      ingressListPagePo.waitForPage();
+      cy.wait('@ingressesDataSmall');
+
+      // check table headers are visible
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Target', 'Default', 'Ingress Class', 'Age'];
+
+      ingressListPagePo.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
+
+      ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
+      ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      ingressListPagePo.list().resourceTable().sortableTable().noRowsShouldNotExist();
+      ingressListPagePo.list().resourceTable().sortableTable().checkRowCount(false, 2);
+    });
+
+    it('group by namespace: validate ingresses table', () => {
+      generateIngressesDataSmall();
+      ingressListPagePo.goTo();
+      ingressListPagePo.waitForPage();
+      cy.wait('@ingressesDataSmall');
+
+      // group by namespace
+      ingressListPagePo.list().resourceTable().sortableTable().groupByButtons(1)
+        .click();
+
+      //  check table headers are visible
+      const expectedHeaders = ['State', 'Name', 'Target', 'Default', 'Ingress Class', 'Age'];
+
+      ingressListPagePo.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
+
+      ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
+      ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      ingressListPagePo.list().resourceTable().sortableTable().noRowsShouldNotExist();
+      ingressListPagePo.list().resourceTable().sortableTable().groupElementWithName('Namespace: cattle-system')
+        .should('be.visible');
+      ingressListPagePo.list().resourceTable().sortableTable().checkRowCount(false, 2);
+    });
+  });
+
+  after('clean up', () => {
+    cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
+  });
+});

@@ -1,0 +1,6 @@
+name: SUSE Observability
+author: SUSE
+authorUrl: https://www.rancher.com/products/rancher-platform
+description: Analyzes multi-cluster telemetry with AI-powered insights for accelerated incident resolution
+url: https://www.suse.com/solutions/observability
+icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/patches/observability/files/icon.svg

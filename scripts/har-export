@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+
+const path = require('path');
+
+const base = path.resolve(__dirname, '..');
+const shell = path.resolve(base, 'shell');
+
+const har = require(`${ shell }/server/har-file`);
+
+// Need two arguments
+if (process.argv.length < 4) {
+  console.log('Export HAR network requests to file')
+  console.log('');
+  console.log('Need 2 arguments:');
+  console.log('  <har_file> path to HAR file to load');
+  console.log('  <folder>  folder to write the HAR network request files to');
+  console.log('');
+
+  process.exit(1);
+}
+
+const harFile = process.argv[2].trim();
+const outFolder = process.argv[3].trim();
+
+const harData = har.loadFile(harFile, 8005);
+
+har.exportToFiles(harData, outFolder);

@@ -1,0 +1,23 @@
+{
+  "name": "kubectl-explain",
+  "description": "kubectl-explain plugin",
+  "version": "0.1.0",
+  "private": false,
+  "rancher": {
+    "catalog.cattle.io/ui-hidden-builtin": true
+  },
+
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

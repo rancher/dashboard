@@ -1,0 +1,18 @@
+annotations:
+  catalog.cattle.io/certified: rancher # Any application we are adding as a helm chart
+  catalog.cattle.io/namespace: cattle-ui-plugin-system # Must prefix with cattle- and suffix with -system=
+  catalog.cattle.io/os: linux
+  catalog.cattle.io/permits-os: linux, windows
+  catalog.cattle.io/scope: management
+  catalog.cattle.io/ui-component: plugins
+apiVersion: v2
+appVersion: "0.1.0"
+description: Extension server
+name: extension-server
+type: application
+keywords:
+  - applications
+  - infrastructure
+version: 0.1.0
+icon: https://docs.ranchermanager.rancher.io/img/rancher-logo-horiz-color.svg
+home: https://rancher.com

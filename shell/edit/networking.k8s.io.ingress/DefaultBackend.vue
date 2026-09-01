@@ -1,0 +1,159 @@
+<script>
+import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { Banner } from '@components/Banner';
+import { get, set } from '@shell/utils/object';
+
+export default {
+  emits:      ['update:value'],
+  components: {
+    LabeledInput, LabeledSelect, Banner
+  },
+  props: {
+    value: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
+    serviceTargets: {
+      type:    Array,
+      default: () => []
+    },
+    mode: {
+      type:    String,
+      default: _EDIT
+    },
+    rules: {
+      default: () => ({
+        name: [],
+        port: []
+      }),
+      type: Object,
+    }
+  },
+  data() {
+    return {
+      serviceName: '',
+      servicePort: '',
+    };
+  },
+  created() {
+    const backend = get(this.value.spec, this.value.defaultBackendPath);
+
+    this.serviceName = get(backend, this.value.serviceNamePath) || '';
+    this.servicePort = get(backend, this.value.servicePortPath) ||
+      get(backend, this.value.servicePortNamePath) ||
+      '';
+  },
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+    portOptions() {
+      const service = this.serviceTargets.find((s) => s.label === this.serviceName);
+
+      return service?.ports || [];
+    },
+    serviceTargetStatus() {
+      const isValueAnOption = !this.serviceName || this.serviceTargets.find((target) => this.serviceName === target.value);
+
+      return isValueAnOption ? null : 'warning';
+    },
+    serviceTargetTooltip() {
+      return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
+    },
+    serviceTargetOptions() {
+      return [
+        {
+          label: this.t('generic.none'),
+          value: '',
+          ports: []
+        },
+        ...this.serviceTargets
+      ];
+    }
+  },
+  methods: {
+    update() {
+      // Fresh object so the old port path (name vs number) doesn't linger.
+      const backend = {};
+      const parsed = Number.parseInt(this.servicePort);
+      const servicePort = Number.isNaN(parsed) ? this.servicePort : parsed;
+      const portPath = typeof servicePort === 'number' ? this.value.servicePortPath : this.value.servicePortNamePath;
+
+      set(backend, this.value.serviceNamePath, this.serviceName);
+      set(backend, portPath, servicePort);
+      set(this.value.spec, this.value.defaultBackendPath, backend);
+
+      this.$emit('update:value', this.value);
+    }
+  },
+  watch: {
+    serviceName() { // fixes an issue wherein selecting a target service visually clears out the port but the previous value remains
+      this.update();
+    }
+  }
+};
+</script>
+<template>
+  <div>
+    <Banner
+      color="warning"
+      :label="t('ingress.defaultBackend.warning')"
+    />
+    <div
+      v-if="serviceName || !isView"
+      class="row"
+    >
+      <div class="col span-4">
+        <LabeledSelect
+          v-model:value="serviceName"
+          :taggable="true"
+          :mode="mode"
+          :label="t('ingress.defaultBackend.targetService.label')"
+          :options="serviceTargetOptions"
+          option-label="label"
+          :status="serviceTargetStatus"
+          :tooltip="serviceTargetTooltip"
+          :rules="rules.name"
+          @update:value="update(); servicePort = ''"
+        />
+      </div>
+      <div
+        class="col span-3"
+        :style="{'margin-right': '0px'}"
+      >
+        <!-- :required drives the asterisk; portRequired doesn't have .name === 'required' -->
+        <LabeledInput
+          v-if="portOptions.length === 0 || isView"
+          v-model:value="servicePort"
+          :mode="mode"
+          :required="true"
+          :label="t('ingress.defaultBackend.port.label')"
+          :placeholder="t('ingress.defaultBackend.port.placeholder')"
+          :rules="rules.port"
+          @update:value="update"
+        />
+        <LabeledSelect
+          v-else
+          v-model:value="servicePort"
+          :mode="mode"
+          :required="true"
+          :options="portOptions"
+          :label="t('ingress.defaultBackend.port.label')"
+          :placeholder="t('ingress.defaultBackend.port.placeholder')"
+          :rules="rules.port"
+          @update:value="update"
+        />
+      </div>
+    </div>
+    <div
+      v-else
+      class="pl-10"
+    >
+      {{ t('ingress.defaultBackend.noServiceSelected') }}
+    </div>
+  </div>
+</template>

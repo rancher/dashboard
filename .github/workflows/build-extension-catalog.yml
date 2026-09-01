@@ -1,0 +1,105 @@
+name: Build and release Extension Catalog Image to registry
+
+on:
+  workflow_call:
+    inputs:
+      registry_target:
+        required: true
+        type: string
+      registry_user:
+        required: true
+        type: string
+      tagged_release:
+        required: false
+        type: string
+      is_test:
+        required: false
+        type: string
+      test_ext_repo:
+        required: false
+        type: string
+      test_ext_branch:
+        required: false
+        type: string
+    secrets:
+      registry_token:
+        required: true
+    outputs:
+      build-extension-catalog-job-status: 
+        value: ${{ jobs.build-extension-catalog.outputs.build-status }}
+
+jobs:
+  build-extension-catalog:
+    name: Build container image
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      packages: write
+    outputs:
+      build-status: ${{ job.status }}
+    steps:
+      - if: inputs.is_test == 'true'
+        name: Checkout repository (test flow)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          repository: rancher/${{ inputs.test_ext_repo }}
+          ref: ${{ inputs.test_ext_branch }}
+      
+      - if: inputs.is_test != 'true'
+        name: Checkout repository (normal flow)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ${{ inputs.registry_target }}
+          username: ${{ inputs.registry_user }}
+          password: ${{ secrets.registry_token }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v3.8.0
+
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Parse Extension Name
+        if: github.ref_type == 'tag' || inputs.is_test == 'true'
+        id: parsed-name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "catalog"
+
+      - name: Build and push UI image
+        run: |
+          publish="yarn publish-pkgs -c"
+
+          if [[ "${{ inputs.is_test }}" != "true" ]]; then
+            publish="$publish -p"
+          fi
+
+          publish="$publish -r ${{ inputs.registry_target }} -o ${{ github.repository_owner }}"
+
+          if [[ -n "${{ inputs.tagged_release }}" ]]; then
+            publish="$publish -t ${{ inputs.tagged_release }}"
+          fi
+
+          $publish

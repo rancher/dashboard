@@ -1,0 +1,153 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const https = require('https');
+const path = require('path');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+const express = require('express');
+const axios = require('axios');
+
+const base = path.resolve(__dirname, '..');
+const shell = path.resolve(base, 'shell');
+
+const har = require(`${ shell }/server/har-file`);
+
+console.log(path.resolve(shell, 'server.key'));
+
+const options = {
+  key:  fs.readFileSync(path.resolve(shell, 'server', 'server.key')),
+  cert: fs.readFileSync(path.resolve(shell, 'server', 'server.crt'))
+};
+
+let PORT = process.env.PORT || '8005';
+
+PORT = parseInt(PORT, 10);
+
+if (isNaN(PORT)) {
+  console.log('Invalid port'); // eslint-disable-line no-console
+  process.exit(1);
+}
+
+// Need at least two arguments
+
+if (process.argv.length < 4) {
+  console.log('Requires 2 arguments. Can also take an optional folder:');
+  console.log('  <har_file>  path to HAR file to load');
+  console.log('  <version>   dashboard version number to use for static assets (e.g v2.8.0, latest)');
+  console.log('  [<folder>]  folder containing json files to use as a fallback when HAR file does not contain request');
+  console.log('');
+
+  process.exit(1);
+}
+
+const harFile = process.argv[2];
+const version = process.argv[3].trim();
+const harData = har.loadFile(harFile, PORT, '/dashboard');
+const dashboardUrl = `https://releases.rancher.com/dashboard/${ version }/index.html`;
+
+const harFolder = process.argv.length > 4 ? process.argv[4] : '';
+
+console.log(dashboardUrl);
+
+const dev = (process.env.NODE_ENV !== 'production');
+const devPorts = dev || process.env.DEV_PORTS === 'true';
+
+const app = express();
+
+// Catch reload on a dynamic page
+// Check that the requestor will accept html and send them the index file
+app.use('*', async(req, res, next) => {
+  const accept = req.headers.accept || '';
+  const acceptArray = accept.split(',');
+  const html = acceptArray.find((h) => h.trim() === 'text/html');
+
+  if (html) {
+    try {
+      const response = await axios.get(dashboardUrl, { responseType: 'arraybuffer' });
+
+      res.type('text/html');
+      res.status(response.status);
+      res.send(response.data);
+    } catch (error) {
+      console.error('Error fetching dashboard URL:', error);
+      res.status(500).send('Error fetching dashboard URL');
+    }
+
+    return;
+  }
+
+  next();
+});
+
+app.use('/dashboard', createProxyMiddleware(proxyWsOpts(dashboardUrl)));
+
+// Add in handler for har file requests
+app.use(har.harProxy(harData, harFolder));
+
+const server = https.createServer(options, app);
+const appServer = server.listen(PORT);
+
+console.log(`Running Dashboard web server on port ${ PORT }`); // eslint-disable-line no-console
+
+appServer.on('upgrade', (req, socket, head) => {
+  const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
+
+  socket.write(`${ responseHeaders.join('\r\n') }\r\n\r\n`);
+});
+
+// ===============================================================================================
+// Functions for the request proxying used in dev
+// ===============================================================================================
+
+function proxyOpts(target) {
+  return {
+    target,
+    secure:       !devPorts,
+    ws:           false,
+    changeOrigin: true,
+    onProxyReq,
+    onProxyReqWs,
+    onError,
+    onProxyRes,
+  };
+}
+
+function onProxyRes(proxyRes, req, res) {
+  if (devPorts) {
+    proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
+  }
+}
+
+function proxyWsOpts(target) {
+  return {
+    ...proxyOpts(target),
+    ws:           false,
+    changeOrigin: true,
+    secure:       false,
+  };
+}
+
+function onProxyReq(proxyReq, req) {
+  if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
+    proxyReq.setHeader('x-api-host', req.headers['host']);
+    proxyReq.setHeader('x-forwarded-proto', 'https');
+    // console.log(proxyReq.getHeaders());
+  }
+}
+
+function onProxyReqWs(proxyReq, req, socket, options, head) {
+  req.headers.origin = options.target.href;
+  proxyReq.setHeader('origin', `${ options.target.href }/`);
+  proxyReq.setHeader('x-api-host', req.headers['host']);
+  proxyReq.setHeader('x-forwarded-proto', 'https');
+
+  socket.on('error', (err) => {
+    console.error('Proxy WS Error:', err); // eslint-disable-line no-console
+  });
+}
+
+function onError(err, req, res) {
+  res.statusCode = 598;
+  console.error('Proxy Error:', err); // eslint-disable-line no-console
+  res.write(JSON.stringify(err));
+}

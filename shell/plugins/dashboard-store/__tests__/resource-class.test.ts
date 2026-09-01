@@ -1,0 +1,921 @@
+import jsyaml from 'js-yaml';
+import Resource from '@shell/plugins/dashboard-store/resource-class.js';
+import { resourceClassJunkObject } from '@shell/plugins/dashboard-store/__tests__/utils/store-mocks';
+import { EVENT } from '@shell/config/types';
+
+jest.mock('@shell/config/version', () => ({ getVersionData: () => ({ Version: 'v2.13.0' }) }));
+jest.mock('@shell/config/uiplugins', () => ({ parseRancherVersion: (v: string) => v }));
+jest.mock('@shell/core/plugin-helpers', () => ({ getApplicableExtensionEnhancements: () => [] }));
+
+describe('class: Resource', () => {
+  describe('given custom resource keys', () => {
+    const customResource = resourceClassJunkObject;
+
+    it('should keep internal keys', () => {
+      const resource = new Resource(customResource, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      expect({ ...resource }).toStrictEqual(customResource);
+    });
+
+    describe('method: save', () => {
+      it('should remove all the internal keys', async() => {
+        const dispatch = jest.fn();
+        const resource = new Resource(customResource, {
+          getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+          dispatch,
+          rootGetters: { 'i18n/t': jest.fn() },
+        });
+
+        const expectation = { type: customResource.type };
+
+        await resource.save();
+
+        const opt = {
+          data:    expectation,
+          headers: {
+            accept:         'application/json',
+            'content-type': 'application/json',
+          },
+          method: 'post',
+          url:    undefined,
+        };
+
+        // Data sent should have been cleaned
+        expect(dispatch).toHaveBeenCalledWith('request', { opt, type: customResource.type });
+
+        // Original workload model should remain unchanged
+        expect({ ...resource }).toStrictEqual(customResource);
+      });
+    });
+  });
+
+  describe('method: _saveYaml', () => {
+    let mockStore: any;
+    let resourceInstance: any;
+
+    beforeEach(() => {
+      mockStore = {
+        dispatch: jest.fn((action, payload) => {
+          if (action.endsWith('/cleanForDiff')) {
+            return Promise.resolve(payload);
+          }
+
+          return Promise.resolve();
+        }),
+        rootGetters: {
+          currentStore:     jest.fn(() => 'testStore'),
+          'testStore/byId': jest.fn((type, id) => {
+            if (type === 'testType' && id === 'test-id-conflict-unresolved') {
+              return {
+                id:       'test-id-conflict-unresolved',
+                type:     'testType',
+                metadata: {
+                  namespace: 'aaa', resourceVersion: 2, name: 'test-id-conflict-unresolved'
+                },
+                spec: { replicas: 5 },
+              };
+            }
+            if (type === 'testType' && id === 'test-id-auto-resolve') {
+              return {
+                id:       'test-id-auto-resolve',
+                type:     'testType',
+                metadata: {
+                  namespace: 'aaa', resourceVersion: 2, name: 'test-id-auto-resolve', owner: 'admin'
+                },
+                spec: { replicas: 3, labels: { env: 'dev' } },
+              };
+            }
+            if (id) {
+              return {
+                id,
+                type,
+                metadata: {
+                  namespace: 'aaa', resourceVersion: '5', name: id
+                },
+              };
+            }
+
+            return null;
+          }),
+        },
+        getters: {
+          'i18n/t':         jest.fn((key, params) => ` ${ key } - ${ JSON.stringify(params) }`),
+          currentStore:     jest.fn(() => 'testStore'),
+          'testStore/byId': jest.fn((type, id) => {
+            if (id) {
+              return {
+                id,
+                type,
+              };
+            }
+
+            return null;
+          }),
+          schemaFor: jest.fn((type) => {
+            if (type === 'testType' || type === 'namespaced-type') {
+              return { attributes: { namespaced: true } };
+            }
+
+            return null;
+          }),
+        },
+      };
+
+      resourceInstance = new Resource({
+        id:   'default-id',
+        type: 'default-type',
+      }, mockStore);
+
+      jest.spyOn(resourceInstance, 'followLink').mockImplementation();
+    });
+
+    it('should successfully perform a PUT operation and dispatch load', async() => {
+      const initialYaml = jsyaml.dump({
+        metadata: {
+          namespace: 'aaa', name: 'my-resource', resourceVersion: 1
+        },
+        spec: { replicas: 3 }
+      });
+      const updatedYaml = jsyaml.dump({
+        metadata: {
+          namespace: 'aaa', name: 'my-resource', resourceVersion: 1
+        },
+      });
+      const expectedResponseData = {
+        id:       'test-id',
+        type:     'testType',
+        metadata: {
+          namespace: 'aaa', name: 'my-resource', resourceVersion: 3
+        },
+      };
+
+      resourceInstance.followLink.mockResolvedValueOnce(expectedResponseData);
+
+      await resourceInstance._saveYaml(updatedYaml, initialYaml);
+
+      expect(resourceInstance.followLink).toHaveBeenCalledTimes(1);
+      expect(resourceInstance.followLink).toHaveBeenCalledWith('update', {
+        method:  'PUT',
+        headers: {
+          'content-type': 'application/yaml',
+          accept:         'application/json',
+        },
+        data: updatedYaml
+      });
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith('load', {
+        data:     expectedResponseData,
+        existing: undefined
+      });
+    });
+
+    it('should restore metadata.resourceVersion on update when the edit YAML omits it', async() => {
+      // While editing, server-managed metadata (incl. resourceVersion) is hidden from the YAML. It must
+      // be restored before saving or a norman-managed resource rejects the update with a 500
+      // ("metadata.resourceVersion is required for update"). uid/generation/etc. are NOT restored (the
+      // server ignores/repopulates them).
+      const instance = new Resource({
+        id:       'default-id',
+        type:     'default-type',
+        metadata: {
+          namespace: 'aaa', name: 'my-resource', resourceVersion: 42
+        },
+      }, mockStore);
+
+      jest.spyOn(instance, 'followLink').mockResolvedValueOnce({ id: 'test-id', type: 'testType' });
+
+      // The stripped edit YAML has NO resourceVersion (it was hidden while editing).
+      const strippedYaml = jsyaml.dump({
+        metadata: { namespace: 'aaa', name: 'my-resource' },
+        spec:     { replicas: 3 },
+      });
+
+      await instance._saveYaml(strippedYaml);
+
+      expect(instance.followLink).toHaveBeenCalledTimes(1);
+      // The PUT payload must carry the restored resourceVersion (jsyaml.dump renders it as `resourceVersion: 42`).
+      expect(instance.followLink).toHaveBeenCalledWith('update', expect.objectContaining({
+        method: 'PUT',
+        data:   expect.stringContaining('resourceVersion: 42'),
+      }));
+    });
+
+    it('should resolve 409 conflict automatically and re-save if no actual conflicts', async() => {
+      resourceInstance.id = 'test-id-auto-resolve';
+      resourceInstance.type = 'testType';
+
+      const initialYamlAutoResolve = jsyaml.dump({ metadata: { name: 'test-id-auto-resolve', resourceVersion: 1 } });
+      const userYamlAutoResolve = jsyaml.dump({
+        metadata: {
+          namespace: 'aaa', name: 'test-id-auto-resolve', resourceVersion: 1
+        },
+      });
+
+      resourceInstance.followLink.mockRejectedValueOnce({
+        status:   409,
+        response: { text: () => Promise.resolve('Conflict: Resource changed in background') }
+      });
+
+      const finalExpectedResponseAutoResolve = {
+        id:       'test-id-auto-resolve',
+        type:     'testType',
+        metadata: {
+          namespace: 'aaa', name: 'test-id-auto-resolve', resourceVersion: 'final-v3', owner: 'admin'
+        },
+      };
+
+      resourceInstance.followLink.mockResolvedValueOnce(finalExpectedResponseAutoResolve);
+
+      await resourceInstance._saveYaml(userYamlAutoResolve, initialYamlAutoResolve);
+
+      expect(resourceInstance.followLink).toHaveBeenCalledTimes(2);
+
+      expect(resourceInstance.followLink).toHaveBeenCalledWith('update', {
+        method:  'PUT',
+        headers: expect.any(Object),
+        data:    userYamlAutoResolve
+      });
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith('load', {
+        data:     finalExpectedResponseAutoResolve,
+        existing: undefined
+      });
+    });
+
+    it('should throw error on 409 conflict if handleConflict returns errors', async() => {
+      resourceInstance.id = 'test-id-conflict-unresolved';
+      resourceInstance.type = 'testType';
+
+      const initialYaml = jsyaml.dump({
+        metadata: {
+          namespace: 'aaa', name: 'test-id-conflict-unresolved', resourceVersion: 1
+        },
+      });
+      const userYaml = jsyaml.dump({
+        metadata: {
+          namespace: 'aaa', name: 'test-id-conflict-unresolved', resourceVersion: 1
+        },
+        spec: { replicas: 4 }
+      });
+
+      resourceInstance.followLink.mockRejectedValueOnce({
+        _status:  409,
+        response: { text: () => Promise.resolve('Conflict: Replicas changed') }
+      });
+
+      await expect(resourceInstance._saveYaml(userYaml, initialYaml)).rejects.toBeDefined();
+
+      expect(resourceInstance.followLink).toHaveBeenCalledTimes(1);
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith('load', expect.any(Object));
+    });
+  });
+
+  describe('getter: resourceConditions', () => {
+    it('should return empty array when status.conditions is undefined', () => {
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      expect(resource.resourceConditions).toStrictEqual([]);
+    });
+
+    it('should return empty array when status is undefined', () => {
+      const resource = new Resource({ type: 'test', status: {} }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      expect(resource.resourceConditions).toStrictEqual([]);
+    });
+
+    it('should map conditions correctly', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            {
+              type: 'Ready', status: 'True', message: 'Resource is ready', lastTransitionTime: '2024-01-01T00:00:00Z'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions).toHaveLength(1);
+      expect(conditions[0].condition).toBe('Ready');
+      expect(conditions[0].status).toBe('True');
+      expect(conditions[0].message).toBe('Resource is ready');
+      expect(conditions[0].stateSimpleColor).toBe('disabled');
+      expect(conditions[0].time).toBe('2024-01-01T00:00:00Z');
+    });
+
+    it('should set error color when condition has error', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            {
+              type: 'Ready', status: 'False', error: true, message: 'Something failed'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions[0].stateSimpleColor).toBe('error');
+      expect(conditions[0].error).toBe(true);
+    });
+
+    it('should prepend reason to message when present', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            {
+              type: 'Ready', status: 'False', reason: 'MinimumReplicasUnavailable', message: 'Deployment does not have minimum availability.'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions[0].message).toBe('[MinimumReplicasUnavailable] Deployment does not have minimum availability.');
+    });
+
+    it('should use Unknown for missing type and status', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            { message: 'Some message' },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions[0].condition).toBe('Unknown');
+      expect(conditions[0].status).toBe('Unknown');
+    });
+
+    it('should prioritize time fields correctly', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            {
+              type: 'Test', lastProbeTime: 'probe-time', lastUpdateTime: 'update-time', lastTransitionTime: 'transition-time'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions[0].time).toBe('probe-time');
+    });
+  });
+
+  describe('getter: resourceEvents', () => {
+    it('should return events from the store', () => {
+      const mockEvents = [{ type: 'Normal', reason: 'Test' }];
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn(), 'cluster/all': (type: string) => (type === EVENT ? mockEvents : []) },
+      });
+
+      expect(resource.resourceEvents).toStrictEqual(mockEvents);
+    });
+  });
+
+  describe('getter: cards', () => {
+    it('should return an array containing the insight card', () => {
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':      (key: string) => key,
+          'cluster/all': () => []
+        },
+      });
+
+      const cards = resource.cards;
+
+      expect(cards).toHaveLength(0);
+    });
+
+    it('should include the resources card when relationships exist', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'uses', toType: 'svc', toId: 'a'
+            },
+            {
+              rel: 'uses', fromType: 'pod', fromId: 'b'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':      (key: string) => key,
+          'cluster/all': () => []
+        },
+      });
+
+      const cards = resource.cards;
+
+      expect(cards).toHaveLength(1);
+      expect(cards[0].props.title).toBe('component.resource.detail.card.resourcesCard.title');
+    });
+  });
+
+  describe('getter: resourcesCard', () => {
+    it('should return null when there are no relationships', () => {
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      expect(resource.resourcesCard).toBeNull();
+    });
+
+    it('should return rows for both referredToBy and refersTo when relationships exist in both directions', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'owner', fromType: 'rs', fromId: 'r-1'
+            },
+            {
+              rel: 'uses', toType: 'svc', toId: 's-1'
+            },
+            {
+              rel: 'uses', toType: 'svc', toId: 's-2'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      const rows = resource.resourcesCardRows;
+
+      expect(rows).toHaveLength(2);
+      expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.referredToBy');
+      expect(rows[0].counts[0].count).toBe(1);
+      expect(rows[1].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
+      expect(rows[1].counts[0].count).toBe(2);
+    });
+
+    it('should omit a direction with no relationships', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'uses', toType: 'svc', toId: 's-1'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      const rows = resource.resourcesCardRows;
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
+    });
+  });
+
+  describe('getter: insightCardProps', () => {
+    it('should return props with title and rows', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            { type: 'Ready', status: 'True' }
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':      (key: string) => key,
+          'cluster/all': () => []
+        },
+      });
+
+      const props = resource.insightCardProps;
+
+      expect(props.title).toBe('component.resource.detail.card.insightsCard.title');
+      expect(props.rows).toHaveLength(2);
+      expect(props.rows[0].label).toBe('component.resource.detail.card.insightsCard.rows.conditions');
+      expect(props.rows[1].label).toBe('component.resource.detail.card.insightsCard.rows.events');
+    });
+  });
+
+  describe('getter: _glance', () => {
+    it('should not throw when currentCluster or currentProduct is undefined', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: { creationTimestamp: '2024-01-01T00:00:00Z' }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootState:   { $extension: { getPlugins: () => ({}) } },
+        rootGetters: {
+          'i18n/t':            (key: string) => key,
+          currentCluster:      undefined,
+          currentProduct:      undefined,
+          'type-map/labelFor': () => 'Test',
+        },
+      });
+
+      expect(() => resource._glance).not.toThrow();
+
+      const glance = resource._glance;
+      const namespaceItem = glance.find((item: any) => item.name === 'namespace');
+
+      expect(namespaceItem.formatter).toBeUndefined();
+      expect(namespaceItem.formatterOpts.to.cluster).toBeUndefined();
+      expect(namespaceItem.formatterOpts.to.product).toBeUndefined();
+    });
+  });
+
+  describe('getter: detailPageAdditionalActions', () => {
+    it('should return undefined by default', () => {
+      const resource = new Resource({ type: 'test-type' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      expect(resource.detailPageAdditionalActions).toBeUndefined();
+    });
+
+    it('should allow subclasses to override and return button props array', () => {
+      class CustomResource extends Resource {
+        get detailPageAdditionalActions() {
+          return [
+            {
+              label: 'Action 1', variant: 'secondary', onClick: () => {}
+            },
+            {
+              label: 'Action 2', variant: 'primary', onClick: () => {}
+            }
+          ];
+        }
+      }
+
+      const resource = new CustomResource({ type: 'test-type' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const actions = resource.detailPageAdditionalActions;
+
+      expect(Array.isArray(actions)).toBe(true);
+      expect(actions).toHaveLength(2);
+      expect(actions[0].label).toBe('Action 1');
+      expect(actions[0].variant).toBe('secondary');
+      expect(actions[1].label).toBe('Action 2');
+      expect(actions[1].variant).toBe('primary');
+    });
+  });
+
+  describe('getter: _availableActions', () => {
+    function createResource(links: Record<string, string>, overrides: Record<string, any> = {}) {
+      const resource = new Resource({
+        type: 'test-type',
+        links,
+        ...overrides,
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:           jest.fn(),
+            resourceMethods:   [],
+            collectionMethods: [],
+          }),
+        },
+        dispatch:    jest.fn(),
+        rootState:   { $extension: { getPlugins: () => ({}) } },
+        rootGetters: {
+          'i18n/t':                 (key: string) => key,
+          'type-map/hasCustomEdit': () => false,
+          'type-map/optionsFor':    () => ({
+            isEditable: false, isRemovable: true, isCreatable: false
+          }),
+          'prefs/get':    () => false,
+          currentCluster: undefined,
+          currentProduct: undefined,
+          ...overrides.rootGetters,
+        },
+      });
+
+      jest.spyOn(resource, 'currentRouter').mockReturnValue({ currentRoute: { value: {} } } as any);
+
+      return resource;
+    }
+
+    function findAction(actions: any[], actionName: string) {
+      return actions.find((a: any) => a.action === actionName);
+    }
+
+    it('should hide "View YAML" when "Show Configuration" is enabled and resource cannot edit YAML', () => {
+      const resource = createResource({ view: '/api/v1/test' });
+
+      const actions = resource._availableActions;
+      const viewYaml = findAction(actions, 'goToViewYaml');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(viewYaml.enabled).toBe(false);
+    });
+
+    it('should show "Edit YAML" even when "Show Configuration" is enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test', update: '/api/v1/test' },
+        {
+          rootGetters: {
+            'type-map/optionsFor': () => ({
+              isEditable: true, isRemovable: true, isCreatable: false
+            })
+          }
+        },
+      );
+
+      const actions = resource._availableActions;
+      const editYaml = findAction(actions, 'goToEditYaml');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(editYaml.enabled).toBe(true);
+    });
+
+    it('should show "View YAML" when "Show Configuration" is not enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test' },
+        { disableResourceDetailDrawer: true },
+      );
+
+      const actions = resource._availableActions;
+      const viewYaml = findAction(actions, 'goToViewYaml');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(false);
+      expect(viewYaml.enabled).toBe(true);
+    });
+  });
+
+  describe('method: dryRunCreate', () => {
+    const collectionUrl = '/v1/test.resources';
+
+    it('should dispatch a request with dryRun=All query param', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const resource = new Resource({
+        type:     'test.resource',
+        metadata: {
+          name:      'my-resource',
+          namespace: 'my-ns',
+        },
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:    (link: string) => (link === 'collection' ? collectionUrl : ''),
+            attributes: { namespaced: true },
+          })
+        },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      await resource.dryRunCreate();
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt: expect.objectContaining({
+          method: 'post',
+          url:    `${ collectionUrl }/my-ns?dryRun=All`,
+        }),
+        type: 'test.resource'
+      });
+    });
+
+    it('should use provided data instead of resource state when given', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const resource = new Resource({
+        type:     'test.resource',
+        metadata: { name: 'original', namespace: 'ns' },
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:    () => collectionUrl,
+            attributes: { namespaced: true },
+          })
+        },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const customData = {
+        type:     'test.resource',
+        metadata: { name: 'custom' },
+        spec:     {}
+      };
+
+      await resource.dryRunCreate(customData);
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt:  expect.objectContaining({ data: customData }),
+        type: 'test.resource'
+      });
+    });
+
+    it('should propagate API errors', async() => {
+      const apiError = { _status: 409, message: 'already exists' };
+      const dispatch = jest.fn().mockRejectedValue(apiError);
+      const resource = new Resource({
+        type:     'test.resource',
+        metadata: { name: 'dup', namespace: 'ns' },
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:    () => collectionUrl,
+            attributes: { namespaced: true },
+          })
+        },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      await expect(resource.dryRunCreate()).rejects.toStrictEqual(apiError);
+    });
+  });
+
+  describe('getter: modelValidationRules', () => {
+    it('should pass translationKey to formRulesGenerator as "key" option', () => {
+      const mockT = (key: string, args?: any) => {
+        if (args) {
+          return JSON.stringify({ message: key, ...args });
+        }
+
+        return key;
+      };
+      const resource = new Resource({ type: 'test.resource' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': mockT, 'i18n/exists': () => true },
+      });
+
+      jest.spyOn(resource, 'customValidationRules', 'get').mockReturnValue([{
+        path:           'metadata.name',
+        required:       true,
+        translationKey: 'generic.name',
+      }]);
+
+      const rules = resource.modelValidationRules;
+
+      expect(rules).toHaveLength(1);
+      expect(rules[0].path).toStrictEqual('metadata.name');
+
+      // The 'required' rule should use the translated key, not "Value"
+      const requiredRule = rules[0].rules[0];
+      const result = requiredRule(null);
+
+      expect(result).toStrictEqual(JSON.stringify({ message: 'validation.required', key: 'generic.name' }));
+    });
+
+    it('should default to "Value" when translationKey is not provided', () => {
+      const mockT = (key: string, args?: any) => {
+        if (args) {
+          return JSON.stringify({ message: key, ...args });
+        }
+
+        return key;
+      };
+      const resource = new Resource({ type: 'test.resource' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': mockT, 'i18n/exists': () => true },
+      });
+
+      jest.spyOn(resource, 'customValidationRules', 'get').mockReturnValue([{
+        path:     'metadata.name',
+        required: true,
+      }]);
+
+      const rules = resource.modelValidationRules;
+      const requiredRule = rules[0].rules[0];
+      const result = requiredRule(null);
+
+      expect(result).toStrictEqual(JSON.stringify({ message: 'validation.required', key: 'Value' }));
+    });
+  });
+
+  describe('getters: $plugin and $extension', () => {
+    const makeResource = (rootState: any) => new Resource({ type: 'test.resource' }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootState,
+      rootGetters: { 'i18n/t': jest.fn() },
+    });
+
+    it('should resolve the extension manager from rootState.$extension', () => {
+      const manager = { getPlugins: () => ({}) };
+      const resource = makeResource({ $extension: manager });
+
+      expect(resource.$extension).toBe(manager);
+      expect(resource.$plugin).toBe(manager);
+    });
+
+    it('should fall back to rootState.$plugin, which is all older Rancher versions set', () => {
+      const manager = { getPlugins: () => ({}) };
+      const resource = makeResource({ $plugin: manager });
+
+      expect(resource.$extension).toBe(manager);
+      expect(resource.$plugin).toBe(manager);
+    });
+
+    it('should prefer rootState.$extension when both are set', () => {
+      const manager = { getPlugins: () => ({}) };
+      const legacyManager = { getPlugins: () => ({}) };
+      const resource = makeResource({ $extension: manager, $plugin: legacyManager });
+
+      expect(resource.$extension).toBe(manager);
+      expect(resource.$plugin).toBe(manager);
+    });
+
+    it('should be undefined when neither is set', () => {
+      const resource = makeResource({});
+
+      expect(resource.$extension).toBeUndefined();
+      expect(resource.$plugin).toBeUndefined();
+    });
+  });
+
+  describe('getter: isProdRegistrationV2TopLevelProductResoure', () => {
+    const makeResource = (rootState: any) => new Resource({ type: 'test.resource' }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootState,
+      rootGetters: {
+        'i18n/t':  jest.fn(),
+        productId: 'some-product',
+      },
+    });
+
+    it('should not throw on an older Rancher that only sets rootState.$plugin', () => {
+      const resource = makeResource({ $plugin: { getPlugins: () => ({ somePlugin: { productNames: [] } }) } });
+
+      expect(resource.isProdRegistrationV2TopLevelProductResoure).toBe(false);
+    });
+
+    it('should be true when the matching plugin is registered as a top level product', () => {
+      const resource = makeResource({ $extension: { getPlugins: () => ({ somePlugin: { productNames: ['some-product'], topLevelProduct: true } }) } });
+
+      expect(resource.isProdRegistrationV2TopLevelProductResoure).toBe(true);
+    });
+  });
+});

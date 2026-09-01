@@ -1,0 +1,530 @@
+import { FleetApplicationCreatePo, FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
+import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
+import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
+import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import * as path from 'path';
+import * as jsyaml from 'js-yaml';
+import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+const downloadsFolder = Cypress.config('downloadsFolder');
+
+const fakeProvClusterId = 'some-fake-cluster-id';
+const fakeMgmtClusterId = 'some-fake-mgmt-id';
+
+const repoInfo = {
+  repoUrl: 'https://github.com/rancher/fleet-examples.git',
+  branch:  'master',
+  paths:   'simple'
+};
+
+const workspace = 'fleet-default';
+let editRepoName: string | null = null;
+let adminUserId = '';
+
+const reposToDelete: string[] = [];
+
+describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
+  const listPage = new FleetApplicationListPagePo();
+  const headerPo = new HeaderPo();
+  const createPage = new FleetApplicationCreatePo();
+
+  before(() => {
+    cy.login();
+    // create gitrepo
+    cy.createE2EResourceName('git-repo').as('gitRepo');
+    cy.get<string>('@gitRepo').then((name) => {
+      editRepoName = name;
+      cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, name, repoInfo.repoUrl, repoInfo.branch, repoInfo.paths)).then(() => {
+        reposToDelete.push(`${ workspace }/${ name }`);
+      });
+    });
+  });
+
+  describe('Create', () => {
+    const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
+
+    beforeEach(() => {
+      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+        adminUserId = resp.body.status.userID;
+      });
+
+      cy.createE2EResourceName('git-repo').as('gitRepo');
+    });
+
+    it('Can create a GitRepo', () => {
+      // Make this test retry-independent: with testIsolation off, a failed attempt leaves the
+      // gitrepo it created behind, so the retry's create fails with "... already exists" and never
+      // gets a real chance to pass. Delete it first if present (failOnStatusCode: false tolerates
+      // the not-found case on a clean first run).
+      cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', `${ workspace }/${ gitRepoCreateRequest.metadata.name }`, false);
+
+      // generate a fake cluster that can be usable in fleet
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
+
+      cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
+      cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
+
+      // Select the workspace from the list page before navigating to create.
+      listPage.goTo();
+      listPage.waitForPage();
+      // Wait for the fleet list to finish loading before touching the header: while the list data
+      // is still loading the page re-renders and the workspace switcher can detach mid-render, so a
+      // default-timeout toggle click would fail to find it. Gate on the loaded list first, and give
+      // the switcher a longer visibility wait since it renders only after the data settles.
+      listPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      headerPo.workspaceSwitcher().checkVisible(LONG_TIMEOUT_OPT);
+      headerPo.selectWorkspace(workspace);
+      listPage.create();
+      createPage.createGitRepo();
+
+      gitRepoCreatePage.waitForPage();
+
+      const { name } = gitRepoCreateRequest.metadata;
+      const {
+        repo, branch, paths, helmRepoURLRegex
+      } = gitRepoCreateRequest.spec;
+
+      // Metadata step
+      gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
+        .name()
+        .set(name);
+      gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+      // Repository details step - wait for the step to finish rendering before filling it, so a
+      // slow wizard transition does not flake the first field lookup.
+      LabeledInputPo.byLabel(cy.get('body'), 'Repository URL', LONG_TIMEOUT_OPT).checkVisible();
+      gitRepoCreatePage.setGitRepoUrl(repo);
+      gitRepoCreatePage.setBranchName(branch);
+      gitRepoCreatePage.setGitRepoPath(paths[0]);
+
+      gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+      // Target selection step
+      gitRepoCreatePage.targetClusterOptions().set(1);
+      // The "Manually selected clusters" option only renders once the async fleet-cluster
+      // data has loaded; wait for it before selecting to avoid flaking on slow fetches.
+      gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
+      gitRepoCreatePage.targetClusterOptions().set(2);
+      gitRepoCreatePage.targetCluster().toggle();
+      gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
+
+      gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+      // Wait for secrets fetch to initialize Secret selectors
+      cy.wait('@getSecretsInitialLoad').its('response.statusCode').should('eq', 200);
+
+      // Advanced info step
+      gitRepoCreatePage.gitAuthSelectOrCreate().createSSHAuth('test1', 'test1', 'KNOWN_HOSTS');
+      gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
+      gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
+      // #Percy tests
+      gitRepoCreatePage.displaySelfHealingInformationMessage();
+
+      cy.percySnapshot('Self-Healing test');
+      gitRepoCreatePage.displayAlwaysKeepInformationMessage();
+
+      cy.percySnapshot('Always Keep Resource test');
+      gitRepoCreatePage.displayPollingInvervalTimeInformationMessage();
+
+      cy.percySnapshot('Polling Interval test');
+      gitRepoCreatePage.setPollingInterval(13);
+
+      cy.wait('@getSecrets', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+
+      gitRepoCreatePage.resourceDetail().createEditView().create()
+        .then(() => {
+          reposToDelete.push(`${ workspace }/${ name }`);
+        });
+
+      let gitSecretName = '';
+      let helmSecretName = '';
+
+      // Intercept 2nd interceptSecret call - Git SSH secret creation, see https://docs.cypress.io/api/commands/intercept#Interception-lifecycle
+      cy.wait('@interceptSecret').then(({ request, response }) => {
+        gitSecretName = response.body.metadata.name;
+
+        expect(request.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+        expect(response.statusCode).to.eq(201);
+        expect(gitSecretName).not.to.eq('');
+        expect(response.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+      });
+
+      // Intercept 1st interceptSecret call - Helm secret creation see https://docs.cypress.io/api/commands/intercept#Interception-lifecycle
+      cy.wait('@interceptSecret').then(({ request, response }) => {
+        helmSecretName = response.body.metadata.name;
+
+        expect(request.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+        expect(response.statusCode).to.eq(201);
+        expect(helmSecretName).not.to.eq('');
+        expect(response.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+      });
+
+      cy.wait('@interceptGitRepo').then(({ request, response }) => {
+        gitRepoCreateRequest.metadata.namespace = workspace;
+        gitRepoCreateRequest.metadata.labels['fleet.cattle.io/created-by-user-id'] = adminUserId;
+        gitRepoCreateRequest.spec.helmSecretName = helmSecretName;
+        gitRepoCreateRequest.spec.clientSecretName = gitSecretName; // Git SSH credentials
+        gitRepoCreateRequest.spec.pollingInterval = '13s';
+
+        expect(response.statusCode).to.eq(201);
+        expect(request.body).to.deep.eq(gitRepoCreateRequest);
+      });
+    });
+
+    it('Can create a GitRepo with GitHub App git authentication', () => {
+      // generate a fake cluster that can be usable in fleet
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
+
+      cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
+
+      const appId = '12345';
+      const installationId = '67890';
+      const privateKey = '-----BEGIN RSA PRIVATE KEY-----\nFAKEKEYCONTENT\n-----END RSA PRIVATE KEY-----';
+
+      // Select the workspace from the list page before navigating to create
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
+      gitRepoCreatePage.goTo();
+      gitRepoCreatePage.waitForPage();
+
+      // Use a unique name for this create: the shared '@gitRepo' name is already
+      // created by the `before()` hook, and the new dryRunCreate step validation
+      // would reject it with a 409 (name already exists), blocking navigation.
+      cy.createE2EResourceName('git-repo-github-app').then((name) => {
+        // Metadata step
+        gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
+          .name()
+          .set(name);
+        gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+        // Repository details step
+        gitRepoCreatePage.setGitRepoUrl(repoInfo.repoUrl);
+        gitRepoCreatePage.setBranchName(repoInfo.branch);
+        gitRepoCreatePage.setGitRepoPath(repoInfo.paths);
+        gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+        // Target selection step
+        gitRepoCreatePage.targetClusterOptions().set(1);
+        // The "Manually selected clusters" option only renders once the async fleet-cluster
+        // data has loaded; wait for it before selecting to avoid flaking on slow fetches.
+        gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
+        gitRepoCreatePage.targetClusterOptions().set(2);
+        gitRepoCreatePage.targetCluster().toggle();
+        gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
+        gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+        // Wait for secrets fetch to initialize Secret selectors
+        cy.wait('@getSecretsInitialLoad').its('response.statusCode').should('eq', 200);
+
+        // Advanced step - create a GitHub App secret for the git authentication
+        gitRepoCreatePage.gitAuthSelectOrCreate().createGitHubAppAuth(appId, installationId, privateKey);
+
+        gitRepoCreatePage.resourceDetail().createEditView().create()
+          .then(() => {
+            reposToDelete.push(`${ workspace }/${ name }`);
+          });
+
+        // Only the git GitHub App secret should be created (helm auth left as None)
+        cy.wait('@interceptSecret').then(({ request, response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(request.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+          expect(request.body.data).to.have.property('github_app_id', btoa(appId));
+          expect(request.body.data).to.have.property('github_app_installation_id', btoa(installationId));
+          expect(request.body.data).to.have.property('github_app_private_key', btoa(privateKey));
+        });
+      });
+    });
+
+    it('check table headers are available in list and details view', { tags: ['@adminUser'] }, function() {
+      // go to fleet gitrepo
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
+      // check table headers
+      const expectedHeadersListView = ['State', 'Name', 'Type', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
+
+      listPage.list().resourceTable().sortableTable()
+        .tableHeaderRow()
+        .within('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeadersListView[i]);
+        });
+
+      // go to fleet gitrepo details
+      listPage.goToDetailsPage(this.gitRepo);
+
+      const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+
+      gitRepoDetails.waitForPage(null, 'bundles');
+
+      // check table headers
+      const expectedHeadersDetailsView = ['State', 'Name', 'Deployments', 'Last Updated', 'Date'];
+
+      gitRepoDetails.bundlesList().sortableTable()
+        .tableHeaderRow()
+        .within('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
+        });
+    });
+
+    it('check all tabs are available in the details view', function() {
+      // testing https://github.com/rancher/dashboard/issues/11155
+
+      const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+      listPage.goToDetailsPage(this.gitRepo);
+      gitRepoDetails.waitForPage(null, 'bundles');
+      gitRepoDetails.gitRepoTabs().allTabs().should('have.length', 4, { timeout: 10000 });
+      const tabs = ['Bundles', 'Resources', 'Conditions', 'Recent Events'];
+
+      gitRepoDetails.gitRepoTabs().tabNames().each((el, i) => {
+        expect(el).to.include(tabs[i]);
+      });
+    });
+
+    // disabling test until it can be updated to account for a fleet change:
+    //   - This test creates repos in the fleet-local workspace to test bundles in the upstream cluster
+    //   - These bundles never successfully deployed given the fleet-agent failed to deploy (given the server-url in tests is localhost)
+    //   - They passed before because fleet reported gitrepo status.resources for bundles that failed to deploy, now it does not and the test fails
+    // testing https://github.com/rancher/dashboard/issues/9866
+    // it('in git repo details view we should display the correct bundle count', () => {
+    //   const basicRepos = [
+    //     {
+    //       name:   'e2e-git-repo1-test-bundle-count',
+    //       repo:   'https://github.com/rancher/fleet-examples.git',
+    //       branch: 'master',
+    //       path:   'simple'
+    //     },
+    //     {
+    //       name:   'e2e-git-repo2-test-bundle-count',
+    //       repo:   'https://github.com/rancher/fleet-examples.git',
+    //       branch: 'master',
+    //       path:   'single-cluster/helm'
+    //     }
+    //   ];
+    //   const workspace = 'fleet-local';
+
+    //   // generate a fake cluster that can be usable in fleet
+    //   generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+
+    //   // create first git-repo in fleet-local
+    //   cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, basicRepos[0].name, basicRepos[0].repo, basicRepos[0].branch, basicRepos[0].path)).then(() => {
+    //     reposToDelete.push(`fleet-local/${ basicRepos[0].name }`);
+    //   });
+
+    //   // create second git-repo in fleet-local
+    //   cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, basicRepos[1].name, basicRepos[1].repo, basicRepos[1].branch, basicRepos[1].path)).then(() => {
+    //     reposToDelete.push(`fleet-local/${ basicRepos[1].name }`);
+    //   });
+
+    //   // go to fleet gitrepo
+    //   gitRepoListPage.goTo();
+    //   gitRepoListPage.waitForPage();
+    //   headerPo.selectWorkspace(workspace);
+
+    //   gitRepoListPage.goToDetailsPage(basicRepos[1].name);
+
+    //   const gitRepoDetails = new FleetGitRepoDetailsPo('fleet-local', basicRepos[1].name);
+
+    //   gitRepoDetails.waitForPage();
+    //   gitRepoDetails.gitRepoTabs().clickTabWithSelector('[data-testid="bundles"]');
+    //   gitRepoDetails.bundlesCount().should('contain', '1');
+    // });
+
+    // We no longer have the button group on the detail pages but we still need to discuss where it's moving to
+    // it('check if graph is visible', function() {
+    //   const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+
+    //   listPage.goTo();
+    //   listPage.waitForPage();
+    //   headerPo.selectWorkspace(workspace);
+    //   listPage.goToDetailsPage(this.gitRepo);
+
+    //   gitRepoDetails.waitForPage(null, 'bundles');
+
+    //   gitRepoDetails.showGraph();
+    //   gitRepoDetails.graph().should('contain', this.gitRepo);
+    // });
+  });
+
+  describe('Edit', () => {
+    it('Can Clone a git repo', () => {
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
+      listPage.list().actionMenu(editRepoName).getMenuItem('Clone')
+        .click();
+
+      const gitRepoEditPage = new FleetGitRepoCreateEditPo(workspace, editRepoName);
+
+      gitRepoEditPage.waitForPage('mode=clone');
+      gitRepoEditPage.mastheadTitle().then((title) => {
+        expect(title.replace(/\s+/g, ' ')).to.contain(`App Bundle: Clone from ${ editRepoName }`);
+      });
+      gitRepoEditPage.resourceDetail().createEditView().nameNsDescription()
+        .name()
+        .set(`clone-${ editRepoName }`);
+      gitRepoEditPage.resourceDetail().createEditView().nextPage();
+      gitRepoEditPage.resourceDetail().createEditView().nextPage();
+      gitRepoEditPage.resourceDetail().createEditView().nextPage();
+      gitRepoEditPage.resourceDetail().createEditView().create();
+
+      listPage.waitForPage();
+      listPage.list().rowWithName(`clone-${ editRepoName }`).self()
+        .should('be.visible');
+
+      cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', `${ workspace }/clone-${ editRepoName }`);
+    });
+
+    it('Can Edit Yaml', () => {
+      const gitRepoEditPage = new FleetGitRepoCreateEditPo(workspace, editRepoName);
+
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
+      listPage.list().actionMenu(editRepoName).getMenuItem('Edit YAML')
+        .click();
+
+      gitRepoEditPage.waitForPage(`mode=edit&as=yaml`);
+      gitRepoEditPage.mastheadTitle().then((title) => {
+        expect(title.replace(/\s+/g, ' ')).to.contain(`App Bundle: ${ editRepoName }`);
+      });
+    });
+
+    it('Can Download Yaml', () => {
+      cy.deleteDownloadsFolder();
+
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
+      listPage.list().actionMenu(editRepoName).getMenuItem('Download YAML')
+        .click();
+
+      const downloadedFilename = path.join(downloadsFolder, `${ editRepoName }.yaml`);
+
+      cy.readFile(downloadedFilename).then((buffer) => {
+        const obj: any = jsyaml.load(buffer);
+
+        // Basic checks on the downloaded YAML
+        expect(obj.kind).to.equal('GitRepo');
+        expect(obj.metadata['name']).to.equal(editRepoName);
+        expect(obj.metadata['namespace']).to.equal(workspace);
+        expect(obj.spec['repo']).to.equal(repoInfo.repoUrl);
+      });
+    });
+
+    it('Can Edit Config', () => {
+      const gitRepoEditPage = new FleetGitRepoCreateEditPo(workspace, editRepoName);
+      const description = `${ editRepoName }-desc`;
+
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
+      listPage.list().actionMenu(editRepoName).getMenuItem('Edit Config')
+        .click();
+
+      gitRepoEditPage.waitForPage('mode=edit');
+      gitRepoEditPage.resourceDetail().createEditView().nameNsDescription()
+        .description()
+        .set(description);
+      gitRepoEditPage.resourceDetail().createEditView().nextPage();
+      gitRepoEditPage.resourceDetail().createEditView().save();
+    });
+  });
+
+  describe('Details in a non-English locale (https://github.com/rancher/dashboard/issues/9984)', () => {
+    afterEach(() => {
+      // Reset the locale back to English AFTER the UI switch, via the API - the backend preference
+      // persists across specs and runs, so a left-over Chinese locale would poison later tests. Do it
+      // with no concurrent UI write in flight: the resourceVersion conflict ("the object has been
+      // modified ... apply your changes to the latest version" -> HTTP 500 -> fail-whale) only occurs
+      // when this programmatic reset races the test's own UI locale save immediately before it - a
+      // test-only sequence a real user would not hit, so this is test timing, not an app bug.
+      cy.setUserPreference({ locale: 'en-us' }, true);
+    });
+
+    it('loads the GitRepo details page when the UI language is Chinese', () => {
+      const prefPage = new PreferencesPagePo();
+      const gitRepoDetailsPage = new FleetGitRepoCreateEditPo();
+      const repoName = editRepoName as string;
+
+      // Switch the UI language to Chinese via the preferences page.
+      prefPage.goTo();
+      prefPage.languageDropdownMenu().checkVisible();
+      prefPage.languageDropdownMenu().toggle();
+      prefPage.languageDropdownMenu().isOpened();
+
+      cy.intercept({
+        method: 'PUT', url: 'v1/userpreferences/*', times: 1
+      }).as(`prefUpdateZhHans`);
+      prefPage.languageDropdownMenu().clickOption(2);
+      cy.wait('@prefUpdateZhHans').then(({ response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(response?.body.data).to.have.property('locale', 'zh-hans');
+      });
+      prefPage.languageDropdownMenu().isClosed();
+
+      // The list and details pages must render correctly under the non-English locale. All the
+      // selectors below key off data-testids / resource names, not translated text, so they work
+      // regardless of locale.
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+      listPage.list().resourceTable().checkVisible();
+      listPage.list().resourceTable().sortableTable()
+        .checkLoadingIndicatorNotVisible();
+      listPage.list().resourceTable().sortableTable()
+        .noRowsShouldNotExist();
+
+      listPage.goToDetailsPage(repoName);
+      gitRepoDetailsPage.mastheadTitle().then((title) => {
+        expect(title.replace(/\s+/g, ' ')).to.contain(repoName);
+      });
+    });
+  });
+
+  after(() => {
+    // De-duplicate: the retry-independent create test can register the same repo more than once
+    // across attempts. failOnStatusCode: false tolerates a repo that was already removed.
+    reposToDelete.filter((r, i) => reposToDelete.indexOf(r) === i).forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r, false));
+  });
+});
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    cy.applyDefaultTestTheme();
+  });
+
+  it('should display continuous delivery page git repo', () => {
+    const gitRepoList = new FleetGitRepoListPagePo();
+
+    gitRepoList.goTo();
+    gitRepoList.checkIsCurrentPage();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
+    // takes percy snapshot.
+    cy.percySnapshot('Continuous Delivery Page - git repos');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
+  });
+});

@@ -1,0 +1,129 @@
+import { Canvas, Meta } from "@storybook/addon-docs";
+import * as FormCompositionInput from './FormCompositionInput.stories';
+import * as FormCompositionNested from './FormCompositionNested.stories';
+import * as FormCompositionComponent from './FormCompositionComponent.stories';
+
+import * as FormComponentInput from './FormComponentInput.stories';
+import * as FormComponentNested from './FormComponentNested.stories';
+
+<Meta title="Foundation/Form Validation"  />
+
+# Form Validation
+
+Form validation based on the library [`vee-validate`](https://vee-validate.logaretm.com/v4/guide/overview/) for documentation.
+
+## Components
+
+VeeValidate provides components ready to use as wrapper for the inputs. Read [official documentation](https://vee-validate.logaretm.com/v4/guide/components/validation/) for further details.
+
+NOTE: If not slot is defined, a default input field text is instead adopted.
+
+### Components: Input and Vue Component
+
+To integrate with our existing components, you just need to wrap it around the `Field` component. Here an example using LabeledInput:
+
+<Canvas of={FormComponentInput.Default} />
+
+### Components: Nested
+
+<Canvas of={FormComponentNested.Default} />
+
+## Declared form (Composition API)
+
+Form can be defined within the setup (also using Options API) using the [Composition API](https://vee-validate.logaretm.com/v4/guide/composition-api/getting-started/) we will have to define everything in the setup, e.g.:
+
+### Composition API: Input
+
+Case of input with validation based on [input component](/docs/stories-form-input--docs) and [existing rules](https://github.com/rancher/dashboard/blob/master/shell/utils/validators/formRules/index.ts).
+
+<Canvas of={FormCompositionInput.Default} />
+
+### Composition API: Nested Form 
+
+Form validation with nested cases as in Workloads using [Tabs](/docs/stories-components-tab--docs) and [`zod`](https://zod.dev/) validation library and custom validation inside `zod`.
+
+NOTE: A method to integrate custom validations without Zod library [is not defined and not clear](https://github.com/logaretm/vee-validate/discussions).
+
+<Canvas of={FormCompositionNested.Default} />
+
+### Composition API: Form with custom Component
+
+In this case using [ArrayList](https://rancher.github.io/storybook/?path=/docs/stories-components-arraylist--docs) component, the terms 'openid', 'profile' and 'email' are required.
+
+<Canvas of={FormCompositionComponent.Default} />
+
+## Rules declaration
+
+Rules may be defined in different ways, based on current tools.
+
+### Inline defined rules
+
+Example of configuration with custom defined rules a during declaration:
+
+```ts
+import { useForm } from 'vee-validate';
+
+setup() {
+  const { errors: errVal, values, meta } = useForm({
+    validationSchema: { name: (val: string) => val !== '' ? true : 'Field is required' },
+    initialValues:    { name: '' },
+  });
+  const [name] = defineField('name');
+
+  return {
+    name,
+    values,
+    errVal,
+    meta,
+  };
+},
+```
+
+### Custom rules
+
+Example of configuration using existing rules:
+
+```ts
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import { useForm } from 'vee-validate';
+import { useI18n } from '@shell/composables/useI18n';
+import { useStore } from 'vuex';
+
+const store = useStore();
+const { t } = useI18n(store);
+const validators = (key: string) => formRulesGenerator(t, { key });
+useForm({
+  validationSchema: { name: (val: string) => validators('name').required(val) ?? true },
+});
+```
+
+### Rules with zod
+
+Example of configuration using [`zod`](https://zod.dev/):
+
+```ts
+import * as zod from 'zod';
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+
+useForm({
+  validationSchema: toTypedSchema(zod.string().nonempty('Container name is required')),
+});
+```
+
+### Custom rules with zod
+
+[As by documentation](https://zod.dev/?id=custom-schemas) use `.custom()`
+
+```ts
+import * as zod from 'zod';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+
+const store = useStore();
+const { t } = useI18n(store);
+const validators = (key: string) => formRulesGenerator(t, { key });
+useForm({
+  validationSchema: toTypedSchema(zod.custom((val) => validators('Container name').required(val))),
+});
+```

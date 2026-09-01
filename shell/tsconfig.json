@@ -1,0 +1,48 @@
+{
+  "extends": "./tsconfig.paths.json",
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "lib": [
+      "ESNext",
+      "ESNext.AsyncIterable",
+      "DOM"
+    ],
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "rootDir": ".",
+    "types": [
+      "node",
+      "jest",
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "../node_modules/@types"
+    ],
+  },
+  "include": [
+    "./**/*.ts",
+    "./**/*.d.ts",
+    "./**/*.tsx",
+    "./**/*.vue",
+    "../pkg/rancher-components/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-pkg",
+    "../dist",
+    "../dist-pkg",
+    "../creators",
+    "../scripts",
+    "../cypress",
+    "../cypress.config.ts",
+    "../docusaurus",
+    "../**/*.spec.ts"
+  ]
+}

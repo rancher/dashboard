@@ -1,0 +1,57 @@
+apiVersion: cluster.x-k8s.io/v1beta2
+kind: MachineDeployment
+metadata:
+  name: e2etest
+  namespace: default
+#  annotations:  key: string
+#  labels:  key: string
+spec:
+  selector:
+    matchLabels:
+#  key: string
+#    matchExpressions:
+#      - key: string
+#        operator: string
+#        values:
+#          - string
+  template:
+    metadata:
+      labels:
+#  key: string
+#      annotations:  key: string
+#      generateName: string
+#      name: string
+#      namespace: string
+#      ownerReferences:
+#        - apiVersion: string
+#          blockOwnerDeletion: boolean
+#          controller: boolean
+#          kind: string
+#          name: string
+#          uid: string
+    spec:
+      bootstrap: 
+        configRef:
+          apiGroup: rke.cattle.io
+          kind: RKEBootstrapTemplate
+          name: name123
+      infrastructureRef:
+        apiGroup: rke-machine.cattle.io
+        kind: Amazonec2Machine
+        name: name123
+      clusterName: local
+#      failureDomain: string
+#      nodeDrainTimeout: string
+#      providerID: string
+#      version: string
+  clusterName: local
+#  minReadySeconds: int
+#  paused: boolean
+#  progressDeadlineSeconds: int
+#  replicas: int
+#  revisionHistoryLimit: int
+#  strategy:
+#    type: string
+#    rollingUpdate:
+#      maxSurge: json
+#      maxUnavailable: json

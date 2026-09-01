@@ -1,0 +1,63 @@
+#!/bin/bash
+set -e
+
+cd $(dirname $0)/..
+
+BUILD_DEBUG="${BUILD_DEBUG:-}"
+if [[ -n "${BUILD_DEBUG}" ]]; then
+    set -x
+    env
+fi
+
+if [[ -n "$CI_BUILD_TAG" ]]; then
+    echo "Build has been triggered by a tag. Skipping gate"
+    exit 0
+fi 
+
+if [[ -z "$CI_BRANCH" ]]; then
+    echo "No branch detected. Skipping gate"
+    exit 0
+fi
+
+if [[ -z "$GIT_REPO" ]]; then
+    echo "No repository detected. Unable to gate"
+    exit 1
+fi
+
+if [[ -z "$GIT_COMMIT" ]]; then
+    echo "No commit detected. Unable to gate"
+    exit 1
+fi
+
+echo "Repo: $GIT_REPO"
+echo "Branch: $CI_BRANCH"
+echo "Build Commit: $GIT_COMMIT"
+
+tmp=$(mktemp -u)
+STATUS_CODE=$(curl -w "%{http_code}" -s -o $tmp https://api.github.com/repos/$GIT_REPO/branches/$CI_BRANCH)
+
+if [ "$STATUS_CODE" == "403" ]; then
+    RATE_LIMIT_REMAINING=$(curl -s https://api.github.com/rate_limit | ./scripts/jq-nano - rate remaining)
+    echo "Remaining GITHUB requests available: $RATE_LIMIT_REMAINING"
+    RATE_LIMIT_REMAINING=${RATE_LIMIT_REMAINING:-0}
+    if ((RATE_LIMIT_REMAINING < 1)); then
+        echo "Github Rate Limit has been hit, skipping gate"
+        exit 0
+    fi
+    # Fall through to the normal path like any other failed status code
+fi
+
+LATEST_BRANCH_COMMIT=$(cat $tmp | ./scripts/jq-nano - commit sha)
+rm $tmp
+echo "Latest Branch Commit: $LATEST_BRANCH_COMMIT"
+if [ -z "$LATEST_BRANCH_COMMIT" ]; then
+    echo "Unable to determine latest commit, failing gate"
+    exit 1
+fi
+
+if [ "$LATEST_BRANCH_COMMIT" == "$GIT_COMMIT" ]; then
+    echo "Build was created from latest commit, passed upload gate"
+else
+    echo "Build was not created from latest commit, failing gate"
+    exit 1
+fi

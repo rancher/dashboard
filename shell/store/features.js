@@ -1,0 +1,83 @@
+import { MANAGEMENT } from '@shell/config/types';
+import { SCHEDULING_CUSTOMIZATION as SCHEDULING_CUSTOMIZATION_FEATURE } from '@shell/config/features';
+
+const definitions = {};
+
+export const create = function(name, defaultValue) {
+  definitions[name] = { def: defaultValue };
+
+  return name;
+};
+
+export const mapFeature = function(name) {
+  return {
+    get() {
+      return this.$store.getters['features/get'](name);
+    },
+
+    set(value) {
+      throw new Error('The feature store only supports getting');
+    }
+  };
+};
+
+// --------------------
+// The default (2nd arg) is used only if the flag is missing entirely from the server.
+//    This is mainly useful for development before the flag has been created in the API..
+
+export const MULTI_CLUSTER = create('multi-cluster-management', true);
+export const RKE2 = create('rke2', true);
+export const UNSUPPORTED_STORAGE_DRIVERS = create('unsupported-storage-drivers', false);
+export const FLEET = create('continuous-delivery', true);
+export const HARVESTER = create('harvester', true);
+export const HARVESTER_CONTAINER = create('harvester-baremetal-container-workload', false);
+export const FLEET_WORKSPACE_BACK = create('provisioningv2-fleet-workspace-back-population', false);
+// The `ui-sql-cache` feature flag has been removed and the feature is always enabled.
+// Ideally we can remove this entry however extensions built from older shells will still expect it and throw an exception if it's not found.
+// So keep this until 2.15 is EOL, or we're sure all extensions have been built with a 2.15 based shell)
+export const STEVE_CACHE = create('ui-sql-cache', true);
+
+export const UIEXTENSION = create('uiextension', true);
+export const PROVISIONING_PRE_BOOTSTRAP = create('provisioningprebootstrap', false);
+export const SCHEDULING_CUSTOMIZATION = create(SCHEDULING_CUSTOMIZATION_FEATURE, false);
+export const SCC = create('rancher-scc-registration-extension', true);
+export const AUTOSCALER = create('cluster-autoscaling', false);
+// Feature flags for disabling shell access to clusters, nodes, pods
+export const CLUSTER_SHELL = create('cluster-shell', true);
+export const NODE_SHELL = create('node-shell', true);
+export const POD_SHELL = create('pod-shell', true);
+export const HIDE_LOCAL_AUTH_PROVIDER = create('hide-local-auth-provider', false);
+
+// Not currently used.. no point defining ones we don't use
+// export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);
+// export const ISTIO_VIRTUAL_SERVICE_UI = create('istio-virtual-service-ui', true);
+// export const PROVISIONINGV2 = create('provisioningv2', true);
+// export const AUTH = create('auth', true);
+
+// --------------------
+
+export const getters = {
+  get: (state, getters, rootState, rootGetters) => (name) => {
+    const definition = definitions[name];
+
+    if (!definition) {
+      throw new Error(`Unknown feature: ${ name }`);
+    }
+
+    const entry = rootGetters['management/byId'](MANAGEMENT.FEATURE, name);
+
+    if ( entry ) {
+      return entry.enabled;
+    }
+
+    return definition.def;
+  },
+};
+
+export const actions = {
+  async loadServer({ rootGetters, dispatch }) {
+    if ( rootGetters['management/canList'](MANAGEMENT.FEATURE) ) {
+      return await dispatch('management/findAll', { type: MANAGEMENT.FEATURE, opt: { watch: false } }, { root: true });
+    }
+  },
+};

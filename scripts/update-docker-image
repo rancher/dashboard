@@ -1,0 +1,69 @@
+#!/bin/bash
+set -e
+
+# options
+CONTAINER_NAME=$1
+TAG=$2
+
+DATE=`date +%F`
+
+CYAN="\033[96m"
+BOLD="\033[1m"
+RESET="\033[0m"
+
+usage() {
+  echo -e "Usage: \n$0 <name> <tag>"
+  echo "  <name>    Specify the container name you wish to update"
+  echo "  <tag>     Specify which container image to use when updating your container (e.g. v2.7-head)"
+  exit 1
+}
+
+if [ $# -eq 0 ];
+then
+    echo "No arguments were provided..."
+    usage
+    exit 0
+else
+
+while getopts ":h" opt; do
+  case $opt in
+    h | *)
+      usage
+      exit 0
+      ;;
+  esac
+done
+
+shift "$((OPTIND-1))"
+
+OLD_IMAGE=`docker ps --filter "name=${CONTAINER_NAME}" --format "{{.Image}}"`
+
+echo -e "${CYAN}${BOLD}Updating Rancher instance ${CONTAINER_NAME} to ${TAG}${RESET}"
+
+docker stop ${CONTAINER_NAME}
+
+docker create \
+  --volumes-from ${CONTAINER_NAME} \
+  --name ${CONTAINER_NAME}-${DATE}-data ${OLD_IMAGE}
+
+echo -e "${CYAN}Creating backup...${RESET}"
+docker run \
+  --volumes-from ${CONTAINER_NAME}-${DATE}-data \
+  -v "$PWD:/backup" \
+  --rm busybox tar zcvf /backup/${DATE}-data-backup.tar.gz /var/lib/rancher \
+  >./${CONTAINER_NAME}-${DATE}-backup.log 2>&1
+
+docker pull rancher/rancher:${TAG}
+
+echo -e "${CYAN}Running Rancher version: ${TAG}${RESET}"
+docker run -d \
+  --volumes-from ${CONTAINER_NAME}-${DATE}-data \
+  --restart unless-stopped \
+  --privileged \
+  -p 80:80 \
+  -p 443:443 \
+  rancher/rancher:${TAG}
+
+echo -e "${CYAN}${BOLD}Rancher instance updated${RESET}"
+
+fi

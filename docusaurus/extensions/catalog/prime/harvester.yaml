@@ -1,0 +1,6 @@
+name: SUSE Virtualization
+author: SUSE
+authorUrl: https://www.rancher.com/products/rancher-platform
+description: Centralizes and manages SUSE hyperconverged infrastructure and virtual machine workloads
+url: https://docs.harvesterhci.io/v1.7/
+icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/patches/harvester/files/icon.svg

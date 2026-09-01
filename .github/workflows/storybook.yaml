@@ -1,0 +1,45 @@
+name: storybook
+on:
+  push:
+    paths:
+      - 'storybook/**/*'
+      - 'pkg/rancher-components/**/*'
+      - 'shell/components/**/*'
+      - 'shell/assets/**/*'
+      - 'shell/utils/**/*'
+      - 'shell/directives/**/*'
+      - 'shell/config/**/*'
+      - 'shell/composables/**/*'
+    branches:
+      - master
+  pull_request:
+    paths:
+      - 'storybook/**/*'
+      - 'pkg/rancher-components/**/*'
+      - 'shell/components/**/*'
+      - 'shell/assets/**/*'
+      - 'shell/utils/**/*'
+      - 'shell/directives/**/*'
+      - 'shell/config/**/*'
+      - 'shell/composables/**/*'
+    branches:
+      - master
+jobs:
+  storybook:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+    - name: Use Node.js
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      with:
+        node-version-file: '.nvmrc'
+    - name: Install packages
+      run: yarn install --frozen-lockfile
+    - name: Build Storybook
+      run: |
+        yarn build-storybook
+    - name: Publish Storybook
+      if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher'}}
+      env:
+        STORYBOOK_TOKEN: ${{ secrets.STORYBOOK_TOKEN }}
+      run: .github/workflows/scripts/publish-storybook

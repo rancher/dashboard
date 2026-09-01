@@ -1,0 +1,154 @@
+#!/bin/bash
+
+# Directories and folders not to replace in
+GREP_EXCLUDES="--exclude-dir=.git --exclude-dir=node_modules --exclude=rejig --exclude-dir=shell --exclude-dir=pkg --exclude-dir=pkg-dist --exclude-dir=dist"
+GREP_REVERT_EXCLUDES="${GREP_EXCLUDES} --exclude=vue.config.js --exclude=jest.config.js --exclude=tsconfig.default.json --exclude=tsconfig.json --exclude=tsconfig.pkg.json --exclude=extension.js --exclude=extensions.js --exclude=model-loader.js"
+
+echo "Re-jigging codebase"
+
+DIR=$(cd $(dirname $0); cd ..; pwd)
+
+echo $DIR
+
+if [ "$1" == "-d" ]; then
+  echo "Resetting"
+
+  TEMP_DIR=$(mktemp -d)
+  cp ${DIR}/PLUGINS.md ${TEMP_DIR}
+  cp ${DIR}/scripts/rejig ${TEMP_DIR}
+
+  git reset --hard
+  git clean -fd
+
+  mv ${TEMP_DIR}/PLUGINS.md ${DIR}
+  mv ${TEMP_DIR}/rejig ${DIR}/scripts
+
+  rm -rf ${TEMP_DIR}
+  echo "Reset"
+  exit 0
+fi
+
+function move() {
+  if [ -d $1 ]; then
+    echo "  > $1"
+    #git mv $1/ ${SHELL}
+    mv $1/ ${SHELL}
+  fi
+}
+
+function moveBack() {
+  if [ -d shell/$1 ]; then
+    echo "  > $1"
+    #git mv $1/ ${SHELL}
+    mv shell/$1/ $1
+  fi
+}
+
+# Make new folders
+
+pushd $DIR 2>&1 > /dev/null
+
+SHELL=./shell
+
+mkdir -p ${SHELL}
+
+if [ "$1" == "-r" ]; then
+  echo "Reverting moves ..."
+
+  moveBack server
+  moveBack layouts
+  moveBack plugins
+  moveBack utils
+  moveBack config
+  moveBack static
+  moveBack middleware
+  moveBack mixins
+  moveBack store
+  moveBack pages
+  moveBack components
+  moveBack assets
+  moveBack chart
+  moveBack cloud-credential
+  moveBack detail
+  moveBack edit
+  moveBack list
+  moveBack machine-config
+  moveBack models
+  moveBack promptRemove
+  moveBack content
+
+  echo "Reverting imports ..."
+
+  grep -rl ${GREP_REVERT_EXCLUDES} . -e '~shell' | xargs -r sed -i.bak -e "s/require(\`~shell/require(\`~/g"
+  grep -rl ${GREP_REVERT_EXCLUDES} . -e '~shell' | xargs -r sed -i.bak -e "s/require('~shell/require('~/g"
+  grep -rl ${GREP_REVERT_EXCLUDES} . -e '~shell' | xargs -r sed -i.bak -e "s/from '~shell/from '~/g"
+  grep -rl ${GREP_REVERT_EXCLUDES} . -e '~shell' | xargs -r sed -i.bak -e "s/url('~shell\/assets/url('~assets/g"
+  grep -rl ${GREP_REVERT_EXCLUDES} . -e '~shell' | xargs -r sed -i.bak -e "s/@import \"~shell\/assets/@import \"~assets/g"
+  grep -rl ${GREP_REVERT_EXCLUDES} . -e '~shell' | xargs -r sed -i.bak -e "s/~shell\/assets/~assets/g"
+  grep -rl ${GREP_REVERT_EXCLUDES} . -e '@shell' | xargs -r sed -i.bak -e "s/@shell/@/g"
+
+  sed -i.bak -e "s/require('~\/assets/require('~assets/g" components/nav/Header.vue
+  sed -i.bak -e "s/'@\/components/'@shell\/components/g" pages/plugins.vue
+
+  echo "Removing any .bak files ..."
+  find . -type f -name "*.bak" -delete
+
+  git checkout -- pages/design-system
+
+  popd 2>&1 > /dev/null  
+
+  exit 0
+fi
+
+# Remove the design-system pages - we're going to use Storybook
+rm -rf pages/design-system
+
+echo "Updating imports ..."
+
+declare -a contextFolders=(
+  "utils" "plugins" "config" "mixins" "store" "pages" "components" "assets" "chart"
+  "cloud-credential" "content" "detail" "edit" "list" "machine-config" "models" "promptRemove")
+
+for i in "${contextFolders[@]}"
+  do
+    echo "  > $i"
+    grep -rl ${GREP_EXCLUDES} . -e '@/'"$i"'' | xargs -r sed -i.bak -e "s/'@\/""$i""/'@shell\/""$i""/g"
+    grep -rl ${GREP_EXCLUDES} . -e '`@/'"$i"'' | xargs -r sed -i.bak -e "s/\`@\/""$i""/\`@shell\/""$i""/g"
+    grep -rl ${GREP_EXCLUDES} . -e '~/'"$i"'' | xargs -r sed -i.bak -e "s/~\/""$i""/~shell\/""$i""/g"
+    grep -rl ${GREP_EXCLUDES} . -e '~'"$i"'' | xargs -r sed -i.bak -e "s/~""$i""/~shell\/""$i""/g"
+
+    find . -type f -name "*.bak" -delete
+  done
+
+echo "Moving folders ..."
+
+move ./server
+move ./layouts
+move ./plugins
+move ./utils
+move ./config
+move ./static
+move ./middleware
+move ./mixins
+move ./store
+move ./pages
+move ./components
+move ./assets
+
+move ./chart
+move ./cloud-credential
+move ./detail
+move ./edit
+move ./list
+move ./machine-config
+move ./models
+move ./promptRemove
+
+move ./content
+
+echo "Removing any .bak files ..."
+find . -type f -name "*.bak" -delete
+
+popd 2>&1 > /dev/null
+
+echo "All done"

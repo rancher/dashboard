@@ -1,0 +1,207 @@
+import { MANAGEMENT_NODE } from '@shell/config/labels-annotations';
+import { ADDRESSES, MANAGEMENT, NODE, NORMAN } from '@shell/config/types';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import { listNodeRoles } from '@shell/models/cluster/node';
+import { downloadUrl } from '@shell/utils/download';
+import findLast from 'lodash/findLast';
+import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
+
+const RKE1_ALLOWED_ACTIONS = [
+  'goToViewYaml',
+  'download',
+  'viewInApi',
+  'showConfiguration'
+];
+
+export default class MgmtNode extends HybridModel {
+  get _availableActions() {
+    const out = super._availableActions;
+
+    return out.filter((a) => a.divider || RKE1_ALLOWED_ACTIONS.includes(a.action));
+  }
+
+  get kubeNodeName() {
+    return this.metadata.labels[MANAGEMENT_NODE.NODE_NAME];
+  }
+
+  get mgmtCluster() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.mgmtClusterId);
+  }
+
+  get mgmtClusterId() {
+    return this.id.substring(0, this.id.indexOf('/'));
+  }
+
+  get kubeNodeDetailLocation() {
+    return this.kubeNodeName ? {
+      name:   'c-cluster-product-resource-id',
+      params: {
+        cluster:  this.mgmtClusterId,
+        product:  EXPLORER,
+        resource: NODE,
+        id:       this.kubeNodeName
+      }
+    } : null;
+  }
+
+  get isWorker() {
+    return this.spec.worker;
+  }
+
+  get isControlPlane() {
+    return this.spec.controlPlane;
+  }
+
+  get isEtcd() {
+    return this.spec.etcd;
+  }
+
+  get roles() {
+    const { isControlPlane, isWorker, isEtcd } = this;
+
+    return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
+  }
+
+  get pool() {
+    if (!this.spec?.nodePoolName) {
+      return undefined;
+    }
+
+    const nodePoolID = this.spec.nodePoolName.replace(':', '/');
+
+    return this.$rootGetters['management/byId'](MANAGEMENT.NODE_POOL, nodePoolID);
+  }
+
+  get norman() {
+    const id = this.id.replace('/', ':');
+
+    return this.$rootGetters['rancher/byId'](NORMAN.NODE, id);
+  }
+
+  get canDelete() {
+    return this.norman?.hasLink('remove');
+  }
+
+  get canUpdate() {
+    return this.hasLink('update') && this.norman?.hasLink('update');
+  }
+
+  remove() {
+    return this.norman?.remove();
+  }
+
+  downloadKeys() {
+    const url = this.norman?.links?.nodeConfig;
+
+    if ( url ) {
+      downloadUrl(url);
+    }
+  }
+
+  async scaleDown(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component:  'ScaleMachineDownDialog',
+      modalWidth: '450px'
+    });
+  }
+
+  get provisioningCluster() {
+    return this.mgmtCluster?.provCluster;
+  }
+
+  get doneOverride() {
+    return this.provisioningCluster?.detailLocation;
+  }
+
+  get canClone() {
+    return false;
+  }
+
+  get addresses() {
+    return this.status?.addresses || this.status?.internalNodeStatus?.addresses || [];
+  }
+
+  get internalIps() {
+    const internal = this.addresses.filter(({ type }) => {
+      return type === ADDRESSES.INTERNAL_IP;
+    });
+
+    if (!internal.length) {
+      // For RKE1 clusters in EC2, node addresses are
+      // under status.rkeNode.address and status.rkeNode.internalAddress
+      if (this.status?.rkeNode) {
+        return this.status.rkeNode.internalAddress ? [this.status.rkeNode.internalAddress] : [];
+      }
+
+      return [];
+    }
+
+    return internal.map(({ address }) => address);
+  }
+
+  get externalIps() {
+    const external = this.addresses.filter(({ type }) => {
+      return type === ADDRESSES.EXTERNAL_IP;
+    });
+
+    if (!external.length) {
+      // For RKE1 clusters in EC2, node addresses are
+      // under status.rkeNode.address and status.rkeNode.internalAddress
+      if (this.status?.rkeNode) {
+        return this.status.rkeNode.address ? [this.status.rkeNode.address] : [];
+      }
+
+      return [];
+    }
+
+    return external.map(({ address }) => address);
+  }
+
+  get internalIp() {
+    // This shows in the IP address column for RKE1 nodes in the
+    // list of nodes in the cluster detail page of Cluster Management.
+    const internal = this.addresses.find(({ type }) => {
+      return type === ADDRESSES.INTERNAL_IP;
+    });
+
+    if (internal) {
+      return internal.address;
+    }
+
+    // For RKE1 clusters in EC2, node addresses are
+    // under status.rkeNode.address and status.rkeNode.internalAddress
+    if (!internal && this.status?.rkeNode) {
+      return this.status.rkeNode.internalAddress;
+    }
+
+    return this.t('generic.none');
+  }
+
+  get externalIp() {
+    const statusAddress = findLast(this.addresses, (address) => address.type === 'ExternalIP')?.address;
+
+    if (statusAddress) {
+      return statusAddress;
+    }
+
+    // For RKE1 clusters in EC2, node addresses are
+    // under status.rkeNode.address and status.rkeNode.internalAddress
+    if (!statusAddress && this.status?.rkeNode) {
+      return this.status.rkeNode.address;
+    }
+
+    return this.t('generic.none');
+  }
+
+  get canScaleDown() {
+    const hasAction = this.norman?.actions?.scaledown;
+
+    if (!this.isEtcd && !this.isControlPlane && hasAction) {
+      return true;
+    }
+
+    return hasAction && notOnlyOfRole(this, this.provisioningCluster?.nodes);
+  }
+}

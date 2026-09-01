@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@components/*": [
+        "pkg/rancher-components/src/components/*"
+      ],
+      // `shell/*.vue` and `shell/*/index.vue` let TypeScript resolve extensionless `.vue`
+      // imports, by file and by directory respectively. TypeScript only ever appends
+      // .ts/.tsx/.d.ts/.js/.jsx to a specifier and that list is not configurable, so
+      // without these candidates every `from '@shell/components/Foo'` is a TS2307 and
+      // types as `any`. Webpack (`shell/vue.config.js`) and jest (`moduleFileExtensions`)
+      // already resolve these through their own resolvers.
+      "@shell/*": [
+        "shell/*",
+        "shell/*.vue",
+        "shell/*/index.vue"
+      ],
+      // `pkg/*` first to match the webpack alias (`shell/vue.config.js`) and the jest
+      // `moduleNameMapper`, both of which resolve `@pkg` to the repo's `pkg` directory.
+      // `shell/pkg/*` is kept as a fallback for the shell's own packaging helpers.
+      "@pkg/*": [
+        "pkg/*",
+        "shell/pkg/*"
+      ],
+      "~/*": [
+        "*"
+      ],
+      "@/*": [
+        "*"
+      ]
+    },
+  },
+}

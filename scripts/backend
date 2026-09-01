@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# Helper script for devs to run Rancher backend in a Docker container
+
+VERSION="master-head"
+ARGS=""
+CLEAN="false"
+CLEAN_ONLY="false"
+IMAGE=""
+LOC=${HOME}/.rancher-dashboard-backend
+RESET="true"
+
+usage() {
+  echo "Usage: $0 [-c] [-k] [-r] [-i IMAGE] [-t TAG] [-s]"
+  echo "  -k Stop and remove previous backend, do not start new backend"
+  echo "  -c Stop and remove previous backend"
+  echo "  -r Don't reset admin password or wait for backend to start before returning"
+  echo "  -i Use the specified image instead of rancher/rancher:${VERSION}"
+  echo "  -t Use the specified image tag for the rancher/rancher image (ignored if -i is specified)"
+  echo "  -s Single cluster management (disable the multi-cluster-management feature)"
+  echo ""
+  echo "This script will start and run a Rancher backend (unless -k is specified)"
+  echo ""
+  exit 1
+}
+
+while getopts "hsci:wrkt:" opt; do
+  case $opt in
+    h)
+      usage
+      ;;
+    s)
+      ARGS="--features=multi-cluster-management=false"
+      ;;
+    c)
+      CLEAN="true"
+      ;;
+    k)
+      CLEAN="true"
+      CLEAN_ONLY="true"
+      ;;
+    r)
+      RESET="false"
+      ;;
+    i)
+      IMAGE=$OPTARG
+      ;;
+    t)
+      VERSION=$OPTARG
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
+DOCKER=$(docker version > /dev/null)
+if [ $? -ne 0 ]; then
+  echo "Can not run Docker commands - is Docker running?"
+  exit 1
+fi
+
+if [ -n "$1" ]; then
+  VERSION=$1
+fi
+
+if [ "$CLEAN" == "true" ]; then
+  echo "Stopping and removing existing container"
+
+  if [ -f "${LOC}" ]; then
+    CONTAINER=$(cat $LOC)
+    echo "Container $CONTAINER"
+    docker stop $CONTAINER
+    docker rm $CONTAINER
+    rm ${LOC}
+  else
+    echo "Could not find an existing container"
+  fi
+
+  if [ "$CLEAN_ONLY" == "true" ]; then
+    exit 0
+  fi
+fi
+
+if [ -z "$IMAGE" ]; then
+  IMAGE="rancher/rancher:${VERSION}"
+fi
+
+echo "Version: ${VERSION}"
+echo "Image  : ${IMAGE}"
+echo "Args   :${ARGS}"
+
+echo "Pulling image ..."
+docker pull ${IMAGE}
+
+echo "Starting container ..."
+ID=$(docker run -it -d -p 80:80 -p 443:443 --restart unless-stopped --privileged ${IMAGE} ${ARGS})
+if [ $? -ne 0 ]; then
+  echo "An error occurred running the Docker container"
+  exit 1
+fi
+
+rm -rf ${LOC}
+echo ${ID} > ${LOC}
+
+if [ "$RESET" == "true" ]; then
+  echo "Waiting for backend to become ready..."
+  TIME=0
+  while [[ "$(curl --insecure -s -m 5 -o /dev/null -w ''%{http_code}'' https://localhost)" != "200" ]]; do
+    sleep 5;
+    TIME=$((TIME + 5))
+    printf "\r${TIME}s ... "
+  done
+
+  echo ""
+  echo "Resetting password..."
+  PASSWORD=$(docker exec -ti ${ID} reset-password | tail -n 1)
+  echo "Admin Password: ${PASSWORD}"
+  echo "Use this URL to change the admin password:"
+  echo "https://127.0.0.1/dashboard/?setup=${PASSWORD}"
+fi
+
+echo ""

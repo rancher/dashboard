@@ -1,0 +1,499 @@
+import https from 'https';
+import { addParam, parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
+import { handleSpoofedRequest, loadSchemas } from '@shell/plugins/dashboard-store/actions';
+import { dropKeys, set } from '@shell/utils/object';
+import { deferred } from '@shell/utils/promise';
+import { streamJson, streamingSupported } from '@shell/utils/stream';
+import isObject from 'lodash/isObject';
+import { classify } from '@shell/plugins/dashboard-store/classify';
+import { NAMESPACE } from '@shell/config/types';
+import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
+import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
+import paginationUtils from '@shell/utils/pagination-utils';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+
+export default {
+
+  // Need to override this, so that the 'this' context is correct (this class not the base class)
+  async loadSchemas(ctx, watch = true) {
+    return await loadSchemas(ctx, watch);
+  },
+
+  async request({
+    state, dispatch, rootGetters, getters
+  }, pOpt ) {
+    const opt = pOpt.opt || pOpt;
+    const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
+
+    if (spoofedRes) {
+      return spoofedRes;
+    }
+
+    opt.url = opt.url.replace(/\/*$/g, '');
+
+    // FIXME: RC Standalone - Tech Debt move this to steve store get/set prependPath
+    // Cover cases where the steve store isn't actually going out to steve (epinio standalone)
+    const prependPath = this.$config.rancherEnv === 'epinio' ? `/pp/v1/epinio/rancher` : '';
+
+    if (prependPath) {
+      if (opt.url.startsWith('/')) {
+        opt.url = prependPath + opt.url;
+      } else {
+        const url = parseUrl(opt.url);
+
+        if (!url.path.startsWith(prependPath)) {
+          url.path = prependPath + url.path;
+          opt.url = unParseUrl(url);
+        }
+      }
+    }
+
+    opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+
+    const method = (opt.method || 'get').toLowerCase();
+    const headers = (opt.headers || {});
+    const key = JSON.stringify(headers) + method + opt.url;
+    let waiting;
+
+    if ( (method === 'get') ) {
+      waiting = state.deferredRequests[key];
+
+      if ( waiting ) {
+        // A matching request has already been made and is currently waiting to complete
+        // Avoid making another request, just wait for the original one to complete
+        // and return the result of the first call (see `waiting` being processed far below)
+        const later = deferred();
+
+        waiting.push(later);
+
+        // console.log('Deferred request for', key, waiting.length);
+
+        return later.promise;
+      } else {
+        // Set it to something so that future requests know to defer.
+        waiting = [];
+        state.deferredRequests[key] = waiting;
+      }
+    }
+
+    if ( opt.stream && state.allowStreaming && state.config.supportsStream && streamingSupported() ) {
+      // console.log('Using Streaming for', opt.url);
+
+      return streamJson(opt.url, opt, opt.onData).then(() => {
+        return { finishDeferred: finishDeferred.bind(null, key, 'resolve') };
+      }).catch((err) => {
+        return onError(err);
+      });
+    } else {
+      // console.log('NOT Using Streaming for', opt.url);
+    }
+
+    let paginatedResult;
+    const isSteveUrl = getters.isSteveUrl(opt.url);
+
+    while (true) {
+      try {
+        const out = await makeRequest(this, opt, rootGetters);
+
+        if (!opt.depaginate) {
+          return out;
+        }
+
+        if (!paginatedResult) {
+          const pageByNumber = isSteveUrl && opt.url.includes(`pagesize=${ paginationUtils.defaultPageSize }`) ? {
+            total: out.count,
+            page:  1,
+            url:   opt.url,
+          } : null;
+          const pageByLimit = !pageByNumber ? { } : null;
+
+          paginatedResult = {
+            // initialise some settings
+            pageByLimit,
+            pageByNumber,
+            // First result, so store it
+            out
+          };
+        } else {
+          // Subsequent request, so add to it
+          paginatedResult.out.data = paginatedResult.out.data.concat(out.data);
+        }
+
+        const { total, page, url } = paginatedResult.pageByNumber || {};
+
+        if (paginatedResult.pageByLimit && out?.pagination?.next) {
+          opt.url = out?.pagination?.next;
+        } else if (paginatedResult.pageByNumber && (total > paginationUtils.defaultPageSize * page)) {
+          paginatedResult.pageByNumber.page += 1;
+
+          opt.url = addParam(url, 'page', `${ paginatedResult.pageByNumber.page }`);
+        } else {
+          // No more results, so clear out the pagination section (which will be stale from the first request)
+          delete paginatedResult.out.pagination?.first;
+          delete paginatedResult.out.pagination?.last;
+          delete paginatedResult.out.pagination?.next;
+          delete paginatedResult.out.pagination?.partial;
+          delete paginatedResult.out.continue;
+
+          return paginatedResult.out;
+        }
+      } catch (err) {
+        return onError(err);
+      }
+    }
+
+    function makeRequest(that, opt, rootGetters) {
+      return that.$axios(opt).then((res) => {
+        let out;
+
+        if ( opt.responseType ) {
+          out = res;
+        } else {
+          out = responseObject(res);
+        }
+
+        finishDeferred(key, 'resolve', out);
+
+        handleKubeApiHeaderWarnings(res, dispatch, rootGetters, opt.method);
+
+        return out;
+      });
+    }
+
+    function finishDeferred(key, action = 'resolve', res) {
+      const waiting = state.deferredRequests[key] || [];
+
+      // console.log('Resolving deferred for', key, waiting.length);
+
+      while ( waiting.length ) {
+        waiting.pop()[action](res);
+      }
+
+      delete state.deferredRequests[key];
+    }
+
+    function responseObject(res) {
+      let out = res.data;
+
+      const fromHeader = res.headers['x-api-cattle-auth'];
+
+      if ( fromHeader && fromHeader !== rootGetters['auth/fromHeader'] ) {
+        dispatch('auth/gotHeader', fromHeader, { root: true });
+      }
+
+      if ( res.status === 204 || out === null ) {
+        out = {};
+      }
+
+      if ( typeof out !== 'object' ) {
+        out = { data: out };
+      }
+
+      Object.defineProperties(out, {
+        _status:     { value: res.status },
+        _statusText: { value: res.statusText },
+        _headers:    { value: res.headers },
+        _req:        { value: res.request },
+        _url:        { value: opt.url },
+      });
+
+      return out;
+    }
+
+    function onError(err) {
+      let out = err;
+
+      if ( err?.response ) {
+        const res = err.response;
+
+        // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
+        if ( opt.redirectUnauthorized !== false && res.status === 401 ) {
+          dispatch('auth/logout', opt.logoutOnError, { root: true });
+        }
+
+        if ( typeof res.data !== 'undefined' ) {
+          out = responseObject(res);
+        }
+      }
+
+      finishDeferred(key, 'reject', out);
+
+      return Promise.reject(out);
+    }
+  },
+
+  /**
+   * Fetch aggregated state counts for a resource type via the Steve summary API.
+   *
+   * Uses `summaryonly` by default so no resource data is returned.
+   *
+   * @param {object} ctx - Vuex action context
+   *   @param {object} ctx.getters
+   *   @param {Function} ctx.dispatch
+   * @param {object} payload
+   *   @param {string} payload.type - Resource type (e.g. 'pod', 'service')
+   *   @param {object} [payload.opt={}] - Options object
+   *     @param {string} [payload.opt.summaryField] - Field to aggregate counts by. Omitting it makes the action
+   *       warn and return `undefined`. Must be a field indexed by the VAI cache
+   *       (see StevePaginationUtils.VALID_FIELDS in steve-pagination-utils.ts)
+   *     @param {string} [payload.opt.namespace] - Namespace to scope the request to (only applies to namespaced resource types)
+   *     @param {boolean} [payload.opt.summaryOnly=true] - Omit resource data from the response (set to false to include data)
+   *     @param {boolean} [payload.opt.namespaceCounts] - Include per-namespace breakdowns in counts
+   *     @param {PaginationParamFilter[]} [payload.opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
+   *     @param {KubeLabelSelector} [payload.opt.labelSelector] - Kube label selector to filter by (converted via convertLabelSelectorPaginationParams)
+   * @returns {Promise<{ count: number, summary: { property: string, counts: Record<string, { total: number, namespace?: Record<string, number> }> }[] | null } | undefined>}
+   *
+   * @example
+   * const result = await dispatch('fetchResourceSummary', {
+   *   type: 'pod',
+   *   opt:  { summaryField: 'metadata.state.name', labelSelector: { matchExpressions: podMatchExpression } }
+   * });
+   * // result.summary[0].counts => { running: { total: 3 }, error: { total: 1 } }
+   *
+   * // With namespace breakdowns:
+   * const result = await dispatch('fetchResourceSummary', {
+   *   type: 'pod',
+   *   opt:  { summaryField: 'metadata.state.name', namespaceCounts: true }
+   * });
+   * // result.summary[0].counts => { running: { total: 3, namespace: { default: 2, 'kube-system': 1 } } }
+   */
+  async fetchResourceSummary({ getters, dispatch }, { type, opt = {} }) {
+    type = getters.normalizeType(type);
+    const schema = getters.schemaFor(type);
+
+    if (!schema) {
+      console.warn(`fetchResourceSummary: no schema found for type "${ type }"`); // eslint-disable-line no-console
+
+      return undefined;
+    }
+
+    if (!opt.summaryField) {
+      console.warn(`fetchResourceSummary: summaryField is required and must be a string for type "${ type }"`); // eslint-disable-line no-console
+
+      return undefined;
+    }
+
+    try {
+      const url = new URL(schema.links.collection, window.location.origin);
+
+      if (schema.attributes?.namespaced && opt.namespace) {
+        url.pathname += `/${ opt.namespace }`;
+      }
+
+      url.searchParams.set('summary', opt.summaryField);
+
+      if (opt.summaryOnly !== false) {
+        url.searchParams.set('summaryonly', '');
+      }
+
+      if (opt.namespaceCounts) {
+        url.searchParams.set('summarynamespaced', '');
+      }
+
+      if (opt.filters?.length) {
+        const filterParams = new URLSearchParams(stevePaginationUtils.convertPaginationParams({ schema, filters: opt.filters }));
+
+        filterParams.forEach((v, k) => url.searchParams.append(k, v));
+      }
+
+      if (opt.labelSelector) {
+        const labelParams = new URLSearchParams(stevePaginationUtils.convertLabelSelectorPaginationParams({ labelSelector: opt.labelSelector }));
+
+        labelParams.forEach((v, k) => url.searchParams.append(k, v));
+      }
+
+      const res = await dispatch('request', { opt: { url: url.pathname + url.search } });
+
+      return {
+        count:   res.count ?? 0,
+        summary: res.summary || null
+      };
+    } catch (e) {
+      console.warn(`fetchResourceSummary: summary API request failed for type "${ type }"`, e); // eslint-disable-line no-console
+
+      return undefined;
+    }
+  },
+
+  promptRestore({ commit, state }, resources ) {
+    commit('action-menu/togglePromptRestore', resources, { root: true });
+  },
+
+  async resourceAction({ getters, dispatch }, {
+    resource, actionName, body, opt,
+  }) {
+    opt = opt || {};
+
+    if ( !opt.url ) {
+      opt.url = resource.actionLinkFor(actionName);
+      // opt.url = (resource.actions || resource.actionLinks)[actionName];
+    }
+
+    opt.method = 'post';
+    opt.data = body;
+
+    const res = await dispatch('request', { opt });
+
+    if ( opt.load !== false && res.type === 'collection' ) {
+      await dispatch('loadMulti', res.data);
+
+      return res.data.map((x) => getters.byId(x.type, x.id) || x);
+    } else if ( opt.load !== false && res.type && res.id ) {
+      return dispatch('load', { data: res });
+    } else {
+      return res;
+    }
+  },
+
+  async collectionAction({ getters, dispatch }, {
+    type, actionName, body, opt
+  }) {
+    opt = opt || {};
+
+    if ( !opt.url ) {
+      // Cheating, but cheaper than loading the whole collection...
+      const schema = getters['schemaFor'](type);
+
+      opt.url = addParam(schema.links.collection, 'action', actionName);
+    }
+
+    opt.method = 'post';
+    opt.data = body;
+
+    const res = await dispatch('request', { opt });
+
+    if ( opt.load !== false && res.type === 'collection' ) {
+      await dispatch('loadMulti', res.data);
+
+      return res.data.map((x) => getters.byId(x.type, x.id) || x);
+    } else if ( opt.load !== false && res.type && res.id ) {
+      return dispatch('load', { data: res });
+    } else {
+      return res;
+    }
+  },
+
+  createNamespace(ctx, obj) {
+    return classify(ctx, {
+      type:     NAMESPACE,
+      metadata: { name: obj.name }
+    });
+  },
+
+  cleanForNew(ctx, obj) {
+    const m = obj.metadata || {};
+
+    dropKeys(obj, newRootKeys);
+    dropKeys(m, newMetadataKeys);
+    dropCattleKeys(m.annotations);
+    dropCattleKeys(m.labels);
+
+    m.name = '';
+
+    if ( obj?.spec?.crd?.spec?.names?.kind ) {
+      obj.spec.crd.spec.names.kind = '';
+    }
+
+    return obj;
+  },
+
+  cleanForDiff(ctx, obj) {
+    const m = obj.metadata || {};
+
+    if ( !m.labels ) {
+      m.labels = {};
+    }
+
+    if ( !m.annotations ) {
+      m.annotations = {};
+    }
+
+    dropUnderscores(obj);
+    dropKeys(obj, diffRootKeys);
+    dropKeys(m, diffMetadataKeys);
+    dropCattleKeys(m.annotations);
+    dropCattleKeys(m.labels);
+
+    return obj;
+  },
+
+  cleanForDetail(ctx, resource) {
+    // Ensure labels & annotations exists, since lots of things need them
+    if ( !resource.metadata ) {
+      set(resource, 'metadata', {});
+    }
+
+    if ( !resource.metadata.annotations ) {
+      set(resource, 'metadata.annotations', {});
+    }
+
+    if ( !resource.metadata.labels ) {
+      set(resource, 'metadata.labels', {});
+    }
+
+    return resource;
+  },
+
+  // remove fields added by steve before showing/downloading yamls.
+  // When editing, also hide server-managed metadata fields not suitable for editing.
+  cleanForDownload(ctx, payload) {
+    // Backwards compatibility: older callers (e.g. extensions built against a
+    // previous shell) dispatch the yaml string directly rather than a
+    // { yaml, opt } payload. Accept either shape.
+    const { yaml, opt } = typeof payload === 'string' ? { yaml: payload } : (payload || {});
+
+    return steveCleanForDownload(yaml, opt);
+  }
+};
+
+const diffRootKeys = [
+  'actions', 'links', 'status', '__rehydrate', '__clone'
+];
+
+const diffMetadataKeys = [
+  'ownerReferences',
+  'selfLink',
+  'creationTimestamp',
+  'deletionTimestamp',
+  'state',
+  'fields',
+  'relationships',
+  'generation',
+  'managedFields',
+  'resourceVersion',
+];
+
+const newRootKeys = [
+  'actions', 'links', 'status', 'id'
+];
+
+const newMetadataKeys = [
+  ...diffMetadataKeys,
+  'uid',
+];
+
+function dropUnderscores(obj) {
+  for ( const k in obj ) {
+    if ( k.startsWith('__') ) {
+      delete obj[k];
+    } else {
+      const v = obj[k];
+
+      if ( isObject(v) ) {
+        dropUnderscores(v);
+      }
+    }
+  }
+}
+
+function dropCattleKeys(obj) {
+  if ( !obj ) {
+    return;
+  }
+
+  Object.keys(obj).forEach((key) => {
+    if ( !!key.match(/(^|field\.)cattle\.io(\/.*|$)/) ) {
+      delete obj[key];
+    }
+  });
+}

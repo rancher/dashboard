@@ -1,0 +1,6 @@
+name: Nutanix
+author: Nutanix
+authorUrl: https://www.nutanix.com
+description: Nutanix UI Extension provides a seamless interface for configuring Rancher clusters on Nutanix Cloud Platform
+icon: https://raw.githubusercontent.com/nutanix-cloud-native/nutanix-rancher-extension/refs/heads/main/pkg/nutanix/assets/icon-nutanix.svg
+url: https://github.com/nutanix-cloud-native/nutanix-rancher-extension

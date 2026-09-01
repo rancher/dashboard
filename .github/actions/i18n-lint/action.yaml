@@ -1,0 +1,12 @@
+name: Run i18n Lint
+description: Run i18n Lint
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup env
+      uses: ./.github/actions/setup
+
+    - name: Run i18n linters
+      shell: bash
+      run: yarn lint-l10n

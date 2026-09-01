@@ -1,0 +1,25 @@
+name: Build Dashboard (Branch)
+on:
+  push:
+    branches:
+      - master
+      - 'release-*'
+      - '*-dev'
+      # v${RANCHER_VERSION}-hotfix-ch-${COUNTER}-${HASH}
+      - 'v*-hotfix-ch-*-*'
+
+jobs:
+  build-validation:
+    name: Build Test
+    uses: ./.github/workflows/build-test.yaml
+  build:
+    if: ${{ github.repository_owner == 'rancher' }}
+    name: Build and Upload
+    uses: ./.github/workflows/build-and-upload.yaml
+    needs:
+      - build-validation
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    with:
+      CI_BRANCH: ${{github.ref_name}}

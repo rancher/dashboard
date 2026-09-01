@@ -1,0 +1,990 @@
+<script>
+import CompactInput from '@shell/mixins/compact-input';
+import { get } from '@shell/utils/object';
+import { LabeledTooltip } from '@components/LabeledTooltip';
+import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
+import { calculatePosition } from '@shell/utils/select';
+import { generateRandomAlphaString } from '@shell/utils/string';
+import { useLabeledSelectPagination, labeledSelectPaginationProps } from '@shell/components/form/labeled-select-utils/useLabeledSelectPagination';
+import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
+import { mapGetters } from 'vuex';
+import { _VIEW } from '@shell/config/query-params';
+import { useClickOutside } from '@shell/composables/useClickOutside';
+import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
+import { useLabeledSelect } from '@shell/composables/useLabeledSelect';
+import { ref, toRef } from 'vue';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
+import { RcSeparator } from '@components/RcSeparator';
+
+export default {
+  name: 'LabeledSelect',
+
+  inheritAttrs: false,
+
+  components: { LabeledTooltip, RcSeparator },
+  mixins:     [
+    CompactInput,
+    VueSelectOverrides,
+  ],
+
+  emits: ['on-open', 'on-close', 'on-focus', 'on-blur', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value'],
+
+  props: {
+    ...labeledFormElementProps,
+    ...labeledSelectPaginationProps,
+    value: {
+      default: null,
+      type:    [String, Object, Number, Array, Boolean]
+    },
+    appendToBody: {
+      default: true,
+      type:    Boolean,
+    },
+    clearable: {
+      default: false,
+      type:    Boolean
+    },
+    hoverTooltip: {
+      default: true,
+      type:    Boolean
+    },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
+    localizedLabel: {
+      default: false,
+      type:    Boolean
+    },
+    optionKey: {
+      default: null,
+      type:    String
+    },
+    optionLabel: {
+      default: 'label',
+      type:    String
+    },
+    placement: {
+      default: null,
+      type:    String
+    },
+    reduce: {
+      default: (e) => {
+        if (e && typeof e === 'object' && e.value !== undefined) {
+          return e.value;
+        }
+
+        return e;
+      },
+      type: Function
+    },
+    selectable: {
+      default: (opt) => {
+        if ( opt ) {
+          if ( opt.disabled || LABEL_SELECT_NOT_OPTION_KINDS.includes(opt.kind) || opt.loading ) {
+            return false;
+          }
+        }
+
+        return true;
+      },
+      type: Function
+    },
+    status: {
+      default: null,
+      type:    String
+    },
+    tooltip: {
+      default: null,
+      type:    [String, Object]
+    },
+    options: {
+      type:    Array,
+      default: () => ([])
+    },
+    searchable: {
+      default: false,
+      type:    Boolean
+    },
+    filterable: {
+      default: true,
+      type:    Boolean
+    },
+    closeOnSelect: {
+      type:    Boolean,
+      default: true
+    },
+    noOptionsLabelKey: {
+      type:    String,
+      default: 'labelSelect.noOptions.empty'
+    },
+    lockedOptions: {
+      type:    Array,
+      default: () => []
+    },
+    size: {
+      type:      String,
+      default:   'large',
+      validator: (value) => ['small', 'medium', 'large'].includes(value)
+    },
+
+    name: {
+      type:    String,
+      default: null
+    }
+  },
+
+  setup(props, { emit }) {
+    const select = ref(null);
+    const isOpen = ref(false);
+
+    useClickOutside(select, () => {
+      isOpen.value = false;
+    });
+
+    const {
+      raised,
+      focused,
+      blurred,
+      empty,
+      isView,
+      onFocusLabeled,
+      onBlurLabeled,
+      isDisabled,
+      validationMessage,
+      requiredField
+    } = useLabeledFormElement(props, emit);
+
+    const {
+      canPaginate,
+      canLoadMore,
+      optionCounts,
+      _options,
+      pages,
+      totalResults,
+      paginating,
+      loadMore,
+      setPaginationFilter,
+    } = useLabeledSelectPagination(props);
+
+    const {
+      isSearchable,
+      isFilterable,
+      resizeHandler: resizeHandlerFn
+    } = useLabeledSelect(props, canPaginate);
+
+    const resizeHandler = () => {
+      resizeHandlerFn(select);
+    };
+
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:  toRef(props, 'name'),
+      rules: toRef(props, 'rules'),
+      value: toRef(props, 'value'),
+      validationMessage,
+    });
+
+    return {
+      isOpen,
+      select,
+      raised,
+      focused,
+      blurred,
+      empty,
+      isView,
+      onFocusLabeled,
+      onBlurLabeled,
+      isDisabled,
+      validationMessage: effectiveValidationMessage,
+      requiredField,
+      isSearchable,
+      isFilterable,
+      resizeHandler,
+      canPaginate,
+      canLoadMore,
+      optionCounts,
+      _options,
+      pages,
+      totalResults,
+      paginating,
+      loadMore,
+      setPaginationFilter,
+      veeHandleBlur,
+      veeValidate,
+    };
+  },
+
+  data() {
+    return {
+      selectedVisibility:   'visible',
+      shouldOpen:           true,
+      labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
+      generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
+    };
+  },
+
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+    hasLabel() {
+      return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
+    },
+
+    hasGroupIcon() {
+      // Required for option.icon. Note that we only apply if paginating as well (there might be 2 x performance issues with 2k entries. one to iterate through this list, the other with conditional class per entry in dom)
+      return this.canPaginate ? !!this._options.find((o) => o.kind === 'group' && !!o.icon) : false;
+    },
+
+    filteredAttrs() {
+      const {
+        class: _class,
+        ...rest
+      } = this.$attrs;
+
+      return rest;
+    },
+
+    // update placeholder text to inform user they can add their own opts when none are found
+    showTagPrompts() {
+      return !this.options.length && this.$attrs.taggable && this.isSearchable;
+    },
+  },
+
+  methods: {
+    clickSelect(event) {
+      if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
+        return;
+      }
+
+      // Ensure we don't toggle when clicking the clear button on multi-select
+      if (this.$attrs.multiple && event?.target.className === 'vs__deselect') {
+        return;
+      }
+
+      this.isOpen = !this.isOpen;
+
+      // Ensure we only focus on open, otherwise we re-open on close
+      if (this.isOpen) {
+        this.focusSearch();
+      }
+    },
+
+    // resizeHandler = in mixin
+    focusSearch() {
+      if (this.isView || this.disabled || this.loading) {
+        return;
+      }
+
+      this.$nextTick(() => {
+        const el = this.$refs['select-input']?.searchEl;
+
+        if (el) {
+          el.focus();
+        }
+      });
+    },
+
+    focusWrapper() {
+      this.$refs.select.focus();
+    },
+
+    onFocus() {
+      this.$emit('on-focus');
+      this.selectedVisibility = 'hidden';
+      this.onFocusLabeled();
+    },
+
+    onBlur() {
+      this.$emit('on-blur');
+      this.selectedVisibility = 'visible';
+      this.onBlurLabeled();
+      this.veeHandleBlur(undefined, false);
+      this.veeValidate();
+    },
+
+    onOpen() {
+      this.focusSearch();
+      this.$emit('on-open');
+      this.resizeHandler();
+    },
+
+    closeOnSelecting(e) {
+      if (e && e.value === this.value) {
+        this.close();
+      }
+
+      this.$emit('selecting', e);
+    },
+
+    /**
+     * Filters options client-side during active search.
+     * To provide a superior UX with grouped options:
+     * - Decorative layout elements (group/title headers, dividers) are hidden when empty.
+     * - Group headers are dynamically retained if they contain at least one matching child option.
+     * - Dividers reset the active group header context to prevent incorrect nesting.
+     * - Standard disabled actual options remain searchable and visible (greyed out).
+     */
+    filterOptions(options, search) {
+      if (!search) {
+        return options;
+      }
+
+      const lowerSearch = search.toLowerCase();
+      const filtered = [];
+      let currentGroup = null;
+
+      options.forEach((option) => {
+        if (!option) {
+          return;
+        }
+
+        const isObject = typeof option === 'object';
+
+        // Keep track of the current group/title header but do not add it yet.
+        // It will only be added if at least one option under it matches the search.
+        if (isObject && ['group', 'title'].includes(option.kind)) {
+          currentGroup = option;
+
+          return;
+        }
+
+        // Dividers represent a hard section break; reset the group header context.
+        if (isObject && option.kind === 'divider') {
+          currentGroup = null;
+
+          return;
+        }
+
+        // Get the textual label for either object-based or primitive options.
+        let label = isObject ? this.getOptionLabel(option) : option;
+
+        if (typeof label === 'number') {
+          label = label.toString();
+        }
+
+        const matches = (label || '').toLowerCase().includes(lowerSearch);
+
+        if (matches) {
+          // If this is the first matching option in the current group, prepend its group header.
+          if (currentGroup) {
+            filtered.push(currentGroup);
+            currentGroup = null;
+          }
+          filtered.push(option);
+        }
+      });
+
+      return filtered;
+    },
+
+    close() {
+      this.isOpen = false;
+      this.onClose();
+    },
+
+    onClose() {
+      this.$emit('on-close');
+      this.focusWrapper();
+    },
+
+    getOptionLabel(option) {
+      if (!option) {
+        return;
+      }
+
+      if (this.$attrs['get-option-label']) {
+        return this.$attrs['get-option-label'](option);
+      }
+      if (get(option, this.optionLabel)) {
+        if (this.localizedLabel) {
+          const label = get(option, this.optionLabel);
+
+          return this.$store.getters['i18n/t'](label) || label;
+        } else {
+          return get(option, this.optionLabel);
+        }
+      } else {
+        return option;
+      }
+    },
+
+    positionDropdown(dropdownList, component, { width }) {
+      calculatePosition(dropdownList, component, width, this.placement);
+    },
+
+    get,
+
+    dropdownShouldOpen(instance, forceOpen = false) {
+      if (!this.isOpen) {
+        return false;
+      }
+
+      const { noDrop, mutableLoading } = instance;
+      const { open } = instance;
+      const shouldOpen = this.shouldOpen;
+
+      if (forceOpen) {
+        instance.open = true;
+
+        return true;
+      }
+
+      if (shouldOpen === false) {
+        this.shouldOpen = true;
+        instance.closeSearchOptions();
+      }
+
+      return noDrop ? false : open && shouldOpen && !mutableLoading;
+    },
+
+    onSearch(newSearchString, loading) {
+      if (this.canPaginate) {
+        this.setPaginationFilter(newSearchString);
+      } else {
+        if (newSearchString) {
+          this.dropdownShouldOpen(this.$refs['select-input'], true);
+        }
+      }
+      this.$emit('search', newSearchString, loading);
+    },
+
+    getOptionKey(opt) {
+      if (this.optionKey) {
+        return get(opt, this.optionKey);
+      }
+
+      return this.getOptionLabel(opt);
+    },
+
+    isOptionLocked(option) {
+      if (!this.lockedOptions.length) {
+        return false;
+      }
+
+      const label = this.getOptionLabel(option);
+
+      return this.lockedOptions.includes(typeof label === 'string' ? label.trim() : String(label));
+    },
+  },
+};
+</script>
+
+<template>
+  <div
+    :id="hasLabel ? labeledSelectLabelId : undefined"
+    ref="select"
+    class="labeled-select"
+    :class="[
+      $attrs.class,
+      {
+        disabled: isView || disabled,
+        focused,
+        [mode]: true,
+        [status]: status,
+        taggable: $attrs.taggable,
+        taggable: $attrs.multiple,
+        hoverable: hoverTooltip,
+        'compact-input': isCompact,
+        'no-label': !hasLabel,
+        [`ls-${size}`]: true
+      }
+    ]"
+    :tabindex="isView || disabled ? -1 : 0"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-required="requiredField"
+    @click="clickSelect"
+    @keydown.self.enter="clickSelect"
+    @keydown.self.down.prevent="clickSelect"
+    @keydown.self.space.prevent="clickSelect"
+  >
+    <div
+      :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
+      :style="{ border: 'none' }"
+    >
+      <label
+        v-if="hasLabel"
+        :for="labeledSelectLabelId"
+      >
+        <t
+          v-if="labelKey"
+          :k="labelKey"
+        />
+        <template v-else-if="label">{{ label }}</template>
+
+        <span
+          v-if="requiredField"
+          class="required"
+          :aria-hidden="true"
+        >*</span>
+      </label>
+    </div>
+    <v-select
+      ref="select-input"
+      v-bind="filteredAttrs"
+      class="inline"
+      :close-on-select="false"
+      :append-to-body="appendToBody"
+      :calculate-position="positionDropdown"
+      :class="{ 'no-label': !(label || '').length}"
+      :clearable="clearable"
+      :disabled="isView || disabled || loading"
+      :get-option-key="getOptionKey"
+      :get-option-label="(opt) => getOptionLabel(opt)"
+      :label="optionLabel"
+      :options="_options"
+      :map-keydown="mappedKeys"
+      :placeholder="placeholder"
+      :reduce="(x) => reduce(x)"
+      :filterable="isFilterable"
+      :filter="filterOptions"
+      :searchable="isSearchable"
+      :selectable="selectable"
+      :modelValue="value != null && !loading ? value : ''"
+      :dropdown-should-open="dropdownShouldOpen"
+      :tabindex="-1"
+      :uid="generatedUid"
+      :aria-label="`- ${value}`"
+      @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
+      @search:blur="onBlur"
+      @search:focus="onFocus"
+      @search="onSearch"
+      @open="onOpen"
+      @close="onClose"
+      @option:selecting="closeOnSelecting"
+      @option:selected="close"
+      @option:deselecting="$emit('deselecting', $event)"
+      @keydown.enter.stop
+    >
+      <template #option="option">
+        <template v-if="showTagPrompts">
+          <div class="only-user-opts">
+            {{ t('labeledSelect.pressEnter', {input:getOptionLabel(option.label)}) }}
+          </div>
+        </template>
+        <template v-else-if="option.kind === 'group'">
+          <div class="vs__option-kind-group">
+            <i
+              v-if="option.icon"
+              class="icon"
+              :class="{ [option.icon]: true}"
+            />
+            <b>{{ getOptionLabel(option) }}</b>
+            <div v-if="option.badge">
+              {{ option.badge }}
+            </div>
+          </div>
+        </template>
+        <template v-else-if="option.kind === 'divider'">
+          <RcSeparator />
+        </template>
+        <template v-else-if="option.kind === 'highlighted'">
+          <div class="option-kind-highlighted">
+            {{ option.label }}
+          </div>
+        </template>
+        <div
+          v-else
+          class="vs__option-kind"
+          :class="{ 'has-icon' : hasGroupIcon}"
+        >
+          {{ getOptionLabel(option) }}
+          <i
+            v-if="option.error"
+            class="icon icon-warning pull-right"
+            style="font-size: 20px;"
+          />
+        </div>
+      </template>
+      <template
+        v-if="lockedOptions.length"
+        #selected-option="option"
+      >
+        <span :data-locked="isOptionLocked(option) || undefined">
+          {{ getOptionLabel(option) }}
+        </span>
+      </template>
+      <!-- Pass down templates provided by the caller -->
+      <template
+        v-for="(_, slot) of $slots"
+        :key="slot"
+        #[slot]="scope"
+      >
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
+      </template>
+
+      <template #list-footer>
+        <div
+          v-if="canPaginate && totalResults && pages > 1"
+          class="pagination-slot"
+        >
+          <div class="load-more">
+            <i
+              v-if="paginating"
+              class="icon icon-spinner icon-spin"
+            />
+            <div v-else>
+              <a
+                v-if="canLoadMore"
+                @click="loadMore"
+              > {{ t('labelSelect.pagination.more') }}</a>
+            </div>
+          </div>
+
+          <div class="count">
+            {{ optionCounts }}
+          </div>
+        </div>
+      </template>
+      <template #no-options="{ search }">
+        <div class="no-options-slot">
+          <template v-if="showTagPrompts">
+            <span v-if="!searching">{{ t('labeledSelect.startTyping') }}</span>
+          </template>
+          <div
+            v-else-if="paginating"
+            class="paginating"
+          >
+            <i class="icon icon-spinner icon-spin" />
+          </div>
+          <template v-else-if="search">
+            {{ t('labelSelect.noOptions.noMatch') }}
+          </template>
+          <template v-else>
+            {{ t(noOptionsLabelKey) }}
+          </template>
+        </div>
+      </template>
+    </v-select>
+    <i
+      v-if="loading"
+      class="icon icon-spinner icon-spin icon-lg"
+    />
+    <LabeledTooltip
+      v-if="tooltip && !focused"
+      :hover="hoverTooltip"
+      :value="tooltip"
+      :status="status"
+    />
+    <LabeledTooltip
+      v-if="!!validationMessage"
+      :hover="hoverTooltip"
+      :value="validationMessage"
+    />
+  </div>
+</template>
+
+<style lang='scss' scoped>
+
+.labeled-select {
+  position: relative;
+  // Prevent namespace field from wiggling or changing
+  // height when it is toggled from a LabeledInput to a
+  // LabeledSelect.
+  padding-bottom: 1px;
+
+  &.no-label.compact-input {
+    :deep() .vs__actions:after {
+      top: -2px;
+    }
+
+    .labeled-container {
+      padding: 5px 0 1px 10px;
+    }
+  }
+
+  &.no-label:not(.compact-input) {
+    height: $input-height;
+    padding-top: 4px;
+
+    :deep() .vs__actions:after {
+      top: 0;
+    }
+  }
+
+  &.no-label.ls-medium {
+    height: $labeled-select-height-medium;
+    padding: 0;
+
+    .labeled-container {
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    :deep(.vs__dropdown-toggle) {
+      height: 100%;
+      box-sizing: border-box;
+      border: none;
+      padding: 0 $input-padding-sm;
+      align-items: center;
+    }
+
+    :deep(.vs__actions) {
+      &:after {
+        // reset large-mode sizing hacks (height, padding-top, top:-10px) so flexbox centers the icon
+        height: auto;
+        padding-top: 0;
+        line-height: 1;
+        top: 0;
+      }
+    }
+
+    :deep(.vs__selected-options) {
+      margin-top: 0; // reset global -5px
+    }
+
+    :deep(.vs__selected) {
+      margin-top: 0;
+      margin-left: 0;
+    }
+
+    :deep(.vs__search) {
+      margin-left: 0; // prevent text shift on open
+    }
+  }
+
+  .icon-spinner {
+    position: absolute;
+    left: calc(50% - .5em);
+    top: calc(50% - .5em);
+  }
+
+  .labeled-container {
+    // Make LabeledSelect and LabeledInput the same height so they
+    // don't wiggle when you toggle between them.
+    padding: 7px 0 0 $input-padding-sm;
+    padding: $input-padding-sm 0 0 $input-padding-sm;
+
+    label {
+      margin: 0;
+    }
+
+    .selected {
+      background-color: transparent;
+    }
+  }
+
+  &.view {
+    &.labeled-input {
+      .labeled-container {
+        padding: 0;
+      }
+    }
+  }
+
+  &.taggable.compact-input {
+    min-height: $unlabeled-input-height;
+    :deep() .vs__selected-options {
+      padding-top: 8px !important;
+    }
+  }
+
+  &.taggable:not(.compact-input) {
+    min-height: $input-height;
+    :deep() .vs__selected-options {
+      // Need to adjust margin when there is a label in the control to add space between the label and the tags
+      margin-top: 0px;
+    }
+  }
+
+  &:not(.taggable) {
+    :deep() .vs__selected-options {
+      // Ensure whole select is clickable to close the select when open
+      .vs__selected {
+        width: 100%;
+      }
+    }
+  }
+
+  &.taggable {
+    :deep() .vs__selected-options {
+      padding: 3px 0;
+      .vs__selected {
+        border-color: var(--accent-btn);
+        height: 20px;
+        min-height: unset !important;
+        padding: 0 0 0 7px !important;
+
+        &:has([data-locked]) {
+          padding: 0 7px 0 7px !important;
+
+          .vs__deselect {
+            display: none;
+          }
+        }
+
+        > button {
+          height: 20px;
+          line-height: 14px;
+        }
+
+        > button:hover {
+          background-color: var(--primary);
+          border-radius: 0;
+
+          &::after {
+            color: #fff;
+          }
+        }
+      }
+    }
+
+    :deep() .vs--disabled .vs__selected-options .vs__selected {
+      padding: 0 7px 0 7px !important;
+
+      .vs__deselect {
+        display: none;
+      }
+    }
+  }
+
+  :deep() .vs__selected-options {
+    margin-top: -5px;
+  }
+
+  :deep() .v-select:not(.vs--single) {
+    .vs__selected-options {
+      padding: 5px 0;
+    }
+  }
+
+  :deep() .vs__actions {
+    &:after {
+      position: relative;
+      top: -10px;
+    }
+  }
+
+  :deep() .v-select.vs--open {
+    .vs__dropdown-toggle {
+      color: var(--outline) !important;
+    }
+  }
+
+  :deep() &.disabled {
+    .labeled-container,
+    .vs__dropdown-toggle,
+    input,
+    label {
+      cursor: not-allowed;
+    }
+  }
+
+  .no-label :deep() {
+    &.v-select:not(.vs--single) {
+      min-height: 33px;
+    }
+
+    &.selected {
+      padding-top: 8px;
+      padding-bottom: 9px;
+      position: relative;
+      max-height: 2.3em;
+      overflow: hidden;
+    }
+
+    .vs__selected-options {
+      padding: 8px 0 7px 0;
+    }
+  }
+}
+
+$icon-size: 18px;
+
+// This represents the drop down area. Note - it might be attached to body and NOT the parent label select div
+.vs__dropdown-menu {
+
+  // Styling for individual options
+  .vs__dropdown-option .vs__option-kind {
+    &-group {
+      display: flex;
+      align-items: center;
+
+      i { // icon
+        width: $icon-size;
+      }
+
+      > b { // group label
+        flex: 1;
+      }
+
+      > div { // badge
+        background-color: var(--primary);
+        border-radius: 4px;
+        color: var(--primary-text);
+        font-size: 12px;
+        height: 18px;
+        line-height: 18px;
+        margin-top: 1px;
+        padding: 0 10px;
+      }
+    }
+
+    &.has-icon {
+      padding-left: $icon-size;
+    }
+  }
+
+    &.has-icon .vs__option-kind div{
+    padding-left: $icon-size;
+  }
+
+  .pagination-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-top: 5px;
+
+    .load-more {
+      display: flex;
+      align-items: center;
+      height: 19px;
+
+      a {
+        cursor: pointer;
+      }
+    }
+
+    .count {
+      position: absolute;
+      right: 10px;
+    }
+  }
+
+  .no-options-slot .paginating {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+// Styling for option highlighted
+.vs__dropdown-option {
+  > .option-kind-highlighted {
+    color: var(--dropdown-highlight-text);
+
+    &:hover {
+      color: var(--dropdown-hover-text);
+    }
+  }
+
+  &.vs__dropdown-option--selected,
+  &.vs__dropdown-option--highlight {
+    > .option-kind-highlighted {
+      color: var(--dropdown-hover-text);
+    }
+  }
+}
+
+.vs__dropdown-menu .vs__dropdown-option .only-user-opts{
+    color: var(--dropdown-text);
+    background-color: var(--dropdown-bg);
+    margin: 0px calc(-#{$input-padding-sm}/2);
+    padding: 3px 20px;
+}
+</style>

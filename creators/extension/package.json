@@ -1,0 +1,32 @@
+{
+  "name": "@rancher/create-extension",
+  "description": "Rancher UI Extension generator",
+  "version": "3.0.12",
+  "license": "Apache-2.0",
+  "author": "SUSE",
+  "repository": "https://github.com/rancher/dashboard",
+  "packageManager": "yarn@4.5.0",
+  "bin": {
+    "create-extension": "init"
+  },
+  "files": [
+    "**/*",
+    "init"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "_requires": [
+    "core-js",
+    "css-loader",
+    "@types/lodash",
+    "@rancher/components"
+  ],
+  "dependencies": {
+    "diff": "^8.0.3",
+    "fs-extra": "^10.0.0",
+    "glob": "^11.0.0",
+    "path": "^0.12.7",
+    "semver": "^7.6.3"
+  }
+}

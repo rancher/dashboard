@@ -1,0 +1,39 @@
+{
+  "extends": "./tsconfig.paths.json",
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "lib": [
+      "ESNext",
+      "ESNext.AsyncIterable",
+      "DOM"
+    ],
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "rootDir": ".",
+    "types": [
+      "node",
+      "jest",
+    ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-pkg",
+    "cypress",
+    "shell/scripts",
+    "cypress",
+    "./cypress.config.ts",
+    "docusaurus",
+    "scripts/standalone",
+    "**/*.spec.ts"
+  ]
+}

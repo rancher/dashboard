@@ -1,0 +1,53 @@
+name: Build and Publish Rancher Components
+
+on:
+  push:
+    tags:
+        - 'components-v*'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    if: ${{ github.repository_owner == 'rancher' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      with:
+        node-version-file: '.nvmrc'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@rancher'
+
+    # Ensure npm 11.5.1 or later is installed
+    - name: Update npm
+      run: npm install -g npm@latest
+
+    - name: Install
+      run: yarn install:ci
+
+    - name: Lint
+      run: yarn lint:lib
+
+    - name: Build
+      run: yarn build:lib
+
+    - name: Unit Test
+      run: yarn test:ci ./pkg/rancher-components
+
+    - name: Publish to npm
+      run: |
+        echo "$GITHUB_REF_NAME"
+        if [[ $GITHUB_REF_NAME == components-v*alpha.* ]]; then
+          yarn publish:lib --tag alpha
+        elif [[ $GITHUB_REF_NAME == components-v*beta.* ]]; then
+          yarn publish:lib --tag beta
+        else
+          yarn publish:lib
+        fi

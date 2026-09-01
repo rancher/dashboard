@@ -1,0 +1,26 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/blocks';
+import * as StatusBadgeStories from './StatusBadge.stories';
+
+<Meta of={StatusBadgeStories} />
+
+# StatusBadge
+
+Display a label paired with an icon
+
+<Canvas of={StatusBadgeStories.Default} />
+
+#### Success
+
+<Canvas of={StatusBadgeStories.Success} />
+
+#### Info
+
+<Canvas of={StatusBadgeStories.Info} />
+
+#### Warning
+
+<Canvas of={StatusBadgeStories.Warning} />
+
+#### Error
+
+<Canvas of={StatusBadgeStories.Error} />

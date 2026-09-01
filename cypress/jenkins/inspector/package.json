@@ -1,0 +1,12 @@
+{
+  "name": "ci-failure-inspector",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CI failure inspection tool — queries Jenkins builds and creates GitHub issues",
+  "main": "src/inspect.js",
+  "keywords": ["jenkins", "qa", "automation"],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

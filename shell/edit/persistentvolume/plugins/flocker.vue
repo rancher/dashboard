@@ -1,0 +1,43 @@
+<script>
+import { LabeledInput } from '@components/Form/LabeledInput';
+
+export default {
+  components: { LabeledInput },
+  props:      {
+    value: {
+      type:    Object,
+      default: () => ({})
+    },
+    mode: {
+      type:     String,
+      required: true,
+    },
+  },
+  created() {
+    this.value.spec['flocker'] = this.value.spec.flocker || {};
+  },
+};
+</script>
+
+<template>
+  <div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="value.spec.flocker.datasetName"
+          :mode="mode"
+          :label="t('persistentVolume.flocker.datasetName.label')"
+          :placeholder="t('persistentVolume.flocker.datasetName.placeholder')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="value.spec.flocker.datasetUUID"
+          :mode="mode"
+          :label="t('persistentVolume.flocker.datasetUUID.label')"
+          :placeholder="t('persistentVolume.flocker.datasetUUID.placeholder')"
+        />
+      </div>
+    </div>
+  </div>
+</template>

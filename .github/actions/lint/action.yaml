@@ -1,0 +1,12 @@
+name: Run Lint
+description: Run Lint
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup env
+      uses: ./.github/actions/setup
+
+    - name: Run linters
+      shell: bash
+      run: yarn lint

@@ -1,0 +1,475 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { RouteRecordRaw } from 'vue-router';
+import { DSL as STORE_DSL } from '@shell/store/type-map';
+import { _DETAIL } from '@shell/config/query-params';
+import {
+  CoreStoreInit,
+  Action,
+  Tab,
+  Card,
+  Panel,
+  TableColumn,
+  IPlugin,
+  LocationConfig,
+  ExtensionPoint,
+  TabLocation,
+  ModelExtensionConstructor,
+  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig,
+  NavHooks, OnNavToPackage, OnNavAwayFromPackage, OnLogIn, OnLogOut,
+  PaginationTableColumn,
+  ExtensionEnvironment,
+  ServerSidePaginationExtensionConfig,
+  TableAction,
+} from './types';
+import { RouteRecordRawWithParams } from './plugin-types';
+import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
+import { defineAsyncComponent, markRaw, Component } from 'vue';
+import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
+import { ExtensionManagerTypes } from '@shell/types/extension-manager';
+import { PluginProduct } from './plugin-products';
+import {
+  ProductMetadata, ProductMetadataSinglePage,
+  StandardProductName,
+  ProductChild
+} from '@shell/core/plugin-products-external';
+
+/** Registration IDs used for different extension points in the extensions catalog */
+export const EXT_IDS = {
+  MODELS:                           'models',
+  MODEL_EXTENSION:                  'model-extension',
+  /**
+   * Extension can provide resources that use server-side-pagination
+   */
+  SERVER_SIDE_PAGINATION_RESOURCES: 'server-side-pagination',
+  /**
+   * Extensions can provide values for l10n global tokens ([[name]]) referenced
+   * from translation strings. Values may be a string or a function returning a
+   * string. If a global is not registered, the token name is used as the value.
+   */
+  I18N_GLOBAL:                      'l10n-global',
+} as const;
+export type EXT_IDS_VALUES = (typeof EXT_IDS)[keyof typeof EXT_IDS];
+
+export type ProductFunction = (plugin: IPlugin, store: any) => void;
+
+export class Plugin implements IPlugin {
+  public id: string;
+  public name: string;
+  public topLevelProduct = false;
+  public types: ExtensionManagerTypes = {};
+  public l10n: { [key: string]: Function[] } = {};
+  public modelExtensions: { [key: string]: Function[] } = {};
+  public locales: { locale: string, label: string}[] = [];
+  public products: ProductFunction[] = [];
+  public productNames: string[] = [];
+  public routes: { parent?: string, route: RouteRecordRaw | RouteRecordRawWithParams }[] = [];
+  public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
+  public onEnter: OnNavToPackage = () => Promise.resolve();
+  public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
+  public _onLogOut: OnLogOut = () => Promise.resolve();
+  public onLogIn: OnLogIn = () => Promise.resolve();
+  public productConfigs: PluginProduct[] = [];
+
+  public uiConfig: { [key: string]: any } = {};
+
+  // Plugin metadata (plugin package.json)
+  public _metadata: any = {};
+
+  public _validators: {[key:string]: Function } = {};
+
+  // Is this a built-in plugin (bundled with the application)
+  public builtin = false;
+
+  // Uninstall hooks
+  public uninstallHooks: Function[] = [];
+
+  constructor(id: string) {
+    this.id = id;
+    this.name = id;
+
+    // Initialize uiConfig for all of the possible enum values
+    Object.values(ExtensionPoint).forEach((v) => {
+      this.uiConfig[v] = {};
+    });
+  }
+
+  get environment(): ExtensionEnvironment {
+    const versionData = getVersionData();
+
+    return {
+      version:     versionData.Version,
+      commit:      versionData.GitCommit,
+      isPrime:     versionData.RancherPrime === 'true',
+      docsVersion: `v${ CURRENT_RANCHER_VERSION }`
+    };
+  }
+
+  get metadata() {
+    return this._metadata;
+  }
+
+  set metadata(value) {
+    this._metadata = value;
+    this.name = this._metadata.name || this.id;
+  }
+
+  get version() {
+    return this._metadata.version;
+  }
+
+  get validators() {
+    return this._validators;
+  }
+
+  set validators(vals: {[key:string]: Function }) {
+    this._validators = vals;
+  }
+
+  _registerTopLevelProduct() {
+    this.topLevelProduct = true;
+  }
+
+  _setStartRouteWithProduct(_value: boolean): void {
+  }
+
+  // Track which products the plugin creates
+  // Legacy DSL method
+  DSL(store: any, productName: string) {
+    const storeDSL = STORE_DSL(store, productName);
+
+    this.productNames.push(productName);
+
+    return storeDSL;
+  }
+
+  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, pages?: ProductChild[]): void {
+    let pluginProduct: PluginProduct;
+
+    if (typeof product === 'string') {
+      pluginProduct = PluginProduct.fromName(this, product);
+    } else if (product?.name) {
+      if (!pages) {
+        pluginProduct = new PluginProduct(this, product, []);
+      } else {
+        pluginProduct = new PluginProduct(this, product, pages);
+      }
+    } else {
+      this.products.push(product as ProductFunction);
+
+      return;
+    }
+
+    const existingProduct = this.productConfigs.find((p) => p.newProduct && p.productName === pluginProduct.productName);
+
+    if (existingProduct) {
+      throw new Error(`Extensions - product "${ pluginProduct.productName }" registration error ::: addProduct can only be called once per product. Use extendProduct to add pages to an existing product.`);
+    }
+
+    this.productConfigs.push(pluginProduct);
+  }
+
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void {
+    const arrayConfig = Array.isArray(config) ? config : [config];
+
+    this.productConfigs.push(new PluginProduct(this, product, arrayConfig));
+  }
+
+  addLocale(locale: string, label: string): void {
+    this.locales.push({ locale, label });
+  }
+
+  addL10n(locale: string, fn: Function) {
+    this.register('l10n', locale, fn);
+  }
+
+  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRawWithParams[] | RouteRecordRaw[]) {
+    routes.forEach((r: PluginRouteRecordRaw | RouteRecordRawWithParams | RouteRecordRaw) => {
+      if (Object.keys(r).includes('parent')) {
+        const pConfig = r as PluginRouteRecordRaw;
+
+        if (pConfig.parent) {
+          this.addRoute(pConfig.parent, pConfig.route);
+        } else {
+          this.addRoute(pConfig.route);
+        }
+      } else {
+        this.addRoute(r as RouteRecordRaw | RouteRecordRawWithParams);
+      }
+    });
+  }
+
+  addRoute(parentOrRoute: RouteRecordRaw | RouteRecordRawWithParams | string, optionalRoute?: RouteRecordRaw | RouteRecordRawWithParams): void {
+    // Always add the pkg name to the route metadata
+    const hasParent = typeof (parentOrRoute) === 'string';
+    const parent: string | undefined = hasParent ? parentOrRoute as string : undefined;
+    const route: RouteRecordRaw | RouteRecordRawWithParams = hasParent ? (optionalRoute as RouteRecordRaw | RouteRecordRawWithParams) : parentOrRoute as RouteRecordRaw | RouteRecordRawWithParams;
+
+    let parentOverride;
+
+    if (!parent) {
+      // TODO: Inspecting the route object in the browser clearly indicates it's not a RouteRecordRaw. The type needs to be changed or at least extended.
+      const typelessRoute: any = route;
+
+      if (typelessRoute.component?.layout) {
+        console.warn(`Layouts have been deprecated. We still have parent routes which use the same name and styling as the previous layouts. \n\nFound a component ${ typelessRoute.component.name } with the '${ typelessRoute.component.layout }' layout specified `); // eslint-disable-line no-console
+        parentOverride = typelessRoute.component.layout.toLowerCase();
+      } else {
+        console.warn(`Layouts have been deprecated. We still have parent routes which use the same name and styling as the previous layouts. You should specify a parent, we're currently setting the parent to 'default'`); // eslint-disable-line no-console
+        parentOverride = 'default';
+      }
+    }
+
+    route.meta = {
+      ...route?.meta,
+      pkg: this.name,
+    };
+
+    this.routes.push({ parent: parentOverride || parent, route });
+  }
+
+  private _addUIConfig(type: string, where: string, when: LocationConfig | string, config: any) {
+    // For convenience 'when' can be a string to indicate a resource, so convert it to the LocationConfig format
+    const locationConfig = (typeof when === 'string') ? { resource: when } : when;
+
+    this.uiConfig[type][where] = this.uiConfig[type][where] || [];
+    this.uiConfig[type][where].push({ ...config, locationConfig });
+  }
+
+  /**
+   * Adds an action/button to the UI
+   */
+  addAction(where: string, when: LocationConfig | string, action: Action): void {
+    this._addUIConfig(ExtensionPoint.ACTION, where, when, action);
+  }
+
+  /**
+   * Adds a tab to the UI
+   */
+  addTab(where: string, when: LocationConfig | string, tab: Tab): void {
+    // tackling https://github.com/rancher/dashboard/issues/11122, we don't want the tab to added in _EDIT view, unless overriden
+    // on extensions side we won't document the mode param for this extension point
+    if (where === TabLocation.RESOURCE_DETAIL && (typeof when === 'object' && !when.mode)) {
+      when.mode = [_DETAIL];
+    }
+
+    this._addUIConfig(ExtensionPoint.TAB, where, when, this._createAsyncComponent(tab));
+  }
+
+  /**
+   * Adds a panel/component to the UI
+   */
+  addPanel(where: string, when: LocationConfig | string, panel: Panel): void {
+    this._addUIConfig(ExtensionPoint.PANEL, where, when, this._createAsyncComponent(panel));
+  }
+
+  /**
+   * Adds a card to the to the UI
+   */
+  addCard( where: string, when: LocationConfig | string, card: Card): void {
+    this._addUIConfig(ExtensionPoint.CARD, where, when, this._createAsyncComponent(card));
+  }
+
+  /**
+   * Adds a model extension
+   * @experimental May change or be removed in the future
+   *
+   * @param type Model type
+   * @param clz  Class for the model extension (constructor)
+   */
+  addModelExtension(type: string, clz: ModelExtensionConstructor): void {
+    this.register(EXT_IDS.MODEL_EXTENSION, type, clz);
+  }
+
+  /**
+   * Wraps a component from an extensionConfig with defineAsyncComponent and
+   * markRaw. This prepares the component to be loaded dynamically and prevents
+   * Vue from making the component reactive.
+   *
+   * @param extensionConfig The extension configuration containing a component
+   * to render.
+   * @returns A new object with the same properties as the extension
+   * configuration, but with the component property wrapped in
+   * defineAsyncComponent and markRaw. If the extension configuration doesn't
+   * have a component property, it returns the extension configuration
+   * unchanged.
+   */
+  private _createAsyncComponent(extensionConfig: Card | Panel | Tab) {
+    const { component } = extensionConfig;
+
+    if (!component) {
+      return extensionConfig;
+    }
+
+    return {
+      ...extensionConfig,
+      component: markRaw(defineAsyncComponent(component as () => Promise<Component>)),
+    };
+  }
+
+  /**
+   * Adds a new column to a ResourceTable
+   *
+   * @param where
+   * @param when
+   * @param action
+   * @param column
+   *  The information required to show a header and values for a column in a table
+   * @param paginationColumn
+   *  As per `column`, but is used where server-side pagination is enabled
+   */
+  addTableColumn(where: string, when: LocationConfig | string, column: TableColumn, paginationColumn?: PaginationTableColumn): void {
+    this._addUIConfig(ExtensionPoint.TABLE_COL, where, when, {
+      column,
+      paginationColumn
+    });
+  }
+
+  /**
+   * Adds an action/button to the UI
+   */
+  addTableHook(where: string, when: LocationConfig | string, action: TableAction): void {
+    this._addUIConfig(ExtensionPoint.TABLE, where, when, action);
+  }
+
+  setHomePage(component: any) {
+    this.addRoute({
+      name: 'home',
+      path: '/home',
+      component
+    });
+  }
+
+  addUninstallHook(hook: Function) {
+    this.uninstallHooks.push(hook);
+  }
+
+  addStore(storeName: string, register: RegisterStore, unregister: UnregisterStore) {
+    this.stores.push({
+      storeName, register, unregister
+    });
+  }
+
+  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig, init?: CoreStoreInit) {
+    this.stores.push({
+      storeName,
+      register: () => {
+        return coreStore(
+          this.storeFactory(storeSpecifics, config),
+          config,
+          init,
+        );
+      },
+      unregister: (store: any) => {
+        store.unregisterModule(storeName);
+      }
+    });
+  }
+
+  private storeFactory(storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig) {
+    return {
+      ...coreStoreModule,
+
+      state() {
+        return {
+          ...coreStoreState(config.namespace, config.baseUrl, config.isClusterStore),
+          ...storeSpecifics.state()
+        };
+      },
+
+      getters: {
+        ...coreStoreModule.getters,
+        ...storeSpecifics.getters
+      },
+
+      mutations: {
+        ...coreStoreModule.mutations,
+        ...storeSpecifics.mutations
+      },
+
+      actions: {
+        ...coreStoreModule.actions,
+        ...storeSpecifics.actions
+      },
+    };
+  }
+
+  public addNavHooks(
+    onEnter?: OnNavToPackage | NavHooks,
+    onLeave?: OnNavAwayFromPackage,
+    onLogOut?: OnLogOut,
+    onLogIn?: OnLogIn,
+  ): void {
+    if (typeof onEnter === 'object') {
+      const hooks = onEnter as NavHooks;
+
+      if (hooks.onEnter) {
+        this.onEnter = hooks.onEnter;
+      }
+
+      if (hooks.onLeave) {
+        this.onLeave = hooks.onLeave;
+      }
+
+      if (hooks.onLogout) {
+        this._onLogOut = hooks.onLogout;
+      }
+
+      if (hooks.onLogin) {
+        this.onLogIn = hooks.onLogin;
+      }
+    } else {
+      // No first arg, or first arg is not an object, so this is the legacy invocation
+      this.onEnter = (onEnter as OnNavToPackage) || (() => Promise.resolve());
+      this.onLeave = onLeave || (() => Promise.resolve());
+      this._onLogOut = onLogOut || (() => Promise.resolve());
+      this.onLogIn = onLogIn || (() => Promise.resolve());
+    }
+  }
+
+  public enableServerSidePagination(config: ServerSidePaginationExtensionConfig) {
+    console.info(`Extension "${ this.name || this.id }" is enabling server-side pagination for some resources`, config); // eslint-disable-line no-console
+    this.register(EXT_IDS.SERVER_SIDE_PAGINATION_RESOURCES, this.id, () => config);
+  }
+
+  public async onLogOut(store: any) {
+    await Promise.all(this.stores.map((s: any) => store.dispatch(`${ s.storeName }/onLogout`)));
+
+    await this._onLogOut(store);
+  }
+
+  public register(type: string, name: string, fn: Function | string) {
+    const allowPaths = ['models', 'image'];
+    const nparts = name.split('/');
+
+    // Support components in a sub-folder - component_name/index.vue (and ignore other components in that folder)
+    // Allow store-scoped models via sub-folder - pkgname/models/storename/type will be registered as storename/type to avoid overwriting shell/models/type
+    if (nparts.length === 2 && !allowPaths.includes(type)) {
+      if (nparts[1] !== 'index') {
+        return;
+      }
+      name = nparts[0];
+    }
+
+    // Accumulate l10n resources rather than replace
+    if (type === 'l10n') {
+      if (!this.l10n[name]) {
+        this.l10n[name] = [];
+      }
+
+      this.l10n[name].push(fn as Function);
+
+    // Accumulate model extensions
+    } else if (type === EXT_IDS.MODEL_EXTENSION) {
+      if (!this.modelExtensions[name]) {
+        this.modelExtensions[name] = [];
+      }
+      this.modelExtensions[name].push(fn as Function);
+    } else {
+      if (!this.types[type]) {
+        this.types[type] = {};
+      }
+
+      this.types[type][name] = fn;
+    }
+  }
+}

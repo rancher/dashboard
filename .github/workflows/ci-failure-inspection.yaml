@@ -1,0 +1,82 @@
+name: Jenkins CI Failure Inspection
+
+on:
+  schedule:
+    # Runs Tue–Sat at 11:00 UTC (4:00 AM PST) — after all Jenkins jobs from the prior day complete
+    - cron: '0 11 * * 2-6'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run — print failures without creating issues'
+        required: false
+        default: 'false'
+        type: boolean
+      version_filter:
+        description: 'Only process builds matching this version prefix (e.g. "head" for head-only builds)'
+        required: false
+        default: ''
+        type: string
+
+# Two runs racing (e.g. the schedule overlapping a manual dispatch) would each read the
+# same set of existing issues and both create — serialise runs so that can't happen.
+concurrency:
+  group: ci-failure-inspection
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    name: Inspect CI failures and create issues
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      copilot-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Read QA secrets from Vault
+        uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
+        with:
+          secrets: |
+            github/token/rancher--qa-tasks--issues--write token | GH_TOKEN
+
+      - name: Read project secrets from Vault
+        uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
+        with:
+          secrets: |
+            github/token/rancher--organization_projects--write token | GH_PROJECT_TOKEN
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Run CI inspection
+        working-directory: cypress/jenkins/inspector
+        env:
+          GITHUB_TOKEN: ${{ env.GH_TOKEN }}
+          GH_PROJECT_TOKEN: ${{ env.GH_PROJECT_TOKEN }}
+          COPILOT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_MODEL: ${{ vars.INSPECTOR_COPILOT_MODEL }}
+          JENKINS_AUTH: ${{ secrets.INSPECTOR_JENKINS_AUTH }}
+          JENKINS_BASE_URL: ${{ secrets.INSPECTOR_JENKINS_BASE_URL }}
+          JENKINS_JOB_PATH: ${{ secrets.INSPECTOR_JENKINS_JOB_PATH }}
+          GITHUB_ORG: rancher
+          GITHUB_REPO: qa-tasks
+          GITHUB_PROJECT_NUMBER: ${{ vars.INSPECTOR_GITHUB_PROJECT_NUMBER }}
+          GITHUB_PROJECT_OWNER: org
+          GITHUB_ISSUE_LABELS: area/automation-test-ui,kind/flaky-test
+          STATUS_FIELD_ID: ${{ secrets.INSPECTOR_STATUS_FIELD_ID }}
+          BACKLOG_OPTION_ID: ${{ secrets.INSPECTOR_BACKLOG_OPTION_ID }}
+          INSPECTOR_BUILD_WINDOW: ${{ vars.INSPECTOR_BUILD_WINDOW }}
+          INSPECTOR_ANCHOR_DESCRIPTION: ${{ vars.INSPECTOR_ANCHOR_DESCRIPTION }}
+          INSPECTOR_VERSION_FILTER: ${{ inputs.version_filter }}
+          INSPECTOR_SLACK_THRESHOLD: ${{ vars.INSPECTOR_SLACK_THRESHOLD }}
+          INSPECTOR_SLACK_NOTIFICATION: ${{ vars.INSPECTOR_SLACK_NOTIFICATION }}
+          UI_QA_SLACK_BOT_TOKEN: ${{ secrets.UI_QA_SLACK_BOT_TOKEN }}
+          UI_QA_SLACK_CHANNEL: ${{ secrets.UI_QA_SLACK_CHANNEL }}
+          UI_QA_SLACK_GROUP_ID: ${{ secrets.UI_QA_SLACK_GROUP_ID }}
+          DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
+        run: node src/inspect.js

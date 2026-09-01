@@ -1,0 +1,30 @@
+/**
+ * Long timeout to use when a test requires longer for something to change in the UI
+ */
+export const LONG_TIMEOUT_OPT = { timeout: 60000 };
+
+/**
+ * Extra long timeout to use when a test requires even longer for something to change in the UI
+ */
+export const EXTRA_LONG_TIMEOUT_OPT = { timeout: 90000 };
+
+/**
+ * Timeout used when rancher is restarting
+ */
+export const RESTART_TIMEOUT_OPT = { timeout: 120000 };
+
+/**
+ * Medium timeout to use when a test requires a little longer for something to change in the UI
+ */
+export const MEDIUM_TIMEOUT_OPT = { timeout: 30000 };
+
+export const GROWL_DISMISS_TIMEOUT_OPT = { timeout: 10000 };
+
+export const VERY_LONG_TIMEOUT_OPT = { timeout: 700000 };
+
+/**
+ * This is an extreme delay to wait for rancher in helm to fully come up
+ *
+ * This should NOT be used in any other scenario
+ */
+export const HELM_STARTUP_DELAY_OPT = { timeout: 1000 * 60 * 6 } ;

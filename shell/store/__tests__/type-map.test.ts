@@ -1,0 +1,1899 @@
+/* eslint-disable jest/max-nested-describe */
+
+import { TYPE_MODES, getters, mutations, DSL } from '../type-map';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import {
+  COUNT,
+  SCHEMA,
+} from '@shell/config/types';
+
+// Type definitions for test data
+interface TestSchema {
+  id: string;
+  type: string;
+  attributes?: { kind: string };
+  _group?: string;
+  _id?: string;
+}
+
+type SchemaOrType = TestSchema | string;
+
+/**
+ * types in the store
+ */
+const types = {
+  virtual: { name: 'virt' },
+  spoof:   { name: 'spoof' }
+};
+
+const schemas = {
+  pod: {
+    id:         'pod',
+    type:       SCHEMA,
+    attributes: { kind: 'pod' },
+  },
+  /**
+   * Represents a group
+   */
+  podNoAttributes: {
+    id:   'pod',
+    type: SCHEMA,
+  },
+  secret: {
+    id:         'secret',
+    type:       SCHEMA,
+    attributes: { kind: 'secret' },
+  },
+  topLevel: {
+    id:   'toplevel',
+    type: SCHEMA,
+  }
+};
+
+/**
+ * counts in the store
+ */
+const counts = {
+  pod: {
+    summary:    { count: 1 },
+    revision:   'abc',
+    namespaces: { a: true }
+  },
+  toplevel: {
+    summary:    { count: 1 },
+    revision:   'abc',
+    namespaces: { a: true }
+  },
+  secret: {
+    summary:    { count: 1 },
+    revision:   'abc',
+    namespaces: { a: true }
+  }
+};
+
+/**
+ * Some of the objects that we expect to be returned by allTypes
+ */
+const expectedMenuItems = {
+  podWithoutAttribute: {
+    label:      'Pod',
+    name:       'pod',
+    namespaced: true,
+    route:      'cde',
+    schema:     schemas.podNoAttributes,
+    weight:     1,
+  },
+  podWithAttribute: {
+    label:      'Pod',
+    name:       'pod',
+    namespaced: true,
+    route:      'cde',
+    schema:     schemas.pod,
+    weight:     1,
+  },
+  secretWithAttribute: {
+    label:      'Secret',
+    name:       'secret',
+    namespaced: true,
+    route:      'cde',
+    schema:     schemas.secret,
+    weight:     1,
+  },
+  virtual: {
+    label:  'virt',
+    name:   'virt',
+    weight: 1,
+  },
+  spoof: {
+    label:  'spoof',
+    name:   'spoof',
+    weight: 1,
+  },
+  topLevel: {
+    label:      'Pod',
+    mode:       'basic',
+    name:       'toplevel',
+    namespaced: true,
+    route:      'cde',
+    schema:     schemas.topLevel,
+    weight:     1,
+  }
+};
+
+describe('type-map', () => {
+  describe('getters', () => {
+    describe('allTypes', () => {
+      /**
+       * Stick in the required mode param to the expected menu items
+       */
+      const setTypeMode = (modes: string[], resourcesById: Record<string, any>) => {
+        return modes.reduce((res: Record<string, any>, mode: string) => {
+          const newResource: Record<string, any> = { };
+
+          Object.entries(resourcesById).forEach(([id, resource]: [string, any]) => {
+            newResource[id] = {
+              ...resource,
+              mode,
+            };
+          });
+          res[mode] = newResource;
+
+          return res;
+        }, {});
+      };
+
+      /** All basic ctx properties and helpers */
+      const generateDefaults = (productName = EXPLORER, productStore = 'cluster', modes = [TYPE_MODES.BASIC]) => {
+        return {
+          productName,
+          productStore,
+
+          state: {
+            products: [{
+              name:    EXPLORER,
+              inStore: productStore,
+            }],
+            virtualTypes: { [productName]: [] },
+            spoofedTypes: { [productName]: [] }
+          },
+          typeMapGetters: {
+            labelFor:          (schema: SchemaOrType, count: number) => '',
+            optionsFor:        (schema: SchemaOrType) => ({}),
+            groupForBasicType: () => {},
+            typeWeightFor:     (label: string, isBasic: boolean) => 1
+          },
+          rootState:   {},
+          rootGetters: {
+            [`${ productStore }/all`]: (schema: string) => {
+              return [];
+            },
+            'prefs/get': (pref: string) => {},
+
+          },
+
+          modes
+        };
+      };
+
+      /**
+       * When there are no schema, spoofed or virtual types there's no menu types
+       */
+      it('empty', () => {
+        const {
+          state, typeMapGetters, rootState, rootGetters, productName, modes
+        } = generateDefaults();
+
+        const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+        expect(groups).toStrictEqual({});
+      });
+
+      describe('product: Explorer', () => {
+        /**
+         * Extend generateDefaults with env to return a pod type
+         */
+        const createEnvBasicPod = (modes = [TYPE_MODES.BASIC], expected = true) => {
+          const defaults = generateDefaults(EXPLORER, `cluster`, [TYPE_MODES.BASIC]);
+          const { typeMapGetters, rootGetters, productStore } = defaults;
+
+          const testRootGetters = {
+            ...rootGetters,
+            [`${ productStore }/all`]: (resource: string) => {
+              switch (resource) {
+              case SCHEMA:
+                return [schemas.pod];
+              case COUNT:
+                return [{ counts: { pod: counts.pod } }];
+              }
+
+              return [];
+            },
+          };
+
+          const testTypeMapGetters = {
+            ...typeMapGetters,
+            labelFor:          (schema: SchemaOrType, count: number) => 'Pod',
+            groupForBasicType: () => true,
+            optionsFor:        (schema: SchemaOrType) => ({
+              namespaced:  true,
+              customRoute: 'cde'
+            }),
+            isFavorite: () => false,
+          };
+
+          return {
+            ...defaults,
+            typeMapGetters: testTypeMapGetters,
+            rootGetters:    testRootGetters,
+
+            modes,
+
+            expectedTypes: expected ? setTypeMode(modes, { pod: expectedMenuItems.podWithAttribute }) : {}
+          };
+        };
+
+        /**
+         * Extend generateDefaults with env to return a virtual type
+         */
+        const createEnvBasicVirtual = (modes = [TYPE_MODES.BASIC], expected = true) => {
+          const defaults = generateDefaults();
+          const { state, typeMapGetters, productName } = defaults;
+
+          const testState = {
+            ...state,
+            virtualTypes: { [productName]: [types.virtual] }
+          };
+
+          const testTypeMapGetters = {
+            ...typeMapGetters,
+            groupForBasicType: () => true,
+          };
+
+          return {
+            ...defaults,
+            state:          testState,
+            typeMapGetters: testTypeMapGetters,
+
+            modes,
+
+            expectedTypes: expected ? setTypeMode(modes, { virt: expectedMenuItems.virtual }) : {}
+          };
+        };
+
+        /**
+         * Extend generateDefaults with env to return a spoof type
+         */
+        const createEnvBasicSpoof = (modes = [TYPE_MODES.BASIC], expected = true) => {
+          const defaults = generateDefaults();
+          const { state, typeMapGetters, productName } = defaults;
+
+          const testState = {
+            ...state,
+            spoofedTypes: { [productName]: [types.spoof] }
+          };
+
+          const testTypeMapGetters = {
+            ...typeMapGetters,
+            groupForBasicType: () => true,
+          };
+
+          return {
+            ...defaults,
+            state:          testState,
+            typeMapGetters: testTypeMapGetters,
+
+            modes,
+
+            expectedTypes: expected ? setTypeMode(modes, { spoof: expectedMenuItems.spoof }) : {}
+          };
+        };
+
+        describe('mode: BASIC', () => {
+          it('one entry', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+            } = createEnvBasicPod();
+
+            const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          it('one entry (explicitly test basic mode with a schema without `kind`)', () => {
+            // This is odd, but it should be clear that in basic mode schemas without a kind are ok)
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, modes, productStore
+            } = createEnvBasicPod();
+
+            const testRootGetters = {
+              ...rootGetters,
+              [`${ productStore }/all`]: (resource: string) => {
+                switch (resource) {
+                case SCHEMA:
+                  return [schemas.podNoAttributes];
+                case COUNT:
+                  return [{ counts: { pod: counts.pod } }];
+                }
+
+                return [];
+              },
+            };
+
+            const groups = getters.allTypes(state, typeMapGetters, rootState, testRootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(setTypeMode([TYPE_MODES.BASIC], { pod: expectedMenuItems.podWithoutAttribute }));
+          });
+
+          it('no entry (basic but no group)', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+            } = createEnvBasicPod([TYPE_MODES.BASIC], false);
+
+            const testTypeMapGetters = {
+              ...typeMapGetters,
+              groupForBasicType: (product: string, id: string) => false
+            };
+
+            const groups = getters.allTypes(state, testTypeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          describe('virtual types', () => {
+            it('one entry', () => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+              } = createEnvBasicVirtual();
+
+              const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedTypes);
+            });
+
+            it('no entry (group not basic)', () => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+              } = createEnvBasicVirtual([TYPE_MODES.BASIC], false);
+
+              const testTypeMapGetters = {
+                ...typeMapGetters,
+                groupForBasicType: () => false,
+              };
+
+              const groups = getters.allTypes(state, testTypeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedTypes);
+            });
+          });
+
+          describe('spoof types', () => {
+            it('one entry', () => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+              } = createEnvBasicSpoof();
+
+              const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedTypes);
+            });
+
+            it('no entry (group not basic)', () => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+              } = createEnvBasicSpoof([TYPE_MODES.BASIC], false);
+
+              const testTypeMapGetters = {
+                ...typeMapGetters,
+                groupForBasicType: () => false,
+              };
+
+              const groups = getters.allTypes(state, testTypeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedTypes);
+            });
+          });
+        });
+
+        describe('mode: ALL', () => {
+          /**
+          * Extend createEnvBasicPod with env to return a pod type for mode TYPE_MODES.ALL
+          */
+          const createEnvAllPod = (expected = true) => {
+            const defaults = createEnvBasicPod([TYPE_MODES.ALL]);
+            const { rootGetters, productStore } = defaults;
+
+            const testRootGetters = {
+              ...rootGetters,
+              [`${ productStore }/all`]: (resource: string) => {
+                switch (resource) {
+                case SCHEMA:
+                  return [schemas.pod];
+                case COUNT:
+                  return [{ counts: { pod: counts.pod } }];
+                }
+
+                return [];
+              },
+            };
+
+            return {
+              ...defaults,
+              rootGetters: testRootGetters,
+
+              expectedTypes: expected ? setTypeMode([TYPE_MODES.ALL], { pod: expectedMenuItems.podWithAttribute }) : { }
+            };
+          };
+
+          /**
+          * Extend createEnvBasicVirtual with env to return a virtual type for mode TYPE_MODES.ALL
+          */
+          const createAllVirtualType = () => {
+            return createEnvBasicVirtual([TYPE_MODES.ALL]);
+          };
+
+          /**
+          * Extend createEnvBasicSpoof with env to return a spoof type for mode TYPE_MODES.ALL
+          */
+          const createAllSpoofedType = () => {
+            return createEnvBasicSpoof([TYPE_MODES.ALL]);
+          };
+
+          it('one entry', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+            } = createEnvAllPod();
+
+            const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          it('no entry (schema without a kind)', () => {
+            const {
+              state, typeMapGetters, productStore, rootGetters, productName, modes, rootState, expectedTypes
+            } = createEnvAllPod(false);
+
+            const testRootGetters = {
+              ...rootGetters,
+              [`${ productStore }/all`]: (resource: string) => {
+                switch (resource) {
+                case SCHEMA:
+                  return [schemas.podNoAttributes];
+                case COUNT:
+                  return [{ counts: { pod: counts.pod } }];
+                }
+
+                return [];
+              },
+            };
+
+            const groups = getters.allTypes(state, typeMapGetters, rootState, testRootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          it('no entry (needs rancher cluster)', () => {
+            const {
+              state, typeMapGetters, rootGetters, productName, modes, rootState, expectedTypes
+            } = createEnvAllPod(false);
+
+            const testRootGetters = {
+              ...rootGetters,
+              isRancher: false
+            };
+
+            const testTypeMapGetters = {
+              ...typeMapGetters,
+              optionsFor: (schema: SchemaOrType) => ({
+                namespaced:       true,
+                customRoute:      'cde',
+                ifRancherCluster: true
+              }),
+            };
+
+            const groups = getters.allTypes(state, testTypeMapGetters, rootState, testRootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          it('no entry (shouldn\'t be rancher cluster)', () => {
+            const {
+              state, typeMapGetters, rootGetters, productName, modes, rootState, expectedTypes
+            } = createEnvAllPod(false);
+
+            const testRootGetters = {
+              ...rootGetters,
+              isRancher: true
+            };
+
+            const testTypeMapGetters = {
+              ...typeMapGetters,
+              optionsFor: (schema: SchemaOrType) => ({
+                namespaced:       true,
+                customRoute:      'cde',
+                ifRancherCluster: false
+              }),
+            };
+
+            const groups = getters.allTypes(state, testTypeMapGetters, rootState, testRootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          it('one entry (needs rancher cluster)', () => {
+            const {
+              state, typeMapGetters, rootGetters, productName, modes, rootState, expectedTypes
+            } = createEnvAllPod();
+
+            const testRootGetters = {
+              ...rootGetters,
+              isRancher: true
+            };
+
+            const testTypeMapGetters = {
+              ...typeMapGetters,
+              optionsFor: (schema: SchemaOrType) => ({
+                namespaced:       true,
+                customRoute:      'cde',
+                ifRancherCluster: true
+              }),
+            };
+
+            const groups = getters.allTypes(state, testTypeMapGetters, rootState, testRootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          it('no entry (local only)', () => {
+            const {
+              state, typeMapGetters, rootGetters, productName, modes, rootState, expectedTypes
+            } = createEnvAllPod(false);
+
+            const testRootGetters = {
+              ...rootGetters,
+              currentCluster: { isLocal: false }
+            };
+
+            const testTypeMapGetters = {
+              ...typeMapGetters,
+              optionsFor: (schema: SchemaOrType) => ({
+                namespaced:  true,
+                customRoute: 'cde',
+                localOnly:   true
+              }),
+            };
+
+            const groups = getters.allTypes(state, testTypeMapGetters, rootState, testRootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          it('one entry (local only)', () => {
+            const {
+              state, typeMapGetters, rootGetters, productName, modes, rootState, expectedTypes
+            } = createEnvAllPod();
+
+            const testRootGetters = {
+              ...rootGetters,
+              currentCluster: { isLocal: true }
+            };
+
+            const testTypeMapGetters = {
+              ...typeMapGetters,
+              optionsFor: (schema: SchemaOrType) => ({
+                namespaced:  true,
+                customRoute: 'cde',
+                localOnly:   true
+              }),
+            };
+
+            const groups = getters.allTypes(state, testTypeMapGetters, rootState, testRootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          describe('virtual types', () => {
+            it('one entry', () => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+              } = createAllVirtualType();
+
+              const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedTypes);
+            });
+          });
+
+          describe('spoof types', () => {
+            it('one entry', () => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+              } = createAllSpoofedType();
+
+              const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedTypes);
+            });
+          });
+        });
+
+        describe('mode: FAVORITE', () => {
+          /**
+          * Extend generateDefaults with env to return a pod type for mode TYPE_MODES.FAVORITE
+          */
+          const generateDefaultsForFavourite = (expected = true) => {
+            const defaults = generateDefaults();
+            const { typeMapGetters, rootGetters, productStore } = defaults;
+
+            const testRootGetters = {
+              ...rootGetters,
+              [`${ productStore }/all`]: (resource: string) => {
+                switch (resource) {
+                case SCHEMA:
+                  return [schemas.secret];
+                case COUNT:
+                  return [{ counts: { secret: counts.secret } }];
+                }
+
+                return [];
+              },
+            };
+
+            const testTypeMapGetters = {
+              ...typeMapGetters,
+              labelFor:          (schema: SchemaOrType, count: number) => 'Secret',
+              groupForBasicType: () => true,
+              optionsFor:        (schema: SchemaOrType) => ({
+                namespaced:  true,
+                customRoute: 'cde'
+              }),
+              isFavorite: () => true,
+            };
+
+            return {
+              ...defaults,
+              modes:          [TYPE_MODES.FAVORITE],
+              typeMapGetters: testTypeMapGetters,
+              rootGetters:    testRootGetters,
+
+              expectedTypes: expected ? setTypeMode([TYPE_MODES.FAVORITE], { secret: expectedMenuItems.secretWithAttribute }) : {}
+            };
+          };
+
+          /**
+          * Extend generateDefaultsForFavourite with env to return a virtual type for mode TYPE_MODES.FAVORITE
+          */
+          const createDefaultsForFavouriteVirtualType = (expected = true) => {
+            const defaults = generateDefaults();
+            const defaultsFavourites = generateDefaultsForFavourite();
+            const { state, productName } = defaultsFavourites;
+
+            const testState = {
+              ...state,
+              virtualTypes: { [productName]: [types.virtual] }
+            };
+
+            return {
+              ...defaultsFavourites,
+              state:       testState,
+              rootGetters: defaults.rootGetters,
+
+              expectedTypes: expected ? setTypeMode([TYPE_MODES.FAVORITE], { virt: expectedMenuItems.virtual }) : {}
+            };
+          };
+
+          /**
+          * Extend generateDefaultsForFavourite with env to return a spoof type for mode TYPE_MODES.FAVORITE
+          */
+          const createDefaultsForFavouriteSpoofType = (expected = true) => {
+            const defaults = generateDefaults();
+            const defaultsFavourites = generateDefaultsForFavourite();
+            const { state, productName } = defaultsFavourites;
+
+            const testState = {
+              ...state,
+              spoofedTypes: { [productName]: [types.spoof] }
+            };
+
+            return {
+              ...defaultsFavourites,
+              state:       testState,
+              rootGetters: defaults.rootGetters,
+
+              expectedTypes: expected ? setTypeMode([TYPE_MODES.FAVORITE], { spoof: expectedMenuItems.spoof }) : {}
+            };
+          };
+
+          it('one entry', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+            } = generateDefaultsForFavourite();
+
+            const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          it('no entry (not favourite)', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+            } = generateDefaultsForFavourite(false);
+
+            const testTypeMapGetters = {
+              ...typeMapGetters,
+              isFavorite: () => false,
+            };
+
+            const groups = getters.allTypes(state, testTypeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          describe('virtual types', () => {
+            it('one entry', () => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+              } = createDefaultsForFavouriteVirtualType();
+
+              const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedTypes);
+            });
+
+            it('no entry (not favourite)', () => {
+              const expectedGroups = { };
+
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes
+              } = createDefaultsForFavouriteVirtualType();
+
+              const testTypeMapGetters = {
+                ...typeMapGetters,
+                isFavorite: () => false,
+              };
+
+              const groups = getters.allTypes(state, testTypeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedGroups);
+            });
+          });
+
+          describe('spoof types', () => {
+            it('one entry', () => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+              } = createDefaultsForFavouriteSpoofType();
+
+              const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedTypes);
+            });
+
+            it('no entry (not favourite)', () => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes, expectedTypes
+              } = createDefaultsForFavouriteSpoofType(false);
+
+              const testTypeMapGetters = {
+                ...typeMapGetters,
+                isFavorite: () => false,
+              };
+
+              const groups = getters.allTypes(state, testTypeMapGetters, rootState, rootGetters)(productName, modes);
+
+              expect(groups).toStrictEqual(expectedTypes);
+            });
+          });
+        });
+
+        describe('mode: USED', () => {
+          /**
+          * Extend createEnvBasicPod with env to return a pod for mode TYPE_MODES.USED
+          */
+          const createUsedPod = () => {
+            const defaults = createEnvBasicPod([TYPE_MODES.USED]);
+            const { rootGetters, productStore } = defaults;
+
+            const testRootGetters = {
+              ...rootGetters,
+              [`${ productStore }/all`]: (resource: string) => {
+                switch (resource) {
+                case SCHEMA:
+                  return [schemas.pod];
+                case COUNT:
+                  return [{ counts: { pod: counts.pod } }];
+                }
+
+                return [];
+              },
+            };
+
+            return {
+              ...defaults,
+              rootGetters: testRootGetters
+            };
+          };
+
+          it('one entry', () => {
+            const expectedGroups = setTypeMode([TYPE_MODES.USED], { pod: expectedMenuItems.podWithAttribute });
+
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, modes
+            } = createUsedPod();
+
+            const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedGroups);
+          });
+
+          describe('virtual types', () => {
+            it('no entry (used not included)', () => {
+              const expectedGroups = { };
+
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName
+              } = createEnvBasicVirtual();
+
+              const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, [TYPE_MODES.USED]);
+
+              expect(groups).toStrictEqual(expectedGroups);
+            });
+          });
+
+          describe('spoof types', () => {
+            it('no entry (used not included)', () => {
+              const expectedGroups = { };
+
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName
+              } = createEnvBasicSpoof();
+
+              const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, [TYPE_MODES.USED]);
+
+              expect(groups).toStrictEqual(expectedGroups);
+            });
+          });
+        });
+
+        describe('mode: multiple', () => {
+          // Covers getProductsGroups use cases
+          const modes = [TYPE_MODES.BASIC, TYPE_MODES.FAVORITE, TYPE_MODES.USED];
+
+          const createAllOfTheThings = () => {
+            const defaults = generateDefaults(EXPLORER, 'cluster', modes);
+            const {
+              state, typeMapGetters, rootGetters, productName, productStore
+            } = defaults;
+
+            const testState = {
+              ...state,
+              virtualTypes: { [productName]: [types.virtual] },
+              spoofedTypes: { [productName]: [types.spoof] }
+            };
+
+            const testRootGetters = {
+              ...rootGetters,
+              [`${ productStore }/all`]: (resource: string) => {
+                switch (resource) {
+                case SCHEMA:
+                  return [schemas.topLevel, schemas.pod, schemas.secret];
+                case COUNT:
+                  return [{
+                    counts: {
+                      toplevel: counts.toplevel,
+                      pod:      counts.pod,
+                      secret:   counts.secret
+                    }
+                  }];
+                }
+
+                return [];
+              },
+            };
+
+            const testTypeMapGetters = {
+              ...typeMapGetters,
+              labelFor: (schema: SchemaOrType, count: number) => {
+                const schemaId = typeof schema === 'object' ? schema.id : schema;
+
+                switch (schemaId) {
+                case 'secret':
+                  return 'Secret';
+                default:
+                  return 'Pod';
+                }
+              },
+              groupForBasicType: () => true,
+              optionsFor:        (schema: SchemaOrType) => ({
+                namespaced:  true,
+                customRoute: 'cde'
+              }),
+              isFavorite: (id: string) => id === 'secret',
+            };
+
+            return {
+              ...defaults,
+              typeMapGetters: testTypeMapGetters,
+              rootGetters:    testRootGetters,
+              state:          testState,
+
+              modes,
+              expectedTypes: {
+                ...setTypeMode([TYPE_MODES.BASIC], {
+                  // A resource that's favourite should still appear in the basic side nav
+                  // fav: {
+                  secret: expectedMenuItems.secretWithAttribute,
+
+                  // A basic resource
+                  pod: expectedMenuItems.podWithAttribute,
+
+                  // A top level resource with an invalid schema (no kind)
+                  toplevel: expectedMenuItems.topLevel,
+
+                  virt: expectedMenuItems.virtual,
+
+                  spoof: expectedMenuItems.spoof
+                }),
+                ...setTypeMode([TYPE_MODES.FAVORITE], { secret: expectedMenuItems.secretWithAttribute }),
+                ...setTypeMode([TYPE_MODES.USED], {
+                  // A resource that's favourite should still appear in the basic side nav
+                  secret: expectedMenuItems.secretWithAttribute,
+                  // A basic resource
+                  pod:    expectedMenuItems.podWithAttribute,
+                }),
+              }
+            };
+          };
+
+          it('no entries', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName
+            } = generateDefaults(EXPLORER, 'cluster', modes);
+
+            const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual({});
+          });
+
+          it('one entry each', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, expectedTypes
+            } = createAllOfTheThings();
+
+            const groups = getters.allTypes(state, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(expectedTypes);
+          });
+
+          it('limited basic type', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, productStore
+            } = createAllOfTheThings();
+
+            const testState = {
+              ...state,
+              virtualTypes: { },
+              spoofedTypes: { }
+            };
+
+            const testRootGetters = {
+              ...rootGetters,
+              [`${ productStore }/all`]: (resource: string) => {
+                switch (resource) {
+                case SCHEMA:
+                  return [schemas.secret];
+                case COUNT:
+                  return [{ counts: { secret: counts.secret } }];
+                }
+
+                return [];
+              },
+            };
+
+            const testExpectedTypes = {
+              ...setTypeMode([TYPE_MODES.BASIC], { secret: expectedMenuItems.secretWithAttribute }),
+              ...setTypeMode([TYPE_MODES.FAVORITE], { secret: expectedMenuItems.secretWithAttribute }),
+              ...setTypeMode([TYPE_MODES.USED], { secret: expectedMenuItems.secretWithAttribute }),
+            };
+
+            const groups = getters.allTypes(testState, typeMapGetters, rootState, testRootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(testExpectedTypes);
+          });
+
+          it('no favourite type', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName, productStore
+            } = createAllOfTheThings();
+
+            const testRootGetters = {
+              ...rootGetters,
+              [`${ productStore }/all`]: (resource: string) => {
+                switch (resource) {
+                case SCHEMA:
+                  return [schemas.topLevel, schemas.pod];
+                case COUNT:
+                  return [{
+                    counts: {
+                      toplevel: counts.toplevel,
+                      pod:      counts.pod,
+                    }
+                  }];
+                }
+
+                return [];
+              },
+            };
+
+            const testExpectedTypes = {
+              ...setTypeMode([TYPE_MODES.BASIC], {
+                // A basic resource
+                pod: expectedMenuItems.podWithAttribute,
+
+                // A top level resource with an invalid schema (no kind)
+                toplevel: expectedMenuItems.topLevel,
+
+                virt: expectedMenuItems.virtual,
+
+                spoof: expectedMenuItems.spoof
+              }),
+              ...setTypeMode([TYPE_MODES.USED], {
+                // A basic resource
+                pod: expectedMenuItems.podWithAttribute,
+              }),
+            };
+
+            const groups = getters.allTypes(state, typeMapGetters, rootState, testRootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(testExpectedTypes);
+          });
+
+          it('no used type / no virtual type', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName
+            } = createAllOfTheThings();
+
+            const testState = {
+              ...state,
+              spoofedTypes: { [productName]: [types.spoof] },
+              virtualTypes: { [productName]: [] },
+            };
+
+            const testExpectedTypes = {
+              ...setTypeMode([TYPE_MODES.BASIC], {
+                // A resource that's favourite should still appear in the basic side nav
+                // fav: {
+                secret: expectedMenuItems.secretWithAttribute,
+
+                // A basic resource
+                pod: expectedMenuItems.podWithAttribute,
+
+                // A top level resource with an invalid schema (no kind)
+                toplevel: expectedMenuItems.topLevel,
+
+                spoof: expectedMenuItems.spoof
+              }),
+              ...setTypeMode([TYPE_MODES.FAVORITE], { secret: expectedMenuItems.secretWithAttribute }),
+              ...setTypeMode([TYPE_MODES.USED], {
+                // A resource that's favourite should still appear in the basic side nav
+                secret: expectedMenuItems.secretWithAttribute,
+                // A basic resource
+                pod:    expectedMenuItems.podWithAttribute,
+              }),
+            };
+
+            const groups = getters.allTypes(testState, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(testExpectedTypes);
+          });
+
+          it('no used type / no spoofed type', () => {
+            const {
+              state, typeMapGetters, rootState, rootGetters, productName
+            } = createAllOfTheThings();
+
+            const testState = {
+              ...state,
+              spoofedTypes: { [productName]: [] },
+              virtualTypes: { [productName]: [types.virtual] },
+            };
+
+            const testExpectedTypes = {
+              ...setTypeMode([TYPE_MODES.BASIC], {
+                // A resource that's favourite should still appear in the basic side nav
+                // fav: {
+                secret: expectedMenuItems.secretWithAttribute,
+
+                // A basic resource
+                pod: expectedMenuItems.podWithAttribute,
+
+                // A top level resource with an invalid schema (no kind)
+                toplevel: expectedMenuItems.topLevel,
+
+                virt: expectedMenuItems.virtual,
+
+              }),
+              ...setTypeMode([TYPE_MODES.FAVORITE], { secret: expectedMenuItems.secretWithAttribute }),
+              ...setTypeMode([TYPE_MODES.USED], {
+                // A resource that's favourite should still appear in the basic side nav
+                secret: expectedMenuItems.secretWithAttribute,
+                // A basic resource
+                pod:    expectedMenuItems.podWithAttribute,
+              }),
+            };
+
+            const groups = getters.allTypes(testState, typeMapGetters, rootState, rootGetters)(productName, modes);
+
+            expect(groups).toStrictEqual(testExpectedTypes);
+          });
+        });
+      });
+    });
+
+    describe('activeProducts', () => {
+      // Basic schemas for product filtering tests
+      const productSchemas = {
+        myType: {
+          id:     'mytype',
+          _id:    'mytype',
+          type:   SCHEMA,
+          _group: 'mygroup',
+        },
+        anotherType: {
+          id:     'anothertype',
+          _id:    'anothertype',
+          type:   SCHEMA,
+          _group: 'anothergroup',
+        },
+      };
+
+      const createProductState = (products: any) => ({
+        products,
+        schemaGeneration: 1,
+      });
+
+      const createProductRootGetters = (moduleSchemas: any[] = [], moduleName = 'cluster') => ({
+        'prefs/get':             () => false,
+        [`${ moduleName }/all`]: (resource: any) => {
+          if (resource === SCHEMA) {
+            return moduleSchemas;
+          }
+
+          return [];
+        },
+      });
+
+      describe('ifHaveType', () => {
+        it('should show product when matching type exists', () => {
+          const state = createProductState([{
+            name:       'test-product',
+            inStore:    'cluster',
+            ifHaveType: 'mytype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(1);
+          expect(active[0].name).toBe('test-product');
+        });
+
+        it('should hide product when matching type does not exist', () => {
+          const state = createProductState([{
+            name:       'test-product',
+            inStore:    'cluster',
+            ifHaveType: 'missingtype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+      });
+
+      describe('ifNotHaveType', () => {
+        it('should show product when matching type does NOT exist', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifNotHaveType: 'missingtype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(1);
+          expect(active[0].name).toBe('test-product');
+        });
+
+        it('should hide product when matching type exists', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifNotHaveType: 'mytype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+
+        it('should support regex pattern in ifNotHaveType', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifNotHaveType: 'my.*',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+
+        it('should show product when regex pattern does not match any type', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifNotHaveType: 'nomatch.*',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(1);
+          expect(active[0].name).toBe('test-product');
+        });
+      });
+
+      describe('combined ifHaveType and ifNotHaveType', () => {
+        it('should show product when ifHaveType matches and ifNotHaveType does not match', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifHaveType:    'mytype',
+            ifNotHaveType: 'missingtype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(1);
+          expect(active[0].name).toBe('test-product');
+        });
+
+        it('should hide product when ifHaveType matches but ifNotHaveType also matches', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifHaveType:    'mytype',
+            ifNotHaveType: 'anothertype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType, productSchemas.anotherType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+
+        it('should hide product when ifHaveType does not match', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifHaveType:    'missingtype',
+            ifNotHaveType: 'anothermissingtype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+      });
+    });
+  });
+
+  describe('groupLabel', () => {
+    it('should return groupLabel when it exists in state', () => {
+      const state = { groupLabels: { mygroup: { label: 'My Group Label', labelKey: undefined } } };
+
+      const result = getters.groupLabel(state)('mygroup');
+
+      expect(result).toStrictEqual({ label: 'My Group Label', labelKey: undefined });
+    });
+
+    it('should return groupLabel with labelKey when set', () => {
+      const state = { groupLabels: { anothergroup: { label: undefined, labelKey: 'typeLabel.myKey' } } };
+
+      const result = getters.groupLabel(state)('anothergroup');
+
+      expect(result).toStrictEqual({ label: undefined, labelKey: 'typeLabel.myKey' });
+    });
+
+    it('should handle case-insensitive group names', () => {
+      const state = { groupLabels: { mygroup: { label: 'My Group', labelKey: undefined } } };
+
+      const result = getters.groupLabel(state)('MyGroup');
+
+      expect(result).toStrictEqual({ label: 'My Group', labelKey: undefined });
+    });
+
+    it('should return undefined when group label does not exist', () => {
+      const state = { groupLabels: {} };
+
+      const result = getters.groupLabel(state)('nonexistent');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined for empty, null, undefined, or non-existent group name', () => {
+      const state = { groupLabels: { mygroup: { label: 'My Group', labelKey: undefined } } };
+
+      // Empty string fails the groupName check and returns undefined
+      expect(getters.groupLabel(state)('')).toBeUndefined();
+      // null returns undefined
+      expect(getters.groupLabel(state)(null)).toBeUndefined();
+      // undefined returns undefined
+      expect(getters.groupLabel(state)(undefined)).toBeUndefined();
+      // Non-existent group returns undefined
+      expect(getters.groupLabel(state)('nonexistent')).toBeUndefined();
+    });
+  });
+
+  describe('configureType - product scoping', () => {
+    describe('mutations.configureType', () => {
+      it('should scope typeOptions by product', () => {
+        const state = { typeOptions: {} } as any;
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'pod',
+          customRoute: { name: 'product-1-route' }
+        });
+
+        mutations.configureType(state, {
+          product:     'explorer',
+          match:       'pod',
+          customRoute: { name: 'explorer-route' }
+        });
+
+        expect(state.typeOptions['product-1']).toHaveLength(1);
+        expect(state.typeOptions['product-1'][0].customRoute.name).toBe('product-1-route');
+        expect(state.typeOptions['explorer']).toHaveLength(1);
+        expect(state.typeOptions['explorer'][0].customRoute.name).toBe('explorer-route');
+      });
+
+      it('should merge multiple configures for same type in same product', () => {
+        const state = { typeOptions: {} } as any;
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'pod',
+          isCreatable: false
+        });
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'pod',
+          customRoute: { name: 'custom' }
+        });
+
+        expect(state.typeOptions['product-1']).toHaveLength(1);
+        expect(state.typeOptions['product-1'][0].isCreatable).toBe(false);
+        expect(state.typeOptions['product-1'][0].customRoute.name).toBe('custom');
+      });
+
+      it('should merge custom data objects when configuring same type multiple times', () => {
+        const state = { typeOptions: {} } as any;
+
+        mutations.configureType(state, {
+          product: 'product-1',
+          match:   'pod',
+          custom:  { setting1: 'value1' }
+        });
+
+        mutations.configureType(state, {
+          product: 'product-1',
+          match:   'pod',
+          custom:  { setting2: 'value2' }
+        });
+
+        expect(state.typeOptions['product-1'][0].custom).toStrictEqual({
+          setting1: 'value1',
+          setting2: 'value2'
+        });
+      });
+
+      it('should throw error when product parameter is missing in new format (2.15+)', () => {
+        const state = { typeOptions: {} } as any;
+
+        expect(() => {
+          mutations.configureType(state, {
+            match:       'pod',
+            customRoute: { name: 'route' }
+          });
+        }).toThrow(/product parameter is required/);
+      });
+
+      it('should throw error with type info when product parameter is missing', () => {
+        const state = { typeOptions: {} } as any;
+
+        expect(() => {
+          mutations.configureType(state, {
+            match:       'pod',
+            customRoute: { name: 'route' }
+          });
+        }).toThrow(/for type/);
+      });
+
+      it('should allow different types in same product', () => {
+        const state = { typeOptions: {} } as any;
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'pod',
+          customRoute: { name: 'pod-route' }
+        });
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'deployment',
+          customRoute: { name: 'deployment-route' }
+        });
+
+        expect(state.typeOptions['product-1']).toHaveLength(2);
+        expect(state.typeOptions['product-1'][0].customRoute.name).toBe('pod-route');
+        expect(state.typeOptions['product-1'][1].customRoute.name).toBe('deployment-route');
+      });
+    });
+
+    describe('getters.optionsFor - product filtering', () => {
+      it('should return product-scoped options', () => {
+        const state = {
+          typeOptions: {
+            'product-1': [{ match: 'pod', customRoute: { name: 'product-1-route' } }],
+            explorer:    [{ match: 'pod', customRoute: { name: 'explorer-route' } }]
+          }
+        } as any;
+
+        const rootGetters = { productId: 'product-1' };
+
+        const optionsFn = getters.optionsFor(state, {}, {}, rootGetters);
+        const opts = optionsFn('pod', false);
+
+        expect(opts.customRoute.name).toBe('product-1-route');
+      });
+
+      it('should return defaults when type not configured in current product', () => {
+        const state = { typeOptions: { explorer: [{ match: 'pod', customRoute: { name: 'explorer-route' } }] } } as any;
+
+        const rootGetters = { productId: 'product-1' };
+
+        const optionsFn = getters.optionsFor(state, {}, {}, rootGetters);
+        const opts = optionsFn('pod', false);
+
+        expect(opts.customRoute).toBeUndefined();
+        expect(opts.isCreatable).toBe(true); // default value
+      });
+
+      it('should handle missing product gracefully', () => {
+        const state = { typeOptions: {} } as any;
+        const rootGetters = { productId: 'nonexistent' };
+
+        const optionsFn = getters.optionsFor(state, {}, {}, rootGetters);
+        const opts = optionsFn('pod', false);
+
+        expect(opts.isCreatable).toBe(true); // defaults
+        expect(opts.customRoute).toBeUndefined();
+      });
+
+      it('should not apply explorer product config to other products', () => {
+        const state = {
+          typeOptions: {
+            explorer:    [{ match: 'pod', customRoute: { name: 'explorer-pod-route' } }],
+            'product-1': [{ match: 'pod', customRoute: { name: 'product-1-pod-route' } }]
+          }
+        } as any;
+
+        // Check explorer product
+        const explorerOptions = getters.optionsFor(state, {}, {}, { productId: 'explorer' });
+
+        expect(explorerOptions('pod', false).customRoute.name).toBe('explorer-pod-route');
+
+        // Check other product
+        const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+        expect(product1Options('pod', false).customRoute.name).toBe('product-1-pod-route');
+
+        // Check unconfigured product
+        const product2Options = getters.optionsFor(state, {}, {}, { productId: 'product-2' });
+
+        expect(product2Options('pod', false).customRoute).toBeUndefined();
+      });
+
+      it('should use explicit product parameter when provided', () => {
+        const state = {
+          typeOptions: {
+            explorer: [
+              {
+                match:       'pod',
+                customRoute: { name: 'explorer-route' },
+                localOnly:   true
+              }
+            ],
+            'product-1': [
+              {
+                match:       'pod',
+                customRoute: { name: 'product-1-route' },
+                localOnly:   false
+              }
+            ]
+          }
+        } as any;
+
+        const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+        // Without product override, should use current product (product-1)
+        const defaultOpts = optionsFn('pod', false);
+
+        expect(defaultOpts.customRoute.name).toBe('product-1-route');
+        expect(defaultOpts.localOnly).toBe(false);
+
+        // With product override to explorer, should use explorer's config
+        const explorerOpts = optionsFn('pod', false, 'explorer');
+
+        expect(explorerOpts.customRoute.name).toBe('explorer-route');
+        expect(explorerOpts.localOnly).toBe(true);
+      });
+
+      it('should handle product override for unconfigured types', () => {
+        const state = {
+          typeOptions: {
+            explorer: [
+              {
+                match:       'pod',
+                customRoute: { name: 'explorer-route' }
+              }
+            ]
+          }
+        } as any;
+
+        const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+        // Override to explorer which has config
+        const explorerOpts = optionsFn('secret', false, 'explorer');
+
+        expect(explorerOpts.customRoute).toBeUndefined(); // secret not configured in explorer
+        expect(explorerOpts.isCreatable).toBe(true); // uses default
+
+        // Override to product-2 which has no config
+        const product2Opts = optionsFn('pod', false, 'product-2');
+
+        expect(product2Opts.customRoute).toBeUndefined();
+        expect(product2Opts.isCreatable).toBe(true);
+      });
+
+      describe('backward compatibility - legacy array format (Rancher 2.14)', () => {
+        it('should handle legacy array format with product field', () => {
+          const state = {
+            typeOptions: [
+              {
+                match: 'pod', product: 'explorer', customRoute: { name: 'explorer-route' }
+              },
+              {
+                match: 'pod', product: 'product-1', customRoute: { name: 'product-1-route' }
+              }
+            ]
+          } as any;
+
+          const explorerOptions = getters.optionsFor(state, {}, {}, { productId: 'explorer' });
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          expect(explorerOptions('pod', false).customRoute.name).toBe('explorer-route');
+          expect(product1Options('pod', false).customRoute.name).toBe('product-1-route');
+        });
+
+        it('should handle legacy array format with entries without product field', () => {
+          const state = {
+            typeOptions: [
+              {
+                match: 'pod', product: 'explorer', customRoute: { name: 'explorer-route' }
+              },
+              { match: 'pod', customRoute: { name: 'shared-route' } }
+            ]
+          } as any;
+
+          const explorerOptions = getters.optionsFor(state, {}, {}, { productId: 'explorer' });
+          const otherProductOptions = getters.optionsFor(state, {}, {}, { productId: 'other' });
+
+          // explorer gets its product-specific entry (matches first)
+          expect(explorerOptions('pod', false).customRoute.name).toBe('explorer-route');
+
+          // other product gets only unscoped entries
+          expect(otherProductOptions('pod', false).customRoute.name).toBe('shared-route');
+        });
+      });
+
+      describe('backward compatibility - missing product parameter (old extensions in 2.15)', () => {
+        it('should reject unscoped config (requires product parameter in 2.15+)', () => {
+          const state = { typeOptions: {} } as any;
+
+          expect(() => {
+            mutations.configureType(state, {
+              match:       'pod',
+              customRoute: { name: 'legacy-route' }
+            });
+          }).toThrow(/product parameter is required/);
+        });
+
+        it('should retrieve legacyCompatibilityProdRegistration entries for products without specific config', () => {
+          const state = {
+            typeOptions: {
+              'product-1':                         [{ match: 'pod', customRoute: { name: 'product-1-route' } }],
+              legacyCompatibilityProdRegistration: [{ match: 'pod', customRoute: { name: 'legacy-route' } }]
+            }
+          } as any;
+
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+          const product2Options = getters.optionsFor(state, {}, {}, { productId: 'product-2' });
+
+          // product-1 gets its own config (takes precedence)
+          expect(product1Options('pod', false).customRoute.name).toBe('product-1-route');
+
+          // product-2 gets legacy entries
+          expect(product2Options('pod', false).customRoute.name).toBe('legacy-route');
+        });
+
+        it('should merge product-specific and legacyCompatibilityProdRegistration buckets in getter', () => {
+          const state = {
+            typeOptions: {
+              'product-1':                         [{ match: 'deployment', customRoute: { name: 'product-1-deployment-route' } }],
+              legacyCompatibilityProdRegistration: [{ match: 'pod', customRoute: { name: 'legacy-pod-route' } }]
+            }
+          } as any;
+
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // pod from legacy bucket (product-1 doesn't have pod config)
+          expect(product1Options('pod', false).customRoute.name).toBe('legacy-pod-route');
+
+          // deployment from product-specific bucket
+          expect(product1Options('deployment', false).customRoute.name).toBe('product-1-deployment-route');
+        });
+      });
+
+      describe('mixed extensions scenario (2.15 with old + new extensions)', () => {
+        it('should handle old extension (2.14 shell) + new extension (2.15 shell) in same product', () => {
+          const state = {
+            typeOptions: {
+              explorer:                            [{ match: 'pod', customRoute: { name: 'explorer-pod-route' } }],
+              legacyCompatibilityProdRegistration: [
+                { match: 'secret', customRoute: { name: 'legacy-secret-route' } },
+                { match: 'configmap', customRoute: { name: 'legacy-configmap-route' } }
+              ]
+            }
+          } as any;
+
+          const explorerOptions = getters.optionsFor(state, {}, {}, { productId: 'explorer' });
+
+          // New extension config (product-specific)
+          expect(explorerOptions('pod', false).customRoute.name).toBe('explorer-pod-route');
+
+          // Old extension configs (from legacy bucket)
+          expect(explorerOptions('secret', false).customRoute.name).toBe('legacy-secret-route');
+          expect(explorerOptions('configmap', false).customRoute.name).toBe('legacy-configmap-route');
+        });
+
+        it('should prioritize product-specific config over legacy bucket when same type in both', () => {
+          const state = {
+            typeOptions: {
+              'product-1':                         [{ match: 'pod', customRoute: { name: 'product-1-route' } }],
+              legacyCompatibilityProdRegistration: [{ match: 'pod', customRoute: { name: 'legacy-route' } }]
+            }
+          } as any;
+
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // product-specific should come first in the array and match first
+          expect(product1Options('pod', false).customRoute.name).toBe('product-1-route');
+        });
+
+        it('should work with multiple products having both specific and legacy configs', () => {
+          const state = {
+            typeOptions: {
+              'product-1':                         [{ match: 'pod', customRoute: { name: 'p1-pod' } }],
+              'product-2':                         [{ match: 'pod', customRoute: { name: 'p2-pod' } }],
+              legacyCompatibilityProdRegistration: [
+                { match: 'secret', customRoute: { name: 'legacy-secret' } },
+                { match: 'pod', customRoute: { name: 'legacy-pod' } }
+              ]
+            }
+          } as any;
+
+          const p1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+          const p2Options = getters.optionsFor(state, {}, {}, { productId: 'product-2' });
+          const p3Options = getters.optionsFor(state, {}, {}, { productId: 'product-3' });
+
+          // product-1: gets its own pod config, ignores legacy pod, gets legacy secret
+          expect(p1Options('pod', false).customRoute.name).toBe('p1-pod');
+          expect(p1Options('secret', false).customRoute.name).toBe('legacy-secret');
+
+          // product-2: gets its own pod config, ignores legacy pod, gets legacy secret
+          expect(p2Options('pod', false).customRoute.name).toBe('p2-pod');
+          expect(p2Options('secret', false).customRoute.name).toBe('legacy-secret');
+
+          // product-3: gets only legacy configs
+          expect(p3Options('pod', false).customRoute.name).toBe('legacy-pod');
+          expect(p3Options('secret', false).customRoute.name).toBe('legacy-secret');
+        });
+      });
+
+      describe('product name validation', () => {
+        it('should throw error when product name equals reserved legacyCompatibilityProdRegistration', () => {
+          const state = { typeOptions: {} } as any;
+
+          expect(() => {
+            mutations.configureType(state, {
+              product:     'legacyCompatibilityProdRegistration',
+              match:       'pod',
+              customRoute: { name: 'route' }
+            });
+          }).toThrow(/cannot be "legacyCompatibilityProdRegistration"/);
+        });
+
+        it('should allow empty string in getter (falsy, bypasses validation)', () => {
+          const state = { typeOptions: { 'product-1': [{ match: 'pod', customRoute: { name: 'p1-route' } }] } } as any;
+          const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // Empty string is falsy so it skips validation and uses current product context
+          expect(() => {
+            optionsFn('pod', false, '');
+          }).not.toThrow();
+        });
+
+        it('should throw error in getter when product override is the reserved name', () => {
+          const state = { typeOptions: { 'product-1': [] } } as any;
+          const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          expect(() => {
+            optionsFn('pod', false, 'legacyCompatibilityProdRegistration');
+          }).toThrow(/cannot be "legacyCompatibilityProdRegistration"/);
+        });
+
+        it('should allow undefined product (triggers default context in getter)', () => {
+          const state = { typeOptions: { 'product-1': [{ match: 'pod', customRoute: { name: 'p1-route' } }] } } as any;
+          const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // undefined product should use current product context
+          expect(() => {
+            optionsFn('pod', false, undefined);
+          }).not.toThrow();
+        });
+
+        it('should allow valid product names', () => {
+          const state = { typeOptions: {} } as any;
+
+          expect(() => {
+            mutations.configureType(state, {
+              product:     'my-product',
+              match:       'pod',
+              customRoute: { name: 'route' }
+            });
+          }).not.toThrow();
+
+          expect(state.typeOptions['my-product']).toHaveLength(1);
+        });
+      });
+
+      describe('edge cases and potential issues', () => {
+        it('should handle explicit product override with product parameter in getter', () => {
+          const state = {
+            typeOptions: {
+              'product-1': [{ match: 'pod', customRoute: { name: 'p1-route' } }],
+              'product-2': [{ match: 'pod', customRoute: { name: 'p2-route' } }]
+            }
+          } as any;
+
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // Without override, should use product-1
+          expect(product1Options('pod', false).customRoute.name).toBe('p1-route');
+
+          // With explicit override to product-2, should use product-2
+          expect(product1Options('pod', false, 'product-2').customRoute.name).toBe('p2-route');
+        });
+      });
+
+      describe('dsl headers', () => {
+        function createMockStore() {
+          const committed: { type: string; payload: any }[] = [];
+
+          return {
+            committed,
+            commit(mutation: string, payload: any) {
+              committed.push({ type: mutation, payload });
+            }
+          };
+        }
+
+        it('should commit only paginationHeaders when regular headers are not provided', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+          const paginationHeaders = [
+            {
+              name: 'name', labelKey: 'tableHeaders.name', value: 'name', sort: ['name']
+            }
+          ];
+
+          headers('pod', undefined as any, paginationHeaders);
+
+          expect(mockStore.committed).toHaveLength(1);
+          expect(mockStore.committed[0].type).toBe('type-map/paginationHeaders');
+          expect(mockStore.committed[0].payload).toStrictEqual({ type: 'pod', paginationHeaders });
+        });
+
+        it('should commit only paginationHeaders when regular headers are an empty array', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+          const paginationHeaders = [
+            {
+              name: 'state', labelKey: 'tableHeaders.state', value: 'state', sort: ['state']
+            }
+          ];
+
+          headers('pod', [], paginationHeaders);
+
+          expect(mockStore.committed).toHaveLength(1);
+          expect(mockStore.committed[0].type).toBe('type-map/paginationHeaders');
+        });
+
+        it('should commit both headers and paginationHeaders when both are provided', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+          const regularHeaders = [
+            {
+              name: 'name', labelKey: 'tableHeaders.name', value: 'nameDisplay', sort: ['nameSort']
+            }
+          ];
+          const paginationHeaders = [
+            {
+              name: 'name', labelKey: 'tableHeaders.name', value: 'name', sort: ['name']
+            }
+          ];
+
+          headers('pod', regularHeaders, paginationHeaders);
+
+          expect(mockStore.committed).toHaveLength(2);
+          expect(mockStore.committed[0].type).toBe('type-map/headers');
+          expect(mockStore.committed[1].type).toBe('type-map/paginationHeaders');
+        });
+
+        it('should commit only regular headers when paginationHeaders are not provided', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+          const regularHeaders = [
+            {
+              name: 'name', labelKey: 'tableHeaders.name', value: 'nameDisplay', sort: ['nameSort']
+            }
+          ];
+
+          headers('pod', regularHeaders);
+
+          expect(mockStore.committed).toHaveLength(1);
+          expect(mockStore.committed[0].type).toBe('type-map/headers');
+        });
+
+        it('should not commit anything when both headers and paginationHeaders are empty', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+
+          headers('pod', [], []);
+
+          expect(mockStore.committed).toHaveLength(0);
+        });
+      });
+    });
+  });
+});

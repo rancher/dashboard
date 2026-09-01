@@ -1,0 +1,58 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "jsx": "preserve",
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "preserveSymlinks": true,
+    "typeRoots": [
+      "../../node_modules",
+      "../../shell/types",
+      "./types"
+    ],
+    "types": [
+      "node",
+      "webpack-env",
+      "@types/node",
+      "@types/jest",
+      "@types/lodash",
+      "rancher",
+      "shell"
+    ],
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ],
+    "paths": {
+      "@shell/*": [
+        "../../shell/*"
+      ],
+      "@components/*": [
+        "../../pkg/rancher-components/src/components/*"
+      ],
+      "@pkg/*": [
+        "../../pkg/*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts",
+    "**/*.tsx",
+    "**/*.vue",
+    "../../shell/types/vue-shim.d.ts"
+  ],
+  "exclude": [
+    "../../node_modules"
+  ]
+}

@@ -1,0 +1,100 @@
+import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import { CypressChainable } from '@/cypress/e2e/po/po.types';
+
+export default class CheckboxInputPo extends ComponentPo {
+  static byLabel(self: CypressChainable, label: string): CheckboxInputPo {
+    return new CheckboxInputPo(
+      self
+        .find('.checkbox-outer-container')
+        .contains(label)
+        .parent()
+    );
+  }
+
+  /**
+   * Click on the checkbox input button
+   * @returns
+   */
+  set(): Cypress.Chainable {
+    return this.self()
+      .find('.checkbox-custom')
+      .should('not.be.disabled') // check to ensure checkbox is ready to be clicked
+      .click();
+  }
+
+  /**
+   * Return the checkbox input button from a given container
+   * @returns
+   */
+  private input(): Cypress.Chainable {
+    return this.self()
+      .find('.checkbox-container');
+  }
+
+  isChecked(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'true');
+  }
+
+  /**
+   * Check the checkbox only if it is not already checked
+   */
+  check(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').then(($el) => {
+      if ($el.attr('aria-checked') !== 'true') {
+        cy.wrap($el).should('not.be.disabled').click();
+      }
+    });
+  }
+
+  /**
+   * Uncheck the checkbox only if it is currently checked
+   */
+  uncheck(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').then(($el) => {
+      if ($el.attr('aria-checked') === 'true') {
+        return this.set();
+      }
+    });
+  }
+
+  isNotChecked(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'false');
+  }
+
+  // Use these for checkboxes bound to an array v-model (e.g. multi-select groups),
+  // where the Checkbox component's aria-checked is unreliable. These read the
+  // real <input type="checkbox"> state instead.
+  isInputChecked(): Cypress.Chainable {
+    return this.self().find('input[type="checkbox"]').should('be.checked');
+  }
+
+  isInputNotChecked(): Cypress.Chainable {
+    return this.self().find('input[type="checkbox"]').should('not.be.checked');
+  }
+
+  // to check custom box element width and height in order to prevent regression
+  // https://github.com/rancher/dashboard/issues/10000
+  hasAppropriateWidth(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').invoke('css', 'width').should('match', /14.*px/);
+  }
+
+  // to check custom box element width and height in order to prevent regression
+  // https://github.com/rancher/dashboard/issues/10000
+  hasAppropriateHeight(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').invoke('css', 'height').should('match', /14.*px/);
+  }
+
+  isUnchecked(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').should('not.have.attr', 'aria-checked', 'true');
+  }
+
+  getCheckboxLabel(): Cypress.Chainable {
+    return this.input().find('.checkbox-label').invoke('text');
+  }
+
+  isDisabled(): Cypress.Chainable {
+    return this.input().then((el) => {
+      expect(el).attr('class').to.include('disabled');
+    });
+  }
+}

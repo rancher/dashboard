@@ -1,0 +1,382 @@
+import { WorkloadsStatefulSetsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-statefulsets.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { generateStatefulSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/statefulsets/statefulsets-get';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+
+describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
+  const localCluster = 'local';
+  const statefulSetListPage = new WorkloadsStatefulSetsListPagePo(localCluster);
+
+  before(() => {
+    cy.login();
+  });
+
+  describe('List', { tags: ['@adminUser'] }, () => {
+    let uniqueStatefulSet = SortableTablePo.firstByDefaultName('statefulset');
+    let statefulSetNamesList: string[] = [];
+    let nsName1: string;
+    let nsName2: string;
+    let rootResourceName: string;
+
+    before('set up', () => {
+      cy.getRootE2EResourceName().then((root) => {
+        rootResourceName = root;
+      });
+
+      const createSs = (statefulSetName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = statefulSetName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
+
+          return cy.createRancherResource('v1', 'apps.statefulset', JSON.stringify({
+            apiVersion: 'apps/v1',
+            kind:       'StatefulSet',
+            metadata:   {
+              name,
+              namespace: ns
+            },
+            spec: {
+              replicas:            1,
+              serviceName:         name,
+              podManagementPolicy: 'OrderedReady',
+              updateStrategy:      { type: 'RollingUpdate' },
+              selector:            { matchLabels: { app: name } },
+              template:            {
+                metadata: { labels: { app: name } },
+                spec:     { containers: [SMALL_CONTAINER] }
+              }
+            }
+          }));
+        };
+      };
+
+      cy.createManyNamespacedResources({
+        context:        'statefullsets1',
+        createResource: createSs(),
+      })
+        .then(({ ns, workloadNames }) => {
+          statefulSetNamesList = workloadNames;
+          nsName1 = ns;
+        })
+        .then(() => cy.createManyNamespacedResources({
+          context:        'statefullsets2',
+          createResource: createSs(uniqueStatefulSet),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          uniqueStatefulSet = workloadNames[0];
+          nsName2 = ns;
+
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
+        });
+    });
+
+    it('pagination is visible and user is able to navigate through statefulsets data', () => {
+      ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
+
+      WorkloadsStatefulSetsListPagePo.navTo();
+      statefulSetListPage.waitForPage();
+
+      // Ensure the separately-created extra statefulset has propagated before deriving the count
+      // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'apps.statefulset', `${ nsName2 }/${ uniqueStatefulSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+      // pagination is visible
+      statefulSetListPage.list().resourceTable().sortableTable().pagination()
+        .checkVisible();
+
+      statefulSetListPage.list().resourceTable().sortableTable().pagination()
+        .paginationTotalCount()
+        .then((count: number) => {
+        // basic checks on navigation buttons
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
+
+          // check text before navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
+
+          // navigate to next page - right button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
+
+          // check text and buttons after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`11 - 20 of ${ count } StatefulSets`);
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
+
+          // navigate to first page - left button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
+
+          // check text and buttons after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+
+          // navigate to last page - end button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
+            .click();
+
+          // row count on last page
+          let lastPageCount = count % 10;
+
+          if (lastPageCount === 0) {
+            lastPageCount = 10;
+          }
+
+          // check text after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } StatefulSets`);
+
+          // navigate to first page - beginning button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
+
+          // check text and buttons after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+        });
+    });
+
+    it('sorting changes the order of paginated statefulsets data', () => {
+      WorkloadsStatefulSetsListPagePo.navTo();
+      statefulSetListPage.waitForPage();
+      // use filter to only show test data
+      statefulSetListPage.list().resourceTable().sortableTable().filter(rootResourceName);
+
+      // check table is sorted by name in ASC order by default
+      statefulSetListPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(2, 'down');
+
+      // statefulset name should be visible on first page (sorted in ASC order)
+      statefulSetListPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetNamesList[0])
+        .scrollIntoView()
+        .should('be.visible');
+
+      // sort by name in DESC order
+      statefulSetListPage.list().resourceTable().sortableTable().sort(2)
+        .click({ force: true });
+      statefulSetListPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(2, 'up');
+
+      // statefulset name should be NOT visible on first page (sorted in DESC order)
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetNamesList[0])
+        .should('not.exist');
+
+      // navigate to last page
+      statefulSetListPage.list().resourceTable().sortableTable().pagination()
+        .endButton()
+        .scrollIntoView()
+        .click();
+
+      // statefulset name should be visible on last page (sorted in DESC order)
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetNamesList[0])
+        .scrollIntoView()
+        .should('be.visible');
+    });
+
+    it('filter statefulsets', () => {
+      WorkloadsStatefulSetsListPagePo.navTo();
+      statefulSetListPage.waitForPage();
+
+      statefulSetListPage.list().resourceTable().sortableTable().checkVisible();
+      statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      statefulSetListPage.list().resourceTable().sortableTable().checkRowCount(false, 10);
+
+      // filter by name
+      statefulSetListPage.list().resourceTable().sortableTable().filter(statefulSetNamesList[0]);
+      statefulSetListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetNamesList[0])
+        .should('be.visible');
+
+      // filter by namespace
+      statefulSetListPage.list().resourceTable().sortableTable().filter(nsName2);
+      statefulSetListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(uniqueStatefulSet)
+        .should('be.visible');
+    });
+
+    it('pagination is hidden', () => {
+      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', '{"local":[]}');
+
+      // generate small set of statefulsets data
+      generateStatefulSetsDataSmall();
+      HomePagePo.goTo(); // this is needed here for the intercept to work
+      // navTo is hardened against the workload-overview redirect to Deployments (it waits for
+      // the overview's summary fetch to settle and reloads/retries if it redirected).
+      WorkloadsStatefulSetsListPagePo.navTo(localCluster);
+      cy.wait('@statefulSetsDataSmall');
+      statefulSetListPage.waitForPage();
+
+      statefulSetListPage.list().resourceTable().sortableTable().checkVisible();
+      statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      statefulSetListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      statefulSetListPage.list().resourceTable().sortableTable().pagination()
+        .checkNotExists();
+    });
+
+    after('clean up', () => {
+      // Ensure the default rows per page value is set after running the tests
+      cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
+
+      // delete namespace (this will also delete all statefulsets in it)
+      cy.deleteNamespace([nsName1, nsName2]);
+    });
+  });
+
+  describe('Redeploy Dialog', () => {
+    const namespace = `ns-test-${ Date.now() }`;
+    const statefulSetName = `sts-test-${ Date.now() }`;
+    const statefulSetNameWithoutService = `sts-test-no-service-${ Date.now() }`;
+    const apiResource = 'apps.statefulsets';
+    const redeployEndpoint = `/v1/${ apiResource }/${ namespace }/${ statefulSetName }`;
+    const redeployEndpointWithoutService = `/v1/${ apiResource }/${ namespace }/${ statefulSetNameWithoutService }`;
+
+    const openRedeployDialog = (statefulSetName: string) => {
+      statefulSetListPage.goTo();
+      statefulSetListPage.waitForPage();
+
+      // Wait for the statefulset row to render before opening its action menu.
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetName)
+        .should('be.visible');
+
+      statefulSetListPage
+        .list()
+        .actionMenu(statefulSetName)
+        .getMenuItem('Redeploy')
+        .click();
+
+      return statefulSetListPage
+        .redeployDialog()
+        .shouldBeVisible()
+        .expectCancelButtonLabel('Cancel')
+        .expectApplyButtonLabel('Redeploy');
+    };
+
+    before(() => {
+      cy.createNamespace(namespace);
+
+      cy.createRancherResource('v1', apiResource, JSON.stringify({
+        apiVersion: 'apps/v1',
+        kind:       'StatefulSet',
+        metadata:   { name: statefulSetName, namespace },
+        spec:       {
+          replicas:    1,
+          serviceName: statefulSetName,
+          selector:    { matchLabels: { app: statefulSetName } },
+          template:    {
+            metadata: { labels: { app: statefulSetName } },
+            spec:     {
+              containers: [{
+                name:  'nginx',
+                image: 'nginx:alpine'
+              }]
+            }
+          }
+        }
+      }));
+
+      cy.createRancherResource('v1', apiResource, JSON.stringify({
+        apiVersion: 'apps/v1',
+        kind:       'StatefulSet',
+        metadata:   { name: statefulSetNameWithoutService, namespace },
+        spec:       {
+          replicas: 1,
+          selector: { matchLabels: { app: statefulSetName } },
+          template: {
+            metadata: { labels: { app: statefulSetName } },
+            spec:     {
+              containers: [{
+                name:  'nginx',
+                image: 'nginx:alpine'
+              }]
+            }
+          }
+        }
+      }));
+
+      // Ensure both statefulsets are queryable before the tests navigate to the list, so the
+      // list's fetch includes them. The steve/VAI list can omit a row that is not yet indexed,
+      // which left openRedeployDialog unable to find the row (wedged across all retries).
+      cy.waitForRancherResource('v1', apiResource, `${ namespace }/${ statefulSetName }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+      cy.waitForRancherResource('v1', apiResource, `${ namespace }/${ statefulSetNameWithoutService }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+    });
+
+    it('redeploys successfully after confirmation', () => {
+      const dialog = openRedeployDialog(statefulSetName);
+
+      dialog.confirmRedeploy(redeployEndpoint);
+      dialog.shouldBeClosed();
+    });
+
+    it('redeploys successfully without a serviceName', () => {
+      const dialog = openRedeployDialog(statefulSetNameWithoutService);
+
+      dialog.confirmRedeploy(redeployEndpointWithoutService);
+      dialog.shouldBeClosed();
+    });
+
+    it('does not send a request when cancelled', () => {
+      cy.intercept('PUT', redeployEndpoint).as('redeployCancelled');
+
+      const dialog = openRedeployDialog(statefulSetName);
+
+      dialog.cancel().shouldBeClosed();
+      cy.get('@redeployCancelled.all').should('have.length', 0);
+    });
+
+    it('displays error banner on failure', () => {
+      const dialog = openRedeployDialog(statefulSetName);
+
+      dialog.simulateRedeployError(redeployEndpoint);
+    });
+
+    after(() => {
+      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ statefulSetName }`);
+      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ statefulSetNameWithoutService }`);
+      cy.deleteRancherResource('v1', 'namespaces', namespace);
+    });
+  });
+});

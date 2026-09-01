@@ -1,0 +1,658 @@
+import { nextTick } from 'vue';
+import { mount } from '@vue/test-utils';
+import { createStore } from 'vuex';
+import KeyValue from '@shell/components/form/KeyValue.vue';
+import { getters, state, mutations, I18nState } from '@shell/store/i18n';
+
+// The i18n store imports the en-us yaml, which jest can't parse. The tests below load the small
+// subset of translations they need explicitly, via `loadTranslations`.
+jest.mock('@shell/assets/translations/en-us.yaml', () => ({}));
+
+describe('component: KeyValue', () => {
+  it.skip('(Vue3 Skip) should display a not encoded value', () => {
+    const value = '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';
+    const wrapper = mount(KeyValue, {
+      props: { value: { value } },
+
+      global: {
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+        stubs: { CodeMirror: true },
+      },
+    });
+
+    const inputValue = wrapper.find('textarea').element as HTMLTextAreaElement;
+
+    expect(inputValue.value).toBe(value);
+  });
+
+  it.skip('(Vue3 Skip) should display a markdown-multiline field with new lines visible', () => {
+    const wrapper = mount(KeyValue, {
+      props: {
+        value:
+            { value: 'test' },
+        valueMarkdownMultiline: true,
+      },
+
+      global: {
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+        stubs: { CodeMirror: true },
+      },
+    });
+
+    const inputFieldTextArea = wrapper.find('textarea').element;
+    const inputFieldMultiline = wrapper.find('[data-testid="code-mirror-multiline-field"]').element;
+
+    expect(inputFieldTextArea).toBeUndefined();
+    expect(inputFieldMultiline).toBeDefined();
+  });
+
+  it('should have new lines in textarea', async() => {
+    const wrapper = mount(KeyValue, {
+      props: {
+        value:                  { foo: 'bar' },
+        valueMarkdownMultiline: false,
+      },
+
+      global: {
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+        stubs: { CodeMirror: true },
+      },
+    });
+
+    const inputFieldTextArea = wrapper.find('[data-testid="value-multiline"]');
+
+    inputFieldTextArea.setValue('bar\n');
+
+    await inputFieldTextArea.trigger('keydown.enter');
+
+    const textArea = inputFieldTextArea.element as HTMLTextAreaElement;
+
+    expect(textArea.value).toBe('bar\n');
+  });
+
+  it.each([
+    [[{ key: 'testkey', value: 'testvalue' }], [{ key: 'testkey', value: 'testvalue' }, { key: 'testkey1', value: 'testvalue1' }], false],
+    [{ testkey: 'testvalue' }, { testkey: 'testvalue', testkey1: 'testvalue1' }, true]
+  ])('should update when the parent component passes a new value', async(initialValueProp, newValueProp, asMap) => {
+    const wrapper = mount(KeyValue, {
+      props: {
+        value:          initialValueProp,
+        mode:           'edit',
+        asMap,
+        mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
+        valueMultiline: false,
+      }
+    });
+
+    const firstKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]');
+
+    const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
+
+    expect((firstKeyInput.element as HTMLInputElement).value).toBe('testkey');
+    expect((firstValueInput.element as HTMLInputElement).value).toBe('testvalue');
+
+    let secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    let secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(false);
+    expect(secondValueInput.exists()).toBe(false);
+
+    wrapper.vm.valuePropChanged(newValueProp);
+    await nextTick();
+    await nextTick();
+
+    secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(true);
+
+    expect((secondKeyInput.element as HTMLInputElement).value).toBe('testkey1');
+    expect((secondValueInput.element as HTMLInputElement).value).toBe('testvalue1');
+  });
+
+  it.each([
+    [{ testkey: 'testvalue' }, true],
+    [[{ key: 'testkey', value: 'testvalue' }], false]
+  ])('should display a new row of empty inputs when the add button is pressed', async(valueProp, asMap) => {
+    const wrapper = mount(KeyValue, {
+      props: {
+        value:          valueProp,
+        mode:           'edit',
+        mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
+        valueMultiline: false,
+        asMap
+      }
+    });
+
+    let secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    let secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(false);
+    expect(secondValueInput.exists()).toBe(false);
+
+    const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+    addButton.trigger('click');
+    await nextTick();
+    secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(true);
+  });
+
+  it.each([
+    [{ testkey: 'testvalue', testkey1: 'testvalue1' }, true],
+    [[{ key: 'testkey', value: 'testvalue' }, { key: 'testkey1', value: 'testvalue1' }], false]
+  ])('should remove a row when the remove button is pressed', async(valueProp, asMap) => {
+    const wrapper = mount(KeyValue, {
+      props: {
+        value:          valueProp,
+        mode:           'edit',
+        mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
+        valueMultiline: false,
+        asMap
+      }
+    });
+
+    let secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+    let secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(true);
+    expect(secondValueInput.exists()).toBe(true);
+
+    const removeFirstRow = wrapper.find('[data-testid="remove-column-0"] button');
+
+    removeFirstRow.trigger('click');
+    await nextTick();
+    secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(false);
+    expect(secondValueInput.exists()).toBe(false);
+
+    const firstKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]');
+
+    const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
+
+    expect((firstKeyInput.element as HTMLInputElement).value).toBe('testkey1');
+    expect((firstValueInput.element as HTMLInputElement).value).toBe('testvalue1');
+  });
+
+  describe('valueConcealed', () => {
+    it('should not render actual secret values in the DOM when valueConcealed is true', () => {
+      const secretValue = 'super-secret-api-key-12345';
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { mySecret: secretValue },
+          mode:           'view',
+          valueConcealed: true,
+        },
+
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+          stubs: { CodeMirror: true },
+        },
+      });
+
+      const concealedEl = wrapper.find('[data-testid="concealed-value"]');
+
+      expect(concealedEl.exists()).toBe(true);
+      expect(wrapper.html()).not.toContain(secretValue);
+    });
+
+    it('should render a TextAreaAutoGrow with the real value when valueConcealed is false', () => {
+      const secretValue = 'visible-value';
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { myKey: secretValue },
+          mode:           'view',
+          valueConcealed: false,
+        },
+
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+          stubs: { CodeMirror: true },
+        },
+      });
+
+      const concealedEl = wrapper.find('[data-testid="concealed-value"]');
+
+      expect(concealedEl.exists()).toBe(false);
+
+      const multilineEl = wrapper.find('[data-testid="value-multiline"]');
+
+      expect(multilineEl.exists()).toBe(true);
+    });
+
+    it('should have user-select none on the concealed placeholder to prevent text selection', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { mySecret: 'secret' },
+          mode:           'view',
+          valueConcealed: true,
+        },
+
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+          stubs: { CodeMirror: true },
+        },
+      });
+
+      const concealedEl = wrapper.find('[data-testid="concealed-value"]');
+
+      expect(concealedEl.classes()).toContain('concealed-value');
+    });
+  });
+
+  it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async() => {
+    const value = [{ key: 'testkey1', value: 'testvalue1' }];
+
+    const wrapper = mount(KeyValue, {
+      props: {
+        value,
+        mode:           'edit',
+        valueMultiline: false,
+        asMap:          false,
+        readAllowed:    true
+      }
+    });
+
+    const mainContainer = wrapper.find('.kv-container');
+    const keyGroup = wrapper.find('.kv-item.key');
+    const valueGroup = wrapper.find('.kv-item.value');
+    const firstKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]');
+    const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
+    const rowRemove = wrapper.find('[data-testid="remove-column-0"] button');
+    const rowAdd = wrapper.find('[data-testid="add_row_item_button"]');
+    const readKeyValueFromFile = wrapper.find('[data-testid="read_all_key_value_button"]');
+
+    expect(wrapper.vm.rows[0].key).toBe(value[0].key);
+    expect(wrapper.vm.rows[0].value).toBe(value[0].value);
+
+    expect(mainContainer.attributes('aria-label')).toBe('%generic.ariaLabel.keyValue%');
+    expect(mainContainer.attributes('role')).toBe('grid');
+    expect(keyGroup.attributes('role')).toBe('gridcell');
+    expect(valueGroup.attributes('role')).toBe('gridcell');
+    expect(firstKeyInput.attributes('aria-label')).toBe('%generic.ariaLabel.key%');
+    expect(firstValueInput.attributes('aria-label')).toBe('%generic.ariaLabel.value%');
+    expect(rowRemove.attributes('aria-label')).toBe('%generic.ariaLabel.keyValueRemove%');
+    expect(rowAdd.attributes('aria-label')).toBe('%generic.ariaLabel.addKeyValue%');
+    expect(readKeyValueFromFile.attributes('aria-label')).toBe('%generic.ariaLabel.readKeyValue%');
+  });
+
+  describe('disabledKeys', () => {
+    it('should disable key and value inputs for rows with keys in disabledKeys', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { protectedKey: 'protectedValue', normalKey: 'normalValue' },
+          mode:           'edit',
+          asMap:          true,
+          valueMultiline: false,
+          disabledKeys:   ['protectedKey'],
+        },
+
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+      });
+
+      const protectedKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]').element as HTMLInputElement;
+      const protectedValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]').element as HTMLInputElement;
+      const normalKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]').element as HTMLInputElement;
+      const normalValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]').element as HTMLInputElement;
+
+      expect(protectedKeyInput.disabled).toBe(true);
+      expect(protectedValueInput.disabled).toBe(true);
+      expect(normalKeyInput.disabled).toBe(false);
+      expect(normalValueInput.disabled).toBe(false);
+    });
+
+    it('should hide the remove button for rows with keys in disabledKeys', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { protectedKey: 'protectedValue', normalKey: 'normalValue' },
+          mode:           'edit',
+          asMap:          true,
+          valueMultiline: false,
+          disabledKeys:   ['protectedKey'],
+        },
+
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+      });
+
+      const protectedRemove = wrapper.find('[data-testid="remove-column-0"]');
+      const normalRemove = wrapper.find('[data-testid="remove-column-1"]');
+
+      expect(protectedRemove.exists()).toBe(false);
+      expect(normalRemove.exists()).toBe(true);
+    });
+
+    it('should disable value textarea when valueMultiline is true and key is in disabledKeys', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { protectedKey: 'protectedValue' },
+          mode:           'edit',
+          asMap:          true,
+          valueMultiline: true,
+          disabledKeys:   ['protectedKey'],
+        },
+
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+      });
+
+      const textarea = wrapper.find('[data-testid="value-multiline"]');
+
+      expect(textarea.exists()).toBe(true);
+      expect(textarea.attributes('disabled')).toBeDefined();
+    });
+  });
+
+  describe('a11y: unique add/remove button labels', () => {
+    // Mirrors the `generic.ariaLabel` block of shell/assets/translations/en-us.yaml, so the
+    // assertions below check the strings a screen reader would actually announce.
+    const TRANSLATIONS = {
+      generic: {
+        add:       'Add',
+        remove:    'Remove',
+        ariaLabel: {
+          keyValue:        'Key-Value input',
+          key:             'Key for row {index}',
+          value:           'Value for row {index}',
+          remove:          'remove row {index}',
+          keyValueRemove:  'Remove Key-Value pair in row {index}',
+          addKeyValue:     'Add a new Key-Value row',
+          addBtnAriaLabel: '{label} in a Key-Value input',
+        }
+      }
+    };
+
+    const store = createStore({
+      state,
+      getters: { 'i18n/t': (s: I18nState) => getters.t(s) },
+      mutations,
+    });
+
+    store.commit('loadTranslations', { locale: 'en-us', translations: TRANSLATIONS });
+
+    /**
+     * Resolves against the real i18n store getter (so `{index}`/`{label}` are interpolated),
+     * falling back to the `%key%` form used by the global test mock for untranslated keys.
+     */
+    const t = jest.fn((key: string, args?: Record<string, unknown>) => {
+      return store.getters['i18n/t'](key, args) ?? `%${ key }%`;
+    });
+
+    const mountKV = (props: Record<string, unknown> = {}) => mount(KeyValue, {
+      props: {
+        mode:           'edit',
+        valueMultiline: false,
+        ...props,
+      } as any,
+      global: {
+        mocks: { t },
+        stubs: { CodeMirror: true },
+      },
+    });
+
+    beforeEach(() => t.mockClear());
+
+    describe('remove buttons', () => {
+      it('should give each row remove button a label naming the Key-Value pair and its row', () => {
+        const wrapper = mountKV({
+          value: {
+            k1: 'v1', k2: 'v2', k3: 'v3'
+          },
+          asMap: true
+        });
+
+        const labels = wrapper
+          .findAll('[data-testid^="remove-column-"] button')
+          .map((btn) => btn.attributes('aria-label'));
+
+        expect(labels).toStrictEqual([
+          'Remove Key-Value pair in row 1',
+          'Remove Key-Value pair in row 2',
+          'Remove Key-Value pair in row 3',
+        ]);
+      });
+
+      it('should keep the remove button labels unique within the component', () => {
+        const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' }, asMap: true });
+
+        const labels = wrapper
+          .findAll('[data-testid^="remove-column-"] button')
+          .map((btn) => btn.attributes('aria-label'));
+
+        expect(new Set(labels).size).toStrictEqual(labels.length);
+      });
+
+      it('should request the key-value specific remove translation, not the generic one', () => {
+        mountKV({ value: { k1: 'v1' }, asMap: true });
+
+        expect(t).toHaveBeenCalledWith('generic.ariaLabel.keyValueRemove', { index: 1 });
+        expect(t).not.toHaveBeenCalledWith('generic.ariaLabel.remove', { index: 1 });
+      });
+
+      it('should re-index the remove button labels after a row is removed', async() => {
+        const wrapper = mountKV({
+          value: {
+            k1: 'v1', k2: 'v2', k3: 'v3'
+          },
+          asMap: true
+        });
+
+        await wrapper.find('[data-testid="remove-column-0"] button').trigger('click');
+        await nextTick();
+
+        const labels = wrapper
+          .findAll('[data-testid^="remove-column-"] button')
+          .map((btn) => btn.attributes('aria-label'));
+
+        expect(labels).toStrictEqual([
+          'Remove Key-Value pair in row 1',
+          'Remove Key-Value pair in row 2',
+        ]);
+      });
+    });
+
+    describe('add button', () => {
+      it.each([
+        ['plain button', false],
+        ['RcButton', true],
+      ])('should fall back to the generic key-value label when no addLabel is given (%s)', (_: string, useRcButton: boolean) => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, useRcButton
+        });
+
+        const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+        expect(addButton.attributes('aria-label')).toStrictEqual('Add a new Key-Value row');
+      });
+
+      it.each([
+        ['plain button', false],
+        ['RcButton', true],
+      ])('should build the label from addLabel so it describes what is being added (%s)', (_: string, useRcButton: boolean) => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Label', useRcButton
+        });
+
+        const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+        expect(addButton.attributes('aria-label')).toStrictEqual('Add Label in a Key-Value input');
+        expect(t).toHaveBeenCalledWith('generic.ariaLabel.addBtnAriaLabel', { label: 'Add Label' });
+      });
+
+      it('should give two Key-Value inputs on the same page distinct add button labels', () => {
+        // Reproduces the reported issue: Labels and Annotations on the same form
+        const labels = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Label'
+        });
+        const annotations = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Annotation'
+        });
+
+        const labelsAdd = labels.find('[data-testid="add_row_item_button"]').attributes('aria-label');
+        const annotationsAdd = annotations.find('[data-testid="add_row_item_button"]').attributes('aria-label');
+
+        expect(labelsAdd).toStrictEqual('Add Label in a Key-Value input');
+        expect(annotationsAdd).toStrictEqual('Add Annotation in a Key-Value input');
+        expect(labelsAdd).not.toStrictEqual(annotationsAdd);
+      });
+
+      it.each([
+        ['undefined addLabel', undefined, 'Add a new Key-Value row'],
+        ['empty addLabel', '', 'Add a new Key-Value row'],
+        ['addLabel with no visible text change', 'Add', 'Add in a Key-Value input'],
+        ['addLabel with special characters', 'Add "Path"', 'Add "Path" in a Key-Value input'],
+      ])('_addBtnAriaLabel: %s', (_: string, addLabel: string | undefined, expected: string) => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel
+        });
+
+        expect((wrapper.vm as any)._addBtnAriaLabel).toStrictEqual(expected);
+      });
+
+      it('should keep the visible add button text independent of the aria-label', () => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Label'
+        });
+
+        const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+        expect(addButton.text()).toStrictEqual('Add Label');
+        expect(addButton.attributes('aria-label')).toStrictEqual('Add Label in a Key-Value input');
+      });
+    });
+  });
+
+  describe('a11y: grid ARIA structure', () => {
+    const mountKV = (props: Record<string, unknown> = {}) => mount(KeyValue, {
+      props: {
+        valueMultiline: false,
+        ...props,
+      } as any,
+      global: {
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+        stubs: { CodeMirror: true },
+      },
+    });
+
+    describe('aria-colcount', () => {
+      it.each([
+        ['no extraColumns, remove not allowed', { value: { k: 'v' }, removeAllowed: false }, 2],
+        ['no extraColumns, remove allowed', { value: { k: 'v' }, removeAllowed: true }, 3],
+        [
+          '1 extraColumn, remove allowed',
+          {
+            value: { k: 'v' }, removeAllowed: true, extraColumns: ['x']
+          },
+          4
+        ],
+        [
+          '2 extraColumns, remove not allowed',
+          {
+            value: { k: 'v' }, removeAllowed: false, extraColumns: ['a', 'b']
+          },
+          4
+        ],
+      ])('%s', (_: string, props: Record<string, unknown>, expected: number) => {
+        const wrapper = mountKV(props);
+
+        expect(wrapper.find('.kv-container').attributes('aria-colcount')).toStrictEqual(String(expected));
+      });
+    });
+
+    describe('aria-rowcount', () => {
+      it.each([
+        ['1 data row in edit mode', { value: { k: 'v' }, mode: 'edit' }, 1],
+        ['2 data rows in edit mode', { value: { k: 'v', k2: 'v2' }, mode: 'edit' }, 2],
+        ['no rows in view mode', { value: {}, mode: 'view' }, 1],
+        ['no rows in edit mode', { value: {}, mode: 'edit' }, 0],
+      ])('%s', (_: string, props: Record<string, unknown>, expected: number) => {
+        const wrapper = mountKV(props);
+
+        expect(wrapper.find('.kv-container').attributes('aria-rowcount')).toStrictEqual(String(expected));
+      });
+    });
+
+    describe('rowgroup and row roles', () => {
+      it('header section should wrap its row with role="rowgroup" > role="row"', () => {
+        const wrapper = mountKV({ value: { k: 'v' } });
+        const firstRowgroup = wrapper.find('[role="rowgroup"]');
+
+        expect(firstRowgroup.exists()).toBe(true);
+        expect(firstRowgroup.find('[role="row"]').exists()).toBe(true);
+      });
+
+      it('each data row should be wrapped in role="rowgroup" > role="row"', () => {
+        const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' } });
+        const rowgroups = wrapper.findAll('[role="rowgroup"]');
+
+        // 1 header rowgroup + 2 data rowgroups
+        expect(rowgroups).toHaveLength(3);
+        rowgroups.forEach((rg) => {
+          expect(rg.find('[role="row"]').exists()).toBe(true);
+        });
+      });
+    });
+
+    describe('header columnheader cells', () => {
+      it('key and value headers have role="columnheader" with sequential aria-colindex and no aria-rowindex', () => {
+        const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: false });
+        const headers = wrapper.findAll('[role="columnheader"]');
+
+        expect(headers[0].attributes('aria-rowindex')).toBeUndefined();
+        expect(headers[0].attributes('aria-colindex')).toStrictEqual('1');
+        expect(headers[1].attributes('aria-rowindex')).toBeUndefined();
+        expect(headers[1].attributes('aria-colindex')).toStrictEqual('2');
+      });
+
+      it('remove column header has aria-colindex equal to extraColumns.length + 3 and no aria-rowindex', () => {
+        const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: true });
+        const headers = wrapper.findAll('[role="columnheader"]');
+
+        expect(headers[2].attributes('aria-rowindex')).toBeUndefined();
+        expect(headers[2].attributes('aria-colindex')).toStrictEqual('3');
+      });
+    });
+
+    describe('data gridcell aria-rowindex and aria-colindex', () => {
+      it('first data row cells have aria-rowindex="1" (header is not counted as a row)', () => {
+        const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: false });
+        const cells = wrapper.findAll('[role="gridcell"]');
+
+        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(cells[0].attributes('aria-colindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-colindex')).toStrictEqual('2');
+      });
+
+      it('second data row cells have aria-rowindex="2"', () => {
+        const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' }, removeAllowed: false });
+        const cells = wrapper.findAll('[role="gridcell"]');
+
+        // 2 rows × 2 cells (no remove), second row starts at cells[2]
+        expect(cells[2].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[2].attributes('aria-colindex')).toStrictEqual('1');
+        expect(cells[3].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[3].attributes('aria-colindex')).toStrictEqual('2');
+      });
+    });
+
+    describe('no-data placeholder in view mode', () => {
+      it('placeholder cells have aria-rowindex="1" and sequential aria-colindex', () => {
+        const wrapper = mountKV({ value: {}, mode: 'view' });
+        const cells = wrapper.findAll('[role="gridcell"]');
+
+        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(cells[0].attributes('aria-colindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-colindex')).toStrictEqual('2');
+      });
+    });
+  });
+});

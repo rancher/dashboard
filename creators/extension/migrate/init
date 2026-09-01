@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+
+const { setParams, printLog, printUsage, printCompletion } = require('./utils/content');
+const {
+  packageUpdates,
+  nvmUpdates,
+  vueConfigUpdates,
+  vueSyntaxUpdates,
+  routerUpdates,
+  eslintUpdates,
+  tsUpdates,
+  stylesUpdates,
+} = require('./tasks');
+const params = require('./params');
+
+(function main() {
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    printUsage();
+
+    return;
+  }
+
+  setParams(params);
+
+  packageUpdates(params);
+  nvmUpdates(params);
+  vueConfigUpdates(params);
+  vueSyntaxUpdates(params);
+  routerUpdates(params);
+  eslintUpdates(params);
+  tsUpdates(params);
+  stylesUpdates(params);
+
+  printLog();
+  printCompletion();
+})();

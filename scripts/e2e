@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+SPEC_ARG=""
+
+# check if script invoke contains any argument. If so, add spec to run
+if [ $# -eq 1 ]; then
+  echo "Running e2e tests with spec: $1"
+  SPEC_ARG="--spec ${1}"
+fi
+
+CYPRESS_GREP_TAGS_ARGS=""
+
+if [ -n "$GREP_TAGS" ]; then
+  echo "Running Cypress with grep tags: $GREP_TAGS"
+  # @cypress/grep v6 reads its settings from `expose`, not `env`
+  CYPRESS_GREP_TAGS_ARGS="--expose grepTags=\"$GREP_TAGS\""
+else
+  echo "Running Cypress without grep tags"
+fi
+
+# Construct the full command
+E2E_COMMAND="cypress run ${SPEC_ARG} ${CYPRESS_GREP_TAGS_ARGS} --browser chrome"
+
+# Execute the command
+eval $E2E_COMMAND

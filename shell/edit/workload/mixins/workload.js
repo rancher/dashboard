@@ -1,0 +1,1147 @@
+import { mapGetters } from 'vuex';
+import omitBy from 'lodash/omitBy';
+import { cleanUp } from '@shell/utils/object';
+import {
+  CONFIG_MAP,
+  SECRET,
+  WORKLOAD_TYPES,
+  SERVICE,
+  PVC,
+  SERVICE_ACCOUNT,
+  CAPI,
+  POD,
+  LIST_WORKLOAD_TYPES,
+  HCI,
+} from '@shell/config/types';
+import Tab from '@shell/components/Tabbed/Tab';
+import CreateEditView from '@shell/mixins/create-edit-view';
+import ResourceManager from '@shell/mixins/resource-manager';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
+import HealthCheck from '@shell/components/form/HealthCheck';
+import Security from '@shell/components/form/Security';
+import Upgrading from '@shell/edit/workload/Upgrading';
+import Loading from '@shell/components/Loading';
+import Networking from '@shell/components/form/Networking';
+import VolumeClaimTemplate from '@shell/edit/workload/VolumeClaimTemplate';
+import Job from '@shell/edit/workload/Job';
+import { _EDIT, _CREATE, _VIEW, _CLONE } from '@shell/config/query-params';
+import WorkloadPorts from '@shell/components/form/WorkloadPorts';
+import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
+import KeyValue from '@shell/components/form/KeyValue';
+import Tabbed from '@shell/components/Tabbed';
+
+import NodeScheduling from '@shell/components/form/NodeScheduling';
+import PodAffinity from '@shell/components/form/PodAffinity';
+import Tolerations from '@shell/components/form/Tolerations';
+import CruResource from '@shell/components/CruResource';
+import Command from '@shell/components/form/Command';
+import LifecycleHooks from '@shell/components/form/LifecycleHooks';
+import Storage from '@shell/edit/workload/storage';
+import ContainerMountPaths from '@shell/edit/workload/storage/ContainerMountPaths.vue';
+import Labels from '@shell/components/form/Labels';
+import { RadioGroup } from '@components/Form/Radio';
+import { UI_MANAGED } from '@shell/config/labels-annotations';
+import { removeObject } from '@shell/utils/array';
+import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+import formRulesGenerator from '@shell/utils/validators/formRules';
+import { TYPES as SECRET_TYPES } from '@shell/models/secret';
+import { defaultContainer } from '@shell/models/workload';
+import { allHash } from '@shell/utils/promise';
+
+const TAB_WEIGHT_MAP = {
+  general:              99,
+  healthCheck:          98,
+  labels:               97,
+  networking:           96,
+  nodeScheduling:       95,
+  podScheduling:        94,
+  resources:            93,
+  upgrading:            92,
+  securityContext:      91,
+  storage:              90,
+  volumeClaimTemplates: 89,
+};
+
+const GPU_KEY = 'nvidia.com/gpu';
+const ID_KEY = Symbol('container-id');
+
+const serialMaker = function() {
+  let prefix = '';
+  let seq = 0;
+
+  return {
+    setPrefix(p) {
+      prefix = p;
+    },
+    setSeq(s) {
+      seq = s;
+    },
+    genSym() {
+      const result = prefix + seq;
+
+      seq += 1;
+
+      return result;
+    }
+  };
+}();
+
+export default {
+  name:       'CruWorkload',
+  components: {
+    ContainerResourceLimit,
+    Command,
+    CruResource,
+    HealthCheck,
+    Job,
+    KeyValue,
+    LabeledInput,
+    LabeledSelect,
+    Labels,
+    LifecycleHooks,
+    Loading,
+    NameNsDescription,
+    Networking,
+    NodeScheduling,
+    PodAffinity,
+    RadioGroup,
+    Security,
+    ServiceNameSelect,
+    Storage,
+    Tab,
+    Tabbed,
+    Tolerations,
+    Upgrading,
+    VolumeClaimTemplate,
+    WorkloadPorts,
+    ContainerMountPaths
+  },
+
+  mixins: [CreateEditView, ResourceManager],
+
+  props: {
+    value: {
+      type:     Object,
+      required: true,
+    },
+
+    mode: {
+      type:    String,
+      default: 'create',
+    },
+
+    createOption: {
+      default: (text) => {
+        if (text) {
+          return { metadata: { name: text } };
+        }
+      },
+      type: Function
+    },
+  },
+
+  async fetch() {
+    // TODO Should remove these lines
+    // ? The results aren't stored, so don't know why we fetch?
+
+    // User might not have access to these resources - so check before trying to fetch
+    const fetches = {};
+
+    if (this.$store.getters[`management/canList`](CAPI.RANCHER_CLUSTER)) {
+      // I could only find one place where a prov cluster might be used by this and parent components - shell/components/form/WorkloadPorts.vue provisioningCluster
+      fetches.rancherCluster = this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
+    }
+
+    if (this.$store.getters[`management/canList`](HCI.HARVESTER_CONFIG)) {
+      fetches.harvesterConfigs = this.$store.dispatch('management/findAll', { type: HCI.HARVESTER_CONFIG });
+    }
+
+    await allHash(fetches);
+
+    // don't block UI for these resources
+    this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+    this.servicesOwned = await this.value.getServicesOwned();
+  },
+
+  data() {
+    serialMaker.setPrefix('container-');
+    serialMaker.setSeq(0);
+    let type = this.$route.params.resource;
+    const createSidecar = !!this.$route.query.sidecar;
+
+    if (type === 'workload') {
+      type = null;
+    }
+
+    if (!this.value.spec) {
+      this.value.spec = {};
+      if (this.value.type === POD) {
+        const podContainers = [{
+          imagePullPolicy: 'Always',
+          name:            `container-0`,
+        }];
+
+        // A standalone Pod keeps its spec in the native Pod shape (spec.*),
+        // NOT wrapped in a Workload's spec.template.spec. The shared form works
+        // on this shape via the podTemplateSpec/podLabels/podAnnotations
+        // computeds. See https://github.com/rancher/dashboard/issues/10171
+        this.value['spec'] = { containers: podContainers, initContainers: [] };
+      }
+    }
+
+    // Pods are read/edited/cloned in their native shape - no POD->workload
+    // wrapping needed. (Workloads legitimately nest under spec.template.spec.)
+    const spec = this.value.spec;
+    let podTemplateSpec;
+
+    if (type === WORKLOAD_TYPES.CRON_JOB) {
+      podTemplateSpec = spec.jobTemplate.spec.template.spec;
+    } else if (this.value.type === POD) {
+      podTemplateSpec = spec;
+    } else {
+      podTemplateSpec = spec?.template?.spec;
+    }
+
+    // Area to add default value to securityContext on POD CREATE
+    // Check if the securityContext has been setup, for None should be {} when cloning, for new should be empty.
+    if (this.mode === _CREATE && !podTemplateSpec.securityContext) {
+      podTemplateSpec.securityContext = { seccompProfile: { type: 'RuntimeDefault' } };
+    }
+
+    let containers = podTemplateSpec.containers || [];
+    let container;
+
+    if (
+      this.mode === _CREATE ||
+      this.mode === _VIEW ||
+      this.realMode === _CLONE ||
+      (!createSidecar && !this.value.hasSidecars) // hasSideCars = containers.length > 1 || initContainers.length;
+    ) {
+      container = containers[0];
+    } else {
+      // This means that there are no containers.
+      if (!podTemplateSpec.initContainers) {
+        podTemplateSpec.initContainers = [];
+      }
+      const allContainers = [
+        ...podTemplateSpec.initContainers,
+        ...podTemplateSpec.containers,
+      ];
+
+      if (this.$route.query.init) {
+        podTemplateSpec.initContainers.push({
+          imagePullPolicy: 'Always',
+          name:            `container-${ allContainers.length }`,
+          _init:           true,
+        });
+
+        containers = podTemplateSpec.initContainers;
+      }
+      if (createSidecar || this.value.type === 'pod') {
+        container = {
+          imagePullPolicy: 'Always',
+          name:            `container-${ allContainers.length }`,
+          _init:           false,
+        };
+
+        containers.push(container);
+      } else {
+        container = containers[0];
+      }
+    }
+
+    if (this.realMode === _CLONE && this.value.type === WORKLOAD_TYPES.JOB) {
+      this.cleanUpClonedJobData();
+    }
+
+    return {
+      secondaryResourceData:      this.secondaryResourceDataConfig(),
+      namespacedConfigMaps:       [],
+      namespacedSecrets:          [],
+      imagePullNamespacedSecrets: [],
+      allServices:                [],
+      headlessServices:           [],
+      name:                       this.value?.metadata?.name || null,
+      pvcs:                       [],
+      namespacedServiceNames:     [],
+      showTabs:                   false,
+      pullPolicyOptions:          ['Always', 'IfNotPresent', 'Never'],
+      spec,
+      type,
+      servicesOwned:              [],
+      servicesToRemove:           [],
+      portsForServices:           [],
+      container,
+      containerChange:            0,
+      tabChange:                  0,
+      savePvcHookName:            'savePvcHook',
+      tabWeightMap:               TAB_WEIGHT_MAP,
+      // [fvFormRulesets][localhostProfile] added as default not required, needs to be on the INDEX 0
+      fvFormRuleSets:             [{
+        path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+        rules:          [''],
+        rootObject:     this,
+        translationKey: 'workload.container.security.localhostProfile.label'
+      }],
+      fvReportedValidationPaths: ['spec'],
+      isNamespaceNew:            false,
+      idKey:                     ID_KEY
+    };
+  },
+
+  computed: {
+    ...mapGetters(['currentCluster']),
+    seccompProfileTypes() {
+      return [
+        {
+          value: 'None',
+          label: this.t('workload.container.security.seccompProfile.types.none.label')
+        },
+        {
+          value: 'RuntimeDefault',
+          label: this.t('workload.container.security.seccompProfile.types.runtimeDefault.label')
+        },
+        {
+          value: 'Localhost',
+          label: this.t('workload.container.security.seccompProfile.types.localhost.label')
+        }, {
+          value: 'Unconfined',
+          label: this.t('workload.container.security.seccompProfile.types.unconfined.label')
+        }];
+    },
+
+    containerNameRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.container.containerName') });
+
+      return [required];
+    },
+
+    containerImageRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.container.image') });
+
+      return [required];
+    },
+
+    tabErrors() {
+      const tabErrors = { podSecurityContext: this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0 };
+
+      return tabErrors;
+    },
+
+    defaultWorkloadTab() {
+      if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
+        const container = this.allContainers.find((c) => c.__active);
+
+        return container?.name ?? 'container-0';
+      }
+
+      return this.allContainers.length ? this.allContainers[0][this.idKey] : '';
+    },
+
+    isEdit() {
+      return this.mode === _EDIT;
+    },
+
+    isJob() {
+      return this.type === WORKLOAD_TYPES.JOB || this.isCronJob;
+    },
+
+    isCronJob() {
+      return this.type === WORKLOAD_TYPES.CRON_JOB;
+    },
+
+    isReplicable() {
+      return (
+        this.type === WORKLOAD_TYPES.DEPLOYMENT ||
+        this.type === WORKLOAD_TYPES.REPLICA_SET ||
+        this.type === WORKLOAD_TYPES.REPLICATION_CONTROLLER ||
+        this.type === WORKLOAD_TYPES.STATEFUL_SET
+      );
+    },
+
+    isDeployment() {
+      return this.type === WORKLOAD_TYPES.DEPLOYMENT;
+    },
+
+    isPod() {
+      return this.value.type === POD;
+    },
+
+    isStatefulSet() {
+      return this.type === WORKLOAD_TYPES.STATEFUL_SET;
+    },
+
+    // For a Pod the pod spec IS spec; a cronjob nests it within the job template
+    // spec; other workloads nest it under spec.template.spec.
+    podTemplateSpec: {
+      get() {
+        if (this.isCronJob) {
+          return this.spec.jobTemplate.spec.template.spec;
+        }
+        if (this.isPod) {
+          return this.spec;
+        }
+
+        return this.spec?.template?.spec;
+      },
+      set(neu) {
+        if (this.isCronJob) {
+          this.spec.jobTemplate.spec.template['spec'] = neu;
+        } else if (this.isPod) {
+          this.spec = neu;
+          this.value['spec'] = neu;
+        } else {
+          this.spec.template['spec'] = neu;
+        }
+      },
+    },
+
+    podLabels: {
+      get() {
+        if (this.isCronJob) {
+          if (!this.spec.jobTemplate.metadata) {
+            this.spec.jobTemplate['metadata'] = { labels: {} };
+          }
+
+          return this.spec.jobTemplate.metadata.labels;
+        }
+
+        if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          if (!this.value.metadata.labels) {
+            this.value.metadata['labels'] = {};
+          }
+
+          return this.value.metadata.labels;
+        }
+
+        if (!this.spec.template.metadata) {
+          this.spec.template['metadata'] = { labels: {} };
+        }
+
+        return this.spec.template.metadata.labels;
+      },
+      set(neu) {
+        if (this.isCronJob) {
+          this.spec.jobTemplate.metadata['labels'] = neu;
+        } else if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          this.value.metadata['labels'] = neu;
+        } else {
+          this.spec.template.metadata['labels'] = neu;
+        }
+      },
+    },
+
+    podAnnotations: {
+      get() {
+        if (this.isCronJob) {
+          if (!this.spec.jobTemplate.metadata) {
+            this.spec.jobTemplate['metadata'] = { annotations: {} };
+          }
+
+          return this.spec.jobTemplate.metadata.annotations;
+        }
+
+        if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          if (!this.value.metadata.annotations) {
+            this.value.metadata['annotations'] = {};
+          }
+
+          return this.value.metadata.annotations;
+        }
+
+        if (!this.spec.template.metadata) {
+          this.spec.template['metadata'] = { annotations: {} };
+        }
+
+        return this.spec.template.metadata.annotations;
+      },
+      set(neu) {
+        if (this.isCronJob) {
+          this.spec.jobTemplate.metadata['annotations'] = neu;
+        } else if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          this.value.metadata['annotations'] = neu;
+        } else {
+          this.spec.template.metadata['annotations'] = neu;
+        }
+      },
+    },
+
+    allContainers() {
+      const containers = this.podTemplateSpec?.containers || [];
+      const initContainers = this.podTemplateSpec?.initContainers || [];
+      const key = this.idKey;
+
+      return [
+        ...containers.map((each) => {
+          each._init = false;
+          if (!each[key]) {
+            each[key] = serialMaker.genSym();
+          }
+
+          return each;
+        }),
+        ...initContainers.map((each) => {
+          each._init = true;
+          if (!each[key]) {
+            each[key] = serialMaker.genSym();
+          }
+
+          return each;
+        }),
+      ].map((container) => {
+        const rules = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name });
+        const imageError = rules.containerImage(container);
+        const nameError = rules.containerName(container);
+        const localhostProfileError = rules.localhostProfile(container);
+
+        container.error = {
+          general:          nameError || imageError,
+          localhostProfile: localhostProfileError
+        };
+
+        return container;
+      });
+    },
+
+    flatResources: {
+      get() {
+        const { limits = {}, requests = {} } = this.container.resources || {};
+        const {
+          cpu: limitsCpu,
+          memory: limitsMemory,
+          [GPU_KEY]: limitsGpu,
+        } = limits;
+        const { cpu: requestsCpu, memory: requestsMemory } = requests;
+
+        return {
+          limitsCpu,
+          limitsMemory,
+          requestsCpu,
+          requestsMemory,
+          limitsGpu,
+        };
+      },
+      set(neu) {
+        const {
+          limitsCpu,
+          limitsMemory,
+          requestsCpu,
+          requestsMemory,
+          limitsGpu,
+        } = neu;
+
+        const out = {
+          requests: {
+            cpu:    requestsCpu,
+            memory: requestsMemory,
+          },
+          limits: {
+            cpu:       limitsCpu,
+            memory:    limitsMemory,
+            [GPU_KEY]: limitsGpu,
+          },
+        };
+
+        this.container['resources'] = cleanUp(out);
+      },
+    },
+
+    healthCheck: {
+      get() {
+        const { readinessProbe, livenessProbe, startupProbe } = this.container;
+
+        return {
+          readinessProbe,
+          livenessProbe,
+          startupProbe,
+        };
+      },
+      set(neu) {
+        Object.assign(this.container, neu);
+      },
+    },
+
+    imagePullSecrets: {
+      get() {
+        if (!this.podTemplateSpec.imagePullSecrets) {
+          this.podTemplateSpec['imagePullSecrets'] = [];
+        }
+
+        const { imagePullSecrets } = this.podTemplateSpec;
+
+        return imagePullSecrets.map((each) => each.name);
+      },
+      set(neu) {
+        this.podTemplateSpec.imagePullSecrets = neu.map((secret) => {
+          return { name: secret };
+        });
+      },
+    },
+
+    schema() {
+      return this.$store.getters['cluster/schemaFor'](this.type);
+    },
+
+    // array of id, label, description, initials for type selection step
+    workloadSubTypes() {
+      const workloadTypes = omitBy(LIST_WORKLOAD_TYPES, (type) => {
+        return (
+          type === WORKLOAD_TYPES.REPLICA_SET ||
+          type === WORKLOAD_TYPES.REPLICATION_CONTROLLER
+        );
+      });
+
+      const out = [];
+
+      for (const prop in workloadTypes) {
+        const type = workloadTypes[prop];
+        const subtype = {
+          id:          type,
+          description: `workload.typeDescriptions.'${ type }'`, // i18n-uses workload.typeDescriptions.*
+          label:       this.nameDisplayFor(type),
+          bannerAbbrv: this.initialDisplayFor(type),
+        };
+
+        out.push(subtype);
+      }
+
+      return out;
+    },
+
+    containerOptions() {
+      const out = [...this.allContainers];
+
+      if (!this.isView) {
+        out.push({ name: 'Add Container', __add: true });
+      }
+
+      return out;
+    },
+
+    ...mapGetters({ t: 'i18n/t' }),
+  },
+
+  watch: {
+    async 'value.metadata.namespace'(neu) {
+      if (this.isNamespaceNew) {
+        // we don't need to re-fetch namespace specific (or non-namespace specific) resources when the namespace hasn't been created yet
+        return;
+      }
+      this.secondaryResourceData.namespace = neu;
+      // Fetch resources that are namespace specific, we don't need to re-fetch non-namespaced resources on namespace change
+      this.resourceManagerFetchSecondaryResources(this.secondaryResourceData, true);
+
+      this.servicesOwned = await this.value.getServicesOwned();
+    },
+
+    'podTemplateSpec.securityContext.seccompProfile.type'(neu) {
+      if (neu === 'Localhost') {
+        // [fvFormRulesets][localhostProfile] added here, should be required if Localhost selected
+        this.fvFormRuleSets[0] = {
+          path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+          rules:          ['required'],
+          rootObject:     this,
+          translationKey: 'workload.container.security.localhostProfile.label'
+        };
+      } else {
+        // [fvFormRulesets][localhostProfile] added here, should not be required if Localhost selected
+        this.fvFormRuleSets[0] = {
+          path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+          rules:          [''],
+          rootObject:     this,
+          translationKey: 'workload.container.security.localhostProfile.label'
+        };
+      }
+    },
+
+    isNamespaceNew(neu, old) {
+      if (!old && neu) {
+        // As the namespace is new any resource that's been fetched with a namespace is now invalid
+        this.resourceManagerClearSecondaryResources(this.secondaryResourceData, true);
+      }
+    },
+
+    type(neu, old) {
+      const template =
+        old === WORKLOAD_TYPES.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;
+
+      if (!template.spec) {
+        template.spec = {};
+      }
+
+      let restartPolicy;
+
+      if (this.isJob || this.isCronJob) {
+        restartPolicy = 'Never';
+      } else {
+        restartPolicy = 'Always';
+      }
+
+      template.spec['restartPolicy'] = restartPolicy;
+
+      if (!this.isReplicable) {
+        delete this.spec.replicas;
+      }
+
+      if (old === WORKLOAD_TYPES.CRON_JOB) {
+        this.spec['template'] = { ...template };
+        delete this.spec.jobTemplate;
+        delete this.spec.schedule;
+      } else if (neu === WORKLOAD_TYPES.CRON_JOB) {
+        this.spec['jobTemplate'] = { spec: { template } };
+        this.spec['schedule'] = '0 * * * *';
+        delete this.spec.template;
+      }
+
+      this.value['type'] = neu;
+      delete this.value.apiVersion;
+    },
+  },
+
+  created() {
+    this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
+    this.registerBeforeHook(this.getPorts, 'getPorts');
+
+    this.registerAfterHook(this.saveService, 'saveService');
+  },
+
+  methods: {
+    secondaryResourceDataConfig() {
+      return {
+        namespace: this.value?.metadata?.namespace || null,
+        data:      {
+          [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
+          [PVC]:             { applyTo: [{ var: 'pvcs' }] },
+          [SERVICE_ACCOUNT]: { applyTo: [{ var: 'namespacedServiceNames' }] },
+          [SECRET]:          {
+            applyTo: [
+              { var: 'namespacedSecrets' },
+              {
+                var:         'imagePullNamespacedSecrets',
+                parsingFunc: (data) => {
+                  return data.filter((secret) => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+                }
+              }
+            ]
+          },
+          [SERVICE]: {
+            applyTo: [
+              { var: 'allServices' },
+              {
+                var:         'headlessServices',
+                parsingFunc: (data) => {
+                  return data.filter((service) => service.spec.clusterIP === 'None');
+                }
+              }
+            ]
+          },
+        }
+      };
+    },
+    addContainerBtn() {
+      this.selectContainer({ name: 'Add Container', __add: true });
+    },
+    nameDisplayFor(type) {
+      const schema = this.$store.getters['cluster/schemaFor'](type);
+
+      return this.$store.getters['type-map/labelFor'](schema) || '';
+    },
+
+    // TODO better images for workload types?
+    // show initials of workload type in blue circles for now
+    initialDisplayFor(type) {
+      const typeDisplay = this.nameDisplayFor(type);
+
+      return typeDisplay
+        .split('')
+        .filter((letter) => letter.match(/[A-Z]/))
+        .join('');
+    },
+
+    cancel() {
+      this.done();
+    },
+
+    async getPorts() {
+      const ports = (await this.value.getPortsWithServiceType()) || [];
+
+      this.portsForServices = ports;
+    },
+
+    async saveService() {
+      // If we can't access services then just return - the UI should only allow ports without service creation
+      if (!this.$store.getters['cluster/schemaFor'](SERVICE)) {
+        return;
+      }
+
+      const { toSave = [], toRemove = [] } =
+        (await this.value.servicesFromContainerPorts(
+          this.mode,
+          this.portsForServices
+        )) || {};
+
+      this.servicesOwned = toSave;
+      this.servicesToRemove = toRemove;
+
+      if (!toSave.length && !toRemove.length) {
+        return;
+      }
+
+      return Promise.all([
+        ...toSave.map((svc) => svc.save()),
+        ...toRemove.map((svc) => {
+          const ui = svc?.metadata?.annotations?.[UI_MANAGED];
+
+          if (ui) {
+            svc.remove();
+          }
+        }),
+      ]);
+    },
+
+    saveWorkload() {
+      // A Pod has no selector/template - it is saved in its native shape.
+      if (
+        !this.isPod &&
+        this.type !== WORKLOAD_TYPES.JOB &&
+        this.type !== WORKLOAD_TYPES.CRON_JOB &&
+        (this.mode === _CREATE || this.realMode === _CLONE)
+      ) {
+        this.spec.selector = { matchLabels: this.value.workloadSelector };
+        Object.assign(this.value.metadata.labels, this.value.workloadSelector);
+      }
+
+      let template;
+
+      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+        template = this.spec.jobTemplate;
+      } else if (this.isPod) {
+        // For a Pod, `spec` is the pod spec and `value.metadata` is the pod
+        // metadata - present them the same way the workload template is shaped
+        // so the shared logic below can operate on them uniformly.
+        template = { spec: this.spec, metadata: this.value.metadata };
+      } else {
+        template = this.spec.template;
+      }
+
+      // WORKLOADS
+      if (
+        !this.isPod &&
+        this.type !== WORKLOAD_TYPES.JOB &&
+        this.type !== WORKLOAD_TYPES.CRON_JOB &&
+        (this.mode === _CREATE || this.realMode === _CLONE)
+      ) {
+        if (!template.metadata) {
+          template.metadata = { labels: this.value.workloadSelector };
+        } else {
+          Object.assign(template.metadata.labels, this.value.workloadSelector);
+        }
+      }
+
+      if (template.spec.containers && template.spec.containers[0]) {
+        const containerResources = template.spec.containers[0].resources;
+        const nvidiaGpuLimit =
+          template.spec.containers[0].resources?.limits?.[GPU_KEY];
+
+        // Though not required, requests are also set to mirror the ember ui
+        if (nvidiaGpuLimit > 0) {
+          containerResources.requests = containerResources.requests || {};
+          containerResources.requests[GPU_KEY] = nvidiaGpuLimit;
+        }
+
+        if (!this.nvidiaIsValid(nvidiaGpuLimit)) {
+          try {
+            delete containerResources.requests[GPU_KEY];
+            delete containerResources.limits[GPU_KEY];
+
+            if (Object.keys(containerResources.limits).length === 0) {
+              delete containerResources.limits;
+            }
+            if (Object.keys(containerResources.requests).length === 0) {
+              delete containerResources.requests;
+            }
+            if (Object.keys(containerResources).length === 0) {
+              delete template.spec.containers[0].resources;
+            }
+          } catch {}
+        }
+      }
+
+      const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
+      const podAffinity = template?.spec?.affinity?.podAffinity || {};
+      const podAntiAffinity = template?.spec?.affinity?.podAntiAffinity || {};
+
+      this.fixNodeAffinity(nodeAffinity);
+      this.fixPodAffinity(podAffinity);
+
+      // The fields are being removed because they are not allowed to be editabble
+      if (this.mode === _EDIT) {
+        if (template?.spec?.affinity && Object.keys(template?.spec?.affinity).length === 0) {
+          delete template.spec.affinity;
+        }
+
+        // Removing `affinity` fixes the issue with setting the `imagePullSecrets`
+        // However, this field should not be set. Therefore this is explicitly removed.
+        if (template?.spec?.imagePullSecrets && template?.spec?.imagePullSecrets.length === 0) {
+          delete template.spec.imagePullSecrets;
+        }
+      }
+
+      this.fixPodAffinity(podAntiAffinity);
+
+      template.metadata.namespace = this.value.metadata.namespace;
+
+      // Handle the case where the user has changed the name of the workload
+      // Only do this for clone. Not allowed for edit
+      if (this.realMode === _CLONE) {
+        template.metadata.name = this.value.metadata.name;
+        template.metadata.description = this.value.metadata.description;
+      }
+
+      // delete this.value.kind;
+      if (this.container && !this.container.name) {
+        this.container['name'] = this.value.metadata.name;
+      }
+
+      const ports = this.value.containers.reduce((total, each) => {
+        const containerPorts = each.ports || [];
+
+        total.push(
+          ...containerPorts.filter(
+            (port) => port._serviceType && port._serviceType !== ''
+          )
+        );
+
+        return total;
+      }, []);
+
+      // ports contain info used to create services after saving
+      this.portsForServices = ports;
+      Object.assign(this.value, { spec: this.spec });
+    },
+
+    // node and pod affinity are formatted incorrectly from API; fix before saving
+    fixNodeAffinity(nodeAffinity) {
+      const preferredDuringSchedulingIgnoredDuringExecution =
+        nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution || [];
+      const requiredDuringSchedulingIgnoredDuringExecution =
+        nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution || {};
+
+      preferredDuringSchedulingIgnoredDuringExecution.forEach((term) => {
+        const matchExpressions = term?.preference?.matchExpressions || [];
+
+        matchExpressions.forEach((expression) => {
+          if (expression.values) {
+            expression.values =
+              typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+          }
+        });
+      });
+
+      (
+        requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms || []
+      ).forEach((term) => {
+        const matchExpressions = term.matchExpressions || [];
+
+        matchExpressions.forEach((expression) => {
+          if (expression.values) {
+            expression.values =
+              typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+          }
+        });
+      });
+    },
+
+    fixPodAffinity(podAffinity) {
+      const preferredDuringSchedulingIgnoredDuringExecution =
+        podAffinity.preferredDuringSchedulingIgnoredDuringExecution || [];
+      const requiredDuringSchedulingIgnoredDuringExecution =
+        podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [];
+
+      preferredDuringSchedulingIgnoredDuringExecution.forEach((term) => {
+        const matchExpressions =
+          term?.podAffinityTerm?.labelSelector?.matchExpressions || [];
+
+        matchExpressions.forEach((expression) => {
+          if (expression.values) {
+            expression.values =
+              typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+          }
+        });
+      });
+
+      requiredDuringSchedulingIgnoredDuringExecution.forEach((term) => {
+        const matchExpressions = term?.labelSelector?.matchExpressions || [];
+
+        matchExpressions.forEach((expression) => {
+          if (expression.values) {
+            expression.values =
+              typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+          }
+        });
+      });
+
+      return podAffinity;
+    },
+
+    selectType(type) {
+      if (!this.type && type) {
+        this.$router.replace({ params: { resource: type } });
+      } else {
+        this.type = type;
+      }
+    },
+
+    selectContainer(container) {
+      if (container.__add) {
+        this.addContainer();
+
+        return;
+      }
+      (this.allContainers || []).forEach((container) => {
+        if (container.__active) {
+          delete container.__active;
+        }
+      });
+      container.__active = true;
+      this.container = container;
+      this.containerChange++;
+    },
+
+    addContainer() {
+      let nameNumber = this.allContainers.length;
+      const allNames = this.allContainers.reduce((names, each) => {
+        names.push(each.name);
+
+        return names;
+      }, []);
+
+      while (allNames.includes(`container-${ nameNumber }`)) {
+        nameNumber++;
+      }
+      const container = {
+        ...structuredClone(defaultContainer),
+        name:   `container-${ nameNumber }`,
+        active: true
+      };
+
+      this.podTemplateSpec.containers.push(container);
+      this.selectContainer(container);
+      this.$nextTick(() => {
+        this.$refs.containersTabbed?.select(container.name);
+      });
+    },
+
+    removeContainer(container) {
+      if (container._init) {
+        removeObject(this.podTemplateSpec.initContainers, container);
+      } else {
+        removeObject(this.podTemplateSpec.containers, container);
+      }
+      this.selectContainer(this.allContainers[0]);
+    },
+
+    updateInitContainer(neu, container) {
+      if (!container) {
+        return;
+      }
+      const containers = this.podTemplateSpec.containers;
+      const initContainers = this.podTemplateSpec.initContainers ?? [];
+
+      if (neu) {
+        this.podTemplateSpec.initContainers = initContainers;
+        container._init = true;
+        if (!initContainers.includes(container)) {
+          initContainers.push(container);
+        }
+        removeObject(containers, container);
+      } else {
+        container._init = false;
+        removeObject(initContainers, container);
+        if (!containers.includes(container)) {
+          containers.push(container);
+        }
+      }
+    },
+    clearPvcFormState(hookName) {
+      // On the `closePvcForm` event, remove the
+      // before save hook to prevent the PVC from
+      // being created. Use the PVC's unique ID to distinguish
+      // between hooks for different PVCs.
+      if (this[BEFORE_SAVE_HOOKS]) {
+        this.unregisterBeforeSaveHook(hookName);
+      }
+    },
+
+    updateServiceAccount(neu) {
+      if (neu) {
+        this.podTemplateSpec.serviceAccount = neu;
+        this.podTemplateSpec.serviceAccountName = neu;
+      } else {
+        // Note - both have to be removed in order for removal to work
+        delete this.podTemplateSpec.serviceAccount;
+        delete this.podTemplateSpec.serviceAccountName;
+      }
+    },
+    nvidiaIsValid(nvidiaGpuLimit) {
+      if ( !Number.isInteger(parseInt(nvidiaGpuLimit)) ) {
+        return false;
+      }
+      if (nvidiaGpuLimit === undefined) {
+        return false;
+      }
+      if (nvidiaGpuLimit < 1) {
+        return false;
+      } else {
+        return true;
+      }
+
+      //
+    },
+
+    cleanUpClonedJobData() {
+      const annotations = this.value?.metadata?.annotations;
+
+      if (annotations) {
+        delete annotations['batch.kubernetes.io/job-tracking'];
+      }
+      const labels = this.value?.metadata?.labels;
+
+      if (labels) {
+        delete labels['batch.kubernetes.io/controller-uid'];
+        delete labels['batch.kubernetes.io/job-name'];
+        delete labels['controller-uid'];
+        delete labels['job-name'];
+      }
+
+      const matchLabels = this.value?.spec?.selector?.matchLabels;
+
+      if (matchLabels) {
+        delete matchLabels['batch.kubernetes.io/controller-uid'];
+      }
+      const templateLabels = this.value?.spec?.template?.metadata?.labels;
+
+      if (templateLabels) {
+        delete templateLabels['batch.kubernetes.io/controller-uid'];
+        delete templateLabels['batch.kubernetes.io/job-name'];
+        delete templateLabels['controller-uid'];
+        delete templateLabels['job-name'];
+      }
+    }
+  },
+};

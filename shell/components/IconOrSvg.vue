@@ -1,0 +1,200 @@
+<script>
+
+/**
+ * This component renders the icon in the top level menu.
+ * Icon can either be via a font via the 'icon' property or an svg via the 'src' property
+ *
+ * The trickiness here is that we want the icon to be the correct color - both normally and when hovered
+ * For a font icon, this is easy, since we just set the color css property
+ * For an svg icon included with the <img> tag this is harder - there is no way to apply css to
+ * the svg brought in this way - the workaround is to apply a css filter - in order to do this we
+ * need to generate the css filter for the required color - the code for that is in the 'svg-filter' utility
+ *
+ * We cache filters and css for given colors, so we only generate them once.
+ *
+ * This makes the code here look complex - but we are essentially generating the css filters
+ * and then injecting custom css into the document so that any icons included via svg will
+ * show with the desired colors for the theme.
+ */
+import { Solver } from '@shell/utils/svg-filter';
+import { colorToRgb, mapStandardColors, normalizeHex } from '@shell/utils/color';
+import { mapGetters } from 'vuex';
+
+const filterCache = {};
+
+const colors = {
+  header: {
+    color:          '--on-tertiary-header',
+    hover:          '--on-tertiary-header-hover',
+    colorFallback:  '--header-btn-text',
+    hoverFallback:  '--header-btn-text-hover',
+    active:         '--on-tertiary-header-hover',
+    activeFallback: '--header-btn-text-hover',
+  },
+  primary: {
+    color:          '--on-tertiary',
+    hover:          '--tertiary-hover-app-bar',
+    colorFallback:  '--on-tertiary',
+    hoverFallback:  '--primary-hover-text',
+    active:         '--on-active',
+    activeFallback: '--primary-hover-text',
+  }
+};
+
+export default {
+  name:  'IconOrSvg',
+  props: {
+    src: {
+      type:    String,
+      default: () => undefined,
+    },
+    icon: {
+      type:    String,
+      default: () => undefined,
+    },
+    imgAlt: {
+      type:    String,
+      default: () => undefined,
+    },
+    color: {
+      type:    String,
+      default: () => 'primary',
+    }
+  },
+
+  data() {
+    return {
+      className:    '',
+      mainFilter:   null,
+      hoverFilter:  null,
+      activeFilter: null,
+    };
+  },
+
+  created() {
+    if (this.src) {
+      this.setColor();
+    }
+  },
+
+  computed: {
+    ...mapGetters({
+      brand: 'management/brand',
+      theme: 'prefs/theme',
+    })
+  },
+
+  watch: {
+    brand: 'recomputeColor',
+    theme: 'recomputeColor',
+    src:   'recomputeColor',
+  },
+
+  methods: {
+    getComputedStyleFor(cssVar, fallback) {
+      const value = window.getComputedStyle(document.body).getPropertyValue(cssVar).trim();
+
+      return normalizeHex(mapStandardColors(value ?? fallback));
+    },
+
+    resolveColorFilter(cacheKey, rgb) {
+      if (filterCache[cacheKey]) {
+        return filterCache[cacheKey];
+      }
+
+      const solver = new Solver(rgb);
+      const res = solver.solve();
+      const filterVal = res?.filterVal;
+
+      filterCache[cacheKey] = filterVal;
+
+      return filterVal;
+    },
+
+    setColor() {
+      const colorConfig = colors[this.color];
+      const uiColor = this.getComputedStyleFor(colorConfig.color, colorConfig.colorFallback);
+      const hoverColor = this.getComputedStyleFor(colorConfig.hover, colorConfig.hoverFallback);
+      const activeColor = this.getComputedStyleFor(colorConfig.active, colorConfig.activeFallback);
+
+      if (!uiColor || !hoverColor || !activeColor) {
+        return;
+      }
+
+      const uiColorRGB = colorToRgb(uiColor);
+      const hoverColorRGB = colorToRgb(hoverColor);
+      const activeColorRGB = colorToRgb(activeColor);
+      const uiColorStr = `${ uiColorRGB.r }-${ uiColorRGB.g }-${ uiColorRGB.b }`;
+      const hoverColorStr = `${ hoverColorRGB.r }-${ hoverColorRGB.g }-${ hoverColorRGB.b }`;
+
+      const className = `svg-icon-${ uiColorStr }-${ hoverColorStr }`;
+
+      this.hoverFilter = this.resolveColorFilter(hoverColor, hoverColorRGB);
+      this.mainFilter = this.resolveColorFilter(uiColor, uiColorRGB);
+      this.activeFilter = this.resolveColorFilter(activeColor, activeColorRGB);
+
+      this['className'] = className;
+    },
+
+    recomputeColor() {
+      if (!this.src) {
+        return;
+      }
+
+      this.mainFilter = null;
+      this.hoverFilter = null;
+      this.activeFilter = null;
+
+      this.setColor();
+    },
+  }
+};
+</script>
+
+<template>
+  <img
+    v-if="src"
+    :src="src"
+    class="svg-icon"
+    :class="className"
+    :alt="imgAlt"
+  >
+  <i
+    v-else-if="icon"
+    class="icon group-icon"
+    :class="icon"
+  />
+  <i
+    v-else
+    class="icon icon-extension"
+  />
+</template>
+
+<style lang="scss" scoped>
+  img.svg-icon {
+    filter: v-bind(mainFilter);
+  }
+
+  button:hover > img.svg-icon,
+  li:hover > img.svg-icon {
+    filter: v-bind(hoverFilter);
+  }
+
+  .side-menu .category div a > img.svg-icon {
+    height: 24px;
+    width: 24px;
+    filter: v-bind(mainFilter);
+  }
+
+  .side-menu .category div a:hover > img.svg-icon {
+    filter: v-bind(hoverFilter);
+  }
+
+  .side-menu .category div a.active-menu-link > img.svg-icon {
+    filter: v-bind(activeFilter);
+
+    &:hover {
+      filter: v-bind(activeFilter);
+    }
+  }
+</style>

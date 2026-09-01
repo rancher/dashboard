@@ -1,0 +1,59 @@
+import { IClusterProvisioner, ClusterProvisionerContext, ClusterProvisionerDetailTabs } from '@shell/core/types';
+import CruGKE from './components/CruGKE.vue';
+import { Component } from 'vue';
+import { isProviderEnabled } from '@shell/utils/settings';
+import { mapDriver } from '@shell/store/plugins';
+
+export class GKEProvisioner implements IClusterProvisioner {
+  static ID = 'gke';
+
+  constructor(private context: ClusterProvisionerContext) {
+    mapDriver(this.id, 'gcp' );
+  }
+
+  get id(): string {
+    return GKEProvisioner.ID;
+  }
+
+  get icon(): any {
+    return require('./assets/gke.svg');
+  }
+
+  get group(): string {
+    return 'hosted';
+  }
+
+  get label(): string {
+    return this.context.t('gke.label');
+  }
+
+  get description(): string {
+    return this.context.t('gke.description');
+  }
+
+  get component(): Component {
+    return CruGKE;
+  }
+
+  get hidden(): boolean {
+    return !isProviderEnabled(this.context, this.id);
+  }
+
+  get detailTabs(): ClusterProvisionerDetailTabs {
+    return {
+      nodes:        false,
+      machines:     false,
+      logs:         false,
+      registration: true,
+      snapshots:    false,
+      related:      true,
+      events:       true,
+      conditions:   true,
+      autoscaler:   false
+    };
+  }
+
+  get showImport(): boolean {
+    return true;
+  }
+}

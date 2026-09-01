@@ -1,0 +1,216 @@
+<script>
+import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { set } from '@shell/utils/object';
+import { RcButton } from '@components/RcButton';
+
+export function createOnSelected(field) {
+  return function(contents) {
+    set(this, field, contents);
+  };
+}
+
+export default {
+  emits: ['error', 'selected'],
+
+  components: { RcButton },
+
+  props: {
+    label: {
+      type:     String,
+      required: true
+    },
+
+    mode: {
+      type:    String,
+      default: _EDIT
+    },
+
+    disabled: {
+      type:    Boolean,
+      default: false,
+    },
+
+    includeFileName: {
+      type:    Boolean,
+      default: false,
+    },
+
+    showGrowlError: {
+      type:    Boolean,
+      default: true
+    },
+
+    multiple: {
+      type:    Boolean,
+      default: false
+    },
+
+    byteLimit: {
+      type:    Number,
+      default: 0
+    },
+
+    readAsDataUrl: {
+      type:    Boolean,
+      default: false
+    },
+
+    directory: {
+      type:    Boolean,
+      default: false
+    },
+
+    rawData: {
+      type:    Boolean,
+      default: false
+    },
+
+    accept: {
+      type:    String,
+      default: '*'
+    },
+
+    class: {
+      type:    [String, Array],
+      default: () => [],
+    },
+
+    /**
+     * Render the trigger as a small, secondary RcButton instead of the default
+     * plain button.
+     */
+    asRcButton: {
+      type:    Boolean,
+      default: false,
+    }
+
+  },
+
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
+    customClass() {
+      return ['file-selector', 'btn', ...(Array.isArray(this.class) ? this.class : [this.class])];
+    },
+
+    // RcButton provides its own `btn` class, so we omit it here to avoid clashing styles
+    rcButtonClass() {
+      return ['file-selector', ...(Array.isArray(this.class) ? this.class : [this.class])];
+    },
+  },
+
+  methods: {
+    selectFile() {
+      // Clear the value so the user can reselect the same file again
+      this.$refs.uploader.value = null;
+      this.$refs.uploader.click();
+    },
+
+    async fileChange(event) {
+      const input = event.target;
+      const files = Array.from(input.files || []);
+
+      if (this.byteLimit) {
+        for (const file of files) {
+          if (file.size > this.byteLimit) {
+            this.$emit('error', `${ file.name } exceeds the file size limit of ${ this.byteLimit } bytes`);
+
+            return;
+          }
+        }
+      }
+
+      if (this.rawData) {
+        const unboxedContents = !this.multiple && files.length === 1 ? files[0] : files;
+
+        this.$emit('selected', unboxedContents);
+
+        return;
+      }
+
+      try {
+        const asyncFileContents = files.map(this.getFileContents);
+        const fileContents = await Promise.all(asyncFileContents);
+        const unboxedContents = !this.multiple && fileContents.length === 1 ? fileContents[0] : fileContents;
+
+        this.$emit('selected', unboxedContents);
+      } catch (error) {
+        this.$emit('error', error);
+        if (this.showGrowlError) {
+          this.$store.dispatch('growl/fromError', { title: 'Error reading file', error }, { root: true });
+        }
+      }
+    },
+
+    getFileContents(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = (ev) => {
+          const value = ev.target.result;
+          const name = file.name;
+          const fileContents = this.includeFileName ? { value, name } : value;
+
+          resolve(fileContents);
+        };
+
+        reader.onerror = (err) => {
+          reject(err);
+        };
+        if (this.readAsDataUrl) {
+          reader.readAsDataURL(file);
+        } else {
+          reader.readAsText(file);
+        }
+      });
+    }
+  }
+};
+</script>
+
+<template>
+  <RcButton
+    v-if="!isView && asRcButton"
+    variant="secondary"
+    size="small"
+    :disabled="disabled"
+    :aria-label="label"
+    :class="rcButtonClass"
+    data-testid="file-selector__uploader-button"
+    @click="selectFile"
+  >
+    <span>{{ label }}</span>
+    <input
+      ref="uploader"
+      type="file"
+      class="hide"
+      :multiple="multiple"
+      :webkitdirectory="directory"
+      :accept="accept"
+      @change="fileChange"
+    >
+  </RcButton>
+  <button
+    v-else-if="!isView"
+    :disabled="disabled"
+    :aria-label="label"
+    type="button"
+    role="button"
+    :class="customClass"
+    data-testid="file-selector__uploader-button"
+    @click="selectFile"
+  >
+    <span>{{ label }}</span>
+    <input
+      ref="uploader"
+      type="file"
+      class="hide"
+      :multiple="multiple"
+      :webkitdirectory="directory"
+      :accept="accept"
+      @change="fileChange"
+    >
+  </button>
+</template>

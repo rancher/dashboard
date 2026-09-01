@@ -1,0 +1,69 @@
+variables:
+  NODE_VERSION: "v20.17.0"
+  NODE_DISTRO: "node-${NODE_VERSION}-linux-x64"
+  YQ_VERSION: "v4.44.6"
+  YQ_URL: "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+
+.podman-setup: &podman-setup
+  # Install podman and jq
+  - zypper --non-interactive install jq podman
+  - usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $(id -nu)
+  - podman login -u $REGISTRY_USER -p $REGISTRY_PASSWORD $REGISTRY
+
+.node-setup: &node-setup
+  # Download, verify, and install Node.js, npm, and yarn
+  - curl -O https://nodejs.org/download/release/${NODE_VERSION}/${NODE_DISTRO}.tar.gz
+  - curl -O https://nodejs.org/download/release/${NODE_VERSION}/SHASUMS256.txt
+  - grep "${NODE_DISTRO}.tar.gz" SHASUMS256.txt | sha256sum -c -
+  - tar -xzf ${NODE_DISTRO}.tar.gz
+  - mv ${NODE_DISTRO} /usr/local/node
+  - ln -s /usr/local/node/bin/node /usr/local/bin/node
+  - ln -s /usr/local/node/bin/npm /usr/local/bin/npm
+  - npm install -g --unsafe-perm yarn
+  - export PATH="/usr/local/node/bin:/root/.npm-global/bin:$PATH"
+
+check_version_collisions:
+  stage: check_version
+  rules:
+    - changes:
+        - package.json
+  script:
+    - *podman-setup
+    - |
+      PACKAGE_VERSION=`jq -r .version package.json`
+      PACKAGE_NAME=`jq -r .name package.json`
+
+      readarray -t VERSIONS < <(podman search $REGISTRY/$IMAGE_NAMESPACE/ui-extension-$PACKAGE_NAME --list-tags --format {{.Tag}})
+
+      echo -e "Checking for version collisions with Extension version: ${PACKAGE_VERSION}"
+      for version in ${VERSIONS[@]}; do
+        if [[ ${version} == ${PACKAGE_VERSION} ]]; then
+          echo "Cannot overwrite production image version ${version} since it already exists."
+          podman logout $REGISTRY
+          exit 1
+        fi
+      done
+
+      echo -e "Published image not found for version ${PACKAGE_VERSION}, continuing build..."
+
+build_and_release:
+  stage: build_catalog
+  rules:
+    - changes:
+        - package.json
+  script:
+    - *podman-setup
+    - *node-setup
+    - zypper --non-interactive --no-gpg-checks refresh
+    - zypper --non-interactive install go git helm
+
+    # Download and install yq
+    - curl -sLf ${YQ_URL} -o /usr/bin/yq && chmod +x /usr/bin/yq
+
+    # Install dependencies and build extension catalog
+    - yarn
+    - yarn publish-pkgs -cl -r $REGISTRY -o $IMAGE_NAMESPACE
+
+    # Push all images except the base image
+    - podman push `podman images -f reference!=registry.suse.com/bci/bci-base --format "{{index .Names 0}}"`
+    - podman logout $REGISTRY

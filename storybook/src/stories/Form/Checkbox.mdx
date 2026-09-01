@@ -1,0 +1,20 @@
+import { Meta, Canvas, Story } from '@storybook/blocks';
+import * as CheckboxStories from './Checkbox.stories';
+
+<Meta of={CheckboxStories} />
+
+# Checkbox
+
+Checkboxes are used when the user may select any number (zero, one or several) of choices from a list.
+
+### Description
+
+- Always associate a label to every checkbox for good accessibility. Do not include a colon at the end of the label.
+- Use a single checkbox when there is a choice between two options that represent status (for example opting in or out).
+- Checkboxes should be used when enabling or disabling settings or preferences.
+- Use checkboxes when the user needs to select one or multiple items for a group of choices.
+
+<Canvas of={CheckboxStories.Default} />
+<Canvas of={CheckboxStories.Checked} />
+<Canvas of={CheckboxStories.Disabled} />
+<Canvas of={CheckboxStories.DisabledChecked} />

@@ -1,0 +1,145 @@
+import PagePo from '@/cypress/e2e/po/pages/page.po';
+import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
+import BannerGraphicPo from '@/cypress/e2e/po/components/banner-graphic.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
+import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { PAGINATION_UTILS } from '@/cypress/support/utils/shell';
+
+const burgerMenu = new BurgerMenuPo();
+
+export default class HomePagePo extends PagePo {
+  static url = '/home';
+  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(HomePagePo.url);
+  }
+
+  static goToAndWaitForGet() {
+    // There's a lot of tests that start off on the home page
+    // There's issues reporting when this page is ready, specifically for the user avatar click
+    // To help with this be super sure the page is ready
+
+    PagePo.goToAndWaitForGet(HomePagePo.goTo, [
+      `v1/counts?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`,
+      `v1/namespaces?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`,
+    ]);
+
+    const homePage = new HomePagePo();
+
+    homePage.list().checkVisible();
+    homePage.bannerGraphic().checkVisible();
+
+    return homePage;
+  }
+
+  waitForPage(params?: string | undefined, fragment?: string | undefined, options: any = MEDIUM_TIMEOUT_OPT) {
+    this.readyForLoggedInPage();
+
+    return super.waitForPage(params, fragment, options);
+  }
+
+  constructor() {
+    super(HomePagePo.url);
+  }
+
+  static navTo() {
+    BurgerMenuPo.toggle();
+    burgerMenu.home().click();
+  }
+
+  title(): Cypress.Chainable<string> {
+    return cy.getId('banner-title').invoke('text');
+  }
+
+  whatsNewBannerLink(): Cypress.Chainable {
+    return this.changelog().self().find('a');
+  }
+
+  toggleBanner() {
+    const pageActionsPo = new PageActions();
+
+    cy.intercept('PUT', 'v1/userpreferences/*').as('toggleBanner');
+    pageActionsPo.bannerLink().click();
+    cy.wait('@toggleBanner');
+  }
+
+  list(): HomeClusterListPo {
+    return new HomeClusterListPo('[data-testid="sortable-table-list-container"]');
+  }
+
+  manageButton() {
+    return cy.getId('cluster-management-manage-button');
+  }
+
+  importExistingButton() {
+    return cy.getId('cluster-create-import-button');
+  }
+
+  createButton() {
+    return cy.getId('cluster-create-button');
+  }
+
+  supportLinks(): Cypress.Chainable {
+    const simpleBox = new SimpleBoxPo();
+
+    return simpleBox.simpleBox().find('.support-link > a').should('be.visible');
+  }
+
+  notificationsCenter() {
+    return new NotificationsCenterPo();
+  }
+
+  bannerGraphic() {
+    return new BannerGraphicPo();
+  }
+
+  /**
+   * Get change log banner
+   * @returns
+   */
+  changelog() {
+    return new BannersPo(cy.getId('changelog-banner'));
+  }
+
+  changelogElement() {
+    return cy.getId('changelog-banner');
+  }
+
+  /**
+    * Get the home page banner image
+   * @returns
+   */
+  getBrandBannerImage(): Cypress.Chainable {
+    return cy.getId('banner-brand__img');
+  }
+
+  /**
+   * Click support link
+   * Cypress does not support multiple tabs - must remove target attribute before clicking
+   * https://docs.cypress.io/guides/references/trade-offs#Multiple-tabs
+   * @param index
+   * @param isNewTab
+   * @returns
+   */
+  clickSupportLink(index: number, isNewTab?: boolean) {
+    if (isNewTab) {
+      this.supportLinks().eq(index).then((el) => {
+        expect(el).to.have.attr('target');
+      }).invoke('removeAttr', 'target')
+        .click();
+    } else {
+      return this.supportLinks().eq(index).then((el) => {
+        expect(el).to.not.have.attr('target');
+      }).click();
+    }
+  }
+
+  checkSupportLinkText(index: number, text: string) {
+    return this.supportLinks().eq(index).then((el) => {
+      expect(el.text().trim()).to.equal(text);
+    });
+  }
+}

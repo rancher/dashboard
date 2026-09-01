@@ -1,0 +1,70 @@
+
+@use "sass:math";
+
+@import "@rancher/icons/style.scss";
+
+// Animated Icons
+// --------------------------
+.icon-spin {
+  -webkit-animation: icon-spin 5000ms infinite linear;
+          animation: icon-spin 5000ms infinite linear;
+}
+
+@-webkit-keyframes icon-spin {
+  from {
+      transform:rotate(0deg);
+  }
+  to {
+      transform:rotate(360deg);
+  }
+}
+
+@keyframes icon-spin {
+  from {
+      transform:rotate(0deg);
+  }
+  to {
+      transform:rotate(360deg);
+  }
+}
+
+// FontAwesomeness
+$icon-li-width:         math.div(30em, 14) !default;
+$icon-inverse:          #fff !default;
+
+.icon {
+  display: inline-block;
+}
+
+// Sizes
+
+.icon-sm {
+  font-size: (1em*0.8);
+}
+
+.icon-lg {
+  font-size: math.div(4em, 3);
+  line-height: (3em * 0.25);
+  vertical-align: -15%;
+}
+.icon-2x { font-size: 2em; }
+.icon-3x { font-size: 3em; }
+.icon-4x { font-size: 4em; }
+.icon-5x { font-size: 5em; }
+
+// Stacked
+.icon-stack {
+  position: relative;
+  display: inline-block;
+  // width: 2em;
+  height: 1em;
+  line-height: 1em;
+  vertical-align: middle;
+}
+.icon-stack-1x {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  text-align: center;
+}
+.icon-stack-1x { line-height: inherit; }

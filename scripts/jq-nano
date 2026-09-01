@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const readline = require('readline');
+
+const args = process.argv.slice(2);
+const file = args.shift();
+
+let text;
+
+if ( file === '-' ) {
+  process.stdin.resume();
+  text = fs.readFileSync(0, "utf8");
+} else {
+  text = fs.readFileSync(file, "utf8");
+}
+
+const data = JSON.parse(text);
+
+let out = data;
+while ( args.length ) {
+  out = out[args.shift()];
+}
+
+console.log(out);

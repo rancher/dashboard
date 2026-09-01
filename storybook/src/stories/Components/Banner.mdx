@@ -1,0 +1,100 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/blocks';
+import * as BannerStories from './Banner.stories';
+
+<Meta of={BannerStories} />
+
+# Banner
+
+Banner contain messages that communicate information to the user. They may also incorporate calls to action, or involve multiple tasks.
+
+### Description
+- They may be triggered by a user interaction or action or can be a system alert related to the section at hand.
+- Section alerts appear above the area or form they relate to.
+- Use a subject title and message to inform the user of details.
+- They appear as a fixed, full-width strip, on top of the screen throughout the application.
+
+<Canvas of={BannerStories.Default} />
+
+#### Closable
+
+Banner can be closable for temporary messages such like errors in a form. An event will be emitted on close.
+
+<Canvas of={BannerStories.Closable} />
+
+#### Stacked
+
+Multiple banners can be stacked together and dismissed individually.
+
+<Canvas of={BannerStories.Stacked} />
+
+#### Primary
+
+Primary banner are triggered by system events. They appear as a fixed, full-width strip, on top of the screen throughout the application.
+
+<Canvas of={BannerStories.Primary} />
+
+#### Icon
+
+Icon can be added to enchance the type of message.
+
+<Canvas of={BannerStories.Icon} />
+
+#### Secondary
+Secondary alerts should be used when there are tips or special notes that's require users attention.
+
+<Canvas of={BannerStories.Secondary} />
+
+#### Success
+Success alerts should be used when an action was performed successfully.
+
+<Canvas of={BannerStories.Success} />
+
+#### Info
+Info alerts should be used when there are tips or information that a user can benefit from. They are display in the section of the application related to the information.
+
+<Canvas of={BannerStories.Info} />
+
+#### Warning
+Warning banner should be used for messages that likely require attention. They are display in the section of the application related to the information.
+
+<Canvas of={BannerStories.Warning} />
+
+#### Error
+Danger banners should be used when the system has failed to perform an action, or when the user has made an error. * Never include a "close" icon or link to dismiss the action. In cases when the alert should be dismissible use a warning banner instead. In many cases like this, the user path can be changed to achieve better results without requiring a close button in the component. They are display in the section of the application related to the information.
+
+<Canvas of={BannerStories.Error} />
+
+#### Live regions
+
+By default a Banner has no ARIA role and is not announced by assistive technology. Set the `role` prop when the banner is a *status message* — something that appears in response to what the user just did, rather than content that was on the page all along.
+
+- `role="alert"` for errors and anything needing immediate attention. Equivalent to `aria-live="assertive"`; it interrupts whatever the screen reader is currently saying.
+- `role="status"` for informational and warning messages. Equivalent to `aria-live="polite"`; it waits for a pause before announcing.
+- Omit the prop for decorative or purely visual banners, and for banners that are part of the page on load — announcing those is disruptive and adds nothing.
+
+<Canvas of={BannerStories.LiveRegionAlert} />
+<Canvas of={BannerStories.LiveRegionStatus} />
+
+#### Where to put the role
+
+Assistive technology announces a live region in two situations: when the region is inserted into the page, and when the contents of an already-present region change. Banners in the dashboard are nearly always behind a `v-if` or `v-for`, so the insertion case is the one that applies.
+
+Put the role on an element that **already exists** — either the Banner itself, or the container that already groups several banners (`#cru-errors` on create/edit forms, for example). Don't add a wrapper element just to hold the live region: these banners sit inside grid and flex layouts, so a new box becomes a grid cell or a flex item and shifts the surrounding layout.
+
+If a container that only ever holds banners is already rendered unconditionally — the login page's `.login-messages` is one — put the role on that container rather than on the individual banners. The region is then present before the message arrives, which is the more reliable of the two patterns.
+
+### Accessibility
+
+Make sure that the information presented in an alert is important enough to justify taking away the user’s attention from what they are doing (ie. errors, warnings, validations, etc.).
+
+### General
+
+- Use the role='alert' attribute when defining the alert. It should only be used when the user needs immediate attention due to its intrusive nature.
+- The WAI-ARIA role='alert' is equivalent to aria-live='assertive'. Screen readers are notified immediately of the error so the user can take action to address the issue.
+- When an alert is present in the screen on load time (i.e. the alert isn't a response to a user's action), it should use the aria-live='polite' attribute to avoid disrupting the order in which the elements are presented on the screen. This does not apply to danger alerts though, since critical alerts should always come first.
+- The close button contains the aria-label='close' attibute and the icon uses aria-hidden='true' so it is ignored by assistive technologies. The danger alert does not include a button since it's not dismissable.
+
+### Considerations
+
+- Ensure that the close button is included in the tabbing order and the alert can be navigated to and dismissed with the keyboard. The
+- Make sure colour and icons aren't the only way information is conveyed.
