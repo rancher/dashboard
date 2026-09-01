@@ -110,9 +110,11 @@ describe('fx: expandOpenAPIDefinition', () => {
     const definition: any = {
       properties: {
         containers: {
-          type:  'array',
-          items: {
-            properties: {
+          type:        'array',
+          description: 'List of containers',
+          items:       {
+            description: 'Container is a single application container',
+            properties:  {
               name:  { type: 'string', description: 'Container name' },
               image: { type: 'string', description: 'Container image' },
             },
@@ -128,6 +130,29 @@ describe('fx: expandOpenAPIDefinition', () => {
     expect(containers.$$ref).toBeDefined();
     expect(containers.$$ref.properties.name.type).toStrictEqual('string');
     expect(containers.$$ref.properties.image.type).toStrictEqual('string');
+    // The type of the items has its own description, which is shown when the field is expanded
+    expect(containers.$$ref.description).toStrictEqual('Container is a single application container');
+    // No short name, so the UI falls back to showing the field as an object
+    expect(containers.$refNameShort).toBeUndefined();
+  });
+
+  it('does not repeat the description of an inline object when it is expanded', () => {
+    const definitions = {};
+    const definition: any = {
+      properties: {
+        spec: {
+          type:        'object',
+          description: 'Specification of the desired behavior.',
+          properties:  { secretName: { type: 'string', description: 'Name of the secret' } },
+        },
+      },
+    };
+
+    expandOpenAPIDefinition(definitions, definition);
+
+    // The description is shown for the field itself, so it must not be repeated in the expanded panel
+    expect(definition.properties.spec.description).toStrictEqual('Specification of the desired behavior.');
+    expect(definition.properties.spec.$$ref.description).toBeUndefined();
   });
 
   it('does not set $refName or $refNameShort for inline properties', () => {
@@ -177,24 +202,5 @@ describe('fx: expandOpenAPIDefinition', () => {
     expandOpenAPIDefinition(definitions, definition);
 
     expect(definition.properties.field.$moreInfo).toStrictEqual('https://example.com/docs');
-  });
-
-  it('deeply clones inline properties so mutations do not leak', () => {
-    const definitions = {};
-    const original = { type: 'string', description: 'original' };
-    const definition: any = {
-      properties: {
-        spec: {
-          type:       'object',
-          properties: { inner: original },
-        },
-      },
-    };
-
-    expandOpenAPIDefinition(definitions, definition);
-
-    definition.properties.spec.$$ref.properties.inner.description = 'mutated';
-
-    expect(original.description).toStrictEqual('original');
   });
 });

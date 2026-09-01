@@ -169,7 +169,7 @@ export default {
             @click="expand(field.name)"
             @keyup.enter.space="expand(field.name)"
           >
-            {{ field.$refNameShort || field.type || t('kubectl-explain.object') }}
+            {{ field.$refNameShort || t('kubectl-explain.object') }}
             <i
               v-if="!expanded[field.name]"
               class="icon icon-chevron-down"
