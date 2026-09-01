@@ -1,3 +1,4 @@
+import { shallowMount } from '@vue/test-utils';
 import Charts from '@shell/pages/c/_cluster/apps/charts/index.vue';
 import { UI_PLUGIN_ANNOTATION } from '@shell/config/uiplugins';
 
@@ -143,6 +144,41 @@ describe('page: Charts Index', () => {
 
       // The cancelled timer must not have fired — count stays at the reset value.
       expect(ctx.visibleChartsCount).toBe(30);
+    });
+  });
+
+  describe('template: catalog search input', () => {
+    // type="search" already exposes the implicit searchbox role, so no
+    // explicit role should be written over it.
+    it('should leave the search input its implicit searchbox role', () => {
+      const wrapper = shallowMount(Charts, {
+        global: {
+          // Only what the page reads while rendering: its three mapGetters,
+          // the prefs the template checks, and $fetchState for the Loading
+          // guard.
+          mocks: {
+            $store: {
+              getters: {
+                'catalog/charts': [],
+                'catalog/errors': [],
+                'catalog/repos':  [],
+                'prefs/get':      jest.fn(),
+                currentCluster:   { status: { provider: 'k3s' } },
+              }
+            },
+            $fetchState: { pending: false },
+            $route:      { query: {}, params: {} },
+          },
+          // Registered globally by the app, so absent under a bare mount.
+          stubs:      { RouterLink: true },
+          directives: { shortkey: {} }
+        }
+      });
+
+      const search = wrapper.find('[data-testid="charts-filter-input"]');
+
+      expect(search.exists()).toBe(true);
+      expect(search.attributes('role')).toBeUndefined();
     });
   });
 });
