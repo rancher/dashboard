@@ -133,10 +133,6 @@ export default {
           // account is left behind. Surface why the assignment failed as well as the orphan
           // notice, so the admin can fix the permissions before reviewing or deleting it.
           this.errors = [...roleError, this.t('user.edit.roleUpdateFailed.orphaned', { username: this.form.username })];
-        } else if (this.isCreate && err?.userRolledBack) {
-          // Roles failed on create but the incomplete user was rolled back. Explain both why
-          // it failed and that nothing was saved, so it's not mistaken for a partial account.
-          this.errors = [...roleError, this.t('user.edit.roleUpdateFailed.rolledBack')];
         } else {
           this.errors = roleError;
         }
@@ -232,8 +228,6 @@ export default {
           try {
             // If GRB creation fails, clean up the user to maintain consistency
             await user.remove();
-            // The incomplete user was rolled back, so no account is left behind
-            err.userRolledBack = true;
           } catch (cleanupErr) {
             // Log cleanup error but prioritize original error for user feedback
             console.error('Failed to clean up user after GRB creation failure:', cleanupErr); // eslint-disable-line no-console

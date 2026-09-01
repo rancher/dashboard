@@ -68,7 +68,7 @@ describe('management.cattle.io.user create: role assignment failure feedback', (
     grbSaveImpl = () => Promise.resolve();
   });
 
-  it('rolls the user back and explains nothing was saved when roles fail and cleanup succeeds', async() => {
+  it('rolls the user back and shows only the escalation reason when roles fail and cleanup succeeds', async() => {
     const user = buildUser();
 
     grbSaveImpl = () => Promise.reject(new Error('some errors due to escalation'));
@@ -78,7 +78,7 @@ describe('management.cattle.io.user create: role assignment failure feedback', (
     await (wrapper.vm as any).save(buttonDone);
 
     expect(user.remove).toHaveBeenCalledTimes(1);
-    expect(wrapper.vm.errors).toStrictEqual(['rbac.errors.escalation', 'user.edit.roleUpdateFailed.rolledBack']);
+    expect(wrapper.vm.errors).toStrictEqual(['rbac.errors.escalation']);
     expect(buttonDone).toHaveBeenCalledWith(false);
   });
 

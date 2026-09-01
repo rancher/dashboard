@@ -652,17 +652,13 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       userCreate.selectCheckbox('Administrator').set();
       userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
 
-      // the error banner should be displayed. The failed create is now rolled back, so two errors are
-      // surfaced: the escalation reason, plus a note that nothing was saved (the incomplete user was removed).
+      // the error banner should be displayed
       const banner = new FixedBannerPo('#cru-errors');
 
       banner.checkExists();
-      banner.banners().should('have.length', 2);
       banner.text().should('eq', 'You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.');
-      banner.text(1).should('contain', 'No user was created because the selected roles could not be assigned');
 
-      // close both error banners before updating the Global Permissions
-      banner.close();
+      // close the error banner before updating the Global Permissions
       banner.close();
       banner.checkNotExists();
 
