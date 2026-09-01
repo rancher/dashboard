@@ -9,9 +9,9 @@ import { useClusterLocalStorage } from '@shell/composables/useClusterLocalStorag
 import {
   POD, SERVICE, CONFIG_MAP, NODE, WORKLOAD_TYPES
 } from '@shell/config/types';
-import { useResourceShortNames } from '@shell/composables/useResourceShortNames';
 import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
 import { isMac } from '@shell/utils/platform';
+import { compareDisjointMatches, disjointMatch, type DisjointMatch } from '@shell/utils/fuzzy';
 
 /**
  * A jumpable nav section: a leaf resource type or a group overview, tagged with
@@ -20,10 +20,28 @@ import { isMac } from '@shell/utils/platform';
 interface JumpItem {
   key: string;
   label: string;
+  /**
+   * The names this entry answers to: its label, then the bare names of the
+   * types it is or stands in for. `Projects/Namespaces` is the entry you want
+   * when you type `ns`, and only the `namespace` it covers says so.
+   */
+  names: string[];
+  /**
+   * The API-group-qualified schema ids behind it. Matched last, see
+   * `searchResults`.
+   */
+  types: string[];
   path: string[];
   route: any;
-  shortNames: string[];
   node: any;
+}
+
+/** A `JumpItem` the query matched, and how well. */
+interface ScoredItem {
+  item: JumpItem;
+  match: DisjointMatch;
+  /** Whether it matched one of its names rather than only a schema id. */
+  named: boolean;
 }
 
 const props = defineProps<{
@@ -40,16 +58,21 @@ const router = useRouter();
 const route = useRoute();
 const { t } = useI18n(store);
 
+/**
+ * The cluster the history is scoped to, and only in the explorer: a jump means
+ * something different in each cluster, and outside the explorer there is no
+ * cluster to name.
+ *
+ * An empty id disables `useClusterLocalStorage` outright, so in every other
+ * product the "Last used" list is never stored: it lives in `recentKeys` for as
+ * long as nothing reloads it, which a refresh ends and so does any trip into a
+ * cluster and back, since the watch below re-reads storage and finds nothing.
+ * That is deliberate, and the same as SideNav's `nav-group-state`, which is
+ * explorer-only for the same reason. Persisting it elsewhere needs a scope
+ * those products don't have yet (Fleet's would be its workspace).
+ */
 const explorerClusterId = () => (store.getters.isExplorer ? store.getters.clusterId : '');
 const history = useClusterLocalStorage<string[]>('nav-jump-history', explorerClusterId);
-
-const shortNames = useResourceShortNames();
-
-const shortNamesFor = (node: any): string[] => {
-  const types = [node.name, ...(node.navResources || [])];
-
-  return Array.from(new Set(types.flatMap((type: string) => shortNames.value[type] || [])));
-};
 
 // A reactive mirror of the persisted history so the default list re-renders when
 // a jump is recorded (localStorage reads on their own aren't reactive). Reloaded
@@ -64,7 +87,6 @@ watch(() => explorerClusterId(), () => {
 
 const DEFAULT_KEYS = [POD, WORKLOAD_TYPES.DEPLOYMENT, SERVICE, CONFIG_MAP, NODE];
 
-const MAX_RESULTS = 10;
 const MAX_HISTORY = 10;
 const MAX_DEFAULT = 5;
 
@@ -73,8 +95,21 @@ const open = ref(false);
 // The option Enter would pick. Always highlighted, so the dropdown never shows
 // a selection the user can't see; arrow keys and hovering both move it.
 const activeIndex = ref(0);
+// Whether the keyboard put the highlight where it is. An option never holds DOM
+// focus - the input keeps it and names the active one through
+// `aria-activedescendant` - so `:focus-visible` can never match here and the
+// focus ring has to be drawn by hand, on the same terms: keyboard only.
+const keyboardActive = ref(false);
+// Whether the keyboard brought focus to the input. A text input always matches
+// `:focus-visible`, even under a pointer, because the browser expects typing
+// next - so the ring cannot be left to CSS or it would follow a click too.
+const keyboardFocus = ref(false);
+// A pointer press lands before the focus event, which is how the two are told
+// apart. Not a ref: nothing renders from it.
+let pointerFocus = false;
 const input = ref<HTMLInputElement | null>(null);
 const toolbar = ref<HTMLElement | null>(null);
+const list = ref<HTMLElement | null>(null);
 
 // The dropdown is teleported to <body> so it can overhang the nav column without
 // being clipped by its `overflow` ancestors; it is positioned under the toolbar.
@@ -164,8 +199,22 @@ const items = computed<JumpItem[]>(() => {
       // a child that repeats its parent group's label (the group's overview
       // entry), since the group itself already represents that jump.
       if (!node.isRoot && label && route && label !== parentLabel && !byKey[node.name]) {
+        // A type is a name when it is bare (`endpoints`, `namespace`) and a
+        // schema id once it carries an API group (`management.cattle.io.project`),
+        // which is the half nobody reads. The entry's own type is read the same
+        // way as the ones it stands in for: its bare name is all a translated
+        // label leaves an abbreviation to match, since `ep` is nowhere in `端点`.
+        const types: string[] = [node.name, ...(node.navResources || [])];
+        const qualified = (type: string) => type.includes('.');
+
         byKey[node.name] = {
-          key: node.name, label, path: [...path], route, shortNames: shortNamesFor(node), node
+          key:   node.name,
+          label,
+          names: [label, ...types.filter((type) => !qualified(type))],
+          types: types.filter(qualified),
+          path:  [...path],
+          route,
+          node
         };
       }
 
@@ -201,10 +250,19 @@ const defaultResults = computed<JumpItem[]>(() => {
 });
 
 /**
- * Sections whose label or type name contains the query, ranked by how early the
- * match is. The type name is matched too so a resource is still findable by its
- * schema and API group (`provisioning.cattle`), as it was in the search dialog
- * this replaces.
+ * Sections whose name or schema id matches the query, best match first.
+ *
+ * The query does not have to appear in one piece: it is split into as few runs
+ * as it takes to find it, so a Kubernetes short name finds its resource
+ * (`netpol` -> NetworkPolicies, `cm` -> ConfigMaps) without the nav having to
+ * ask the cluster what the short names are. Whole matches still rank first.
+ *
+ * Schema ids are matched last, so a resource stays findable by its type and API
+ * group (`provisioning.cattle`), as it was in the search dialog this replaces.
+ * Only last, though: a row ranked highly by an id nobody can see reads as a
+ * mismatch, and API groups are full of accidental hits (`cm` is in
+ * `acme.cert-manager.io.challenge` twice over, and `mc` in every
+ * `management.cattle.io` type).
  */
 const searchResults = computed<JumpItem[]>(() => {
   const q = query.value.trim().toLowerCase();
@@ -213,19 +271,39 @@ const searchResults = computed<JumpItem[]>(() => {
     return [];
   }
 
-  const matchIndex = (item: JumpItem) => {
-    const indexes = [item.label.toLowerCase().indexOf(q), item.key.toLowerCase().indexOf(q)].filter((idx) => idx >= 0);
+  // Looped rather than mapped and sorted: this runs over the whole nav on every
+  // keystroke, and all but a handful of entries have a single name.
+  const bestMatch = (names: string[]) => {
+    let best: DisjointMatch | null = null;
 
-    return indexes.length ? Math.min(...indexes) : -1;
+    for (const name of names) {
+      const match = disjointMatch(name, q);
+
+      if (match && (!best || compareDisjointMatches(match, best) < 0)) {
+        best = match;
+      }
+    }
+
+    return best;
+  };
+
+  const score = (item: JumpItem) => {
+    const named = bestMatch(item.names);
+
+    return {
+      item, match: named || bestMatch(item.types), named: !!named
+    };
   };
 
   return items.value
-    .map((item) => ({
-      item, idx: matchIndex(item), isShortName: item.shortNames.includes(q)
-    }))
-    .filter((scored) => scored.isShortName || scored.idx >= 0)
-    .sort((a, b) => Number(b.isShortName) - Number(a.isShortName) || a.idx - b.idx || a.item.label.localeCompare(b.item.label))
-    .slice(0, MAX_RESULTS)
+    .map(score)
+    .filter((scored): scored is ScoredItem => !!scored.match)
+    // Between two equally good matches the shorter label is the tighter fit
+    // ('po' is more of `Pods` than of `PodDisruptionBudgets`).
+    .sort((a, b) => Number(b.named) - Number(a.named) ||
+      compareDisjointMatches(a.match, b.match) ||
+      a.item.label.length - b.item.label.length ||
+      a.item.label.localeCompare(b.item.label))
     .map((scored) => scored.item);
 });
 
@@ -239,19 +317,49 @@ const listHeadingKey = computed<string | null>(() => {
   return recentItems.value.length ? 'nav.jumpTo.recentHeading' : 'nav.jumpTo.popularHeading';
 });
 
+/**
+ * Keep the highlighted option on screen in the scrolling list. `nearest` scrolls
+ * by as little as it can, so it does nothing while the option is already
+ * visible. Only the keyboard and a reset call this: doing it on hover would drag
+ * the list out from under the pointer.
+ */
+function scrollActiveIntoView() {
+  // After the render that moved the highlight, so the option to scroll to exists.
+  nextTick(() => (list.value?.children[activeIndex.value] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest' }));
+}
+
 // Reset the highlight to the top on open and while typing, but not when the
-// underlying nav tree merely re-renders.
+// underlying nav tree merely re-renders. The list keeps whatever scroll position
+// the last query left it at, so put it back with the highlight.
 watch([query, open], () => {
   activeIndex.value = 0;
+  scrollActiveIntoView();
 });
 
+/** The `Ctrl`/`Cmd`+`K` shortcut, so focus is arriving by keyboard. */
 function focusInput() {
   input.value?.focus();
+}
+
+/** Also clears the ring when a pointer presses an input that already has focus. */
+function onMousedown() {
+  pointerFocus = true;
+  keyboardFocus.value = false;
 }
 
 function onFocus() {
   open.value = true;
   activeIndex.value = 0;
+  keyboardActive.value = false;
+  // Tab and the shortcut both land here with no pointer press before them.
+  keyboardFocus.value = !pointerFocus;
+  pointerFocus = false;
+}
+
+/** Hovering moves the highlight, but a pointer never draws the focus ring. */
+function hover(index: number) {
+  activeIndex.value = index;
+  keyboardActive.value = false;
 }
 
 function onInput() {
@@ -277,6 +385,8 @@ function move(delta: number) {
   }
 
   activeIndex.value = (activeIndex.value + delta + count) % count;
+  keyboardActive.value = true;
+  scrollActiveIntoView();
 }
 
 function jumpTo(item?: JumpItem) {
@@ -326,7 +436,10 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
     class="nav-action-bar"
     @shortkey="focusInput"
   >
-    <div class="jump-to">
+    <div
+      class="jump-to"
+      :class="{ 'keyboard-focus': keyboardFocus }"
+    >
       <input
         ref="input"
         v-model="query"
@@ -342,6 +455,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
         :aria-label="t('nav.jumpTo.ariaLabel')"
         :placeholder="t('nav.jumpTo.placeholder')"
         :title="t('nav.jumpTo.tooltip', { shortcut: shortcutLabel })"
+        @mousedown="onMousedown"
         @focus="onFocus"
         @input="onInput"
         @blur="close"
@@ -386,6 +500,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
         <ul
           v-else
           id="jump-to-listbox"
+          ref="list"
           class="jump-to-results"
           role="listbox"
         >
@@ -394,12 +509,12 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
             :id="optionId(i)"
             :key="item.key"
             class="jump-to-option"
-            :class="{ active: i === activeIndex }"
+            :class="{ active: i === activeIndex, 'keyboard-active': keyboardActive && i === activeIndex }"
             data-testid="nav-jump-to-option"
             role="option"
             :aria-selected="i === activeIndex"
             @mousedown.prevent="jumpTo(item)"
-            @mouseenter="activeIndex = i"
+            @mouseenter="hover(i)"
           >
             <span class="jump-to-option-label">{{ item.label }}</span>
             <span
@@ -433,11 +548,29 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
 }
 
 .jump-to {
+  position: relative;
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
   padding: 0 var(--nav-toolbar-pad-x);
+
+  // The keyboard focus ring, in the app's focus colour. Drawn here rather than
+  // as the input's own outline because `outline-offset` is uniform, and this
+  // cell is ten times wider than it is tall: one offset cannot sit evenly
+  // inside the toolbar on both axes. So it reaches out past the text line
+  // vertically and pulls in from the cell edges horizontally, which lands it an
+  // even distance inside the toolbar all the way round.
+  //
+  // A border rather than a box-shadow, which forced-colors modes drop.
+  &.keyboard-focus:focus-within::after {
+    content: '';
+    position: absolute;
+    inset: -5px 5px;
+    border: 2px solid var(--primary-keyboard-focus);
+    border-radius: var(--border-radius);
+    pointer-events: none;
+  }
 }
 
 .jump-to-input {
@@ -455,6 +588,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
     font-weight: 500;
   }
 
+  // The ring is drawn on the cell instead, see `.jump-to`.
   &:focus,
   &:focus-visible {
     outline: none;
@@ -558,6 +692,14 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
 
   &.active {
     background-color: var(--sortable-table-hover-bg);
+  }
+
+  // Drawn inside the row: the options sit 2px apart, so an outward ring would
+  // overlap its neighbours.
+  &.keyboard-active {
+    @include focus-outline;
+
+    outline-offset: -2px;
   }
 
   .jump-to-option-label {

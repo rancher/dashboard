@@ -214,15 +214,18 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 const instanceMethods = {};
 
 export const IF_HAVE = {
-  V2_MONITORING:            'v2-monitoring',
-  PROJECT:                  'project',
-  NO_PROJECT:               'no-project',
-  NOT_V1_ISTIO:             'not-v1-istio',
-  MULTI_CLUSTER:            'multi-cluster',
-  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
-  ADMIN:                    'admin-user',
-  MCM_DISABLED:             'mcm-disabled',
-  NOT_STANDALONE_HARVESTER: 'not-standalone-harvester',
+  V2_MONITORING:              'v2-monitoring',
+  PROJECT:                    'project',
+  NO_PROJECT:                 'no-project',
+  NOT_V1_ISTIO:               'not-v1-istio',
+  MULTI_CLUSTER:              'multi-cluster',
+  NEUVECTOR_NAMESPACE:        'neuvector-namespace',
+  ADMIN:                      'admin-user',
+  MCM_DISABLED:               'mcm-disabled',
+  NOT_STANDALONE_HARVESTER:   'not-standalone-harvester',
+  // Show if the user can access cluster OR project role template bindings, so a project-only
+  // member can reach the "Cluster and Project Members" nav, not just cluster-level ones.
+  CLUSTER_OR_PROJECT_MEMBERS: 'cluster-or-project-members',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -238,6 +241,7 @@ export function DSL(store, product, module = 'type-map') {
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
+        navSearch:           false,
         public:              true,
         filterMode:          'namespaces',
         ...inOpt
@@ -394,27 +398,50 @@ function validateProductName(product) {
   }
 }
 
-let called = false;
+let loading = null;
 
+/**
+ * Registers the built-in products, once per session.
+ *
+ * Callers get the same promise, so a navigation that arrives while the products
+ * are still loading waits for them like the first one did. It used to raise a
+ * flag before the loads finished and return immediately to anyone who came in
+ * behind, which let a route render against a half-registered product list -
+ * and `currentProduct` answers for a product that has not registered yet by
+ * falling back to an unrelated one.
+ *
+ * Only the built-in ones: `loadProducts` returns nothing to await, inits each
+ * plugin's products in an un-awaited `forEach`, and in any case only reaches
+ * plugins already loaded - external ones arrive later through
+ * `loadPluginAsync`. So an extension product can still register after a route
+ * has rendered, exactly as it could before. Awaiting extension products is a
+ * change to the extension API, not to this function.
+ *
+ * A failed load clears the promise so the next navigation can try again, rather
+ * than leaving every later caller inheriting the failure.
+ */
 export async function applyProducts(store, $extension) {
-  if (called) {
-    return;
-  }
+  loading = loading || (async() => {
+    for ( const product of listProducts() ) {
+      const impl = await loadProduct(product);
 
-  called = true;
-  for ( const product of listProducts() ) {
-    const impl = await loadProduct(product);
-
-    if ( impl?.init ) {
-      impl.init(store);
+      if ( impl?.init ) {
+        impl.init(store);
+      }
     }
-  }
-  // Load the products from all plugins
-  $extension.loadProducts();
+    // Load the products from all plugins
+    $extension?.loadProducts();
+  })().catch((e) => {
+    loading = null;
+
+    throw e;
+  });
+
+  return loading;
 }
 
 export function productsLoaded() {
-  return called;
+  return !!loading;
 }
 
 export const state = function() {
@@ -2051,6 +2078,11 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.NOT_STANDALONE_HARVESTER: { // Not used by harvester extension...
     return !getters['isStandaloneHarvester'];
+  }
+  case IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS: {
+    // Reachable if the user can access EITHER cluster OR project role template bindings.
+    return !!getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) ||
+           !!getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
   }
   default:
     return false;

@@ -12,12 +12,22 @@ describe('fx: isValidCIDR', () => {
 });
 
 describe('fx: isValidIP', () => {
-  it('should be valid', () => {
+  it('should be valid for IPv4', () => {
     expect(isValidIP('10.42.0.1')).toBe(true);
+  });
+  it('should be valid for IPv6', () => {
+    expect(isValidIP('2001:0db8:85a3:0000:0000:8a2e:0370:7334')).toBe(true);
+    expect(isValidIP('2001:db8:85a3::8a2e:370:7334')).toBe(true);
+    expect(isValidIP('::1')).toBe(true);
+    expect(isValidIP('::')).toBe(true);
+    expect(isValidIP('fe80::1')).toBe(true);
   });
   it('should be invalid', () => {
     expect(isValidIP('10.42.0.0/8')).toBe(false);
     expect(isValidIP('300.42.0.0')).toBe(false);
+    expect(isValidIP('2001:db8:85a3::8a2e:370:7334:1234:5678:9abc')).toBe(false);
+    expect(isValidIP('gggg::1')).toBe(false);
+    expect(isValidIP('')).toBe(false);
   });
 });
 

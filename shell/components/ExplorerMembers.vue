@@ -4,15 +4,17 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@shell/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
+import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import Banner from '@components/Banner/Banner.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable';
 import { mapGetters } from 'vuex';
-import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { allHash } from '@shell/utils/promise';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { RcButton } from '@components/RcButton';
+import Loading from '@shell/components/Loading';
+import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
 
 /**
  * Explorer members page.
@@ -23,6 +25,7 @@ export default {
 
   components: {
     Banner,
+    Loading,
     Masthead,
     ResourceTable,
     Tabbed,
@@ -51,10 +54,13 @@ export default {
 
     const projectRoleTemplateBindingSchema = this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
 
-    this['normanClusterRTBSchema'] = clusterRoleTemplateBindingSchema;
-    this['normanProjectRTBSchema'] = projectRoleTemplateBindingSchema;
+    // The norman CRTB schema can be present while the management (steve) one is not, so guard
+    // the cluster binding load on BOTH - otherwise `management/findAll` throws "Unknown schema".
+    const mgmtClusterRoleTemplateBindingSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
 
-    if (clusterRoleTemplateBindingSchema) {
+    this['normanClusterRTBSchema'] = clusterRoleTemplateBindingSchema;
+
+    if (clusterRoleTemplateBindingSchema && mgmtClusterRoleTemplateBindingSchema) {
       Promise.all([
         this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING }, { root: true }),
         this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING })
@@ -62,6 +68,8 @@ export default {
         this['normanClusterRoleTemplateBindings'] = normanBindings;
         this.loadingClusterBindings = false;
       });
+    } else {
+      this.loadingClusterBindings = false;
     }
 
     if (projectRoleTemplateBindingSchema) {
@@ -72,14 +80,29 @@ export default {
         });
     }
 
-    this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
-      .then((projects) => (this['projects'] = projects));
+    // Await projects (RBAC-filtered) before fetch resolves so the project-membership tab's `v-if`
+    // is settled before <Tabbed> reads the URL hash — otherwise a `#project-membership` deep link
+    // arrives before the tab exists and never activates.
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
+      this['projects'] = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+      await this.loadProjectMembershipPermissions();
+    }
 
-    const hydration = {
-      normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
-      mgmt:              this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }),
-      mgmtRoleTemplates: this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
-    };
+    // A view-only user may lack the principal / user / role-template schemas; guard each hydration
+    // dispatch on its schema so `findAll` doesn't throw "Unknown schema" and break the whole page.
+    const hydration = {};
+
+    if (this.$store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL)) {
+      hydration.normanPrincipals = this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL });
+    }
+
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
+      hydration.mgmt = this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
+    }
+
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE)) {
+      hydration.mgmtRoleTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE });
+    }
 
     await allHash(hydration);
   },
@@ -99,10 +122,10 @@ export default {
       },
       resource:                          MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       normanClusterRTBSchema:            null,
-      normanProjectRTBSchema:            null,
       normanClusterRoleTemplateBindings: [],
       projectRoleTemplateBindings:       [],
       projects:                          [],
+      projectMembershipPermissions:      {},
       VIRTUAL_TYPES,
       projectRoleTemplateColumns:        [
         STATE,
@@ -165,7 +188,9 @@ export default {
       return Object.keys(this.filteredProjects).reduce((all, projectId) => {
         const project = this.filteredProjects[projectId];
 
-        if ( !inUse.includes(projectId)) {
+        // management/findAll is RBAC-filtered, so a member-less project here is one the user can
+        // access - list it so its Add button is reachable and the first member can be added.
+        if (!inUse.includes(projectId)) {
           all.push(project);
         }
 
@@ -196,6 +221,13 @@ export default {
         const userOrGroup = userId || groupPrincipalId;
 
         if (!userOrGroup) {
+          // keep the empty-project placeholder (keyed by project) so the project still
+          // renders as a group with its Add button; the main-row slot fills the row.
+          if (!rows[projectId]) {
+            rows[projectId] = curr;
+            rows[projectId].allRoles = [];
+          }
+
           return rows;
         }
 
@@ -215,17 +247,27 @@ export default {
 
       return Object.values(userRoles);
     },
+    // Can MUTATE cluster members: the Add flow needs the role-template + user reads; a user
+    // lacking them gets a read-only view.
     canManageMembers() {
       return canViewClusterPermissionsEditor(this.$store);
     },
+    canViewClusterMembers() {
+      return !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
+    },
+    // Can operate the project member editor (Add/Remove): needs the role-template + principal reads
+    // the add dialog depends on. A user lacking them gets a read-only list.
     canManageProjectMembers() {
       return canViewProjectMembershipEditor(this.$store);
     },
+    // management/findAll is RBAC-filtered, so project visibility == access. The Norman schema can't
+    // gate this: /v3/schemas returns projectRoleTemplateBinding to every authenticated user.
+    canViewProjectMembers() {
+      return Object.keys(this.filteredProjects).length > 0 ||
+        this.filteredProjectRoleTemplateBindings.length > 0;
+    },
     isLocal() {
       return this.$store.getters['currentCluster'].isLocal;
-    },
-    canEditProjectMembers() {
-      return this.normanProjectRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
     canEditClusterMembers() {
       return this.normanClusterRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
@@ -235,6 +277,19 @@ export default {
     },
   },
   methods: {
+    // Global schema collectionMethods only say whether the user can create on *any* project;
+    // read each project's `resourcePermissions` for the per-project answer.
+    async loadProjectMembershipPermissions() {
+      this.projectMembershipPermissions = await fetchProjectMembershipPermissions(this.$store);
+    },
+    canAddProjectMember(group) {
+      return !!this.projectMembershipPermissions[this.getMgmtProjectId(group)]?.create;
+    },
+    canRemoveProjectMember(row) {
+      const projectId = (row.projectId || '').replace(':', '/');
+
+      return !!this.projectMembershipPermissions[projectId]?.remove;
+    },
     getMgmtProjectId(group) {
       return group.group.key.replace(':', '/');
     },
@@ -301,13 +356,15 @@ export default {
       color="error"
       :label="t('members.localClusterWarning')"
     />
-    <Tabbed>
+    <Loading v-if="$fetchState.pending" />
+    <Tabbed v-else>
       <Tab
+        v-if="canViewClusterMembers"
         name="cluster-membership"
         :label="t('members.clusterMembership')"
       >
         <div
-          v-if="canEditClusterMembers"
+          v-if="canManageMembers && canEditClusterMembers"
           class="row mb-10 cluster-add"
         >
           <rc-button
@@ -332,7 +389,7 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="canManageProjectMembers && !isHarvester"
+        v-if="canViewProjectMembers && !isHarvester"
         name="project-membership"
         :label="t('members.projectMembership')"
       >
@@ -357,7 +414,7 @@ export default {
               </div>
               <div class="right">
                 <button
-                  v-if="canEditProjectMembers"
+                  v-if="canManageProjectMembers && canAddProjectMember(group)"
                   type="button"
                   class="btn btn-sm role-secondary mr-10 right"
                   :data-testid="`add-project-member-${getProjectLabel(group).replace(' ', '').toLowerCase()}`"
@@ -386,6 +443,7 @@ export default {
                 {{ role.nameDisplay }}
               </span>
               <i
+                v-if="canManageProjectMembers && canRemoveProjectMember(row)"
                 class="icon icon-close"
                 :data-testid="`role-values-close-${j}`"
                 @click="removeRole(row, role, $event)"

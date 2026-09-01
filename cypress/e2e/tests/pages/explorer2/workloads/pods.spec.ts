@@ -272,6 +272,12 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?*`).as('origPod');
       cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?*`).as('clonedPod');
 
+      // Idempotent across Cypress retries (testIsolation is off): the clone is created by the UI save
+      // in the test and isn't cleaned up between attempts, so a retry's create can collide with the
+      // leftover. Remove any leftover clone before we start (prior attempts failed differently each
+      // time - a symptom of leaked state).
+      cy.deleteRancherResource('v1', 'pods', `${ namespace }/${ clonePodName }`, false);
+
       workloadsPodPage.goTo();
 
       const createPodPo = new PodPo();
@@ -306,6 +312,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
       workloadsPodPage.waitForPage();
       workloadsPodPage.list().checkVisible();
+      // Let the list finish loading before filtering, otherwise the sortable-table container/row can
+      // be missing mid-render (seen as "sortable-table-list-container"/"group-row" not found).
+      workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       workloadsPodPage.list().resourceTable().sortableTable().filter(clonePodName);
       workloadsPodPage.list().resourceTable().sortableTable().rowWithName(clonePodName)
         .checkExists();

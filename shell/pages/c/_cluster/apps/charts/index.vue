@@ -614,7 +614,6 @@ export default {
         :placeholder="t('catalog.charts.search')"
         data-testid="charts-filter-input"
         :aria-label="t('catalog.charts.search')"
-        role="textbox"
       >
       <i
         v-if="!searchQuery"
