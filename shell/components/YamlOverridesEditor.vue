@@ -7,7 +7,7 @@ import { mergeOverrides, mergeOverridesIfMergeable } from '@shell/utils/chart-va
 // Delay before the preview recomputes after the last keystroke. The merge +
 // serialize + diff + full editor replace is O(document), so we defer it until
 // typing pauses to keep the editable pane responsive on large values files.
-const PREVIEW_DEBOUNCE_MS = 200;
+const PREVIEW_DEBOUNCE_MS = 400;
 
 /**
  * Two-pane YAML values editor: a LEFT editable "overrides" pane and a RIGHT
@@ -330,6 +330,7 @@ export default {
         :editor-mode="EDITOR_MODES.VIEW_CODE"
         :hide-preview-buttons="true"
         :highlight-enabled="true"
+        :show-line-numbers-in-read-only="true"
       />
     </div>
   </div>
