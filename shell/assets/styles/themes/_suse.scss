@@ -6,7 +6,8 @@
   $jungle-120: #008657;
   $jungle-140: #006B46;
 
-  $green-30: #D6F5E9;
+  $sage-10: #EFF6F2;
+  $sage-30: #D9E9E0;
 
   $dark-tertiary-hover: #2A4F3C;
 
@@ -25,7 +26,7 @@
     --link: #4871C7;
 
     --non-primary-text: #{$jungle-140};
-    --non-primary-hover: #{$green-20};
+    --non-primary-hover: #{$sage-10};
 
     --secondary: var(--body-bg);
     --secondary-border: var(--primary);
@@ -38,14 +39,14 @@
     --on-tertiary-hover: #{$green-140};
     --on-tertiary-header: var(--non-primary-text);
     --on-tertiary-header-hover: var(--non-primary-text);
-    --tertiary-hover: #{$green-40};
+    --tertiary-hover: #{$sage-30};
     --tertiary-hover-app-bar: var(--non-primary-text);
 
-    --active: #{$green-140};
+    --active: var(--primary-hover);
     --on-active: #{$grey-0};
-    --active-hover: #{lighten($green-140, 5%)};
-    --category-active: #{$green-20};
-    --category-active-hover: #{$green-30};
+    --active-hover: var(--primary-active-bg);
+    --category-active: #{$sage-10};
+    --category-active-hover: #{$sage-30};
 
     --checkbox-tick              : var(--on-active);
     --checkbox-border            : var(--body-border);
