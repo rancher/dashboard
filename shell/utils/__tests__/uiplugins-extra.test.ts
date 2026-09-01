@@ -370,23 +370,23 @@ describe('shell/utils/uiplugins', () => {
       expect(onRetry).toHaveBeenNthCalledWith(2, 2, INSTALL_ACTION_MAX_RETRIES);
     });
 
-    it('throws the transient error once retries are exhausted', async() => {
+    it('waits the full backoff schedule (1s, 2s, 4s, 8s) across all retries', async() => {
       const repo = { doAction: jest.fn().mockRejectedValue(transientError) };
-      const onRetry = jest.fn();
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
 
-      const promise = installHelmChartWithRetry(repo, chart, {}, 'default', 'install', onRetry);
+      const promise = installHelmChartWithRetry(repo, chart, {}, 'default', 'install');
 
-      // Swallow the rejection so advancing timers below doesn't trigger an unhandled rejection;
-      // the actual assertion happens afterwards once all backoff waits have fired.
       promise.catch(() => {});
 
       await jest.advanceTimersByTimeAsync(30000);
 
       await expect(promise).rejects.toBe(transientError);
 
-      // Initial attempt + one retry per configured backoff delay
-      expect(repo.doAction).toHaveBeenCalledTimes(INSTALL_ACTION_MAX_RETRIES + 1);
-      expect(onRetry).toHaveBeenCalledTimes(INSTALL_ACTION_MAX_RETRIES);
+      const delays = setTimeoutSpy.mock.calls.map(([, delay]) => delay);
+
+      expect(delays).toStrictEqual([1000, 2000, 4000, 8000]);
+
+      setTimeoutSpy.mockRestore();
     });
 
     it('passes through install/upgrade action and namespace like installHelmChart', async() => {
