@@ -5,6 +5,7 @@ import Principal from '@shell/components/auth/Principal';
 import Loading from '@shell/components/Loading';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { get, set } from '@shell/utils/object';
+import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
 
 function normalizeId(id) {
   return id?.replace(':', '/') || id;
@@ -14,6 +15,14 @@ export function canViewMembershipEditor(store, needsProject = false) {
   return (!!store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING) || !needsProject) &&
     !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
     !!store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL);
+}
+
+// Can the user VIEW the membership list (read-only)? Unlike `canViewMembershipEditor` (which gates
+// add/remove and needs the role-template + principal reads), viewing needs only the binding schema.
+export function canViewMembershipEditorList(store, needsProject = false) {
+  const bindingType = needsProject ? NORMAN.PROJECT_ROLE_TEMPLATE_BINDING : NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING;
+
+  return !!store.getters['rancher/schemaFor'](bindingType);
 }
 
 export default {
@@ -81,12 +90,24 @@ export default {
     if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId) {
       Object.assign(roleBindingRequestParams, { opt: { filter: { projectId: this.parentId.split('/').join(':') }, force: true } });
     }
+    // Guard each hydration dispatch on its schema so a view-only user doesn't hit "Unknown schema";
+    // only the bindings (index 0) are consumed below, the rest hydrate name/role resolution.
     const userHydration = [
-      this.schema ? this.$store.dispatch(`rancher/findAll`, roleBindingRequestParams) : [],
-      this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
-      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
-      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER })
+      this.schema ? this.$store.dispatch(`rancher/findAll`, roleBindingRequestParams) : []
     ];
+
+    if (this.$store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL)) {
+      userHydration.push(this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }));
+    }
+
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE)) {
+      userHydration.push(this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }));
+    }
+
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
+      userHydration.push(this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }));
+    }
+
     const [allBindings] = await Promise.all(userHydration);
 
     const bindings = allBindings
@@ -103,6 +124,16 @@ export default {
     }
 
     this['bindings'] = bindings;
+
+    // Schema methods are global, so read the per-project answer from the project's
+    // `resourcePermissions` to only offer "Add" where the user can create a binding in THIS project.
+    if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId && this.mode !== _CREATE) {
+      const permissions = await fetchProjectMembershipPermissions(this.$store, this.parentId);
+      const permission = permissions[normalizeId(this.parentId)];
+
+      this['canAddMember'] = !!permission?.create;
+      this['canRemoveMember'] = !!permission?.remove;
+    }
   },
 
   data() {
@@ -110,6 +141,8 @@ export default {
       schema:            this.$store.getters[`rancher/schemaFor`](this.type),
       bindings:          [],
       lastSavedBindings: [],
+      canAddMember:      true,
+      canRemoveMember:   true,
     };
   },
 
@@ -150,6 +183,12 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+
+    // Can add/remove members here? The add flow needs the role-template + principal reads,
+    // so when those are absent the editor is shown read-only.
+    canManageMembers() {
+      return canViewMembershipEditor(this.$store, this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
+    },
   },
   watch: {
     membershipUpdate: {
@@ -182,6 +221,7 @@ export default {
     v-model:value="bindings"
     :mode="mode"
     :show-header="true"
+    :add-allowed="canAddMember && canManageMembers"
   >
     <template #column-headers>
       <div class="box mb-0">
@@ -222,7 +262,9 @@ export default {
       </button>
     </template>
     <template #remove-button="{remove, i}">
-      <span v-if="(isCreate && i === 0) || isView" />
+      <!-- Hide Remove on an EXISTING binding (a saved row has an id) when the user lacks
+           delete permission; newly-added, unsaved rows stay removable. -->
+      <span v-if="(isCreate && i === 0) || isView || !canManageMembers || (!canRemoveMember && !!bindings[i]?.id)" />
       <button
         v-else
         type="button"
