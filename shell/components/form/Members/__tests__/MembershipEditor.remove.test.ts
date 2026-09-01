@@ -36,7 +36,14 @@ describe('component: MembershipEditor removal', () => {
       },
       global: {
         mocks: {
-          $store:      { getters: { 'rancher/schemaFor': () => ({ type: 'object' }) } },
+          $store: {
+            getters: {
+              'rancher/schemaFor':    () => ({ type: 'object' }),
+              // canManageMembers (which gates the remove action) also reads the management
+              // role-template/PRTB schemas - provide them so the remove buttons render.
+              'management/schemaFor': () => ({ type: 'object' }),
+            }
+          },
           $fetchState: { pending: false },
         },
         stubs: { Principal: CachedPrincipal },

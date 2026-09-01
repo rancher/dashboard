@@ -198,8 +198,8 @@ nav:
     tooltip: Start typing to quickly find and jump to a particular section ({shortcut})
     ariaLabel: Jump to a navigation section
     noResults: No matching sections
-    popularHeading: Popular resource types
-    recentHeading: Last used in this cluster
+    popularHeading: Popular entries
+    recentHeading: Recently used
   ariaLabel:
     clusterIconKeyCombo: Cluster keyboard shortcut combination icon
     localClusterIcon: Local Cluster icon
@@ -4582,15 +4582,24 @@ login:
   clientError: Invalid username or password. Please try again.
   userUnauthorized: You are not authorized to use this system.
   specificError: 'An error occurred logging in: {msg}'
-  useLocal: Use a local user
   loginWithProvider: Log in with {provider}
   username: Username
   password: Password
   loggingIn: Logging in...
   loggedIn: Logged in
   loginWithLocal: Log in with Local User
-  useProvider: Use a {provider} user
-  useNonLocal: Use a non-local user
+  providers:
+    heading: Choose how to sign in
+    or: Or
+    chooseDifferent: Choose a different provider
+    useLocal: Log in as a local user
+    meta: "{vendor} · {protocol}"
+    remember: Remember my choice on this device
+    rememberHint: Applies to whichever provider you choose. Saved in this browser only.
+    local:
+      name: Local account
+      description: Sign into Rancher with a username and password.
+      meta: Username and password
   remember:
     label: Remember Username
   cli:
@@ -8194,6 +8203,7 @@ model:
       genericsaml: Generic SAML
       keycloakoidc: Keycloak
       cognito: Amazon Cognito
+      oidc: OIDC
 
 
   cluster:
