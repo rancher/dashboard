@@ -682,6 +682,64 @@ describe('page: Install', () => {
     });
   });
 
+  describe('setImagePullSecretData (SUSE App Collection pull secret)', () => {
+    const versionInfoValues = {
+      image:   { repository: 'my/repo', tag: '1.0.0' },
+      service: { port: 80, type: 'ClusterIP' },
+      global:  { imagePullSecrets: [], imageRegistry: '' },
+    };
+
+    const mountAppCo = (data: Record<string, any> = {}) => mountInstall({
+      data: () => ({
+        repo:                    { isSuseAppCollection: true, spec: {} },
+        currentCluster:          null,
+        serverUrlSetting:        { value: '' },
+        versionInfo:             { values: versionInfoValues },
+        // chartValues starts as the full defaults, as it does after the initial seed
+        chartValues:             JSON.parse(JSON.stringify(versionInfoValues)),
+        valuesYaml:              '',
+        selectedSecret:          { name: 'app-co-secret' },
+        dontUseDefaultOption:    true,
+        selectedImagePullSecret: 'my-pull-secret',
+        ...data,
+      }),
+      stubs: { YamlOverridesEditor: { template: '<div/>', methods: { updateOverrides() {} } } },
+    });
+
+    it('seeds the overrides pane with only the pull-secret override, not the whole values document', async() => {
+      const wrapper = mountAppCo();
+
+      await wrapper.vm.setImagePullSecretData();
+
+      // the chosen secret is applied to the working values ...
+      expect(wrapper.vm.chartValues.global.imagePullSecrets).toStrictEqual(['my-pull-secret']);
+
+      // ... and the editable pane holds overrides only - the diff from the defaults
+      expect(jsyaml.load(wrapper.vm.valuesYaml)).toStrictEqual({ global: { imagePullSecrets: ['my-pull-secret'] } });
+
+      // regression guard: the chart defaults must not be dumped into the overrides pane
+      expect(wrapper.vm.valuesYaml).not.toContain('repository');
+      expect(wrapper.vm.valuesYaml).not.toContain('targetPort');
+    });
+
+    it('pushes the seeded overrides into the editor, which does not react to its value prop after mount', async() => {
+      const wrapper = mountAppCo();
+      const updateValue = jest.spyOn(wrapper.vm as any, 'updateValue');
+
+      await wrapper.vm.setImagePullSecretData();
+
+      expect(updateValue).toHaveBeenCalledWith(wrapper.vm.valuesYaml);
+    });
+
+    it('leaves the overrides pane untouched when the pull-secret selection is not yet resolved', async() => {
+      const wrapper = mountAppCo({ dontUseDefaultOption: null, valuesYaml: 'kept: true\n' });
+
+      await wrapper.vm.setImagePullSecretData();
+
+      expect(wrapper.vm.valuesYaml).toBe('kept: true\n');
+    });
+  });
+
   describe('chart info drawer accessibility', () => {
     it('is inert while closed so keyboard navigation skips its off-screen content', async() => {
       const wrapper = mountInstall({ data: () => ({ showSlideIn: false }) });

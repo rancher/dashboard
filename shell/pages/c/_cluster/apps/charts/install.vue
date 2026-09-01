@@ -39,7 +39,6 @@ import {
 } from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
-import { saferDump } from '@shell/utils/create-yaml';
 import { mergeOverrides, mergeOverridesRawText, overridesFromValues, sameYamlOverrides } from '@shell/utils/chart-values';
 import { addParam } from '@shell/utils/url';
 import { WINDOWS } from '@shell/store/catalog';
@@ -1143,7 +1142,11 @@ export default {
           }
         }
 
-        this.valuesYaml = saferDump(this.chartValues);
+        // Reflect the pull-secret change in the editable pane, which holds
+        // overrides only (the diff from the chart defaults). Push the value in
+        // explicitly - the editor doesn't react to its value prop after mount.
+        this.valuesYaml = overridesFromValues(this.versionInfo?.values || {}, this.chartValues);
+        this.updateValue(this.valuesYaml);
       }
     },
 
