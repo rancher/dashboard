@@ -85,6 +85,16 @@ export default {
     allowEmptyDiffBase: {
       type:    Boolean,
       default: false,
+    },
+
+    /**
+     * Show line numbers on a read-only editor (they're off by default there),
+     * plus the (empty) lint-marker gutter, so a read-only editor keeps the same
+     * gutters an editable one has. Linting itself stays off.
+     */
+    showLineNumbersInReadOnly: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -115,10 +125,13 @@ export default {
   computed: {
     codeMirrorOptions() {
       const readOnly = this.editorMode === EDITOR_MODES.VIEW_CODE;
+      // Line numbers and the lint-marker gutter normally show only when editable,
+      // but `showLineNumbersInReadOnly` opts a read-only editor into them too.
+      const showEditableGutters = !readOnly || this.showLineNumbersInReadOnly;
 
       const gutters = [];
 
-      if ( !readOnly ) {
+      if ( showEditableGutters ) {
         gutters.push('CodeMirror-lint-markers');
       }
 
@@ -129,7 +142,7 @@ export default {
         gutters,
         mode:            'yaml',
         lint:            !readOnly,
-        lineNumbers:     !readOnly,
+        lineNumbers:     showEditableGutters,
         styleActiveLine: false,
         tabSize:         2,
         indentWithTabs:  false,
