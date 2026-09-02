@@ -17,6 +17,14 @@ export default {
       type:     Boolean,
       required: true,
     },
+    /**
+     * Identity of the type being shown. Named types use their definition id,
+     * inline ones are identified by where they sit in the parent.
+     */
+    definitionId: {
+      type:    String,
+      default: '',
+    },
   },
 
   data() {
@@ -37,6 +45,15 @@ export default {
   },
 
   watch: {
+    // Expansion is keyed by field name, so it has to be dropped when a
+    // different type is shown - a Pod left with 'spec' open would otherwise
+    // leave Deployment's 'spec' open too. Keyed on the id rather than the
+    // definition itself because navigating rebuilds every definition object,
+    // so watching those would also collapse sections the user never closed.
+    definitionId() {
+      this.expanded = {};
+    },
+
     expandAll(neu, old) {
       if (neu !== old) {
         this.fields.forEach((field) => {
@@ -70,6 +87,13 @@ export default {
      */
     expand(field) {
       this.expanded[field] = !this.expanded[field];
+    },
+    /**
+     * Identity of a field's type, for the panel that renders it. Inline types
+     * have no name of their own, so they take one from their position.
+     */
+    fieldTypeId(field) {
+      return field.$refName || `${ this.definitionId }.${ field.name }`;
     },
     /**
      * Navigate to a field type - this loads it in place of the current definition,
@@ -119,7 +143,7 @@ export default {
           </a>
         </div>
         <div
-          v-if="field.type && field.type !== 'array'"
+          v-if="field.type && field.type !== 'array' && !field.$$ref"
           class="field-type"
         >
           <div>
@@ -137,7 +161,7 @@ export default {
             []
           </span>
           <div
-            v-if="field.$refName"
+            v-if="field.$$ref"
             class="field-type field-expander"
             tabindex="0"
             role="button"
@@ -145,7 +169,7 @@ export default {
             @click="expand(field.name)"
             @keyup.enter.space="expand(field.name)"
           >
-            {{ field.$refNameShort }}
+            {{ field.$refNameShort || t('kubectl-explain.object') }}
             <i
               v-if="!expanded[field.name]"
               class="icon icon-chevron-down"
@@ -171,7 +195,7 @@ export default {
           v-model:value="field.description"
         />
         <div
-          v-if="expanded[field.name]"
+          v-if="expanded[field.name] && field.$refName"
           class="sub-name"
         >
           <a
@@ -199,6 +223,7 @@ export default {
           v-if="expanded[field.name]"
           :expand-all="expandAll"
           :definition="field.$$ref"
+          :definition-id="fieldTypeId(field)"
           class="embedded"
           @navigate="navigate"
         />
