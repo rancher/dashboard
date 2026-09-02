@@ -1,13 +1,16 @@
 import { mount } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import Dns01Provider from '../Dns01Provider.vue';
 import { DNS01_PROVIDER_FIELDS } from '../dns01-providers';
+
+const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
 
 function render(dns01: Record<string, any>) {
   const wrapper = mount(Dns01Provider, {
     props:  { value: dns01, mode: 'edit' },
     global: {
-      mocks: { t: (key: string) => key },
-      stubs: {
+      provide: { store },
+      stubs:   {
         LabeledSelect: {
           props:    ['value'],
           emits:    ['update:value'],

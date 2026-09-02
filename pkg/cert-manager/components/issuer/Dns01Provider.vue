@@ -1,76 +1,63 @@
-<script>
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Banner from '@components/Banner/Banner.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { _EDIT } from '@shell/config/query-params';
+import { useI18n } from '@shell/composables/useI18n';
 import { DNS01_PROVIDERS } from '../../form-options';
 import { DNS01_PROVIDER_FIELDS, hasFieldDescriptors } from './dns01-providers';
 
-export default {
-  name:       'Dns01Provider',
-  components: {
-    Banner, LabeledInput, LabeledSelect
+interface Props {
+  /** The live `solver.dns01` object. Bound into directly so unrendered keys survive editing. */
+  value: Record<string, any>;
+  mode?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), { mode: _EDIT });
+
+const store = useStore();
+const { t } = useI18n(store);
+
+const providerOptions = computed(() => DNS01_PROVIDERS.map((value) => ({ label: t(`certManager.dns01.provider.${ value }`), value })));
+
+/**
+ * The provider is whichever key is present on `dns01`. Reading it rather than storing it
+ * separately means config written by hand or by an older cert-manager still shows up.
+ */
+const provider = computed<string | undefined>({
+  get() {
+    return Object.keys(props.value)[0];
   },
+  set(neu) {
+    Object.keys(props.value).forEach((key) => delete props.value[key]);
 
-  props: {
-    /** The live `solver.dns01` object. Bound into directly so unrendered keys survive editing. */
-    value: {
-      type:     Object,
-      required: true,
-    },
-    mode: {
-      type:    String,
-      default: _EDIT,
-    },
+    if (neu) {
+      props.value[neu] = {};
+    }
   },
+});
 
-  computed: {
-    providerOptions() {
-      return DNS01_PROVIDERS.map((value) => ({ label: this.t(`certManager.dns01.provider.${ value }`), value }));
-    },
+const fields = computed(() => (provider.value ? DNS01_PROVIDER_FIELDS[provider.value] : undefined) || []);
 
-    /**
-     * The provider is whichever key is present on `dns01`. Reading it rather than storing it
-     * separately means config written by hand or by an older cert-manager still shows up.
-     */
-    provider: {
-      get() {
-        return Object.keys(this.value)[0];
-      },
-      set(neu) {
-        Object.keys(this.value).forEach((key) => delete this.value[key]);
+const isKnownProvider = computed(() => hasFieldDescriptors(provider.value));
 
-        if (neu) {
-          this.value[neu] = {};
-        }
-      },
-    },
+const unknownProviderYaml = computed(() => JSON.stringify((provider.value ? props.value[provider.value] : undefined) || {}, null, 2));
 
-    fields() {
-      return DNS01_PROVIDER_FIELDS[this.provider] || [];
-    },
+function fieldValue(path: string) {
+  return get((provider.value ? props.value[provider.value] : undefined) || {}, path);
+}
 
-    isKnownProvider() {
-      return hasFieldDescriptors(this.provider);
-    },
+function updateField(path: string, fieldValue: any) {
+  // Write into the live provider object so keys this form does not render are preserved.
+  set(props.value[provider.value as string], path, fieldValue === '' ? undefined : fieldValue);
+}
 
-    unknownProviderYaml() {
-      return JSON.stringify(this.value[this.provider] || {}, null, 2);
-    },
-  },
-
-  methods: {
-    fieldValue(path) {
-      return get(this.value[this.provider] || {}, path);
-    },
-
-    updateField(path, fieldValue) {
-      // Write into the live provider object so keys this form does not render are preserved.
-      set(this.value[this.provider], path, fieldValue === '' ? undefined : fieldValue);
-    },
-  },
-};
+defineExpose({
+  provider, fields, isKnownProvider, unknownProviderYaml, fieldValue, updateField
+});
 </script>
 
 <template>

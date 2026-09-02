@@ -1,15 +1,18 @@
 import { mount } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import AcmeConfig from '../AcmeConfig.vue';
 import { ACME_SERVERS } from '../../../form-options';
 
 const STUB = { template: '<div />' };
 
+const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
+
 function render(acme: Record<string, any>) {
   const wrapper = mount(AcmeConfig, {
     props:  { value: acme, mode: 'edit' },
     global: {
-      mocks: { t: (key: string) => key },
-      stubs: {
+      provide: { store },
+      stubs:   {
         RadioGroup:       STUB,
         LabeledInput:     STUB,
         Checkbox:         STUB,

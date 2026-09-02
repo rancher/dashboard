@@ -51,15 +51,17 @@ export interface AcmeSolver {
   dns01?: Record<string, any>;
 }
 
+export interface AcmeIssuerConfig {
+  server?: string;
+  email?: string;
+  preferredChain?: string;
+  skipTLSVerify?: boolean;
+  privateKeySecretRef?: { name?: string; key?: string };
+  solvers?: AcmeSolver[];
+}
+
 export interface IssuerSpec {
-  acme?: {
-    server?: string;
-    email?: string;
-    preferredChain?: string;
-    skipTLSVerify?: boolean;
-    privateKeySecretRef?: { name?: string; key?: string };
-    solvers?: AcmeSolver[];
-  };
+  acme?: AcmeIssuerConfig;
   ca?: { secretName?: string };
   selfSigned?: Record<string, any>;
   vault?: { server?: string; path?: string; [key: string]: any };

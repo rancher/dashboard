@@ -1,14 +1,17 @@
 import { mount } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import AcmeSolver from '../AcmeSolver.vue';
 
 const STUB = { template: '<div />' };
+
+const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
 
 function render(solver: Record<string, any>) {
   return mount(AcmeSolver, {
     props:  { value: solver, mode: 'edit' },
     global: {
-      mocks: { t: (key: string) => key },
-      stubs: {
+      provide: { store },
+      stubs:   {
         RadioGroup:    STUB,
         LabeledInput:  STUB,
         ArrayList:     STUB,
