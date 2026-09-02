@@ -132,7 +132,9 @@ export default {
           // Roles failed AND the partially-created user could not be removed, so a role-less
           // account is left behind. Surface why the assignment failed as well as the orphan
           // notice, so the admin can fix the permissions before reviewing or deleting it.
-          this.errors = [...roleError, this.t('user.edit.roleUpdateFailed.orphaned', { username: this.form.username })];
+          // raw (no HTML-escape) so the username's quotes/apostrophes render correctly: the error
+          // Banner escapes the label itself (nlToBr), and escaping here too would double-encode them.
+          this.errors = [...roleError, this.t('user.edit.roleUpdateFailed.orphaned', { username: this.form.username }, true)];
         } else {
           this.errors = roleError;
         }
