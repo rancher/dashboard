@@ -1,42 +1,29 @@
-import { enqueue, recordClusterNavigation, pinCluster, unpinCluster } from '@shell/utils/cluster-pref-writer';
-import { CLUSTER, PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { prependRecent, recordClusterNavigation } from '@shell/utils/cluster-pref-writer';
+import { CLUSTER, RECENT_CLUSTERS } from '@shell/store/prefs';
 
 // The prefs under test are heterogeneous: RECENT/PINNED are string[], CLUSTER is a string.
 type PrefValue = string | string[];
 
 describe('fx: cluster-pref-writer', () => {
-  describe('enqueue', () => {
-    it('runs tasks strictly sequentially (never in parallel)', async() => {
-      const order: string[] = [];
-      const task = (name: string, delay: number) => () => new Promise<void>((resolve) => {
-        order.push(`${ name }:start`);
-        setTimeout(() => {
-          order.push(`${ name }:end`);
-          resolve();
-        }, delay);
-      });
-
-      // Enqueue B with a longer delay first, then A — B must fully finish before A starts.
-      const p1 = enqueue(task('B', 20));
-      const p2 = enqueue(task('A', 1));
-
-      await Promise.all([p1, p2]);
-
-      expect(order).toStrictEqual(['B:start', 'B:end', 'A:start', 'A:end']);
+  describe('prependRecent', () => {
+    it('prepends most-recent-first and de-dupes', () => {
+      expect(prependRecent('c-a').apply(['c-b', 'c-a'])).toStrictEqual(['c-a', 'c-b']);
     });
 
-    it('keeps running later tasks even if an earlier one rejects', async() => {
-      const ran: string[] = [];
+    it('strips empty and placeholder (local / blank) entries', () => {
+      expect(prependRecent('c-a').apply(['local', '_', '', 'c-z'])).toStrictEqual(['c-a', 'c-z']);
+    });
 
-      const p1 = enqueue(() => Promise.reject(new Error('boom'))).catch(() => {});
-      const p2 = enqueue(() => {
-        ran.push('after');
+    it('does not mutate the input list', () => {
+      const input = ['c-b', 'c-a'];
 
-        return Promise.resolve();
-      });
+      prependRecent('c-a').apply(input);
 
-      await Promise.all([p1, p2]);
-      expect(ran).toStrictEqual(['after']);
+      expect(input).toStrictEqual(['c-b', 'c-a']);
+    });
+
+    it('tolerates a non-array value', () => {
+      expect(prependRecent('c-a').apply(undefined as any)).toStrictEqual(['c-a']);
     });
   });
 
@@ -145,59 +132,32 @@ describe('fx: cluster-pref-writer', () => {
       expect(recent.apply(['c-x', 'c-y'])).toStrictEqual(['c-a', 'c-x', 'c-y']);
       expect(recent.apply(['local', 'c-a', 'c-z'])).toStrictEqual(['c-a', 'c-z']);
     });
-  });
 
-  describe('pin / unpin', () => {
-    it('pin adds to PINNED only, leaving RECENT untouched', async() => {
-      const s = makeStore({ [PINNED_CLUSTERS]: [], [RECENT_CLUSTERS]: ['c-a'] });
+    it('a failed write does not wedge later navigations — the serialized queue keeps draining, in order', async() => {
+      let reconciles = 0;
+      const seen: string[] = [];
+      const dispatch = (action: string, payload: any) => {
+        if (action === 'prefs/applyPrefsOptimistic') {
+          return Promise.resolve({});
+        }
 
-      await pinCluster(s.dispatch, 'c-a');
+        if (action === 'prefs/reconcilePrefs') {
+          reconciles++;
+          seen.push(payload.mutations[0].apply('') as string); // the CLUSTER value for this navigation
 
-      expect(s.calls[0].action).toBe('prefs/applyPrefsOptimistic');
-      expect(s.writes).toStrictEqual([{ key: PINNED_CLUSTERS, value: ['c-a'] }]);
-      expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['c-a']); // still recent
-    });
+          // The first server round-trip rejects; the queue must still run the second.
+          return reconciles === 1 ? Promise.reject(new Error('boom')) : Promise.resolve();
+        }
 
-    it('pin is idempotent for an already-pinned cluster (no write)', async() => {
-      const s = makeStore({ [PINNED_CLUSTERS]: ['c-a'] });
+        return Promise.resolve();
+      };
 
-      await pinCluster(s.dispatch, 'c-a');
+      await Promise.all([
+        recordClusterNavigation(dispatch, 'c-a').catch(() => {}),
+        recordClusterNavigation(dispatch, 'c-b'),
+      ]);
 
-      expect(s.writes).toHaveLength(0);
-    });
-
-    it('unpin removes from PINNED and promotes to the front of RECENT in ONE write', async() => {
-      const s = makeStore({ [PINNED_CLUSTERS]: ['c-a', 'c-b'], [RECENT_CLUSTERS]: ['c-c'] });
-
-      await unpinCluster(s.dispatch, 'c-a');
-
-      // Both keys travel together through the one optimistic + one reconcile pair.
-      expect(s.calls.map((c) => c.action)).toStrictEqual(['prefs/applyPrefsOptimistic', 'prefs/reconcilePrefs']);
-      expect(s.calls[0].payload.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS, RECENT_CLUSTERS]);
-      expect(s.data[PINNED_CLUSTERS]).toStrictEqual(['c-b']);
-      expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['c-a', 'c-c']);
-    });
-
-    it('unpin does not touch RECENT for local (only the PINNED mutation is sent)', async() => {
-      const s = makeStore({ [PINNED_CLUSTERS]: ['local', 'c-b'] });
-
-      await unpinCluster(s.dispatch, 'local');
-
-      expect(s.calls[0].payload.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS]);
-      expect(s.data[PINNED_CLUSTERS]).toStrictEqual(['c-b']);
-    });
-
-    it('unpin of a not-pinned cluster leaves PINNED unchanged but still promotes it to RECENT', async() => {
-      const s = makeStore({ [PINNED_CLUSTERS]: ['c-b'], [RECENT_CLUSTERS]: ['c-c'] });
-
-      await unpinCluster(s.dispatch, 'c-a');
-
-      // Both mutations are sent, but the PINNED transform is a no-op (c-a wasn't pinned) so only RECENT
-      // is actually written.
-      expect(s.calls[0].payload.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS, RECENT_CLUSTERS]);
-      expect(s.writes.map((w) => w.key)).toStrictEqual([RECENT_CLUSTERS]);
-      expect(s.data[PINNED_CLUSTERS]).toStrictEqual(['c-b']);
-      expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['c-a', 'c-c']);
+      expect(seen).toStrictEqual(['c-a', 'c-b']); // both ran, in order, despite the first failing
     });
   });
 });

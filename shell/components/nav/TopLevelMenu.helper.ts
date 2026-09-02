@@ -1,6 +1,5 @@
 import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import { MENU_MAX_CLUSTERS, MENU_MAX_RECENT_CLUSTERS, PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
-import { visibleRecentClusters } from '@shell/utils/recent-clusters';
 import { STORE } from '@shell/store/store-types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
@@ -10,6 +9,22 @@ import PaginationWrapper from '@shell/utils/pagination-wrapper';
 import { sortBy } from '@shell/utils/sort';
 import { reactive } from 'vue';
 import { LocationAsRelativeRaw } from 'vue-router';
+
+/**
+ * The recent clusters to actually SHOW: drop any that are currently pinned (they appear under PINNED),
+ * preserve visit order, and cap at the display limit.
+ */
+export function visibleRecentClusters(
+  recents: string[] = [],
+  pinnedIds: string[] = [],
+  max: number = MENU_MAX_RECENT_CLUSTERS
+): string[] {
+  const pinned = Array.isArray(pinnedIds) ? pinnedIds : [];
+
+  return (Array.isArray(recents) ? recents : [])
+    .filter((id) => !pinned.includes(id))
+    .slice(0, max);
+}
 
 export interface TopLevelMenuCluster {
   id: string,
@@ -96,10 +111,17 @@ const DEFAULT_SORT: Array<PaginationSort> = [
 ];
 
 export interface TopLevelMenuHelper {
-  /** Pinned clusters (uncapped); excludes local. */
+  /**
+   * Pinned clusters (uncapped); excludes local.
+   * Sorted by the pinned pref's recorded order (the order clusters were pinned), not by ready/name.
+   */
   clustersPinned: Array<TopLevelMenuCluster>;
 
-  /** The ALL list: whole estate, or search matches while searching. */
+  /**
+   * The ALL list: the whole estate (local excluded upstream), or — while searching — narrowed to
+   * clusters whose name matches the search term.
+   * Sorted by ready first (ready clusters above not-ready), then by name.
+   */
   clustersOthers: Array<TopLevelMenuCluster>;
 
   /** Recently-visited clusters, most-recent-first, capped and pinned-excluded; empty while searching. */

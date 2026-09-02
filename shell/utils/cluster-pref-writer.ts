@@ -1,7 +1,5 @@
-import { CLUSTER, PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { CLUSTER, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
-import { addRecentCluster } from '@shell/utils/recent-clusters';
-import { addObject, removeObject } from '@shell/utils/array';
 
 /**
  * Centralized, serialized writer for the app-bar cluster preferences (pinned + recent).
@@ -18,17 +16,27 @@ type PrefValue = string | string[];
 // `apply` is a pure transform over the pref's current value; each one narrows to the shape it expects.
 type Mutation = { key: string, apply: (value: PrefValue) => PrefValue };
 
-// RECENT mutation shared by a visit and an unpin: prepend `id`, then strip non-cluster placeholders
-// (`local` / `_`) an older build may have persisted.
-const prependRecent = (id: string): Mutation => ({
+/** A real, recordable cluster: `local` and `_` (BLANK_CLUSTER) are the current cluster but never listed under RECENT. */
+export function isRecordableCluster(id: string): boolean {
+  return !!id && id !== 'local' && id !== BLANK_CLUSTER;
+}
+
+// RECENT mutation shared by a visit and an unpin: prepend `id` most-recent-first (de-duped), then strip
+// empty / non-cluster placeholders (`local`, `_`) an older build may have persisted. The stored log is
+// UNCAPPED — a plain visit-order list; only DISPLAY is capped, elsewhere (`visibleRecentClusters`).
+export const prependRecent = (id: string): Mutation => ({
   key:   RECENT_CLUSTERS,
-  apply: (recents) => addRecentCluster(Array.isArray(recents) ? recents : [], id).filter((c) => c && c !== 'local' && c !== BLANK_CLUSTER),
+  apply: (recents) => {
+    const current = Array.isArray(recents) ? recents : [];
+
+    return [id, ...current.filter((r) => r !== id)].filter((c) => c && c !== 'local' && c !== BLANK_CLUSTER);
+  },
 });
 
 let chain: Promise<any> = Promise.resolve();
 
 /** Run `task` after every previously-queued write resolves (regardless of their success/failure). */
-export function enqueue(task: () => Promise<any>): Promise<any> {
+function enqueue(task: () => Promise<any>): Promise<any> {
   const run = chain.then(task, task);
 
   // Keep the chain alive even if a task rejects, so one failed write can't wedge all future writes.
@@ -42,7 +50,7 @@ export function enqueue(task: () => Promise<any>): Promise<any> {
  * animation start the instant the user clicks, then serialize only the server round-trip so the UI
  * never waits behind it.
  */
-function commitAndReconcile(dispatch: Dispatch, mutations: Mutation[]): Promise<any> {
+export function commitAndReconcile(dispatch: Dispatch, mutations: Mutation[]): Promise<any> {
   const optimistic = dispatch('prefs/applyPrefsOptimistic', mutations);
 
   return enqueue(() => optimistic.then((o: any) => dispatch('prefs/reconcilePrefs', { mutations, optimistic: o })));
@@ -57,45 +65,7 @@ function commitAndReconcile(dispatch: Dispatch, mutations: Mutation[]): Promise<
 export function recordClusterNavigation(dispatch: Dispatch, id: string): Promise<any> {
   const mutations: Mutation[] = [{ key: CLUSTER, apply: () => id }];
 
-  if (id && id !== 'local' && id !== BLANK_CLUSTER) {
-    mutations.push(prependRecent(id));
-  }
-
-  return commitAndReconcile(dispatch, mutations);
-}
-
-/** Pin `id` (touches PINNED_CLUSTERS only — a pinned cluster is just hidden from RECENT). */
-export function pinCluster(dispatch: Dispatch, id: string): Promise<any> {
-  return commitAndReconcile(dispatch, [{
-    key:   PINNED_CLUSTERS,
-    apply: (pinned) => {
-      const next = [...(Array.isArray(pinned) ? pinned : [])];
-
-      addObject(next, id);
-
-      return next;
-    },
-  }]);
-}
-
-/**
- * Unpin `id`: remove it from PINNED_CLUSTERS and move it to the TOP of RECENT so the just-unpinned
- * cluster stays visible where the user was looking rather than vanishing or reappearing at its old spot.
- */
-export function unpinCluster(dispatch: Dispatch, id: string): Promise<any> {
-  const mutations: Mutation[] = [{
-    key:   PINNED_CLUSTERS,
-    apply: (pinned) => {
-      const next = [...(Array.isArray(pinned) ? pinned : [])];
-
-      removeObject(next, id);
-
-      return next;
-    },
-  }];
-
-  // Surface it at the front of RECENT too, unless it's the non-recordable local/blank placeholder.
-  if (id && id !== 'local' && id !== BLANK_CLUSTER) {
+  if (isRecordableCluster(id)) {
     mutations.push(prependRecent(id));
   }
 

@@ -1,4 +1,4 @@
-import TopLevelMenuHelperService, { TopLevelMenuHelperLegacy, TopLevelMenuHelperPagination } from '../TopLevelMenu.helper';
+import TopLevelMenuHelperService, { TopLevelMenuHelperLegacy, TopLevelMenuHelperPagination, visibleRecentClusters } from '../TopLevelMenu.helper';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
 
@@ -424,6 +424,25 @@ describe('topLevelMenu.helper', () => {
 
       expect(destroySpy).toHaveBeenCalledWith();
       expect(() => TopLevelMenuHelperService.helper).toThrow('Unable to use the side nav cluster helper (not initialised)');
+    });
+  });
+
+  describe('visibleRecentClusters', () => {
+    it('drops pinned clusters and caps at the display limit', () => {
+      // pinned 'c-b' filtered out, then latest 3 shown, order preserved
+      expect(visibleRecentClusters(['c-a', 'c-b', 'c-c', 'c-d', 'c-e'], ['c-b'], 3)).toStrictEqual(['c-a', 'c-c', 'c-d']);
+    });
+
+    it('keeps a cluster that is recent but not pinned', () => {
+      expect(visibleRecentClusters(['c-a', 'c-b'], [], 3)).toStrictEqual(['c-a', 'c-b']);
+    });
+
+    it('can hide everything when all recents are pinned', () => {
+      expect(visibleRecentClusters(['c-a', 'c-b'], ['c-a', 'c-b'], 3)).toStrictEqual([]);
+    });
+
+    it('tolerates non-array inputs', () => {
+      expect(visibleRecentClusters(undefined as any, undefined as any, 3)).toStrictEqual([]);
     });
   });
 });
