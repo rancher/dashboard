@@ -191,6 +191,27 @@ describe('i18n store', () => {
         expect(translate('template.message', { count: 3 })).toStrictEqual('Found 3 items');
       });
 
+      describe('given a message that mixes ICU arguments with raw HTML', () => {
+        // The catalogs carry HTML that consumers render with `v-html`. IntlMessageFormat parses
+        // `<tag>` as ICU markup unless `ignoreTag` is set, which either rejects the message or
+        // demands a render function per tag name. Every one of these throws without the opt-out.
+        // `intlCache` is module scoped and keyed by locale/key, so each case needs its own key
+        it.each([
+          ['a paired tag around an argument', 'htmlPairedTag', '<span>Cluster:</span> {name}', { name: 'prod' }, '<span>Cluster:</span> prod'],
+          ['a tag with attributes', 'htmlTagWithAttrs', 'Did you mean <a href="{url}">{resource}</a>?', { url: '/pods', resource: 'Pod' }, 'Did you mean <a href="/pods">Pod</a>?'],
+          ['an unclosed tag', 'htmlUnclosedTag', 'Secrets in <code>{ns}</code>.<br/>Keep them safe.', { ns: 'kube-system' }, 'Secrets in <code>kube-system</code>.<br/>Keep them safe.'],
+          ['a tag nested in a plural', 'htmlTagInPlural', '{count, plural, one {<b># other</b>} other {<b># others</b>}}', { count: 2 }, '<b>2 others</b>'],
+        ])('leaves the markup untouched for %s', (_name, key, msg, args, expected) => {
+          const s = makeState({ selected: 'en-us' });
+
+          (s.translations as any)['en-us'][key] = msg;
+
+          const translate = getters.t(s);
+
+          expect(translate(key, args)).toStrictEqual(expected);
+        });
+      });
+
       it('formats an ICU argument that needs locale data when no locale has been selected yet', () => {
         // `selected` is null until the setSelected mutation runs. IntlMessageFormat only
         // substitutes its own default for `undefined`, so a null locale reaches Intl.* and

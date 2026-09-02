@@ -15,7 +15,8 @@ const store = createStore({
     'i18n/t': state =>(key, args) => {
       const text = get(i18nStrings, key) || key;
       if (text?.includes('{')) {
-        const formatter = new IntlMessageFormat(text, state.selected);
+        // `ignoreTag` keeps HTML in the translations as literal text, matching `shell/store/i18n.ts`
+        const formatter = new IntlMessageFormat(text, state.selected, undefined, { ignoreTag: true });
         return formatter.format(args);
       }
 

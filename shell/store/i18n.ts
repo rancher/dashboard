@@ -173,7 +173,12 @@ export const getters = {
       const substituted = hasGlobal ? substituteGlobals(msg, rootState?.$extension) : msg;
 
       if ( substituted?.includes('{')) {
-        formatter = new IntlMessageFormat(substituted, locale);
+        // `ignoreTag` keeps `<b>`, `<span>`, `<a href="...">` etc in the translations as literal
+        // text. The parser shipped with intl-messageformat 7 had no concept of XML/ICU tags, so
+        // the catalogs are full of raw HTML that consumers render with `v-html`. Without this the
+        // parser either rejects the message (`INVALID_TAG` on attributes, `UNCLOSED_TAG` on `<br>`)
+        // or demands a render function per tag name (`MISSING_VALUE`).
+        formatter = new IntlMessageFormat(substituted, locale, undefined, { ignoreTag: true });
       } else {
         formatter = substituted;
       }
