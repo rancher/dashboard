@@ -199,9 +199,9 @@ describe('theme colour contrast (WCAG 2.1 AA)', () => {
       expect(resolve(tokens, '--active-hover')).toBe(resolve(tokens, '--primary-active-bg'));
     });
 
-    // $green-20/$green-40 read minty as UI surfaces, so the tinted surfaces use a
-    // desaturated sage pair instead. One pair, shared, rather than a tint per component.
-    it('tints every surface from a single sage pair', () => {
+    // $green-20/$green-40 read minty as UI surfaces, so the tinted surfaces use the
+    // desaturated $green-ui-* pair instead. One pair, shared, rather than a tint per component.
+    it('tints every surface from a single green-ui pair', () => {
       const tokens = themes.primeLight;
 
       expect(resolve(tokens, '--category-active')).toBe(resolve(tokens, '--tertiary'));
