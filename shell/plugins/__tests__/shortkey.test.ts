@@ -1,8 +1,17 @@
 import { _internal } from '@shell/plugins/shortkey';
 
 const {
-  mapFunctions, handleHoldKeydown, handleHoldKeyup, releaseHeldKeys
+  handleHoldKeydown, handleHoldKeyup, releaseHeldKeys
 } = _internal;
+
+// shortkey.js is untyped, so `_internal.mapFunctions` widens to `{}` and can't be string-indexed. Describe
+// the one binding shape these tests register (field names, incl. the source's `propagte` spelling, kept
+// verbatim) so the registry reads/writes are typed rather than implicit `any`.
+type ShortkeyBinding = {
+  hold?: boolean; held?: boolean; once?: boolean; push?: boolean; focus?: boolean;
+  key?: string; propagte?: boolean; el?: HTMLElement[];
+};
+const mapFunctions = _internal.mapFunctions as Record<string, ShortkeyBinding>;
 
 // The `.hold` modifier (issue 11329): a held binding reports ABSOLUTE state via the `shortkey` event's
 // `detail.held` (true on keydown, false on keyup / focus loss) and never preventDefaults, so it can't
