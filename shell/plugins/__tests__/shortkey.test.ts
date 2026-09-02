@@ -1,8 +1,6 @@
 import { _internal } from '@shell/plugins/shortkey';
 
-const {
-  handleHoldKeydown, handleHoldKeyup, releaseHeldKeys
-} = _internal;
+const { handleHoldKeydown, handleHoldKeyup, releaseHeldKeys } = _internal;
 
 // shortkey.js is untyped, so `_internal.mapFunctions` widens to `{}` and can't be string-indexed. Describe
 // the one binding shape these tests register (field names, incl. the source's `propagte` spelling, kept
