@@ -112,15 +112,31 @@ const DEFAULT_SORT: Array<PaginationSort> = [
 
 export interface TopLevelMenuHelper {
   /**
-   * Pinned clusters (uncapped); excludes local.
-   * Sorted by the pinned pref's recorded order (the order clusters were pinned), not by ready/name.
+   * PINNED clusters (uncapped).
+   *
+   * Filter by
+   * 1. If harvester or not (filterOnlyKubernetesClusters)
+   * 2. If local or not (filterHiddenLocalCluster) — local is the fixed top tile, never listed here
+   * 3. Is pinned
+   *
+   * Sort By
+   * 1. The pinned pref's recorded order (the order the clusters were pinned)
    */
   clustersPinned: Array<TopLevelMenuCluster>;
 
   /**
-   * The ALL list: the whole estate (local excluded upstream), or — while searching — narrowed to
-   * clusters whose name matches the search term.
-   * Sorted by ready first (ready clusters above not-ready), then by name.
+   * The ALL list — the whole estate, or the search matches while searching.
+   *
+   * Filter by
+   * 1. If harvester or not (filterOnlyKubernetesClusters)
+   * 2. If local or not (filterHiddenLocalCluster) — local is the fixed top tile
+   * 3.
+   *    a) if search term, filter on it (name match)
+   *    b) if no search term, the whole estate (no pinned-exclusion, no cap)
+   *
+   * Sort By
+   * 1. ready
+   * 2. name
    */
   clustersOthers: Array<TopLevelMenuCluster>;
 
