@@ -4,7 +4,7 @@ import {
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { insertAt, uniq } from '@shell/utils/array';
+import { addObject, insertAt, removeObject, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -16,7 +16,7 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
-import { pinCluster, unpinCluster } from '@shell/utils/cluster-pref-writer';
+import { commitAndReconcile, isRecordableCluster, prependRecent } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -810,15 +810,52 @@ export default class MgmtCluster extends SteveModel {
     return this.$rootGetters['prefs/get'](PINNED_CLUSTERS).includes(this.id);
   }
 
-  // pin() writes PINNED_CLUSTERS only (a pinned cluster is just hidden from the RECENT group); unpin()
-  // also moves the cluster to the top of RECENT so it stays visible. Both go through the centralized
-  // serialized writer so cluster-preference PUTs never race. SURE-8192.
-  pin() {
-    pinCluster((action, payload) => this.$dispatch(action, payload, { root: true }), this.id);
+  // A dispatch bound to the root store, as the cluster-pref writer expects.
+  get _clusterPrefDispatch() {
+    return (action, payload) => this.$dispatch(action, payload, { root: true });
   }
 
+  /**
+   * Pin the cluster by adding it to PINNED_CLUSTERS (a pinned cluster is simply
+   * hidden from the RECENT group). Routed through the shared serialized writer
+   * so this write can't race the store's cluster-navigation write and 409.
+   */
+  pin() {
+    return commitAndReconcile(this._clusterPrefDispatch, [{
+      key:   PINNED_CLUSTERS,
+      apply: (pinned) => {
+        const next = [...(Array.isArray(pinned) ? pinned : [])];
+
+        addObject(next, this.id);
+
+        return next;
+      },
+    }]);
+  }
+
+  /**
+   * Unpin the cluster: remove it from PINNED_CLUSTERS and move it to the top of
+   * RECENT so it stays visible. Routed through the shared serialized writer so
+   * this write can't race the store's cluster-navigation write and 409.
+   */
   unpin() {
-    unpinCluster((action, payload) => this.$dispatch(action, payload, { root: true }), this.id);
+    const mutations = [{
+      key:   PINNED_CLUSTERS,
+      apply: (pinned) => {
+        const next = [...(Array.isArray(pinned) ? pinned : [])];
+
+        removeObject(next, this.id);
+
+        return next;
+      },
+    }];
+
+    // Surface it at the front of RECENT too, unless it's the non-recordable local/blank placeholder.
+    if (isRecordableCluster(this.id)) {
+      mutations.push(prependRecent(this.id));
+    }
+
+    return commitAndReconcile(this._clusterPrefDispatch, mutations);
   }
 
   get canExplore() {
