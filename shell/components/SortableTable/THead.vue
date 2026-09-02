@@ -237,7 +237,11 @@ export default {
       <th
         v-if="subExpandColumn"
         :width="expandWidth"
-      />
+      >
+        <div class="content">
+          <span class="sr-only">{{ t('sortableTable.expandColumnHeader') }}</span>
+        </div>
+      </th>
       <th
         v-for="(col) in columns"
         v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.isColVisible)"
@@ -263,6 +267,7 @@ export default {
             <span
               v-clean-html="labelFor(col)"
               class="text-no-break"
+              :class="{ 'sr-only': col.labelVisuallyHidden }"
             />
             <span
               v-if="col.subLabel"
@@ -298,10 +303,14 @@ export default {
         </div>
       </th>
       <th
-        v-if="rowActions && hasAdvancedFiltering && tableColsOptions.length"
+        v-if="rowActions"
         :width="rowActionsWidth"
       >
+        <div class="content">
+          <span class="sr-only">{{ t('sortableTable.actionsColumnHeader') }}</span>
+        </div>
         <div
+          v-if="hasAdvancedFiltering && tableColsOptions.length"
           ref="table-options"
           class="table-options-group"
         >
@@ -358,10 +367,6 @@ export default {
           </div>
         </div>
       </th>
-      <th
-        v-else-if="rowActions"
-        :width="rowActionsWidth"
-      />
     </tr>
   </thead>
 </template>
@@ -449,6 +454,11 @@ export default {
       &.sortable-table-head-element:focus-visible {
         @include focus-outline;
         outline-offset: -4px;
+      }
+
+      // Containing block for `.sr-only` header names, which would otherwise widen the page.
+      .content {
+        position: relative;
       }
 
       .table-header-container {

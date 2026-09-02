@@ -6700,6 +6700,8 @@ sortableTable:
     sortingIconAsc: Table header ascending sort icon
   genericGroupCheckbox: Table group selection checkbox
   genericRowCheckbox: Table row selection checkbox for item {item}
+  expandColumnHeader: Expand
+  actionsColumnHeader: Actions
   tableActionsLabel: More actions - { resource }
   tableActionsImgAlt: More actions icon
   bulkActions:
@@ -7094,6 +7096,7 @@ tableHeaders:
   effect: Effect
   endpoints: Endpoints
   expires: Expires
+  explore: Explore
   firstSeen: First Seen
   firstSeenTooltip: The time at which the event was first recorded
   flow: Flow
