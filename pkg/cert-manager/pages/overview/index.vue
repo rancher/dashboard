@@ -103,6 +103,7 @@ const {
 
     <template v-else>
       <Masthead
+        v-if="hasCertificates"
         :resource="CERT_MANAGER.CERTIFICATE"
         :type-display="t('certManager.overview.title')"
         :is-creatable="false"
