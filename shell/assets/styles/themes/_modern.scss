@@ -24,7 +24,7 @@ $dark      : #B6B6C2;
 //light border and buttons
 $medium    : #DCDEE7;
 
-//light form control boundaries (inputs, dropdowns, toggles)
+//light form control boundaries (inputs, dropdowns, checkboxes)
 $form-control-border : #84849A;
 
 //light inputs
@@ -732,8 +732,8 @@ BODY, .theme-light {
 
   --rc-active-background: #{$gray003};
   --rc-active-disabled-background: #{$gray001};
-  --rc-active-border: #{$form-control-border};
-  --rc-inactive-border: #{$form-control-border};
+  --rc-active-border: #{$gray002};
+  --rc-inactive-border: #{$gray001};
   --rc-inactive-background: #{$gray001};
   --rc-inactive-disabled-border: #{$gray001};
   --rc-disabled-background: #{$gray001};
@@ -805,8 +805,6 @@ BODY, .theme-dark {
   $body-bg  : #25282F;
 
   $form-control-border : #6C7A8F;
-
-  $toggle-border : #98A0B0;
 
   $tertiary-hover-fill : #1E3C73;
 
@@ -1086,9 +1084,9 @@ BODY, .theme-dark {
   
   --rc-active-background: #{$gray006};
   --rc-active-disabled-background: #{$gray006};
-  --rc-active-border: #{$toggle-border};
+  --rc-active-border: #{$gray005};
 
-  --rc-inactive-border: #{$toggle-border};
+  --rc-inactive-border: #{$gray005};
   --rc-inactive-background: #{$gray005};
   --rc-inactive-disabled-border: #{$gray004};
 

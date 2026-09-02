@@ -123,8 +123,6 @@ const SHARED_PAIRS: [string, string, number][] = [
   ['--dropdown-border', '--dropdown-bg', NON_TEXT],
   ['--checkbox-border', '--body-bg', NON_TEXT],
   ['--checkbox-border', '--box-bg', NON_TEXT],
-  ['--rc-active-border', '--rc-active-background', NON_TEXT],
-  ['--rc-inactive-border', '--rc-inactive-background', NON_TEXT],
   ['--secondary-border', '--body-bg', NON_TEXT],
 
   // Text - 1.4.3
