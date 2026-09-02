@@ -24,6 +24,9 @@ $dark      : #B6B6C2;
 //light border and buttons
 $medium    : #DCDEE7;
 
+//light form control boundaries (inputs, dropdowns, checkboxes)
+$form-control-border : #84849A;
+
 //light inputs
 $light     : #EEEFF4;
 
@@ -46,6 +49,7 @@ $primary-75      : #454F68; // Category active dark
 $primary-60      : #75A1FF;
 $primary-55      : #81AEFC;
 $primary-50      : #A7BFF1; // Active dark
+$primary-30      : #DBE4F9; // Tertiary hover light
 $primary-20      : #EDF2FC;
 $primary-15      : #EEF1F6; // Category active light
 
@@ -56,6 +60,11 @@ $green-80     : #42D29F;
 $green-60     : #83E1BE;
 $green-40     : #C0EFDE;
 $green-20     : #EAFAF4;
+
+// UI-surface variants of the light brand shades. $green-20/$green-40 read minty when
+// used as a fill behind text, so tinted surfaces use these desaturated pairs instead.
+$green-ui-40  : #D9E9E0;
+$green-ui-20  : #EFF6F2;
 
 $secondary       : $grey-50;
 $link            : $primary-80;
@@ -93,10 +102,10 @@ BODY, .theme-light {
 
   --secondary        : var(--body-bg);
   --secondary-border : #{$primary};
-  --on-secondary     : #{$primary};
+  --on-secondary     : var(--link);
   --secondary-hover  : var(--non-primary-hover);
 
-  --tertiary                  : transparent;
+  --tertiary                  : #{$primary-20};
   --tertiary-header           : transparent;
   --tertiary-border           : transparent;
   --tertiary-header-hover     : var(--non-primary-hover);
@@ -104,20 +113,24 @@ BODY, .theme-light {
   --on-tertiary-header        : var(--link);
   --on-tertiary-header-hover  : var(--link);
   --on-tertiary-hover         : var(--link);
-  --tertiary-hover            : var(--non-primary-hover);
+  --tertiary-hover            : #{$primary-30};
   --tertiary-hover-app-bar    : var(--link);
 
-  --active            : #{$primary-110};
-  --active-nav        : #{$primary-110};
+  --active            : #{$primary-120};
   --on-active         : #{$grey-0};
+  // Selection borrows a known button state rather than introducing a third blue: the
+  // selected nav item wears the CTA's *hover* fill, so it reads as the same family without
+  // being mistakable for a button at rest, and steps to the pressed fill when hovered.
+  --active-nav        : var(--primary-hover-bg);
+  --on-active-nav     : var(--primary-text);
   --toggle-on-bg      : var(--active);
   --toggle-on-color   : var(--on-active);
   --toggle-off-bg     : #{$grey-5};
   --toggle-off-color  : #{$grey-50};
   --toggle-off-hover  : #{$grey-10};
 
-  --active-hover          : #{lighten($primary-110, 5%)};
-  --category-active       : #{$primary-15};
+  --active-hover          : #{lighten($primary-120, 5%)};
+  --category-active       : #{$primary-20};
   --category-active-hover : #{$grey-20};
 
   .text-primary {
@@ -220,7 +233,7 @@ BODY, .theme-light {
       }
   }
 
-  --muted                      : #6F6F8B;
+  --muted                      : #6A6A85;
   --deemphasized               : #6C6C76;
 
   .text-muted {
@@ -442,7 +455,7 @@ BODY, .theme-light {
   --nav-bg                     : #{$lightest};
   --nav-active                 : #{$light};
   --nav-hover                  : #{$grey-10};
-  --nav-active-hover           : var(--active-hover);
+  --nav-active-hover           : var(--primary-active-bg);
   --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
@@ -490,7 +503,7 @@ BODY, .theme-light {
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
 
   --dropdown-bg                : #{$lightest};
-  --dropdown-border            : #{$medium};
+  --dropdown-border            : #{$form-control-border};
   --dropdown-divider           : #{$medium};
   --dropdown-text              : #{$darkest};
   --dropdown-active-text       : #{$lightest};
@@ -512,8 +525,8 @@ BODY, .theme-light {
 
   --input-text                 : #{$darkest};
   --input-label                : #{$secondary};
-  --input-placeholder          : #{darken($disabled, 10%)};
-  --input-border               : var(--border);
+  --input-placeholder          : var(--muted);
+  --input-border               : #{$form-control-border};
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($light, 2%)};
   --input-hover-bg             : var(--box-bg);
@@ -697,7 +710,7 @@ BODY, .theme-light {
 
 
   // These are meant to be the colors used within rancher-components. They will eventually be removed from shell once we have theming working in the components
-  --rc-info: #{$blue001};
+  --rc-info: #1D61CE;
   --rc-info-secondary: #{$blue002};
 
   --rc-success: #{$green001};
@@ -715,7 +728,7 @@ BODY, .theme-light {
   --rc-none: #{$gray004};
   --rc-none-secondary: #{$gray002};
 
-  --rc-primary-hover: #{$blue003};
+  --rc-primary-hover: #{$primary-120};
 
   --rc-active-background: #{$gray003};
   --rc-active-disabled-background: #{$gray001};
@@ -791,6 +804,10 @@ BODY, .theme-dark {
   $drag-over: #DCDEE7;
   $body-bg  : #25282F;
 
+  $form-control-border : #6C7A8F;
+
+  $tertiary-hover-fill : #1E3C73;
+
   $slate: #4B4F6B;
 
   --body-border: #38404B;
@@ -805,7 +822,7 @@ BODY, .theme-dark {
   --on-secondary: #{$primary-60};
   --secondary-hover: var(--non-primary-hover);
 
-  --tertiary                  : transparent;
+  --tertiary                  : var(--non-primary-hover);
   --tertiary-header           : transparent;
   --tertiary-border           : transparent;
   --tertiary-header-hover     : var(--non-primary-hover);
@@ -813,12 +830,13 @@ BODY, .theme-dark {
   --on-tertiary-header        : var(--link);
   --on-tertiary-header-hover  : var(--link);
   --on-tertiary-hover         : var(--link);
-  --tertiary-hover            : var(--non-primary-hover);
+  --tertiary-hover            : #{$tertiary-hover-fill};
   --tertiary-hover-app-bar    : var(--link);
 
   --active                : #{$primary-50};
-  --active-nav            : #{$primary-50};
   --on-active             : #{$grey-90};
+  --active-nav            : var(--primary-hover-bg);
+  --on-active-nav         : var(--primary-text);
   --active-hover          : #{darken($primary-50, 5%)};
   --category-active       : #{$primary-75};
   --category-active-hover : #{$grey-70};
@@ -870,7 +888,7 @@ BODY, .theme-dark {
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
   --nav-hover                  : #{lighten($body-bg, 10%)};
-  --nav-active-hover           : var(--active-hover);
+  --nav-active-hover           : var(--primary-active-bg);
   --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
@@ -898,7 +916,7 @@ BODY, .theme-dark {
   --shadow                     : #{rgba($darkest, 0.9)};
 
   --checkbox-tick              : var(--on-active);
-  --checkbox-border            : #627084;
+  --checkbox-border            : #{$form-control-border};
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : var(--active);
@@ -907,7 +925,7 @@ BODY, .theme-dark {
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
 
   --dropdown-bg                : #{mix($medium, $dark, 10%)};
-  --dropdown-border            : #{$light};
+  --dropdown-border            : #{$form-control-border};
   --dropdown-divider           : #{$light};
   --dropdown-text              : #{$lightest};
   --dropdown-active-text       : #{$lightest};
@@ -924,8 +942,8 @@ BODY, .theme-dark {
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
-  --input-placeholder          : #{$disabled};
-  --input-border               : #627084;
+  --input-placeholder          : var(--muted);
+  --input-border               : #{$form-control-border};
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);

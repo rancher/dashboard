@@ -1137,7 +1137,7 @@ export default {
       & .category {
         & a.router-link-active {
           &:hover {
-            color: var(--on-active, var(--default));
+            color: var(--on-active-nav, var(--default));
           }
         }
       }
@@ -1257,29 +1257,29 @@ export default {
           }
 
           background: var(--active-nav, var(--primary-hover-bg));
-          color: var(--on-active, var(--primary-hover-text));
+          color: var(--on-active-nav, var(--primary-hover-text));
 
           svg {
-            fill: var(--on-active, var(--primary-hover-text));
+            fill: var(--on-active-nav, var(--primary-hover-text));
           }
 
           i {
-            color: var(--on-active, var(--primary-hover-text));
+            color: var(--on-active-nav, var(--primary-hover-text));
           }
 
           div .description {
-            color: var(--on-active, var(--default));
+            color: var(--on-active-nav, var(--default));
           }
 
           &:hover {
-            background: var(--active-hover, var(--primary-hover-bg));
+            background: var(--nav-active-hover, var(--primary-hover-bg));
 
             div {
-              color: var(--on-active, var(--default));
+              color: var(--on-active-nav, var(--default));
             }
 
             svg {
-              fill: var(--on-active, var(--primary-hover-text));
+              fill: var(--on-active-nav, var(--primary-hover-text));
             }
           }
         }
