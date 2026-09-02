@@ -4,7 +4,8 @@ import { issuerRefLocation } from '../utils/issuer-ref';
 import { acmeState } from '../utils/acme-state';
 import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
-import { OrderSpec, OrderStatus, ObjectMeta } from '../schema';
+import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
+import { OrderSpec, OrderStatus } from '../schema';
 
 export interface AuthorizationSummary {
   identifier?: string;
@@ -18,7 +19,7 @@ export default class Order extends SteveModel {
 
   declare status: OrderStatus;
 
-  declare metadata: ObjectMeta;
+  declare metadata: RancherKubeMetadata;
 
   get state(): string {
     return acmeState(this.status?.state);

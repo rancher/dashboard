@@ -9,7 +9,8 @@ import { issuerRefLocation } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
 import { relatedTo } from '../utils/issuance';
-import { CertificateSpec, CertificateStatus, ObjectMeta } from '../schema';
+import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
+import { CertificateSpec, CertificateStatus } from '../schema';
 
 /** A certificate within this many days of expiry is flagged as expiring soon in the list and overview. */
 const EXPIRING_SOON_DAYS = 30;
@@ -19,7 +20,7 @@ export default class Certificate extends SteveModel {
 
   declare status: CertificateStatus;
 
-  declare metadata: ObjectMeta;
+  declare metadata: RancherKubeMetadata;
 
   declare type: string;
 

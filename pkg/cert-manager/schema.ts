@@ -6,14 +6,6 @@
 import { Condition } from './utils/conditions';
 import { IssuerRef } from './utils/issuer-ref';
 
-export interface ObjectMeta {
-  name?: string;
-  namespace?: string;
-  uid?: string;
-  annotations?: Record<string, string>;
-  ownerReferences?: { kind?: string; name?: string; uid?: string }[];
-}
-
 export interface CertificateSpec {
   secretName?: string;
   issuerRef?: IssuerRef;

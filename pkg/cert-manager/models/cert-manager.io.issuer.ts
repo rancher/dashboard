@@ -6,7 +6,8 @@ import { Condition, conditionOf, isFailingCondition } from '../utils/conditions'
 import { issuerRefMatches } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
-import { IssuerSpec, IssuerStatus, ObjectMeta } from '../schema';
+import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
+import { IssuerSpec, IssuerStatus } from '../schema';
 import { ISSUER_CONFIG_TYPES, IssuerConfigType } from '../form-options';
 
 const WELL_KNOWN_ACME_SERVERS: Record<string, string> = {
@@ -28,7 +29,7 @@ export default class Issuer extends SteveModel {
 
   declare status: IssuerStatus;
 
-  declare metadata: ObjectMeta;
+  declare metadata: RancherKubeMetadata;
 
   get readyCondition(): Condition | undefined {
     return conditionOf(this, 'Ready');

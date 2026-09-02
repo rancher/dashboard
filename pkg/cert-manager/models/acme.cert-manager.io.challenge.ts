@@ -5,14 +5,15 @@ import { issuerRefLocation } from '../utils/issuer-ref';
 import { acmeState } from '../utils/acme-state';
 import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
-import { ChallengeSpec, ChallengeStatus, ObjectMeta } from '../schema';
+import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
+import { ChallengeSpec, ChallengeStatus } from '../schema';
 
 export default class Challenge extends SteveModel {
   declare spec: ChallengeSpec;
 
   declare status: ChallengeStatus;
 
-  declare metadata: ObjectMeta;
+  declare metadata: RancherKubeMetadata;
 
   get state(): string {
     const state = acmeState(this.status?.state);

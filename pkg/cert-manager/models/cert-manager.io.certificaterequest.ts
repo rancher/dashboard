@@ -7,14 +7,15 @@ import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
 import { parseCsr, CsrInfo } from '../utils/csr';
 import { certificateNameOf, CERTIFICATE_REVISION_ANNOTATION } from '../utils/issuance';
-import { CertificateRequestSpec, CertificateRequestStatus, ObjectMeta } from '../schema';
+import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
+import { CertificateRequestSpec, CertificateRequestStatus } from '../schema';
 
 export default class CertificateRequest extends SteveModel {
   declare spec: CertificateRequestSpec;
 
   declare status: CertificateRequestStatus;
 
-  declare metadata: ObjectMeta;
+  declare metadata: RancherKubeMetadata;
 
   get readyCondition(): Condition | undefined {
     return conditionOf(this, 'Ready');
