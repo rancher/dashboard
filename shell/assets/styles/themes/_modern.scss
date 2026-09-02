@@ -61,6 +61,11 @@ $green-60     : #83E1BE;
 $green-40     : #C0EFDE;
 $green-20     : #EAFAF4;
 
+// UI-surface variants of the light brand shades. $green-20/$green-40 read minty when
+// used as a fill behind text, so tinted surfaces use these desaturated pairs instead.
+$green-ui-40  : #D9E9E0;
+$green-ui-20  : #EFF6F2;
+
 $secondary       : $grey-50;
 $link            : $primary-80;
 
