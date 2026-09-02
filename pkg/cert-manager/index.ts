@@ -1,8 +1,7 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { ProductChildCustomPage, ProductChildGroup } from '@shell/core/plugin-products-external';
-import { ProductChildResourcePageInternal } from '@shell/core/plugin-products-internal';
+import { ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage } from '@shell/core/plugin-products-external';
 import { CERT_MANAGER } from './types';
 import {
   CERTIFICATE_HEADERS, ISSUER_HEADERS, CLUSTER_ISSUER_HEADERS,
@@ -26,37 +25,37 @@ const overviewPage: ProductChildCustomPage = {
 // backend does not index, so SSP could neither sort nor filter on what these lists actually show.
 // Columns are supplied as `listConfig.localHeaders`, which the shell's generic list renders through
 // a client-side ResourceTable; sort/search may reference any field or model getter - see table-headers.
-const certificatesPage: ProductChildResourcePageInternal = {
+const certificatesPage: ProductChildResourcePage = {
   type:       CERT_MANAGER.CERTIFICATE,
   sideMenu:   { weight: 90 },
   listConfig: { localHeaders: CERTIFICATE_HEADERS },
 };
 
-const issuersPage: ProductChildResourcePageInternal = {
+const issuersPage: ProductChildResourcePage = {
   type:       CERT_MANAGER.ISSUER,
   sideMenu:   { weight: 80 },
   listConfig: { localHeaders: ISSUER_HEADERS },
 };
 
-const clusterIssuersPage: ProductChildResourcePageInternal = {
+const clusterIssuersPage: ProductChildResourcePage = {
   type:       CERT_MANAGER.CLUSTER_ISSUER,
   sideMenu:   { weight: 70 },
   listConfig: { localHeaders: CLUSTER_ISSUER_HEADERS },
 };
 
-const certificateRequestsPage: ProductChildResourcePageInternal = {
+const certificateRequestsPage: ProductChildResourcePage = {
   type:       CERT_MANAGER.CERTIFICATE_REQUEST,
   sideMenu:   { weight: 30 },
   listConfig: { localHeaders: CERTIFICATE_REQUEST_HEADERS },
 };
 
-const ordersPage: ProductChildResourcePageInternal = {
+const ordersPage: ProductChildResourcePage = {
   type:       CERT_MANAGER.ORDER,
   sideMenu:   { weight: 20 },
   listConfig: { localHeaders: ORDER_HEADERS },
 };
 
-const challengesPage: ProductChildResourcePageInternal = {
+const challengesPage: ProductChildResourcePage = {
   type:       CERT_MANAGER.CHALLENGE,
   sideMenu:   { weight: 10 },
   listConfig: { localHeaders: CHALLENGE_HEADERS },

@@ -1,6 +1,5 @@
 import { IPlugin } from '@shell/core/types';
-import { ProductChildGroup } from '@shell/core/plugin-products-external';
-import { ProductChildResourcePageInternal } from '@shell/core/plugin-products-internal';
+import { ProductChildGroup, ProductChildResourcePage } from '@shell/core/plugin-products-external';
 import { CERT_MANAGER } from '../types';
 
 jest.doMock('@rancher/auto-import', () => ({ importTypes: jest.fn() }), { virtual: true });
@@ -94,7 +93,7 @@ describe('extension: cert-manager', () => {
     const resourcePages = [
       ...group.sideMenu.children.slice(1, 4),
       ...acme.sideMenu.children,
-    ] as ProductChildResourcePageInternal[];
+    ] as ProductChildResourcePage[];
 
     // `plugin-products-base` derives `isRemovable` from `can.create`, so a `can` block silently
     // disables delete. Leave it unset until that is fixed.
