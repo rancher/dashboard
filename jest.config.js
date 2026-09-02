@@ -43,11 +43,21 @@ module.exports = {
     '<rootDir>(/.*)*/__tests__/utils/',
   ],
   transformIgnorePatterns: [
-    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate|clipboard-polyfill)/)',
+    // intl-messageformat 11 and its @formatjs deps are `"type": "module"` with no CJS build, so
+    // babel-jest has to down-level them like it already does for vee-validate/clipboard-polyfill.
+    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate|clipboard-polyfill|intl-messageformat|@formatjs)/)',
   ],
 
   // Babel
   transform: {
+    // intl-messageformat 11 ships static class blocks, which the class-features plugin pulled in by
+    // `@vue/cli-plugin-babel/preset` refuses to handle. These packages are plain modern JS with no
+    // Vue in them, so bypass the project babel config and just down-level ESM to CJS for Node.
+    'node_modules[\\\\/](intl-messageformat|@formatjs)[\\\\/].*\\.js$': ['babel-jest', {
+      configFile: false,
+      babelrc:    false,
+      presets:    [['@babel/preset-env', { targets: { node: 'current' } }]],
+    }],
     '^.+\\.js$':   '<rootDir>/node_modules/babel-jest', // process js with `babel-jest`
     '^.+\\.mjs$':  '<rootDir>/node_modules/babel-jest', // process mjs (e.g. vee-validate ESM) with `babel-jest`
     '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue3-jest', // process `*.vue` files with `vue-jest`
