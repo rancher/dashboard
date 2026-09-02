@@ -12,8 +12,9 @@ import IntlMessageFormat from 'intl-messageformat';
 // with `v-html`, not ICU tag markup.
 const FORMAT_OPTS = { ignoreTag: true } as const;
 
-const TRANSLATIONS_DIR = path.resolve(__dirname, '..');
-const PKG_DIR = path.resolve(__dirname, '../../../../pkg');
+const REPO_ROOT = path.resolve(__dirname, '../../..');
+const TRANSLATIONS_DIR = path.join(REPO_ROOT, 'shell', 'assets', 'translations');
+const PKG_DIR = path.join(REPO_ROOT, 'pkg');
 
 function catalogFiles(): string[] {
   const files = fs.readdirSync(TRANSLATIONS_DIR)
@@ -66,7 +67,7 @@ describe('translation catalogs', () => {
     expect(files.length).toBeGreaterThan(0);
   });
 
-  describe.each(files.map((f) => [path.relative(path.resolve(__dirname, '../../../..'), f), f]))('%s', (_relative, file) => {
+  describe.each(files.map((f) => [path.relative(REPO_ROOT, f), f]))('%s', (_relative, file) => {
     const locale = path.basename(file, '.yaml');
     // FAILSAFE_SCHEMA keeps every scalar a string, so keys like `yes`/`on` are not coerced away
     const messages = icuMessages(yaml.load(fs.readFileSync(file, 'utf8'), { schema: yaml.FAILSAFE_SCHEMA }));
