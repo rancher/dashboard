@@ -612,7 +612,6 @@ export default {
         :placeholder="t('catalog.charts.search')"
         data-testid="charts-filter-input"
         :aria-label="t('catalog.charts.search')"
-        role="textbox"
         :disabled="$fetchState.pending"
       >
       <i
