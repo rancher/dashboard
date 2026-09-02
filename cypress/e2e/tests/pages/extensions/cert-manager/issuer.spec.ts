@@ -27,7 +27,7 @@ describe('Cert Manager issuer create', { tags: ['@extensions', '@adminUser'] }, 
     form.waitForPage();
 
     // Self Signed is the first (default) config type, so its help banner is shown up front.
-    form.banners().should('contain.text', 'A self signed issuer');
+    form.banners().self().should('contain.text', 'A self signed issuer');
 
     form.nameNsDescription().name().set('selfsigned-issuer');
     form.nameNsDescription().selectNamespace('default');
@@ -96,7 +96,7 @@ describe('Cert Manager issuer create', { tags: ['@extensions', '@adminUser'] }, 
 
     // Vault is not modelled by the form; it shows a notice pointing at YAML instead of inputs.
     form.configType().set(3);
-    form.banners().should('contain.text', 'Switch to YAML');
+    form.banners().self().should('contain.text', 'Switch to YAML');
   });
 
   it('creates a cluster-scoped issuer without a namespace', () => {

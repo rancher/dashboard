@@ -4,6 +4,7 @@ import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 /**
  * The cert-manager Issuer / ClusterIssuer create/edit form. Both scopes share the same underlying
@@ -52,7 +53,7 @@ export default class IssuerCreatePo extends PagePo {
   }
 
   /** Banners rendered inside the form (self-signed help, the unsupported-type notice, ...). */
-  banners() {
-    return this.self().find('.banner');
+  banners(): BannersPo {
+    return new BannersPo(() => this.self().find('.banner'));
   }
 }

@@ -6,6 +6,7 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 /**
  * The cert-manager Certificate create/edit form. Certificates are a namespaced resource under the
@@ -63,7 +64,7 @@ export default class CertificateCreatePo extends PagePo {
   }
 
   /** The warning shown when the selected namespace has no Issuers. */
-  noIssuersBanner() {
-    return this.self().find('.banner.warning');
+  noIssuersBanner(): BannersPo {
+    return new BannersPo(() => this.self().find('.banner.warning'));
   }
 }
