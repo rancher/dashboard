@@ -340,58 +340,63 @@ export default {
     }"
     :data-testid="componentTestid"
   >
-    <ul
+    <div
       v-if="!hideTabs"
-      ref="tablist"
-      role="tablist"
       class="tabs"
       :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs, 'remove-borders': removeBorders}"
-      :data-testid="`${componentTestid}-block`"
-      tabindex="0"
-      @keydown.right.prevent="selectNext(1)"
-      @keydown.left.prevent="selectNext(-1)"
-      @keydown.down.prevent="selectNext(1)"
-      @keydown.up.prevent="selectNext(-1)"
     >
-      <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
-      <li
-        v-for="tab in sortedTabs"
-        :id="tab.name"
-        :key="tab.name"
-        :data-testid="tab.name"
-        :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
+      <ul
+        ref="tablist"
+        role="tablist"
+        class="tab-list"
+        :data-testid="`${componentTestid}-block`"
+        tabindex="0"
+        @keydown.right.prevent="selectNext(1)"
+        @keydown.left.prevent="selectNext(-1)"
+        @keydown.down.prevent="selectNext(1)"
+        @keydown.up.prevent="selectNext(-1)"
       >
-        <a
-          :id="`tab-${tab.name}`"
-          :ref="(el) => { if (el) tabRefs[tab.name] = el; }"
-          :data-testid="`btn-${tab.name}`"
-          :aria-controls="tab.name"
-          :aria-selected="tab.active"
-          :aria-label="tab.labelDisplay || ''"
-          role="tab"
-          :tabindex="tab.active ? '0' : '-1'"
-          @click.prevent="select(tab.name, $event)"
-          @keyup.enter.space="select(tab.name, $event)"
+        <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
+        <li
+          v-for="tab in sortedTabs"
+          :id="tab.name"
+          :key="tab.name"
+          :data-testid="tab.name"
+          role="presentation"
+          :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
         >
-          <i
-            v-if="tab.labelIcon"
-            :class="`tab-label-icon icon ${tab.labelIcon}`"
-          />
-          <span>
-            {{ tab.labelDisplay }}
-          </span>
-          <span
-            v-if="tab.badge"
-            class="tab-badge"
-          >{{ tab.badge }}</span>
-          <i
-            v-if="hasErrorIcon(tab)"
-            v-clean-tooltip="tab.errorIconTooltip || t('validation.tab')"
-            class="conditions-alert-icon icon-error"
-          />
-        </a>
-      </li>
-      <li
+          <a
+            :id="`tab-${tab.name}`"
+            :ref="(el) => { if (el) tabRefs[tab.name] = el; }"
+            :data-testid="`btn-${tab.name}`"
+            :aria-controls="tab.name"
+            :aria-selected="tab.active"
+            :aria-label="tab.labelDisplay || ''"
+            role="tab"
+            :tabindex="tab.active ? '0' : '-1'"
+            @click.prevent="select(tab.name, $event)"
+            @keyup.enter.space="select(tab.name, $event)"
+          >
+            <i
+              v-if="tab.labelIcon"
+              :class="`tab-label-icon icon ${tab.labelIcon}`"
+            />
+            <span>
+              {{ tab.labelDisplay }}
+            </span>
+            <span
+              v-if="tab.badge"
+              class="tab-badge"
+            >{{ tab.badge }}</span>
+            <i
+              v-if="hasErrorIcon(tab)"
+              v-clean-tooltip="tab.errorIconTooltip || t('validation.tab')"
+              class="conditions-alert-icon icon-error"
+            />
+          </a>
+        </li>
+      </ul>
+      <div
         v-if="sideTabs && !sortedTabs.length"
         class="tab disabled"
       >
@@ -399,7 +404,7 @@ export default {
           href="#"
           @click.prevent
         >(None)</a>
-      </li>
+      </div>
       <ul
         v-if="sideTabs && showTabsAddRemove"
         class="tab-list-footer"
@@ -427,7 +432,7 @@ export default {
         </li>
       </ul>
       <slot name="tab-row-extras" />
-    </ul>
+    </div>
     <div
       :class="{
         'tab-container': !!tabs.length || !!sideTabs,
@@ -469,16 +474,24 @@ export default {
 }
 
 .tabs {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
+  .tab-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: inherit;
 
-  &:focus-visible {
-    outline: none;
+    &:focus-visible {
+      outline: none;
 
-    .tab.active {
-      @include focus-outline;
-      outline-offset: -2px;
+      .tab.active {
+        @include focus-outline;
+        outline-offset: -2px;
+      }
+    }
+
+    &:focus .tab.active a span {
+      text-decoration: underline;
     }
   }
 
@@ -506,10 +519,6 @@ export default {
     .tab.active {
       border-bottom: solid 2px var(--active, var(--primary));
     }
-  }
-
-  &:focus .tab.active a span {
-    text-decoration: underline;
   }
 
   .tab {
@@ -655,7 +664,7 @@ export default {
     .tab-list-footer {
       list-style: none;
       padding: 0;
-      margin-top: auto;
+      margin: auto 0 0;
       z-index: z-index('default');
 
       li {
