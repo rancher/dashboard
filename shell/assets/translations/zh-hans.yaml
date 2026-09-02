@@ -935,12 +935,11 @@ catalog:
         description: 这个过程有助于 {action, select,
             install { 创建 }
             upgrade { 升级 }
-            update { 更新 }
-            editVersion { 更新 }
             downgrade { 降级 }
+            other { 更新 }
           } 这个 {existing, select,
             true { 应用 }
-            false { Chart}
+            other { Chart}
           }。首先设置 {vendor} 用来管理应用的基本信息。
         nsCreationDescription: "如果你要把应用安装到新的命名空间，在命名空间字段中输入其名称，并选择它。"
         createNamespace: "将创建命名空间 <code>{namespace}</code>。"
@@ -4520,7 +4519,7 @@ rbac:
         description: |-
           控制 {isUser, select,
           true {用户}
-          false {组}} 管理整个 {appName} 安装的权限。
+          other {组}} 管理整个 {appName} 安装的权限。
       custom:
         label: 自定义
         description: '不是 {vendor} 创建的角色。'
@@ -4642,8 +4641,8 @@ resourceDetail:
     yaml: YAML
     managedWarning: |-
       此 {type} 由 {hasName, select,
-        no { {managedBy} 应用}
-        yes { {managedBy} 应用 {appName}}} 管理。在此处所做的更改可能会在下次 {managedBy} 运行时被覆盖。
+        yes { {managedBy} 应用 {appName}}
+        other { {managedBy} 应用}} 管理。在此处所做的更改可能会在下次 {managedBy} 运行时被覆盖。
 resourceList:
   head:
     create: 创建
@@ -5957,7 +5956,7 @@ workload:
       tip: 保留成功完成 Job 的数量
     suspend: 暂停
   list:
-    errorCannotScale: 无法对 {workloadName} {direction, select, up { 扩容 } down { 缩容 } }
+    errorCannotScale: 无法对 {workloadName} {direction, select, up { 扩容 } other { 缩容 } }
   metrics:
     pod: Pod 指标
     metricsView: 指标视图

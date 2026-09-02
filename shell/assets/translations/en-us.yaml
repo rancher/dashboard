@@ -1366,10 +1366,10 @@ catalog:
             install { create }
             upgrade { upgrade }
             downgrade { upgrade }
-            editVersion { update }
+            other { update }
           } the {existing, select,
             true { app}
-            false { chart}
+            other { chart}
           }. Start by setting some basic information used by {vendor} to manage the App.
         nsCreationDescription: "To install the app into a new namespace enter it's name in the Namespace field and select it."
         createNamespace: "Namespace <code>{namespace}</code> will be created."
@@ -6189,7 +6189,7 @@ rbac:
         description: |-
           Controls what access the {isUser, select,
           true {user}
-          false {group}} has to administer the overall {appName} installation.
+          other {group}} has to administer the overall {appName} installation.
       custom:
         label: Custom
         description: 'Roles not created by {vendor}.'
@@ -6319,8 +6319,8 @@ resourceDetail:
     yaml: YAML
     managedWarning: |-
       This {type} is managed by {hasName, select,
-        no {a {managedBy} app}
-        yes {the {managedBy} app {appName}}}; changes made here will likely be overwritten the next time {managedBy} runs.
+        yes {the {managedBy} app {appName}}
+        other {a {managedBy} app}}; changes made here will likely be overwritten the next time {managedBy} runs.
 resourceList:
   head:
     create: Create
@@ -7890,7 +7890,7 @@ workload:
       tip: The number of successful finished jobs to retain.
     suspend: Suspend
   list:
-    errorCannotScale: Failed to scale {workloadName} {direction, select, up { up } down { down } }
+    errorCannotScale: Failed to scale {workloadName} {direction, select, up { up } other { down } }
   metrics:
     pod: Pod Metrics
     metricsView: Metrics View
