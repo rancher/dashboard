@@ -649,12 +649,13 @@ export default {
       }
     },
 
-    // Cmd (Mac) / Alt (Windows/Linux) + J toggles the cluster-switcher flyout. `e.code` keys off the
-    // physical J so Mac's Option-J (which yields a different `e.key`) still matches.
+    // Cmd (Mac) / Ctrl (Windows/Linux) + J toggles the cluster-switcher flyout — mirroring the Cmd/Ctrl+K
+    // resource search nav (see NavActionBar). `e.code` keys off the physical J so it matches regardless of
+    // any modifier remapping the produced `e.key`.
     onSwitcherHotkey(e) {
       const isJ = e.code === 'KeyJ' || (e.key || '').toLowerCase() === 'j';
 
-      if (!isJ || !(e.metaKey || e.altKey) || e.ctrlKey || e.shiftKey) {
+      if (!isJ || !(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) {
         return;
       }
 
