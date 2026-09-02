@@ -563,7 +563,10 @@ $spacer: 10px;
         flex-grow: 1;
         align-items: center;
 
-        & > span > span:last-of-type {
+        // Matches the step's control whatever element it is. This was
+        // `> span > span` when the control was a span; as a button it stopped
+        // matching and the label kept a 3px padding it never used to have.
+        & > .controls > span:last-of-type {
           padding-bottom: 0;
         }
 
@@ -583,22 +586,7 @@ $spacer: 10px;
           gap: 0;
           width: 40px;
           overflow: visible;
-
-          // Both of these keep the marker rendering exactly as it did before it
-          // became an RcButton, so the swap is not a visual change.
-
-          // The global button padding is 0 21px, which against the 40px above
-          // makes the marker 42px wide. The ghost variant's 0 12px would narrow
-          // it and pull the following step across.
-          padding: 7px 21px 0;
-
-          // _button.scss offsets an icon from its label by 6px. In this column
-          // layout that sits the dot 3px left of centre rather than spacing
-          // anything, and RcButton zeroes it in favour of flex gap - but it is
-          // where the dot has always sat, so keep it.
-          & > .icon:not(:only-child) {
-            margin-right: 6px;
-          }
+          padding-top: 7px;
 
           // The ghost variant defines no disabled state, so an out of reach
           // step would otherwise pick up the global button's grey chip.
