@@ -1158,7 +1158,13 @@ export default {
                       @click.prevent="toggleSwitcher"
                     >
                       <div class="cluster-all-lane">
-                        <div class="cluster-all-badge">
+                        <div
+                          class="cluster-all-badge"
+                          :class="{
+                            'count-condensed': String(switcherCount).length >= 3,
+                            'count-tiny': String(switcherCount).length >= 5,
+                          }"
+                        >
                           {{ switcherCount }}
                           <svg
                             class="cluster-all-chevron"
@@ -1792,6 +1798,15 @@ export default {
     border: 1px solid var(--border);
     border-radius: $chip-radius;
   }
+  // The chip is a fixed width, so shrink the count text as it lengthens to keep large estate sizes from
+  // truncating: one step down at 3-4 digits, a smaller one at 5+.
+  .cluster-all .cluster-all-badge.count-condensed {
+    font-size: 10px;
+    padding-left: 6px;
+  }
+  .cluster-all .cluster-all-badge.count-tiny {
+    font-size: 8px;
+  }
   // Override the app-bar's broad `.body .option svg { margin-right: 16px }` (which would shove the
   // chevron and knock "N ›" off-centre in the chip).
   .cluster-all .cluster-all-badge .cluster-all-chevron {
@@ -1954,7 +1969,10 @@ export default {
   }
   // Collapsed rail shows only PINNED + RECENT chips; the full ALL CLUSTERS list is expanded-nav only —
   // reachable via the flyout when collapsed.
-  .side-menu.menu-close .clustersList {
+  // Collapsed rail is icon-only and uses the flyout (which has its own empty state), so hide both the ALL
+  // list and the "no clusters match" caption — otherwise the caption leaks into the narrow rail and clips.
+  .side-menu.menu-close .clustersList,
+  .side-menu.menu-close .none-matching {
     display: none;
   }
   .clustersRecent .pin {

@@ -493,13 +493,18 @@ defineExpose({
   background: var(--dropdown-bg, var(--body-bg));
   color: var(--body-text);
 
-  // Exactly the expanded-nav search: 32px input, magnifier left, clear X right.
+  // Exactly the expanded-nav search: 32px input, magnifier left, clear X right. Mirror the nav-bar's
+  // centering technique — a flex row exactly as tall as the input, with the overlaid icons positioned via
+  // `top: auto` (their static flex-centred position) rather than `top: 50%` on the asymmetrically-padded
+  // container, which sat the icons ~1px high.
   .switcher-search {
+    display: flex;
+    align-items: center;
     position: relative;
     padding: 8px 14px 6px;
 
     .switcher-search-input {
-      width: 100%;
+      flex: 1;
       height: 32px;
       padding: 0 35px 0 25px;
       border: 1px solid var(--border);
@@ -513,12 +518,11 @@ defineExpose({
       }
     }
 
-    // Magnifier: left, vertically centred on the input, faint until there's a term.
+    // Magnifier: left, vertically centred on the input (flex align-items), faint until there's a term.
     .magnifier {
       position: absolute;
       left: 20px;
-      top: 50%;
-      transform: translateY(-50%);
+      top: auto;
       width: 12px;
       height: 12px;
       font-size: 12px;
@@ -533,8 +537,7 @@ defineExpose({
     .icon-close {
       position: absolute;
       right: 20px;
-      top: 50%;
-      transform: translateY(-50%);
+      top: auto;
       // Button resets so the icon-font glyph sits like the old <i>.
       appearance: none;
       border: none;
@@ -560,8 +563,13 @@ defineExpose({
   // local: fixed, non-scrolling. Its divider comes from the row's own border-bottom (full width).
   .switcher-local {
     flex: 0 0 auto;
-    // 14px above the first (local) row — it carries 9px, so top it up by 5.
-    padding-top: 5px;
+
+    // The local row (#cluster-switcher-opt-local) carries 14px on every side — the extra 5px over the
+    // scrolling rows' 9px now lives INSIDE the row, so its highlight covers it instead of the old wrapper
+    // padding-top leaving a clipped gap above the highlight when local is active.
+    .cluster-switcher-row {
+      padding: 14px;
+    }
   }
 
   .switcher-scroll {
