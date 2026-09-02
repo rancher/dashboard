@@ -75,6 +75,11 @@ export default {
       // moment the form opens. The identifier requirement is surfaced inline instead, and the rule
       // still keeps the Create button disabled until it is satisfied.
       fvReportedValidationPaths: ['spec'],
+      // Static option lists - the same for every certificate, so they are plain data, not computed.
+      keyUsageOptions:           KEY_USAGES,
+      keyAlgorithmOptions:       KEY_ALGORITHMS,
+      keyEncodingOptions:        KEY_ENCODINGS,
+      rotationPolicyOptions:     ROTATION_POLICIES,
     };
   },
 
@@ -184,22 +189,6 @@ export default {
 
     keySizeOptions() {
       return KEY_SIZES[this.keyAlgorithm] || [];
-    },
-
-    keyUsageOptions() {
-      return KEY_USAGES;
-    },
-
-    keyAlgorithmOptions() {
-      return KEY_ALGORITHMS;
-    },
-
-    keyEncodingOptions() {
-      return KEY_ENCODINGS;
-    },
-
-    rotationPolicyOptions() {
-      return ROTATION_POLICIES;
     },
   },
 
