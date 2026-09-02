@@ -73,13 +73,13 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
             :style="{ backgroundColor: stateColorCssVar(row.color) }"
             aria-hidden="true"
           />
-          <router-link
+          <SubtleLink
             v-if="row.to"
             :to="row.to"
-            class="label link"
+            class="label"
           >
             {{ row.label }}
-          </router-link>
+          </SubtleLink>
           <span
             v-else
             class="label"
