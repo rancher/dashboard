@@ -6,6 +6,7 @@ import CertManagerResourceTabs from '../components/CertManagerResourceTabs.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Banner from '@components/Banner/Banner.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
+import SortableTable from '@shell/components/SortableTable/index.vue';
 import DetailSummary, { SummaryItem } from '../components/DetailSummary.vue';
 import { CHALLENGE_HEADERS } from '../table-headers';
 import { useRelatedTypes } from '../composables/useRelatedTypes';
@@ -29,6 +30,20 @@ const acmeUrls = computed<SummaryItem[]>(() => [
   },
 ]);
 
+// Authorizations are derived summaries rather than store resources, so the identifier link is
+// rendered through the cell slot below.
+const authorizationHeaders = computed(() => [
+  {
+    name: 'identifier', labelKey: 'certManager.order.identifier', value: 'identifier', sort: ['identifier'],
+  },
+  {
+    name: 'wildcard', labelKey: 'certManager.order.wildcard', value: (row: any) => (row.wildcard ? t('generic.yes') : t('generic.no')), sort: ['wildcard'],
+  },
+  {
+    name: 'challengeTypes', labelKey: 'certManager.order.challengeTypes', value: (row: any) => (row.challengeTypes || []).join(', '),
+  },
+]);
+
 </script>
 
 <template>
@@ -47,36 +62,27 @@ const acmeUrls = computed<SummaryItem[]>(() => [
       >
         <DetailSummary :items="acmeUrls" />
 
-        <table
+        <SortableTable
           v-if="value.authorizationSummaries.length"
-          class="cert-manager-table"
+          :rows="value.authorizationSummaries"
+          :headers="authorizationHeaders"
+          key-field="identifier"
+          default-sort-by="identifier"
+          :table-actions="false"
+          :row-actions="false"
+          :search="false"
+          :paging="false"
         >
-          <thead>
-            <tr>
-              <th>{{ t('certManager.order.identifier') }}</th>
-              <th>{{ t('certManager.order.wildcard') }}</th>
-              <th>{{ t('certManager.order.challengeTypes') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(auth, i) in value.authorizationSummaries"
-              :key="i"
-            >
-              <td>
-                <a
-                  v-if="auth.url"
-                  :href="auth.url"
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                >{{ auth.identifier }}</a>
-                <span v-else>{{ auth.identifier }}</span>
-              </td>
-              <td>{{ auth.wildcard ? t('generic.yes') : t('generic.no') }}</td>
-              <td>{{ auth.challengeTypes.join(', ') }}</td>
-            </tr>
-          </tbody>
-        </table>
+          <template #cell:identifier="{ row }">
+            <a
+              v-if="row.url"
+              :href="row.url"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+            >{{ row.identifier }}</a>
+            <span v-else>{{ row.identifier }}</span>
+          </template>
+        </SortableTable>
         <div
           v-else
           class="text-muted"
@@ -100,15 +106,3 @@ const acmeUrls = computed<SummaryItem[]>(() => [
     </CertManagerResourceTabs>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.cert-manager-table {
-  width: 100%;
-  text-align: left;
-
-  th, td {
-    padding: 8px 8px 8px 0;
-    border-bottom: 1px solid var(--border);
-  }
-}
-</style>
