@@ -58,7 +58,10 @@ const { t } = useI18n(useStore());
                 aria-hidden="true"
               />
               <span class="name">
-                <SubtleLink :to="row.to">{{ row.name }}</SubtleLink>
+                <router-link
+                  :to="row.to"
+                  class="link"
+                >{{ row.name }}</router-link>
               </span>
               <span class="detail text-muted">{{ row.detail }}</span>
             </li>
