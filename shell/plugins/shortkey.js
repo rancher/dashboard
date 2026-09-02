@@ -24,6 +24,10 @@ const parseValue = (value) => {
 
 const bindValue = (value, el, binding, vnode) => {
   const push = binding.modifiers.push === true;
+  // `hold` reveals while the key is held: it reports ABSOLUTE state (detail.held true on keydown, false on
+  // keyup / focus loss) and never preventDefaults, so it can't swallow a bare modifier like Alt. This is
+  // the reliable replacement for `push`, whose toggle-on-both-edges desynced on focus loss (issue 11329).
+  const hold = binding.modifiers.hold === true;
   const avoid = binding.modifiers.avoid === true;
   const focus = !binding.modifiers.focus === true;
   const once = binding.modifiers.once === true;
@@ -36,7 +40,7 @@ const bindValue = (value, el, binding, vnode) => {
     objAvoided.push(el);
   } else {
     mappingFunctions({
-      b: value, push, once, focus, propagte, el: vnode.el
+      b: value, push, once, focus, propagte, hold, el: vnode.el
     });
   }
 };
@@ -199,6 +203,78 @@ const dispatchShortkeyEvent = (pKey) => {
   }
 };
 
+// --- hold modifier (issue 11329) ---
+
+// Dispatch the `shortkey` event carrying ABSOLUTE state in `detail.held`, so a hold consumer assigns state
+// directly (no toggle). Mirrors dispatchShortkeyEvent's propagate / last-element targeting.
+const dispatchHoldEvent = (pKey, held) => {
+  const fn = mapFunctions[pKey];
+
+  if (!fn) {
+    return;
+  }
+
+  const makeEvent = () => {
+    const e = new CustomEvent('shortkey', { detail: { held }, bubbles: false });
+
+    if (fn.key) {
+      e.srcKey = fn.key;
+    }
+
+    return e;
+  };
+
+  if (!fn.propagte) {
+    fn.el[fn.el.length - 1].dispatchEvent(makeEvent());
+  } else {
+    fn.el.forEach((elmItem) => elmItem.dispatchEvent(makeEvent()));
+  }
+};
+
+// A hold binding observes only: it NEVER preventDefaults (so a bare modifier like Alt keeps its native
+// behaviour) and does no focus handling. Returns true when `decodedKey` is a hold binding, so the caller
+// skips the normal shortkey path.
+const handleHoldKeydown = (decodedKey) => {
+  const fn = mapFunctions[decodedKey];
+
+  if (!fn || !fn.hold) {
+    return false;
+  }
+  if (!fn.held) {
+    fn.held = true;
+    dispatchHoldEvent(decodedKey, true);
+  }
+
+  return true;
+};
+
+const handleHoldKeyup = (decodedKey) => {
+  const fn = mapFunctions[decodedKey];
+
+  if (!fn || !fn.hold) {
+    return false;
+  }
+  if (fn.held) {
+    fn.held = false;
+    dispatchHoldEvent(decodedKey, false);
+  }
+
+  return true;
+};
+
+// Focus / visibility loss releases every held binding: once focus leaves the page the keyup that would
+// clear it never arrives, so this is the reliable release.
+const releaseHeldKeys = () => {
+  Object.keys(mapFunctions).forEach((k) => {
+    const fn = mapFunctions[k];
+
+    if (fn.hold && fn.held) {
+      fn.held = false;
+      dispatchHoldEvent(k, false);
+    }
+  });
+};
+
 ShortKey.keyDown = (pKey) => {
   if ((!mapFunctions[pKey].once && !mapFunctions[pKey].push) || (mapFunctions[pKey].push && !keyPressed)) {
     dispatchShortkeyEvent(pKey);
@@ -209,6 +285,12 @@ if (process && process.env && process.env.NODE_ENV !== 'test') {
   (function() {
     document.addEventListener('keydown', (pKey) => {
       const decodedKey = ShortKey.decodeKey(pKey);
+
+      // Hold bindings observe only — handled before the avoid/preventDefault path so they never swallow
+      // the key (a bare Alt keeps its native behaviour) and aren't gated by the focus/avoid list.
+      if (handleHoldKeydown(decodedKey)) {
+        return;
+      }
 
       // Check avoidable elements
       if (availableElement(decodedKey)) {
@@ -231,6 +313,10 @@ if (process && process.env && process.env.NODE_ENV !== 'test') {
     document.addEventListener('keyup', (pKey) => {
       const decodedKey = ShortKey.decodeKey(pKey);
 
+      if (handleHoldKeyup(decodedKey)) {
+        return;
+      }
+
       if (availableElement(decodedKey)) {
         if (!mapFunctions[decodedKey].propagte) {
           pKey.preventDefault();
@@ -242,23 +328,36 @@ if (process && process.env && process.env.NODE_ENV !== 'test') {
       }
       keyPressed = false;
     }, true);
+
+    // A hold reveal must clear when focus leaves the page — the keyup that would release it never arrives
+    // once focus moves away (clicking the URL bar, alt-tabbing).
+    window.addEventListener('blur', releaseHeldKeys);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        releaseHeldKeys();
+      }
+    });
   })();
 }
 
 const mappingFunctions = ({
-  b, push, once, focus, propagte, el
+  b, push, once, focus, propagte, hold, el
 }) => {
   for (const key in b) {
     const k = ShortKey.encodeKey(b[key]);
-    const elm = mapFunctions[k] && mapFunctions[k].el ? mapFunctions[k].el : [];
-    const propagated = mapFunctions[k] && mapFunctions[k].propagte;
+    const existing = mapFunctions[k];
+    const elm = existing && existing.el ? existing.el : [];
+    const propagated = existing && existing.propagte;
 
     elm.push(el);
     mapFunctions[k] = {
       push,
       once,
       focus,
+      hold,
       key,
+      // Preserve any in-progress held state across a re-bind so a re-render mid-hold doesn't reset it.
+      held:     existing ? existing.held : false,
       propagte: propagated || propagte,
       el:       elm
     };
@@ -280,3 +379,9 @@ const isActiveElementChildOf = (container) => {
 };
 
 export default ShortKey;
+
+// Exposed for unit tests — the global keydown/keyup listeners above are disabled under NODE_ENV=test, so
+// tests drive the hold logic through these directly (mapFunctions is the registry the directive fills).
+export const _internal = {
+  mapFunctions, handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, dispatchHoldEvent
+};
