@@ -2,7 +2,7 @@ import { steveCleanForDownload, EDIT_HIDDEN_METADATA_KEYS } from '@shell/plugins
 
 describe('steve: ressource-utils', () => {
   it('should do nothing if the yaml is not passed', () => {
-    const r = steveCleanForDownload();
+    const r = steveCleanForDownload(undefined as unknown as string);
 
     expect(r).toBeUndefined();
   });
