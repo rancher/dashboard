@@ -9,7 +9,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fingerprint, flatten, norm } from './fingerprint.mjs';
+import { fingerprint, flatten, norm, normalizePath } from './fingerprint.mjs';
 
 // A trimmed-down shape mirroring what the a11y plugin writes to accessibility.json.
 const sampleReport = {
@@ -88,4 +88,74 @@ test('flatten collapses multiple nodes of one rule on a page into a single recor
 test('flatten is empty for a report with no violations', () => {
   assert.equal(flatten({ children: [] }).size, 0);
   assert.equal(flatten({}).size, 0);
+});
+
+// --- generated-leaf normalisation -------------------------------------------
+//
+// The plugin appends `${parentTitle} (#n)` to every violation path. n renumbers as
+// sibling checks gain/lose violating nodes, and the segment only appears at all when
+// tidy() declines to collapse it — so a fingerprint that included it would move
+// under the ratchet for reasons unrelated to accessibility.
+
+const menuPath = ['shell.spec.ts', 'Shell a11y testing', 'Logged in', 'Menus', 'Burger Menu'];
+
+test('normalizePath drops the auto-generated (#n) leaf', () => {
+  assert.deepEqual(normalizePath([...menuPath, 'Burger Menu (#1)']), menuPath);
+  assert.deepEqual(normalizePath([...menuPath, 'Burger Menu (#12)']), menuPath);
+});
+
+test('normalizePath keeps a segment that is not the parent name plus a counter', () => {
+  // A caller-supplied description, even one shaped like the generated leaf.
+  assert.deepEqual(normalizePath([...menuPath, 'Brand logo']), [...menuPath, 'Brand logo']);
+  assert.deepEqual(normalizePath([...menuPath, 'Something else (#2)']), [...menuPath, 'Something else (#2)']);
+});
+
+test('normalizePath normalises whitespace and drops empty segments', () => {
+  assert.deepEqual(normalizePath(['  a ', '', null, ' b  c ']), ['a', 'b c']);
+  assert.deepEqual(normalizePath(undefined), []);
+});
+
+test('fingerprint is unchanged when tidy() stops collapsing the leaf', () => {
+  // Today the leaf is collapsed away; it reappears the moment a second check in the
+  // same `it` starts violating. Both forms must hash the same, or every already
+  // accepted violation in that test would be re-reported as new.
+  assert.equal(
+    fingerprint(menuPath, 'listitem'),
+    fingerprint([...menuPath, 'Burger Menu (#1)'], 'listitem'),
+  );
+});
+
+test('fingerprint ignores the per-node counter', () => {
+  // 'Product Side navigation' runs seven checks in a forEach; one extra violating
+  // node in the first shifts the counter for the other six.
+  const nav = ['shell.spec.ts', 'Shell a11y testing', 'Logged in', 'Menus', 'Product Side navigation'];
+
+  assert.equal(
+    fingerprint([...nav, 'Product Side navigation (#1)'], 'color-contrast'),
+    fingerprint([...nav, 'Product Side navigation (#19)'], 'color-contrast'),
+  );
+});
+
+test('flatten folds collapsed and un-collapsed forms of one test together', () => {
+  const report = {
+    stats:    { totalTests: 1 },
+    children: [{
+      name:       'shell.spec.ts',
+      violations: [],
+      children:   [{
+        name:       'Burger Menu',
+        // Violations hoisted by tidy() onto the parent...
+        violations: [{ id: 'listitem', impact: 'serious', help: 'h' }],
+        // ...and the same rule on a generated leaf that did not collapse.
+        children:   [{
+          name: 'Burger Menu (#2)', leaf: true, children: [], violations: [{ id: 'listitem', impact: 'serious', help: 'h' }],
+        }],
+      }],
+    }],
+  };
+
+  const map = flatten(report);
+
+  assert.equal(map.size, 1, 'both forms should share one fingerprint');
+  assert.equal([...map.values()][0].where, 'shell.spec.ts > Burger Menu', 'where should not carry the generated leaf');
 });
