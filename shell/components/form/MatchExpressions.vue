@@ -6,11 +6,12 @@ import { isArray, removeObject } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
 import { convert, simplify } from '@shell/utils/selector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['update:value', 'add', 'remove'],
 
-  components: { Select, LabeledSelect },
+  components: { Select, LabeledSelect, RcButton },
   props:      {
     // Array of actual match expressions
     // or k8s selector Object of {matchExpressions, matchLabels}
@@ -90,6 +91,14 @@ export default {
     keysSelectOptions: {
       type:    Array,
       default: () => []
+    },
+
+    /**
+     * Use RcButton in place of the legacy `btn` markup for the add and remove buttons
+     */
+    useRc: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -290,8 +299,17 @@ export default {
       v-if="rules.length"
       name="header"
     />
+    <RcButton
+      v-if="showRemove && !isView && useRc"
+      variant="ghost"
+      size="small"
+      class="remove-expression"
+      left-icon="close"
+      :aria-label="t('generic.remove')"
+      @click="$emit('remove')"
+    />
     <button
-      v-if="showRemove && !isView"
+      v-else-if="showRemove && !isView"
       type="button"
       class="btn role-link remove-expression"
       @click="$emit('remove')"
@@ -409,8 +427,18 @@ export default {
         v-if="showRemoveButton"
         class="remove-container"
       >
+        <RcButton
+          v-if="!isView && useRc"
+          variant="link"
+          size="small"
+          :disabled="mode==='view'"
+          :data-testid="`input-match-expression-remove-control-${index}`"
+          @click="removeRule(row)"
+        >
+          <t k="generic.remove" />
+        </RcButton>
         <button
-          v-if="!isView"
+          v-else-if="!isView"
           type="button"
           class="btn role-link"
           :style="{padding:'0px'}"
@@ -427,7 +455,22 @@ export default {
       v-if="!isView && showAddButton"
       class="mmt-4"
     >
+      <RcButton
+        v-if="useRc"
+        size="small"
+        variant="secondary"
+        :class="[addClass]"
+        data-testid="input-match-expression-add-rule"
+        @click="addRule"
+      >
+        <i
+          v-if="addIcon"
+          class="mr-5 icon"
+          :class="[addIcon]"
+        /> {{ _addLabel }}
+      </RcButton>
       <button
+        v-else
         type="button"
         class="btn role-tertiary add"
         :class="[addClass]"

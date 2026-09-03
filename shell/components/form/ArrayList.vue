@@ -8,13 +8,15 @@ import { clone } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Banner from '@components/Banner/Banner.vue';
 import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
+import { RcButton } from '@components/RcButton';
+
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
   emits: ['add', 'remove', 'update:value'],
 
   components: {
-    TextAreaAutoGrow, LabeledInput, Banner
+    TextAreaAutoGrow, LabeledInput, Banner, RcButton
   },
   props: {
     value: {
@@ -124,6 +126,11 @@ export default {
       type:    String,
       default: null,
     },
+
+    useRcButton: {
+      type: Boolean,
+      default: false
+    }
 
   },
 
@@ -375,6 +382,7 @@ export default {
             :row="row"
             :mode="mode"
             :isView="isView"
+            :remove="() => remove(row, idx)"
           >
             <div class="value">
               <slot
@@ -468,14 +476,31 @@ export default {
       </div>
       <div
         v-if="showAdd && !isView"
-        class="footer mmt-6"
+        class="footer"
+        :class="{'mmt-6':!useRcButton}"
       >
         <slot
           v-if="showAdd"
           name="add"
           :add="add"
         >
+        <RcButton v-if="useRcButton"
+          size="small"
+          variant="secondary"
+          :class="[addClass]"
+          :data-testid="`${componentTestid}-button`"
+          :disabled="loading || disableAdd"
+          role="button"
+          :aria-label="_addLabel"
+          @click="add()"
+        >
+          <i
+            class="mr-5 icon"
+            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
+          /> {{ _addLabel }}
+        </RcButton>
           <button
+            v-else
             type="button"
             class="btn role-tertiary add"
             :class="[addClass]"
