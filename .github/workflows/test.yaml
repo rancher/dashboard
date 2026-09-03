@@ -232,12 +232,18 @@ jobs:
           path: cypress/accessibility
 
       # Ratchet gate: fail only on a11y violations that are not in the committed
-      # baseline (cypress/e2e/tests/accessibility/baseline.json). Runs report-only
-      # while A11Y_RATCHET_ENFORCE is unset/false; set the repo variable to 'true'
-      # to hard-fail on new regressions. Runs on failure too so it can inspect a
-      # completed report even when an earlier test step failed.
+      # baseline (cypress/e2e/tests/accessibility/baseline.json). Enforcement is
+      # opt-in: report-only unless the A11Y_RATCHET_ENFORCE repo variable is
+      # exactly 'true'.
+      #
+      # Deliberately `success()`, not `always()`. Violations are collected with
+      # skipFailures, so they never redden the test step -- a red test step means
+      # the run itself broke, and Cypress still fires `after:run`, leaving a report
+      # that is a strict subset of the baseline. Comparing it would find nothing
+      # new and print a green ratchet directly beneath the failure. The report is
+      # still uploaded on failure by the step above, so nothing is lost.
       - name: A11y ratchet
-        if: always()
+        if: success()
         run: yarn a11y:compare
         env:
           A11Y_RATCHET_ENFORCE: ${{ vars.A11Y_RATCHET_ENFORCE }}

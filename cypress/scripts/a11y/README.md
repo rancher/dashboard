@@ -32,8 +32,9 @@ size is a single burn-down metric.
   while the plugin's `tidy()` collapse declines to fold it away. Including either
   would let accepted violations move under the ratchet for non-a11y reasons.
 - `compare-a11y.mjs` — the CLI gate (see below).
-- `fingerprint.test.mjs` — unit tests, run with the built-in Node test runner
-  (`node:test`) because Jest ignores `cypress/`.
+- `fingerprint.test.mjs`, `compare-a11y.test.mjs` — unit tests, run with the built-in
+  Node test runner (`node:test`) because Jest ignores `cypress/`. The CLI is tested as
+  a subprocess, since its exit code is its contract with CI.
 - `../../e2e/tests/accessibility/baseline.json` — the committed ledger of accepted
   violations. It lives next to the spec because `cypress/accessibility/` is gitignored.
 
@@ -42,7 +43,7 @@ size is a single burn-down metric.
 ```sh
 yarn a11y:compare    # gate: compare report vs baseline (see A11Y_RATCHET_ENFORCE below)
 yarn a11y:baseline   # regenerate the baseline from the current report
-yarn a11y:test       # run the fingerprint unit tests
+yarn a11y:test       # run the ratchet unit tests
 ```
 
 `compare-a11y.mjs` reads:
@@ -52,13 +53,32 @@ yarn a11y:test       # run the fingerprint unit tests
 - the baseline from `A11Y_BASELINE_PATH` (default `cypress/e2e/tests/accessibility/baseline.json`).
 
 Exit codes: `0` clean / soft mode / `--update` ok · `1` new violations (hard mode) ·
-`2` report missing, empty (`stats.totalTests === 0`), or malformed — it refuses to
-compare a hollow run rather than give a false green.
+`2` the report cannot support a trustworthy comparison.
 
 Enforcement is **opt-in**: the gate reports without failing unless
 `A11Y_RATCHET_ENFORCE` is exactly `true`. Every other value — unset, empty, `false`,
 `0` — is report-only, so a missing or mistyped repo variable can never turn the gate
-on by accident. `--soft` forces report-only regardless.
+on by accident. `--soft` forces report-only regardless. Soft mode also downgrades the
+exit-2 cases below to a warning, so during the rollout the gate cannot redden a job
+for any reason. `--update` ignores soft mode: writing a hollow baseline would
+silently lower the ratchet, so a bad report is always fatal there.
+
+## Completeness
+
+A crashed or truncated run still writes a report — Cypress fires `after:run` either
+way — and that report is a strict *subset* of the baseline. Nothing looks new, so a
+naive comparison prints a green ratchet directly beneath a broken run. Three things
+prevent that false green:
+
+- the report must contain at least one test (`stats.totalTests > 0`);
+- it must cover at least as many tests as the baseline was taken from. `--update`
+  records the run's `stats` in `baseline.json` for exactly this comparison. The check
+  is inert on baselines predating the field, and re-baselining keeps it current. If
+  coverage was reduced deliberately, re-baseline and commit;
+- the CI step runs `if: success()`, so it does not even attempt a comparison when the
+  test step failed. Violations are collected with `skipFailures`, so they never redden
+  that step — a red one means the run itself broke. The report is still uploaded on
+  failure, so nothing is lost.
 
 ## Rollout (soft launch → hard fail)
 

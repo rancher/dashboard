@@ -1,6 +1,12 @@
 {
   "version": 1,
   "description": "Accepted a11y violations (ratchet baseline). CI fails on any violation not listed here. Regenerate with `yarn a11y:baseline` after running the a11y suite.",
+  "stats": {
+    "totalTests": 50,
+    "totalPassed": 50,
+    "totalFailed": 0,
+    "totalSuites": 18
+  },
   "violations": [
     {
       "fingerprint": "027b9fcc88d33f162bce93d46c19b8e641d78173d2d96e38589a9fa319039bc5",
