@@ -117,6 +117,7 @@ function iconFor(resource: any): string[] {
 
   .badge-wrap {
     line-height: 1.15;
+    font-size: 12px;
   }
 }
 </style>
