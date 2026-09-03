@@ -850,7 +850,7 @@ describe('component: rke2', () => {
   });
 
   // Characterization tests written ahead of extracting Kubernetes-version resolution
-  // (versionOptions/selectedVersion/chartVersions/defaultVersion/fetchRke2Versions/cloudProviderOptions)
+  // (versionOptions/selectedVersion/chartVersions/defaultVersion/fetchK8sVersions/cloudProviderOptions)
   // into a composable.
   describe('kubernetes version resolution', () => {
     const version = (id: string, overrides: Record<string, any> = {}) => ({

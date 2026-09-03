@@ -6,6 +6,7 @@ import merge from 'lodash/merge';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/useKubernetesVersions';
+import { usePodSecurityAdmissionTemplates } from '@shell/composables/usePodSecurityAdmissionTemplates';
 import { normalizeName } from '@shell/utils/kube';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
@@ -149,12 +150,17 @@ export default {
   },
 
   setup(props) {
-    return useKubernetesVersions(props);
+    return {
+      ...useKubernetesVersions(props),
+      ...usePodSecurityAdmissionTemplates(),
+    };
   },
 
   async fetch() {
-    await this.fetchRke2Versions();
+    await this.fetchK8sVersions();
     this.errors = this.errors.concat(this.fetchVersionsErrors);
+    await this.fetchAllPSAs();
+    this.errors = this.errors.concat(this.psaErrors);
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();

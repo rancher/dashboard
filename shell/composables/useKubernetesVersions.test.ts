@@ -1,6 +1,5 @@
 import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/useKubernetesVersions';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
-import { MANAGEMENT } from '@shell/config/types';
 
 const mockGetters: Record<string, any> = {};
 const mockDispatch = jest.fn();
@@ -161,8 +160,8 @@ describe('composable: useKubernetesVersions', () => {
     });
   });
 
-  describe('fetchRke2Versions', () => {
-    const buildDispatch = ({ channelResponses = {} as Record<string, any[]>, psas = [] as any[] } = {}) => {
+  describe('fetchK8sVersions', () => {
+    const buildDispatch = ({ channelResponses = {} as Record<string, any[]> } = {}) => {
       return jest.fn((action: string, args: any = {}) => {
         const { url } = args;
 
@@ -181,21 +180,17 @@ describe('composable: useKubernetesVersions', () => {
           }
         }
 
-        if (action === 'management/findAll') {
-          return Promise.resolve(psas);
-        }
-
         return Promise.resolve();
       });
     };
 
     it('does nothing when both distros are already loaded', async() => {
-      const { fetchRke2Versions, rke2Versions, k3sVersions } = useKubernetesVersions(baseProps());
+      const { fetchK8sVersions, rke2Versions, k3sVersions } = useKubernetesVersions(baseProps());
 
       rke2Versions.value = [{ id: 'cached' }];
       k3sVersions.value = [{ id: 'cached' }];
 
-      await fetchRke2Versions();
+      await fetchK8sVersions();
 
       expect(mockDispatch).not.toHaveBeenCalled();
     });
@@ -208,12 +203,12 @@ describe('composable: useKubernetesVersions', () => {
         { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
       ];
 
-      const { fetchRke2Versions, rke2Versions, k3sVersions } = useKubernetesVersions(baseProps());
+      const { fetchK8sVersions, rke2Versions, k3sVersions } = useKubernetesVersions(baseProps());
 
       rke2Versions.value = [{ id: 'cached' }];
       // k3sVersions left null, as if a prior call's k3s request failed
 
-      await fetchRke2Versions();
+      await fetchK8sVersions();
 
       expect(mockDispatch).toHaveBeenCalledWith('management/request', { url: '/v1-k3s-release/releases' });
       expect(k3sVersions.value).toStrictEqual([{ id: 'v1.28.0+k3s1', serverArgs: {} }]);
@@ -228,10 +223,10 @@ describe('composable: useKubernetesVersions', () => {
       ];
 
       const {
-        fetchRke2Versions, rke2Versions, k3sVersions, defaultRke2, defaultK3s
+        fetchK8sVersions, rke2Versions, k3sVersions, defaultRke2, defaultK3s
       } = useKubernetesVersions(baseProps());
 
-      await fetchRke2Versions();
+      await fetchK8sVersions();
 
       expect(rke2Versions.value).toStrictEqual([{ id: 'v1.28.0+rke2r1', serverArgs: {} }]);
       expect(k3sVersions.value).toStrictEqual([{ id: 'v1.28.0+k3s1', serverArgs: {} }]);
@@ -249,47 +244,12 @@ describe('composable: useKubernetesVersions', () => {
       mockGetters['management/canList'] = () => false;
       mockGetters['management/all'] = () => [];
 
-      const { fetchRke2Versions, defaultRke2, defaultK3s } = useKubernetesVersions(baseProps());
+      const { fetchK8sVersions, defaultRke2, defaultK3s } = useKubernetesVersions(baseProps());
 
-      await fetchRke2Versions();
+      await fetchK8sVersions();
 
       expect(defaultRke2.value).toBe('v1.29.0+rke2r1');
       expect(defaultK3s.value).toBe('v1.29.0+k3s1');
-    });
-
-    it('fetches all PSAs when management/canList allows listing PSA', async() => {
-      const psas = [{ id: 'psa-1' }, { id: 'psa-2' }];
-
-      mockDispatch.mockImplementation(buildDispatch({ psas }));
-      mockGetters['management/canList'] = jest.fn(() => true);
-      mockGetters['management/all'] = () => [
-        { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
-        { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
-      ];
-
-      const { fetchRke2Versions, allPSAs } = useKubernetesVersions(baseProps());
-
-      await fetchRke2Versions();
-
-      expect(mockGetters['management/canList']).toHaveBeenCalledWith(MANAGEMENT.PSA);
-      expect(mockDispatch).toHaveBeenCalledWith('management/findAll', { type: MANAGEMENT.PSA });
-      expect(allPSAs.value).toStrictEqual(psas);
-    });
-
-    it('does not fetch PSAs when management/canList disallows listing PSA', async() => {
-      mockDispatch.mockImplementation(buildDispatch({ psas: [{ id: 'psa-1' }] }));
-      mockGetters['management/canList'] = jest.fn(() => false);
-      mockGetters['management/all'] = () => [
-        { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
-        { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
-      ];
-
-      const { fetchRke2Versions, allPSAs } = useKubernetesVersions(baseProps());
-
-      await fetchRke2Versions();
-
-      expect(mockDispatch).not.toHaveBeenCalledWith('management/findAll', expect.anything());
-      expect(allPSAs.value).toStrictEqual([]);
     });
 
     it('records an error instead of throwing when no version info is returned for either distro', async() => {
@@ -305,9 +265,9 @@ describe('composable: useKubernetesVersions', () => {
       mockGetters['management/canList'] = () => false;
       mockGetters['management/all'] = () => [];
 
-      const { fetchRke2Versions, fetchVersionsErrors } = useKubernetesVersions(baseProps());
+      const { fetchK8sVersions, fetchVersionsErrors } = useKubernetesVersions(baseProps());
 
-      await expect(fetchRke2Versions()).resolves.toBeUndefined();
+      await expect(fetchK8sVersions()).resolves.toBeUndefined();
       expect(fetchVersionsErrors.value).toStrictEqual(['No version info found in KDM']);
     });
 
@@ -328,40 +288,14 @@ describe('composable: useKubernetesVersions', () => {
       ];
 
       const {
-        fetchRke2Versions, rke2Versions, k3sVersions, fetchVersionsErrors
+        fetchK8sVersions, rke2Versions, k3sVersions, fetchVersionsErrors
       } = useKubernetesVersions(baseProps());
 
-      await fetchRke2Versions();
+      await fetchK8sVersions();
 
       expect(fetchVersionsErrors.value).toStrictEqual(['rke2 releases request failed']);
       expect(rke2Versions.value).toBeNull();
       expect(k3sVersions.value).toStrictEqual([{ id: 'v1.28.0+k3s1', serverArgs: {} }]);
-    });
-
-    it('records an error without throwing when the PSA request fails', async() => {
-      mockDispatch.mockImplementation((action: string, args: any = {}) => {
-        if (action === 'management/findAll') {
-          return Promise.reject(new Error('PSA request failed'));
-        }
-
-        return buildDispatch()(action, args);
-      });
-      mockGetters['management/canList'] = jest.fn(() => true);
-      mockGetters['management/all'] = () => [
-        { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
-        { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
-      ];
-
-      const {
-        fetchRke2Versions, allPSAs, rke2Versions, fetchVersionsErrors
-      } = useKubernetesVersions(baseProps());
-
-      await expect(fetchRke2Versions()).resolves.toBeUndefined();
-
-      expect(fetchVersionsErrors.value).toStrictEqual(['PSA request failed']);
-      expect(allPSAs.value).toStrictEqual([]);
-      // the failure is isolated to the PSA request - version data still loads normally
-      expect(rke2Versions.value).toStrictEqual([{ id: 'v1.28.0+rke2r1', serverArgs: {} }]);
     });
 
     it('retries a previously failed request on the next call, rather than treating the failure as "loaded"', async() => {
@@ -382,14 +316,14 @@ describe('composable: useKubernetesVersions', () => {
         { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
       ];
 
-      const { fetchRke2Versions, rke2Versions, fetchVersionsErrors } = useKubernetesVersions(baseProps());
+      const { fetchK8sVersions, rke2Versions, fetchVersionsErrors } = useKubernetesVersions(baseProps());
 
-      await fetchRke2Versions();
+      await fetchK8sVersions();
       expect(rke2Versions.value).toBeNull();
       expect(fetchVersionsErrors.value).toStrictEqual(['rke2 releases request failed']);
 
       rke2ReleasesShouldFail = false;
-      await fetchRke2Versions();
+      await fetchK8sVersions();
 
       expect(rke2Versions.value).toStrictEqual([{ id: 'v1.28.0+rke2r1', serverArgs: {} }]);
       expect(fetchVersionsErrors.value).toStrictEqual([]);

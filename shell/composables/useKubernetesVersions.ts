@@ -12,6 +12,13 @@ export interface UseKubernetesVersionsProps {
   liveValue: any;
   value: any;
 }
+export interface KubernetesDistroVersion {
+  id: string;
+  serverArgs?: Record<string, any>;
+  agentArgs?: Record<string, any>;
+  charts?: Record<string, { repo: string; version: string }>;
+  [key: string]: any;
+}
 
 /**
  * Resolves the RKE2/K3s Kubernetes version list, the version currently selected on the cluster
@@ -21,11 +28,10 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
   const store = useStore();
   const { t } = useI18n(store);
 
-  const rke2Versions = ref<any[] | null>(null);
-  const k3sVersions = ref<any[] | null>(null);
+  const rke2Versions = ref<KubernetesDistroVersion[] | null>(null);
+  const k3sVersions = ref<KubernetesDistroVersion[] | null>(null);
   const defaultRke2 = ref('');
   const defaultK3s = ref('');
-  const allPSAs = ref<any[]>([]);
   const showDeprecatedPatchVersions = ref(false);
 
   const versionOptions = computed(() => {
@@ -109,7 +115,7 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
   const fetchVersionsErrors = ref<string[]>([]);
 
   /**
-   * Each request is caught individually so that one failing endpoint (e.g. PSAs, or one distro's
+   * Each request is caught individually so that one failing endpoint (one distro's
    * releases/channels) doesn't wipe out data that loaded successfully from the others, and doesn't
    * abort the caller's fetch() - the caller reads `fetchVersionsErrors` afterward and displays it
    * (e.g. via `this.errors`) instead of the whole page failing to load.
@@ -124,7 +130,7 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
     }
   }
 
-  async function fetchRke2Versions() {
+  async function fetchK8sVersions() {
     if (rke2Versions.value !== null && k3sVersions.value !== null) {
       return;
     }
@@ -135,16 +141,6 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
       rke2Versions: safeRequest('/v1-rke2-release/releases'),
       k3sVersions:  safeRequest('/v1-k3s-release/releases'),
     };
-
-    let nextAllPSAs: any[] | undefined;
-
-    if (store.getters['management/canList'](MANAGEMENT.PSA)) {
-      try {
-        nextAllPSAs = await store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
-      } catch (e: any) {
-        fetchVersionsErrors.value.push(e?.message || String(e));
-      }
-    }
 
     // Get the latest versions from the global settings if possible
     let globalSettings: any[] = [];
@@ -175,8 +171,6 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
 
     const nextRke2Versions = res.rke2Versions?.data || [];
     const nextK3sVersions = res.k3sVersions?.data || [];
-
-    allPSAs.value = nextAllPSAs || [];
 
     if (res.rke2Versions) {
       rke2Versions.value = nextRke2Versions;
@@ -211,7 +205,6 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
     k3sVersions,
     defaultRke2,
     defaultK3s,
-    allPSAs,
     showDeprecatedPatchVersions,
     versionOptions,
     selectedVersion,
@@ -219,7 +212,7 @@ export function useKubernetesVersions(props: UseKubernetesVersionsProps) {
     serverArgs,
     agentArgs,
     chartVersions,
-    fetchRke2Versions,
+    fetchK8sVersions,
     fetchVersionsErrors,
   };
 }
@@ -228,7 +221,7 @@ export interface GetDefaultVersionOptions {
   store: any;
   versionOptions: any[];
   defaultRke2: string;
-  rke2Versions: any[] | null;
+  rke2Versions: KubernetesDistroVersion[] | null;
   /**
    * Kept as a plain boolean input rather than something this composable derives itself:
    * it's owned by an Options API computed on the consuming component (reads $route), and
