@@ -18,7 +18,7 @@
         },
         "runtime-rancher-version": "2.15.0",
         "helm": {
-          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.15"
+          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.16"
         },
         "kube": {
           "version": "v1.35.2+k3s1"
