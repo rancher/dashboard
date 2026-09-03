@@ -8203,10 +8203,10 @@ pvutils@^1.1.3, pvutils@^1.1.5:
   resolved "https://registry.yarnpkg.com/pvutils/-/pvutils-1.1.5.tgz#84b0dea4a5d670249aa9800511804ee0b7c2809c"
   integrity sha512-KTqnxsgGiQ6ZAzZCVlJH5eOjSnvlyEgx1m8bkRJfOhmGRqfo5KLvmAlACQkrjEtOQ4B7wF9TdSLIs9O90MX9xA==
 
-qs@~6.15.1:
-  version "6.15.3"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.15.3.tgz#76852132a58ed5c7c0ef67e4441b9bb5d6061b3b"
-  integrity sha512-O9gl3zCl5h5blw1KGUzQKhA5oUXSl8rwUIM5o0S3nCXMliSvy5Dzx7/DJcI+SwgICv+IneSZwhBh1oSyEHA71A==
+qs@6.16.0, qs@~6.15.1:
+  version "6.16.0"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.16.0.tgz#c22c723a28a920f3aacdce8289fabd43eccb79fd"
+  integrity sha512-h6fhOIaRrID2CbEY2fqs+7t+UXZo+MLAnU5gRIq85uFtdiUPCdsApMlHhXogKVM4HM2DVbIjGNTTYH2OcmP1vA==
   dependencies:
     es-define-property "^1.0.1"
     side-channel "^1.1.1"
@@ -8779,7 +8779,7 @@ send@~0.19.0, send@~0.19.1:
     range-parser "~1.2.1"
     statuses "~2.0.2"
 
-serialize-javascript@^6.0.0, serialize-javascript@^6.0.1:
+serialize-javascript@7.0.5, serialize-javascript@^6.0.0, serialize-javascript@^6.0.1:
   version "7.0.5"
   resolved "https://registry.yarnpkg.com/serialize-javascript/-/serialize-javascript-7.0.5.tgz#c798cc0552ffbb08981914a42a8756e339d0d5b1"
   integrity sha512-F4LcB0UqUl1zErq+1nYEEzSHJnIwb3AF2XWB94b+afhrekOUijwooAYqFyRbjYkm2PAKBabx6oYv/xDxNi8IBw==
@@ -9590,7 +9590,7 @@ utils-merge@1.0.1:
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
 
-uuid@^8.3.2:
+uuid@11.1.1, uuid@^8.3.2:
   version "11.1.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.1.tgz#f6d81d2e1c65d00762e5e29b16c5d2d995e208ad"
   integrity sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==
@@ -9725,7 +9725,7 @@ webpack-dev-middleware@^7.4.2:
     range-parser "^1.2.1"
     schema-utils "^4.0.0"
 
-webpack-dev-server@^4.15.2:
+webpack-dev-server@5.2.6, webpack-dev-server@^4.15.2:
   version "5.2.6"
   resolved "https://registry.yarnpkg.com/webpack-dev-server/-/webpack-dev-server-5.2.6.tgz#3a5d41233cbb7504f814d19e59a59173fb8ae23d"
   integrity sha512-HNLRmamRvVavZQ+avceZifmv8hmdUjg43t6MI4SqJDwFdW7RPQwH5vzGhDRZSX59SgfbeHhLnq3g+uooWo7pVw==
@@ -9895,7 +9895,7 @@ write-file-atomic@^3.0.3:
     signal-exit "^3.0.2"
     typedarray-to-buffer "^3.1.5"
 
-ws@^7.3.1, ws@^8.18.0:
+ws@8.21.0, ws@^7.3.1, ws@^8.18.0:
   version "8.21.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.21.0.tgz#012e413fc07429945121b0c153158c4343086951"
   integrity sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==
@@ -9948,4 +9948,3 @@ zwitch@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/zwitch/-/zwitch-2.0.4.tgz#c827d4b0acb76fc3e685a4c6ec2902d51070e9d7"
   integrity sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==
-
