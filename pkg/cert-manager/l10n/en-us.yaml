@@ -28,8 +28,8 @@ certManager:
       message: 'Tips: update the namespace filter above or <resetLink>reset the namespaces filter</resetLink>.'
       docsMessage: Want to learn more about the Cert Manager? Read our <docsLink>documentation</docsLink>.
     create:
-      issuer: Create Issuer
-      clusterIssuer: Create Cluster Issuer
+      issuer: Create issuer
+      clusterIssuer: Create cluster issuer
     emptyCard:
       issuers: No issuers available
       clusterIssuers: No cluster issuers available
@@ -46,9 +46,9 @@ certManager:
       title: Get started with Cert Manager
       message: Cert Manager issues and renews TLS certificates for your cluster. A certificate always references an <issuer>Issuer</issuer> (or a <clusterIssuer>Cluster Issuer</clusterIssuer>) - you need to create one first. Afterwards, you can request certificates against it. Want to learn more about the Cert Manager?
       docsMessage: Read our <docsLink>documentation</docsLink>.
-      createIssuer: Create Issuer
-      createClusterIssuer: Create Cluster Issuer
-      createCertificate: Create Certificate
+      createIssuer: Create issuer
+      createClusterIssuer: Create cluster issuer
+      createCertificate: Create certificate
 
   action:
     renew:
