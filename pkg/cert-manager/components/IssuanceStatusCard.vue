@@ -85,7 +85,7 @@ function iconFor(resource: any): string[] {
 .stages {
   display: flex;
   flex-direction: column;
-  gap: var(--gap);
+  gap: 6px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -94,8 +94,7 @@ function iconFor(resource: any): string[] {
 .stage {
   align-items: center;
   display: flex;
-  gap: var(--gap-md);
-  line-height: 24px;
+  gap: 12px;
 
   .state-icon {
     flex: 0 0 auto;
@@ -113,11 +112,14 @@ function iconFor(resource: any): string[] {
   // Let the link take the slack so the state badge sits flush to the right edge of the card.
   .label {
     flex-grow: 1;
+    min-width: 0;
   }
 
   .badge-wrap {
     line-height: 1.15;
     font-size: 12px;
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 }
 </style>
