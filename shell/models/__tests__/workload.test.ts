@@ -147,15 +147,86 @@ describe('class: Workload', () => {
       });
 
       workload.scaleUp = scaleUpMock;
-      // `$store` does not exist anywhere on the model hierarchy, so the catch block in `scale` only
-      // reaches a dispatch because the test injects one. Once `workload.js:200` is corrected to
-      // `this.$dispatch(...)` the assertion below passes unchanged, since `$dispatch` is
-      // `this.$ctx.dispatch`, the same `dispatchMock`, and only this line gets deleted.
-      Object.defineProperty(workload, '$store', { get: () => ({ dispatch: dispatchMock }) });
 
       await workload.scale(true);
 
       expect(dispatchMock).toHaveBeenCalledWith(
+        'growl/fromError',
+        expect.objectContaining({
+          title: expect.stringContaining('workload.list.errorCannotScale'),
+          err:   expect.any(Error)
+        }),
+        { root: true }
+      );
+    });
+  });
+
+  describe('methods: scaleUp and scaleDown', () => {
+    const dispatch = jest.fn();
+
+    const scalableWorkload = (replicas: number, save: () => Promise<Workload>) => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { replicas }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch,
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      workload.save = save;
+
+      return workload;
+    };
+
+    beforeEach(() => dispatch.mockClear());
+
+    it('should write the new replica count when the save succeeds', async() => {
+      const workload = scalableWorkload(2, jest.fn().mockResolvedValue(undefined));
+
+      await workload.scaleUp();
+
+      expect(workload.spec.replicas).toBe(3);
+
+      await workload.scaleDown();
+
+      expect(workload.spec.replicas).toBe(2);
+    });
+
+    it('should not write below zero replicas', async() => {
+      const save = jest.fn().mockResolvedValue(undefined);
+      const workload = scalableWorkload(0, save);
+
+      await workload.scaleDown();
+
+      expect(workload.spec.replicas).toBe(0);
+      expect(save).toHaveBeenCalledTimes(0);
+    });
+
+    it('should roll the replica count back when the save fails', async() => {
+      const workload = scalableWorkload(2, jest.fn().mockRejectedValue(new Error('Forbidden')));
+
+      // The optimistic write must not survive a rejected save. The store only re-fetches on a
+      // 409, so nothing else puts the real count back.
+      await expect(workload.scaleUp()).rejects.toThrow('Forbidden');
+
+      expect(workload.spec.replicas).toBe(2);
+
+      await expect(workload.scaleDown()).rejects.toThrow('Forbidden');
+
+      expect(workload.spec.replicas).toBe(2);
+    });
+
+    it('should growl and leave the replica count unchanged when scale handles the failure', async() => {
+      const workload = scalableWorkload(2, jest.fn().mockRejectedValue(new Error('Forbidden')));
+
+      await workload.scale(true);
+
+      expect(workload.spec.replicas).toBe(2);
+      // Without the growl the count snaps back with nothing said, which reads as the button
+      // having done nothing at all
+      expect(dispatch).toHaveBeenCalledWith(
         'growl/fromError',
         expect.objectContaining({
           title: expect.stringContaining('workload.list.errorCannotScale'),
@@ -283,6 +354,55 @@ describe('class: Workload', () => {
       expect(card?.props.title).toBe('component.resource.detail.card.podsCard.title');
       expect(card?.props.showScaling).toBe(true);
       expect(card?.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
+    });
+
+    it('should scale by spec.replicas rather than by the number of matching pods', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { replicas: 2 }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      // More pods match the label selector than the deployment has replicas
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod, mockPod, mockPod, mockPod] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+
+      const card = workload.podsCard;
+
+      expect(card?.props.scaleValue).toBe(2);
+      expect(card?.props.resources).toHaveLength(4);
+    });
+
+    it('should scale from zero when spec.replicas is not set', async() => {
+      const save = jest.fn().mockResolvedValue(undefined);
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     {}
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+      workload.save = save;
+
+      const card = workload.podsCard;
+
+      expect(card?.props.scaleValue).toBe(0);
+
+      // The action has to agree with what the card shows: an unset `replicas` scales to 1, not to
+      // NaN, which would be written as null
+      await card?.props.onIncrease();
+
+      expect(workload.spec.replicas).toBe(1);
+      expect(save).toHaveBeenCalledWith();
     });
 
     it('should return card for DaemonSet type without scaling', () => {

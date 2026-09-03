@@ -22,13 +22,13 @@ describe('component: PodsCard', () => {
   });
 
   it('should show Scaler when showScaling is true', async() => {
-    const wrapper = mount(PodsCard, { props: { showScaling: true }, global: { provide: { store } } });
+    const wrapper = mount(PodsCard, { props: { title: 'Test', showScaling: true }, global: { provide: { store } } });
 
     expect(wrapper.find('.scaler').exists()).toBeTruthy();
   });
 
   it('should hide scaler when showScaling is false', async() => {
-    const wrapper = mount(PodsCard, { props: { showScaling: false }, global: { provide: { store } } });
+    const wrapper = mount(PodsCard, { props: { title: 'Test', showScaling: false }, global: { provide: { store } } });
 
     expect(wrapper.find('.scaler').exists()).toBeFalsy();
   });
@@ -36,13 +36,14 @@ describe('component: PodsCard', () => {
   it('should pass the appropriate props to the Scaler component', async() => {
     const wrapper = mount(PodsCard, {
       props: {
-        title: 'Test', showScaling: true, resources: [podSuccess]
+        title: 'Test', showScaling: true, scaleValue: 3, resources: [podSuccess]
       },
       global: { provide: { store } }
     });
     const scaler = wrapper.findComponent(Scaler);
 
-    expect(scaler.props('value')).toStrictEqual(1);
+    // The scaler shows the value its buttons change, not the number of resources in the card
+    expect(scaler.props('value')).toStrictEqual(3);
     expect(scaler.props('min')).toStrictEqual(0);
   });
 

@@ -14,6 +14,12 @@ import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/State
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import { POD_SHELL } from '@shell/store/features';
 
+// Defined once, at module scope, so that the component's identity is stable. Created inside a
+// getter it would be a new type on every evaluation, and `<component :is>` in Cards.vue treats a
+// new type as a reason to unmount and remount, which throws away the card's local state (the
+// in-flight scale flag) and blanks the card on every change to the resource.
+const StatusCard = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue')));
+
 export const defaultContainer = {
   imagePullPolicy: 'Always',
   name:            'container-0',
@@ -175,18 +181,39 @@ export default class Workload extends WorkloadService {
     this.save();
   }
 
+  /**
+   * Write a new replica count, optimistically, and put the old one back if the save fails.
+   *
+   * Without the rollback a rejected save (403, 422, a dropped connection) leaves the requested
+   * count in the store with nothing to correct it, since the store only re-fetches on a 409. Any
+   * control that shows `spec.replicas` then shows a count the cluster never accepted.
+   */
+  async _scaleTo(replicas) {
+    const previous = this.spec.replicas;
+
+    set(this.spec, 'replicas', replicas);
+
+    try {
+      await this.save();
+    } catch (err) {
+      set(this.spec, 'replicas', previous);
+
+      throw err;
+    }
+  }
+
   async scaleDown() {
     const newScale = this.spec.replicas - 1;
 
     if (newScale >= 0) {
-      set(this.spec, 'replicas', newScale);
-      await this.save();
+      await this._scaleTo(newScale);
     }
   }
 
   async scaleUp() {
-    set(this.spec, 'replicas', this.spec.replicas + 1);
-    await this.save();
+    // `|| 0` for the same reason as the `desired` getter: an unset `replicas` would otherwise make
+    // this NaN, which serialises to null on the save
+    await this._scaleTo((this.spec.replicas || 0) + 1);
   }
 
   async scale(isUp) {
@@ -197,7 +224,7 @@ export default class Workload extends WorkloadService {
         await this.scaleDown();
       }
     } catch (err) {
-      this.$store.dispatch('growl/fromError', {
+      this.$dispatch('growl/fromError', {
         title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.name }),
         err
       },
@@ -946,12 +973,16 @@ export default class Workload extends WorkloadService {
     }
 
     return {
-      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      component: StatusCard,
       props:     {
         title:              this.t('component.resource.detail.card.podsCard.title'),
         resources:          this.pods,
         summaryData,
         showScaling:        canScale,
+        // The scale buttons change `spec.replicas`, so that is the value they must show. It is not
+        // the same as the number of pods, which can match the label selector without being owned
+        // by this workload.
+        scaleValue:         this.desired,
         onIncrease:         () => this.scale(true),
         onDecrease:         () => this.scale(false),
         noResourcesMessage: this.t('component.resource.detail.card.podsCard.noPods')
@@ -967,7 +998,7 @@ export default class Workload extends WorkloadService {
     }
 
     return {
-      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      component: StatusCard,
       props:     {
         title:       this.t('component.resource.detail.card.jobsCard.title'),
         resources:   this.jobs,

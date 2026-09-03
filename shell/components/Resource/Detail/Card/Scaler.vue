@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '@shell/composables/useI18n';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 
 export interface Props {
@@ -7,15 +8,42 @@ export interface Props {
   value?: number;
   min?: number;
   max?: number;
+  /**
+   * Blocks both buttons, for instance whilst a scale request is in flight.
+   */
+  disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  value: 0, min: undefined, max: undefined
+  value: 0, min: undefined, max: undefined, disabled: false
 });
 const emit = defineEmits(['decrease', 'increase']);
 
 const store = useStore();
 const i18n = useI18n(store);
+
+const decreaseDisabled = computed(() => props.disabled || (props.min !== undefined && props.min !== null && props.value <= props.min));
+const increaseDisabled = computed(() => props.disabled || (props.max !== undefined && props.max !== null && props.value >= props.max));
+
+// `aria-disabled` rather than the `disabled` attribute: a disabled button leaves the tab order, so
+// the browser drops focus to the body the moment a scale request starts, which is the point a
+// keyboard or screen reader user is waiting on the result. These stay focusable and refuse the
+// click instead.
+const onDecrease = () => {
+  if (decreaseDisabled.value) {
+    return;
+  }
+
+  emit('decrease', props.value - 1);
+};
+
+const onIncrease = () => {
+  if (increaseDisabled.value) {
+    return;
+  }
+
+  emit('increase', props.value + 1);
+};
 </script>
 
 <template>
@@ -26,14 +54,16 @@ const i18n = useI18n(store);
     <button
       class="decrease"
       :aria-label="i18n.t('component.resource.detail.card.scaler.ariaLabel.decrease', {resourceName: props.ariaResourceName})"
-      :disabled="!!props.min && (props.value <= props.min)"
+      :aria-disabled="decreaseDisabled"
       data-testid="scaler-decrease"
-      @click="() => emit('decrease', props.value - 1)"
+      @click="onDecrease"
     >
       <i class="icon icon-sm icon-minus" />
     </button>
     <div
       class="value"
+      role="status"
+      aria-live="polite"
       data-testid="scaler-value"
     >
       {{ props.value }}
@@ -41,9 +71,9 @@ const i18n = useI18n(store);
     <button
       class="increase"
       :aria-label="i18n.t('component.resource.detail.card.scaler.ariaLabel.increase', {resourceName: props.ariaResourceName})"
-      :disabled="!!props.max && (props.value >= props.max)"
+      :aria-disabled="increaseDisabled"
       data-testid="scaler-increase"
-      @click="() => emit('increase', props.value + 1)"
+      @click="onIncrease"
     >
       <i class="icon icon-sm icon-plus" />
     </button>
@@ -80,7 +110,15 @@ const i18n = useI18n(store);
       background-color: var(--accent-btn);
     }
 
-    &[disabled] {
+    // `all: initial` above resets `outline-style` to none, and these buttons are always in the tab
+    // order (they take `aria-disabled`, never the native attribute), so the ring has to be put
+    // back. The negative offset keeps it inside the rocker, which clips with `overflow: hidden`.
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: -2px;
+    }
+
+    &[aria-disabled='true'] {
       cursor: not-allowed;
       background: var(--disabled-bg);
       color: var(--disabled-text);

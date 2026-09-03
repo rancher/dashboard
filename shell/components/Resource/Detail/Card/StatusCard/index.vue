@@ -6,7 +6,7 @@ import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import StatusRow from '@shell/components/Resource/Detail/StatusRow.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { StateColor } from '@shell/utils/style';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import type { SummaryResult } from '@shell/components/Resource/Detail/Card/StateCard/composables';
@@ -16,7 +16,21 @@ export interface Props {
   resources?: any[];
   summaryData?: SummaryResult | null;
   showScaling?: boolean;
+  /**
+   * The value the scale buttons change, and therefore the value they must show. For a workload
+   * this is the desired replica count, which is not the same as the number of resources the card
+   * counts (pods matching the workload's label selector).
+   */
+  scaleValue?: number;
   noResourcesMessage?: string;
+  /**
+   * Handlers for the scale buttons. These are callback props rather than emitted events so that
+   * the card can await the scale request and block both buttons until it settles. They take no
+   * new value: the handler works out the new count from the live resource, which cannot be stale
+   * the way a value captured at render time can.
+   */
+  onIncrease?: () => void | Promise<void>;
+  onDecrease?: () => void | Promise<void>;
 }
 </script>
 
@@ -28,9 +42,29 @@ const props = withDefaults(defineProps<Props>(), {
   resources:          undefined,
   summaryData:        undefined,
   showScaling:        false,
-  noResourcesMessage: undefined
+  scaleValue:         0,
+  noResourcesMessage: undefined,
+  onIncrease:         undefined,
+  onDecrease:         undefined
 });
-const emit = defineEmits(['decrease', 'increase']);
+
+// Set whilst a scale request is in flight, so that the value cannot bounce and rapid clicks
+// cannot race each other.
+const scaling = ref(false);
+
+const scale = async(handler: Props['onIncrease']) => {
+  if (scaling.value) {
+    return;
+  }
+
+  scaling.value = true;
+
+  try {
+    await handler?.();
+  } finally {
+    scaling.value = false;
+  }
+};
 
 const summaryStateCounts = computed(() => {
   const summary = props.summaryData?.summary;
@@ -142,13 +176,17 @@ const rows = computed(() => {
       v-if="props.showScaling"
       #heading-action
     >
-      <Scaler
-        :ariaResourceName="i18n.t('component.resource.detail.card.podsCard.ariaResourceName')"
-        :value="count"
-        :min="0"
-        @increase="(newValue) => emit('increase', newValue)"
-        @decrease="(newValue) => emit('decrease', newValue)"
-      />
+      <div class="scale-action">
+        <span class="scale-label">{{ i18n.t('tableHeaders.scale') }}</span>
+        <Scaler
+          :ariaResourceName="i18n.t('component.resource.detail.card.scaler.ariaResourceName')"
+          :value="props.scaleValue"
+          :min="0"
+          :disabled="scaling"
+          @increase="() => scale(props.onIncrease)"
+          @decrease="() => scale(props.onDecrease)"
+        />
+      </div>
     </template>
     <StatusBar
       v-if="rows.length > 0"
@@ -181,5 +219,15 @@ const rows = computed(() => {
 .pod-distribution {
     display: flex;
     flex-direction: column;
+}
+
+.scale-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .scale-label {
+      color: var(--body-text);
+    }
 }
 </style>
