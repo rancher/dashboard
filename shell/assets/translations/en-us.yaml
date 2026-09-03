@@ -7241,7 +7241,7 @@ tableHeaders:
   storageClass: Storage Class
   source: Source
   subject: Subject
-  subType: Kind
+  subType: Type
   success: Success
   summary: Summary
   subobject: Subobject
