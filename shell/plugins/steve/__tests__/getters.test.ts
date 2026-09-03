@@ -184,7 +184,7 @@ describe('steve: getters:', () => {
       it('requires nested resourceFields and has resourceFields', () => {
         expect(pathExistsInSchema(state, {
           ...getters,
-          schemaFor: (type) => {
+          schemaFor: (type: string) => {
             const metadata = { resourceFields: { name: { type: 'string' } } };
 
             switch (type) {

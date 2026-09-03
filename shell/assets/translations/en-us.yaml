@@ -7241,7 +7241,7 @@ tableHeaders:
   storageClass: Storage Class
   source: Source
   subject: Subject
-  subType: Kind
+  subType: Type
   success: Success
   summary: Summary
   subobject: Subobject
@@ -7326,6 +7326,8 @@ user:
       userDescription:
         label: Description
         placeholder: e.g. This account is for John Smith
+    roleUpdateFailed:
+      orphaned: 'The user "{username}" was created, but its roles could not be assigned and the incomplete account could not be removed automatically. Open the users list to review or delete it.'
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
   retention:

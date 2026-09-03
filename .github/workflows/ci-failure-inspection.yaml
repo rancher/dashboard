@@ -37,13 +37,13 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Read QA secrets from Vault
-        uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
+        uses: rancher-eio/read-vault-secrets@dfae8acd43a9e170fca5f90168da22f814fe4e9a # v3
         with:
           secrets: |
             github/token/rancher--qa-tasks--issues--write token | GH_TOKEN
 
       - name: Read project secrets from Vault
-        uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
+        uses: rancher-eio/read-vault-secrets@dfae8acd43a9e170fca5f90168da22f814fe4e9a # v3
         with:
           secrets: |
             github/token/rancher--organization_projects--write token | GH_PROJECT_TOKEN
