@@ -26,6 +26,11 @@ size is a single burn-down metric.
   `sha256(testPath + " " + axeRuleId)`. Deliberately excludes the brittle axe `target`
   selector, so the gate is stable across runs. All instances of one rule on one page
   collapse to a single fingerprint (a regression ceiling, not per-node bookkeeping).
+  The test path is normalised first (`normalizePath`) to drop the `${parent} (#n)`
+  leaf the a11y plugin appends: `n` is a per-violating-node screenshot counter that
+  renumbers when a sibling check changes, and the segment is present at all only
+  while the plugin's `tidy()` collapse declines to fold it away. Including either
+  would let accepted violations move under the ratchet for non-a11y reasons.
 - `compare-a11y.mjs` — the CLI gate (see below).
 - `fingerprint.test.mjs` — unit tests, run with the built-in Node test runner
   (`node:test`) because Jest ignores `cypress/`.
@@ -35,7 +40,7 @@ size is a single burn-down metric.
 ## Commands
 
 ```sh
-yarn a11y:compare    # gate: compare report vs baseline (exit 1 on new violations)
+yarn a11y:compare    # gate: compare report vs baseline (see A11Y_RATCHET_ENFORCE below)
 yarn a11y:baseline   # regenerate the baseline from the current report
 yarn a11y:test       # run the fingerprint unit tests
 ```
@@ -50,12 +55,18 @@ Exit codes: `0` clean / soft mode / `--update` ok · `1` new violations (hard mo
 `2` report missing, empty (`stats.totalTests === 0`), or malformed — it refuses to
 compare a hollow run rather than give a false green.
 
+Enforcement is **opt-in**: the gate reports without failing unless
+`A11Y_RATCHET_ENFORCE` is exactly `true`. Every other value — unset, empty, `false`,
+`0` — is report-only, so a missing or mistyped repo variable can never turn the gate
+on by accident. `--soft` forces report-only regardless.
+
 ## Rollout (soft launch → hard fail)
 
 The CI step reads the `A11Y_RATCHET_ENFORCE` repo variable:
 
-1. **Soft launch:** leave `A11Y_RATCHET_ENFORCE` unset or `false`. New violations are
-   reported in the job log but do **not** fail the build.
+1. **Soft launch:** leave `A11Y_RATCHET_ENFORCE` unset (or set it to anything other
+   than `true`). New violations are reported in the job log but do **not** fail the
+   build.
 2. **Watch a few runs.** The baseline shipped here was seeded from a real green
    `a11y-test` run rather than a local render, which avoids day-one false positives,
    but a soft window confirms it is stable across runs before it starts blocking.
