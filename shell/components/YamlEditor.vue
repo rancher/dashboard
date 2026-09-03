@@ -65,6 +65,36 @@ export default {
     componentTestid: {
       type:    String,
       default: 'yaml-editor'
+    },
+
+    /**
+     * Opt in to the changed-line highlight; forwarded to CodeMirror, which treats
+     * `highlightLines` as a no-op unless this is set.
+     */
+    highlightEnabled: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /**
+     * By default an empty `initialYamlValues` baseline falls back to the current
+     * value, so the diff shows "no changes" when no baseline is supplied. Set
+     * this when an empty string is a meaningful baseline (e.g. an overrides diff
+     * where the saved overrides are genuinely empty) so additions still show.
+     */
+    allowEmptyDiffBase: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /**
+     * Show line numbers on a read-only editor (they're off by default there),
+     * plus the (empty) lint-marker gutter, so a read-only editor keeps the same
+     * gutters an editable one has. Linting itself stays off.
+     */
+    showLineNumbersInReadOnly: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -85,7 +115,7 @@ export default {
       original = initialYamlValues;
     }
 
-    if ( isEmpty(original) ) {
+    if ( isEmpty(original) && !this.allowEmptyDiffBase ) {
       original = value;
     }
 
@@ -95,10 +125,13 @@ export default {
   computed: {
     codeMirrorOptions() {
       const readOnly = this.editorMode === EDITOR_MODES.VIEW_CODE;
+      // Line numbers and the lint-marker gutter normally show only when editable,
+      // but `showLineNumbersInReadOnly` opts a read-only editor into them too.
+      const showEditableGutters = !readOnly || this.showLineNumbersInReadOnly;
 
       const gutters = [];
 
-      if ( !readOnly ) {
+      if ( showEditableGutters ) {
         gutters.push('CodeMirror-lint-markers');
       }
 
@@ -109,7 +142,7 @@ export default {
         gutters,
         mode:            'yaml',
         lint:            !readOnly,
-        lineNumbers:     !readOnly,
+        lineNumbers:     showEditableGutters,
         styleActiveLine: false,
         tabSize:         2,
         indentWithTabs:  false,
@@ -204,6 +237,10 @@ export default {
     updateValue(value) {
       this.curValue = value;
       this.$refs.cm?.updateValue(value);
+    },
+
+    highlightLines(lineNumbers) {
+      this.$refs.cm?.highlightLines(lineNumbers);
     }
   }
 };
@@ -242,6 +279,7 @@ export default {
       :value="curValue"
       :options="codeMirrorOptions"
       :showKeyMapBox="true"
+      :highlight-enabled="highlightEnabled"
       :data-testid="componentTestid + '-code-mirror'"
       :mode="mode"
       @onInput="onInput"
@@ -272,9 +310,10 @@ export default {
 
   .codemirror-container  {
     position: relative;
+    background-color: var(--yaml-editor-bg);
 
     .CodeMirror {
-      background-color: var(--yaml-editor-bg);
+      background: none;
       & .CodeMirror-gutters {
         background-color: var(--yaml-editor-bg);
       }

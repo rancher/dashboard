@@ -465,6 +465,7 @@ export default {
               type="button"
               variant="secondary"
               size="large"
+              :tabindex="0"
               @click="cancel"
             >
               <t k="generic.cancel" />
@@ -481,6 +482,7 @@ export default {
                 type="button"
                 variant="secondary"
                 size="large"
+                :tabindex="0"
                 @click="back()"
               >
                 <t k="wizard.previous" />
@@ -495,6 +497,7 @@ export default {
                 v-if="!isView"
                 :disabled="!activeStep.ready"
                 :mode="finishMode"
+                :tab-index="0"
                 @click="finish"
               />
             </slot>
@@ -508,6 +511,7 @@ export default {
                 type="button"
                 variant="primary"
                 size="large"
+                :tabindex="0"
                 @click="next()"
               >
                 <t :k="nextButtonLabel" />

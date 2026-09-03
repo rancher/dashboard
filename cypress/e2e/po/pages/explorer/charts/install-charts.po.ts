@@ -4,6 +4,7 @@ import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
 import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
 import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class InstallChartPage extends PagePo {
@@ -56,6 +57,28 @@ export class InstallChartPage extends PagePo {
     this.self().get('[data-testid="btn-group-options-view"]').contains('Edit YAML').click();
 
     return this;
+  }
+
+  compareChanges() {
+    this.self().get('[data-testid="btn-group-options-view"]').contains('Compare Changes').click();
+
+    return this;
+  }
+
+  overridesPane() {
+    return this.self().get('[data-testid="chart-values-overrides-pane"]');
+  }
+
+  finalValuesPane() {
+    return this.self().get('[data-testid="chart-values-final-pane"]');
+  }
+
+  overridesEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="chart-values-overrides-code-mirror"]');
+  }
+
+  finalValuesEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="chart-values-final-code-mirror"]');
   }
 
   footerControls() {
