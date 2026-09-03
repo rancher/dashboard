@@ -6,7 +6,7 @@ import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import StatusRow from '@shell/components/Resource/Detail/StatusRow.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { StateColor } from '@shell/utils/style';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import type { SummaryResult } from '@shell/components/Resource/Detail/Card/StateCard/composables';
@@ -25,9 +25,12 @@ export interface Props {
   noResourcesMessage?: string;
   /**
    * Handlers for the scale buttons. These are callback props rather than emitted events so that
-   * the card can await the scale request and block both buttons until it settles. They take no
-   * new value: the handler works out the new count from the live resource, which cannot be stale
-   * the way a value captured at render time can.
+   * the card does not have to know which resource it is scaling. They take no new value: the
+   * handler moves the live resource by one, which cannot be stale the way a value captured at
+   * render time can.
+   *
+   * They are not awaited. Every click has to register straight away, so the handler is expected
+   * to update what `scaleValue` reads synchronously and to send the request in its own time.
    */
   onIncrease?: () => void | Promise<void>;
   onDecrease?: () => void | Promise<void>;
@@ -47,24 +50,6 @@ const props = withDefaults(defineProps<Props>(), {
   onIncrease:         undefined,
   onDecrease:         undefined
 });
-
-// Set whilst a scale request is in flight, so that the value cannot bounce and rapid clicks
-// cannot race each other.
-const scaling = ref(false);
-
-const scale = async(handler: Props['onIncrease']) => {
-  if (scaling.value) {
-    return;
-  }
-
-  scaling.value = true;
-
-  try {
-    await handler?.();
-  } finally {
-    scaling.value = false;
-  }
-};
 
 const summaryStateCounts = computed(() => {
   const summary = props.summaryData?.summary;
@@ -182,9 +167,8 @@ const rows = computed(() => {
           :ariaResourceName="i18n.t('component.resource.detail.card.scaler.ariaResourceName')"
           :value="props.scaleValue"
           :min="0"
-          :disabled="scaling"
-          @increase="() => scale(props.onIncrease)"
-          @decrease="() => scale(props.onDecrease)"
+          @increase="() => props.onIncrease?.()"
+          @decrease="() => props.onDecrease?.()"
         />
       </div>
     </template>

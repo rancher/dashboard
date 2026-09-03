@@ -8,27 +8,24 @@ export interface Props {
   value?: number;
   min?: number;
   max?: number;
-  /**
-   * Blocks both buttons, for instance whilst a scale request is in flight.
-   */
-  disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  value: 0, min: undefined, max: undefined, disabled: false
+  value: 0, min: undefined, max: undefined
 });
 const emit = defineEmits(['decrease', 'increase']);
 
 const store = useStore();
 const i18n = useI18n(store);
 
-const decreaseDisabled = computed(() => props.disabled || (props.min !== undefined && props.min !== null && props.value <= props.min));
-const increaseDisabled = computed(() => props.disabled || (props.max !== undefined && props.max !== null && props.value >= props.max));
+// The only reason to refuse a click is a bound. Nothing here waits on a request: the value is
+// owned by the caller, which moves it as soon as the event is emitted.
+const decreaseDisabled = computed(() => props.min !== undefined && props.min !== null && props.value <= props.min);
+const increaseDisabled = computed(() => props.max !== undefined && props.max !== null && props.value >= props.max);
 
 // `aria-disabled` rather than the `disabled` attribute: a disabled button leaves the tab order, so
-// the browser drops focus to the body the moment a scale request starts, which is the point a
-// keyboard or screen reader user is waiting on the result. These stay focusable and refuse the
-// click instead.
+// a keyboard or screen reader user who holds `-` down to zero has focus dropped to the body at the
+// moment they reach the bound. These stay focusable and refuse the click instead.
 const onDecrease = () => {
   if (decreaseDisabled.value) {
     return;

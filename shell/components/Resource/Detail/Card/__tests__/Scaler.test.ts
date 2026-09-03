@@ -51,26 +51,25 @@ describe('component: Scaler', () => {
     expect(wrapper.find('.increase').attributes('aria-disabled')).toStrictEqual('true');
   });
 
-  it('should keep disabled buttons focusable and out of the native disabled state', async() => {
+  it('should keep a button at its bound focusable and out of the native disabled state', async() => {
     const wrapper = mount(Scaler, {
       props: {
-        ariaResourceName, value: 2, disabled: true
+        ariaResourceName, value: 0, min: 0
       },
       attachTo: document.body,
       global
     });
 
-    // A native `disabled` button leaves the tab order, which drops focus to the body the moment a
-    // scale request starts. `aria-disabled` gives the same state to assistive technology without
-    // moving focus.
+    // A native `disabled` button leaves the tab order, which drops focus to the body at the moment
+    // a keyboard user reaches the bound. `aria-disabled` gives the same state to assistive
+    // technology without moving focus.
     expect(wrapper.find('.decrease').attributes('disabled')).toBeUndefined();
-    expect(wrapper.find('.increase').attributes('disabled')).toBeUndefined();
 
-    const increase = wrapper.find('.increase').element as HTMLButtonElement;
+    const decrease = wrapper.find('.decrease').element as HTMLButtonElement;
 
-    increase.focus();
+    decrease.focus();
 
-    expect(document.activeElement).toBe(increase);
+    expect(document.activeElement).toBe(decrease);
 
     wrapper.unmount();
   });
@@ -98,31 +97,33 @@ describe('component: Scaler', () => {
     expect(wrapper.find('.increase').attributes('aria-disabled')).toStrictEqual('true');
   });
 
-  it('should disable both buttons when disabled', async() => {
+  it('should leave both buttons enabled between the bounds, whatever the caller is doing', async() => {
     const wrapper = mount(Scaler, {
       props: {
-        ariaResourceName, value: 2, disabled: true
+        ariaResourceName, value: 2, min: 0
       },
       global
     });
 
-    expect(wrapper.find('.decrease').attributes('aria-disabled')).toStrictEqual('true');
-    expect(wrapper.find('.increase').attributes('aria-disabled')).toStrictEqual('true');
+    // There is no in flight state to disable for. A click the caller has not finished acting on is
+    // still a click the user is allowed to make, and refusing it is how a click gets lost.
+    expect(wrapper.find('.decrease').attributes('aria-disabled')).toStrictEqual('false');
+    expect(wrapper.find('.increase').attributes('aria-disabled')).toStrictEqual('false');
   });
 
-  it('should not emit when disabled and clicked', async() => {
+  it('should emit once per click when clicked repeatedly', async() => {
     const wrapper = mount(Scaler, {
       props: {
-        ariaResourceName, value: 2, disabled: true
+        ariaResourceName, value: 2, min: 0
       },
       global
     });
 
     await wrapper.find('.increase').trigger('click');
-    await wrapper.find('.decrease').trigger('click');
+    await wrapper.find('.increase').trigger('click');
+    await wrapper.find('.increase').trigger('click');
 
-    expect(wrapper.emitted()).not.toHaveProperty('increase');
-    expect(wrapper.emitted()).not.toHaveProperty('decrease');
+    expect(wrapper.emitted('increase')).toHaveLength(3);
   });
 
   it('should not emit when clicked at the min or max bound', async() => {

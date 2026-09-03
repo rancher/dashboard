@@ -145,32 +145,7 @@ describe('component: StatusCard', () => {
       expect(wrapper.findComponent(Scaler).props('value')).toBe(2);
     });
 
-    it('should disable the Scaler until the scale request settles', async() => {
-      let resolveScale = () => {};
-      const onIncrease = jest.fn(() => new Promise<void>((resolve) => {
-        resolveScale = resolve;
-      }));
-
-      const wrapper = mountCard({
-        showScaling: true, scaleValue: 1, onIncrease
-      });
-      const scaler = wrapper.findComponent(Scaler);
-
-      expect(scaler.props('disabled')).toBe(false);
-
-      scaler.vm.$emit('increase', 2);
-      await nextTick();
-
-      expect(onIncrease).toHaveBeenCalledWith();
-      expect(scaler.props('disabled')).toBe(true);
-
-      resolveScale();
-      await flushPromises();
-
-      expect(scaler.props('disabled')).toBe(false);
-    });
-
-    it('should ignore scale requests made whilst one is in flight', async() => {
+    it('should pass every scale request straight to the handler whilst one is in flight', async() => {
       const onIncrease = jest.fn(() => new Promise<void>(() => {}));
       const onDecrease = jest.fn(() => new Promise<void>(() => {}));
 
@@ -179,17 +154,20 @@ describe('component: StatusCard', () => {
       });
       const scaler = wrapper.findComponent(Scaler);
 
+      // The card never waits on a request. Refusing a click here is what loses it: the handler
+      // coalesces, so it is the only thing that may decide a click does not need its own request.
       scaler.vm.$emit('increase', 2);
       scaler.vm.$emit('increase', 3);
-      scaler.vm.$emit('decrease', 1);
+      scaler.vm.$emit('decrease', 2);
       await nextTick();
 
-      expect(onIncrease).toHaveBeenCalledTimes(1);
+      expect(onIncrease).toHaveBeenCalledTimes(2);
       expect(onIncrease).toHaveBeenCalledWith();
-      expect(onDecrease).toHaveBeenCalledTimes(0);
+      expect(onDecrease).toHaveBeenCalledTimes(1);
+      expect(onDecrease).toHaveBeenCalledWith();
     });
 
-    it('should re-enable the Scaler when the scale request fails', async() => {
+    it('should keep taking scale requests after one fails', async() => {
       const error = new Error('nope');
       const onDecrease = jest.fn(() => Promise.reject(error));
       const errorHandler = jest.fn();
@@ -203,10 +181,14 @@ describe('component: StatusCard', () => {
       await flushPromises();
 
       expect(onDecrease).toHaveBeenCalledWith();
-      // The failure is left to the handler and the app to report, but the buttons must not be
-      // left disabled for ever
+      // The failure is left to the handler and the app to report, and it must not stop the next
+      // click from reaching the handler
       expect(errorHandler).toHaveBeenCalledWith(error, expect.anything(), expect.any(String));
-      expect(scaler.props('disabled')).toBe(false);
+
+      scaler.vm.$emit('decrease', 0);
+      await flushPromises();
+
+      expect(onDecrease).toHaveBeenCalledTimes(2);
     });
   });
 
