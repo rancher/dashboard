@@ -16,25 +16,11 @@
       "help": "Certain ARIA roles must be contained by particular parents"
     },
     {
-      "fingerprint": "09d9e65aea45a71943ccc1f9a5742d07cf3c1c4e88f9d67702162e4c83ca5488",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Storage Class - Create",
-      "rule": "aria-required-parent",
-      "impact": "critical",
-      "help": "Certain ARIA roles must be contained by particular parents"
-    },
-    {
       "fingerprint": "0b950a339cb91b3069a95122e775d8ec3c7ea2212344a5c42275387bb8fe7c83",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
       "rule": "landmark-main-is-top-level",
       "impact": "moderate",
       "help": "Main landmark should not be contained in another landmark"
-    },
-    {
-      "fingerprint": "0c400538e9da3c9a3dd171bac6ec321a6c2f7adc76766a6b0514073f708b967f",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Storage Class - Create",
-      "rule": "listitem",
-      "impact": "serious",
-      "help": "<li> elements must be contained in a <ul> or <ol>"
     },
     {
       "fingerprint": "15deae9e2e0697da58aaf174004bc3a2643de13ebc850bf81c38562d5edd7b8d",
@@ -51,32 +37,11 @@
       "help": "Heading levels should only increase by one"
     },
     {
-      "fingerprint": "1e2489db559807801b2db0e4e214cd72a1c3480946d3b274acfdede319c1a90b",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > Account and API Keys Page",
-      "rule": "aria-allowed-role",
-      "impact": "minor",
-      "help": "ARIA role should be appropriate for the element"
-    },
-    {
-      "fingerprint": "1f27ebb960847468747c05b38ae78c14c408f6e81543f886ccef46a4cd3bd9d1",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > DeamonSets - Create",
-      "rule": "aria-required-children",
-      "impact": "critical",
-      "help": "Certain ARIA roles must contain particular children"
-    },
-    {
       "fingerprint": "28d9c37330c22d797c2464af3cffcca37684c70de712010458eeec0d8f700213",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Home Links page",
       "rule": "heading-order",
       "impact": "moderate",
       "help": "Heading levels should only increase by one"
-    },
-    {
-      "fingerprint": "2df935066fdeac848165224bb48638d502eb5e0b9bced2e457e0aa9f332cf9c1",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Namespace",
-      "rule": "aria-required-children",
-      "impact": "critical",
-      "help": "Certain ARIA roles must contain particular children"
     },
     {
       "fingerprint": "3501fd35ffe85b2f64c176949316ec23798f6f0c2ec9e0c48b8c97b9fc019ad1",
@@ -107,13 +72,6 @@
       "help": "Table header text should not be empty"
     },
     {
-      "fingerprint": "44f1dc5f73870f9ee1dcef8ac4b2bcd2a703de2295068a5febf706e1502f5e3b",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > DeamonSets - Create",
-      "rule": "listitem",
-      "impact": "serious",
-      "help": "<li> elements must be contained in a <ul> or <ol>"
-    },
-    {
       "fingerprint": "5130a9b1133d382e6009ce47f9dd16f013560b13712084e0f480cc1c8fe6c95d",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
       "rule": "heading-order",
@@ -142,25 +100,11 @@
       "help": "ARIA dialog and alertdialog nodes should have an accessible name"
     },
     {
-      "fingerprint": "5d99bc68de5c8e216d8afff48f2e29a8bbb31d9ad49f8b6155d836f1b30d514e",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Project",
-      "rule": "aria-required-parent",
-      "impact": "critical",
-      "help": "Certain ARIA roles must be contained by particular parents"
-    },
-    {
       "fingerprint": "5fe6faf2621449a54eed0a3b440aa2d7798eeb9dd3dac0b529f8141e38ea1464",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
       "rule": "landmark-unique",
       "impact": "moderate",
       "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination"
-    },
-    {
-      "fingerprint": "66ea721ca762053554b2f01f3bffcc7417002f20f41f6e03182e3be33046ee59",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Namespace",
-      "rule": "listitem",
-      "impact": "serious",
-      "help": "<li> elements must be contained in a <ul> or <ol>"
     },
     {
       "fingerprint": "6979c0a44c3479ff66544fb94667d0969e74a63b2d7d14c3546be5676ccf431e",
@@ -175,13 +119,6 @@
       "rule": "list",
       "impact": "serious",
       "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements"
-    },
-    {
-      "fingerprint": "6ec6a20945b42eb736487ec4b4d873abb50ce1bbfa9909104f9eca7faeea83c2",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster - Create Digital Ocean",
-      "rule": "aria-required-parent",
-      "impact": "critical",
-      "help": "Certain ARIA roles must be contained by particular parents"
     },
     {
       "fingerprint": "734bf6f75c7177ce9a0cda790f457d7abcb184b85fe349369142b2d6b9617182",
@@ -219,13 +156,6 @@
       "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination"
     },
     {
-      "fingerprint": "835ee60536b79bf996fbc8ade50d854845d1d09959ba51fa9f38d5eb38ffcafd",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Delete",
-      "rule": "aria-allowed-role",
-      "impact": "minor",
-      "help": "ARIA role should be appropriate for the element"
-    },
-    {
       "fingerprint": "83dafd3fa18b39452acf284009585655d0bac95cad95425c81c608e7cd5e17ab",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Create page",
       "rule": "heading-order",
@@ -238,13 +168,6 @@
       "rule": "empty-table-header",
       "impact": "minor",
       "help": "Table header text should not be empty"
-    },
-    {
-      "fingerprint": "85a0005e35daa2262c7558cfeae5f45bff4be7a8995393a92f73821b15e757ab",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > DeamonSets - Create",
-      "rule": "aria-required-parent",
-      "impact": "critical",
-      "help": "Certain ARIA roles must be contained by particular parents"
     },
     {
       "fingerprint": "8a4f17cc3488acd54ba007f00e25f5c33cbddf1a67314045b3146766b980b7ef",
@@ -282,13 +205,6 @@
       "help": "ARIA dialog and alertdialog nodes should have an accessible name"
     },
     {
-      "fingerprint": "9a428989340b5d13fb19e61bb2d7d7f7c4c868a39f3bb48eaa5b852fa8453b0b",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Extensions page",
-      "rule": "aria-required-children",
-      "impact": "critical",
-      "help": "Certain ARIA roles must contain particular children"
-    },
-    {
       "fingerprint": "9b6654bc172d4301c94ada825be750cb2ee4f6d92dc0e634f2928e15754422d3",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces Page",
       "rule": "empty-table-header",
@@ -296,39 +212,11 @@
       "help": "Table header text should not be empty"
     },
     {
-      "fingerprint": "9d97f987ba07d14586f12275be30f868b4daf792a4ae6d3d424bdc880da66f53",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Move dialog",
-      "rule": "heading-order",
-      "impact": "moderate",
-      "help": "Heading levels should only increase by one"
-    },
-    {
       "fingerprint": "a2519d7431a121d41e7675154c436748e8d3385e65790431c55664c6a779e89c",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Delete Project dialog",
       "rule": "heading-order",
       "impact": "moderate",
       "help": "Heading levels should only increase by one"
-    },
-    {
-      "fingerprint": "a2ecba7e951859647c8962e4f4cbdf129caa2622615db76c2f3414ca4498a574",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Users > Users page",
-      "rule": "aria-allowed-role",
-      "impact": "minor",
-      "help": "ARIA role should be appropriate for the element"
-    },
-    {
-      "fingerprint": "a5dc0379dbabf4a23831e96364d71476d4d091c3875fe480dc4470eac0c9e523",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster drivers page",
-      "rule": "aria-allowed-role",
-      "impact": "minor",
-      "help": "ARIA role should be appropriate for the element"
-    },
-    {
-      "fingerprint": "a8a98395f85c590e1c6d9fddc46889d09f71f058caafb12e28e326741a2c3605",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Namespace",
-      "rule": "aria-required-parent",
-      "impact": "critical",
-      "help": "Certain ARIA roles must be contained by particular parents"
     },
     {
       "fingerprint": "aa5827793e0e2a6014909003dd3e9f7da60c4fc0e81da07cda87fa2b7f679334",
@@ -352,13 +240,6 @@
       "help": "ARIA attributes must conform to valid values"
     },
     {
-      "fingerprint": "b9a08ab3f45e16799f99f2a6b29fb7090f05dab13945c15cada41473685ff77a",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces Page",
-      "rule": "aria-allowed-role",
-      "impact": "minor",
-      "help": "ARIA role should be appropriate for the element"
-    },
-    {
       "fingerprint": "bad0c989cb99c28e786aef0acf74051ba378bf64e3cb9d11f4434cc4679bd9af",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Branding page",
       "rule": "heading-order",
@@ -380,13 +261,6 @@
       "help": "Heading levels should only increase by one"
     },
     {
-      "fingerprint": "d210aaf3ba9ae03386e0dce31dcaccdbe4cbd6c224feb7b52bd8323c19c57399",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > Deployments page",
-      "rule": "aria-allowed-role",
-      "impact": "minor",
-      "help": "ARIA role should be appropriate for the element"
-    },
-    {
       "fingerprint": "d6b8aa7bd3471fce81430eecf717b1f6a4418365ed4974a5cbdd2301b4310866",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Settings page",
       "rule": "empty-heading",
@@ -399,13 +273,6 @@
       "rule": "aria-dialog-name",
       "impact": "serious",
       "help": "ARIA dialog and alertdialog nodes should have an accessible name"
-    },
-    {
-      "fingerprint": "ddef370892d26a1c0261c3c843d7cc30afeccbfaf2c571cd8dd6de5637721493",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Events > Cluster events page",
-      "rule": "aria-allowed-role",
-      "impact": "minor",
-      "help": "ARIA role should be appropriate for the element"
     },
     {
       "fingerprint": "de1aa1173cd257e091fb224233be2ae05227b31fe8670d6fecc98d1e6a4ccc25",
@@ -424,34 +291,6 @@
     {
       "fingerprint": "dfcb29b8bfd5d9a1eb2a592f4ee24e366a7b2bc3edab16855663c6abb249b73c",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Kubectl Shell",
-      "rule": "aria-required-children",
-      "impact": "critical",
-      "help": "Certain ARIA roles must contain particular children"
-    },
-    {
-      "fingerprint": "e5cb02b18f6bda486eba815c7beea8bc85f8b6ffc55299b88e934e95c7b92b62",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Project",
-      "rule": "listitem",
-      "impact": "serious",
-      "help": "<li> elements must be contained in a <ul> or <ol>"
-    },
-    {
-      "fingerprint": "e6c02a243cf61e541dae1bb13980dfd07aa9e98e23bc0affb538469cd3bc6bf7",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster - Create Digital Ocean",
-      "rule": "aria-required-children",
-      "impact": "critical",
-      "help": "Certain ARIA roles must contain particular children"
-    },
-    {
-      "fingerprint": "ee9713241f3b8c4189ccd77d385a2e1498afbbbcb860f738844aa33ed0c14fbe",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Extensions page",
-      "rule": "aria-required-parent",
-      "impact": "critical",
-      "help": "Certain ARIA roles must be contained by particular parents"
-    },
-    {
-      "fingerprint": "eeb34082ef29b97b78ac092eaafad13230bd803347222acfb0a981ce4710dfb1",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Project",
       "rule": "aria-required-children",
       "impact": "critical",
       "help": "Certain ARIA roles must contain particular children"
@@ -478,39 +317,11 @@
       "help": "Table header text should not be empty"
     },
     {
-      "fingerprint": "f9e962e634b0b6233454fc6b502ce62be34add83c54c75e7f4307f8ead2ec6f4",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Storage Class - Create",
-      "rule": "aria-required-children",
-      "impact": "critical",
-      "help": "Certain ARIA roles must contain particular children"
-    },
-    {
       "fingerprint": "fba081df1bc390c34f350363403f29ae9849704463ec191a942b142b506136b1",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
       "rule": "landmark-no-duplicate-main",
       "impact": "moderate",
       "help": "Document should not have more than one main landmark"
-    },
-    {
-      "fingerprint": "fba1a03675fe62c40deeb993693fceb611ade4304f7d3fc623f3527a4d0acb94",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Extensions page",
-      "rule": "listitem",
-      "impact": "serious",
-      "help": "<li> elements must be contained in a <ul> or <ol>"
-    },
-    {
-      "fingerprint": "fc58fe6f4a8dfb4e76c48d40399064d53bb742f9be5150ed1894943402699642",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster - Create Digital Ocean",
-      "rule": "listitem",
-      "impact": "serious",
-      "help": "<li> elements must be contained in a <ul> or <ol>"
-    },
-    {
-      "fingerprint": "fd11351caaec4a38cf0dc7f90857c13a8ca3959ede26cd8ba738973483a8b5eb",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Home page",
-      "rule": "aria-allowed-role",
-      "impact": "minor",
-      "help": "ARIA role should be appropriate for the element"
     }
   ]
 }
