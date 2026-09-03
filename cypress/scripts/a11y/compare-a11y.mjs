@@ -15,21 +15,28 @@
 //   1  new violations found (hard mode)
 //   2  report missing/empty/malformed — refuse to compare a hollow run
 //
-// Soft rollout: set A11Y_RATCHET_ENFORCE=false (or pass --soft) to report new
-// violations without failing, while the baseline stabilises.
+// Soft rollout: the gate reports without failing unless A11Y_RATCHET_ENFORCE=true.
+// `--soft` forces report-only regardless.
 
 /* eslint-disable no-console -- this is a CLI; console is its output channel. */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { flatten } from './fingerprint.mjs';
+import { flatten, norm } from './fingerprint.mjs';
 
 const REPORT_PATH = process.env.A11Y_REPORT_PATH || 'cypress/accessibility/accessibility.json';
 const BASELINE_PATH = process.env.A11Y_BASELINE_PATH || 'cypress/e2e/tests/accessibility/baseline.json';
 
 const argv = process.argv.slice(2);
 const isUpdate = argv.includes('--update');
-const isSoft = argv.includes('--soft') || process.env.A11Y_RATCHET_ENFORCE === 'false';
+
+// Enforcement is opt-in, and only the exact string 'true' opts in. An unset repo
+// variable interpolates to '' in `${{ vars.A11Y_RATCHET_ENFORCE }}`, so testing for
+// 'false' would have made "unset" mean *enforcing* — the opposite of the documented
+// soft launch, and the gate would hard-fail on its very first run. Comparing against
+// 'true' instead makes every other value (unset, '', 'false', 'False', '0', 'no')
+// fall back to report-only, which is the safe direction for a rollout flag.
+const isSoft = argv.includes('--soft') || norm(process.env.A11Y_RATCHET_ENFORCE).toLowerCase() !== 'true';
 
 const IMPACT_ICON = {
   critical: '🔴', serious: '🟠', moderate: '🟡', minor: '⚪', unknown: '❔',
@@ -108,7 +115,7 @@ if (added.length) {
   added.forEach((v) => (isSoft ? console.log : console.error)(line(v)));
 
   if (isSoft) {
-    console.log('\n⚠️  Soft mode (A11Y_RATCHET_ENFORCE=false): reporting only, not failing the build.');
+    console.log('\n⚠️  Soft mode: reporting only, not failing the build. Set A11Y_RATCHET_ENFORCE=true to enforce.');
     process.exit(0);
   }
 
