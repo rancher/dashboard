@@ -80,7 +80,7 @@ const DOC_REPLACEMENTS = [
   },
   {
     from: 'https://docs.harvesterhci.io/',
-    to:   'https://documentation.suse.com/cloudnative/virtualization/v1.3/en/introduction/overview.html'
+    to:   'https://documentation.suse.com/cloudnative/virtualization/v1.8/en/introduction/overview.html'
   },
 ];
 
