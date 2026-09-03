@@ -3,6 +3,7 @@ import flushPromises from 'flush-promises';
 
 import Config from '@pkg/gke/components/Config.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -83,6 +84,34 @@ describe('gke Config', () => {
 
     const versionDropdown = wrapper.getComponent('[data-testid="gke-version-select"]');
 
+    expect(versionDropdown.props().options).toHaveLength(numVersionsAvailable);
+  });
+
+  it.each([
+    ['test1-ranchername', 'test1', 'REGULAR', 7],
+    ['test2-ranchername', 'test2', 'RAPID', 4]
+  ])('should filter the list of available versions by the cluster\'s release channel', async(clusterName: string, gkeClusterName: string, expectedReleaseChannel: string, numVersionsAvailable: number) => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      props: {
+        mode:              'edit',
+        zone:              'test-zone',
+        region:            'test-region',
+        cloudCredentialId: 'abc',
+        projectId:         'test-project',
+        clusterName,
+        gkeClusterName
+      },
+      ...setup
+    });
+
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+
+    const versionDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="gke-version-select"]');
+
+    expect((wrapper.vm as any).releaseChannel).toBe(expectedReleaseChannel);
     expect(versionDropdown.props().options).toHaveLength(numVersionsAvailable);
   });
 
