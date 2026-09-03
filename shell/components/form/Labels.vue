@@ -5,6 +5,7 @@ import { LABELS_TO_IGNORE_REGEX, ANNOTATIONS_TO_IGNORE_REGEX } from '@shell/conf
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import { _VIEW } from '@shell/config/query-params';
+import { RcSection } from '@components/RcSection';
 
 export class Factory {
   private protectedKeys: string[] = [];
@@ -98,7 +99,8 @@ interface DataType {
 export default {
   components: {
     ToggleSwitch,
-    KeyValue
+    KeyValue,
+    RcSection
   },
 
   props: {
@@ -165,6 +167,15 @@ export default {
     useRcButton: {
       type:    Boolean,
       default: false
+    },
+
+    /**
+     * Render the labels/annotations blocks as RcSections and use RcButton for the
+     * add buttons, in place of the legacy heading/`btn` markup
+     */
+    useRc: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -202,75 +213,164 @@ export default {
 
     showToggler() {
       return this.mode === _VIEW && (this.labels.hasProtectedKeys || this.annotations.hasProtectedKeys);
+    },
+
+    /**
+     * RcSection handles its own spacing, so only the side-by-side column is needed
+     */
+    rcSectionClass() {
+      return `${ this.displaySideBySide ? 'col span-6' : '' } ${ this.defaultSectionClass }`.trim();
+    },
+
+    /**
+     * `useRc` implies the RcButton add buttons in the KeyValue children
+     */
+    rcButtons() {
+      return this.useRcButton || this.useRc;
     }
   }
 };
 </script>
 <template>
-  <div :class="containerClass">
-    <div :class="defaultSectionClass">
-      <div class="labels">
-        <div class="labels__header">
-          <component
-            :is="!compact ? 'h3' : 'h4'"
-            v-if="showLabelTitle"
-          >
-            <t k="labels.labels.title" />
-          </component>
+    <template v-if="useRc">
+      <RcSection
+        type="secondary"
+        mode="with-header"
+        :expandable="false"
+        :title="showLabelTitle ? t('labels.labels.title') : ''"
+        :class="rcSectionClass"
+      >
+        <template
+          v-if="showToggler"
+          #actions
+        >
           <ToggleSwitch
-            v-if="showToggler"
             v-model:value="toggler"
             name="label-system-toggle"
             :on-label="t('labels.labels.show')"
           />
-        </div>
-        <p
-          v-if="showLabelDescription"
-          class="mt-10 mb-10"
-        >
-          <t k="labels.labels.description" />
-        </p>
-        <div :class="columnsClass">
+        </template>
+          <p v-if="showLabelDescription">
+            <t k="labels.labels.description" />
+          </p>
           <slot name="labels">
             <KeyValue
               key="labels"
               data-testid="labels-keyvalue"
               :value="toggler ? labels.initValue : labels.value"
               :add-label="t('labels.addLabel')"
-              :add-icon="addIcon"
+              :add-icon="rcButtons ? 'icon-plus' : ''"
               :mode="mode"
               :read-allowed="false"
               :value-can-be-empty="true"
               :key-errors="labels.keyErrors"
-              :use-rc-button="useRcButton"
+              :use-rc-button="rcButtons"
               @update:value="labels.update($event, (x) => value.setLabels(x))"
             />
           </slot>
+      </RcSection>
+      <RcSection
+        v-if="showAnnotations"
+        type="secondary"
+        mode="with-header"
+        :expandable="false"
+        :title="t('labels.annotations.title')"
+        :class="rcSectionClass"
+      >
+        <template
+          v-if="annotationTitleTooltip"
+          #title
+        >
+          <span>
+            {{ t('labels.annotations.title') }}
+            <i
+              v-clean-tooltip="annotationTitleTooltip"
+              class="icon icon-info"
+            />
+          </span>
+        </template>
+          <KeyValue
+            key="annotations"
+            data-testid="annotations-keyvalue"
+            :value="toggler ? annotations.initValue : annotations.value"
+            :add-label="t('labels.addAnnotation')"
+            :add-icon="rcButtons ? 'icon-plus' : ''"
+            :mode="mode"
+            :read-allowed="false"
+            :value-can-be-empty="true"
+            :key-errors="annotations.keyErrors"
+            :disabled-keys="value.readOnlyAnnotationKeys || []"
+            :use-rc-button="rcButtons"
+            @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
+          />
+      </RcSection>
+    </template>
+  <div v-else :class="containerClass">
+    <template >
+      <div :class="defaultSectionClass">
+        <div class="labels">
+          <div class="labels__header">
+            <component
+              :is="!compact ? 'h3' : 'h4'"
+              v-if="showLabelTitle"
+            >
+              <t k="labels.labels.title" />
+            </component>
+            <ToggleSwitch
+              v-if="showToggler"
+              v-model:value="toggler"
+              name="label-system-toggle"
+              :on-label="t('labels.labels.show')"
+            />
+          </div>
+          <p
+            v-if="showLabelDescription"
+            class="mt-10 mb-10"
+          >
+            <t k="labels.labels.description" />
+          </p>
+          <div :class="columnsClass">
+            <slot name="labels">
+              <KeyValue
+                key="labels"
+                data-testid="labels-keyvalue"
+                :value="toggler ? labels.initValue : labels.value"
+                :add-label="t('labels.addLabel')"
+                :add-icon="rcButtons ? 'icon-plus' : ''"
+                :mode="mode"
+                :read-allowed="false"
+                :value-can-be-empty="true"
+                :key-errors="labels.keyErrors"
+                :use-rc-button="useRcButton"
+                @update:value="labels.update($event, (x) => value.setLabels(x))"
+              />
+            </slot>
+          </div>
         </div>
       </div>
-    </div>
-    <div :class="compact ? 'compact-spacer' : 'spacer'" />
-    <div
-      v-if="showAnnotations"
-      :class="sectionClass"
-    >
-      <KeyValue
-        key="annotations"
-        data-testid="annotations-keyvalue"
-        :value="toggler ? annotations.initValue : annotations.value"
-        :add-label="t('labels.addAnnotation')"
-        :add-icon="addIcon"
-        :mode="mode"
-        :title="t('labels.annotations.title')"
-        :title-protip="annotationTitleTooltip"
-        :read-allowed="false"
-        :value-can-be-empty="true"
-        :key-errors="annotations.keyErrors"
-        :disabled-keys="value.readOnlyAnnotationKeys || []"
-        :use-rc-button="useRcButton"
-        @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
-      />
-    </div>
+      <div :class="compact ? 'compact-spacer' : 'spacer'" />
+      <div
+        v-if="showAnnotations"
+        :class="sectionClass"
+      >
+        <KeyValue
+          key="annotations"
+          data-testid="annotations-keyvalue"
+          :value="toggler ? annotations.initValue : annotations.value"
+          :add-label="t('labels.addAnnotation')"
+          :add-icon="rcButtons ? 'icon-plus' : ''"
+          :mode="mode"
+          :title="t('labels.annotations.title')"
+          :title-protip="annotationTitleTooltip"
+          :read-allowed="false"
+          :value-can-be-empty="true"
+          :key-errors="annotations.keyErrors"
+          :disabled-keys="value.readOnlyAnnotationKeys || []"
+          :use-rc-button="useRcButton"
+          @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
+        />
+      </div>
+    </template>
   </div>
 </template>
 

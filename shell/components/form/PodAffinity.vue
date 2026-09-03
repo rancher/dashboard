@@ -75,6 +75,15 @@ export default {
       default: false,
       type:    Boolean
     },
+
+    /**
+     * Use the RcSection/RcButton components in place of the legacy
+     * InfoBox/`btn` markup for the term container, add and remove buttons
+     */
+    useRc: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -346,10 +355,10 @@ export default {
     <div class="col span-12">
       <ArrayListGrouped
         v-model:value="allSelectorTerms"
-        class="mt-20"
         :default-add-value="defaultAddValue"
         :mode="mode"
         :add-label="addLabel"
+        :use-rc="useRc"
         @remove="remove"
       >
         <template #default="props">
@@ -417,6 +426,8 @@ export default {
             :type="pod"
             :value="get(props.row.value, 'labelSelector.matchExpressions')"
             :show-remove="false"
+            :use-rc="useRc"
+            :add-icon="useRc ? 'icon-plus' : ''"
             :data-testid="`pod-affinity-expressions-index${props.i}`"
             @update:value="e=>updateLabelSelector(e, props)"
           />

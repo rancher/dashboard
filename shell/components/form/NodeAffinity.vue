@@ -37,6 +37,15 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    /**
+     * Use the RcSection/RcButton components in place of the legacy
+     * InfoBox/`btn` markup for the term container, add and remove buttons
+     */
+    useRc: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -203,10 +212,10 @@ export default {
     <div class="col span-12">
       <ArrayListGrouped
         v-model:value="allSelectorTerms"
-        class="mt-20"
         :mode="mode"
         :default-add-value="{matchExpressions:[]}"
         :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+        :use-rc="useRc"
         @remove="remove"
       >
         <template #default="props">
@@ -242,9 +251,11 @@ export default {
             :value="matchingSelectorDisplay ? props.row.value : props.row.value.matchExpressions"
             :matching-selector-display="matchingSelectorDisplay"
             :mode="mode"
-            class="col span-12 mt-20"
+            class="col span-12 mt-20" 
             :type="node"
             :show-remove="false"
+            :use-rc="useRc"
+            :add-icon="useRc ? 'icon-plus' : ''"
             :data-testid="`node-affinity-expressions-index${props.i}`"
             @update:value="(updateExpressions(props.row.value, $event))"
           />
