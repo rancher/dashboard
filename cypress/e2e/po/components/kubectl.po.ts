@@ -43,7 +43,9 @@ export default class Kubectl extends ComponentPo {
   }
 
   waitForTerminalStatus(status: 'Connected' | 'Disconnected', options?: GetOptions) {
-    this.self().contains('.active .status', status, options);
+    // the window manager itself is rendered when the terminal opens, so it needs the same
+    // timeout as the status text
+    this.self(options).contains('.active .status', status, options);
   }
 
   terminalRow() {
@@ -60,6 +62,30 @@ export default class Kubectl extends ComponentPo {
   executeCommand(command: string, wait = 3000) {
     this.terminalRow().type(`${ this.kubeCommand } ${ command }{enter}`);
     cy.wait(wait);
+
+    return this;
+  }
+
+  /**
+   * Run a command in the shell verbatim, without the 'kubectl' prefix. Use for anything else
+   * available in the shell pod - helm, curl, etc
+   * @param command full command to type, eg 'helm repo add ...'
+   * @returns executeShellCommand for method chaining
+   */
+  executeShellCommand(command: string, wait = 3000) {
+    this.terminalRow().type(`${ command }{enter}`);
+    cy.wait(wait);
+
+    return this;
+  }
+
+  /**
+   * Assert that some text appears in the terminal output. Long-running commands (helm install,
+   * for instance) need a generous timeout rather than a fixed wait
+   * @param text text to look for in the terminal output
+   */
+  waitForOutput(text: string, timeout = 300000) {
+    this.self().contains(text, { timeout }).should('exist');
 
     return this;
   }

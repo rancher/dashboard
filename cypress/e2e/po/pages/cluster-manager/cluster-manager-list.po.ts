@@ -1,6 +1,7 @@
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import ProvClusterListPo from '@/cypress/e2e/po/lists/provisioning.cattle.io.cluster.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 
 /**
  * List page for management.cattle.io.cluster resources
@@ -115,6 +116,23 @@ export default class ClusterManagerListPagePo extends BaseListPagePo {
     const rowMenu = this.sortableTable().rowActionMenuOpen(name);
 
     return rowMenu.waitForMenuItem('Edit Config').click();
+  }
+
+  /**
+   * Open the 'Kubectl Shell' row action for the given cluster and wait for the terminal to connect
+   * @param clusterName name of the cluster as shown in the list
+   * @returns the kubectl shell component, ready to accept commands
+   */
+  openKubectlShell(clusterName: string): Kubectl {
+    this.sortableTable().rowActionMenuOpen(clusterName)
+      .getMenuItem('Kubectl Shell')
+      .click();
+
+    const kubectl = new Kubectl();
+
+    kubectl.waitForTerminalStatus('Connected', { timeout: 60000 });
+
+    return kubectl;
   }
 
   /**
