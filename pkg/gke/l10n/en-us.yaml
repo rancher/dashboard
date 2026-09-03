@@ -120,6 +120,7 @@ gke:
     label: Local SSD Count
   location:
     extraZones: Extra Zones
+    extraZonesDisabledTooltip: Editing node zones is available only in zonal clusters.
     region: Region
     regional: Regional
     zonal: Zonal
