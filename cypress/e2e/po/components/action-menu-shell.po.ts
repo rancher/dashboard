@@ -9,8 +9,8 @@ export default class ActionMenuPo extends ComponentPo {
     return this.self().find('[dropdown-menu-item]').eq(index).click();
   }
 
-  getMenuItem(name: string) {
-    return this.self().get('[dropdown-menu-item]').contains(name);
+  getMenuItem(name: string, options?: Partial<Cypress.Timeoutable>) {
+    return this.self().get('[dropdown-menu-item]', options).contains(name, options);
   }
 
   menuItemNames() {

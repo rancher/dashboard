@@ -272,8 +272,7 @@ export async function createHelmRepository(store: any, name: string, url: string
     });
 
     tries++;
-
-    const downloaded = repo.status.conditions.find((s: any) => s.type === 'Downloaded');
+    const downloaded = repo.status?.conditions.find((s: any) => s.type === 'Downloaded');
 
     if (downloaded) {
       if (downloaded.status === 'True') {

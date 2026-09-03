@@ -102,8 +102,8 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     kubewardenPo.goTo();
     kubewardenPo.waitForPage();
 
-    cy.get('h1').contains('Kubewarden').should('exist');
-    cy.get('button').contains('Install Kubewarden').should('exist');
+    cy.get('h1').contains('SUSE Security Admission Controller').should('exist');
+    cy.get('button').contains('Install SUSE Security Admission Controller').should('exist');
   }));
 
   qase(1433, it('Should uninstall Kubewarden', () => {

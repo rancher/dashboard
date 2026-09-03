@@ -12,6 +12,7 @@ import {
 
 } from '@shell/components/google/util/gcp';
 import { sortBy, sortableNumericSuffix } from '@shell/utils/sort';
+import { getAllKubernetesVersions } from '../util/versions';
 
 import semver from 'semver';
 
@@ -78,8 +79,14 @@ export default defineComponent({
       type:    String,
       default: ''
     },
-
+    // norman cluster name property
     clusterName: {
+      type:    String,
+      default: ''
+    },
+    // name of the cluster in gkeConfig/name of the cluster in GCP
+    // provisioned clusters will match clusterName; imported clusters may not
+    gkeClusterName: {
       type:    String,
       default: ''
     },
@@ -200,7 +207,7 @@ export default defineComponent({
     },
 
     releaseChannel(): string | undefined {
-      const cluster = (this.clustersResponse?.clusters || []).find((c) => c.name === this.clusterName);
+      const cluster = (this.clustersResponse?.clusters || []).find((c) => c.name === this.gkeClusterName);
 
       return cluster?.releaseChannel?.channel;
     },
@@ -299,7 +306,7 @@ export default defineComponent({
         versions = (this.versionsResponse?.channels || []).find((ch) => ch.channel === this.releaseChannel)?.validVersions || [];
       }
       if (!versions || !versions.length) {
-        versions = this.versionsResponse?.validMasterVersions || [];
+        versions = getAllKubernetesVersions(this.versionsResponse);
       }
 
       out = versions.reduce((opts, v) => {
