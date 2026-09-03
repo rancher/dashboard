@@ -12,13 +12,17 @@ let token: any;
 
 /**
  * Login local authentication, including first login and bootstrap if not cached
+ *
+ * @param isPrime Rancher Prime brands the login page with "SUSE Rancher Prime" rather than the
+ * community "Welcome to Rancher" message - see the loginPrime command
  */
-Cypress.Commands.add('login', (
-  username = Cypress.env('username'),
-  password = Cypress.env('password'),
-  cacheSession = true,
-  skipNavigation = false,
-  acceptConfirmation = '', // Use when we expect the confirmation dialog to be present (expected button text)
+const loginLocal = (
+  username: string,
+  password: string,
+  cacheSession: boolean,
+  skipNavigation: boolean,
+  acceptConfirmation: string,
+  isPrime: boolean,
 ) => {
   const login = () => {
     // Note - `loginReq` has been used outside here....
@@ -38,7 +42,7 @@ Cypress.Commands.add('login', (
     loginPage.checkIsCurrentPage(!skipNavigation);
 
     if (!skipNavigation) {
-      loginPage.isWelcomeMessage();
+      isPrime ? loginPage.isPrimeWelcomeMessage() : loginPage.isWelcomeMessage();
     }
 
     if (!!acceptConfirmation) {
@@ -90,6 +94,30 @@ Cypress.Commands.add('login', (
   } else {
     login();
   }
+};
+
+Cypress.Commands.add('login', (
+  username = Cypress.env('username'),
+  password = Cypress.env('password'),
+  cacheSession = true,
+  skipNavigation = false,
+  acceptConfirmation = '', // Use when we expect the confirmation dialog to be present (expected button text)
+) => {
+  loginLocal(username, password, cacheSession, skipNavigation, acceptConfirmation, false);
+});
+
+/**
+ * As per the `login` command, but for a Rancher Prime instance, where the login page is branded
+ * "SUSE Rancher Prime" instead of showing the community "Welcome to Rancher" message
+ */
+Cypress.Commands.add('loginPrime', (
+  username = Cypress.env('username'),
+  password = Cypress.env('password'),
+  cacheSession = true,
+  skipNavigation = false,
+  acceptConfirmation = '',
+) => {
+  loginLocal(username, password, cacheSession, skipNavigation, acceptConfirmation, true);
 });
 
 /**

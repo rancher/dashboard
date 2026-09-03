@@ -112,6 +112,13 @@ export class LoginPagePo extends PagePo {
   }
 
   /**
+   * Rancher Prime brands the login page rather than showing the community welcome message
+   */
+  isPrimeWelcomeMessage() {
+    return this.welcomeMessage().contains('SUSE Rancher Prime').should('be.visible');
+  }
+
+  /**
    * Get login message
    * @returns
    */

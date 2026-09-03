@@ -97,6 +97,11 @@ declare global {
       state(state: any): any;
 
       login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
+      /**
+       * As per `login`, but checks for the "SUSE Rancher Prime" branding rather than the
+       * community "Welcome to Rancher" message
+       */
+      loginPrime(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
       refreshCsrfToken(): Chainable;
       logout(): Chainable;
       clearAllSessions(): Chainable;
