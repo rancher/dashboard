@@ -205,6 +205,42 @@ describe('component: CruResource', () => {
     expect(footer.exists()).toBe(shouldRender);
   });
 
+  it.each([
+    ['disable', false, true],
+    ['enable', true, false],
+  ])('should %s the save button when validationPassed is %s', (_label, validationPassed, expected) => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _CREATE,
+        resource: {},
+        validationPassed
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          // No `as` param, so the form is shown rather than the yaml editor
+          $route:  { query: {} },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    const saveButton = wrapper.find('.cru-resource-footer [data-testid="form-save"]');
+
+    expect(saveButton.attributes('disabled') !== undefined).toBe(expected);
+    expect(saveButton.attributes('aria-disabled')).toStrictEqual(`${ expected }`);
+  });
+
   it('should not prevent default events on keypress Enter', async() => {
     const event = { preventDefault: jest.fn() };
     const wrapper = mount(CruResource, {
