@@ -124,6 +124,34 @@ skipGeometric=true`;
         };
       };
 
+      // The namespace filter silently DROPS - and persists back to user preferences - any `ns://`
+      // entry it cannot resolve against the namespaces collection. If a just-created namespace is
+      // not listed yet when the page first loads, the filter is rewritten (to the remaining ns, or
+      // back to the "user namespaces" default) and every test below then reads the wrong list.
+      // The collection is indexed separately from single-resource GETs, so poll the collection.
+      const waitForNamespacesListed = (namespaces: string[], retries = 30): void => {
+        cy.getRancherResource('v1', 'namespaces').then((resp: any) => {
+          const listed = (resp.body?.data || []).map((ns: any) => ns.metadata?.name);
+
+          if (namespaces.every((ns) => listed.includes(ns))) {
+            return;
+          }
+
+          // Give up quietly rather than asserting: this runs in a `before` hook and Cypress does not
+          // retry hook failures, so failing here would take down every test in the describe.
+          if (retries === 0) {
+            cy.log(`waitForNamespacesListed: gave up waiting for ${ namespaces } in /v1/namespaces`);
+
+            return;
+          }
+
+
+          cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+
+          waitForNamespacesListed(namespaces, retries - 1);
+        });
+      };
+
       cy.createManyNamespacedResources({
         context:        'configmaps1',
         createResource: createConfigMap(),
@@ -140,6 +168,13 @@ skipGeometric=true`;
         .then(({ ns, workloadNames }) => {
           cmNamesList.push(workloadNames[0]);
           nsName2 = ns;
+        })
+        .then(() => {
+          waitForNamespacesListed([nsName1, nsName2]);
+
+          // Ensure the configmaps the tests look up by name are queryable, so the list's fetch includes them
+          cy.waitForRancherResource('v1', 'configmaps', `${ nsName1 }/${ cmNamesList[0] }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+          cy.waitForRancherResource('v1', 'configmaps', `${ nsName2 }/${ uniqueConfigMap }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
           cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
