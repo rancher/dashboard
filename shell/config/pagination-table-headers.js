@@ -1,6 +1,6 @@
 import { UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import {
-  STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT,
+  STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, DEPLOYED, OBJECT,
   EVENT_LAST_SEEN_TIME,
   EVENT_TYPE,
   SECRET_ORIGIN,
@@ -45,6 +45,14 @@ export const STEVE_AGE_COL = {
   ...AGE,
   value:  'metadata.creationTimestamp',
   sort:   'metadata.creationTimestamp',
+  search: false,
+};
+
+export const STEVE_DEPLOYED_COL = {
+  ...DEPLOYED,
+  // Derived client-side from the pod template's redeploy/restart annotations, which aren't
+  // available as a raw field for the server to sort/search on.
+  sort:   false,
   search: false,
 };
 
