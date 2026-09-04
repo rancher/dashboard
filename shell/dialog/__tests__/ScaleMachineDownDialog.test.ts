@@ -21,7 +21,7 @@ const defaultCluster = {
   save:     jest.fn()
 };
 
-const createResource = (overrides = {}) => {
+const createResource = (overrides: Record<string, any> = {}) => {
   const resource = {
     id:            'default/machine-1',
     cluster:       defaultCluster,
@@ -35,7 +35,7 @@ const createResource = (overrides = {}) => {
     nameDisplay: 'machine-1',
     namespace:   'default',
     schema:      'machine',
-    metadata:    { annotations: {} },
+    metadata:    { annotations: {} as Record<string, string> },
     ...overrides
   };
 
@@ -43,7 +43,7 @@ const createResource = (overrides = {}) => {
 };
 
 describe('component: ScaleMachineDownDialog', () => {
-  const createWrapper = (propsData = {}, mocks = {}) => {
+  const createWrapper = (propsData: { resources?: any[] } = {}, mocks = {}) => {
     const resources = propsData.resources || [createResource()];
 
     return shallowMount(ScaleMachineDownDialog, {
@@ -134,7 +134,7 @@ describe('component: ScaleMachineDownDialog', () => {
       const resource = createResource();
       const wrapper = createWrapper({ resources: [resource] });
 
-      (wrapper.vm as any).$store.dispatch.mockImplementation((action) => {
+      (wrapper.vm as any).$store.dispatch.mockImplementation((action: string) => {
         if (action === 'management/find') {
           return Promise.resolve(resource);
         }
@@ -162,9 +162,9 @@ describe('component: ScaleMachineDownDialog', () => {
       const resource = createResource();
       const wrapper = createWrapper({ resources: [resource] });
 
-      (wrapper.vm as any).$store.dispatch.mockImplementation((action) => {
+      (wrapper.vm as any).$store.dispatch.mockImplementation((action: string) => {
         if (action === 'management/find') {
-          return Promise.reject({ _status: 404 });
+          return Promise.reject(Object.assign(new Error('Not found'), { _status: 404 }));
         }
 
         return Promise.resolve([]);
@@ -187,7 +187,7 @@ describe('component: ScaleMachineDownDialog', () => {
       });
       const wrapper = createWrapper({ resources: [resource] });
 
-      (wrapper.vm as any).$store.dispatch.mockImplementation((action) => {
+      (wrapper.vm as any).$store.dispatch.mockImplementation((action: string) => {
         if (action === 'management/find') {
           return Promise.resolve(liveResource);
         }
@@ -205,7 +205,7 @@ describe('component: ScaleMachineDownDialog', () => {
       const liveResource = createResource({ metadata: { annotations: {} } });
       const wrapper = createWrapper({ resources: [resource] });
 
-      (wrapper.vm as any).$store.dispatch.mockImplementation((action) => {
+      (wrapper.vm as any).$store.dispatch.mockImplementation((action: string) => {
         if (action === 'management/find') {
           return Promise.resolve(liveResource);
         }
