@@ -1,4 +1,6 @@
 import { mount } from '@vue/test-utils';
+import { defineComponent } from 'vue';
+import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcSection from './RcSection.vue';
 
 describe('component: RcSection', () => {
@@ -316,6 +318,100 @@ describe('component: RcSection', () => {
       });
 
       expect(wrapper.find('.test-error').exists()).toBe(true);
+    });
+
+    it('should wrap the default slot in a content group so its content needs no wrapper of its own', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, expanded: true },
+        slots: { default: '<p class="test-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.section-content > .rc-content-group > .test-content').exists()).toBe(true);
+    });
+
+    it('should replace the default content group when the groups slot is given', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, expanded: true },
+        slots: { groups: '<p class="test-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.section-content > .test-content').exists()).toBe(true);
+      expect(wrapper.find('.rc-content-group').exists()).toBe(false);
+    });
+
+    it('should drop the default slot content when both the groups and default slots are given', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, expanded: true },
+        slots: {
+          groups:  '<p class="test-groups">Groups</p>',
+          default: '<p class="test-default">Default</p>',
+        },
+      });
+
+      expect(wrapper.find('.section-content > .test-groups').exists()).toBe(true);
+      expect(wrapper.find('.test-default').exists()).toBe(false);
+    });
+
+    it('should not render the default content group when collapsed', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        },
+        slots: { default: '<p class="test-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.rc-content-group').exists()).toBe(false);
+      expect(wrapper.find('.test-content').exists()).toBe(false);
+    });
+
+    it('should keep several groups from the groups slot as siblings the section can space apart', () => {
+      const wrapper = mount(RcSection, {
+        props:  { ...defaultProps, expanded: true },
+        global: { components: { RcContentGroup } },
+        slots:  { groups: '<RcContentGroup><p class="one" /></RcContentGroup><RcContentGroup><p class="two" /></RcContentGroup>' },
+      });
+
+      expect(wrapper.findAll('.section-content > .rc-content-group')).toHaveLength(2);
+    });
+  });
+
+  describe('counter badge colour', () => {
+    it('should give the counter slot its own element', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, background: 'secondary' },
+        slots: { counter: '<span class="test-counter">5</span>' },
+      });
+
+      expect(wrapper.find('.section-header .counter > .test-counter').exists()).toBe(true);
+    });
+
+    it('should not render the counter element when no counter slot is given', () => {
+      const wrapper = mount(RcSection, { props: { ...defaultProps, background: 'secondary' } });
+
+      expect(wrapper.find('.counter').exists()).toBe(false);
+    });
+  });
+
+  describe('groups slot appearing after mount', () => {
+    it('should replace the default slot content once the groups slot is given', async() => {
+      const Parent = defineComponent({
+        components: { RcSection, RcContentGroup },
+        props:      { hasGroups: { type: Boolean, default: false } },
+        template:   `
+          <RcSection type="primary" mode="with-header" :expandable="false" title="Test title">
+            <template v-if="hasGroups" #groups><RcContentGroup class="test-groups" /></template>
+            <p class="test-default">Content</p>
+          </RcSection>`,
+      });
+
+      const wrapper = mount(Parent, { props: { hasGroups: false } });
+
+      expect(wrapper.find('.test-default').exists()).toBe(true);
+
+      await wrapper.setProps({ hasGroups: true });
+
+      expect(wrapper.find('.test-groups').exists()).toBe(true);
+      expect(wrapper.find('.test-default').exists()).toBe(false);
     });
   });
 });

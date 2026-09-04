@@ -1,30 +1,46 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcSection, RcSectionBadges, RcSectionActions } from '@components/RcSection';
+import { RcContentGroup } from '@components/Layout';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { SectionType, SectionMode, SectionBackground } from '@components/RcSection/types';
 import RcCounterBadge from '@components/Pill/RcCounterBadge';
 import { RcIcon } from '@components/RcIcon';
 import { ref, watch, toRef } from 'vue';
 
 /**
- * Reusable content group markup matching the Figma spec.
+ * Reusable group content matching the Figma spec.
  * - required (first group): 14px/700, color #6C6F76
  * - optional (subsequent):  14px/400, color #BEC1D2
  */
-const contentGroup = (title: string, body: string, required = false) => {
+const groupBody = (title: string, body: string, required = false) => {
   const titleWeight = required ? '700' : '400';
   const titleColor = required ? '#6C6F76' : '#BEC1D2';
 
   return `
-  <div style="display: flex; flex-direction: column; gap: 16px;">
-    <p style="margin: 0; font-weight: ${ titleWeight }; font-size: 14px; line-height: 1.4; text-align: center; color: ${ titleColor };">${ title }</p>
-    <p style="margin: 0; font-weight: 400; font-size: 14px; line-height: 1.4; text-align: center; color: #BEC1D2;">${ body }</p>
-  </div>`;
+  <p style="margin: 0; font-weight: ${ titleWeight }; font-size: 14px; line-height: 1.4; text-align: center; color: ${ titleColor };">${ title }</p>
+  <p style="margin: 0; font-weight: 400; font-size: 14px; line-height: 1.4; text-align: center; color: #BEC1D2;">${ body }</p>`;
 };
+
+const contentGroup = (title: string, body: string, required = false) => `
+  <RcContentGroup>${ groupBody(title, body, required) }
+  </RcContentGroup>`;
 
 const SLOT = '<!-- default slot -->';
 
-/** Replace the slot placeholder with actual rendered content */
-const withSlotContent = (template: string, slotContent: string) => template.replace(SLOT, slotContent);
+/**
+ * Replace the slot placeholder with content handed straight to the section.
+ * RcSection wraps its default slot in one RcContentGroup, so this content is
+ * stacked 16px apart with no wrapper written at the call site.
+ */
+const withDefaultSlot = (template: string, content: string) => template.replace(SLOT, content);
+
+/**
+ * Replace the slot placeholder with a `groups` slot holding several content
+ * groups. That slot replaces the section's default group, and the section
+ * spaces the groups it is given 24px apart.
+ */
+const withGroupsSlot = (template: string, ...groups: string[]) => template.replace(SLOT, `<template #groups>${ groups.join('\n') }
+  </template>`);
 
 const meta: Meta<typeof RcSection> = {
   component: RcSection,
@@ -62,6 +78,33 @@ const meta: Meta<typeof RcSection> = {
 export default meta;
 type Story = StoryObj<typeof RcSection>;
 
+const simpleTemplate = `<RcSection title="Section title" type="primary" mode="with-header" background="primary" :expandable="false">
+  <LabeledInput label="Name" placeholder="my-workload" />
+  <LabeledInput label="Description" placeholder="What this is for" />
+</RcSection>`;
+
+/**
+ * **The common case**
+ *
+ * The default slot is one content group: whatever goes in it is stacked 16px
+ * apart, so form elements go straight in and no wrapper div is written here.
+ * A section needing several groups uses the `groups` slot instead, as the
+ * stories below do.
+ */
+export const Simple: Story = {
+  render: () => ({
+    components: { RcSection, LabeledInput },
+    template:   simpleTemplate,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: simpleTemplate },
+    },
+  },
+};
+
 const defaultTemplate = `<RcSection v-bind="args" v-model:expanded="expanded">
   <template #counter>
     <RcCounterBadge :count="99" type="inactive" />
@@ -86,12 +129,19 @@ const defaultTemplate = `<RcSection v-bind="args" v-model:expanded="expanded">
   ${ SLOT }
 </RcSection>`;
 
+const defaultSource = withGroupsSlot(
+  defaultTemplate,
+  contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true),
+  contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content'),
+);
+
 export const Default: Story = {
   render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcContentGroup,
       RcCounterBadge,
       RcIcon,
     },
@@ -106,11 +156,7 @@ export const Default: Story = {
 
       return { args, expanded };
     },
-    template: withSlotContent(
-      defaultTemplate,
-      `${ contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true) }
-       ${ contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content') }`,
-    ),
+    template: defaultSource,
   }),
   args: {
     type:       'secondary',
@@ -122,7 +168,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       canvas: { sourceState: 'shown' },
-      source: { code: defaultTemplate },
+      source: { code: defaultSource },
     },
   },
 };
@@ -140,28 +186,31 @@ const primaryFixedTemplate = `<RcSection title="Primary section" type="primary" 
   ${ SLOT }
 </RcSection>`;
 
+const primaryFixedSource = withGroupsSlot(
+  primaryFixedTemplate,
+  contentGroup('Content Group 1', 'First group content goes here.', true),
+  contentGroup('Content Group 2', 'Second group content goes here.'),
+);
+
 export const PrimaryFixed: Story = {
   render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcContentGroup,
       RcCounterBadge,
     },
     setup() {
       return { args };
     },
-    template: withSlotContent(
-      primaryFixedTemplate,
-      `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
-       ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
-    ),
+    template: primaryFixedSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: primaryFixedTemplate },
+      source: { code: primaryFixedSource },
     },
   },
 };
@@ -179,12 +228,19 @@ const secondaryFixedTemplate = `<RcSection title="Secondary section" type="secon
   ${ SLOT }
 </RcSection>`;
 
+const secondaryFixedSource = withGroupsSlot(
+  secondaryFixedTemplate,
+  contentGroup('Content Group 1', 'First group content goes here.', true),
+  contentGroup('Content Group 2', 'Second group content goes here.'),
+);
+
 export const SecondaryFixed: Story = {
   render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcContentGroup,
       RcCounterBadge,
     },
     setup() {
@@ -192,11 +248,7 @@ export const SecondaryFixed: Story = {
     },
     template: `
       <div style="background: #EFEFEF; padding: 24px;">
-        ${ withSlotContent(
-      secondaryFixedTemplate,
-      `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
-           ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
-    ) }
+        ${ secondaryFixedSource }
       </div>
     `,
   }),
@@ -204,7 +256,59 @@ export const SecondaryFixed: Story = {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: secondaryFixedTemplate },
+      source: { code: secondaryFixedSource },
+    },
+  },
+};
+
+const counterColorsTemplate = `<!-- Default: the section supplies the inactive fill. -->
+<RcSection title="Default counter" type="secondary" mode="with-header" :expandable="false" background="secondary">
+  <template #counter>
+    <RcCounterBadge :count="3" type="inactive" />
+  </template>
+  <p style="margin: 0;">The badge is filled, not the header's own grey.</p>
+</RcSection>
+
+<!-- Status colours, from the same palette RcStatusBadge uses. -->
+<RcSection title="Status counter" type="secondary" mode="with-header" :expandable="false" background="secondary">
+  <template #counter>
+    <RcCounterBadge :count="7" type="inactive" status="warning" aria-label="7 items need attention" />
+  </template>
+  <p style="margin: 0;">status="warning" colours the fill, border and text together.</p>
+</RcSection>
+
+<!-- A full override. An escape hatch, strongly discouraged: prefer a status so the badge stays in the palette. -->
+<RcSection title="Overridden counter" type="secondary" mode="with-header" :expandable="false" background="secondary">
+  <template #counter>
+    <RcCounterBadge
+      :count="12"
+      type="inactive"
+      background-color="var(--rc-info-secondary)"
+      border-color="var(--rc-info)"
+      text-color="var(--rc-info)"
+    />
+  </template>
+  <p style="margin: 0;">Each colour can be set on its own, and wins over the status and the section.</p>
+</RcSection>`;
+
+/**
+ * **Counter badge colours**
+ *
+ * On a secondary background the section defaults the badge's inactive fill.
+ * The badge takes `status` for the status palette, or `backgroundColor` /
+ * `borderColor` / `textColor` for a colour of its own, and either wins over
+ * the section's default.
+ */
+export const CounterBadgeColors: Story = {
+  render: () => ({
+    components: { RcSection, RcCounterBadge },
+    template:   `<div style="display: flex; flex-direction: column; gap: 24px;">${ counterColorsTemplate }</div>`,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: counterColorsTemplate },
     },
   },
 };
@@ -226,29 +330,32 @@ const expandableTemplate = `<RcSection
   ${ SLOT }
 </RcSection>`;
 
+const expandableSource = withGroupsSlot(
+  expandableTemplate,
+  contentGroup('Content Group 1', 'This content is visible when expanded.', true),
+  contentGroup('Content Group 2', 'Another content group.'),
+);
+
 export const Expandable: Story = {
   render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
+      RcContentGroup,
     },
     setup() {
       const expanded = ref(true);
 
       return { args, expanded };
     },
-    template: withSlotContent(
-      expandableTemplate,
-      `${ contentGroup('Content Group 1', 'This content is visible when expanded.', true) }
-       ${ contentGroup('Content Group 2', 'Another content group.') }`,
-    ),
+    template: expandableSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: expandableTemplate },
+      source: { code: expandableSource },
     },
   },
 };
@@ -267,6 +374,11 @@ const collapsedByDefaultTemplate = `<RcSection
   ${ SLOT }
 </RcSection>`;
 
+const collapsedByDefaultSource = withDefaultSlot(
+  collapsedByDefaultTemplate,
+  groupBody('Content Group 1', 'This content is hidden until expanded.', true),
+);
+
 export const CollapsedByDefault: Story = {
   render: (args: any) => ({
     components: { RcSection, RcSectionBadges },
@@ -275,16 +387,13 @@ export const CollapsedByDefault: Story = {
 
       return { args, expanded };
     },
-    template: withSlotContent(
-      collapsedByDefaultTemplate,
-      contentGroup('Content Group 1', 'This content is hidden until expanded.', true),
-    ),
+    template: collapsedByDefaultSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: collapsedByDefaultTemplate },
+      source: { code: collapsedByDefaultSource },
     },
   },
 };
@@ -293,23 +402,25 @@ const noHeaderTemplate = `<RcSection type="primary" mode="no-header" background=
   ${ SLOT }
 </RcSection>`;
 
+const noHeaderSource = withGroupsSlot(
+  noHeaderTemplate,
+  contentGroup('Content Group 1', 'No header, just content.', true),
+  contentGroup('Content Group 2', 'Second group content goes here.'),
+);
+
 export const NoHeader: Story = {
   render: (args: any) => ({
-    components: { RcSection },
+    components: { RcSection, RcContentGroup },
     setup() {
       return { args };
     },
-    template: withSlotContent(
-      noHeaderTemplate,
-      `${ contentGroup('Content Group 1', 'No header, just content.', true) }
-       ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
-    ),
+    template: noHeaderSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: noHeaderTemplate },
+      source: { code: noHeaderSource },
     },
   },
 };
@@ -321,22 +432,24 @@ const withErrorsSlotTemplate = `<RcSection title="Section with errors" type="pri
   ${ SLOT }
 </RcSection>`;
 
+const withErrorsSlotSource = withDefaultSlot(
+  withErrorsSlotTemplate,
+  groupBody('Content Group 1', 'This section has validation errors indicated in the header.', true),
+);
+
 export const WithErrorsSlot: Story = {
   render: (args: any) => ({
     components: { RcSection, RcIcon },
     setup() {
       return { args };
     },
-    template: withSlotContent(
-      withErrorsSlotTemplate,
-      contentGroup('Content Group 1', 'This section has validation errors indicated in the header.', true),
-    ),
+    template: withErrorsSlotSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: withErrorsSlotTemplate },
+      source: { code: withErrorsSlotSource },
     },
   },
 };
@@ -372,6 +485,11 @@ const fullHeaderTemplate = `<RcSection
   ${ SLOT }
 </RcSection>`;
 
+const fullHeaderSource = withDefaultSlot(
+  fullHeaderTemplate,
+  groupBody('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true),
+);
+
 export const FullHeader: Story = {
   render: (args: any) => ({
     components: {
@@ -386,16 +504,13 @@ export const FullHeader: Story = {
 
       return { args, expanded };
     },
-    template: withSlotContent(
-      fullHeaderTemplate,
-      contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true),
-    ),
+    template: fullHeaderSource,
   }),
   parameters: {
     controls: { disabled: true },
     docs:     {
       canvas: { sourceState: 'shown' },
-      source: { code: fullHeaderTemplate },
+      source: { code: fullHeaderSource },
     },
   },
 };
@@ -551,7 +666,7 @@ export const AllTypes: Story = {
                   { icon: 'trash', ariaLabel: 'Delete pool', action: () => {} },
                 ]" />
               </template>
-              ${ contentGroup('Pool details', '3 nodes running, 0 pending', true) }
+              ${ groupBody('Pool details', '3 nodes running, 0 pending', true) }
             </RcSection>
           </RcSection>
         </RcSection>

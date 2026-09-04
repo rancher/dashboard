@@ -729,6 +729,8 @@ BODY, .theme-light {
   --rc-section-background-primary: #{$body-bg};
   --rc-section-background-secondary: #{$grey-5};
   --rc-section-action-color: #{$gray009};
+  --rc-section-counter-background: #{$gray003};
+  --rc-section-counter-border: #{$gray004};
 
   --rc-image-bg: #{$lightest};
   --rc-image-color: #{$darkest};
@@ -1078,6 +1080,8 @@ BODY, .theme-dark {
   --rc-section-background-primary: #{$body-bg};
   --rc-section-background-secondary: #{$darkest};
   --rc-section-action-color: #{$gray010};
+  --rc-section-counter-background: #{$gray005};
+  --rc-section-counter-border: #{$gray004};
 
   --rc-image-bg: #{$lightest};
   --rc-image-color: #{$darkest};

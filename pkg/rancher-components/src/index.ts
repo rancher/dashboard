@@ -13,6 +13,7 @@ export {
 } from './components/RcDropdown';
 export { RcIcon } from './components/RcIcon';
 export { RcIconTooltip } from './components/RcIconTooltip';
+export { RcContentGroup } from './components/Layout';
 export { RcSection } from './components/RcSection';
 export { RcSeparator } from './components/RcSeparator';
 export { RcItemCard, RcItemCardAction } from './components/RcItemCard';
