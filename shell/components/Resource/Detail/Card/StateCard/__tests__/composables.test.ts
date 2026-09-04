@@ -65,6 +65,21 @@ describe('useResourceCardRow', () => {
       expect(result.counts![1].count).toBe(1);
     });
 
+    it('should color a count with the most severe of the states it merges', () => {
+      const resources = [
+        { stateSimpleColor: 'success', stateDisplay: 'Active' },
+        { stateSimpleColor: 'error', stateDisplay: 'Active' },
+        { stateSimpleColor: 'success', stateDisplay: 'Active' }
+      ];
+
+      const result = useResourceCardRow('Pods', resources);
+
+      expect(result.counts).toHaveLength(1);
+      expect(result.counts![0]).toStrictEqual(expect.objectContaining({
+        label: 'active', count: 3, color: 'error'
+      }));
+    });
+
     it('should use default color when stateSimpleColor is undefined', () => {
       const resources = [
         { stateDisplay: 'Unknown' }
@@ -227,5 +242,72 @@ describe('useResourceCardRowFromRelationships', () => {
     expect(result.counts![0]).toStrictEqual(expect.objectContaining({
       label: 'missing', count: 2, color: 'warning'
     }));
+  });
+
+  it.each([
+    ['transitioning wins over the state name', 'unavailable', false, true, 'info'],
+    ['error wins over the state name', 'active', true, false, 'error'],
+    ['error wins over transitioning', 'active', true, true, 'error'],
+    ['neither flag leaves the state name in charge', 'unavailable', false, false, 'error'],
+  ])('should honor the relationship flags: %s', (_name, state, error, transitioning, color) => {
+    const rels = [{
+      toType: 'pod', state, error, transitioning
+    }];
+
+    const result = useResourceCardRowFromRelationships('Refers to', rels);
+
+    expect(result.color).toBe(color);
+    expect(result.counts![0]).toStrictEqual(expect.objectContaining({
+      label: state, count: 1, color
+    }));
+  });
+
+  it('should label a count with the remapped display state', () => {
+    const rels = [{ toType: 'pod', state: 'notready' }];
+
+    const result = useResourceCardRowFromRelationships('Refers to', rels);
+
+    expect(result.counts![0]).toStrictEqual(expect.objectContaining({ label: 'not ready', count: 1 }));
+  });
+
+  it.each([
+    ['warning state first', 'disabled', 'inactive'],
+    ['error state first', 'inactive', 'disabled'],
+  ])('should merge states that share a display name into one count: %s', (_name, first, second) => {
+    const rels = [
+      { toType: 'a', state: first },
+      { toType: 'b', state: second }
+    ];
+
+    const result = useResourceCardRowFromRelationships('Refers to', rels);
+
+    expect(result.counts).toHaveLength(1);
+    expect(result.counts![0]).toStrictEqual(expect.objectContaining({
+      label: 'inactive', count: 2, color: 'error'
+    }));
+  });
+
+  it.each([
+    ['errored relationship first', 'error', true, false, 'error'],
+    ['errored relationship last', 'error', false, true, 'error'],
+    ['transitioning relationship first', 'transitioning', true, false, 'success'],
+    ['transitioning relationship last', 'transitioning', false, true, 'success'],
+  ])('should color a merged count with its most severe state: %s', (_name, flag, firstFlag, secondFlag, color) => {
+    const rels = [
+      {
+        toType: 'a', state: 'active', [flag]: firstFlag
+      },
+      {
+        toType: 'b', state: 'active', [flag]: secondFlag
+      }
+    ];
+
+    const result = useResourceCardRowFromRelationships('Refers to', rels);
+
+    expect(result.counts).toHaveLength(1);
+    expect(result.counts![0]).toStrictEqual(expect.objectContaining({
+      label: 'active', count: 2, color
+    }));
+    expect(result.color).toBe(color);
   });
 });
