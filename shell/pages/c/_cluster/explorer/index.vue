@@ -193,6 +193,12 @@ export default {
       return this.$store.getters['cluster/all'](NODE);
     },
 
+    schedulableWorkerNodes() {
+      return this.nodes?.filter((node) => {
+        return node.isSchedulable && node.isWorker;
+      });
+    },
+
     mgmtNodes() {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
@@ -328,37 +334,54 @@ export default {
     },
 
     hasStats() {
-      return this.currentCluster?.status?.allocatable && this.currentCluster?.status?.requested;
+      return Object.values(this.workerStatsAggregation || {}).every((stat) => !!stat);
+    },
+
+    workerStatsAggregation() {
+      const initialAggregation = {
+        ramAllocatable: 0,
+        cpuAllocatable: 0,
+        ramReserved:    0,
+        cpuReserved:    0,
+        podReserved:    0,
+        podCapacity:    0
+      };
+
+      return this.schedulableWorkerNodes?.reduce((agg, node) => {
+        agg.ramAllocatable += node.ramAllocatable;
+        agg.cpuAllocatable += node.cpuCapacity;
+        agg.ramReserved += node.ramReserved;
+        agg.cpuReserved += node.cpuReserved;
+        agg.podReserved += node.podReserved;
+        agg.podCapacity += node.podCapacity;
+
+        return agg;
+      }, initialAggregation);
     },
 
     cpuReserved() {
-      const total = parseSi(this.currentCluster?.status?.allocatable?.cpu);
+      const total = this.workerStatsAggregation?.cpuAllocatable;
 
       return {
         total,
-        useful: parseSi(this.currentCluster?.status?.requested?.cpu),
+        useful: this.workerStatsAggregation?.cpuReserved,
         units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
     },
 
     podsUsed() {
       return {
-        total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
-        useful: parseSi(this.currentCluster?.status?.requested?.pods || '0'),
+        total:  this.workerStatsAggregation?.podCapacity || parseSi('0'),
+        useful: this.workerStatsAggregation?.podReserved || parseSi('0'),
       };
     },
 
     ramReserved() {
-      return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
+      return createMemoryValues(this.workerStatsAggregation?.ramAllocatable, this.workerStatsAggregation?.ramReserved);
     },
 
     metricAggregations() {
-      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
-        // This should use cluster/byId getter
-        const node = this.nodes.find((nd) => nd.id === nodeMetrics.id);
-
-        return node;
-      });
+      const metrics = this.nodeMetrics.filter((nodeMetrics) => !!this.schedulableWorkerNodes?.find((nd) => nd.id === nodeMetrics.id));
 
       const initialAggregation = {
         cpu:    0,
@@ -378,7 +401,7 @@ export default {
     },
 
     cpuUsed() {
-      const total = parseSi(this.currentCluster?.status?.capacity?.cpu);
+      const total = this.workerStatsAggregation?.cpuAllocatable;
 
       return {
         total,
@@ -388,7 +411,7 @@ export default {
     },
 
     ramUsed() {
-      return createMemoryValues(this.currentCluster?.status?.capacity?.memory, this.metricAggregations?.memory);
+      return createMemoryValues(this.workerStatsAggregation?.ramAllocatable, this.metricAggregations?.memory);
     },
 
     hasMonitoring() {
