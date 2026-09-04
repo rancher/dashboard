@@ -1,4 +1,6 @@
+import { shallowMount } from '@vue/test-utils';
 import Charts from '@shell/pages/c/_cluster/apps/charts/index.vue';
+import AsyncButton from '@shell/components/AsyncButton';
 import { UI_PLUGIN_ANNOTATION } from '@shell/config/uiplugins';
 
 describe('page: Charts Index', () => {
@@ -107,6 +109,55 @@ describe('page: Charts Index', () => {
     });
   });
 
+  describe('progressive loading', () => {
+    const mountCharts = (pending: boolean) => shallowMount(Charts, {
+      global: {
+        mocks: {
+          t:           (key: string) => key,
+          $fetchState: { pending },
+          $route:      { params: { cluster: 'c-1' }, query: {} },
+          $store:      {
+            getters: {
+              currentCluster:      { status: { provider: 'other' }, workerOSs: [] },
+              'catalog/charts':    [],
+              'catalog/errors':    [],
+              'catalog/repos':     [],
+              'prefs/get':         () => false,
+              'i18n/withFallback': (_key: string, _fallback: any, val: string) => val,
+              clusterId:           'c-1',
+              productId:           'apps',
+            },
+          },
+        },
+        directives: { shortkey: () => {} },
+      },
+    });
+
+    it('should render the header, search bar and refresh button while fetching', () => {
+      const wrapper = mountCharts(true);
+
+      expect(wrapper.find('[data-testid="charts-header-title"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="charts-filter-input"]').exists()).toBe(true);
+      expect(wrapper.findComponent(AsyncButton).exists()).toBe(true);
+    });
+
+    it('should disable the search bar and refresh button and show the loading indicator while fetching', () => {
+      const wrapper = mountCharts(true);
+
+      expect(wrapper.find('[data-testid="charts-filter-input"]').attributes('disabled')).toBeDefined();
+      expect(wrapper.findComponent(AsyncButton).props('disabled')).toBe(true);
+      expect(wrapper.find('[data-testid="charts-loading"]').exists()).toBe(true);
+    });
+
+    it('should enable the controls and hide the loading indicator once fetching completes', () => {
+      const wrapper = mountCharts(false);
+
+      expect(wrapper.find('[data-testid="charts-filter-input"]').attributes('disabled')).toBeUndefined();
+      expect(wrapper.findComponent(AsyncButton).props('disabled')).toBe(false);
+      expect(wrapper.find('[data-testid="charts-loading"]').exists()).toBe(false);
+    });
+  });
+
   describe('method: resetLazyLoadState', () => {
     beforeEach(() => {
       jest.useFakeTimers();
@@ -143,6 +194,41 @@ describe('page: Charts Index', () => {
 
       // The cancelled timer must not have fired — count stays at the reset value.
       expect(ctx.visibleChartsCount).toBe(30);
+    });
+  });
+
+  describe('template: catalog search input', () => {
+    // type="search" already exposes the implicit searchbox role, so no
+    // explicit role should be written over it.
+    it('should leave the search input its implicit searchbox role', () => {
+      const wrapper = shallowMount(Charts, {
+        global: {
+          // Only what the page reads while rendering: its three mapGetters,
+          // the prefs the template checks, and $fetchState for the Loading
+          // guard.
+          mocks: {
+            $store: {
+              getters: {
+                'catalog/charts': [],
+                'catalog/errors': [],
+                'catalog/repos':  [],
+                'prefs/get':      jest.fn(),
+                currentCluster:   { status: { provider: 'k3s' } },
+              }
+            },
+            $fetchState: { pending: false },
+            $route:      { query: {}, params: {} },
+          },
+          // Registered globally by the app, so absent under a bare mount.
+          stubs:      { RouterLink: true },
+          directives: { shortkey: {} }
+        }
+      });
+
+      const search = wrapper.find('[data-testid="charts-filter-input"]');
+
+      expect(search.exists()).toBe(true);
+      expect(search.attributes('role')).toBeUndefined();
     });
   });
 });

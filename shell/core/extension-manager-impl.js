@@ -1,3 +1,4 @@
+import { markRaw } from 'vue';
 import { productsLoaded } from '@shell/store/type-map';
 import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { EXT_IDS, Plugin } from './plugin';
@@ -422,7 +423,18 @@ export const createExtensionManager = (context) => {
     },
 
     getDynamic(typeName, name) {
-      return dynamic[typeName]?.[name];
+      const result = dynamic[typeName]?.[name];
+
+      // Component definitions must never be made reactive: storing one in reactive
+      // state makes Vue proxy it, which triggers a dev warning and adds needless
+      // reactivity overhead when rendered via <component :is>. Mark components raw
+      // centrally here so every call site is covered. Other dynamic types (models,
+      // l10n, provisioners, …) are not components and are returned untouched.
+      if (typeName === 'component' && result) {
+        return markRaw(result);
+      }
+
+      return result;
     },
 
     getValidator(name) {

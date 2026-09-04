@@ -19,6 +19,7 @@ const getters: Record<string, any> = {
   'i18n/selectedLocaleLabel': 'English',
   'i18n/hasMultipleLocales':  false,
   'type-map/activeProducts':  [],
+  'type-map/productByName':   () => undefined,
   'prefs/get':                () => [],
   'cluster/schemaFor':        () => null,
   'cluster/all':              () => [],
@@ -28,9 +29,12 @@ const getters: Record<string, any> = {
 const mockStore = {
   // clusterReady false keeps `created()`'s getGroups from building a real tree,
   // so each test can drive the methods with a tree of its own.
-  state:    { managementReady: true, clusterReady: false },
-  getters:  new Proxy(getters, { get: (target, prop: string) => target[prop] }),
-  dispatch: jest.fn(),
+  state:                { managementReady: true, clusterReady: false },
+  getters:              new Proxy(getters, { get: (target, prop: string) => target[prop] }),
+  dispatch:             jest.fn(),
+  // `mapGetters('type-map', ...)` resolves the namespace through this before it
+  // reads the getter, so a mock without it throws as soon as one is read.
+  _modulesNamespaceMap: { 'type-map/': {} },
 };
 
 /**
@@ -71,6 +75,16 @@ const GroupStub = {
   },
 };
 
+/**
+ * Registers products with the store mock. `activeProducts` is what the user can
+ * see; `type-map/productByName` answers from the full registered list, which is
+ * every product passed here.
+ */
+const registerProducts = (products: any[], visible = products) => {
+  getters['type-map/activeProducts'] = visible;
+  getters['type-map/productByName'] = (name: string) => products.find((p) => p.name === name);
+};
+
 // `wrapper.vm.groups` resolves to the `ref="groups"` template refs, so go through
 // `$data` to reach (and reactively mutate) the nav tree itself.
 const navGroups = (wrapper: any, groups?: any[]) => {
@@ -100,6 +114,92 @@ describe('component: SideNav', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     navStateStorage.load.mockReturnValue(null);
+    getters.productId = 'explorer';
+    getters.rootProduct = { name: 'explorer' };
+    getters.currentProduct = { name: 'explorer', inStore: 'cluster' };
+    registerProducts([{
+      name: 'explorer', inStore: 'cluster', navSearch: true
+    }]);
+  });
+
+  describe('the nav toolbar is opt-in per root product', () => {
+    const toolbar = (wrapper: any) => wrapper.findComponent({ name: 'NavActionBar' });
+
+    it('shows the toolbar for a product that asked for it', () => {
+      expect(toolbar(mountNav()).exists()).toBe(true);
+    });
+
+    it('leaves it out entirely for a product that did not, collapse-all included', () => {
+      registerProducts([{ name: 'explorer', inStore: 'cluster' }]);
+
+      const wrapper = mountNav();
+
+      expect(toolbar(wrapper).exists()).toBe(false);
+      // The nav starts at the first group rather than at an empty strip
+      expect(wrapper.find('.side-nav').element.firstElementChild?.className).toContain('nav');
+    });
+
+    it('shows it on a sub-product of a root product that asked for it', () => {
+      // Charts is `apps`, but its nav is the explorer's: `inStore: 'cluster'`
+      // roots it into the explorer, and `getGroups` builds that whole tree. The
+      // toolbar belongs to the tree on screen, not to the route's product.
+      getters.productId = 'apps';
+      getters.rootProduct = { name: 'explorer' };
+      registerProducts([
+        {
+          name: 'explorer', inStore: 'cluster', navSearch: true
+        },
+        { name: 'apps', inStore: 'cluster' },
+      ]);
+
+      expect(toolbar(mountNav()).exists()).toBe(true);
+    });
+
+    it('ignores a sub-product\'s own option, so it cannot label a nav that is not its own', () => {
+      // The other half of the same rule: `apps` opting in would put a toolbar
+      // above the explorer's tree, carrying labels written for a product that
+      // tree does not show. The root's option is the only one that decides.
+      getters.productId = 'apps';
+      getters.rootProduct = { name: 'explorer' };
+      registerProducts([
+        { name: 'explorer', inStore: 'cluster' },
+        {
+          name: 'apps', inStore: 'cluster', navSearch: true
+        },
+      ]);
+
+      expect(toolbar(mountNav()).exists()).toBe(false);
+    });
+
+    it('reads this product\'s option, not whichever one currentProduct fell back to', () => {
+      // `currentProduct` answers with an unrelated product while this one is
+      // still registering, and that product's option must not decide this one
+      getters.productId = 'explorer';
+      registerProducts([{
+        name: 'apps', inStore: 'cluster', navSearch: true
+      }]);
+      getters.currentProduct = {
+        name: 'apps', inStore: 'cluster', navSearch: true
+      };
+
+      expect(toolbar(mountNav()).exists()).toBe(false);
+    });
+
+    it('shows it for a product the current user cannot see in activeProducts', () => {
+      // `activeProducts` drops a product whose schemas this user lacks, but the
+      // nav still renders it: a Standard User on Continuous Delivery would
+      // otherwise get the nav with no toolbar at all.
+      getters.productId = 'fleet';
+      getters.rootProduct = { name: 'fleet' };
+      registerProducts(
+        [{
+          name: 'fleet', inStore: 'management', navSearch: true
+        }],
+        [{ name: 'explorer', inStore: 'cluster' }]
+      );
+
+      expect(toolbar(mountNav()).exists()).toBe(true);
+    });
   });
 
   describe('persisted expand/collapse state', () => {

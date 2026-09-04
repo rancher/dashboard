@@ -53,6 +53,13 @@ export default {
 
   computed: {
 
+    /**
+     * Id of the type on screen - navigate() lands on the last breadcrumb
+     */
+    definitionId() {
+      return this.breadcrumbs?.[this.breadcrumbs.length - 1]?.id || '';
+    },
+
     top() {
       const banner = document.getElementById('banner-header');
       let height = HEADER_HEIGHT;
@@ -178,7 +185,6 @@ export default {
 
       this.breadcrumbs = breadcrumbs;
       this.definition = this.definitions[goto.id];
-      this.expanded = {};
       this.expandAll = false;
       this.notFound = false;
 
@@ -299,6 +305,7 @@ export default {
           ref="main"
           :expand-all="expandAll"
           :definition="definition"
+          :definition-id="definitionId"
           class="explain-panel"
           @navigate="navigate"
         />

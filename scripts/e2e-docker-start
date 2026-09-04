@@ -13,6 +13,8 @@ RANCHER_IMG_REGISTRY=
 RANCHER_IMG_NAMESPACE=rancher
 RANCHER_IMG_NAME=rancher
 
+USE_LOCAL_BRANCH_METADATA=true # branch_metadata usually just comes from `master`. if there are dependent changes in a PR and the local version is needed toggle this to `true`
+
 # Host port mapping (configurable to avoid conflicts, e.g. with MCP Gateway on port 80)
 RANCHER_HOST_HTTP_PORT=${RANCHER_HOST_HTTP_PORT:-80}
 RANCHER_HOST_HTTPS_PORT=${RANCHER_HOST_HTTPS_PORT:-443}
@@ -27,8 +29,12 @@ if [ $# -eq 1 ]; then
   # When an image is specified, we use that image, including its front-end, so we don't want the volume args to mount the locally-built UI
   VOLUME_ARGS=""
 else
-  # Get container image from branch-metadata
-  BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+  # Get container image from branch-metadata (PR-local when toggled, like e2e-k3s-start.sh)
+  if [ "$USE_LOCAL_BRANCH_METADATA" = "true" ]; then
+    BRANCH_DATA=$(./scripts/get-branch-metadata.sh --local ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+  else
+    BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+  fi
 
   if [ -n "$BRANCH_DATA" ]; then
     REGISTRY=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].registry // ""')

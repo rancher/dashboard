@@ -206,6 +206,15 @@ export default defineComponent({
       return this.mode === _VIEW;
     },
 
+    // GKE does not permit changing node locations on an existing regional cluster
+    extraZonesDisabled(): boolean {
+      return this.isView || (this.useRegion && !this.isNewOrUnprovisioned);
+    },
+
+    extraZonesDisabledTooltip(): string | null {
+      return !this.isView && this.extraZonesDisabled ? this.t('gke.location.extraZonesDisabledTooltip') : null;
+    },
+
     releaseChannel(): string | undefined {
       const cluster = (this.clustersResponse?.clusters || []).find((c) => c.name === this.gkeClusterName);
 
@@ -509,11 +518,12 @@ export default defineComponent({
         <Checkbox
           v-for="(zoneOpt, i) in extraZoneOptions"
           :key="i"
+          v-clean-tooltip="extraZonesDisabledTooltip"
           :label="zoneOpt.name"
           :value="locations.includes(zoneOpt.name)"
           :mode="mode"
           :data-testid="`gke-extra-zones-${zoneOpt.name}`"
-          :disabled="isView"
+          :disabled="extraZonesDisabled"
           class="extra-zone-checkbox"
           @update:value="e=>setExtraZone(e, zoneOpt.name)"
         />

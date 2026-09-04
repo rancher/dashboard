@@ -106,6 +106,7 @@ generic:
   type: Type
   unknown: Unknown
   upload: Upload
+  warning: Warning
   provisioning: '—'
   key: Key
   value: Value
@@ -126,7 +127,6 @@ generic:
         1d: 1d
         7d: 7d
         30d: 30d
-  tooltip: Tooltip
   completed: Completed
   enable: Enable
   disable: Disable
@@ -144,6 +144,7 @@ generic:
   tag: Tag
   placeholder: "e.g. {text}"
   moreInfo: More Info
+  hintFor: "{label} hint"
   selectors:
     label: Selector
     matchingResources:
@@ -159,7 +160,9 @@ generic:
     key: Key for row {index}
     value: Value for row {index}
     remove: remove row {index}
+    keyValueRemove: Remove Key-Value pair in row {index}
     addKeyValue: Add a new Key-Value row
+    addBtnAriaLabel: "{label} in a Key-Value input"
     readKeyValue: read  Key-Values from file
     genericAddRow: Add a new row
     arrayList: Array list input
@@ -195,8 +198,8 @@ nav:
     tooltip: Start typing to quickly find and jump to a particular section ({shortcut})
     ariaLabel: Jump to a navigation section
     noResults: No matching sections
-    popularHeading: Popular resource types
-    recentHeading: Last used in this cluster
+    popularHeading: Popular entries
+    recentHeading: Recently used
   ariaLabel:
     clusterIconKeyCombo: Cluster keyboard shortcut combination icon
     localClusterIcon: Local Cluster icon
@@ -3283,7 +3286,10 @@ fleet:
       description1: The root folder is used by default. Fleet will scan recursively all folders and subfolders to find fleet.yaml files.
       description2: You can provide multiple different directories. You can also add subpaths to specify different YAML config file paths.
       ariaLabel: Enter paths for Git Repo
+      inputAriaLabel: Enter path {index} for Git Repo
+      removeBtn: Remove Path {index}
       placeholder: e.g. /directory/in/your/repo
+      addBtnAriaLabel: Add Path for Git Repo
       addLabel: Add Path
       enableBundles: Manually specify config files subpaths (Fleet won't scan subfolders recursively to find fleet.yaml files)
       subpaths:
@@ -4576,15 +4582,24 @@ login:
   clientError: Invalid username or password. Please try again.
   userUnauthorized: You are not authorized to use this system.
   specificError: 'An error occurred logging in: {msg}'
-  useLocal: Use a local user
   loginWithProvider: Log in with {provider}
   username: Username
   password: Password
   loggingIn: Logging in...
   loggedIn: Logged in
   loginWithLocal: Log in with Local User
-  useProvider: Use a {provider} user
-  useNonLocal: Use a non-local user
+  providers:
+    heading: Choose how to sign in
+    or: Or
+    chooseDifferent: Choose a different provider
+    useLocal: Log in as a local user
+    meta: "{vendor} · {protocol}"
+    remember: Remember my choice on this device
+    rememberHint: Applies to whichever provider you choose. Saved in this browser only.
+    local:
+      name: Local account
+      description: Sign into Rancher with a username and password.
+      meta: Username and password
   remember:
     label: Remember Username
   cli:
@@ -7226,7 +7241,7 @@ tableHeaders:
   storageClass: Storage Class
   source: Source
   subject: Subject
-  subType: Kind
+  subType: Type
   success: Success
   summary: Summary
   subobject: Subobject
@@ -7311,6 +7326,8 @@ user:
       userDescription:
         label: Description
         placeholder: e.g. This account is for John Smith
+    roleUpdateFailed:
+      orphaned: 'The user "{username}" was created, but its roles could not be assigned and the incomplete account could not be removed automatically. Open the users list to review or delete it.'
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
   retention:
@@ -8188,6 +8205,7 @@ model:
       genericsaml: Generic SAML
       keycloakoidc: Keycloak
       cognito: Amazon Cognito
+      oidc: OIDC
 
 
   cluster:

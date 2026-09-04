@@ -587,14 +587,22 @@ describe('class Secret', () => {
       getters:     { schemaFor: () => ({ id: 'secret' }) },
       rootGetters: {
         'type-map/labelFor': () => 'Secret',
-        'i18n/t':            (key: string) => key
+        'i18n/t':            (key: string) => key,
+        'i18n/withFallback': (_key: string, _args: any, fallback: string) => fallback
       }
     };
 
-    it('includes only the type by default', () => {
+    it('includes the raw secret type (not the kind) by default', () => {
       const secret = new Secret({ _type: TYPES.OPAQUE, metadata: {} }, ctx);
 
-      expect(secret.details).toStrictEqual([{ label: 'secret.type', content: 'Secret' }]);
+      expect(secret.details).toStrictEqual([{ label: 'secret.type', content: 'Opaque' }]);
+    });
+
+    it('shows the raw secret type, matching the list column, rather than the friendly label', () => {
+      const secret = new Secret({ _type: TYPES.DOCKER_JSON, metadata: {} }, ctx);
+      const typeDetail = secret.details.find((d: any) => d.label === 'secret.type');
+
+      expect(typeDetail?.content).toBe('kubernetes.io/dockerconfigjson');
     });
 
     it('includes a Service Account link for service account secrets', () => {

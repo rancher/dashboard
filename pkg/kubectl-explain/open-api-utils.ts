@@ -97,6 +97,14 @@ export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definit
       } else {
         console.warn(`Can not find definition for ${ id }`); // eslint-disable-line no-console
       }
+    } else if (prop.properties || prop.items?.properties) {
+      // CRD schemas often declare object types inline, rather than referencing a definition, so use
+      // the inline schema itself as the reference - no copy is needed, as it is used in only one place
+      // For an array, the item schema is used, as it has its own description for the type of the items
+      // For an object, only the properties are used, as its description is already shown for the field itself
+      prop.$$ref = prop.items?.properties ? prop.items : { properties: prop.properties };
+
+      expandOpenAPIDefinition(definitions, prop.$$ref, breadcrumbs);
     }
 
     extractMoreInfo(prop);

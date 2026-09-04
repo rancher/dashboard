@@ -194,4 +194,28 @@ describe('component: ContainerLogs', () => {
     expect(wrapper.vm.backlog).toHaveLength(3);
     expect(wrapper.vm.backlog[2].rawMsg).toBe(message.trimEnd());
   });
+
+  it('should leave the log search input its implicit searchbox role', () => {
+    const options = getDefaultOptions();
+    // Rendering the title slot evaluates featureDropdownMenu, which reaches
+    // the store the component's own setup() took from useStore()
+    // (ContainerLogs.vue:131) and reads a getter off it
+    // (shell/utils/version.js, getVersionInfo). useStore() reads the injected
+    // store, not the mocked $store, so it has to be provided.
+    const wrapper = shallowMount(ContainerLogs, {
+      ...options,
+      global: {
+        ...options.global,
+        provide: { store: { getters: { 'management/byId': jest.fn() } } },
+        // The search input lives in Window's "title" slot, which a stubbed
+        // Window would not render.
+        stubs:   { Window: { template: '<div><slot name="title"></slot></div>' } },
+      },
+    });
+
+    const search = wrapper.find('input[type="search"]');
+
+    expect(search.exists()).toBe(true);
+    expect(search.attributes('role')).toBeUndefined();
+  });
 });
