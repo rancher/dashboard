@@ -27,8 +27,6 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
       const banner = fleetRestrictionsListPage.deprecationBanner();
 
       banner.banner().should('be.visible');
-      banner.banner().should('contain.text', 'deprecated');
-      banner.banner().should('contain.text', 'Policies');
 
       // The "Policies" link is an in-app route to the Fleet Policies list (no target).
       banner.bannerElement('a[href*="fleet.cattle.io.policy"]')

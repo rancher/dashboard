@@ -23,6 +23,9 @@ const policiesLocation = {
     cluster: '_', product: 'fleet', resource: FLEET.POLICY
   },
 };
+
+// Version- and edition-aware link to the Fleet docs section on migrating from GitRepoRestriction.
+const migrationGuideUrl = getGitRepoRestrictionMigrationDocsUrl();
 </script>
 
 <template>
@@ -52,11 +55,11 @@ const policiesLocation = {
         >
           <template #docsLink="{ content }">
             <a
-              :href="getGitRepoRestrictionMigrationDocsUrl()"
+              :href="migrationGuideUrl"
               target="_blank"
               rel="noopener noreferrer nofollow"
               class="migration-guide-link"
-            >{{ content }} <i class="icon icon-external-link" /></a><span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+            >{{ content }} <i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
           </template>
         </RichTranslation>
       </div>

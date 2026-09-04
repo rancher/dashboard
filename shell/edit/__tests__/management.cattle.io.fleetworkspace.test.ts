@@ -23,6 +23,10 @@ describe('edit: management.cattle.io.fleetworkspace', () => {
     state: { allWorkspaces: [], workspace: 'fleet-default' },
   };
 
+  // Render RichTranslation's #docsLink slot (shallowMount would otherwise leave it unrendered) so the
+  // migration-guide anchor and its :href binding are actually exercised.
+  const richTranslationStub = { template: `<div><slot name="docsLink" :content="'guide'" /></div>` };
+
   const createWrapper = () => shallowMount(EditWorkspace, {
     props:  { value: mockValue, mode: 'create' },
     global: {
@@ -30,6 +34,7 @@ describe('edit: management.cattle.io.fleetworkspace', () => {
         $store: store, $route: { params: {} }, $router: { push: jest.fn() }, $fetchState: { pending: false }
       },
       renderStubDefaultSlot: true,
+      stubs:                 { RichTranslation: richTranslationStub },
     },
   });
 
@@ -41,10 +46,11 @@ describe('edit: management.cattle.io.fleetworkspace', () => {
     expect(wrapper.find('[data-testid="fleet-workspace-restriction-deprecation-banner"]').exists()).toBe(true);
   });
 
-  it('renders a "learn more" migration link on the allowed target namespaces tab', () => {
-    const wrapper = createWrapper();
+  it('links the migration guide to the version-aware migration docs', () => {
+    const link = createWrapper().find('.migration-guide-link');
 
-    // URL resolution is covered by fleet-docs.test.ts; here we assert the link renders.
-    expect(wrapper.find('[data-testid="fleet-workspace-restriction-learn-more"]').exists()).toBe(true);
+    expect(link.exists()).toBe(true);
+    // getGitRepoRestrictionMigrationDocsUrl resolves to the fallback path in tests.
+    expect(link.attributes('href')).toContain('how-tos-for-operators/tenant-setup');
   });
 });

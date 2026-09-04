@@ -1,4 +1,4 @@
-import { getDownstreamResourcesDocsUrl, getBundleDeploymentOptionsDocsUrl, getContinuousDeliveryPoliciesDocsUrl, getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
+import { getDownstreamResourcesDocsUrl, getBundleDeploymentOptionsDocsUrl, getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
 import { getVersionData } from '@shell/config/version';
 
 // The docs URLs depend on the running Rancher version and whether it's a Prime install, both
@@ -54,23 +54,6 @@ describe('fleet-docs utils', () => {
     it('should use the latest SUSE CRD reference (with anchor) on a later release when Prime', () => {
       mockVersionData('v2.15.1', true);
       expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/reference/ref-crds.html#_bundledeploymentoptions');
-    });
-  });
-
-  describe('getContinuousDeliveryPoliciesDocsUrl (community-only)', () => {
-    it('should use the community docs at the root on a later release', () => {
-      mockVersionData('v2.15.1', false);
-      expect(getContinuousDeliveryPoliciesDocsUrl()).toStrictEqual('https://fleet.rancher.io/reference/ref-policy');
-    });
-
-    it('should use the community "next" docs on the release that introduced them', () => {
-      mockVersionData('v2.15.0', false);
-      expect(getContinuousDeliveryPoliciesDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/reference/ref-policy');
-    });
-
-    it('should stay on the community docs even on a Prime install', () => {
-      mockVersionData('v2.15.1', true);
-      expect(getContinuousDeliveryPoliciesDocsUrl()).toStrictEqual('https://fleet.rancher.io/reference/ref-policy');
     });
   });
 

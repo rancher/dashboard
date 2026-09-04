@@ -44,10 +44,7 @@ export const FLEET_DOCS = {
   bundleDeploymentOptions: {
     path: 'reference/ref-crds', anchor: '_bundledeploymentoptions', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: true
   },
-  // Fleet Policy / GitRepoRestriction docs — community-only.
-  policies: {
-    path: 'reference/ref-policy', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: false
-  },
+  // GitRepoRestriction migration docs — community-only.
   gitRepoRestrictionMigration: {
     path: 'how-tos-for-operators/tenant-setup', anchor: '_migration_from_gitreporestriction', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: false
   },
@@ -128,11 +125,6 @@ export function getDownstreamResourcesDocsUrl(): string {
 /** Fleet "BundleDeploymentOptions" (CRD reference) docs (AppCo; has a Rancher Prime counterpart). */
 export function getBundleDeploymentOptionsDocsUrl(): string {
   return fleetDocsUrl(FLEET_DOCS.bundleDeploymentOptions);
-}
-
-/** Fleet "Policy" reference docs (community-only). */
-export function getContinuousDeliveryPoliciesDocsUrl(): string {
-  return fleetDocsUrl(FLEET_DOCS.policies);
 }
 
 /** Fleet GitRepoRestriction -> Policies migration docs (community-only). */

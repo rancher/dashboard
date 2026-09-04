@@ -1,11 +1,17 @@
 import { shallowMount } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import ListGitRepoRestriction from '@shell/list/fleet.cattle.io.gitreporestriction.vue';
 import { Banner } from '@components/Banner';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 
-const createWrapper = () => {
-  return shallowMount(ListGitRepoRestriction, { props: { schema: { id: 'fleet.cattle.io.gitreporestriction' } as any } });
-};
+// The component reads useStore()/useI18n(store) at setup; provide a minimal Vuex store so it mounts in a
+// realistic state (no "injection store not found" warning) and stub RouterLink for the deprecation banner.
+const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
+
+const createWrapper = () => shallowMount(ListGitRepoRestriction, {
+  props:  { schema: { id: 'fleet.cattle.io.gitreporestriction' } as any },
+  global: { plugins: [store], stubs: { RouterLink: true } },
+});
 
 describe('list/fleet.cattle.io.gitreporestriction', () => {
   it('should render a deprecation banner', () => {
@@ -28,6 +34,7 @@ describe('list/fleet.cattle.io.gitreporestriction', () => {
   const mountWithSlots = () => shallowMount(ListGitRepoRestriction, {
     props:  { schema: { id: 'fleet.cattle.io.gitreporestriction' } as any },
     global: {
+      plugins:               [store],
       renderStubDefaultSlot: true,
       stubs:                 { RichTranslation: richTranslationStub, RouterLink: routerLinkStub },
     },

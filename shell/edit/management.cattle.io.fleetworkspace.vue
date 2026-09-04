@@ -234,7 +234,7 @@ export default {
           data-testid="fleet-workspace-restriction-deprecation-banner"
         >
           <div>
-            <div>{{ t('fleet.restrictions.deprecationWarning') }}</div>
+            <div>{{ t('fleet.gitRepoRestriction.deprecationWarningTargetNamespaces') }}</div>
             <RichTranslation
               k="fleet.gitRepoRestriction.migrationGuide"
               tag="div"
@@ -247,7 +247,7 @@ export default {
                   target="_blank"
                   rel="noopener noreferrer nofollow"
                   class="migration-guide-link"
-                >{{ content }} <i class="icon icon-external-link" /></a><span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+                >{{ content }} <i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
               </template>
             </RichTranslation>
           </div>

@@ -4,6 +4,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetPolicyListPage = new FleetPolicyListPagePo();
+  const fleetDashboardPage = new FleetDashboardListPagePo('_');
 
   before(() => {
     cy.login();
@@ -11,7 +12,7 @@ describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] 
 
   it('should be listed as a resource in the Fleet product navigation', () => {
     FleetDashboardListPagePo.goTo('_');
-    new FleetDashboardListPagePo('_').waitForPage();
+    fleetDashboardPage.waitForPage();
 
     const sideNav = new ProductNavPo();
 
