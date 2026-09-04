@@ -55,6 +55,16 @@ describe('fleet-docs utils', () => {
       mockVersionData('v2.15.1', true);
       expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/reference/ref-crds.html#_bundledeploymentoptions');
     });
+
+    it('should use the SUSE "next" CRD reference (with anchor) on the release that introduced them when Prime', () => {
+      mockVersionData('v2.15.0', true);
+      expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/reference/ref-crds.html#_bundledeploymentoptions');
+    });
+
+    it('should fall back to the community "next" CRD reference for dev/head builds', () => {
+      mockVersionData('master-head', false);
+      expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/reference/ref-crds#_bundledeploymentoptions');
+    });
   });
 
   describe('getGitRepoRestrictionMigrationDocsUrl (community-only, with anchor)', () => {

@@ -32,10 +32,8 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
       banner.bannerElement('a[href*="fleet.cattle.io.policy"]')
         .should('contain.text', 'Policies');
 
-      // The migration guide is an external link to the version-aware migration docs. The docs channel
-      // (root vs `/next/`) is chosen from the running Rancher version: the migration page lives only under
-      // `/next/` on the release that introduced it (2.15.0) and moves to the root from the next release on
-      // (see getGitRepoRestrictionMigrationDocsUrl). Accept either channel so it isn't pinned to a version.
+      // Accept either docs channel: getGitRepoRestrictionMigrationDocsUrl picks root vs `/next/` from the
+      // running Rancher version, so pinning one would tie the test to the backend's version.
       banner.bannerElement('a.migration-guide-link')
         .should('have.attr', 'target', '_blank')
         .invoke('attr', 'href')

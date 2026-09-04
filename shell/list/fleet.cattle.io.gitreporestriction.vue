@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { Banner } from '@components/Banner';
+import FleetMigrationGuideLink from '@shell/components/fleet/FleetMigrationGuideLink.vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import RichTranslation from '@shell/components/RichTranslation.vue';
-import { useI18n } from '@shell/composables/useI18n';
 import { FLEET } from '@shell/config/types';
-import { getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
+import { NAME as FLEET_PRODUCT } from '@shell/config/product/fleet';
+import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 withDefaults(defineProps<{
   schema: Record<string, any>;
@@ -13,19 +15,18 @@ withDefaults(defineProps<{
 }>(), { useQueryParamsForSimpleFiltering: false });
 
 const store = useStore();
-const { t } = useI18n(store);
 
-// In-app link to the new Fleet Policies list (the successor to GitRepoRestriction). Fleet management
-// resources live under the blank ("_") cluster context, e.g. /c/_/fleet/fleet.cattle.io.policy.
+// In-app link to the new Fleet Policies list (the successor to GitRepoRestriction).
 const policiesLocation = {
   name:   'c-cluster-product-resource',
   params: {
-    cluster: '_', product: 'fleet', resource: FLEET.POLICY
+    cluster: BLANK_CLUSTER, product: FLEET_PRODUCT, resource: FLEET.POLICY
   },
 };
 
-// Version- and edition-aware link to the Fleet docs section on migrating from GitRepoRestriction.
-const migrationGuideUrl = getGitRepoRestrictionMigrationDocsUrl();
+// The Policies list is only reachable where Fleet serves the Policy type (the nav entry is schema
+// gated too), so fall back to plain text rather than linking to a resource-not-found page.
+const hasPolicySchema = computed(() => !!store.getters['management/schemaFor'](FLEET.POLICY));
 </script>
 
 <template>
@@ -42,26 +43,21 @@ const migrationGuideUrl = getGitRepoRestrictionMigrationDocsUrl();
           tag="div"
         >
           <template #policiesLink="{ content }">
-            <router-link :to="policiesLocation">
+            <router-link
+              v-if="hasPolicySchema"
+              :to="policiesLocation"
+            >
               {{ content }}
             </router-link>
+            <template v-else>
+              {{ content }}
+            </template>
           </template>
         </RichTranslation>
-        <RichTranslation
-          k="fleet.gitRepoRestriction.migrationGuide"
-          tag="div"
+        <FleetMigrationGuideLink
           data-testid="git-repo-restriction-migration-guide"
           class="mt-5"
-        >
-          <template #docsLink="{ content }">
-            <a
-              :href="migrationGuideUrl"
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              class="migration-guide-link"
-            >{{ content }} <i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
-          </template>
-        </RichTranslation>
+        />
       </div>
     </Banner>
     <PaginatedResourceTable
@@ -70,10 +66,3 @@ const migrationGuideUrl = getGitRepoRestrictionMigrationDocsUrl();
     />
   </div>
 </template>
-
-<style lang="scss" scoped>
-// The base .icon is inline-block; make the external-link icon inline so it sits on the text baseline.
-.migration-guide-link .icon {
-  display: inline;
-}
-</style>

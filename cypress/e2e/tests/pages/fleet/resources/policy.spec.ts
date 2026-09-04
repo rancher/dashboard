@@ -26,6 +26,9 @@ describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] 
 
     fleetPolicyListPage.waitForPage();
     cy.url().should('include', '/fleet/fleet.cattle.io.policy');
-    fleetPolicyListPage.baseResourceList().masthead().title().should('not.be.empty');
+    // Assert the list actually rendered: the resource-not-found page also has a (non-empty) masthead.
+    fleetPolicyListPage.baseResourceList().masthead().title()
+      .should('contain', 'Policies');
+    fleetPolicyListPage.list().resourceTable().checkExists();
   });
 });

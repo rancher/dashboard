@@ -36,7 +36,7 @@ interface FleetDoc {
   usePrimeDoc: boolean;
 }
 
-export const FLEET_DOCS = {
+const FLEET_DOCS = {
   // AppCo docs — also published to the Rancher Prime docs.
   downstreamResources: {
     path: 'how-tos-for-users/downstream-resource-propagation', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: true

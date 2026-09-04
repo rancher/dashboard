@@ -19,8 +19,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
-import RichTranslation from '@shell/components/RichTranslation.vue';
-import { getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
+import FleetMigrationGuideLink from '@shell/components/fleet/FleetMigrationGuideLink.vue';
 
 export default {
   name: 'FleetCruWorkspace',
@@ -30,6 +29,7 @@ export default {
   inheritAttrs: false,
   components:   {
     CruResource,
+    FleetMigrationGuideLink,
     FleetOCIStorageSecret,
     Labels,
     Loading,
@@ -37,8 +37,7 @@ export default {
     Tabbed,
     Tab,
     Banner,
-    ArrayList,
-    RichTranslation
+    ArrayList
   },
 
   mixins: [CreateEditView],
@@ -142,12 +141,6 @@ export default {
   computed: {
     ...mapState(['allWorkspaces', 'workspace']),
 
-    // Version-aware link to the Fleet migration guide, which documents how to replace
-    // allowedTargetNamespaces (no Policy equivalent) with downstream ServiceAccount RBAC.
-    migrationGuideUrl() {
-      return getGitRepoRestrictionMigrationDocsUrl();
-    },
-
     allowedTargetNamespaces: {
       get() {
         return this.workSpaceRestriction?.allowedTargetNamespaces || [];
@@ -235,21 +228,12 @@ export default {
         >
           <div>
             <div>{{ t('fleet.gitRepoRestriction.deprecationWarningTargetNamespaces') }}</div>
-            <RichTranslation
-              k="fleet.gitRepoRestriction.migrationGuide"
-              tag="div"
+            <!-- The migration guide documents how to replace allowedTargetNamespaces (no Policy
+                 equivalent) with downstream ServiceAccount RBAC. -->
+            <FleetMigrationGuideLink
               data-testid="fleet-workspace-restriction-learn-more"
               class="mt-5"
-            >
-              <template #docsLink="{ content }">
-                <a
-                  :href="migrationGuideUrl"
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  class="migration-guide-link"
-                >{{ content }} <i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
-              </template>
-            </RichTranslation>
+            />
           </div>
         </Banner>
 
@@ -310,10 +294,3 @@ export default {
     </Tabbed>
   </CruResource>
 </template>
-
-<style lang="scss" scoped>
-// The base .icon is inline-block; make the external-link icon inline so it sits on the text baseline.
-.migration-guide-link .icon {
-  display: inline;
-}
-</style>

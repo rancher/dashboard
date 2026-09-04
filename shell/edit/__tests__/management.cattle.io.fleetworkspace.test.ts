@@ -1,5 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import EditWorkspace from '@shell/edit/management.cattle.io.fleetworkspace.vue';
+import FleetMigrationGuideLink from '@shell/components/fleet/FleetMigrationGuideLink.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 
 describe('edit: management.cattle.io.fleetworkspace', () => {
@@ -23,10 +24,6 @@ describe('edit: management.cattle.io.fleetworkspace', () => {
     state: { allWorkspaces: [], workspace: 'fleet-default' },
   };
 
-  // Render RichTranslation's #docsLink slot (shallowMount would otherwise leave it unrendered) so the
-  // migration-guide anchor and its :href binding are actually exercised.
-  const richTranslationStub = { template: `<div><slot name="docsLink" :content="'guide'" /></div>` };
-
   const createWrapper = () => shallowMount(EditWorkspace, {
     props:  { value: mockValue, mode: 'create' },
     global: {
@@ -34,7 +31,6 @@ describe('edit: management.cattle.io.fleetworkspace', () => {
         $store: store, $route: { params: {} }, $router: { push: jest.fn() }, $fetchState: { pending: false }
       },
       renderStubDefaultSlot: true,
-      stubs:                 { RichTranslation: richTranslationStub },
     },
   });
 
@@ -42,15 +38,17 @@ describe('edit: management.cattle.io.fleetworkspace', () => {
 
   it('renders the GitRepoRestriction deprecation banner on the allowed target namespaces tab', () => {
     const wrapper = createWrapper();
+    const banner = wrapper.find('[data-testid="fleet-workspace-restriction-deprecation-banner"]');
 
-    expect(wrapper.find('[data-testid="fleet-workspace-restriction-deprecation-banner"]').exists()).toBe(true);
+    expect(banner.exists()).toBe(true);
+    // The i18n mock returns the key, so this pins the banner to the target-namespaces specific copy.
+    expect(banner.text()).toContain('fleet.gitRepoRestriction.deprecationWarningTargetNamespaces');
   });
 
-  it('links the migration guide to the version-aware migration docs', () => {
-    const link = createWrapper().find('.migration-guide-link');
+  it('links the migration guide from the deprecation banner', () => {
+    const link = createWrapper().findComponent(FleetMigrationGuideLink);
 
     expect(link.exists()).toBe(true);
-    // getGitRepoRestrictionMigrationDocsUrl resolves to the fallback path in tests.
-    expect(link.attributes('href')).toContain('how-tos-for-operators/tenant-setup');
+    expect(link.attributes('data-testid')).toStrictEqual('fleet-workspace-restriction-learn-more');
   });
 });

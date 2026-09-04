@@ -33,6 +33,6 @@ export class FleetPolicyListPagePo extends BaseListPagePo {
 
     sideNav.navToSideMenuGroupByLabel('Resources');
 
-    return FleetPolicyListPagePo.navEntry().click({ force: true });
+    return FleetPolicyListPagePo.navEntry().click();
   }
 }
