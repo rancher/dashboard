@@ -1,0 +1,215 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcModalStories from './RcModal.stories';
+
+<Meta of={RcModalStories} />
+
+# RcModal
+
+`RcModal` is the standard modal. Use it for every new modal, and reach for
+`AppModal` directly only when you need a dialog with no chrome at all.
+
+It owns the behaviour modals already had - teleport into `#modals`, focus trap,
+`Esc` and click-outside close - and adds the layout that modals used to
+re-implement one by one: the heading, the body, the right-aligned actions, and
+the padding and spacing between them. `AppModal` is the older equivalent and
+will be replaced by `RcModal` in the shell.
+
+The first example starts open and the rest open on click. Each one covers the
+whole page, because a modal leaves its place in the markup for `#modals`: the
+container the shell renders once, at the end of the body.
+
+<Canvas of={RcModalStories.Default} />
+
+<Controls of={RcModalStories.Default} />
+
+## The API
+
+`RcModal` is stateless. The `show` prop says whether it is open, the `close`
+event says the user asked to leave, and the consumer owns the variable in
+between. Everything about its content is a slot.
+
+| Slot | Renders |
+|---|---|
+| `title` | The heading. Defaults to the `title` prop, so most modals only set the prop. |
+| default | The body. Each direct child is a content section, separated by 24px. |
+| `primary-action` | Just the confirming button. The cancel button comes with it. |
+| `actions` | The whole footer, when the default pairing does not fit. |
+
+Give neither footer slot and no footer row is rendered. Buttons are
+right-aligned with 16px between them. The design system pairs `variant="primary"`
+for the action that proceeds with `variant="tertiary"` for cancel, at
+`size="large"`, which is what the supplied cancel button uses. A button put in
+either footer slot should match it: `size="large"` is the 40px button the spec
+asks for, and it is the height the rest of the shell's buttons already are, so
+anything smaller sits short beside the cancel button.
+
+| Emitted | When |
+|---|---|
+| `open` | It appeared. |
+| `close` | The user asked to leave, by any route. |
+| `cancel` | They backed out specifically: the cancel button, `Esc`, or a background click. Always followed by `close`. |
+| `primary-action` | The confirming button was invoked. |
+
+`cancel` is a `close` with a reason, so a consumer that only cares that the
+modal is going listens to `close` and ignores the rest.
+
+Both footer slots receive `close`, `cancel` and `primaryAction`, so a button in
+either raises the matching event and the consumer wires nothing up:
+
+```html
+<RcModal v-bind="modal" title="Restore snapshot?" @primary-action="restore">
+  <p>The cluster will be unavailable while the snapshot is restored.</p>
+  <template #actions="{ cancel, primaryAction }">
+    <RcButton variant="tertiary" size="large" @click="cancel">Not now</RcButton>
+    <RcButton variant="primary" size="large" @click="primaryAction">Restore</RcButton>
+  </template>
+</RcModal>
+```
+
+`primary-action` says what happened; it does not take the modal down. That is
+still the consumer's call, so a confirm that fails validation or a request that
+errors leaves the modal where it is.
+
+The modal holds no state of its own, so emitting `close` does not take it down
+either. It stays open until the consumer sets `show` false, which is what lets a
+modal keep itself open while a form is still invalid or a request is in flight.
+
+Attributes that are not props land on the dialog element, so `class` and
+`data-testid` work as usual:
+
+```html
+<RcModal
+  :show="showModal"
+  :title="t('promptRemove.title')"
+  size="small"
+  @close="showModal = false"
+>
+  <p>{{ t('promptRemove.attemptingToRemove', { type }) }}</p>
+  <template #primary-action="{ close }">
+    <RcButton variant="primary" size="large" @click="remove(close)">{{ t('generic.remove') }}</RcButton>
+  </template>
+</RcModal>
+```
+
+## Sizes
+
+There are three, and no arbitrary widths. Picking one of the three is what
+keeps modals looking like each other.
+
+| Size | Width | Use for |
+|---|---|---|
+| `small` | 480px | Confirmations and single-field prompts. |
+| `medium` | 640px | The default. Short forms. |
+| `large` | 960px | Long forms, tables, side-by-side content. |
+
+The size is the width of the modal, padding included, so two modals
+of the same size line up whatever they contain. A modal that genuinely needs a
+width outside the three can override the custom property from its own class, so
+no prop is needed for it:
+
+```scss
+.my-modal {
+  --rc-modal-width: 820px;
+}
+```
+
+<Canvas of={RcModalStories.Confirmation} />
+
+## Content sections
+
+Each direct child of the default slot is a section, separated by 24px. Margins
+on the first and last child are trimmed, so content does not need to know it is
+inside a modal.
+
+<Canvas of={RcModalStories.WithSections} />
+
+## Tall content
+
+The modal never grows past the viewport, less the 40px of breathing room around
+it. Past that only the body scrolls: the title and the actions stay in view, so
+the primary action is never below the fold and the user can always see what the
+dialog is asking.
+
+<Canvas of={RcModalStories.TallContent} />
+
+## Headings that need markup
+
+Use the `title` slot when the heading is more than a string. The heading is
+still what names the dialog for assistive technology, via `aria-labelledby`.
+
+<Canvas of={RcModalStories.RichTitle} />
+
+## Accessibility
+
+- The dialog is `role="dialog"` with `aria-modal="true"`.
+- `RcModal` points `aria-labelledby` at its own heading, so the dialog is
+  announced by its title. Always give a modal a `title` or a `title` slot;
+  without one the dialog has no accessible name.
+- Focus is trapped inside the modal while it is open and returned to whatever
+  opened it when it closes. A modal holding nothing focusable takes focus on the
+  dialog itself.
+- The trap holds until the modal is gone. `Esc` and a click outside are handled
+  by the modal, so a modal with `click-to-close` false keeps focus rather than
+  letting the user out of the trap while it is still on screen.
+
+## Owning the show prop
+
+Nothing inside the modal closes it. `close` tells you the user asked to leave,
+and the modal stays on screen until you set `show` false, so a modal can decline
+to close while a form is invalid or a request is still running.
+
+Being stateless leaves every consumer writing the same ref and the same two
+handlers, so `useModal` writes them once. Spread `modal` and you are done:
+
+```vue
+<script setup lang="ts">
+import { RcModal, useModal } from '@rancher/components';
+
+const { open, modal } = useModal();
+</script>
+
+<template>
+  <RcButton @click="open">Delete</RcButton>
+  <RcModal v-bind="modal" :title="t('promptRemove.title')" size="small">
+    <p>{{ t('promptRemove.body') }}</p>
+  </RcModal>
+</template>
+```
+
+<Canvas of={RcModalStories.WiredWithComposable} />
+
+Open it with a value and the modal's content can use it, which is what a modal
+opened from a list row needs:
+
+```ts
+const { open, payload, modal } = useModal<Namespace>();
+
+open(namespace);
+// <p>Delete {{ payload?.nameDisplay }}?</p>
+```
+
+To refuse a close, say so rather than reaching for the ref. Only an explicit
+`false` keeps the modal open:
+
+```ts
+const { modal } = useModal({ onClose: () => !saving.value });
+```
+
+| Returned | Is |
+|---|---|
+| `modal` | `show` and the `close` handler together. Spread it onto `RcModal`. |
+| `open(value?)` | Opens it, remembering `value` as `payload`. |
+| `close()` | Closes it, unless `onClose` returned false. |
+| `isOpen` | The visibility ref, writable, for anything the two helpers do not cover. |
+| `payload` | Whatever the last `open()` was given. |
+
+Wiring it by hand stays perfectly good, and is what you want when closing has to
+do more than flip a boolean:
+
+```html
+<RcModal :show="showModal" :title="title" @close="attemptClose">
+```
+
+Extensions import `RcModal` and `useModal` from `@rancher/components` the same
+way. `shell.modal.open()` still exists and is unchanged, but it renders your
+component without this chrome, so render `RcModal` yourself when you want it.
