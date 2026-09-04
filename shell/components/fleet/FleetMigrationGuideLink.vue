@@ -21,7 +21,6 @@ const migrationGuideUrl = getGitRepoRestrictionMigrationDocsUrl();
         :href="migrationGuideUrl"
         target="_blank"
         rel="noopener noreferrer nofollow"
-        class="migration-guide-link"
         data-testid="fleet-migration-guide-link"
       >
         {{ content }}
@@ -29,8 +28,7 @@ const migrationGuideUrl = getGitRepoRestrictionMigrationDocsUrl();
           type="external-link"
           size="small"
           :aria-hidden="true"
-        />
-        <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+        /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
       </a>
     </template>
   </RichTranslation>

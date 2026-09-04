@@ -9,10 +9,6 @@ export class FleetPolicyListPagePo extends BaseListPagePo {
     super(FleetPolicyListPagePo.url);
   }
 
-  goTo() {
-    return cy.visit(FleetPolicyListPagePo.url);
-  }
-
   /**
    * The Fleet Policy entry within the product side nav "Resources" group.
    * Located by its resource href so the test doesn't depend on the (backend derived) nav label.

@@ -35,7 +35,7 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
       // Accept either docs site and channel: getGitRepoRestrictionMigrationDocsUrl picks community vs
       // Prime from the edition and root vs `/next/` from the running Rancher version, so pinning one
       // would tie the test to the backend's build.
-      banner.bannerElement('a.migration-guide-link')
+      banner.bannerElement('[data-testid="fleet-migration-guide-link"]')
         .should('have.attr', 'target', '_blank')
         .invoke('attr', 'href')
         .should('match', /^https:\/\/(fleet\.rancher\.io\/(next\/)?how-tos-for-operators\/tenant-setup|documentation\.suse\.com\/cloudnative\/continuous-delivery\/(latest|next)\/en\/how-tos-for-operators\/tenant-setup\.html)#_migration_from_gitreporestriction$/);

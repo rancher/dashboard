@@ -9,7 +9,12 @@ import { FLEET } from '@shell/config/types';
 import { NAME as FLEET_PRODUCT } from '@shell/config/product/fleet';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
-defineOptions({ inheritAttrs: false });
+defineOptions({
+  inheritAttrs: false,
+  // ResourceList decides who owns fetching the rows by looking for PaginatedResourceTable in the
+  // components option, which <script setup> does not populate.
+  components:   { PaginatedResourceTable },
+});
 
 withDefaults(defineProps<{
   schema: Record<string, any>;
@@ -56,10 +61,7 @@ const hasPolicySchema = computed(() => !!store.getters['management/schemaFor'](F
             </template>
           </template>
         </RichTranslation>
-        <FleetMigrationGuideLink
-          data-testid="git-repo-restriction-migration-guide"
-          class="mt-5"
-        />
+        <FleetMigrationGuideLink class="mt-5" />
       </div>
     </Banner>
     <PaginatedResourceTable
