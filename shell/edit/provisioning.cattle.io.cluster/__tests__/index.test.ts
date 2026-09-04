@@ -1,7 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import ClusterCreate from '@shell/edit/provisioning.cattle.io.cluster/index.vue';
-import { MANAGEMENT } from '@shell/config/types';
 import { FROM_CLUSTER } from '@shell/config/query-params';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
@@ -87,9 +86,7 @@ describe('component: Cluster: Create', () => {
 });
 
 describe('component: Cluster: Create - installing a cluster-scoped chart', () => {
-  const mountWith = ({ canList, findResult, findRejects }: {
-    canList: boolean, findResult?: any, findRejects?: boolean
-  }) => {
+  const mountWith = ({ localCluster }: { localCluster: { id: string } | null }) => {
     const chart = { goToInstall: jest.fn() };
 
     const store = createStore({
@@ -117,20 +114,14 @@ describe('component: Cluster: Create - installing a cluster-scoped chart', () =>
             charts: () => [],
             chart:  () => () => chart,
           }
-        },
-        management: {
-          namespaced: true,
-          getters:    { canList: () => () => canList },
-          actions:    { find: () => (findRejects ? Promise.reject(new Error('404')) : Promise.resolve(findResult)) }
         }
       },
       getters: {
         defaultClusterId: jest.fn(),
-        clusterId:        jest.fn()
+        clusterId:        jest.fn(),
+        localCluster:     () => localCluster,
       }
     });
-
-    const dispatch = jest.spyOn(store, 'dispatch');
 
     const wrapper = shallowMount(ClusterCreate, {
       computed: { rke1UiEnabled: () => false },
@@ -153,43 +144,22 @@ describe('component: Cluster: Create - installing a cluster-scoped chart', () =>
       },
     });
 
-    return {
-      wrapper, chart, dispatch
-    };
+    return { wrapper, chart };
   };
 
-  it('installs against the local cluster, resolved by id, when the user can access it', async() => {
-    const { wrapper, chart, dispatch } = mountWith({ canList: true, findResult: { id: 'local' } });
+  it('installs against the local cluster, resolved by id, when the user can access it', () => {
+    const { wrapper, chart } = mountWith({ localCluster: { id: 'local' } });
 
-    await (wrapper.vm as any).clickedType({ id: 'chart:my-chart' });
+    (wrapper.vm as any).clickedType({ id: 'chart:my-chart' });
 
-    expect(dispatch).toHaveBeenCalledWith('management/find', {
-      type: MANAGEMENT.CLUSTER,
-      id:   'local',
-      opt:  { watch: false }
-    });
     expect(chart.goToInstall).toHaveBeenCalledWith(FROM_CLUSTER, 'local', true);
   });
 
-  it('falls back to the blank cluster when the local cluster cannot be fetched', async() => {
-    const { wrapper, chart, dispatch } = mountWith({ canList: true, findRejects: true });
+  it('falls back to the blank cluster when the user cannot access the local cluster', () => {
+    const { wrapper, chart } = mountWith({ localCluster: null });
 
-    await (wrapper.vm as any).clickedType({ id: 'chart:my-chart' });
+    (wrapper.vm as any).clickedType({ id: 'chart:my-chart' });
 
-    expect(dispatch).toHaveBeenCalledWith('management/find', {
-      type: MANAGEMENT.CLUSTER,
-      id:   'local',
-      opt:  { watch: false }
-    });
-    expect(chart.goToInstall).toHaveBeenCalledWith(FROM_CLUSTER, BLANK_CLUSTER, true);
-  });
-
-  it('falls back to the blank cluster without a lookup when the user cannot list clusters', async() => {
-    const { wrapper, chart, dispatch } = mountWith({ canList: false });
-
-    await (wrapper.vm as any).clickedType({ id: 'chart:my-chart' });
-
-    expect(dispatch).not.toHaveBeenCalledWith('management/find', expect.anything());
     expect(chart.goToInstall).toHaveBeenCalledWith(FROM_CLUSTER, BLANK_CLUSTER, true);
   });
 });
