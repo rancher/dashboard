@@ -168,18 +168,19 @@ describe('component: UnitInput', () => {
     expect(addonText).toBe(expected);
   });
 
-  it('should display suffix outside of the value', () => {
+  it('should display suffix outside of the value', async() => {
     const suffix = 'seconds';
     const wrapper = mount(UnitInput, { props: { value: 1, suffix } });
     const addonText = wrapper.find('.addon').text();
 
     const input = wrapper.find('input');
 
-    input.setValue(1);
-    input.trigger('blur');
+    await input.setValue(1);
+    await input.trigger('blur');
 
     expect(addonText).toBe(suffix);
-    expect(wrapper.emitted('input')![0][0]).not.toContain(suffix);
+    expect(input.element.value).toStrictEqual('1');
+    expect(wrapper.emitted('update:value')![0][0]).toStrictEqual(1);
   });
 
   it('should format value to a valid integer', () => {

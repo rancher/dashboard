@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`view: fleet.cattle.io.bundle should render resources when bundle deployments exist 1`] = `
 <div class="tabbed-container resource-tabs view" data-testid="tabbed">
