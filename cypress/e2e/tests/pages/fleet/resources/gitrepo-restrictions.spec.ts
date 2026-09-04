@@ -15,6 +15,33 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
   const fleetRestrictionsListPage = new FleetGitRepoRestrictionListPagePo();
   const headerPo = new HeaderPo();
 
+  describe('Deprecation', () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('shows a deprecation banner pointing to Policies', () => {
+      fleetRestrictionsListPage.goTo();
+      fleetRestrictionsListPage.waitForPage();
+
+      const banner = fleetRestrictionsListPage.deprecationBanner();
+
+      banner.banner().should('be.visible');
+
+      // The "Policies" link is an in-app route to the Fleet Policies list (no target).
+      banner.bannerElement('a[href*="fleet.cattle.io.policy"]')
+        .should('contain.text', 'Policies');
+
+      // Accept either docs site and channel: getGitRepoRestrictionMigrationDocsUrl picks community vs
+      // Prime from the edition and root vs `/next/` from the running Rancher version, so pinning one
+      // would tie the test to the backend's build.
+      banner.bannerElement('[data-testid="fleet-migration-guide-link"]')
+        .should('have.attr', 'target', '_blank')
+        .invoke('attr', 'href')
+        .should('match', /^https:\/\/(fleet\.rancher\.io\/(next\/)?how-tos-for-operators\/tenant-setup|documentation\.suse\.com\/cloudnative\/continuous-delivery\/(latest|next)\/en\/how-tos-for-operators\/tenant-setup\.html)#_migration_from_gitreporestriction$/);
+    });
+  });
+
   describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
     before(() => {
       cy.login();
