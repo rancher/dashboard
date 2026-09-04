@@ -78,8 +78,8 @@ export default {
 
     this.fleetWorkspaces = hash.fleetWorkspaces || [];
 
-    this[FLEET.GIT_REPO] = hash.gitRepos || [];
-    this[FLEET.HELM_OP] = hash.helmOps || [];
+    this.gitRepos = hash.gitRepos || [];
+    this.helmOps = hash.helmOps || [];
 
     try {
       const permissionsSchemas = {
@@ -104,13 +104,13 @@ export default {
 
   data() {
     return {
-      permissions:      {},
+      permissions:     {},
       FLEET,
-      [FLEET.GIT_REPO]: [],
-      [FLEET.HELM_OP]:  [],
-      fleetWorkspaces:  [],
+      gitRepos:        [],
+      helmOps:         [],
+      fleetWorkspaces: [],
       VIEW_MODE,
-      viewModeOptions:  [
+      viewModeOptions: [
         {
           tooltipKey: 'fleet.dashboard.viewMode.table',
           icon:       'icon-list-flat',
@@ -138,10 +138,6 @@ export default {
 
   created() {
     this.$store.dispatch('showWorkspaceSwitcher', false);
-
-    this.debouncedUpdateSearchFilter = debounce((workspace, value) => {
-      this.searchFilter[workspace] = value;
-    }, 300);
   },
 
   mounted() {
@@ -175,8 +171,8 @@ export default {
       return this.allNamespaces.filter((item) => {
         return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
       }).map(( obj ) => {
-        const repos = filterBy(this[FLEET.GIT_REPO], 'metadata.namespace', obj.id);
-        const helmOps = filterBy(this[FLEET.HELM_OP], 'metadata.namespace', obj.id);
+        const repos = filterBy(this.gitRepos, 'metadata.namespace', obj.id);
+        const helmOps = filterBy(this.helmOps, 'metadata.namespace', obj.id);
 
         return {
           ...obj,
@@ -222,11 +218,22 @@ export default {
     },
 
     isEmptyDashboard() {
-      return this[FLEET.GIT_REPO]?.length === 0 && this[FLEET.HELM_OP]?.length === 0;
+      return this.gitRepos?.length === 0 && this.helmOps?.length === 0;
     },
 
     allCardsExpanded() {
       return Object.keys(this.isWorkspaceCollapsed).every((key) => !this.isWorkspaceCollapsed[key]);
+    },
+
+    // Cached, so the debounced function is created once on first use. A
+    // computed also gives `this` the component's type, which an assignment in
+    // created() does not. Do not read reactive state in here: that would
+    // invalidate the computed and mint a new debounce, dropping keystrokes
+    // that are still pending.
+    debouncedUpdateSearchFilter() {
+      return debounce((workspace, value) => {
+        this.searchFilter[workspace] = value;
+      }, 300);
     },
   },
 
@@ -430,9 +437,12 @@ export default {
       });
     },
 
-    _checkInit(workspace, name) {
-      if (!this[name][workspace]) {
-        this[name][workspace] = {};
+    _checkInit(workspace: string, name: 'cardsCount' | 'isStateCollapsed' | 'stateFilter' | 'typeFilter') {
+      // These are all keyed by workspace id, which `data()` cannot express.
+      const byWorkspace = this[name] as Record<string, unknown>;
+
+      if (!byWorkspace[workspace]) {
+        byWorkspace[workspace] = {};
       }
     },
   },
