@@ -42,6 +42,24 @@ describe('component: ClusterSwitcherRow (accessibility)', () => {
     expect(mountRow({ current: false }).find('.cluster-switcher-row').attributes('aria-current')).toBeUndefined();
   });
 
+  // v3 (SURE-8192): the Option/Alt "keep this view" arrow used to light up only on the nav-bar rows.
+  // The flyout rows advertise it too, so the cue is the same wherever the user is browsing.
+  describe('route-combo (Option/Alt) arrow', () => {
+    const badge = (props = {}) => mountRow(props).findComponent({ name: 'ClusterIconMenu' });
+
+    it('shows the combo arrow on a ready row while Option is held', () => {
+      expect(badge({ routeCombo: true }).props('routeCombo')).toBe(true);
+    });
+
+    it('is off by default', () => {
+      expect(badge().props('routeCombo')).toBe(false);
+    });
+
+    it('stays off for a cluster you cannot jump to', () => {
+      expect(badge({ cluster: cluster({ ready: false }), routeCombo: true }).props('routeCombo')).toBe(false);
+    });
+  });
+
   it('marks a not-ready cluster aria-disabled and does not emit select', () => {
     const wrapper = mountRow({ cluster: cluster({ ready: false }) });
 

@@ -25,17 +25,21 @@ interface Props {
   subtitle?: string;
   /** When false, the pin toggle is hidden (e.g. `local`, which is never pinnable). */
   pinnable?: boolean;
+  /** Option/Alt is held on a cluster-explorer route — swap the chip's pin overlay for the combo arrow,
+   * the same cue the nav-bar rows show, so the flyout advertises "switch and keep this view" too. */
+  routeCombo?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  id:       undefined,
-  active:   false,
-  current:  false,
-  subtitle: '',
-  pinnable: true,
+  id:         undefined,
+  active:     false,
+  current:    false,
+  subtitle:   '',
+  pinnable:   true,
+  routeCombo: false,
 });
 
-const emit = defineEmits(['select', 'hover']);
+const emit = defineEmits(['select']);
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -86,12 +90,12 @@ function select() {
     :aria-current="current ? 'true' : undefined"
     :aria-disabled="!cluster.ready ? 'true' : undefined"
     @click="select"
-    @mousemove="emit('hover')"
   >
     <ClusterIconMenu
       :cluster="cluster"
       class="row-badge"
       :show-pin="false"
+      :route-combo="routeCombo && cluster.ready"
       aria-hidden="true"
     />
     <div class="row-body">
@@ -153,7 +157,11 @@ function select() {
     opacity: 0.55;
   }
 
-  // Hover / keyboard cursor — full-width neutral highlight.
+  // Two separate highlights, deliberately: `:hover` follows the pointer and clears itself the moment it
+  // leaves (CSS owns it, so nothing can strand it), while `.active` is the ↑↓ keyboard cursor and is
+  // meant to persist. Driving hover off the keyboard cursor is what used to leave a row lit after the
+  // pointer had gone.
+  &:hover,
   &.active {
     background: color-mix(in srgb, var(--body-text) 6%, transparent);
   }

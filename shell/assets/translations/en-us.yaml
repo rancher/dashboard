@@ -305,11 +305,12 @@ nav:
     clear: Clear search
   switcher:
     ariaLabel: Cluster switcher
-    searchPlaceholder: Search or browse {count} clusters
-    searchPlaceholderSimple: Search clusters
-    clusters: Clusters
-    pinned: Pinned
-    recent: Recent
+    clusterSwitch: Cluster Switch
+    shortcutTooltip: Cluster Switch ({shortcut})
+    searchAllClusters: Search all clusters
+    clustersBadge: clusters
+    pinned: Pinned Clusters
+    recent: Recently Used
     allClusters: All clusters
     matches: Matches
     managementCluster: Management cluster

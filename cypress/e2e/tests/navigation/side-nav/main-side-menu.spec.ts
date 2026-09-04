@@ -46,14 +46,14 @@ describe('Side Menu: main', () => {
       BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheckByLabel(fakeProvClusterId);
     });
 
-    it('Local cluster shows a "Management cluster" subtitle in the expanded shelf and a tooltip when collapsed', { tags: ['@navigation', '@adminUser'] }, () => {
+    it('Local cluster shows just its name in the expanded shelf and a tooltip when collapsed', { tags: ['@navigation', '@adminUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      // Expanded: the local slot shows the cluster name + a fixed "Management cluster" subtitle. The
-      // redesign no longer inlines the cluster's own description here (SURE-8192).
+      // Expanded: the local slot reads exactly like every other cluster row — the bare cluster name, no
+      // subtitle line at all (SURE-8192).
       BurgerMenuPo.toggle();
       BurgerMenuPo.checkOpen();
-      burgerMenuPo.getClusterDescription('local').should('include', 'Management cluster');
+      burgerMenuPo.getClusterIcon('local').find('.description').should('not.exist');
 
       // Collapsed: hovering the local icon reveals a tooltip with the cluster name.
       BurgerMenuPo.toggle();
@@ -68,10 +68,10 @@ describe('Side Menu: main', () => {
       BurgerMenuPo.toggle();
       BurgerMenuPo.checkOpen();
 
-      // Reveal the ALL CLUSTERS directory (the whole estate lives behind the search "door"). Using the
+      // Open the switcher flyout — the whole estate (and the only search box) lives in there. Using the
       // intercepted downstream cluster keeps this deterministic regardless of the environment's real
       // topology, and `local` is no longer pinnable (it has its own fixed slot). SURE-8192.
-      burgerMenuPo.openClusterSearch();
+      burgerMenuPo.openClusterSwitcher();
       burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'false');
 
       // Pin it — the row reflects the pinned state immediately.
@@ -107,9 +107,9 @@ describe('Side Menu: main', () => {
       // local is always shown in its fixed slot...
       burgerMenuPo.getClusterIcon('local').should('exist');
 
-      // ...and the full estate opens behind the search "door" (SURE-8192).
-      burgerMenuPo.openClusterSearch();
-      burgerMenuPo.self().find('.clustersList').should('exist');
+      // ...and the full estate opens in the switcher flyout (SURE-8192).
+      burgerMenuPo.openClusterSwitcher();
+      BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row').should('exist');
     });
 
     it('Can display at least one menu category label', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {

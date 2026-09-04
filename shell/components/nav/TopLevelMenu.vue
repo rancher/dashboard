@@ -5,11 +5,11 @@ import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher';
 import IconOrSvg from '../IconOrSvg';
 import { mapGetters } from 'vuex';
 import { CAPI, COUNT, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
-import { PINNED_CLUSTERS, RECENT_CLUSTERS, SEARCH_ECHO_MAX } from '@shell/store/prefs';
+import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
-import { KEY } from '@shell/utils/platform';
+import { alternateLabel, isMac, KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
@@ -65,20 +65,20 @@ export default {
     }
 
     return {
-      shown:               false,
-      // PINNED + RECENT are always shown; the estate lives behind the search "door" (focusing the
-      // filter swaps the shelf for the ALL CLUSTERS directory).
-      allClustersExpanded: false,
+      shown:             false,
+      // The cluster-switcher flyout is open. Everything the estate offers — search, the ALL CLUSTERS
+      // directory — lives in there; the nav itself only ever shows PINNED + RECENT.
+      switcherOpen:      false,
       displayVersion,
       fullVersion,
-      // Shared by BOTH the expanded-nav search box and the collapsed-rail flyout, so a query typed in one
-      // persists in the other; drives the one `clustersOthers` pipeline (`search` → resetOthers).
-      clusterFilter:       '',
+      // The flyout's search term. It lives here because the `clustersOthers` pipeline (`search` →
+      // resetOthers) does, but the flyout is its only writer and reader.
+      clusterFilter:     '',
       hasProvCluster,
-      loadingMoreOthers:   false,
+      loadingMoreOthers: false,
       // A search request is in flight (drives the flyout's initial search skeleton).
-      searchLoading:       false,
-      routeCombo:          false,
+      searchLoading:     false,
+      routeCombo:        false,
 
       canPagination,
       helper,
@@ -133,20 +133,6 @@ export default {
     // New
     searchActive() {
       return !!this.search;
-    },
-
-    // The estate "door" is OPEN once the filter is focused or holds search text, and STAYS open when the
-    // text is deleted — only the explicit clear (X → exitSearch) returns to the PINNED/RECENT shelf.
-    searchMode() {
-      return this.allClustersExpanded || this.searchActive;
-    },
-
-    // The "no clusters match" line echoes the query back; cap a long query with an ellipsis so it can't
-    // overflow (mirrors the flyout's truncatedSearch, same limit).
-    truncatedSearch() {
-      const s = this.clusterFilter || '';
-
-      return s.length > SEARCH_ECHO_MAX ? `${ s.slice(0, SEARCH_ECHO_MAX) }…` : s;
     },
 
     /**
@@ -208,8 +194,7 @@ export default {
       return [...others, ...extras];
     },
 
-    // Expanded-nav shelf: PINNED + RECENT are always shown; focusing the search "door" swaps this shelf
-    // for the ALL CLUSTERS directory (see `allClustersExpanded`).
+    // Expanded-nav shelf: PINNED + RECENT, always — the estate lives in the switcher flyout.
     pinnedRows() {
       return this.appBar.pinFiltered;
     },
@@ -227,18 +212,8 @@ export default {
       return `${ ids(this.pinnedRows) }|${ ids(this.recentRows) }`;
     },
 
-    // Expanded: shown when the section is open OR a search is active. Collapsed: the ALL list is
-    // CSS-hidden (rail uses the flyout), so return the full list to match legacy — never visibly rendered.
-    allRows() {
-      if (!this.shown) {
-        return this.appBar.clustersFiltered;
-      }
-
-      return this.searchMode ? this.appBar.clustersFiltered : [];
-    },
-
     // Infinite-scroll: more rows exist when the loaded window is smaller than the server-side total.
-    // `others` backs the ALL list + expanded-nav search; `search` backs the flyout search.
+    // `others` backs the flyout's ALL CLUSTERS directory AND its search results — one shared pipeline.
     hasMoreOthers() {
       return this.clustersFiltered.length < (this.helper.counts?.others || 0);
     },
@@ -268,6 +243,17 @@ export default {
       return Math.max(0, rawTotal - (this.helper.clustersLocal.length ? 1 : 0));
     },
 
+    // The flyout's shortcut in the two forms it needs. `switcherShortcutLabel` is what a user reads in
+    // the tooltip; `switcherKeyShortcut` is the spelled-out form `aria-keyshortcuts` expects, because
+    // "⌘J" does not read out sensibly.
+    switcherShortcutLabel() {
+      return isMac ? '⌘J' : 'Ctrl+J';
+    },
+
+    switcherKeyShortcut() {
+      return `${ isMac ? 'Meta' : alternateLabel }+J`;
+    },
+
     // Id of the cluster currently being explored — marked `current` in the switcher. Gate on the route's
     // cluster param: on global pages the store keeps `clusterId` set behind the scenes, but nothing in the
     // switcher should look selected there.
@@ -281,13 +267,6 @@ export default {
       const id = this.$store.getters['clusterId'];
 
       return typeof id === 'string' ? id : '';
-    },
-
-    pinnedClustersHeight() {
-      const pinCount = this.pinFiltered.length;
-      const height = pinCount > 2 ? (pinCount * 43) : 90;
-
-      return `min-height: ${ height }px`;
     },
 
     multiClusterApps() {
@@ -462,15 +441,6 @@ export default {
       this.shown = false;
     },
 
-    // Expanding shows the PINNED/RECENT shelf — the ALL directory loads only when the user focuses the
-    // door, so we neither auto-focus nor preload the estate on expand.
-    shown(neu) {
-      if (!neu) {
-        // Leaving directory mode when the nav collapses.
-        this.allClustersExpanded = false;
-      }
-    },
-
     // Before SSP world all of these changes were kicked off given Vue change detection to properties in a computed method.
     // Changes could come from two scenarios
     // 1. Changes made by the user (pin / search). Could be tens per second
@@ -577,11 +547,17 @@ export default {
   mounted() {
     document.addEventListener('keyup', this.handler);
     document.addEventListener('keydown', this.onSwitcherHotkey);
+    // Capture on `window` — one hop ahead of the `document` capture listeners the shortkey directive uses
+    // — so the guard can swallow an app shortcut before any of them sees it.
+    window.addEventListener('keydown', this.onSwitcherKeyGuard, true);
+    window.addEventListener('keyup', this.onSwitcherKeyGuard, true);
   },
 
   beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
     document.removeEventListener('keydown', this.onSwitcherHotkey);
+    window.removeEventListener('keydown', this.onSwitcherKeyGuard, true);
+    window.removeEventListener('keyup', this.onSwitcherKeyGuard, true);
   },
 
   methods: {
@@ -605,8 +581,8 @@ export default {
     },
 
     clusterMenuClick(ev, cluster) {
-      // Navigating to a cluster clears the shared search, so the shelf (PINNED/RECENT) — not a stale
-      // filtered list — greets the next open of either the nav or the flyout.
+      // Navigating to a cluster clears the flyout's search, so the next open starts on the ALL CLUSTERS
+      // directory rather than a stale filtered list.
       this.clusterFilter = '';
 
       if (this.routeComboActive) {
@@ -635,8 +611,8 @@ export default {
       this.hide();
     },
 
-    // The flyout writes into the SHARED `clusterFilter`, so its query is the same one the expanded nav
-    // uses (and vice versa); the `search` watcher then drives the one `clustersOthers` pipeline.
+    // The flyout owns the only cluster search in the nav; its query drives the `clustersOthers` pipeline
+    // via the `search` watcher.
     onSwitcherSearch(term) {
       // Show the loading skeleton immediately (cleared when the debounced request resolves).
       this.searchLoading = !!term;
@@ -667,35 +643,50 @@ export default {
       }
     },
 
+    // While the flyout is open it OWNS the keyboard: every app shortcut behind it (Cmd/Ctrl+K, the
+    // `v-shortkey` bindings, …) is swallowed here. Three things still get through:
+    // - Cmd/Ctrl+J, the flyout's own toggle (`onSwitcherHotkey` closes it);
+    // - Option/Alt, so the `v-shortkey.hold` bindings keep driving the "keep this view" reveal — that
+    //   directive owns the state (issue 11329), including releasing it when focus leaves the page;
+    // - anything typed inside the flyout, so its search box and ↑↓/Enter/Esc keep working.
+    onSwitcherKeyGuard(e) {
+      if (!this.switcherOpen) {
+        return;
+      }
+
+      const key = (e.key || '').toLowerCase();
+      const isToggle = (e.code === 'KeyJ' || key === 'j') && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey;
+      const isAlt = e.key === 'Alt' || e.code === 'AltLeft' || e.code === 'AltRight';
+
+      if (isToggle || isAlt) {
+        return;
+      }
+
+      const target = e.target;
+
+      if (target && typeof target.closest === 'function' && target.closest('.cluster-switcher-flyout')) {
+        return;
+      }
+
+      // `stopImmediatePropagation` (not just `stopPropagation`) — the shortkey directive listens on
+      // `document`, and only the immediate form is guaranteed to beat every listener there.
+      e.stopImmediatePropagation();
+      e.stopPropagation();
+    },
+
     hide() {
       this.shown = false;
-      if (this.clustersFiltered === 0) {
-        this.clusterFilter = '';
-      }
     },
 
-    toggle() {
+    // The flyout is anchored to the nav's width, so flipping `shown` while it is still on screen
+    // re-anchors it instantly — it jumps to the other position at FULL opacity and only then fades out.
+    // Send it away first and wait for it to have actually gone, then resize the nav. `closeAndWait`
+    // resolves immediately when nothing is open, so a plain expand/collapse is unaffected.
+    async toggle() {
+      await this.$refs.switcher?.closeAndWait();
+
       this.shown = !this.shown;
     },
-
-    // The "door": focusing the filter swaps the shelf for the ALL CLUSTERS directory. Leaving ALL mode is
-    // EXPLICIT — the clear (X) or Esc, NOT blur — so clicking away from a search doesn't snap back.
-    onFilterFocus() {
-      this.allClustersExpanded = true;
-      this.resetOthersList();
-    },
-
-    // Clear the search AND return to the PINNED/RECENT shelf (the only way out of ALL mode).
-    exitSearch() {
-      this.clusterFilter = '';
-      this.allClustersExpanded = false;
-    },
-
-    // Same meta line as the flyout rows: distro/provider · k8s version (e.g. "EKS · v1.31.2").
-    clusterMeta(c) {
-      return [c.providerDisplay, c.kubernetesVersion].filter((p) => !!p).join(' · ');
-    },
-
 
     // The [data-flip] shelf rows to animate — VISIBLE ones only. When collapsed, the CSS-hidden ALL list
     // renders the SAME ids with data-flip; including those would double-key the FLIP Map and animate the
@@ -791,11 +782,6 @@ export default {
       el.addEventListener('animationend', done);
     },
 
-    onFilterEscape(e) {
-      this.exitSearch();
-      e?.target?.blur();
-    },
-
     // Fetch page 1 of the ALL directory with the CURRENT pinned/recent/search context — the shared handler
     // for every "show me the ALL list" trigger. `.catch` swallows the wrapper's benign de-dup rejection.
     resetOthersList() {
@@ -828,31 +814,23 @@ export default {
       }
     },
 
-    // Expanded-nav ALL / MATCHES scroll → load the next window near the bottom. `.clusters` is the SAME
-    // element on the collapsed rail, but there the ALL list is hidden and browsing happens in the flyout,
-    // so only paginate when the expanded list is the scrollable content, never on the collapsed rail.
-    onClustersScroll(e) {
-      if (!this.shown || !this.searchMode) {
-        return;
-      }
-
-      const el = e.target;
-
-      if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) {
-        this.loadMoreOthers();
-      }
-    },
-
-    // The flyout and the expanded nav browse the SAME `clustersOthers` list, so both paginate through it.
+    // The flyout scrolled near the bottom of its ALL CLUSTERS / MATCHES list — load the next window.
     onFlyoutLoadMore() {
       this.loadMoreOthers();
     },
 
-    // Flyout opened (the collapsed-rail "ALL" button) → page-1 trigger for the (unwatched) ALL list.
-    // Non-conditional: always re-fetch page 1 so the flyout's list is fresh on open.
+    // Flyout opened → page-1 trigger for the (unwatched) ALL list; always re-fetch so the list is fresh.
+    // Closing drops the search so the next open starts on the full directory again.
     onFlyoutOpen(open) {
+      this.switcherOpen = open;
+
+      // Alt released outside the guard's reach (the flyout closed mid-combo) would strand the arrow on.
+      this.routeCombo = false;
+
       if (open) {
         this.resetOthersList();
+      } else if (this.clusterFilter) {
+        this.clusterFilter = '';
       }
     },
 
@@ -863,6 +841,28 @@ export default {
         await localCluster.goToHarvesterCluster();
       } catch {
       }
+    },
+
+    /**
+     * Cmd/Ctrl+J hint on the switcher trigger. Shown in BOTH nav states, but anchored to a different
+     * element in each so it never covers what it describes: beside the chip on the collapsed rail, and
+     * off the end of the row when expanded — the trigger button spans the full 300px, so anchoring the
+     * expanded one to it puts the tooltip past the row rather than on top of the "Cluster Switch" label,
+     * and hovering anywhere on the row still raises it. Same `showWhenClosed` convention as
+     * getTooltipConfig. Suppressed while the flyout is open — nav tooltips layer above it, so it would
+     * otherwise sit on the cluster list.
+     */
+    switcherTooltip(showWhenClosed = false) {
+      const rightState = showWhenClosed ? !this.shown : this.shown;
+
+      if (!rightState || this.switcherOpen) {
+        return { content: null };
+      }
+
+      return {
+        content:   this.t('nav.switcher.shortcutTooltip', { shortcut: this.switcherShortcutLabel }),
+        placement: 'right',
+      };
     },
 
     getTooltipConfig(item, showWhenClosed = false) {
@@ -1009,7 +1009,10 @@ export default {
           id="top-level-menu-body"
           class="body"
         >
+          <!-- Home + local + the switcher trigger: the nav's fixed head. It holds its size while the
+               cluster shelf below it absorbs (and scrolls) whatever room is left. -->
           <div
+            class="nav-head"
             :class="{ 'bottom-border': shown }"
           >
             <!-- Home button -->
@@ -1039,15 +1042,6 @@ export default {
                 </div>
               </router-link>
             </div>
-            <!-- CLUSTERS section label — same style as PINNED / RECENT (labels are the separators, no
-                 divider lines). Hidden entirely when the cluster area is empty: no local AND nothing
-                 browsable. -->
-            <div
-              v-if="localCluster || browsableClusterCount > 0"
-              class="cluster-group-label"
-            >
-              {{ t('nav.switcher.clusters') }}
-            </div>
             <!-- local (management cluster): fixed slot at the top of the cluster area -->
             <div
               v-if="localCluster"
@@ -1055,7 +1049,7 @@ export default {
               @click="hide()"
             >
               <button
-                v-shortkey.push="{windows: ['alt'], mac: ['option']}"
+                v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
                 class="cluster selector option"
                 :class="{ 'active-menu-link': localCluster.isMenuActive }"
                 :aria-current="localCluster.isMenuActive ? 'page' : undefined"
@@ -1063,7 +1057,7 @@ export default {
                 role="button"
                 :aria-label="`${ t('nav.ariaLabel.cluster') } ${ localCluster.label }`"
                 @click.prevent="clusterMenuClick($event, localCluster)"
-                @shortkey="handleKeyComboClick"
+                @shortkey="onRouteComboHold"
               >
                 <ClusterIconMenu
                   v-clean-tooltip="getTooltipConfig(localCluster, true)"
@@ -1077,58 +1071,19 @@ export default {
                   class="cluster-name"
                 >
                   <p>{{ localCluster.label }}</p>
-                  <p class="description">
-                    {{ t('nav.switcher.managementCluster') }}
-                  </p>
                 </div>
               </button>
             </div>
-            <!-- The "door": ONE slot below local. Expanded = the estate filter; collapsed = the
-                 count-badge that opens the switcher flyout (same container so the two morph in place).
-                 Gated on the BROWSABLE count (not the raw total, which includes local), so there's no
-                 empty "0" flyout when local is the only cluster. -->
+            <!-- The cluster-switcher "door": ONE slot below local, IDENTICAL expanded and collapsed —
+                 the count chip sits in the icon lane, and the expanded nav adds the "Cluster Switch"
+                 label plus the trailing chevron (the collapsed rail clips both). Gated on the BROWSABLE
+                 count (not the raw total, which includes local), so there's no empty "0" flyout when
+                 local is the only cluster. -->
             <div
               v-if="browsableClusterCount > 0"
               class="cluster-door"
             >
-              <div
-                v-if="shown"
-                class="clusters-search"
-              >
-                <div
-                  class="search"
-                >
-                  <input
-                    ref="clusterFilter"
-                    v-model="clusterFilter"
-                    :placeholder="t('nav.switcher.searchPlaceholder', { count: browsableClusterCount })"
-                    :tabindex="!shown ? -1 : 0"
-                    :aria-label="t('nav.search.ariaLabel')"
-                    @focus="onFilterFocus"
-                    @keyup.esc="onFilterEscape"
-                  >
-                  <i
-                    class="magnifier icon icon-search"
-                    :class="{ active: clusterFilter }"
-                    aria-hidden="true"
-                  />
-                  <!-- Clear (X): a real button (keyboard-operable), shown whenever we're in ALL mode since
-                       it's the explicit way back to the shelf. mousedown.prevent keeps the input from
-                       blurring so the click lands. -->
-                  <button
-                    v-if="searchMode"
-                    type="button"
-                    class="icon icon-close"
-                    :aria-label="t('nav.search.clear')"
-                    @mousedown.prevent
-                    @click="exitSearch"
-                  />
-                </div>
-              </div>
-              <div
-                v-else
-                class="clustersAll"
-              >
+              <div class="clustersAll">
                 <ClusterSwitcher
                   ref="switcher"
                   :all="railAll"
@@ -1141,42 +1096,48 @@ export default {
                   :search="clusterFilter"
                   :has-more="hasMoreOthers"
                   :loading-more="loadingMoreOthers"
+                  :route-combo="routeComboActive"
+                  :nav-expanded="shown"
                   @update:search="onSwitcherSearch"
                   @load-more="onFlyoutLoadMore"
                   @update:open="onFlyoutOpen"
                   @select="switcherExplore"
                 >
-                  <!-- Trigger reuses the app-bar's cluster-button structure so the ALL tile matches the
-                       pinned/recent rows exactly; the count sits in the icon lane so the collapsed rail
-                       shows the estate size. -->
-                  <template #trigger="{ toggle: toggleSwitcher, open: switcherOpen, count: switcherCount }">
+                  <!-- Trigger reuses the app-bar's cluster-button structure so it sits in the shelf like
+                       the cluster rows; its "icon" is a count chip (estate size over the word "clusters")
+                       in the same left icon lane, so the collapsed rail shows just the chip. -->
+                  <template #trigger="{ toggle: toggleSwitcher, open: switcherIsOpen, count: switcherCount }">
                     <button
+                      v-clean-tooltip="switcherTooltip()"
                       type="button"
                       class="cluster selector option cluster-all"
+                      data-testid="cluster-switcher-trigger"
                       :aria-label="t('nav.switcher.ariaLabel')"
-                      :aria-expanded="switcherOpen"
+                      :aria-keyshortcuts="switcherKeyShortcut"
+                      :aria-expanded="switcherIsOpen"
                       aria-haspopup="listbox"
                       @click.prevent="toggleSwitcher"
                     >
-                      <div class="cluster-all-lane">
-                        <div
-                          class="cluster-all-badge"
-                          :class="{
-                            'count-condensed': String(switcherCount).length >= 3,
-                            'count-tiny': String(switcherCount).length >= 5,
-                          }"
-                        >
-                          {{ switcherCount }}
-                          <svg
-                            class="cluster-all-chevron"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            aria-hidden="true"
-                          ><path d="M8.38085 5.38085C8.72256 5.03915 9.27743 5.03915 9.61914 5.38085L15.6191 11.3809C15.9608 11.7226 15.9608 12.2774 15.6191 12.6191L9.61914 18.6191C9.27743 18.9608 8.72256 18.9608 8.38085 18.6191C8.03915 18.2774 8.03915 17.7226 8.38085 17.3809L13.7617 12L8.38085 6.61914C8.03915 6.27743 8.03915 5.72256 8.38085 5.38085Z" /></svg>
+                      <div
+                        v-clean-tooltip="switcherTooltip(true)"
+                        class="cluster-all-lane"
+                      >
+                        <div class="cluster-all-badge">
+                          <span class="cluster-all-count">{{ switcherCount }}</span>
+                          <span class="cluster-all-unit">{{ t('nav.switcher.clustersBadge') }}</span>
                         </div>
                       </div>
+                      <div class="cluster-all-name">
+                        {{ t('nav.switcher.clusterSwitch') }}
+                      </div>
+                      <svg
+                        class="cluster-all-chevron"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      ><path d="M8.38085 5.38085C8.72256 5.03915 9.27743 5.03915 9.61914 5.38085L15.6191 11.3809C15.9608 11.7226 15.9608 12.2774 15.6191 12.6191L9.61914 18.6191C9.27743 18.9608 8.72256 18.9608 8.38085 18.6191C8.03915 18.2774 8.03915 17.7226 8.38085 17.3809L13.7617 12L8.38085 6.61914C8.03915 6.27743 8.03915 5.72256 8.38085 5.38085Z" /></svg>
                     </button>
                   </template>
                 </ClusterSwitcher>
@@ -1229,17 +1190,18 @@ export default {
             <div
               ref="clusterList"
               class="clusters"
-              :style="pinnedClustersHeight"
-              @scroll="onClustersScroll"
             >
-              <!-- Pinned Clusters — collapsed rail ignores the search (it has no search input of its
-                   own), so only the EXPANDED nav hides the group while filtering. -->
+              <!-- Pinned Clusters — the nav shelf is always PINNED + RECENT; the estate (and the only
+                   search) lives in the flyout. -->
               <div
-                v-if="railPinned.length && (!shown || !searchMode)"
+                v-if="railPinned.length"
                 class="clustersPinned"
               >
-                <div class="cluster-group-label">
-                  {{ t('nav.switcher.pinned') }}
+                <div class="category-title">
+                  <RcSeparator />
+                  <span>
+                    {{ t('nav.switcher.pinned') }}
+                  </span>
                 </div>
                 <div
                   v-for="(c, index) in pinnedRows"
@@ -1273,12 +1235,6 @@ export default {
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
-                      <p
-                        v-if="clusterMeta(c)"
-                        class="description"
-                      >
-                        {{ clusterMeta(c) }}
-                      </p>
                     </div>
                     <Pinned
                       :cluster="c"
@@ -1301,12 +1257,6 @@ export default {
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
-                      <p
-                        v-if="clusterMeta(c)"
-                        class="description"
-                      >
-                        {{ clusterMeta(c) }}
-                      </p>
                     </div>
                     <Pinned
                       :cluster="c"
@@ -1318,11 +1268,14 @@ export default {
 
               <!-- Recent Clusters -->
               <div
-                v-if="railRecent.length && (!shown || !searchMode)"
+                v-if="railRecent.length"
                 class="clustersRecent"
               >
-                <div class="cluster-group-label">
-                  {{ t('nav.switcher.recent') }}
+                <div class="category-title">
+                  <RcSeparator />
+                  <span>
+                    {{ t('nav.switcher.recent') }}
+                  </span>
                 </div>
                 <div
                   v-for="(c, index) in recentRows"
@@ -1333,7 +1286,7 @@ export default {
                 >
                   <button
                     v-if="c.ready"
-                    v-shortkey.push="{windows: ['alt'], mac: ['option']}"
+                    v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`recent-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': c.isMenuActive }"
@@ -1342,7 +1295,7 @@ export default {
                     role="button"
                     :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
                     @click.prevent="clusterMenuClick($event, c)"
-                    @shortkey="handleKeyComboClick"
+                    @shortkey="onRouteComboHold"
                   >
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"
@@ -1356,12 +1309,6 @@ export default {
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
-                      <p
-                        v-if="clusterMeta(c)"
-                        class="description"
-                      >
-                        {{ clusterMeta(c) }}
-                      </p>
                     </div>
                     <Pinned
                       :cluster="c"
@@ -1384,12 +1331,6 @@ export default {
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
-                      <p
-                        v-if="clusterMeta(c)"
-                        class="description"
-                      >
-                        {{ clusterMeta(c) }}
-                      </p>
                     </div>
                     <Pinned
                       :cluster="c"
@@ -1397,131 +1338,6 @@ export default {
                     />
                   </span>
                 </div>
-              </div>
-
-              <!-- ALL CLUSTERS directory — the estate, revealed only when the filter "door" is focused;
-                   hidden on the collapsed rail (uses the flyout). -->
-              <div
-                v-if="!shown || searchMode"
-                class="clustersList"
-              >
-                <div
-                  v-if="!searchActive && browsableClusterCount"
-                  class="cluster-group-label"
-                >
-                  {{ t('nav.switcher.allClusters') }}
-                  <span class="cluster-group-count">{{ browsableClusterCount }}</span>
-                </div>
-                <!-- MATCHES header — replaces the ALL CLUSTERS accordion header while searching -->
-                <div
-                  v-if="searchActive && clustersFiltered.length"
-                  class="cluster-group-label"
-                >
-                  {{ t('nav.switcher.matches') }}
-                  <span class="cluster-group-count">{{ clustersFiltered.length }}</span>
-                </div>
-                <div
-                  v-for="(c, index) in allRows"
-                  :key="c.id"
-                  :data-flip="c.id"
-                  :data-testid="`top-level-menu-cluster-${index}`"
-                  @click="hide()"
-                >
-                  <button
-                    v-if="c.ready"
-                    v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
-                    :data-testid="`menu-cluster-${ c.id }`"
-                    class="cluster selector option"
-                    :class="{'active-menu-link': c.isMenuActive }"
-                    :aria-current="c.isMenuActive ? 'page' : undefined"
-                    :to="c.clusterRoute"
-                    role="button"
-                    :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
-                    @click="clusterMenuClick($event, c)"
-                    @shortkey="onRouteComboHold"
-                  >
-                    <ClusterIconMenu
-                      v-clean-tooltip="getTooltipConfig(c, true)"
-                      :cluster="c"
-                      :route-combo="routeComboActive"
-                      class="rancher-provider-icon"
-                      :show-pin="false"
-                    />
-                    <div
-                      v-clean-tooltip="getTooltipConfig(c)"
-                      class="cluster-name"
-                    >
-                      <p>{{ c.label }}</p>
-                      <p
-                        v-if="clusterMeta(c)"
-                        class="description"
-                      >
-                        {{ clusterMeta(c) }}
-                      </p>
-                    </div>
-                    <Pinned
-                      :class="{'showPin': c.pinned}"
-                      :tab-order="shown ? 0 : -1"
-                      :cluster="c"
-                    />
-                  </button>
-                  <span
-                    v-else
-                    class="option cluster selector disabled"
-                    :data-testid="`menu-cluster-disabled-${ c.id }`"
-                  >
-                    <ClusterIconMenu
-                      v-clean-tooltip="getTooltipConfig(c, true)"
-                      :cluster="c"
-                      class="rancher-provider-icon"
-                      :show-pin="false"
-                    />
-                    <div
-                      v-clean-tooltip="getTooltipConfig(c)"
-                      class="cluster-name"
-                    >
-                      <p>{{ c.label }}</p>
-                      <p
-                        v-if="clusterMeta(c)"
-                        class="description"
-                      >
-                        {{ clusterMeta(c) }}
-                      </p>
-                    </div>
-                    <Pinned
-                      :class="{'showPin': c.pinned}"
-                      :tab-order="shown ? 0 : -1"
-                      :cluster="c"
-                    />
-                  </span>
-                </div>
-                <!-- Infinite-scroll loading skeleton -->
-                <div
-                  v-if="loadingMoreOthers"
-                  class="cluster-skeleton"
-                  aria-hidden="true"
-                >
-                  <div
-                    v-for="n in 2"
-                    :key="n"
-                    class="skeleton-row"
-                  >
-                    <div class="skeleton-badge shimmer" />
-                    <div class="skeleton-line shimmer" />
-                  </div>
-                </div>
-              </div>
-
-              <!-- No clusters message — same text + styling as the flyout's empty state. Announced via a
-                   polite live region so screen-reader users hear it as they type. -->
-              <div
-                v-if="clustersFiltered.length === 0 && searchActive"
-                data-testid="top-level-menu-no-results"
-                class="none-matching"
-                role="status"
-                aria-live="polite"
-              >
-                {{ t('nav.switcher.noMatch', { query: truncatedSearch }) }}
               </div>
             </div>
           </template>
@@ -1678,7 +1494,6 @@ export default {
   $option-height: $icon-size + $option-padding + $option-padding;
 
   // Type scale — the shelf + flyout only use these three sizes.
-  $font-size-label: 10px;  // shelf group labels (CLUSTERS / PINNED / RECENT), small captions
   $font-size-sm:    12px;  // meta / status / footer / counts
   $font-size-body:  14px;  // option row text
 
@@ -1770,9 +1585,9 @@ export default {
   // (The shelf already conveys pinned-ness via the PINNED group + pin toggle, so ClusterIconMenu's
   // redundant pin overlay is hidden with :show-pin="false" on each chip — no scoped-style piercing.)
 
-  // ALL: reuses the app-bar cluster-button so it sits in the shelf like the home / cluster rows, but its
-  // "icon" is a count chip (mirrors the ClusterIconMenu badge) showing the estate size + a chevron, in
-  // the same left icon lane so the collapsed rail shows just the chip.
+  // The switcher trigger reuses the app-bar cluster-button so it sits in the shelf like the home / cluster
+  // rows. Its "icon" is a count chip with exactly the ClusterIconMenu badge's footprint — same lane, same
+  // 42x32 — so the collapsed rail reads as one clean column of chips.
   .cluster-all .cluster-all-lane {
     position: relative;
     display: flex;
@@ -1781,74 +1596,82 @@ export default {
     flex: 0 0 auto;
     width: $chip-width;
     height: $chip-height;
+    margin-right: $space-4;
   }
   .cluster-all .cluster-all-badge {
     box-sizing: border-box;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1px;
-    width: $chip-width;
-    height: $chip-height;
+    width: 100%;
+    height: 100%;
     // Same colour as the HOME icon/text (the app-bar link colour).
     color: var(--on-tertiary, var(--link));
-    font-weight: bold;
-    font-size: $font-size-sm;
-    text-transform: uppercase;
     background: var(--nav-icon-badge-bg);
     border: 1px solid var(--border);
     border-radius: $chip-radius;
+
+    // Two fixed sizes — the count sits over the word it counts, so it never has to shrink to fit.
+    .cluster-all-count {
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 13px;
+    }
+
+    .cluster-all-unit {
+      font-size: 11px;
+      font-weight: normal;
+      line-height: 12px;
+      // "clusters" is a hair too wide for a 42px chip at 11px — tighten the tracking rather than drop
+      // below the specified size.
+      letter-spacing: -0.4px;
+    }
   }
-  // The chip is a fixed width, so shrink the count text as it lengthens to keep large estate sizes from
-  // truncating: one step down at 3-4 digits, a smaller one at 5+.
-  .cluster-all .cluster-all-badge.count-condensed {
-    font-size: 10px;
-    padding-left: 6px;
+  // "Cluster Switch": the row label. Expanded-nav only — the collapsed rail clips it, exactly like the
+  // cluster names on the rows below.
+  .cluster-all .cluster-all-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: $font-size-body;
+    font-weight: normal;
+    line-height: 16px;
+    color: var(--on-tertiary, var(--link));
   }
-  .cluster-all .cluster-all-badge.count-tiny {
-    font-size: 8px;
-  }
-  // Override the app-bar's broad `.body .option svg { margin-right: 16px }` (which would shove the
-  // chevron and knock "N ›" off-centre in the chip).
-  .cluster-all .cluster-all-badge .cluster-all-chevron {
+  // The chevron trails the label at the END of the row (never inside the chip), so it too shows only on
+  // the expanded nav. Its right margin comes from the shared `.option svg` rule.
+  .cluster-all .cluster-all-chevron {
     flex: 0 0 auto;
-    margin-right: 0 !important;
   }
 
-  // This tile is NOT a cluster you can be "in", so it must never take the hover/active treatment (the
-  // green fill + white font is the "current cluster" cue). Freeze it: the row stays transparent and the
-  // chip keeps its badge in every state, including while the flyout is open.
-  .side-menu .body .option.cluster-all,
-  .side-menu .body .option.cluster-all:hover,
-  .side-menu .body .option.cluster-all:focus {
+  // The row takes the app-bar's ordinary hover highlight (inherited from `.body .option:hover`), so it
+  // behaves like every cluster row above it. The chip is the one exception: the generic hover rules
+  // recolour every `div` inside the row white, which would erase the count on the chip's pale
+  // background — so pin the chip's own colours through every state.
+  .side-menu .body .option.cluster-all .cluster-all-badge {
+    color: var(--on-tertiary, var(--link)) !important;
+    background: var(--nav-icon-badge-bg) !important;
+  }
+
+  // The flyout being open is not an "active/selected" state — this tile is not a cluster you can be
+  // "in" — so it never takes the green `active-menu-link` fill, only hover.
+  .side-menu .body .option.cluster-all:not(:hover) {
     background: transparent;
-
-    .cluster-all-badge {
-      color: var(--on-tertiary, var(--link));
-      background: var(--nav-icon-badge-bg);
-    }
-
-    .cluster-all-chevron {
-      fill: var(--on-tertiary, var(--link));
-    }
   }
 
-  // Hover (only) tints the chip border with the text/link colour — a plain clickable affordance, not an
-  // active/selected state (the flyout being open doesn't light it up).
-  .side-menu .body .option.cluster-all:hover .cluster-all-badge {
-    border-color: var(--on-tertiary, var(--link));
-  }
-
-  // The "door" slot below local: holds the search input (expanded) OR the count-badge (collapsed) in the
-  // SAME box, so the two states occupy one consistent slot and morph in place.
+  // The "door" slot below local: holds the cluster-switcher trigger, identical in both nav states.
   .cluster-door {
     display: flex;
     align-items: center;
     height: 43px;
   }
 
-  // ALL: the trigger tile that opens the switcher flyout. It reuses the app-bar cluster-button, so it
-  // flows at full EXPANDED width; the collapsed rail's overflow clips the name, leaving just the count
+  // The trigger tile that opens the switcher flyout. It reuses the app-bar cluster-button, so it flows at
+  // full EXPANDED width; the collapsed rail's overflow clips the label + chevron, leaving just the count
   // chip in the icon lane.
   .clustersAll {
     flex: 1 1 auto;
@@ -1856,86 +1679,6 @@ export default {
 
     :deep(.v-popper) {
       display: block;
-    }
-  }
-
-  // Shelf group labels (CLUSTERS / PINNED / RECENT). IDENTICAL in collapsed and expanded so they never
-  // reflow between states; the wider ALL CLUSTERS directory caption is special-cased below.
-  .cluster-group-label {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: $space-2;   // 8px between the caption and its count badge
-    width: $app-bar-collapsed-width;
-    padding: $space-2 0 $space-1;
-    line-height: 18px;
-    font-size: $font-size-label;
-    font-weight: 600;
-    letter-spacing: 0;
-    text-transform: uppercase;
-    // Black, matching the GLOBAL APPS / CONFIGURATION section titles (.category-title).
-    color: var(--body-text);
-
-    // Count badge: a neutral pill (Figma rev 2), shared by ALL CLUSTERS + MATCHES.
-    .cluster-group-count {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      vertical-align: middle;
-      min-width: 22px;
-      height: 16px;
-      padding: 1px 8px;
-      border-radius: 10px;
-      background: color-mix(in srgb, var(--body-text) 10%, transparent);
-      font-size: 11px;
-      font-weight: 600;
-      line-height: 1;
-      letter-spacing: 0;
-      text-transform: none;
-      color: var(--body-text);
-    }
-  }
-  // Infinite-scroll loading skeleton for the expanded ALL list — shimmer placeholder rows.
-  .cluster-skeleton {
-    .skeleton-row {
-      display: flex;
-      align-items: center;
-      gap: $space-4;
-      padding: 8px $option-padding-left;
-    }
-
-    .skeleton-badge {
-      flex: 0 0 auto;
-      width: $chip-width;
-      height: $chip-height;
-      border-radius: var(--border-radius);
-    }
-
-    .skeleton-line {
-      flex: 1 1 auto;
-      max-width: 160px;
-      height: 12px;
-      border-radius: 4px;
-    }
-  }
-
-  .shimmer {
-    background-image: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--body-text) 7%, transparent) 25%,
-      color-mix(in srgb, var(--body-text) 15%, transparent) 37%,
-      color-mix(in srgb, var(--body-text) 7%, transparent) 63%
-    );
-    background-size: 400% 100%;
-    animation: cluster-shimmer 1.4s ease infinite;
-  }
-
-  @keyframes cluster-shimmer {
-    0% {
-      background-position: 100% 0;
-    }
-    100% {
-      background-position: 0 0;
     }
   }
 
@@ -1950,32 +1693,6 @@ export default {
     }
   }
 
-  // The ALL CLUSTERS directory caption is wider than the 70px lane (it carries a count badge) and is
-  // EXPANDED-only, so give it the full-width, left-aligned treatment.
-  .clustersList .cluster-group-label {
-    // Pinned to the top of the scrolling `.clusters` viewport so the ALL CLUSTERS caption stays put while
-    // the directory scrolls under it (opaque bg so rows don't show through).
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: var(--topmenu-bg);
-    // Full width so the sticky background spans the row and nothing scrolls past its side.
-    width: 100%;
-    // Match the PINNED / RECENT group labels (30px): the count pill would otherwise make the ALL CLUSTERS /
-    // MATCHES caption a couple of px shorter. Pin it to 30px.
-    box-sizing: border-box;
-    height: 30px;
-    padding: 8px 16px 4px;
-    justify-content: flex-start;
-  }
-  // Collapsed rail shows only PINNED + RECENT chips; the full ALL CLUSTERS list is expanded-nav only —
-  // reachable via the flyout when collapsed.
-  // Collapsed rail is icon-only and uses the flyout (which has its own empty state), so hide both the ALL
-  // list and the "no clusters match" caption — otherwise the caption leaks into the narrow rail and clips.
-  .side-menu.menu-close .clustersList,
-  .side-menu.menu-close .none-matching {
-    display: none;
-  }
   .clustersRecent .pin {
     display: block;
   }
@@ -2082,11 +1799,16 @@ export default {
       margin-left: $option-padding-left - 7;
     }
     .body {
-      flex: 1;
+      // A fixed-height column between the title bar and the footer. It must NOT scroll: a nav taller than
+      // the viewport used to push the whole body into a scroll, carrying GLOBAL APPS / CONFIGURATION and
+      // the version footer off-screen. `min-height: 0` lets it actually shrink to the space it is given
+      // (a flex item's default `min-height: auto` is content height, which is what forced the overflow).
+      flex: 1 1 auto;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       width: 300px;
-      overflow: auto;
+      overflow: hidden;
 
       & .category {
         & a.router-link-active {
@@ -2154,15 +1876,16 @@ export default {
             overflow: hidden;
             text-overflow: ellipsis;
             text-align: left;
-            // Name: matches the flyout row-name (13px / 600). Black like the GLOBAL APPS titles, and
-            // !important so the app-bar hover/active recolour rules can't turn it primary or blend it away.
-            font-size: 13px;
-            font-weight: 600;
-            line-height: 16px;
-            color: var(--body-text) !important;
+            // Name: reads as a nav link like HOME and the GLOBAL APPS entries — 14px, regular weight, the
+            // primary/link colour. `!important` so the app-bar's broad recolour rules can't blend it away;
+            // the hover/active rules further down re-assert their own colours the same way.
+            font-size: $font-size-body;
+            font-weight: normal;
+            line-height: 18px;
+            color: var(--on-tertiary, var(--link)) !important;
 
-            // Meta (distro · k8s): matches the flyout row-meta (10px / muted); stays muted on hover (was
-            // disappearing when the hover recoloured it).
+            // The one subtitle left on the shelf is local's fixed "Management cluster" (the per-cluster
+            // provider · version meta now lives only in the flyout rows).
             &.description {
               font-size: 10px;
               font-weight: normal;
@@ -2329,65 +2052,20 @@ export default {
         padding: $option-padding 0 $option-padding $option-padding-left;
       }
 
-      .search {
-        position: relative;
-        > input {
-          background-color: transparent;
-          padding-right: 35px;
-          padding-left: 25px;
-          height: 32px;
-        }
-        > .magnifier {
-          position: absolute;
-          top: 12px;
-          left: 8px;
-          width: 12px;
-          height: 12px;
-          font-size: $font-size-sm;
-          opacity: 0.4;
-
-          &.active {
-            opacity: 1;
-
-            &:hover {
-              color: var(--body-text);
-            }
-          }
-        }
-        // Clear (X): a real <button> (keyboard-operable) — reset the native chrome so the icon-font glyph
-        // sits where the old <i> did, and give it a visible focus ring.
-        > .icon-close {
-          position: absolute;
-          font-size: $font-size-sm;
-          top: 12px;
-          right: 8px;
-          opacity: 0.7;
-          cursor: pointer;
-          appearance: none;
-          border: none;
-          background: transparent;
-          padding: 0;
-          line-height: 1;
-          color: inherit;
-          &:hover {
-            color: var(--disabled-bg);
-          }
-          &:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-            border-radius: 2px;
-          }
-        }
+      .nav-head {
+        flex: 0 0 auto;
       }
 
       .clusters {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
 
-        // Bound the height so the cluster list scrolls INTERNALLY (which fires @scroll → infinite scroll)
-        // instead of overflowing into the outer nav body (an unbounded `.clusters` scrolls the whole nav
-        // and the handler never triggers).
-        max-height: calc(100vh - 320px);
+        // The ONLY scrolling region in the nav. `flex-grow: 0` keeps a short shelf at its natural height
+        // (so GLOBAL APPS still sits at the bottom via the `.category` below); `flex-shrink: 1` plus
+        // `min-height: 0` let a long one give way and scroll internally instead of stretching the nav
+        // past the viewport. No viewport-derived max-height — the flex box already knows what's left.
+        flex: 0 1 auto;
+        min-height: 0;
 
         // Bottom scroll-edge shadow that paints OVER the rows: a sticky pseudo-element renders after the
         // rows and layers on top (a `background` gradient would be occluded by the opaque chips). A
@@ -2415,70 +2093,11 @@ export default {
          a, span {
           margin: 0;
          }
-
-        &-search {
-          display: flex;
-          align-items: center;
-          width: 100%;
-          // Align the search with the cluster chips/local tile (at $option-padding-left) now that the old
-          // count badge (which provided that left offset) is gone.
-          padding: 0 $option-padding-left;
-
-          .search {
-            display: inline-flex;
-            align-items: center;
-            transition: $transition-nav;
-            transition-delay: 2s;
-            width: 100%;
-            height: 32px;
-
-            input {
-              flex: 1;
-              height: 100%;
-            }
-
-            // Vertically centre the overlaid icons via the flex align, instead of a fixed top offset.
-            .magnifier {
-              top: auto;
-            }
-
-            .icon-close {
-              top: auto;
-              // Black while shown, primary/green on hover.
-              color: var(--body-text);
-
-              &:hover {
-                color: var(--primary);
-              }
-            }
-          }
-        }
       }
 
-      // Mirrors the flyout's `.switcher-empty`: left-aligned muted caption that wraps a long query instead
-      // of overflowing.
-      .none-matching {
-        width: 100%;
-        padding: 18px 14px 10px;
-        text-align: left;
-        font-size: 12px;
-        color: var(--muted);
-        overflow-wrap: anywhere;
-      }
-
+      // PINNED CLUSTERS / RECENTLY USED are plain `.category-title`s — identical to GLOBAL APPS and
+      // CONFIGURATION, with no overrides of their own.
       .clustersPinned, .home-link, .clustersRecent {
-        .category {
-          &-title {
-            margin: $space-2 0;
-            margin-left: $space-4;
-            hr {
-              margin: 0;
-              width: 94%;
-              transition: $transition-nav;
-              max-width: 100%;
-            }
-          }
-        }
         .pin {
           display: block;
         }
@@ -2488,7 +2107,9 @@ export default {
         display: flex;
         flex-direction: column;
         place-content: flex-end;
-        flex: 1;
+        // Grows to push the app links to the bottom, but never shrinks — the cluster shelf above is the
+        // one region allowed to give way when the nav runs out of room.
+        flex: 1 0 auto;
 
         &-title {
           display: flex;
@@ -2559,16 +2180,6 @@ export default {
 
           hr {
             width: 40px;
-          }
-        }
-      }
-
-      .clustersPinned, .home-link, .clustersRecent {
-        .category {
-          &-title {
-            hr {
-              width: 40px;
-            }
           }
         }
       }

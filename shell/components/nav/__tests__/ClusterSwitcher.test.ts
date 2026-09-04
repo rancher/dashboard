@@ -37,16 +37,12 @@ describe('component: ClusterSwitcher', () => {
     expect((wrapper.vm as any).rows.map((c: any) => c.id)).toStrictEqual(['m1', 'm2']);
   });
 
-  it('shows the estate size in the search placeholder', () => {
-    const wrapper = mountSwitcher({ clusterCount: 19 });
+  // v3 (SURE-8192): the flyout is now the ONLY search in the nav and it always searches the whole
+  // estate, so the placeholder is one fixed string — it no longer varies with the count.
+  it.each([19, 0])('uses the one "search all clusters" placeholder (count: %s)', (clusterCount) => {
+    const wrapper = mountSwitcher({ clusterCount });
 
-    expect((wrapper.vm as any).placeholder).toBe('nav.switcher.searchPlaceholder:{"count":19}');
-  });
-
-  it('falls back to a simple placeholder when the count is unknown', () => {
-    const wrapper = mountSwitcher({ clusterCount: 0 });
-
-    expect((wrapper.vm as any).placeholder).toBe('nav.switcher.searchPlaceholderSimple');
+    expect((wrapper.vm as any).placeholder).toBe('nav.switcher.searchAllClusters');
   });
 
   it('↑/↓ move the cursor and clamp at the ends', () => {
@@ -93,6 +89,37 @@ describe('component: ClusterSwitcher', () => {
 
     (wrapper.vm as any).setOpen(true);
     expect(wrapper.emitted('update:open')?.[0]?.[0]).toBe(true);
+  });
+
+  // v3 (SURE-8192): the ALL CLUSTERS / MATCHES caption sits ABOVE the search box, not inside the
+  // scrolling list, and the flyout forwards the Option/Alt cue to every row.
+  describe('layout', () => {
+    it('puts the ALL CLUSTERS caption above the search box', () => {
+      const wrapper = mountSwitcher({ all: [cluster('p1')], clusterCount: 7 });
+      const html = wrapper.html();
+
+      // Template `t` renders through the global test stub (`%key%`), unlike the composable mocked above.
+      expect(wrapper.find('.switcher-group-label').text()).toBe('%nav.switcher.allClusters% 7');
+      expect(html.indexOf('switcher-group-label')).toBeLessThan(html.indexOf('switcher-search'));
+    });
+
+    it('swaps the caption for MATCHES + the match total while searching', () => {
+      const wrapper = mountSwitcher({
+        searchResults: [cluster('m1')], searchCount: 3, search: 'm'
+      });
+
+      expect(wrapper.find('.switcher-group-label').text()).toBe('%nav.switcher.matches% 3');
+    });
+
+    it('forwards the route-combo cue to every row', () => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2, routeCombo: true
+      });
+      const rows = wrapper.findAllComponents({ name: 'ClusterSwitcherRow' });
+
+      expect(rows).toHaveLength(3);
+      rows.forEach((row) => expect(row.props('routeCombo')).toBe(true));
+    });
   });
 
   describe('accessibility (WAI-ARIA combobox + listbox)', () => {

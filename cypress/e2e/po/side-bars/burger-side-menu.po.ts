@@ -28,17 +28,15 @@ export default class BurgerMenuPo extends ComponentPo {
    * Navigates to a cluster on a top-level side menu entry by label
    *
    * `local` keeps its own fixed slot at the top of the cluster area, so it is always directly
-   * clickable. Every other cluster now lives behind the search "door" (the expanded shelf shows
-   * only pinned/recent) — focus the filter to reveal the ALL CLUSTERS directory before selecting.
-   * SURE-8192.
+   * clickable. Every other cluster lives in the cluster-switcher flyout (the nav shelf shows only
+   * pinned/recent) — open the flyout and pick the row there. SURE-8192.
    * @returns {Cypress.Chainable}
    */
   static burgerMenuNavToClusterbyLabel(label: string): Cypress.Chainable {
     if (label !== 'local') {
-      this.sideMenu().should('exist').find('.clusters-search input').click();
+      new BurgerMenuPo().openClusterSwitcher();
 
-      return this.sideMenu().find('.clustersList .cluster-name').contains(label)
-        .click({ force: true });
+      return new BurgerMenuPo().clusterListRowByLabel(label).click({ force: true });
     }
 
     return this.sideMenu().should('exist').find('.option .cluster-name').contains(label)
@@ -158,27 +156,44 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
-   * Focus the cluster search "door", swapping the pinned/recent shelf for the ALL CLUSTERS directory.
+   * Open the cluster-switcher flyout — the estate (ALL CLUSTERS + the search box) lives in there, in
+   * both the expanded and the collapsed nav. SURE-8192.
    */
-  openClusterSearch(): Cypress.Chainable {
-    return this.self().find('.clusters-search input').click();
+  openClusterSwitcher(): Cypress.Chainable {
+    this.self().getId('cluster-switcher-trigger').click();
+
+    return BurgerMenuPo.clusterSwitcherFlyout().should('be.visible');
   }
 
   /**
-   * A row in the ALL CLUSTERS directory matched by its visible label. The directory must be open
-   * (see openClusterSearch).
+   * The cluster-switcher flyout. It is teleported to <body>, so it is NOT inside the side menu.
+   */
+  static clusterSwitcherFlyout(): Cypress.Chainable {
+    return cy.get('body').find('.cluster-switcher-flyout');
+  }
+
+  /**
+   * Search within the (open) cluster-switcher flyout.
+   */
+  searchClusters(term: string): Cypress.Chainable {
+    return BurgerMenuPo.clusterSwitcherFlyout().find('.switcher-search-input').clear().type(term);
+  }
+
+  /**
+   * A row in the flyout's ALL CLUSTERS directory matched by its visible label. The flyout must be open
+   * (see openClusterSwitcher).
    */
   clusterListRowByLabel(label: string): Cypress.Chainable {
     // Exact-match the cluster name (anchored regex) so a label that is a prefix of another
     // (e.g. "loadtest-1" vs "loadtest-10") cannot select the wrong row. SURE-8192.
     const exact = new RegExp(`^${ label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }$`);
 
-    return this.self().find('.clustersList [data-flip] .cluster-name > p').contains(exact)
-      .closest('[data-flip]');
+    return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row .row-name').contains(exact)
+      .closest('.cluster-switcher-row');
   }
 
   /**
-   * Pin a cluster from the (open) ALL CLUSTERS directory by hovering its row and clicking the pin.
+   * Pin a cluster from the (open) flyout by hovering its row and clicking the pin.
    */
   pinClusterByLabel(label: string): Cypress.Chainable {
     return this.clusterListRowByLabel(label).first().trigger('mouseover').find('.pin')
@@ -197,11 +212,11 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
-   * Get all the available cluster navigation links
+   * Get all the available cluster rows in the (open) switcher flyout
    * @returns {Cypress.Chainable}
    */
   clusterNotPinnedList(): Cypress.Chainable {
-    return this.self().find('.body .clustersList .cluster.selector.option');
+    return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row');
   }
 
   pinFirstCluster(): Cypress.Chainable {
@@ -220,14 +235,6 @@ export default class BurgerMenuPo extends ComponentPo {
 
   getClusterIcon(clusterName = 'local'): Cypress.Chainable {
     return this.self().find('.cluster-name').contains(clusterName).parent();
-  }
-
-  getClusterDescription(clusterName = 'local'): Cypress.Chainable {
-    return this.getClusterIcon(clusterName).find('.description').invoke('text');
-  }
-
-  showClusterDescriptionTooltip(clusterName = 'local'): Cypress.Chainable {
-    return this.getClusterIcon(clusterName).find('.description').trigger('mouseenter');
   }
 
   getClusterDescriptionTooltipContent(): Cypress.Chainable {

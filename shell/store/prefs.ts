@@ -157,6 +157,10 @@ export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2
 
 // Maximum number of clusters to show in the slide-in menu
 export const MENU_MAX_CLUSTERS = 10;
+// Page size for the cluster-switcher flyout's ALL CLUSTERS directory and its search results. Bigger than
+// MENU_MAX_CLUSTERS because the flyout now runs the full height of the viewport — one page should be
+// enough to fill it, rather than leaning on the top-up fetch.
+export const SWITCHER_PAGE_SIZE = 20;
 // Maximum number of recently-visited clusters kept / shown in the app-bar shelf
 export const MENU_MAX_RECENT_CLUSTERS = 10;
 // Max chars of the echoed search term in the "no clusters match …" message; shared by the
