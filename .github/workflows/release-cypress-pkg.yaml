@@ -36,12 +36,16 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - name: Install packages
+        run: yarn install --frozen-lockfile
+
+      - name: Setup Node.js for npm publish
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: '.nvmrc'
           registry-url: 'https://registry.npmjs.org'
@@ -50,9 +54,6 @@ jobs:
       # Ensure latest npm version is installed - 11.5.1 is required to pass OIDC token to npm publish
       - name: Update npm
         run: npm install -g npm@latest
-
-      - name: Install packages
-        run: yarn install --frozen-lockfile
 
       - name: Build Cypress Package
         run: yarn build-pkg
