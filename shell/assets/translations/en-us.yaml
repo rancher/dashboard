@@ -7616,6 +7616,10 @@ workloadDashboard:
     byState: By State
     byType: By Type
     byNamespace: By Namespace
+  search:
+    placeholder: Search by name
+    startTyping: Start typing to search
+    searching: Searching...
   errors:
     noAccess: "No access to {type}"
     fetchType: "Failed to fetch {type}"
