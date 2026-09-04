@@ -26,8 +26,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     }).as('daemonsetEdit');
 
     // Idempotent across retries (testIsolation is off): the deterministic name would 409 on a
-    // re-create once a prior attempt created it, so remove any leftover first.
+    // re-create once a prior attempt created it, so remove any leftover first and wait for it to
+    // actually go away (a daemonset lingers while its pods terminate).
     cy.deleteRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, false);
+    cy.waitForRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, (resp: any) => resp?.status === 404, 30, { failOnStatusCode: false });
 
     // list view for daemonsets
     const workloadsDaemonsetsListPage = new WorkloadsDaemonsetsListPagePo(localCluster);
@@ -46,16 +48,23 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
       .click();
 
-    // Wait for the daemonset to be queryable before opening the edit form below: it races the create,
-    // and if the resource isn't indexed yet the edit form (and its #DaemonSet tab) never mounts.
-    cy.waitForRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+    // Wait for the daemonset to exist AND for its rollout to settle before opening the edit form.
+    // [CREATE ISSUE TO INVESTIGATE] While a workload is still reporting status changes the socket keeps
+    // sending `resource.changes`, which makes the paginated list re-request its page. If one of those
+    // requests is still in flight when we navigate to the edit form, the store's find-cache guard makes
+    // the detail `find` bail out ("Prevented `find` action from polluting cache") and return undefined. The
+    // edit form is then handed an empty resource, throws while rendering, and no tab (#DaemonSet) ever
+    // mounts - waiting for the resource to merely exist does not cover this.
+    cy.waitForRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, (resp: any) => {
+      const status = resp?.body?.status || {};
+
+      return resp?.status === 200 && status.desiredNumberScheduled > 0 && status.numberReady === status.desiredNumberScheduled;
+    }, 30, { failOnStatusCode: false });
 
     workloadsDaemonsetsListPage.waitForPage();
     workloadsDaemonsetsListPage.baseResourceList().checkVisible();
-    // Confirm the list has finished loading before opening the edit form: we flick quickly
-    // between the list and the edit form, and if the list is still loading the SPA nav can
-    // land on a form whose tabs never render. Gating on the loading indicator (the same
-    // approach as the jobs.spec create flow) fixes the race without a direct-nav workaround.
+    // Confirm the list has finished loading before opening the edit form: we flick quickly between the
+    // list and the edit form, and the nav must not overlap a list fetch (see the note above).
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable()
       .rowElementWithName(daemonsetName)
@@ -64,8 +73,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       .click();
 
     // edit daemonset - opening the edit form is a SPA navigation + fetch; wait for the edit route to
-    // commit and the tab bar to render before clicking a tab (gating on the list loading indicator
-    // above isn't enough - the race is the edit form mounting).
+    // commit and the tab bar to render before clicking a tab.
     workloadsDaemonsetsEditPage.waitForPage();
     workloadsDaemonsetsEditPage.waitForTab('#DaemonSet', LONG_TIMEOUT_OPT);
     workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
