@@ -1,5 +1,5 @@
 import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
-import { MENU_MAX_CLUSTERS, MENU_MAX_RECENT_CLUSTERS, PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { MENU_MAX_RECENT_CLUSTERS, PINNED_CLUSTERS, RECENT_CLUSTERS, SWITCHER_PAGE_SIZE } from '@shell/store/prefs';
 import { STORE } from '@shell/store/store-types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
@@ -473,7 +473,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           excludeLocal:      true,
         }),
         page:                 this.othersPage,
-        pageSize:             MENU_MAX_CLUSTERS,
+        pageSize:             SWITCHER_PAGE_SIZE,
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       }
@@ -481,7 +481,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
     // Server-side totals live under pagination.result (r.count doesn't exist on the wrapper Result).
     this.counts.others = r.pagination?.result?.count ?? r.data.length;
-    this.othersPages = r.pagination?.result?.pages ?? Math.ceil(this.counts.others / MENU_MAX_CLUSTERS);
+    this.othersPages = r.pagination?.result?.pages ?? Math.ceil(this.counts.others / SWITCHER_PAGE_SIZE);
 
     const data = r.data.map((mgmtCluster: MgmtCluster) => this.convertToCluster(mgmtCluster));
 
@@ -552,7 +552,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
 
   // Everything is in memory, so "pagination" is a growing slice over the full list — but the page-increment
   // API matches the SSP helper so the component is agnostic.
-  private othersLimit = MENU_MAX_CLUSTERS;
+  private othersLimit = SWITCHER_PAGE_SIZE;
   private othersFull: TopLevelMenuCluster[] = [];
 
   constructor({ $store }: {
@@ -600,14 +600,14 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
   }
 
   public resetOthers(): Promise<void> {
-    this.othersLimit = MENU_MAX_CLUSTERS;
+    this.othersLimit = SWITCHER_PAGE_SIZE;
     this.applyOthers();
 
     return Promise.resolve();
   }
 
   public loadMoreOthers(): Promise<void> {
-    this.othersLimit += MENU_MAX_CLUSTERS;
+    this.othersLimit += SWITCHER_PAGE_SIZE;
     this.applyOthers();
 
     return Promise.resolve();
