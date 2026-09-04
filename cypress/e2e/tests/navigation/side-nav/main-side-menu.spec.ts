@@ -125,6 +125,11 @@ describe('Side Menu: main', () => {
       BurgerMenuPo.toggle();
       BurgerMenuPo.checkClosed();
 
+      // Park the pointer somewhere else first. The real pointer survives between tests, and an earlier
+      // one leaves it on this very icon — `realHover` would then be a no-op (no pointer movement, so no
+      // mouseenter) and the tooltip would never be asked to show.
+      BurgerMenuPo.movePointerOffClusterIcons();
+
       // Hover over the first cluster icon and check that the tooltip is shown with the correct content
       burgerMenuPo.firstClusterIcon().realHover();
       BurgerMenuPo.checkIconTooltipOn('local');

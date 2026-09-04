@@ -17,6 +17,12 @@ export const BLANK_CLUSTER = '_';
 export const PAGINATION_UTILS = { defaultPageSize: 100000 };
 // ============ @shell/utils/pagination-utils.ts ============
 
+// ============ @shell/store/prefs.ts ============
+// Page size the cluster-switcher flyout asks for. Specs that inject a fake cluster into that list have
+// to intercept the request by its `pagesize`, so this has to track the shell constant.
+export const SWITCHER_PAGE_SIZE = 20;
+// ============ @shell/store/prefs.ts ============
+
 // ============ @shell/types/fleet.d.ts ============
 export type WorkloadType = 'workload' | 'pods' | 'apps.deployments' | 'replicasets' | 'daemonsets' | 'statefulsets' | 'jobs' | 'cronjobs';
 // ============ @shell/types/fleet.d.ts ============

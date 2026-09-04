@@ -1606,8 +1606,9 @@ export default {
     justify-content: center;
     width: 100%;
     height: 100%;
-    // Same colour as the HOME icon/text (the app-bar link colour).
-    color: var(--on-tertiary, var(--link));
+    // The chip IS a cluster chip, so its text takes ClusterIconMenu's badge colour rather than the
+    // link colour the row label uses — "20 clusters" reads like "CD2" beside it.
+    color: var(--default-active-text);
     background: var(--nav-icon-badge-bg);
     border: 1px solid var(--border);
     border-radius: $chip-radius;
@@ -1653,7 +1654,7 @@ export default {
   // recolour every `div` inside the row white, which would erase the count on the chip's pale
   // background — so pin the chip's own colours through every state.
   .side-menu .body .option.cluster-all .cluster-all-badge {
-    color: var(--on-tertiary, var(--link)) !important;
+    color: var(--default-active-text) !important;
     background: var(--nav-icon-badge-bg) !important;
   }
 
@@ -1876,16 +1877,17 @@ export default {
             overflow: hidden;
             text-overflow: ellipsis;
             text-align: left;
-            // Name: reads as a nav link like HOME and the GLOBAL APPS entries — 14px, regular weight, the
-            // primary/link colour. `!important` so the app-bar's broad recolour rules can't blend it away;
-            // the hover/active rules further down re-assert their own colours the same way.
+            // Name: reads as a nav link like HOME and the GLOBAL APPS entries — 14px, regular weight,
+            // the primary/link colour. `!important` so the app-bar's broad recolour rules can't blend it
+            // away; the hover/active rules further down re-assert their own colours the same way.
             font-size: $font-size-body;
             font-weight: normal;
             line-height: 18px;
             color: var(--on-tertiary, var(--link)) !important;
 
-            // The one subtitle left on the shelf is local's fixed "Management cluster" (the per-cluster
-            // provider · version meta now lives only in the flyout rows).
+            // The shelf carries no subtitle any more (local's "Management cluster" line and the
+            // per-cluster provider · version meta both live in the flyout rows now), but the rule is
+            // cheap insurance if one comes back.
             &.description {
               font-size: 10px;
               font-weight: normal;
