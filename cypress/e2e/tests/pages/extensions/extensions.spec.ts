@@ -21,6 +21,9 @@ const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
 const GIT_REPO_NAME = 'rancher-plugin-examples';
+// Namespace the ui-plugin-operator installs extension helm apps into - used to check/clean install
+// state via the API rather than relying on the UI alone.
+const UI_PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
 
 describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -219,11 +222,19 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.addReposModalAddClick();
     extensionsPo.addReposModal().should('not.exist');
 
+    // Confirm the repo really exists before asserting on the list. The modal closing only means the
+    // request was sent; navigating straight to the list races the create and the row is reported
+    // missing. Idempotent - it also passes when a previous attempt already added the repo.
+    cy.waitForRancherResource('v1', 'catalog.cattle.io.clusterrepos', UI_PLUGINS_PARTNERS_REPO_NAME, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false })
+      .should('eq', true);
+
     // go to repos list page
     const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
     appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
+    appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
+    appRepoList.sortableTable().noRowsShouldNotExist();
     appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
   });
 
@@ -468,11 +479,21 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   it('An extension larger than 30mb, which will trigger cacheState disabled, should install and work fine', () => {
     const extensionsPo = new ExtensionsPagePo();
 
+    // Retry-safe start (testIsolation is off, so a failed attempt LEAKS the install): an attempt can
+    // complete the install server-side and still fail afterwards on the UI (e.g. the reload banner
+    // never renders). On the retry the card has moved from Available to Installed, so the install flow
+    // can never find it again and every further attempt fails the same way. Uninstall the app via the
+    // API first (a no-op when it isn't installed) so each attempt starts from the same state.
+    cy.createRancherResource('v1', `catalog.cattle.io.apps/${ UI_PLUGIN_NAMESPACE }/${ DISABLED_CACHE_EXTENSION_NAME }?action=uninstall`, {}, false);
+    cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ UI_PLUGIN_NAMESPACE }/${ DISABLED_CACHE_EXTENSION_NAME }`, (resp: any) => resp?.status === 404, 15, { failOnStatusCode: false });
+
     extensionsPo.goTo();
     extensionsPo.waitForPage();
     extensionsPo.waitForTabs();
 
     const install = () => {
+      cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=install`).as('installLargeExtension');
+
       extensionsPo.extensionTabAvailableClick();
       extensionsPo.waitForPage(undefined, 'available');
       extensionsPo.loading().should('not.exist');
@@ -480,10 +501,25 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
       // click on install button on card
       // (clickAction waits for the card to render before interacting)
       extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
-      extensionsPo.installModal().checkVisible();
+      // Fixed-position modal: assert visibility without scrolling (checkVisible()'s scrollIntoView
+      // detaches the subject while the dialog animates in).
+      extensionsPo.installModal().self().should('be.visible');
 
       // click install
       extensionsPo.installModal().installButton().click();
+
+      // Gate on the install actually completing rather than only on the UI: this >30mb chart is slow
+      // and the reload banner is only rendered once the plugin has been deployed. Wait for the request
+      // to be accepted, then for the helm app to settle, so a slow install is not read as "no banner".
+      cy.wait('@installLargeExtension', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('be.oneOf', [200, 201]);
+      cy.waitForRancherResource(
+        'v1',
+        'catalog.cattle.io.apps',
+        `${ UI_PLUGIN_NAMESPACE }/${ DISABLED_CACHE_EXTENSION_NAME }`,
+        (resp: any) => resp?.status === 200 && resp?.body?.metadata?.state?.transitioning === false,
+        40,
+        { failOnStatusCode: false }
+      );
 
       // let's check the extension reload banner and reload the page
       extensionsPo.extensionReloadBanner().should('be.visible');
@@ -516,6 +552,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(undefined, 'installed');
     // The >30mb extension installs/renders slowly (cacheState disabled), so its card can take
     // well over the default window to appear under CI load; wait longer before clicking it.
+    extensionsPo.loading().should('not.exist');
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME, LONG_TIMEOUT_OPT);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
@@ -570,6 +607,16 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // still in flight leaves the Extensions page stuck on "Loading..." - the other install tests in
     // this spec all wait here too.
     cy.wait('@installUnauthenticated', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('be.oneOf', [200, 201]);
+    // A 2xx only means the install was accepted. Wait for the helm app to settle before reloading,
+    // otherwise the reload can happen before the plugin is served and its script is never imported.
+    cy.waitForRancherResource(
+      'v1',
+      'catalog.cattle.io.apps',
+      `${ UI_PLUGIN_NAMESPACE }/${ UNAUTHENTICATED_EXTENSION_NAME }`,
+      (resp: any) => resp?.status === 200 && resp?.body?.metadata?.state?.transitioning === false,
+      40,
+      { failOnStatusCode: false }
+    );
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
