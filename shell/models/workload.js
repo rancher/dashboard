@@ -14,6 +14,35 @@ import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/State
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import { POD_SHELL } from '@shell/store/features';
 
+// Defined once, at module scope, so that the component's identity is stable. Created inside a
+// getter it would be a new type on every evaluation, and `<component :is>` in Cards.vue treats a
+// new type as a reason to unmount and remount, which throws away the card's local state and
+// blanks the card on every change to the resource.
+const StatusCard = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue')));
+
+/**
+ * The scale request in flight for a resource, and the target the user has clicked to since it went
+ * out, keyed by `_scaleKey`.
+ *
+ * Module scope rather than a field on the model, for two reasons. The store deletes every own
+ * property of a resource and copies the new ones over when an update for it arrives (`replace()`
+ * in the dashboard store's mutations), so a field would be wiped part way through a burst of
+ * clicks. And a save serialises the model's own properties as the request body, so a field would
+ * be sent to the cluster.
+ *
+ * An entry lives from the first click until the cluster reports the generation the last request
+ * produced, so the map is empty whenever nothing is waiting to be confirmed. Exported so that a
+ * test can reset it: it is process wide state, and a test that leaves an entry behind changes what
+ * the next one sees.
+ */
+export const scaleQueues = new Map();
+
+// A bound on how long a queued target survives when the cluster never reports the generation that
+// would retire it: a request that never answers, or a change that never comes back round the
+// websocket. This is a safety net rather than the mechanism, so it is long enough not to fire
+// during anything that is merely slow.
+const SCALE_FORGET_MS = 30000;
+
 export const defaultContainer = {
   imagePullPolicy: 'Always',
   name:            'container-0',
@@ -175,18 +204,273 @@ export default class Workload extends WorkloadService {
     this.save();
   }
 
-  async scaleDown() {
-    const newScale = this.spec.replicas - 1;
+  /**
+   * What this resource's scale requests are queued under. A name and namespace are only unique
+   * within a cluster, so two clusters holding a workload of the same name must not share a queue.
+   */
+  get _scaleKey() {
+    return this.metadata?.uid || `${ this.type }:${ this.id }`;
+  }
 
-    if (newScale >= 0) {
-      set(this.spec, 'replicas', newScale);
-      await this.save();
+  /**
+   * The replica count the user has asked for and the resource has not caught up with yet, or
+   * undefined when there is nothing outstanding.
+   *
+   * What retires a queued target is `metadata.generation`. Every accepted write to a workload's
+   * spec increments it, and the response says which one it produced, so the entry is spent the
+   * moment the resource carries that generation or a later one. That is the cluster reporting the
+   * change has landed rather than this guessing how long landing takes, and because `generation`
+   * is read here, the update that retires the target is also the update that re-renders whatever
+   * was showing it.
+   */
+  get _pendingScale() {
+    const queue = scaleQueues.get(this._scaleKey);
+
+    if (!queue) {
+      return undefined;
+    }
+
+    // A request is out, or the response did not say which generation it produced, so there is
+    // nothing to compare against. `SCALE_FORGET_MS` bounds both.
+    if (queue.draining || queue.generation === undefined) {
+      return queue;
+    }
+
+    return (this.metadata?.generation || 0) >= queue.generation ? undefined : queue;
+  }
+
+  /**
+   * Whether the store still holds this resource. A workload deleted, or a cluster navigated away
+   * from, whilst a burst is still settling has nothing left to scale, and a request sent anyway
+   * answers 404 and growls about a failure to scale on whatever page the user is now looking at.
+   */
+  get _stillInStore() {
+    const byId = this.$getters?.['byId'];
+
+    // Nothing to ask, so assume it is there rather than abandoning a real request
+    return typeof byId !== 'function' || !!byId(this.type, this.id);
+  }
+
+  /**
+   * Move the replica count by `delta`, and show the new count immediately.
+   *
+   * The rocker shows `spec.replicas`, so writing it here is what makes a click register at once:
+   * nothing is refused and nothing has to be waited on. Two properties then make a run of clicks
+   * land on the number the user asked for rather than on whichever request happened to finish
+   * last:
+   *
+   * - the value sent is an absolute target worked out when the user clicks, never a
+   *   `spec.replicas + 1` worked out when the request runs. Two clicks can no longer read the
+   *   same count and write the same number, which is the read-modify-write race;
+   * - requests are serialised and coalesced. At most one is in flight, and everything clicked
+   *   whilst it runs collapses into a single follow up carrying the latest target, so a burst
+   *   costs two requests rather than one per click.
+   *
+   * The returned promise rejects for the click whose request the cluster refused. A click folded
+   * into a later one resolves as soon as it is superseded, so several clicks that shared a request
+   * do not each report the same failure. Clicks the cluster answers faster than the user makes
+   * them get a request each, and therefore a report each.
+   */
+  _queueScale(delta) {
+    const key = this._scaleKey;
+    const queued = this._pendingScale;
+
+    if (!queued) {
+      // A spent entry, for a count the resource has since caught up with. Drop it so that this
+      // click counts from the resource rather than from something already confirmed.
+      this._forgetScaleQueue(key);
+    }
+
+    // Move from the last number the user asked for, not from the count currently on the resource.
+    // A count clicked here does not reach the resource until the cluster has answered and the
+    // change has come back round the websocket, and until it does an update carrying the previous
+    // count can arrive and put it back. Counting from that is the read-modify-write race again,
+    // arriving by a different route.
+    //
+    // `|| 0` for the same reason as the `desired` getter: an unset `replicas` would otherwise make
+    // this NaN, which serialises to null.
+    const previous = queued ? queued.target : (this.spec?.replicas || 0);
+    const target = previous + delta;
+
+    if (target < 0) {
+      return Promise.resolve();
+    }
+
+    set(this.spec, 'replicas', target);
+
+    if (queued) {
+      queued.target = target;
+
+      // The click this one supersedes no longer describes anything on screen, so it has nothing
+      // left to report and must not be left waiting on a request that now carries a later number
+      queued.resolve();
+
+      const settled = new Promise((resolve, reject) => {
+        queued.resolve = resolve;
+        queued.reject = reject;
+      });
+
+      if (!queued.draining) {
+        queued.draining = true;
+        this._drainScaleQueue(key, queued);
+      }
+
+      return settled;
+    }
+
+    let queue;
+
+    const settled = new Promise((resolve, reject) => {
+      queue = {
+        target,
+        confirmed:  previous,
+        draining:   true,
+        generation: undefined,
+        abandoned:  false,
+        forget:     null,
+        resolve,
+        reject
+      };
+    });
+
+    scaleQueues.set(key, queue);
+    this._drainScaleQueue(key, queue);
+
+    return settled;
+  }
+
+  /**
+   * Take a queued target out of play: no more requests for it, and no timer left running. Says
+   * nothing to whoever is waiting on it, which is the caller's job.
+   */
+  _dropScaleQueue(key, queue) {
+    clearTimeout(queue.forget);
+    queue.forget = null;
+    queue.abandoned = true;
+
+    if (scaleQueues.get(key) === queue) {
+      scaleQueues.delete(key);
     }
   }
 
+  /**
+   * Drop a queued target and settle it as done.
+   *
+   * `resolve` rather than `reject`, because nothing has gone wrong: either the resource has caught
+   * up with it, or the request has been outstanding long enough that nobody should still be
+   * blocked on it, or the workload it belonged to is gone.
+   */
+  _forgetScaleQueue(key) {
+    const queue = scaleQueues.get(key);
+
+    if (!queue) {
+      return;
+    }
+
+    this._dropScaleQueue(key, queue);
+
+    // Put back the last count the cluster confirmed, but only if the count on show is still the
+    // one this queue wrote there. A target given up on was never confirmed by anything, and
+    // leaving it would be a phantom count with nothing left to correct it. Where a queue drained
+    // cleanly the two are the same number and this does nothing, and where an update has since
+    // moved the resource on, that update is better informed than this is.
+    if (this.spec?.replicas === queue.target) {
+      set(this.spec, 'replicas', queue.confirmed);
+    }
+
+    queue.resolve();
+  }
+
+  /**
+   * Restart the safety net. Called as each request goes out and again when the last one settles, so
+   * it measures the time since anything last happened rather than the length of the whole burst.
+   */
+  _armScaleForget(key, queue) {
+    clearTimeout(queue.forget);
+
+    if (scaleQueues.get(key) !== queue) {
+      return;
+    }
+
+    queue.forget = setTimeout(() => this._forgetScaleQueue(key), SCALE_FORGET_MS);
+  }
+
+  /**
+   * Send the queued target, then whatever the user has clicked to whilst that was in flight, until
+   * there is nothing newer left to send.
+   */
+  async _drainScaleQueue(key, queue) {
+    let sent = null;
+
+    try {
+      while (queue.target !== sent && !queue.abandoned) {
+        if (!this._stillInStore) {
+          // The workload has gone whilst the burst was settling. Sending the rest of it earns a
+          // 404 and a growl about scaling, on whatever page the user has moved on to.
+          this._forgetScaleQueue(key);
+
+          return;
+        }
+
+        sent = queue.target;
+
+        this._armScaleForget(key, queue);
+
+        // A patch of this one field, rather than a save of the whole workload. A save sends the
+        // resource as the browser last saw it, which carries a resourceVersion the deployment
+        // controller's own status writes have usually moved past by the time it arrives: a 409 on
+        // a scale that nothing was in conflict with, and the reason a burst used to lose clicks
+        // even when it was serialised. It also stops a scale writing back any other field that has
+        // changed since the page loaded.
+        const res = await this.patch({ spec: { replicas: sent } }, {}, true);
+
+        if (queue.abandoned) {
+          return;
+        }
+
+        queue.confirmed = sent;
+
+        // The generation this write produced. Holding the target until the resource reports it is
+        // what makes the handover from the queue back to the resource exact.
+        queue.generation = res?.metadata?.generation;
+
+        // A repair, for a websocket update that arrived carrying the count from before this
+        // request and put it back on the resource. The rocker must not drop to a number the user
+        // has already moved past.
+        set(this.spec, 'replicas', queue.target);
+      }
+
+      if (queue.abandoned) {
+        return;
+      }
+
+      queue.draining = false;
+
+      // The entry now lives or dies on `metadata.generation`, and this only bounds the wait for a
+      // generation that never arrives
+      this._armScaleForget(key, queue);
+
+      queue.resolve();
+    } catch (err) {
+      // Drop the queue before reporting, so a target clicked whilst the failing request was in
+      // flight is not left waiting on a request that will now never be sent.
+      this._dropScaleQueue(key, queue);
+
+      // Nothing else puts the real count back. A patch does not re-fetch on any status, so after a
+      // rejected write (403, 422, a dropped connection) the count the user asked for would stay on
+      // show until something else happened to the workload, which for an idle one may be never.
+      set(this.spec, 'replicas', queue.confirmed);
+
+      queue.reject(err);
+    }
+  }
+
+  async scaleDown() {
+    await this._queueScale(-1);
+  }
+
   async scaleUp() {
-    set(this.spec, 'replicas', this.spec.replicas + 1);
-    await this.save();
+    await this._queueScale(1);
   }
 
   async scale(isUp) {
@@ -197,7 +481,7 @@ export default class Workload extends WorkloadService {
         await this.scaleDown();
       }
     } catch (err) {
-      this.$store.dispatch('growl/fromError', {
+      this.$dispatch('growl/fromError', {
         title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.name }),
         err
       },
@@ -356,8 +640,20 @@ export default class Workload extends WorkloadService {
     return endpoints.length ? endpoints : undefined;
   }
 
+  /**
+   * The replica count the workload is meant to be running at, and the one every control that can
+   * change it shows.
+   *
+   * Whilst a scale is settling this is the count the user last asked for rather than the one on
+   * the resource. The two differ only between a click and the change coming back round the
+   * websocket, and during that gap an update carrying the previous count can arrive and would
+   * otherwise make the number flick back to it. Reading `spec.replicas` either way is deliberate:
+   * it is what makes this re-evaluate when such an update lands.
+   */
   get desired() {
-    return this.spec?.replicas || 0;
+    const replicas = this.spec?.replicas || 0;
+
+    return this._pendingScale?.target ?? replicas;
   }
 
   get available() {
@@ -946,12 +1242,16 @@ export default class Workload extends WorkloadService {
     }
 
     return {
-      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      component: StatusCard,
       props:     {
         title:              this.t('component.resource.detail.card.podsCard.title'),
         resources:          this.pods,
         summaryData,
         showScaling:        canScale,
+        // The scale buttons change `spec.replicas`, so that is the value they must show. It is not
+        // the same as the number of pods, which can match the label selector without being owned
+        // by this workload.
+        scaleValue:         this.desired,
         onIncrease:         () => this.scale(true),
         onDecrease:         () => this.scale(false),
         noResourcesMessage: this.t('component.resource.detail.card.podsCard.noPods')
@@ -967,7 +1267,7 @@ export default class Workload extends WorkloadService {
     }
 
     return {
-      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      component: StatusCard,
       props:     {
         title:       this.t('component.resource.detail.card.jobsCard.title'),
         resources:   this.jobs,
