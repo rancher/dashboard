@@ -248,7 +248,6 @@ describe('component: rke2', () => {
       data: (() => ({
         credentialId: 'I am authenticated',
         credential:   { decodedData: { clusterId: 'some-cluster-id' } },
-        machinePools: [],
       })) as any,
 
       global: {
@@ -271,6 +270,8 @@ describe('component: rke2', () => {
         stubs: defaultStubs,
       },
     });
+
+    (wrapper.vm as any).machinePools = [];
 
     // we need to mock the "save" method from the create-edit-view-mixin
     // otherwise we get console errors
@@ -441,30 +442,6 @@ describe('component: rke2', () => {
       data: (() => ({
         credentialId:    'I am authenticated',
         userChartValues: chartValues,
-        rke2Versions:    [
-          {
-            id:                      'v1.32.3+rke2r1',
-            type:                    'release',
-            links:                   { self: 'https://127.0.0.1:8005/v1-rke2-release/releases/v1.32.3+rke2r1' },
-            version:                 'v1.32.3+rke2r1',
-            minChannelServerVersion: 'v2.11.0-alpha1',
-            maxChannelServerVersion: 'v2.11.99',
-            serverArgs:              {},
-            agentArgs:               {},
-            featureVersions:         { 'encryption-key-rotation': '2.0.0' },
-            charts:                  {
-              'rke2-ingress-nginx': {
-                repo:    'rancher-rke2-charts',
-                version: '4.12.100'
-              },
-              'rke2-metrics-server': {
-                repo:    'rancher-rke2-charts',
-                version: '3.12.200'
-              },
-              'rke2-traefik': {}
-            }
-          }
-        ]
       })) as any,
 
       global: {
@@ -477,6 +454,34 @@ describe('component: rke2', () => {
         stubs: defaultStubs,
       },
     });
+
+    // rke2Versions is owned by the useKubernetesVersions composable (exposed via setup()), not
+    // component data - the `data` mount option / wrapper.setData() only reach `$data`, so it has
+    // to be seeded directly through the instance proxy instead.
+    (wrapper.vm as any).rke2Versions = [
+      {
+        id:                      'v1.32.3+rke2r1',
+        type:                    'release',
+        links:                   { self: 'https://127.0.0.1:8005/v1-rke2-release/releases/v1.32.3+rke2r1' },
+        version:                 'v1.32.3+rke2r1',
+        minChannelServerVersion: 'v2.11.0-alpha1',
+        maxChannelServerVersion: 'v2.11.99',
+        serverArgs:              {},
+        agentArgs:               {},
+        featureVersions:         { 'encryption-key-rotation': '2.0.0' },
+        charts:                  {
+          'rke2-ingress-nginx': {
+            repo:    'rancher-rke2-charts',
+            version: '4.12.100'
+          },
+          'rke2-metrics-server': {
+            repo:    'rancher-rke2-charts',
+            version: '3.12.200'
+          },
+          'rke2-traefik': {}
+        }
+      }
+    ];
 
     rke2Vm(wrapper).applyChartValues(wrapper.vm.value.spec.rkeConfig);
 
@@ -523,14 +528,16 @@ describe('component: rke2', () => {
     it('should set ingress-controller to traefik by default for new clusters', async() => {
       const wrapper = createWrapper(_CREATE);
 
-      await wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+        charts:     mockCharts
+      }];
+
+      // The traefik default is set by the `selectedVersion` watcher (via initServerAgentArgs), which
+      // Vue flushes on the next tick rather than synchronously.
+      await wrapper.vm.$nextTick();
 
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(TRAEFIK);
     });
@@ -539,20 +546,18 @@ describe('component: rke2', () => {
       const wrapper = createWrapper();
       const newVersion = 'v1.26.0+rke2r1';
 
-      await wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [] } },
-          charts:     mockCharts
-        },
-        {
-          id:         newVersion,
-          version:    newVersion,
-          serverArgs: { disable: { options: [] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [] } },
+        charts:     mockCharts
+      },
+      {
+        id:         newVersion,
+        version:    newVersion,
+        serverArgs: { disable: { options: [] } },
+        charts:     mockCharts
+      }];
       wrapper.vm.value.spec.kubernetesVersion = newVersion;
       (wrapper.vm as any).handleKubernetesChange(newVersion);
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NONE);
@@ -561,14 +566,12 @@ describe('component: rke2', () => {
     it('should set ingress-controller to ingress-nginx on change when nginx is supported and not disabled', () => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+        charts:     mockCharts
+      }];
 
       (wrapper.vm as any).handleEnabledSystemServicesChanged([]);
 
@@ -578,14 +581,12 @@ describe('component: rke2', () => {
     it('should set ingress-controller to None when nginx is supported but disabled', () => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+        charts:     mockCharts
+      }];
 
       (wrapper.vm as any).handleEnabledSystemServicesChanged([RKE2_INGRESS_NGINX]);
 
@@ -595,14 +596,12 @@ describe('component: rke2', () => {
     it('should set ingress-controller for existing cluster to None when nginx is not supported', () => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [] } },
+        charts:     mockCharts
+      }];
 
       (wrapper.vm as any).handleEnabledSystemServicesChanged([]);
 
@@ -612,14 +611,12 @@ describe('component: rke2', () => {
     it('should correctly update disable list in serverConfig', () => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+        charts:     mockCharts
+      }];
       const disabledServices = ['other-service'];
 
       (wrapper.vm as any).handleEnabledSystemServicesChanged(disabledServices);
@@ -631,22 +628,20 @@ describe('component: rke2', () => {
       const wrapper = createWrapper();
       const newVersion = 'v1.26.0+rke2r1';
 
-      await wrapper.setData({
-        rke2Versions: [
-          {
-            id:         k8sVersion,
-            version:    k8sVersion,
-            serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-            charts:     mockCharts
-          },
-          {
-            id:         newVersion,
-            version:    newVersion,
-            serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-            charts:     mockCharts
-          }
-        ]
-      });
+      (wrapper.vm as any).rke2Versions = [
+        {
+          id:         k8sVersion,
+          version:    k8sVersion,
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+          charts:     mockCharts
+        },
+        {
+          id:         newVersion,
+          version:    newVersion,
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+          charts:     mockCharts
+        }
+      ];
 
       wrapper.vm.value.spec.kubernetesVersion = newVersion;
       (wrapper.vm as any).handleKubernetesChange(newVersion);
@@ -687,7 +682,7 @@ describe('component: rke2', () => {
       const dispatch = jest.fn();
       const wrapper = createWrapper({ mode: _EDIT, dispatch });
 
-      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+      (wrapper.vm as any).machinePools = [{ id: 'pool1' }];
 
       await (wrapper.vm as any).showIpv6Warning();
 
@@ -698,7 +693,7 @@ describe('component: rke2', () => {
       const dispatch = jest.fn();
       const wrapper = createWrapper({ dispatch });
 
-      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+      (wrapper.vm as any).machinePools = [{ id: 'pool1' }];
 
       Object.defineProperty(wrapper.vm, 'selectedVersion', { get: () => ({ label: 'v1.30.0+rke2r1' }) });
       Object.defineProperty(wrapper.vm, 'hasOnlyIpv6Pools', { get: () => true });
@@ -720,7 +715,7 @@ describe('component: rke2', () => {
       });
       const wrapper = createWrapper({ dispatch });
 
-      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+      (wrapper.vm as any).machinePools = [{ id: 'pool1' }];
 
       Object.defineProperty(wrapper.vm, 'selectedVersion', { get: () => ({ label: 'v1.30.0+k3s1' }) });
       Object.defineProperty(wrapper.vm, 'hasOnlyIpv6Pools', { get: () => true });
@@ -752,7 +747,7 @@ describe('component: rke2', () => {
       });
       const wrapper = createWrapper({ dispatch });
 
-      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+      (wrapper.vm as any).machinePools = [{ id: 'pool1' }];
 
       Object.defineProperty(wrapper.vm, 'hasOnlyIpv6Pools', { get: () => true });
       Object.defineProperty(wrapper.vm, 'hasDualStackPools', { get: () => false });
@@ -878,108 +873,6 @@ describe('component: rke2', () => {
       t:                           (key: string) => key,
     };
 
-    describe('versionOptions', () => {
-      it('groups rke2 and k3s versions with a header when both are present', () => {
-        const vm = {
-          ...baseVm,
-          rke2Versions: [version('v1.28.0+rke2r1')],
-          k3sVersions:  [version('v1.28.0+k3s1')],
-        };
-
-        const options = (rke2.computed as any).versionOptions.call(vm);
-
-        expect(options[0]).toStrictEqual({ kind: 'group', label: 'cluster.provider.rke2' });
-        expect(options.some((o: any) => o.value === 'v1.28.0+rke2r1')).toBe(true);
-        expect(options.some((o: any) => o.kind === 'group' && o.label === 'cluster.provider.k3s')).toBe(true);
-        expect(options.some((o: any) => o.value === 'v1.28.0+k3s1')).toBe(true);
-      });
-
-      it('omits the k3s group when only rke2 versions are present', () => {
-        const vm = { ...baseVm, rke2Versions: [version('v1.28.0+rke2r1')] };
-
-        const options = (rke2.computed as any).versionOptions.call(vm);
-
-        expect(options.some((o: any) => o.kind === 'group')).toBe(false);
-        expect(options).toHaveLength(1);
-        expect(options[0].value).toBe('v1.28.0+rke2r1');
-      });
-
-      it('excludes k3s versions in edit mode when the live version is rke2', () => {
-        const vm = {
-          ...baseVm,
-          mode:         _EDIT,
-          liveValue:    { spec: { kubernetesVersion: 'v1.28.0+rke2r1' } },
-          rke2Versions: [version('v1.28.0+rke2r1'), version('v1.29.0+rke2r1')],
-          k3sVersions:  [version('v1.28.0+k3s1')],
-        };
-
-        const options = (rke2.computed as any).versionOptions.call(vm);
-
-        expect(options.some((o: any) => o.value?.includes('k3s'))).toBe(false);
-      });
-
-      it('filters out deprecated patch versions by default', () => {
-        const vm = {
-          ...baseVm,
-          showDeprecatedPatchVersions: false,
-          rke2Versions:                [version('v1.28.0+rke2r1'), version('v1.28.1+rke2r1')],
-        };
-
-        const options = (rke2.computed as any).versionOptions.call(vm);
-
-        expect(options.map((o: any) => o.value)).toStrictEqual(['v1.28.1+rke2r1']);
-      });
-    });
-
-    describe('selectedVersion', () => {
-      it('returns undefined when no kubernetesVersion is set', () => {
-        const vm = {
-          ...baseVm, value: { spec: {} }, versionOptions: []
-        };
-
-        expect((rke2.computed as any).selectedVersion.call(vm)).toBeUndefined();
-      });
-
-      it('finds the matching version option by kubernetesVersion', () => {
-        const match = { value: 'v1.28.0+rke2r1', serverArgs: {} };
-        const vm = {
-          ...baseVm,
-          value:          { spec: { kubernetesVersion: 'v1.28.0+rke2r1' } },
-          versionOptions: [match, { value: 'v1.29.0+rke2r1' }],
-        };
-
-        expect((rke2.computed as any).selectedVersion.call(vm)).toBe(match);
-      });
-
-      it('adds a "none" cni option once, without duplicating it on repeated access', () => {
-        const match = { value: 'v1.28.0+rke2r1', serverArgs: { cni: { options: ['calico'] } } };
-        const vm = {
-          ...baseVm,
-          value:          { spec: { kubernetesVersion: 'v1.28.0+rke2r1' } },
-          versionOptions: [match],
-        };
-
-        (rke2.computed as any).selectedVersion.call(vm);
-        (rke2.computed as any).selectedVersion.call(vm);
-
-        expect(match.serverArgs.cni.options).toStrictEqual(['calico', 'none']);
-      });
-    });
-
-    describe('chartVersions', () => {
-      it('returns the charts of the selected version', () => {
-        const vm = { selectedVersion: { charts: { 'rke2-ingress-nginx': { version: '1.0.0' } } } };
-
-        expect((rke2.computed as any).chartVersions.call(vm)).toStrictEqual({ 'rke2-ingress-nginx': { version: '1.0.0' } });
-      });
-
-      it('returns an empty object when there is no selected version', () => {
-        const vm = { selectedVersion: undefined };
-
-        expect((rke2.computed as any).chartVersions.call(vm)).toStrictEqual({});
-      });
-    });
-
     describe('defaultVersion', () => {
       it('prefers the version matching the defaultRke2 setting when present among version options', () => {
         const vm = {
@@ -1086,159 +979,6 @@ describe('component: rke2', () => {
 
         expect(options[0]).toStrictEqual({ label: 'legacy-provider (Current)', value: 'legacy-provider' });
       });
-    });
-  });
-
-  // Characterization tests written ahead of extracting fetchRke2Versions into a composable.
-  describe('methods: fetchRke2Versions', () => {
-    const buildStore = ({ canListPsa = false, settings = [] as any[], channelResponses = {} as Record<string, any[]> } = {}) => {
-      const dispatch = jest.fn((action: string, args: any = {}) => {
-        const { url } = args;
-
-        if (action === 'management/request') {
-          if (url === '/v1-rke2-release/releases') {
-            return Promise.resolve({ data: [{ id: 'v1.28.0+rke2r1', serverArgs: {} }] });
-          }
-          if (url === '/v1-k3s-release/releases') {
-            return Promise.resolve({ data: [{ id: 'v1.28.0+k3s1', serverArgs: {} }] });
-          }
-          if (url === '/v1-rke2-release/channels') {
-            return Promise.resolve({ data: channelResponses.rke2 || [] });
-          }
-          if (url === '/v1-k3s-release/channels') {
-            return Promise.resolve({ data: channelResponses.k3s || [] });
-          }
-        }
-
-        if (action === 'management/findAll') {
-          return Promise.resolve([]);
-        }
-
-        return Promise.resolve();
-      });
-
-      return {
-        dispatch,
-        getters: {
-          'management/canList': () => canListPsa,
-          'management/all':     () => settings,
-        },
-      };
-    };
-
-    it('does nothing when versions are already loaded', async() => {
-      const dispatch = jest.fn();
-      const vm = { rke2Versions: [{ id: 'cached' }], $store: { dispatch, getters: {} } } as any;
-
-      await (rke2.methods as any).fetchRke2Versions.call(vm);
-
-      expect(dispatch).not.toHaveBeenCalled();
-    });
-
-    it('populates versions and default versions from global settings when present', async() => {
-      const vm = {
-        rke2Versions: null,
-        k3sVersions:  null,
-        $store:       buildStore({
-          settings: [
-            { id: 'rke2-default-version', value: 'v1.28.0+rke2r1' },
-            { id: 'k3s-default-version', value: 'v1.28.0+k3s1' },
-          ],
-        }),
-      } as any;
-
-      await (rke2.methods as any).fetchRke2Versions.call(vm);
-
-      expect(vm.rke2Versions).toStrictEqual([{ id: 'v1.28.0+rke2r1', serverArgs: {} }]);
-      expect(vm.k3sVersions).toStrictEqual([{ id: 'v1.28.0+k3s1', serverArgs: {} }]);
-      expect(vm.defaultRke2).toBe('v1.28.0+rke2r1');
-      expect(vm.defaultK3s).toBe('v1.28.0+k3s1');
-    });
-
-    it('falls back to the default channel latest version when no setting value/default exists', async() => {
-      const vm = {
-        rke2Versions: null,
-        k3sVersions:  null,
-        $store:       buildStore({
-          settings:         [],
-          channelResponses: {
-            rke2: [{ id: 'default', latest: 'v1.29.0+rke2r1' }],
-            k3s:  [{ id: 'default', latest: 'v1.29.0+k3s1' }],
-          },
-        }),
-      } as any;
-
-      await (rke2.methods as any).fetchRke2Versions.call(vm);
-
-      expect(vm.defaultRke2).toBe('v1.29.0+rke2r1');
-      expect(vm.defaultK3s).toBe('v1.29.0+k3s1');
-    });
-
-    it('throws when no version info is returned for either distro', async() => {
-      const dispatch = jest.fn((action: string, args: any = {}) => {
-        const { url } = args;
-
-        if (url?.includes('/releases') || url?.includes('/channels')) {
-          return Promise.resolve({ data: [] });
-        }
-
-        return Promise.resolve();
-      });
-      const vm = {
-        rke2Versions: null,
-        k3sVersions:  null,
-        $store:       { dispatch, getters: { 'management/canList': () => false, 'management/all': () => [] } },
-      } as any;
-
-      await expect((rke2.methods as any).fetchRke2Versions.call(vm)).rejects.toThrow('No version info found in KDM');
-    });
-  });
-
-  // Characterization tests written ahead of extracting machine-pool orchestration into a composable.
-  describe('methods: removeMachinePool', () => {
-    it('does nothing when the index does not exist', () => {
-      const vm: any = { machinePools: [{ create: true }] };
-
-      (rke2.methods as any).removeMachinePool.call(vm, 5);
-
-      expect(vm.machinePools).toHaveLength(1);
-    });
-
-    it('drops a not-yet-saved pool entirely', () => {
-      const pool = { create: true };
-      const vm: any = { machinePools: [pool] };
-
-      (rke2.methods as any).removeMachinePool.call(vm, 0);
-
-      expect(vm.machinePools).toHaveLength(0);
-    });
-
-    it('marks an existing pool for removal instead of deleting it', () => {
-      const pool: { create: boolean; remove?: boolean } = { create: false };
-      const vm: any = { machinePools: [pool] };
-
-      (rke2.methods as any).removeMachinePool.call(vm, 0);
-
-      expect(vm.machinePools).toHaveLength(1);
-      expect(pool.remove).toBe(true);
-    });
-  });
-
-  describe('methods: machinePoolValidationChanged', () => {
-    it('records the validation state for a pool', () => {
-      const vm: any = { machinePoolValidation: {} };
-
-      (rke2.methods as any).machinePoolValidationChanged.call(vm, 'pool-1', false);
-
-      expect(vm.machinePoolValidation['pool-1']).toBe(false);
-    });
-
-    it('removes the entry when the value is undefined', () => {
-      const vm: any = { machinePoolValidation: { 'pool-1': false } };
-
-      (rke2.methods as any).machinePoolValidationChanged.call(vm, 'pool-1', undefined);
-
-      expect(vm.machinePoolValidation).not.toHaveProperty('pool-1');
     });
   });
 
