@@ -15,6 +15,7 @@ import {
 } from './edit-cluster';
 
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
+import { SWITCHER_PAGE_SIZE } from '@/cypress/support/utils/shell';
 
 // GENERAL DATA NOT CONFIGURABLE, for now...
 const MACHINE_POOL_ID = '995mj';
@@ -2565,12 +2566,14 @@ export function generateFakeClusterDataAndIntercepts({
   };
 
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
-  // The redesigned side-nav (SURE-8192) fetches the ALL CLUSTERS / "others" window with pagesize=10 —
-  // this intercept injects the fake cluster into that list (revealed when the search "door" opens).
+  // The cluster-switcher flyout fetches its ALL CLUSTERS / "others" window a page at a time — this
+  // intercept injects the fake cluster into that list. It is keyed on the page size, so it tracks
+  // SWITCHER_PAGE_SIZE rather than a literal: hard-coding it silently stops matching the moment the
+  // flyout asks for a different page, and the fake cluster just never shows up. SURE-8192.
   cy.intercept({
     method:   'GET',
     pathname: '/v1/management.cattle.io.clusters',
-    query:    { pagesize: '10' }
+    query:    { pagesize: `${ SWITCHER_PAGE_SIZE }` }
   }, (req) => {
     req.continue((res) => {
       update(res.body.data);

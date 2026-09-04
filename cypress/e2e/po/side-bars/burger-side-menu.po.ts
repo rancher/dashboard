@@ -100,6 +100,18 @@ export default class BurgerMenuPo extends ComponentPo {
     this.sideMenu().should('have.class', 'menu-close');
   }
 
+  /**
+   * Move the real pointer away from the cluster icons.
+   *
+   * The pointer position is browser-level state that outlives a test, so a spec that hovers an icon
+   * leaves the next one starting with the pointer already on it. `realHover` moves the mouse, and a
+   * move to where it already is fires no mouseenter — the hover-triggered UI never opens. Hover the
+   * burger first so the next `realHover` is a real transition.
+   */
+  static movePointerOffClusterIcons(): Cypress.Chainable {
+    return cy.getId('top-level-menu').realHover();
+  }
+
   static checkIconTooltipOn(content: string): Cypress.Chainable {
     return cy.get('.v-popper__popper .v-popper__inner').should('be.visible').and('contain.text', content);
   }
