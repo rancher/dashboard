@@ -184,7 +184,7 @@ describe('component: LabeledSelect', () => {
       const wrapper = mount(ParentComponent);
       const input = wrapper.find('.v-select');
 
-      expect(input.classes).not.toContain(customClass);
+      expect(input.classes()).not.toContain(customClass);
     });
 
     it.each([
