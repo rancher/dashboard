@@ -5,7 +5,7 @@ import {
 
 describe('workload detail page', () => {
   it('should not have findMatchingIngresses method (logic moved to workload model)', () => {
-    expect(Workload.methods?.findMatchingIngresses).toBeUndefined();
+    expect((Workload.methods as { findMatchingIngresses?: unknown } | undefined)?.findMatchingIngresses).toBeUndefined();
   });
 
   describe('httpRouteHeaders', () => {

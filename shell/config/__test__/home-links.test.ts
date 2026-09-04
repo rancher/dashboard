@@ -33,14 +33,14 @@ describe('fx: ensureSupportLink', () => {
     }
   });
 
-  const testCases = [
+  const testCases: [string | null, boolean][] = [
     ['en-us', false],
     ['zh-hans', true],
     ['none', false],
     [null, false],
   ];
 
-  it.each(testCases)('should return cn forum link if the language is zh-hans', (language:String, value) => {
+  it.each(testCases)('should return cn forum link if the language is zh-hans', (language, value) => {
     store.commit('setSelected', language);
 
     const links = { defaults: [], custom: [] };
@@ -54,6 +54,6 @@ describe('fx: ensureSupportLink', () => {
 
     const result = ensureSupportLink(links, hasSupport, isSupportPage, localThis.t, store);
 
-    expect(!!result.defaults.find((link) => link.key === 'cnforums')).toBe(value);
+    expect(!!result.defaults.find((link: { key: string }) => link.key === 'cnforums')).toBe(value);
   });
 });

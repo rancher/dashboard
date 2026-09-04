@@ -125,6 +125,12 @@ describe('steve: subscribe', () => {
       let backOffSpy: any;
       const context = { $socket: {} };
 
+      const fetchPageResources = actions.fetchPageResources as (
+        this: typeof context,
+        ctx: { getters: typeof getters, dispatch: jest.Mock },
+        payload: { opt: object, storePagination: object, params: object },
+      ) => Promise<void>;
+
       beforeEach(() => {
         jest.clearAllMocks();
         backOffSpy = {
@@ -148,7 +154,7 @@ describe('steve: subscribe', () => {
           resourceType: 'type', namespace: 'ns', revision: '5'
         };
 
-        await actions.fetchPageResources.call(context, { getters, dispatch }, {
+        await fetchPageResources.call(context, { getters, dispatch }, {
           opt: {}, storePagination: {}, params
         });
 
@@ -161,7 +167,7 @@ describe('steve: subscribe', () => {
           resourceType: 'type', namespace: 'ns', revision: '15'
         };
 
-        await actions.fetchPageResources.call(context, { getters, dispatch }, {
+        await fetchPageResources.call(context, { getters, dispatch }, {
           opt: {}, storePagination: {}, params
         });
 
@@ -177,7 +183,7 @@ describe('steve: subscribe', () => {
           resourceType: 'type', namespace: 'ns', revision: '10'
         };
 
-        await actions.fetchPageResources.call(context, { getters, dispatch }, {
+        await fetchPageResources.call(context, { getters, dispatch }, {
           opt: {}, storePagination: {}, params
         });
 
@@ -194,7 +200,7 @@ describe('steve: subscribe', () => {
         let recurseArgs: any;
 
         beforeEach(async() => {
-          await actions.fetchPageResources.call(context, { getters, dispatch }, {
+          await fetchPageResources.call(context, { getters, dispatch }, {
             opt: {}, storePagination: { request: { filter: 'foo' } }, params
           });
           recurseArgs = backOffSpy.recurse.mock.calls[0][0];
@@ -333,11 +339,21 @@ describe('steve: subscribe', () => {
           - this should backoff until eventually succeeding
        */
 
+      interface WatchFixture {
+        ctx: ReturnType<typeof initStore>;
+        obj: typeof obj;
+        msg: typeof msg;
+      }
+
+      interface RevisionedWatchFixture extends WatchFixture {
+        revision: number;
+      }
+
       const startWatch = ({
         ctx,
         obj, msg,
         revision
-      }) => {
+      }: RevisionedWatchFixture) => {
         const {
           state, dispatch, getters, rootGetters, commit
         } = ctx;
@@ -371,7 +387,7 @@ describe('steve: subscribe', () => {
       const errorWatch = ({
         ctx,
         obj, msg,
-      }) => {
+      }: WatchFixture) => {
         const {
           state, dispatch, getters, commit
         } = ctx;
@@ -412,7 +428,7 @@ describe('steve: subscribe', () => {
         obj, msg,
         revision,
         tooManyTries = false,
-      }) => {
+      }: RevisionedWatchFixture & { tooManyTries?: boolean }) => {
         const { dispatch } = ctx;
 
         startWatch({
@@ -450,7 +466,7 @@ describe('steve: subscribe', () => {
         ctx,
         obj, msg,
         revision
-      }) => {
+      }: RevisionedWatchFixture) => {
         const { dispatch } = ctx;
 
         dispatch.mockImplementation(async(type: string) => {
@@ -496,14 +512,14 @@ describe('steve: subscribe', () => {
           normalizeType:   (type: string) => type,
           schemaFor:       () => ({}),
           storeName:       'test',
-          inError:         (...args) => getters.inError(state)(...args),
-          watchStarted:    (...args) => getters.watchStarted(state)(...args),
-          backOffId:       (...args) => getters.backOffId()(...args),
+          inError:         (...args: any[]) => getters.inError(state)(...args),
+          watchStarted:    (...args: any[]) => getters.watchStarted(state)(...args),
+          backOffId:       (...args: any[]) => getters.backOffId()(...args),
           canBackoff:      () => true,
           listenerManager: state.listenerManager,
           typeRegistered:  () => true,
         };
-        const commit = (type, ...args) => mutations[type](state, ...args);
+        const commit = (type: string, ...args: any[]) => (mutations as Record<string, (...args: any[]) => void>)[type](state, ...args);
 
         return {
           state, dispatch, getters: _getters, rootGetters, commit

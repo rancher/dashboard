@@ -460,7 +460,7 @@ describe('class: Resource', () => {
       const cards = resource.cards;
 
       expect(cards).toHaveLength(1);
-      expect(cards[0].props.title).toBe('component.resource.detail.card.resourcesCard.title');
+      expect(cards[0]?.props?.title).toBe('component.resource.detail.card.resourcesCard.title');
     });
   });
 
@@ -501,9 +501,9 @@ describe('class: Resource', () => {
 
       expect(rows).toHaveLength(2);
       expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.referredToBy');
-      expect(rows[0].counts[0].count).toBe(1);
+      expect(rows[0].counts?.[0].count).toBe(1);
       expect(rows[1].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
-      expect(rows[1].counts[0].count).toBe(2);
+      expect(rows[1].counts?.[0].count).toBe(2);
     });
 
     it('should omit a direction with no relationships', () => {
@@ -578,9 +578,9 @@ describe('class: Resource', () => {
       const glance = resource._glance;
       const namespaceItem = glance.find((item: any) => item.name === 'namespace');
 
-      expect(namespaceItem.formatter).toBeUndefined();
-      expect(namespaceItem.formatterOpts.to.cluster).toBeUndefined();
-      expect(namespaceItem.formatterOpts.to.product).toBeUndefined();
+      expect(namespaceItem!.formatter).toBeUndefined();
+      expect(namespaceItem!.formatterOpts!.to!.cluster).toBeUndefined();
+      expect(namespaceItem!.formatterOpts!.to!.product).toBeUndefined();
     });
   });
 
@@ -813,7 +813,7 @@ describe('class: Resource', () => {
         path:           'metadata.name',
         required:       true,
         translationKey: 'generic.name',
-      }]);
+      }] as unknown as never[]);
 
       const rules = resource.modelValidationRules;
 
@@ -844,7 +844,7 @@ describe('class: Resource', () => {
       jest.spyOn(resource, 'customValidationRules', 'get').mockReturnValue([{
         path:     'metadata.name',
         required: true,
-      }]);
+      }] as unknown as never[]);
 
       const rules = resource.modelValidationRules;
       const requiredRule = rules[0].rules[0];

@@ -1,7 +1,6 @@
 <script>
 import { markRaw } from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
-import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
@@ -44,7 +43,6 @@ export default {
   components: {
     AsyncButton,
     Banner,
-    Loading,
     RcItemCard,
     FilterPanel,
     AppChartCardSubHeader,
@@ -583,8 +581,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <div class="header">
       <h1
         data-testid="charts-header-title"
@@ -602,6 +599,7 @@ export default {
         :aria-label="t('catalog.charts.refresh')"
         actionColor="role-secondary"
         successColor="bg-success"
+        :disabled="$fetchState.pending"
         @click="refresh"
       />
     </div>
@@ -614,6 +612,7 @@ export default {
         :placeholder="t('catalog.charts.search')"
         data-testid="charts-filter-input"
         :aria-label="t('catalog.charts.search')"
+        :disabled="$fetchState.pending"
       >
       <i
         v-if="!searchQuery"
@@ -626,199 +625,214 @@ export default {
       @shortkey="focusSearch()"
     />
 
-    <Banner
-      v-for="(err, i) in loadingErrors"
-      :key="i"
-      color="error"
-      :label="err"
-      class="banner-mb-15px"
-    />
-    <Banner
-      v-if="showAppCollectionBannerLogic"
-      :key="i"
-      color="info"
-      closable
-      class="banner-mb-15px"
-      @close="closeSuseAppCollectionBanner"
-    >
-      <RichTranslation
-        k="catalog.charts.appCollectionRepoMissing"
-        tag="div"
-      >
-        <template #repoCreate="{ content }">
-          <router-link
-            :to="{ name: 'c-cluster-product-resource-create', params: { resource: CATALOG_TYPES.CLUSTER_REPO, cluster: $route.params.cluster, product: $store.getters['productId'] }, query: { target: CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION } }"
-            class="secondary-text-link"
-            tabindex="0"
-          >
-            {{ content }}
-          </router-link>
-        </template>
-      </RichTranslation>
-    </Banner>
     <div
-      v-if="showAppCollectionBannerLogic || showErrorBanner"
-      class="banner-spacer"
-    />
-
-    <div class="wrapper">
-      <FilterPanel
-        :modelValue="internalFilters"
-        :filters="filterPanelFilters"
-        @update:modelValue="onFilterChange"
+      v-if="$fetchState.pending"
+      class="charts-loading"
+      role="status"
+      aria-live="polite"
+      data-testid="charts-loading"
+    >
+      <i class="icon icon-spinner icon-spin" />
+      <t
+        k="generic.loading"
+        :raw="true"
+      />
+    </div>
+    <template v-else>
+      <Banner
+        v-for="(err, i) in loadingErrors"
+        :key="i"
+        color="error"
+        :label="err"
+        class="chart-banner"
+      />
+      <Banner
+        v-if="showAppCollectionBannerLogic"
+        :key="i"
+        color="info"
+        closable
+        class="chart-banner"
+        @close="closeSuseAppCollectionBanner"
+      >
+        <RichTranslation
+          k="catalog.charts.appCollectionRepoMissing"
+          tag="div"
+        >
+          <template #repoCreate="{ content }">
+            <router-link
+              :to="{ name: 'c-cluster-product-resource-create', params: { resource: CATALOG_TYPES.CLUSTER_REPO, cluster: $route.params.cluster, product: $store.getters['productId'] }, query: { target: CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION } }"
+              class="secondary-text-link"
+              tabindex="0"
+            >
+              {{ content }}
+            </router-link>
+          </template>
+        </RichTranslation>
+      </Banner>
+      <div
+        v-if="showAppCollectionBannerLogic || showErrorBanner"
+        class="banner-spacer"
       />
 
-      <div
-        v-if="filteredCharts.length === 0"
-        class="charts-empty-state"
-        data-testid="charts-empty-state"
-      >
-        <h1
-          class="empty-state-title"
-          data-testid="charts-empty-state-title"
-        >
-          {{ t('catalog.charts.noCharts.title') }}
-        </h1>
-        <div class="empty-state-tips">
-          <RichTranslation k="catalog.charts.noCharts.message">
-            <template #resetAllFilters="{ content }">
-              <a
-                tabindex="0"
-                role="button"
-                class="link"
-                data-testid="charts-empty-state-reset-filters"
-                @click="resetAllFilters"
-                @keyup.enter="resetAllFilters"
-                @keyup.space="resetAllFilters"
-              >{{ content }}</a>
-            </template>
-            <template #repositoriesUrl="{ content }">
-              <router-link :to="{ name: 'c-cluster-apps-catalog-repo'}">
-                {{ content }}
-              </router-link>
-            </template>
-          </RichTranslation>
-          <RichTranslation
-            k="catalog.charts.noCharts.docsMessage"
-            tag="span"
-          >
-            <template #docsUrl="{ content }">
-              <SubtleLink
-                :href="`${DOCS_BASE}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
-                target="_blank"
-                :open-in-new-tab-label="t('generic.opensInNewTab')"
-              >
-                {{ content }}
-              </SubtleLink>
-            </template>
-          </RichTranslation>
-        </div>
-      </div>
-      <div
-        v-else
-        class="right-section"
-      >
-        <div class="total-and-sort">
-          <div class="total">
-            <p
-              class="total-message"
-              data-testid="charts-total-message"
-            >
-              {{ totalMessage }}
-            </p>
-            <a
-              v-if="!noFiltersApplied"
-              class="reset-filters"
-              role="button"
-              :aria-label="t('catalog.charts.resetFilters.title')"
-              @click="resetAllFilters"
-            >
-              {{ t('catalog.charts.resetFilters.title') }}
-            </a>
-          </div>
-          <Select
-            v-model:value="selectedSortOption"
-            :clearable="false"
-            :searchable="false"
-            :options="sortOptions"
-            placement="bottom"
-            class="charts-sort-select"
-          >
-            <template #selected-option="{ label }">
-              <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
-            </template>
-
-            <template #option="{ label, kind }">
-              <span
-                v-if="kind === 'group'"
-                class="mml-2 mmr-2"
-              >
-                {{ label }}:
-              </span>
-              <span
-                v-else
-                class="mml-6"
-              >
-                {{ label }}
-              </span>
-            </template>
-          </Select>
-        </div>
-        <div
-          ref="chartsContainer"
-          class="app-chart-cards"
-          data-testid="app-chart-cards-container"
-        >
-          <rc-item-card
-            v-for="card in appChartCards"
-            :id="card.id"
-            :key="card.id"
-            :pill="card.pill"
-            :header="card.header"
-            :image="card.image"
-            :content="card.content"
-            :value="card.rawChart"
-            variant="medium"
-            role="link"
-            :class="{ 'single-card': appChartCards.length === 1 }"
-            :clickable="true"
-            @card-click="selectChart"
-          >
-            <template
-              v-once
-              #item-card-sub-header
-            >
-              <AppChartCardSubHeader :items="card.subHeaderItems" />
-            </template>
-            <template
-              v-once
-              #item-card-footer
-            >
-              <AppChartCardFooter
-                :items="card.footerItems"
-                :clickable="true"
-                @click:item="handleFooterItemClick"
-              />
-            </template>
-          </rc-item-card>
-        </div>
-        <div
-          v-if="isLoadingMore"
-          class="loading-more"
-          role="status"
-          aria-live="polite"
-          data-testid="charts-loading-more"
-        >
-          <i class="icon icon-spinner icon-spin" />
-          {{ t('catalog.charts.loadingMore') }}
-        </div>
-        <div
-          ref="sentinel"
-          class="sentinel-charts"
-          data-testid="charts-lazy-load-sentinel"
+      <div class="wrapper">
+        <FilterPanel
+          :modelValue="internalFilters"
+          :filters="filterPanelFilters"
+          @update:modelValue="onFilterChange"
         />
+
+        <div
+          v-if="filteredCharts.length === 0"
+          class="charts-empty-state"
+          data-testid="charts-empty-state"
+        >
+          <h1
+            class="empty-state-title"
+            data-testid="charts-empty-state-title"
+          >
+            {{ t('catalog.charts.noCharts.title') }}
+          </h1>
+          <div class="empty-state-tips">
+            <RichTranslation k="catalog.charts.noCharts.message">
+              <template #resetAllFilters="{ content }">
+                <a
+                  tabindex="0"
+                  role="button"
+                  class="link"
+                  data-testid="charts-empty-state-reset-filters"
+                  @click="resetAllFilters"
+                  @keyup.enter="resetAllFilters"
+                  @keyup.space="resetAllFilters"
+                >{{ content }}</a>
+              </template>
+              <template #repositoriesUrl="{ content }">
+                <router-link :to="{ name: 'c-cluster-apps-catalog-repo'}">
+                  {{ content }}
+                </router-link>
+              </template>
+            </RichTranslation>
+            <RichTranslation
+              k="catalog.charts.noCharts.docsMessage"
+              tag="span"
+            >
+              <template #docsUrl="{ content }">
+                <SubtleLink
+                  :href="`${DOCS_BASE}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
+                  target="_blank"
+                  :open-in-new-tab-label="t('generic.opensInNewTab')"
+                >
+                  {{ content }}
+                </SubtleLink>
+              </template>
+            </RichTranslation>
+          </div>
+        </div>
+        <div
+          v-else
+          class="right-section"
+        >
+          <div class="total-and-sort">
+            <div class="total">
+              <p
+                class="total-message"
+                data-testid="charts-total-message"
+              >
+                {{ totalMessage }}
+              </p>
+              <a
+                v-if="!noFiltersApplied"
+                class="reset-filters"
+                role="button"
+                :aria-label="t('catalog.charts.resetFilters.title')"
+                @click="resetAllFilters"
+              >
+                {{ t('catalog.charts.resetFilters.title') }}
+              </a>
+            </div>
+            <Select
+              v-model:value="selectedSortOption"
+              :clearable="false"
+              :searchable="false"
+              :options="sortOptions"
+              placement="bottom"
+              class="charts-sort-select"
+            >
+              <template #selected-option="{ label }">
+                <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
+              </template>
+
+              <template #option="{ label, kind }">
+                <span
+                  v-if="kind === 'group'"
+                  class="mml-2 mmr-2"
+                >
+                  {{ label }}:
+                </span>
+                <span
+                  v-else
+                  class="mml-6"
+                >
+                  {{ label }}
+                </span>
+              </template>
+            </Select>
+          </div>
+          <div
+            ref="chartsContainer"
+            class="app-chart-cards"
+            data-testid="app-chart-cards-container"
+          >
+            <rc-item-card
+              v-for="card in appChartCards"
+              :id="card.id"
+              :key="card.id"
+              :pill="card.pill"
+              :header="card.header"
+              :image="card.image"
+              :content="card.content"
+              :value="card.rawChart"
+              variant="medium"
+              role="link"
+              :class="{ 'single-card': appChartCards.length === 1 }"
+              :clickable="true"
+              @card-click="selectChart"
+            >
+              <template
+                v-once
+                #item-card-sub-header
+              >
+                <AppChartCardSubHeader :items="card.subHeaderItems" />
+              </template>
+              <template
+                v-once
+                #item-card-footer
+              >
+                <AppChartCardFooter
+                  :items="card.footerItems"
+                  :clickable="true"
+                  @click:item="handleFooterItemClick"
+                />
+              </template>
+            </rc-item-card>
+          </div>
+          <div
+            v-if="isLoadingMore"
+            class="loading-more"
+            role="status"
+            aria-live="polite"
+            data-testid="charts-loading-more"
+          >
+            <i class="icon icon-spinner icon-spin" />
+            {{ t('catalog.charts.loadingMore') }}
+          </div>
+          <div
+            ref="sentinel"
+            class="sentinel-charts"
+            data-testid="charts-lazy-load-sentinel"
+          />
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -950,8 +964,26 @@ export default {
   }
 }
 
-.banner-mb-15px {
-  margin: 0 0 15px 0;
+.charts-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap);
+  padding: 48px 16px;
+  font-size: 14px;
+  color: var(--muted);
+
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.chart-banner {
+  margin: 0 0 16px 0;
 }
 
 .banner-spacer {

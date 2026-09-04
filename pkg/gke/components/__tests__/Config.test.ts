@@ -277,4 +277,71 @@ describe('gke Config', () => {
     await flushPromises();
     expect(wrapper.emitted('update:locations')?.[0]?.[0]).toStrictEqual(['us-east4-b']);
   });
+
+  it.each([
+    ['creating a zonal cluster', {
+      mode: 'create', zone: 'us-east1-b', region: '', isNewOrUnprovisioned: true
+    }, false],
+    ['creating a regional cluster', {
+      mode: 'create', zone: '', region: 'us-east1', isNewOrUnprovisioned: true
+    }, false],
+    ['editing a zonal cluster', {
+      mode: 'edit', zone: 'us-east1-b', region: '', isNewOrUnprovisioned: false
+    }, false],
+    ['editing a regional cluster', {
+      mode: 'edit', zone: '', region: 'us-east1', isNewOrUnprovisioned: false
+    }, true],
+  ])('should only allow the extra zones checkboxes to be edited for zonal clusters - %s', async(_description, props, expectedDisabled) => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      props: {
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        ...props
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ cloudCredentialId: 'abc' });
+    await flushPromises();
+
+    const extraZoneCheckboxes = wrapper.findAllComponents(Checkbox);
+
+    expect(extraZoneCheckboxes.length).toBeGreaterThan(0);
+    extraZoneCheckboxes.forEach((checkbox) => {
+      expect(checkbox.props().disabled).toBe(expectedDisabled);
+    });
+  });
+
+  it.each([
+    ['creating a regional cluster', {
+      mode: 'create', zone: '', region: 'us-east1', isNewOrUnprovisioned: true
+    }, null],
+    ['editing a zonal cluster', {
+      mode: 'edit', zone: 'us-east1-b', region: '', isNewOrUnprovisioned: false
+    }, null],
+    ['viewing a regional cluster', {
+      mode: 'view', zone: '', region: 'us-east1', isNewOrUnprovisioned: false
+    }, null],
+    ['editing a regional cluster', {
+      mode: 'edit', zone: '', region: 'us-east1', isNewOrUnprovisioned: false
+    }, 'gke.location.extraZonesDisabledTooltip'],
+  ])('should only show the extra zones disabled tooltip when editing a regional cluster - %s', async(_description, props, expectedTooltip) => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      props: {
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        ...props
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ cloudCredentialId: 'abc' });
+    await flushPromises();
+
+    expect((wrapper.vm as any).extraZonesDisabledTooltip).toBe(expectedTooltip);
+  });
 });
