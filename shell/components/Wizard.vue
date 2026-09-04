@@ -358,13 +358,13 @@ export default {
                 </slot>
               </div>
             </div>
-            <div class="step-sequence">
-              <ul
+            <nav
+              class="step-sequence"
+              :aria-label="t('wizard.stepList')"
+            >
+              <ol
                 v-if="showSteps"
                 class="steps"
-                tabindex="0"
-                @keyup.right.stop="selectNext(1)"
-                @keyup.left.stop="selectNext(-1)"
               >
                 <template
                   v-for="(step, idx ) in visibleSteps"
@@ -374,14 +374,13 @@ export default {
 
                     :id="step.name"
                     :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
-                    role="presentation"
                   >
-                    <span
-                      :aria-controls="'step-container-' + step.name"
-                      :aria-selected="step.name === activeStep.name"
-                      role="tab"
+                    <RcButton
+                      variant="ghost"
                       class="controls"
-                      @click.prevent="goToStep(idx+1, true)"
+                      :aria-current="step.name === activeStep.name ? 'step' : null"
+                      :disabled="!isAvailable(step)"
+                      @click="goToStep(idx+1, true)"
                     >
                       <span
                         class="icon icon-lg"
@@ -390,16 +389,17 @@ export default {
                       <span>
                         {{ step.label }}
                       </span>
-                    </span>
+                    </RcButton>
                   </li>
                   <li
                     v-if="idx!==visibleSteps.length-1"
                     :key="step.name"
                     class="divider"
+                    aria-hidden="true"
                   />
                 </template>
-              </ul>
-            </div>
+              </ol>
+            </nav>
           </div>
         </div>
         <slot
@@ -415,7 +415,6 @@ export default {
               v-if="step.name === activeStep.name || step.hidden"
               :id="'step-container-' + step.name"
               :key="step.name"
-              role="tabpanel"
               class="step-container__step"
               :class="{'hide': step.name !== activeStep.name && step.hidden}"
             >
@@ -558,18 +557,16 @@ $spacer: 10px;
       list-style-type:none;
       padding: 0;
 
-      &:focus{
-          outline:none;
-          box-shadow: none;
-      }
-
       & li.step{
         display: flex;
         flex-direction: row;
         flex-grow: 1;
         align-items: center;
 
-        & > span > span:last-of-type {
+        // Matches the step's control whatever element it is. This was
+        // `> span > span` when the control was a span; as a button it stopped
+        // matching and the label kept a 3px padding it never used to have.
+        & > .controls > span:last-of-type {
           padding-bottom: 0;
         }
 
@@ -578,12 +575,24 @@ $spacer: 10px;
         }
 
         & .controls {
+          // RcButton's ghost variant already drops the background and padding.
+          // A step marker stacks its dot over its label and keeps the
+          // surrounding type, so undo the button's row layout and sizing.
           display: flex;
           flex-direction: column;
           align-items: center;
+          font: inherit;
+          min-height: 0;
+          gap: 0;
           width: 40px;
           overflow: visible;
           padding-top: 7px;
+
+          // The ghost variant defines no disabled state, so an out of reach
+          // step would otherwise pick up the global button's grey chip.
+          &:disabled {
+            background: transparent;
+          }
 
           & > span {
             padding-bottom: 3px;

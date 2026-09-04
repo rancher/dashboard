@@ -3,6 +3,7 @@ import { RIGHT, LEFT } from '@shell/utils/position';
 import { PropType } from 'vue';
 import { Position } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
+import { tabBodyId } from './tab-body';
 import usePanelHandler from '../composables/usePanelHandler';
 
 const props = defineProps({
@@ -88,7 +89,7 @@ const {
         role="tab"
         :aria-selected="tab.id === activeTab[props.position]"
         :aria-label="tab.label"
-        :aria-controls="`panel-${tab.id}`"
+        :aria-controls="tabBodyId(props.position, tab.id)"
         tabindex="0"
         @click="setTabActive({ position: props.position, id: tab.id })"
         @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"

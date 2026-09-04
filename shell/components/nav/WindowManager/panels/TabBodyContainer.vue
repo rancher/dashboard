@@ -8,6 +8,7 @@
 
 <script setup>
 import { onMounted } from 'vue';
+import { tabBodyId } from './tab-body';
 
 /**
  * This component serves as a container for the body of a tab within a window manager panel.
@@ -33,7 +34,7 @@ const props = defineProps({
 
 const emit = defineEmits(['ready']);
 
-const contentId = `wm-panel-body-${ props.position }-${ props.id.replace(/[^a-zA-Z0-9_-]/g, '-') }`;
+const contentId = tabBodyId(props.position, props.id);
 
 onMounted(() => emit('ready', contentId));
 </script>
