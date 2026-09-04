@@ -25,7 +25,6 @@ describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] 
     FleetPolicyListPagePo.navTo();
 
     fleetPolicyListPage.waitForPage();
-    cy.url().should('include', '/fleet/fleet.cattle.io.policy');
     // Assert the list actually rendered: the resource-not-found page also has a (non-empty) masthead.
     fleetPolicyListPage.baseResourceList().masthead().title()
       .should('contain', 'Policies');

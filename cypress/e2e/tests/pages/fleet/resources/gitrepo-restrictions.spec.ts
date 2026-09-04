@@ -15,7 +15,7 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
   const fleetRestrictionsListPage = new FleetGitRepoRestrictionListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('Deprecation', { tags: ['@fleet', '@adminUser'] }, () => {
+  describe('Deprecation', () => {
     before(() => {
       cy.login();
     });
@@ -32,12 +32,13 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
       banner.bannerElement('a[href*="fleet.cattle.io.policy"]')
         .should('contain.text', 'Policies');
 
-      // Accept either docs channel: getGitRepoRestrictionMigrationDocsUrl picks root vs `/next/` from the
-      // running Rancher version, so pinning one would tie the test to the backend's version.
+      // Accept either docs site and channel: getGitRepoRestrictionMigrationDocsUrl picks community vs
+      // Prime from the edition and root vs `/next/` from the running Rancher version, so pinning one
+      // would tie the test to the backend's build.
       banner.bannerElement('a.migration-guide-link')
         .should('have.attr', 'target', '_blank')
         .invoke('attr', 'href')
-        .should('match', /^https:\/\/fleet\.rancher\.io\/(next\/)?how-tos-for-operators\/tenant-setup#_migration_from_gitreporestriction$/);
+        .should('match', /^https:\/\/(fleet\.rancher\.io\/(next\/)?how-tos-for-operators\/tenant-setup|documentation\.suse\.com\/cloudnative\/continuous-delivery\/(latest|next)\/en\/how-tos-for-operators\/tenant-setup\.html)#_migration_from_gitreporestriction$/);
     });
   });
 

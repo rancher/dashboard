@@ -11,7 +11,7 @@
  * Only pages flagged `usePrimeDoc` have a Rancher Prime counterpart; every other page is
  * community-only, even on a Prime install.
  */
-import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
+import { getVersionData, isRancherPrime, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 
 const FLEET_COMMUNITY_DOCS_BASE = 'https://fleet.rancher.io';
 const FLEET_PRIME_DOCS_BASE = 'https://documentation.suse.com/cloudnative/continuous-delivery';
@@ -44,9 +44,9 @@ const FLEET_DOCS = {
   bundleDeploymentOptions: {
     path: 'reference/ref-crds', anchor: '_bundledeploymentoptions', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: true
   },
-  // GitRepoRestriction migration docs — community-only.
+  // GitRepoRestriction migration docs — also published to the Rancher Prime docs.
   gitRepoRestrictionMigration: {
-    path: 'how-tos-for-operators/tenant-setup', anchor: '_migration_from_gitreporestriction', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: false
+    path: 'how-tos-for-operators/tenant-setup', anchor: '_migration_from_gitreporestriction', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: true
   },
 } as const satisfies Record<string, FleetDoc>;
 
@@ -88,11 +88,6 @@ function fleetDocsChannel(doc: FleetDoc): 'next' | 'current' {
   return running.patch > doc.minRancherPatch ? 'current' : 'next';
 }
 
-/** Whether this is a Rancher Prime install (read from the server version data). */
-function isPrimeInstall(): boolean {
-  return getVersionData().RancherPrime?.toLowerCase() === 'true';
-}
-
 /**
  * Build a Fleet docs URL for `doc`, choosing between community and Rancher Prime docs (only
  * when the page has a Prime counterpart and we're on a Prime install) and between the current
@@ -104,7 +99,7 @@ function isPrimeInstall(): boolean {
 function fleetDocsUrl(doc: FleetDoc): string {
   const hash = doc.anchor ? `#${ doc.anchor }` : '';
   const channel = fleetDocsChannel(doc);
-  const isPrime = doc.usePrimeDoc && isPrimeInstall();
+  const isPrime = doc.usePrimeDoc && isRancherPrime();
 
   if (isPrime) {
     const segment = channel === 'next' ? 'next' : 'latest';
@@ -127,7 +122,7 @@ export function getBundleDeploymentOptionsDocsUrl(): string {
   return fleetDocsUrl(FLEET_DOCS.bundleDeploymentOptions);
 }
 
-/** Fleet GitRepoRestriction -> Policies migration docs (community-only). */
+/** Fleet GitRepoRestriction -> Policies migration docs (has a Rancher Prime counterpart). */
 export function getGitRepoRestrictionMigrationDocsUrl(): string {
   return fleetDocsUrl(FLEET_DOCS.gitRepoRestrictionMigration);
 }

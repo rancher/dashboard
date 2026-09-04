@@ -39,7 +39,7 @@ const hasPolicySchema = computed(() => !!store.getters['management/schemaFor'](F
            two lines stack vertically rather than sitting side by side. -->
       <div>
         <RichTranslation
-          k="fleet.gitRepoRestriction.deprecationWarning"
+          k="fleet.restrictions.deprecationWarning"
           tag="div"
         >
           <template #policiesLink="{ content }">

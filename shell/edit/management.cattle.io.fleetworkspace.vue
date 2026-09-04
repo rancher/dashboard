@@ -227,11 +227,11 @@ export default {
           data-testid="fleet-workspace-restriction-deprecation-banner"
         >
           <div>
-            <div>{{ t('fleet.gitRepoRestriction.deprecationWarningTargetNamespaces') }}</div>
+            <div>{{ t('fleet.restrictions.deprecationWarningTargetNamespaces') }}</div>
             <!-- The migration guide documents how to replace allowedTargetNamespaces (no Policy
                  equivalent) with downstream ServiceAccount RBAC. -->
             <FleetMigrationGuideLink
-              data-testid="fleet-workspace-restriction-learn-more"
+              data-testid="fleet-workspace-restriction-migration-guide"
               class="mt-5"
             />
           </div>

@@ -42,13 +42,13 @@ describe('edit: management.cattle.io.fleetworkspace', () => {
 
     expect(banner.exists()).toBe(true);
     // The i18n mock returns the key, so this pins the banner to the target-namespaces specific copy.
-    expect(banner.text()).toContain('fleet.gitRepoRestriction.deprecationWarningTargetNamespaces');
+    expect(banner.text()).toContain('fleet.restrictions.deprecationWarningTargetNamespaces');
   });
 
   it('links the migration guide from the deprecation banner', () => {
     const link = createWrapper().findComponent(FleetMigrationGuideLink);
 
     expect(link.exists()).toBe(true);
-    expect(link.attributes('data-testid')).toStrictEqual('fleet-workspace-restriction-learn-more');
+    expect(link.attributes('data-testid')).toStrictEqual('fleet-workspace-restriction-migration-guide');
   });
 });

@@ -8,13 +8,12 @@ import { getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
 const store = useStore();
 const { t } = useI18n(store);
 
-// Version- and edition-aware link to the Fleet docs section on migrating from GitRepoRestriction.
 const migrationGuideUrl = getGitRepoRestrictionMigrationDocsUrl();
 </script>
 
 <template>
   <RichTranslation
-    k="fleet.gitRepoRestriction.migrationGuide"
+    k="fleet.restrictions.migrationGuide"
     tag="div"
   >
     <template #docsLink="{ content }">

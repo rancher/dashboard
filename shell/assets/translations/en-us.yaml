@@ -3409,10 +3409,6 @@ fleet:
     chart:
       title: Charts
       loadError: Chart not found or has no available versions.
-  gitRepoRestriction:
-    deprecationWarning: 'GitRepoRestrictions are deprecated and will be removed in a future release. Use <policiesLink>Policies</policiesLink> instead.'
-    deprecationWarningTargetNamespaces: 'GitRepoRestrictions are deprecated and will be removed in a future release. Restricting allowed target namespaces relies on GitRepoRestriction and has no equivalent in SUSE Continuous Delivery Policies.'
-    migrationGuide: 'See the <docsLink>SUSE Continuous Delivery Policies migration guide</docsLink>'
   helmOp:
     intro:
       add: Create Helm Op
@@ -3639,6 +3635,9 @@ fleet:
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
+    deprecationWarning: 'GitRepoRestrictions are deprecated and will be removed in a future release. Use <policiesLink>Policies</policiesLink> instead.'
+    deprecationWarningTargetNamespaces: 'GitRepoRestrictions are deprecated and will be removed in a future release. Restricting allowed target namespaces relies on GitRepoRestriction and has no equivalent in SUSE Continuous Delivery Policies.'
+    migrationGuide: 'See the <docsLink>SUSE Continuous Delivery Policies migration guide</docsLink>'
     banner: "{count, plural,
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}

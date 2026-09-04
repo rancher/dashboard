@@ -5,7 +5,7 @@ import { Banner } from '@components/Banner';
 import FleetMigrationGuideLink from '@shell/components/fleet/FleetMigrationGuideLink.vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 
-// The component reads useStore()/useI18n(store) at setup; provide a minimal Vuex store so it mounts in a
+// The component reads useStore() at setup; provide a minimal Vuex store so it mounts in a
 // realistic state (no "injection store not found" warning) and stub RouterLink for the deprecation banner.
 // The Policies link is schema gated, so the schema getter decides whether it is rendered.
 const buildStore = (hasPolicySchema = true) => createStore({
