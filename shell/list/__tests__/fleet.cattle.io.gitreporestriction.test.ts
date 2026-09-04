@@ -20,28 +20,37 @@ describe('list/fleet.cattle.io.gitreporestriction', () => {
     expect(wrapper.findComponent(Banner).props('color')).toStrictEqual('warning');
   });
 
-  it('should render a "learn more" link to the Continuous Delivery Policies docs', () => {
-    // renderStubDefaultSlot so the stubbed Banner renders its slot content (the links).
-    const wrapper = shallowMount(ListGitRepoRestriction, {
-      props:  { schema: { id: 'fleet.cattle.io.gitreporestriction' } as any },
-      global: { renderStubDefaultSlot: true },
-    });
-    const learnMore = wrapper.find('[data-testid="git-repo-restriction-learn-more-policies"]');
+  // Render RichTranslation's named slots (shallowMount would otherwise leave them unrendered) so we can
+  // assert the links interpolated into the deprecation ("Policies") and migration-guide messages.
+  const richTranslationStub = { template: `<div><slot name="policiesLink" :content="'Policies'" /><slot name="docsLink" :content="'guide'" /></div>` };
+  const routerLinkStub = { props: ['to'], template: '<a class="router-link-stub"><slot /></a>' };
 
-    expect(learnMore.exists()).toBe(true);
-    // getVersionData() is unset in tests, so the util resolves to the unversioned Policy docs.
-    expect(learnMore.html()).toContain('reference/ref-policy');
+  const mountWithSlots = () => shallowMount(ListGitRepoRestriction, {
+    props:  { schema: { id: 'fleet.cattle.io.gitreporestriction' } as any },
+    global: {
+      renderStubDefaultSlot: true,
+      stubs:                 { RichTranslation: richTranslationStub, RouterLink: routerLinkStub },
+    },
   });
 
-  it('should link the deprecation notice to the version-aware migration docs', () => {
-    const wrapper = shallowMount(ListGitRepoRestriction, {
-      props:  { schema: { id: 'fleet.cattle.io.gitreporestriction' } as any },
-      global: { renderStubDefaultSlot: true },
-    });
-    const banner = wrapper.find('[data-testid="git-repo-restriction-deprecation-banner"]');
+  it('routes the "Policies" link to the in-app Fleet Policies list', () => {
+    const link = mountWithSlots().findComponent(routerLinkStub);
 
-    // Built by getGitRepoRestrictionMigrationDocsUrl (fallback path in tests).
-    expect(banner.html()).toContain('how-tos-for-operators/tenant-setup');
+    expect(link.exists()).toBe(true);
+    expect(link.props('to')).toStrictEqual({
+      name:   'c-cluster-product-resource',
+      params: {
+        cluster: '_', product: 'fleet', resource: 'fleet.cattle.io.policy'
+      },
+    });
+  });
+
+  it('links the migration guide to the version-aware migration docs', () => {
+    const link = mountWithSlots().find('.migration-guide-link');
+
+    expect(link.exists()).toBe(true);
+    // getGitRepoRestrictionMigrationDocsUrl resolves to the fallback path in tests.
+    expect(link.attributes('href')).toContain('how-tos-for-operators/tenant-setup');
   });
 
   it('should render the paginated resource table alongside the banner', () => {
