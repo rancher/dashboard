@@ -12,6 +12,7 @@
     "allowJs": true,
     "sourceMap": true,
     "strict": true,
+    "isolatedModules": true,
     "noEmit": false,
     "esModuleInterop": true,
     "baseUrl": ".",

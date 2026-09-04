@@ -1,3 +1,9 @@
+/**
+ * `window.location` is unforgeable in jsdom, so the host used as the fallback
+ * system identifier comes from the environment's URL rather than a stub.
+ *
+ * @jest-environment-options {"url": "https://fallback.host/"}
+ */
 import { SystemInfoProvider } from '../info';
 import { MANAGEMENT, COUNT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -15,18 +21,6 @@ describe('systemInfoProvider', () => {
   let mockClusters: any[];
   let mockCounts: any;
   let mockPlugins: any[];
-  let originalWindowLocation: Location;
-
-  beforeAll(() => {
-    originalWindowLocation = window.location;
-    // Mock window.location
-    delete (window as any).location;
-    (window as any).location = { host: 'fallback.host' };
-  });
-
-  afterAll(() => {
-    (window as any).location = originalWindowLocation;
-  });
 
   beforeEach(() => {
     // Reset mocks

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`component: HelmOpTargetOptionsSection should match snapshot in compact mode 1`] = `
 <div
@@ -16,7 +16,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot in compact 
     >
       %fleet.helmOp.target.clusterDeploymentLink% 
       <rc-icon-stub
-        ariahidden="true"
+        aria-hidden="true"
         size="small"
         status="inherit"
         type="external-link"
@@ -27,7 +27,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot in compact 
     class="col span-6 cluster-deployment-settings-input"
   >
     <labeled-input-stub
-      arialabel=""
+      aria-label=""
       class=""
       data-testid="helmop-target-options-service-account"
       delay="0"
@@ -55,7 +55,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot in compact 
     class="col span-6 cluster-deployment-settings-input"
   >
     <labeled-input-stub
-      arialabel=""
+      aria-label=""
       class=""
       data-testid="helmop-target-options-namespace"
       delay="0"
@@ -92,7 +92,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot with defaul
     class="col span-6 cluster-deployment-settings-input"
   >
     <labeled-input-stub
-      arialabel=""
+      aria-label=""
       class=""
       data-testid="helmop-target-options-service-account"
       delay="0"
@@ -116,7 +116,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot with defaul
     class="col span-6 cluster-deployment-settings-input"
   >
     <labeled-input-stub
-      arialabel=""
+      aria-label=""
       class=""
       data-testid="helmop-target-options-namespace"
       delay="0"
