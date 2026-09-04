@@ -9,6 +9,8 @@ import { FLEET } from '@shell/config/types';
 import { NAME as FLEET_PRODUCT } from '@shell/config/product/fleet';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
+defineOptions({ inheritAttrs: false });
+
 withDefaults(defineProps<{
   schema: Record<string, any>;
   useQueryParamsForSimpleFiltering?: boolean;

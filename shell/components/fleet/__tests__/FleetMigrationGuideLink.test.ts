@@ -18,7 +18,7 @@ const createWrapper = () => shallowMount(FleetMigrationGuideLink, {
 
 describe('component: FleetMigrationGuideLink', () => {
   it('links to the version-aware migration docs', () => {
-    const link = createWrapper().find('.migration-guide-link');
+    const link = createWrapper().find('[data-testid="fleet-migration-guide-link"]');
 
     expect(link.exists()).toBe(true);
     // getGitRepoRestrictionMigrationDocsUrl resolves to the fallback path in tests.
@@ -26,7 +26,7 @@ describe('component: FleetMigrationGuideLink', () => {
   });
 
   it('opens the docs in a new tab safely', () => {
-    const link = createWrapper().find('.migration-guide-link');
+    const link = createWrapper().find('[data-testid="fleet-migration-guide-link"]');
 
     expect(link.attributes('target')).toStrictEqual('_blank');
     expect(link.attributes('rel')).toStrictEqual('noopener noreferrer nofollow');

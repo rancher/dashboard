@@ -22,6 +22,7 @@ const migrationGuideUrl = getGitRepoRestrictionMigrationDocsUrl();
         target="_blank"
         rel="noopener noreferrer nofollow"
         class="migration-guide-link"
+        data-testid="fleet-migration-guide-link"
       >
         {{ content }}
         <RcIcon

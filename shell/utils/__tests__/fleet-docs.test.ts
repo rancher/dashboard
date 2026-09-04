@@ -46,6 +46,11 @@ describe('fleet-docs utils', () => {
       mockVersionData('master-head', false);
       expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/how-tos-for-users/downstream-resource-propagation');
     });
+
+    it('should fall back to the SUSE "next" docs for dev/head builds when Prime', () => {
+      mockVersionData('master-head', true);
+      expect(getDownstreamResourcesDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/how-tos-for-users/downstream-resource-propagation.html');
+    });
   });
 
   describe('getBundleDeploymentOptionsDocsUrl (AppCo, Prime-aware, with anchor)', () => {
@@ -72,6 +77,11 @@ describe('fleet-docs utils', () => {
     it('should fall back to the community "next" CRD reference for dev/head builds', () => {
       mockVersionData('master-head', false);
       expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/reference/ref-crds#_bundledeploymentoptions');
+    });
+
+    it('should fall back to the SUSE "next" CRD reference for dev/head builds when Prime', () => {
+      mockVersionData('master-head', true);
+      expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/reference/ref-crds.html#_bundledeploymentoptions');
     });
   });
 
