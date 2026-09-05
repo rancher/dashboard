@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #
-# Thin wrapper: clones qa-infra-automation, builds the runner image,
-# generates vars.yaml from Jenkins environment, runs the playbook in a container.
+# Builds the runner image, generates vars.yaml from the Jenkins environment,
+# runs the playbook in a container. The Jenkins-side counterpart of the
+# playbook's own run.sh.
 #
-# No tool installation needed — everything is inside the container image.
+# It does no git: the Jenkinsfile checks out both repositories.
 #
 set -euo pipefail
 trap 'echo "FAILED at line $LINENO: $BASH_COMMAND (exit $?)"' ERR
@@ -12,7 +13,6 @@ trap 'echo "FAILED at line $LINENO: $BASH_COMMAND (exit $?)"' ERR
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 JENKINS_WORKSPACE="${WORKSPACE:-$(cd "${SCRIPT_DIR}/../../.." && pwd)}"
 
-QA_INFRA_REPO="${QA_INFRA_REPO:-https://github.com/rancher/qa-infra-automation.git}"
 QA_INFRA_BRANCH="${QA_INFRA_BRANCH:-main}"
 QA_INFRA_DIR="${JENKINS_WORKSPACE}/qa-infra-automation"
 PLAYBOOK_DIR="${QA_INFRA_DIR}/ansible/testing/dashboard-e2e"
@@ -22,20 +22,15 @@ LOCK_FD=""
 # Ansible verbosity: 0=normal, 1=-v, 2=-vv, etc.
 ANSIBLE_VERBOSITY="${ANSIBLE_VERBOSITY:-0}"
 
-# Clone qa-infra-automation
-clone_qa_infra() {
-  if [[ -d "${QA_INFRA_DIR}/.git" ]]; then
-    echo "[init] qa-infra-automation already present, updating..."
-    cd "${QA_INFRA_DIR}"
-    if ! git fetch origin || ! git checkout -qf "${QA_INFRA_BRANCH}" || ! git reset --hard "origin/${QA_INFRA_BRANCH}"; then
-      echo "[init] ERROR: Failed to update qa-infra-automation to branch '${QA_INFRA_BRANCH}'"
-      exit 1
-    fi
-  else
-    echo "[init] Cloning qa-infra-automation (${QA_INFRA_BRANCH})..."
-    git clone -b "${QA_INFRA_BRANCH}" "${QA_INFRA_REPO}" "${QA_INFRA_DIR}"
+# Fail early and legibly if the Checkout stage did not produce what this needs.
+require_qa_infra() {
+  if [[ ! -d "${PLAYBOOK_DIR}" ]]; then
+    echo "[init] ERROR: ${PLAYBOOK_DIR} is missing." >&2
+    echo "[init]        The Jenkinsfile Checkout stage places qa-infra-automation" >&2
+    echo "[init]        in the workspace. This script does not clone it." >&2
+    exit 1
   fi
-  echo "[init] qa-infra-automation (${QA_INFRA_BRANCH}) at $(git -C "${QA_INFRA_DIR}" rev-parse --short HEAD)"
+  echo "[init] qa-infra-automation (${QA_INFRA_BRANCH}) at ${PLAYBOOK_DIR}"
 }
 
 # Build the runner image from Dockerfile.quickstart.
@@ -43,10 +38,22 @@ clone_qa_infra() {
 # Cached rather than --no-cache: Pre-Clean removes this tag every build, so the
 # image is rebuilt regardless, and --no-cache only added a cold build plus a
 # BuildKit cache record per layer that nothing on the agent reclaims.
+#
+# Bounded: a contended agent once printed one line and then nothing for ten
+# minutes, and the only other timeout is the 180 minute one around the whole
+# run. Quiet again now that the bound exists: the build is cached on almost
+# every run, so the fifty lines of layer output said nothing a stalled build
+# does not, and `timeout` is what turns a hang into a failure, not the noise.
 build_runner_image() {
   echo "[init] Building ${RUNNER_IMAGE} image..."
-  docker build -q -f "${PLAYBOOK_DIR}/Dockerfile.quickstart" \
-    -t "${RUNNER_IMAGE}" "${PLAYBOOK_DIR}"
+  local rc=0
+  timeout 900 docker build -q -f "${PLAYBOOK_DIR}/Dockerfile.quickstart" \
+    -t "${RUNNER_IMAGE}" "${PLAYBOOK_DIR}" || rc=$?
+  if [ "${rc}" -ne 0 ]; then
+    [ "${rc}" -eq 124 ] &&
+      echo "[init] ERROR: building ${RUNNER_IMAGE} exceeded 15 minutes." >&2
+    return "${rc}"
+  fi
 }
 
 # Generate vars.yaml from Jenkins environment variables
@@ -243,14 +250,20 @@ run_container() {
 
 # --- Main ---
 if [[ "${1:-}" == "destroy" ]]; then
-  clone_qa_infra
-  if ! docker image inspect "${RUNNER_IMAGE}" &>/dev/null; then
-    build_runner_image
-  fi
-
+  # Nothing is fetched here. Cleanup runs in the same build as the run that
+  # created the infrastructure, so the Jenkinsfile's checkout is still on disk.
+  # When this script did fetch, a transient github.com refusal made it exit
+  # before the destroy, leaving the run's cloud resources standing.
+  #
+  # vars.yaml is the signal that there is anything to destroy: it is written by
+  # generate_vars, so its absence means the run never provisioned.
   if [[ ! -f "${PLAYBOOK_DIR}/vars.yaml" ]]; then
     echo "[cleanup] No vars.yaml found — nothing to destroy"
     exit 0
+  fi
+
+  if ! docker image inspect "${RUNNER_IMAGE}" &>/dev/null; then
+    build_runner_image
   fi
 
   echo "[cleanup] Destroying infrastructure via playbook..."
@@ -258,7 +271,7 @@ if [[ "${1:-}" == "destroy" ]]; then
   [[ -d "${PLAYBOOK_DIR}/outputs" ]] && rm -rf "${PLAYBOOK_DIR}/outputs" 2>/dev/null || true
   echo "[cleanup] Done."
 else
-  clone_qa_infra
+  require_qa_infra
   build_runner_image
   generate_vars
 

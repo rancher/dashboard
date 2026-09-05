@@ -3,12 +3,38 @@
 //
 // Stages: Pre-Clean → Preflight → Checkout → Disk → Run Tests → Grab Results
 //   finally: Clean Test Environment → Cleanup Executor → Test Report
+//
+// Both repositories are checked out here. init.sh does no git: it turns Jenkins
+// parameters into vars.yaml and runs the playbook, the same job run.sh does for
+// a local checkout.
 
 def branch = "${env.BRANCH}" != 'null' && "${env.BRANCH}" != '' ? "${env.BRANCH}" : 'master'
 def testExecutionResult = null
 def testsTotal = 0
 def testsFailed = 0
 def testExitCode = null
+
+// The agents intermittently get HTTP 401 from github.com for these public
+// repositories, in bursts lasting minutes. Probing the agent showed curl gets
+// 200 for the same ref listing git is refused, so it is the git endpoint
+// specifically, not credentials. One cheap retry, kept only because a git
+// checkout records a revision on the build and a tarball cannot; the fallback
+// does the work, since waiting bursts out took up to eight minutes and often
+// failed anyway. The durable fix is authenticating the clones, which needs a
+// credential the controller does not have.
+def checkoutWithRetry(String what, Closure body) {
+  List pauses = [20]
+  int attempt = 0
+  retry(pauses.size() + 1) {
+    if (attempt > 0) {
+      int pause = pauses[attempt - 1]
+      echo "${what}: attempt ${attempt + 1}/${pauses.size() + 1} after a failure; pausing ${pause}s before the retry."
+      sleep time: pause, unit: 'SECONDS'
+    }
+    attempt++
+    body()
+  }
+}
 
 timeout(time: 270, unit: 'MINUTES') {
 node('harvester-vpn-1') {
@@ -53,26 +79,224 @@ node('harvester-vpn-1') {
                 '''
                 def tag = (env.VARS_YAML_CONFIG ?: '').find(/rancher_image_tag:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.RANCHER_IMAGE_TAG ?: 'unknown')
                 def cypress = (env.VARS_YAML_CONFIG ?: '').find(/cypress_tags:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.CYPRESS_TAGS ?: '')
-                def repo = (env.VARS_YAML_CONFIG ?: '').find(/rancher_helm_repo:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.RANCHER_HELM_REPO ?: 'rancher-com-rc')
-                def edition = repo.startsWith('rancher-com') || repo == 'rancher-community' ? 'community' : 'prime'
-                currentBuild.description = "${tag} · ${edition} · ${cypress}"
+                // What the row asked for, which is all that is knowable here. A
+                // metadata or prime row resolves its channel inside the
+                // playbook, so rancher_helm_repo is not written for it and
+                // reading it would report every such run as community. The
+                // build type itself is only known once Rancher is up, and the
+                // description is rewritten with it after the run.
+                def source = (env.VARS_YAML_CONFIG ?: '').find(/channel_source:\s*['"]?([^'"\n]+)/) { it[1] } ?: 'fixed'
+                def requested
+                if (source == 'fixed') {
+                  def repo = (env.VARS_YAML_CONFIG ?: '').find(/rancher_helm_repo:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.RANCHER_HELM_REPO ?: 'rancher-com-rc')
+                  requested = repo.startsWith('rancher-com') || repo == 'rancher-community' ? 'community' : 'prime'
+                } else {
+                  requested = "${source} row"
+                }
+                currentBuild.description = "${tag} · ${requested} · ${cypress}"
               }
               stage('Checkout') {
                 deleteDir()
-                checkout([
-                  $class: 'GitSCM',
-                  branches: [[name: "*/${branch}"]],
-                  extensions: scm.extensions.findAll {
-                    !(it instanceof hudson.plugins.git.extensions.impl.CleanCheckout ||
-                      it instanceof hudson.plugins.git.extensions.impl.WipeWorkspace)
-                  },
-                  userRemoteConfigs: scm.userRemoteConfigs
-                ])
-                // init.sh clones qa-infra-automation at runtime
+
+                // ORDER MATTERS. dashboard lands on $WORKSPACE, and the git
+                // plugin empties its target directory before git init, so
+                // qa-infra-automation must be fetched after it or be deleted.
+                //
+                // The refspec names one branch: the default asks for all 32.
+                def dashboardRefspec = "+refs/heads/${branch}:refs/remotes/origin/${branch}"
+                def dashboardUrl = scm.userRemoteConfigs[0].url
+                try {
+                  checkoutWithRetry('dashboard') {
+                    checkout([
+                      $class: 'GitSCM',
+                      branches: [[name: "*/${branch}"]],
+                      // Shallow and tagless: nothing here reads history. An
+                      // inherited CloneOption is dropped so this is not a
+                      // duplicate, and the clean extensions with it, since they
+                      // would take qa-infra-automation on a later build.
+                      extensions: scm.extensions.findAll {
+                        !(it instanceof hudson.plugins.git.extensions.impl.CleanCheckout ||
+                          it instanceof hudson.plugins.git.extensions.impl.CleanBeforeCheckout ||
+                          it instanceof hudson.plugins.git.extensions.impl.WipeWorkspace ||
+                          it instanceof hudson.plugins.git.extensions.impl.CloneOption)
+                      } + [[$class: 'CloneOption', shallow: true, depth: 1, noTags: true, honorRefspec: true, timeout: 5]],
+                      userRemoteConfigs: scm.userRemoteConfigs.collect { remote ->
+                        def cfg = [url: remote.url, refspec: dashboardRefspec]
+                        if (remote.credentialsId) {
+                          cfg['credentialsId'] = remote.credentialsId
+                        }
+                        cfg
+                      }
+                    ])
+                  }
+                } catch (cloneErr) {
+                  // Same fallback as below. This one extracts into $WORKSPACE,
+                  // so it extracts over the top rather than wiping first, which
+                  // would take anything already fetched beside it.
+                  //
+                  // Inline rather than a cypress/jenkins/*.sh file: this runs
+                  // because the checkout of that very repository failed, so no
+                  // script from it is on disk yet. Jenkins also asks for one
+                  // large sh step over several small ones, since only Groovy
+                  // costs the controller. See pipeline-best-practices.
+                  echo "dashboard: git checkout failed (${cloneErr}). Falling back to the source tarball."
+                  def dashSlug = dashboardUrl
+                    .replaceFirst(/^https?:\/\/github\.com\//, '')
+                    .replaceFirst(/\.git$/, '')
+                  withEnv(["DASH_SLUG=${dashSlug}", "DASH_BRANCH=${branch}"]) {
+                    sh '''#!/bin/bash
+                      set -euo pipefail
+                      # Resolve the branch to a commit first, so the fallback
+                      # records which revision it took and fetches that exact
+                      # tree, which is what a git checkout gives and a branch
+                      # tarball does not. See the qa-infra fallback below.
+                      api="https://api.github.com/repos/${DASH_SLUG}/commits/${DASH_BRANCH}"
+                      sha=$(curl -fsSL --retry 3 --retry-delay 5 --retry-all-errors \
+                              --max-time 60 -H 'Accept: application/vnd.github.sha' \
+                              "${api}" 2>/dev/null || true)
+                      if [[ "${sha}" =~ ^[0-9a-f]{40}$ ]]; then
+                        ref="${sha}"
+                        echo "[tarball] ${DASH_BRANCH} is ${sha}"
+                      else
+                        ref="refs/heads/${DASH_BRANCH}"
+                        echo "[tarball] could not resolve a commit, taking the branch tip unpinned"
+                      fi
+                      url="https://codeload.github.com/${DASH_SLUG}/tar.gz/${ref}"
+                      echo "[tarball] GET ${url}"
+                      rm -f dashboard-src.tar.gz
+                      curl -fsSL --retry 5 --retry-delay 20 --retry-all-errors \
+                        --max-time 600 -o dashboard-src.tar.gz "${url}"
+                      # Recorded for audit, not enforced. GitHub does not
+                      # guarantee its archives are byte-stable, so a pinned hash
+                      # would break on a compression change rather than on an
+                      # attack. The commit ID below is the integrity control.
+                      echo "[tarball] sha256 $(sha256sum dashboard-src.tar.gz | cut -d" " -f1)"
+                      # git archive names the top directory <repo>-<ref>, so when
+                      # a commit was requested this proves the archive really is
+                      # that commit's tree and not another ref.
+                      listing=$(tar -tzf dashboard-src.tar.gz)
+                      first=${listing%%$'\n'*}
+                      top=${first%%/*}
+                      if [ -n "${sha}" ] && [ "${top}" != "${DASH_SLUG##*/}-${sha}" ]; then
+                        echo "[tarball] REFUSING: archive is '${top}', expected '${DASH_SLUG##*/}-${sha}'"
+                        exit 1
+                      fi
+                      [ -n "${sha}" ] && echo "[tarball] verified: archive holds the tree of ${sha}"
+                      tar -xzf dashboard-src.tar.gz --strip-components=1
+                      rm -f dashboard-src.tar.gz
+                      echo "[tarball] extracted $(find cypress/jenkins -type f 2>/dev/null | wc -l) files under cypress/jenkins"
+                    '''
+                  }
+                }
+
+                // qa-infra-automation carries the playbook. init.sh used to
+                // clone it with raw git, which meant a second retry policy to
+                // keep in step and a clone Jenkins knew nothing about.
+                def qaInfraRepo = env.QA_INFRA_REPO ?: 'https://github.com/rancher/qa-infra-automation.git'
+                def qaInfraBranch = env.QA_INFRA_BRANCH ?: 'main'
+                def qaInfraDir = 'qa-infra-automation'
+                def qaInfraPlaybook = "${qaInfraDir}/ansible/testing/dashboard-e2e/dashboard-e2e-playbook.yml"
+                try {
+                  checkoutWithRetry(qaInfraDir) {
+                    // dir() rather than the RelativeTargetDirectory extension,
+                    // which the git plugin deprecates for Pipeline jobs.
+                    dir(qaInfraDir) {
+                      checkout(
+                        // Not this job's code under test, so it contributes no
+                        // changelog and must never make this job poll for it.
+                        changelog: false,
+                        poll: false,
+                        scm: [
+                          $class: 'GitSCM',
+                          branches: [[name: "*/${qaInfraBranch}"]],
+                          extensions: [
+                            [$class: 'CloneOption', shallow: true, depth: 1, noTags: true, honorRefspec: true, timeout: 5]
+                          ],
+                          userRemoteConfigs: [[
+                            url: qaInfraRepo,
+                            refspec: "+refs/heads/${qaInfraBranch}:refs/remotes/origin/${qaInfraBranch}"
+                          ]]
+                        ]
+                      )
+                    }
+                  }
+                  echo "qa-infra-automation (${qaInfraBranch}) at ${sh(script: "git -C ${qaInfraDir} rev-parse --short HEAD", returnStdout: true).trim()}"
+                } catch (cloneErr) {
+                  // Fall back to the source tarball, served by codeload over
+                  // plain HTTPS while the git endpoint refuses this agent, and a
+                  // third of the size. Nothing downstream needs the repository,
+                  // only the tree: the only git command run against it is the
+                  // rev-parse above, which is why the echo differs below.
+                  //
+                  // Twin of the dashboard fallback above and deliberately not
+                  // shared with it: that one runs when its own repository failed
+                  // to arrive, so it can reach no file, and hoisting the common
+                  // shell into a Groovy string would put a CPS local on a path
+                  // that only runs during an outage. Fix the two together.
+                  echo "qa-infra-automation: git checkout failed (${cloneErr}). Falling back to the source tarball."
+                  def slug = qaInfraRepo
+                    .replaceFirst(/^https?:\/\/github\.com\//, '')
+                    .replaceFirst(/\.git$/, '')
+                  withEnv(["QA_INFRA_SLUG=${slug}",
+                           "QA_INFRA_BRANCH_NAME=${qaInfraBranch}",
+                           "QA_INFRA_DIR_NAME=${qaInfraDir}"]) {
+                    sh '''#!/bin/bash
+                      set -euo pipefail
+                      # Resolve the branch to a commit first, so the build
+                      # records which revision it took. api.github.com is a
+                      # different endpoint from the git one refusing this
+                      # agent; if it fails the branch tip still works,
+                      # unpinned, so this can only add provenance.
+                      api="https://api.github.com/repos/${QA_INFRA_SLUG}/commits/${QA_INFRA_BRANCH_NAME}"
+                      sha=$(curl -fsSL --retry 3 --retry-delay 5 --retry-all-errors \
+                              --max-time 60 -H 'Accept: application/vnd.github.sha' \
+                              "${api}" 2>/dev/null || true)
+                      if [[ "${sha}" =~ ^[0-9a-f]{40}$ ]]; then
+                        ref="${sha}"
+                        echo "[tarball] ${QA_INFRA_BRANCH_NAME} is ${sha}"
+                      else
+                        ref="refs/heads/${QA_INFRA_BRANCH_NAME}"
+                        echo "[tarball] could not resolve a commit, taking the branch tip unpinned"
+                      fi
+                      url="https://codeload.github.com/${QA_INFRA_SLUG}/tar.gz/${ref}"
+                      echo "[tarball] GET ${url}"
+                      rm -rf "${QA_INFRA_DIR_NAME}" "${QA_INFRA_DIR_NAME}.tar.gz"
+                      # Last resort: a failure leaves no playbook at all.
+                      curl -fsSL --retry 5 --retry-delay 20 --retry-all-errors \
+                        --max-time 300 -o "${QA_INFRA_DIR_NAME}.tar.gz" "${url}"
+                      # As above: the hash is recorded, the commit ID is what
+                      # is enforced.
+                      echo "[tarball] sha256 $(sha256sum "${QA_INFRA_DIR_NAME}.tar.gz" | cut -d" " -f1)"
+                      listing=$(tar -tzf "${QA_INFRA_DIR_NAME}.tar.gz")
+                      first=${listing%%$'\n'*}
+                      top=${first%%/*}
+                      if [ -n "${sha}" ] && [ "${top}" != "${QA_INFRA_SLUG##*/}-${sha}" ]; then
+                        echo "[tarball] REFUSING: archive is '${top}', expected '${QA_INFRA_SLUG##*/}-${sha}'"
+                        exit 1
+                      fi
+                      [ -n "${sha}" ] && echo "[tarball] verified: archive holds the tree of ${sha}"
+                      mkdir -p "${QA_INFRA_DIR_NAME}"
+                      # Strip the single <repo>-<branch>/ top directory so the
+                      # result matches the clone layout.
+                      tar -xzf "${QA_INFRA_DIR_NAME}.tar.gz" -C "${QA_INFRA_DIR_NAME}" --strip-components=1
+                      rm -f "${QA_INFRA_DIR_NAME}.tar.gz"
+                      echo "[tarball] extracted $(find "${QA_INFRA_DIR_NAME}" -type f | wc -l) files"
+                    '''
+                  }
+                  echo "qa-infra-automation (${qaInfraBranch}) from tarball, no git metadata"
+                }
+
+                // Fail here, where the cause is on screen, rather than in
+                // init.sh two stages later.
+                if (!fileExists(qaInfraPlaybook)) {
+                  error("Checkout: ${qaInfraDir} is missing the dashboard-e2e playbook after checkout.")
+                }
               }
               // In the repo, so it cannot run before Checkout.
               stage('Disk') {
-                sh 'cypress/jenkins/disk-report.sh before'
+                if (fileExists('cypress/jenkins/disk-report.sh')) {
+                  sh 'cypress/jenkins/disk-report.sh before'
+                }
               }
               stage('Run Tests') {
                 timeout(time: 180, unit: 'MINUTES') {
@@ -91,16 +315,41 @@ node('harvester-vpn-1') {
                 sh 'test -f results.xml && echo "results.xml found" || echo "results.xml not found"'
                 sh 'test -d html && echo "html/ report found" || echo "html/ report not found"'
               }
+              // Restate the description now that the run knows what it got. The
+              // Preflight version can only name what the row asked for; the
+              // playbook resolves the chart and asks the deployed Rancher which
+              // build it is, and writes both here.
+              if (fileExists('notification_values.txt')) {
+                def resolved = [:]
+                readFile('notification_values.txt').split('\n').each { line ->
+                  def kv = line.split('=', 2)
+                  if (kv.size() == 2) {
+                    resolved[kv[0].trim()] = kv[1].trim()
+                  }
+                }
+                def ranTag = resolved['RANCHER_IMAGE_TAG']
+                def ranType = resolved['RANCHER_BUILD_TYPE']
+                def ranTags = resolved['CYPRESS_TAGS']
+                if (ranTag && ranType) {
+                  currentBuild.description = "${ranTag} · ${ranType} · ${ranTags ?: ''}"
+                }
+              }
               // Always destroy infra unless CLEANUP is explicitly set to false/no/0
               def skipCleanup = "${env.CLEANUP}".toLowerCase() in ['false', 'no', '0']
               if (!skipCleanup) {
                 try {
                   stage('Clean Test Environment') {
                     timeout(time: 15, unit: 'MINUTES') {
-                      sh """#!/bin/bash
-                        set +x
-                        bash cypress/jenkins/init.sh destroy || true
-                      """
+                      // A build that failed in Checkout has no init.sh to run
+                      // and provisioned nothing to destroy.
+                      if (fileExists('cypress/jenkins/init.sh')) {
+                        sh """#!/bin/bash
+                          set +x
+                          bash cypress/jenkins/init.sh destroy || true
+                        """
+                      } else {
+                        echo 'No checkout to clean up: the build did not get past Checkout.'
+                      }
                     }
                   }
                 } catch (destroyErr) {
@@ -177,7 +426,11 @@ node('harvester-vpn-1') {
                 currentBuild.result = 'FAILURE'
               }
 
-              if (currentBuild.result != 'SUCCESS') {
+              // ABORTED is someone stopping the build on purpose, so there is
+              // nothing to report: the result is already known to whoever
+              // pressed stop, and posting it pages a channel about a decision
+              // rather than a failure.
+              if (currentBuild.result != 'SUCCESS' && currentBuild.result != 'ABORTED') {
                 if ("${env.SLACK_NOTIFICATION}".toLowerCase() != 'false') {
                   withEnv(["SLACK_BUILD_STATUS=${currentBuild.result}",
                            "TESTS_TOTAL=${testsTotal}",

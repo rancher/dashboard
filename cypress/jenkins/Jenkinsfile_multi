@@ -1,14 +1,120 @@
 #!groovy
 
-def branch = "${env.BRANCH}" != 'null' && "${env.BRANCH}" != '' ? "${env.BRANCH}" : 'master'
-def test_tags = "${env.TEST_TAGS}".split(',').collect { it.trim() }.findAll { it }
-def k8s_versions = "${env.K3S_KUBERNETES_VERSIONS}".split(',').collect { it.trim() }.findAll { it }
-def all_cypress_tags = "${env.CYPRESS_TAGS}".split('\\|').collect { it.trim() }.findAll { it }
+// Jenkinsfile_multi: parent job for the Rancher Dashboard E2E matrix.
+//
+// A row names a Rancher minor and a kind; the child resolves the channel at run
+// time, which is what lets one job cover both editions. Kinds mix freely.
+//
+//   TEST_MATRIX = "metadata:head, prime:v2.14:v1.35.2+k3s1, prime-ga:v2.13:v1.34.5+k3s1"
+//
+// | Kind          | Tag shape     | Channel comes from                          |
+// |---------------|---------------|---------------------------------------------|
+// | metadata:     | head, -head   | the branch's registry key in branches-metadata|
+// | prime:        | vX.Y          | newest Prime chart on the release ladder: an |
+// |               |               | rc or alpha once the next patch opens        |
+// | prime-ga:     | vX.Y, vX.Y.Z  | shipped Prime releases only                  |
+// | community-ga: | vX.Y, vX.Y.Z  | shipped Community releases only              |
+// | community:    | head, -head   | the fixed Community channel on Docker Hub    |
+//
+// The optional third field pins Kubernetes for that row. Only a metadata: row
+// reads e2e.kube.version from the file, so pin it on every other kind or they
+// keep the base config's single value.
+//
+// Every row is crossed with CYPRESS_TAGS, so N rows and M tag sets launch N*M
+// children, in batches sized by available memory and CPU.
+
+// BRANCH is passed through to each child, not used here.
+// unique() as well as trim: a repeated tag set would otherwise multiply every
+// row by it, launching identical children on their own clusters.
+def all_cypress_tags = "${env.CYPRESS_TAGS}".split('\\|').collect { it.trim() }.findAll { it }.unique()
 def baseConfig = env.VARS_YAML_CONFIG ?: ''
 def batchSizeRaw = env.BATCH_SIZE?.trim() ?: env.MAX_CHILD_BUILDS?.trim() ?: "4"
 def estimatedRunMbRaw = env.ESTIMATED_RUN_MB?.trim() ?: "2500"
 def ramReserveMbRaw = env.RAM_RESERVE_MB?.trim() ?: "8192"
 def batchSizeCapRaw = env.BATCH_SIZE_CAP?.trim() ?: "4"
+
+// What each kind resolves to in the child. channel_source is read by
+// qa-infra-automation tasks/resolve-channel.yml; repo is only consulted when
+// the source is fixed.
+def KIND_CHANNEL = [
+    metadata:       [source: 'metadata',     repo: ''],
+    prime:          [source: 'prime',        repo: ''],
+    'prime-ga':     [source: 'prime-ga',     repo: ''],
+    'community-ga': [source: 'community-ga', repo: ''],
+    community:      [source: 'fixed',        repo: 'rancher-com-rc']
+]
+
+// Kinds that name a shipped release rather than a branch head, so they take a
+// minor or a full version. The edition is part of the kind: 2.15.1 exists in
+// both channels and they are different builds.
+def GA_KINDS = ['prime-ga', 'community-ga']
+
+// A row is one deployment, parsed from TEST_MATRIX.
+//
+// The older TEST_TAGS + K3S_KUBERNETES_VERSIONS pair is gone. It matched
+// Kubernetes versions to tags by position, so reordering one list and not the
+// other passed the length check and silently gave every row the wrong version,
+// and it had no kind at all: the edition came from which of the two parent jobs
+// was running, which is the duplication this job removes.
+def rows = []
+def matrixSpec = env.TEST_MATRIX?.trim() ?: ''
+if (!matrixSpec) {
+    error("TEST_MATRIX is empty. Each row is kind:tag[:k8s_version], such as " +
+          "'metadata:v2.15-head' or 'prime:v2.14:v1.35.2+k3s1'. A job still " +
+          "configured with the older TEST_TAGS and K3S_KUBERNETES_VERSIONS " +
+          "pair lands here: those are replaced by TEST_MATRIX, and the job " +
+          "definition needs updating with it.")
+}
+
+matrixSpec.split(',').collect { it.trim() }.findAll { it }.each { String spec ->
+    def parts = spec.split(':').collect { it.trim() }
+    if (parts.size() < 2 || !parts[0] || !parts[1]) {
+        error("TEST_MATRIX row '${spec}' is not kind:tag[:k8s_version].")
+    }
+    String kind = parts[0]
+    String tag = parts[1]
+    // Rejoin so a future format with a ':' cannot be silently truncated.
+    String k8s = parts.size() > 2 ? parts[2..-1].join(':') : ''
+    if (!KIND_CHANNEL.containsKey(kind)) {
+        // Case and underscores are the likely slips, so name the correction
+        // rather than only the valid set. Plain string operations: a Matcher
+        // here would not survive the pipeline.
+        String guess = kind.toLowerCase().replace('_', '-')
+        String hint = KIND_CHANNEL.containsKey(guess) ? " Did you mean '${guess}'?" : ''
+        error("TEST_MATRIX row '${spec}' has unknown kind '${kind}'. Valid: ${KIND_CHANNEL.keySet().join(', ')}.${hint}")
+    }
+    // Two rows run together read as one row with a space in the tag, and the
+    // kind-specific message below would then blame the tag rather than the
+    // missing comma.
+    if (tag.contains(' ')) {
+        error("TEST_MATRIX row '${spec}': rows are separated by commas, not spaces, " +
+              "so '${tag}' was read as one tag. Add a comma between the rows.")
+    }
+    // Fail here rather than after the child has provisioned AWS.
+    if (kind == 'prime' && !(tag ==~ /^v?\d+\.\d+$/)) {
+        error("TEST_MATRIX row '${spec}': a prime row needs a minor version such as v2.14, got '${tag}'.")
+    }
+    // A GA row also takes a full version, which pins one shipped release rather
+    // than tracking the newest patch of the minor.
+    if (kind in GA_KINDS && !(tag ==~ /^v?\d+\.\d+(\.\d+)?$/)) {
+        error("TEST_MATRIX row '${spec}': a ${kind} row needs a minor such as v2.15 or a full version such as v2.15.1, got '${tag}'.")
+    }
+    if (kind != 'prime' && !(kind in GA_KINDS) && !(tag == 'head' || tag.endsWith('-head'))) {
+        error("TEST_MATRIX row '${spec}': a ${kind} row needs a branch head such as v2.14-head or head, got '${tag}'.")
+    }
+    // Deduplicated on the identity that decides what gets deployed, so a
+    // repeated row costs one cluster rather than two identical ones. The tag is
+    // normalised because "prime-ga:v2.14.5" and "prime-ga:2.14.5" resolve to the
+    // same chart. k8s is part of the identity: the same tag on two Kubernetes
+    // versions is two different tests, not a duplicate.
+    String identity = "${kind}:${tag.toLowerCase().replaceFirst(/^v/, '')}:${k8s}"
+    if (rows.any { it.identity == identity }) {
+        echo "TEST_MATRIX row '${spec}' repeats an earlier row, so it is only run once."
+    } else {
+        rows << [kind: kind, tag: tag, k8s: k8s, identity: identity]
+    }
+}
+
 if (!batchSizeRaw.isInteger()) {
     error("BATCH_SIZE must be a positive integer, got '${batchSizeRaw}'.")
 }
@@ -16,7 +122,7 @@ if (!estimatedRunMbRaw.isInteger()) {
     error("ESTIMATED_RUN_MB must be a positive integer, got '${estimatedRunMbRaw}'.")
 }
 if (!ramReserveMbRaw.isInteger()) {
-    error("RAM_RESERVE_MB must be a positive integer, got '${ramReserveMbRaw}'.")
+    error("RAM_RESERVE_MB must be a whole number of MB, got '${ramReserveMbRaw}'.")
 }
 if (!batchSizeCapRaw.isInteger()) {
     error("BATCH_SIZE_CAP must be a positive integer, got '${batchSizeCapRaw}'.")
@@ -25,23 +131,16 @@ def batchSize = batchSizeRaw.toInteger()
 def estimatedRunMb = estimatedRunMbRaw.toInteger()
 def ramReserveMb = ramReserveMbRaw.toInteger()
 def batchSizeCap = batchSizeCapRaw.toInteger()
-def requestedFanout = test_tags.size() * all_cypress_tags.size()
 
 // Fail early on bad parameters
 if (!baseConfig.trim()) {
     error("VARS_YAML_CONFIG is empty. Provide a valid YAML configuration.")
 }
-if (test_tags.isEmpty()) {
-    error("TEST_TAGS is empty after trimming.")
-}
-if (k8s_versions.isEmpty()) {
-    error("K3S_KUBERNETES_VERSIONS is empty after trimming.")
+if (rows.isEmpty()) {
+    error("No rows to run: TEST_MATRIX is empty after trimming.")
 }
 if (all_cypress_tags.isEmpty()) {
     error("CYPRESS_TAGS is empty after trimming.")
-}
-if (test_tags.size() != k8s_versions.size()) {
-    error("TEST_TAGS (${test_tags.size()}) and K3S_KUBERNETES_VERSIONS (${k8s_versions.size()}) must have the same number of entries.")
 }
 if (batchSize < 1) {
     error("BATCH_SIZE must be >= 1, got ${batchSize}.")
@@ -61,16 +160,96 @@ if (batchSizeCap < 1) {
     }
 }
 
-def childRuns = []
-test_tags.eachWithIndex { String rancher_version, int i ->
-    String k8s_version = k8s_versions[i]
-    for (String ct : all_cypress_tags) {
-        childRuns << [
-            rancher_version: rancher_version,
-            k8s_version:     k8s_version,
-            cypress_tags:    ct
-        ]
+// Set a top-level key in the YAML blob, replacing it when present and appending
+// it when not: a base config written before this change has no line to replace.
+def setConfigKey = { String cfg, String key, String value ->
+    boolean present = cfg.split('\n').any { it.trim().startsWith("${key}:") }
+    if (present) {
+        return cfg.replaceAll("(?m)^${key}:.*\$", "${key}: \"${value}\"")
     }
+    return cfg.trim() + "\n${key}: \"${value}\"\n"
+}
+
+// The newest GA patch a minor has in a set of chart channels, or -1 for none.
+// Returns null when a channel could not be read, which is not the same as a
+// channel with nothing in it: dropping on unreadable data would remove healthy
+// rows whenever the network hiccups. A 404 is a retired channel and counts as
+// empty, since the release team is consolidating these repositories.
+def newestGaPatch = { List channels, String minor ->
+    int best = -1
+    for (String url : channels) {
+        // One call: the HTTP status and the body, separated by a marker, so the
+        // two can never disagree about which request they describe.
+        String out = sh(
+            script: """set -o pipefail
+                       code=\$(curl -sSL -o /tmp/idx.\$\$ -w '%{http_code}' --max-time 60 --retry 2 '${url}/index.yaml' 2>/dev/null || echo 000)
+                       echo "STATUS:\${code}"
+                       grep -oE 'version: [0-9]+[.][0-9]+[.][0-9]+\$' /tmp/idx.\$\$ 2>/dev/null || true
+                       rm -f /tmp/idx.\$\$""",
+            returnStdout: true
+        ).trim()
+        // No Matcher survives past this point. Jenkins serializes the whole
+        // scope at every step, and java.util.regex.Matcher is not
+        // serializable, so holding one in a variable fails the build at the
+        // next sh() with NotSerializableException. Groovy parsing does not
+        // catch it: it is a runtime property of the CPS transform.
+        String status = '000'
+        for (String l : out.split('\n')) {
+            if (l.startsWith('STATUS:')) { status = l.substring(7).trim() }
+        }
+        if (status == '404') { continue }
+        if (status != '200') { return null }
+        String prefix = 'version: ' + minor + '.'
+        for (String l : out.split('\n')) {
+            String t = l.trim()
+            if (!t.startsWith(prefix)) { continue }
+            String patch = t.substring(prefix.length())
+            if (patch.isInteger()) { best = Math.max(best, patch.toInteger()) }
+        }
+    }
+    return best
+}
+
+// A Community minor has stopped when the newest Prime GA is ahead of the newest
+// Community GA. A recently rebuilt -head image is not evidence otherwise: head
+// images keep building after releases stop, which is how a 2.13 row stayed green
+// against a frozen image. qa-tasks#2410, and docs/jenkins.md.
+//
+// This lives in the parent, not the Ansible resolver, because it is the only
+// place that can act before the cost: the resolver runs inside a child that has
+// already provisioned AWS. The parent decides whether a row has anything behind
+// it at all; the resolver still owns which chart and image the row becomes.
+def COMMUNITY_CHANNELS = ['https://releases.rancher.com/server-charts/stable',
+                          'https://releases.rancher.com/server-charts/latest',
+                          'https://releases.rancher.com/server-charts/alpha']
+def PRIME_CHANNELS = ['https://charts.rancher.com/server-charts/prime',
+                      'https://charts.optimus.rancher.io/server-charts/latest',
+                      'https://charts.optimus.rancher.io/server-charts/alpha']
+
+def dropReason = { row ->
+    // community-ga is dropped on the same signal: a minor whose Community
+    // releases have stopped serves a frozen chart, and community 2.13.3 against
+    // Prime 2.13.9 is exactly that. A prime-ga: row is not dropped here; if the
+    // release it names is absent the child says so in seconds, before any AWS.
+    if (!(row.kind in ['community', 'community-ga'])) { return null }
+    // Same reason: extract with a replace rather than holding a Matcher.
+    String minor = row.tag.replaceFirst(/^v?([0-9]+[.][0-9]+).*$/, '$1')
+    if (!(minor ==~ /^[0-9]+[.][0-9]+$/)) { return null }
+    Integer comm = newestGaPatch(COMMUNITY_CHANNELS, minor)
+    Integer prime = newestGaPatch(PRIME_CHANNELS, minor)
+    if (comm == null || prime == null) {
+        echo "  row ${row.kind}:${row.tag}: a chart channel could not be read, keeping the row"
+        return null
+    }
+    if (comm >= 0 && prime > comm) {
+        return "Community stopped at ${minor}.${comm} while Prime is at ${minor}.${prime}"
+    }
+    // Neither edition has a release. That is a new minor, not a stopped one:
+    // 2.16 ships Community first and has no GA on either side until 2.16.1, so
+    // its Community head build is the only thing testing it. Dropping here
+    // would remove coverage from the newest minor, the exact opposite of the
+    // intent. A tag that genuinely does not exist fails in the child instead.
+    return null
 }
 
 node {
@@ -83,36 +262,104 @@ node {
         ).trim().toInteger()
         int cpuCount = sh(script: "nproc", returnStdout: true).trim().toInteger()
 
+        // Keep this between the machine facts above and the batching below: a
+        // CPS local does not survive an sh() step, so moving it fails at run
+        // time with MissingPropertyException, which parsing does not catch.
+        def dropped = []
+        def keptRows = []
+        rows.each { r ->
+          String why = dropReason(r)
+          if (why) {
+            dropped << "${r.kind}:${r.tag} (${why})"
+          } else {
+            keptRows << r
+          }
+        }
+        if (dropped) {
+          echo "Dropped ${dropped.size()} row(s) with nothing behind them:"
+          dropped.each { echo "  ${it}" }
+          currentBuild.description = ([currentBuild.description, "dropped: ${dropped.size()}"] - null).join(' | ')
+        }
+        // Rebuilt from the surviving rows rather than filtered from childRuns:
+        // childRuns is a script-scope local and reading it here is exactly the
+        // dependency that failed. This is the same product that built it.
+        def liveChildRuns = []
+        keptRows.each { r ->
+          all_cypress_tags.each { ct -> liveChildRuns << [row: r, cypress_tags: ct] }
+        }
+        if (!liveChildRuns) {
+          error("Every TEST_MATRIX row was dropped, so there is nothing to run. " +
+                "Dropped: ${dropped.join('; ')}. A stopped Community minor is still " +
+                "testable as prime-ga:<minor> or metadata:<branch head>.")
+        }
+
         int ramBound = (memAvailableMb - ramReserveMb) / estimatedRunMb
         int cpuBound = Math.max(1, cpuCount - 1)
         int staticBound = Math.min(batchSize, batchSizeCap)
-        int dynamicBatchSize = Math.min(requestedFanout, Math.max(1, Math.min(staticBound, Math.min(ramBound, cpuBound))))
+        int dynamicBatchSize = Math.min(liveChildRuns.size(), Math.max(1, Math.min(staticBound, Math.min(ramBound, cpuBound))))
 
         echo "Dynamic batching inputs: mem_available_mb=${memAvailableMb}, cpus=${cpuCount}, estimated_run_mb=${estimatedRunMb}, ram_reserve_mb=${ramReserveMb}, static_batch=${batchSize}, batch_cap=${batchSizeCap}, ram_bound=${ramBound}, cpu_bound=${cpuBound}"
-        echo "Fan-out plan: TEST_TAGS=${test_tags.size()}, CYPRESS_TAGS=${all_cypress_tags.size()}, requested=${requestedFanout}, effective_batch_size=${dynamicBatchSize}"
+        echo "Fan-out plan: rows=${keptRows.size()}, CYPRESS_TAGS=${all_cypress_tags.size()}, requested=${liveChildRuns.size()}, effective_batch_size=${dynamicBatchSize}"
+        keptRows.each { r ->
+          echo "  row ${r.kind}:${r.tag}${r.k8s ? ' (k8s ' + r.k8s + ')' : ''}"
+        }
 
         int batchNumber = 0
-        for (int offset = 0; offset < childRuns.size(); offset += dynamicBatchSize) {
+        // Child results are collected rather than propagated. propagate: false
+        // stops one failing row aborting the batch, but on its own it also lets
+        // the parent finish green while every child failed, which is a scheduled
+        // matrix reporting success having proved nothing.
+        //
+        // A plain map, not a ConcurrentHashMap: the sandbox rejects constructing
+        // one, and CPS runs parallel branches on a single thread, so distinct
+        // keys need no synchronisation.
+        def childResults = [:]
+        for (int offset = 0; offset < liveChildRuns.size(); offset += dynamicBatchSize) {
           batchNumber += 1
-          int endExclusive = Math.min(offset + dynamicBatchSize, childRuns.size())
-          def batch = new ArrayList(childRuns.subList(offset, endExclusive))
+          int endExclusive = Math.min(offset + dynamicBatchSize, liveChildRuns.size())
+          def batch = new ArrayList(liveChildRuns.subList(offset, endExclusive))
 
-          echo "Launching batch ${batchNumber}: jobs ${offset + 1}-${endExclusive} of ${childRuns.size()} (size=${batch.size()})"
+          echo "Launching batch ${batchNumber}: jobs ${offset + 1}-${endExclusive} of ${liveChildRuns.size()} (size=${batch.size()})"
 
           def batchBranches = [:]
           batch.eachWithIndex { runCfg, int idx ->
             def cfg = runCfg
             int ordinal = offset + idx + 1
-            String branchName = "child-${ordinal}-${cfg.rancher_version}-${cfg.cypress_tags}"
+            String branchName = "child-${ordinal}-${cfg.row.kind}-${cfg.row.tag}-${cfg.cypress_tags}"
 
             batchBranches[branchName] = {
+              def channel = KIND_CHANNEL[cfg.row.kind] ?: [source: 'fixed', repo: '']
               def childConfig = baseConfig
-                  .replaceAll(/(?m)^rancher_image_tag:.*$/, "rancher_image_tag: \"${cfg.rancher_version}\"")
-                  .replaceAll(/(?m)^k3s_kubernetes_version:.*$/, "k3s_kubernetes_version: \"${cfg.k8s_version}\"")
-                  .replaceAll(/(?m)^cypress_tags:.*$/, "cypress_tags: \"${cfg.cypress_tags}\"")
+              childConfig = setConfigKey(childConfig, 'rancher_image_tag', cfg.row.tag)
+              childConfig = setConfigKey(childConfig, 'cypress_tags', cfg.cypress_tags)
+              childConfig = setConfigKey(childConfig, 'channel_source', channel.source)
+              // Only a fixed row states a channel. Blank the others rather
+              // than leaving the base config's rancher-com-rc behind, which
+              // would advertise Community on a prime row the resolver then
+              // overwrites.
+              childConfig = setConfigKey(childConfig, 'rancher_helm_repo', channel.repo ?: '')
+              // A row without its own Kubernetes version leaves the base config
+              // alone, so a metadata row takes it from branches-metadata.json
+              // where that branch fills the key in, and keeps the base value
+              // where it does not.
+              if (cfg.row.k8s) {
+                childConfig = setConfigKey(childConfig, 'k3s_kubernetes_version', cfg.row.k8s)
+              }
 
-              echo "Launching child ${ordinal}/${childRuns.size()} — RANCHER_TAG=${cfg.rancher_version}, K8S_VERSION=${cfg.k8s_version}, CYPRESS_TAGS=${cfg.cypress_tags}"
-              def childBuild = build(job: 'ui-automation-ansible-job', parameters: [
+              // channel_source says how the channel is found, not which one it is:
+              // a community row resolves nothing, so it reads "fixed" and the
+              // channel itself is in the repo. Print both, or the line looks
+              // like it says nothing about the edition.
+              echo "Launching child ${ordinal}/${liveChildRuns.size()}: KIND=${cfg.row.kind}, RANCHER_TAG=${cfg.row.tag}, CHANNEL_SOURCE=${channel.source}${channel.repo ? " (repo ${channel.repo})" : ' (resolved at run time)'}, K8S_VERSION=${cfg.row.k8s ?: '(from config or metadata)'}, CYPRESS_TAGS=${cfg.cypress_tags}"
+              // Parameterised so a second copy of this matrix can run beside
+              // the real one without colliding on the same child job. The
+              // fallback names the child that exists today, so a blank
+              // parameter still targets a real job. It does not keep the old
+              // parents alive: those pass TEST_TAGS and stop at the check
+              // above, which is why their job definitions land together with
+              // this file. See docs/jenkins.md.
+              def childJob = env.CHILD_JOB?.trim() ?: 'ui-automation-ansible-job'
+              def childBuild = build(job: childJob, parameters: [
                   text(name: 'VARS_YAML_CONFIG', value: childConfig),
                   string(name: 'BRANCH', value: "${BRANCH}"),
                   string(name: 'QA_INFRA_REPO', value: "${QA_INFRA_REPO}"),
@@ -121,13 +368,30 @@ node {
                   string(name: 'SLACK_NOTIFICATION', value: "${SLACK_NOTIFICATION}"),
                   string(name: 'ANSIBLE_VERBOSITY', value: "${ANSIBLE_VERBOSITY}")
               ], propagate: false, wait: true)
-              echo "Child ${ordinal}/${childRuns.size()} finished: result=${childBuild.result}, url=${childBuild.absoluteUrl}"
+              echo "Child ${ordinal}/${liveChildRuns.size()} finished: result=${childBuild.result}, url=${childBuild.absoluteUrl}"
+              childResults[branchName] = (childBuild.result ?: 'UNKNOWN') as String
             }
           }
 
           timeout(time: 270, unit: 'MINUTES') {
             parallel batchBranches
           }
+        }
+
+        // Take the worst child result. A child that failed to start at all is
+        // recorded as UNKNOWN and counted as a failure, since a row nobody ran
+        // is not a row that passed.
+        def failed = childResults.findAll { k, v -> !(v in ['SUCCESS']) }
+        echo "Child results: ${childResults.size()} of ${liveChildRuns.size()} reported"
+        childResults.each { k, v -> echo "  ${v}  ${k}" }
+        if (childResults.size() < liveChildRuns.size()) {
+          currentBuild.result = 'FAILURE'
+          error("${liveChildRuns.size() - childResults.size()} child build(s) never reported a result.")
+        }
+        if (failed) {
+          def worst = failed.values().any { it != 'UNSTABLE' } ? 'FAILURE' : 'UNSTABLE'
+          currentBuild.result = worst
+          echo "${failed.size()} of ${childResults.size()} children did not pass, so this matrix is ${worst}."
         }
       }
     }
