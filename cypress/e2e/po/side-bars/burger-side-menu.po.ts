@@ -34,9 +34,11 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   static burgerMenuNavToClusterbyLabel(label: string): Cypress.Chainable {
     if (label !== 'local') {
-      new BurgerMenuPo().openClusterSwitcher();
+      const menu = new BurgerMenuPo();
 
-      return new BurgerMenuPo().clusterListRowByLabel(label).click({ force: true });
+      menu.openClusterSwitcher();
+
+      return menu.clusterListRowByLabel(label).click({ force: true });
     }
 
     return this.sideMenu().should('exist').find('.option .cluster-name').contains(label)
@@ -208,8 +210,9 @@ export default class BurgerMenuPo extends ComponentPo {
    * Pin a cluster from the (open) flyout by hovering its row and clicking the pin.
    */
   pinClusterByLabel(label: string): Cypress.Chainable {
-    return this.clusterListRowByLabel(label).first().trigger('mouseover').find('.pin')
-      .invoke('show')
+    // The flyout's pin is hidden with `opacity: 0`, not `display` — Cypress still clicks it, and
+    // neither a synthetic mouseover nor jQuery `show()` would reveal it anyway.
+    return this.clusterListRowByLabel(label).first().find('.pin')
       .click();
   }
 
@@ -227,7 +230,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * Get all the available cluster rows in the (open) switcher flyout
    * @returns {Cypress.Chainable}
    */
-  clusterNotPinnedList(): Cypress.Chainable {
+  clusterSwitcherRows(): Cypress.Chainable {
     return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row');
   }
 

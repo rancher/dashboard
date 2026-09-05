@@ -268,15 +268,33 @@ const explore = (cluster?: TopLevelMenuCluster | null) => {
   setOpen(false);
 };
 
+/**
+ * Keep the keyboard cursor visible: the listbox scrolls (and pages in) independently, so moving the
+ * cursor has to bring its option back into view or the user loses track of it entirely. `nearest`
+ * scrolls as little as it can, so it does nothing while the option is already on screen.
+ */
+const revealActive = () => {
+  // After the render that moved the highlight, so the option to scroll to exists.
+  nextTick(() => {
+    const c = navRows.value[activeIndex.value];
+
+    if (c) {
+      document.getElementById(optionId(c))?.scrollIntoView({ block: 'nearest' });
+    }
+  });
+};
+
 const onKeydown = (e: KeyboardEvent) => {
   switch (e.key) {
   case 'ArrowDown':
     e.preventDefault();
     activeIndex.value = Math.min(activeIndex.value + 1, navRows.value.length - 1);
+    revealActive();
     break;
   case 'ArrowUp':
     e.preventDefault();
     activeIndex.value = Math.max(activeIndex.value - 1, 0);
+    revealActive();
     break;
   case 'Enter': {
     e.preventDefault();

@@ -517,7 +517,10 @@ export const actions = {
         await server.save({ redirectUnauthorized: false });
       }
     } catch (e) {
-      // Well it failed, but not much to do about it — return the error (mirrors `set`).
+      // Every caller is fire-and-forget, so an unlogged failure here is invisible: the optimistic
+      // commit stays in the client and the server never got it.
+      console.error('Error reconciling preferences', keys, e); // eslint-disable-line no-console
+
       const error = e as PrefError;
 
       return { type: error.type, status: error.status };

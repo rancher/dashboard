@@ -74,9 +74,10 @@ describe('Side Menu: main', () => {
       burgerMenuPo.openClusterSwitcher();
       burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'false');
 
-      // Pin it — the row reflects the pinned state immediately.
+      // Pin it — the row reflects the pinned state immediately AND the cluster joins the nav's PINNED shelf.
       burgerMenuPo.pinClusterByLabel(fakeProvClusterId);
       burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'true');
+      burgerMenuPo.clusterPinnedList().should('contain.text', fakeProvClusterId);
 
       // Unpin it — back to the unpinned state.
       burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').click();

@@ -851,6 +851,8 @@ export default class MgmtCluster extends SteveModel {
     }];
 
     // Surface it at the front of RECENT too, unless it's the non-recordable local/blank placeholder.
+    // NOTE: RECENT is otherwise a persisted VISIT log (written only by `recordClusterNavigation` on
+    // `loadCluster`); prepending here records a cluster the user may never have opened.
     if (isRecordableCluster(this.id)) {
       mutations.push(prependRecent(this.id));
     }

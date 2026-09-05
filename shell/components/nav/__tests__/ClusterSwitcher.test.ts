@@ -1,17 +1,27 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
 
 // The component pulls `t` from the useI18n composable (not the old `this.t` global), so mock it here.
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string, args?: any) => (args ? `${ key }:${ JSON.stringify(args) }` : key) }) }));
 
+// jsdom has no layout and no `scrollIntoView`, so the listbox never really scrolls. What these tests
+// can check is which option the keyboard cursor asked to bring into view.
+const scrollIntoView = jest.fn();
+
+Element.prototype.scrollIntoView = scrollIntoView;
+
 const cluster = (id: string, ready = true) => ({
   id, label: id, ready, pinned: false, pin: jest.fn(), unpin: jest.fn()
 });
 
-const mountSwitcher = (props = {}) => shallowMount(ClusterSwitcher, {
+// `attachTo` puts the options in the real document, which the cursor-reveal look-up needs (the flyout is
+// teleported to <body> in the app, so it resolves its options by id off `document`).
+const mountSwitcher = (props = {}, attachTo?: HTMLElement) => shallowMount(ClusterSwitcher, {
   props: {
     all: [], searchResults: [], clusterCount: 0, currentClusterId: '', search: '', ...props
   },
+  attachTo,
   global: {
     stubs: {
       'v-dropdown':       { template: '<div><slot /><slot name="popper" /></div>' },
@@ -59,6 +69,20 @@ describe('component: ClusterSwitcher', () => {
     vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
     vm.onKeydown({ key: 'ArrowUp', preventDefault() {} }); // clamp at first
     expect(vm.activeIndex).toBe(0);
+  });
+
+  it('keeps the keyboard cursor on screen as it moves', async() => {
+    const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 }, document.body);
+    const vm = wrapper.vm as any;
+
+    scrollIntoView.mockClear();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    await nextTick();
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+    expect((scrollIntoView.mock.instances[0] as HTMLElement).id).toBe('cluster-switcher-opt-p2');
+
+    wrapper.unmount();
   });
 
   it('Enter explores the active row', () => {

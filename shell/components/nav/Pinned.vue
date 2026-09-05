@@ -7,8 +7,8 @@ import { useI18n } from '@shell/composables/useI18n';
 interface PinnableCluster {
   pinned: boolean;
   label: string;
-  pin: () => void;
-  unpin: () => void;
+  pin: () => Promise<unknown> | void;
+  unpin: () => Promise<unknown> | void;
 }
 
 interface Props {
@@ -29,11 +29,11 @@ const pinned = computed(() => props.cluster.pinned);
 const popping = ref(false);
 
 async function toggle() {
-  if (pinned.value) {
-    props.cluster.unpin();
-  } else {
-    props.cluster.pin();
-  }
+  // `pin`/`unpin` return the serialized pref write — swallow its rejection here (as `loadCluster` does)
+  // so a failed write can never surface as an unhandled promise rejection.
+  const write = pinned.value ? props.cluster.unpin() : props.cluster.pin();
+
+  Promise.resolve(write).catch(() => {});
 
   popping.value = false;
   await nextTick();

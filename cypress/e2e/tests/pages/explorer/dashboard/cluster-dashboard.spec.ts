@@ -175,7 +175,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
   //   header.customBadge().should('contain', settings.description.new);
   //   const burgerMenu = new BurgerMenuPo();
 
-  //   burgerMenu.clusterNotPinnedList().first().find('span').should('contain', settings.iconText);
+  //   burgerMenu.clusterSwitcherRows().first().find('span').should('contain', settings.iconText);
 
   //   // Reset
   //   clusterDashboard.customizeAppearanceButton().click();
@@ -190,7 +190,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
   //   header.clusterIcon().children().should('have.class', 'cluster-local-logo');
   //   header.clusterName().should('contain', 'local');
   //   header.customBadge().should('not.exist');
-  //   burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
+  //   burgerMenu.clusterSwitcherRows().first().find('svg').should('have.class', 'cluster-local-logo');
   // });
 
   it('can view deployments', () => {

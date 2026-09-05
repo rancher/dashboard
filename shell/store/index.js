@@ -1004,7 +1004,7 @@ export const actions = {
       // Remember the current cluster AND record the visit in the app-bar RECENT shelf in ONE merge write:
       // writing CLUSTER separately raced the recent write on the shared Preference and clobbered the shelf.
       // Fire-and-forget: loading the cluster must not wait on (or fail with) the preference write.
-      recordClusterNavigation(dispatch, id).catch(() => {});
+      recordClusterNavigation(dispatch, id).catch((e) => console.warn('Unable to record cluster navigation', e)); // eslint-disable-line no-console
 
       commit('clusterId', id);
 

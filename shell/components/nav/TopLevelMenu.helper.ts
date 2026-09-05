@@ -1,4 +1,4 @@
-import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
+import { CAPI, LOCAL_CLUSTER, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import { MENU_MAX_RECENT_CLUSTERS, PINNED_CLUSTERS, RECENT_CLUSTERS, SWITCHER_PAGE_SIZE } from '@shell/store/prefs';
 import { STORE } from '@shell/store/store-types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
@@ -202,7 +202,7 @@ export abstract class BaseTopLevelMenuHelper {
 
   // LOCAL = the `local` cluster from the cache (rendered as the fixed top tile).
   public get clustersLocal(): Array<TopLevelMenuCluster> {
-    const c = this.clusterCache['local'];
+    const c = this.clusterCache[LOCAL_CLUSTER];
 
     return c ? [c] : [];
   }
@@ -334,7 +334,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     const pinnedIds = args.pinnedIds || [];
     const recentIds = visibleRecentClusters(args.recentIds, pinnedIds, MENU_MAX_RECENT_CLUSTERS);
     // Union of the ids we care about (deduped); `local` is always present.
-    const contextIds = Array.from(new Set(['local', ...pinnedIds, ...recentIds]));
+    const contextIds = Array.from(new Set([LOCAL_CLUSTER, ...pinnedIds, ...recentIds]));
 
     const r = await this.clustersContextWrapper.request({
       forceWatch: args.forceWatch,
@@ -430,13 +430,13 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     }
 
     if (includeLocal) {
-      filters.push(PaginationParamFilter.createSingleField({ field: 'id', value: 'local' }));
+      filters.push(PaginationParamFilter.createSingleField({ field: 'id', value: LOCAL_CLUSTER }));
     }
 
     if (excludeLocal) {
       // `local` has its own request and fixed top tile, so keep it out of every other slice's results.
       filters.push(PaginationParamFilter.createSingleField({
-        field: 'id', equals: false, value: 'local'
+        field: 'id', equals: false, value: LOCAL_CLUSTER
       }));
     }
 
@@ -570,7 +570,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     const liveIds = new Set(clusters.map((c) => c.id));
 
     Object.keys(this.clusterCache).forEach((id) => {
-      if (id !== 'local' && !liveIds.has(id)) {
+      if (id !== LOCAL_CLUSTER && !liveIds.has(id)) {
         delete this.clusterCache[id];
       }
     });
@@ -649,8 +649,8 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     return sortBy(filtered, ['ready:desc', 'label']);
   }
 
-
-  public async updateCount(count: number) {}
+  /** No-op: the legacy helper holds the whole estate in memory, so there is no saved count to maintain. */
+  public async updateCount() {}
 }
 
 /**

@@ -1053,7 +1053,7 @@ export default {
                 class="cluster selector option"
                 :class="{ 'active-menu-link': localCluster.isMenuActive }"
                 :aria-current="localCluster.isMenuActive ? 'page' : undefined"
-                :data-testid="`menu-cluster-local`"
+                data-testid="menu-cluster-local"
                 role="button"
                 :aria-label="`${ t('nav.ariaLabel.cluster') } ${ localCluster.label }`"
                 @click.prevent="clusterMenuClick($event, localCluster)"
@@ -1487,13 +1487,12 @@ export default {
 </style>
 
 <style lang="scss" scoped>
-  $clear-search-size: 20px;
   $icon-size: 25px;
   $option-padding: 9px;
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
-  // Type scale — the shelf + flyout only use these three sizes.
+  // Type scale — the shelf + flyout only use these two sizes.
   $font-size-sm:    12px;  // meta / status / footer / counts
   $font-size-body:  14px;  // option row text
 
@@ -1505,7 +1504,6 @@ export default {
 
   // Spacing rhythm (4px base) + the shared nav transition, so the repeated paddings/margins/gaps and
   // the show/hide easing come from one place.
-  $space-1: 4px;
   $space-2: 8px;
   $space-4: 16px;
   $space-5: 20px;
@@ -1678,6 +1676,8 @@ export default {
     flex: 1 1 auto;
     min-width: 0;
 
+    // Unavoidable pierce: this is floating-vue's own generated wrapper, which takes neither a prop nor
+    // a slot, and it defaults to `display: inline-block` — which would collapse the trigger's width.
     :deep(.v-popper) {
       display: block;
     }

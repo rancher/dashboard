@@ -1,3 +1,4 @@
+import { LOCAL_CLUSTER } from '@shell/config/types';
 import { CLUSTER, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
@@ -18,7 +19,7 @@ type Mutation = { key: string, apply: (value: PrefValue) => PrefValue };
 
 /** A real, recordable cluster: `local` and `_` (BLANK_CLUSTER) are the current cluster but never listed under RECENT. */
 export function isRecordableCluster(id: string): boolean {
-  return !!id && id !== 'local' && id !== BLANK_CLUSTER;
+  return !!id && id !== LOCAL_CLUSTER && id !== BLANK_CLUSTER;
 }
 
 // RECENT mutation shared by a visit and an unpin: prepend `id` most-recent-first (de-duped), then strip

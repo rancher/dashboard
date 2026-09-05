@@ -298,10 +298,7 @@ nav:
     configuration: Configuration
     hci: HCI
   search:
-    placeholder: Filter clusters by...
-    noResults: No matching clusters
     clusters: clusters
-    ariaLabel: Filter clusters on main menu
     clear: Clear search
   switcher:
     ariaLabel: Cluster switcher
@@ -319,7 +316,11 @@ nav:
     aria:
       clusterList: Cluster list
       searching: Searching clusters
-      results: '{count} clusters'
+      results: |-
+        {count, plural,
+          one {1 cluster}
+          other {# clusters}
+        }
       noResults: No clusters match your search
       notReady: not ready
   header:
