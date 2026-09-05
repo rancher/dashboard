@@ -39,8 +39,10 @@ export interface TopLevelMenuCluster {
   // Meta shown on a cluster-switcher row: distro/provider (e.g. "RKE2", "EKS") and k8s version.
   providerDisplay: string,
   kubernetesVersion: string,
-  pin: () => void,
-  unpin: () => void,
+  // The model routes these through the serialized pref writer, so they resolve with the write's outcome
+  // (`{ type, status }` on failure) — callers must not drop the promise.
+  pin: () => Promise<unknown> | void,
+  unpin: () => Promise<unknown> | void,
   clusterRoute: LocationAsRelativeRaw,
 }
 
@@ -593,8 +595,16 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     this.clustersOthers.push(...this.othersFull.slice(0, this.othersLimit));
   }
 
-  public resetOthers(): Promise<void> {
+  public resetOthers(args?: UpdateArgs): Promise<void> {
     this.othersLimit = SWITCHER_PAGE_SIZE;
+
+    // Rebuild from the caller's args rather than whatever the last `update()` left behind, so the search
+    // term applied here can't lag a tick behind the one the user typed.
+    if (args) {
+      this.othersFull = this.clustersFiltered(this.updateClusters().filter((c) => !c.isLocal), args);
+      this.counts.others = this.othersFull.length;
+    }
+
     this.applyOthers();
 
     return Promise.resolve();

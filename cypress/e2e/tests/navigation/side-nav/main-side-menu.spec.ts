@@ -55,9 +55,11 @@ describe('Side Menu: main', () => {
       BurgerMenuPo.checkOpen();
       burgerMenuPo.getClusterIcon('local').find('.description').should('not.exist');
 
-      // Collapsed: hovering the local icon reveals a tooltip with the cluster name.
+      // Collapsed: hovering the local icon reveals a tooltip with the cluster name. Park the pointer first
+      // — it survives between tests, and a `realHover` onto where it already is fires no mouseenter.
       BurgerMenuPo.toggle();
       BurgerMenuPo.checkClosed();
+      BurgerMenuPo.movePointerOffClusterIcons();
       burgerMenuPo.firstClusterIcon().realHover();
       burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', 'local').and('be.visible');
     });

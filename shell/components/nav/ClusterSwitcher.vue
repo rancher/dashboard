@@ -232,19 +232,32 @@ const clearSearch = () => {
 // bottom — and a list that can't scroll never fires @scroll, leaving the user stranded on page 1. Top up
 // whenever the loaded rows come up short of the viewport. The `hasMore`/`loadingMore` guards (and the
 // parent flipping `hasMore` off once everything is loaded) end the chain.
+// Row count at the last top-up we asked for. `hasMore` (loaded rows vs the server's count) and the loaded
+// row count come from two different sources, so any disagreement between them — RBAC-filtered rows, a count
+// that moves between pages — would otherwise have a top-up that brings nothing new requested again on every
+// `loadingMore` transition, forever.
+let lastFilledCount = -1;
+
 const fillViewport = () => {
   nextTick(() => {
     const el = scroller.value;
 
-    if (!open.value || !el || !props.hasMore || props.loadingMore) {
+    if (!open.value || !el || !props.hasMore || props.loadingMore || rows.value.length === lastFilledCount) {
       return;
     }
 
     if (el.scrollHeight <= el.clientHeight) {
+      lastFilledCount = rows.value.length;
       emit('load-more');
     }
   });
 };
+
+// A new search term or a reopen rebuilds the list from page 1, so the same row count can legitimately need
+// topping up again — forget the mark. Declared first so it runs before the watcher below in the same flush.
+watch(() => [props.search, open.value], () => {
+  lastFilledCount = -1;
+});
 
 watch(() => [rows.value.length, props.hasMore, props.loadingMore, open.value], fillViewport);
 
@@ -321,11 +334,16 @@ const togglePin = (cluster?: TopLevelMenuCluster | null) => {
     return;
   }
 
-  if (cluster.pinned) {
-    cluster.unpin();
-  } else {
-    cluster.pin();
-  }
+  // Mirror `Pinned.vue`: `reconcilePrefs` RESOLVES with `{ type, status }` on failure, so the resolved
+  // value is what says the write failed — surface it rather than leaving the optimistic flip on screen.
+  // The `.catch` guards the rejecting paths (cookie-backed guard) the keyboard path would otherwise drop.
+  Promise.resolve(cluster.pinned ? cluster.unpin() : cluster.pin())
+    .then((result: any) => {
+      if (result?.status) {
+        store.dispatch('growl/fromError', { title: t('nav.pinClusterError'), err: result });
+      }
+    })
+    .catch(() => {});
 };
 
 const onKeydown = (e: KeyboardEvent) => {
@@ -389,10 +407,7 @@ defineExpose({
     :shown="open"
     :triggers="[]"
     :auto-hide="true"
-    :distance="16"
-    :arrow-padding="0"
     :no-auto-focus="true"
-    placement="right-start"
     :popper-class="popperClass"
     @apply-show="focusSearchInput"
     @apply-hide="setOpen(false)"

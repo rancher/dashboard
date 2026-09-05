@@ -923,7 +923,7 @@ export default {
       };
     },
 
-    updateClusters(pinnedIds, speed = 'slow' | 'medium' | 'quick') {
+    updateClusters(pinnedIds, speed = 'slow') {
       const args = {
         pinnedIds,
         recentIds:  this.recentIds,
@@ -1459,6 +1459,12 @@ export default {
     left: 48px !important;
   }
 
+  // floating-vue's generated wrapper around the cluster-switcher trigger: it takes neither a prop nor a
+  // slot, and its default `display: inline-block` would collapse the trigger's full-width tile.
+  .clustersAll > .v-popper {
+    display: block;
+  }
+
   .localeSelector, .footer-tooltip {
     z-index: 1000;
   }
@@ -1679,11 +1685,9 @@ export default {
     flex: 1 1 auto;
     min-width: 0;
 
-    // Unavoidable pierce: this is floating-vue's own generated wrapper, which takes neither a prop nor
-    // a slot, and it defaults to `display: inline-block` — which would collapse the trigger's width.
-    :deep(.v-popper) {
-      display: block;
-    }
+    // floating-vue's generated `.v-popper` wrapper defaults to `display: inline-block`, which would
+    // collapse the trigger's width. It takes neither a prop nor a slot, so the rule lives in the unscoped
+    // block at the top of this file rather than piercing out of here.
   }
 
   // Scroll-edge shadow fade (see `.clusters::after`): visible while scrolling, gone at the bottom.

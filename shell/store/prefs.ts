@@ -416,9 +416,9 @@ export const actions = {
   // values so reconcilePrefs can detect server drift without re-deriving the wrong base.
   applyPrefsOptimistic(
     { commit, rootGetters, state }: PrefsActionContext,
-    mutations: Array<{ key: string, apply: (value: any) => any }>
+    writes: Array<{ key: string, apply: (value: any) => any }>
   ): Record<string, any> {
-    const list = Array.isArray(mutations) ? mutations.filter((m) => m && m.key && typeof m.apply === 'function') : [];
+    const list = Array.isArray(writes) ? writes.filter((m) => m && m.key && typeof m.apply === 'function') : [];
     const optimistic: Record<string, any> = {};
 
     const currentValue = (key: string) => {
@@ -462,9 +462,9 @@ export const actions = {
     {
       dispatch, commit, rootGetters, state
     }: PrefsActionContext,
-    { mutations, optimistic }: { mutations: Array<{ key: string, apply: (value: any) => any }>, optimistic?: Record<string, any> }
+    { mutations: writes, optimistic }: { mutations: Array<{ key: string, apply: (value: any) => any }>, optimistic?: Record<string, any> }
   ): Promise<PrefError | undefined> {
-    const list = Array.isArray(mutations) ? mutations.filter((m) => m && m.key && typeof m.apply === 'function') : [];
+    const list = Array.isArray(writes) ? writes.filter((m) => m && m.key && typeof m.apply === 'function') : [];
     const serverEntries = list.filter(({ key }) => state.definitions[key]?.asUserPreference);
 
     if (!serverEntries.length || !rootGetters['auth/loggedIn']) {

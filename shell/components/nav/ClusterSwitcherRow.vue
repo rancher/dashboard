@@ -176,13 +176,13 @@ function select() {
       background: var(--active-hover, var(--primary-hover-bg));
     }
 
-    // `!important` beats the equal-specificity base `.row-body .row-{name,meta}` rules that follow in
-    // source order; without it the `--on-active` tokens never apply and the name/meta keep base colours.
-    .row-name {
-      color: var(--on-active, var(--primary-hover-text)) !important;
+    // Matching `.row-body` on the base rules' own terms outranks them (0,4,0 vs 0,3,0), so the
+    // `--on-active` tokens apply without depending on source order.
+    .row-body .row-name {
+      color: var(--on-active, var(--primary-hover-text));
     }
-    .row-meta {
-      color: var(--on-active, var(--default)) !important;
+    .row-body .row-meta {
+      color: var(--on-active, var(--default));
     }
     .row-pin {
       color: color-mix(in srgb, var(--on-active, #fff) 65%, transparent) !important;

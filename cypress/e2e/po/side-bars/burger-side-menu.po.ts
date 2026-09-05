@@ -174,7 +174,13 @@ export default class BurgerMenuPo extends ComponentPo {
    * both the expanded and the collapsed nav.
    */
   openClusterSwitcher(): Cypress.Chainable {
-    this.self().getId('cluster-switcher-trigger').click();
+    // The trigger is a toggle, so only click it when the flyout is not already up — otherwise a second
+    // call closes the flyout and the assertion below runs against a detached element.
+    cy.get('body').then(($body) => {
+      if (!$body.find('.cluster-switcher-flyout').length) {
+        this.self().getId('cluster-switcher-trigger').click();
+      }
+    });
 
     return BurgerMenuPo.clusterSwitcherFlyout().should('be.visible');
   }
