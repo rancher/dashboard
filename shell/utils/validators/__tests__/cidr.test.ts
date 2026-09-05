@@ -20,6 +20,9 @@ describe('fx: isValidCIDR', () => {
     expect(isValidCIDR('2001:db8::')).toBe(false);
     expect(isValidCIDR('2001:db8::g/32')).toBe(false);
     expect(isValidCIDR('invalid/64')).toBe(false);
+    expect(isValidCIDR('2001:db8::/32abc')).toBe(false);
+    expect(isValidCIDR('2001:db8::/ 32')).toBe(false);
+    expect(isValidCIDR('2001:db8::/0x20')).toBe(false);
   });
 });
 

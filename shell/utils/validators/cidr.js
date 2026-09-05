@@ -7,6 +7,9 @@ export function isValidCIDR(cidr) {
     // Try IPv6 CIDR using ipaddr.js
     try {
       const [ip, prefixLen] = cidr.split('/');
+      if (!/^\d+$/.test(prefixLen)) {
+        return false;
+      }
       const ipObj = ipaddr.parse(ip);
       const prefix = parseInt(prefixLen, 10);
 
