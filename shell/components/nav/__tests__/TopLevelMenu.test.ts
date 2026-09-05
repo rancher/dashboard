@@ -343,43 +343,43 @@ describe('topLevelMenu', () => {
             ...generateStore([
               // pinned ready cluster
               {
-                name:               'whatever',
-                id:                 'an-id1',
-                mgmt:               { id: 'an-id1' },
-                provisionerDisplay: 'provider-1',
-                kubernetesVersion:  'v1.31.1',
-                nameDisplay:        'some-label',
-                canExplore:         true,
-                pinned:             true
+                name:                 'whatever',
+                id:                   'an-id1',
+                mgmt:                 { id: 'an-id1' },
+                provisionerDisplay:   'provider-1',
+                kubernetesVersionRaw: 'v1.31.1',
+                nameDisplay:          'some-label',
+                canExplore:           true,
+                pinned:               true
               },
               // pinned NOT ready cluster
               {
-                name:               'whatever',
-                id:                 'an-id2',
-                mgmt:               { id: 'an-id2' },
-                provisionerDisplay: 'provider-2',
-                kubernetesVersion:  'v1.31.2',
-                nameDisplay:        'some-label',
-                pinned:             true
+                name:                 'whatever',
+                id:                   'an-id2',
+                mgmt:                 { id: 'an-id2' },
+                provisionerDisplay:   'provider-2',
+                kubernetesVersionRaw: 'v1.31.2',
+                nameDisplay:          'some-label',
+                pinned:               true
               },
               // unpinned ready cluster
               {
-                name:               'whatever',
-                id:                 'an-id3',
-                mgmt:               { id: 'an-id3' },
-                provisionerDisplay: 'provider-3',
-                kubernetesVersion:  'v1.31.3',
-                nameDisplay:        'some-label',
-                canExplore:         true
+                name:                 'whatever',
+                id:                   'an-id3',
+                mgmt:                 { id: 'an-id3' },
+                provisionerDisplay:   'provider-3',
+                kubernetesVersionRaw: 'v1.31.3',
+                nameDisplay:          'some-label',
+                canExplore:           true
               },
               // unpinned NOT ready cluster
               {
-                name:               'whatever',
-                id:                 'an-id4',
-                mgmt:               { id: 'an-id4' },
-                provisionerDisplay: 'provider-4',
-                kubernetesVersion:  'v1.31.4',
-                nameDisplay:        'some-label'
+                name:                 'whatever',
+                id:                   'an-id4',
+                mgmt:                 { id: 'an-id4' },
+                provisionerDisplay:   'provider-4',
+                kubernetesVersionRaw: 'v1.31.4',
+                nameDisplay:          'some-label'
               },
             ])
           },
@@ -418,43 +418,43 @@ describe('topLevelMenu', () => {
             ...generateStore([
               // pinned ready cluster
               {
-                name:              'whatever',
-                id:                'an-id1',
-                mgmt:              { id: 'an-id1' },
-                provider:          'provider-1',
-                kubernetesVersion: 'v1.31.1',
-                nameDisplay:       'some-label',
-                canExplore:        true,
-                pinned:            true
+                name:                 'whatever',
+                id:                   'an-id1',
+                mgmt:                 { id: 'an-id1' },
+                provider:             'provider-1',
+                kubernetesVersionRaw: 'v1.31.1',
+                nameDisplay:          'some-label',
+                canExplore:           true,
+                pinned:               true
               },
               // pinned NOT ready cluster
               {
-                name:              'whatever',
-                id:                'an-id2',
-                mgmt:              { id: 'an-id2' },
-                provider:          'provider-2',
-                kubernetesVersion: 'v1.31.2',
-                nameDisplay:       'some-label',
-                pinned:            true
+                name:                 'whatever',
+                id:                   'an-id2',
+                mgmt:                 { id: 'an-id2' },
+                provider:             'provider-2',
+                kubernetesVersionRaw: 'v1.31.2',
+                nameDisplay:          'some-label',
+                pinned:               true
               },
               // unpinned ready cluster
               {
-                name:              'whatever',
-                id:                'an-id3',
-                mgmt:              { id: 'an-id3' },
-                provider:          'provider-3',
-                kubernetesVersion: 'v1.31.3',
-                nameDisplay:       'some-label',
-                canExplore:        true
+                name:                 'whatever',
+                id:                   'an-id3',
+                mgmt:                 { id: 'an-id3' },
+                provider:             'provider-3',
+                kubernetesVersionRaw: 'v1.31.3',
+                nameDisplay:          'some-label',
+                canExplore:           true
               },
               // unpinned NOT ready cluster
               {
-                name:              'whatever',
-                id:                'an-id4',
-                mgmt:              { id: 'an-id4' },
-                provider:          'provider-4',
-                kubernetesVersion: 'v1.31.4',
-                nameDisplay:       'some-label'
+                name:                 'whatever',
+                id:                   'an-id4',
+                mgmt:                 { id: 'an-id4' },
+                provider:             'provider-4',
+                kubernetesVersionRaw: 'v1.31.4',
+                nameDisplay:          'some-label'
               },
             ]),
           }

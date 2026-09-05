@@ -174,13 +174,11 @@ export default class BurgerMenuPo extends ComponentPo {
    * both the expanded and the collapsed nav.
    */
   openClusterSwitcher(): Cypress.Chainable {
-    // The trigger is a toggle, so only click it when the flyout is not already up — otherwise a second
-    // call closes the flyout and the assertion below runs against a detached element.
-    cy.get('body').then(($body) => {
-      if (!$body.find('.cluster-switcher-flyout').length) {
-        this.self().getId('cluster-switcher-trigger').click();
-      }
-    });
+    // Call this only with the flyout closed — the trigger is a toggle. Branching on the DOM to decide
+    // would be Cypress's conditional-testing anti-pattern: the snapshot races the flyout's own show/hide
+    // animation, so a mid-fade-out check skips the click and the assertion below runs against an element
+    // that is on its way out.
+    this.self().getId('cluster-switcher-trigger').click();
 
     return BurgerMenuPo.clusterSwitcherFlyout().should('be.visible');
   }
@@ -240,7 +238,10 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
-   * Get all the available cluster rows in the (open) switcher flyout
+   * Get all the available cluster rows in the (open) switcher flyout.
+   *
+   * Referenced only by the disabled `cluster-dashboard.spec.ts` block — keep until that spec is
+   * restored or deleted.
    * @returns {Cypress.Chainable}
    */
   clusterSwitcherRows(): Cypress.Chainable {

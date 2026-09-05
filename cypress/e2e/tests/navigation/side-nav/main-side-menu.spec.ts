@@ -62,6 +62,9 @@ describe('Side Menu: main', () => {
       BurgerMenuPo.movePointerOffClusterIcons();
       burgerMenuPo.firstClusterIcon().realHover();
       burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', 'local').and('be.visible');
+      // The collapsed rail's tooltip is now the only place the cluster description is rendered, so this is
+      // the one assertion left guarding it.
+      burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', longClusterDescription);
     });
 
     it('Pinned and unpinned cluster', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {

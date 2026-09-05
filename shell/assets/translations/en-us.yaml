@@ -209,7 +209,6 @@ nav:
     homePage: Home page navigation menu
     cluster: Cluster menu item
     harvesterCluster: '[[Harvester]] cluster menu item'
-    seeAll: See all clusters menu item
     multiClusterApps: Main menu multi cluster app menu item
     configurationApps: Main menu configuration app menu item
     support: Support page link
@@ -247,8 +246,6 @@ nav:
   rotateCertificates: Rotate Certificates
   rotateEncryptionKeys: Rotate Encryption Keys
   takeSnapshot: Take Snapshot
-  seeAllClusters: See all clusters
-  seeAllClustersCollapsed: See all
   keyComboTooltip: Switch clusters and keep location
   group:
     cluster: Cluster

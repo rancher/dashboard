@@ -110,11 +110,14 @@ function select() {
       </div>
     </div>
     <!-- No `tab-order` on purpose: a focusable control inside `role="option"` is invalid ARIA, so the
-         pin stays out of the tab order and the combobox drives it from the keyboard instead (Alt+P). -->
+         pin stays out of the tab order and the combobox drives it from the keyboard instead (Alt+P).
+         `aria-hidden` makes that explicit — an option's children are presentational, so the pin's own
+         name/state is unreliable across screen readers and Alt+P is the supported path. -->
     <Pinned
       v-if="pinnable"
       :cluster="cluster"
       class="row-pin"
+      aria-hidden="true"
     />
   </div>
 </template>

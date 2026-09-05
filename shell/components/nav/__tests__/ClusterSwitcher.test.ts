@@ -321,7 +321,7 @@ describe('component: ClusterSwitcher', () => {
       };
 
       input.focus();
-      expect(tab()).toHaveBeenCalled();
+      expect(tab()).toHaveBeenCalledWith();
       expect(document.activeElement).toBe(clear);
 
       // Tab off the LAST control wraps back to the first rather than escaping the scrim.

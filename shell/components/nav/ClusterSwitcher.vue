@@ -576,8 +576,10 @@ defineExpose({
 
           <!-- Resting: the ALL CLUSTERS directory only, lazy-loaded via @scroll → load-more. -->
           <template v-else>
+            <!-- Gate on the loaded rows, not the parent's saved count: the two come from different
+                 queries, so a count that hasn't resolved yet would blank a directory we already hold. -->
             <div
-              v-if="clusterCount"
+              v-if="directory.length"
               class="switcher-group"
               role="group"
               :aria-label="t('nav.switcher.allClusters')"

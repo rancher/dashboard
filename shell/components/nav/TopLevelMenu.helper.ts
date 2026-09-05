@@ -190,7 +190,7 @@ export abstract class BaseTopLevelMenuHelper {
 
   // PINNED = the pinned pref (membership + order), matched to cached data. Uncapped.
   public get clustersPinned(): Array<TopLevelMenuCluster> {
-    return orderByIdsAndCap(this.cachedNonLocal, this.pinnedPref, this.pinnedPref.length);
+    return orderByIdsAndCap(this.cachedNonLocal, this.pinnedPref, Infinity);
   }
 
   public clustersOthers: Array<TopLevelMenuCluster> = reactive([]);
@@ -245,7 +245,9 @@ export abstract class BaseTopLevelMenuHelper {
       pinned:            this.pinnedPref.includes(mgmtCluster.id),
       description:       provCluster?.description || mgmtCluster.description,
       providerDisplay:   provCluster?.provisionerDisplay || mgmtCluster.machineProviderDisplay || mgmtCluster.provider || '',
-      kubernetesVersion: mgmtCluster.kubernetesVersion || '',
+      // `kubernetesVersion` falls back to `generic.provisioning` ('—'), so it is never falsy and the meta
+      // line would read "Imported · —". Read the raw getter so it collapses to just the provider instead.
+      kubernetesVersion: mgmtCluster.kubernetesVersionRaw || '',
       pin:               () => mgmtCluster.pin(),
       unpin:             () => mgmtCluster.unpin(),
       clusterRoute:      { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } },

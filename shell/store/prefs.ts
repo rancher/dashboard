@@ -458,6 +458,9 @@ export const actions = {
   // Phase 2 — reconcile + persist. Re-runs the transforms against the server's live value and adopts that
   // result if it drifted from what we optimistically committed, so an external change (another tab / manual
   // edit) is merged, not clobbered. Persists only the keys a transform actually changed.
+  //
+  // NOTE: like `set`, this RESOLVES with `{ type, status }` on failure rather than rejecting — callers
+  // have to inspect the resolved value, not just attach a `.catch`.
   async reconcilePrefs(
     {
       dispatch, commit, rootGetters, state

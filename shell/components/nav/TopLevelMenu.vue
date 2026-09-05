@@ -9,7 +9,7 @@ import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
-import { alternateLabel, isMac, KEY } from '@shell/utils/platform';
+import { isMac, KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
@@ -161,7 +161,7 @@ export default {
     // PINNED / RECENT / ALL, not pinnable, never evicted — so pull it out and render its own tile.
     localCluster() {
       // The `hide-local-cluster` setting removes `local` from the nav entirely — its fixed slot must
-      // honor it too (the slice below fetches strictly by id and does NOT apply that filter).
+      // honor it too, immediately: the slice does filter on the setting, but only after its next fetch.
       if (this.hideLocalCluster) {
         return null;
       }
@@ -251,7 +251,7 @@ export default {
     },
 
     switcherKeyShortcut() {
-      return `${ isMac ? 'Meta' : alternateLabel }+J`;
+      return `${ isMac ? 'Meta' : 'Control' }+J`;
     },
 
     // Id of the cluster currently being explored — marked `current` in the switcher. Gate on the route's
@@ -866,8 +866,9 @@ export default {
       }
 
       return {
-        content:   this.t('nav.switcher.shortcutTooltip', { shortcut: this.switcherShortcutLabel }),
-        placement: 'right',
+        content:     this.t('nav.switcher.shortcutTooltip', { shortcut: this.switcherShortcutLabel }),
+        placement:   'right',
+        popperClass: 'nav-tooltip',
       };
     },
 
@@ -878,7 +879,7 @@ export default {
 
       let contentText = '';
       let content;
-      let popperClass = '';
+      let popperClass = 'nav-tooltip';
 
       // this is the normal tooltip scenario where we are just passing a string
       if (typeof item === 'string') {
@@ -903,7 +904,7 @@ export default {
       } else {
         contentText = item.label;
         // this adds a class to the tooltip container so that we can control the max width
-        popperClass = 'menu-description-tooltip';
+        popperClass = 'nav-tooltip menu-description-tooltip';
 
         if (item.description) {
           contentText += `<br><br>${ item.description }`;
@@ -1443,8 +1444,10 @@ export default {
 
 <style lang="scss">
   // Nav tooltips must layer above the cluster-switcher flyout (z-index 102) and its page overlay (100).
-  // Their poppers are teleported to <body>, so this global (unscoped) rule reaches them.
-  .v-popper__popper.v-popper--theme-tooltip {
+  // Their poppers are teleported to <body>, so this rule has to be global (unscoped) to reach them — but
+  // it is keyed on the `nav-tooltip` class the nav's own tooltip configs set, so the rest of the app's
+  // poppers keep their default stacking.
+  .v-popper__popper.v-popper--theme-tooltip.nav-tooltip {
     z-index: 103;
   }
 
@@ -1514,10 +1517,11 @@ export default {
   $chip-radius: 5px;
 
   // Spacing rhythm (4px base) + the shared nav transition, so the repeated paddings/margins/gaps and
-  // the show/hide easing come from one place.
-  $space-2: 8px;
-  $space-4: 16px;
-  $space-5: 20px;
+  // the show/hide easing come from one place. Named `$nav-*` because these are component-local steps —
+  // the shared $space-s/m/l tokens are 10/24/40px and don't fit the shelf's tighter rhythm.
+  $nav-space-2: 8px;
+  $nav-space-4: 16px;
+  $nav-space-5: 20px;
   $transition-nav: all 0.25s ease-in-out;
 
   // Row action icons (gear + pin): a header-style hover "square" — a 22×22 box holding a 16px icon that
@@ -1605,7 +1609,7 @@ export default {
     flex: 0 0 auto;
     width: $chip-width;
     height: $chip-height;
-    margin-right: $space-4;
+    margin-right: $nav-space-4;
   }
   .cluster-all .cluster-all-badge {
     box-sizing: border-box;
@@ -1893,17 +1897,6 @@ export default {
             font-weight: normal;
             line-height: 18px;
             color: var(--on-tertiary, var(--link)) !important;
-
-            // The shelf carries no subtitle any more (local's "Management cluster" line and the
-            // per-cluster provider · version meta both live in the flyout rows now), but the rule is
-            // cheap insurance if one comes back.
-            &.description {
-              font-size: 10px;
-              font-weight: normal;
-              line-height: 12px;
-              padding-right: 0;
-              color: var(--muted) !important;
-            }
           }
         }
 
@@ -2128,7 +2121,7 @@ export default {
           align-items: flex-start;
           align-items: center;
           margin: 15px 0;
-          margin-left: $space-4;
+          margin-left: $nav-space-4;
           font-size: $font-size-body;
           text-transform: uppercase;
 
@@ -2210,7 +2203,7 @@ export default {
     }
 
     .footer {
-      margin: $space-5;
+      margin: $nav-space-5;
       width: 240px;
       display: flex;
       flex: 0;
@@ -2294,7 +2287,7 @@ export default {
     }
 
     li {
-      padding: $space-2 $space-5;
+      padding: $nav-space-2 $nav-space-5;
 
       &:hover {
         background-color: var(--active-hover, var(--primary-hover-bg));
