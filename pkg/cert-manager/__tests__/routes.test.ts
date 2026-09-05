@@ -20,6 +20,9 @@ const STUB = { template: '<div />' };
  */
 const EXPLORER_ROUTES: RouteRecordRaw[] = [
   {
+    path: '/c/:cluster/:product/projectsnamespaces', name: 'c-cluster-product-projectsnamespaces', component: STUB
+  },
+  {
     path: '/c/:cluster/:product/:resource', name: 'c-cluster-product-resource', component: STUB
   },
   {
@@ -94,9 +97,9 @@ describe('extension: cert-manager routes', () => {
       cluster: 'local', resource: 'pod', namespace: 'default', id: 'my-pod'
     }],
   ])('should still resolve %s with the right params', async(path, expected) => {
-    // Extending `explorer` registers `c/:cluster/explorer/:resource`, and vue-router ranks a
-    // static segment above the generic `:product` one - so every explorer URL now matches the
-    // extension's route record. Same page component either way, but the params must still parse.
+    // Extending `explorer` must not register its own `c/:cluster/explorer/:resource` record: a static
+    // product segment would outrank the generic `:product` route and shadow the parent's own specific
+    // routes. Explorer URLs resolve through the parent core route, and the params must still parse.
     const router = await buildRouter();
     const resolved = router.resolve(path);
 
@@ -104,15 +107,32 @@ describe('extension: cert-manager routes', () => {
     expect(resolved.params).toMatchObject(expected);
   });
 
-  it('should still resolve the explorer product for shadowed routes', async() => {
-    // The extension's route has no `:product` path param, so `params.product` is undefined and
-    // `getProductFromRoute` has to fall back to the route name / meta. If that stops working,
-    // every explorer page loses its product context.
+  it('should resolve explorer resource URLs through the parent core route', async() => {
+    // The extension reuses the parent product's generic route, so `params.product` is populated
+    // directly and every explorer page keeps its product context.
     const router = await buildRouter();
     const resolved = router.resolve('/c/local/explorer/pod');
 
-    expect(resolved.params.product).toBeUndefined();
+    expect(resolved.name).toBe('c-cluster-product-resource');
+    expect(resolved.params.product).toBe('explorer');
     expect(getProductFromRoute(resolved)).toBe('explorer');
+  });
+
+  it('should not register a per-extension resource route', async() => {
+    // Regression: the extension used to add `c-cluster-explorer-resource`. Its static `explorer`
+    // segment outranked the core `:product` route, so it captured every explorer URL.
+    const names = (await extensionRoutes()).map((r) => r.name);
+
+    expect(names).not.toContain('c-cluster-explorer-resource');
+  });
+
+  it('should not shadow the parent product specific virtual-type routes', async() => {
+    // Regression: the shadowing route sent `/c/local/explorer/projectsnamespaces` to the generic
+    // resource page, which threw "Resource type projectsnamespaces not found".
+    const router = await buildRouter();
+    const resolved = router.resolve('/c/local/explorer/projectsnamespaces');
+
+    expect(resolved.name).toBe('c-cluster-product-projectsnamespaces');
   });
 
   it('should still resolve other products through the generic route', async() => {
