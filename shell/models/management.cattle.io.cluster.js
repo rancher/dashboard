@@ -16,6 +16,7 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
+import { commitAndReconcile } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -809,20 +810,48 @@ export default class MgmtCluster extends SteveModel {
     return this.$rootGetters['prefs/get'](PINNED_CLUSTERS).includes(this.id);
   }
 
-  pin() {
-    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
-
-    addObject(types, this.id);
-
-    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  // A dispatch bound to the root store, as the cluster-pref writer expects.
+  get _clusterPrefDispatch() {
+    return (action, payload) => this.$dispatch(action, payload, { root: true });
   }
 
+  /**
+   * Pin the cluster by adding it to PINNED_CLUSTERS (a pinned cluster is simply
+   * hidden from the RECENT group). Routed through the shared serialized writer
+   * so this write can't race the store's cluster-navigation write and 409.
+   */
+  pin() {
+    return commitAndReconcile(this._clusterPrefDispatch, [{
+      key:   PINNED_CLUSTERS,
+      apply: (pinned) => {
+        const next = [...(Array.isArray(pinned) ? pinned : [])];
+
+        addObject(next, this.id);
+
+        return next;
+      },
+    }]);
+  }
+
+  /**
+   * Unpin the cluster by removing it from PINNED_CLUSTERS. RECENT is deliberately
+   * left alone: it is a persisted VISIT log (written only by `recordClusterNavigation`
+   * on `loadCluster`), so promoting an unpinned cluster there would list a cluster the
+   * user may never have opened above ones they actually came from. It stays one click
+   * away in the switcher flyout. Routed through the shared serialized writer so this
+   * write can't race the store's cluster-navigation write and 409.
+   */
   unpin() {
-    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
+    return commitAndReconcile(this._clusterPrefDispatch, [{
+      key:   PINNED_CLUSTERS,
+      apply: (pinned) => {
+        const next = [...(Array.isArray(pinned) ? pinned : [])];
 
-    removeObject(types, this.id);
+        removeObject(next, this.id);
 
-    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+        return next;
+      },
+    }]);
   }
 
   get canExplore() {

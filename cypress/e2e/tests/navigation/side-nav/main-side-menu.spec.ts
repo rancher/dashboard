@@ -27,8 +27,12 @@ describe('Side Menu: main', () => {
       const sideNav = new ProductNavPo();
       const pagePoFake = new PagePo('');
 
-      // nav to project/namespaces in the fake cluster
+      // Visit the downstream cluster (so it lands in RECENT and stays visible in the shelf), then return
+      // to local. The alt-combo only lights up when there is a ready cluster to jump to that isn't the
+      // current one — `local` is excluded from that set, so we sit on local with the downstream as the
+      // jump target.
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
+      pagePoFake.navToClusterMenuEntry('local');
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
 
       BurgerMenuPo.burgerMenuGetNavClusterByLabel('local').should('exist');
@@ -37,34 +41,62 @@ describe('Side Menu: main', () => {
       // press key combo
       cy.get('body').focus().type('{alt}', { release: false });
 
-      // assert that icons are displayed for the key combo
+      // assert that the key-combo (jump) icon is displayed on both the local slot and the downstream row
       BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheckByLabel('local');
       BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheckByLabel(fakeProvClusterId);
-
-      // nav to local
-      pagePoFake.navToClusterMenuEntry('local');
-
-      // assert that we are on the expected page
-      cy.url().should('include', '/local');
-      cy.url().should('include', '/projectsnamespaces');
     });
 
-    it('Local cluster should show a name and description on the side menu and display a tooltip when hovering it show the full name and description', { tags: ['@navigation', '@adminUser'] }, () => {
-      BurgerMenuPo.toggle();
-
+    it('Local cluster shows just its name in the expanded shelf and a tooltip when collapsed', { tags: ['@navigation', '@adminUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      // we cannot assert text truncation because it always adds to the HTML the full content
-      // truncation (text-overflow: ellipsis) is just a CSS gimmick thing that adds the ... visually
-      burgerMenuPo.getClusterDescription('local').should('include', longClusterDescription);
-      burgerMenuPo.showClusterDescriptionTooltip('local');
+      // Expanded: the local slot reads exactly like every other cluster row — the bare cluster name, no
+      // subtitle line at all.
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.checkOpen();
+      burgerMenuPo.getClusterIcon('local').find('.description').should('not.exist');
+
+      // Collapsed: hovering the local icon reveals a tooltip with the cluster name. Park the pointer first
+      // — it survives between tests, and a `realHover` onto where it already is fires no mouseenter.
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.checkClosed();
+      BurgerMenuPo.movePointerOffClusterIcons();
+      burgerMenuPo.firstClusterIcon().realHover();
       burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', 'local').and('be.visible');
-      burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', longClusterDescription).and('be.visible');
+      // The collapsed rail's tooltip is now the only place the cluster description is rendered, so this is
+      // the one assertion left guarding it.
+      burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', longClusterDescription);
+    });
+
+    it('Pinned and unpinned cluster', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
+      const burgerMenuPo = new BurgerMenuPo();
+
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.checkOpen();
+
+      // Open the switcher flyout — the whole estate (and the only search box) lives in there. Using the
+      // intercepted downstream cluster keeps this deterministic regardless of the environment's real
+      // topology, and `local` is no longer pinnable (it has its own fixed slot).
+      burgerMenuPo.openClusterSwitcher();
+      burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'false');
+
+      // Pin it — the row reflects the pinned state immediately AND the cluster joins the nav's PINNED shelf.
+      burgerMenuPo.pinClusterByLabel(fakeProvClusterId);
+      burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'true');
+      burgerMenuPo.clusterPinnedList().should('contain.text', fakeProvClusterId);
+
+      // Unpin it — back to the unpinned state.
+      burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').click();
+      burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'false');
     });
   });
 
-  describe('No intercepts needed before route navigation', () => {
+  describe('With a browsable cluster estate', () => {
     beforeEach(() => {
+      // Inject a fake downstream cluster so there IS something browsable — the redesigned nav hides the
+      // search "door" / flyout entirely when the estate is local-only (browsableClusterCount === 0), and
+      // this CI Rancher has only `local`.
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
+
       HomePagePo.goTo();
       BurgerMenuPo.toggle();
     });
@@ -75,19 +107,26 @@ describe('Side Menu: main', () => {
       BurgerMenuPo.checkClosed();
     });
 
-    it('Can display list of available clusters', { tags: ['@navigation', '@adminUser'] }, () => {
+    it('Can display the local cluster and open the cluster directory', { tags: ['@navigation', '@adminUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      burgerMenuPo.clusterNotPinnedList().should('exist');
+      // local is always shown in its fixed slot...
+      burgerMenuPo.getClusterIcon('local').should('exist');
+
+      // ...and the full estate opens in the switcher flyout.
+      burgerMenuPo.openClusterSwitcher();
+      BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row').should('exist');
     });
 
-    it('Pinned and unpinned cluster', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
+    // The flyout owns the ONLY cluster search in the nav, and it is the one behaviour the unit tests
+    // cannot reach — it runs through the debounced `resetOthers` round trip. The fake cluster is the only
+    // browsable one here, so a matching query must leave exactly its row on screen.
+    it('Can search the estate from the cluster switcher', { tags: ['@navigation', '@adminUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      burgerMenuPo.pinFirstCluster();
-      burgerMenuPo.clusterPinnedList().should('exist');
-      burgerMenuPo.unpinFirstCluster();
-      burgerMenuPo.clusterPinnedList().should('not.exist');
+      burgerMenuPo.openClusterSwitcher();
+      burgerMenuPo.searchClusters(fakeProvClusterId);
+      burgerMenuPo.clusterSearchResults().should('have.length', 1).and('contain.text', fakeProvClusterId);
     });
 
     it('Can display at least one menu category label', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
@@ -102,6 +141,11 @@ describe('Side Menu: main', () => {
       // Collapse the menu
       BurgerMenuPo.toggle();
       BurgerMenuPo.checkClosed();
+
+      // Park the pointer somewhere else first. The real pointer survives between tests, and an earlier
+      // one leaves it on this very icon — `realHover` would then be a no-op (no pointer movement, so no
+      // mouseenter) and the tooltip would never be asked to show.
+      BurgerMenuPo.movePointerOffClusterIcons();
 
       // Hover over the first cluster icon and check that the tooltip is shown with the correct content
       burgerMenuPo.firstClusterIcon().realHover();

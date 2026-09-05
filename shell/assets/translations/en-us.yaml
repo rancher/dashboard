@@ -209,7 +209,6 @@ nav:
     homePage: Home page navigation menu
     cluster: Cluster menu item
     harvesterCluster: '[[Harvester]] cluster menu item'
-    seeAll: See all clusters menu item
     multiClusterApps: Main menu multi cluster app menu item
     configurationApps: Main menu configuration app menu item
     support: Support page link
@@ -247,8 +246,6 @@ nav:
   rotateCertificates: Rotate Certificates
   rotateEncryptionKeys: Rotate Encryption Keys
   takeSnapshot: Take Snapshot
-  seeAllClusters: See all clusters
-  seeAllClustersCollapsed: See all
   keyComboTooltip: Switch clusters and keep location
   group:
     cluster: Cluster
@@ -297,11 +294,33 @@ nav:
     legacy: Legacy Apps
     configuration: Configuration
     hci: HCI
+  pinClusterError: Could not save your pinned clusters
   search:
-    placeholder: Filter clusters by...
-    noResults: No matching clusters
     clusters: clusters
-    ariaLabel: Filter clusters on main menu
+    clear: Clear search
+  switcher:
+    ariaLabel: Cluster switcher
+    clusterSwitch: Cluster Switch
+    shortcutTooltip: Cluster Switch ({shortcut})
+    searchAllClusters: Search all clusters
+    pinned: Pinned Clusters
+    recent: Recently Used
+    allClusters: All clusters
+    matches: Matches
+    managementCluster: Management cluster
+    current: current
+    noMatch: No clusters match “{query}”.
+    moreTypeToNarrow: '… {count} more — type to narrow'
+    aria:
+      clusterList: Cluster list
+      searching: Searching clusters
+      results: |-
+        {count, plural,
+          one {1 cluster}
+          other {# clusters}
+        }
+      noResults: No clusters match your search
+      notReady: not ready
   header:
     setLoginPage: Set as login page
     showHideBanner: Show/Hide Banner

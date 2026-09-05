@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash';
+
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
@@ -98,6 +100,7 @@ export const WORKSPACE = create('workspace', '');
 export const EXPANDED_GROUPS = create('open-groups', ['cluster', 'policy', 'rbac', 'serviceDiscovery', 'storage', 'workload'], { parseJSON });
 export const FAVORITE_TYPES = create('fav-type', [], { parseJSON });
 export const PINNED_CLUSTERS = create('pinned-clusters', [], { parseJSON });
+export const RECENT_CLUSTERS = create('recent-clusters', [], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
 export const THEME = create('theme', 'auto', {
@@ -156,6 +159,15 @@ export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2
 
 // Maximum number of clusters to show in the slide-in menu
 export const MENU_MAX_CLUSTERS = 10;
+// Page size for the cluster-switcher flyout's ALL CLUSTERS directory and its search results. Bigger than
+// MENU_MAX_CLUSTERS because the flyout now runs the full height of the viewport — one page should be
+// enough to fill it, rather than leaning on the top-up fetch.
+export const SWITCHER_PAGE_SIZE = 20;
+// Maximum number of recently-visited clusters kept / shown in the app-bar shelf
+export const MENU_MAX_RECENT_CLUSTERS = 10;
+// Max chars of the search term echoed back in the switcher's "no clusters match …" message, so a long
+// query cannot overflow the flyout.
+export const SEARCH_ECHO_MAX = 30;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
 
@@ -395,6 +407,134 @@ export const actions = {
     }
   },
 
+  // A merge-write is a read-modify-write of a preference via a PURE apply(currentValue) => newValue, split
+  // into two phases so the UI can feel instant: applyPrefsOptimistic commits against the client value now
+  // (outside any write queue), and reconcilePrefs does the one GET-then-PUT against the server's live value.
+  // Callers serialize reconcile (overlapping writes on the shared Preference would 409), never the optimistic phase.
+
+  // Phase 1 — optimistic. SYNC (no awaits) so the commits land in the same tick; returns the committed
+  // values so reconcilePrefs can detect server drift without re-deriving the wrong base.
+  applyPrefsOptimistic(
+    { commit, rootGetters, state }: PrefsActionContext,
+    writes: Array<{ key: string, apply: (value: any) => any }>
+  ): Record<string, any> {
+    const list = Array.isArray(writes) ? writes.filter((m) => m && m.key && typeof m.apply === 'function') : [];
+    const optimistic: Record<string, any> = {};
+
+    const currentValue = (key: string) => {
+      const v = state.data[key];
+
+      return v === undefined ? state.definitions[key]?.def : v;
+    };
+
+    // A merge-write persists to the server only — it doesn't maintain the cookie mirror that `set` does,
+    // so a cookie-backed pref would leave the cookie holding the old value. Reject the whole batch before
+    // committing anything, rather than half-applying it.
+    const cookieBacked = list.find(({ key }) => state.definitions[key]?.asCookie);
+
+    if (cookieBacked) {
+      throw new Error(`Preference "${ cookieBacked.key }" is cookie-backed and cannot be merge-written`);
+    }
+
+    list.forEach(({ key, apply }) => {
+      const next = apply(currentValue(key));
+
+      optimistic[key] = next;
+      commit('load', { key, value: next });
+    });
+
+    // Before login there's no server to reconcile against — stash so loadServer replays them post-login.
+    if (!rootGetters['auth/loggedIn']) {
+      list.forEach(({ key }) => {
+        if (state.definitions[key]?.asUserPreference) {
+          prefsBeforeLogin[key] = optimistic[key];
+        }
+      });
+    }
+
+    return optimistic;
+  },
+
+  // Phase 2 — reconcile + persist. Re-runs the transforms against the server's live value and adopts that
+  // result if it drifted from what we optimistically committed, so an external change (another tab / manual
+  // edit) is merged, not clobbered. Persists only the keys a transform actually changed.
+  //
+  // NOTE: like `set`, this RESOLVES with `{ type, status }` on failure rather than rejecting — callers
+  // have to inspect the resolved value, not just attach a `.catch`.
+  async reconcilePrefs(
+    {
+      dispatch, commit, rootGetters, state
+    }: PrefsActionContext,
+    { mutations: writes, optimistic }: { mutations: Array<{ key: string, apply: (value: any) => any }>, optimistic?: Record<string, any> }
+  ): Promise<PrefError | undefined> {
+    const list = Array.isArray(writes) ? writes.filter((m) => m && m.key && typeof m.apply === 'function') : [];
+    const serverEntries = list.filter(({ key }) => state.definitions[key]?.asUserPreference);
+
+    if (!serverEntries.length || !rootGetters['auth/loggedIn']) {
+      return;
+    }
+
+    const keys = serverEntries.map(({ key }) => key);
+
+    try {
+      const server = await dispatch('loadServer', keys);
+
+      if ( !server?.data ) {
+        return;
+      }
+
+      let dirty = false;
+
+      serverEntries.forEach(({ key, apply }) => {
+        const definition = state.definitions[key];
+        let base = server.data[key];
+
+        if (base === undefined) {
+          base = definition.def;
+        } else if (definition.parseJSON) {
+          try {
+            base = JSON.parse(base);
+          } catch {
+            base = definition.def;
+          }
+        }
+        if (definition.mangleRead) {
+          base = definition.mangleRead(base);
+        }
+
+        const reconciled = apply(base);
+
+        // Server drifted from what we optimistically committed → adopt the server-based result.
+        // Structural compare: `JSON.stringify` is key-order sensitive, and the merge-write API is generic,
+        // so an object-valued pref (NAMESPACE_FILTERS, HIDE_HOME_PAGE_CARDS) would read as drift purely
+        // from re-serialisation.
+        if (!isEqual(reconciled, optimistic?.[key])) {
+          commit('load', { key, value: reconciled });
+        }
+
+        // Skip the write for a key the action left unchanged (e.g. a duplicate visit / already-pinned).
+        if (!isEqual(reconciled, base)) {
+          const toWrite = definition.mangleWrite ? definition.mangleWrite(reconciled) : reconciled;
+
+          server.data[key] = definition.parseJSON ? JSON.stringify(toWrite) : toWrite;
+          dirty = true;
+        }
+      });
+
+      if (dirty) {
+        await server.save({ redirectUnauthorized: false });
+      }
+    } catch (e) {
+      // Every caller is fire-and-forget, so an unlogged failure here is invisible: the optimistic
+      // commit stays in the client and the server never got it.
+      console.error('Error reconciling preferences', keys, e); // eslint-disable-line no-console
+
+      const error = e as PrefError;
+
+      return { type: error.type, status: error.status };
+    }
+  },
+
   async setTheme({ dispatch }: PrefsActionContext, val: string) {
     await dispatch('set', { key: THEME, value: val });
   },
@@ -480,7 +620,10 @@ export const actions = {
 
   async loadServer( {
     state, dispatch, commit, rootState, rootGetters
-  }: PrefsActionContext, ignoreKey?: string) {
+  }: PrefsActionContext, ignoreKey?: string | string[]) {
+    // `ignoreKey` may be a single key or an array of keys (a batched merge write ignores all its keys,
+    // so the get-before-set doesn't re-commit — and thus revert — a sibling that was just set locally).
+    const ignoreKeys = Array.isArray(ignoreKey) ? ignoreKey : [ignoreKey];
     let server: any = { data: {} };
 
     try {
@@ -526,7 +669,7 @@ export const actions = {
         value = clone(server.data[definition.inheritFrom]);
       }
 
-      if ( value === undefined || key === ignoreKey) {
+      if ( value === undefined || ignoreKeys.includes(key)) {
         continue;
       }
 

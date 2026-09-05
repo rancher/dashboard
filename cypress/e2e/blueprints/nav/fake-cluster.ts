@@ -15,6 +15,7 @@ import {
 } from './edit-cluster';
 
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
+import { SWITCHER_PAGE_SIZE } from '@/cypress/support/utils/shell';
 
 // GENERAL DATA NOT CONFIGURABLE, for now...
 const MACHINE_POOL_ID = '995mj';
@@ -2565,16 +2566,34 @@ export function generateFakeClusterDataAndIntercepts({
   };
 
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
+  // The cluster-switcher flyout fetches its ALL CLUSTERS / "others" window a page at a time — this
+  // intercept injects the fake cluster into that list. It is keyed on the page size, so it tracks
+  // SWITCHER_PAGE_SIZE rather than a literal: hard-coding it silently stops matching the moment the
+  // flyout asks for a different page, and the fake cluster just never shows up.
   cy.intercept({
     method:   'GET',
     pathname: '/v1/management.cattle.io.clusters',
-    query:    { pagesize: '10' }
+    query:    { pagesize: `${ SWITCHER_PAGE_SIZE }` }
   }, (req) => {
     req.continue((res) => {
       update(res.body.data);
       res.send(res.body);
     });
   }).as('mgmtClustersSideNav');
+
+  // The redesigned side-nav loads its "context" set (local + pinned + recent) via an id-filtered
+  // pagesize=100000 request on mount — this is the request to wait on for the nav to be ready (the old
+  // pagesize=10 request now only fires when the ALL CLUSTERS door is opened).
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: '100000' }
+  }, (req) => {
+    req.continue((res) => {
+      update(res.body.data);
+      res.send(res.body);
+    });
+  }).as('mgmtClustersSideNavContext');
 
   cy.intercept({
     method:   'GET',
@@ -2586,6 +2605,21 @@ export function generateFakeClusterDataAndIntercepts({
       res.send(res.body);
     });
   }).as('mgmtClustersLists');
+
+  // The ALL CLUSTERS count query — a pageSize:1 findPage (saveCountAs) that ALWAYS excludes `local`. The
+  // real backend can't see the injected fake cluster, so surface it in the total (1 browsable, non-local);
+  // otherwise browsableClusterCount is 0 and the empty-state gate hides the search "door" / flyout that
+  // these specs rely on. `count` is read from the response body by saveCountAs.
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: '1' }
+  }, (req) => {
+    req.continue((res) => {
+      res.body.count = 1;
+      res.send(res.body);
+    });
+  }).as('mgmtClustersCount');
 
   cy.intercept('GET', `/v1/management.cattle.io.clusters/${ fakeNavClusterData.mgmtClusterObj.id }?*`, (req) => {
     req.reply({
