@@ -165,8 +165,8 @@ export const MENU_MAX_CLUSTERS = 10;
 export const SWITCHER_PAGE_SIZE = 20;
 // Maximum number of recently-visited clusters kept / shown in the app-bar shelf
 export const MENU_MAX_RECENT_CLUSTERS = 10;
-// Max chars of the echoed search term in the "no clusters match …" message; shared by the
-// expanded nav and the flyout so the two surfaces cannot drift.
+// Max chars of the search term echoed back in the switcher's "no clusters match …" message, so a long
+// query cannot overflow the flyout.
 export const SEARCH_ECHO_MAX = 30;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });

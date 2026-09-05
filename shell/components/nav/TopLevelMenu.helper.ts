@@ -570,11 +570,15 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     const nonLocal = clusters.filter((c) => !c.isLocal);
 
     // Prune deleted clusters: legacy holds the full live estate in memory, so any cached row no longer
-    // present was removed — drop it so it leaves the derived pinned/recent shelf. `local` is preserved.
+    // present was removed — drop it so it leaves the derived pinned/recent shelf. `local` is exempt only
+    // until the estate has actually loaded (an empty list is "not fetched yet", not "local is gone"); once
+    // it has, `local` goes the same way as any other missing id — matching the pagination helper, whose
+    // `updateContext` prunes it when `hide-local-cluster` filters it out. Consumers read
+    // `clustersLocal` as the source of truth for local access, so the two must not diverge.
     const liveIds = new Set(clusters.map((c) => c.id));
 
     Object.keys(this.clusterCache).forEach((id) => {
-      if (id !== LOCAL_CLUSTER && !liveIds.has(id)) {
+      if (!liveIds.has(id) && (id !== LOCAL_CLUSTER || clusters.length)) {
         delete this.clusterCache[id];
       }
     });

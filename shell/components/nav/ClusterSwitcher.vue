@@ -900,10 +900,6 @@ defineExpose({
 </style>
 
 <style lang="scss">
-// The expanded nav's width (`.side-menu.menu-open` in TopLevelMenu). The flyout opens beside the nav in
-// EITHER state, so it needs both widths.
-$app-bar-expanded-width: 300px;
-
 // Where the flyout starts, chosen so its search box lands on the same line as the trigger button that
 // opened it: the flyout leads with the fixed `local` tile, and so does the nav above the button — drop
 // both and everything moves up, hence the second offset. The flyout then runs to the bottom of the

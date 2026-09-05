@@ -115,6 +115,17 @@ describe('Side Menu: main', () => {
       BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row').should('exist');
     });
 
+    // The flyout owns the ONLY cluster search in the nav, and it is the one behaviour the unit tests
+    // cannot reach — it runs through the debounced `resetOthers` round trip. The fake cluster is the only
+    // browsable one here, so a matching query must leave exactly its row on screen.
+    it('Can search the estate from the cluster switcher', { tags: ['@navigation', '@adminUser'] }, () => {
+      const burgerMenuPo = new BurgerMenuPo();
+
+      burgerMenuPo.openClusterSwitcher();
+      burgerMenuPo.searchClusters(fakeProvClusterId);
+      burgerMenuPo.clusterSearchResults().should('have.length', 1).and('contain.text', fakeProvClusterId);
+    });
+
     it('Can display at least one menu category label', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 

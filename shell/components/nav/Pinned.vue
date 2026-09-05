@@ -53,8 +53,8 @@ async function toggle() {
   <i
     :tabindex="tabOrder"
     :aria-pressed="!!pinned"
-    class="pin icon icon-pin"
-    :class="{ 'is-pinned': pinned, 'pin-pop': popping }"
+    class="pin icon"
+    :class="{ 'icon-pin': pinned, 'icon-pin-outlined': !pinned, 'is-pinned': pinned, 'pin-pop': popping }"
     role="button"
     :aria-label="t('nav.ariaLabel.pinCluster', { cluster: cluster.label })"
     @click.stop.prevent="toggle"

@@ -855,7 +855,18 @@ describe('topLevelMenu', () => {
     });
 
     it('leaves keys typed inside the flyout alone (search, ↑↓, Enter, Esc)', () => {
-      const { event } = guard(guardEvent({ target: { closest: (sel: string) => (sel === '.cluster-switcher-flyout' ? {} : null) } }));
+      // A node inside the flyout is inside the popper root too — both selectors match.
+      const inFlyout = { closest: (sel: string) => (sel === '.cluster-switcher-flyout' || sel === '.cluster-switcher-popper' ? {} : null) };
+      const { event } = guard(guardEvent({ target: inFlyout }));
+
+      expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
+    });
+
+    // Clicking the flyout's own chrome parks focus on floating-vue's popper root, which is OUTSIDE the
+    // flyout. Swallowing keys there would take Esc with them and leave the user trapped.
+    it('leaves keys alone when focus sits on the popper root outside the flyout', () => {
+      const onPopperRoot = { closest: (sel: string) => (sel === '.cluster-switcher-popper' ? {} : null) };
+      const { event } = guard(guardEvent({ target: onPopperRoot }));
 
       expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
     });

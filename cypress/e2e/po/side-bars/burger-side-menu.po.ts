@@ -200,6 +200,13 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * The rows currently matching the flyout's search term.
+   */
+  clusterSearchResults(): Cypress.Chainable {
+    return BurgerMenuPo.clusterSwitcherFlyout().find('.switcher-scroll .cluster-switcher-row');
+  }
+
+  /**
    * A row in the flyout's ALL CLUSTERS directory matched by its visible label. The flyout must be open
    * (see openClusterSwitcher).
    */

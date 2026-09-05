@@ -664,7 +664,10 @@ export default {
 
       const target = e.target;
 
-      if (target && typeof target.closest === 'function' && target.closest('.cluster-switcher-flyout')) {
+      // The modal surface is floating-vue's popper ROOT, not the flyout inside it — clicking the flyout's
+      // own chrome parks focus on that root, and testing for the flyout would swallow every key from there
+      // (Esc included), leaving no way out.
+      if (target && typeof target.closest === 'function' && target.closest('.cluster-switcher-popper')) {
         return;
       }
 
@@ -688,9 +691,8 @@ export default {
       this.shown = !this.shown;
     },
 
-    // The [data-flip] shelf rows to animate — VISIBLE ones only. When collapsed, the CSS-hidden ALL list
-    // renders the SAME ids with data-flip; including those would double-key the FLIP Map and animate the
-    // wrong (hidden) element. `offsetParent === null` skips the display:none duplicates.
+    // The [data-flip] shelf rows to animate — VISIBLE ones only, so a row inside a hidden section is never
+    // measured (a zero rect would make the FLIP jump).
     flipRows() {
       const root = this.$el;
 
@@ -1765,7 +1767,7 @@ export default {
     }
 
     &.menu-open {
-      width: 300px;
+      width: $app-bar-expanded-width;
       box-shadow: 3px 1px 3px var(--shadow);
 
       // because of accessibility, we force pin action to be visible on menu open
@@ -1815,7 +1817,7 @@ export default {
       min-height: 0;
       display: flex;
       flex-direction: column;
-      width: 300px;
+      width: $app-bar-expanded-width;
       overflow: hidden;
 
       & .category {
