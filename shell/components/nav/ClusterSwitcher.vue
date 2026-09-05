@@ -139,14 +139,31 @@ watch(() => props.search, () => {
   activeIndex.value = firstResultIndex();
 });
 
+// Where focus was when the flyout opened, so closing can hand it back (the trigger, normally).
+const focusOrigin = ref<HTMLElement | null>(null);
+
 const setOpen = (value: boolean) => {
+  const wasOpen = open.value;
+
   open.value = value;
   emit('update:open', value);
 
   if (value) {
+    focusOrigin.value = document.activeElement as HTMLElement | null;
     activeIndex.value = firstResultIndex();
     // Focus happens on the dropdown's `apply-show` (focusSearchInput) — here is too early, the teleported
     // input isn't mounted yet.
+  } else if (wasOpen) {
+    // Hand focus back to whatever opened us, so Esc doesn't strand a keyboard user on <body>. Only while
+    // the flyout still owns focus: an outside click has already moved focus to what the user clicked, and
+    // stealing it back would fight them.
+    const active = document.activeElement;
+
+    if (!active || active === document.body || active.closest('.cluster-switcher-popper')) {
+      focusOrigin.value?.focus?.();
+    }
+
+    focusOrigin.value = null;
   }
 };
 
@@ -389,7 +406,7 @@ defineExpose({
             class="switcher-search-input"
             :placeholder="placeholder"
             :aria-label="t('nav.switcher.searchAllClusters')"
-            aria-expanded="true"
+            :aria-expanded="open ? 'true' : 'false'"
             aria-haspopup="listbox"
             aria-autocomplete="list"
             :aria-controls="local ? `${ localListboxId } ${ listboxId }` : listboxId"

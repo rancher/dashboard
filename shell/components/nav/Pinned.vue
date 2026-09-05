@@ -29,15 +29,15 @@ const pinned = computed(() => props.cluster.pinned);
 const popping = ref(false);
 
 async function toggle() {
-  popping.value = false;
-  await nextTick();
-  popping.value = true;
-
   if (pinned.value) {
     props.cluster.unpin();
   } else {
     props.cluster.pin();
   }
+
+  popping.value = false;
+  await nextTick();
+  popping.value = true;
 }
 </script>
 

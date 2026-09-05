@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
 
 // The component pulls `t` from the useI18n composable (not the old `this.t` global), so mock it here.
@@ -8,7 +8,7 @@ const cluster = (id: string, ready = true) => ({
   id, label: id, ready, pinned: false, pin: jest.fn(), unpin: jest.fn()
 });
 
-const mountSwitcher = (props = {}) => mount(ClusterSwitcher, {
+const mountSwitcher = (props = {}) => shallowMount(ClusterSwitcher, {
   props: {
     all: [], searchResults: [], clusterCount: 0, currentClusterId: '', search: '', ...props
   },
@@ -37,7 +37,7 @@ describe('component: ClusterSwitcher', () => {
     expect((wrapper.vm as any).rows.map((c: any) => c.id)).toStrictEqual(['m1', 'm2']);
   });
 
-  // v3 (SURE-8192): the flyout is now the ONLY search in the nav and it always searches the whole
+  // The flyout is now the ONLY search in the nav and it always searches the whole
   // estate, so the placeholder is one fixed string — it no longer varies with the count.
   it.each([19, 0])('uses the one "search all clusters" placeholder (count: %s)', (clusterCount) => {
     const wrapper = mountSwitcher({ clusterCount });
@@ -91,7 +91,47 @@ describe('component: ClusterSwitcher', () => {
     expect(wrapper.emitted('update:open')?.[0]?.[0]).toBe(true);
   });
 
-  // v3 (SURE-8192): the ALL CLUSTERS / MATCHES caption sits ABOVE the search box, not inside the
+  it('closing hands focus back to whatever opened the flyout', () => {
+    const trigger = document.createElement('button');
+
+    document.body.appendChild(trigger);
+    trigger.focus();
+
+    const wrapper = mountSwitcher();
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    // The flyout owns focus while open (the real one focuses its search input on the popper's apply-show).
+    document.body.focus();
+
+    vm.setOpen(false);
+    expect(document.activeElement).toBe(trigger);
+
+    trigger.remove();
+  });
+
+  it('closing does not steal focus from an outside click', () => {
+    const trigger = document.createElement('button');
+    const elsewhere = document.createElement('button');
+
+    document.body.append(trigger, elsewhere);
+    trigger.focus();
+
+    const wrapper = mountSwitcher();
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    // Clicking another control auto-hides the flyout, but focus is already where the user put it.
+    elsewhere.focus();
+
+    vm.setOpen(false);
+    expect(document.activeElement).toBe(elsewhere);
+
+    trigger.remove();
+    elsewhere.remove();
+  });
+
+  // The ALL CLUSTERS / MATCHES caption sits ABOVE the search box, not inside the
   // scrolling list, and the flyout forwards the Option/Alt cue to every row.
   describe('layout', () => {
     it('puts the ALL CLUSTERS caption above the search box', () => {
@@ -123,16 +163,24 @@ describe('component: ClusterSwitcher', () => {
   });
 
   describe('accessibility (WAI-ARIA combobox + listbox)', () => {
-    it('the search input is a combobox that controls the results listbox', () => {
+    it('the search input is a combobox that controls the results listbox', async() => {
       const wrapper = mountSwitcher({ all: [cluster('p1')], clusterCount: 1 });
-      const input = wrapper.find('input.switcher-search-input');
+      const input = () => wrapper.find('input.switcher-search-input');
 
-      expect(input.attributes('role')).toBe('combobox');
-      expect(input.attributes('aria-autocomplete')).toBe('list');
-      expect(input.attributes('aria-haspopup')).toBe('listbox');
-      expect(input.attributes('aria-expanded')).toBe('true');
-      expect(input.attributes('aria-controls')).toBe('cluster-switcher-listbox');
+      expect(input().attributes('role')).toBe('combobox');
+      expect(input().attributes('aria-autocomplete')).toBe('list');
+      expect(input().attributes('aria-haspopup')).toBe('listbox');
+      expect(input().attributes('aria-controls')).toBe('cluster-switcher-listbox');
       expect(wrapper.find('#cluster-switcher-listbox').attributes('role')).toBe('listbox');
+
+      // aria-expanded is bound to `open`, not hard-coded, so it can't drift from the state it describes
+      // if the popper is ever mounted while the flyout is closed.
+      expect(input().attributes('aria-expanded')).toBe('false');
+
+      (wrapper.vm as any).setOpen(true);
+      await wrapper.vm.$nextTick();
+
+      expect(input().attributes('aria-expanded')).toBe('true');
     });
 
     it('aria-activedescendant follows the ↑↓ cursor to the active option id', async() => {

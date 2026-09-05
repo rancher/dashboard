@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import ClusterSwitcherRow from '@shell/components/nav/ClusterSwitcherRow.vue';
 
 // The row pulls `t` from the useI18n composable — return the key (or the interpolated meta bits it joins).
@@ -14,10 +14,7 @@ const cluster = (over = {}): any => ({
   ...over,
 });
 
-const mountRow = (props = {}) => mount(ClusterSwitcherRow, {
-  props:  { cluster: cluster(), ...props },
-  global: { stubs: { ClusterIconMenu: true, Pinned: true } },
-});
+const mountRow = (props = {}) => shallowMount(ClusterSwitcherRow, { props: { cluster: cluster(), ...props } });
 
 describe('component: ClusterSwitcherRow (accessibility)', () => {
   it('is an option, labelled by name + meta, with the decorative badge hidden', () => {
@@ -42,7 +39,7 @@ describe('component: ClusterSwitcherRow (accessibility)', () => {
     expect(mountRow({ current: false }).find('.cluster-switcher-row').attributes('aria-current')).toBeUndefined();
   });
 
-  // v3 (SURE-8192): the Option/Alt "keep this view" arrow used to light up only on the nav-bar rows.
+  // The Option/Alt "keep this view" arrow used to light up only on the nav-bar rows.
   // The flyout rows advertise it too, so the cue is the same wherever the user is browsing.
   describe('route-combo (Option/Alt) arrow', () => {
     const badge = (props = {}) => mountRow(props).findComponent({ name: 'ClusterIconMenu' });

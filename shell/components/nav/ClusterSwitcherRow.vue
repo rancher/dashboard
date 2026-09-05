@@ -113,7 +113,6 @@ function select() {
       v-if="pinnable"
       :cluster="cluster"
       class="row-pin"
-      :class="{ 'is-pinned': cluster.pinned }"
     />
   </div>
 </template>

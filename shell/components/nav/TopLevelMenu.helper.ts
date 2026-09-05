@@ -48,7 +48,6 @@ interface UpdateArgs {
   searchTerm: string,
   pinnedIds: string[],
   recentIds?: string[],
-  unPinnedMax?: number,
   forceWatch?: boolean,
   mgmtClusterRevision?: string,
   provClusterRevision?: string,
@@ -156,11 +155,9 @@ export interface TopLevelMenuHelper {
   update: (args: UpdateArgs) => Promise<void>;
 
   /** Fetch page 1 of the ALL list, replacing what's loaded (open / search / chevron triggers). */
-  resetOthers: () => Promise<void>;
+  resetOthers: (args?: UpdateArgs) => Promise<void>;
   /** Append the next page of the ALL list (infinite scroll). */
   loadMoreOthers: () => Promise<void>;
-  /** Whether more ALL-list pages remain. */
-  hasMoreOthers: () => boolean;
 
   /** Cleanup on destroy of TopLevelMenu. */
   destroy: () => Promise<void>;
@@ -505,11 +502,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     return this.fetchOthers(false);
   }
 
-  /** More ALL-list pages remain to load. */
-  public hasMoreOthers(): boolean {
-    return this.othersPage < this.othersPages;
-  }
-
   /** Update the saved cluster count used by the home page + resource menu. */
   public async updateCount(count: number) {
     if (count === this.clusterCount) {
@@ -611,10 +603,6 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     this.applyOthers();
 
     return Promise.resolve();
-  }
-
-  public hasMoreOthers(): boolean {
-    return this.clustersOthers.length < this.othersFull.length;
   }
 
   /** Filter mgmt clusters (Harvester filters + a matching prov cluster) and convert the remainder to rows. */

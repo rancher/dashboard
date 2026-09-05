@@ -29,7 +29,7 @@ export const prependRecent = (id: string): Mutation => ({
   apply: (recents) => {
     const current = Array.isArray(recents) ? recents : [];
 
-    return [id, ...current.filter((r) => r !== id)].filter((c) => c && c !== 'local' && c !== BLANK_CLUSTER);
+    return [id, ...current.filter((r) => r !== id)].filter((c) => isRecordableCluster(c));
   },
 });
 

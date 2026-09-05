@@ -60,7 +60,7 @@ const generateStore = (clusters: any[], settings = [{}]) => {
   };
 };
 
-// v3 (SURE-8192): the nav shelf shows ONLY local + PINNED + RECENT — the estate and the one search box
+// The nav shelf shows ONLY local + PINNED + RECENT — the estate and the one search box
 // moved into the switcher flyout, which is teleported and rendered on demand. So the nav's half of that
 // contract is what it hands the `ClusterSwitcher`: assert on those props rather than on rows the nav no
 // longer renders.
@@ -153,7 +153,7 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    // v2 (SURE-8192): `local` is no longer forced to the top of the combined cluster list — it has its
+    // `local` is no longer forced to the top of the combined cluster list — it has its
     // own fixed tile (`menu-cluster-local`) above the groups. The rest of the estate goes to the flyout's
     // ALL CLUSTERS directory, alphabetically.
     expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
@@ -205,7 +205,7 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    // v2 (SURE-8192): `local` sits in its own fixed tile above the groups. The ALL CLUSTERS directory is
+    // `local` sits in its own fixed tile above the groups. The ALL CLUSTERS directory is
     // sorted active (ready) first, then alphabetical — so the unready `a-cluster` sorts below the ready
     // `b-cluster` / `c-cluster` (matching legacy behavior).
     expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
@@ -330,7 +330,7 @@ describe('topLevelMenu', () => {
     expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
   });
 
-  // v4 (SURE-8192): the cluster META — `providerDisplay · kubernetesVersion` — is a flyout-row detail now
+  // The cluster META — `providerDisplay · kubernetesVersion` — is a flyout-row detail now
   // (the nav shelf is a bare cluster name), so the coverage moves to the fields the nav resolves and hands
   // the flyout. providerDisplay resolves from the prov cluster's provisionerDisplay here; the four row
   // types (pinned/unpinned × ready/not-ready) are all still represented.
@@ -391,7 +391,7 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    // v4 (SURE-8192): the nav rows are a bare cluster name now — the provider · version meta line lives
+    // The nav rows are a bare cluster name now — the provider · version meta line lives
     // only on the flyout rows, so check the fields the nav hands the flyout (ClusterSwitcherRow joins
     // them into that same "provider · version" string).
     expect(wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description').exists()).toBe(false);
@@ -466,7 +466,7 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    // v4 (SURE-8192): the nav rows are a bare cluster name now — the provider · version meta line lives
+    // The nav rows are a bare cluster name now — the provider · version meta line lives
     // only on the flyout rows, so check the fields the nav hands the flyout (ClusterSwitcherRow joins
     // them into that same "provider · version" string).
     expect(wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description').exists()).toBe(false);
@@ -605,7 +605,7 @@ describe('topLevelMenu', () => {
     });
   });
 
-  // v3 (SURE-8192): the nav's only estate affordance is the switcher trigger — a count chip ("N" over
+  // The nav's only estate affordance is the switcher trigger — a count chip ("N" over
   // the word "clusters") plus the "Cluster Switch" label and a trailing chevron. No search box, no ALL
   // CLUSTERS list and no CLUSTERS title live in the nav any more.
   describe('the cluster-switcher trigger', () => {
@@ -913,7 +913,7 @@ describe('topLevelMenu', () => {
         },
       });
 
-      // v2 (SURE-8192): data() seeds the helper with the watched context set — pinned + recent + search
+      // data() seeds the helper with the watched context set — pinned + recent + search
       // term — dropping the legacy `unPinnedMax` (the ALL list is now a separate page-increment slice).
       // `recentIds` reads the RECENT_CLUSTERS pref, which this mock leaves unset (undefined).
       expect(updateSpy).toHaveBeenCalledWith({
@@ -951,7 +951,7 @@ describe('topLevelMenu', () => {
         },
       });
 
-      // v2 (SURE-8192): data() seeds the helper with the watched context set — pinned + recent + search
+      // data() seeds the helper with the watched context set — pinned + recent + search
       // term — dropping the legacy `unPinnedMax` (the ALL list is now a separate page-increment slice).
       // `recentIds` reads the RECENT_CLUSTERS pref, which this mock leaves unset (undefined).
       expect(updateSpy).toHaveBeenCalledWith({

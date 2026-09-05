@@ -425,6 +425,15 @@ export const actions = {
       return v === undefined ? state.definitions[key]?.def : v;
     };
 
+    // A merge-write persists to the server only — it doesn't maintain the cookie mirror that `set` does,
+    // so a cookie-backed pref would leave the cookie holding the old value. Reject the whole batch before
+    // committing anything, rather than half-applying it.
+    const cookieBacked = list.find(({ key }) => state.definitions[key]?.asCookie);
+
+    if (cookieBacked) {
+      throw new Error(`Preference "${ cookieBacked.key }" is cookie-backed and cannot be merge-written`);
+    }
+
     list.forEach(({ key, apply }) => {
       const next = apply(currentValue(key));
 

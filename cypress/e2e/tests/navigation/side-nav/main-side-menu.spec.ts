@@ -30,7 +30,7 @@ describe('Side Menu: main', () => {
       // Visit the downstream cluster (so it lands in RECENT and stays visible in the shelf), then return
       // to local. The alt-combo only lights up when there is a ready cluster to jump to that isn't the
       // current one — `local` is excluded from that set, so we sit on local with the downstream as the
-      // jump target. SURE-8192.
+      // jump target.
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
       pagePoFake.navToClusterMenuEntry('local');
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
@@ -50,7 +50,7 @@ describe('Side Menu: main', () => {
       const burgerMenuPo = new BurgerMenuPo();
 
       // Expanded: the local slot reads exactly like every other cluster row — the bare cluster name, no
-      // subtitle line at all (SURE-8192).
+      // subtitle line at all.
       BurgerMenuPo.toggle();
       BurgerMenuPo.checkOpen();
       burgerMenuPo.getClusterIcon('local').find('.description').should('not.exist');
@@ -70,7 +70,7 @@ describe('Side Menu: main', () => {
 
       // Open the switcher flyout — the whole estate (and the only search box) lives in there. Using the
       // intercepted downstream cluster keeps this deterministic regardless of the environment's real
-      // topology, and `local` is no longer pinnable (it has its own fixed slot). SURE-8192.
+      // topology, and `local` is no longer pinnable (it has its own fixed slot).
       burgerMenuPo.openClusterSwitcher();
       burgerMenuPo.clusterListRowByLabel(fakeProvClusterId).find('.pin').should('have.attr', 'aria-pressed', 'false');
 
@@ -88,7 +88,7 @@ describe('Side Menu: main', () => {
     beforeEach(() => {
       // Inject a fake downstream cluster so there IS something browsable — the redesigned nav hides the
       // search "door" / flyout entirely when the estate is local-only (browsableClusterCount === 0), and
-      // this CI Rancher has only `local`. SURE-8192.
+      // this CI Rancher has only `local`.
       generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
 
       HomePagePo.goTo();
@@ -107,7 +107,7 @@ describe('Side Menu: main', () => {
       // local is always shown in its fixed slot...
       burgerMenuPo.getClusterIcon('local').should('exist');
 
-      // ...and the full estate opens in the switcher flyout (SURE-8192).
+      // ...and the full estate opens in the switcher flyout.
       burgerMenuPo.openClusterSwitcher();
       BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row').should('exist');
     });

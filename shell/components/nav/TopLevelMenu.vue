@@ -536,7 +536,7 @@ export default {
     },
 
     clusterCountsFromCounts: {
-      async handler(neu, old) {
+      async handler(neu) {
         await this.helper.updateCount(neu);
       },
       immediate: true,
@@ -1124,7 +1124,7 @@ export default {
                       >
                         <div class="cluster-all-badge">
                           <span class="cluster-all-count">{{ switcherCount }}</span>
-                          <span class="cluster-all-unit">{{ t('nav.switcher.clustersBadge') }}</span>
+                          <span class="cluster-all-unit">{{ t('nav.search.clusters') }}</span>
                         </div>
                       </div>
                       <div class="cluster-all-name">

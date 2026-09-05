@@ -1003,7 +1003,8 @@ export const actions = {
     if ( id ) {
       // Remember the current cluster AND record the visit in the app-bar RECENT shelf in ONE merge write:
       // writing CLUSTER separately raced the recent write on the shared Preference and clobbered the shelf.
-      recordClusterNavigation(dispatch, id);
+      // Fire-and-forget: loading the cluster must not wait on (or fail with) the preference write.
+      recordClusterNavigation(dispatch, id).catch(() => {});
 
       commit('clusterId', id);
 

@@ -4,7 +4,7 @@ import {
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { addObject, insertAt, removeObject, uniq } from '@shell/utils/array';
+import { insertAt, addObject, removeObject, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';

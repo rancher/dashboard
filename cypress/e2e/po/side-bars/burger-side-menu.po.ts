@@ -29,7 +29,7 @@ export default class BurgerMenuPo extends ComponentPo {
    *
    * `local` keeps its own fixed slot at the top of the cluster area, so it is always directly
    * clickable. Every other cluster lives in the cluster-switcher flyout (the nav shelf shows only
-   * pinned/recent) — open the flyout and pick the row there. SURE-8192.
+   * pinned/recent) — open the flyout and pick the row there.
    * @returns {Cypress.Chainable}
    */
   static burgerMenuNavToClusterbyLabel(label: string): Cypress.Chainable {
@@ -161,7 +161,7 @@ export default class BurgerMenuPo extends ComponentPo {
 
   /**
    * Get the local cluster icon in the side menu to use for hover actions. `local` is the always-present
-   * cluster and now sits in its own fixed `.cluster-local` slot (SURE-8192).
+   * cluster and now sits in its own fixed `.cluster-local` slot.
    */
   firstClusterIcon(): Cypress.Chainable {
     return this.self().find('.cluster-local .rancher-provider-icon');
@@ -169,7 +169,7 @@ export default class BurgerMenuPo extends ComponentPo {
 
   /**
    * Open the cluster-switcher flyout — the estate (ALL CLUSTERS + the search box) lives in there, in
-   * both the expanded and the collapsed nav. SURE-8192.
+   * both the expanded and the collapsed nav.
    */
   openClusterSwitcher(): Cypress.Chainable {
     this.self().getId('cluster-switcher-trigger').click();
@@ -197,7 +197,7 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   clusterListRowByLabel(label: string): Cypress.Chainable {
     // Exact-match the cluster name (anchored regex) so a label that is a prefix of another
-    // (e.g. "loadtest-1" vs "loadtest-10") cannot select the wrong row. SURE-8192.
+    // (e.g. "loadtest-1" vs "loadtest-10") cannot select the wrong row.
     const exact = new RegExp(`^${ label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }$`);
 
     return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row .row-name').contains(exact)
@@ -231,18 +231,8 @@ export default class BurgerMenuPo extends ComponentPo {
     return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row');
   }
 
-  pinFirstCluster(): Cypress.Chainable {
-    return this.clusterNotPinnedList().first().trigger('mouseover').find('.pin')
-      .invoke('show')
-      .click();
-  }
-
   clusterPinnedList(): Cypress.Chainable {
     return this.self().find('.body .clustersPinned .cluster.selector.option');
-  }
-
-  unpinFirstCluster(): Cypress.Chainable {
-    return this.clusterPinnedList().first().find('.pin').click();
   }
 
   getClusterIcon(clusterName = 'local'): Cypress.Chainable {
