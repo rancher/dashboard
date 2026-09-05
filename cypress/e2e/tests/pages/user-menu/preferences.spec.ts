@@ -23,10 +23,20 @@ const repoList = repoListPage.list();
 // const NORMAL_HUMAN = 'Normal human';
 
 const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
+const LANGUAGE_TEST = 'Can select a language';
 
 describe('User can update their preferences', () => {
   beforeEach(() => {
     cy.login();
+  });
+
+  // The language test deliberately leaves the UI in Chinese and nothing resets it. Restore English so
+  // a failure there doesn't cascade into the label based assertions of the tests that follow, and so
+  // a Cypress retry starts from the same locale as the first attempt.
+  afterEach(() => {
+    if (Cypress.currentTest?.title === LANGUAGE_TEST) {
+      cy.setUserPreference({ locale: 'en-us' });
+    }
   });
 
   it('Can navigate to Preferences Page', { tags: ['@userMenu', '@adminUser', '@standardUser', '@flaky'] }, () => {
@@ -43,7 +53,7 @@ describe('User can update their preferences', () => {
     prefPage.title();
   });
 
-  it('Can select a language', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  it(LANGUAGE_TEST, { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select language
     */
@@ -54,6 +64,24 @@ describe('User can update their preferences', () => {
 
     prefPage.goTo();
     prefPage.languageDropdownMenu().checkVisible();
+
+    // The locale is applied to the dom before its preference is saved, and the saved value is what the
+    // app re-reads on every route change and reload. Only the zh-hans selection is an actual change
+    // (the loop selects the current locale first), so alias just that PUT and wait for it below.
+    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
+      let body = req.body;
+
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch (e) { }
+      }
+
+      if (body?.data?.locale === 'zh-hans') {
+        req.alias = 'localeUpdate';
+      }
+    });
+
     for (const [key, value] of Object.entries(languages)) {
       prefPage.languageDropdownMenu().toggle();
       prefPage.languageDropdownMenu().isOpened();
@@ -63,8 +91,17 @@ describe('User can update their preferences', () => {
       prefPage.checkLangDomElement(key);
     }
 
+    cy.wait('@localeUpdate').its('response.statusCode').should('eq', 200);
+
     // testing https://github.com/rancher/dashboard/issues/10153
+    const clusterDashboard = new ClusterDashboardPagePo('local');
+
+    // The product side nav is only populated once the cluster loads, so entering it before the
+    // downstream proxy serves leaves the nav empty and the label lookup below times out
+    clusterDashboard.readyForClusterPage();
     ClusterDashboardPagePo.navTo();
+    clusterDashboard.waitForPage();
+
     const nav = new ProductNavPo();
 
     nav.navToSideMenuEntryByLabel('事件'); // events list

@@ -129,12 +129,14 @@ describe('SUSE Application page and link', { testIsolation: false }, () => {
       homePage.supportLinks().should('have.length', 6);
       homePage.checkSupportLinkText(5, APP_CO_LABEL);
 
-      homePage.clickSupportLink(5, true);
-
-      cy.url().should('contain', APP_CO_LINK);
-
-      // Check the page title
-      cy.title().should('eq', APP_CO_LABEL);
+      // Verify the link instead of navigating to it. Loading apps.rancher.io is an external network
+      // dependency that times out in CI; the href/target/rel is the part the dashboard actually owns.
+      homePage.supportLinks().eq(5).should(($el) => {
+        // Prefix match, as in prime.spec.ts: a link interceptor may legitimately rewrite the tail.
+        expect($el.attr('href'), 'href').to.satisfy((href: string) => href?.startsWith(APP_CO_LINK));
+        expect($el).to.have.attr('target', '_blank');
+        expect($el).to.have.attr('rel', 'noopener noreferrer nofollow');
+      });
     });
   });
 });

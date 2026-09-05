@@ -11,6 +11,8 @@ let servicesNamesList: string[] = [];
 const secretsCount = 4;
 const servicesCount = 4;
 let namespace: string;
+// Matches the debounce RulePath.vue wraps its rule updates in, plus a small margin
+const RULE_UPDATE_DEBOUNCE = 750;
 
 describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
@@ -292,8 +294,21 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.setTargetServiceValueByLabel(0, headlessServiceName);
       ingressCreatePagePo.setPortValueByLabel(0, '8080');
 
+      // [CREATE ISSUE TO INVESTIGATE] RulePath.vue emits its rule updates behind a 500ms debounce
+      // (`debounce(this.update, 500)`) and nothing flushes it on save. Saving inside that window posts a
+      // rule whose path object is still untouched, so Rule.pathObjectIsEmpty() drops `http` entirely and
+      // the ingress is created with no backend - silently, since validation only requires a rule to
+      // exist. Nothing in the dom marks the flush: the inputs render their own local state, so the page
+      // looks identical before and after, and further interaction only restarts the (trailing) debounce.
+      // Wait it out so the test does not race it. Remove once the form flushes pending updates on save.
+      cy.wait(RULE_UPDATE_DEBOUNCE); // eslint-disable-line cypress/no-unnecessary-waiting
+
       ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/networking.k8s.io.ingresses')
-        .then(({ response }) => {
+        .then(({ request, response }) => {
+          // Assert the payload too: if the debounce is ever raced again, this fails at the save with a
+          // rule that has no backend, instead of further down on the fetched object.
+          expect(request?.body?.spec?.rules?.[0], 'saved rule').to.have.property('http');
+
           expect(response?.statusCode).to.eq(201);
           expect(response?.body.metadata).to.have.property('name', ingressHeadlessName);
 
