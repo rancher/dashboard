@@ -12,7 +12,7 @@ const scrollIntoView = jest.fn();
 Element.prototype.scrollIntoView = scrollIntoView;
 
 const cluster = (id: string, ready = true) => ({
-  id, label: id, ready, pinned: false, pin: jest.fn(), unpin: jest.fn()
+  id, label: id, ready, pinned: false, isLocal: id === 'local', pin: jest.fn(), unpin: jest.fn()
 });
 
 // `attachTo` puts the options in the real document, which the cursor-reveal look-up needs (the flyout is
@@ -254,6 +254,85 @@ describe('component: ClusterSwitcher', () => {
       // ...and Enter explores it.
       vm.onKeydown({ key: 'Enter', preventDefault() {} });
       expect(wrapper.emitted('select')?.[0]?.[0]).toMatchObject({ id: 'local' });
+    });
+
+    // The pin stays out of the tab order (a focusable control inside `role="option"` is invalid ARIA),
+    // so the combobox has to own the keyboard path — otherwise the flyout, the only surface where a
+    // cluster outside PINNED/RECENT can be pinned, is mouse-only. WCAG 2.2 2.1.1 (Level A).
+    it('Alt+P pins and unpins the row under the keyboard cursor', () => {
+      const p1 = cluster('p1');
+      const p2 = cluster('p2');
+      const wrapper = mountSwitcher({ all: [p1, p2] });
+      const vm = wrapper.vm as any;
+      const altP = () => vm.onKeydown({
+        key: 'p', code: 'KeyP', altKey: true, preventDefault() {}
+      });
+
+      altP();
+      expect(p1.pin).toHaveBeenCalledTimes(1);
+
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // cursor -> p2
+      p2.pinned = true;
+      altP();
+      expect(p2.unpin).toHaveBeenCalledTimes(1);
+      expect(p2.pin).not.toHaveBeenCalled();
+    });
+
+    // `p` without Alt is a search character, and `local` is never pinnable.
+    it('Alt+P is inert without Alt, and on the local row', () => {
+      const local = cluster('local');
+      const p1 = cluster('p1');
+      const wrapper = mountSwitcher({ local, all: [p1] });
+      const vm = wrapper.vm as any;
+
+      vm.onKeydown({
+        key: 'p', code: 'KeyP', altKey: false, preventDefault() {}
+      });
+      expect(p1.pin).not.toHaveBeenCalled();
+
+      vm.onKeydown({ key: 'ArrowUp', preventDefault() {} }); // cursor -> local
+      vm.onKeydown({
+        key: 'p', code: 'KeyP', altKey: true, preventDefault() {}
+      });
+      expect(local.pin).not.toHaveBeenCalled();
+    });
+
+    // The flyout puts up a full-page scrim, so Tab must not walk focus out onto content that scrim
+    // covers and click-blocks.
+    it('contains Tab and Shift+Tab inside the popover', async() => {
+      const wrapper = mountSwitcher({
+        all: [cluster('p1')], search: 'p', clusterCount: 1
+      }, document.body);
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+
+      const input = wrapper.find('input.switcher-search-input').element as HTMLElement;
+      const clear = wrapper.find('button.switcher-clear').element as HTMLElement;
+      const tab = (shiftKey = false) => {
+        const preventDefault = jest.fn();
+
+        vm.onKeydown({
+          key: 'Tab', shiftKey, preventDefault
+        });
+
+        return preventDefault;
+      };
+
+      input.focus();
+      expect(tab()).toHaveBeenCalled();
+      expect(document.activeElement).toBe(clear);
+
+      // Tab off the LAST control wraps back to the first rather than escaping the scrim.
+      tab();
+      expect(document.activeElement).toBe(input);
+
+      // ...and the same backwards.
+      tab(true);
+      expect(document.activeElement).toBe(clear);
+
+      wrapper.unmount();
     });
   });
 });

@@ -109,6 +109,8 @@ function select() {
         {{ meta }}
       </div>
     </div>
+    <!-- No `tab-order` on purpose: a focusable control inside `role="option"` is invalid ARIA, so the
+         pin stays out of the tab order and the combobox drives it from the keyboard instead (Alt+P). -->
     <Pinned
       v-if="pinnable"
       :cluster="cluster"

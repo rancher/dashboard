@@ -16,7 +16,7 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
-import { commitAndReconcile, isRecordableCluster, prependRecent } from '@shell/utils/cluster-pref-writer';
+import { commitAndReconcile } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -834,12 +834,15 @@ export default class MgmtCluster extends SteveModel {
   }
 
   /**
-   * Unpin the cluster: remove it from PINNED_CLUSTERS and move it to the top of
-   * RECENT so it stays visible. Routed through the shared serialized writer so
-   * this write can't race the store's cluster-navigation write and 409.
+   * Unpin the cluster by removing it from PINNED_CLUSTERS. RECENT is deliberately
+   * left alone: it is a persisted VISIT log (written only by `recordClusterNavigation`
+   * on `loadCluster`), so promoting an unpinned cluster there would list a cluster the
+   * user may never have opened above ones they actually came from. It stays one click
+   * away in the switcher flyout. Routed through the shared serialized writer so this
+   * write can't race the store's cluster-navigation write and 409.
    */
   unpin() {
-    const mutations = [{
+    return commitAndReconcile(this._clusterPrefDispatch, [{
       key:   PINNED_CLUSTERS,
       apply: (pinned) => {
         const next = [...(Array.isArray(pinned) ? pinned : [])];
@@ -848,16 +851,7 @@ export default class MgmtCluster extends SteveModel {
 
         return next;
       },
-    }];
-
-    // Surface it at the front of RECENT too, unless it's the non-recordable local/blank placeholder.
-    // NOTE: RECENT is otherwise a persisted VISIT log (written only by `recordClusterNavigation` on
-    // `loadCluster`); prepending here records a cluster the user may never have opened.
-    if (isRecordableCluster(this.id)) {
-      mutations.push(prependRecent(this.id));
-    }
-
-    return commitAndReconcile(this._clusterPrefDispatch, mutations);
+    }]);
   }
 
   get canExplore() {

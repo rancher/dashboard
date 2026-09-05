@@ -1,5 +1,5 @@
 import { LOCAL_CLUSTER } from '@shell/config/types';
-import { CLUSTER, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { CLUSTER, MENU_MAX_RECENT_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 /**
@@ -22,15 +22,19 @@ export function isRecordableCluster(id: string): boolean {
   return !!id && id !== LOCAL_CLUSTER && id !== BLANK_CLUSTER;
 }
 
-// RECENT mutation shared by a visit and an unpin: prepend `id` most-recent-first (de-duped), then strip
-// empty / non-cluster placeholders (`local`, `_`) an older build may have persisted. The stored log is
-// UNCAPPED — a plain visit-order list; only DISPLAY is capped, elsewhere (`visibleRecentClusters`).
+// RECENT mutation for a visit: prepend `id` most-recent-first (de-duped), then strip empty / non-cluster
+// placeholders (`local`, `_`) an older build may have persisted. The stored log is capped — only the first
+// MENU_MAX_RECENT_CLUSTERS are ever displayed (`visibleRecentClusters`), and everything past the cap is
+// dead weight re-serialized into the shared per-user Preference on every write. 2x the display cap leaves
+// headroom for the pinned-exclusion filter.
 export const prependRecent = (id: string): Mutation => ({
   key:   RECENT_CLUSTERS,
   apply: (recents) => {
     const current = Array.isArray(recents) ? recents : [];
 
-    return [id, ...current.filter((r) => r !== id)].filter((c) => isRecordableCluster(c));
+    return [id, ...current.filter((r) => r !== id)]
+      .filter((c) => isRecordableCluster(c))
+      .slice(0, MENU_MAX_RECENT_CLUSTERS * 2);
   },
 });
 
@@ -52,7 +56,16 @@ function enqueue(task: () => Promise<any>): Promise<any> {
  * never waits behind it.
  */
 export function commitAndReconcile(dispatch: Dispatch, mutations: Mutation[]): Promise<any> {
-  const optimistic = dispatch('prefs/applyPrefsOptimistic', mutations);
+  let optimistic: Promise<any>;
+
+  // `applyPrefsOptimistic` is a SYNC Vuex action, and Vuex does not wrap a synchronous throw from one — so
+  // its cookie-backed guard would escape `dispatch` past every caller's `.catch` (and take `loadCluster`
+  // down with it). Turn it into a rejection, keeping the commit itself synchronous.
+  try {
+    optimistic = dispatch('prefs/applyPrefsOptimistic', mutations);
+  } catch (e) {
+    return Promise.reject(e);
+  }
 
   return enqueue(() => optimistic.then((o: any) => dispatch('prefs/reconcilePrefs', { mutations, optimistic: o })));
 }

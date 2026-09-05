@@ -825,7 +825,11 @@ export default {
       this.switcherOpen = open;
 
       // Alt released outside the guard's reach (the flyout closed mid-combo) would strand the arrow on.
-      this.routeCombo = false;
+      // Only on CLOSE — clearing it on open cancels the combo arrows the flyout is meant to advertise
+      // while Alt is still held.
+      if (!open) {
+        this.routeCombo = false;
+      }
 
       if (open) {
         this.resetOthersList();
@@ -1054,7 +1058,6 @@ export default {
                 :class="{ 'active-menu-link': localCluster.isMenuActive }"
                 :aria-current="localCluster.isMenuActive ? 'page' : undefined"
                 data-testid="menu-cluster-local"
-                role="button"
                 :aria-label="`${ t('nav.ariaLabel.cluster') } ${ localCluster.label }`"
                 @click.prevent="clusterMenuClick($event, localCluster)"
                 @shortkey="onRouteComboHold"

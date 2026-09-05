@@ -1,5 +1,5 @@
 import { prependRecent, recordClusterNavigation } from '@shell/utils/cluster-pref-writer';
-import { CLUSTER, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { CLUSTER, MENU_MAX_RECENT_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 
 // The prefs under test are heterogeneous: RECENT/PINNED are string[], CLUSTER is a string.
 type PrefValue = string | string[];
@@ -24,6 +24,20 @@ describe('fx: cluster-pref-writer', () => {
 
     it('tolerates a non-array value', () => {
       expect(prependRecent('c-a').apply(undefined as any)).toStrictEqual(['c-a']);
+    });
+
+    // Only the first MENU_MAX_RECENT_CLUSTERS are ever displayed, so an uncapped log is dead weight
+    // re-serialized into the shared per-user Preference on every pin, unpin and cluster visit.
+    it('caps the stored log so a long tour of the estate cannot grow it without bound', () => {
+      let value: string[] = [];
+
+      for (let i = 0; i < 300; i++) {
+        value = prependRecent(`c-${ i }`).apply(value) as string[];
+      }
+
+      expect(value).toHaveLength(MENU_MAX_RECENT_CLUSTERS * 2);
+      // Most-recent-first is preserved — it is the tail that is dropped.
+      expect(value[0]).toBe('c-299');
     });
   });
 

@@ -63,6 +63,7 @@ const open = ref<boolean>(false);
 const activeIndex = ref<number>(0);
 const searchInput = ref<HTMLElement | null>(null);
 const scroller = ref<HTMLElement | null>(null);
+const flyout = ref<HTMLElement | null>(null);
 
 const searching = computed<boolean>(() => !!props.search);
 
@@ -284,7 +285,59 @@ const revealActive = () => {
   });
 };
 
+// What Tab can land on inside the popover. The rows are `option`s the combobox drives via
+// aria-activedescendant, so in practice this is the search box and the clear X.
+const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Keep Tab inside the popover. The flyout is a modal surface — it puts up a full-page scrim — so letting
+ * Tab walk out leaves a keyboard user driving content that is behind, and click-blocked by, that scrim.
+ * `setOpen` already handles the return trip (focus restore) and Esc; this is the containment half.
+ */
+const trapFocus = (e: KeyboardEvent) => {
+  const items = Array.from(flyout.value?.querySelectorAll<HTMLElement>(TABBABLE) || []);
+
+  if (!items.length) {
+    return;
+  }
+
+  e.preventDefault();
+
+  const last = items.length - 1;
+  const current = items.indexOf(document.activeElement as HTMLElement);
+  const next = e.shiftKey ? (current <= 0 ? last : current - 1) : (current === -1 || current === last ? 0 : current + 1);
+
+  items[next].focus();
+};
+
+/**
+ * Pin/unpin the row under the keyboard cursor. The pin itself has to stay OUT of the tab order (a
+ * focusable control inside `role="option"` is invalid ARIA), so the combobox owns the keyboard path —
+ * without it the flyout, the only surface where a cluster outside PINNED/RECENT can be pinned, is
+ * mouse-only. `local` is never pinnable.
+ */
+const togglePin = (cluster?: TopLevelMenuCluster | null) => {
+  if (!cluster || cluster.isLocal) {
+    return;
+  }
+
+  if (cluster.pinned) {
+    cluster.unpin();
+  } else {
+    cluster.pin();
+  }
+};
+
 const onKeydown = (e: KeyboardEvent) => {
+  // Alt+P toggles the pin on the cursor row. Matched on `code`, not `key`: Option+P emits `π` on a Mac
+  // layout, so `e.key` would never see a `p`.
+  if (e.altKey && e.code === 'KeyP') {
+    e.preventDefault();
+    togglePin(navRows.value[activeIndex.value]);
+
+    return;
+  }
+
   switch (e.key) {
   case 'ArrowDown':
     e.preventDefault();
@@ -301,6 +354,9 @@ const onKeydown = (e: KeyboardEvent) => {
     explore(navRows.value[activeIndex.value]);
     break;
   }
+  case 'Tab':
+    trapFocus(e);
+    break;
   case 'Escape':
     e.preventDefault();
     setOpen(false);
@@ -324,6 +380,7 @@ defineExpose({
   onInput,
   onKeydown,
   explore,
+  togglePin,
 });
 </script>
 
@@ -363,6 +420,7 @@ defineExpose({
 
     <template #popper>
       <div
+        ref="flyout"
         class="cluster-switcher-flyout"
         role="none"
         @keydown="onKeydown"
@@ -427,6 +485,7 @@ defineExpose({
             :aria-expanded="open ? 'true' : 'false'"
             aria-haspopup="listbox"
             aria-autocomplete="list"
+            aria-keyshortcuts="Alt+P"
             :aria-controls="local ? `${ localListboxId } ${ listboxId }` : listboxId"
             :aria-activedescendant="activeDescendant"
             @input="onInput"

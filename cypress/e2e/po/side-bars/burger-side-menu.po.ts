@@ -42,7 +42,7 @@ export default class BurgerMenuPo extends ComponentPo {
     }
 
     return this.sideMenu().should('exist').find('.option .cluster-name').contains(label)
-      .click({ force: true });
+      .click();
   }
 
   /**

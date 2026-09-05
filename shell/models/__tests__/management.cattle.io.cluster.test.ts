@@ -348,19 +348,20 @@ describe('class MgmtCluster', () => {
       expect(mutations[0].apply(['c-a'])).toStrictEqual(['c-a']); // already pinned — no duplicate
     });
 
-    it('unpin removes from PINNED and promotes the cluster to the front of RECENT in one write', async() => {
+    it('unpin sends a single PINNED_CLUSTERS mutation and leaves the RECENT visit log alone', async() => {
       const { cluster, calls } = makeCluster('c-a');
 
       await cluster.unpin();
 
       const mutations = calls[0].payload;
 
-      expect(mutations.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS, RECENT_CLUSTERS]);
+      // RECENT is a VISIT log — unpinning must not promote a cluster the user may never have opened.
+      expect(mutations.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS]);
+      expect(mutations.some((m: any) => m.key === RECENT_CLUSTERS)).toBe(false);
       expect(mutations[0].apply(['c-a', 'c-b'])).toStrictEqual(['c-b']);
-      expect(mutations[1].apply(['c-c'])).toStrictEqual(['c-a', 'c-c']);
     });
 
-    it('unpin of local touches PINNED only (local is never listed under RECENT)', async() => {
+    it('unpin of local touches PINNED only', async() => {
       const { cluster, calls } = makeCluster('local');
 
       await cluster.unpin();

@@ -29,11 +29,19 @@ const pinned = computed(() => props.cluster.pinned);
 const popping = ref(false);
 
 async function toggle() {
-  // `pin`/`unpin` return the serialized pref write — swallow its rejection here (as `loadCluster` does)
-  // so a failed write can never surface as an unhandled promise rejection.
+  // `pin`/`unpin` return the serialized pref write. `reconcilePrefs` RESOLVES with `{ type, status }` on
+  // failure rather than rejecting, so the resolved value is what says the write failed — and by then the
+  // optimistic commit has already put the new state on screen, where it would sit wrong until a reload
+  // silently reverted it. Surface it instead. The `.catch` still guards the rejecting paths.
   const write = pinned.value ? props.cluster.unpin() : props.cluster.pin();
 
-  Promise.resolve(write).catch(() => {});
+  Promise.resolve(write)
+    .then((result: any) => {
+      if (result?.status) {
+        store.dispatch('growl/fromError', { title: t('nav.pinClusterError'), err: result });
+      }
+    })
+    .catch(() => {});
 
   popping.value = false;
   await nextTick();

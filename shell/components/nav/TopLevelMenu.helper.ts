@@ -374,7 +374,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   async update(args: UpdateArgs) {
     this.args = args;
 
-    await this.updateContext(args).catch(() => {});
+    await this.updateContext(args).catch((e) => {
+      console.warn('Unable to update the side nav cluster context (local/pinned/recent)', e); // eslint-disable-line no-console
+    });
   }
 
   async destroy() {

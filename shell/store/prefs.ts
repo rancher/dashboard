@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash';
+
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
@@ -500,12 +502,15 @@ export const actions = {
         const reconciled = apply(base);
 
         // Server drifted from what we optimistically committed → adopt the server-based result.
-        if (JSON.stringify(reconciled) !== JSON.stringify(optimistic?.[key])) {
+        // Structural compare: `JSON.stringify` is key-order sensitive, and the merge-write API is generic,
+        // so an object-valued pref (NAMESPACE_FILTERS, HIDE_HOME_PAGE_CARDS) would read as drift purely
+        // from re-serialisation.
+        if (!isEqual(reconciled, optimistic?.[key])) {
           commit('load', { key, value: reconciled });
         }
 
         // Skip the write for a key the action left unchanged (e.g. a duplicate visit / already-pinned).
-        if (JSON.stringify(reconciled) !== JSON.stringify(base)) {
+        if (!isEqual(reconciled, base)) {
           const toWrite = definition.mangleWrite ? definition.mangleWrite(reconciled) : reconciled;
 
           server.data[key] = definition.parseJSON ? JSON.stringify(toWrite) : toWrite;

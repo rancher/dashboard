@@ -297,6 +297,7 @@ nav:
     legacy: Legacy Apps
     configuration: Configuration
     hci: HCI
+  pinClusterError: Could not save your pinned clusters
   search:
     clusters: clusters
     clear: Clear search
