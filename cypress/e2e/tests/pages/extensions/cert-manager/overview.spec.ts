@@ -141,7 +141,7 @@ describe('Cert Manager overview', { tags: ['@extensions', '@adminUser'] }, () =>
 
       // No cluster issuers exist, so that card shows its empty message and an inline create action.
       overview.issuersSection().contains('No cluster issuers available').should('be.visible');
-      overview.issuersSection().contains('a', 'Create Cluster Issuer').should('be.visible');
+      overview.issuersSection().contains('a', 'Create cluster issuer').should('be.visible');
     });
   });
 });
