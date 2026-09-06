@@ -84,6 +84,7 @@ const displayCounts = computed(() => {
     display: flex;
     flex-direction: row;
     align-items: center;
+    line-height: 24px;
 
     .right {
       flex-grow: 1;
