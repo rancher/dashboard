@@ -155,7 +155,7 @@ const { t } = useI18n(useStore());
 .expiring-soon {
   display: flex;
   flex-direction: column;
-  gap: var(--gap);
+  gap: 4px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -184,7 +184,7 @@ const { t } = useI18n(useStore());
   padding: 72px;
   display: flex;
   flex-direction: column;
-  gap: var(--gap-md);
+  gap: var(--gap-lg);
 
   h1 {
     line-height: 38px;
@@ -193,6 +193,7 @@ const { t } = useI18n(useStore());
   .empty-state-tips {
     font-size: 16px;
     line-height: 29px;
+    margin-bottom: 8px;
   }
 }
 </style>
