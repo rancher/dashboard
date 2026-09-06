@@ -13,6 +13,8 @@ export const EDITOR_MODES = {
 };
 
 export default {
+  name: 'YamlEditor',
+
   emits: ['update:value', 'newObject', 'onInput', 'onReady', 'onChanges', 'validationChanged'],
 
   components: {

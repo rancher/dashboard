@@ -1,13 +1,11 @@
-<script>
+<script setup lang="ts">
+import {
+  ref, computed, watch, onBeforeUnmount, nextTick
+} from 'vue';
 import { diffLines } from 'diff';
 import debounce from 'lodash/debounce';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { mergeOverrides, mergeOverridesIfMergeable } from '@shell/utils/chart-values';
-
-// Delay before the preview recomputes after the last keystroke. The merge +
-// serialize + diff + full editor replace is O(document), so we defer it until
-// typing pauses to keep the editable pane responsive on large values files.
-const PREVIEW_DEBOUNCE_MS = 400;
 
 /**
  * Two-pane YAML values editor: a LEFT editable "overrides" pane and a RIGHT
@@ -19,267 +17,229 @@ const PREVIEW_DEBOUNCE_MS = 400;
  *  - Controlled: leave `defaults` unset and pass a ready-made `preview` string.
  *
  * The merge is kept off the render path: the read-only pane is bound to the
- * `previewValue` data field, which is updated only by the debounced
- * `recomputePreview` (YamlEditor doesn't react to its `value` prop after mount,
- * so the new content is pushed in via its ref).
+ * `previewValue` ref, which is updated only by the debounced `recomputePreview`
+ * (YamlEditor doesn't react to its `value` prop after mount, so the new content
+ * is pushed in via its ref).
  */
-export default {
-  name: 'YamlOverridesEditor',
 
-  components: { YamlEditor },
+// Delay before the preview recomputes after the last keystroke. The merge +
+// serialize + diff + full editor replace is O(document), so we defer it until
+// typing pauses to keep the editable pane responsive on large values files.
+const PREVIEW_DEBOUNCE_MS = 400;
 
-  props: {
-    /** Editable overrides YAML (use with v-model:value). */
-    value: {
-      type:    String,
-      default: '',
-    },
-    /** Controlled-mode preview shown in the right pane. Ignored in smart mode. */
-    preview: {
-      type:    String,
-      default: '',
-    },
-    /**
-     * Smart-mode base values: when set, the component computes the preview by
-     * merging the overrides (`value`) onto these. Leave unset to drive `preview`.
-     */
-    defaults: {
-      type:    Object,
-      default: null,
-    },
-    /** Editor mode for the editable pane (e.g. EDIT_CODE / DIFF_CODE). */
-    editorMode: {
-      type:    String,
-      default: EDITOR_MODES.EDIT_CODE,
-    },
-    /** Baseline used by the editable pane's own diff view. */
-    initialYamlValues: {
-      type:    String,
-      default: '',
-    },
-    overridesLabel: {
-      type:    String,
-      default: '',
-    },
-    overridesHint: {
-      type:    String,
-      default: '',
-    },
-    finalLabel: {
-      type:    String,
-      default: '',
-    },
-    finalHint: {
-      type:    String,
-      default: '',
-    },
-    /**
-     * Prefix for the data-testids rendered on each pane and editor, e.g.
-     * `chart-values` produces `chart-values-overrides-pane` and (via YamlEditor)
-     * `chart-values-overrides-code-mirror`.
-     */
-    testidPrefix: {
-      type:    String,
-      default: 'values',
-    },
-  },
+interface Props {
+  /** Editable overrides YAML (use with v-model:value). */
+  value?: string;
+  /** Controlled-mode preview shown in the right pane. Ignored in smart mode. */
+  preview?: string;
+  /**
+   * Smart-mode base values: when set, the component computes the preview by
+   * merging the overrides (`value`) onto these. Leave unset to drive `preview`.
+   */
+  defaults?: object | null;
+  /** Editor mode for the editable pane (e.g. EDIT_CODE / DIFF_CODE). */
+  editorMode?: string;
+  /** Baseline used by the editable pane's own diff view. */
+  initialYamlValues?: string;
+  overridesLabel?: string;
+  overridesHint?: string;
+  finalLabel?: string;
+  finalHint?: string;
+  /**
+   * Prefix for the data-testids rendered on each pane and editor, e.g.
+   * `chart-values` produces `chart-values-overrides-pane` and (via YamlEditor)
+   * `chart-values-overrides-code-mirror`.
+   */
+  testidPrefix?: string;
+}
 
-  emits: ['update:value'],
+const props = withDefaults(defineProps<Props>(), {
+  value:             '',
+  preview:           '',
+  defaults:          null,
+  editorMode:        EDITOR_MODES.EDIT_CODE,
+  initialYamlValues: '',
+  overridesLabel:    '',
+  overridesHint:     '',
+  finalLabel:        '',
+  finalHint:         '',
+  testidPrefix:      'values',
+});
 
-  data() {
-    return {
-      EDITOR_MODES,
-      // Content currently shown in the read-only pane. Updated only by the
-      // debounced recomputePreview so the merge stays off the keystroke path.
-      previewValue:     '',
-      // Smart mode: last preview that came from valid overrides, kept so the
-      // preview doesn't revert to the bare defaults while the user is mid-edit.
-      lastValidPreview: null,
-    };
-  },
+const emit = defineEmits<{(e: 'update:value', value: string): void }>();
 
-  computed: {
-    /** Whether the component computes the preview itself (see `defaults`). */
-    smartMode() {
-      return this.defaults !== null;
-    },
+// Editors the component drives imperatively (YamlEditor doesn't react to its
+// `value` prop after mount, so changes are pushed in via these refs).
+const overridesEditor = ref<any>(null);
+const finalEditor = ref<any>(null);
 
-    /**
-     * Smart mode: defaults merged with the current overrides, or null when they're
-     * mid-edit/invalid (a plain merge would collapse to bare defaults). The null
-     * lets `resolvedPreview` hold the last valid preview. Lazy - read only from
-     * recomputePreview (and tests), never from the template, so the merge doesn't
-     * run on every keystroke.
-     */
-    mergeablePreview() {
-      if (!this.smartMode) {
-        return null;
-      }
+// Content currently shown in the read-only pane. Updated only by the debounced
+// recomputePreview so the merge stays off the keystroke path.
+const previewValue = ref('');
+// Smart mode: last preview that came from valid overrides, kept so the preview
+// doesn't revert to the bare defaults while the user is mid-edit.
+const lastValidPreview = ref<string | null>(null);
 
-      return mergeOverridesIfMergeable(this.defaults || {}, this.value);
-    },
+/** Whether the component computes the preview itself (see `defaults`). */
+const smartMode = computed(() => props.defaults !== null);
 
-    /**
-     * The preview that should be shown: the `preview` prop in controlled mode, or
-     * the sticky merge in smart mode (defaults until something valid is typed).
-     * Lazy, like mergeablePreview - the template binds `previewValue` instead.
-     */
-    resolvedPreview() {
-      if (!this.smartMode) {
-        return this.preview;
-      }
+/**
+ * Smart mode: defaults merged with the current overrides, or null when they're
+ * mid-edit/invalid (a plain merge would collapse to bare defaults). The null lets
+ * `resolvedPreview` hold the last valid preview. Lazy - read only from
+ * recomputePreview (and tests), never from the template, so the merge doesn't run
+ * on every keystroke.
+ */
+const mergeablePreview = computed(() => {
+  if (!smartMode.value) {
+    return null;
+  }
 
-      return this.mergeablePreview ?? this.lastValidPreview ?? mergeOverrides(this.defaults || {}, '');
-    },
+  return mergeOverridesIfMergeable(props.defaults || {}, props.value);
+});
 
-    overridesPaneTestid() {
-      return `${ this.testidPrefix }-overrides-pane`;
-    },
-    finalPaneTestid() {
-      return `${ this.testidPrefix }-final-pane`;
-    },
-    overridesTestid() {
-      return `${ this.testidPrefix }-overrides`;
-    },
-    finalTestid() {
-      return `${ this.testidPrefix }-final`;
-    },
-  },
+/**
+ * The preview that should be shown: the `preview` prop in controlled mode, or the
+ * sticky merge in smart mode (defaults until something valid is typed). Lazy, like
+ * mergeablePreview - the template binds `previewValue` instead.
+ */
+const resolvedPreview = computed(() => {
+  if (!smartMode.value) {
+    return props.preview;
+  }
 
-  // Watch the cheap raw inputs (not the merge computeds, which would then run
-  // eagerly on every keystroke) and defer the heavy recompute until typing stops.
-  watch: {
-    value() {
-      this.queuePreview();
-    },
-    defaults() {
-      this.queuePreview();
-    },
-    preview() {
-      this.queuePreview();
-    },
-  },
+  return mergeablePreview.value ?? lastValidPreview.value ?? mergeOverrides(props.defaults || {}, '');
+});
 
-  created() {
-    this.queuePreview = debounce(this.recomputePreview, PREVIEW_DEBOUNCE_MS);
+const overridesPaneTestid = computed(() => `${ props.testidPrefix }-overrides-pane`);
+const finalPaneTestid = computed(() => `${ props.testidPrefix }-final-pane`);
+const overridesTestid = computed(() => `${ props.testidPrefix }-overrides`);
+const finalTestid = computed(() => `${ props.testidPrefix }-final`);
 
-    // Seed the preview synchronously so the read-only pane is correct on mount
-    // (mount is not a "change", so it must not go through the debounce).
-    if (this.mergeablePreview !== null) {
-      this.lastValidPreview = this.mergeablePreview;
+/** The 0-based indices of lines added/changed in `neu` relative to `old`. */
+function addedLineNumbers(old: string, neu: string): number[] {
+  const lines: number[] = [];
+  let lineNo = 0;
+
+  diffLines(old, neu).forEach((part) => {
+    const count = part.count ?? 0;
+
+    if (part.removed) {
+      // Removed lines aren't in the new document, so don't advance the counter.
+      return;
     }
-    this.previewValue = this.resolvedPreview;
-  },
 
-  beforeUnmount() {
-    this.queuePreview?.cancel();
-  },
-
-  methods: {
-    /**
-     * Recompute the preview and push it into the read-only editor. Debounced (via
-     * queuePreview) so the merge/serialize/diff/replace only runs once typing
-     * pauses, keeping the editable pane responsive on large values files.
-     */
-    recomputePreview() {
-      // Remember the last valid merge so the preview holds it while the overrides
-      // are mid-edit/invalid instead of reverting to the bare defaults.
-      if (this.mergeablePreview !== null) {
-        this.lastValidPreview = this.mergeablePreview;
+    if (part.added) {
+      for (let i = 0; i < count; i++) {
+        lines.push(lineNo + i);
       }
+    }
 
-      const neu = this.resolvedPreview;
-      const old = this.previewValue;
-      // Work out which lines changed before we replace the document, then flash
-      // them once the new content is in place to draw the eye to the change.
-      const changed = this.changedLineNumbers(old, neu);
+    lineNo += count;
+  });
 
-      this.previewValue = neu;
+  return lines;
+}
 
-      this.$nextTick(() => {
-        this.$refs.finalEditor?.updateValue(neu);
-        this.$refs.finalEditor?.refresh();
-        this.$refs.finalEditor?.highlightLines(changed);
-      });
-    },
+/**
+ * The 0-based line numbers in `neu` that were added or changed relative to `old`.
+ * Skips the initial population (empty `old`) so the whole preview doesn't flash
+ * the first time it is filled in.
+ *
+ * A typical edit only touches a small contiguous region, so we first trim the
+ * common leading/trailing lines (an O(n) scan) and run the diff on just that
+ * window. This keeps highlighting fast on huge values files without capping it.
+ */
+function changedLineNumbers(old: string, neu: string): number[] {
+  if (!old) {
+    return [];
+  }
 
-    /**
-     * Push a new value into the editable overrides editor. YamlEditor does not
-     * react to its `value` prop, so a programmatic change to the overrides (e.g.
-     * seeding from the form's values) must be applied via its ref.
-     */
-    updateOverrides(value) {
-      this.$refs.overridesEditor?.updateValue(value);
-    },
+  const oldLines = (old || '').split('\n');
+  const neuLines = (neu || '').split('\n');
 
-    /**
-     * The 0-based line numbers in `neu` that were added or changed relative to
-     * `old`. Skips the initial population (empty `old`) so the whole preview
-     * doesn't flash the first time it is filled in.
-     *
-     * A typical edit only touches a small contiguous region, so we first trim the
-     * common leading/trailing lines (an O(n) scan) and run the diff on just that
-     * window. This keeps highlighting fast on huge values files without capping it.
-     */
-    changedLineNumbers(old, neu) {
-      if (!old) {
-        return [];
-      }
+  // Common leading lines: unchanged, and their indices line up in both docs.
+  let prefix = 0;
 
-      const oldLines = (old || '').split('\n');
-      const neuLines = (neu || '').split('\n');
+  while (prefix < oldLines.length && prefix < neuLines.length && oldLines[prefix] === neuLines[prefix]) {
+    prefix++;
+  }
 
-      // Common leading lines: unchanged, and their indices line up in both docs.
-      let prefix = 0;
+  // Common trailing lines, not overlapping the prefix already matched.
+  let suffix = 0;
 
-      while (prefix < oldLines.length && prefix < neuLines.length && oldLines[prefix] === neuLines[prefix]) {
-        prefix++;
-      }
+  while (
+    suffix < oldLines.length - prefix &&
+    suffix < neuLines.length - prefix &&
+    oldLines[oldLines.length - 1 - suffix] === neuLines[neuLines.length - 1 - suffix]
+  ) {
+    suffix++;
+  }
 
-      // Common trailing lines, not overlapping the prefix already matched.
-      let suffix = 0;
+  // Diff only the changed window, then shift the results back to full-doc indices.
+  // Each window keeps a trailing newline so diffLines tokenizes its last line the
+  // same way on both sides (tokens carry their own newline).
+  const oldWindow = `${ oldLines.slice(prefix, oldLines.length - suffix).join('\n') }\n`;
+  const neuWindow = `${ neuLines.slice(prefix, neuLines.length - suffix).join('\n') }\n`;
 
-      while (
-        suffix < oldLines.length - prefix &&
-        suffix < neuLines.length - prefix &&
-        oldLines[oldLines.length - 1 - suffix] === neuLines[neuLines.length - 1 - suffix]
-      ) {
-        suffix++;
-      }
+  return addedLineNumbers(oldWindow, neuWindow).map((n) => n + prefix);
+}
 
-      // Diff only the changed window, then shift the results back to full-doc
-      // indices. Each window keeps a trailing newline so diffLines tokenizes its
-      // last line the same way on both sides (tokens carry their own newline).
-      const oldWindow = `${ oldLines.slice(prefix, oldLines.length - suffix).join('\n') }\n`;
-      const neuWindow = `${ neuLines.slice(prefix, neuLines.length - suffix).join('\n') }\n`;
+/**
+ * Recompute the preview and push it into the read-only editor. Debounced (via
+ * queuePreview) so the merge/serialize/diff/replace only runs once typing pauses,
+ * keeping the editable pane responsive on large values files.
+ */
+function recomputePreview() {
+  // Remember the last valid merge so the preview holds it while the overrides are
+  // mid-edit/invalid instead of reverting to the bare defaults.
+  if (mergeablePreview.value !== null) {
+    lastValidPreview.value = mergeablePreview.value;
+  }
 
-      return this.addedLineNumbers(oldWindow, neuWindow).map((n) => n + prefix);
-    },
+  const neu = resolvedPreview.value;
+  const old = previewValue.value;
+  // Work out which lines changed before we replace the document, then flash them
+  // once the new content is in place to draw the eye to the change.
+  const changed = changedLineNumbers(old, neu);
 
-    /** The 0-based indices of lines added/changed in `neu` relative to `old`. */
-    addedLineNumbers(old, neu) {
-      const lines = [];
-      let lineNo = 0;
+  previewValue.value = neu;
 
-      diffLines(old, neu).forEach((part) => {
-        if (part.removed) {
-          // Removed lines aren't in the new document, so don't advance the counter.
-          return;
-        }
+  nextTick(() => {
+    finalEditor.value?.updateValue(neu);
+    finalEditor.value?.refresh();
+    finalEditor.value?.highlightLines(changed);
+  });
+}
 
-        if (part.added) {
-          for (let i = 0; i < part.count; i++) {
-            lines.push(lineNo + i);
-          }
-        }
+// Watch the cheap raw inputs (not the merge computeds, which would then run
+// eagerly on every keystroke) and defer the heavy recompute until typing stops.
+const queuePreview = debounce(recomputePreview, PREVIEW_DEBOUNCE_MS);
 
-        lineNo += part.count;
-      });
+watch(() => props.value, () => queuePreview());
+watch(() => props.defaults, () => queuePreview());
+watch(() => props.preview, () => queuePreview());
 
-      return lines;
-    },
-  },
-};
+/**
+ * Push a new value into the editable overrides editor. YamlEditor does not react
+ * to its `value` prop, so a programmatic change to the overrides (e.g. seeding
+ * from the form's values) must be applied via its ref.
+ */
+function updateOverrides(value: string) {
+  overridesEditor.value?.updateValue(value);
+}
+
+// Seed the preview synchronously so the read-only pane is correct on mount (mount
+// is not a "change", so it must not go through the debounce).
+if (mergeablePreview.value !== null) {
+  lastValidPreview.value = mergeablePreview.value;
+}
+previewValue.value = resolvedPreview.value;
+
+onBeforeUnmount(() => queuePreview.cancel());
+
+// Exposed so the Options-API parent can seed the overrides pane via its ref.
+defineExpose({ updateOverrides });
 </script>
 
 <template>
@@ -305,7 +265,7 @@ export default {
         :initial-yaml-values="initialYamlValues"
         :editor-mode="editorMode"
         :hide-preview-buttons="true"
-        @update:value="$emit('update:value', $event)"
+        @update:value="emit('update:value', $event)"
       />
     </div>
     <div
