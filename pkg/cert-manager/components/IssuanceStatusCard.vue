@@ -85,7 +85,7 @@ function iconFor(resource: any): string[] {
 .stages {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -95,6 +95,7 @@ function iconFor(resource: any): string[] {
   align-items: center;
   display: flex;
   gap: 12px;
+  line-height: 24px;
 
   .state-icon {
     flex: 0 0 auto;
