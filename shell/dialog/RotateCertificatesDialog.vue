@@ -1,5 +1,5 @@
 <script>
-import { Card } from '@components/Card';
+import { RcModal } from '@components/RcModal';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 
@@ -15,7 +15,7 @@ export default {
   components: {
     Select,
     RadioGroup,
-    Card,
+    RcModal,
     AsyncButton,
     Banner
   },
@@ -125,72 +125,52 @@ export default {
 </script>
 
 <template>
-  <Card
-    class="prompt-rotate"
-    :show-highlight-border="false"
-    :style="{'height':'100%'}"
-  >
-    <template #title>
-      <h3>{{ t('cluster.rotateCertificates.modalTitle') }}</h3>
-    </template>
-    <template #body>
-      <Banner
-        v-for="(error, i) in errors"
-        :key="i"
-        class=""
-        color="error"
-        :label="error"
+  <RcModal :title="t('cluster.rotateCertificates.modalTitle')">
+    <Banner
+      v-for="(error, i) in errors"
+      :key="i"
+      color="error"
+      :label="error"
+    />
+    <div class="options">
+      <RadioGroup
+        v-model:value="rotateAllServices"
+        name="service-mode"
+        :options="[
+          {
+            value: true,
+            label:t('cluster.rotateCertificates.allServices')
+          },
+          {
+            value: false,
+            label:t('cluster.rotateCertificates.selectService')
+          }
+        ]"
       />
-      <div class="options">
-        <RadioGroup
-          v-model:value="rotateAllServices"
-          name="service-mode"
-          :options="[
-            {
-              value: true,
-              label:t('cluster.rotateCertificates.allServices')
-            },
-            {
-              value: false,
-              label:t('cluster.rotateCertificates.selectService')
-            }
-          ]"
-        />
-        <Select
-          v-model:value="selectedService"
-          :options="serviceOptions"
-          class="service-select"
-          :class="{'invisible': rotateAllServices}"
-        />
-      </div>
-    </template>
+      <Select
+        v-model:value="selectedService"
+        :options="serviceOptions"
+        class="service-select"
+        :class="{'invisible': rotateAllServices}"
+      />
+    </div>
     <template #actions>
-      <div class="buttons">
-        <button
-          class="btn role-secondary mr-20"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-        <AsyncButton
-          mode="rotate"
-          :disabled="!rotateAllServices && !selectedService"
-          @click="rotate"
-        />
-      </div>
+      <button
+        class="btn role-secondary"
+        @click="close"
+      >
+        {{ t('generic.cancel') }}
+      </button>
+      <AsyncButton
+        mode="rotate"
+        :disabled="!rotateAllServices && !selectedService"
+        @click="rotate"
+      />
     </template>
-  </Card>
+  </RcModal>
 </template>
 
 <style lang='scss' scoped>
-  .prompt-rotate {
-    margin: 0;
-  }
-  .buttons {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-  }
   .options {
     display: flex;
     flex-direction: column;

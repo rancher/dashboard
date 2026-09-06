@@ -2,13 +2,14 @@
 import { mapGetters } from 'vuex';
 
 import AsyncButton from '@shell/components/AsyncButton';
+import { RcModal } from '@components/RcModal';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
   emits: ['close'],
 
-  components: { AsyncButton },
+  components: { AsyncButton, RcModal },
 
   props: {
     /**
@@ -101,40 +102,28 @@ export default {
 </script>
 
 <template>
-  <div class="plugin-install-dialog">
-    <h4 class="mt-10">
+  <RcModal>
+    <template #title>
       {{ t('plugins.uninstall.title', { name: `"${plugin?.label}"` }, true) }}
-    </h4>
-    <div class="mt-10 dialog-panel">
-      <div class="dialog-info">
-        <p>
-          {{ t('plugins.uninstall.prompt') }}
-        </p>
-      </div>
-      <div class="dialog-buttons">
-        <button
-          :disabled="busy"
-          class="btn role-secondary"
-          data-testid="uninstall-ext-modal-cancel-btn"
-          @click="closeDialog(false)"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-        <AsyncButton
-          mode="uninstall"
-          :icon="busy ? '' : 'icon-delete'"
-          data-testid="uninstall-ext-modal-uninstall-btn"
-          @click="uninstall()"
-        />
-      </div>
-    </div>
-  </div>
+    </template>
+    <p>
+      {{ t('plugins.uninstall.prompt') }}
+    </p>
+    <template #actions>
+      <button
+        :disabled="busy"
+        class="btn role-secondary"
+        data-testid="uninstall-ext-modal-cancel-btn"
+        @click="closeDialog(false)"
+      >
+        {{ t('generic.cancel') }}
+      </button>
+      <AsyncButton
+        mode="uninstall"
+        :icon="busy ? '' : 'icon-delete'"
+        data-testid="uninstall-ext-modal-uninstall-btn"
+        @click="uninstall()"
+      />
+    </template>
+  </RcModal>
 </template>
-
-<style lang="scss" scoped>
-  @import '@shell/assets/styles/base/_mixins.scss';
-
-  .plugin-install-dialog {
-    @include extension-dialog;
-  }
-</style>
