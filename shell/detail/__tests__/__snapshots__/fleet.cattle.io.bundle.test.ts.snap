@@ -2,16 +2,18 @@
 
 exports[`view: fleet.cattle.io.bundle should render resources when bundle deployments exist 1`] = `
 <div class="tabbed-container resource-tabs view" data-testid="tabbed">
-  <ul role="tablist" class="tabs clearfix horizontal" data-testid="tabbed-block" tabindex="0">
-    <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
-    <li id="resources" data-testid="resources" class="tab active"><a id="tab-resources" data-testid="btn-resources" aria-controls="resources" aria-selected="true" aria-label="Resources" role="tab" tabindex="0">
-        <!--v-if--><span>Resources</span>
-        <!--v-if-->
-        <!--v-if-->
-      </a></li>
+  <div class="tabs clearfix horizontal">
+    <ul role="tablist" class="tab-list" data-testid="tabbed-block" tabindex="0">
+      <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
+      <li id="resources" data-testid="resources" role="presentation" class="tab active"><a id="tab-resources" data-testid="btn-resources" aria-controls="resources" aria-selected="true" aria-label="Resources" role="tab" tabindex="0">
+          <!--v-if--><span>Resources</span>
+          <!--v-if-->
+          <!--v-if-->
+        </a></li>
+    </ul>
     <!--v-if-->
     <!--v-if-->
-  </ul>
+  </div>
   <div class="tab-container">
     <!-- This is where "normal" tab content goes... -->
     <section id="resources" aria-hidden="false" role="tabpanel" aria-labelledby="tab-resources" style="">
@@ -30,11 +32,13 @@ exports[`view: fleet.cattle.io.bundle should render the bundle detail page 1`] =
 
 exports[`view: fleet.cattle.io.bundle should render the bundle detail page with full mount 1`] = `
 <div class="tabbed-container resource-tabs view" data-testid="tabbed">
-  <ul role="tablist" class="tabs clearfix horizontal" data-testid="tabbed-block" tabindex="0">
-    <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
+  <div class="tabs clearfix horizontal">
+    <ul role="tablist" class="tab-list" data-testid="tabbed-block" tabindex="0">
+      <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
+    </ul>
     <!--v-if-->
     <!--v-if-->
-  </ul>
+  </div>
   <div class="">
     <!-- This is where "normal" tab content goes... -->
     <section id="resources" aria-hidden="true" role="tabpanel" aria-labelledby="tab-resources" style="display: none;">

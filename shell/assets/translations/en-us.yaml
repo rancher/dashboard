@@ -1373,9 +1373,11 @@ catalog:
             upgrade { upgrade }
             downgrade { upgrade }
             editVersion { update }
+            other { update }
           } the {existing, select,
             true { app}
             false { chart}
+            other { chart}
           }. Start by setting some basic information used by {vendor} to manage the App.
         nsCreationDescription: "To install the app into a new namespace enter it's name in the Namespace field and select it."
         createNamespace: "Namespace <code>{namespace}</code> will be created."
@@ -6195,7 +6197,8 @@ rbac:
         description: |-
           Controls what access the {isUser, select,
           true {user}
-          false {group}} has to administer the overall {appName} installation.
+          false {group}
+          other {group}} has to administer the overall {appName} installation.
       custom:
         label: Custom
         description: 'Roles not created by {vendor}.'
@@ -6326,7 +6329,8 @@ resourceDetail:
     managedWarning: |-
       This {type} is managed by {hasName, select,
         no {a {managedBy} app}
-        yes {the {managedBy} app {appName}}}; changes made here will likely be overwritten the next time {managedBy} runs.
+        yes {the {managedBy} app {appName}}
+        other {a {managedBy} app}}; changes made here will likely be overwritten the next time {managedBy} runs.
 resourceList:
   head:
     create: Create
@@ -6706,6 +6710,8 @@ sortableTable:
     sortingIconAsc: Table header ascending sort icon
   genericGroupCheckbox: Table group selection checkbox
   genericRowCheckbox: Table row selection checkbox for item {item}
+  expandColumnHeader: Expand
+  actionsColumnHeader: Actions
   tableActionsLabel: More actions - { resource }
   tableActionsImgAlt: More actions icon
   bulkActions:
@@ -7100,6 +7106,7 @@ tableHeaders:
   effect: Effect
   endpoints: Endpoints
   expires: Expires
+  explore: Explore
   firstSeen: First Seen
   firstSeenTooltip: The time at which the event was first recorded
   flow: Flow
@@ -7247,7 +7254,7 @@ tableHeaders:
   storageClass: Storage Class
   source: Source
   subject: Subject
-  subType: Kind
+  subType: Type
   success: Success
   summary: Summary
   subobject: Subobject
@@ -7332,6 +7339,8 @@ user:
       userDescription:
         label: Description
         placeholder: e.g. This account is for John Smith
+    roleUpdateFailed:
+      orphaned: 'The user "{username}" was created, but its roles could not be assigned and the incomplete account could not be removed automatically. Open the users list to review or delete it.'
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
   retention:
@@ -7528,6 +7537,7 @@ wizard:
   finish: Finish
   next: Next
   step: "Step {number}"
+  stepList: Wizard steps
   edit: Edit
   create: Create
   view: View
@@ -7896,7 +7906,7 @@ workload:
       tip: The number of successful finished jobs to retain.
     suspend: Suspend
   list:
-    errorCannotScale: Failed to scale {workloadName} {direction, select, up { up } down { down } }
+    errorCannotScale: Failed to scale {workloadName} {direction, select, up { up } down { down } other { } }
   metrics:
     pod: Pod Metrics
     metricsView: Metrics View

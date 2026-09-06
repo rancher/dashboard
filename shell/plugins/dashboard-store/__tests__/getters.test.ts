@@ -7,14 +7,14 @@ describe('dashboard-store: getters', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
     const state = { config: { baseUrl: 'protocol' } };
     const getters = {
-      normalizeType: (type) => type,
-      schemaFor:     (type) => {
+      normalizeType: (type: string) => type,
+      schemaFor:     (type: string) => {
         if (type === 'typeFoo') {
           return { links: { collection: 'urlFoo' } };
         }
       },
-      // this has its own tests so it just returns the input string
-      urlOptions: (string) => string
+      // this has its own tests so it just returns the input url
+      urlOptions: (url: string) => url
     };
 
     const urlForGetter = urlFor(state, getters);
@@ -49,23 +49,10 @@ describe('dashboard-store: getters', () => {
   });
 
   describe('dashboard-store > getters > urlOptions', () => {
-    // we're not testing function output based off of state or getter inputs here since they are dependencies
-    const state = { config: { baseUrl: 'protocol' } };
-    const getters = {
-      normalizeType: (type) => type,
-      schemaFor:     (type) => {
-        if (type === 'typeFoo') {
-          return { links: { collection: 'urlFoo' } };
-        }
-      },
-      // this has its own tests so it just returns the input string
-      urlOptions: (string) => string
-    };
-
     const urlOptionsGetter = urlOptions();
 
     it('expects urlOptions to return a function', () => {
-      expect(typeof urlOptions(state, getters)).toBe('function');
+      expect(typeof urlOptions()).toBe('function');
     });
     it('returns undefined when called without params', () => {
       expect(urlOptionsGetter()).toBeUndefined();
