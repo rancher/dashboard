@@ -395,12 +395,13 @@ export default {
       return this.productFromRoute === obj?.value;
     },
 
-    handleKeyComboClick() {
-      if (!this.isCurrRouteClusterExplorer) {
-        return;
-      }
-
-      this.routeCombo = !this.routeCombo;
+    // Alt/Option "keep context" reveal (issue 11329). `v-shortkey.hold` reports the raw modifier as
+    // ABSOLUTE state (`detail.held` true on keydown, false on keyup) and force-releases on window blur /
+    // tab hide, so this just mirrors it onto `routeCombo`. The old `.push` modifier toggled instead, which
+    // desynced (stuck on, then inverted) whenever a key edge was missed while focus was elsewhere, e.g.
+    // clicking the URL bar or alt-tabbing away.
+    onRouteComboHold(e) {
+      this.routeCombo = e.detail.held;
     },
 
     clusterMenuClick(ev, cluster) {
@@ -716,7 +717,7 @@ export default {
                 >
                   <button
                     v-if="c.ready"
-                    v-shortkey.push="{windows: ['alt'], mac: ['option']}"
+                    v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': c.isMenuActive }"
@@ -724,7 +725,7 @@ export default {
                     role="button"
                     :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
                     @click.prevent="clusterMenuClick($event, c)"
-                    @shortkey="handleKeyComboClick"
+                    @shortkey="onRouteComboHold"
                   >
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"
@@ -795,7 +796,7 @@ export default {
                 >
                   <button
                     v-if="c.ready"
-                    v-shortkey.push="{windows: ['alt'], mac: ['option']}"
+                    v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': c.isMenuActive }"
@@ -803,7 +804,7 @@ export default {
                     role="button"
                     :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
                     @click="clusterMenuClick($event, c)"
-                    @shortkey="handleKeyComboClick"
+                    @shortkey="onRouteComboHold"
                   >
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"

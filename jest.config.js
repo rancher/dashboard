@@ -43,7 +43,9 @@ module.exports = {
     '<rootDir>(/.*)*/__tests__/utils/',
   ],
   transformIgnorePatterns: [
-    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate|clipboard-polyfill)/)',
+    // intl-messageformat (and its @formatjs/* deps) are ESM-only as of v11 ("type":"module"),
+    // so Jest must transpile them instead of ignoring them like the rest of node_modules.
+    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate|clipboard-polyfill|intl-messageformat|@formatjs)/)',
   ],
 
   // Babel

@@ -1,8 +1,14 @@
 <script>
-import { mapGetters } from 'vuex';
+import { computed } from 'vue';
+import { mapGetters, useStore } from 'vuex';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { useI18n } from '@shell/composables/useI18n';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 import { MANAGEMENT } from '@shell/config/types';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT, PROJECT } from '@shell/config/labels-annotations';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
@@ -35,6 +41,20 @@ export default {
 
   mixins:       [CreateEditView],
   inheritAttrs: false,
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const { field } = zodValidators(t);
+
+    // Keys match the field names the inputs register under.
+    const validationSchema = toTypedSchema(z.object({ name: field('nameNsDescription.name.label').required() }));
+
+    const { errors } = useForm({ validationSchema });
+    const isFormValid = computed(() => Object.keys(errors.value).length === 0);
+
+    return { isFormValid };
+  },
 
   async fetch() {
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
@@ -172,7 +192,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
-    :validation-passed="true"
+    :validation-passed="isFormValid"
     :errors="errors"
     :apply-hooks="applyHooks"
     @error="e=>errors = e"
@@ -185,6 +205,7 @@ export default {
       :namespaced="false"
       :mode="mode"
       :extra-columns="['project-col']"
+      name-field-name="name"
     >
       <template
         v-if="flatView && isCreate"

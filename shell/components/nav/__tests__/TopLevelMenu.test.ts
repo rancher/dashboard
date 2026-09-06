@@ -837,43 +837,45 @@ describe('topLevelMenu', () => {
       });
     });
 
-    describe('handleKeyComboClick', () => {
-      it('should not toggle routeCombo when route is a non-explorer c-cluster route', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          global: {
-            mocks: {
-              $route:  { name: 'c-cluster-fleet', params: { cluster: 'local', product: 'fleet' } },
-              $router: { push: jest.fn() },
-              $store:  { ...generateStore([]) }
-            },
-            stubs: ['BrandImage', 'router-link'],
-          }
-        });
+    // Alt/Option "keep context" reveal (issue 11329): routeCombo tracks the raw modifier with ABSOLUTE
+    // sets (keydown -> true, keyup -> false) and is forced off on any focus/visibility loss, so a missed
+    // key edge can never leave it stuck on or invert its next press.
+    // Alt/Option "keep context" reveal (issue 11329): routeCombo mirrors the ABSOLUTE state reported by
+    // the `v-hold-key` directive via its `holdkey` event (held on keydown, cleared on keyup / focus loss),
+    // so it can never desync or invert the way the old `v-shortkey.push` toggle did. The keydown/keyup/
+    // focus-loss detection itself is covered by the hold-key plugin's own tests.
+    describe('routeCombo (Alt/Option reveal)', () => {
+      const mountMenu = () => mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route:  { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
+            $router: { push: jest.fn() },
+            $store:  { ...generateStore([]) }
+          },
+          stubs: ['BrandImage', 'router-link'],
+        }
+      }) as Wrapper<InstanceType<typeof TopLevelMenu>>;
+
+      it('mirrors the holdkey event detail onto routeCombo, absolutely (never toggles)', async() => {
+        const wrapper = mountMenu();
 
         await waitForIt();
 
         expect(wrapper.vm.routeCombo).toBe(false);
-        wrapper.vm.handleKeyComboClick();
-        expect(wrapper.vm.routeCombo).toBe(false);
-      });
 
-      it('should toggle routeCombo when route is cluster explorer', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          global: {
-            mocks: {
-              $route:  { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
-              $router: { push: jest.fn() },
-              $store:  { ...generateStore([]) }
-            },
-            stubs: ['BrandImage', 'router-link'],
-          }
-        });
-
-        await waitForIt();
-
-        expect(wrapper.vm.routeCombo).toBe(false);
-        wrapper.vm.handleKeyComboClick();
+        wrapper.vm.onRouteComboHold({ detail: { held: true } } as CustomEvent);
         expect(wrapper.vm.routeCombo).toBe(true);
+
+        // A repeated held:true event keeps it on rather than flipping it off (the old toggle bug).
+        wrapper.vm.onRouteComboHold({ detail: { held: true } } as CustomEvent);
+        expect(wrapper.vm.routeCombo).toBe(true);
+
+        wrapper.vm.onRouteComboHold({ detail: { held: false } } as CustomEvent);
+        expect(wrapper.vm.routeCombo).toBe(false);
+
+        // A stray held:false (e.g. the directive's focus-loss release) can't invert it back on.
+        wrapper.vm.onRouteComboHold({ detail: { held: false } } as CustomEvent);
+        expect(wrapper.vm.routeCombo).toBe(false);
       });
     });
 
