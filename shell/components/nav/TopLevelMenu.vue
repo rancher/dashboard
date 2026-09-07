@@ -456,7 +456,7 @@ export default {
   // See https://github.com/rancher/dashboard/issues/12831 for outstanding performance related work
   watch: {
     $route() {
-      this.shown = false;
+      this.hide();
     },
 
     // Before SSP world all of these changes were kicked off given Vue change detection to properties in a computed method.
@@ -707,14 +707,26 @@ export default {
       e.stopPropagation();
     },
 
-    hide() {
+    // Every way of putting the nav away — the hamburger, a cluster click, a route change, Esc — has to
+    // let the flyout leave FIRST. The flyout is anchored to the nav's width, so resizing underneath it
+    // re-anchors it: it jumps to the other position at full opacity and only then fades out.
+    // `closeAndWait` resolves immediately when nothing is open, so an ordinary close is not delayed.
+    async hide() {
+      await this.$refs.switcher?.closeAndWait();
+
       this.shown = false;
     },
 
-    // The flyout is anchored to the nav's width, so flipping `shown` while it is still on screen
-    // re-anchors it instantly — it jumps to the other position at FULL opacity and only then fades out.
-    // Send it away first and wait for it to have actually gone, then resize the nav. `closeAndWait`
-    // resolves immediately when nothing is open, so a plain expand/collapse is unaffected.
+    // A not-ready cluster row is inert — there is nothing to navigate to — so clicking it leaves the nav
+    // exactly as it was instead of closing it out from under the user. The pin inside such a row still
+    // works; it stops its own click, so it never reaches here.
+    onShelfRowClick(cluster) {
+      if (cluster.ready) {
+        this.hide();
+      }
+    },
+
+    // Same ordering as `hide` — the flyout goes first, then the nav resizes.
     async toggle() {
       await this.$refs.switcher?.closeAndWait();
 
@@ -1174,7 +1186,7 @@ export default {
                       >
                         <div class="cluster-all-badge">
                           <span class="cluster-all-count">{{ switcherCount }}</span>
-                          <span class="cluster-all-unit">{{ t('nav.search.clusters') }}</span>
+                          <span class="cluster-all-unit">{{ t('nav.search.clusters', { count: switcherCount }) }}</span>
                         </div>
                       </div>
                       <div class="cluster-all-name">
@@ -1259,7 +1271,7 @@ export default {
                   :key="c.id"
                   :data-flip="c.id"
                   :data-testid="`${ shelf.key }-ready-cluster-${ index }`"
-                  @click="hide()"
+                  @click="onShelfRowClick(c)"
                 >
                   <button
                     v-if="c.ready"

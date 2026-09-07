@@ -295,7 +295,11 @@ nav:
     hci: HCI
   pinClusterError: Could not save your pinned clusters
   search:
-    clusters: clusters
+    clusters: |-
+      {count, plural,
+        one {cluster}
+        other {clusters}
+      }
     clear: Clear search
   switcher:
     ariaLabel: Cluster switcher

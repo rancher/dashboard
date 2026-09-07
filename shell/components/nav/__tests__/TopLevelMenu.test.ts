@@ -666,6 +666,90 @@ describe('topLevelMenu', () => {
     });
   });
 
+  // An empty estate has nothing to switch to, so the whole switcher affordance stays out of the nav —
+  // no count chip (which would otherwise read "0 clusters"), and no empty shelf headings.
+  describe('with no clusters at all', () => {
+    it('renders no trigger, no shelf and no pins', async() => {
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: { ...generateStore([]) },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      expect((wrapper.vm as any).browsableClusterCount).toStrictEqual(0);
+      expect((wrapper.vm as any).shelves).toStrictEqual([]);
+      expect(wrapper.find('[data-testid="cluster-switcher-trigger"]').exists()).toBe(false);
+      expect(wrapper.find('.cluster-all-unit').exists()).toBe(false);
+      expect(wrapper.find('.clustersPinned').exists()).toBe(false);
+      expect(wrapper.find('.clustersRecent').exists()).toBe(false);
+      expect(wrapper.find('.pin').exists()).toBe(false);
+    });
+
+    // Cmd/Ctrl+J opens the flyout, and with nothing to switch to there is no flyout to open. It must
+    // also leave the keystroke alone rather than swallowing it — the browser has its own Cmd+J.
+    it('leaves Cmd/Ctrl+J to the browser', async() => {
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: { ...generateStore([]) },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      const event = {
+        key: 'j', code: 'KeyJ', metaKey: true, altKey: false, shiftKey: false, preventDefault: jest.fn()
+      };
+
+      expect(wrapper.vm.$refs.switcher).toBeUndefined();
+      expect(() => (wrapper.vm as any).onSwitcherHotkey(event)).not.toThrow();
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+  });
+
+  // A not-ready cluster has nowhere to navigate to, so its row is inert — clicking it must leave the nav
+  // exactly as it was rather than closing it out from under the user.
+  describe('clicking a shelf row', () => {
+    const mountNav = () => mount(TopLevelMenu, {
+      global: {
+        mocks: {
+          $route: {},
+          $store: { ...generateStore([]) },
+        },
+        stubs: ['BrandImage', 'router-link'],
+      },
+    });
+
+    it('leaves the nav open when the cluster is not ready', async() => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+
+      await wrapper.setData({ shown: true });
+      await vm.onShelfRowClick({ id: 'an-id1', ready: false });
+
+      expect(vm.shown).toBe(true);
+    });
+
+    it('closes the nav when the cluster is ready', async() => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+
+      await wrapper.setData({ shown: true });
+      await vm.onShelfRowClick({ id: 'an-id1', ready: true });
+
+      expect(vm.shown).toBe(false);
+    });
+  });
+
   // Resizing the nav re-anchors the flyout, so an open flyout has to be gone BEFORE the nav moves —
   // otherwise it jumps to the other position at full opacity and only then fades out.
   describe('expanding/collapsing the nav with the flyout open', () => {
@@ -720,6 +804,32 @@ describe('topLevelMenu', () => {
       await toggling;
 
       expect(vm.shown).toBe(true);
+    });
+
+    // Navigating away closes the nav too (directly, and via the $route watcher), so it has to wait for
+    // the flyout in exactly the same way the hamburger does.
+    it('waits for the flyout to leave before closing the nav', async() => {
+      let release: () => void = () => {};
+      const gone = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const closeAndWait = jest.fn(() => gone);
+      const wrapper = mountNav(closeAndWait);
+      const vm = wrapper.vm as any;
+
+      await waitForIt();
+      await wrapper.setData({ shown: true });
+
+      const hiding = vm.hide();
+
+      await nextTick();
+      expect(closeAndWait).toHaveBeenCalledWith();
+      expect(vm.shown).toBe(true);
+
+      release();
+      await hiding;
+
+      expect(vm.shown).toBe(false);
     });
 
     it('does not stall when the flyout is already closed', async() => {

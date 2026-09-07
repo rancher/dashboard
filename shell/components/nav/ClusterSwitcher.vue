@@ -795,7 +795,7 @@ defineExpose({
   width: 380px;
   // Height is capped in the unscoped popper block below, where the matching `top` offset lives — the two
   // have to move together for the bottom gutter to hold.
-  background: var(--dropdown-bg, var(--body-bg));
+  background: var(--topmenu-bg);
   color: var(--body-text);
 
   // Exactly the expanded-nav search: 32px input, magnifier left, clear X right. Mirror the nav-bar's
@@ -920,7 +920,6 @@ defineExpose({
   // nav's section label.
   .switcher-group-label {
     flex: 0 0 auto;
-    background: var(--dropdown-bg, var(--body-bg));
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1058,6 +1057,18 @@ $flyout-gutter: 12px;
   transform: none !important;
   // Above the scrim (100) and the lifted rail (101).
   z-index: 102 !important;
+  // Softer corners than the shared popper default (`--border-radius-lg`), which is tuned for small
+  // tooltips — scoped here rather than changed globally, since every popper in the app uses that rule.
+  border-radius: var(--border-radius-md);
+
+  .v-popper__inner {
+    border-radius: var(--border-radius-md);
+    // The flyout fills this element, but the shared popper rule paints `--popover-bg` behind it, and
+    // that shows through as a ring inside the rounded corners now the flyout carries the nav's colour.
+    // Nested here (rather than beside the `padding: 0` rule below) so it outranks the shared rule
+    // instead of tying with it and depending on source order.
+    background: var(--topmenu-bg);
+  }
 
   .cluster-switcher-flyout {
     max-height: calc(100vh - #{$flyout-top} - #{$flyout-gutter});
