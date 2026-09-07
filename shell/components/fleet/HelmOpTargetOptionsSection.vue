@@ -3,7 +3,7 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { RcIcon } from '@components/RcIcon';
-import { getBundleDeploymentOptionsDocsUrl } from '@shell/utils/fleet-appco';
+import { getBundleDeploymentOptionsDocsUrl } from '@shell/utils/fleet-docs';
 
 withDefaults(defineProps<{
   value: { spec: { serviceAccount?: string; namespace?: string } };
