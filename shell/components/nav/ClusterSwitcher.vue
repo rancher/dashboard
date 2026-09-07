@@ -329,6 +329,12 @@ const onEscapeCapture = (e: Event) => {
 const listenForEscape = (on: boolean) => {
   const fn = on ? window.addEventListener : window.removeEventListener;
 
+  // A close can land between a consumed keydown and its keyup (auto-repeat Escape, or focus leaving
+  // the window), stranding the flag so it swallows the NEXT press's keyup.
+  if (!on) {
+    swallowEscapeKeyup = false;
+  }
+
   fn('keydown', onEscapeCapture, true);
   fn('keyup', onEscapeCapture, true);
 };
@@ -1046,27 +1052,6 @@ $flyout-gutter: 12px;
   }
   to {
     --unroll: 100vh;
-  }
-}
-
-// Motion is decoration here — the flyout is just as usable arriving instantly.
-@media (prefers-reduced-motion: reduce) {
-  .cluster-switcher-popper.v-popper__popper .cluster-switcher-flyout {
-    animation: none;
-  }
-}
-
-// Expanded nav: the same 16px gap, measured from the wider nav's edge.
-.cluster-switcher-popper.nav-expanded.v-popper__popper {
-  left: calc(#{$app-bar-expanded-width} + 16px) !important;
-}
-
-@keyframes cluster-switcher-unroll {
-  from {
-    --unroll: 0px;
-  }
-  to {
-    --unroll: 900px;
   }
 }
 

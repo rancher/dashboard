@@ -178,6 +178,40 @@ describe('component: ClusterSwitcher', () => {
     elsewhere.remove();
   });
 
+  // Escape peels one layer: it clears a query first and only closes the panel once the box is empty.
+  // One press is two events, so the keyup is swallowed on the strength of what the keydown did — a flag
+  // that outlives the close it was set before, and would then eat the NEXT press's keyup.
+  it('does not swallow the next press after a close between keydown and keyup', async() => {
+    const wrapper = mountSwitcher({ search: 'foo' });
+    const vm = wrapper.vm as any;
+    const esc = (type: string) => {
+      const e = new KeyboardEvent(type, {
+        key: 'Escape', cancelable: true, bubbles: true
+      });
+
+      window.dispatchEvent(e);
+
+      return e;
+    };
+
+    vm.setOpen(true);
+    await nextTick();
+    // The query is cleared and the press consumed, so floating-vue never sees it and the panel stays open.
+    expect(esc('keydown').defaultPrevented).toBe(true);
+
+    // The flyout closes before the keyup for that press lands (auto-repeat, or focus leaving the window).
+    vm.setOpen(false);
+    await wrapper.setProps({ search: '' });
+    await nextTick();
+    esc('keyup');
+
+    // Next time it opens there is no query, so nothing should be consumed — the panel has to close.
+    vm.setOpen(true);
+    await nextTick();
+    esc('keydown');
+    expect(esc('keyup').defaultPrevented).toBe(false);
+  });
+
   // The ALL CLUSTERS / MATCHES caption sits ABOVE the search box, not inside the
   // scrolling list, and the flyout forwards the Option/Alt cue to every row.
   describe('layout', () => {

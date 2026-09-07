@@ -348,9 +348,6 @@ describe('class MgmtCluster', () => {
       expect(mutations[0].apply(['c-a'])).toStrictEqual(['c-a']); // already pinned — no duplicate
     });
 
-    // An unpinned cluster belongs at the TOP of RECENT: leaving RECENT alone either dropped it off the
-    // shelf entirely (never visited) or left it buried among older visits (visited long ago), which is
-    // the reordering users saw when unpinning a cluster already in the log.
     // RECENT is a log of clusters the user actually went to, so unpinning must not write to it: an
     // unpinned cluster keeps whatever place its own visits earned, and one never visited stays absent.
     it('unpin touches PINNED only', async() => {

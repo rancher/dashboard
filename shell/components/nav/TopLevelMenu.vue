@@ -1226,6 +1226,7 @@ export default {
                         <p>{{ c.label }}</p>
                       </div>
                       <Pinned
+                        v-if="!c.isLocal"
                         :cluster="c"
                         :tab-order="shown ? 0 : -1"
                       />
