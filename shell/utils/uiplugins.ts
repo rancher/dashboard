@@ -6,6 +6,7 @@ import { Plugin, Version } from '@shell/types/uiplugins';
 
 const MAX_RETRIES = 10;
 const RETRY_WAIT = 2500;
+const ACTIVE_STATUS_TIMEOUT = 200000; // 20 seconds
 
 // Backoff schedule (ms) for retrying a chart install/upgrade action that failed because a
 // follower Rancher replica's in-memory catalog index cache hadn't caught up yet (see #17543)
@@ -74,6 +75,7 @@ export async function waitForUIExtension(store: any, name: string, maxRetries = 
         return extension;
       }
     } catch (e) {
+    console.error('waiting for UI extension to be available: error =', e); // eslint-disable-line no-console
     }
 
     tries++;
@@ -111,6 +113,7 @@ export async function waitForUIPackage(store: any, extension: any, maxRetries = 
 
       return true;
     } catch (error) {
+      console.error('waiting for UI extension package to be available: error =', error); // eslint-disable-line no-console  
     }
 
     tries++;
@@ -288,12 +291,13 @@ export async function refreshHelmRepository(store: any, url: string): Promise<vo
 
   await repository.save();
 
-  await repository.waitForState('active', 10000, 1000);
+  await repository.waitForState('active', ACTIVE_STATUS_TIMEOUT, RETRY_WAIT);
 
   await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 /**
+ * Create a Helm Repository and wait for it to be downloaded
  *
  * @param store Vue store
  * @param name Repository name
@@ -320,7 +324,7 @@ export async function createHelmRepository(store: any, name: string, url: string
 
   const helmRepo = await repo.save();
 
-  // Poll the repository until it says it has been downloaded
+  // Poll the repository status MAX_RETRIES times until it has been downloaded
   let fetched = false;
   let tries = 0;
 
@@ -335,14 +339,13 @@ export async function createHelmRepository(store: any, name: string, url: string
 
     const downloaded = repo.status.conditions.find((s: any) => s.type === 'Downloaded');
 
-    if (downloaded) {
-      if (downloaded.status === 'True') {
-        fetched = true;
-      }
+    console.log(`Waiting for helm repository to be downloaded... try ${ tries } time(s).`); // eslint-disable-line no-console
+
+    if (downloaded && downloaded.status === 'True') {
+      fetched = true;
     }
 
     if (!fetched) {
-      tries++;
 
       if (tries > MAX_RETRIES) {
         throw new Error('Failed to add Helm Chart Repository');
@@ -350,8 +353,6 @@ export async function createHelmRepository(store: any, name: string, url: string
 
       await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
     }
-
-    fetched = true;
   }
 
   // Return the Helm Repository

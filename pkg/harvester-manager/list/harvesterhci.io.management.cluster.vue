@@ -329,6 +329,7 @@ export default {
 
         installed = await waitForUIPackage(this.$store, extension, 20);
       } catch (error) {
+        console.error('Error installing Harvester UI extension', error); // eslint-disable-line no-console
       }
 
       this.harvesterActionRetryAttempt = 0;
