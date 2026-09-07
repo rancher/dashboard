@@ -122,7 +122,11 @@ describe('component: THead', () => {
 
   describe('select all checkbox', () => {
     it('should use the label provided by the parent table', () => {
-      const wrapper = mountTHead({ tableActions: true, columns: [], selectAllLabel: 'Select all Projects/Namespaces' });
+      const wrapper = mountTHead({
+        tableActions:   true,
+        columns:        [],
+        selectAllLabel: 'Select all Projects/Namespaces',
+      });
 
       const checkbox = wrapper.findComponent(Checkbox);
 
@@ -133,7 +137,11 @@ describe('component: THead', () => {
       ['no label is provided', undefined],
       ['an empty label is provided', ''],
     ])('should fall back to the generic label when %s', (_, selectAllLabel) => {
-      const wrapper = mountTHead({ tableActions: true, columns: [], selectAllLabel });
+      const wrapper = mountTHead({
+        tableActions: true,
+        columns:      [],
+        selectAllLabel,
+      });
 
       const checkbox = wrapper.findComponent(Checkbox);
 
