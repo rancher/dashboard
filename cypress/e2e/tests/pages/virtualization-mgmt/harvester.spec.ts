@@ -56,6 +56,16 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }?action=install`).as('installHarvesterExtension');
     cy.intercept('POST', '/v3/clusters').as('createHarvesterCluster');
 
+    // create harvester repository and wait for repo downloaded
+    cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+      type:     'catalog.cattle.io.clusterrepo',
+      metadata: { name: harvesterGitRepoName },
+      spec:     {
+        clientSecret: null, gitRepo: harvesterGitRepoUrl, gitBranch: branchName
+      }
+    });
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
+
     // verify install button and message displays
     harvesterPo.goTo();
     harvesterPo.waitForPage();
@@ -64,7 +74,6 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
     // install harvester extension
     harvesterPo.updateOrInstallButton().click();
-    cy.wait('@createHarvesterChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
     cy.wait('@updateHarvesterChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
     // Wait for the installation request and handle 500 errors
     cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT).then((interception) => {
