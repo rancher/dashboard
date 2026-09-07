@@ -161,10 +161,10 @@ function select() {
   display: flex;
   align-items: center;
   gap: 10px;
-  // Height matches the expanded-nav rows (43px); full-line, no rounding or divider.
-  min-height: 43px;
-  padding: 9px 14px 9px 14px;
+  // Full-line row, no rounding; the 16px padding sets the height. A hairline divides one row from the next.
+  padding: 16px;
   border-radius: 0;
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
 
   // Dim only what "not ready" applies to: the row can't be explored, but its pin toggle still works

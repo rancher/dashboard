@@ -907,8 +907,8 @@ describe('topLevelMenu', () => {
   // While the flyout is open it owns the keyboard: every other app shortcut behind it is swallowed.
   describe('the open flyout blocks other shortcuts', () => {
     const guardEvent = (over: any = {}) => ({
-      key:                      'k',
-      code:                     'KeyK',
+      key:                      'f',
+      code:                     'KeyF',
       metaKey:                  false,
       ctrlKey:                  false,
       altKey:                   false,
@@ -939,7 +939,7 @@ describe('topLevelMenu', () => {
     // A cluster-explorer route — the only place the "keep this view" combo means anything.
     const explorerRoute = { name: 'c-cluster-explorer', params: { product: 'explorer' } };
 
-    it('swallows an unrelated app shortcut (Cmd+K)', () => {
+    it('swallows an unrelated app shortcut (Cmd+F)', () => {
       const { event } = guard(guardEvent({ metaKey: true }));
 
       expect(event.stopImmediatePropagation).toHaveBeenCalledWith();
@@ -962,6 +962,72 @@ describe('topLevelMenu', () => {
       }), true, explorerRoute);
 
       expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
+    });
+
+    // Cmd/Ctrl+K belongs to the side nav's resource jump. The guard has to stand aside for it AND clear
+    // the nav out of the way — including when only the nav is expanded, with no flyout open at all,
+    // which is the case a guard gated on `switcherOpen` used to miss entirely.
+    describe('Cmd/Ctrl+K, the resource jump', () => {
+      const jumpEvent = () => guardEvent({
+        key: 'k', code: 'KeyK', metaKey: true, type: 'keydown'
+      });
+
+      const withJumpOnPage = (present: boolean) => {
+        document.body.innerHTML = present ? '<input data-testid="nav-jump-to-input" />' : '';
+      };
+
+      afterEach(() => {
+        document.body.innerHTML = '';
+      });
+
+      it('is never swallowed — the jump has to receive it', () => {
+        withJumpOnPage(true);
+        const { event } = guard(jumpEvent());
+
+        expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
+      });
+
+      it('collapses an expanded nav even with no flyout open', async() => {
+        withJumpOnPage(true);
+        const wrapper = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: {},
+              $store: { ...generateStore([]) },
+            },
+            stubs: ['BrandImage', 'router-link'],
+          },
+        });
+
+        await waitForIt();
+        await wrapper.setData({ shown: true, switcherOpen: false });
+
+        (wrapper.vm as any).onSwitcherKeyGuard(jumpEvent());
+        await nextTick();
+
+        expect(wrapper.vm.shown).toBe(false);
+      });
+
+      it('leaves the nav alone when the page has no resource jump', async() => {
+        withJumpOnPage(false);
+        const wrapper = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: {},
+              $store: { ...generateStore([]) },
+            },
+            stubs: ['BrandImage', 'router-link'],
+          },
+        });
+
+        await waitForIt();
+        await wrapper.setData({ shown: true, switcherOpen: false });
+
+        (wrapper.vm as any).onSwitcherKeyGuard(jumpEvent());
+        await nextTick();
+
+        expect(wrapper.vm.shown).toBe(true);
+      });
     });
 
     it('leaves keys typed inside the flyout alone (search, ↑↓, Enter, Esc)', () => {
@@ -1153,6 +1219,52 @@ describe('topLevelMenu', () => {
 
       expect(wrapper.vm.provClusters).toStrictEqual([]);
       expect(wrapper.vm.mgmtClusters).toStrictEqual([]);
+    });
+  });
+
+  // `railAll` is the flyout's ALL CLUSTERS list. It renders keyed by cluster id, so one cluster listed
+  // twice is not a cosmetic slip: Vue's keyed patch leaves the extra rows orphaned in the DOM, and they
+  // stay there for the life of the flyout even once the model is clean again.
+  describe('computed: railAll', () => {
+    const railAll = (ctx: any) => (TopLevelMenu as any).computed.railAll.call(ctx);
+    const c = (id: string, isLocal = false) => ({ id, isLocal });
+
+    // PINNED and RECENT overlap by design (a pinned cluster stays in the visit history), and both are
+    // appended to the loaded page so a pinned/recent cluster is reachable before its page arrives.
+    it('lists a cluster that is both pinned and recent only once', () => {
+      const both = c('both');
+      const rows = railAll({
+        searchActive:     false,
+        clustersFiltered: [],
+        pinFiltered:      [both, c('p1')],
+        recentClusters:   [both, c('r1')],
+      });
+
+      expect(rows.map((r: any) => r.id)).toStrictEqual(['both', 'p1', 'r1']);
+    });
+
+    it('appends only the pinned/recent rows the loaded page has not reached, page order first', () => {
+      const rows = railAll({
+        searchActive:     false,
+        clustersFiltered: [c('a'), c('b'), c('local', true)],
+        pinFiltered:      [c('b'), c('p1')],
+        recentClusters:   [c('a'), c('r1'), c('local', true)],
+      });
+
+      expect(rows.map((r: any) => r.id)).toStrictEqual(['a', 'b', 'p1', 'r1']);
+    });
+
+    // A search takes the fixed `local` tile down, so `local` is a candidate like any other and the
+    // server's match list stands on its own — nothing pinned/recent is appended to it.
+    it('is the raw match list while searching', () => {
+      const rows = railAll({
+        searchActive:     true,
+        clustersFiltered: [c('m1'), c('local', true)],
+        pinFiltered:      [c('p1')],
+        recentClusters:   [c('r1')],
+      });
+
+      expect(rows.map((r: any) => r.id)).toStrictEqual(['m1', 'local']);
     });
   });
 

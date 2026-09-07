@@ -1,5 +1,6 @@
 import { prependRecent, recordClusterNavigation } from '@shell/utils/cluster-pref-writer';
 import { CLUSTER, MENU_MAX_RECENT_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 // The prefs under test are heterogeneous: RECENT/PINNED are string[], CLUSTER is a string.
 type PrefValue = string | string[];
@@ -10,8 +11,10 @@ describe('fx: cluster-pref-writer', () => {
       expect(prependRecent('c-a').apply(['c-b', 'c-a'])).toStrictEqual(['c-a', 'c-b']);
     });
 
-    it('strips empty and placeholder (local / blank) entries', () => {
-      expect(prependRecent('c-a').apply(['local', '_', '', 'c-z'])).toStrictEqual(['c-a', 'c-z']);
+    // `_` is a placeholder for "no cluster", not somewhere the user went. `local` is a real cluster and
+    // stays in the log like any other.
+    it('strips empty and blank placeholder entries, keeping local', () => {
+      expect(prependRecent('c-a').apply(['local', '_', '', 'c-z'])).toStrictEqual(['c-a', 'local', 'c-z']);
     });
 
     it('does not mutate the input list', () => {
@@ -124,12 +127,21 @@ describe('fx: cluster-pref-writer', () => {
       expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['c-a', 'c-b']);
     });
 
-    it('remembers local / blank as the current cluster but never lists them under RECENT', async() => {
+    it('records a visit to local under RECENT, like any other cluster', async() => {
       const s = makeStore({ [CLUSTER]: '', [RECENT_CLUSTERS]: ['c-b'] });
 
       await recordClusterNavigation(s.dispatch, 'local');
 
-      expect(s.writes).toStrictEqual([{ key: CLUSTER, value: 'local' }]); // CLUSTER only — no RECENT mutation
+      expect(s.data[CLUSTER]).toStrictEqual('local');
+      expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['local', 'c-b']);
+    });
+
+    it('remembers the blank placeholder as the current cluster but never lists it under RECENT', async() => {
+      const s = makeStore({ [CLUSTER]: '', [RECENT_CLUSTERS]: ['c-b'] });
+
+      await recordClusterNavigation(s.dispatch, BLANK_CLUSTER);
+
+      expect(s.writes).toStrictEqual([{ key: CLUSTER, value: BLANK_CLUSTER }]); // CLUSTER only — no RECENT mutation
       expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['c-b']); // unchanged
     });
 
@@ -144,7 +156,7 @@ describe('fx: cluster-pref-writer', () => {
 
       // Applied to a DIFFERENT (server) list, it still just prepends + strips placeholders.
       expect(recent.apply(['c-x', 'c-y'])).toStrictEqual(['c-a', 'c-x', 'c-y']);
-      expect(recent.apply(['local', 'c-a', 'c-z'])).toStrictEqual(['c-a', 'c-z']);
+      expect(recent.apply(['_', 'c-a', 'c-z'])).toStrictEqual(['c-a', 'c-z']);
     });
 
     it('a failed optimistic phase is reported to the caller and skips the server round-trip', async() => {

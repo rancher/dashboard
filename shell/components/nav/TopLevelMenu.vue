@@ -180,23 +180,38 @@ export default {
       return this.pinFiltered.filter((c) => !c.isLocal);
     },
 
+    // `local` is allowed on the RECENT shelf — it has its own fixed tile above, but it is a cluster the
+    // user visits, so it appears in the visit history too (the same way a pinned cluster now does).
     railRecent() {
-      return this.recentClusters.filter((c) => !c.isLocal);
+      return this.recentClusters;
     },
 
     // ALL CLUSTERS is fetched server-side (sorted + paginated), so PRESERVE that order rather than
     // re-sorting the loaded window (else "active first" would hold only within a page). Pinned/recent
     // are appended from the always-loaded context fetch; local is excluded (its own slot).
     railAll() {
+      // While searching, `local` is a candidate like any other — the flyout takes its fixed tile down for
+      // the duration, so a query for "local" has to be able to find it.
       if (this.searchActive) {
-        return this.clustersFiltered.filter((c) => !c.isLocal);
+        return this.clustersFiltered;
       }
 
-      const others = this.clustersFiltered.filter((c) => !c.isLocal);
-      const seen = new Set(others.map((c) => c.id));
-      const extras = [...this.pinFiltered, ...this.recentClusters].filter((c) => !c.isLocal && !seen.has(c.id));
+      const rows = this.clustersFiltered.filter((c) => !c.isLocal);
+      // Grow `seen` as the extras land, not just from `others`: PINNED and RECENT overlap (a pinned
+      // cluster stays in the visit history), so a cluster in both would otherwise be appended twice —
+      // duplicate `:key`s, which Vue patches into permanently orphaned rows in the flyout list.
+      const seen = new Set(rows.map((c) => c.id));
 
-      return [...others, ...extras];
+      [...this.pinFiltered, ...this.recentClusters].forEach((c) => {
+        if (c.isLocal || seen.has(c.id)) {
+          return;
+        }
+
+        seen.add(c.id);
+        rows.push(c);
+      });
+
+      return rows;
     },
 
     // Expanded-nav shelf: PINNED + RECENT, always — the estate lives in the switcher flyout.
@@ -220,15 +235,6 @@ export default {
           key: 'recent', titleKey: 'nav.switcher.recent', sectionClass: 'clustersRecent', rows: this.recentRows
         },
       ].filter((shelf) => !!shelf.rows.length);
-    },
-
-    // Signature of the shelf's row ORDER, the cue to play the FLIP on pin/unpin. Pinned and recent are
-    // kept SEPARATE (the `|`): a row crossing the pinned↔recent boundary leaves the concatenated order
-    // unchanged, so without the separator the FLIP wouldn't fire for those two positions.
-    shelfOrder() {
-      const ids = (rows) => rows.map((c) => c.id).join(',');
-
-      return `${ ids(this.pinnedRows) }|${ ids(this.recentRows) }`;
     },
 
     // Infinite-scroll: more rows exist when the loaded window is smaller than the server-side total.
@@ -467,26 +473,15 @@ export default {
     // 1. When SSP enabled reduce http spam
     // 2. When SSP is disabled (legacy) reduce fn churn (this was a known performance customer issue)
 
-    // The shelf is DERIVED from these prefs, so it re-materializes on its own when a pref changes. These
-    // watchers just (1) snapshot positions so the FLIP can animate the change and (2) refresh the context
-    // fetch/watch so a newly-pinned cluster's data loads.
+    // The shelf is DERIVED from these prefs, so it re-materializes on its own when a pref changes, and
+    // the row transitions ride on that. These watchers only refresh the context fetch/watch so a
+    // newly-pinned cluster's data loads.
     pinnedIds: {
       handler(neu, old) {
         if (sameContents(neu, old)) {
           return;
         }
 
-        // The cluster just pinned/unpinned gets the "wash" highlight once the shelf reorders.
-        const added = (neu || []).filter((x) => !(old || []).includes(x));
-        const removed = (old || []).filter((x) => !(neu || []).includes(x));
-
-        this._washId = added[0] || removed[0] || null;
-
-        // Snapshot shelf-row positions BEFORE the derived shelf re-renders; the shelfOrder watcher plays the
-        // FLIP after the DOM updates.
-        this.captureFlip();
-
-        // Refresh the context fetch/watch so a newly-pinned cluster's data lands (if not already cached).
         this.updateClusters(neu, 'quick');
 
         // Flip the `pinned` flag on EVERY cached cluster now, so the pin ICON on every surface (shelf,
@@ -501,18 +496,7 @@ export default {
           return;
         }
 
-        // Snapshot positions before the derived RECENT list re-renders. On a pin/unpin both watchers fire in
-        // ONE flush before any render, so this reads the same pre-move layout.
-        this.captureFlip();
         this.updateClusters(this.pinnedIds, 'quick');
-      }
-    },
-
-    // Once the shelf actually reorders (after updateClusters lands), FLIP-animate the rows from their
-    // snapshotted positions to the new ones. Covers BOTH the expanded shelf and the collapsed rail.
-    shelfOrder(neu, old) {
-      if (neu !== old && this._flipBefore) {
-        this.$nextTick(() => this.playFlip());
       }
     },
 
@@ -659,9 +643,13 @@ export default {
     // resource search nav (see NavActionBar). `e.code` keys off the physical J so it matches regardless of
     // any modifier remapping the produced `e.key`.
     onSwitcherHotkey(e) {
-      const isJ = e.code === 'KeyJ' || (e.key || '').toLowerCase() === 'j';
+      const key = (e.key || '').toLowerCase();
 
-      if (!isJ || !(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) {
+        return;
+      }
+
+      if (e.code !== 'KeyJ' && key !== 'j') {
         return;
       }
 
@@ -675,20 +663,38 @@ export default {
 
     // While the flyout is open it OWNS the keyboard: every app shortcut behind it (Cmd/Ctrl+K, the
     // `v-shortkey` bindings, …) is swallowed here. Three things still get through:
-    // - Cmd/Ctrl+J, the flyout's own toggle (`onSwitcherHotkey` closes it);
+    // - Cmd/Ctrl+J, the flyout's own toggle (`onSwitcherHotkey`), and Cmd/Ctrl+K, the resource jump
+    //   (put away below, then left to NavActionBar's own shortcut to open);
     // - Option/Alt, so the `v-shortkey.hold` bindings keep driving the "keep this view" reveal — that
     //   directive owns the state (issue 11329), including releasing it when focus leaves the page;
     // - anything typed inside the flyout, so its search box and ↑↓/Enter/Esc keep working.
     onSwitcherKeyGuard(e) {
+      const key = (e.key || '').toLowerCase();
+      const modified = (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey;
+
+      // Cmd/Ctrl+K is the side nav's resource jump (NavActionBar). Wherever that exists, get out of its
+      // way — `hide` puts the flyout away and collapses the nav, in that order — and let the key carry on
+      // to open it. Ahead of the early return below because it has to run whether or not the flyout is
+      // open; an expanded nav with no flyout was being left standing over the jump. And on WINDOW capture
+      // because the `shortkey` directive that owns this shortcut stops propagation from `document`
+      // capture — a listener on `document` would never see it. `navSearch`, which decides whether the
+      // jump renders, is SideNav's own state and not reachable from here, so ask the page: its presence
+      // IS the condition. Keydown only, or the keyup would run it a second time.
+      if ((e.code === 'KeyK' || key === 'k') && modified && e.type === 'keydown' &&
+        (this.shown || this.switcherOpen) && document.querySelector('[data-testid="nav-jump-to-input"]')) {
+        this.hide();
+      }
+
       if (!this.switcherOpen) {
         return;
       }
-
-      const key = (e.key || '').toLowerCase();
-      const isToggle = (e.code === 'KeyJ' || key === 'j') && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey;
+      const isToggle = (e.code === 'KeyJ' || key === 'j') && modified;
       const isAlt = e.key === 'Alt' || e.code === 'AltLeft' || e.code === 'AltRight';
+      // Cmd/Ctrl+K belongs to the resource jump. The block above has already put the flyout and the nav
+      // away, so all this has to do is not swallow the key on its way to NavActionBar.
+      const isJump = (e.code === 'KeyK' || key === 'k') && modified;
 
-      if (isToggle || isAlt) {
+      if (isToggle || isAlt || isJump) {
         return;
       }
 
@@ -731,111 +737,6 @@ export default {
       await this.$refs.switcher?.closeAndWait();
 
       this.shown = !this.shown;
-    },
-
-    // The [data-flip] shelf rows to animate — VISIBLE ones only, so a row inside a hidden section is never
-    // measured (a zero rect would make the FLIP jump).
-    flipRows() {
-      const root = this.$el;
-
-      if (!root || typeof root.querySelectorAll !== 'function') {
-        return [];
-      }
-
-      return Array.from(root.querySelectorAll('[data-flip]')).filter((n) => n.offsetParent !== null);
-    },
-
-    // FLIP animation for the pin/unpin shelf reorder (see the `pinnedIds`/`recentIds`/`shelfOrder`
-    // watchers); works on both the expanded shelf and the collapsed rail (same `[data-flip]` rows).
-    captureFlip() {
-      this._flipBefore = new Map();
-      this.flipRows().forEach((n) => {
-        this._flipBefore.set(n.dataset.flip, n.getBoundingClientRect().top);
-      });
-    },
-
-    playFlip() {
-      const before = this._flipBefore;
-
-      this._flipBefore = null;
-
-      if (!before) {
-        return;
-      }
-      const washId = this._washId;
-
-      this._washId = null;
-
-      const rows = this.flipRows();
-
-      rows.forEach((n) => {
-        const b = before.get(n.dataset.flip);
-
-        // A row that wasn't on the shelf before is ENTERING — fade + slide it in (flyin) rather than
-        // relocate it.
-        if (b === undefined) {
-          this.retrigger(n, 'flyin');
-
-          return;
-        }
-        const dy = b - n.getBoundingClientRect().top;
-
-        if (Math.abs(dy) >= 2) {
-          // Invert: jump the row back to where it was, with no transition…
-          n.classList.add('flipping');
-          n.style.transition = 'none';
-          n.style.transform = `translateY(${ dy }px)`;
-          // …then play: next frame, transition it to its natural (new) position.
-          requestAnimationFrame(() => {
-            n.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1)';
-            n.style.transform = '';
-
-            // Only this row's own transition — `transitionend` bubbles, so the pin's `transform 0.1s`
-            // would otherwise end the glide a fifth of the way in.
-            const cleanup = (e) => {
-              if (e.target !== n) {
-                return;
-              }
-
-              n.classList.remove('flipping');
-              n.style.transition = '';
-              n.style.transform = '';
-              n.removeEventListener('transitionend', cleanup);
-            };
-
-            n.addEventListener('transitionend', cleanup);
-          });
-        }
-      });
-
-      // Flash the just-toggled row once it has landed (wash) — the VISIBLE one.
-      if (washId) {
-        const washRow = rows.find((n) => n.dataset.flip === washId);
-
-        if (washRow) {
-          this.retrigger(washRow, 'wash');
-        }
-      }
-    },
-
-    // Re-trigger a one-shot CSS animation class (remove → reflow → add), clearing it on animationend.
-    retrigger(el, cls) {
-      el.classList.remove(cls);
-      el.getBoundingClientRect(); // force reflow so the animation restarts
-      el.classList.add(cls);
-
-      // Only this element's own animation — `animationend` bubbles, so a descendant's (the pin's
-      // `pin-pop`) would otherwise clear the class long before this one has finished.
-      const done = (e) => {
-        if (e.target !== el) {
-          return;
-        }
-
-        el.classList.remove(cls);
-        el.removeEventListener('animationend', done);
-      };
-
-      el.addEventListener('animationend', done);
     },
 
     // Fetch page 1 of the ALL directory with the CURRENT pinned/recent/search context — the shared handler
@@ -1105,38 +1006,7 @@ export default {
                 </div>
               </router-link>
             </div>
-            <!-- local (management cluster): fixed slot at the top of the cluster area -->
-            <div
-              v-if="localCluster"
-              class="cluster-local"
-              @click="hide()"
-            >
-              <button
-                v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
-                class="cluster selector option"
-                :class="{ 'active-menu-link': localCluster.isMenuActive }"
-                :aria-current="localCluster.isMenuActive ? 'page' : undefined"
-                data-testid="menu-cluster-local"
-                :aria-label="`${ t('nav.ariaLabel.cluster') } ${ localCluster.label }`"
-                @click.prevent="clusterMenuClick($event, localCluster)"
-                @shortkey="onRouteComboHold"
-              >
-                <ClusterIconMenu
-                  v-clean-tooltip="getTooltipConfig(localCluster, true)"
-                  :cluster="localCluster"
-                  :route-combo="routeComboActive"
-                  class="rancher-provider-icon"
-                  :show-pin="false"
-                />
-                <div
-                  v-clean-tooltip="getTooltipConfig(localCluster)"
-                  class="cluster-name"
-                >
-                  <p>{{ localCluster.label }}</p>
-                </div>
-              </button>
-            </div>
-            <!-- The cluster-switcher "door": ONE slot below local, IDENTICAL expanded and collapsed —
+            <!-- The cluster-switcher "door": the top of the cluster area, IDENTICAL expanded and collapsed —
                  the count chip sits in the icon lane, and the expanded nav adds the "Cluster Switch"
                  label plus the trailing chevron (the collapsed rail clips both). Gated on the BROWSABLE
                  count (not the raw total, which includes local), so there's no empty "0" flyout when
@@ -1207,6 +1077,37 @@ export default {
             </div>
           </div>
 
+          <!-- local (management cluster): a fixed slot under the switcher, mirroring the flyout -->
+          <div
+            v-if="localCluster"
+            class="cluster-local"
+            @click="hide()"
+          >
+            <button
+              v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
+              class="cluster selector option"
+              :class="{ 'active-menu-link': localCluster.isMenuActive }"
+              :aria-current="localCluster.isMenuActive ? 'page' : undefined"
+              data-testid="menu-cluster-local"
+              :aria-label="`${ t('nav.ariaLabel.cluster') } ${ localCluster.label }`"
+              @click.prevent="clusterMenuClick($event, localCluster)"
+              @shortkey="onRouteComboHold"
+            >
+              <ClusterIconMenu
+                v-clean-tooltip="getTooltipConfig(localCluster, true)"
+                :cluster="localCluster"
+                :route-combo="routeComboActive"
+                class="rancher-provider-icon"
+                :show-pin="false"
+              />
+              <div
+                v-clean-tooltip="getTooltipConfig(localCluster)"
+                class="cluster-name"
+              >
+                <p>{{ localCluster.label }}</p>
+              </div>
+            </button>
+          </div>
           <!-- Harvester extras -->
           <template v-if="hciApps.length">
             <div class="category" />
@@ -1266,65 +1167,71 @@ export default {
                     {{ t(shelf.titleKey) }}
                   </span>
                 </div>
-                <div
-                  v-for="(c, index) in shelf.rows"
-                  :key="c.id"
-                  :data-flip="c.id"
-                  :data-testid="`${ shelf.key }-ready-cluster-${ index }`"
-                  @click="onShelfRowClick(c)"
+                <TransitionGroup
+                  name="shelf-row"
+                  tag="div"
+                  class="shelf-rows"
                 >
-                  <button
-                    v-if="c.ready"
-                    v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
-                    :data-testid="`${ shelf.key }-menu-cluster-${ c.id }`"
-                    class="cluster selector option"
-                    :class="{'active-menu-link': c.isMenuActive }"
-                    :aria-current="c.isMenuActive ? 'page' : undefined"
-                    :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
-                    @click.prevent="clusterMenuClick($event, c)"
-                    @shortkey="onRouteComboHold"
+                  <div
+                    v-for="(c, index) in shelf.rows"
+                    :key="c.id"
+                    :data-testid="`${ shelf.key }-ready-cluster-${ index }`"
+                    @click="onShelfRowClick(c)"
                   >
-                    <ClusterIconMenu
-                      v-clean-tooltip="getTooltipConfig(c, true)"
-                      :cluster="c"
-                      :route-combo="routeComboActive"
-                      class="rancher-provider-icon"
-                      :show-pin="false"
-                    />
-                    <div
-                      v-clean-tooltip="getTooltipConfig(c)"
-                      class="cluster-name"
+                    <button
+                      v-if="c.ready"
+                      v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
+                      :data-testid="`${ shelf.key }-menu-cluster-${ c.id }`"
+                      class="cluster selector option"
+                      :class="{'active-menu-link': c.isMenuActive }"
+                      :aria-current="c.isMenuActive ? 'page' : undefined"
+                      :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
+                      @click.prevent="clusterMenuClick($event, c)"
+                      @shortkey="onRouteComboHold"
                     >
-                      <p>{{ c.label }}</p>
-                    </div>
-                    <Pinned
-                      :cluster="c"
-                      :tab-order="shown ? 0 : -1"
-                    />
-                  </button>
-                  <span
-                    v-else
-                    class="option cluster selector disabled"
-                    :data-testid="`${ shelf.key }-menu-cluster-disabled-${ c.id }`"
-                  >
-                    <ClusterIconMenu
-                      v-clean-tooltip="getTooltipConfig(c, true)"
-                      :cluster="c"
-                      class="rancher-provider-icon"
-                      :show-pin="false"
-                    />
-                    <div
-                      v-clean-tooltip="getTooltipConfig(c)"
-                      class="cluster-name"
+                      <ClusterIconMenu
+                        v-clean-tooltip="getTooltipConfig(c, true)"
+                        :cluster="c"
+                        :route-combo="routeComboActive"
+                        class="rancher-provider-icon"
+                        :show-pin="false"
+                      />
+                      <div
+                        v-clean-tooltip="getTooltipConfig(c)"
+                        class="cluster-name"
+                      >
+                        <p>{{ c.label }}</p>
+                      </div>
+                      <Pinned
+                        v-if="!c.isLocal"
+                        :cluster="c"
+                        :tab-order="shown ? 0 : -1"
+                      />
+                    </button>
+                    <span
+                      v-else
+                      class="option cluster selector disabled"
+                      :data-testid="`${ shelf.key }-menu-cluster-disabled-${ c.id }`"
                     >
-                      <p>{{ c.label }}</p>
-                    </div>
-                    <Pinned
-                      :cluster="c"
-                      :tab-order="shown ? 0 : -1"
-                    />
-                  </span>
-                </div>
+                      <ClusterIconMenu
+                        v-clean-tooltip="getTooltipConfig(c, true)"
+                        :cluster="c"
+                        class="rancher-provider-icon"
+                        :show-pin="false"
+                      />
+                      <div
+                        v-clean-tooltip="getTooltipConfig(c)"
+                        class="cluster-name"
+                      >
+                        <p>{{ c.label }}</p>
+                      </div>
+                      <Pinned
+                        :cluster="c"
+                        :tab-order="shown ? 0 : -1"
+                      />
+                    </span>
+                  </div>
+                </TransitionGroup>
               </div>
             </div>
           </template>
@@ -1517,33 +1424,23 @@ export default {
     margin-bottom: 0;
   }
 
-  // A shelf row mid-FLIP sits above its neighbours so it glides over them, and turns off pointer events
-  // so the transient transform doesn't swallow clicks.
-  [data-flip].flipping {
+  // Pinning adds a row to PINNED and unpinning takes one away — a cluster keeps its place in RECENT
+  // either way, so nothing crosses between the groups any more. The shelf therefore animates on enter
+  // and leave, and the leave is the enter played backwards.
+  .shelf-rows {
+    // A leaving row is lifted out of flow (below) and positioned against this.
     position: relative;
-    z-index: 2;
-    pointer-events: none;
   }
 
-  // A row ENTERING the shelf (newly pinned/recent) fades + slides in from the left.
-  [data-flip].flyin {
-    animation: cluster-flyin 0.16s ease-out;
+  .shelf-row-enter-active,
+  .shelf-row-leave-active {
+    transition: opacity 0.16s ease-out, transform 0.16s ease-out;
   }
 
-  @keyframes cluster-flyin {
-    from {
-      opacity: 0;
-      transform: translateX(-6px) scale(0.985);
-    }
-
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  // The just-toggled row flashes a brief primary tint that fades to transparent.
-  [data-flip].wash {
+  // The arriving row also flashes a primary tint that fades out — the old "wash", which marked which row
+  // the pin actually acted on. It outlasts the 0.16s slide on purpose; Vue keeps the -enter-active class
+  // for the LONGER of the transition and the animation, so the full 0.6s plays.
+  .shelf-row-enter-active {
     animation: cluster-wash 0.6s ease-out;
   }
 
@@ -1557,7 +1454,22 @@ export default {
     }
   }
 
+  .shelf-row-enter-from,
+  .shelf-row-leave-to {
+    opacity: 0;
+    transform: translateX(-6px) scale(0.985);
+  }
 
+  // Out of flow while it leaves, so the rows beneath slide up to close the gap instead of jumping the
+  // moment the row is dropped.
+  .shelf-row-leave-active {
+    position: absolute;
+    width: 100%;
+  }
+
+  .shelf-row-move {
+    transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
 
   // (The shelf already conveys pinned-ness via the PINNED group + pin toggle, so ClusterIconMenu's
   // redundant pin overlay is hidden with :show-pin="false" on each chip — no scoped-style piercing.)
@@ -2078,7 +1990,9 @@ export default {
           text-transform: uppercase;
 
           span {
-            transition: $transition-nav;
+            // Fade only. `all` also animated the rule's width below, and watching that grow out from
+            // under the label is what read as the title sliding rather than fading.
+            transition: opacity 0.25s ease-in-out;
             display: flex;
             max-height: 16px;
           }
@@ -2087,7 +2001,8 @@ export default {
             margin: 0;
             max-width: 50px;
             width: 0;
-            transition: $transition-nav;
+            // Expanding: the rule goes at once, clearing the way for the title to fade in.
+            transition: none;
           }
         }
 
@@ -2136,6 +2051,9 @@ export default {
 
           hr {
             width: 40px;
+            // Collapsing: hold the rule back until the title has finished fading out, so the two never
+            // share the row. Zero duration — it is the delay doing the work, not a slide.
+            transition: width 0s linear 0.25s;
           }
         }
       }

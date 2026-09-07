@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
+import {
+  computed, nextTick, onBeforeUnmount, ref, watch
+} from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import ClusterSwitcherRow from '@shell/components/nav/ClusterSwitcherRow.vue';
@@ -17,7 +19,7 @@ type Props = {
   all?: TopLevelMenuCluster[];
   /** Flat match list while searching — the shared, filtered ALL-list results (helper.clustersOthers). */
   searchResults?: TopLevelMenuCluster[];
-  /** Estate size — shown in the ALL CLUSTERS count and the search placeholder. */
+  /** Estate size — the ALL CLUSTERS count, and the total a screen reader is told. */
   clusterCount?: number;
   /** Total clusters matching the search (from the page-1 response), so MATCHES shows the real total, not
    * just the loaded page. */
@@ -81,15 +83,9 @@ const searching = computed<boolean>(() => !!props.search);
 
 // The popper is teleported out of this component's scope, so its offset from the nav is carried by a
 // class on the popper itself (see the unscoped block at the bottom).
-const popperClass = computed(() => [
-  'cluster-switcher-popper',
-  props.navExpanded ? 'nav-expanded' : '',
-  // Without the fixed `local` tile the flyout is two rows shorter at the top, so it starts lower to keep
-  // its search box on the same line as the trigger button that opened it.
-  props.local ? '' : 'no-local',
-].filter((c) => !!c).join(' '));
+const popperClass = computed(() => ['cluster-switcher-popper', props.navExpanded ? 'nav-expanded' : ''].filter((c) => !!c).join(' '));
 
-// The ALL directory (local is a separate fixed tile, never listed here).
+// The ALL directory (at rest `local` is the fixed tile above, so it is not listed here as well).
 const directory = computed<TopLevelMenuCluster[]>(() => props.all.filter((c) => !c.isLocal));
 
 // The flat list the ↑↓ cursor and Enter operate over: matches while searching, else the ALL directory.
@@ -101,48 +97,35 @@ const rows = computed<TopLevelMenuCluster[]>(() => {
     return directory.value;
   }
 
-  return props.searchLoading ? [] : props.searchResults.filter((c) => !c.isLocal);
+  // `local` is NOT filtered out here: a search hides its fixed tile, and it then has to earn its place
+  // in the results like any other cluster — typing "local" has to be able to find it.
+  return props.searchLoading ? [] : props.searchResults;
 });
 
-// `local` is a fixed tile above the search door, but the combobox must own it for the keyboard — so nav
-// puts it at index 0 while the listbox renders only `rows`, offset by `localOffset` to stay in lock-step.
-// `activeIndex` is the KEYBOARD cursor only — the pointer gets its own CSS `:hover` on the row, so moving
-// the mouse never moves what Enter would open (and never strands a highlight behind the pointer).
-const localOffset = computed<number>(() => (props.local ? 1 : 0));
-const navRows = computed<TopLevelMenuCluster[]>(() => (props.local ? [props.local, ...rows.value] : rows.value));
+// The fixed `local` tile belongs to the resting state only — a search takes it down, and `local` then
+// competes for a place in the results like anything else. Resolved to the cluster (or null) rather than a
+// flag so the template narrows `local` off it: everything below reads this one value.
+const localTile = computed<TopLevelMenuCluster | null>(() => (props.local && !searching.value ? props.local : null));
+
+// The combobox must own the tile for the keyboard, so nav puts it at index 0 while the listbox renders
+// only `rows`, offset by `localOffset` to stay in lock-step. `activeIndex` is the KEYBOARD cursor only —
+// the pointer gets its own CSS `:hover` on the row, so moving the mouse never moves what Enter would open
+// (and never strands a highlight behind the pointer).
+const localOffset = computed<number>(() => (localTile.value ? 1 : 0));
+const navRows = computed<TopLevelMenuCluster[]>(() => (localTile.value ? [localTile.value, ...rows.value] : rows.value));
 
 // No row under the keyboard cursor: `aria-activedescendant` is dropped and nothing is highlighted, so
 // the search box alone holds the user's attention.
 const NO_ACTIVE_INDEX = -1;
 
-// Land the cursor on the first result row, not the fixed `local` tile, so Enter opens a searched cluster;
-// `local` is one ArrowUp away. At rest a local-only list has nowhere else to go, so the cursor clamps back
-// onto `local`; while searching it must NOT — `local` is a fixed tile, not a match, and highlighting it
-// would answer the query with the one cluster the query didn't find.
-const firstResultIndex = () => {
-  if (searching.value) {
-    return rows.value.length ? localOffset.value : NO_ACTIVE_INDEX;
-  }
-
-  return Math.min(localOffset.value, Math.max(0, navRows.value.length - 1));
-};
-
-// Estate clusters not currently shown — drives the "… N more" foot. Only meaningful in the resting list.
-const moreCount = computed(() => (searching.value ? 0 : Math.max(0, props.clusterCount - directory.value.length)));
+// Land the cursor on the first thing in the list — which at rest is the `local` tile, so opening the
+// flyout and pressing Enter goes to the management cluster. While searching the tile is gone and the
+// first row is the best match.
+const firstResultIndex = () => (navRows.value.length ? 0 : NO_ACTIVE_INDEX);
 
 // One fixed placeholder — the flyout is the only place a search lives, and it always searches the whole
 // estate.
-const placeholder = computed(() => t('nav.switcher.searchAllClusters'));
-
-// The "no clusters match" line echoes the query back; cap a very long query with an ellipsis so it can't
-// overflow the popover. Presentation, not a preference — it lives with the only thing that reads it.
-const SEARCH_ECHO_MAX = 30;
-
-const truncatedSearch = computed(() => {
-  const s = props.search || '';
-
-  return s.length > SEARCH_ECHO_MAX ? `${ s.slice(0, SEARCH_ECHO_MAX) }…` : s;
-});
+const placeholder = computed(() => t('nav.switcher.jumpTo'));
 
 // Accessibility: the search input is a combobox owning the results listbox; each row is an `option` the
 // input points at via aria-activedescendant, so a screen reader announces the highlighted cluster without
@@ -300,11 +283,58 @@ const onInput = (e: Event) => {
   emit('update:search', (e.target as HTMLInputElement).value);
 };
 
-// Clear the search (the X), then keep focus in the input.
+// Empty the search box and keep focus in it (Escape's first press; the box has no clear button).
 const clearSearch = () => {
   emit('update:search', '');
   searchInput.value?.focus();
 };
+
+// Escape peels one layer at a time: it empties a search that has something in it, and only closes the
+// flyout once there is nothing left to clear.
+//
+// This has to run before anything else sees the key. floating-vue closes the dropdown on Escape through
+// its own listener, which a handler on the flyout cannot head off — the search would clear AND the panel
+// would shut in the same press. So take Escape at the window, in the capture phase, and consume it
+// outright while there is a query to clear; with the field already empty it passes through untouched and
+// the close path in `onKeydown` runs as before.
+// One press is two events, and the field is empty again by the time the second arrives — so the keyup
+// has to be swallowed on the strength of what the keydown did, not on whether there is still a query.
+// Letting it through is what closed the flyout: floating-vue acts on the keyup.
+let swallowEscapeKeyup = false;
+
+const onEscapeCapture = (e: Event) => {
+  if ((e as KeyboardEvent).key !== 'Escape' || !open.value) {
+    return;
+  }
+
+  const consume = () => {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  };
+
+  if (e.type === 'keyup' && swallowEscapeKeyup) {
+    swallowEscapeKeyup = false;
+    consume();
+
+    return;
+  }
+
+  if (e.type === 'keydown' && props.search) {
+    swallowEscapeKeyup = true;
+    consume();
+    clearSearch();
+  }
+};
+
+const listenForEscape = (on: boolean) => {
+  const fn = on ? window.addEventListener : window.removeEventListener;
+
+  fn('keydown', onEscapeCapture, true);
+  fn('keyup', onEscapeCapture, true);
+};
+
+watch(open, (isOpen) => listenForEscape(isOpen));
+onBeforeUnmount(() => listenForEscape(false));
 
 // A list too short to scroll never fires @scroll, so top up until the rows fill the viewport.
 // `lastFilledCount` guards the case where a top-up brings nothing new (RBAC-filtered rows, a moving
@@ -372,7 +402,8 @@ const revealActive = () => {
 };
 
 // What Tab can land on inside the popover. The rows are `option`s the combobox drives via
-// aria-activedescendant, so in practice this is the search box and the clear X.
+// aria-activedescendant, so in practice this is the search box alone — which is the point: Tab has
+// nowhere to go, so it cannot walk out from behind the scrim.
 const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
@@ -472,6 +503,8 @@ const onKeydown = (e: KeyboardEvent) => {
     break;
   case 'Escape':
     e.preventDefault();
+    // Only reached with an empty field — a query is cleared by `onEscapeCapture`, which consumes the
+    // key before it ever gets here.
     setOpen(false);
     break;
   default:
@@ -485,6 +518,8 @@ defineExpose({
   searching,
   rows,
   navRows,
+  localTile,
+  localOffset,
   placeholder,
   activeIndex,
   open,
@@ -508,26 +543,14 @@ defineExpose({
     @apply-show="focusSearchInput"
     @apply-hide="setOpen(false)"
   >
-    <!-- Trigger: the parent supplies it via #trigger to reuse the app-bar's own cluster-button structure;
-         the bare-count button is only a fallback for standalone use. -->
+    <!-- Trigger: supplied by the parent via #trigger, so the app-bar's own cluster button IS the trigger
+         rather than something this component draws to match it. -->
     <slot
       name="trigger"
       :toggle="toggle"
       :open="open"
       :count="clusterCount"
-    >
-      <button
-        type="button"
-        class="cluster-count-trigger"
-        :aria-label="t('nav.switcher.ariaLabel')"
-        :aria-expanded="open"
-        aria-haspopup="listbox"
-        @click="toggle"
-      >
-        <span class="count">{{ clusterCount }}</span>
-        <i class="icon icon-chevron-right" />
-      </button>
-    </slot>
+    />
 
     <template #popper>
       <div
@@ -547,48 +570,7 @@ defineExpose({
           {{ statusMessage }}
         </div>
 
-        <!-- local — fixed tile above the search door, shown even while searching. Its own single-option
-             listbox so the option is never orphaned outside a listbox. -->
-        <div
-          v-if="local"
-          :id="localListboxId"
-          class="switcher-local"
-          role="listbox"
-          :aria-label="t('nav.switcher.managementCluster')"
-        >
-          <ClusterSwitcherRow
-            :id="optionId(local)"
-            :cluster="local"
-            :subtitle="t('nav.switcher.managementCluster')"
-            :pinnable="false"
-            :route-combo="routeCombo"
-            :active="activeIndex === 0"
-            :current="local.id === currentClusterId"
-            @select="explore"
-          />
-        </div>
-
-        <!-- Group caption — ALL CLUSTERS at rest, MATCHES while searching. It sits ABOVE the search box
-             so the list's identity reads before the box that filters it. -->
-        <div
-          class="switcher-group-label"
-          aria-hidden="true"
-        >
-          <template v-if="searching">
-            {{ t('nav.switcher.matches') }}
-            <!-- While a search is in flight the count still describes the PREVIOUS query, so show a dash
-                 rather than assert a total the list below is no longer showing. The pill itself always
-                 renders: dropping it shrank the caption row to the bare line-height, so the header
-                 visibly jumped every time the user typed. -->
-            <span class="switcher-group-count">{{ searchLoading ? '—' : searchCount }}</span>
-          </template>
-          <template v-else>
-            {{ t('nav.switcher.allClusters') }}
-            <span class="switcher-group-count">{{ clusterCount }}</span>
-          </template>
-        </div>
-
-        <!-- Search "door" — a combobox that owns the results listbox below. -->
+        <!-- Search — a combobox that owns the results listbox below, and the first thing in the panel. -->
         <div class="switcher-search">
           <input
             ref="searchInput"
@@ -597,28 +579,56 @@ defineExpose({
             role="combobox"
             class="switcher-search-input"
             :placeholder="placeholder"
-            :aria-label="t('nav.switcher.searchAllClusters')"
+            :aria-label="t('nav.switcher.aria.search')"
             :aria-expanded="open ? 'true' : 'false'"
             aria-haspopup="listbox"
             aria-autocomplete="list"
             aria-keyshortcuts="Alt+P"
-            :aria-controls="local ? `${ localListboxId } ${ listboxId }` : listboxId"
+            :aria-controls="localTile ? `${ localListboxId } ${ listboxId }` : listboxId"
             :aria-activedescendant="activeDescendant"
             @input="onInput"
           >
-          <i
-            class="magnifier icon icon-search"
-            :class="{ active: search }"
-            aria-hidden="true"
+        </div>
+
+        <!-- local — a fixed tile under the search box, at rest only: a search takes it down and `local`
+             competes in the results like any other cluster. Its own single-option listbox so the option
+             is never orphaned outside a listbox. -->
+        <div
+          v-if="localTile"
+          :id="localListboxId"
+          class="switcher-local"
+          role="listbox"
+          :aria-label="t('nav.switcher.managementCluster')"
+        >
+          <ClusterSwitcherRow
+            :id="optionId(localTile)"
+            :cluster="localTile"
+            :subtitle="t('nav.switcher.managementCluster')"
+            :pinnable="false"
+            :route-combo="routeCombo"
+            :active="activeIndex === 0"
+            :current="localTile.id === currentClusterId"
+            @select="explore"
           />
-          <button
-            v-if="search"
-            type="button"
-            class="icon icon-close switcher-clear"
-            :aria-label="t('nav.search.clear')"
-            @mousedown.prevent
-            @click="clearSearch"
-          />
+        </div>
+
+        <!-- Group caption — ALL CLUSTERS at rest, MATCHES while searching. It heads the list it counts,
+             directly above it. -->
+        <div
+          class="switcher-group-label"
+          aria-hidden="true"
+        >
+          <template v-if="searching">
+            {{ t('nav.switcher.matches') }}
+            <!-- While a search is in flight the count still describes the PREVIOUS query, so show a dash
+                 rather than assert a total the list below is no longer showing — the pill itself always
+                 renders, so the caption never flickers between having a count and not. -->
+            <span class="switcher-group-count">{{ searchLoading ? '—' : searchCount }}</span>
+          </template>
+          <template v-else>
+            {{ t('nav.switcher.allClusters') }}
+            <span class="switcher-group-count">{{ clusterCount }}</span>
+          </template>
         </div>
 
         <div
@@ -664,6 +674,7 @@ defineExpose({
                 :active="activeIndex === i + localOffset"
                 :current="c.id === currentClusterId"
                 :route-combo="routeCombo"
+                :pinnable="!c.isLocal"
                 @select="explore"
               />
             </div>
@@ -672,7 +683,7 @@ defineExpose({
               class="switcher-empty"
               aria-hidden="true"
             >
-              {{ t('nav.switcher.noMatch', { query: truncatedSearch }) }}
+              {{ t('nav.switcher.noMatch') }}
             </div>
           </template>
 
@@ -738,14 +749,6 @@ defineExpose({
             </div>
           </div>
         </div>
-
-        <!-- Foot: "… N more — type to narrow" when the list is capped. -->
-        <div
-          v-if="moreCount > 0"
-          class="switcher-footer"
-        >
-          {{ t('nav.switcher.moreTypeToNarrow', { count: moreCount }) }}
-        </div>
       </div>
     </template>
   </v-dropdown>
@@ -763,32 +766,6 @@ defineExpose({
 </template>
 
 <style lang="scss" scoped>
-// Fallback trigger for standalone use (the app-bar supplies its own via #trigger): a compact "N ›" badge.
-.cluster-count-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  width: 42px;
-  min-width: 42px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--border-radius);
-  color: var(--body-text);
-  cursor: pointer;
-
-  .count {
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1;
-  }
-
-  .icon {
-    font-size: 11px;
-  }
-}
-
 .cluster-switcher-flyout {
   display: flex;
   flex-direction: column;
@@ -797,22 +774,24 @@ defineExpose({
   // have to move together for the bottom gutter to hold.
   background: var(--topmenu-bg);
   color: var(--body-text);
+  // The panel's own chrome, moved off the popper wrappers so it scales with the roll-out. `overflow`
+  // keeps the rows clipped to the rounded corners now that the radius lives here.
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-md);
+  // Same shadow floating-vue's dropdown theme would have drawn, moved here so it scales with the panel.
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 
-  // Exactly the expanded-nav search: 32px input, magnifier left, clear X right. Mirror the nav-bar's
-  // centering technique — a flex row exactly as tall as the input, with the overlaid icons positioned via
-  // `top: auto` (their static flex-centred position) rather than `top: 50%` on the asymmetrically-padded
-  // container, which sat the icons ~1px high.
   .switcher-search {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
-    position: relative;
-    padding: 4px 14px 8px;
+    padding: 16px 16px 12px;
 
     .switcher-search-input {
       flex: 1;
       height: 32px;
-      padding: 0 35px 0 25px;
+      padding: 0 12px;
       border: 1px solid var(--border);
       border-radius: var(--border-radius);
       background: var(--input-bg);
@@ -824,59 +803,17 @@ defineExpose({
         outline-offset: 1px;
       }
     }
-
-    // Magnifier: left, vertically centred on the input (flex align-items), faint until there's a term.
-    .magnifier {
-      position: absolute;
-      left: 20px;
-      top: auto;
-      width: 12px;
-      height: 12px;
-      font-size: 12px;
-      opacity: 0.4;
-
-      &.active {
-        opacity: 1;
-      }
-    }
-
-    // Clear (X): a real button (keyboard-operable), positioned right; black while shown, primary on hover.
-    .icon-close {
-      position: absolute;
-      right: 20px;
-      top: auto;
-      // Button resets so the icon-font glyph sits like the old <i>.
-      appearance: none;
-      border: none;
-      background: transparent;
-      padding: 0;
-      line-height: 1;
-      font-size: 12px;
-      cursor: pointer;
-      color: var(--body-text);
-
-      &:hover {
-        color: var(--primary);
-      }
-
-      &:focus-visible {
-        @include focus-outline;
-        outline-offset: 2px;
-        border-radius: 2px;
-      }
-    }
   }
 
-  // local: fixed, non-scrolling. Its divider comes from the row's own border-bottom (full width).
+  // Same box as every scrolling row (ClusterSwitcherRow owns the padding); this only keeps the tile
+  // out of the scroll area's flex growth.
   .switcher-local {
     flex: 0 0 auto;
+  }
 
-    // The local row (#cluster-switcher-opt-local) carries 14px on every side — the extra 5px over the
-    // scrolling rows' 9px now lives INSIDE the row, so its highlight covers it instead of the old wrapper
-    // padding-top leaving a clipped gap above the highlight when local is active.
-    .cluster-switcher-row {
-      padding: 14px;
-    }
+  // The panel's own edge closes the list, so the last row's divider would read as a double line.
+  .switcher-group .cluster-switcher-row:last-child {
+    border-bottom: none;
   }
 
   .switcher-scroll {
@@ -921,11 +858,17 @@ defineExpose({
   .switcher-group-label {
     flex: 0 0 auto;
     display: flex;
+    // A fixed 32px band: the caption and its count pill are centred in it rather than pushed around by
+    // line-height, so the text, the pill and the rows below all share one vertical centre line.
     align-items: center;
+    height: 32px;
     gap: 6px;
-    padding: 10px 16px 2px;
-    line-height: 18px;
-    font-size: 11px;
+    // Only the 8px above (separating it from the local tile) is spacing — the height owns the rest, so
+    // the caption sits tight to the list it heads.
+    margin-top: 8px;
+    padding: 0 16px;
+    line-height: 1;
+    font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -951,12 +894,10 @@ defineExpose({
   }
 
   .switcher-empty {
-    padding: 18px 14px 10px;
+    padding: 18px 16px 10px;
     text-align: left;
     font-size: 12px;
     color: var(--muted);
-    // A long, unbroken query must wrap inside the popover rather than overflow its edge.
-    overflow-wrap: anywhere;
   }
 
   // Infinite-scroll loading skeleton — shimmer placeholder rows mirroring the real row layout.
@@ -1012,24 +953,12 @@ defineExpose({
       background-position: 0 0;
     }
   }
-
-  // Foot: a single muted "… N more — type to narrow" line, no border.
-  .switcher-footer {
-    // Left inset (81px) aligns the footer text with the row names (past the badge lane).
-    padding: 8px 14px 14px 81px;
-    font-size: 12px;
-    color: var(--muted);
-  }
 }
 </style>
 
 <style lang="scss">
-// Where the flyout starts, chosen so its search box lands on the same line as the trigger button that
-// opened it: the flyout leads with the fixed `local` tile, and so does the nav above the button — drop
-// both and everything moves up, hence the second offset. The flyout then runs to the bottom of the
-// viewport, less a fixed gutter.
-$flyout-top: 50px;
-$flyout-top-no-local: 65px;
+// Where the flyout starts, and how much room it leaves at the bottom of the viewport.
+$flyout-top: 85px;
 $flyout-gutter: 12px;
 
 // The popper is teleported to <body>, out of reach of scoped styles, so target it here (namespaced by
@@ -1057,21 +986,73 @@ $flyout-gutter: 12px;
   transform: none !important;
   // Above the scrim (100) and the lifted rail (101).
   z-index: 102 !important;
-  // Softer corners than the shared popper default (`--border-radius-lg`), which is tuned for small
-  // tooltips — scoped here rather than changed globally, since every popper in the app uses that rule.
-  border-radius: var(--border-radius-md);
+
+  // These two wrappers only POSITION the flyout — the visible panel (border, corners, background) is
+  // the flyout itself. That is what lets the roll-out below scale the whole thing: animating the
+  // innermost element while the frame around it sat at full size grew the contents inside a box that
+  // had already arrived, which read as wrong. The popper can't be the animated element itself, since
+  // it is pinned with `transform: none !important` above to stop floating-ui re-applying its
+  // positioning transform.
+  border: none;
+  background: transparent;
 
   .v-popper__inner {
-    border-radius: var(--border-radius-md);
-    // The flyout fills this element, but the shared popper rule paints `--popover-bg` behind it, and
-    // that shows through as a ring inside the rounded corners now the flyout carries the nav's colour.
-    // Nested here (rather than beside the `padding: 0` rule below) so it outranks the shared rule
-    // instead of tying with it and depending on source order.
-    background: var(--topmenu-bg);
+    background: transparent;
+    border-radius: 0;
+    // floating-vue's dropdown theme drops its shadow here. Left on, it hangs at full size behind the
+    // scaling panel — a rectangle of shadow that never moves. It belongs on the flyout with the rest
+    // of the chrome, so it scales too.
+    box-shadow: none;
+  }
+
+  // Unroll from the top-left corner the flyout hangs off, alongside the shared popper's own .15s
+  // opacity fade (see _tooltip.scss). A clip wipe rather than a scale, so nothing is distorted on the
+  // way in — the panel is drawn at its final size throughout and simply uncovered.
+  .cluster-switcher-flyout {
+    // Both edges are driven off ONE distance, so they advance at exactly the same pixels-per-ms and the
+    // short side lands first by construction — no ratio to tune, and it holds for any panel height.
+    // The resting value has to out-reach the panel: once the animation is over the property falls back to
+    // what is declared here, and anything smaller leaves the clip permanently cutting the bottom off.
+    // `100vh` is the bound — the panel is capped at the viewport height minus its insets — so this holds
+    // on a tall screen, where a fixed pixel figure quietly truncated the list.
+    --unroll: 100vh;
+    clip-path: inset(0 calc(100% - var(--unroll)) calc(100% - var(--unroll)) 0);
+    // `backwards` pins the first keyframe from the moment the element exists, so the panel can never be
+    // caught at its resting size in the frames before the animation takes hold.
+    animation: cluster-switcher-unroll 0.25s linear backwards;
   }
 
   .cluster-switcher-flyout {
     max-height: calc(100vh - #{$flyout-top} - #{$flyout-gutter});
+  }
+}
+
+// The unroll distance, as a real length so it interpolates — an unregistered custom property would
+// animate discretely and the panel would jump open instead.
+@property --unroll {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+// One distance, both edges: the clip travels the same number of pixels right and down each frame, so
+// the panel shoots out to its full 380px width, is momentarily square, then carries on unrolling to the
+// bottom. `linear` is what holds the two rates equal — easing would bend them apart. The end value has to
+// out-reach the tallest the flyout can get, which is bounded by the viewport; past the panel's own size
+// the clip is simply off the element.
+@keyframes cluster-switcher-unroll {
+  from {
+    --unroll: 0px;
+  }
+  to {
+    --unroll: 100vh;
+  }
+}
+
+// Motion is decoration here — the flyout is just as usable arriving instantly.
+@media (prefers-reduced-motion: reduce) {
+  .cluster-switcher-popper.v-popper__popper .cluster-switcher-flyout {
+    animation: none;
   }
 }
 
@@ -1080,14 +1061,25 @@ $flyout-gutter: 12px;
   left: calc(#{$app-bar-expanded-width} + 16px) !important;
 }
 
-// No `local`: neither the nav nor the flyout carries the tile, so both the button and the flyout's
-// search box move up — the flyout starts lower to meet it again, and gives back the same height.
-.cluster-switcher-popper.no-local.v-popper__popper {
-  top: $flyout-top-no-local !important;
-
-  .cluster-switcher-flyout {
-    max-height: calc(100vh - #{$flyout-top-no-local} - #{$flyout-gutter});
+@keyframes cluster-switcher-unroll {
+  from {
+    --unroll: 0px;
   }
+  to {
+    --unroll: 900px;
+  }
+}
+
+// Motion is decoration here — the flyout is just as usable arriving instantly.
+@media (prefers-reduced-motion: reduce) {
+  .cluster-switcher-popper.v-popper__popper .cluster-switcher-flyout {
+    animation: none;
+  }
+}
+
+// Expanded nav: the same 16px gap, measured from the wider nav's edge.
+.cluster-switcher-popper.nav-expanded.v-popper__popper {
+  left: calc(#{$app-bar-expanded-width} + 16px) !important;
 }
 
 // No connector arrow (the flyout floats free of the rail).

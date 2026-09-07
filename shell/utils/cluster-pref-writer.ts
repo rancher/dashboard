@@ -1,4 +1,3 @@
-import { LOCAL_CLUSTER } from '@shell/config/types';
 import { CLUSTER, MENU_MAX_RECENT_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
@@ -17,17 +16,20 @@ type PrefValue = string | string[];
 // `apply` is a pure transform over the pref's current value; each one narrows to the shape it expects.
 type Mutation = { key: string, apply: (value: PrefValue) => PrefValue };
 
-/** A real, recordable cluster: `local` and `_` (BLANK_CLUSTER) are the current cluster but never listed under RECENT. */
+/** A real cluster worth recording a visit to. `_` (BLANK_CLUSTER) is a placeholder, not somewhere the
+ * user went; `local` is a cluster like any other and does belong in the visit history. */
 export function isRecordableCluster(id: string): boolean {
-  return !!id && id !== LOCAL_CLUSTER && id !== BLANK_CLUSTER;
+  return !!id && id !== BLANK_CLUSTER;
 }
 
-// Store more than the display cap: pinned clusters are excluded from RECENT at render time, so a log
-// stored at exactly the cap could render short. Ids only, so the extra rows are nearly free.
+// Store more than the display cap: the log is matched against fetched cluster data at render time, and
+// an id with nothing behind it any more (a cluster since deleted, or simply not in the loaded window)
+// drops out — so a log stored at exactly the cap could render short. Ids only, so the extra are cheap.
 const RECENT_STORE_MULTIPLIER = 3;
 
-// RECENT mutation for a visit: prepend `id` most-recent-first (de-duped), then strip empty / non-cluster
-// placeholders (`local`, `_`) an older build may have persisted.
+// RECENT mutation for a visit: prepend `id` most-recent-first (de-duped), then strip the empty ids and
+// the `_` placeholder an older build may have persisted. `local` is a cluster the user visits like any
+// other, so it stays.
 export const prependRecent = (id: string): Mutation => ({
   key:   RECENT_CLUSTERS,
   apply: (recents) => {
@@ -101,7 +103,8 @@ export function commitAndReconcile(dispatch: Dispatch, mutations: Mutation[]): P
  * Record a cluster navigation: remember `id` as the current cluster (CLUSTER) and, for a real cluster,
  * prepend it to RECENT — batched into ONE write. Writing CLUSTER separately raced two read-modify-writes
  * on the shared Preference (stale RECENT re-committed, clobbered PUTs, 409s); one merge write avoids it.
- * `local` and `_` (BLANK_CLUSTER) are the current cluster but never listed under RECENT.
+ * `_` (BLANK_CLUSTER) is recorded as the current cluster but never listed under RECENT — it is a
+ * placeholder, not somewhere the user went.
  */
 export function recordClusterNavigation(dispatch: Dispatch, id: string): Promise<any> {
   const mutations: Mutation[] = [{ key: CLUSTER, apply: () => id }];

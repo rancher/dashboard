@@ -104,7 +104,7 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersLocal.map((c) => c.id)).toStrictEqual(['local']);
     });
 
-    it('derives recents from the pref (most-recent-first, excluding pinned) and FOLLOWS pref changes', async() => {
+    it('derives recents from the pref (most-recent-first, pinned included) and FOLLOWS pref changes', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
       const mk = (id: string, pinned = false) => ({
         id, nameDisplay: id, isReady: true, canExplore: true, pinned, pin: jest.fn(), unpin: jest.fn()
@@ -128,15 +128,16 @@ describe('topLevelMenu.helper', () => {
 
       const helper = new TopLevelMenuHelperLegacy({ $store: mockStore });
 
-      // RECENT is DERIVED from the recent pref: most-recent-first (pref/visit order), pinned 'cP' excluded,
-      // capped at MENU_MAX_RECENT_CLUSTERS (10). `update()` just caches the cluster data.
+      // RECENT is DERIVED from the recent pref: most-recent-first (pref/visit order), capped at
+      // MENU_MAX_RECENT_CLUSTERS (10). The pinned 'cP' keeps its place — being pinned no longer hides a
+      // cluster from the visit history. `update()` just caches the cluster data.
       await helper.update({
         searchTerm: '',
         pinnedIds:  ['cP'],
         recentIds:  ['c3', 'c1', 'cP', 'c2', 'c4'],
       });
 
-      expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c3', 'c1', 'c2', 'c4']);
+      expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c3', 'c1', 'cP', 'c2', 'c4']);
 
       // The shelf is a VIEW of the pref, so it FOLLOWS pref changes (no seed-lock). Shrinking the
       // recent pref shrinks the shelf immediately — the derived getter re-reads the pref.
@@ -459,21 +460,18 @@ describe('topLevelMenu.helper', () => {
   });
 
   describe('visibleRecentClusters', () => {
-    it('drops pinned clusters and caps at the display limit', () => {
-      // pinned 'c-b' filtered out, then latest 3 shown, order preserved
-      expect(visibleRecentClusters(['c-a', 'c-b', 'c-c', 'c-d', 'c-e'], ['c-b'], 3)).toStrictEqual(['c-a', 'c-c', 'c-d']);
+    it('keeps visit order and caps at the display limit', () => {
+      expect(visibleRecentClusters(['c-a', 'c-b', 'c-c', 'c-d', 'c-e'], 3)).toStrictEqual(['c-a', 'c-b', 'c-c']);
     });
 
-    it('keeps a cluster that is recent but not pinned', () => {
-      expect(visibleRecentClusters(['c-a', 'c-b'], [], 3)).toStrictEqual(['c-a', 'c-b']);
-    });
-
-    it('can hide everything when all recents are pinned', () => {
-      expect(visibleRecentClusters(['c-a', 'c-b'], ['c-a', 'c-b'], 3)).toStrictEqual([]);
+    // Pinning says "keep this to hand", not "forget where I have been" — a pinned cluster still holds
+    // its place in the visit history, so it can appear under both headings.
+    it('keeps a cluster that is also pinned', () => {
+      expect(visibleRecentClusters(['c-a', 'c-b'], 3)).toStrictEqual(['c-a', 'c-b']);
     });
 
     it('tolerates non-array inputs', () => {
-      expect(visibleRecentClusters(undefined as any, undefined as any, 3)).toStrictEqual([]);
+      expect(visibleRecentClusters(undefined as any, 3)).toStrictEqual([]);
     });
   });
 });

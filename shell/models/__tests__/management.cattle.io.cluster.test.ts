@@ -1,6 +1,6 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 import { EXT } from '@shell/config/types';
-import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { downloadFile } from '@shell/utils/download';
 
@@ -351,26 +351,18 @@ describe('class MgmtCluster', () => {
     // An unpinned cluster belongs at the TOP of RECENT: leaving RECENT alone either dropped it off the
     // shelf entirely (never visited) or left it buried among older visits (visited long ago), which is
     // the reordering users saw when unpinning a cluster already in the log.
-    it('unpin drops the cluster from PINNED and moves it to the head of RECENT, in one write', async() => {
+    // RECENT is a log of clusters the user actually went to, so unpinning must not write to it: an
+    // unpinned cluster keeps whatever place its own visits earned, and one never visited stays absent.
+    it('unpin touches PINNED only', async() => {
       const { cluster, calls } = makeCluster('c-a');
 
       await cluster.unpin();
 
       const mutations = calls[0].payload;
 
-      // ONE write carrying both prefs — two would race two read-modify-writes on the shared Preference.
       expect(calls.map((c) => c.action)).toStrictEqual(['prefs/applyPrefsOptimistic', 'prefs/reconcilePrefs']);
-      expect(mutations.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS, RECENT_CLUSTERS]);
-
+      expect(mutations.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS]);
       expect(mutations[0].apply(['c-a', 'c-b'])).toStrictEqual(['c-b']);
-
-      const recent = mutations[1];
-
-      // Already in the log, so it MOVES to the head rather than staying where it was (or duplicating).
-      expect(recent.apply(['c-b', 'c-a', 'c-c'])).toStrictEqual(['c-a', 'c-b', 'c-c']);
-      // Never visited: it still lands at the head rather than falling off the shelf.
-      expect(recent.apply(['c-b'])).toStrictEqual(['c-a', 'c-b']);
-      expect(recent.apply([])).toStrictEqual(['c-a']);
     });
 
     it('unpin of local touches PINNED only', async() => {

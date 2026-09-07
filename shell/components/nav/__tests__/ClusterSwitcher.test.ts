@@ -1,3 +1,6 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { load } from 'js-yaml';
 import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
@@ -49,10 +52,30 @@ describe('component: ClusterSwitcher', () => {
 
   // The flyout is now the ONLY search in the nav and it always searches the whole
   // estate, so the placeholder is one fixed string — it no longer varies with the count.
-  it.each([19, 0])('uses the one "search all clusters" placeholder (count: %s)', (clusterCount) => {
+  it.each([19, 0])('uses the one "jump to" placeholder (count: %s)', (clusterCount) => {
     const wrapper = mountSwitcher({ clusterCount });
 
-    expect((wrapper.vm as any).placeholder).toBe('nav.switcher.searchAllClusters');
+    expect((wrapper.vm as any).placeholder).toBe('nav.switcher.jumpTo');
+  });
+
+  // WCAG 2.5.3 (Label in Name). The box has no visible label — the placeholder is the only text a sighted
+  // user sees — so the accessible name has to CONTAIN those words, or a speech-input user saying "jump to"
+  // matches nothing. Asserted against the real translations, since the two strings are what the rule is
+  // about: wiring the keys up proves nothing on its own.
+  it('names the search box with text that contains its visible placeholder', () => {
+    const input = mountSwitcher().find('input.switcher-search-input');
+
+    // The suite renders keys rather than copy (the global i18n stub wraps them in `%…%`), so match on the
+    // key each attribute resolves to; the strings themselves are checked against the translations below.
+    expect(input.attributes('aria-label')).toContain('nav.switcher.aria.search');
+    expect(input.attributes('placeholder')).toContain('nav.switcher.jumpTo');
+
+    const en = load(readFileSync(resolve(__dirname, '../../../assets/translations/en-us.yaml'), 'utf8')) as any;
+    const { jumpTo, aria } = en.nav.switcher;
+    // Trim the placeholder's trailing ellipsis: it is a typographic hint, not part of the spoken label.
+    const visible = jumpTo.replace(/\.+$/, '').toLowerCase();
+
+    expect(aria.search.toLowerCase()).toContain(visible);
   });
 
   it('↑/↓ move the cursor and clamp at the ends', () => {
@@ -158,13 +181,18 @@ describe('component: ClusterSwitcher', () => {
   // The ALL CLUSTERS / MATCHES caption sits ABOVE the search box, not inside the
   // scrolling list, and the flyout forwards the Option/Alt cue to every row.
   describe('layout', () => {
-    it('puts the ALL CLUSTERS caption above the search box', () => {
-      const wrapper = mountSwitcher({ all: [cluster('p1')], clusterCount: 7 });
+    it('orders the panel search, local, caption, list', () => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), all: [cluster('p1')], clusterCount: 7
+      });
       const html = wrapper.html();
+      const at = (cls: string) => html.indexOf(cls);
 
       // Template `t` renders through the global test stub (`%key%`), unlike the composable mocked above.
       expect(wrapper.find('.switcher-group-label').text()).toBe('%nav.switcher.allClusters% 7');
-      expect(html.indexOf('switcher-group-label')).toBeLessThan(html.indexOf('switcher-search'));
+      expect(at('switcher-search')).toBeLessThan(at('switcher-local'));
+      expect(at('switcher-local')).toBeLessThan(at('switcher-group-label'));
+      expect(at('switcher-group-label')).toBeLessThan(at('switcher-scroll'));
     });
 
     it('swaps the caption for MATCHES + the match total while searching', () => {
@@ -227,8 +255,9 @@ describe('component: ClusterSwitcher', () => {
     });
 
     // The fixed `local` tile heads the nav model and the combobox owns its listbox, so it stays
-    // above the search door yet is keyboard-reachable.
-    it('keeps the fixed local tile above the door yet keyboard-reachable via the combobox', async() => {
+    // above the search door yet is keyboard-reachable — and, being first, it is what Enter answers
+    // with on a fresh open.
+    it('opens with the cursor on the fixed local tile, the directory one keystroke below', async() => {
       const wrapper = mountSwitcher({
         local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2
       });
@@ -241,12 +270,12 @@ describe('component: ClusterSwitcher', () => {
       // The combobox owns BOTH the local listbox and the results listbox.
       expect(input().attributes('aria-controls')).toBe('cluster-switcher-local-listbox cluster-switcher-listbox');
 
-      // On open the cursor lands on the first REAL cluster (not local), so Enter opens a browsable cluster.
+      // On open the cursor lands on local, so Enter goes straight to the management cluster.
       vm.setOpen(true);
       await vm.$nextTick();
-      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-p1');
+      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-local');
 
-      // ArrowUp now reaches the local row (previously mouse-only)...
+      // ArrowUp has nowhere above local to go...
       vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
       await vm.$nextTick();
       expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-local');
@@ -254,12 +283,17 @@ describe('component: ClusterSwitcher', () => {
       // ...and Enter explores it.
       vm.onKeydown({ key: 'Enter', preventDefault() {} });
       expect(wrapper.emitted('select')?.[0]?.[0]).toMatchObject({ id: 'local' });
+
+      // One ArrowDown reaches the first directory row.
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+      await vm.$nextTick();
+      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-p1');
     });
 
-    // The results of a keystroke land after it, so the cursor has nowhere to go at the moment the search
-    // term changes. It must not fall back onto the fixed `local` tile: `local` is not a match, and the
-    // highlight would sit there for the whole search, answering the query with the wrong cluster.
-    it('never parks the highlight on the local tile while searching', async() => {
+    // A search takes the fixed tile down: while one is running `local` is not a pinned shortcut, it is
+    // a cluster like any other and has to earn a place in the results. So the cursor follows the matches,
+    // and `local` only appears when it actually matches.
+    it('takes the local tile down while searching and lets local match like any other cluster', async() => {
       const wrapper = mountSwitcher({
         local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2
       });
@@ -268,10 +302,13 @@ describe('component: ClusterSwitcher', () => {
 
       vm.setOpen(true);
       await nextTick();
+      expect(vm.localTile?.id).toBe('local');
 
       // Typing: the skeleton is on screen, so nothing is highlighted and the search box keeps the user.
       await wrapper.setProps({ search: 'm', searchLoading: true });
       await nextTick();
+      expect(vm.localTile).toBeNull();
+      expect(vm.localOffset).toBe(0);
       expect(input().attributes('aria-activedescendant')).toBeUndefined();
 
       // Results arrive: the cursor lands on the first MATCH, so Enter opens it.
@@ -284,10 +321,18 @@ describe('component: ClusterSwitcher', () => {
       vm.onKeydown({ key: 'Enter', preventDefault() {} });
       expect(wrapper.emitted('select')?.[0]?.[0]).toMatchObject({ id: 'm1' });
 
-      // Search over: the highlight comes back on the resting list, still not on `local`.
+      // Searching for it finds `local` in the results, with no fixed tile duplicating it above.
+      await wrapper.setProps({ search: 'local', searchResults: [cluster('local')] } as any);
+      await nextTick();
+      expect(vm.localTile).toBeNull();
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local']);
+      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-local');
+
+      // Search over: the tile is back and the cursor rests on it again.
       await wrapper.setProps({ search: '', searchResults: [] } as any);
       await nextTick();
-      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-p1');
+      expect(vm.localTile?.id).toBe('local');
+      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-local');
     });
 
     // A cursor the user drove themselves is theirs — a later page of results must not take it back.
@@ -297,20 +342,20 @@ describe('component: ClusterSwitcher', () => {
       });
       const vm = wrapper.vm as any;
 
-      vm.onKeydown({ key: 'ArrowUp', preventDefault() {} }); // cursor -> local, deliberately
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // cursor -> m2, deliberately
       await nextTick();
 
       await wrapper.setProps({ searchResults: [cluster('m1'), cluster('m2'), cluster('m3')] } as any);
       await nextTick();
 
-      expect(vm.activeIndex).toBe(0);
-      expect(vm.navRows[vm.activeIndex].id).toBe('local');
+      expect(vm.activeIndex).toBe(1);
+      expect(vm.navRows[vm.activeIndex].id).toBe('m2');
     });
 
-    // A cold open (nothing pinned, no visit history) has an empty directory, so the cursor can only clamp
-    // onto the fixed `local` tile. Page 1 landing has to move it off again — otherwise Enter explores
-    // `local` on the first open and the first cluster on every later one, from the same keystroke.
-    it('moves the cursor off local when the directory lands after a cold open', async() => {
+    // A cold open (nothing pinned, no visit history) has an empty directory, so the only row is the fixed
+    // `local` tile. Page 1 landing must not take the cursor off it — a cold open and a warm one have to
+    // answer the same keystroke with the same cluster.
+    it('keeps the cursor on local when the directory lands after a cold open', async() => {
       const wrapper = mountSwitcher({ local: cluster('local'), all: [] });
       const vm = wrapper.vm as any;
 
@@ -321,8 +366,8 @@ describe('component: ClusterSwitcher', () => {
       await wrapper.setProps({ all: [cluster('a'), cluster('b')] } as any);
       await nextTick();
 
-      expect(vm.activeIndex).toBe(1);
-      expect(vm.navRows[vm.activeIndex].id).toBe('a');
+      expect(vm.activeIndex).toBe(0);
+      expect(vm.navRows[vm.activeIndex].id).toBe('local');
     });
 
     // The pin stays out of the tab order (a focusable control inside `role="option"` is invalid ARIA),
@@ -407,7 +452,6 @@ describe('component: ClusterSwitcher', () => {
       await nextTick();
 
       const input = wrapper.find('input.switcher-search-input').element as HTMLElement;
-      const clear = wrapper.find('button.switcher-clear').element as HTMLElement;
       const tab = (shiftKey = false) => {
         const preventDefault = jest.fn();
 
@@ -418,17 +462,14 @@ describe('component: ClusterSwitcher', () => {
         return preventDefault;
       };
 
+      // The search box is the only tabbable control in the popover, so Tab has to wrap straight back to
+      // it rather than letting focus escape the scrim — in both directions.
       input.focus();
       expect(tab()).toHaveBeenCalledWith();
-      expect(document.activeElement).toBe(clear);
-
-      // Tab off the LAST control wraps back to the first rather than escaping the scrim.
-      tab();
       expect(document.activeElement).toBe(input);
 
-      // ...and the same backwards.
       tab(true);
-      expect(document.activeElement).toBe(clear);
+      expect(document.activeElement).toBe(input);
 
       wrapper.unmount();
     });

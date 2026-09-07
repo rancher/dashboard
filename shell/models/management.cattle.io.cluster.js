@@ -16,7 +16,7 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
-import { commitAndReconcile, isRecordableCluster, prependRecent } from '@shell/utils/cluster-pref-writer';
+import { commitAndReconcile } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -816,9 +816,9 @@ export default class MgmtCluster extends SteveModel {
   }
 
   /**
-   * Pin the cluster by adding it to PINNED_CLUSTERS (a pinned cluster is simply
-   * hidden from the RECENT group). Routed through the shared serialized writer
-   * so this write can't race the store's cluster-navigation write and 409.
+   * Pin the cluster by adding it to PINNED_CLUSTERS. Pinning says nothing about RECENT — the two groups
+   * are independent and a pinned cluster keeps its place in the visit history. Routed through the shared
+   * serialized writer so this write can't race the store's cluster-navigation write and 409.
    */
   pin() {
     return commitAndReconcile(this.clusterPrefDispatch, [{
@@ -834,16 +834,14 @@ export default class MgmtCluster extends SteveModel {
   }
 
   /**
-   * Unpin the cluster: drop it from PINNED_CLUSTERS and move it to the HEAD of RECENT, so an
-   * unpinned cluster lands at the top of the shelf's RECENT group rather than vanishing from
-   * the shelf (never visited) or reappearing buried among older visits (visited long ago).
-   * `prependRecent` de-dupes, so it MOVES an id already in the log instead of duplicating it.
-   * Both prefs go in ONE write: two writes would race two read-modify-writes on the shared
-   * Preference. Routed through the shared serialized writer so this write can't race the
-   * store's cluster-navigation write and 409.
+   * Unpin the cluster: drop it from PINNED_CLUSTERS, and nothing else. RECENT is a log of clusters the
+   * user actually visited, so unpinning must not write to it — the cluster keeps whatever place its own
+   * visit history earned it, and one it was never visited from does not appear there at all.
+   * Routed through the shared serialized writer so this write can't race the store's
+   * cluster-navigation write and 409.
    */
   unpin() {
-    const mutations = [{
+    return commitAndReconcile(this.clusterPrefDispatch, [{
       key:   PINNED_CLUSTERS,
       apply: (pinned) => {
         const next = [...(Array.isArray(pinned) ? pinned : [])];
@@ -852,14 +850,7 @@ export default class MgmtCluster extends SteveModel {
 
         return next;
       },
-    }];
-
-    // `local` and `_` are the current cluster but are never listed under RECENT.
-    if (isRecordableCluster(this.id)) {
-      mutations.push(prependRecent(this.id));
-    }
-
-    return commitAndReconcile(this.clusterPrefDispatch, mutations);
+    }]);
   }
 
   get canExplore() {

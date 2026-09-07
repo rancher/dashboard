@@ -653,7 +653,13 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   --nav-toolbar-inset: 8px;
 
   position: fixed;
-  z-index: 100;
+  // Below the app bar. The panel is teleported to <body>, so it does not compete with the app bar's own
+  // z-index but with the whole `header` subtree the app bar sits in: `header` carries
+  // z-index('mainHeader') as a GRID ITEM, and z-index applies to grid items whatever their position, so
+  // it is a stacking context and nothing inside the app bar can climb out of it. Hence going under that
+  // band rather than trying to out-number the app bar. (Shares 13 with `windowsManager`; this panel is
+  // teleported last, so it draws over the shell rather than under it.)
+  z-index: calc(z-index('mainHeader') - 1);
   width: var(--nav-toolbar-dropdown-width);
   max-width: 100vw;
   padding: var(--nav-toolbar-inset);

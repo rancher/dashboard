@@ -11,19 +11,12 @@ import { reactive } from 'vue';
 import { LocationAsRelativeRaw } from 'vue-router';
 
 /**
- * The recent clusters to actually SHOW: drop any that are currently pinned (they appear under PINNED),
- * preserve visit order, and cap at the display limit.
+ * The recent clusters to actually SHOW: visit order, capped at the display limit. Pinned clusters are
+ * NOT held back — pinning something says to keep it to hand, not to erase where it sits in the visit
+ * history, so a cluster can legitimately appear under both headings.
  */
-export function visibleRecentClusters(
-  recents: string[] = [],
-  pinnedIds: string[] = [],
-  max: number = MENU_MAX_RECENT_CLUSTERS
-): string[] {
-  const pinned = Array.isArray(pinnedIds) ? pinnedIds : [];
-
-  return (Array.isArray(recents) ? recents : [])
-    .filter((id) => !pinned.includes(id))
-    .slice(0, max);
+export function visibleRecentClusters(recents: string[] = [], max: number = MENU_MAX_RECENT_CLUSTERS): string[] {
+  return (Array.isArray(recents) ? recents : []).slice(0, max);
 }
 
 export interface TopLevelMenuCluster {
@@ -143,7 +136,8 @@ export interface TopLevelMenuHelper {
    */
   clustersOthers: Array<TopLevelMenuCluster>;
 
-  /** Recently-visited clusters, most-recent-first, capped and pinned-excluded; empty while searching. */
+  /** Recently-visited clusters, most-recent-first, capped. Independent of PINNED: a pinned cluster keeps
+   * whatever place its visit history earned it, and `local` is listed like any other cluster. */
   clustersRecent: Array<TopLevelMenuCluster>;
 
   /** The `local` cluster, fetched by its own request as the fixed top tile (every other slice filters it out). */
@@ -197,11 +191,13 @@ export abstract class BaseTopLevelMenuHelper {
 
   public clustersOthers: Array<TopLevelMenuCluster> = reactive([]);
 
-  // RECENT = the recent pref (most-recent-first), minus pinned, capped — matched to cached data.
+  // RECENT = the recent pref (most-recent-first), capped — matched to cached data. Unlike PINNED and the
+  // ALL directory this draws on the WHOLE cache: `local` has its own fixed tile, but it is somewhere the
+  // user goes like any other cluster, so it earns its place in the visit history.
   public get clustersRecent(): Array<TopLevelMenuCluster> {
-    const recentIds = visibleRecentClusters(this.recentPref, this.pinnedPref, MENU_MAX_RECENT_CLUSTERS);
+    const recentIds = visibleRecentClusters(this.recentPref, MENU_MAX_RECENT_CLUSTERS);
 
-    return orderByIdsAndCap(this.cachedNonLocal, recentIds, MENU_MAX_RECENT_CLUSTERS);
+    return orderByIdsAndCap(Object.values(this.clusterCache), recentIds, MENU_MAX_RECENT_CLUSTERS);
   }
 
   // LOCAL = the `local` cluster from the cache (rendered as the fixed top tile).
@@ -348,7 +344,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
    */
   private async updateContext(args: UpdateArgs): Promise<void> {
     const pinnedIds = args.pinnedIds || [];
-    const recentIds = visibleRecentClusters(args.recentIds, pinnedIds, MENU_MAX_RECENT_CLUSTERS);
+    const recentIds = visibleRecentClusters(args.recentIds, MENU_MAX_RECENT_CLUSTERS);
     // Union of the ids we care about (deduped); `local` is always present.
     const contextIds = Array.from(new Set([LOCAL_CLUSTER, ...pinnedIds, ...recentIds]));
 
@@ -477,7 +473,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           filters: this.constructParams({
             searchTerm:        args.searchTerm,
             includeSearchTerm: !!args.searchTerm,
-            excludeLocal:      true,
+            // `local` is held back from the resting ALL list because it has its own tile above it — but a
+            // search takes that tile down, so it has to be searchable like every other cluster.
+            excludeLocal:      !args.searchTerm,
           }),
           page:                 this.othersPage,
           pageSize:             SWITCHER_PAGE_SIZE,
@@ -620,8 +618,10 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
       }
     });
 
-    // Keep the full ALL list; the visible slice is applied by `applyOthers` (reset/loadMore).
-    this.othersFull = this.clustersFiltered(nonLocal, args);
+    // Keep the full ALL list; the visible slice is applied by `applyOthers` (reset/loadMore). `local` is
+    // held back from the resting list because it has its own tile above it, but a search takes that tile
+    // down — so while searching it is a candidate like any other cluster (mirrors the SSP helper).
+    this.othersFull = this.clustersFiltered(args.searchTerm ? clusters : nonLocal, args);
     this.counts.others = this.othersFull.length;
 
     this.applyOthers();
