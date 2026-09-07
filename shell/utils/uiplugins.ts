@@ -75,7 +75,7 @@ export async function waitForUIExtension(store: any, name: string, maxRetries = 
         return extension;
       }
     } catch (e) {
-    console.error('waiting for UI extension to be available: error =', e); // eslint-disable-line no-console
+      console.error('waiting for UI extension to be available: error =', e); // eslint-disable-line no-console
     }
 
     tries++;
@@ -113,7 +113,7 @@ export async function waitForUIPackage(store: any, extension: any, maxRetries = 
 
       return true;
     } catch (error) {
-      console.error('waiting for UI extension package to be available: error =', error); // eslint-disable-line no-console  
+      console.error('waiting for UI extension package to be available: error =', error); // eslint-disable-line no-console
     }
 
     tries++;
@@ -346,7 +346,6 @@ export async function createHelmRepository(store: any, name: string, url: string
     }
 
     if (!fetched) {
-
       if (tries > MAX_RETRIES) {
         throw new Error('Failed to add Helm Chart Repository');
       }
