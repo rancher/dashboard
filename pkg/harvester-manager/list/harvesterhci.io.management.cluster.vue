@@ -247,19 +247,6 @@ export default {
       return null;
     },
 
-    // Return the logo information based on whether is is Harvester or SUSE Virtualization.
-    logo() {
-      const isSuseVirtualization = this.$store.getters['i18n/global']('Harvester') === 'SUSE Virtualization';
-
-      return !isSuseVirtualization ? {
-        name:   'harvester.png',
-        height: 64
-      } : {
-        name:   'suse-virtualization.svg',
-        height: 36
-      };
-    },
-
     // Overrides the AsyncButton's waiting label while an install/upgrade action is being retried
     harvesterActionRetryLabel() {
       if (!this.harvesterActionRetryAttempt) {

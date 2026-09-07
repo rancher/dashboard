@@ -91,7 +91,7 @@ describe('shell/utils/uiplugins', () => {
 
       await onExtensionsReady(store);
 
-      expect(onLogIn2).toHaveBeenCalled();
+      expect(onLogIn2).toHaveBeenCalledWith(store);
       expect(store.dispatch).toHaveBeenCalledWith('uiplugins/setReady', true);
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('failing-ext'),
@@ -318,13 +318,12 @@ describe('shell/utils/uiplugins', () => {
     };
     const transientError = { _status: 500, message: 'failed to find chart harvester-extension version 1.9.0 Not found 404' };
 
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
+    // Jest 27 lacks advanceTimersByTimeAsync, so run the backoff waits instantly while recording the delays
+    const stubBackoffTimers = () => jest.spyOn(global, 'setTimeout').mockImplementation(((cb: () => void) => {
+      cb();
 
-    afterEach(() => {
-      jest.useRealTimers();
-    });
+      return 0;
+    }) as any);
 
     it('resolves on the first try without retrying', async() => {
       const repo = { doAction: jest.fn().mockResolvedValue({ id: 'ok' }) };
@@ -356,33 +355,25 @@ describe('shell/utils/uiplugins', () => {
           .mockResolvedValueOnce({ id: 'ok-after-retry' }),
       };
       const onRetry = jest.fn();
+      const setTimeoutSpy = stubBackoffTimers();
 
-      const promise = installHelmChartWithRetry(repo, chart, {}, 'default', 'install', onRetry);
-
-      // Flush the two backoff waits so the retried attempts get a chance to run
-      await jest.advanceTimersByTimeAsync(10000);
-
-      const result = await promise;
+      const result = await installHelmChartWithRetry(repo, chart, {}, 'default', 'install', onRetry);
 
       expect(result).toStrictEqual({ id: 'ok-after-retry' });
       expect(repo.doAction).toHaveBeenCalledTimes(3);
       expect(onRetry).toHaveBeenNthCalledWith(1, 1, INSTALL_ACTION_MAX_RETRIES);
       expect(onRetry).toHaveBeenNthCalledWith(2, 2, INSTALL_ACTION_MAX_RETRIES);
+
+      setTimeoutSpy.mockRestore();
     });
 
     it('waits the full backoff schedule (1s, 2s, 4s, 8s) across all retries', async() => {
       const repo = { doAction: jest.fn().mockRejectedValue(transientError) };
-      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const setTimeoutSpy = stubBackoffTimers();
 
-      const promise = installHelmChartWithRetry(repo, chart, {}, 'default', 'install');
+      await expect(installHelmChartWithRetry(repo, chart, {}, 'default', 'install')).rejects.toBe(transientError);
 
-      promise.catch(() => {});
-
-      await jest.advanceTimersByTimeAsync(30000);
-
-      await expect(promise).rejects.toBe(transientError);
-
-      const delays = setTimeoutSpy.mock.calls.map(([, delay]) => delay);
+      const delays = Array.from(setTimeoutSpy.mock.calls, ([, delay]) => delay);
 
       expect(delays).toStrictEqual([1000, 2000, 4000, 8000]);
 
