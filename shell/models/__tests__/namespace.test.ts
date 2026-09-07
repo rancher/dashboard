@@ -8,13 +8,7 @@ import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
 jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
   __esModule: true,
-  default:    {
-    helper: {
-      clustersLocal:  [],
-      clustersPinned: [],
-      clustersOthers: [],
-    },
-  },
+  default:    { helper: { clustersLocal: [] } },
 }));
 
 describe('class Namespace', () => {

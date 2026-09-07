@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash';
+
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
@@ -163,9 +165,6 @@ export const MENU_MAX_CLUSTERS = 10;
 export const SWITCHER_PAGE_SIZE = 20;
 // Maximum number of recently-visited clusters kept / shown in the app-bar shelf
 export const MENU_MAX_RECENT_CLUSTERS = 10;
-// Max chars of the echoed search term in the "no clusters match …" message; shared by the
-// expanded nav and the flyout so the two surfaces cannot drift.
-export const SEARCH_ECHO_MAX = 30;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
 
@@ -412,18 +411,34 @@ export const actions = {
 
   // Phase 1 — optimistic. SYNC (no awaits) so the commits land in the same tick; returns the committed
   // values so reconcilePrefs can detect server drift without re-deriving the wrong base.
+  //
+  // NOTE: like `set` and `reconcilePrefs`, this REPORTS failure by returning `{ type, status }` rather
+  // than throwing, so a caller needs one check across both phases of a merge write.
   applyPrefsOptimistic(
     { commit, rootGetters, state }: PrefsActionContext,
-    mutations: Array<{ key: string, apply: (value: any) => any }>
-  ): Record<string, any> {
-    const list = Array.isArray(mutations) ? mutations.filter((m) => m && m.key && typeof m.apply === 'function') : [];
+    writes: Array<{ key: string, apply: (value: any) => any }>
+  ): Record<string, any> | PrefError {
+    const list = Array.isArray(writes) ? writes.filter((m) => m && m.key && typeof m.apply === 'function') : [];
     const optimistic: Record<string, any> = {};
 
     const currentValue = (key: string) => {
       const v = state.data[key];
 
-      return v === undefined ? state.definitions[key]?.def : v;
+      // Clone, as the `get` getter does: `apply` is documented as pure, but handing out the live state
+      // (or the shared default object) makes a mutating transform corrupt the store rather than fail.
+      return clone(v === undefined ? state.definitions[key]?.def : v);
     };
+
+    // A merge-write persists to the server only — it doesn't maintain the cookie mirror that `set` does,
+    // so a cookie-backed pref would leave the cookie holding the old value. Reject the whole batch before
+    // committing anything, rather than half-applying it.
+    const cookieBacked = list.find(({ key }) => state.definitions[key]?.asCookie);
+
+    if (cookieBacked) {
+      console.error(`Preference "${ cookieBacked.key }" is cookie-backed and cannot be merge-written`); // eslint-disable-line no-console
+
+      return { type: 'error', status: 400 };
+    }
 
     list.forEach(({ key, apply }) => {
       const next = apply(currentValue(key));
@@ -447,13 +462,16 @@ export const actions = {
   // Phase 2 — reconcile + persist. Re-runs the transforms against the server's live value and adopts that
   // result if it drifted from what we optimistically committed, so an external change (another tab / manual
   // edit) is merged, not clobbered. Persists only the keys a transform actually changed.
+  //
+  // NOTE: like `set`, this RESOLVES with `{ type, status }` on failure rather than rejecting — callers
+  // have to inspect the resolved value, not just attach a `.catch`.
   async reconcilePrefs(
     {
       dispatch, commit, rootGetters, state
     }: PrefsActionContext,
-    { mutations, optimistic }: { mutations: Array<{ key: string, apply: (value: any) => any }>, optimistic?: Record<string, any> }
+    { mutations: writes, optimistic }: { mutations: Array<{ key: string, apply: (value: any) => any }>, optimistic?: Record<string, any> }
   ): Promise<PrefError | undefined> {
-    const list = Array.isArray(mutations) ? mutations.filter((m) => m && m.key && typeof m.apply === 'function') : [];
+    const list = Array.isArray(writes) ? writes.filter((m) => m && m.key && typeof m.apply === 'function') : [];
     const serverEntries = list.filter(({ key }) => state.definitions[key]?.asUserPreference);
 
     if (!serverEntries.length || !rootGetters['auth/loggedIn']) {
@@ -465,8 +483,10 @@ export const actions = {
     try {
       const server = await dispatch('loadServer', keys);
 
+      // `loadServer` swallows its own error and resolves undefined, so this is "could not read the
+      // preference", not "nothing to do". Report it, or the caller counts the write as persisted.
       if ( !server?.data ) {
-        return;
+        return { type: 'error', status: 500 };
       }
 
       let dirty = false;
@@ -475,13 +495,15 @@ export const actions = {
         const definition = state.definitions[key];
         let base = server.data[key];
 
+        // Same reason as `currentValue` above — the server value is ours to hand out, but the shared
+        // default object is not.
         if (base === undefined) {
-          base = definition.def;
+          base = clone(definition.def);
         } else if (definition.parseJSON) {
           try {
             base = JSON.parse(base);
           } catch {
-            base = definition.def;
+            base = clone(definition.def);
           }
         }
         if (definition.mangleRead) {
@@ -491,12 +513,15 @@ export const actions = {
         const reconciled = apply(base);
 
         // Server drifted from what we optimistically committed → adopt the server-based result.
-        if (JSON.stringify(reconciled) !== JSON.stringify(optimistic?.[key])) {
+        // Structural compare: `JSON.stringify` is key-order sensitive, and the merge-write API is generic,
+        // so an object-valued pref (NAMESPACE_FILTERS, HIDE_HOME_PAGE_CARDS) would read as drift purely
+        // from re-serialisation.
+        if (!isEqual(reconciled, optimistic?.[key])) {
           commit('load', { key, value: reconciled });
         }
 
         // Skip the write for a key the action left unchanged (e.g. a duplicate visit / already-pinned).
-        if (JSON.stringify(reconciled) !== JSON.stringify(base)) {
+        if (!isEqual(reconciled, base)) {
           const toWrite = definition.mangleWrite ? definition.mangleWrite(reconciled) : reconciled;
 
           server.data[key] = definition.parseJSON ? JSON.stringify(toWrite) : toWrite;
@@ -508,10 +533,15 @@ export const actions = {
         await server.save({ redirectUnauthorized: false });
       }
     } catch (e) {
-      // Well it failed, but not much to do about it — return the error (mirrors `set`).
+      // Every caller is fire-and-forget, so an unlogged failure here is invisible: the optimistic
+      // commit stays in the client and the server never got it.
+      console.error('Error reconciling preferences', keys, e); // eslint-disable-line no-console
+
       const error = e as PrefError;
 
-      return { type: error.type, status: error.status };
+      // Anything that isn't a Steve error has no `status`, and callers treat a falsy `status` as success
+      // — fall back to 500 so an unexpected throw is never reported as a persisted write.
+      return { type: error.type || 'error', status: error.status || 500 };
     }
   },
 
@@ -603,7 +633,7 @@ export const actions = {
   }: PrefsActionContext, ignoreKey?: string | string[]) {
     // `ignoreKey` may be a single key or an array of keys (a batched merge write ignores all its keys,
     // so the get-before-set doesn't re-commit — and thus revert — a sibling that was just set locally).
-    const ignoreKeys = Array.isArray(ignoreKey) ? ignoreKey : [ignoreKey];
+    const ignoreKeys = Array.isArray(ignoreKey) ? ignoreKey : [ignoreKey].filter((k) => k !== undefined);
     let server: any = { data: {} };
 
     try {

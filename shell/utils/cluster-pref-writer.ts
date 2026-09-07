@@ -1,4 +1,5 @@
-import { CLUSTER, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { LOCAL_CLUSTER } from '@shell/config/types';
+import { CLUSTER, MENU_MAX_RECENT_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 /**
@@ -18,20 +19,55 @@ type Mutation = { key: string, apply: (value: PrefValue) => PrefValue };
 
 /** A real, recordable cluster: `local` and `_` (BLANK_CLUSTER) are the current cluster but never listed under RECENT. */
 export function isRecordableCluster(id: string): boolean {
-  return !!id && id !== 'local' && id !== BLANK_CLUSTER;
+  return !!id && id !== LOCAL_CLUSTER && id !== BLANK_CLUSTER;
 }
 
-// RECENT mutation shared by a visit and an unpin: prepend `id` most-recent-first (de-duped), then strip
-// empty / non-cluster placeholders (`local`, `_`) an older build may have persisted. The stored log is
-// UNCAPPED — a plain visit-order list; only DISPLAY is capped, elsewhere (`visibleRecentClusters`).
+// Store more than the display cap: pinned clusters are excluded from RECENT at render time, so a log
+// stored at exactly the cap could render short. Ids only, so the extra rows are nearly free.
+const RECENT_STORE_MULTIPLIER = 3;
+
+// RECENT mutation for a visit: prepend `id` most-recent-first (de-duped), then strip empty / non-cluster
+// placeholders (`local`, `_`) an older build may have persisted.
 export const prependRecent = (id: string): Mutation => ({
   key:   RECENT_CLUSTERS,
   apply: (recents) => {
     const current = Array.isArray(recents) ? recents : [];
 
-    return [id, ...current.filter((r) => r !== id)].filter((c) => c && c !== 'local' && c !== BLANK_CLUSTER);
+    return [id, ...current.filter((r) => r !== id)]
+      .filter((c) => isRecordableCluster(c))
+      .slice(0, MENU_MAX_RECENT_CLUSTERS * RECENT_STORE_MULTIPLIER);
   },
 });
+
+// The i18n `t` of whichever surface is reporting; only the pin-error key is looked up here. Declared
+// locally (like `Dispatch`) so this writer stays free of component/composable imports.
+type Translate = (key: string, args?: unknown, raw?: boolean) => string;
+// Just the slice of the Vuex store this needs. Taken as the store rather than a bare `dispatch` so the
+// lookup stays INSIDE the failure branch: the callers mount without a store in their unit tests, where
+// dereferencing `useStore()` up front would throw on every toggle.
+type Growler = { dispatch: Dispatch };
+
+/**
+ * Report a failed pin/unpin write. The write REPORTS failure by RESOLVING with `{ type, status }` — and by
+ * then the optimistic commit has already put the new state on screen, where it would sit wrong until a
+ * reload silently reverted it. Lives here, beside the contract it reads, so the nav shelf and the switcher
+ * flyout can never drift apart on how a failed pin is surfaced.
+ */
+export function reportPinWriteFailure(store: Growler, t: Translate, write: Promise<any> | any): Promise<void> {
+  return Promise.resolve(write)
+    .then((result: any) => {
+      if (result?.status) {
+        // The writer reports failure with a bare `{ type, status }`, which `stringify` would dump as raw
+        // JSON into the growl body — give it a message to show instead.
+        store.dispatch('growl/fromError', {
+          title: t('nav.pinClusterError'),
+          err:   { ...result, message: t('nav.pinClusterError') },
+        });
+      }
+    })
+    // Nothing in the write rejects by contract; this is only so an unexpected throw isn't swallowed.
+    .catch((e) => console.warn('Unable to toggle the cluster pin', e)); // eslint-disable-line no-console
+}
 
 let chain: Promise<any> = Promise.resolve();
 
@@ -51,9 +87,14 @@ function enqueue(task: () => Promise<any>): Promise<any> {
  * never waits behind it.
  */
 export function commitAndReconcile(dispatch: Dispatch, mutations: Mutation[]): Promise<any> {
+  // `applyPrefsOptimistic` is a SYNC Vuex action, so the client commit lands in this tick; both phases
+  // REPORT failure the same way (resolving with `{ type, status }`), so one resolved-value check covers
+  // the whole write. A failed optimistic phase committed nothing, so there is nothing to reconcile.
   const optimistic = dispatch('prefs/applyPrefsOptimistic', mutations);
 
-  return enqueue(() => optimistic.then((o: any) => dispatch('prefs/reconcilePrefs', { mutations, optimistic: o })));
+  return enqueue(() => optimistic.then((o: any) => (
+    o?.status ? o : dispatch('prefs/reconcilePrefs', { mutations, optimistic: o })
+  )));
 }
 
 /**

@@ -1,4 +1,4 @@
-import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
+import { CAPI, LOCAL_CLUSTER, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import { MENU_MAX_RECENT_CLUSTERS, PINNED_CLUSTERS, RECENT_CLUSTERS, SWITCHER_PAGE_SIZE } from '@shell/store/prefs';
 import { STORE } from '@shell/store/store-types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
@@ -39,8 +39,10 @@ export interface TopLevelMenuCluster {
   // Meta shown on a cluster-switcher row: distro/provider (e.g. "RKE2", "EKS") and k8s version.
   providerDisplay: string,
   kubernetesVersion: string,
-  pin: () => void,
-  unpin: () => void,
+  // The model routes these through the serialized pref writer, so they resolve with the write's outcome
+  // (`{ type, status }` on failure) — callers must not drop the promise.
+  pin: () => Promise<unknown>,
+  unpin: () => Promise<unknown>,
   clusterRoute: LocationAsRelativeRaw,
 }
 
@@ -48,7 +50,6 @@ interface UpdateArgs {
   searchTerm: string,
   pinnedIds: string[],
   recentIds?: string[],
-  unPinnedMax?: number,
   forceWatch?: boolean,
   mgmtClusterRevision?: string,
   provClusterRevision?: string,
@@ -80,9 +81,10 @@ type MgmtCluster = {
   description: string,
   machineProviderDisplay?: string,
   provider?: string,
-  kubernetesVersion?: string,
-  pin: () => void
-  unpin: () => void
+  kubernetesVersionRaw?: string,
+  // Routed through the serialized pref writer, so they resolve with the write's outcome.
+  pin: () => Promise<unknown>
+  unpin: () => Promise<unknown>
 }
 
 type ProvCluster = {
@@ -135,8 +137,9 @@ export interface TopLevelMenuHelper {
    *    b) if no search term, the whole estate (no pinned-exclusion, no cap)
    *
    * Sort By
-   * 1. ready
-   * 2. name
+   * 1. SSP: the server's DEFAULT_SORT (internal, then connected, then display name) — preserved as
+   *    returned, so "active first" holds across pages rather than only within the loaded window
+   * 2. legacy (in-memory): ready, then name
    */
   clustersOthers: Array<TopLevelMenuCluster>;
 
@@ -156,11 +159,9 @@ export interface TopLevelMenuHelper {
   update: (args: UpdateArgs) => Promise<void>;
 
   /** Fetch page 1 of the ALL list, replacing what's loaded (open / search / chevron triggers). */
-  resetOthers: () => Promise<void>;
+  resetOthers: (args?: UpdateArgs) => Promise<void>;
   /** Append the next page of the ALL list (infinite scroll). */
   loadMoreOthers: () => Promise<void>;
-  /** Whether more ALL-list pages remain. */
-  hasMoreOthers: () => boolean;
 
   /** Cleanup on destroy of TopLevelMenu. */
   destroy: () => Promise<void>;
@@ -191,7 +192,7 @@ export abstract class BaseTopLevelMenuHelper {
 
   // PINNED = the pinned pref (membership + order), matched to cached data. Uncapped.
   public get clustersPinned(): Array<TopLevelMenuCluster> {
-    return orderByIdsAndCap(this.cachedNonLocal, this.pinnedPref, this.pinnedPref.length);
+    return orderByIdsAndCap(this.cachedNonLocal, this.pinnedPref, Infinity);
   }
 
   public clustersOthers: Array<TopLevelMenuCluster> = reactive([]);
@@ -205,7 +206,7 @@ export abstract class BaseTopLevelMenuHelper {
 
   // LOCAL = the `local` cluster from the cache (rendered as the fixed top tile).
   public get clustersLocal(): Array<TopLevelMenuCluster> {
-    const c = this.clusterCache['local'];
+    const c = this.clusterCache[LOCAL_CLUSTER];
 
     return c ? [c] : [];
   }
@@ -246,7 +247,9 @@ export abstract class BaseTopLevelMenuHelper {
       pinned:            this.pinnedPref.includes(mgmtCluster.id),
       description:       provCluster?.description || mgmtCluster.description,
       providerDisplay:   provCluster?.provisionerDisplay || mgmtCluster.machineProviderDisplay || mgmtCluster.provider || '',
-      kubernetesVersion: mgmtCluster.kubernetesVersion || '',
+      // `kubernetesVersion` falls back to `generic.provisioning` ('—'), so it is never falsy and the meta
+      // line would read "Imported · —". Read the raw getter so it collapses to just the provider instead.
+      kubernetesVersion: mgmtCluster.kubernetesVersionRaw || '',
       pin:               () => mgmtCluster.pin(),
       unpin:             () => mgmtCluster.unpin(),
       clusterRoute:      { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } },
@@ -280,6 +283,16 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   private clustersOthersWrapper: PaginationWrapper<any>;
   private othersPage = 1;
   private othersPages = 0;
+  // How many page-1 resets are in flight. `loadMoreOthers` stands down while any is: taking the sequence
+  // token below would make that reset's own response stale, so its page 1 would be discarded and the
+  // load-more's page appended to the very list the reset was meant to replace. A COUNT, not a flag —
+  // successive searches overlap, and a boolean would let the first reset to settle unlock the load-more
+  // while a newer one is still open.
+  private othersResetting = 0;
+
+  // Monotonic token for the ALL list: a search `resetOthers` and a scroll `loadMoreOthers` can be in
+  // flight together, and only the newest response may touch `clustersOthers`.
+  private othersSeq = 0;
 
   private clusterCount = 0;
 
@@ -337,14 +350,14 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     const pinnedIds = args.pinnedIds || [];
     const recentIds = visibleRecentClusters(args.recentIds, pinnedIds, MENU_MAX_RECENT_CLUSTERS);
     // Union of the ids we care about (deduped); `local` is always present.
-    const contextIds = Array.from(new Set(['local', ...pinnedIds, ...recentIds]));
+    const contextIds = Array.from(new Set([LOCAL_CLUSTER, ...pinnedIds, ...recentIds]));
 
     const r = await this.clustersContextWrapper.request({
       forceWatch: args.forceWatch,
       pagination: {
         filters: this.constructParams({
-          pinnedIds:     contextIds,
-          includePinned: true, // id IN (contextIds) — includes `local`
+          ids:        contextIds,
+          includeIds: true,
         }),
         page:                 1,
         sort:                 DEFAULT_SORT,
@@ -377,7 +390,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   async update(args: UpdateArgs) {
     this.args = args;
 
-    await this.updateContext(args).catch(() => {});
+    await this.updateContext(args).catch((e) => {
+      console.warn('Unable to update the side nav cluster context (local/pinned/recent)', e); // eslint-disable-line no-console
+    });
   }
 
   async destroy() {
@@ -389,41 +404,28 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
    * Construct SSP filter params.
    */
   private constructParams({
-    pinnedIds,
+    ids,
     searchTerm,
-    includeLocal,
     excludeLocal,
     includeSearchTerm,
-    includePinned,
-    excludePinned,
+    includeIds,
   }: {
-    pinnedIds?: string[],
+    ids?: string[],
     searchTerm?: string,
-    includeLocal?: boolean,
     excludeLocal?: boolean,
     includeSearchTerm?: boolean,
-    includePinned?: boolean,
-    excludePinned?: boolean,
+    includeIds?: boolean,
   }): PaginationParam[] {
     const commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
     const filters: PaginationParam[] = [...commonClusterFilters];
 
-    if (pinnedIds) {
-      if (includePinned) {
-        // cluster id is 1 OR 2 OR 3 OR 4...
-        filters.push(PaginationParamFilter.createMultipleFields(
-          pinnedIds.map((id) => ({
-            field: 'id', value: id, equals: true, exact: true
-          }))
-        ));
-      }
-
-      if (excludePinned) {
-        // cluster id is NOT 1 AND NOT 2 AND NOT 3 AND NOT 4...
-        filters.push(...pinnedIds.map((id) => PaginationParamFilter.createSingleField({
-          field: 'id', equals: false, value: id
-        })));
-      }
+    if (ids && includeIds) {
+      // cluster id is 1 OR 2 OR 3 OR 4...
+      filters.push(PaginationParamFilter.createMultipleFields(
+        ids.map((id) => ({
+          field: 'id', value: id, equals: true, exact: true
+        }))
+      ));
     }
 
     if (searchTerm && includeSearchTerm) {
@@ -432,14 +434,10 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       }));
     }
 
-    if (includeLocal) {
-      filters.push(PaginationParamFilter.createSingleField({ field: 'id', value: 'local' }));
-    }
-
     if (excludeLocal) {
       // `local` has its own request and fixed top tile, so keep it out of every other slice's results.
       filters.push(PaginationParamFilter.createSingleField({
-        field: 'id', equals: false, value: 'local'
+        field: 'id', equals: false, value: LOCAL_CLUSTER
       }));
     }
 
@@ -457,6 +455,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       return;
     }
 
+    const previousPage = this.othersPage;
+
     if (reset) {
       this.othersPage = 1;
     } else if (this.othersPage >= this.othersPages) {
@@ -465,19 +465,44 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       this.othersPage += 1;
     }
 
-    const r = await this.clustersOthersWrapper.request({
-      pagination: {
-        filters: this.constructParams({
-          searchTerm:        args.searchTerm,
-          includeSearchTerm: !!args.searchTerm,
-          excludeLocal:      true,
-        }),
-        page:                 this.othersPage,
-        pageSize:             SWITCHER_PAGE_SIZE,
-        sort:                 DEFAULT_SORT,
-        projectsOrNamespaces: []
+    // Take the token only once a request is definitely going out — a call that returns above must not
+    // invalidate an in-flight response it never replaced.
+    const seq = ++this.othersSeq;
+
+    let r;
+
+    try {
+      r = await this.clustersOthersWrapper.request({
+        pagination: {
+          filters: this.constructParams({
+            searchTerm:        args.searchTerm,
+            includeSearchTerm: !!args.searchTerm,
+            excludeLocal:      true,
+          }),
+          page:                 this.othersPage,
+          pageSize:             SWITCHER_PAGE_SIZE,
+          sort:                 DEFAULT_SORT,
+          projectsOrNamespaces: []
+        }
+      });
+    } catch (e) {
+      // The counter moved BEFORE the request; leaving it moved would make the next scroll ask for page
+      // N+1 and skip page N for the lifetime of the flyout — a whole page of clusters silently missing
+      // from ALL CLUSTERS. Put it back so the retry re-requests the page that failed — but only if no
+      // newer fetch has since claimed the counter, or this failure would rewind ITS page.
+      if (seq === this.othersSeq) {
+        this.othersPage = previousPage;
       }
-    });
+
+      throw e;
+    }
+
+    // A newer fetch started while this one was in flight — e.g. a search reset landing on top of an
+    // in-flight load-more. Drop this response rather than append a stale page (and a stale total) to
+    // the list that has already replaced it.
+    if (seq !== this.othersSeq) {
+      return;
+    }
 
     // Server-side totals live under pagination.result (r.count doesn't exist on the wrapper Result).
     this.counts.others = r.pagination?.result?.count ?? r.data.length;
@@ -497,17 +522,25 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       this.args = args;
     }
 
-    return this.fetchOthers(true);
+    this.othersResetting += 1;
+
+    return this.fetchOthers(true).finally(() => {
+      this.othersResetting -= 1;
+    });
   }
 
-  /** Append the next page of the ALL list (infinite scroll). */
+  /**
+   * Append the next page of the ALL list (infinite scroll). Skipped while a page-1 reset is in flight —
+   * a reset replaces the whole list, so an older-intent load-more must not outrank it. `ClusterSwitcher`'s
+   * `fillViewport` makes the overlap reachable: it emits `load-more` as soon as the loaded rows don't fill
+   * the scroller, which is exactly the state right after `onFlyoutOpen` calls `resetOthersList`.
+   */
   public loadMoreOthers(): Promise<void> {
-    return this.fetchOthers(false);
-  }
+    if (this.othersResetting > 0) {
+      return Promise.resolve();
+    }
 
-  /** More ALL-list pages remain to load. */
-  public hasMoreOthers(): boolean {
-    return this.othersPage < this.othersPages;
+    return this.fetchOthers(false);
   }
 
   /** Update the saved cluster count used by the home page + resource menu. */
@@ -574,11 +607,15 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     const nonLocal = clusters.filter((c) => !c.isLocal);
 
     // Prune deleted clusters: legacy holds the full live estate in memory, so any cached row no longer
-    // present was removed — drop it so it leaves the derived pinned/recent shelf. `local` is preserved.
+    // present was removed — drop it so it leaves the derived pinned/recent shelf. `local` is exempt only
+    // until the estate has actually loaded (an empty list is "not fetched yet", not "local is gone"); once
+    // it has, `local` goes the same way as any other missing id — matching the pagination helper, whose
+    // `updateContext` prunes it when `hide-local-cluster` filters it out. Consumers read
+    // `clustersLocal` as the source of truth for local access, so the two must not diverge.
     const liveIds = new Set(clusters.map((c) => c.id));
 
     Object.keys(this.clusterCache).forEach((id) => {
-      if (id !== 'local' && !liveIds.has(id)) {
+      if (!liveIds.has(id) && (id !== LOCAL_CLUSTER || clusters.length)) {
         delete this.clusterCache[id];
       }
     });
@@ -599,8 +636,16 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     this.clustersOthers.push(...this.othersFull.slice(0, this.othersLimit));
   }
 
-  public resetOthers(): Promise<void> {
+  public resetOthers(args?: UpdateArgs): Promise<void> {
     this.othersLimit = SWITCHER_PAGE_SIZE;
+
+    // Rebuild from the caller's args rather than whatever the last `update()` left behind, so the search
+    // term applied here can't lag a tick behind the one the user typed.
+    if (args) {
+      this.othersFull = this.clustersFiltered(this.updateClusters().filter((c) => !c.isLocal), args);
+      this.counts.others = this.othersFull.length;
+    }
+
     this.applyOthers();
 
     return Promise.resolve();
@@ -611,10 +656,6 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     this.applyOthers();
 
     return Promise.resolve();
-  }
-
-  public hasMoreOthers(): boolean {
-    return this.clustersOthers.length < this.othersFull.length;
   }
 
   /** Filter mgmt clusters (Harvester filters + a matching prov cluster) and convert the remainder to rows. */
@@ -661,8 +702,8 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     return sortBy(filtered, ['ready:desc', 'label']);
   }
 
-
-  public async updateCount(count: number) {}
+  /** No-op: the legacy helper holds the whole estate in memory, so there is no saved count to maintain. */
+  public async updateCount() {}
 }
 
 /**

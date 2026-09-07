@@ -306,8 +306,8 @@ export default class Namespace extends SteveModel {
     const productId = this.$rootGetters['productId'];
 
     if (productId === MANAGER) {
-      // `local` lives in its own fixed `clustersLocal` slice (SURE-8192) — excluded from the
-      // pinned/recent/others groups — so that slice is the single source of truth for local access.
+      // `local` lives in its own fixed `clustersLocal` slice — excluded from the pinned/recent/others
+      // groups — so that slice is the single source of truth for local access.
       const hasLocalCluster = sideNavService.helper.clustersLocal.some((c) => c.id === LOCAL_CLUSTER);
       const typeIndex = glance.findIndex((item) => item.name === 'type');
 

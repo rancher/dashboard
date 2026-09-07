@@ -932,6 +932,31 @@ describe('prefs store', () => {
         };
       };
 
+      // Both phases (and `set`) REPORT failure the same way — resolving with `{ type, status }` — so a
+      // caller needs one check, not a `.catch` for one phase and a resolved-value check for the other.
+      it('phase 1: reports a cookie-backed key the same way the other write actions do, committing nothing', () => {
+        create('cookie-pref', 'x', { asCookie: true });
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+        const s: any = state();
+        const commit = jest.fn();
+        const ctx = {
+          dispatch: jest.fn(), commit, rootGetters: loggedIn, state: s
+        } as any;
+
+        const result: any = actions.applyPrefsOptimistic(ctx, [
+          { key: 'cookie-pref', apply: () => 'y' },
+          { key: RECENT_CLUSTERS, apply: prepend('a') },
+        ]);
+
+        expect(result).toStrictEqual({ type: 'error', status: 400 });
+        // The whole batch is rejected before anything is committed — never half-applied.
+        expect(commit).not.toHaveBeenCalled();
+        expect(consoleError).toHaveBeenCalledWith('Preference "cookie-pref" is cookie-backed and cannot be merge-written');
+
+        consoleError.mockRestore();
+      });
+
       it('phase 1: commits the client-based result immediately, then does one GET', async() => {
         const { commit, dispatch } = await run(['b'], ['b'], prepend('a'));
 
@@ -982,6 +1007,51 @@ describe('prefs store', () => {
 
         expect(commit).toHaveBeenCalledWith('load', { key: PINNED_CLUSTERS, value: ['a'] });
         expect(dispatch).not.toHaveBeenCalled();
+      });
+
+      it('phase 2: reports a failed preference read rather than passing it off as a clean write', async() => {
+        const s: any = state();
+
+        s.data[PINNED_CLUSTERS] = [];
+        // `loadServer` swallows its own failure and resolves undefined — the optimistic value is committed
+        // but never persisted, so the caller has to hear about it or the pin silently reverts on reload.
+        const dispatch = jest.fn().mockResolvedValue(undefined);
+        const ctx = {
+          dispatch, commit: jest.fn(), rootGetters: loggedIn, state: s
+        } as any;
+        const mutations = [{ key: PINNED_CLUSTERS, apply: prepend('a') }];
+
+        const optimistic = actions.applyPrefsOptimistic(ctx, mutations);
+        const result = await actions.reconcilePrefs(ctx, { mutations, optimistic });
+
+        expect(result).toStrictEqual({ type: 'error', status: 500 });
+      });
+
+      it('phase 2: reports an unexpected throw rather than passing it off as a clean write', async() => {
+        const s: any = state();
+
+        s.data[PINNED_CLUSTERS] = [];
+        const server = {
+          data: { [PINNED_CLUSTERS]: JSON.stringify([]) },
+          save: jest.fn().mockResolvedValue(undefined),
+        };
+        const dispatch = jest.fn().mockResolvedValue(server);
+        const ctx = {
+          dispatch, commit: jest.fn(), rootGetters: loggedIn, state: s
+        } as any;
+        // Not a Steve error, so it carries no `type`/`status` — and every caller reads a falsy `status` as
+        // success, which would leave the optimistic value on screen as if it had persisted.
+        const mutations = [{
+          key:   PINNED_CLUSTERS,
+          apply: () => {
+            throw new TypeError('boom');
+          }
+        }];
+
+        const result = await actions.reconcilePrefs(ctx, { mutations, optimistic: {} });
+
+        expect(result).toStrictEqual({ type: 'error', status: 500 });
+        expect(server.save).not.toHaveBeenCalled();
       });
     });
 

@@ -4,7 +4,7 @@ import {
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { addObject, insertAt, removeObject, uniq } from '@shell/utils/array';
+import { insertAt, addObject, removeObject, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -811,7 +811,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   // A dispatch bound to the root store, as the cluster-pref writer expects.
-  get _clusterPrefDispatch() {
+  get clusterPrefDispatch() {
     return (action, payload) => this.$dispatch(action, payload, { root: true });
   }
 
@@ -821,7 +821,7 @@ export default class MgmtCluster extends SteveModel {
    * so this write can't race the store's cluster-navigation write and 409.
    */
   pin() {
-    return commitAndReconcile(this._clusterPrefDispatch, [{
+    return commitAndReconcile(this.clusterPrefDispatch, [{
       key:   PINNED_CLUSTERS,
       apply: (pinned) => {
         const next = [...(Array.isArray(pinned) ? pinned : [])];
@@ -834,9 +834,13 @@ export default class MgmtCluster extends SteveModel {
   }
 
   /**
-   * Unpin the cluster: remove it from PINNED_CLUSTERS and move it to the top of
-   * RECENT so it stays visible. Routed through the shared serialized writer so
-   * this write can't race the store's cluster-navigation write and 409.
+   * Unpin the cluster: drop it from PINNED_CLUSTERS and move it to the HEAD of RECENT, so an
+   * unpinned cluster lands at the top of the shelf's RECENT group rather than vanishing from
+   * the shelf (never visited) or reappearing buried among older visits (visited long ago).
+   * `prependRecent` de-dupes, so it MOVES an id already in the log instead of duplicating it.
+   * Both prefs go in ONE write: two writes would race two read-modify-writes on the shared
+   * Preference. Routed through the shared serialized writer so this write can't race the
+   * store's cluster-navigation write and 409.
    */
   unpin() {
     const mutations = [{
@@ -850,12 +854,12 @@ export default class MgmtCluster extends SteveModel {
       },
     }];
 
-    // Surface it at the front of RECENT too, unless it's the non-recordable local/blank placeholder.
+    // `local` and `_` are the current cluster but are never listed under RECENT.
     if (isRecordableCluster(this.id)) {
       mutations.push(prependRecent(this.id));
     }
 
-    return commitAndReconcile(this._clusterPrefDispatch, mutations);
+    return commitAndReconcile(this.clusterPrefDispatch, mutations);
   }
 
   get canExplore() {

@@ -60,7 +60,7 @@ const generateStore = (clusters: any[], settings = [{}]) => {
   };
 };
 
-// v3 (SURE-8192): the nav shelf shows ONLY local + PINNED + RECENT — the estate and the one search box
+// The nav shelf shows ONLY local + PINNED + RECENT — the estate and the one search box
 // moved into the switcher flyout, which is teleported and rendered on demand. So the nav's half of that
 // contract is what it hands the `ClusterSwitcher`: assert on those props rather than on rows the nav no
 // longer renders.
@@ -153,7 +153,7 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    // v2 (SURE-8192): `local` is no longer forced to the top of the combined cluster list — it has its
+    // `local` is no longer forced to the top of the combined cluster list — it has its
     // own fixed tile (`menu-cluster-local`) above the groups. The rest of the estate goes to the flyout's
     // ALL CLUSTERS directory, alphabetically.
     expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
@@ -205,7 +205,7 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    // v2 (SURE-8192): `local` sits in its own fixed tile above the groups. The ALL CLUSTERS directory is
+    // `local` sits in its own fixed tile above the groups. The ALL CLUSTERS directory is
     // sorted active (ready) first, then alphabetical — so the unready `a-cluster` sorts below the ready
     // `b-cluster` / `c-cluster` (matching legacy behavior).
     expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
@@ -330,7 +330,7 @@ describe('topLevelMenu', () => {
     expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
   });
 
-  // v4 (SURE-8192): the cluster META — `providerDisplay · kubernetesVersion` — is a flyout-row detail now
+  // The cluster META — `providerDisplay · kubernetesVersion` — is a flyout-row detail now
   // (the nav shelf is a bare cluster name), so the coverage moves to the fields the nav resolves and hands
   // the flyout. providerDisplay resolves from the prov cluster's provisionerDisplay here; the four row
   // types (pinned/unpinned × ready/not-ready) are all still represented.
@@ -343,43 +343,43 @@ describe('topLevelMenu', () => {
             ...generateStore([
               // pinned ready cluster
               {
-                name:               'whatever',
-                id:                 'an-id1',
-                mgmt:               { id: 'an-id1' },
-                provisionerDisplay: 'provider-1',
-                kubernetesVersion:  'v1.31.1',
-                nameDisplay:        'some-label',
-                canExplore:         true,
-                pinned:             true
+                name:                 'whatever',
+                id:                   'an-id1',
+                mgmt:                 { id: 'an-id1' },
+                provisionerDisplay:   'provider-1',
+                kubernetesVersionRaw: 'v1.31.1',
+                nameDisplay:          'some-label',
+                canExplore:           true,
+                pinned:               true
               },
               // pinned NOT ready cluster
               {
-                name:               'whatever',
-                id:                 'an-id2',
-                mgmt:               { id: 'an-id2' },
-                provisionerDisplay: 'provider-2',
-                kubernetesVersion:  'v1.31.2',
-                nameDisplay:        'some-label',
-                pinned:             true
+                name:                 'whatever',
+                id:                   'an-id2',
+                mgmt:                 { id: 'an-id2' },
+                provisionerDisplay:   'provider-2',
+                kubernetesVersionRaw: 'v1.31.2',
+                nameDisplay:          'some-label',
+                pinned:               true
               },
               // unpinned ready cluster
               {
-                name:               'whatever',
-                id:                 'an-id3',
-                mgmt:               { id: 'an-id3' },
-                provisionerDisplay: 'provider-3',
-                kubernetesVersion:  'v1.31.3',
-                nameDisplay:        'some-label',
-                canExplore:         true
+                name:                 'whatever',
+                id:                   'an-id3',
+                mgmt:                 { id: 'an-id3' },
+                provisionerDisplay:   'provider-3',
+                kubernetesVersionRaw: 'v1.31.3',
+                nameDisplay:          'some-label',
+                canExplore:           true
               },
               // unpinned NOT ready cluster
               {
-                name:               'whatever',
-                id:                 'an-id4',
-                mgmt:               { id: 'an-id4' },
-                provisionerDisplay: 'provider-4',
-                kubernetesVersion:  'v1.31.4',
-                nameDisplay:        'some-label'
+                name:                 'whatever',
+                id:                   'an-id4',
+                mgmt:                 { id: 'an-id4' },
+                provisionerDisplay:   'provider-4',
+                kubernetesVersionRaw: 'v1.31.4',
+                nameDisplay:          'some-label'
               },
             ])
           },
@@ -391,7 +391,7 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    // v4 (SURE-8192): the nav rows are a bare cluster name now — the provider · version meta line lives
+    // The nav rows are a bare cluster name now — the provider · version meta line lives
     // only on the flyout rows, so check the fields the nav hands the flyout (ClusterSwitcherRow joins
     // them into that same "provider · version" string).
     expect(wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description').exists()).toBe(false);
@@ -418,43 +418,43 @@ describe('topLevelMenu', () => {
             ...generateStore([
               // pinned ready cluster
               {
-                name:              'whatever',
-                id:                'an-id1',
-                mgmt:              { id: 'an-id1' },
-                provider:          'provider-1',
-                kubernetesVersion: 'v1.31.1',
-                nameDisplay:       'some-label',
-                canExplore:        true,
-                pinned:            true
+                name:                 'whatever',
+                id:                   'an-id1',
+                mgmt:                 { id: 'an-id1' },
+                provider:             'provider-1',
+                kubernetesVersionRaw: 'v1.31.1',
+                nameDisplay:          'some-label',
+                canExplore:           true,
+                pinned:               true
               },
               // pinned NOT ready cluster
               {
-                name:              'whatever',
-                id:                'an-id2',
-                mgmt:              { id: 'an-id2' },
-                provider:          'provider-2',
-                kubernetesVersion: 'v1.31.2',
-                nameDisplay:       'some-label',
-                pinned:            true
+                name:                 'whatever',
+                id:                   'an-id2',
+                mgmt:                 { id: 'an-id2' },
+                provider:             'provider-2',
+                kubernetesVersionRaw: 'v1.31.2',
+                nameDisplay:          'some-label',
+                pinned:               true
               },
               // unpinned ready cluster
               {
-                name:              'whatever',
-                id:                'an-id3',
-                mgmt:              { id: 'an-id3' },
-                provider:          'provider-3',
-                kubernetesVersion: 'v1.31.3',
-                nameDisplay:       'some-label',
-                canExplore:        true
+                name:                 'whatever',
+                id:                   'an-id3',
+                mgmt:                 { id: 'an-id3' },
+                provider:             'provider-3',
+                kubernetesVersionRaw: 'v1.31.3',
+                nameDisplay:          'some-label',
+                canExplore:           true
               },
               // unpinned NOT ready cluster
               {
-                name:              'whatever',
-                id:                'an-id4',
-                mgmt:              { id: 'an-id4' },
-                provider:          'provider-4',
-                kubernetesVersion: 'v1.31.4',
-                nameDisplay:       'some-label'
+                name:                 'whatever',
+                id:                   'an-id4',
+                mgmt:                 { id: 'an-id4' },
+                provider:             'provider-4',
+                kubernetesVersionRaw: 'v1.31.4',
+                nameDisplay:          'some-label'
               },
             ]),
           }
@@ -466,7 +466,7 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    // v4 (SURE-8192): the nav rows are a bare cluster name now — the provider · version meta line lives
+    // The nav rows are a bare cluster name now — the provider · version meta line lives
     // only on the flyout rows, so check the fields the nav hands the flyout (ClusterSwitcherRow joins
     // them into that same "provider · version" string).
     expect(wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description').exists()).toBe(false);
@@ -605,7 +605,7 @@ describe('topLevelMenu', () => {
     });
   });
 
-  // v3 (SURE-8192): the nav's only estate affordance is the switcher trigger — a count chip ("N" over
+  // The nav's only estate affordance is the switcher trigger — a count chip ("N" over
   // the word "clusters") plus the "Cluster Switch" label and a trailing chevron. No search box, no ALL
   // CLUSTERS list and no CLUSTERS title live in the nav any more.
   describe('the cluster-switcher trigger', () => {
@@ -855,7 +855,18 @@ describe('topLevelMenu', () => {
     });
 
     it('leaves keys typed inside the flyout alone (search, ↑↓, Enter, Esc)', () => {
-      const { event } = guard(guardEvent({ target: { closest: (sel: string) => (sel === '.cluster-switcher-flyout' ? {} : null) } }));
+      // A node inside the flyout is inside the popper root too — both selectors match.
+      const inFlyout = { closest: (sel: string) => (sel === '.cluster-switcher-flyout' || sel === '.cluster-switcher-popper' ? {} : null) };
+      const { event } = guard(guardEvent({ target: inFlyout }));
+
+      expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
+    });
+
+    // Clicking the flyout's own chrome parks focus on floating-vue's popper root, which is OUTSIDE the
+    // flyout. Swallowing keys there would take Esc with them and leave the user trapped.
+    it('leaves keys alone when focus sits on the popper root outside the flyout', () => {
+      const onPopperRoot = { closest: (sel: string) => (sel === '.cluster-switcher-popper' ? {} : null) };
+      const { event } = guard(guardEvent({ target: onPopperRoot }));
 
       expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
     });
@@ -913,7 +924,7 @@ describe('topLevelMenu', () => {
         },
       });
 
-      // v2 (SURE-8192): data() seeds the helper with the watched context set — pinned + recent + search
+      // data() seeds the helper with the watched context set — pinned + recent + search
       // term — dropping the legacy `unPinnedMax` (the ALL list is now a separate page-increment slice).
       // `recentIds` reads the RECENT_CLUSTERS pref, which this mock leaves unset (undefined).
       expect(updateSpy).toHaveBeenCalledWith({
@@ -951,7 +962,7 @@ describe('topLevelMenu', () => {
         },
       });
 
-      // v2 (SURE-8192): data() seeds the helper with the watched context set — pinned + recent + search
+      // data() seeds the helper with the watched context set — pinned + recent + search
       // term — dropping the legacy `unPinnedMax` (the ALL list is now a separate page-increment slice).
       // `recentIds` reads the RECENT_CLUSTERS pref, which this mock leaves unset (undefined).
       expect(updateSpy).toHaveBeenCalledWith({
@@ -1129,6 +1140,38 @@ describe('topLevelMenu', () => {
         expect(wrapper.vm.routeComboActive).toBe(false);
       });
 
+      // The jump-target set is DE-DUPED by id: ALL (`railAll`) no longer excludes pinned rows, so a pinned
+      // cluster appears in both `pinFiltered` and `clustersFiltered` and a plain concatenation counts it
+      // twice — lighting the combo arrows up on the only cluster there is, the one you are already on.
+      it('should be false when the one ready cluster is pinned and is the current cluster', async() => {
+        const store = generateStore([
+          {
+            nameDisplay: 'cluster1',
+            id:          'an-id1',
+            mgmt:        { id: 'an-id1' },
+            canExplore:  true,
+            pinned:      true
+          }
+        ]);
+
+        store.getters.clusterId = 'an-id1' as any;
+
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: { name: 'c-cluster-explorer', params: { cluster: 'an-id1', product: 'explorer' } },
+              $store: store
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+        await wrapper.setData({ routeCombo: true });
+
+        expect(wrapper.vm.routeComboActive).toBe(false);
+      });
+
       it('should be true when there is only one ready cluster but it is not the current cluster', async() => {
         const store = generateStore([
           {
@@ -1155,6 +1198,43 @@ describe('topLevelMenu', () => {
         await wrapper.setData({ routeCombo: true });
 
         expect(wrapper.vm.routeComboActive).toBe(true);
+      });
+    });
+
+    // `current` in the switcher has to name the cluster the user is LOOKING at. The route param is the
+    // mgmt cluster id, and it changes before the store's `clusterId` catches up, so the store read this
+    // replaced marked the previous cluster as current for the length of that window.
+    describe('currentClusterId', () => {
+      const mountMenu = (route: any, clusterId: any) => {
+        const store: any = generateStore([]);
+
+        store.getters.clusterId = clusterId;
+
+        return mount(TopLevelMenu, {
+          global: {
+            mocks: { $route: route, $store: store },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        }) as Wrapper<InstanceType<typeof TopLevelMenu>>;
+      };
+
+      it('names the route\'s cluster even while the store still holds the one we came from', async() => {
+        const wrapper = mountMenu(
+          { name: 'c-cluster-explorer', params: { cluster: 'clusterB', product: 'explorer' } },
+          'clusterA'
+        );
+
+        await waitForIt();
+
+        expect(wrapper.vm.currentClusterId).toBe('clusterB');
+      });
+
+      it('is empty off a cluster route, so nothing in the switcher looks selected', async() => {
+        const wrapper = mountMenu({ name: 'home', params: {} }, 'clusterA');
+
+        await waitForIt();
+
+        expect(wrapper.vm.currentClusterId).toBe('');
       });
     });
 

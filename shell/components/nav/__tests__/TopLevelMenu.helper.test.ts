@@ -104,7 +104,7 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersLocal.map((c) => c.id)).toStrictEqual(['local']);
     });
 
-    it('derives recents from the pref (most-recent-first, excluding pinned) and FOLLOWS pref changes (SURE-8192)', async() => {
+    it('derives recents from the pref (most-recent-first, excluding pinned) and FOLLOWS pref changes', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
       const mk = (id: string, pinned = false) => ({
         id, nameDisplay: id, isReady: true, canExplore: true, pinned, pin: jest.fn(), unpin: jest.fn()
@@ -145,7 +145,7 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c3']);
     });
 
-    it('prunes a deleted cluster from the shelf when it leaves the in-memory estate (SURE-8192)', async() => {
+    it('prunes a deleted cluster from the shelf when it leaves the in-memory estate', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
       const mk = (id: string) => ({
         id, nameDisplay: id, canExplore: true, pin: jest.fn(), unpin: jest.fn()
@@ -189,7 +189,7 @@ describe('topLevelMenu.helper', () => {
       expect(PaginationWrapper).toHaveBeenCalledTimes(2);
     });
 
-    it('should fetch the context set (local + pinned + recent) in ONE id-IN query and seed the shelf (SURE-8192)', async() => {
+    it('should fetch the context set (local + pinned + recent) in ONE id-IN query and seed the shelf', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
       // local + pinned + recent are fetched together by the single (watched) context wrapper, then split
       // client-side. `local` is always part of the union.
@@ -251,7 +251,7 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersOthers).toHaveLength(0);
     });
 
-    it('should fetch recents within the single context query and order them by visit order, excluding pinned (SURE-8192)', async() => {
+    it('should fetch recents within the single context query and order them by visit order, excluding pinned', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
       // The context wrapper returns rows in the API's default sort, NOT visit order
       const mgmtContext = [
@@ -294,7 +294,7 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c5', 'c9', 'c2']);
     });
 
-    it('prunes a deleted cluster from the shelf: a requested id the fetch no longer returns is dropped (SURE-8192)', async() => {
+    it('prunes a deleted cluster from the shelf: a requested id the fetch no longer returns is dropped', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
 
       // First fetch returns both recents; second fetch (after c9 is deleted) returns only c5.
@@ -334,7 +334,7 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c5']);
     });
 
-    it('runs the context query on update even while a search term is set (SURE-8192)', async() => {
+    it('runs the context query on update even while a search term is set', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
 
       const mockRequestContext = jest.fn().mockResolvedValue({ data: [] });
@@ -357,7 +357,7 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersRecent).toHaveLength(0);
     });
 
-    it('always runs the ALL-count query excluding local, so the count is hide-local-invariant (SURE-8192 review)', async() => {
+    it('always runs the ALL-count query excluding local, so the count is hide-local-invariant', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
 
       const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
@@ -372,6 +372,37 @@ describe('topLevelMenu.helper', () => {
       expect(findPageCall[1].opt.saveCountAs).toBe('k8sClusters');
       // The query filters `local` out (id !== 'local').
       expect(JSON.stringify(findPageCall[1].opt.pagination.filters)).toContain('local');
+    });
+
+    it('rewinds the ALL-list page counter when a page fetch fails, so the next scroll re-requests it', async() => {
+      mockStore.getters['management/schemaFor'].mockReturnValue(true);
+
+      const page = (ids: string[]) => ({
+        data: ids.map((id) => ({
+          id, nameDisplay: id, isReady: true, canExplore: true, pinned: false, pin: jest.fn(), unpin: jest.fn()
+        })),
+        pagination: { result: { count: 60, pages: 3 } },
+      });
+
+      const mockRequestOthers = jest.fn()
+        .mockResolvedValueOnce(page(['c1'])) // page 1
+        .mockRejectedValueOnce(new Error('offline')) // page 2 — fails
+        .mockResolvedValueOnce(page(['c2'])); // the retry must ask for page 2 again, not skip to 3
+
+      // Construction order: context wrapper first, ALL/others wrapper second.
+      (PaginationWrapper as unknown as jest.Mock)
+        .mockImplementationOnce(() => ({ request: jest.fn().mockResolvedValue({ data: [] }), onDestroy: jest.fn() }))
+        .mockImplementationOnce(() => ({ request: mockRequestOthers, onDestroy: jest.fn() }));
+
+      const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+      await helper.resetOthers({ searchTerm: '', pinnedIds: [] });
+      await expect(helper.loadMoreOthers()).rejects.toThrow('offline');
+      await helper.loadMoreOthers();
+
+      // Without the rewind the third call would ask for page 3 and clusters on page 2 would be
+      // unreachable for the lifetime of the flyout.
+      expect(mockRequestOthers.mock.calls.map((c: any[]) => c[0].pagination.page)).toStrictEqual([1, 2, 2]);
     });
   });
 

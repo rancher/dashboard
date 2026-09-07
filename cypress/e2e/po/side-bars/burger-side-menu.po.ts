@@ -29,18 +29,20 @@ export default class BurgerMenuPo extends ComponentPo {
    *
    * `local` keeps its own fixed slot at the top of the cluster area, so it is always directly
    * clickable. Every other cluster lives in the cluster-switcher flyout (the nav shelf shows only
-   * pinned/recent) — open the flyout and pick the row there. SURE-8192.
+   * pinned/recent) — open the flyout and pick the row there.
    * @returns {Cypress.Chainable}
    */
   static burgerMenuNavToClusterbyLabel(label: string): Cypress.Chainable {
     if (label !== 'local') {
-      new BurgerMenuPo().openClusterSwitcher();
+      const menu = new BurgerMenuPo();
 
-      return new BurgerMenuPo().clusterListRowByLabel(label).click({ force: true });
+      menu.openClusterSwitcher();
+
+      return menu.clusterListRowByLabel(label).click({ force: true });
     }
 
     return this.sideMenu().should('exist').find('.option .cluster-name').contains(label)
-      .click({ force: true });
+      .click();
   }
 
   /**
@@ -161,7 +163,7 @@ export default class BurgerMenuPo extends ComponentPo {
 
   /**
    * Get the local cluster icon in the side menu to use for hover actions. `local` is the always-present
-   * cluster and now sits in its own fixed `.cluster-local` slot (SURE-8192).
+   * cluster and now sits in its own fixed `.cluster-local` slot.
    */
   firstClusterIcon(): Cypress.Chainable {
     return this.self().find('.cluster-local .rancher-provider-icon');
@@ -169,9 +171,13 @@ export default class BurgerMenuPo extends ComponentPo {
 
   /**
    * Open the cluster-switcher flyout — the estate (ALL CLUSTERS + the search box) lives in there, in
-   * both the expanded and the collapsed nav. SURE-8192.
+   * both the expanded and the collapsed nav.
    */
   openClusterSwitcher(): Cypress.Chainable {
+    // Call this only with the flyout closed — the trigger is a toggle. Branching on the DOM to decide
+    // would be Cypress's conditional-testing anti-pattern: the snapshot races the flyout's own show/hide
+    // animation, so a mid-fade-out check skips the click and the assertion below runs against an element
+    // that is on its way out.
     this.self().getId('cluster-switcher-trigger').click();
 
     return BurgerMenuPo.clusterSwitcherFlyout().should('be.visible');
@@ -192,12 +198,19 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * The rows currently matching the flyout's search term.
+   */
+  clusterSearchResults(): Cypress.Chainable {
+    return BurgerMenuPo.clusterSwitcherFlyout().find('.switcher-scroll .cluster-switcher-row');
+  }
+
+  /**
    * A row in the flyout's ALL CLUSTERS directory matched by its visible label. The flyout must be open
    * (see openClusterSwitcher).
    */
   clusterListRowByLabel(label: string): Cypress.Chainable {
     // Exact-match the cluster name (anchored regex) so a label that is a prefix of another
-    // (e.g. "loadtest-1" vs "loadtest-10") cannot select the wrong row. SURE-8192.
+    // (e.g. "loadtest-1" vs "loadtest-10") cannot select the wrong row.
     const exact = new RegExp(`^${ label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }$`);
 
     return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row .row-name').contains(exact)
@@ -205,11 +218,12 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
-   * Pin a cluster from the (open) flyout by hovering its row and clicking the pin.
+   * Pin a cluster from the (open) flyout by clicking its row's pin toggle.
    */
   pinClusterByLabel(label: string): Cypress.Chainable {
-    return this.clusterListRowByLabel(label).first().trigger('mouseover').find('.pin')
-      .invoke('show')
+    // The flyout's pin is hidden with `opacity: 0`, not `display` — Cypress still clicks it, and
+    // neither a synthetic mouseover nor jQuery `show()` would reveal it anyway.
+    return this.clusterListRowByLabel(label).find('.pin')
       .click();
   }
 
@@ -218,31 +232,29 @@ export default class BurgerMenuPo extends ComponentPo {
       BurgerMenuPo.toggle();
     }
 
+    // Only `local` keeps a fixed slot in the nav; every other cluster lives in the switcher flyout
+    // (the shelf shows just pinned/recent), so open the flyout and pick the row there.
+    if (clusterId !== 'local') {
+      this.openClusterSwitcher();
+
+      return this.clusterListRowByLabel(clusterId).click({ force: true });
+    }
+
     this.self().find('.cluster-name').contains(clusterId).should('exist');
 
     return this.self().find('.cluster-name').contains(clusterId).click({ force: true });
   }
 
   /**
-   * Get all the available cluster rows in the (open) switcher flyout
+   * Get all the available cluster rows in the (open) switcher flyout.
    * @returns {Cypress.Chainable}
    */
-  clusterNotPinnedList(): Cypress.Chainable {
+  clusterSwitcherRows(): Cypress.Chainable {
     return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row');
-  }
-
-  pinFirstCluster(): Cypress.Chainable {
-    return this.clusterNotPinnedList().first().trigger('mouseover').find('.pin')
-      .invoke('show')
-      .click();
   }
 
   clusterPinnedList(): Cypress.Chainable {
     return this.self().find('.body .clustersPinned .cluster.selector.option');
-  }
-
-  unpinFirstCluster(): Cypress.Chainable {
-    return this.clusterPinnedList().first().find('.pin').click();
   }
 
   getClusterIcon(clusterName = 'local'): Cypress.Chainable {

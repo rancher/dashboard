@@ -3,13 +3,12 @@
 import { computed, nextTick, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import type { TopLevelMenuCluster } from '@shell/components/nav/TopLevelMenu.helper';
+import { reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
 
-interface PinnableCluster {
-  pinned: boolean;
-  label: string;
-  pin: () => void;
-  unpin: () => void;
-}
+// Derived, not restated: every caller passes a `TopLevelMenuCluster`, so picking the fields keeps this
+// control from silently drifting if one of their types changes in the helper.
+type PinnableCluster = Pick<TopLevelMenuCluster, 'pinned' | 'label' | 'pin' | 'unpin'>;
 
 interface Props {
   cluster: PinnableCluster;
@@ -29,15 +28,15 @@ const pinned = computed(() => props.cluster.pinned);
 const popping = ref(false);
 
 async function toggle() {
+  // `pin`/`unpin` return the serialized pref write; `reportPinWriteFailure` owns its failure contract
+  // and the growl, so this surface and the switcher flyout cannot drift apart on it.
+  const write = pinned.value ? props.cluster.unpin() : props.cluster.pin();
+
+  reportPinWriteFailure(store, t, write);
+
   popping.value = false;
   await nextTick();
   popping.value = true;
-
-  if (pinned.value) {
-    props.cluster.unpin();
-  } else {
-    props.cluster.pin();
-  }
 }
 </script>
 
@@ -45,8 +44,8 @@ async function toggle() {
   <i
     :tabindex="tabOrder"
     :aria-pressed="!!pinned"
-    class="pin icon icon-pin"
-    :class="{ 'is-pinned': pinned, 'pin-pop': popping }"
+    class="pin icon"
+    :class="{ 'icon-pin': pinned, 'icon-pin-outlined': !pinned, 'is-pinned': pinned, 'pin-pop': popping }"
     role="button"
     :aria-label="t('nav.ariaLabel.pinCluster', { cluster: cluster.label })"
     @click.stop.prevent="toggle"

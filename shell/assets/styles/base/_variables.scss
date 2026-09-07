@@ -3,6 +3,9 @@ $body-font: 'Lato', arial, helvetica, sans-serif;
 $mono-font: 'Roboto Mono', monospace;
 
 $app-bar-collapsed-width: 70px;
+// The expanded nav (`.side-menu.menu-open`). The cluster-switcher flyout and its scrim anchor to the nav
+// in EITHER state, so both widths have to live together — split them and the flyout drifts off the nav.
+$app-bar-expanded-width: 300px;
 $max-width: 1440px !default;
 $min-width: 75% !default;
 $input-height: 61px;

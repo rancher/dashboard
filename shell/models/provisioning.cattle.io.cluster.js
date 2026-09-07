@@ -826,8 +826,8 @@ export default class ProvCluster extends SteveModel {
     // currently cached, which on a downstream detail page is just the downstream cluster (so
     // admins would falsely look like they have no local access). The side nav reflects permission,
     // not cache state, so it's accurate for both admins and downstream-only users. `local` lives in
-    // its own fixed `clustersLocal` slice (SURE-8192) — it's excluded from the pinned/recent/others
-    // groups, so that slice is the single source of truth for local access.
+    // its own fixed `clustersLocal` slice — it's excluded from the pinned/recent/others groups, so
+    // that slice is the single source of truth for local access.
     const hasLocalCluster = sideNavService.helper.clustersLocal.some((c) => c.id === LOCAL_CLUSTER);
 
     if (!hasLocalCluster) {

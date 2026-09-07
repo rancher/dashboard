@@ -46,7 +46,9 @@ const { t } = useI18n(store);
 
 const meta = computed(() => {
   if (props.subtitle) {
-    return props.subtitle;
+    // Still mark the current cluster: `local` is the only row with a fixed subtitle, and without this it
+    // is the one row that never reads "· current" while it is the cluster being explored.
+    return props.current ? `${ props.subtitle } · ${ t('nav.switcher.current') }` : props.subtitle;
   }
 
   return [
@@ -56,13 +58,17 @@ const meta = computed(() => {
   ].filter((p) => !!p).join(' · ');
 });
 
-// Single screen-reader label — the badge is decorative and the pin is a separate control, so the
-// option announces just "<name>, <provider · version · current>".
+// Single screen-reader label — the badge is decorative and the pin is `aria-hidden`, so this label is
+// the ONLY thing assistive tech perceives about the option: it has to carry the pinned state too, or
+// Alt+P (the only keyboard route to the pin) is a toggle with no perceivable result.
 const ariaLabel = computed(() => {
   const parts = [props.cluster.label];
 
   if (meta.value) {
     parts.push(meta.value);
+  }
+  if (props.pinnable && props.cluster.pinned) {
+    parts.push(t('nav.switcher.aria.pinned'));
   }
   if (!props.cluster.ready) {
     parts.push(t('nav.switcher.aria.notReady'));
@@ -109,17 +115,26 @@ function select() {
         {{ meta }}
       </div>
     </div>
+    <!-- No `tab-order` on purpose: a focusable control inside `role="option"` is invalid ARIA, so the
+         pin stays out of the tab order and the combobox drives it from the keyboard instead (Alt+P).
+         `aria-hidden` makes that explicit — an option's children are presentational, so the pin's own
+         name/state is unreliable across screen readers and Alt+P is the supported path.
+         `@mousedown.prevent` for the same reason the search's clear-X has it: with no `tabindex` here the
+         browser focuses the nearest focusable ancestor, which is floating-vue's popper ROOT — and the
+         flyout's `keydown` handler sits on a DESCENDANT of that root, so every key would go dead after a
+         pin click. Suppressing the default keeps focus in the search input. -->
     <Pinned
       v-if="pinnable"
       :cluster="cluster"
       class="row-pin"
-      :class="{ 'is-pinned': cluster.pinned }"
+      aria-hidden="true"
+      @mousedown.prevent
     />
   </div>
 </template>
 
 <style lang="scss" scoped>
-// Row action icons (gear + pin): a 22×22 hover square holding an icon that fills with subtle grey on hover.
+// The row's pin toggle: a 22×22 hover square holding an icon that fills with subtle grey on hover.
 @mixin icon-hover-square($icon-size) {
   box-sizing: border-box;
   display: inline-flex;
@@ -152,9 +167,15 @@ function select() {
   border-radius: 0;
   cursor: pointer;
 
+  // Dim only what "not ready" applies to: the row can't be explored, but its pin toggle still works
+  // (mouse and Alt+P both pin a not-ready cluster), so the pin must not read as dead along with it.
   &.disabled {
     cursor: default;
-    opacity: 0.55;
+
+    .row-badge,
+    .row-body {
+      opacity: 0.55;
+    }
   }
 
   // Two separate highlights, deliberately: `:hover` follows the pointer and clears itself the moment it
@@ -175,16 +196,16 @@ function select() {
       background: var(--active-hover, var(--primary-hover-bg));
     }
 
-    // `!important` beats the equal-specificity base `.row-body .row-{name,meta}` rules that follow in
-    // source order; without it the `--on-active` tokens never apply and the name/meta keep base colours.
-    .row-name {
-      color: var(--on-active, var(--primary-hover-text)) !important;
+    // Matching `.row-body` on the base rules' own terms outranks them (0,4,0 vs 0,3,0), so the
+    // `--on-active` tokens apply without depending on source order.
+    .row-body .row-name {
+      color: var(--on-active, var(--primary-hover-text));
     }
-    .row-meta {
-      color: var(--on-active, var(--default)) !important;
+    .row-body .row-meta {
+      color: var(--on-active, var(--default));
     }
     .row-pin {
-      color: color-mix(in srgb, var(--on-active, #fff) 65%, transparent) !important;
+      color: color-mix(in srgb, var(--on-active, var(--primary-hover-text)) 65%, transparent) !important;
 
       &.is-pinned {
         color: var(--on-active, var(--primary-hover-text)) !important;
@@ -228,6 +249,11 @@ function select() {
     flex: 0 0 auto;
     color: var(--muted) !important;
     opacity: 0;
+
+    // No hover on a coarse pointer, and the toggle is out of the tab order — keep it visible there.
+    @media (hover: none) {
+      opacity: 1;
+    }
 
     &.is-pinned {
       opacity: 1;

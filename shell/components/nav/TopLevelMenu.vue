@@ -9,7 +9,7 @@ import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
-import { alternateLabel, isMac, KEY } from '@shell/utils/platform';
+import { isMac, KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
@@ -82,12 +82,11 @@ export default {
 
       canPagination,
       helper,
-      debouncedHelperUpdateSlow:   debounce((...args) => this.helper.update(...args), 1000),
-      debouncedHelperUpdateMedium: debounce((...args) => this.helper.update(...args), 750),
-      debouncedHelperUpdateQuick:  debounce((...args) => this.helper.update(...args), 200),
+      debouncedHelperUpdateSlow:  debounce((...args) => this.helper.update(...args), 1000),
+      debouncedHelperUpdateQuick: debounce((...args) => this.helper.update(...args), 200),
       // The ALL list is unwatched + page-increment: reset to page 1 on the open/search triggers, debounced
       // so search typing doesn't spam requests.
-      debouncedResetOthers:        debounce(() => this.resetOthersList(), 200),
+      debouncedResetOthers:       debounce(() => this.resetOthersList(), 200),
       provClusters,
       mgmtClusters,
     };
@@ -118,19 +117,25 @@ export default {
         return false;
       }
 
-      const ready = [...this.appBar.pinFiltered, ...this.appBar.clustersFiltered].filter((c) => c.ready);
+      // De-dupe by id and include the fixed `local` tile: `clustersFiltered` (railAll) no longer excludes
+      // pinned rows, so a pinned cluster would be counted twice, and `local` — a valid "keep this view"
+      // target — now lives in its own slice outside every group.
+      const byId = new Map([
+        ...this.appBar.localCluster,
+        ...this.appBar.pinFiltered,
+        ...this.appBar.recentFiltered,
+        ...this.appBar.clustersFiltered,
+      ].map((c) => [c.id, c]));
+      const ready = [...byId.values()].filter((c) => c.ready);
       const readyCount = ready.length;
 
       return readyCount > 1 || (readyCount === 1 && this.clusterId !== ready[0].id);
     },
 
-    // New
     search() {
       return (this.clusterFilter || '').toLowerCase();
     },
 
-
-    // New
     searchActive() {
       return !!this.search;
     },
@@ -161,7 +166,7 @@ export default {
     // PINNED / RECENT / ALL, not pinnable, never evicted — so pull it out and render its own tile.
     localCluster() {
       // The `hide-local-cluster` setting removes `local` from the nav entirely — its fixed slot must
-      // honor it too (the slice below fetches strictly by id and does NOT apply that filter).
+      // honor it too, immediately: the slice does filter on the setting, but only after its next fetch.
       if (this.hideLocalCluster) {
         return null;
       }
@@ -201,6 +206,20 @@ export default {
 
     recentRows() {
       return this.appBar.recentFiltered;
+    },
+
+    // PINNED and RECENT render the SAME row; describing them as data instead of two copies of the markup
+    // means a new row affordance is written once and the two shelves cannot drift apart. Shelves with no
+    // rows are dropped here so the template keeps a plain `v-for` (no v-if/v-for on one element).
+    shelves() {
+      return [
+        {
+          key: 'pinned', titleKey: 'nav.switcher.pinned', sectionClass: 'clustersPinned', rows: this.pinnedRows
+        },
+        {
+          key: 'recent', titleKey: 'nav.switcher.recent', sectionClass: 'clustersRecent', rows: this.recentRows
+        },
+      ].filter((shelf) => !!shelf.rows.length);
     },
 
     // Signature of the shelf's row ORDER, the cue to play the FLIP on pin/unpin. Pinned and recent are
@@ -251,12 +270,13 @@ export default {
     },
 
     switcherKeyShortcut() {
-      return `${ isMac ? 'Meta' : alternateLabel }+J`;
+      return `${ isMac ? 'Meta' : 'Control' }+J`;
     },
 
-    // Id of the cluster currently being explored — marked `current` in the switcher. Gate on the route's
-    // cluster param: on global pages the store keeps `clusterId` set behind the scenes, but nothing in the
-    // switcher should look selected there.
+    // Id of the cluster currently being explored — marked `current` in the switcher. The route param IS the
+    // mgmt cluster id (`clusterMenuClick` pushes it, `checkActiveRoute` compares against it), so read it
+    // directly: the store's `clusterId` only catches up once `loadCluster` commits, and until then it names
+    // the cluster we just left. On global pages there's no cluster param, so nothing looks selected.
     currentClusterId() {
       const routeCluster = this.$route?.params?.cluster;
 
@@ -264,9 +284,7 @@ export default {
         return '';
       }
 
-      const id = this.$store.getters['clusterId'];
-
-      return typeof id === 'string' ? id : '';
+      return typeof routeCluster === 'string' ? routeCluster : '';
     },
 
     multiClusterApps() {
@@ -499,9 +517,13 @@ export default {
     },
 
     search() {
-      // Search term changed → refresh the watched context (so pin flags stay correct) AND reset the ALL
-      // list to page 1 with the new term (debounced so typing doesn't spam requests).
-      this.updateClusters(this.pinnedIds, this.canPagination ? 'medium' : 'quick');
+      // Search term changed → reset the ALL list to page 1 with the new term (debounced so typing
+      // doesn't spam requests). The context fetch is an id-IN query over local/pinned/recent that
+      // ignores the term, so re-running it per keystroke would just re-issue an identical request —
+      // only the legacy helper needs it, because its `update` recomputes the in-memory ALL list.
+      if (!this.canPagination) {
+        this.updateClusters(this.pinnedIds, 'quick');
+      }
       this.debouncedResetOthers();
     },
 
@@ -536,7 +558,7 @@ export default {
     },
 
     clusterCountsFromCounts: {
-      async handler(neu, old) {
+      async handler(neu) {
         await this.helper.updateCount(neu);
       },
       immediate: true,
@@ -558,6 +580,12 @@ export default {
     document.removeEventListener('keydown', this.onSwitcherHotkey);
     window.removeEventListener('keydown', this.onSwitcherKeyGuard, true);
     window.removeEventListener('keyup', this.onSwitcherKeyGuard, true);
+
+    // Timers armed in `data()` outlive the listeners — a pending one would otherwise write state on a
+    // destroyed instance (and re-fire the request when the layout recreates the component).
+    this.debouncedHelperUpdateSlow.cancel();
+    this.debouncedHelperUpdateQuick.cancel();
+    this.debouncedResetOthers.cancel();
   },
 
   methods: {
@@ -620,7 +648,9 @@ export default {
     },
 
     handler(e) {
-      if (e.keyCode === KEY.ESCAPE ) {
+      // The flyout handles Escape on keydown and closes itself; its popper is still on screen through the
+      // fade when this keyup arrives, so treat that as "the flyout took it" and leave the nav expanded.
+      if (e.keyCode === KEY.ESCAPE && !document.querySelector('.cluster-switcher-popper')) {
         this.hide();
       }
     },
@@ -664,7 +694,10 @@ export default {
 
       const target = e.target;
 
-      if (target && typeof target.closest === 'function' && target.closest('.cluster-switcher-flyout')) {
+      // The modal surface is floating-vue's popper ROOT, not the flyout inside it — clicking the flyout's
+      // own chrome parks focus on that root, and testing for the flyout would swallow every key from there
+      // (Esc included), leaving no way out.
+      if (target && typeof target.closest === 'function' && target.closest('.cluster-switcher-popper')) {
         return;
       }
 
@@ -688,9 +721,8 @@ export default {
       this.shown = !this.shown;
     },
 
-    // The [data-flip] shelf rows to animate — VISIBLE ones only. When collapsed, the CSS-hidden ALL list
-    // renders the SAME ids with data-flip; including those would double-key the FLIP Map and animate the
-    // wrong (hidden) element. `offsetParent === null` skips the display:none duplicates.
+    // The [data-flip] shelf rows to animate — VISIBLE ones only, so a row inside a hidden section is never
+    // measured (a zero rect would make the FLIP jump).
     flipRows() {
       const root = this.$el;
 
@@ -746,7 +778,13 @@ export default {
             n.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1)';
             n.style.transform = '';
 
-            const cleanup = () => {
+            // Only this row's own transition — `transitionend` bubbles, so the pin's `transform 0.1s`
+            // would otherwise end the glide a fifth of the way in.
+            const cleanup = (e) => {
+              if (e.target !== n) {
+                return;
+              }
+
               n.classList.remove('flipping');
               n.style.transition = '';
               n.style.transform = '';
@@ -774,7 +812,13 @@ export default {
       el.getBoundingClientRect(); // force reflow so the animation restarts
       el.classList.add(cls);
 
-      const done = () => {
+      // Only this element's own animation — `animationend` bubbles, so a descendant's (the pin's
+      // `pin-pop`) would otherwise clear the class long before this one has finished.
+      const done = (e) => {
+        if (e.target !== el) {
+          return;
+        }
+
         el.classList.remove(cls);
         el.removeEventListener('animationend', done);
       };
@@ -785,13 +829,18 @@ export default {
     // Fetch page 1 of the ALL directory with the CURRENT pinned/recent/search context — the shared handler
     // for every "show me the ALL list" trigger. `.catch` swallows the wrapper's benign de-dup rejection.
     resetOthersList() {
+      const requestedTerm = this.search;
+
       this.helper.resetOthers({
         pinnedIds:  this.pinnedIds,
         recentIds:  this.recentIds,
-        searchTerm: this.search,
+        searchTerm: requestedTerm,
       }).catch(() => {}).finally(() => {
-        // Clear the flyout's initial-search skeleton once the shared results land.
-        this.searchLoading = false;
+        // Clear the flyout's initial-search skeleton only when the term this request was issued for is
+        // still the one on screen — an older query must not unhide its own results under the new term.
+        if (this.search === requestedTerm) {
+          this.searchLoading = false;
+        }
       });
     },
 
@@ -806,9 +855,9 @@ export default {
 
       try {
         await this.helper.loadMoreOthers();
-      } catch (e) {
+      } catch {
         // Best-effort load-more — swallow a benign concurrent-request de-dup rejection; the next scroll
-        // re-fetches the next page.
+        // re-fetches the next page (the helper rewinds its page counter on failure).
       } finally {
         this.loadingMoreOthers = false;
       }
@@ -825,7 +874,11 @@ export default {
       this.switcherOpen = open;
 
       // Alt released outside the guard's reach (the flyout closed mid-combo) would strand the arrow on.
-      this.routeCombo = false;
+      // Only on CLOSE — clearing it on open cancels the combo arrows the flyout is meant to advertise
+      // while Alt is still held.
+      if (!open) {
+        this.routeCombo = false;
+      }
 
       if (open) {
         this.resetOthersList();
@@ -860,8 +913,9 @@ export default {
       }
 
       return {
-        content:   this.t('nav.switcher.shortcutTooltip', { shortcut: this.switcherShortcutLabel }),
-        placement: 'right',
+        content:     this.t('nav.switcher.shortcutTooltip', { shortcut: this.switcherShortcutLabel }),
+        placement:   'right',
+        popperClass: 'nav-tooltip',
       };
     },
 
@@ -872,7 +926,7 @@ export default {
 
       let contentText = '';
       let content;
-      let popperClass = '';
+      let popperClass = 'nav-tooltip';
 
       // this is the normal tooltip scenario where we are just passing a string
       if (typeof item === 'string') {
@@ -897,7 +951,7 @@ export default {
       } else {
         contentText = item.label;
         // this adds a class to the tooltip container so that we can control the max width
-        popperClass = 'menu-description-tooltip';
+        popperClass = 'nav-tooltip menu-description-tooltip';
 
         if (item.description) {
           contentText += `<br><br>${ item.description }`;
@@ -919,7 +973,7 @@ export default {
       };
     },
 
-    updateClusters(pinnedIds, speed = 'slow' | 'medium' | 'quick') {
+    updateClusters(pinnedIds, speed = 'slow') {
       const args = {
         pinnedIds,
         recentIds:  this.recentIds,
@@ -930,9 +984,6 @@ export default {
         switch (speed) {
         case 'slow':
           this.debouncedHelperUpdateSlow(args);
-          break;
-        case 'medium':
-          this.debouncedHelperUpdateMedium(args);
           break;
         case 'quick':
           this.debouncedHelperUpdateQuick(args);
@@ -1053,8 +1104,7 @@ export default {
                 class="cluster selector option"
                 :class="{ 'active-menu-link': localCluster.isMenuActive }"
                 :aria-current="localCluster.isMenuActive ? 'page' : undefined"
-                :data-testid="`menu-cluster-local`"
-                role="button"
+                data-testid="menu-cluster-local"
                 :aria-label="`${ t('nav.ariaLabel.cluster') } ${ localCluster.label }`"
                 @click.prevent="clusterMenuClick($event, localCluster)"
                 @shortkey="onRouteComboHold"
@@ -1124,7 +1174,7 @@ export default {
                       >
                         <div class="cluster-all-badge">
                           <span class="cluster-all-count">{{ switcherCount }}</span>
-                          <span class="cluster-all-unit">{{ t('nav.switcher.clustersBadge') }}</span>
+                          <span class="cluster-all-unit">{{ t('nav.search.clusters') }}</span>
                         </div>
                       </div>
                       <div class="cluster-all-name">
@@ -1191,34 +1241,33 @@ export default {
               ref="clusterList"
               class="clusters"
             >
-              <!-- Pinned Clusters — the nav shelf is always PINNED + RECENT; the estate (and the only
-                   search) lives in the flyout. -->
+              <!-- The nav shelf is always PINNED + RECENT (the estate, and the only search, lives in
+                   the flyout) — and both render the identical row, so they share one block. -->
               <div
-                v-if="railPinned.length"
-                class="clustersPinned"
+                v-for="shelf in shelves"
+                :key="shelf.key"
+                :class="shelf.sectionClass"
               >
                 <div class="category-title">
                   <RcSeparator />
                   <span>
-                    {{ t('nav.switcher.pinned') }}
+                    {{ t(shelf.titleKey) }}
                   </span>
                 </div>
                 <div
-                  v-for="(c, index) in pinnedRows"
+                  v-for="(c, index) in shelf.rows"
                   :key="c.id"
                   :data-flip="c.id"
-                  :data-testid="`pinned-ready-cluster-${index}`"
+                  :data-testid="`${ shelf.key }-ready-cluster-${ index }`"
                   @click="hide()"
                 >
                   <button
                     v-if="c.ready"
                     v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
-                    :data-testid="`pinned-menu-cluster-${ c.id }`"
+                    :data-testid="`${ shelf.key }-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': c.isMenuActive }"
                     :aria-current="c.isMenuActive ? 'page' : undefined"
-                    :to="c.clusterRoute"
-                    role="button"
                     :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
                     @click.prevent="clusterMenuClick($event, c)"
                     @shortkey="onRouteComboHold"
@@ -1244,81 +1293,7 @@ export default {
                   <span
                     v-else
                     class="option cluster selector disabled"
-                    :data-testid="`pinned-menu-cluster-disabled-${ c.id }`"
-                  >
-                    <ClusterIconMenu
-                      v-clean-tooltip="getTooltipConfig(c, true)"
-                      :cluster="c"
-                      class="rancher-provider-icon"
-                      :show-pin="false"
-                    />
-                    <div
-                      v-clean-tooltip="getTooltipConfig(c)"
-                      class="cluster-name"
-                    >
-                      <p>{{ c.label }}</p>
-                    </div>
-                    <Pinned
-                      :cluster="c"
-                      :tab-order="shown ? 0 : -1"
-                    />
-                  </span>
-                </div>
-              </div>
-
-              <!-- Recent Clusters -->
-              <div
-                v-if="railRecent.length"
-                class="clustersRecent"
-              >
-                <div class="category-title">
-                  <RcSeparator />
-                  <span>
-                    {{ t('nav.switcher.recent') }}
-                  </span>
-                </div>
-                <div
-                  v-for="(c, index) in recentRows"
-                  :key="c.id"
-                  :data-flip="c.id"
-                  :data-testid="`recent-ready-cluster-${index}`"
-                  @click="hide()"
-                >
-                  <button
-                    v-if="c.ready"
-                    v-shortkey.hold="{windows: ['alt'], mac: ['option']}"
-                    :data-testid="`recent-menu-cluster-${ c.id }`"
-                    class="cluster selector option"
-                    :class="{'active-menu-link': c.isMenuActive }"
-                    :aria-current="c.isMenuActive ? 'page' : undefined"
-                    :to="c.clusterRoute"
-                    role="button"
-                    :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
-                    @click.prevent="clusterMenuClick($event, c)"
-                    @shortkey="onRouteComboHold"
-                  >
-                    <ClusterIconMenu
-                      v-clean-tooltip="getTooltipConfig(c, true)"
-                      :cluster="c"
-                      :route-combo="routeComboActive"
-                      class="rancher-provider-icon"
-                      :show-pin="false"
-                    />
-                    <div
-                      v-clean-tooltip="getTooltipConfig(c)"
-                      class="cluster-name"
-                    >
-                      <p>{{ c.label }}</p>
-                    </div>
-                    <Pinned
-                      :cluster="c"
-                      :tab-order="shown ? 0 : -1"
-                    />
-                  </button>
-                  <span
-                    v-else
-                    class="option cluster selector disabled"
-                    :data-testid="`recent-menu-cluster-disabled-${ c.id }`"
+                    :data-testid="`${ shelf.key }-menu-cluster-disabled-${ c.id }`"
                   >
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"
@@ -1438,8 +1413,10 @@ export default {
 
 <style lang="scss">
   // Nav tooltips must layer above the cluster-switcher flyout (z-index 102) and its page overlay (100).
-  // Their poppers are teleported to <body>, so this global (unscoped) rule reaches them.
-  .v-popper__popper.v-popper--theme-tooltip {
+  // Their poppers are teleported to <body>, so this rule has to be global (unscoped) to reach them — but
+  // it is keyed on the `nav-tooltip` class the nav's own tooltip configs set, so the rest of the app's
+  // poppers keep their default stacking.
+  .v-popper__popper.v-popper--theme-tooltip.nav-tooltip {
     z-index: 103;
   }
 
@@ -1449,11 +1426,10 @@ export default {
     word-wrap: break-word;
   }
 
-  .description-tooltip-pos-adjustment {
-    // needs !important so that we can
-    // offset the tooltip a bit so it doesn't
-    // overlap the pin icon and cause bad UX
-    left: 48px !important;
+  // floating-vue's generated wrapper around the cluster-switcher trigger: it takes neither a prop nor a
+  // slot, and its default `display: inline-block` would collapse the trigger's full-width tile.
+  .clustersAll > .v-popper {
+    display: block;
   }
 
   .localeSelector, .footer-tooltip {
@@ -1474,26 +1450,15 @@ export default {
     }
   }
 
-  .theme-dark .cluster-name .description {
-    color: var(--input-label) !important;
-  }
-  .theme-dark .body .option  {
-    &:hover .cluster-name .description,
-    &.router-link-active .cluster-name .description,
-    &.active-menu-link .cluster-name .description {
-      color: var(--side-menu-desc) !important;
-  }
-  }
 </style>
 
 <style lang="scss" scoped>
-  $clear-search-size: 20px;
   $icon-size: 25px;
   $option-padding: 9px;
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
-  // Type scale — the shelf + flyout only use these three sizes.
+  // Type scale — the shelf + flyout only use these two sizes.
   $font-size-sm:    12px;  // meta / status / footer / counts
   $font-size-body:  14px;  // option row text
 
@@ -1504,11 +1469,11 @@ export default {
   $chip-radius: 5px;
 
   // Spacing rhythm (4px base) + the shared nav transition, so the repeated paddings/margins/gaps and
-  // the show/hide easing come from one place.
-  $space-1: 4px;
-  $space-2: 8px;
-  $space-4: 16px;
-  $space-5: 20px;
+  // the show/hide easing come from one place. Named `$nav-*` because these are component-local steps —
+  // the shared $space-s/m/l tokens are 10/24/40px and don't fit the shelf's tighter rhythm.
+  $nav-space-2: 8px;
+  $nav-space-4: 16px;
+  $nav-space-5: 20px;
   $transition-nav: all 0.25s ease-in-out;
 
   // Row action icons (gear + pin): a header-style hover "square" — a 22×22 box holding a 16px icon that
@@ -1596,7 +1561,7 @@ export default {
     flex: 0 0 auto;
     width: $chip-width;
     height: $chip-height;
-    margin-right: $space-4;
+    margin-right: $nav-space-4;
   }
   .cluster-all .cluster-all-badge {
     box-sizing: border-box;
@@ -1678,9 +1643,9 @@ export default {
     flex: 1 1 auto;
     min-width: 0;
 
-    :deep(.v-popper) {
-      display: block;
-    }
+    // floating-vue's generated `.v-popper` wrapper defaults to `display: inline-block`, which would
+    // collapse the trigger's width. It takes neither a prop nor a slot, so the rule lives in the unscoped
+    // block at the top of this file rather than piercing out of here.
   }
 
   // Scroll-edge shadow fade (see `.clusters::after`): visible while scrolling, gone at the bottom.
@@ -1694,12 +1659,8 @@ export default {
     }
   }
 
-  .clustersRecent .pin {
-    display: block;
-  }
-
   // The pin's base opacity:0 lives deep inside `.side-menu .body .option .pin`, so its hover-reveal must
-  // match that depth to win (the top-level form above was being overridden).
+  // match that depth to win (a top-level form gets overridden).
   .side-menu .body .cluster.selector:hover .pin:not(.is-pinned),
   .side-menu .body .option:hover .pin:not(.is-pinned) {
     opacity: 1;
@@ -1758,7 +1719,7 @@ export default {
     }
 
     &.menu-open {
-      width: 300px;
+      width: $app-bar-expanded-width;
       box-shadow: 3px 1px 3px var(--shadow);
 
       // because of accessibility, we force pin action to be visible on menu open
@@ -1808,7 +1769,7 @@ export default {
       min-height: 0;
       display: flex;
       flex-direction: column;
-      width: 300px;
+      width: $app-bar-expanded-width;
       overflow: hidden;
 
       & .category {
@@ -1859,9 +1820,6 @@ export default {
             opacity: 0;
             color: var(--muted) !important;
           }
-          &.showPin {
-            display: inline-flex;
-          }
         }
 
         .cluster-name {
@@ -1884,17 +1842,6 @@ export default {
             font-weight: normal;
             line-height: 18px;
             color: var(--on-tertiary, var(--link)) !important;
-
-            // The shelf carries no subtitle any more (local's "Management cluster" line and the
-            // per-cluster provider · version meta both live in the flyout rows now), but the rule is
-            // cheap insurance if one comes back.
-            &.description {
-              font-size: 10px;
-              font-weight: normal;
-              line-height: 12px;
-              padding-right: 0;
-              color: var(--muted) !important;
-            }
           }
         }
 
@@ -1982,24 +1929,16 @@ export default {
             color: var(--on-active, var(--primary-hover-text));
           }
 
-          div .description {
-            color: var(--on-active, var(--default));
-          }
-
           // Current row (selected): white name + pinned pin; light meta + light-grey not-pinned pin.
           // !important overrides the base black/muted name+pin invariants.
           .cluster-name > p {
             color: var(--on-active, var(--primary-hover-text)) !important;
-
-            &.description {
-              color: var(--on-active, var(--default)) !important;
-            }
           }
           .pin.is-pinned {
             color: var(--on-active, var(--primary-hover-text)) !important;
           }
           .pin:not(.is-pinned) {
-            color: color-mix(in srgb, var(--on-active, #fff) 65%, transparent) !important;
+            color: color-mix(in srgb, var(--on-active, var(--primary-hover-text)) 65%, transparent) !important;
           }
 
           &:hover {
@@ -2026,10 +1965,6 @@ export default {
           background: var(--nav-hover-top-level, var(--primary-hover-bg));
           > div {
             color: var(--primary-hover-text);
-
-            .description {
-              color: var(--default);
-            }
           }
           svg {
             fill: var(--tertiary-hover-app-bar, var(--primary-hover-text));
@@ -2090,6 +2025,13 @@ export default {
           // never shows.
           animation: cluster-scroll-shadow linear both;
           animation-timeline: scroll(nearest block);
+
+          // No scroll-driven animations (Firefox, older Safari) → no fade, and so no overflow cue at all
+          // on the nav's only scrolling region. Fall back to a permanently-visible edge shadow: less
+          // precise than the scroll-linked fade, but the shelf never clips a row silently.
+          @supports not (animation-timeline: scroll()) {
+            opacity: 1;
+          }
         }
 
          a, span {
@@ -2119,7 +2061,7 @@ export default {
           align-items: flex-start;
           align-items: center;
           margin: 15px 0;
-          margin-left: $space-4;
+          margin-left: $nav-space-4;
           font-size: $font-size-body;
           text-transform: uppercase;
 
@@ -2201,7 +2143,7 @@ export default {
     }
 
     .footer {
-      margin: $space-5;
+      margin: $nav-space-5;
       width: 240px;
       display: flex;
       flex: 0;
@@ -2260,11 +2202,11 @@ export default {
   }
 
   .fade-leave-to {
-    left: -300px;
+    left: -$app-bar-expanded-width;
   }
 
   .fade-enter {
-    left: -300px;
+    left: -$app-bar-expanded-width;
   }
 
   .locale-chooser {
@@ -2285,7 +2227,7 @@ export default {
     }
 
     li {
-      padding: $space-2 $space-5;
+      padding: $nav-space-2 $nav-space-5;
 
       &:hover {
         background-color: var(--active-hover, var(--primary-hover-bg));

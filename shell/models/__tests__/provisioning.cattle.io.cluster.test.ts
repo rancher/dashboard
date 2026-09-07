@@ -12,13 +12,7 @@ jest.mock('@shell/utils/operation-cr', () => ({ createOperationCR: jest.fn() }))
 
 jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
   __esModule: true,
-  default:    {
-    helper: {
-      clustersLocal:  [],
-      clustersPinned: [],
-      clustersOthers: []
-    }
-  }
+  default:    { helper: { clustersLocal: [] } }
 }));
 
 jest.mock('@shell/utils/provider', () => ({
@@ -628,7 +622,7 @@ describe('class ProvCluster', () => {
   });
 
   describe('namespaceLocation', () => {
-    // `local` lives only in the dedicated `clustersLocal` slice (SURE-8192) — excluded from the
+    // `local` lives only in the dedicated `clustersLocal` slice — excluded from the
     // pinned/recent/others groups — so that slice is the single source of truth for local access.
     const setLocalClusterAccess = (hasLocal: boolean) => {
       sideNavService.helper.clustersLocal.length = 0;

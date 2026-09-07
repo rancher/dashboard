@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import ClusterSwitcherRow from '@shell/components/nav/ClusterSwitcherRow.vue';
 
 // The row pulls `t` from the useI18n composable — return the key (or the interpolated meta bits it joins).
@@ -14,10 +14,7 @@ const cluster = (over = {}): any => ({
   ...over,
 });
 
-const mountRow = (props = {}) => mount(ClusterSwitcherRow, {
-  props:  { cluster: cluster(), ...props },
-  global: { stubs: { ClusterIconMenu: true, Pinned: true } },
-});
+const mountRow = (props = {}) => shallowMount(ClusterSwitcherRow, { props: { cluster: cluster(), ...props } });
 
 describe('component: ClusterSwitcherRow (accessibility)', () => {
   it('is an option, labelled by name + meta, with the decorative badge hidden', () => {
@@ -42,7 +39,7 @@ describe('component: ClusterSwitcherRow (accessibility)', () => {
     expect(mountRow({ current: false }).find('.cluster-switcher-row').attributes('aria-current')).toBeUndefined();
   });
 
-  // v3 (SURE-8192): the Option/Alt "keep this view" arrow used to light up only on the nav-bar rows.
+  // The Option/Alt "keep this view" arrow used to light up only on the nav-bar rows.
   // The flyout rows advertise it too, so the cue is the same wherever the user is browsing.
   describe('route-combo (Option/Alt) arrow', () => {
     const badge = (props = {}) => mountRow(props).findComponent({ name: 'ClusterIconMenu' });
@@ -57,6 +54,31 @@ describe('component: ClusterSwitcherRow (accessibility)', () => {
 
     it('stays off for a cluster you cannot jump to', () => {
       expect(badge({ cluster: cluster({ ready: false }), routeCombo: true }).props('routeCombo')).toBe(false);
+    });
+  });
+
+  // The pin inside the option is `aria-hidden` and out of the tab order, so the option's own label is the
+  // ONLY thing that can report pin state to a screen reader.
+  describe('pin state', () => {
+    it('folds the pinned state into the option label', () => {
+      const label = (over: any, props = {}) => mountRow({ cluster: cluster(over), ...props })
+        .find('.cluster-switcher-row').attributes('aria-label');
+
+      expect(label({ pinned: true })).toContain('nav.switcher.aria.pinned');
+      expect(label({ pinned: false })).not.toContain('nav.switcher.aria.pinned');
+      // `local` is never pinnable, so its label must not claim a pin state either.
+      expect(label({ pinned: true }, { pinnable: false })).not.toContain('nav.switcher.aria.pinned');
+    });
+
+    it('suppresses the pin toggle default mousedown so focus stays in the search input', () => {
+      const pin = mountRow().find('.row-pin');
+      const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+
+      pin.element.dispatchEvent(event);
+
+      // Without this the browser focuses the nearest focusable ancestor — floating-vue's popper root —
+      // and the flyout's keydown handler, bound on a descendant of it, stops receiving keys entirely.
+      expect(event.defaultPrevented).toBe(true);
     });
   });
 
