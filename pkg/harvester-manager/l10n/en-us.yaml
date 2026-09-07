@@ -38,9 +38,9 @@ harvesterManager:
       prompt: "Please update Rancher to get the latest compatible version of the Harvester UI extension or try to install it manually"
       prompt-standard-user: Please contact your system administrator
     error:
-      warning: "Warning, [[Harvester]] UI extension automatic installation failed"
-      prompt: "Please refresh the page and try again or install the [[Harvester]] UI extension manually"
-      prompt-standard-user: Please contact your system administrator to install or update the [[Harvester]] extension
+      warning: "Warning, Harvester UI extension automatic installation failed"
+      prompt: "Please refresh the page and try again or install the Harvester UI extension manually"
+      prompt-standard-user: Please contact your system administrator to install or update the Harvester extension
     action:
       retrying: "Retry installing...({attempt}/{max})"
   rke:
