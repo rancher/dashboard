@@ -49,12 +49,10 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
       .click();
 
     // Wait for the daemonset to exist AND for its rollout to settle before opening the edit form.
-    // [CREATE ISSUE TO INVESTIGATE] While a workload is still reporting status changes the socket keeps
-    // sending `resource.changes`, which makes the paginated list re-request its page. If one of those
-    // requests is still in flight when we navigate to the edit form, the store's find-cache guard makes
-    // the detail `find` bail out ("Prevented `find` action from polluting cache") and return undefined. The
-    // edit form is then handed an empty resource, throws while rendering, and no tab (#DaemonSet) ever
-    // mounts - waiting for the resource to merely exist does not cover this.
+    // While a workload is still reporting status changes the socket keeps sending `resource.changes`,
+    // which makes the paginated list re-request its page. Opening the edit form while one of those is
+    // still in flight leaves it without a resource to render, so its tabs never mount. Letting the
+    // rollout settle stops those re-fetches; the list loading check below covers one already running.
     cy.waitForRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, (resp: any) => {
       const status = resp?.body?.status || {};
 

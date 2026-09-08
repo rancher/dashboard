@@ -34,12 +34,10 @@ describe('Yaml Editor', { tags: ['@components', '@adminUser', '@standardUser'] }
 
       // Wait for the deployment to exist AND for its rollout to settle before the tests navigate from
       // the list to the YAML editor.
-      // [CREATE ISSUE TO INVESTIGATE] While the deployment is still reporting status changes the socket
-      // keeps sending `resource.changes`, which makes the paginated list re-request its page. If one of
-      // those requests is still in flight when we navigate away, the store's find-cache guard makes the
-      // detail `find` bail out ("Prevented `find` action from polluting cache") and return undefined -
-      // ResourceDetail then fails on `undefined.toJSON()`/`undefined.name` and renders nothing, so
-      // `.resource-yaml` never appears.
+      // While the deployment is still reporting status changes the socket keeps sending
+      // `resource.changes`, which makes the paginated list re-request its page. Navigating away while
+      // one of those is still in flight leaves the detail view without a resource to render, so
+      // `.resource-yaml` never appears. Letting the rollout settle stops those re-fetches.
       cy.waitForRancherResource('v1', 'apps.deployments', `${ namespace }/${ name }`, (resp: any) => {
         const status = resp?.body?.status || {};
         const replicas = resp?.body?.spec?.replicas;

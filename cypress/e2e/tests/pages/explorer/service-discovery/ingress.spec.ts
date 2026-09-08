@@ -294,13 +294,11 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.setTargetServiceValueByLabel(0, headlessServiceName);
       ingressCreatePagePo.setPortValueByLabel(0, '8080');
 
-      // [CREATE ISSUE TO INVESTIGATE] RulePath.vue emits its rule updates behind a 500ms debounce
-      // (`debounce(this.update, 500)`) and nothing flushes it on save. Saving inside that window posts a
-      // rule whose path object is still untouched, so Rule.pathObjectIsEmpty() drops `http` entirely and
-      // the ingress is created with no backend - silently, since validation only requires a rule to
-      // exist. Nothing in the dom marks the flush: the inputs render their own local state, so the page
-      // looks identical before and after, and further interaction only restarts the (trailing) debounce.
-      // Wait it out so the test does not race it. Remove once the form flushes pending updates on save.
+      // RulePath.vue emits its rule updates behind a 500ms debounce (`debounce(this.update, 500)`), so
+      // saving straight after the last rule input races it and posts a rule whose path object is still
+      // untouched. Nothing in the dom marks the flush - the inputs render their own local state, so the
+      // page looks identical before and after, and further interaction only restarts the (trailing)
+      // debounce - so wait it out before saving.
       cy.wait(RULE_UPDATE_DEBOUNCE); // eslint-disable-line cypress/no-unnecessary-waiting
 
       ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/networking.k8s.io.ingresses')
