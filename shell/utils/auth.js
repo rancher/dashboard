@@ -103,6 +103,12 @@ export function returnTo(opt, vm) {
 export const LOCAL_AUTH_ID = 'local';
 
 /**
+ * Authconfigs that Rancher pre-creates but which aren't configurable in the UI, so
+ * they're kept out of the provider catalogue.
+ */
+export const UNSUPPORTED_AUTH_IDS = ['oidc'];
+
+/**
  * Determines common auth provider info as those that are available (non-local) and the location of the enabled provider
  */
 export const authProvidersInfo = async(store) => {
@@ -122,7 +128,7 @@ export function parseAuthProvidersInfo(rows) {
   const nonLocal = rows.filter((x) => x.name !== LOCAL_AUTH_ID);
   const enabled = nonLocal.filter((x) => x.enabled === true );
 
-  const supportedNonLocal = nonLocal.filter((x) => x.id !== 'oidc');
+  const supportedNonLocal = nonLocal.filter((x) => !UNSUPPORTED_AUTH_IDS.includes(x.id));
 
   const enabledLocation = enabled.length === 1 ? {
     name:   'c-cluster-auth-config-id',
