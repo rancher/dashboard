@@ -177,7 +177,7 @@ describe('Rancher as an OIDC Provider', { tags: ['@globalSettings', '@adminUser'
 
       // Wait for the secret element to appear before trying to interact with it. Longer timeout: the
       // websocket update reaching the page can lag the status change above.
-      oidcClientDetailPage.clientFullSecretCopy(existingSecrets).self(LONG_TIMEOUT_OPT).should('be.visible');
+      oidcClientDetailPage.clientFullSecretCopy(existingSecrets).checkVisible(LONG_TIMEOUT_OPT, { scrollIntoView: false });
 
       oidcClientDetailPage.clientFullSecretCopy(existingSecrets).exists();
       oidcClientDetailPage.clientFullSecretCopy(existingSecrets).copyToClipboard();

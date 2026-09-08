@@ -503,7 +503,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
       extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
       // Fixed-position modal: assert visibility without scrolling (checkVisible()'s scrollIntoView
       // detaches the subject while the dialog animates in).
-      extensionsPo.installModal().self().should('be.visible');
+      extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
 
       // click install
       extensionsPo.installModal().installButton().click();
@@ -601,7 +601,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
     // Fixed-position modal: assert visibility without scrolling (scrollIntoView detaches it mid-animation,
     // which can leave the install interaction flaky and the reload banner/script import never appearing).
-    extensionsPo.installModal().self().should('be.visible');
+    extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
     extensionsPo.installModal().installButton().click();
     // Wait for the install request to be accepted before reloading. Reloading while the install is
     // still in flight leaves the Extensions page stuck on "Loading..." - the other install tests in

@@ -67,11 +67,21 @@ export default class ComponentPo {
     return this.self().invoke('attr', 'disabled').then((disabled) => disabled === 'disabled');
   }
 
-  checkVisible(options?: GetOptions): Cypress.Chainable<boolean> {
-    // Re-query after scrollIntoView instead of chaining `.should` onto the scrolled subject: if the
-    // page re-renders as a result of the scroll (async framework update), the scrolled element
-    // detaches and Cypress cannot requery it, failing with "subject no longer attached to the DOM".
-    this.self(options).scrollIntoView();
+  /**
+   * Assert the component is visible, scrolling it into view first.
+   *
+   * Pass `{ scrollIntoView: false }` when the element cannot be scrolled to safely: it is already in
+   * view anyway (fixed position modal, masthead, tab bar), or this page object wraps an
+   * already-resolved chainable, in which case `self()` cannot re-query and `scrollIntoView` fails
+   * outright with "subject no longer attached to the DOM" the moment the page re-renders.
+   */
+  checkVisible(options?: GetOptions, { scrollIntoView = true }: { scrollIntoView?: boolean } = {}): Cypress.Chainable<boolean> {
+    if (scrollIntoView) {
+      // Re-query after scrollIntoView instead of chaining `.should` onto the scrolled subject: if the
+      // page re-renders as a result of the scroll (async framework update), the scrolled element
+      // detaches and Cypress cannot requery it, failing with "subject no longer attached to the DOM".
+      this.self(options).scrollIntoView();
+    }
 
     return this.self(options).should('be.visible');
   }

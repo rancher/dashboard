@@ -33,11 +33,11 @@ function harvesterExtensionCatalog(version: Cypress.RancherVersion) {
   return version.RancherPrime === 'true' ? HARVESTER_EXTENSION_CATALOG.prime : HARVESTER_EXTENSION_CATALOG.community;
 }
 
-// `extensionsPo.waitForTabs()` runs `ComponentPo.checkVisible()`, which scrolls the tab bar into view
-// before asserting. The extensions page re-mounts around installs and the reload banner, so the element
-// handed to `cy.scrollIntoView()` detaches ("the page updated as a result of this command"). The tab bar
-// is always at the top of the page, so assert it is visible without scrolling.
-const waitForExtensionTabs = () => extensionsPo.extensionTabs.self(LONG_TIMEOUT_OPT).should('be.visible');
+// `extensionsPo.waitForTabs()` scrolls the tab bar into view before asserting. The extensions page
+// re-mounts around installs and the reload banner, so the element handed to `cy.scrollIntoView()`
+// detaches ("the page updated as a result of this command"). The tab bar is always at the top of the
+// page, so skip the scroll.
+const waitForExtensionTabs = () => extensionsPo.extensionTabs.checkVisible(LONG_TIMEOUT_OPT, { scrollIntoView: false });
 
 describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
   before(() => {
@@ -91,7 +91,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // verify install button and message displays
       harvesterPo.goTo();
       harvesterPo.waitForPage();
-      harvesterPo.updateOrInstallButton().self().should('be.visible');
+      harvesterPo.updateOrInstallButton().checkVisible(undefined, { scrollIntoView: false });
       harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not installed');
 
       // install harvester extension
@@ -108,7 +108,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.goTo();
       waitForExtensionTabs();
       extensionsPo.waitForPage(undefined, 'installed');
-      extensionsPo.extensionCard(harvesterTitle).self().should('be.visible');
+      extensionsPo.extensionCard(harvesterTitle).checkVisible(undefined, { scrollIntoView: false });
 
       // verify harvester repo is added to repos list page
       appRepoList.goTo(undefined, 'manager');
@@ -202,7 +202,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.extensionCardInstallClick(harvesterTitle);
       // The modal is fixed-position, so checkVisible()'s scrollIntoView is pointless and detaches the
       // subject while the dialog animates in - assert visibility without scrolling.
-      extensionsPo.installModal().self().should('be.visible');
+      extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
 
       // select latest version and click install
       extensionsPo.installModal().selectVersionClick(1);
@@ -248,7 +248,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       harvesterPo.waitForPage();
       // The masthead button is always in view and this page re-renders as the extension warning
       // resolves, so assert visibility without scrolling (checkVisible() scrolls first).
-      harvesterPo.updateOrInstallButton().self().should('be.visible');
+      harvesterPo.updateOrInstallButton().checkVisible(undefined, { scrollIntoView: false });
       harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not installed');
     });
   }));
@@ -296,7 +296,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // click on install button on card
       extensionsPo.extensionCardInstallClick(harvesterTitle);
       // Fixed-position modal: assert visibility without scrolling (see the note in the 7021 test).
-      extensionsPo.installModal().self().should('be.visible');
+      extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
 
       // Note - We can't fetch version from `catalog.cattle.io.clusterrepos/harvester?link=index` given it won't filter out invalid extensions
       // for example in rancher 2.12 the harvester 1.7.0 extension is invalid... however still returned... resulting in expected versions that don't exist as valid options
