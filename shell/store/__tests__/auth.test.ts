@@ -1,4 +1,5 @@
 import { actions } from '@shell/store/auth';
+import { openAuthPopup } from '@shell/utils/auth';
 import { createStore } from 'vuex';
 
 // jest.mock('@shell/utils/url', () => ({
@@ -185,6 +186,43 @@ describe('action: test', () => {
         provider:     'github-two',
         providerType: 'github',
       }));
+    });
+  });
+
+  describe('given saml providers', () => {
+    it('should tell testAndEnable which of the provider\'s configs is being enabled', async() => {
+      const doAction = jest.fn().mockResolvedValue({ idpRedirectUrl: 'anyURL' });
+      const store = createStore({
+        actions: {
+          getAuthConfig: () => ({
+            id: 'okta-two', _type: 'oktaConfig', actions: { testAndEnable: 'anyLink' }, doAction
+          }),
+        }
+      });
+
+      await actions.test(store, { provider: 'okta-two', body: {} });
+
+      expect(doAction).toHaveBeenCalledWith('testAndEnable', {
+        finalRedirectUrl: undefined,
+        configName:       'okta-two',
+      });
+    });
+
+    it('should open the popup against the kind of provider rather than the config name', async() => {
+      const store = createStore({
+        actions: {
+          getAuthConfig: () => ({
+            id:       'okta-two',
+            _type:    'oktaConfig',
+            actions:  { testAndEnable: 'anyLink' },
+            doAction: () => ({ idpRedirectUrl: 'anyURL' }),
+          }),
+        }
+      });
+
+      await actions.test(store, { provider: 'okta-two', body: {} });
+
+      expect(openAuthPopup).toHaveBeenCalledWith('anyURL', 'okta');
     });
   });
 });

@@ -381,7 +381,7 @@ export const actions = {
       if (!!driver?.actions?.testAndEnable) {
         const finalRedirectUrl = returnTo({ config: providerType }, this);
 
-        const res = await driver.doAction('testAndEnable', { finalRedirectUrl });
+        const res = await driver.doAction('testAndEnable', { finalRedirectUrl, configName: driver.id || provider });
 
         const { idpRedirectUrl } = res;
 
