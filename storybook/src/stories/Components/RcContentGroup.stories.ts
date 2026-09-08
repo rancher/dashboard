@@ -10,7 +10,7 @@ const meta: Meta<typeof RcContentGroup> = {
       description: {
         component: `A group of related content, stacked 16px apart.
 
-RcSection wraps its default slot in one of these, so form elements written straight into a section are already grouped and no call site needs a wrapper div of its own. A section that needs several groups replaces that wrapper through the section's \`groups\` slot, and the section spaces the groups it is given 24px apart.
+RcSection already stacks its default slot 16px apart, so form elements written straight into a section need no wrapper of their own. A section that needs several groups writes one of these per group instead, and the section spaces those groups 24px apart.
 
 The component is not tied to RcSection, so it can also be used on its own wherever a 16px column is wanted. It takes no props.`,
       },
@@ -52,7 +52,7 @@ export const TheSectionDefault: Story = {
   }),
   parameters: {
     docs: {
-      description: { story: "A section's default slot is already one of these groups, so the same 16px spacing needs nothing written at the call site." },
+      description: { story: "A section's default slot already stacks its content 16px apart, so the same spacing needs nothing written at the call site." },
       canvas:      { sourceState: 'shown' },
       source:      { code: inSectionTemplate },
     },
@@ -60,15 +60,13 @@ export const TheSectionDefault: Story = {
 };
 
 const severalGroupsTemplate = `<RcSection title="Section title" type="primary" mode="with-header" background="primary" :expandable="false">
-  <template #groups>
-    <RcContentGroup>
-      <LabeledInput label="Name" placeholder="my-workload" />
-      <LabeledInput label="Description" placeholder="What this is for" />
-    </RcContentGroup>
-    <RcContentGroup>
-      <LabeledInput label="Namespace" placeholder="default" />
-    </RcContentGroup>
-  </template>
+  <RcContentGroup>
+    <LabeledInput label="Name" placeholder="my-workload" />
+    <LabeledInput label="Description" placeholder="What this is for" />
+  </RcContentGroup>
+  <RcContentGroup>
+    <LabeledInput label="Namespace" placeholder="default" />
+  </RcContentGroup>
 </RcSection>`;
 
 export const SeveralGroupsInASection: Story = {
@@ -80,7 +78,7 @@ export const SeveralGroupsInASection: Story = {
   }),
   parameters: {
     docs: {
-      description: { story: "The `groups` slot replaces the section's default group. The section spaces the groups it is given 24px apart, and each group stacks its own content 16px apart." },
+      description: { story: 'The section spaces the groups 24px apart, and each group stacks its own content 16px apart.' },
       canvas:      { sourceState: 'shown' },
       source:      { code: severalGroupsTemplate },
     },
