@@ -1591,6 +1591,8 @@ compliance:
   testsToSkip: Tests to Skip
   alerting: Alerting
   detail:
+    noReport: 'No scan report is available yet. Current scan state: {state}. The report will appear here once the scan completes.'
+    noReportWithMessage: 'No scan report is available yet. Current scan state: {state} - {message}. The report will appear here once the scan completes.'
     subRow:
       noNodes: No Additional Information
 
@@ -3635,6 +3637,9 @@ fleet:
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
+    deprecationWarning: 'GitRepoRestrictions are deprecated and will be removed in a future release. Use <policiesLink>Policies</policiesLink> instead.'
+    deprecationWarningTargetNamespaces: 'GitRepoRestrictions are deprecated and will be removed in a future release. Restricting allowed target namespaces relies on GitRepoRestriction and has no equivalent in SUSE Continuous Delivery Policies.'
+    migrationGuide: 'See the <docsLink>SUSE Continuous Delivery Policies migration guide</docsLink>.'
     banner: "{count, plural,
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
