@@ -16,6 +16,11 @@ describe('Side Menu: main', () => {
 
   describe('Needs intercepts BEFORE route navigation', () => {
     beforeEach(() => {
+      // Pins are a USER PREFERENCE, so they outlive the test that made them: one test here pins a cluster
+      // to put a second row in the nav, and the next asserts its row starts unpinned. Clear the pref up
+      // front so each test starts from the same place whatever ran before it.
+      cy.setUserPreference({ 'pinned-clusters': '[]' }, true);
+
       generateFakeClusterDataAndIntercepts({
         fakeProvClusterId, fakeMgmtClusterId, longClusterDescription
       });
@@ -45,11 +50,12 @@ describe('Side Menu: main', () => {
       // The nav shelf holds PINNED clusters only — where the user has been lives in the flyout now — so
       // pin the downstream cluster to give the combo a second row in the nav to light up.
       //
-      // Every route change collapses the nav (the `$route` watcher hides it), and the navigation above is
-      // the last one, so wait for that collapse to LAND before toggling: a toggle issued inside that
-      // window is undone by the watcher, and in the collapsed rail the local cluster's link sits over the
-      // switcher trigger, so the click never reaches it.
-      BurgerMenuPo.checkClosed();
+      // Every route change collapses the nav (the `$route` watcher hides it), so wait for the navigation
+      // above to LAND before opening it: a toggle issued while that push is still resolving is undone by
+      // the watcher, and in the collapsed rail the local cluster's link sits over the switcher trigger,
+      // so the click never reaches it. Waiting on the nav being closed would prove nothing — it already
+      // is — so wait on the URL the click was for.
+      cy.url().should('contain', '/explorer/projectsnamespaces');
       BurgerMenuPo.toggle();
       BurgerMenuPo.checkOpen();
 
