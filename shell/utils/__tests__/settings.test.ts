@@ -5,6 +5,7 @@ import {
   setSetting,
   getPerformanceSetting,
   isProviderEnabled,
+  isSuseAppCollectionEnabled,
 } from '../settings';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { MANAGEMENT } from '@shell/config/types';
@@ -378,5 +379,27 @@ describe('setSetting', () => {
       type: MANAGEMENT.SETTING,
       id:   'my-setting',
     });
+  });
+});
+
+describe('isSuseAppCollectionEnabled', () => {
+  const storeWithSystemCatalog = (value?: string) => ({
+    getters: {
+      'management/byId': (type: string, id: string) => {
+        return type === MANAGEMENT.SETTING && id === SETTING.SYSTEM_CATALOG && value !== undefined ? { value } : undefined;
+      },
+    },
+  });
+
+  it('is enabled when the system-catalog setting is absent', () => {
+    expect(isSuseAppCollectionEnabled(storeWithSystemCatalog() as any)).toBe(true);
+  });
+
+  it('is enabled when system-catalog is not bundle', () => {
+    expect(isSuseAppCollectionEnabled(storeWithSystemCatalog('external') as any)).toBe(true);
+  });
+
+  it('is disabled when system-catalog is bundle (airgap / bundled charts only)', () => {
+    expect(isSuseAppCollectionEnabled(storeWithSystemCatalog('bundle') as any)).toBe(false);
   });
 });
