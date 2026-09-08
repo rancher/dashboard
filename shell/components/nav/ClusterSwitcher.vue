@@ -5,6 +5,7 @@ import {
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import ClusterSwitcherRow from '@shell/components/nav/ClusterSwitcherRow.vue';
+import ClusterSwitcherSkeleton from '@shell/components/nav/ClusterSwitcherSkeleton.vue';
 import type { TopLevelMenuCluster } from '@shell/components/nav/TopLevelMenu.helper';
 import { reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
 import { isMac } from '@shell/utils/platform';
@@ -158,18 +159,6 @@ const placeholder = computed(() => t('nav.switcher.jumpTo'));
 // input points at via aria-activedescendant, so a screen reader announces the highlighted cluster without
 // moving DOM focus off the input.
 const listboxId = 'cluster-switcher-listbox';
-// Each section is its own listbox, and the combobox names every one that is on screen so it owns their
-// options too.
-const recentListboxId = 'cluster-switcher-recent-listbox';
-const listboxIds = computed(() => [
-  localTile.value ? localListboxId : '',
-  recentRows.value.length ? recentListboxId : '',
-  listboxId,
-].filter((id) => !!id).join(' '));
-
-// `local` sits in its own single-option listbox above the door; the combobox references both via
-// aria-controls so it owns the local option too.
-const localListboxId = 'cluster-switcher-local-listbox';
 const optionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-${ c.id }`;
 // RECENTLY USED repeats clusters that are also the fixed tile or rows of the estate, so its options carry
 // their own ids — two elements answering to one id would make `aria-activedescendant` ambiguous and give
@@ -184,11 +173,22 @@ const optionIdAt = (index: number): string | undefined => {
     return undefined;
   }
 
-  const recentStart = localOffset.value;
-  const inRecent = index >= recentStart && index < resultsOffset.value;
+  const inRecent = index >= localOffset.value && index < resultsOffset.value;
 
   return inRecent ? recentOptionId(c) : optionId(c);
 };
+
+// The reverse — option id back to its position — built once per list rather than per pointer move, which
+// fires at screen rate.
+const indexByOptionId = computed<Record<string, number>>(() => navRows.value.reduce((acc, _c, i) => {
+  const id = optionIdAt(i);
+
+  if (id) {
+    acc[id] = i;
+  }
+
+  return acc;
+}, {} as Record<string, number>));
 
 const activeDescendant = computed(() => optionIdAt(activeIndex.value));
 // A pin toggle has nothing else to announce it — the pin control is `aria-hidden` inside the option and
@@ -228,7 +228,7 @@ const onPointerMove = (e: MouseEvent) => {
     return;
   }
 
-  const index = navRows.value.findIndex((_c, i) => optionIdAt(i) === row.id);
+  const index = indexByOptionId.value[row.id] ?? NO_ACTIVE_INDEX;
 
   if (index >= 0 && index !== activeIndex.value) {
     activeIndex.value = index;
@@ -632,7 +632,8 @@ const onKeydown = (e: KeyboardEvent) => {
 };
 
 // `toggle` and `closeAndWait` are the parent's API (TopLevelMenu drives both via `$refs.switcher`); the
-// rest are exposed for the unit tests, which drive these internals directly.
+// rest are exposed for the unit tests, which drive these internals directly. Nothing is listed here that
+// no one outside the component reads.
 defineExpose({
   searching,
   rows,
@@ -640,7 +641,6 @@ defineExpose({
   localTile,
   recentRows,
   showRecent,
-  recentOptionId,
   resultsOffset,
   localOffset,
   placeholder,
@@ -653,7 +653,6 @@ defineExpose({
   onKeydown,
   onPointerMove,
   explore,
-  togglePin,
 });
 </script>
 
@@ -708,7 +707,7 @@ defineExpose({
             aria-haspopup="listbox"
             aria-autocomplete="list"
             :aria-keyshortcuts="pinShortcut"
-            :aria-controls="listboxIds"
+            :aria-controls="listboxId"
             :aria-activedescendant="activeDescendant"
             @input="onInput"
           >
@@ -718,8 +717,12 @@ defineExpose({
              scrolls as one region, so a long list is read by scrolling the panel rather than a strip of
              it while headings stay put. -->
         <div
+          :id="listboxId"
           ref="scroller"
           class="switcher-scroll"
+          role="listbox"
+          :aria-busy="listLoading ? 'true' : 'false'"
+          :aria-label="t('nav.switcher.aria.clusterList')"
           @scroll="onScroll"
         >
           <!-- local — a tile at the head of the list, at rest only: a search takes it down and `local`
@@ -727,9 +730,8 @@ defineExpose({
                is never orphaned outside a listbox. -->
           <div
             v-if="localTile"
-            :id="localListboxId"
             class="switcher-local"
-            role="listbox"
+            role="group"
             :aria-label="t('nav.switcher.managementCluster')"
           >
             <ClusterSwitcherRow
@@ -754,28 +756,14 @@ defineExpose({
             >
               {{ t('nav.switcher.recent') }}
             </div>
-            <div
+            <ClusterSwitcherSkeleton
               v-if="recentLoading"
-              class="switcher-loading"
-              aria-hidden="true"
-            >
-              <div
-                v-for="n in 2"
-                :key="n"
-                class="skeleton-row"
-              >
-                <div class="skeleton-badge shimmer" />
-                <div class="skeleton-lines">
-                  <div class="skeleton-line shimmer" />
-                  <div class="skeleton-line short shimmer" />
-                </div>
-              </div>
-            </div>
+              :rows="2"
+            />
             <div
               v-else
-              :id="recentListboxId"
               class="switcher-recent"
-              role="listbox"
+              role="group"
               :aria-label="t('nav.switcher.recent')"
             >
               <ClusterSwitcherRow
@@ -811,122 +799,48 @@ defineExpose({
             </template>
           </div>
 
+          <!-- Page 1 in flight — a search's debounce + request, or the estate being (re)read. The
+                 skeleton deliberately replaces whatever is on screen: those rows are about to be thrown
+                 away, and a list about to be replaced should not sit there looking like the answer. -->
+          <ClusterSwitcherSkeleton
+            v-if="listLoading || (!searching && !rows.length)"
+            :rows="3"
+          />
+          <!-- One list, whichever it is: the estate at rest, the matches while searching. `rows` is
+                 already whichever of the two applies, so there is nothing to branch on here. -->
           <div
-            :id="listboxId"
-            class="switcher-list"
-            role="listbox"
-            :aria-busy="listLoading ? 'true' : 'false'"
-            :aria-label="t('nav.switcher.aria.clusterList')"
+            v-else-if="rows.length"
+            class="switcher-group"
+            role="group"
+            :aria-label="t(searching ? 'nav.switcher.matches' : 'nav.switcher.allClusters')"
           >
-            <!-- Searching: a single flat match list over the whole estate -->
-            <template v-if="searching">
-              <!-- Skeleton for the whole debounce + request window. It deliberately replaces any
-                   PREVIOUS result set: those rows do not match the query now being typed. -->
-              <div
-                v-if="listLoading"
-                class="switcher-loading"
-                aria-hidden="true"
-              >
-                <div
-                  v-for="n in 3"
-                  :key="n"
-                  class="skeleton-row"
-                >
-                  <div class="skeleton-badge shimmer" />
-                  <div class="skeleton-lines">
-                    <div class="skeleton-line shimmer" />
-                    <div class="skeleton-line short shimmer" />
-                  </div>
-                </div>
-              </div>
-              <div
-                v-else-if="rows.length"
-                class="switcher-group"
-                role="group"
-                :aria-label="t('nav.switcher.matches')"
-              >
-                <ClusterSwitcherRow
-                  v-for="(c, i) in rows"
-                  :id="optionId(c)"
-                  :key="c.id"
-                  :cluster="c"
-                  :active="activeIndex === i + resultsOffset"
-                  :current="c.id === currentClusterId"
-                  :route-combo="routeCombo"
-                  :pinnable="!c.isLocal"
-                  @select="explore"
-                />
-              </div>
-              <div
-                v-else
-                class="switcher-empty"
-                aria-hidden="true"
-              >
-                {{ t('nav.switcher.noMatch') }}
-              </div>
-            </template>
-
-            <!-- Resting: the ALL CLUSTERS directory only, lazy-loaded via @scroll → load-more. -->
-            <template v-else>
-              <!-- Gate on the loaded rows, not the parent's saved count: the two come from different
-                   queries, so a count that hasn't resolved yet would blank a directory we already hold. -->
-              <div
-                v-if="directory.length && !listLoading"
-                class="switcher-group"
-                role="group"
-                :aria-label="t('nav.switcher.allClusters')"
-              >
-                <ClusterSwitcherRow
-                  v-for="(c, i) in directory"
-                  :id="optionId(c)"
-                  :key="c.id"
-                  :cluster="c"
-                  :active="activeIndex === i + resultsOffset"
-                  :current="c.id === currentClusterId"
-                  :route-combo="routeCombo"
-                  @select="explore"
-                />
-              </div>
-              <!-- Page 1 in flight, or nothing loaded yet. Both show the skeleton: a directory about to be
-                   replaced wholesale should not sit there looking like the answer while the request runs. -->
-              <div
-                v-else
-                class="switcher-loading"
-                aria-hidden="true"
-              >
-                <div
-                  v-for="n in 3"
-                  :key="n"
-                  class="skeleton-row"
-                >
-                  <div class="skeleton-badge shimmer" />
-                  <div class="skeleton-lines">
-                    <div class="skeleton-line shimmer" />
-                    <div class="skeleton-line short shimmer" />
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- Infinite-scroll loading skeleton — shimmer placeholder rows while the next page loads. -->
-            <div
-              v-if="loadingMore"
-              class="switcher-loading"
-              aria-hidden="true"
-            >
-              <div
-                v-for="n in 2"
-                :key="n"
-                class="skeleton-row"
-              >
-                <div class="skeleton-badge shimmer" />
-                <div class="skeleton-lines">
-                  <div class="skeleton-line shimmer" />
-                  <div class="skeleton-line short shimmer" />
-                </div>
-              </div>
-            </div>
+            <ClusterSwitcherRow
+              v-for="(c, i) in rows"
+              :id="optionId(c)"
+              :key="c.id"
+              :cluster="c"
+              :active="activeIndex === i + resultsOffset"
+              :current="c.id === currentClusterId"
+              :route-combo="routeCombo"
+              :pinnable="!c.isLocal"
+              @select="explore"
+            />
           </div>
+          <!-- Only a search can legitimately come back empty: an empty estate means page 1 has not
+                 landed yet, which the skeleton above covers. -->
+          <div
+            v-else
+            class="switcher-empty"
+            aria-hidden="true"
+          >
+            {{ t('nav.switcher.noMatch') }}
+          </div>
+
+          <!-- Infinite-scroll loading skeleton — shimmer placeholder rows while the next page loads. -->
+          <ClusterSwitcherSkeleton
+            v-if="loadingMore"
+            :rows="2"
+          />
         </div>
       </div>
     </template>
@@ -1092,59 +1006,6 @@ defineExpose({
     color: var(--muted);
   }
 
-  // Infinite-scroll loading skeleton — shimmer placeholder rows mirroring the real row layout.
-  .switcher-loading {
-    .skeleton-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 16px;
-    }
-
-    .skeleton-badge {
-      flex: 0 0 auto;
-      width: 40px;
-      height: 32px;
-      border-radius: var(--border-radius);
-    }
-
-    .skeleton-lines {
-      flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-    }
-
-    .skeleton-line {
-      height: 10px;
-      width: 55%;
-      border-radius: 4px;
-
-      &.short {
-        width: 32%;
-      }
-    }
-  }
-
-  .shimmer {
-    background-image: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--body-text) 7%, transparent) 25%,
-      color-mix(in srgb, var(--body-text) 15%, transparent) 37%,
-      color-mix(in srgb, var(--body-text) 7%, transparent) 63%
-    );
-    background-size: 400% 100%;
-    animation: switcher-shimmer 1.4s ease infinite;
-  }
-
-  @keyframes switcher-shimmer {
-    0% {
-      background-position: 100% 0;
-    }
-    100% {
-      background-position: 0 0;
-    }
-  }
 }
 </style>
 

@@ -18,7 +18,7 @@ type Mutation = { key: string, apply: (value: PrefValue) => PrefValue };
 
 /** A real cluster worth recording a visit to. `_` (BLANK_CLUSTER) is a placeholder, not somewhere the
  * user went; `local` is a cluster like any other and does belong in the visit history. */
-export function isRecordableCluster(id: string): boolean {
+function isRecordableCluster(id: string): boolean {
   return !!id && id !== BLANK_CLUSTER;
 }
 
@@ -79,7 +79,7 @@ function enqueue(task: () => Promise<any>): Promise<any> {
 }
 
 /**
- * Commit the optimistic client change immediately (outside the queue) so the shelf and its FLIP
+ * Commit the optimistic client change immediately (outside the queue) so the shelf and its row
  * animation start the instant the user clicks, then serialize only the server round-trip so the UI
  * never waits behind it.
  */

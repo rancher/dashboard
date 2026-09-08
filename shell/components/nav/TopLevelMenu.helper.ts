@@ -13,11 +13,12 @@ import { reactive } from 'vue';
 import { LocationAsRelativeRaw } from 'vue-router';
 
 /**
- * The recent clusters to actually SHOW: visit order, capped at the display limit. Pinned clusters are
- * NOT held back — pinning something says to keep it to hand, not to erase where it sits in the visit
- * history, so a cluster can legitimately appear under both headings.
+ * The head of the visit log, in visit order. `max` is the caller's — the fetch asks for more ids than the
+ * flyout shows, because an id can stop resolving — so it is required rather than defaulted to one of the
+ * two. Pinned clusters are NOT held back: pinning says to keep something to hand, not to erase where it
+ * sits in the history, so a cluster can appear under both headings.
  */
-export function visibleRecentClusters(recents: string[] = [], max: number = SWITCHER_MAX_RECENT): string[] {
+export function visibleRecentClusters(recents: string[] = [], max: number): string[] {
   return (Array.isArray(recents) ? recents : []).slice(0, max);
 }
 
@@ -291,6 +292,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   // on open. Nothing keeps it live between opens, and nothing needs to — the next open asks again.
   private clustersRecentWrapper: PaginationWrapper<any>;
   private recentClusters: Array<TopLevelMenuCluster> = reactive([]);
+  // Monotonic token, as the ALL list has: two opens in quick succession put two requests in flight, and
+  // only the newest may write the list — an older response landing last would replace it with staler rows.
+  private recentSeq = 0;
   private othersPage = 1;
   private othersPages = 0;
   // How many page-1 resets are in flight. `loadMoreOthers` stands down while any is: taking the sequence
@@ -398,7 +402,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
     // Prune deleted clusters: any id we asked for but the server didn't return is gone/invisible, so drop
     // it so it leaves the pinned shelf at once. Only prune ids we actually requested (never rows the
-    // ALL-list fetch cached); no backfill — the shelf just shows fewer rows until a fresh visit/pin.
+    // ALL-list fetch cached); no backfill — the shelf just shows fewer rows until a fresh pin.
     contextIds.forEach((id) => {
       if (!returnedIds.has(id)) {
         delete this.clusterCache[id];
@@ -420,6 +424,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
    */
   public async refreshRecent(): Promise<void> {
     const recentIds = visibleRecentClusters(this.recentPref, RECENT_CLUSTERS_FETCHED);
+    const seq = ++this.recentSeq;
 
     if (!recentIds.length) {
       this.recentClusters.length = 0;
@@ -439,9 +444,15 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       }
     });
 
-    // The server answers in ITS order; the visit log is the order that matters here.
+    // Rows still upsert into the shared cache — a newer request has the same right to that — but only the
+    // newest may replace the list itself.
     const found = r.data.map((mgmtCluster: MgmtCluster) => this.convertToCluster(mgmtCluster));
 
+    if (seq !== this.recentSeq) {
+      return;
+    }
+
+    // The server answers in ITS order; the visit log is the order that matters here.
     this.recentClusters.length = 0;
     this.recentClusters.push(...orderByIdsAndCap(found, recentIds, SWITCHER_MAX_RECENT));
   }
@@ -673,7 +684,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     const nonLocal = clusters.filter((c) => !c.isLocal);
 
     // Prune deleted clusters: legacy holds the full live estate in memory, so any cached row no longer
-    // present was removed — drop it so it leaves the derived pinned/recent shelf. `local` is exempt only
+    // present was removed — drop it so it leaves the derived pinned shelf. `local` is exempt only
     // until the estate has actually loaded (an empty list is "not fetched yet", not "local is gone"); once
     // it has, `local` goes the same way as any other missing id — matching the pagination helper, whose
     // `updateContext` prunes it when `hide-local-cluster` filters it out. Consumers read

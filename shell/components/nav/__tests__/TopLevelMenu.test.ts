@@ -1117,6 +1117,52 @@ describe('topLevelMenu', () => {
       expect(spyInit).toHaveBeenCalled(); // eslint-disable-line jest/prefer-called-with
     });
 
+    // RECENTLY USED is read when the flyout opens, not kept live — so the open has to ask for it, and the
+    // skeleton has to be raised and lowered around the request.
+    it('fetches the recent clusters when the flyout opens, with the skeleton up meanwhile', async() => {
+      const store = generateStore([]);
+      let settle: () => void = () => {};
+      const refreshRecent = jest.fn(() => new Promise<void>((resolve) => {
+        settle = resolve;
+      }));
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue({
+        update:         jest.fn(),
+        refreshRecent,
+        resetOthers:    jest.fn().mockResolvedValue(undefined),
+        loadMoreOthers: jest.fn().mockResolvedValue(undefined),
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
+      } as any);
+
+      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      (wrapper.vm as any).onFlyoutOpen(true);
+
+      expect(refreshRecent).toHaveBeenCalledWith();
+      expect((wrapper.vm as any).recentLoading).toBe(true);
+
+      settle();
+      await waitForIt();
+
+      expect((wrapper.vm as any).recentLoading).toBe(false);
+    });
+
     it('should call helper.update if pagination is disabled', () => {
       const store = generateStore([]);
 

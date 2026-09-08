@@ -1947,9 +1947,9 @@ export default {
          }
       }
 
-      // PINNED CLUSTERS / RECENTLY USED are plain `.category-title`s — identical to GLOBAL APPS and
-      // CONFIGURATION, with no overrides of their own.
-      .clustersPinned, .home-link, .clustersRecent {
+      // PINNED CLUSTERS is a plain `.category-title` — identical to GLOBAL APPS and CONFIGURATION, with
+      // no overrides of its own.
+      .clustersPinned, .home-link {
         .pin {
           display: block;
         }

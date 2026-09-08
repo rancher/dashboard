@@ -4,6 +4,7 @@ import { load } from 'js-yaml';
 import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
+import ClusterSwitcherSkeleton from '@shell/components/nav/ClusterSwitcherSkeleton.vue';
 
 // The component pulls `t` from the useI18n composable (not the old `this.t` global), so mock it here.
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string, args?: any) => (args ? `${ key }:${ JSON.stringify(args) }` : key) }) }));
@@ -112,6 +113,30 @@ describe('component: ClusterSwitcher', () => {
     expect(vm.activeIndex).toBe(0);
   });
 
+  // One list serves both states — the estate at rest, the matches while searching — so what an EMPTY one
+  // means depends on which it is: no answer to the query, or page 1 not landed yet.
+  describe('the estate list when it has no rows', () => {
+    it('says no matches while searching', async() => {
+      const wrapper = mountSwitcher({
+        search: 'zzz', searchResults: [], clusterCount: 7
+      });
+
+      await nextTick();
+
+      expect(wrapper.find('.switcher-empty').exists()).toBe(true);
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
+    });
+
+    // An estate cannot really be empty here — the switcher only renders at all for a non-zero browsable
+    // count — so an empty one means the request is still out, and the skeleton says so.
+    it('shows the skeleton at rest, not the empty state', () => {
+      const wrapper = mountSwitcher({ all: [], clusterCount: 7 });
+
+      expect(wrapper.find('.switcher-empty').exists()).toBe(false);
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton).length).toBeGreaterThan(0);
+    });
+  });
+
   // RECENTLY USED sits between the fixed tile and the estate: a shortcut to where the user just was.
   describe('recently used', () => {
     const recent = [cluster('r1'), cluster('r2')];
@@ -154,7 +179,7 @@ describe('component: ClusterSwitcher', () => {
       expect(vm.showRecent).toBe(true);
       // Rows are stubbed here, so count them by their option ids.
       expect(wrapper.findAll('[id^="cluster-switcher-opt-recent-"]')).toHaveLength(0);
-      expect(wrapper.findAll('.switcher-loading .skeleton-row').length).toBeGreaterThan(0);
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton).length).toBeGreaterThan(0);
       // Nothing to point the cursor at while it is a skeleton.
       expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'p1']);
 
@@ -205,16 +230,19 @@ describe('component: ClusterSwitcher', () => {
       vm.setOpen(false);
     });
 
-    it('names every listbox on screen from the combobox', async() => {
+    // The scrolling region IS the listbox, and the sections are GROUPS inside it — a listbox may contain
+    // groups, but not other listboxes, and one composite widget is also what the combobox points at.
+    it('sits in the one listbox the combobox owns, as a group', () => {
       const wrapper = mountSwitcher({
         local: cluster('local'), recent, all: [cluster('p1')]
       });
-      const controls = () => wrapper.find('input.switcher-search-input').attributes('aria-controls');
 
-      expect(controls()).toBe('cluster-switcher-local-listbox cluster-switcher-recent-listbox cluster-switcher-listbox');
-
-      await wrapper.setProps({ search: 'm', searchResults: [cluster('m1')] } as any);
-      expect(controls()).toBe('cluster-switcher-listbox');
+      expect(wrapper.find('input.switcher-search-input').attributes('aria-controls')).toBe('cluster-switcher-listbox');
+      expect(wrapper.find('.switcher-scroll').attributes('role')).toBe('listbox');
+      expect(wrapper.find('.switcher-scroll').attributes('id')).toBe('cluster-switcher-listbox');
+      expect(wrapper.findAll('.switcher-scroll [role="listbox"]')).toHaveLength(0);
+      expect(wrapper.find('.switcher-local').attributes('role')).toBe('group');
+      expect(wrapper.find('.switcher-recent').attributes('role')).toBe('group');
     });
   });
 
@@ -479,9 +507,9 @@ describe('component: ClusterSwitcher', () => {
       expect(at('switcher-search')).toBeLessThan(at('switcher-scroll'));
       expect(at('switcher-scroll')).toBeLessThan(at('switcher-local'));
       expect(at('switcher-local')).toBeLessThan(at('switcher-recent'));
-      expect(at('switcher-recent')).toBeLessThan(at('switcher-list'));
+      expect(at('switcher-recent')).toBeLessThan(at('switcher-group'));
       // The scroller holds them all, so one scrollbar moves the whole panel body.
-      expect(wrapper.findAll('.switcher-scroll .switcher-local, .switcher-scroll .switcher-recent, .switcher-scroll .switcher-list')).toHaveLength(3);
+      expect(wrapper.findAll('.switcher-scroll .switcher-local, .switcher-scroll .switcher-recent, .switcher-scroll .switcher-group')).toHaveLength(3);
     });
 
     it('swaps the caption for MATCHES + the match total while searching', () => {
@@ -560,8 +588,8 @@ describe('component: ClusterSwitcher', () => {
       // local heads the navigation model, but the visible results listbox still renders only the directory.
       expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'p1', 'p2']);
       expect(vm.rows.map((c: any) => c.id)).toStrictEqual(['p1', 'p2']);
-      // The combobox owns BOTH the local listbox and the results listbox.
-      expect(input().attributes('aria-controls')).toBe('cluster-switcher-local-listbox cluster-switcher-listbox');
+      // One listbox, holding the tile and the estate as groups — that is what the combobox owns.
+      expect(input().attributes('aria-controls')).toBe('cluster-switcher-listbox');
 
       // Opening highlights nothing — a highlight nobody asked for reads as a selection, and Enter would
       // act on it — so Enter is inert until the user has driven the cursor.
@@ -670,14 +698,14 @@ describe('component: ClusterSwitcher', () => {
     it('shows the skeleton while the resting list is being refetched', async() => {
       const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
 
-      expect(wrapper.findAll('.switcher-scroll .skeleton-row')).toHaveLength(0);
-      expect(wrapper.find('.switcher-list').attributes('aria-busy')).toBe('false');
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
+      expect(wrapper.find('.switcher-scroll').attributes('aria-busy')).toBe('false');
 
       await wrapper.setProps({ listLoading: true } as any);
 
       expect(wrapper.findAll('.switcher-group')).toHaveLength(0);
-      expect(wrapper.findAll('.switcher-scroll .skeleton-row').length).toBeGreaterThan(0);
-      expect(wrapper.find('.switcher-list').attributes('aria-busy')).toBe('true');
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton).length).toBeGreaterThan(0);
+      expect(wrapper.find('.switcher-scroll').attributes('aria-busy')).toBe('true');
     });
 
     // A cold open (nothing pinned, no visit history) has an empty directory, and page 1 lands a moment

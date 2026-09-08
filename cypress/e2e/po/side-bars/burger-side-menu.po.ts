@@ -198,10 +198,21 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * The estate list inside the flyout — ALL CLUSTERS at rest, the matches while searching.
+   *
+   * Scoped to that list rather than the whole panel: the panel also holds the fixed `local` tile and
+   * RECENTLY USED, and those repeat clusters that are in the estate too, so a panel-wide selector would
+   * match the same cluster two or three times over.
+   */
+  clusterList(): Cypress.Chainable {
+    return BurgerMenuPo.clusterSwitcherFlyout().find('.switcher-group');
+  }
+
+  /**
    * The rows currently matching the flyout's search term.
    */
   clusterSearchResults(): Cypress.Chainable {
-    return BurgerMenuPo.clusterSwitcherFlyout().find('.switcher-scroll .cluster-switcher-row');
+    return this.clusterList().find('.cluster-switcher-row');
   }
 
   /**
@@ -213,7 +224,7 @@ export default class BurgerMenuPo extends ComponentPo {
     // (e.g. "loadtest-1" vs "loadtest-10") cannot select the wrong row.
     const exact = new RegExp(`^${ label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }$`);
 
-    return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row .row-name').contains(exact)
+    return this.clusterList().find('.cluster-switcher-row .row-name').contains(exact)
       .closest('.cluster-switcher-row');
   }
 
@@ -246,7 +257,8 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
-   * Get all the available cluster rows in the (open) switcher flyout.
+   * Every cluster row on screen in the (open) switcher flyout — the `local` tile and RECENTLY USED
+   * included, so the same cluster can appear more than once. Use `clusterList()` for the estate alone.
    * @returns {Cypress.Chainable}
    */
   clusterSwitcherRows(): Cypress.Chainable {

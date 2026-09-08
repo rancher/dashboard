@@ -283,6 +283,39 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c5', 'c9', 'c2', 'c1', 'c7']);
     });
 
+    // Two opens in quick succession put two requests in flight. Only the newest may write the list — an
+    // older response landing last would replace it with staler rows.
+    it('lets only the newest recent fetch write the list', async() => {
+      mockStore.getters['management/schemaFor'].mockReturnValue(true);
+      const row = (id: string) => ({
+        id, nameDisplay: id, isReady: true, canExplore: true, pinned: false, pin: jest.fn(), unpin: jest.fn()
+      });
+      let settleFirst: (v: any) => void = () => {};
+      const mockRequestRecent = jest.fn()
+        .mockImplementationOnce(() => new Promise((resolve) => {
+          settleFirst = resolve;
+        }))
+        .mockResolvedValueOnce({ data: [row('c2')] });
+
+      (PaginationWrapper as unknown as jest.Mock)
+        .mockImplementationOnce(() => ({ request: jest.fn().mockResolvedValue({ data: [] }), onDestroy: jest.fn() }))
+        .mockImplementationOnce(() => ({ request: mockRequestRecent, onDestroy: jest.fn() }));
+
+      prefsData['recent-clusters'] = ['c1', 'c2'];
+
+      const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+      const first = helper.refreshRecent();
+
+      await helper.refreshRecent();
+      expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c2']);
+
+      // The stale response lands last and must be ignored.
+      settleFirst({ data: [row('c1')] });
+      await first;
+
+      expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c2']);
+    });
+
     // The watch is for what the NAV shows for as long as it is on screen. RECENTLY USED is not that.
     it('watches local and pinned only', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
