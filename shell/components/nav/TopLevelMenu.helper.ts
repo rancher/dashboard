@@ -439,6 +439,10 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           includeIds: true,
         }),
         page:                 1,
+        // The filter is an exact OR over `recentIds`, so the answer can never be longer than that list —
+        // ask for exactly that many rather than falling through to the store default of 100000. Tied to
+        // the same constant that caps the ids, so raising one can never leave the other behind.
+        pageSize:             RECENT_CLUSTERS_FETCHED,
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       }

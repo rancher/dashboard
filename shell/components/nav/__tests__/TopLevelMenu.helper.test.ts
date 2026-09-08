@@ -1,6 +1,7 @@
 import TopLevelMenuHelperService, { TopLevelMenuHelperLegacy, TopLevelMenuHelperPagination, visibleRecentClusters } from '../TopLevelMenu.helper';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
+import { RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
 
 // Mock dependencies
 jest.mock('@shell/utils/pagination-wrapper');
@@ -279,6 +280,10 @@ describe('topLevelMenu.helper', () => {
       const requestedIds = filters[filters.length - 1].fields.map((f: any) => f.value);
 
       expect(requestedIds).toStrictEqual(['c5', 'c9', 'cP', 'c2', 'c1', 'c7', 'c3']);
+      // The ids are an exact OR-set, so the answer can never be longer than the ids asked for: the page
+      // is sized to that cap rather than the store default of 100000. Asserted against the constant that
+      // caps the ids, so the two cannot drift apart and start truncating the list.
+      expect(mockRequestRecent.mock.calls[0][0].pagination.pageSize).toBe(RECENT_CLUSTERS_FETCHED);
       // Visit order, five of them, and 'cP' dropped because the fetch did not return it.
       expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c5', 'c9', 'c2', 'c1', 'c7']);
     });
