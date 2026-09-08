@@ -1431,7 +1431,13 @@ describe('page: UI plugins/Extensions', () => {
     const mountLoaded = async() => {
       const w = mountComponent();
 
-      await w.setData({ loading: false, activeTab: 'available' });
+      // activeTabButtonId is normally set by Tabbed's @changed event; simulate it directly here
+      // since shallowMount stubs Tabbed and won't fire the real event.
+      await w.setData({
+        loading:           false,
+        activeTab:         'available',
+        activeTabButtonId: 'tab-v-0-available'
+      });
 
       return w;
     };
@@ -1443,7 +1449,7 @@ describe('page: UI plugins/Extensions', () => {
       expect(panel.attributes('id')).toBe('extensions-tab-panel');
       expect(panel.attributes('role')).toBe('tabpanel');
       expect(panel.attributes('tabindex')).toBe('0');
-      expect(panel.attributes('aria-labelledby')).toBe('tab-available');
+      expect(panel.attributes('aria-labelledby')).toBe('tab-v-0-available');
     });
 
     it('should tell the tabs which external panel they control', async() => {
@@ -1455,7 +1461,11 @@ describe('page: UI plugins/Extensions', () => {
     it('should not label the panel before a tab has been selected', async() => {
       const w = mountComponent();
 
-      await w.setData({ loading: false, activeTab: '' });
+      await w.setData({
+        loading:           false,
+        activeTab:         '',
+        activeTabButtonId: undefined
+      });
 
       expect(w.find('.plugin-cards').attributes('aria-labelledby')).toBeUndefined();
     });

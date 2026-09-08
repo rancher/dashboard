@@ -70,6 +70,7 @@ export default {
       EXTENSIONS_PANEL_ID,
       kubeVersion:                    null,
       activeTab:                      '',
+      activeTabButtonId:              undefined,
       installing:                     {},
       installedFromRepo:              {},
       errors:                         {},
@@ -457,6 +458,7 @@ export default {
 
     tabChanged(f) {
       this.activeTab = f.selectedName;
+      this.activeTabButtonId = f.tabButtonId;
     },
 
     // Developer Load is in the action menu
@@ -1190,7 +1192,7 @@ export default {
         class="plugin-cards"
         :class="{'v-margin': !list.length}"
         role="tabpanel"
-        :aria-labelledby="activeTab ? `tab-${activeTab}` : undefined"
+        :aria-labelledby="activeTabButtonId || undefined"
         tabindex="0"
       >
         <IconMessage

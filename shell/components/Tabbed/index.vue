@@ -7,7 +7,7 @@ import findIndex from 'lodash/findIndex';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
-import { computed, ref, useTemplateRef } from 'vue';
+import { computed, ref, useId, useTemplateRef } from 'vue';
 import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import { useIsInResourceDetailPage } from '@shell/composables/resourceDetail';
 import { useIsInResourceCreatePage, useIsInResourceEditPage } from '@shell/composables/cruResource';
@@ -126,9 +126,9 @@ export default {
     const tabs = this.tabs;
 
     return {
-      select: this.select,
-
-      sideTabs: this.sideTabs,
+      select:      this.select,
+      sideTabs:    this.sideTabs,
+      instanceUid: this.instanceUid,
 
       addTab(tab) {
         const existing = findBy(tabs, 'name', tab.name);
@@ -184,6 +184,7 @@ export default {
   },
 
   setup(props) {
+    const instanceUid = useId();
     const isInResourceDetailDrawer = ref(useIsInResourceDetailDrawer());
     const isInResourceDetailPage = ref(useIsInResourceDetailPage());
     const isInResourceEditPage = ref(useIsInResourceEditPage());
@@ -196,7 +197,7 @@ export default {
     });
 
     return {
-      isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage, summary
+      instanceUid, isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage, summary
     };
   },
 
@@ -233,6 +234,10 @@ export default {
   },
 
   methods: {
+    tabButtonId(name) {
+      return `tab-${ this.instanceUid }-${ name }`;
+    },
+
     getInitialTabLocation() {
       if (this.isInResourceEditPage) {
         return TabLocation.RESOURCE_EDIT_PAGE;
@@ -295,7 +300,11 @@ export default {
         tab.active = (tab.name === selected.name);
       }
 
-      this.$emit('changed', { tab: selected, selectedName: selected.name });
+      this.$emit('changed', {
+        tab:          selected,
+        selectedName: selected.name,
+        tabButtonId:  this.tabButtonId(selected.name)
+      });
       this.activeTabName = selected.name;
     },
 
@@ -400,10 +409,10 @@ export default {
           :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
         >
           <a
-            :id="`tab-${tab.name}`"
+            :id="tabButtonId(tab.name)"
             :ref="(el) => { if (el) tabRefs[tab.name] = el; }"
             :data-testid="`btn-${tab.name}`"
-            :aria-controls="externalPanelId || tab.name"
+            :aria-controls="externalPanelId || `${instanceUid}-${tab.name}`"
             :aria-selected="!!tab.active"
             :aria-disabled="tab.disabled ? 'true' : undefined"
             :aria-label="tab.labelDisplay || ''"

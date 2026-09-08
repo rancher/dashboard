@@ -8,7 +8,7 @@ import { useI18n } from '@shell/composables/useI18n';
 export default {
   name: 'Tab',
 
-  inject: ['addTab', 'removeTab', 'sideTabs', 'select'],
+  inject: ['addTab', 'removeTab', 'sideTabs', 'select', 'instanceUid'],
 
   emits: ['active'],
 
@@ -176,11 +176,11 @@ export default {
 <template>
   <section
     v-show="active"
-    :id="name"
+    :id="`${instanceUid}-${name}`"
     ref="tab-summarized-container"
     class="tab-panel"
     role="tabpanel"
-    :aria-labelledby="`tab-${name}`"
+    :aria-labelledby="`tab-${instanceUid}-${name}`"
     tabindex="0"
   >
     <div

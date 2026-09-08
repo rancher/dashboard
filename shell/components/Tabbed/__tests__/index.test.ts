@@ -272,6 +272,41 @@ describe('component: Tabbed, ARIA structure', () => {
       expect(panel.attributes('aria-hidden')).toBeUndefined();
     });
   });
+
+  it('should not produce duplicate ids when two Tabbed instances share the same tab names', async() => {
+    // Both instances must live in the same Vue app — useId() guarantees uniqueness within an app,
+    // matching how Tabbed instances coexist in the real single-page application.
+    const DoubleTabbedFixture = defineComponent({
+      components: { Tabbed, Tab },
+      template:   `
+        <div>
+          <Tabbed>
+            <Tab name="tab1" label="Tab 1" />
+            <Tab name="tab2" label="Tab 2" />
+          </Tabbed>
+          <Tabbed>
+            <Tab name="tab1" label="Tab 1" />
+            <Tab name="tab2" label="Tab 2" />
+          </Tabbed>
+        </div>
+      `,
+    });
+
+    const wrapper = mount(DoubleTabbedFixture, {
+      global: {
+        ...defaultGlobalMountOptions,
+        components: { ...defaultGlobalMountOptions.components, Tabbed },
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    const ids = wrapper.findAll('[id]').map((el) => el.attributes('id') as string);
+
+    expect(ids.length).toBeGreaterThan(0);
+    expect(ids).toStrictEqual([...new Set(ids)]);
+  });
 });
 
 describe('component: Tabbed, keyboard navigation', () => {
@@ -313,7 +348,9 @@ describe('component: Tabbed, keyboard navigation', () => {
     await tabsOf(wrapper)[0].trigger('keydown', { key: 'ArrowRight' });
     await wrapper.vm.$nextTick();
 
-    expect(document.activeElement?.id).toBe('tab-tab2');
+    const expectedId = wrapper.vm.tabButtonId('tab2');
+
+    expect(document.activeElement?.id).toBe(expectedId);
 
     wrapper.unmount();
     container.remove();
