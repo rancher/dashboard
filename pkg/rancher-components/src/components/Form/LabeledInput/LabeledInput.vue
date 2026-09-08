@@ -554,7 +554,7 @@ export default defineComponent({
         :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
-        :class="{ 'multiline-password': type === 'multiline-password' }"
+        :class="{ 'multiline-password': type === 'multiline-password', 'auto-grow-labeled': hasLabel }"
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
         @update:value="onInput"
