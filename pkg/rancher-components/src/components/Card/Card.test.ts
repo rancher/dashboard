@@ -1,7 +1,5 @@
-import { defineComponent, h } from 'vue';
 import { mount } from '@vue/test-utils';
 import { Card } from './index';
-import { provideModalTitleId } from '@components/utils/modalTitle';
 
 describe('component: Card', () => {
   const title = 'Card title';
@@ -35,46 +33,15 @@ describe('component: Card', () => {
     expect(element.exists()).toBe(true);
   });
 
-  it('should not give the card title an id when rendered outside of a modal', () => {
+  it('should not have an id on the card title when rendered outside of a modal', () => {
     const wrapper = mount(Card, { slots: { title: '<div>Card title</div>' } });
 
     expect(wrapper.find('[data-testid="card-title-slot"]').attributes('id')).toBeUndefined();
   });
 
-  it('should claim the enclosing modal title id for the card title', () => {
-    let titleId = '';
+  it('should mark the card title with data-modal-title for modal labelling', () => {
+    const wrapper = mount(Card, { props: { title } });
 
-    const modal = defineComponent({
-      setup() {
-        titleId = provideModalTitleId();
-
-        return () => h(Card, null, { title: () => h('h4', title) });
-      }
-    });
-
-    const wrapper = mount(modal);
-
-    expect(titleId).not.toBe('');
-    expect(wrapper.find('[data-testid="card-title-slot"]').attributes('id')).toBe(titleId);
-  });
-
-  it('should only let the first card in a modal claim the title id', () => {
-    let titleId = '';
-
-    const modal = defineComponent({
-      setup() {
-        titleId = provideModalTitleId();
-
-        return () => h('div', [
-          h(Card, null, { title: () => h('h4', title) }),
-          h(Card, null, { title: () => h('h4', body) }),
-        ]);
-      }
-    });
-
-    const wrapper = mount(modal);
-    const ids = wrapper.findAll('[data-testid="card-title-slot"]').map((el) => el.attributes('id'));
-
-    expect(ids).toStrictEqual([titleId, undefined]);
+    expect(wrapper.find('[data-testid="card-title-slot"]').attributes('data-modal-title')).toBeDefined();
   });
 });

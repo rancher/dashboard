@@ -6,16 +6,11 @@ import { UI_PLUGIN_LABELS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { allHash } from '@shell/utils/promise';
 
 import AsyncButton from '@shell/components/AsyncButton';
-import { useModalTitleId } from '@components/utils/modalTitle';
 
 export default {
   emits: ['close'],
 
   components: { AsyncButton },
-
-  setup() {
-    return { modalTitleId: useModalTitleId() };
-  },
 
   props: {
     /**
@@ -161,8 +156,8 @@ export default {
 <template>
   <div class="plugin-install-dialog">
     <h4
-      :id="modalTitleId"
       class="mt-10"
+      data-modal-title
     >
       {{ t('plugins.uninstall.title', { name: catalog.name }) }}
     </h4>

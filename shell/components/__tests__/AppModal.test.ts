@@ -125,7 +125,7 @@ describe('appModal accessible name', () => {
     document.body.innerHTML = '';
   });
 
-  it('is not labelled when nothing renders the title id', async() => {
+  it('is not labelled when no element is marked with data-modal-title', async() => {
     wrapper = mount(AppModal, {
       attachTo: document.body,
       slots:    { default: '<div class="content">Modal content</div>' }
@@ -136,10 +136,10 @@ describe('appModal accessible name', () => {
     expect(dialog()?.getAttribute('aria-labelledby')).toBeNull();
   });
 
-  it('is labelled by a title rendered with the id given to the default slot', async() => {
+  it('is labelled by an element marked with data-modal-title', async() => {
     wrapper = mount(AppModal, {
       attachTo: document.body,
-      slots:    { default: (props: { titleId: string }) => h('h4', { id: props.titleId }, 'Slot title') }
+      slots:    { default: () => h('h4', { 'data-modal-title': '' }, 'Slot title') }
     });
 
     await settle();
@@ -169,7 +169,7 @@ describe('appModal accessible name', () => {
 
     wrapper = mount(AppModal, {
       attachTo: document.body,
-      slots:    { default: (props: { titleId: string }) => (showTitle.value ? h('h4', { id: props.titleId }, 'Late title') : h('div', 'Loading')) }
+      slots:    { default: () => (showTitle.value ? h('h4', { 'data-modal-title': '' }, 'Late title') : h('div', 'Loading')) }
     });
 
     await settle();
@@ -189,7 +189,7 @@ describe('appModal accessible name', () => {
     wrapper = mount(AppModal, {
       attachTo: document.body,
       attrs:    { 'aria-labelledby': 'external-title' },
-      slots:    { default: (props: { titleId: string }) => h('h4', { id: props.titleId }, 'Slot title') }
+      slots:    { default: () => h('h4', { 'data-modal-title': '' }, 'Slot title') }
     });
 
     await settle();

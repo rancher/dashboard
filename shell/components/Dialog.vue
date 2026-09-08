@@ -82,9 +82,9 @@ export default {
     @close="closeDialog(false)"
     @before-open="beforeOpen"
   >
-    <template #default="{ titleId }">
+    <template #default>
       <div class="modal-dialog">
-        <h4 :id="titleId">
+        <h4 data-modal-title>
           {{ title }}
         </h4>
         <slot />

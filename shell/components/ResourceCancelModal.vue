@@ -59,11 +59,11 @@ export default {
     :trigger-focus-trap="true"
     @close="cancelCancel"
   >
-    <template #default="{ titleId }">
+    <template #default>
       <div class="header">
         <h4
-          :id="titleId"
           class="text-default-text"
+          data-modal-title
         >
           <t
             v-if="isCancelModal"

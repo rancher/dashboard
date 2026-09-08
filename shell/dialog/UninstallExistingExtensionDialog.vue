@@ -2,7 +2,6 @@
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
-import { useModalTitleId } from '@components/utils/modalTitle';
 
 /**
  * Dialog shown when user tries to install an extension that is already installed from a different source.
@@ -12,10 +11,6 @@ export default {
   emits: ['close'],
 
   components: { AsyncButton },
-
-  setup() {
-    return { modalTitleId: useModalTitleId() };
-  },
 
   props: {
     /**
@@ -109,8 +104,8 @@ export default {
 <template>
   <div class="plugin-install-dialog">
     <h4
-      :id="modalTitleId"
       class="mt-10"
+      data-modal-title
     >
       {{ t('plugins.install.alreadyInstalledTitle') }}
     </h4>

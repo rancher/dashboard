@@ -1,11 +1,12 @@
 <script lang="ts">
-import { defineComponent, markRaw, ref, StyleValue } from 'vue';
+import {
+  defineComponent, markRaw, ref, StyleValue, useId
+} from 'vue';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
   getFirstFocusableElement,
   useWatcherBasedSetupFocusTrapWithDestroyIncluded
 } from '@shell/composables/focusTrap';
-import { provideModalTitleId } from '@components/utils/modalTitle';
 
 export const DEFAULT_ITERABLE_NODE_SELECTOR = 'body;';
 
@@ -131,9 +132,7 @@ export default defineComponent({
     }
   },
   setup(props) {
-    // made available to descendants (see Card) and to the default slot, so
-    // whatever renders the modal's title can label the dialog with it
-    const titleId = provideModalTitleId();
+    const titleId = useId();
 
     if (props.triggerFocusTrap) {
       let opts:any = DEFAULT_FOCUS_TRAP_OPTS;
@@ -187,14 +186,14 @@ export default defineComponent({
     this.titleObserver?.disconnect();
   },
   methods: {
-    /**
-     * Track whether the title id handed to the slot, or claimed by a descendant
-     * such as Card, has actually made it into the DOM
-     */
     syncTitle() {
       const container = this.$refs.modalRef as HTMLElement | undefined;
+      const titleEl = container?.querySelector('[data-modal-title]') as HTMLElement | null;
 
-      this.hasTitle = !!container?.querySelector(`[id="${ this.titleId }"]`);
+      if (titleEl) {
+        titleEl.id = this.titleId;
+      }
+      this.hasTitle = !!titleEl;
     },
     handleClickOutside(event: MouseEvent) {
       if (
@@ -248,7 +247,7 @@ export default defineComponent({
           :aria-labelledby="labelledBy"
           @click.stop
         >
-          <slot :title-id="titleId">
+          <slot>
             <!--Empty content-->
           </slot>
         </div>

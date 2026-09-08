@@ -7,7 +7,6 @@ import { UI_PLUGIN_NAMESPACE, isChartVersionHigher } from '@shell/config/uiplugi
 import Banner from '@components/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
 import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
-import { useModalTitleId } from '@components/utils/modalTitle';
 
 // Note: This dialog handles installation, upgrade and downgrade of a plugin
 
@@ -18,10 +17,6 @@ export default {
     AsyncButton,
     Banner,
     LabeledSelect
-  },
-
-  setup() {
-    return { modalTitleId: useModalTitleId() };
   },
 
   props: {
@@ -325,8 +320,8 @@ export default {
 <template>
   <div class="plugin-install-dialog">
     <h4
-      :id="modalTitleId"
       class="mt-10"
+      data-modal-title
     >
       {{ t(`plugins.${ buttonMode }.title`, { name: `"${plugin?.label}"` }, true) }}
     </h4>
