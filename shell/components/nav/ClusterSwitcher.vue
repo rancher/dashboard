@@ -19,6 +19,12 @@ type Props = {
   local?: TopLevelMenuCluster | null;
   /** The complete browsable estate (helper railAll) — local excluded, shown under ALL CLUSTERS. */
   all?: TopLevelMenuCluster[];
+  /** The last few clusters visited, already capped by the parent. Shown above ALL CLUSTERS and NOT
+   * de-duplicated against it or against `local` — it is a shortcut to where the user just was. */
+  recent?: TopLevelMenuCluster[];
+  /** RECENTLY USED is being fetched (it is read on open, not kept live). Shows the same skeleton the list
+   * does, so the section does not pop in beside a shimmering one. */
+  recentLoading?: boolean;
   /** Flat match list while searching — the shared, filtered ALL-list results (helper.clustersOthers). */
   searchResults?: TopLevelMenuCluster[];
   /** Estate size — the ALL CLUSTERS count, and the total a screen reader is told. */
@@ -47,6 +53,8 @@ type Props = {
 const props = withDefaults(defineProps<Props>(), {
   local:            null,
   all:              () => [],
+  recent:           () => [],
+  recentLoading:    false,
   searchResults:    () => [],
   clusterCount:     0,
   searchCount:      0,
@@ -115,12 +123,24 @@ const rows = computed<TopLevelMenuCluster[]>(() => {
 // flag so the template narrows `local` off it: everything below reads this one value.
 const localTile = computed<TopLevelMenuCluster | null>(() => (props.local && !searching.value ? props.local : null));
 
-// The combobox must own the tile for the keyboard, so nav puts it at index 0 while the listbox renders
-// only `rows`, offset by `localOffset` to stay in lock-step. `activeIndex` is the KEYBOARD cursor only —
-// the pointer gets its own CSS `:hover` on the row, so moving the mouse never moves what Enter would open
-// (and never strands a highlight behind the pointer).
+// RECENTLY USED sits between the tile and the estate, and goes down with the tile while searching: the
+// results ARE the answer to the query, and a shortcut list beside them is just noise to scroll past.
+const recentRows = computed<TopLevelMenuCluster[]>(() => (searching.value || props.recentLoading ? [] : props.recent));
+
+// On screen while it is being fetched too, with the skeleton standing in for its rows, so the panel does
+// not reflow as they land.
+const showRecent = computed<boolean>(() => !searching.value && (props.recentLoading || !!recentRows.value.length));
+
+// The combobox owns all three sections for the keyboard: nav runs the fixed tile, then RECENTLY USED,
+// then the list, while each section renders only its own rows — `resultsOffset` keeps the listbox's
+// indices in lock-step with the flat model.
 const localOffset = computed<number>(() => (localTile.value ? 1 : 0));
-const navRows = computed<TopLevelMenuCluster[]>(() => (localTile.value ? [localTile.value, ...rows.value] : rows.value));
+const resultsOffset = computed<number>(() => localOffset.value + recentRows.value.length);
+const navRows = computed<TopLevelMenuCluster[]>(() => [
+  ...(localTile.value ? [localTile.value] : []),
+  ...recentRows.value,
+  ...rows.value,
+]);
 
 // Where the cursor sits when the user has not driven it: on a search, the first match, so Enter opens the
 // best answer to what was typed. At rest, nowhere — an open flyout highlights nothing, and the first ↓
@@ -138,15 +158,39 @@ const placeholder = computed(() => t('nav.switcher.jumpTo'));
 // input points at via aria-activedescendant, so a screen reader announces the highlighted cluster without
 // moving DOM focus off the input.
 const listboxId = 'cluster-switcher-listbox';
+// Each section is its own listbox, and the combobox names every one that is on screen so it owns their
+// options too.
+const recentListboxId = 'cluster-switcher-recent-listbox';
+const listboxIds = computed(() => [
+  localTile.value ? localListboxId : '',
+  recentRows.value.length ? recentListboxId : '',
+  listboxId,
+].filter((id) => !!id).join(' '));
+
 // `local` sits in its own single-option listbox above the door; the combobox references both via
 // aria-controls so it owns the local option too.
 const localListboxId = 'cluster-switcher-local-listbox';
 const optionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-${ c.id }`;
-const activeDescendant = computed(() => {
-  const c = navRows.value[activeIndex.value];
+// RECENTLY USED repeats clusters that are also the fixed tile or rows of the estate, so its options carry
+// their own ids — two elements answering to one id would make `aria-activedescendant` ambiguous and give
+// Vue duplicate keys.
+const recentOptionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-recent-${ c.id }`;
 
-  return c ? optionId(c) : undefined;
-});
+// The id of the option at a position in the flat nav model, which is what the cursor moves over.
+const optionIdAt = (index: number): string | undefined => {
+  const c = navRows.value[index];
+
+  if (!c) {
+    return undefined;
+  }
+
+  const recentStart = localOffset.value;
+  const inRecent = index >= recentStart && index < resultsOffset.value;
+
+  return inRecent ? recentOptionId(c) : optionId(c);
+};
+
+const activeDescendant = computed(() => optionIdAt(activeIndex.value));
 // A pin toggle has nothing else to announce it — the pin control is `aria-hidden` inside the option and
 // the pin shortcut is the only keyboard route to it — so route a one-line confirmation through this live
 // region. Cleared whenever the result set is re-announced (search change / reopen).
@@ -184,7 +228,7 @@ const onPointerMove = (e: MouseEvent) => {
     return;
   }
 
-  const index = navRows.value.findIndex((c) => optionId(c) === row.id);
+  const index = navRows.value.findIndex((_c, i) => optionIdAt(i) === row.id);
 
   if (index >= 0 && index !== activeIndex.value) {
     activeIndex.value = index;
@@ -476,10 +520,10 @@ const explore = (cluster?: TopLevelMenuCluster | null) => {
 const revealActive = () => {
   // After the render that moved the highlight, so the option to scroll to exists.
   nextTick(() => {
-    const c = navRows.value[activeIndex.value];
+    const id = optionIdAt(activeIndex.value);
 
-    if (c) {
-      document.getElementById(optionId(c))?.scrollIntoView({ block: 'nearest' });
+    if (id) {
+      document.getElementById(id)?.scrollIntoView({ block: 'nearest' });
     }
   });
 };
@@ -594,6 +638,10 @@ defineExpose({
   rows,
   navRows,
   localTile,
+  recentRows,
+  showRecent,
+  recentOptionId,
+  resultsOffset,
   localOffset,
   placeholder,
   activeIndex,
@@ -660,73 +708,59 @@ defineExpose({
             aria-haspopup="listbox"
             aria-autocomplete="list"
             :aria-keyshortcuts="pinShortcut"
-            :aria-controls="localTile ? `${ localListboxId } ${ listboxId }` : listboxId"
+            :aria-controls="listboxIds"
             :aria-activedescendant="activeDescendant"
             @input="onInput"
           >
         </div>
 
-        <!-- local — a fixed tile under the search box, at rest only: a search takes it down and `local`
-             competes in the results like any other cluster. Its own single-option listbox so the option
-             is never orphaned outside a listbox. -->
+        <!-- Only the search box is fixed. Everything under it — the tile, RECENTLY USED and the estate —
+             scrolls as one region, so a long list is read by scrolling the panel rather than a strip of
+             it while headings stay put. -->
         <div
-          v-if="localTile"
-          :id="localListboxId"
-          class="switcher-local"
-          role="listbox"
-          :aria-label="t('nav.switcher.managementCluster')"
-        >
-          <ClusterSwitcherRow
-            :id="optionId(localTile)"
-            :cluster="localTile"
-            :subtitle="t('nav.switcher.managementCluster')"
-            :pinnable="false"
-            :route-combo="routeCombo"
-            :active="activeIndex === 0"
-            :current="localTile.id === currentClusterId"
-            @select="explore"
-          />
-        </div>
-
-        <!-- Group caption — ALL CLUSTERS at rest, MATCHES while searching. It heads the list it counts,
-             directly above it. -->
-        <div
-          class="switcher-group-label"
-          aria-hidden="true"
-        >
-          <template v-if="searching">
-            {{ t('nav.switcher.matches') }}
-            <!-- While a search is in flight the count still describes the PREVIOUS query, so show a dash
-                 rather than assert a total the list below is no longer showing — the pill itself always
-                 renders, so the caption never flickers between having a count and not. -->
-            <span class="switcher-group-count">{{ listLoading ? '—' : searchCount }}</span>
-          </template>
-          <template v-else>
-            {{ t('nav.switcher.allClusters') }}
-            <span class="switcher-group-count">{{ clusterCount }}</span>
-          </template>
-        </div>
-
-        <div
-          :id="listboxId"
           ref="scroller"
           class="switcher-scroll"
-          role="listbox"
-          :aria-busy="listLoading ? 'true' : 'false'"
-          :aria-label="t('nav.switcher.aria.clusterList')"
           @scroll="onScroll"
         >
-          <!-- Searching: a single flat match list over the whole estate -->
-          <template v-if="searching">
-            <!-- Skeleton for the whole debounce + request window. It deliberately replaces any
-                 PREVIOUS result set: those rows do not match the query now being typed. -->
+          <!-- local — a tile at the head of the list, at rest only: a search takes it down and `local`
+               competes in the results like any other cluster. Its own single-option listbox so the option
+               is never orphaned outside a listbox. -->
+          <div
+            v-if="localTile"
+            :id="localListboxId"
+            class="switcher-local"
+            role="listbox"
+            :aria-label="t('nav.switcher.managementCluster')"
+          >
+            <ClusterSwitcherRow
+              :id="optionId(localTile)"
+              :cluster="localTile"
+              :subtitle="t('nav.switcher.managementCluster')"
+              :pinnable="false"
+              :route-combo="routeCombo"
+              :active="activeIndex === 0"
+              :current="localTile.id === currentClusterId"
+              @select="explore"
+            />
+          </div>
+
+          <!-- RECENTLY USED — the last few clusters visited, at rest only. Its own listbox so its options
+               are never orphaned outside one, and its own ids because the same cluster may also be the
+               fixed tile above or a row of the estate below. -->
+          <template v-if="showRecent">
             <div
-              v-if="listLoading"
+              class="switcher-group-label"
+              aria-hidden="true"
+            >
+              {{ t('nav.switcher.recent') }}
+            </div>
+            <div
+              v-if="recentLoading"
               class="switcher-loading"
               aria-hidden="true"
             >
               <div
-                v-for="n in 3"
+                v-for="n in 2"
                 :key="n"
                 class="skeleton-row"
               >
@@ -738,14 +772,15 @@ defineExpose({
               </div>
             </div>
             <div
-              v-else-if="rows.length"
-              class="switcher-group"
-              role="group"
-              :aria-label="t('nav.switcher.matches')"
+              v-else
+              :id="recentListboxId"
+              class="switcher-recent"
+              role="listbox"
+              :aria-label="t('nav.switcher.recent')"
             >
               <ClusterSwitcherRow
-                v-for="(c, i) in rows"
-                :id="optionId(c)"
+                v-for="(c, i) in recentRows"
+                :id="recentOptionId(c)"
                 :key="c.id"
                 :cluster="c"
                 :active="activeIndex === i + localOffset"
@@ -755,45 +790,132 @@ defineExpose({
                 @select="explore"
               />
             </div>
-            <div
-              v-else
-              class="switcher-empty"
-              aria-hidden="true"
-            >
-              {{ t('nav.switcher.noMatch') }}
-            </div>
           </template>
 
-          <!-- Resting: the ALL CLUSTERS directory only, lazy-loaded via @scroll → load-more. -->
-          <template v-else>
-            <!-- Gate on the loaded rows, not the parent's saved count: the two come from different
-                 queries, so a count that hasn't resolved yet would blank a directory we already hold. -->
+          <!-- Group caption — ALL CLUSTERS at rest, MATCHES while searching. It heads the list it counts,
+               directly above it. -->
+          <div
+            class="switcher-group-label"
+            aria-hidden="true"
+          >
+            <template v-if="searching">
+              {{ t('nav.switcher.matches') }}
+              <!-- While a search is in flight the count still describes the PREVIOUS query, so show a dash
+                   rather than assert a total the list below is no longer showing — the pill itself always
+                   renders, so the caption never flickers between having a count and not. -->
+              <span class="switcher-group-count">{{ listLoading ? '—' : searchCount }}</span>
+            </template>
+            <template v-else>
+              {{ t('nav.switcher.allClusters') }}
+              <span class="switcher-group-count">{{ clusterCount }}</span>
+            </template>
+          </div>
+
+          <div
+            :id="listboxId"
+            class="switcher-list"
+            role="listbox"
+            :aria-busy="listLoading ? 'true' : 'false'"
+            :aria-label="t('nav.switcher.aria.clusterList')"
+          >
+            <!-- Searching: a single flat match list over the whole estate -->
+            <template v-if="searching">
+              <!-- Skeleton for the whole debounce + request window. It deliberately replaces any
+                   PREVIOUS result set: those rows do not match the query now being typed. -->
+              <div
+                v-if="listLoading"
+                class="switcher-loading"
+                aria-hidden="true"
+              >
+                <div
+                  v-for="n in 3"
+                  :key="n"
+                  class="skeleton-row"
+                >
+                  <div class="skeleton-badge shimmer" />
+                  <div class="skeleton-lines">
+                    <div class="skeleton-line shimmer" />
+                    <div class="skeleton-line short shimmer" />
+                  </div>
+                </div>
+              </div>
+              <div
+                v-else-if="rows.length"
+                class="switcher-group"
+                role="group"
+                :aria-label="t('nav.switcher.matches')"
+              >
+                <ClusterSwitcherRow
+                  v-for="(c, i) in rows"
+                  :id="optionId(c)"
+                  :key="c.id"
+                  :cluster="c"
+                  :active="activeIndex === i + resultsOffset"
+                  :current="c.id === currentClusterId"
+                  :route-combo="routeCombo"
+                  :pinnable="!c.isLocal"
+                  @select="explore"
+                />
+              </div>
+              <div
+                v-else
+                class="switcher-empty"
+                aria-hidden="true"
+              >
+                {{ t('nav.switcher.noMatch') }}
+              </div>
+            </template>
+
+            <!-- Resting: the ALL CLUSTERS directory only, lazy-loaded via @scroll → load-more. -->
+            <template v-else>
+              <!-- Gate on the loaded rows, not the parent's saved count: the two come from different
+                   queries, so a count that hasn't resolved yet would blank a directory we already hold. -->
+              <div
+                v-if="directory.length && !listLoading"
+                class="switcher-group"
+                role="group"
+                :aria-label="t('nav.switcher.allClusters')"
+              >
+                <ClusterSwitcherRow
+                  v-for="(c, i) in directory"
+                  :id="optionId(c)"
+                  :key="c.id"
+                  :cluster="c"
+                  :active="activeIndex === i + resultsOffset"
+                  :current="c.id === currentClusterId"
+                  :route-combo="routeCombo"
+                  @select="explore"
+                />
+              </div>
+              <!-- Page 1 in flight, or nothing loaded yet. Both show the skeleton: a directory about to be
+                   replaced wholesale should not sit there looking like the answer while the request runs. -->
+              <div
+                v-else
+                class="switcher-loading"
+                aria-hidden="true"
+              >
+                <div
+                  v-for="n in 3"
+                  :key="n"
+                  class="skeleton-row"
+                >
+                  <div class="skeleton-badge shimmer" />
+                  <div class="skeleton-lines">
+                    <div class="skeleton-line shimmer" />
+                    <div class="skeleton-line short shimmer" />
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <!-- Infinite-scroll loading skeleton — shimmer placeholder rows while the next page loads. -->
             <div
-              v-if="directory.length && !listLoading"
-              class="switcher-group"
-              role="group"
-              :aria-label="t('nav.switcher.allClusters')"
-            >
-              <ClusterSwitcherRow
-                v-for="(c, i) in directory"
-                :id="optionId(c)"
-                :key="c.id"
-                :cluster="c"
-                :active="activeIndex === i + localOffset"
-                :current="c.id === currentClusterId"
-                :route-combo="routeCombo"
-                @select="explore"
-              />
-            </div>
-            <!-- Page 1 in flight, or nothing loaded yet. Both show the skeleton: a directory about to be
-                 replaced wholesale should not sit there looking like the answer while the request runs. -->
-            <div
-              v-else
+              v-if="loadingMore"
               class="switcher-loading"
               aria-hidden="true"
             >
               <div
-                v-for="n in 3"
+                v-for="n in 2"
                 :key="n"
                 class="skeleton-row"
               >
@@ -802,25 +924,6 @@ defineExpose({
                   <div class="skeleton-line shimmer" />
                   <div class="skeleton-line short shimmer" />
                 </div>
-              </div>
-            </div>
-          </template>
-
-          <!-- Infinite-scroll loading skeleton — shimmer placeholder rows while the next page loads. -->
-          <div
-            v-if="loadingMore"
-            class="switcher-loading"
-            aria-hidden="true"
-          >
-            <div
-              v-for="n in 2"
-              :key="n"
-              class="skeleton-row"
-            >
-              <div class="skeleton-badge shimmer" />
-              <div class="skeleton-lines">
-                <div class="skeleton-line shimmer" />
-                <div class="skeleton-line short shimmer" />
               </div>
             </div>
           </div>
@@ -881,11 +984,16 @@ defineExpose({
     }
   }
 
-  // Same box as every scrolling row (ClusterSwitcherRow owns the padding); this only keeps the tile
-  // out of the scroll area's flex growth.
-  .switcher-local {
-    flex: 0 0 auto;
+  // RECENTLY USED heads the scrolling region, above ALL CLUSTERS. Its last row drops the divider, the
+  // caption below being the separator.
+  .switcher-recent {
+    .cluster-switcher-row:last-child {
+      border-bottom: none;
+    }
+  }
 
+  // Same box as every scrolling row — ClusterSwitcherRow owns the padding.
+  .switcher-local {
     // No hairline under it: the ALL CLUSTERS caption below already separates the tile from the list, and
     // the divider's job is to part one row from the next — this tile has no next.
     .cluster-switcher-row {
@@ -898,8 +1006,11 @@ defineExpose({
     border-bottom: none;
   }
 
+  // The one scrolling region: everything below the search box, so the tile and the section headings
+  // travel with the rows rather than staying put over them.
   .switcher-scroll {
     flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 
@@ -938,7 +1049,6 @@ defineExpose({
   // Group header (ALL CLUSTERS / MATCHES): a static caption above the search box, matching the expanded
   // nav's section label.
   .switcher-group-label {
-    flex: 0 0 auto;
     display: flex;
     // A fixed 32px band: the caption and its count pill are centred in it rather than pushed around by
     // line-height, so the text, the pill and the rows below all share one vertical centre line.

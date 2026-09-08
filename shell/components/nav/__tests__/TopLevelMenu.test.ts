@@ -608,6 +608,45 @@ describe('topLevelMenu', () => {
   // The nav's only estate affordance is the switcher trigger — a count chip ("N" over
   // the word "clusters") plus the "Cluster Switch" label and a trailing chevron. No search box, no ALL
   // CLUSTERS list and no CLUSTERS title live in the nav any more.
+  // RECENTLY USED moved into the flyout, where the estate it is a shortcut into also lives. The nav shelf
+  // is PINNED only: the clusters the user chose to keep to hand.
+  describe('recently used', () => {
+    const withClusters = () => mount(TopLevelMenu, {
+      global: {
+        mocks: {
+          $route: {},
+          $store: {
+            ...generateStore([
+              {
+                id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
+              },
+            ])
+          },
+        },
+        stubs: ['BrandImage', 'router-link'],
+      },
+    });
+
+    it('is gone from the nav shelf', async() => {
+      const wrapper = withClusters();
+
+      await waitForIt();
+
+      expect(wrapper.vm.shelves.map((s: any) => s.key)).not.toContain('recent');
+      expect(wrapper.find('.clustersRecent').exists()).toBe(false);
+    });
+
+    // One number governs the whole chain — stored, fetched and shown — so the flyout gets exactly the
+    // helper's list, unfiltered: a cluster can be pinned, be `local`, and sit in ALL CLUSTERS as well.
+    // This is a shortcut to where the user just was, not a partition of the estate.
+    it('hands the flyout the helper list as-is', () => {
+      const recentClusters = [{ id: 'local' }, { id: 'pinned-one' }, { id: 'c-3' }];
+      const out = (TopLevelMenu as any).computed.railRecent.call({ recentClusters, hasProvCluster: true });
+
+      expect(out.map((c: any) => c.id)).toStrictEqual(['local', 'pinned-one', 'c-3']);
+    });
+  });
+
   describe('the cluster-switcher trigger', () => {
     const mountWithClusters = () => mount(TopLevelMenu, {
       global: {

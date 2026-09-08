@@ -129,7 +129,7 @@ describe('topLevelMenu.helper', () => {
       const helper = new TopLevelMenuHelperLegacy({ $store: mockStore });
 
       // RECENT is DERIVED from the recent pref: most-recent-first (pref/visit order), capped at
-      // MENU_MAX_RECENT_CLUSTERS (10). The pinned 'cP' keeps its place — being pinned no longer hides a
+      // SWITCHER_MAX_RECENT. The pinned 'cP' keeps its place — being pinned no longer hides a
       // cluster from the visit history. `update()` just caches the cluster data.
       await helper.update({
         searchTerm: '',
@@ -186,8 +186,8 @@ describe('topLevelMenu.helper', () => {
     it('should initialize PaginationWrappers', () => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
       new TopLevelMenuHelperPagination({ $store: mockStore });
-      // context (local+pinned+recent fetched in ONE id-IN query) + unpinned/ALL
-      expect(PaginationWrapper).toHaveBeenCalledTimes(2);
+      // context (local + pinned, watched) + RECENTLY USED (unwatched, on open) + unpinned/ALL
+      expect(PaginationWrapper).toHaveBeenCalledTimes(3);
     });
 
     it('should fetch the context set (local + pinned + recent) in ONE id-IN query and seed the shelf', async() => {
@@ -252,50 +252,64 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersOthers).toHaveLength(0);
     });
 
-    it('should fetch recents within the single context query and order them by visit order, excluding pinned', async() => {
+    // RECENTLY USED is its own unwatched request now, made when the flyout opens: it is only on screen
+    // there, so it is read fresh rather than kept live by a watch. It asks for more ids than it shows,
+    // because an id can stop resolving, and takes the first that come back IN VISIT ORDER — not the order
+    // the API returns them in.
+    it('fetches recents on demand, in visit order, capped to what the flyout shows', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
-      // The context wrapper returns rows in the API's default sort, NOT visit order
-      const mgmtContext = [
-        {
-          id: 'c2', nameDisplay: 'Two', isReady: true, canExplore: true, pinned: false, pin: jest.fn(), unpin: jest.fn()
-        },
-        {
-          id: 'c9', nameDisplay: 'Nine', isReady: true, canExplore: true, pinned: false, pin: jest.fn(), unpin: jest.fn()
-        },
-        {
-          id: 'c5', nameDisplay: 'Five', isReady: true, canExplore: true, pinned: false, pin: jest.fn(), unpin: jest.fn()
-        },
-      ];
+      const mgmtRecent = ['c2', 'c9', 'c5', 'c1', 'c7', 'c3'].map((id) => ({
+        id, nameDisplay: id, isReady: true, canExplore: true, pinned: false, pin: jest.fn(), unpin: jest.fn()
+      }));
+      const mockRequestContext = jest.fn().mockResolvedValue({ data: [] });
+      const mockRequestRecent = jest.fn().mockResolvedValue({ data: mgmtRecent });
 
-      const mockRequestContext = jest.fn().mockResolvedValue({ data: mgmtContext });
+      // Constructed in order: context, recent, others.
+      (PaginationWrapper as unknown as jest.Mock)
+        .mockImplementationOnce(() => ({ request: mockRequestContext, onDestroy: jest.fn() }))
+        .mockImplementationOnce(() => ({ request: mockRequestRecent, onDestroy: jest.fn() }));
 
-      // The context wrapper is constructed FIRST.
+      prefsData['recent-clusters'] = ['c5', 'c9', 'cP', 'c2', 'c1', 'c7', 'c3'];
+
+      const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+      await helper.refreshRecent();
+
+      const filters = mockRequestRecent.mock.calls[0][0].pagination.filters;
+      const requestedIds = filters[filters.length - 1].fields.map((f: any) => f.value);
+
+      expect(requestedIds).toStrictEqual(['c5', 'c9', 'cP', 'c2', 'c1', 'c7', 'c3']);
+      // Visit order, five of them, and 'cP' dropped because the fetch did not return it.
+      expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c5', 'c9', 'c2', 'c1', 'c7']);
+    });
+
+    // The watch is for what the NAV shows for as long as it is on screen. RECENTLY USED is not that.
+    it('watches local and pinned only', async() => {
+      mockStore.getters['management/schemaFor'].mockReturnValue(true);
+      const mockRequestContext = jest.fn().mockResolvedValue({ data: [] });
+
       (PaginationWrapper as unknown as jest.Mock)
         .mockImplementationOnce(() => ({ request: mockRequestContext, onDestroy: jest.fn() }));
 
       prefsData['pinned-clusters'] = ['cP'];
-      prefsData['recent-clusters'] = ['c5', 'c9', 'cP', 'c2'];
+      prefsData['recent-clusters'] = ['c5', 'c9'];
 
       const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
 
       await helper.update({
-        searchTerm: '',
-        pinnedIds:  ['cP'],
-        // 'cP' is pinned (excluded from RECENT); visit order c5, c9, c2 must be preserved regardless of API sort
-        recentIds:  ['c5', 'c9', 'cP', 'c2'],
+        searchTerm: '', pinnedIds: ['cP'], recentIds: ['c5', 'c9']
       });
 
-      // The ONE context query asks for the union: local + pinned + (non-pinned) recent ids.
       const contextFilters = mockRequestContext.mock.calls[0][0].pagination.filters;
       const requestedIds = contextFilters[contextFilters.length - 1].fields.map((f: any) => f.value);
 
-      expect(requestedIds).toStrictEqual(['local', 'cP', 'c5', 'c9', 'c2']);
-      // clustersRecent is DERIVED from the recent pref: pinned ('cP') excluded, in pref/visit order (not the
-      // API's returned order), matched to the cached rows.
-      expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c5', 'c9', 'c2']);
+      expect(requestedIds).toStrictEqual(['local', 'cP']);
     });
 
-    it('prunes a deleted cluster from the shelf: a requested id the fetch no longer returns is dropped', async() => {
+
+    // The prune covers what the watch keeps live — local and PINNED. RECENTLY USED is not on the watch any
+    // more; it is simply re-read (and re-cut) the next time the flyout opens.
+    it('prunes a deleted cluster from the pinned shelf: a requested id the fetch no longer returns is dropped', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
 
       // First fetch returns both recents; second fetch (after c9 is deleted) returns only c5.
@@ -319,20 +333,20 @@ describe('topLevelMenu.helper', () => {
       (PaginationWrapper as unknown as jest.Mock)
         .mockImplementationOnce(() => ({ request: mockRequestContext, onDestroy: jest.fn() }));
 
-      prefsData['recent-clusters'] = ['c5', 'c9'];
+      prefsData['pinned-clusters'] = ['c5', 'c9'];
 
       const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
       const args = {
-        searchTerm: '', pinnedIds: [], recentIds: ['c5', 'c9']
+        searchTerm: '', pinnedIds: ['c5', 'c9'], recentIds: []
       };
 
       await helper.update(args);
-      expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c5', 'c9']);
+      expect(helper.clustersPinned.map((c) => c.id)).toStrictEqual(['c5', 'c9']);
 
       // c9 deleted → the watch re-runs update; the fetch omits c9, so it must leave the shelf (not linger
       // from the cache). We do NOT backfill — the shelf just shows c5.
       await helper.update(args);
-      expect(helper.clustersRecent.map((c) => c.id)).toStrictEqual(['c5']);
+      expect(helper.clustersPinned.map((c) => c.id)).toStrictEqual(['c5']);
     });
 
     it('runs the context query on update even while a search term is set', async() => {
@@ -390,8 +404,9 @@ describe('topLevelMenu.helper', () => {
         .mockRejectedValueOnce(new Error('offline')) // page 2 — fails
         .mockResolvedValueOnce(page(['c2'])); // the retry must ask for page 2 again, not skip to 3
 
-      // Construction order: context wrapper first, ALL/others wrapper second.
+      // Construction order: context, then RECENTLY USED, then the ALL/others wrapper.
       (PaginationWrapper as unknown as jest.Mock)
+        .mockImplementationOnce(() => ({ request: jest.fn().mockResolvedValue({ data: [] }), onDestroy: jest.fn() }))
         .mockImplementationOnce(() => ({ request: jest.fn().mockResolvedValue({ data: [] }), onDestroy: jest.fn() }))
         .mockImplementationOnce(() => ({ request: mockRequestOthers, onDestroy: jest.fn() }));
 

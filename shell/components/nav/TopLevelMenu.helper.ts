@@ -1,5 +1,7 @@
 import { CAPI, LOCAL_CLUSTER, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
-import { MENU_MAX_RECENT_CLUSTERS, PINNED_CLUSTERS, RECENT_CLUSTERS, SWITCHER_PAGE_SIZE } from '@shell/store/prefs';
+import {
+  PINNED_CLUSTERS, RECENT_CLUSTERS, RECENT_CLUSTERS_FETCHED, SWITCHER_MAX_RECENT, SWITCHER_PAGE_SIZE
+} from '@shell/store/prefs';
 import { STORE } from '@shell/store/store-types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
@@ -15,7 +17,7 @@ import { LocationAsRelativeRaw } from 'vue-router';
  * NOT held back — pinning something says to keep it to hand, not to erase where it sits in the visit
  * history, so a cluster can legitimately appear under both headings.
  */
-export function visibleRecentClusters(recents: string[] = [], max: number = MENU_MAX_RECENT_CLUSTERS): string[] {
+export function visibleRecentClusters(recents: string[] = [], max: number = SWITCHER_MAX_RECENT): string[] {
   return (Array.isArray(recents) ? recents : []).slice(0, max);
 }
 
@@ -149,8 +151,12 @@ export interface TopLevelMenuHelper {
   /** Flip every cached cluster's `pinned` flag from the pinned pref (keeps the pin icon in sync). */
   syncPinnedFlags: (pinnedIds: string[]) => void;
 
-  /** Refresh the watched context set (local/pinned/recent). */
+  /** Refresh the watched context set (local + pinned). */
   update: (args: UpdateArgs) => Promise<void>;
+
+  /** Fetch RECENTLY USED. Unwatched and on demand: it is only on screen while the flyout is open, so it
+   * is read fresh each time rather than kept live. */
+  refreshRecent: () => Promise<void>;
 
   /** Fetch page 1 of the ALL list, replacing what's loaded (open / search / chevron triggers). */
   resetOthers: (args?: UpdateArgs) => Promise<void>;
@@ -175,7 +181,7 @@ export abstract class BaseTopLevelMenuHelper {
     return this.$store.getters['prefs/get'](PINNED_CLUSTERS) || [];
   }
 
-  private get recentPref(): string[] {
+  protected get recentPref(): string[] {
     return this.$store.getters['prefs/get'](RECENT_CLUSTERS) || [];
   }
 
@@ -191,14 +197,18 @@ export abstract class BaseTopLevelMenuHelper {
 
   public clustersOthers: Array<TopLevelMenuCluster> = reactive([]);
 
-  // RECENT = the recent pref (most-recent-first), capped — matched to cached data. Unlike PINNED and the
-  // ALL directory this draws on the WHOLE cache: `local` has its own fixed tile, but it is somewhere the
-  // user goes like any other cluster, so it earns its place in the visit history.
+  // RECENT = the recent pref (most-recent-first), capped — matched to whatever cluster data is loaded.
+  // Unlike PINNED and the ALL directory this draws on the WHOLE cache: `local` has its own fixed tile, but
+  // it is somewhere the user goes like any other cluster, so it earns its place in the visit history.
   public get clustersRecent(): Array<TopLevelMenuCluster> {
-    const recentIds = visibleRecentClusters(this.recentPref, MENU_MAX_RECENT_CLUSTERS);
+    const recentIds = visibleRecentClusters(this.recentPref, RECENT_CLUSTERS_FETCHED);
 
-    return orderByIdsAndCap(Object.values(this.clusterCache), recentIds, MENU_MAX_RECENT_CLUSTERS);
+    return orderByIdsAndCap(Object.values(this.clusterCache), recentIds, SWITCHER_MAX_RECENT);
   }
+
+  // Nothing to fetch by default: the in-memory path already has every cluster loaded, so RECENT is just a
+  // view of the pref over it. The paginated path overrides this with a request.
+  public async refreshRecent(): Promise<void> {}
 
   // LOCAL = the `local` cluster from the cache (rendered as the fixed top tile).
   public get clustersLocal(): Array<TopLevelMenuCluster> {
@@ -271,12 +281,16 @@ export abstract class BaseTopLevelMenuHelper {
 export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
   private args?: UpdateArgs;
 
-  // local + pinned + recent share ONE query + watch — the "context" set, small enough for a single
-  // id-IN fetch; split client-side.
+  // local + pinned share ONE query + watch — the "context" set, small enough for a single id-IN fetch;
+  // split client-side. These two are on screen in the nav all the time, so they have to stay live.
   private clustersContextWrapper: PaginationWrapper<any>;
   // The ALL list is unwatched, select-style page-increment (fetched on open + scroll): grows a page per
   // load, appending each new page. `othersPages` is the server-side total page count.
   private clustersOthersWrapper: PaginationWrapper<any>;
+  // RECENTLY USED is unwatched too, and read on demand: it only exists inside the flyout, which fetches it
+  // on open. Nothing keeps it live between opens, and nothing needs to — the next open asks again.
+  private clustersRecentWrapper: PaginationWrapper<any>;
+  private recentClusters: Array<TopLevelMenuCluster> = reactive([]);
   private othersPage = 1;
   private othersPages = 0;
   // How many page-1 resets are in flight. `loadMoreOthers` stands down while any is: taking the sequence
@@ -297,9 +311,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }) {
     super({ $store });
 
-    // local + pinned + recent fetched in ONE `id IN (...)` query with ONE watch, split client-side.
-    // `local` is always in the union so the query (and its watch) always runs — a newly-pinned/visited
-    // cluster goes live immediately (no empty-watch gap).
+    // local + pinned fetched in ONE `id IN (...)` query with ONE watch, split client-side. `local` is
+    // always in the union so the query (and its watch) always runs — a newly-pinned cluster goes live
+    // immediately (no empty-watch gap).
     this.clustersContextWrapper = new PaginationWrapper({
       $store,
       id:       'top-level-menu-context-clusters',
@@ -313,6 +327,19 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           // Logged lower down; catch to avoid dev-mode UI warnings.
         }
       },
+      enabledFor: {
+        store:    STORE.MANAGEMENT,
+        resource: {
+          id:      MANAGEMENT.CLUSTER,
+          context: 'side-bar',
+        }
+      },
+      formatResponse: { classify: true }
+    });
+    // RECENTLY USED — an id-IN fetch of the stored visit log, unwatched, run when the flyout opens.
+    this.clustersRecentWrapper = new PaginationWrapper({
+      $store,
+      id:         'top-level-menu-recent-clusters',
       enabledFor: {
         store:    STORE.MANAGEMENT,
         resource: {
@@ -338,15 +365,15 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }
 
   /**
-   * Fetch the "context" set — local + pinned + recent — in ONE `id IN (...)` query. The only watched
-   * request: its onChange re-runs this to keep those rows live. Converted rows upsert into the shared cache;
-   * the shelf slices are derived from that cache, so there's nothing to seed or split here.
+   * Fetch the "context" set — local + pinned — in ONE `id IN (...)` query. The only watched request: its
+   * onChange re-runs this to keep those rows live, which they have to be because the nav shows them for
+   * as long as it is on screen. Converted rows upsert into the shared cache; the shelf slices are derived
+   * from that cache, so there's nothing to seed or split here.
    */
   private async updateContext(args: UpdateArgs): Promise<void> {
     const pinnedIds = args.pinnedIds || [];
-    const recentIds = visibleRecentClusters(args.recentIds, MENU_MAX_RECENT_CLUSTERS);
     // Union of the ids we care about (deduped); `local` is always present.
-    const contextIds = Array.from(new Set([LOCAL_CLUSTER, ...pinnedIds, ...recentIds]));
+    const contextIds = Array.from(new Set([LOCAL_CLUSTER, ...pinnedIds]));
 
     const r = await this.clustersContextWrapper.request({
       forceWatch: args.forceWatch,
@@ -370,7 +397,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     r.data.forEach((mgmtCluster: MgmtCluster) => this.convertToCluster(mgmtCluster));
 
     // Prune deleted clusters: any id we asked for but the server didn't return is gone/invisible, so drop
-    // it so it leaves the pinned/recent shelf at once. Only prune ids we actually requested (never rows the
+    // it so it leaves the pinned shelf at once. Only prune ids we actually requested (never rows the
     // ALL-list fetch cached); no backfill — the shelf just shows fewer rows until a fresh visit/pin.
     contextIds.forEach((id) => {
       if (!returnedIds.has(id)) {
@@ -379,21 +406,62 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     });
   }
 
+  // RECENT is its own list here, not a view of the shared cache: the cache only holds what the watch keeps
+  // live (local + pinned) plus whatever the ALL list happens to have paged in, and a recently-visited
+  // cluster is often neither.
+  public get clustersRecent(): Array<TopLevelMenuCluster> {
+    return this.recentClusters;
+  }
+
+  /**
+   * Fetch RECENTLY USED: the stored visit log, resolved in one id-IN query and cut to what the flyout
+   * shows. Asks for more ids than it shows because an id can stop resolving — the cluster was deleted, or
+   * access was lost — and takes the first that come back, in visit order.
+   */
+  public async refreshRecent(): Promise<void> {
+    const recentIds = visibleRecentClusters(this.recentPref, RECENT_CLUSTERS_FETCHED);
+
+    if (!recentIds.length) {
+      this.recentClusters.length = 0;
+
+      return;
+    }
+
+    const r = await this.clustersRecentWrapper.request({
+      pagination: {
+        filters: this.constructParams({
+          ids:        recentIds,
+          includeIds: true,
+        }),
+        page:                 1,
+        sort:                 DEFAULT_SORT,
+        projectsOrNamespaces: []
+      }
+    });
+
+    // The server answers in ITS order; the visit log is the order that matters here.
+    const found = r.data.map((mgmtCluster: MgmtCluster) => this.convertToCluster(mgmtCluster));
+
+    this.recentClusters.length = 0;
+    this.recentClusters.push(...orderByIdsAndCap(found, recentIds, SWITCHER_MAX_RECENT));
+  }
+
   // ---------- requests ----------
-  // Refreshes ONLY the watched context set (local/pinned/recent); called on init and every pin/unpin/visit.
+  // Refreshes ONLY the watched context set (local + pinned); called on init and every pin/unpin/visit.
   // The ALL list is fetched separately by `resetOthers`/`loadMoreOthers` on open/scroll, so a pin doesn't
   // re-page it.
   async update(args: UpdateArgs) {
     this.args = args;
 
     await this.updateContext(args).catch((e) => {
-      console.warn('Unable to update the side nav cluster context (local/pinned/recent)', e); // eslint-disable-line no-console
+      console.warn('Unable to update the side nav cluster context (local/pinned)', e); // eslint-disable-line no-console
     });
   }
 
   async destroy() {
     this.clustersContextWrapper.onDestroy();
     this.clustersOthersWrapper.onDestroy();
+    this.clustersRecentWrapper.onDestroy();
   }
 
   /**

@@ -78,6 +78,7 @@ export default {
       loadingMoreOthers: false,
       // A search request is in flight (drives the flyout's initial search skeleton).
       listLoading:       false,
+      recentLoading:     false,
       routeCombo:        false,
 
       canPagination,
@@ -180,8 +181,9 @@ export default {
       return this.pinFiltered.filter((c) => !c.isLocal);
     },
 
-    // `local` is allowed on the RECENT shelf — it has its own fixed tile above, but it is a cluster the
-    // user visits, so it appears in the visit history too (the same way a pinned cluster now does).
+    // RECENTLY USED, as the flyout lists it. Already capped by the helper, and deliberately unfiltered:
+    // a cluster may be pinned, be `local`, and appear in ALL CLUSTERS as well — this is a shortcut to
+    // where the user just was, not a partition of the estate.
     railRecent() {
       return this.recentClusters;
     },
@@ -219,20 +221,15 @@ export default {
       return this.appBar.pinFiltered;
     },
 
-    recentRows() {
-      return this.appBar.recentFiltered;
-    },
-
     // PINNED and RECENT render the SAME row; describing them as data instead of two copies of the markup
     // means a new row affordance is written once and the two shelves cannot drift apart. Shelves with no
     // rows are dropped here so the template keeps a plain `v-for` (no v-if/v-for on one element).
+    // The nav shelf is PINNED only: clusters the user chose to keep to hand. RECENTLY USED lives in the
+    // flyout, where the estate it is a shortcut into also lives.
     shelves() {
       return [
         {
           key: 'pinned', titleKey: 'nav.switcher.pinned', sectionClass: 'clustersPinned', rows: this.pinnedRows
-        },
-        {
-          key: 'recent', titleKey: 'nav.switcher.recent', sectionClass: 'clustersRecent', rows: this.recentRows
         },
       ].filter((shelf) => !!shelf.rows.length);
     },
@@ -762,6 +759,13 @@ export default {
       }
 
       if (open) {
+        // RECENTLY USED lives only in this panel, so it is read when the panel opens rather than kept live.
+        this.recentLoading = true;
+        this.helper.refreshRecent()
+          .catch((e) => console.warn('Unable to load the recent clusters', e)) // eslint-disable-line no-console
+          .finally(() => {
+            this.recentLoading = false;
+          });
         this.resetOthersList();
       } else if (this.clusterFilter) {
         this.clusterFilter = '';
@@ -988,6 +992,8 @@ export default {
                   ref="switcher"
                   :all="railAll"
                   :local="localCluster"
+                  :recent="railRecent"
+                  :recent-loading="recentLoading"
                   :search-results="clustersFiltered"
                   :cluster-count="browsableClusterCount"
                   :search-count="switcherSearchCount"

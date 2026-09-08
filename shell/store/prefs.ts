@@ -163,8 +163,12 @@ export const MENU_MAX_CLUSTERS = 10;
 // MENU_MAX_CLUSTERS because the flyout now runs the full height of the viewport — one page should be
 // enough to fill it, rather than leaning on the top-up fetch.
 export const SWITCHER_PAGE_SIZE = 20;
-// Maximum number of recently-visited clusters kept / shown in the app-bar shelf
-export const MENU_MAX_RECENT_CLUSTERS = 10;
+// How many recently-visited clusters the switcher flyout lists. Short on purpose: RECENTLY USED is a
+// shortcut to the last few clusters, sitting above the whole estate, so a long list would push that off.
+export const SWITCHER_MAX_RECENT = 5;
+// How many are stored and asked for. The request is by id, and an id can no longer resolve (the cluster
+// was deleted, or access was lost), so ask for more than are shown and take the first that come back.
+export const RECENT_CLUSTERS_FETCHED = 10;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
 

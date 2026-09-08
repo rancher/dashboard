@@ -112,6 +112,112 @@ describe('component: ClusterSwitcher', () => {
     expect(vm.activeIndex).toBe(0);
   });
 
+  // RECENTLY USED sits between the fixed tile and the estate: a shortcut to where the user just was.
+  describe('recently used', () => {
+    const recent = [cluster('r1'), cluster('r2')];
+
+    it('renders between the local tile and ALL CLUSTERS, and the cursor walks all three in order', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent, all: [cluster('p1')], clusterCount: 1
+      });
+      const vm = wrapper.vm as any;
+
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'r1', 'r2', 'p1']);
+      // The estate's rows are offset by the whole head, not just the tile.
+      expect(vm.resultsOffset).toBe(3);
+
+      const order = [];
+
+      vm.setOpen(true);
+      await nextTick();
+
+      for (let i = 0; i < 4; i++) {
+        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+        order.push(vm.navRows[vm.activeIndex].id);
+      }
+
+      expect(order).toStrictEqual(['local', 'r1', 'r2', 'p1']);
+
+      vm.setOpen(false);
+    });
+
+    // It is fetched on open rather than kept live, so it shimmers like the estate below instead of popping
+    // in beside it.
+    it('shows the skeleton while it is being fetched', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent, all: [cluster('p1')]
+      });
+      const vm = wrapper.vm as any;
+
+      await wrapper.setProps({ recentLoading: true } as any);
+
+      expect(vm.showRecent).toBe(true);
+      // Rows are stubbed here, so count them by their option ids.
+      expect(wrapper.findAll('[id^="cluster-switcher-opt-recent-"]')).toHaveLength(0);
+      expect(wrapper.findAll('.switcher-loading .skeleton-row').length).toBeGreaterThan(0);
+      // Nothing to point the cursor at while it is a skeleton.
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'p1']);
+
+      await wrapper.setProps({ recentLoading: false } as any);
+      expect(wrapper.findAll('[id^="cluster-switcher-opt-recent-"]')).toHaveLength(2);
+    });
+
+    // Same rule as the tile: the results ARE the answer to the query, and a shortcut list beside them is
+    // just noise to scroll past.
+    it('goes down while searching, and comes back when the box is cleared', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent, all: [cluster('p1')]
+      });
+      const vm = wrapper.vm as any;
+
+      expect(vm.recentRows).toHaveLength(2);
+
+      await wrapper.setProps({ search: 'm', searchResults: [cluster('m1')] } as any);
+      expect(vm.recentRows).toHaveLength(0);
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['m1']);
+
+      await wrapper.setProps({ search: '', searchResults: [] } as any);
+      expect(vm.recentRows).toHaveLength(2);
+    });
+
+    // A recent cluster may also BE the fixed tile or a row of the estate. Two elements answering to one id
+    // would make `aria-activedescendant` ambiguous and hand Vue duplicate keys.
+    it('gives its options ids of their own, so a repeated cluster cannot collide', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent: [cluster('local'), cluster('p1')], all: [cluster('p1')], clusterCount: 1
+      });
+      const vm = wrapper.vm as any;
+      const ids = wrapper.findAll('[id^="cluster-switcher-opt"]').map((el: any) => el.attributes('id'));
+
+      expect(ids).toStrictEqual([...new Set(ids)]);
+      expect(ids).toContain('cluster-switcher-opt-recent-local');
+      expect(ids).toContain('cluster-switcher-opt-local');
+
+      // And the cursor points at the row it is actually on, not at its twin.
+      vm.setOpen(true);
+      await nextTick();
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // the tile
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // the same cluster, under RECENTLY USED
+      await nextTick();
+
+      expect(wrapper.find('input.switcher-search-input').attributes('aria-activedescendant')).toBe('cluster-switcher-opt-recent-local');
+
+      vm.setOpen(false);
+    });
+
+    it('names every listbox on screen from the combobox', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent, all: [cluster('p1')]
+      });
+      const controls = () => wrapper.find('input.switcher-search-input').attributes('aria-controls');
+
+      expect(controls()).toBe('cluster-switcher-local-listbox cluster-switcher-recent-listbox cluster-switcher-listbox');
+
+      await wrapper.setProps({ search: 'm', searchResults: [cluster('m1')] } as any);
+      expect(controls()).toBe('cluster-switcher-listbox');
+    });
+  });
+
   // Clicking the panel's own chrome parks focus on floating-vue's popper ROOT, which is an ANCESTOR of
   // the flyout element — so a `keydown` bound there never sees the key. The panel takes its keys at the
   // window instead, and answers them wherever focus has drifted to.
@@ -359,18 +465,23 @@ describe('component: ClusterSwitcher', () => {
   // The ALL CLUSTERS / MATCHES caption sits ABOVE the search box, not inside the
   // scrolling list, and the flyout forwards the Option/Alt cue to every row.
   describe('layout', () => {
-    it('orders the panel search, local, caption, list', () => {
+    // Search box, then everything else inside the ONE scrolling region: the tile, RECENTLY USED and the
+    // estate all travel together rather than a strip scrolling under fixed headings.
+    it('orders the panel search, then local, recent and the list inside the scroller', () => {
       const wrapper = mountSwitcher({
-        local: cluster('local'), all: [cluster('p1')], clusterCount: 7
+        local: cluster('local'), recent: [cluster('r1')], all: [cluster('p1')], clusterCount: 7
       });
       const html = wrapper.html();
-      const at = (cls: string) => html.indexOf(cls);
+      // On the class attribute, not the bare name: the listbox IDS contain the same words.
+      const at = (cls: string) => html.indexOf(`class="${ cls }"`);
 
-      // Template `t` renders through the global test stub (`%key%`), unlike the composable mocked above.
-      expect(wrapper.find('.switcher-group-label').text()).toBe('%nav.switcher.allClusters% 7');
-      expect(at('switcher-search')).toBeLessThan(at('switcher-local'));
-      expect(at('switcher-local')).toBeLessThan(at('switcher-group-label'));
-      expect(at('switcher-group-label')).toBeLessThan(at('switcher-scroll'));
+      expect(wrapper.find('.switcher-scroll .switcher-group-label').exists()).toBe(true);
+      expect(at('switcher-search')).toBeLessThan(at('switcher-scroll'));
+      expect(at('switcher-scroll')).toBeLessThan(at('switcher-local'));
+      expect(at('switcher-local')).toBeLessThan(at('switcher-recent'));
+      expect(at('switcher-recent')).toBeLessThan(at('switcher-list'));
+      // The scroller holds them all, so one scrollbar moves the whole panel body.
+      expect(wrapper.findAll('.switcher-scroll .switcher-local, .switcher-scroll .switcher-recent, .switcher-scroll .switcher-list')).toHaveLength(3);
     });
 
     it('swaps the caption for MATCHES + the match total while searching', () => {
@@ -560,13 +671,13 @@ describe('component: ClusterSwitcher', () => {
       const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
 
       expect(wrapper.findAll('.switcher-scroll .skeleton-row')).toHaveLength(0);
-      expect(wrapper.find('.switcher-scroll').attributes('aria-busy')).toBe('false');
+      expect(wrapper.find('.switcher-list').attributes('aria-busy')).toBe('false');
 
       await wrapper.setProps({ listLoading: true } as any);
 
       expect(wrapper.findAll('.switcher-group')).toHaveLength(0);
       expect(wrapper.findAll('.switcher-scroll .skeleton-row').length).toBeGreaterThan(0);
-      expect(wrapper.find('.switcher-scroll').attributes('aria-busy')).toBe('true');
+      expect(wrapper.find('.switcher-list').attributes('aria-busy')).toBe('true');
     });
 
     // A cold open (nothing pinned, no visit history) has an empty directory, and page 1 lands a moment

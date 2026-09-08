@@ -1,4 +1,4 @@
-import { CLUSTER, MENU_MAX_RECENT_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { CLUSTER, RECENT_CLUSTERS, RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 /**
@@ -22,11 +22,6 @@ export function isRecordableCluster(id: string): boolean {
   return !!id && id !== BLANK_CLUSTER;
 }
 
-// Store more than the display cap: the log is matched against fetched cluster data at render time, and
-// an id with nothing behind it any more (a cluster since deleted, or simply not in the loaded window)
-// drops out — so a log stored at exactly the cap could render short. Ids only, so the extra are cheap.
-const RECENT_STORE_MULTIPLIER = 3;
-
 // RECENT mutation for a visit: prepend `id` most-recent-first (de-duped), then strip the empty ids and
 // the `_` placeholder an older build may have persisted. `local` is a cluster the user visits like any
 // other, so it stays.
@@ -37,7 +32,7 @@ export const prependRecent = (id: string): Mutation => ({
 
     return [id, ...current.filter((r) => r !== id)]
       .filter((c) => isRecordableCluster(c))
-      .slice(0, MENU_MAX_RECENT_CLUSTERS * RECENT_STORE_MULTIPLIER);
+      .slice(0, RECENT_CLUSTERS_FETCHED);
   },
 });
 
