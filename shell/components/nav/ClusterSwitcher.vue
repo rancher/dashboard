@@ -885,6 +885,12 @@ defineExpose({
   // out of the scroll area's flex growth.
   .switcher-local {
     flex: 0 0 auto;
+
+    // No hairline under it: the ALL CLUSTERS caption below already separates the tile from the list, and
+    // the divider's job is to part one row from the next — this tile has no next.
+    .cluster-switcher-row {
+      border-bottom: none;
+    }
   }
 
   // The panel's own edge closes the list, so the last row's divider would read as a double line.

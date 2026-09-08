@@ -426,12 +426,11 @@ export default {
      * Toggling THROUGH the control rather than writing the pref keeps the write, the growl and the pop
      * animation on one path, so the shortcut and a click are the same action.
      *
-     * NOT bound with `.anywhere` (unlike Cmd/Ctrl+J): the flyout binds the same combo to the row under its
-     * cursor, and the plugin stopPropagations a key the moment it matches — so a binding live in text
-     * fields would swallow the key while the flyout's search box has focus and starve the flyout of it.
+     * `.anywhere`, so it works from a text field as well — a filter box holding the caret is no reason not
+     * to pin the cluster you are looking at.
      *
-     * Nothing here has to know about the flyout: while it is open it consumes this combo at the window,
-     * the way a modal does, so the key never reaches this binding at all.
+     * Nothing here has to know about the flyout: it is registered as a shortcut-silencing container, and
+     * it takes this combo at the window besides, so while it is open the key never reaches this binding.
      */
     onPinShortcut() {
       this.$refs.clusterPin?.toggle();
@@ -609,7 +608,7 @@ export default {
             v-if="pinnableCluster"
             ref="clusterPin"
             v-clean-tooltip="pinTooltip"
-            v-shortkey="pinShortcutKeys"
+            v-shortkey.anywhere="pinShortcutKeys"
             :cluster="pinnableCluster"
             :tab-order="0"
             class="cluster-pin"
