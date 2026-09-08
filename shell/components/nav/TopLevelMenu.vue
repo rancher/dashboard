@@ -246,23 +246,22 @@ export default {
       return this.helper.counts?.others || 0;
     },
 
-    // Exact count of clusters browsable in the ALL list (not capped by the rail's paginated slices). The
-    // saved count comes from a findPage that ALWAYS excludes `local` (and Harvester) — see the helper's
-    // `updateCount` — so it IS the ALL CLUSTERS total directly, and can't move when hide-local toggles.
+    // How many clusters the ALL CLUSTERS list holds — the chip's number and the caption's.
+    //
+    // Both sources count every cluster the user can see, `local` included, because they are SHARED with
+    // the home page and the Cluster Management nav badge, which list `local` too. The switcher does not:
+    // `local` has its own fixed tile above the list. So take it off here, in the one place that needs it,
+    // rather than narrowing a count three surfaces read.
     browsableClusterCount() {
       const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
-
-      if (typeof savedCount === 'number') {
-        return savedCount;
-      }
-
-      // Fallback before that query resolves: the live /v1/counts summary is the RAW total (includes
-      // local), so drop local for a close-enough placeholder. `local` is only in that raw total when the
-      // user can actually see it, so gate the −1 on clustersLocal.
+      // The live /v1/counts summary is the fallback until that query resolves (or when nothing is being
+      // filtered out, in which case it is never saved at all).
       const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
-      const rawTotal = counts[MANAGEMENT.CLUSTER]?.summary?.count || 0;
+      const total = typeof savedCount === 'number' ? savedCount : (counts[MANAGEMENT.CLUSTER]?.summary?.count || 0);
 
-      return Math.max(0, rawTotal - (this.helper.clustersLocal.length ? 1 : 0));
+      // `local` is only in that total when the user can actually see it — with hide-local on it is already
+      // out of both the count and the list, and there is nothing to subtract.
+      return Math.max(0, total - (this.helper.clustersLocal.length ? 1 : 0));
     },
 
     // The flyout's shortcut in the two forms it needs. `switcherShortcutLabel` is what a user reads in

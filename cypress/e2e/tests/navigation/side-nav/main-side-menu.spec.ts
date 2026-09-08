@@ -27,10 +27,11 @@ describe('Side Menu: main', () => {
       const sideNav = new ProductNavPo();
       const pagePoFake = new PagePo('');
 
-      // Visit the downstream cluster (so it lands in RECENT and stays visible in the shelf), then return
-      // to local. The alt-combo only lights up when there is a ready cluster to jump to that isn't the
-      // current one — `local` is excluded from that set, so we sit on local with the downstream as the
-      // jump target.
+      const burgerMenuPo = new BurgerMenuPo();
+
+      // Visit the downstream cluster, then return to local. The alt-combo only lights up when there is a
+      // ready cluster to jump to that isn't the current one — `local` is excluded from that set, so we sit
+      // on local with the downstream as the jump target.
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
       // Wait for each switch to LAND before touching the burger again. Selecting a cluster pushes the
       // route and only collapses the nav when that push resolves (TopLevelMenu's `$route` watcher), so a
@@ -40,6 +41,12 @@ describe('Side Menu: main', () => {
       pagePoFake.navToClusterMenuEntry('local');
       cy.url().should('contain', '/c/local/');
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
+
+      // The nav shelf holds PINNED clusters only — where the user has been lives in the flyout now — so
+      // pin the downstream cluster to give the combo a second row in the nav to light up.
+      burgerMenuPo.openClusterSwitcher();
+      burgerMenuPo.pinClusterByLabel(fakeProvClusterId);
+      burgerMenuPo.closeClusterSwitcher();
 
       BurgerMenuPo.burgerMenuGetNavClusterByLabel('local').should('exist');
       BurgerMenuPo.burgerMenuGetNavClusterByLabel(fakeProvClusterId).should('exist');

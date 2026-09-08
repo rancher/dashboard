@@ -620,7 +620,15 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     return this.fetchOthers(false);
   }
 
-  /** Update the saved cluster count used by the home page + resource menu. */
+  /**
+   * Update the SHARED saved cluster count — the home page and the Cluster Management nav badge read it as
+   * well as the switcher, so it counts what those surfaces list: everything the user can see, `local`
+   * included, minus whatever the environment hides (Harvester, and `local` itself when hide-local is on).
+   *
+   * The switcher's own chip wants one fewer, because `local` has its own tile above its list — it takes
+   * that off the shared number rather than narrowing it here, which is what made the home page and the
+   * nav badge under-count by one.
+   */
   public async updateCount(count: number) {
     if (count === this.clusterCount) {
       return;
@@ -629,12 +637,17 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clusterCount = count;
 
     try {
+      const commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
+
+      if (commonClusterFilters.length === 0) {
+        // Nothing is being filtered out, so the raw count consumers already have is the right answer and
+        // there is nothing to save.
+        return;
+      }
+
       const args:ActionFindPageArgs = {
         pagination: {
-          // Always exclude `local` (it has its own tile) so the count is the same regardless of the
-          // hide-local setting. It also guarantees a non-empty filter set, so the query always runs and the
-          // saved count never goes stale — which used to make the count wobble ±1 on a hide-local toggle.
-          filters:              this.constructParams({ excludeLocal: true }),
+          filters:              commonClusterFilters,
           page:                 1,
           pageSize:             1,
           sort:                 [],

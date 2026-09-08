@@ -647,6 +647,41 @@ describe('topLevelMenu', () => {
     });
   });
 
+  // The chip counts what its own list holds. The count it reads is SHARED with the home page and the
+  // Cluster Management nav badge, which list `local` too — so the switcher takes `local` off here rather
+  // than narrowing the count for all three, which had those two under-counting by one.
+  describe('computed: browsableClusterCount', () => {
+    const count = (ctx: any) => (TopLevelMenu as any).computed.browsableClusterCount.call({
+      $store: {
+        getters: {
+          'management/getSavedCount': () => ctx.saved,
+          'management/all':           () => [{ counts: { 'management.cattle.io.cluster': { summary: { count: ctx.raw } } } }],
+        }
+      },
+      helper: { clustersLocal: ctx.localVisible ? [{ id: 'local' }] : [] },
+    });
+
+    it('drops local from the shared saved count', () => {
+      expect(count({
+        saved: 23, raw: 25, localVisible: true
+      })).toBe(22);
+    });
+
+    // Hide-local is already out of both the count and the list, so there is nothing to subtract.
+    it('subtracts nothing when local is not shown', () => {
+      expect(count({
+        saved: 22, raw: 25, localVisible: false
+      })).toBe(22);
+    });
+
+    // No saved count (nothing filtered out, or the query has not resolved): the raw summary stands in.
+    it('falls back to the raw summary', () => {
+      expect(count({
+        saved: undefined, raw: 23, localVisible: true
+      })).toBe(22);
+    });
+  });
+
   describe('the cluster-switcher trigger', () => {
     const mountWithClusters = () => mount(TopLevelMenu, {
       global: {

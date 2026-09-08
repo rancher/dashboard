@@ -405,21 +405,18 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersRecent).toHaveLength(0);
     });
 
-    it('always runs the ALL-count query excluding local, so the count is hide-local-invariant', async() => {
+    // The saved count is SHARED with the home page and the Cluster Management nav badge, which list
+    // `local` too — so it counts what the environment actually shows and nothing more. With nothing being
+    // filtered out there is no count worth saving: the raw one those surfaces already hold is the answer.
+    it('saves the shared count only when something is being filtered out', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
 
       const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
 
-      // paginationFilterClusters is mocked to [] (no filters). `local` is excluded unconditionally, so the
-      // count query always runs and stays the true non-local total regardless of the hide-local setting.
+      // paginationFilterClusters is mocked to [] — nothing to exclude.
       await helper.updateCount(7);
 
-      const findPageCall = mockStore.dispatch.mock.calls.find((c: any[]) => c[0] === 'management/findPage');
-
-      expect(findPageCall).toBeTruthy();
-      expect(findPageCall[1].opt.saveCountAs).toBe('k8sClusters');
-      // The query filters `local` out (id !== 'local').
-      expect(JSON.stringify(findPageCall[1].opt.pagination.filters)).toContain('local');
+      expect(mockStore.dispatch.mock.calls.find((c: any[]) => c[0] === 'management/findPage')).toBeFalsy();
     });
 
     it('rewinds the ALL-list page counter when a page fetch fails, so the next scroll re-requests it', async() => {

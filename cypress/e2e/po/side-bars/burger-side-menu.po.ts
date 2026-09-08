@@ -184,6 +184,16 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * Put the flyout away. It is a modal-like surface — while it is open the app's shortcuts stand down —
+   * so anything driving keys at the page behind it has to close it first.
+   */
+  closeClusterSwitcher(): Cypress.Chainable {
+    cy.get('body').type('{esc}');
+
+    return BurgerMenuPo.clusterSwitcherFlyout().should('not.exist');
+  }
+
+  /**
    * The cluster-switcher flyout. It is teleported to <body>, so it is NOT inside the side menu.
    */
   static clusterSwitcherFlyout(): Cypress.Chainable {
