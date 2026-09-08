@@ -174,12 +174,13 @@ export function init(store) {
   };
 
   const EXPLORER = {
-    name:   'explorer',
-    label:  ' ',
-    align:  'right',
-    width:  65,
-    sort:   false,
-    search: false
+    name:                'explorer',
+    labelKey:            'tableHeaders.explore',
+    labelVisuallyHidden: true,
+    align:               'right',
+    width:               65,
+    sort:                false,
+    search:              false
   };
 
   headers(MANAGEMENT.CLUSTER, [

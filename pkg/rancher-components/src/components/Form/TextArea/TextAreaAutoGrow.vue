@@ -13,6 +13,18 @@ const provideProps: NonReactiveProps = {
   }
 };
 
+// CSS properties the mirror div must copy from the textarea for its text to
+// wrap identically. Anything that affects glyph metrics or wrapping belongs
+// here — anything that only affects color or interaction does not.
+const MIRROR_STYLE_PROPS = [
+  'boxSizing',
+  'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+  'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+  'fontFamily', 'fontSize', 'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch',
+  'lineHeight', 'letterSpacing', 'wordSpacing', 'textTransform', 'textIndent',
+  'tabSize',
+] as const;
+
 export default defineComponent({
   inheritAttrs: false,
 
@@ -101,7 +113,9 @@ export default defineComponent({
   data() {
     return {
       curHeight: this.minHeight,
-      overflow:  'hidden'
+      overflow:  'hidden',
+      // Non-reactive: this is a DOM node reference. Vue won't wrap it.
+      mirror:    null as HTMLDivElement | null,
     };
   },
 
@@ -164,17 +178,29 @@ export default defineComponent({
     if (this.resizeOnValueChangeAndResizeWindow) {
       window.removeEventListener('resize', this.queueResize);
     }
+
+    if (this.mirror) {
+      this.mirror.remove();
+      this.mirror = null;
+    }
   },
 
   methods: {
     /**
      * Emits the input event and resizes the Text Area.
-    */
+     *
+     * autoSize runs synchronously (not via the debounced queueResize) so the
+     * height change lands in the same frame as the keypress. Debouncing here
+     * causes the browser to paint an interim frame where content overflows
+     * the still-too-short textarea — the caret scrolls into view, then the
+     * height catches up 100ms later and the text visibly jumps back down.
+     * See #6041.
+     */
     onInput(event: Event): void {
       const val = (event?.target as HTMLInputElement)?.value;
 
       this.$emit('update:value', val);
-      this.queueResize();
+      this.autoSize();
     },
 
     /**
@@ -186,24 +212,85 @@ export default defineComponent({
 
     /**
      * Sets the overflowY and height of the Text Area based on the content
-     * entered (calculated via scroll height).
+     * entered.
+     *
+     * The required height is measured against a hidden mirror div rather
+     * than by shrinking the textarea to 1px — that shrink+regrow trick
+     * flashed the surrounding layout up and back down every time the height
+     * changed. The mirror never touches the visible textarea, so autoSize
+     * is now visually invisible except for the final height change.
+     * See #6041.
      */
     autoSize(): void {
-      const el = this.$refs.ta as HTMLElement;
+      const el = this.$refs.ta as HTMLTextAreaElement;
 
       if (!el) {
         return;
       }
 
-      el.style.height = '1px';
+      const contentHeight = this.measureContentHeight(el);
+      const neu = Math.max(this.minHeight, Math.min(contentHeight, this.maxHeight));
+      const overflows = contentHeight > this.maxHeight;
 
-      const border = parseInt(getComputedStyle(el).getPropertyValue('borderTopWidth'), 10) || 0 + parseInt(getComputedStyle(el).getPropertyValue('borderBottomWidth'), 10) || 0;
-      const neu = Math.max(this.minHeight, Math.min(el.scrollHeight + border, this.maxHeight));
+      // Preserve scrollTop in the overflow case so the caret does not jump
+      // back to the top when the textarea has hit its cap.
+      const previousScrollTop = el.scrollTop;
 
-      el.style.overflowY = el.scrollHeight > neu ? 'auto' : 'hidden';
+      el.style.overflowY = overflows ? 'auto' : 'hidden';
       el.style.height = `${ neu }px`;
+      if (overflows) {
+        el.scrollTop = previousScrollTop;
+      }
 
+      this.overflow = overflows ? 'auto' : 'hidden';
       this.curHeight = neu;
+    },
+
+    /**
+     * Measures the required content height for the given textarea by mirroring
+     * its text into an off-screen div sized to match the textarea's rendering.
+     * Returns the border-box height needed to display all content without
+     * scrolling.
+     */
+    measureContentHeight(el: HTMLTextAreaElement): number {
+      const cs = getComputedStyle(el);
+
+      let mirror = this.mirror;
+
+      if (!mirror) {
+        mirror = document.createElement('div');
+        mirror.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(mirror);
+        this.mirror = mirror;
+      }
+
+      const style = mirror.style;
+
+      // Position off-screen; visibility:hidden still lays out.
+      style.position = 'absolute';
+      style.top = '0';
+      style.left = '-9999px';
+      style.visibility = 'hidden';
+      style.pointerEvents = 'none';
+      // Textarea wraps like `pre-wrap` and breaks long words.
+      style.whiteSpace = 'pre-wrap';
+      style.overflowWrap = 'break-word';
+      // Match the textarea's width so wrapping is identical.
+      style.width = `${ el.clientWidth }px`;
+      style.height = 'auto';
+
+      for (const prop of MIRROR_STYLE_PROPS) {
+        style[prop] = cs[prop];
+      }
+
+      // Textareas need a trailing space so a final newline contributes a
+      // measurable line — otherwise the last empty line collapses.
+      mirror.textContent = `${ el.value || '' } `;
+
+      const border = (parseInt(cs.borderTopWidth, 10) || 0) +
+                     (parseInt(cs.borderBottomWidth, 10) || 0);
+
+      return mirror.scrollHeight + border;
     }
   }
 });
