@@ -53,6 +53,7 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     // which makes the paginated list re-request its page. Opening the edit form while one of those is
     // still in flight leaves it without a resource to render, so its tabs never mount. Letting the
     // rollout settle stops those re-fetches; the list loading check below covers one already running.
+    // Remove this workaround once https://github.com/rancher/dashboard/issues/19075 is fixed.
     cy.waitForRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, (resp: any) => {
       const status = resp?.body?.status || {};
 

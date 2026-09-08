@@ -38,6 +38,7 @@ describe('Yaml Editor', { tags: ['@components', '@adminUser', '@standardUser'] }
       // `resource.changes`, which makes the paginated list re-request its page. Navigating away while
       // one of those is still in flight leaves the detail view without a resource to render, so
       // `.resource-yaml` never appears. Letting the rollout settle stops those re-fetches.
+      // Remove this workaround once https://github.com/rancher/dashboard/issues/19075 is fixed.
       cy.waitForRancherResource('v1', 'apps.deployments', `${ namespace }/${ name }`, (resp: any) => {
         const status = resp?.body?.status || {};
         const replicas = resp?.body?.spec?.replicas;
