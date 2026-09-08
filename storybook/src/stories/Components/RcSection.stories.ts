@@ -29,18 +29,16 @@ const SLOT = '<!-- default slot -->';
 
 /**
  * Replace the slot placeholder with content handed straight to the section.
- * RcSection wraps its default slot in one RcContentGroup, so this content is
- * stacked 16px apart with no wrapper written at the call site.
+ * RcSection stacks its default slot 16px apart, so this content needs no
+ * wrapper written at the call site.
  */
 const withDefaultSlot = (template: string, content: string) => template.replace(SLOT, content);
 
 /**
- * Replace the slot placeholder with a `groups` slot holding several content
- * groups. That slot replaces the section's default group, and the section
- * spaces the groups it is given 24px apart.
+ * Replace the slot placeholder with several content groups. The section spaces
+ * the groups 24px apart, and each group stacks its own content 16px apart.
  */
-const withGroupsSlot = (template: string, ...groups: string[]) => template.replace(SLOT, `<template #groups>${ groups.join('\n') }
-  </template>`);
+const withContentGroups = (template: string, ...groups: string[]) => template.replace(SLOT, groups.join('\n'));
 
 const meta: Meta<typeof RcSection> = {
   component: RcSection,
@@ -86,10 +84,9 @@ const simpleTemplate = `<RcSection title="Section title" type="primary" mode="wi
 /**
  * **The common case**
  *
- * The default slot is one content group: whatever goes in it is stacked 16px
- * apart, so form elements go straight in and no wrapper div is written here.
- * A section needing several groups uses the `groups` slot instead, as the
- * stories below do.
+ * The default slot stacks whatever goes in it 16px apart, so form elements go
+ * straight in and no wrapper div is written here. A section needing several
+ * groups writes an RcContentGroup per group instead, as the stories below do.
  */
 export const Simple: Story = {
   render: () => ({
@@ -129,7 +126,7 @@ const defaultTemplate = `<RcSection v-bind="args" v-model:expanded="expanded">
   ${ SLOT }
 </RcSection>`;
 
-const defaultSource = withGroupsSlot(
+const defaultSource = withContentGroups(
   defaultTemplate,
   contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true),
   contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content'),
@@ -186,7 +183,7 @@ const primaryFixedTemplate = `<RcSection title="Primary section" type="primary" 
   ${ SLOT }
 </RcSection>`;
 
-const primaryFixedSource = withGroupsSlot(
+const primaryFixedSource = withContentGroups(
   primaryFixedTemplate,
   contentGroup('Content Group 1', 'First group content goes here.', true),
   contentGroup('Content Group 2', 'Second group content goes here.'),
@@ -228,7 +225,7 @@ const secondaryFixedTemplate = `<RcSection title="Secondary section" type="secon
   ${ SLOT }
 </RcSection>`;
 
-const secondaryFixedSource = withGroupsSlot(
+const secondaryFixedSource = withContentGroups(
   secondaryFixedTemplate,
   contentGroup('Content Group 1', 'First group content goes here.', true),
   contentGroup('Content Group 2', 'Second group content goes here.'),
@@ -330,7 +327,7 @@ const expandableTemplate = `<RcSection
   ${ SLOT }
 </RcSection>`;
 
-const expandableSource = withGroupsSlot(
+const expandableSource = withContentGroups(
   expandableTemplate,
   contentGroup('Content Group 1', 'This content is visible when expanded.', true),
   contentGroup('Content Group 2', 'Another content group.'),
@@ -402,7 +399,7 @@ const noHeaderTemplate = `<RcSection type="primary" mode="no-header" background=
   ${ SLOT }
 </RcSection>`;
 
-const noHeaderSource = withGroupsSlot(
+const noHeaderSource = withContentGroups(
   noHeaderTemplate,
   contentGroup('Content Group 1', 'No header, just content.', true),
   contentGroup('Content Group 2', 'Second group content goes here.'),

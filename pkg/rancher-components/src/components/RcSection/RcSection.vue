@@ -9,31 +9,27 @@
  *   <p>Section content here</p>
  * </RcSection>
  *
- * The default slot is one content group: whatever is written into it is
- * stacked 16px apart, so form elements go straight in and no call site needs a
- * wrapper div for the spacing.
+ * The default slot stacks whatever is written into it 16px apart, so form
+ * elements go straight in and no call site needs a wrapper div for the
+ * spacing.
  *
  * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
  *   <LabeledInput label="Name" />
  *   <LabeledInput label="Description" />
  * </RcSection>
  *
- * The `groups` slot replaces that group, for a section that needs several. The
- * section spaces the groups it is given 24px apart, and each group stacks its
- * own content 16px apart. `groups` and the default slot are mutually
- * exclusive: when both are given, `groups` wins and the default slot content
- * is dropped.
+ * A section that needs several groups writes RcContentGroups into that same
+ * slot. The section spaces groups 24px apart, and each group stacks its own
+ * content 16px apart.
  *
  * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
- *   <template #groups>
- *     <RcContentGroup>
- *       <LabeledInput label="Name" />
- *       <LabeledInput label="Description" />
- *     </RcContentGroup>
- *     <RcContentGroup>
- *       <LabeledInput label="Namespace" />
- *     </RcContentGroup>
- *   </template>
+ *   <RcContentGroup>
+ *     <LabeledInput label="Name" />
+ *     <LabeledInput label="Description" />
+ *   </RcContentGroup>
+ *   <RcContentGroup>
+ *     <LabeledInput label="Namespace" />
+ *   </RcContentGroup>
  * </RcSection>
  *
  * <RcSection title="Section title" type="secondary" mode="with-header" expandable v-model:expanded="expanded" background="secondary">
@@ -64,7 +60,6 @@ import {
   computed, inject, provide, useTemplateRef, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
-import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
@@ -193,11 +188,7 @@ function toggle() {
       v-if="expanded"
       :class="contentClass"
     >
-      <slot name="groups">
-        <RcContentGroup>
-          <slot />
-        </RcContentGroup>
-      </slot>
+      <slot />
     </div>
   </div>
 </template>
@@ -309,9 +300,13 @@ function toggle() {
 .section-content {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-lg, 24px);
+  gap: var(--gap-md, 16px);
   padding: 0 0 16px;
   color: var(--body-text);
+
+  &:has(> .rc-content-group) {
+    gap: var(--gap-lg, 24px);
+  }
 
   &.expandable-content {
     padding: 0 0 16px 24px;
