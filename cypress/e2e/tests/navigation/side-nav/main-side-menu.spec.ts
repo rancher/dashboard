@@ -44,6 +44,15 @@ describe('Side Menu: main', () => {
 
       // The nav shelf holds PINNED clusters only — where the user has been lives in the flyout now — so
       // pin the downstream cluster to give the combo a second row in the nav to light up.
+      //
+      // Every route change collapses the nav (the `$route` watcher hides it), and the navigation above is
+      // the last one, so wait for that collapse to LAND before toggling: a toggle issued inside that
+      // window is undone by the watcher, and in the collapsed rail the local cluster's link sits over the
+      // switcher trigger, so the click never reaches it.
+      BurgerMenuPo.checkClosed();
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.checkOpen();
+
       burgerMenuPo.openClusterSwitcher();
       burgerMenuPo.pinClusterByLabel(fakeProvClusterId);
       burgerMenuPo.closeClusterSwitcher();
