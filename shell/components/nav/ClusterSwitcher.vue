@@ -119,6 +119,12 @@ const rows = computed<TopLevelMenuCluster[]>(() => {
   return props.listLoading ? [] : props.searchResults;
 });
 
+// Page 1 replaces the list wholesale, so while it is in flight the skeleton stands in for the rows — and
+// an estate that has not paged in yet is the same state under a different trigger. Named once because the
+// template and `fillViewport` both need it: what is on screen then is three placeholder rows, which is
+// not the list, and must not be measured as if it were.
+const showingSkeleton = computed<boolean>(() => props.listLoading || (!searching.value && !rows.value.length));
+
 // The fixed `local` tile belongs to the resting state only — a search takes it down, and `local` then
 // competes for a place in the results like anything else. Resolved to the cluster (or null) rather than a
 // flag so the template narrows `local` off it: everything below reads this one value.
@@ -472,7 +478,10 @@ const fillViewport = () => {
   nextTick(() => {
     const el = scroller.value;
 
-    if (!open.value || !el || !props.hasMore || props.loadingMore || rows.value.length === lastFilledCount) {
+    // The skeleton is shorter than any real page, so measuring it always reads as "not filled" and tops
+    // up a list that is about to be replaced anyway — page 1 lands, this watcher fires, and the rows are
+    // in `props` a tick before they are on screen. Wait for them: the watcher re-runs when it clears.
+    if (!open.value || !el || !props.hasMore || props.loadingMore || showingSkeleton.value || rows.value.length === lastFilledCount) {
       return;
     }
 
@@ -489,7 +498,7 @@ watch(() => [props.search, open.value], () => {
   lastFilledCount = -1;
 });
 
-watch(() => [rows.value.length, props.hasMore, props.loadingMore, open.value], fillViewport);
+watch(() => [rows.value.length, props.hasMore, props.loadingMore, showingSkeleton.value, open.value], fillViewport);
 
 // Infinite scroll — ask the parent for the next window as the list nears the bottom.
 const onScroll = (e: Event) => {
@@ -803,7 +812,7 @@ defineExpose({
                  skeleton deliberately replaces whatever is on screen: those rows are about to be thrown
                  away, and a list about to be replaced should not sit there looking like the answer. -->
           <ClusterSwitcherSkeleton
-            v-if="listLoading || (!searching && !rows.length)"
+            v-if="showingSkeleton"
             :rows="3"
           />
           <!-- One list, whichever it is: the estate at rest, the matches while searching. `rows` is

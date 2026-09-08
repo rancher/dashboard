@@ -708,6 +708,36 @@ describe('component: ClusterSwitcher', () => {
       expect(wrapper.find('.switcher-scroll').attributes('aria-busy')).toBe('true');
     });
 
+    // Page 1 arrives in `props` a tick before it is on screen: the skeleton is still up, and it is shorter
+    // than any real page, so a top-up that measured it would read "not filled" and fetch page 2 for a list
+    // that had only just been replaced — two requests for one open. It has to wait for the real rows.
+    it('does not top up the list while the skeleton is standing in for it', async() => {
+      const wrapper = mountSwitcher({
+        all: [], clusterCount: 20, hasMore: true, listLoading: true
+      });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+      await nextTick();
+
+      expect(wrapper.emitted('load-more')).toBeUndefined();
+
+      // Page 1 lands in `props` while the skeleton is still up — still nothing to measure, still no fetch.
+      await wrapper.setProps({ all: [cluster('p1'), cluster('p2')] } as any);
+      await nextTick();
+
+      expect(wrapper.emitted('load-more')).toBeUndefined();
+
+      // Skeleton clears, the rows are on screen: now the top-up may judge whether they fill the scroller.
+      // jsdom reports every height as 0, so an unfilled scroller is exactly what it sees.
+      await wrapper.setProps({ listLoading: false } as any);
+      await nextTick();
+      await nextTick();
+
+      expect(wrapper.emitted('load-more')).toHaveLength(1);
+    });
+
     // A cold open (nothing pinned, no visit history) has an empty directory, and page 1 lands a moment
     // later. That arrival must not conjure a highlight the user never asked for — a cold open and a warm
     // one both start with nothing selected.
