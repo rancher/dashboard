@@ -27,6 +27,11 @@ const pinned = computed(() => props.cluster.pinned);
 // DOM, then re-add so the animation replays — keeps the retrigger reactive with no direct DOM manipulation.
 const popping = ref(false);
 
+// Exposed so a surface that offers its own route to the pin — the header's Cmd+Shift+P / Alt+P — toggles
+// THROUGH this control rather than writing the pref itself: one path for the write, the growl on failure
+// and the pop, so the icon reacts to the shortcut exactly as it does to a click.
+defineExpose({ toggle });
+
 async function toggle() {
   // `pin`/`unpin` return the serialized pref write; `reportPinWriteFailure` owns its failure contract
   // and the growl, so this surface and the switcher flyout cannot drift apart on it.

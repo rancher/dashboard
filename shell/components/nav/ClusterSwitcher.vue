@@ -7,6 +7,8 @@ import { useI18n } from '@shell/composables/useI18n';
 import ClusterSwitcherRow from '@shell/components/nav/ClusterSwitcherRow.vue';
 import type { TopLevelMenuCluster } from '@shell/components/nav/TopLevelMenu.helper';
 import { reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
+import { isMac } from '@shell/utils/platform';
+import { SWITCHER_POPPER_CLASS } from '@shell/utils/dom';
 
 /**
  * Search-first cluster-switcher popover for the collapsed app-bar. Data (local / all / searchResults /
@@ -24,8 +26,9 @@ type Props = {
   /** Total clusters matching the search (from the page-1 response), so MATCHES shows the real total, not
    * just the loaded page. */
   searchCount?: number;
-  /** A search request is in flight — drives the initial search skeleton. */
-  searchLoading?: boolean;
+  /** Page 1 of the list is in flight — a search, or the whole directory on open / on clearing the box.
+   * Drives the skeleton, so a list about to be replaced is never left sitting there looking current. */
+  listLoading?: boolean;
   /** Id of the cluster currently being explored (marked `current`). */
   currentClusterId?: string;
   /** Current search term (v-model:search). */
@@ -47,7 +50,7 @@ const props = withDefaults(defineProps<Props>(), {
   searchResults:    () => [],
   clusterCount:     0,
   searchCount:      0,
-  searchLoading:    false,
+  listLoading:      false,
   currentClusterId: '',
   search:           '',
   hasMore:          false,
@@ -73,8 +76,13 @@ const PIN_ANNOUNCEMENT_TIMEOUT_MS = 2000;
 const store = useStore();
 const { t } = useI18n(store);
 
+// No row under the keyboard cursor: `aria-activedescendant` is dropped and nothing is highlighted, so
+// the search box alone holds the user's attention. Where the cursor starts, and where it returns to
+// whenever the flyout opens.
+const NO_ACTIVE_INDEX = -1;
+
 const open = ref<boolean>(false);
-const activeIndex = ref<number>(0);
+const activeIndex = ref<number>(NO_ACTIVE_INDEX);
 const searchInput = ref<HTMLElement | null>(null);
 const scroller = ref<HTMLElement | null>(null);
 const flyout = ref<HTMLElement | null>(null);
@@ -83,7 +91,7 @@ const searching = computed<boolean>(() => !!props.search);
 
 // The popper is teleported out of this component's scope, so its offset from the nav is carried by a
 // class on the popper itself (see the unscoped block at the bottom).
-const popperClass = computed(() => ['cluster-switcher-popper', props.navExpanded ? 'nav-expanded' : ''].filter((c) => !!c).join(' '));
+const popperClass = computed(() => [SWITCHER_POPPER_CLASS, props.navExpanded ? 'nav-expanded' : ''].filter((c) => !!c).join(' '));
 
 // The ALL directory (at rest `local` is the fixed tile above, so it is not listed here as well).
 const directory = computed<TopLevelMenuCluster[]>(() => props.all.filter((c) => !c.isLocal));
@@ -99,7 +107,7 @@ const rows = computed<TopLevelMenuCluster[]>(() => {
 
   // `local` is NOT filtered out here: a search hides its fixed tile, and it then has to earn its place
   // in the results like any other cluster — typing "local" has to be able to find it.
-  return props.searchLoading ? [] : props.searchResults;
+  return props.listLoading ? [] : props.searchResults;
 });
 
 // The fixed `local` tile belongs to the resting state only — a search takes it down, and `local` then
@@ -114,14 +122,13 @@ const localTile = computed<TopLevelMenuCluster | null>(() => (props.local && !se
 const localOffset = computed<number>(() => (localTile.value ? 1 : 0));
 const navRows = computed<TopLevelMenuCluster[]>(() => (localTile.value ? [localTile.value, ...rows.value] : rows.value));
 
-// No row under the keyboard cursor: `aria-activedescendant` is dropped and nothing is highlighted, so
-// the search box alone holds the user's attention.
-const NO_ACTIVE_INDEX = -1;
+// Where the cursor sits when the user has not driven it: on a search, the first match, so Enter opens the
+// best answer to what was typed. At rest, nowhere — an open flyout highlights nothing, and the first ↓
+// picks the top row. A highlight nobody asked for reads as a selection, and Enter would act on it.
+const restingIndex = () => (searching.value && navRows.value.length ? 0 : NO_ACTIVE_INDEX);
 
-// Land the cursor on the first thing in the list — which at rest is the `local` tile, so opening the
-// flyout and pressing Enter goes to the management cluster. While searching the tile is gone and the
-// first row is the best match.
-const firstResultIndex = () => (navRows.value.length ? 0 : NO_ACTIVE_INDEX);
+// The pin shortcut, in the form `aria-keyshortcuts` is defined to take.
+const pinShortcut = isMac ? 'Meta+Shift+P' : 'Alt+P';
 
 // One fixed placeholder — the flyout is the only place a search lives, and it always searches the whole
 // estate.
@@ -141,7 +148,7 @@ const activeDescendant = computed(() => {
   return c ? optionId(c) : undefined;
 });
 // A pin toggle has nothing else to announce it — the pin control is `aria-hidden` inside the option and
-// Alt+P is the only keyboard route to it — so route a one-line confirmation through this same live
+// the pin shortcut is the only keyboard route to it — so route a one-line confirmation through this live
 // region. Cleared whenever the result set is re-announced (search change / reopen).
 const pinAnnouncement = ref<string>('');
 
@@ -149,7 +156,8 @@ const statusMessage = computed(() => {
   if (pinAnnouncement.value) {
     return pinAnnouncement.value;
   }
-  if (props.searchLoading) {
+  // Only a SEARCH announces itself as searching; a resting refresh keeps the count it already reported.
+  if (props.listLoading && searching.value) {
     return t('nav.switcher.aria.searching');
   }
   if (searching.value && !rows.value.length) {
@@ -160,6 +168,30 @@ const statusMessage = computed(() => {
   return t('nav.switcher.aria.results', { count });
 });
 
+/**
+ * The pointer owns the cursor as much as ↑/↓ do: the row under the mouse becomes the highlighted row, so
+ * the list shows exactly ONE highlight and arrowing on from a hovered row carries on from where the
+ * pointer left it.
+ *
+ * Driven by `mousemove` rather than `mouseenter`, and delegated at the panel: a move means the pointer
+ * really moved, whereas an enter also fires when ↑/↓ scroll a row underneath a stationary mouse — which
+ * would drag the cursor back to wherever the mouse happened to be resting.
+ */
+const onPointerMove = (e: MouseEvent) => {
+  const row = (e.target as HTMLElement)?.closest?.('.cluster-switcher-row');
+
+  if (!row) {
+    return;
+  }
+
+  const index = navRows.value.findIndex((c) => optionId(c) === row.id);
+
+  if (index >= 0 && index !== activeIndex.value) {
+    activeIndex.value = index;
+    cursorMoved.value = true;
+  }
+};
+
 // Whether the user has driven the cursor with ↑/↓ since the last search change or open. While they have,
 // only a clamp may move it — the auto-placement below is for a cursor the user hasn't touched.
 const cursorMoved = ref<boolean>(false);
@@ -167,19 +199,18 @@ const cursorMoved = ref<boolean>(false);
 // Reset the cursor to the top on SEARCH change only — not on every `rows` change, or a pin toggle or
 // load-more would yank the highlight to the top. Open resets via setOpen.
 watch(() => props.search, () => {
-  activeIndex.value = firstResultIndex();
+  activeIndex.value = restingIndex();
   cursorMoved.value = false;
   pinAnnouncement.value = '';
 });
 
-// The rows a keystroke (or the open) asked for arrive AFTER it, so the placement above ran against an
-// empty list and left the cursor off-list — or, at rest, clamped onto the fixed `local` tile because the
-// ALL directory had not landed yet. Re-place it as the rows render, searching or not, so a cold open and a
-// warm one answer Enter with the same row. Skipped once the user has moved the cursor themselves, so a
-// load-more never takes it back off the row they chose.
+// A search's results arrive AFTER the keystroke that asked for them, so the placement above ran against
+// an empty list and left the cursor off-list. Put it on the first match as the rows render. Only while
+// searching — at rest there is deliberately no cursor — and never once the user has moved it themselves,
+// so a later page of results cannot take it off the row they chose.
 watch(() => rows.value.length, (len) => {
-  if (len && !cursorMoved.value) {
-    activeIndex.value = firstResultIndex();
+  if (len && !cursorMoved.value && searching.value) {
+    activeIndex.value = restingIndex();
   }
 });
 
@@ -203,7 +234,7 @@ const setOpen = (value: boolean) => {
 
   if (value) {
     focusOrigin.value = document.activeElement as HTMLElement | null;
-    activeIndex.value = firstResultIndex();
+    activeIndex.value = restingIndex();
     cursorMoved.value = false;
     pinAnnouncement.value = '';
     // Focus happens on the dropdown's `apply-show` (focusSearchInput) — here is too early, the teleported
@@ -302,15 +333,61 @@ const clearSearch = () => {
 // Letting it through is what closed the flyout: floating-vue acts on the keyup.
 let swallowEscapeKeyup = false;
 
-const onEscapeCapture = (e: Event) => {
-  if ((e as KeyboardEvent).key !== 'Escape' || !open.value) {
+const onKeyCapture = (e: Event) => {
+  if (!open.value) {
     return;
   }
 
+  const key = e as KeyboardEvent;
   const consume = () => {
     e.preventDefault();
     e.stopImmediatePropagation();
   };
+
+  // The flyout is registered as a shortcut-silencing container, like a modal, so while it is open the
+  // app's `v-shortkey` bindings stand down — including the one that opened it. It therefore has to own
+  // its own toggle: Cmd/Ctrl+J closes it from here.
+  if (key.code === 'KeyJ' && (key.metaKey || key.ctrlKey) && !key.altKey && !key.shiftKey) {
+    consume();
+
+    if (e.type === 'keydown') {
+      setOpen(false);
+    }
+
+    return;
+  }
+
+  // The pin shortcut acts on the row under the cursor, wherever focus happens to sit inside the panel.
+  if (key.code === 'KeyP' && ((key.metaKey && key.shiftKey) || key.altKey)) {
+    consume();
+
+    if (e.type === 'keydown') {
+      togglePin(navRows.value[activeIndex.value]);
+    }
+
+    return;
+  }
+
+  // Everything else the panel owns — ↑/↓, Enter, Tab — is taken here too, not on the flyout element.
+  // Clicking the panel's own chrome parks focus on floating-vue's popper ROOT, which is an ANCESTOR of
+  // that element, so a handler on it never sees the key and the arrows went dead until the user clicked
+  // back into the search box. An open panel answers its keys wherever focus sits.
+  if (e.type === 'keydown' && ['ArrowDown', 'ArrowUp', 'Enter', 'Tab'].includes(key.key)) {
+    onKeydown(key);
+
+    return;
+  }
+
+  // A character typed at the panel belongs in its search box, wherever focus drifted to. Focusing during
+  // the keydown is early enough for the character itself to land in the input.
+  if (e.type === 'keydown' && key.key.length === 1 && !key.metaKey && !key.ctrlKey && !key.altKey &&
+    document.activeElement !== searchInput.value) {
+    searchInput.value?.focus();
+  }
+
+  if (key.key !== 'Escape') {
+    return;
+  }
 
   if (e.type === 'keyup' && swallowEscapeKeyup) {
     swallowEscapeKeyup = false;
@@ -326,7 +403,7 @@ const onEscapeCapture = (e: Event) => {
   }
 };
 
-const listenForEscape = (on: boolean) => {
+const listenForKeys = (on: boolean) => {
   const fn = on ? window.addEventListener : window.removeEventListener;
 
   // A close can land between a consumed keydown and its keyup (auto-repeat Escape, or focus leaving
@@ -335,12 +412,12 @@ const listenForEscape = (on: boolean) => {
     swallowEscapeKeyup = false;
   }
 
-  fn('keydown', onEscapeCapture, true);
-  fn('keyup', onEscapeCapture, true);
+  fn('keydown', onKeyCapture, true);
+  fn('keyup', onKeyCapture, true);
 };
 
-watch(open, (isOpen) => listenForEscape(isOpen));
-onBeforeUnmount(() => listenForEscape(false));
+watch(open, (isOpen) => listenForKeys(isOpen));
+onBeforeUnmount(() => listenForKeys(false));
 
 // A list too short to scroll never fires @scroll, so top up until the rows fill the viewport.
 // `lastFilledCount` guards the case where a top-up brings nothing new (RBAC-filtered rows, a moving
@@ -436,7 +513,7 @@ const trapFocus = (e: KeyboardEvent) => {
 /**
  * Keep the caret in the search box when the user mousedowns on the popover's non-interactive chrome (the
  * group captions, the foot, the padding between rows). Without this the browser moves focus to
- * floating-vue's popper ROOT — an ancestor of the element carrying `@keydown` — so ↑/↓, Enter and Alt+P
+ * floating-vue's popper ROOT — an ancestor of the element carrying `@keydown` — so ↑/↓, Enter and the pin
  * silently stop working until the user clicks back into the search box. Same trick as the pin's
  * `@mousedown.prevent`, applied once at the container.
  */
@@ -448,9 +525,9 @@ const keepSearchFocus = (e: MouseEvent) => {
 
 /**
  * Pin/unpin the row under the keyboard cursor. The pin itself has to stay OUT of the tab order (a
- * focusable control inside `role="option"` is invalid ARIA), so the combobox owns the keyboard path —
- * without it the flyout, the only surface where a cluster outside PINNED/RECENT can be pinned, is
- * mouse-only. `local` is never pinnable.
+ * focusable control inside `role="option"` is invalid ARIA), so the combobox owns the keyboard path
+ * (Cmd+Shift+P / Alt+P) — without it the flyout, the only surface where a cluster outside PINNED/RECENT
+ * can be pinned, is mouse-only. `local` is never pinnable.
  */
 const togglePin = (cluster?: TopLevelMenuCluster | null) => {
   if (!cluster || cluster.isLocal) {
@@ -477,15 +554,6 @@ const togglePin = (cluster?: TopLevelMenuCluster | null) => {
 };
 
 const onKeydown = (e: KeyboardEvent) => {
-  // Alt+P toggles the pin on the cursor row. Matched on `code`, not `key`: Option+P emits `π` on a Mac
-  // layout, so `e.key` would never see a `p`.
-  if (e.altKey && e.code === 'KeyP') {
-    e.preventDefault();
-    togglePin(navRows.value[activeIndex.value]);
-
-    return;
-  }
-
   switch (e.key) {
   case 'ArrowDown':
     e.preventDefault();
@@ -496,7 +564,8 @@ const onKeydown = (e: KeyboardEvent) => {
   case 'ArrowUp':
     e.preventDefault();
     cursorMoved.value = true;
-    activeIndex.value = Math.max(activeIndex.value - 1, 0);
+    // From nothing highlighted, ↑ enters the list at the bottom — ↓ enters it at the top.
+    activeIndex.value = activeIndex.value === NO_ACTIVE_INDEX ? navRows.value.length - 1 : Math.max(activeIndex.value - 1, 0);
     revealActive();
     break;
   case 'Enter': {
@@ -534,6 +603,7 @@ defineExpose({
   closeAndWait,
   onInput,
   onKeydown,
+  onPointerMove,
   explore,
   togglePin,
 });
@@ -563,7 +633,7 @@ defineExpose({
         ref="flyout"
         class="cluster-switcher-flyout"
         role="none"
-        @keydown="onKeydown"
+        @mousemove="onPointerMove"
         @mousedown="keepSearchFocus"
       >
         <!-- Polite live region: announces result count / empty / loading as the user types, without
@@ -589,7 +659,7 @@ defineExpose({
             :aria-expanded="open ? 'true' : 'false'"
             aria-haspopup="listbox"
             aria-autocomplete="list"
-            aria-keyshortcuts="Alt+P"
+            :aria-keyshortcuts="pinShortcut"
             :aria-controls="localTile ? `${ localListboxId } ${ listboxId }` : listboxId"
             :aria-activedescendant="activeDescendant"
             @input="onInput"
@@ -629,7 +699,7 @@ defineExpose({
             <!-- While a search is in flight the count still describes the PREVIOUS query, so show a dash
                  rather than assert a total the list below is no longer showing — the pill itself always
                  renders, so the caption never flickers between having a count and not. -->
-            <span class="switcher-group-count">{{ searchLoading ? '—' : searchCount }}</span>
+            <span class="switcher-group-count">{{ listLoading ? '—' : searchCount }}</span>
           </template>
           <template v-else>
             {{ t('nav.switcher.allClusters') }}
@@ -642,6 +712,7 @@ defineExpose({
           ref="scroller"
           class="switcher-scroll"
           role="listbox"
+          :aria-busy="listLoading ? 'true' : 'false'"
           :aria-label="t('nav.switcher.aria.clusterList')"
           @scroll="onScroll"
         >
@@ -650,7 +721,7 @@ defineExpose({
             <!-- Skeleton for the whole debounce + request window. It deliberately replaces any
                  PREVIOUS result set: those rows do not match the query now being typed. -->
             <div
-              v-if="searchLoading"
+              v-if="listLoading"
               class="switcher-loading"
               aria-hidden="true"
             >
@@ -698,7 +769,7 @@ defineExpose({
             <!-- Gate on the loaded rows, not the parent's saved count: the two come from different
                  queries, so a count that hasn't resolved yet would blank a directory we already hold. -->
             <div
-              v-if="directory.length"
+              v-if="directory.length && !listLoading"
               class="switcher-group"
               role="group"
               :aria-label="t('nav.switcher.allClusters')"
@@ -714,9 +785,8 @@ defineExpose({
                 @select="explore"
               />
             </div>
-            <!-- Nothing loaded yet: a user with no pins and no visit history has no rows to fall back
-                 on. The whole switcher is gated on a non-zero browsable count, so an empty directory
-                 here always means page 1 is still in flight. -->
+            <!-- Page 1 in flight, or nothing loaded yet. Both show the skeleton: a directory about to be
+                 replaced wholesale should not sit there looking like the answer while the request runs. -->
             <div
               v-else
               class="switcher-loading"

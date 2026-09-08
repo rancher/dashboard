@@ -332,6 +332,8 @@ nav:
   header:
     setLoginPage: Set as login page
     showHideBanner: Show/Hide Banner
+    pinCluster: Pin cluster ({shortcut})
+    unpinCluster: Unpin cluster ({shortcut})
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys

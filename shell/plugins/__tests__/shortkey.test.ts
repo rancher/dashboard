@@ -1,13 +1,15 @@
-import { _internal } from '@shell/plugins/shortkey';
+import ShortKey, { _internal } from '@shell/plugins/shortkey';
 
-const { handleHoldKeydown, handleHoldKeyup, releaseHeldKeys } = _internal;
+const {
+  handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, availableElement
+} = _internal;
 
 // shortkey.js is untyped, so `_internal.mapFunctions` widens to `{}` and can't be string-indexed. Describe
 // the one binding shape these tests register (field names, incl. the source's `propagte` spelling, kept
 // verbatim) so the registry reads/writes are typed rather than implicit `any`.
 type ShortkeyBinding = {
   hold?: boolean; held?: boolean; once?: boolean; push?: boolean; focus?: boolean;
-  key?: string; propagte?: boolean; el?: HTMLElement[];
+  key?: string; propagte?: boolean; anywhere?: boolean; el?: HTMLElement[];
 };
 const mapFunctions = _internal.mapFunctions as Record<string, ShortkeyBinding>;
 
@@ -78,5 +80,81 @@ describe('shortkey .hold modifier', () => {
     expect(handleHoldKeydown('unknown')).toBe(false);
     expect(handleHoldKeyup('unknown')).toBe(false);
     expect(held).toStrictEqual([]);
+  });
+});
+
+// The `.anywhere` modifier: a binding that has to keep working while the caret is in a text field —
+// Cmd/Ctrl+J closes the flyout, whose own search box holds focus whenever it is open, so the avoid list
+// would otherwise make the shortcut a one-way trip.
+describe('shortkey .anywhere modifier', () => {
+  const registry = _internal.mapFunctions as Record<string, ShortkeyBinding>;
+
+  beforeAll(() => {
+    // The avoid lists come from install options; the directive registration is not exercised here.
+    ShortKey.install({ directive: () => {} } as any, { prevent: ['input'], preventContainer: ['#modal-container-element'] });
+  });
+
+  beforeEach(() => {
+    Object.keys(registry).forEach((k) => delete registry[k]);
+    registry.metaj = { key: 'mac', el: [document.createElement('button')] };
+    document.body.innerHTML = '';
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  const focusAn = (tag: string, inModal = false) => {
+    document.body.innerHTML = inModal ? `<div id="modal-container-element"><${ tag } id="f" /></div>` : `<${ tag } id="f" />`;
+    (document.getElementById('f') as HTMLElement).focus();
+  };
+
+  it('holds an ordinary binding back while focus is in a text field', () => {
+    focusAn('input');
+
+    expect(availableElement('metaj')).toBe(false);
+  });
+
+  it('lets an `anywhere` binding through from that same field', () => {
+    registry.metaj.anywhere = true;
+    focusAn('input');
+
+    expect(availableElement('metaj')).toBe(true);
+  });
+
+  // `anywhere` opts out of the element list only: a modal still owns the screen.
+  it('is still held back inside a modal', () => {
+    registry.metaj.anywhere = true;
+    focusAn('input', true);
+
+    expect(availableElement('metaj')).toBe(false);
+  });
+
+  // The modal rule is about the modal being ON THE PAGE, not about it holding focus. Most dialogs do not
+  // trap focus, and clicking a dialog's own text drops focus to <body> — from where every shortcut used
+  // to fire and draw its panel behind the modal.
+  it.each([
+    ['a plain binding', false],
+    ['an `anywhere` binding', true],
+  ])('holds %s back while a modal is on the page, wherever focus sits', (_label, anywhere) => {
+    registry.metaj.anywhere = anywhere;
+    document.body.innerHTML = '<div id="modal-container-element"></div><button id="behind">x</button>';
+    (document.getElementById('behind') as HTMLElement).focus();
+
+    expect(document.activeElement?.closest('#modal-container-element')).toBeNull();
+    expect(availableElement('metaj')).toBe(false);
+  });
+
+  // The flyout is registered alongside the modal container: it is a panel over a full-page scrim with its
+  // own keyboard, so the app's shortcuts stand down for it the same way.
+  it('treats the cluster-switcher flyout as one of those containers', () => {
+    ShortKey.install({ directive: () => {} } as any, { prevent: ['input'], preventContainer: ['.cluster-switcher-popper'] });
+    document.body.innerHTML = '<div class="cluster-switcher-popper"></div>';
+
+    expect(availableElement('metaj')).toBe(false);
+  });
+
+  it('is false for a key nothing is bound to', () => {
+    expect(availableElement('metaz')).toBe(false);
   });
 });

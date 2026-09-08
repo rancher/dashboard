@@ -654,6 +654,23 @@ describe('topLevelMenu', () => {
       expect(wrapper.find('[data-testid="top-level-menu-no-results"]').exists()).toBe(false);
     });
 
+    // The open-state highlight — the row wearing its hover fill for as long as the panel it opened is up
+    // — hangs off `aria-expanded`, so the attribute has to track the flyout.
+    it('marks itself expanded while the flyout is open', async() => {
+      const wrapper = mountWithClusters();
+
+      await waitForIt();
+
+      const trigger = () => wrapper.find('[data-testid="cluster-switcher-trigger"]');
+
+      expect(trigger().attributes('aria-expanded')).toStrictEqual('false');
+
+      (wrapper.vm as any).$refs.switcher.setOpen(true);
+      await nextTick();
+
+      expect(trigger().attributes('aria-expanded')).toStrictEqual('true');
+    });
+
     it('drops the flyout search when the flyout closes, so the next open starts on the full estate', async() => {
       const wrapper = mountWithClusters();
 
@@ -905,68 +922,88 @@ describe('topLevelMenu', () => {
   });
 
   // While the flyout is open it owns the keyboard: every other app shortcut behind it is swallowed.
-  describe('the open flyout blocks other shortcuts', () => {
-    const guardEvent = (over: any = {}) => ({
-      key:                      'f',
-      code:                     'KeyF',
-      metaKey:                  false,
-      ctrlKey:                  false,
-      altKey:                   false,
-      shiftKey:                 false,
-      target:                   { closest: () => null },
-      stopPropagation:          jest.fn(),
-      stopImmediatePropagation: jest.fn(),
-      ...over,
-    });
-
-    const guard = (event: any, switcherOpen = true, route: any = {}) => {
+  describe('Cmd/Ctrl+J, the flyout toggle', () => {
+    const press = async() => {
+      const toggle = jest.fn();
+      // Stand in for the flyout so the assertion is "was it asked to open", not the flyout's own behaviour.
       const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
         global: {
           mocks: {
-            $route: route,
-            $store: { ...generateStore([]) },
+            $route: {},
+            // A browsable estate, so the switcher (and this ref) actually renders.
+            $store: {
+              ...generateStore([
+                {
+                  id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
+                },
+              ])
+            },
+          },
+          stubs: {
+            BrandImage:      true,
+            'router-link':   true,
+            ClusterSwitcher: { template: '<div />', methods: { toggle } },
+          },
+        },
+      });
+
+      await waitForIt();
+
+      // Matching the keys is the `v-shortkey` binding's job; this handler runs once it has fired.
+      (wrapper.vm as any).onSwitcherHotkey();
+
+      return { toggle };
+    };
+
+    it('toggles the flyout', async() => {
+      const { toggle } = await press();
+
+      expect(toggle).toHaveBeenCalledWith();
+    });
+
+    // The binding is `.anywhere` on purpose: the flyout puts the caret in its own search box, so the
+    // directive's avoid list would otherwise let the shortcut open the flyout but never close it.
+    it('binds Cmd/Ctrl+J on the trigger, live even from a text field', async() => {
+      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: {
+              ...generateStore([
+                {
+                  id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
+                },
+              ])
+            },
           },
           stubs: ['BrandImage', 'router-link'],
         },
       });
 
-      wrapper.vm.switcherOpen = switcherOpen;
-      wrapper.vm.onSwitcherKeyGuard(event);
+      await waitForIt();
 
-      return { event, vm: wrapper.vm };
-    };
+      expect((wrapper.vm as any).switcherShortcutKeys).toStrictEqual({ windows: ['ctrl', 'j'], mac: ['meta', 'j'] });
+      expect(wrapper.find('[data-testid="cluster-switcher-trigger"]').exists()).toBe(true);
+    });
+  });
 
-    // A cluster-explorer route — the only place the "keep this view" combo means anything.
-    const explorerRoute = { name: 'c-cluster-explorer', params: { product: 'explorer' } };
-
-    it('swallows an unrelated app shortcut (Cmd+F)', () => {
-      const { event } = guard(guardEvent({ metaKey: true }));
-
-      expect(event.stopImmediatePropagation).toHaveBeenCalledWith();
-      expect(event.stopPropagation).toHaveBeenCalledWith();
+  // The flyout is registered as a shortcut-silencing container (like the modal one), so the plugin stands
+  // every binding down while it is open. What is left here is the Cmd/Ctrl+K hand-off, which is behaviour
+  // rather than blocking: put the panel and the nav away, then open the jump.
+  describe('the flyout and the resource jump', () => {
+    const guardEvent = (over: any = {}) => ({
+      key:      'f',
+      code:     'KeyF',
+      metaKey:  false,
+      ctrlKey:  false,
+      altKey:   false,
+      shiftKey: false,
+      target:   { closest: () => null },
+      ...over,
     });
 
-    it('lets Cmd/Ctrl+J through so the flyout can be closed with the same shortcut that opened it', () => {
-      const { event } = guard(guardEvent({
-        key: 'j', code: 'KeyJ', metaKey: true
-      }));
-
-      expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
-    });
-
-    // Option/Alt has to reach the `v-shortkey.hold` bindings, which own the "keep this view" reveal and
-    // its release when focus leaves the page (issue 11329) — see the routeCombo tests below.
-    it.each([['keydown'], ['keyup']])('lets Option/Alt through so the hold reveal keeps working (%s)', (type) => {
-      const { event } = guard(guardEvent({
-        key: 'Alt', code: 'AltLeft', altKey: type === 'keydown', type
-      }), true, explorerRoute);
-
-      expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
-    });
-
-    // Cmd/Ctrl+K belongs to the side nav's resource jump. The guard has to stand aside for it AND clear
-    // the nav out of the way — including when only the nav is expanded, with no flyout open at all,
-    // which is the case a guard gated on `switcherOpen` used to miss entirely.
+    // Cmd/Ctrl+K has to clear the nav out of the way — including when only the nav is expanded, with no
+    // flyout open at all, which is the case a handler gated on `switcherOpen` used to miss entirely.
     describe('Cmd/Ctrl+K, the resource jump', () => {
       const jumpEvent = () => guardEvent({
         key: 'k', code: 'KeyK', metaKey: true, type: 'keydown'
@@ -978,13 +1015,6 @@ describe('topLevelMenu', () => {
 
       afterEach(() => {
         document.body.innerHTML = '';
-      });
-
-      it('is never swallowed — the jump has to receive it', () => {
-        withJumpOnPage(true);
-        const { event } = guard(jumpEvent());
-
-        expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
       });
 
       it('collapses an expanded nav even with no flyout open', async() => {
@@ -1028,29 +1058,6 @@ describe('topLevelMenu', () => {
 
         expect(wrapper.vm.shown).toBe(true);
       });
-    });
-
-    it('leaves keys typed inside the flyout alone (search, ↑↓, Enter, Esc)', () => {
-      // A node inside the flyout is inside the popper root too — both selectors match.
-      const inFlyout = { closest: (sel: string) => (sel === '.cluster-switcher-flyout' || sel === '.cluster-switcher-popper' ? {} : null) };
-      const { event } = guard(guardEvent({ target: inFlyout }));
-
-      expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
-    });
-
-    // Clicking the flyout's own chrome parks focus on floating-vue's popper root, which is OUTSIDE the
-    // flyout. Swallowing keys there would take Esc with them and leave the user trapped.
-    it('leaves keys alone when focus sits on the popper root outside the flyout', () => {
-      const onPopperRoot = { closest: (sel: string) => (sel === '.cluster-switcher-popper' ? {} : null) };
-      const { event } = guard(guardEvent({ target: onPopperRoot }));
-
-      expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
-    });
-
-    it('does nothing at all while the flyout is closed', () => {
-      const { event } = guard(guardEvent({ metaKey: true }), false);
-
-      expect(event.stopImmediatePropagation).not.toHaveBeenCalled();
     });
   });
 

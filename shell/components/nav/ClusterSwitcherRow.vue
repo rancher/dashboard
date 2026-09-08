@@ -60,7 +60,7 @@ const meta = computed(() => {
 
 // Single screen-reader label — the badge is decorative and the pin is `aria-hidden`, so this label is
 // the ONLY thing assistive tech perceives about the option: it has to carry the pinned state too, or
-// Alt+P (the only keyboard route to the pin) is a toggle with no perceivable result.
+// the pin shortcut (the only keyboard route to the pin) is a toggle with no perceivable result.
 const ariaLabel = computed(() => {
   const parts = [props.cluster.label];
 
@@ -116,9 +116,9 @@ function select() {
       </div>
     </div>
     <!-- No `tab-order` on purpose: a focusable control inside `role="option"` is invalid ARIA, so the
-         pin stays out of the tab order and the combobox drives it from the keyboard instead (Alt+P).
-         `aria-hidden` makes that explicit — an option's children are presentational, so the pin's own
-         name/state is unreliable across screen readers and Alt+P is the supported path.
+         pin stays out of the tab order and the combobox drives it from the keyboard instead
+         (Cmd+Shift+P / Alt+P). `aria-hidden` makes that explicit — an option's children are presentational, so the pin's own
+         name/state is unreliable across screen readers and the pin shortcut is the supported path.
          `@mousedown.prevent` for the same reason the search's clear-X has it: with no `tabindex` here the
          browser focuses the nearest focusable ancestor, which is floating-vue's popper ROOT — and the
          flyout's `keydown` handler sits on a DESCENDANT of that root, so every key would go dead after a
@@ -168,7 +168,7 @@ function select() {
   cursor: pointer;
 
   // Dim only what "not ready" applies to: the row can't be explored, but its pin toggle still works
-  // (mouse and Alt+P both pin a not-ready cluster), so the pin must not read as dead along with it.
+  // (mouse and the pin shortcut both pin a not-ready cluster), so it must not read as dead along with it.
   &.disabled {
     cursor: default;
 
@@ -178,11 +178,10 @@ function select() {
     }
   }
 
-  // Two separate highlights, deliberately: `:hover` follows the pointer and clears itself the moment it
-  // leaves (CSS owns it, so nothing can strand it), while `.active` is the ↑↓ keyboard cursor and is
-  // meant to persist. Driving hover off the keyboard cursor is what used to leave a row lit after the
-  // pointer had gone.
-  &:hover,
+  // ONE highlight, never two: `.active` is the cursor, and the pointer moves it by hovering (see the
+  // flyout's `onRowHover`) rather than painting a second highlight of its own. Two independent ones let
+  // the list show a keyboard row and a hovered row at the same time, neither of which was clearly "the"
+  // row Enter would take.
   &.active {
     background: color-mix(in srgb, var(--body-text) 6%, transparent);
   }
@@ -191,8 +190,7 @@ function select() {
   &.current {
     background: var(--active-nav, var(--primary-hover-bg));
 
-    &.active,
-    &:hover {
+    &.active {
       background: var(--active-hover, var(--primary-hover-bg));
     }
 
@@ -261,7 +259,6 @@ function select() {
     }
   }
 
-  &:hover .row-pin,
   &.active .row-pin {
     opacity: 1;
   }

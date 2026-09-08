@@ -77,7 +77,7 @@ export default {
       hasProvCluster,
       loadingMoreOthers: false,
       // A search request is in flight (drives the flyout's initial search skeleton).
-      searchLoading:     false,
+      listLoading:       false,
       routeCombo:        false,
 
       canPagination,
@@ -273,6 +273,11 @@ export default {
     // "⌘J" does not read out sensibly.
     switcherShortcutLabel() {
       return isMac ? '⌘J' : 'Ctrl+J';
+    },
+
+    // Cmd+J on a Mac, Ctrl+J elsewhere.
+    switcherShortcutKeys() {
+      return { windows: ['ctrl', 'j'], mac: ['meta', 'j'] };
     },
 
     switcherKeyShortcut() {
@@ -552,18 +557,14 @@ export default {
 
   mounted() {
     document.addEventListener('keyup', this.handler);
-    document.addEventListener('keydown', this.onSwitcherHotkey);
     // Capture on `window` — one hop ahead of the `document` capture listeners the shortkey directive uses
     // — so the guard can swallow an app shortcut before any of them sees it.
     window.addEventListener('keydown', this.onSwitcherKeyGuard, true);
-    window.addEventListener('keyup', this.onSwitcherKeyGuard, true);
   },
 
   beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
-    document.removeEventListener('keydown', this.onSwitcherHotkey);
     window.removeEventListener('keydown', this.onSwitcherKeyGuard, true);
-    window.removeEventListener('keyup', this.onSwitcherKeyGuard, true);
 
     // Timers armed in `data()` outlive the listeners — a pending one would otherwise write state on a
     // destroyed instance (and re-fire the request when the layout recreates the component).
@@ -626,8 +627,9 @@ export default {
     // The flyout owns the only cluster search in the nav; its query drives the `clustersOthers` pipeline
     // via the `search` watcher.
     onSwitcherSearch(term) {
-      // Show the loading skeleton immediately (cleared when the debounced request resolves).
-      this.searchLoading = !!term;
+      // Show the skeleton from the keystroke, not from the request: the reset is debounced, and clearing
+      // the box refetches the whole directory, so both would otherwise sit on stale rows and then swap.
+      this.listLoading = true;
       this.clusterFilter = term;
     },
 
@@ -639,78 +641,40 @@ export default {
       }
     },
 
-    // Cmd (Mac) / Ctrl (Windows/Linux) + J toggles the cluster-switcher flyout — mirroring the Cmd/Ctrl+K
-    // resource search nav (see NavActionBar). `e.code` keys off the physical J so it matches regardless of
-    // any modifier remapping the produced `e.key`.
-    onSwitcherHotkey(e) {
-      const key = (e.key || '').toLowerCase();
-
-      if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) {
-        return;
-      }
-
-      if (e.code !== 'KeyJ' && key !== 'j') {
-        return;
-      }
-
-      const switcher = this.$refs.switcher;
-
-      if (switcher) {
-        e.preventDefault();
-        switcher.toggle();
-      }
+    /**
+     * Cmd (Mac) / Ctrl (Windows/Linux) + J toggles the cluster-switcher flyout — mirroring the Cmd/Ctrl+K
+     * resource search nav (see NavActionBar).
+     *
+     * Bound with `.anywhere` because the flyout puts the caret in its own search box, and the directive's
+     * avoid list would otherwise leave the shortcut able to open the flyout but not close it.
+     */
+    onSwitcherHotkey() {
+      this.$refs.switcher?.toggle();
     },
 
-    // While the flyout is open it OWNS the keyboard: every app shortcut behind it (Cmd/Ctrl+K, the
-    // `v-shortkey` bindings, …) is swallowed here. Three things still get through:
-    // - Cmd/Ctrl+J, the flyout's own toggle (`onSwitcherHotkey`), and Cmd/Ctrl+K, the resource jump
-    //   (put away below, then left to NavActionBar's own shortcut to open);
-    // - Option/Alt, so the `v-shortkey.hold` bindings keep driving the "keep this view" reveal — that
-    //   directive owns the state (issue 11329), including releasing it when focus leaves the page;
-    // - anything typed inside the flyout, so its search box and ↑↓/Enter/Esc keep working.
+    /**
+     * Cmd/Ctrl+K belongs to the side nav's resource jump (NavActionBar). Wherever that exists, get out of
+     * its way: `hide` puts the flyout away and collapses the nav, then the jump is opened by FOCUSING its
+     * input — the same door its own shortcut uses, and the one that still works while the flyout is on
+     * screen silencing every `v-shortkey` binding.
+     *
+     * On WINDOW capture because the shortkey directive stops propagation from `document` capture, so a
+     * listener on `document` would never see the key. `navSearch`, which decides whether the jump renders,
+     * is SideNav's own state and not reachable from here, so ask the page: the input's presence IS the
+     * condition. Keydown only, or the keyup would run it a second time.
+     *
+     * Blocking the rest is no longer this listener's job — the flyout is registered as a
+     * shortcut-silencing container, exactly like a modal, so the plugin stands every binding down for as
+     * long as the panel is up.
+     */
     onSwitcherKeyGuard(e) {
       const key = (e.key || '').toLowerCase();
       const modified = (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey;
 
-      // Cmd/Ctrl+K is the side nav's resource jump (NavActionBar). Wherever that exists, get out of its
-      // way — `hide` puts the flyout away and collapses the nav, in that order — and let the key carry on
-      // to open it. Ahead of the early return below because it has to run whether or not the flyout is
-      // open; an expanded nav with no flyout was being left standing over the jump. And on WINDOW capture
-      // because the `shortkey` directive that owns this shortcut stops propagation from `document`
-      // capture — a listener on `document` would never see it. `navSearch`, which decides whether the
-      // jump renders, is SideNav's own state and not reachable from here, so ask the page: its presence
-      // IS the condition. Keydown only, or the keyup would run it a second time.
       if ((e.code === 'KeyK' || key === 'k') && modified && e.type === 'keydown' &&
         (this.shown || this.switcherOpen) && document.querySelector('[data-testid="nav-jump-to-input"]')) {
-        this.hide();
+        this.hide().then(() => document.querySelector('[data-testid="nav-jump-to-input"]')?.focus());
       }
-
-      if (!this.switcherOpen) {
-        return;
-      }
-      const isToggle = (e.code === 'KeyJ' || key === 'j') && modified;
-      const isAlt = e.key === 'Alt' || e.code === 'AltLeft' || e.code === 'AltRight';
-      // Cmd/Ctrl+K belongs to the resource jump. The block above has already put the flyout and the nav
-      // away, so all this has to do is not swallow the key on its way to NavActionBar.
-      const isJump = (e.code === 'KeyK' || key === 'k') && modified;
-
-      if (isToggle || isAlt || isJump) {
-        return;
-      }
-
-      const target = e.target;
-
-      // The modal surface is floating-vue's popper ROOT, not the flyout inside it — clicking the flyout's
-      // own chrome parks focus on that root, and testing for the flyout would swallow every key from there
-      // (Esc included), leaving no way out.
-      if (target && typeof target.closest === 'function' && target.closest('.cluster-switcher-popper')) {
-        return;
-      }
-
-      // `stopImmediatePropagation` (not just `stopPropagation`) — the shortkey directive listens on
-      // `document`, and only the immediate form is guaranteed to beat every listener there.
-      e.stopImmediatePropagation();
-      e.stopPropagation();
     },
 
     // Every way of putting the nav away — the hamburger, a cluster click, a route change, Esc — has to
@@ -744,15 +708,19 @@ export default {
     resetOthersList() {
       const requestedTerm = this.search;
 
+      // Every page-1 refresh shows the skeleton — opening the flyout as much as typing in it. Both replace
+      // the list wholesale, and without it the old rows sit there until the new ones drop in.
+      this.listLoading = true;
+
       this.helper.resetOthers({
         pinnedIds:  this.pinnedIds,
         recentIds:  this.recentIds,
         searchTerm: requestedTerm,
       }).catch(() => {}).finally(() => {
-        // Clear the flyout's initial-search skeleton only when the term this request was issued for is
-        // still the one on screen — an older query must not unhide its own results under the new term.
+        // Clear the skeleton only when the term this request was issued for is still the one on screen —
+        // an older query must not unhide its own results under the new term.
         if (this.search === requestedTerm) {
-          this.searchLoading = false;
+          this.listLoading = false;
         }
       });
     },
@@ -1023,7 +991,7 @@ export default {
                   :search-results="clustersFiltered"
                   :cluster-count="browsableClusterCount"
                   :search-count="switcherSearchCount"
-                  :search-loading="searchLoading"
+                  :list-loading="listLoading"
                   :current-cluster-id="currentClusterId"
                   :search="clusterFilter"
                   :has-more="hasMoreOthers"
@@ -1041,6 +1009,7 @@ export default {
                   <template #trigger="{ toggle: toggleSwitcher, open: switcherIsOpen, count: switcherCount }">
                     <button
                       v-clean-tooltip="switcherTooltip()"
+                      v-shortkey.anywhere="switcherShortcutKeys"
                       type="button"
                       class="cluster selector option cluster-all"
                       data-testid="cluster-switcher-trigger"
@@ -1049,6 +1018,7 @@ export default {
                       :aria-expanded="switcherIsOpen"
                       aria-haspopup="listbox"
                       @click.prevent="toggleSwitcher"
+                      @shortkey="onSwitcherHotkey"
                     >
                       <div
                         v-clean-tooltip="switcherTooltip(true)"
@@ -1549,8 +1519,9 @@ export default {
   }
 
   // The flyout being open is not an "active/selected" state — this tile is not a cluster you can be
-  // "in" — so it never takes the green `active-menu-link` fill, only hover.
-  .side-menu .body .option.cluster-all:not(:hover) {
+  // "in" — so it never takes the green `active-menu-link` fill. Only hover, and being open: an open panel
+  // has to show which row opened it.
+  .side-menu .body .option.cluster-all:not(:hover):not([aria-expanded='true']) {
     background: transparent;
   }
 
@@ -1879,13 +1850,19 @@ export default {
           }
         }
 
+        // The collapsed rail rings the row's ICON, since `.option:focus-visible` zeroes the row's own
+        // outline. The switcher's icon is its count chip, which is why it was the one row with no focus
+        // indicator on the rail (WCAG 2.4.7).
         &:focus-visible {
-          .top-menu-icon, .rancher-provider-icon, .app-icon {
+          .top-menu-icon, .rancher-provider-icon, .app-icon, .cluster-all-badge {
             @include focus-outline;
           }
         }
 
-        &:hover {
+        // A row holding its panel open wears the hover highlight for as long as it is open, so it reads as
+        // the source of the thing on screen.
+        &:hover,
+        &[aria-expanded='true'] {
           color: var(--tertiary-hover-app-bar, var(--primary-hover-text));
           background: var(--nav-hover-top-level, var(--primary-hover-bg));
           > div {
@@ -2032,7 +2009,8 @@ export default {
           @include focus-outline;
           outline-offset: -4px;
 
-          .top-menu-icon, .app-icon, .rancher-provider-icon {
+          // Expanded, the ring goes round the whole row, so the icon drops the one it wears on the rail.
+          .top-menu-icon, .app-icon, .rancher-provider-icon, .cluster-all-badge {
             outline: none;
             border-radius: 0;
           }

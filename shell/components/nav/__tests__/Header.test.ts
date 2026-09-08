@@ -39,7 +39,7 @@ describe('component: Header', () => {
 
   const defaultConfigMock = { rancherEnv: 'web' };
 
-  function createWrapper(routeOverride = {}, storeOverride = {}, extensionMock: any = { getDynamic: jest.fn() }, props = {}) {
+  function createWrapper(routeOverride = {}, storeOverride = {}, extensionMock: any = { getDynamic: jest.fn() }, props = {}, stubsOverride: any = {}) {
     const routeMock = {
       ...defaultRouteMock,
       ...routeOverride,
@@ -80,6 +80,7 @@ describe('component: Header', () => {
           RcDropdownItem:       { template: '<div><slot /></div>' },
           RcDropdownSeparator:  { template: '<hr />' },
           RcDropdownTrigger:    { template: '<button><slot /></button>' },
+          ...stubsOverride,
         },
       },
     });
@@ -267,6 +268,79 @@ describe('component: Header', () => {
       );
 
       expect((wrapper.vm as any).showFilter).toBe(true);
+    });
+  });
+
+  describe('the cluster pin', () => {
+    const cluster = (over: any = {}) => ({
+      id: 'c-abc', nameDisplay: 'prod', isLocal: false, pinned: false, spec: { displayName: 'prod' }, pin: jest.fn(), unpin: jest.fn(), ...over
+    });
+    // The pin lives beside the cluster name, which only renders for a product that shows the switcher.
+    const withCluster = (currentCluster: any, stubs: any = {}) => createWrapper({}, {
+      currentCluster,
+      currentProduct: { showClusterSwitcher: true },
+      // Rendering the cluster area brings the header's action buttons with it, and those read the
+      // feature flags the default mock does not carry.
+      'features/get': () => false,
+    }, { getDynamic: jest.fn() }, {}, stubs);
+
+    // A stand-in for the pin control that records the toggle, so these tests assert the shortcut reaches
+    // it rather than re-testing the control itself.
+    const pinStub = (toggle: jest.Mock) => ({ Pinned: { template: '<span />', methods: { toggle } } });
+
+    it('offers a pin for the cluster being explored', () => {
+      const vm = withCluster(cluster()).vm as any;
+
+      expect(vm.pinnableCluster).toMatchObject({ pinned: false, label: 'prod' });
+    });
+
+    // `local` holds a fixed slot in the nav and is filtered out of PINNED, so a pin on it would be an
+    // affordance that changes nothing.
+    it.each([
+      ['local', cluster({ isLocal: true, nameDisplay: 'local' })],
+      ['no cluster', null],
+    ])('offers no pin for %s', (_label, currentCluster) => {
+      expect((withCluster(currentCluster).vm as any).pinnableCluster).toBeNull();
+    });
+
+    it('names the action for the state the pin is in', () => {
+      // The suite renders keys rather than copy, so match the key each state resolves to.
+      expect((withCluster(cluster()).vm as any).pinTooltip).toContain('nav.header.pinCluster');
+      expect((withCluster(cluster({ pinned: true })).vm as any).pinTooltip).toContain('nav.header.unpinCluster');
+    });
+
+    // The tooltip advertises the shortcut, so the label has to name the key the handler below listens
+    // for — Alt, which a Mac keyboard calls Option and prints ⌥.
+    // The label and the announced name have to name the keys the binding actually registers, or the
+    // tooltip and a screen reader advertise a shortcut that does nothing.
+    it('advertises the keys it binds', () => {
+      const vm = withCluster(cluster()).vm as any;
+
+      expect(vm.pinShortcutKeys).toStrictEqual({ windows: ['alt', 'p'], mac: ['meta', 'shift', 'p'] });
+      // Whichever platform this runs on, the label and the announced name describe the same combo.
+      expect(vm.pinAriaShortcut).toBe(vm.pinShortcutLabel === '⌘⇧P' ? 'Meta+Shift+P' : 'Alt+P');
+    });
+
+    describe('the pin shortcut', () => {
+      // Matching, and staying out of text fields, is the `v-shortkey` directive's job — this handler runs
+      // only once the directive has decided the shortcut fired.
+      it('toggles the pin through the control, so the write and the animation stay on one path', () => {
+        const toggle = jest.fn();
+        const vm = withCluster(cluster(), pinStub(toggle)).vm as any;
+
+        vm.onPinShortcut();
+
+        expect(toggle).toHaveBeenCalledWith();
+      });
+
+      it('does nothing on a cluster that cannot be pinned', () => {
+        const toggle = jest.fn();
+        const vm = withCluster(cluster({ isLocal: true }), pinStub(toggle)).vm as any;
+
+        vm.onPinShortcut();
+
+        expect(toggle).not.toHaveBeenCalled();
+      });
     });
   });
 
