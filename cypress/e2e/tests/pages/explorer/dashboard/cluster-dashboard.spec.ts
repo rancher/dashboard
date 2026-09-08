@@ -38,7 +38,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     cy.login();
   });
 
-  it('can navigate to cluster dashboard', () => {
+  qase(2039, it('can navigate to cluster dashboard', () => {
     const clusterList = new ClusterManagerListPagePo('local');
 
     clusterList.goTo();
@@ -53,9 +53,9 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
     // check if burger menu nav is highlighted correctly for local cluster
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
-  });
+  }));
 
-  it('has the correct title', () => {
+  qase(2361, it('has the correct title', () => {
     ClusterDashboardPagePo.navTo();
 
     cy.getRancherVersion().then((version) => {
@@ -63,15 +63,15 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
       cy.title().should('eq', expectedTitle);
     });
-  });
+  }));
 
-  it('shows fleet controller status', () => {
+  qase(5703, it('shows fleet controller status', () => {
     ClusterDashboardPagePo.navTo();
     clusterDashboard.waitForPage();
     clusterDashboard.fleetStatus().should('exist');
-  });
+  }));
 
-  it('can import a YAML successfully, using the header action "Import YAML"', () => {
+  qase(3046, it('can import a YAML successfully, using the header action "Import YAML"', () => {
     ClusterDashboardPagePo.navTo();
 
     header.importYamlHeaderAction().click();
@@ -86,16 +86,16 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     header.importYaml().importYamlSortableTable().subRows().should('not.exist');
 
     header.importYaml().importYamlCloseClick();
-  });
+  }));
 
-  it('can open the kubectl shell from header', () => {
+  qase(3537, it('can open the kubectl shell from header', () => {
     ClusterDashboardPagePo.navTo();
 
     header.kubectlShell().openAndExecuteCommand('get no');
     header.kubectlShell().closeTerminal();
-  });
+  }));
 
-  it('can download kubeconfig from header', () => {
+  qase(3539, it('can download kubeconfig from header', () => {
     const downloadsFolder = Cypress.config('downloadsFolder');
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
@@ -118,15 +118,15 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
       expect(obj.clusters.map((cluster: { name: string }) => cluster.name)).to.not.include('rancher');
       expect(obj.contexts.map((context: { name: string }) => context.name)).to.not.include('rancher');
     });
-  });
+  }));
 
-  it('can copy the kubeconfig to clipboard', () => {
+  qase(3538, it('can copy the kubeconfig to clipboard', () => {
     ClusterDashboardPagePo.navTo();
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
     header.copyKubeconfig().click();
     header.copyKubeConfigCheckmark().should('be.visible');
     cy.wait('@copyKubeConfig');
-  });
+  }));
 
   qase(2038, it('can add cluster badge', () => {
     const settings = {
@@ -193,7 +193,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
   }));
 
-  it('can view deployments', () => {
+  qase(2040, it('can view deployments', () => {
     clusterDashboard.goTo();
     clusterDashboard.waitForPage();
     cy.getRancherResource('v1', 'apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
@@ -207,9 +207,9 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
       workloadDeployments.waitForPage();
     });
-  });
+  }));
 
-  it('can view nodes', () => {
+  qase(2037, it('can view nodes', () => {
     clusterDashboard.goTo();
     clusterDashboard.waitForPage();
 
@@ -230,12 +230,12 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
       nodesPage.waitForPage();
     });
-  });
+  }));
 
   const projIds: string[] = [];
   const nsIds: string[] = [];
 
-  it('can view events and change events list count in cluster dashboard', () => {
+  qase(15329, it('can view events and change events list count in cluster dashboard', () => {
     // Tolerate the transient cold-load "Network Error" this churn-heavy test can trigger on entry.
     cy.on('uncaught:exception', (err) => (/Network Error/i.test(err?.message || '') ? false : undefined));
 
@@ -296,9 +296,9 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     events.waitForPage();
     events.list().resourceTable().sortableTable().rowElements()
       .should('have.length.gte', 12);
-  });
+  }));
 
-  it('can view events table empty if no events', { tags: ['@adminUser'] }, () => {
+  qase(3857, it('can view events table empty if no events', { tags: ['@adminUser'] }, () => {
     eventsNoDataset();
     clusterDashboard.goTo();
 
@@ -334,7 +334,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
       .each((el, i) => {
         expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
       });
-  });
+  }));
 
   describe('Cluster dashboard with limited permissions', { testIsolation: true }, () => {
     let stdProjectName;
@@ -387,13 +387,13 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     });
 
     // note - this would be 'fleet agent' on downstream clusters
-    it('does not show fleet controller status if the user does not have permission to view the fleet controller deployment', () => {
+    qase(5704, it('does not show fleet controller status if the user does not have permission to view the fleet controller deployment', () => {
       clusterDashboard.fleetStatus().should('not.exist');
 
       clusterDashboard.etcdStatus().should('exist');
       clusterDashboard.schedulerStatus().should('exist');
       clusterDashboard.controllerManagerStatus().should('exist');
-    });
+    }));
 
     // log back in as admin and delete the project, ns, and user from previous test
     afterEach(() => {
@@ -433,7 +433,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
       cy.login();
     });
 
-    it('does not show fleet controller status if a 403 is returned by the API', () => {
+    qase(8677, it('does not show fleet controller status if a 403 is returned by the API', () => {
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(403, forbiddenResponse));
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(403, forbiddenResponse));
 
@@ -446,9 +446,9 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
       clusterDashboard.etcdStatus().should('exist');
       clusterDashboard.schedulerStatus().should('exist');
       clusterDashboard.controllerManagerStatus().should('exist');
-    });
+    }));
 
-    it('does not show fleet controller status if a 404 is returned by the API', () => {
+    qase(8678, it('does not show fleet controller status if a 404 is returned by the API', () => {
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(404, {}));
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(404, {}));
 
@@ -461,7 +461,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
       clusterDashboard.etcdStatus().should('exist');
       clusterDashboard.schedulerStatus().should('exist');
       clusterDashboard.controllerManagerStatus().should('exist');
-    });
+    }));
   });
 
   after(() => {
