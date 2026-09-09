@@ -20,6 +20,13 @@ import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
 import { RcSeparator } from '@components/RcSeparator';
+import { commitAndReconcile, reorderPinned, reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
+
+// How far the pointer must travel with a shelf row held before it counts as a drag rather than a click.
+const DRAG_THRESHOLD = 4;
+// ...or how long it must be held still. Holding is the other way a user says "I mean to move this", and
+// answering it with the lift tells them the row is theirs before they have gone anywhere with it.
+const DRAG_HOLD_MS = 200;
 
 export default {
   components: {
@@ -76,6 +83,11 @@ export default {
       clusterFilter:     '',
       hasProvCluster,
       loadingMoreOthers: false,
+      // Drag-reorder of the pinned shelf. `dragId` is the row being held; `dragOrder` is the ids in the
+      // order the shelf is CURRENTLY showing them, which the pointer rewrites as it passes other rows.
+      // Null when nothing is being dragged, so the shelf falls back to the pref's own order.
+      dragId:            null,
+      dragOrder:         null,
       // A search request is in flight (drives the flyout's initial search skeleton).
       listLoading:       false,
       recentLoading:     false,
@@ -217,8 +229,25 @@ export default {
     },
 
     // Expanded-nav shelf: PINNED + RECENT, always — the estate lives in the switcher flyout.
+    //
+    // Mid-drag the shelf follows the pointer instead of the pref: `dragOrder` is the order the rows are
+    // being shuffled into, and only the drop writes it back. Rendering the pref directly would snap the
+    // row home on every pointer move, since the pref does not change until then.
     pinnedRows() {
-      return this.appBar.pinFiltered;
+      const rows = this.appBar.pinFiltered;
+
+      if (!this.dragOrder) {
+        return rows;
+      }
+
+      const byId = new Map(rows.map((c) => [c.id, c]));
+
+      // Anything pinned WHILE dragging (another tab) has no place in the dragged order, so it goes last
+      // rather than vanishing until the drop.
+      return [
+        ...this.dragOrder.map((id) => byId.get(id)).filter((c) => !!c),
+        ...rows.filter((c) => !this.dragOrder.includes(c.id)),
+      ];
     },
 
     // PINNED and RECENT render the SAME row; describing them as data instead of two copies of the markup
@@ -562,6 +591,10 @@ export default {
     document.removeEventListener('keyup', this.handler);
     window.removeEventListener('keydown', this.onSwitcherKeyGuard, true);
 
+    // A drag holds listeners on the WINDOW and a pending hold timer, neither of which the component takes
+    // with it — dropping the nav mid-drag would leave both running against a destroyed instance.
+    this.endRowDrag(false);
+
     // Timers armed in `data()` outlive the listeners — a pending one would otherwise write state on a
     // destroyed instance (and re-fire the request when the layout recreates the component).
     this.debouncedHelperUpdateSlow.cancel();
@@ -690,6 +723,184 @@ export default {
       if (cluster.ready) {
         this.hide();
       }
+    },
+
+    /**
+     * Press on a shelf row: arm a possible drag-reorder. Nothing is taken here — a press is far more often
+     * the start of a click that navigates — so the row is only picked up once the user has said they mean
+     * it, either by moving `DRAG_THRESHOLD` pixels or by holding still for `DRAG_HOLD_MS`.
+     *
+     * The pin toggle is its own control inside the row, so a press that starts on it is left alone.
+     */
+    onRowDragStart(event, cluster) {
+      // Left button only: a right-click opens the context menu, and a middle-click is a new tab.
+      if (event.button !== 0 || event.target.closest?.('.pin')) {
+        return;
+      }
+
+      this.dragFrom = { id: cluster.id, y: event.clientY };
+      this.dragMoved = false;
+      // Held in place long enough is a drag too — the row lifts where it is, and waits.
+      this.dragHold = setTimeout(() => this.beginRowDrag(), DRAG_HOLD_MS);
+
+      window.addEventListener('mousemove', this.onRowDragMove, true);
+      window.addEventListener('mouseup', this.onRowDragEnd, true);
+      window.addEventListener('keydown', this.onRowDragKey, true);
+    },
+
+    /**
+     * The pointer moved with a row held. Past the threshold this takes over the shelf's order and keeps
+     * the held row under the cursor, swapping it with whichever row the pointer is now over.
+     */
+    onRowDragMove(event) {
+      if (!this.dragFrom) {
+        return;
+      }
+
+      // A few pixels of travel separates a drag from the small movement inside an ordinary click. Until
+      // then nothing has been taken over, so the click still lands and the row still navigates.
+      if (!this.dragMoved && Math.abs(event.clientY - this.dragFrom.y) < DRAG_THRESHOLD) {
+        return;
+      }
+
+      this.beginRowDrag();
+
+      const order = [...this.dragOrder];
+      const from = order.indexOf(this.dragId);
+      const to = this.rowIndexAt(event.clientY);
+
+      if (from === -1 || to === -1 || to === from) {
+        return;
+      }
+
+      order.splice(to, 0, ...order.splice(from, 1));
+      this.dragOrder = order;
+    },
+
+    /**
+     * Take the row: lift it, and freeze the slots the shelf's rows sit in. Reached either by moving far
+     * enough or by holding still long enough, and harmless to call again once the row is already held.
+     */
+    beginRowDrag() {
+      if (this.dragMoved || !this.dragFrom) {
+        return;
+      }
+
+      clearTimeout(this.dragHold);
+      this.dragMoved = true;
+      this.dragId = this.dragFrom.id;
+      this.dragOrder = this.pinnedRows.map((c) => c.id);
+      // Kept so a drag that ends where it started writes nothing: a hold that lifts a row and puts it
+      // straight back has rearranged nothing, and should not spend a write saying so.
+      this.dragStartOrder = [...this.dragOrder];
+      this.captureDragSlots();
+    },
+
+    /**
+     * The fixed positions the shelf's rows occupy, taken once as a drag begins.
+     *
+     * They have to be measured up front. A row's box reflects any transform it is under, and the rows
+     * displaced by a drag are mid-FLIP for 200ms afterwards — so measuring live reads the positions rows
+     * are travelling THROUGH. The pointer then lands on a row that is only passing by, which swaps, which
+     * starts another animation: the row flails between slots instead of settling under the cursor.
+     */
+    captureDragSlots() {
+      const rows = this.$refs.clusterList?.querySelectorAll('.clustersPinned .shelf-rows > div') || [];
+
+      this.dragSlots = [...rows].map((el) => {
+        const box = el.getBoundingClientRect();
+
+        return { top: box.top, bottom: box.bottom };
+      });
+    },
+
+    /**
+     * Which slot the pointer is in — the same measurement expanded or collapsed, since the shelf is a
+     * plain vertical list in both. Past either end it clamps, so dragging beyond the last row parks the
+     * row at the end rather than abandoning the move.
+     */
+    rowIndexAt(clientY) {
+      const slots = this.dragSlots || [];
+
+      if (!slots.length) {
+        return -1;
+      }
+
+      if (clientY <= slots[0].top) {
+        return 0;
+      }
+
+      if (clientY >= slots[slots.length - 1].bottom) {
+        return slots.length - 1;
+      }
+
+      return slots.findIndex((slot) => clientY >= slot.top && clientY <= slot.bottom);
+    },
+
+    /** Escape abandons the drag: the shelf snaps back to the pref, and nothing is written. */
+    onRowDragKey(event) {
+      if (event.key === 'Escape') {
+        this.endRowDrag(false);
+      }
+    },
+
+    /** Released: keep the order if the row actually travelled, and let a plain click through if it did not. */
+    onRowDragEnd() {
+      this.endRowDrag(this.dragMoved);
+    },
+
+    endRowDrag(commit) {
+      clearTimeout(this.dragHold);
+      window.removeEventListener('mousemove', this.onRowDragMove, true);
+      window.removeEventListener('mouseup', this.onRowDragEnd, true);
+      window.removeEventListener('keydown', this.onRowDragKey, true);
+
+      // Position by position, NOT `sameContents`: a reorder holds exactly the same ids, so a comparison
+      // that ignores order would call every drag a no-op and never write one.
+      const started = this.dragStartOrder || [];
+      const moved = !!this.dragOrder && this.dragOrder.some((id, i) => id !== started[i]);
+      const order = commit && moved ? [...this.dragOrder] : null;
+
+      if (this.dragMoved) {
+        // The mouseup that ends a drag is followed by a click on the row under it, which would navigate
+        // to a cluster the user was only rearranging. Swallow that one click — but only that one: a drag
+        // that ends without a click (released off the list, or cancelled) would otherwise leave this
+        // armed to eat the user's next real click. The timer runs after the click that follows a mouseup,
+        // so whichever happens first, it is gone by the next task.
+        const swallowClick = (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        };
+
+        window.addEventListener('click', swallowClick, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener('click', swallowClick, true), 0);
+      }
+
+      this.dragFrom = null;
+      this.dragMoved = false;
+      this.dragSlots = null;
+      this.dragStartOrder = null;
+      this.dragId = null;
+      this.dragOrder = null;
+
+      if (order) {
+        this.onShelfReorder(order);
+      }
+    },
+
+    /**
+     * A shelf row was dropped in a new position. The shelf renders the pinned pref IN ORDER, so writing
+     * that order back is the whole reorder — the rows re-derive from the pref and stay where they were
+     * dropped. Optimistic, like pin/unpin, so the shelf never waits on the round trip, and reported the
+     * same way when the write fails so the user is not left with an order that silently reverts.
+     */
+    onShelfReorder(orderedIds) {
+      const write = commitAndReconcile(
+        (action, payload) => this.$store.dispatch(action, payload),
+        [reorderPinned(orderedIds)]
+      );
+
+      return reportPinWriteFailure(this.$store, this.t, write);
     },
 
     // Same ordering as `hide` — the flyout goes first, then the nav resizes.
@@ -1142,15 +1353,22 @@ export default {
                     {{ t(shelf.titleKey) }}
                   </span>
                 </div>
+                <!-- The shelf IS the pinned pref in order, so dragging a row is the reorder: the list
+                     re-sorts live under the cursor and the drop writes that order back. The rows shuffle
+                     on the TransitionGroup's own FLIP transition, and the markup is the same one the
+                     collapsed rail renders, so the rail reorders too. -->
                 <TransitionGroup
                   name="shelf-row"
                   tag="div"
                   class="shelf-rows"
+                  :class="{ 'is-reordering': !!dragId }"
                 >
                   <div
                     v-for="(c, index) in shelf.rows"
                     :key="c.id"
                     :data-testid="`${ shelf.key }-ready-cluster-${ index }`"
+                    :class="{ 'shelf-row-held': dragId === c.id }"
+                    @mousedown="onRowDragStart($event, c)"
                     @click="onShelfRowClick(c)"
                   >
                     <button
@@ -1445,6 +1663,87 @@ export default {
 
   .shelf-row-move {
     transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+
+  // Dragging a row reorders the shelf. The timings and curves are the ones the mainstream reorder
+  // libraries converged on (@hello-pangea/dnd, the maintained react-beautiful-dnd): rows getting out of
+  // the way travel fast on a curve that leaves at once and decelerates into place, while the row let go
+  // of lands on a softer curve over a longer beat, so a drop reads as settling rather than snapping.
+  $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
+  $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
+
+  // On the row's own control, not the wrapper: the button and the disabled span both set a cursor of
+  // their own, and the child wins. A row that cannot be explored keeps its `not-allowed` — dragging it is
+  // allowed, but saying "grab" over the one thing that is refused would be the more confusing of the two.
+  .shelf-rows .cluster.selector:not(.disabled) {
+    cursor: grab;
+  }
+
+  // The row lifts off the surface while it is held and is put back down on release. Declared on the
+  // RESTING row with the landing curve so both directions animate: the lift below overrides it with the
+  // quicker one, and taking that class away hands the row back to this.
+  .shelf-rows .cluster.selector {
+    transition: background-color 0.1s ease-in-out, transform 0.33s $drag-drop-curve, box-shadow 0.33s $drag-drop-curve;
+  }
+
+  // Scoped through `.shelf-rows` so it outranks the resting row's own cursor and background, both of
+  // which are set further up the nav's cascade than the lift below can reach.
+  .shelf-rows .shelf-row-held .cluster.selector {
+    cursor: grabbing;
+    // The nav is dark, and a dark shadow on a dark ground is no shadow at all — so the held row is also
+    // tinted, which is what actually marks it out here. The shadow is what carries the lift on a light
+    // theme, where the tint alone would be the fainter of the two.
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+  }
+
+  .shelf-row-held {
+    // Above the rows it passes over, so the lift is never drawn underneath a neighbour.
+    position: relative;
+    z-index: 1;
+
+    // Just enough to read as picked up. The reorder libraries do not scale the dragged item at all, but
+    // a nav row is short enough that the shadow alone is easy to miss.
+    .cluster.selector {
+      transform: scale(1.02);
+      transition: transform 0.2s $drag-displace-curve, box-shadow 0.2s $drag-displace-curve, background-color 0.2s $drag-displace-curve;
+    }
+  }
+
+  // The shadow needs one ancestor more than the rest of the lift. A shelf row is also an `.option`, and
+  // `.side-menu .body .option:focus` blanks `box-shadow` — so the row the user just clicked, which is
+  // exactly the row they are most likely to drag next, lifted with no shadow at all. Only the shadow is
+  // raised this way: the current cluster keeps its own green fill rather than taking the held tint.
+  //
+  // Plain black, like the flyout's own shadow next door — a shadow mixed from a text colour goes white on
+  // the themes where that colour is light, and lights the row up instead of lifting it.
+  .side-menu .shelf-rows .shelf-row-held .cluster.selector {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  }
+
+  // The rows shuffling around the held one. `.shelf-row-move` is the TransitionGroup's own FLIP
+  // transition — the same one a pin or an unpin rides — so it is only re-timed while a drag is actually
+  // in progress, and the held row travels with them rather than teleporting into its new slot.
+  .shelf-rows.is-reordering .shelf-row-move {
+    transition: transform 0.2s $drag-displace-curve;
+  }
+
+  // Dragging over the rows would otherwise sweep a text selection across the cluster names behind it.
+  .shelf-rows.is-reordering {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  // Motion is the point of a reorder — it is what stops the list rearranging itself unseen — so the rows
+  // still change places, just without the travel and the lift.
+  @media (prefers-reduced-motion: reduce) {
+    .shelf-rows .cluster.selector,
+    .shelf-rows.is-reordering .shelf-row-move {
+      transition: none;
+    }
+
+    .shelf-row-held .cluster.selector {
+      transform: none;
+    }
   }
 
   // (The shelf already conveys pinned-ness via the PINNED group + pin toggle, so ClusterIconMenu's

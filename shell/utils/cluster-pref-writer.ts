@@ -1,4 +1,4 @@
-import { CLUSTER, RECENT_CLUSTERS, RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
+import { CLUSTER, PINNED_CLUSTERS, RECENT_CLUSTERS, RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 /**
@@ -33,6 +33,28 @@ export const prependRecent = (id: string): Mutation => ({
     return [id, ...current.filter((r) => r !== id)]
       .filter((c) => isRecordableCluster(c))
       .slice(0, RECENT_CLUSTERS_FETCHED);
+  },
+});
+
+// PINNED mutation for a drag-reorder: the shelf's rows in their new order. Written as a MERGE rather
+// than a wholesale replace because `commitAndReconcile` re-runs this against the server's live value —
+// a plain overwrite would resurrect a cluster unpinned in another tab, and lose one pinned there.
+//
+// `orderedIds` is only what the shelf can show, so the rest of the pref has to be carried across: the
+// shelf never lists `local` (it has its own fixed slot) and never lists a cluster whose data has not
+// loaded, and neither has a position in the drag to claim.
+export const reorderPinned = (orderedIds: string[]): Mutation => ({
+  key:   PINNED_CLUSTERS,
+  apply: (pinned) => {
+    const current = Array.isArray(pinned) ? pinned : [];
+    const dragged = new Set(orderedIds);
+
+    return [
+      // The order the user dropped them in, minus anything unpinned elsewhere while they dragged.
+      ...orderedIds.filter((id) => current.includes(id)),
+      // Everything the shelf never showed, kept in its existing relative order.
+      ...current.filter((id) => !dragged.has(id)),
+    ];
   },
 });
 

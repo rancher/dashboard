@@ -1771,4 +1771,179 @@ describe('topLevelMenu', () => {
       });
     });
   });
+
+  // Dragging a pinned row rearranges the nav shelf. The shelf renders the pinned pref IN ORDER, so the
+  // drop writes that order back — the same markup, and so the same behaviour, in the collapsed rail.
+  describe('drag-reorder of the pinned shelf', () => {
+    const pinnedClusters = ['a', 'b', 'c'].map((id) => ({
+      name: id, id, mgmt: { id }, nameDisplay: id, canExplore: true, pinned: true
+    }));
+
+    // jsdom has no layout, so every row measures 0x0 and the pointer is never "over" any of them. Give
+    // the real rows the boxes a browser would: a 10px-tall row each, stacked.
+    const layOutRows = (wrapper: any) => {
+      const rows = wrapper.findAll('.clustersPinned .shelf-rows > div');
+
+      rows.forEach((row: any, i: number) => {
+        row.element.getBoundingClientRect = () => ({ top: i * 10, bottom: (i * 10) + 10 });
+      });
+
+      return rows.length;
+    };
+
+    const mountShelf = async() => {
+      const base = generateStore(pinnedClusters);
+      const dispatch = jest.fn((action: string, args: any) => (
+        action.startsWith('prefs/') ? Promise.resolve({}) : base.dispatch(action, args)
+      ));
+      const wrapper: any = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: { ...base, dispatch },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      return { wrapper, dispatch };
+    };
+
+    /** The mutation the component handed the pref writer, applied to `stored`. */
+    const writtenOrder = (dispatch: jest.Mock, stored: string[]) => {
+      const [, mutations] = dispatch.mock.calls.find(([action]) => action === 'prefs/applyPrefsOptimistic') || [];
+
+      return mutations?.[0]?.apply(stored);
+    };
+
+    const press = (button = 0, target = {}) => ({
+      button, clientY: 5, target: { closest: () => null, ...target }
+    });
+
+    it('rearranges the shelf under the pointer, and writes that order on release', async() => {
+      const { wrapper, dispatch } = await mountShelf();
+      const vm = wrapper.vm;
+
+      expect(layOutRows(wrapper)).toBe(3);
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+
+      // Press the first row and drag it down over the third.
+      vm.onRowDragStart(press(), { id: 'a' });
+      vm.onRowDragMove({ clientY: 25 });
+
+      // The shelf follows the pointer before anything is written, so the row does not snap back on
+      // every move.
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['b', 'c', 'a']);
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
+
+      vm.onRowDragEnd();
+      await nextTick();
+
+      expect(writtenOrder(dispatch, ['a', 'b', 'c'])).toStrictEqual(['b', 'c', 'a']);
+
+      wrapper.unmount();
+    });
+
+    // A press is far more often the start of a click that navigates, so a drag has to be a deliberate
+    // movement — otherwise every click would swallow itself.
+    it('does not treat a press that barely moves as a drag', async() => {
+      const { wrapper, dispatch } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(), { id: 'a' });
+      vm.onRowDragMove({ clientY: 7 });
+
+      expect(vm.dragId).toBeNull();
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+
+      vm.onRowDragEnd();
+      await nextTick();
+
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
+
+      wrapper.unmount();
+    });
+
+    // Holding still is the other way a user says "I mean to move this". The row lifts where it is and
+    // waits, so the affordance shows up before they have gone anywhere with it.
+    it('lifts the row after a press held still, with no movement at all', async() => {
+      const { wrapper } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(), { id: 'a' });
+
+      expect(vm.dragId).toBeNull();
+
+      jest.advanceTimersByTime(250);
+      await nextTick();
+
+      expect(vm.dragId).toBe('a');
+      // Lifted, but nothing has been rearranged yet.
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+
+      wrapper.unmount();
+    });
+
+    it('writes nothing when a lifted row is put back where it started', async() => {
+      const { wrapper, dispatch } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(), { id: 'a' });
+      jest.advanceTimersByTime(250);
+
+      // Down over the third row and back to where it began.
+      vm.onRowDragMove({ clientY: 25 });
+      vm.onRowDragMove({ clientY: 5 });
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+
+      vm.onRowDragEnd();
+      await nextTick();
+
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
+
+      wrapper.unmount();
+    });
+
+    it('abandons the drag on Escape without writing the order', async() => {
+      const { wrapper, dispatch } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(), { id: 'a' });
+      vm.onRowDragMove({ clientY: 25 });
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['b', 'c', 'a']);
+
+      vm.onRowDragKey({ key: 'Escape' });
+      await nextTick();
+
+      // Back to the pref's order, and nothing written.
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
+
+      wrapper.unmount();
+    });
+
+    // The pin toggle is its own control inside the row, and a right-click is the context menu.
+    it.each([
+      ['the pin toggle', 0, { closest: () => ({}) }],
+      ['a non-left button', 2, {}],
+    ])('does not start a drag from %s', async(_label, button, target) => {
+      const { wrapper } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(button as number, target), { id: 'a' });
+      vm.onRowDragMove({ clientY: 25 });
+
+      expect(vm.dragId).toBeNull();
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+
+      wrapper.unmount();
+    });
+  });
 });

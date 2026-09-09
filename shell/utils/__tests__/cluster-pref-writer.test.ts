@@ -1,5 +1,5 @@
-import { prependRecent, recordClusterNavigation } from '@shell/utils/cluster-pref-writer';
-import { CLUSTER, RECENT_CLUSTERS, RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
+import { prependRecent, recordClusterNavigation, reorderPinned } from '@shell/utils/cluster-pref-writer';
+import { CLUSTER, PINNED_CLUSTERS, RECENT_CLUSTERS, RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 // The prefs under test are heterogeneous: RECENT/PINNED are string[], CLUSTER is a string.
@@ -97,6 +97,48 @@ describe('fx: cluster-pref-writer', () => {
       getters, dispatch, writes, calls, data: clientData
     };
   };
+
+  describe('reorderPinned', () => {
+    it('writes the dragged order to the pinned pref', () => {
+      const { key, apply } = reorderPinned(['c', 'a', 'b']);
+
+      expect(key).toBe(PINNED_CLUSTERS);
+      expect(apply(['a', 'b', 'c'])).toStrictEqual(['c', 'a', 'b']);
+    });
+
+    // `commitAndReconcile` re-runs this against the server's live value, so the transform meets a pref
+    // that may have moved on. A plain overwrite would undo whatever moved it.
+    it('keeps a cluster pinned elsewhere while the drag was in flight', () => {
+      const { apply } = reorderPinned(['c', 'a']);
+
+      // 'z' was pinned in another tab and was never on screen to be dragged, so it has no place in the
+      // dropped order to claim — it keeps its pin, at the end.
+      expect(apply(['a', 'c', 'z'])).toStrictEqual(['c', 'a', 'z']);
+    });
+
+    it('does not resurrect a cluster unpinned elsewhere while the drag was in flight', () => {
+      const { apply } = reorderPinned(['c', 'a', 'b']);
+
+      expect(apply(['a', 'c'])).toStrictEqual(['c', 'a']);
+    });
+
+    // The shelf never lists `local` — it has its own fixed slot above — so a reorder must carry it across
+    // rather than read its absence from the dragged ids as an unpin.
+    it('keeps a pinned cluster the shelf never showed', () => {
+      const { apply } = reorderPinned(['b', 'a']);
+
+      expect(apply(['local', 'a', 'b'])).toStrictEqual(['b', 'a', 'local']);
+    });
+
+    it.each([
+      ['undefined', undefined],
+      ['a non-array', 'nonsense'],
+    ])('survives a pref stored as %s', (_label, stored) => {
+      const { apply } = reorderPinned(['a']);
+
+      expect(apply(stored as any)).toStrictEqual([]);
+    });
+  });
 
   describe('recordClusterNavigation', () => {
     it('remembers the current cluster AND prepends it to RECENT — in ONE write', async() => {
