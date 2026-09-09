@@ -112,7 +112,7 @@ export async function waitForUIPackage(store: any, extension: any, maxRetries = 
 
       return true;
     } catch (error) {
-      console.error('waiting for UI extension package to be available: error =', error); // eslint-disable-line no-console  
+      console.error('waiting for UI extension package to be available: error =', error); // eslint-disable-line no-console
     }
     tries++;
 
@@ -337,7 +337,6 @@ export async function createHelmRepository(store: any, name: string, url: string
     const downloaded = repo.status?.conditions.find((s: any) => s.type === 'Downloaded');
 
     console.log(`Waiting for helm repository to be downloaded... try ${ tries } time(s).`); // eslint-disable-line no-console
-
 
     if (downloaded && downloaded.status === 'True') {
       fetched = true;
