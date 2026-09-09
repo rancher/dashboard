@@ -299,7 +299,7 @@ $transition-duration: 150ms;
   &.vs--single {
     min-height: 29px;
     &.vs--open {
-      .vs__selected {
+      &:not(.vs--unsearchable) .vs__selected {
         position: absolute;
         opacity: 0.4;
       }
