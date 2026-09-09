@@ -19,11 +19,14 @@ interface Props {
   id?: string;
   /** Keyboard-highlighted row (the ↑↓ cursor). */
   active?: boolean;
-  /** This row is the cluster currently being explored. */
+  /** This row is the cluster currently being explored. The panel does not COLOUR it — the one highlight
+   * in here belongs to the cursor, and a second filled row competes with it for the same meaning — but the
+   * row still says so, in its meta line and to assistive tech. The nav shelf is where "you are here" is
+   * shown. */
   current?: boolean;
   /** Whether THIS row is the one that carries `aria-current`. The same cluster can be on screen more than
    * once — the fixed tile, a RECENTLY USED shortcut, its row in the estate — and `aria-current` marks one
-   * thing, so only the first occurrence announces it. The rest still look current. */
+   * thing, so only the first occurrence announces it. */
   announceCurrent?: boolean;
   /** Overrides the derived provider·version meta line (used by the fixed `local` tile). */
   subtitle?: string;
@@ -94,7 +97,7 @@ function select() {
   <div
     :id="id"
     class="cluster-switcher-row"
-    :class="{ active, disabled: !cluster.ready, current }"
+    :class="{ active, disabled: !cluster.ready }"
     role="option"
     :aria-label="ariaLabel"
     :aria-selected="active ? 'true' : 'false'"
@@ -189,31 +192,6 @@ function select() {
   // row Enter would take.
   &.active {
     background: color-mix(in srgb, var(--body-text) 6%, transparent);
-  }
-
-  // The cluster currently being explored — a filled primary row matching the expanded nav's active row.
-  &.current {
-    background: var(--active-nav, var(--primary-hover-bg));
-
-    &.active {
-      background: var(--active-hover, var(--primary-hover-bg));
-    }
-
-    // Matching `.row-body` on the base rules' own terms outranks them (0,4,0 vs 0,3,0), so the
-    // `--on-active` tokens apply without depending on source order.
-    .row-body .row-name {
-      color: var(--on-active, var(--primary-hover-text));
-    }
-    .row-body .row-meta {
-      color: var(--on-active, var(--default));
-    }
-    .row-pin {
-      color: color-mix(in srgb, var(--on-active, var(--primary-hover-text)) 65%, transparent) !important;
-
-      &.is-pinned {
-        color: var(--on-active, var(--primary-hover-text)) !important;
-      }
-    }
   }
 
   .row-badge {
