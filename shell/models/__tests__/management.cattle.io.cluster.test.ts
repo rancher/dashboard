@@ -334,7 +334,7 @@ describe('class MgmtCluster', () => {
       expect(calls.map((c) => c.action)).toStrictEqual(['prefs/applyPrefsOptimistic', 'prefs/reconcilePrefs']);
     });
 
-    it('pin sends a single PINNED_CLUSTERS mutation that adds the cluster idempotently', async() => {
+    it('pin sends a single PINNED_CLUSTERS mutation that adds the cluster at the top, idempotently', async() => {
       const { cluster, calls } = makeCluster('c-a');
 
       await cluster.pin();
@@ -344,8 +344,11 @@ describe('class MgmtCluster', () => {
       expect(mutations).toHaveLength(1);
       expect(mutations[0].key).toBe(PINNED_CLUSTERS);
       expect(mutations[0].apply([])).toStrictEqual(['c-a']);
-      expect(mutations[0].apply(['c-b'])).toStrictEqual(['c-b', 'c-a']);
+      // The shelf renders this pref in order, so a new pin belongs at the head of it.
+      expect(mutations[0].apply(['c-b'])).toStrictEqual(['c-a', 'c-b']);
       expect(mutations[0].apply(['c-a'])).toStrictEqual(['c-a']); // already pinned — no duplicate
+      // Re-pinning one that is already down the list moves it up rather than adding it twice.
+      expect(mutations[0].apply(['c-b', 'c-a', 'c-c'])).toStrictEqual(['c-a', 'c-b', 'c-c']);
     });
 
     // RECENT is a log of clusters the user actually went to, so unpinning must not write to it: an

@@ -4,7 +4,7 @@ import {
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { insertAt, addObject, removeObject, uniq } from '@shell/utils/array';
+import { insertAt, removeObject, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -824,11 +824,13 @@ export default class MgmtCluster extends SteveModel {
     return commitAndReconcile(this.clusterPrefDispatch, [{
       key:   PINNED_CLUSTERS,
       apply: (pinned) => {
-        const next = [...(Array.isArray(pinned) ? pinned : [])];
+        const current = Array.isArray(pinned) ? pinned : [];
 
-        addObject(next, this.id);
-
-        return next;
+        // At the TOP of the shelf, which renders this pref in order. A cluster is pinned to keep it to
+        // hand, so it goes where the hand is — appending buried each new pin under everything pinned
+        // before it, furthest from the pointer and first to be scrolled out of a long shelf.
+        // Re-pinning an already-pinned cluster moves it up rather than duplicating it.
+        return [this.id, ...current.filter((id) => id !== this.id)];
       },
     }]);
   }
