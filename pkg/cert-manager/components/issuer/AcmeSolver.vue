@@ -11,7 +11,6 @@ import { CHALLENGE_TYPES, HTTP01_INGRESS_MODES } from '../../form-options';
 import { RadioGroup } from '@components/Form/Radio';
 import type { AcmeSolver } from '../../schema';
 import Dns01Provider from './Dns01Provider.vue';
-import { nextSolverId } from './solver-id';
 
 type IngressMode = typeof HTTP01_INGRESS_MODES[number];
 
@@ -19,6 +18,8 @@ interface Props {
   /** A single entry of `spec.acme.solvers`, bound into directly. */
   value: AcmeSolver;
   mode?: string;
+  /** Position of this solver in the list. Used to give the radio group a name that is unique across the page. */
+  index: number;
 }
 
 const props = withDefaults(defineProps<Props>(), { mode: _EDIT });
@@ -26,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), { mode: _EDIT });
 const store = useStore();
 const { t } = useI18n(store);
 
-const radioName = nextSolverId();
+const radioName = computed(() => `challengeType-${ props.index }`);
 
 props.value.selector = props.value.selector || {};
 

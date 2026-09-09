@@ -6,9 +6,11 @@ const STUB = { template: '<div />' };
 
 const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
 
-function render(solver: Record<string, any>) {
+function render(solver: Record<string, any>, index = 0) {
   return mount(AcmeSolver, {
-    props:  { value: solver, mode: 'edit' },
+    props: {
+      value: solver, mode: 'edit', index
+    },
     global: {
       provide: { store },
       stubs:   {
@@ -90,9 +92,9 @@ describe('component: AcmeSolver', () => {
     options.forEach((o: any) => expect(o.description).toBeTruthy());
   });
 
-  it('should give each solver a distinct radio group name', () => {
-    const first = render({}).vm.radioName;
-    const second = render({}).vm.radioName;
+  it('should give each solver a distinct radio group name from its index', () => {
+    const first = render({}, 0).vm.radioName;
+    const second = render({}, 1).vm.radioName;
 
     expect(first).not.toBe(second);
   });

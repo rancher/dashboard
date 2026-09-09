@@ -171,9 +171,10 @@ defineExpose({
       :default-add-value="{ selector: {}, http01: { ingress: {} } }"
       :mode="mode"
     >
-      <template #default="{ row }">
+      <template #default="{ row, i }">
         <AcmeSolver
           :value="row.value"
+          :index="i"
           :mode="mode"
         />
       </template>
