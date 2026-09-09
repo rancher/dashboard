@@ -208,19 +208,10 @@ export default {
       return charts.filter((c) => c.repoKey === this.value._key);
     },
 
-    /**
-     * Total number of charts this repository hosts, excluding UI extensions
-     * (shown separately). The Apps > Charts page can still show fewer than this,
-     * which the label's tooltip explains.
-     */
     chartCount() {
       return this.repoCharts.filter((c) => !isUIPlugin(c)).length;
     },
 
-    /**
-     * Number of UI extension (plugin) charts, surfaced on the Extensions page
-     * rather than the Apps > Charts page.
-     */
     extensionCount() {
       return this.repoCharts.filter((c) => isUIPlugin(c)).length;
     },
@@ -299,7 +290,7 @@ export default {
             <span>{{ t(repoVisual.titleKey) }}</span>
           </div>
         </div>
-        <div class="col span-6">
+        <div class="col span-3">
           <label class="text-label">{{ t('tableHeaders.url') }}</label>
           <div class="value">
             <a
@@ -310,6 +301,20 @@ export default {
             >{{ url }}</a>
             <template v-else>
               {{ url }}
+            </template>
+          </div>
+        </div>
+        <div class="col span-3">
+          <label class="text-label">{{ t('catalog.repo.detail.authentication') }}</label>
+          <div class="value">
+            <router-link
+              v-if="authLocation"
+              :to="authLocation"
+            >
+              {{ authDisplay }}
+            </router-link>
+            <template v-else>
+              {{ authDisplay }}
             </template>
           </div>
         </div>
@@ -352,33 +357,42 @@ export default {
       <h3>{{ t('catalog.repo.detail.status') }}</h3>
       <div class="row mb-20">
         <div class="col span-3">
-          <label class="text-label charts-label">
-            {{ t('catalog.repo.detail.charts.label') }}
-            <i
-              v-clean-tooltip="t('catalog.repo.detail.charts.tooltip')"
-              class="icon icon-info charts-label__info"
-            />
-          </label>
-          <router-link
-            v-if="chartCount > 0"
-            :to="chartsLocation"
-            class="value chart-link"
-          >
-            {{ t('catalog.repo.detail.charts.count', { count: chartCount }) }}
-          </router-link>
+          <label class="text-label">{{ t('catalog.repo.detail.charts.label') }}</label>
           <div
-            v-else-if="extensionCount === 0"
+            v-if="$fetchState.pending"
             class="value"
           >
-            {{ t('catalog.repo.detail.charts.count', { count: 0 }) }}
+            <i class="icon icon-spinner icon-spin" />
           </div>
-          <router-link
-            v-if="extensionCount > 0"
-            :to="extensionsLocation"
-            class="value chart-link"
-          >
-            {{ t('catalog.repo.detail.extensions.count', { count: extensionCount }) }}
-          </router-link>
+          <template v-else>
+            <div
+              v-if="chartCount > 0 || extensionCount > 0"
+              class="value content-links"
+            >
+              <router-link
+                v-if="chartCount > 0"
+                :to="chartsLocation"
+              >
+                {{ t('catalog.repo.detail.charts.view') }}
+              </router-link>
+              <span
+                v-if="chartCount > 0 && extensionCount > 0"
+                class="content-links__separator"
+              >|</span>
+              <router-link
+                v-if="extensionCount > 0"
+                :to="extensionsLocation"
+              >
+                {{ t('catalog.repo.detail.extensions.view') }}
+              </router-link>
+            </div>
+            <div
+              v-else
+              class="value"
+            >
+              {{ t('catalog.repo.detail.charts.none') }}
+            </div>
+          </template>
         </div>
         <div class="col span-3">
           <label class="text-label">{{ t('catalog.repo.downloaded.label') }}</label>
@@ -390,20 +404,6 @@ export default {
             />
             <template v-else>
               {{ t('generic.none') }}
-            </template>
-          </div>
-        </div>
-        <div class="col span-3">
-          <label class="text-label">{{ t('catalog.repo.detail.authentication') }}</label>
-          <div class="value">
-            <router-link
-              v-if="authLocation"
-              :to="authLocation"
-            >
-              {{ authDisplay }}
-            </router-link>
-            <template v-else>
-              {{ authDisplay }}
             </template>
           </div>
         </div>
@@ -447,21 +447,16 @@ export default {
   font-size: 14px;
   line-height: $input-line-height;
   margin-top: 4px;
+  overflow-wrap: break-word;
 }
 
-.chart-link {
-  display: block;
-  width: fit-content;
-}
-
-.charts-label {
-  display: inline-flex;
+.content-links {
+  display: flex;
   align-items: center;
   gap: var(--gap);
 
-  &__info {
+  &__separator {
     color: var(--muted);
-    font-size: 14px;
   }
 }
 

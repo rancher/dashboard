@@ -1485,20 +1485,11 @@ catalog:
       caBundle: CA Cert Bundle
       exponentialBackOff: Exponential Back Off (min / max / retries)
       charts:
-        label: Charts
-        count: |-
-          {count, plural,
-            =0 {No charts}
-            =1 {1 chart}
-            other {# charts}
-          }
-        tooltip: The Apps > Charts page may list fewer, as it excludes cluster templates, hidden charts, and, depending on your preferences, charts with only pre-release versions.
+        label: Contents
+        view: View Charts
+        none: No contents available
       extensions:
-        count: |-
-          {count, plural,
-            =1 {1 extension}
-            other {# extensions}
-          }
+        view: View Extensions
     error:
       refresh: Error refreshing repository
   tools:
