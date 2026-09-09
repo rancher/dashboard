@@ -225,11 +225,17 @@ function select() {
   .row-body {
     flex: 1 1 auto;
     min-width: 0;
+    // A column so the space between the name and its meta line is a gap rather than a margin one of them
+    // carries — the meta is conditional, and a margin would leave the name paying for a line that is not
+    // there.
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 
     .row-name {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
-      line-height: 16px;
+      line-height: 17px;
       color: var(--body-text);
       overflow: hidden;
       text-overflow: ellipsis;
@@ -237,8 +243,8 @@ function select() {
     }
 
     .row-meta {
-      font-size: 10px;
-      line-height: 12px;
+      font-size: 12px;
+      line-height: 14px;
       color: var(--muted);
       overflow: hidden;
       text-overflow: ellipsis;
