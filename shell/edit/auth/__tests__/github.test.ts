@@ -172,6 +172,39 @@ describe('github.vue', () => {
     });
   });
 
+  // A config that is being added has never been saved, so it carries none of the
+  // fields a config the server wrote would. Public GitHub only answers over https,
+  // and a config that says otherwise is refused the access token it asks for.
+  describe('which target the form starts on', () => {
+    const fetched = async(model: any) => {
+      const vm: any = { model, mixinFetch: jest.fn() };
+
+      await (GitHub as any).fetch.call(vm);
+
+      return vm;
+    };
+
+    it.each([
+      ['a config that has never been saved', {}, 'public', 'https://github.com'],
+      ['a config the server has defaulted', { hostname: 'github.com', tls: true }, 'public', 'https://github.com'],
+      ['a private installation over https', { hostname: 'github.mycompany.com', tls: true }, 'private', 'https://github.mycompany.com'],
+      ['a private installation over http', { hostname: 'github.mycompany.com', tls: false }, 'private', 'http://github.mycompany.com'],
+      ['a private installation over http the server sent no tls for', { hostname: 'github.mycompany.com' }, 'private', 'http://github.mycompany.com'],
+    ])('should start %s on %s', async(_label, model, targetType, targetUrl) => {
+      const vm = await fetched({ ...model });
+
+      expect(vm.targetType).toBe(targetType);
+      expect(vm.targetUrl).toBe(targetUrl);
+    });
+
+    it('should write the target back onto the config', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup({ hostname: undefined, tls: undefined }, { targetUrl: 'https://github.com' }) });
+
+      expect(wrapper.vm.model.tls).toBe(true);
+      expect(wrapper.vm.model.hostname).toBe('github.com');
+    });
+  });
+
   describe('GitHub App provider', () => {
     let wrapper: VueWrapper<any, any>;
 

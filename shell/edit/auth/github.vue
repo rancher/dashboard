@@ -85,7 +85,11 @@ export default {
     await this.mixinFetch();
 
     this.targetType = (!this.model.hostname || this.model.hostname === 'github.com' ? 'public' : 'private');
-    this.targetUrl = (this.model.tls ? 'https://' : 'http://') + (this.model.hostname || 'github.com');
+    // A config that has never been saved carries no `tls`, and the target it
+    // defaults to - public GitHub - only answers over https. A saved config always
+    // has a hostname, and the server can leave `tls` out when it is false, so for
+    // one of those a missing `tls` means http.
+    this.targetUrl = (this.model.tls || !this.model.hostname ? 'https://' : 'http://') + (this.model.hostname || 'github.com');
   },
 
   data() {
@@ -215,7 +219,7 @@ export default {
       <AuthConfigIdentity
         v-model:name="configName"
         v-model:description="configDescription"
-        :name-fixed="!isCreate"
+        :name-fixed="configNameFixed"
         :name-error="configNameError"
       />
 
