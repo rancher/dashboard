@@ -57,13 +57,13 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
     podsListPage.waitForPage();
     podsListPage.list().checkVisible(LONG_TIMEOUT_OPT);
 
-    const table = podsListPage.list().resourceTable().sortableTable();
+    const table = () => podsListPage.list().resourceTable().sortableTable();
 
-    table.checkLoadingIndicatorNotVisible();
-    table.filter(pod);
-    table.rowWithName(pod).checkExists();
+    table().checkLoadingIndicatorNotVisible();
+    table().filter(pod);
+    table().rowWithName(pod).checkExists();
 
-    table.rowActionMenuOpen(pod)
+    table().rowActionMenuOpen(pod)
       .getMenuItem(action)
       .click();
 
