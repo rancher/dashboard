@@ -104,4 +104,30 @@ describe('component: Masthead/index', () => {
     expect(wrapper.findComponent(Metadata).exists()).toBe(false);
     expect(wrapper.findComponent(Cards).exists()).toBe(false);
   });
+
+  it('should render content passed to the banner slot', () => {
+    const wrapper = mount(Masthead, {
+      props:  defaultProps,
+      global: globalStubs,
+      slots:  { banner: '<div class="test-banner">error</div>' }
+    });
+
+    expect(wrapper.find('.test-banner').exists()).toBe(true);
+  });
+
+  it('should render the banner slot between the title bar and the metadata', () => {
+    const wrapper = mount(Masthead, {
+      props:  defaultProps,
+      global: globalStubs,
+      slots:  { banner: '<div class="test-banner">error</div>' }
+    });
+
+    const html = wrapper.html();
+    const titleBarIndex = html.indexOf('title-bar-stub');
+    const bannerIndex = html.indexOf('test-banner');
+    const metadataIndex = html.indexOf('metadata-stub');
+
+    expect(titleBarIndex).toBeLessThan(bannerIndex);
+    expect(bannerIndex).toBeLessThan(metadataIndex);
+  });
 });

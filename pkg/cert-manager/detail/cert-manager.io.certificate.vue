@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import Banner from '@components/Banner/Banner.vue';
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
 import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
+import { useResourceDetailBannerProps } from '@shell/components/Resource/Detail/composables';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import CertManagerResourceTabs from '../components/CertManagerResourceTabs.vue';
@@ -24,12 +26,22 @@ const { t } = useI18n(useStore());
 // identifying information from the model's `details`, and the card row from the model's `cards` -
 // Issuance Status, Resources and Insights.
 const mastheadProps = useDefaultMastheadProps(props.value);
+const bannerProps = useResourceDetailBannerProps(props.value);
 </script>
 
 <template>
   <DetailPage>
     <template #top-area>
-      <Masthead v-bind="mastheadProps" />
+      <Masthead v-bind="mastheadProps">
+        <template #banner>
+          <Banner
+            v-if="bannerProps"
+            v-bind="bannerProps"
+            class="state-banner"
+            role="status"
+          />
+        </template>
+      </Masthead>
     </template>
 
     <!--
@@ -55,3 +67,9 @@ const mastheadProps = useDefaultMastheadProps(props.value);
     </template>
   </DetailPage>
 </template>
+
+<style lang="scss" scoped>
+.state-banner {
+  margin: 16px 0 0 0;
+}
+</style>
