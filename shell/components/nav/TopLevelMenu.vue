@@ -810,7 +810,7 @@ export default {
      * moves past it, which produces no mouse events at all.
      */
     startDragScroll() {
-      if (this.dragScrollFrame === undefined || this.dragScrollFrame === null) {
+      if (!this.dragScrollFrame) {
         this.dragScrollFrame = requestAnimationFrame(this.dragScrollStep);
       }
     },
@@ -1144,7 +1144,8 @@ export default {
         };
       }
 
-      const content = cluster.ready ? this.t('nav.pinnedCluster.explore', { name: cluster.label }) : this.t('nav.pinnedCluster.blocked', { name: cluster.label, reason: cluster.stateDisplay });
+      const { label: name, ready, stateDisplay: reason } = cluster;
+      const content = ready ? this.t('nav.pinnedCluster.explore', { name }) : this.t('nav.pinnedCluster.blocked', { name, reason });
 
       return {
         content,
