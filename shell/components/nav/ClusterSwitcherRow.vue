@@ -19,10 +19,10 @@ interface Props {
   id?: string;
   /** Keyboard-highlighted row (the ↑↓ cursor). */
   active?: boolean;
-  /** This row is the cluster currently being explored. The panel does not COLOUR it — the one highlight
-   * in here belongs to the cursor, and a second filled row competes with it for the same meaning — but the
-   * row still says so, in its meta line and to assistive tech. The nav shelf is where "you are here" is
-   * shown. */
+  /** This row is the cluster currently being explored. The panel does not mark it — no fill, and nothing
+   * in the row's text: the one highlight in here belongs to the cursor, and a second mark competes with it
+   * for the same meaning. The nav shelf is where "you are here" is shown. All this drives now is
+   * `aria-current`, which says it to assistive tech without drawing anything. */
   current?: boolean;
   /** Whether THIS row is the one that carries `aria-current`. The same cluster can be on screen more than
    * once — the fixed tile, a RECENTLY USED shortcut, its row in the estate — and `aria-current` marks one
@@ -54,15 +54,12 @@ const { t } = useI18n(store);
 
 const meta = computed(() => {
   if (props.subtitle) {
-    // Still mark the current cluster: `local` is the only row with a fixed subtitle, and without this it
-    // is the one row that never reads "· current" while it is the cluster being explored.
-    return props.current ? `${ props.subtitle } · ${ t('nav.switcher.current') }` : props.subtitle;
+    return props.subtitle;
   }
 
   return [
     props.cluster.providerDisplay,
     props.cluster.kubernetesVersion,
-    props.current ? t('nav.switcher.current') : null,
   ].filter((p) => !!p).join(' · ');
 });
 
