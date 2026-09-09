@@ -26,6 +26,11 @@ import { commitAndReconcile, reorderPinned, reportPinWriteFailure } from '@shell
 // Travel is the ONLY thing that lifts a row: a press held still, however long, stays a click. Lifting on
 // time as well would make an unhurried click indistinguishable from a drag, and swallow it.
 const DRAG_THRESHOLD = 4;
+// The shelf scrolls when a held row is dragged into this band at either end, so a row can be taken past
+// the rows on screen. The speed ramps across the band — a nudge at its inner edge, `DRAG_SCROLL_MAX` per
+// frame hard against the end — so the list is steerable rather than all-or-nothing.
+const DRAG_SCROLL_EDGE = 32;
+const DRAG_SCROLL_MAX = 14;
 
 export default {
   components: {
@@ -764,6 +769,10 @@ export default {
         return;
       }
 
+      // Kept so the shelf can go on placing the row while the pointer is STILL: near an edge the list
+      // scrolls under it, and each frame of that is a new position without a new mouse event.
+      this.dragPointerY = event.clientY;
+
       // A few pixels of travel separates a drag from the small movement inside an ordinary click. Until
       // then nothing has been taken over, so the click still lands and the row still navigates.
       if (!this.dragMoved && Math.abs(event.clientY - this.dragFrom.y) < DRAG_THRESHOLD) {
@@ -771,10 +780,15 @@ export default {
       }
 
       this.beginRowDrag();
+      this.placeDraggedRow();
+      this.startDragScroll();
+    },
 
+    /** Put the held row in whichever slot the pointer is over. */
+    placeDraggedRow() {
       const order = [...this.dragOrder];
       const from = order.indexOf(this.dragId);
-      const to = this.rowIndexAt(event.clientY);
+      const to = this.rowIndexAt(this.dragPointerY);
 
       if (from === -1 || to === -1 || to === from) {
         return;
@@ -782,6 +796,58 @@ export default {
 
       order.splice(to, 0, ...order.splice(from, 1));
       this.dragOrder = order;
+    },
+
+    /**
+     * Scroll the shelf while a row is held near either end of it, so a row can be dragged to a place that
+     * is not on screen — otherwise the reach of a drag is however much of the list happens to be visible,
+     * and a long shelf can only ever be rearranged within one screenful.
+     *
+     * A frame loop rather than a mousemove handler: the pointer sits still in the band while the list
+     * moves past it, which produces no mouse events at all.
+     */
+    startDragScroll() {
+      if (this.dragScrollFrame === undefined || this.dragScrollFrame === null) {
+        this.dragScrollFrame = requestAnimationFrame(this.dragScrollStep);
+      }
+    },
+
+    dragScrollStep() {
+      this.dragScrollFrame = null;
+
+      const scroller = this.$refs.clusterList;
+
+      if (!this.dragMoved || !scroller) {
+        return;
+      }
+
+      const box = scroller.getBoundingClientRect();
+      const y = this.dragPointerY;
+      let delta = 0;
+
+      if (y < box.top + DRAG_SCROLL_EDGE) {
+        delta = -Math.ceil(((box.top + DRAG_SCROLL_EDGE - y) / DRAG_SCROLL_EDGE) * DRAG_SCROLL_MAX);
+      } else if (y > box.bottom - DRAG_SCROLL_EDGE) {
+        delta = Math.ceil(((y - (box.bottom - DRAG_SCROLL_EDGE)) / DRAG_SCROLL_EDGE) * DRAG_SCROLL_MAX);
+      }
+
+      if (!delta) {
+        return;
+      }
+
+      const before = scroller.scrollTop;
+
+      scroller.scrollTop = before + delta;
+
+      // Nothing moved: the list is already at the end it is being pushed towards, so stop rather than
+      // spin a frame loop for the rest of the drag.
+      if (scroller.scrollTop === before) {
+        return;
+      }
+
+      // The rows under the pointer changed without the pointer moving.
+      this.placeDraggedRow();
+      this.dragScrollFrame = requestAnimationFrame(this.dragScrollStep);
     },
 
     /**
@@ -809,14 +875,20 @@ export default {
      * displaced by a drag are mid-FLIP for 200ms afterwards — so measuring live reads the positions rows
      * are travelling THROUGH. The pointer then lands on a row that is only passing by, which swaps, which
      * starts another animation: the row flails between slots instead of settling under the cursor.
+     *
+     * Held in the SCROLLER'S coordinates, not the viewport's: the shelf scrolls under the pointer during
+     * a drag, and viewport positions measured once would drift by exactly the distance scrolled, putting
+     * every slot boundary somewhere the rows no longer are.
      */
     captureDragSlots() {
-      const rows = this.$refs.clusterList?.querySelectorAll('.clustersPinned .shelf-rows > div') || [];
+      const scroller = this.$refs.clusterList;
+      const rows = scroller?.querySelectorAll('.clustersPinned .shelf-rows > div') || [];
+      const origin = scroller ? scroller.getBoundingClientRect().top - scroller.scrollTop : 0;
 
       this.dragSlots = [...rows].map((el) => {
         const box = el.getBoundingClientRect();
 
-        return { top: box.top, bottom: box.bottom };
+        return { top: box.top - origin, bottom: box.bottom - origin };
       });
     },
 
@@ -827,20 +899,24 @@ export default {
      */
     rowIndexAt(clientY) {
       const slots = this.dragSlots || [];
+      const scroller = this.$refs.clusterList;
 
-      if (!slots.length) {
+      if (!slots.length || !scroller) {
         return -1;
       }
 
-      if (clientY <= slots[0].top) {
+      // Into the scroller's coordinates, where the slots were measured.
+      const y = clientY - scroller.getBoundingClientRect().top + scroller.scrollTop;
+
+      if (y <= slots[0].top) {
         return 0;
       }
 
-      if (clientY >= slots[slots.length - 1].bottom) {
+      if (y >= slots[slots.length - 1].bottom) {
         return slots.length - 1;
       }
 
-      return slots.findIndex((slot) => clientY >= slot.top && clientY <= slot.bottom);
+      return slots.findIndex((slot) => y >= slot.top && y <= slot.bottom);
     },
 
     /** Escape abandons the drag: the shelf snaps back to the pref, and nothing is written. */
@@ -856,6 +932,11 @@ export default {
     },
 
     endRowDrag(commit) {
+      if (this.dragScrollFrame) {
+        cancelAnimationFrame(this.dragScrollFrame);
+        this.dragScrollFrame = null;
+      }
+
       window.removeEventListener('mousemove', this.onRowDragMove, true);
       window.removeEventListener('mouseup', this.onRowDragEnd, true);
       window.removeEventListener('keydown', this.onRowDragKey, true);

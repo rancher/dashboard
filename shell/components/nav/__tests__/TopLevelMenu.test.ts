@@ -2017,6 +2017,109 @@ describe('topLevelMenu', () => {
       wrapper.unmount();
     });
 
+    // A drag can only reach what is on screen unless the list moves: on a shelf taller than the nav, a row
+    // at the bottom could never be taken to the top. Holding it against an edge scrolls the shelf.
+    describe('scrolling while a row is held', () => {
+      // A 200px-tall scroller showing a taller list, with a settable scrollTop that clamps like a real one.
+      const makeScroller = (vm: any, maxScroll = 100) => {
+        const scroller = vm.$refs.clusterList;
+        let scrollTop = 0;
+
+        scroller.getBoundingClientRect = () => ({ top: 0, bottom: 200 });
+        Object.defineProperty(scroller, 'scrollTop', {
+          configurable: true,
+          get:          () => scrollTop,
+          set:          (v: number) => {
+            scrollTop = Math.max(0, Math.min(maxScroll, v));
+          },
+        });
+
+        return scroller;
+      };
+
+      it('scrolls down while the row is held against the bottom edge', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+
+        const scroller = makeScroller(vm);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 195 });
+        expect(vm.dragId).toBe('a');
+
+        vm.dragScrollStep();
+
+        expect(scroller.scrollTop).toBeGreaterThan(0);
+
+        vm.endRowDrag(false);
+        wrapper.unmount();
+      });
+
+      it('leaves the shelf alone while the pointer is away from the edges', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+
+        const scroller = makeScroller(vm);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 100 });
+        vm.dragScrollStep();
+
+        expect(scroller.scrollTop).toBe(0);
+
+        vm.endRowDrag(false);
+        wrapper.unmount();
+      });
+
+      // Nothing left to scroll: keeping the frame loop alive would spin for the rest of the drag.
+      it('stops once the shelf is already at the end', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+
+        const scroller = makeScroller(vm, 0);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 195 });
+        vm.dragScrollStep();
+
+        expect(scroller.scrollTop).toBe(0);
+        expect(vm.dragScrollFrame).toBeNull();
+
+        vm.endRowDrag(false);
+        wrapper.unmount();
+      });
+
+      // The slots are measured once, so they are held in the SCROLLER'S coordinates — measured in the
+      // viewport's they would drift by exactly the distance scrolled and stop matching the rows.
+      it('still finds the right slot after the shelf has scrolled', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        makeScroller(vm);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        // Far enough to count as a drag rather than a click, so the slots are captured.
+        vm.onRowDragMove({ clientY: 25 });
+
+        // Rows were laid out at 0-10, 10-20, 20-30 with the shelf unscrolled.
+        expect(vm.rowIndexAt(25)).toBe(2);
+
+        // Scroll by a row: the pointer now over what was the third row sits where the second one was.
+        vm.$refs.clusterList.scrollTop = 10;
+        expect(vm.rowIndexAt(15)).toBe(2);
+
+        vm.endRowDrag(false);
+        wrapper.unmount();
+      });
+    });
+
     it('abandons the drag on Escape without writing the order', async() => {
       const { wrapper, dispatch } = await mountShelf();
       const vm = wrapper.vm;
