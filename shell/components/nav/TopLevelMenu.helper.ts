@@ -32,6 +32,9 @@ export interface TopLevelMenuCluster {
   isLocal: boolean,
   pinned: boolean,
   description: string,
+  // Why a row cannot be explored, in the words the rest of the UI uses for it ("Unavailable", "Error",
+  // "Updating"). Only meaningful when `ready` is false.
+  stateDisplay: string,
   // Meta shown on a cluster-switcher row: distro/provider (e.g. "RKE2", "EKS") and k8s version.
   providerDisplay: string,
   kubernetesVersion: string,
@@ -253,6 +256,7 @@ export abstract class BaseTopLevelMenuHelper {
       // Pinned-ness is the pref, not the server row — so a fetch can never revert the optimistic flip.
       pinned:            this.pinnedPref.includes(mgmtCluster.id),
       description:       provCluster?.description || mgmtCluster.description,
+      stateDisplay:      mgmtCluster.stateDisplay || '',
       providerDisplay:   provCluster?.provisionerDisplay || mgmtCluster.machineProviderDisplay || mgmtCluster.provider || '',
       // `kubernetesVersion` falls back to `generic.provisioning` ('—'), so it is never falsy and the meta
       // line would read "Imported · —". Read the raw getter so it collapses to just the provider instead.

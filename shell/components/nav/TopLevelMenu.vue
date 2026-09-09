@@ -1113,6 +1113,42 @@ export default {
       };
     },
 
+    /**
+     * Hover copy for a PINNED shelf row, which is the one kind of row that can be dragged — so the tooltip
+     * is where that is said. Shown in BOTH nav states, unlike `getTooltipConfig`: the expanded row already
+     * shows the name, but not that the row can be reordered, which nothing else on screen says.
+     *
+     * A row that cannot be explored says why, so "nothing happens when I click it" has an answer in the
+     * same place as the invitation to drag it.
+     */
+    getPinnedTooltip(cluster, showWhenClosed = false) {
+      // Each row hangs this off two elements — the icon and the name — and only the one matching the
+      // nav's state answers, so a row shows one tooltip rather than two stacked on the same hover.
+      const rightState = showWhenClosed ? !this.shown : this.shown;
+
+      if (!cluster || !rightState) {
+        return { content: null };
+      }
+
+      // While the combo is held the row advertises what it is about to do instead: that is a live
+      // modifier state, and the more urgent of the two things the row could be saying.
+      if (this.routeComboActive && cluster.ready) {
+        return {
+          content: this.t('nav.keyComboTooltip'), placement: 'right', popperClass: 'nav-tooltip'
+        };
+      }
+
+      const content = cluster.ready ? this.t('nav.pinnedCluster.explore', { name: cluster.label }) : this.t('nav.pinnedCluster.blocked', { name: cluster.label, reason: cluster.stateDisplay });
+
+      return {
+        content,
+        placement:   'right',
+        // The wider box: this copy is a sentence, not a label, and the default tooltip width breaks it
+        // into a column of single words.
+        popperClass: 'nav-tooltip menu-description-tooltip',
+      };
+    },
+
     getTooltipConfig(item, showWhenClosed = false) {
       if (!item) {
         return;
@@ -1483,14 +1519,14 @@ export default {
                       @shortkey="onRouteComboHold"
                     >
                       <ClusterIconMenu
-                        v-clean-tooltip="getTooltipConfig(c, true)"
+                        v-clean-tooltip="getPinnedTooltip(c, true)"
                         :cluster="c"
                         :route-combo="routeComboActive"
                         class="rancher-provider-icon"
                         :show-pin="false"
                       />
                       <div
-                        v-clean-tooltip="getTooltipConfig(c)"
+                        v-clean-tooltip="getPinnedTooltip(c)"
                         class="cluster-name"
                       >
                         <p>{{ c.label }}</p>
@@ -1507,13 +1543,13 @@ export default {
                       :data-testid="`${ shelf.key }-menu-cluster-disabled-${ c.id }`"
                     >
                       <ClusterIconMenu
-                        v-clean-tooltip="getTooltipConfig(c, true)"
+                        v-clean-tooltip="getPinnedTooltip(c, true)"
                         :cluster="c"
                         class="rancher-provider-icon"
                         :show-pin="false"
                       />
                       <div
-                        v-clean-tooltip="getTooltipConfig(c)"
+                        v-clean-tooltip="getPinnedTooltip(c)"
                         class="cluster-name"
                       >
                         <p>{{ c.label }}</p>

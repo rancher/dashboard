@@ -294,6 +294,9 @@ nav:
     configuration: Configuration
     hci: HCI
   pinClusterError: Could not save your pinned clusters
+  pinnedCluster:
+    explore: Explore {name} or drag it to change the order of your pinned clusters
+    blocked: You cannot explore {name} ({reason}), but you can drag it to change the order of your pinned clusters
   search:
     clusters: |-
       {count, plural,

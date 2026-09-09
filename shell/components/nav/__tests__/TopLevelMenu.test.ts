@@ -1,3 +1,6 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { load } from 'js-yaml';
 import TopLevelMenu from '@shell/components/nav/TopLevelMenu.vue';
 import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
 import { mount, Wrapper } from '@vue/test-utils';
@@ -931,6 +934,109 @@ describe('topLevelMenu', () => {
       await vm.toggle();
 
       expect(vm.shown).toBe(true);
+    });
+  });
+
+  // A pinned row is the one kind of row that can be dragged, and nothing else on screen says so — so the
+  // hover copy does, in both nav states, and tells a row that cannot be explored why not.
+  describe('the pinned row tooltip', () => {
+    const mountNav = ($route: any = {}) => mount(TopLevelMenu, {
+      global: {
+        mocks: {
+          $route,
+          $store: generateStore([]),
+        },
+        stubs: ['BrandImage', 'router-link'],
+      },
+    });
+
+    const ready = {
+      id: 'c-a', label: 'prod-eu', ready: true, stateDisplay: 'Active'
+    };
+    const blocked = {
+      id: 'c-b', label: 'prod-us', ready: false, stateDisplay: 'Unavailable'
+    };
+
+    it('offers to explore a row that can be explored', () => {
+      const vm = mountNav().vm as any;
+
+      // The nav starts collapsed, so the icon's half is the one that answers.
+      expect(vm.shown).toBe(false);
+      expect(vm.getPinnedTooltip(ready, true).content).toContain('nav.pinnedCluster.explore');
+    });
+
+    it('says why a row cannot be explored', () => {
+      const vm = mountNav().vm as any;
+
+      expect(vm.getPinnedTooltip(blocked, true).content).toContain('nav.pinnedCluster.blocked');
+    });
+
+    // The suite renders keys rather than copy, so what each key SAYS is checked against the translations:
+    // the name, the reason and the invitation to drag are the whole point of these two strings.
+    it('names the cluster, the reason and the drag in the copy itself', () => {
+      const en = load(readFileSync(resolve(__dirname, '../../../assets/translations/en-us.yaml'), 'utf8')) as any;
+      const { explore, blocked: blockedCopy } = en.nav.pinnedCluster;
+
+      expect(explore).toContain('{name}');
+      expect(explore).toContain('drag');
+      expect(blockedCopy).toContain('{name}');
+      expect(blockedCopy).toContain('{reason}');
+      expect(blockedCopy).toContain('drag');
+    });
+
+    // Each row hangs the tooltip off two elements, one per nav state. Both answering would stack two
+    // tooltips on one hover; neither would leave the expanded row with nothing saying it can be dragged.
+    it.each([
+      ['collapsed', false],
+      ['expanded', true],
+    ])('answers from exactly one of its two anchors when %s', (_label, shown) => {
+      const vm = mountNav().vm as any;
+
+      vm.shown = shown;
+
+      const fromIcon = vm.getPinnedTooltip(ready, true).content;
+      const fromName = vm.getPinnedTooltip(ready).content;
+
+      expect([fromIcon, fromName].filter((c) => !!c)).toHaveLength(1);
+    });
+
+    // Holding the combo is a live modifier state — the row is about to do something else, and that is the
+    // more urgent of the two things it could be saying.
+    it('gives way to the key-combo hint while the combo is held', async() => {
+      // The combo only lights up on a cluster-explorer route with somewhere else to jump to, so the row
+      // needs both before the precedence is even reachable.
+      const wrapper: any = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
+            $store: {
+              ...generateStore([
+                {
+                  nameDisplay: 'cluster1', id: 'an-id1', mgmt: { id: 'an-id1' }, canExplore: true
+                },
+                {
+                  nameDisplay: 'cluster2', id: 'an-id2', mgmt: { id: 'an-id2' }, canExplore: true
+                },
+              ])
+            },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+      await wrapper.setData({ routeCombo: true });
+
+      expect(wrapper.vm.routeComboActive).toBe(true);
+      expect(wrapper.vm.getPinnedTooltip(ready, true).content).toContain('nav.keyComboTooltip');
+
+      wrapper.unmount();
+    });
+
+    it('says nothing for a row that is not there', () => {
+      const vm = mountNav().vm as any;
+
+      expect(vm.getPinnedTooltip(null, true).content).toBeNull();
     });
   });
 
