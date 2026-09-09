@@ -14,6 +14,10 @@ export default class CloudCredential extends NormanModel {
     return true;
   }
 
+  get disableResourceDetailDrawer() {
+    return true;
+  }
+
   get _detailLocation() {
     return {
       name:   `c-cluster-manager-cloudCredential-id`,
@@ -175,6 +179,6 @@ export default class CloudCredential extends NormanModel {
   }
 
   get doneRoute() {
-    return 'c-cluster-manager-secret';
+    return 'c-cluster-manager-cloudCredential';
   }
 }

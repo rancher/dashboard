@@ -18,13 +18,34 @@ describe('composables: ResourceDetailDrawer', () => {
   const yaml = 'YAML';
 
   describe('useDefaultYamlTabProps', () => {
-    it('should return the appropriate values based on input', async() => {
+    const optionsFor = jest.fn();
+    const store: any = { getters: { 'type-map/optionsFor': optionsFor } };
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should return the appropriate values based on input when the type allows yaml', async() => {
+      jest.spyOn(vuex, 'useStore').mockImplementation(() => store);
+      const optionsForSpy = optionsFor.mockImplementation(() => ({ canYaml: true }));
       const getYamlSpy = jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.resolve(yaml));
       const props = await useDefaultYamlTabProps(resource);
 
+      expect(optionsForSpy).toHaveBeenCalledWith(resource.type);
       expect(getYamlSpy).toHaveBeenCalledWith(resource);
-      expect(props.yaml).toStrictEqual(yaml);
-      expect(props.resource).toStrictEqual(resource);
+      expect(props?.yaml).toStrictEqual(yaml);
+      expect(props?.resource).toStrictEqual(resource);
+    });
+
+    it('should return undefined without fetching yaml when the type has canYaml: false', async() => {
+      jest.spyOn(vuex, 'useStore').mockImplementation(() => store);
+      const optionsForSpy = optionsFor.mockImplementation(() => ({ canYaml: false }));
+      const getYamlSpy = jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.resolve(yaml));
+      const props = await useDefaultYamlTabProps(resource);
+
+      expect(optionsForSpy).toHaveBeenCalledWith(resource.type);
+      expect(getYamlSpy).not.toHaveBeenCalledWith(resource);
+      expect(props).toBeUndefined();
     });
   });
 

@@ -3,7 +3,14 @@ import { getYaml } from '@shell/components/Drawer/ResourceDetailDrawer/helpers';
 import { ConfigProps, YamlProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 import { inject, provide } from 'vue';
 
-export async function useDefaultYamlTabProps(resource: any): Promise<YamlProps> {
+export async function useDefaultYamlTabProps(resource: any): Promise<YamlProps | undefined> {
+  const store = useStore();
+  const { canYaml } = store.getters['type-map/optionsFor'](resource.type);
+
+  if (!canYaml) {
+    return;
+  }
+
   const yaml = await getYaml(resource);
 
   return {

@@ -23,16 +23,20 @@ jest.mock('@shell/composables/resourceDetail', () => ({ useResourceDetailPagePro
 type StoreOpts = {
   schema?: any;
   findError?: any;
+  findResult?: any;
+  optionsFor?: any;
 };
 
-const createStore = ({ schema, findError }: StoreOpts) => {
+const createStore = ({
+  schema, findError, findResult, optionsFor
+}: StoreOpts) => {
   const dispatch = jest.fn((action: string) => {
     if (action.endsWith('/find')) {
       if (findError) {
         return Promise.reject(findError);
       }
 
-      return Promise.resolve({});
+      return Promise.resolve(findResult ?? {});
     }
     if (action.endsWith('/clone') || action.endsWith('/cleanForDetail')) {
       return Promise.resolve({});
@@ -51,7 +55,7 @@ const createStore = ({ schema, findError }: StoreOpts) => {
       'type-map/hasCustomEdit':   () => false,
       'type-map/importDetail':    () => null,
       'type-map/importEdit':      () => null,
-      'type-map/optionsFor':      () => ({}),
+      'type-map/optionsFor':      () => (optionsFor ?? {}),
     },
     dispatch,
   };
@@ -144,6 +148,47 @@ describe('component: ResourceDetail', () => {
 
     expect((wrapper.vm as any).resourceNotFoundError).toBeNull();
     expect(store.dispatch).not.toHaveBeenCalledWith('loadingError', expect.anything());
+  });
+
+  describe('canViewYaml', () => {
+    it('is false when the live resource has no view link, even though the type-map default allows yaml', async() => {
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: true },
+        findResult: { canYaml: false },
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).canViewYaml).toBe(false);
+    });
+
+    it('stays true when the live resource does have a view link and the type-map default allows yaml', async() => {
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: true },
+        findResult: { canYaml: true },
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).canViewYaml).toBe(true);
+    });
+
+    it('stays false when the type-map default already disallows yaml, regardless of the live resource', async() => {
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: false },
+        findResult: { canYaml: true },
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).canViewYaml).toBe(false);
+    });
   });
 
   // fullDetailPageOverride should only apply to the detail view, so the config/YAML
