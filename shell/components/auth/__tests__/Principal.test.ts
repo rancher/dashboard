@@ -12,6 +12,35 @@ describe('component: Principal', () => {
     expect(wrapper.exists()).toBe(true);
   });
 
+  it('a11y: should render the avatar as a decorative image, hidden from screen readers', async() => {
+    const wrapper: VueWrapper<any, any> = mount(Principal, {
+      props:  { value: 'whatever' },
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $store:      {
+            getters: {
+              'rancher/byId': () => ({
+                name:        'first name',
+                loginName:   'first',
+                avatarSrc:   'data:image/png;base64,abc',
+                roundAvatar: true,
+              })
+            }
+          },
+        },
+      },
+    });
+
+    await wrapper.vm.loadData();
+
+    const avatar = wrapper.find('.avatar img');
+
+    expect(avatar.exists()).toBe(true);
+    // the name is already exposed as text next to it, so the image adds nothing for AT
+    expect(avatar.attributes('alt')).toBe('');
+  });
+
   it('should update principal displayed properties on value change', async() => {
     const wrapper: VueWrapper<any, any> = mount(Principal, {
       props:  { value: 'whatever' },
