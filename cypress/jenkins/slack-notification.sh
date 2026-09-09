@@ -31,7 +31,11 @@ EOF
 	# Send the notification using Slack Web API
 	# Try-catch block to handle any errors when communicating with Slack API
 	set +e # Disable exit on error for try block
+	# Bounded: this runs in the post block, so a stalled Slack call would hold
+	# the build open against the outer timeout rather than the few seconds a
+	# notification is worth.
 	curl -X POST \
+		--connect-timeout 10 --max-time 30 --retry 2 --retry-delay 3 \
 		-H "Content-type: application/json; charset=utf-8" \
 		-H "Authorization: Bearer $bot_token" \
 		--data "$payload" \
@@ -95,6 +99,9 @@ send_jenkins_e2e_failure_notification() {
 	local rancher_image_tag=$(read_notification_value "RANCHER_IMAGE_TAG")
 	local rancher_chart_url=$(read_notification_value "RANCHER_CHART_URL")
 	local rancher_helm_repo=$(read_notification_value "RANCHER_HELM_REPO")
+	local rancher_build_type=$(read_notification_value "RANCHER_BUILD_TYPE")
+	local ui_build=$(read_notification_value "UI_BUILD")
+	local ui_source=$(read_notification_value "UI_SOURCE")
 	local cypress_tags=$(read_notification_value "CYPRESS_TAGS")
 	local kubernetes_version=$(read_notification_value "KUBERNETES_VERSION")
 	local dashboard_branch=$(read_notification_value "DASHBOARD_BRANCH")
@@ -138,6 +145,10 @@ send_jenkins_e2e_failure_notification() {
 	message+=$(append_field "Tests" "$test_summary")
 	message+=$(append_field "Rancher Version" "$rancher_version")
 	message+=$(append_field "Rancher Image" "$rancher_image_tag")
+	message+=$(append_field "Build Type" "$rancher_build_type")
+	# A run tests a backend and a UI, and on a head build the default serves the
+	# UI from the CDN rather than the image, so the pair is worth naming.
+	message+=$(append_field "UI Build" "${ui_build:+${ui_build}${ui_source:+ (from the ${ui_source})}}")
 	message+=$(append_field "K8s Version" "$kubernetes_version")
 	message+=$(append_field "Chart URL" "$rancher_chart_url")
 	message+=$(append_field "Helm Repo" "$rancher_helm_repo")
