@@ -403,6 +403,109 @@ describe('mixin: authConfigMixin', () => {
         expect(instance.errors).toStrictEqual([]);
         expect(instance.model.id).toBe('github-2');
       });
+
+      it('should hold the name once the config has been written', async() => {
+        const { instance } = failFirstFind();
+
+        await instance.save(jest.fn());
+
+        expect(instance.configNameFixed).toBe(true);
+      });
+    });
+  });
+
+  // Enabling can fail after the config has been written, and the form stays on the
+  // page to be corrected and saved again. By then the config exists, so its name is
+  // no longer the form's to choose.
+  describe('a config that is still being added', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const createInstance = (authConfigCreate: any, dispatch = jest.fn()) => mount(FakeComponent, {
+      data:   () => ({ value: { configType: 'oauth' }, model: { id: 'github-2' } }),
+      global: {
+        provide: authConfigCreate ? { authConfigCreate } : {},
+        mocks:   {
+          $store: { dispatch },
+          $route: { params: { cluster: 'local', id: 'github-2' }, query: { mode: 'edit' } },
+        }
+      }
+    }).vm as any;
+
+    const adding = (created: boolean) => ({
+      name: 'github-2', normanType: 'githubConfig', takenIds: ['github'], created
+    });
+
+    it('should let a config still being added be named', () => {
+      const instance = createInstance(adding(false));
+
+      instance.configName = 'github-super';
+
+      expect(instance.configNameFixed).toBe(false);
+      expect(instance.configName).toBe('github-super');
+    });
+
+    it('should refuse to rename a config that has been created', () => {
+      const instance = createInstance(adding(true));
+
+      instance.authConfigName = 'github-2';
+      instance.configName = 'github-super';
+
+      expect(instance.configNameFixed).toBe(true);
+      expect(instance.configName).toBe('github-2');
+    });
+
+    it('should settle the name of a config that already exists', () => {
+      expect(createInstance(null).configNameFixed).toBe(true);
+    });
+
+    // The form is filled in before the config exists, and reads the provider off
+    // what is being added rather than off a model or a route that cannot name it.
+    it('should know which provider is being added before the config exists', () => {
+      const instance = mount(FakeComponent, {
+        data:   () => ({ value: { configType: 'ldap' }, model: null }),
+        global: {
+          provide: {
+            authConfigCreate: {
+              name: 'ad-2', normanType: 'activeDirectoryConfig', created: false
+            }
+          },
+          mocks: {
+            $store: { dispatch: jest.fn() },
+            $route: { params: { cluster: 'local' }, query: { mode: 'edit' } },
+          }
+        }
+      }).vm as any;
+
+      expect(instance.NAME).toBe('activedirectory');
+    });
+
+    // There is nothing to pick up until the config has been written - asking for it
+    // by a name that does not exist yet is what took the form down.
+    it('should not go looking for a config that does not exist yet', async() => {
+      const dispatch = jest.fn();
+      const instance = createInstance(adding(false), dispatch);
+
+      await instance.reloadModel();
+
+      expect(dispatch).not.toHaveBeenCalledWith('rancher/find', expect.anything());
+    });
+
+    it('should pick the config back up once it has been created', async() => {
+      const dispatch = jest.fn(() => ({ id: 'github-2' }));
+      const instance = createInstance(adding(true), dispatch);
+
+      instance.authConfigName = 'github-2';
+      await instance.reloadModel();
+
+      expect(dispatch).toHaveBeenCalledWith('rancher/find', {
+        type: 'authconfig',
+        id:   'github-2',
+        opt:  { url: '/v3/authconfig/github-2', force: true },
+      });
     });
   });
 

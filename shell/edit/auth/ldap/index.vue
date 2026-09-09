@@ -164,7 +164,7 @@ export default {
       <AuthConfigIdentity
         v-model:name="configName"
         v-model:description="configDescription"
-        :name-fixed="!isCreate"
+        :name-fixed="configNameFixed"
         :name-error="configNameError"
       />
 

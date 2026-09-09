@@ -109,9 +109,13 @@ export default {
      * The provider a config is an instance of, e.g. `github` for a config named
      * `github-2`. Forms are per provider, so their labels, defaults and branching
      * all key off this rather than off the config's own name.
+     *
+     * Forms read this before their model exists - in `created()`, to decide which
+     * fields to require - so the provider being added answers for it until then.
+     * The route only names the config on the page that edits one.
      */
     NAME() {
-      return providerKey(this.model?.type) || this.$route.params.id;
+      return providerKey(this.model?.type) || providerKey(this.authConfigCreate?.normanType) || this.$route.params.id;
     },
 
     isCreate() {
@@ -126,18 +130,30 @@ export default {
       get() {
         // While adding, the name is still being chosen, and the page holds it -
         // `authConfigName` is only settled once the config exists.
-        return this.authConfigCreate ? this.authConfigCreate.name : this.authConfigName;
+        return this.configNameFixed ? this.authConfigName : this.authConfigCreate.name;
       },
       set(value) {
-        if (this.authConfigCreate) {
+        if (!this.configNameFixed) {
           this.authConfigCreate.name = value;
         }
       },
     },
 
+    /**
+     * Whether the name is settled.
+     *
+     * Enabling can fail after the config has been written - on bad credentials,
+     * say - and the form stays on the page to be corrected and saved again. The
+     * config exists by then, so its name is no longer the form's to choose: a
+     * rename would leave the page saving one config under another's name.
+     */
+    configNameFixed() {
+      return !this.isCreate || this.authConfigCreate.created;
+    },
+
     /** Why the name cannot be used, or null. Only a new config has a say in it. */
     configNameError() {
-      if (!this.isCreate || this.authConfigCreate.created) {
+      if (this.configNameFixed) {
         return null;
       }
 
@@ -483,7 +499,18 @@ export default {
       this.model = model;
     },
 
+    /**
+     * Picks the config back up from the server.
+     *
+     * There is nothing to pick up while a provider is still being added - the
+     * config has no name yet, let alone a record to read - so the form keeps
+     * what the admin has filled in.
+     */
     async reloadModel() {
+      if (!this.configNameFixed) {
+        return this.model;
+      }
+
       this.originalModel = await this.$store.dispatch('rancher/find', {
         type: NORMAN.AUTH_CONFIG,
         id:   this.authConfigName,
