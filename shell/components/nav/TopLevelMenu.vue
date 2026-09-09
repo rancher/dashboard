@@ -31,6 +31,9 @@ const DRAG_THRESHOLD = 4;
 // frame hard against the end — so the list is steerable rather than all-or-nothing.
 const DRAG_SCROLL_EDGE = 32;
 const DRAG_SCROLL_MAX = 14;
+// How far the expanded row's tooltip stands off the cluster name it hangs from, so it clears the pin
+// toggle and the nav's edge rather than covering them.
+const PINNED_TOOLTIP_DISTANCE = 44;
 
 export default {
   components: {
@@ -1126,7 +1129,10 @@ export default {
       // nav's state answers, so a row shows one tooltip rather than two stacked on the same hover.
       const rightState = showWhenClosed ? !this.shown : this.shown;
 
-      if (!cluster || !rightState) {
+      // Not while a row is being dragged. The tooltip explains that the row CAN be dragged, which is of
+      // no use once it is being, and it would otherwise sit over the shelf being rearranged — the pointer
+      // passes across every other row on the way, so it is the rest of them that would speak up.
+      if (!cluster || !rightState || this.dragId) {
         return { content: null };
       }
 
@@ -1143,6 +1149,10 @@ export default {
       return {
         content,
         placement:   'right',
+        // Clear of the nav's edge. The expanded row hangs this off the cluster NAME, which stops short of
+        // the row's own pin toggle, so the default gap put the tooltip over the pin it was sitting beside.
+        // The collapsed rail hangs it off the icon, which fills the rail, and needs no such correction.
+        distance:    showWhenClosed ? undefined : PINNED_TOOLTIP_DISTANCE,
         popperClass: 'nav-tooltip nav-pinned-tooltip',
       };
     },

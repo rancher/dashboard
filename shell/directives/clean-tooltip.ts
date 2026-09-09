@@ -32,6 +32,9 @@ interface TooltipDelay {
 export interface TooltipOptions {
   content?: string;
   placement?: string;
+  // Gap between the anchor and the popper, along the placement axis. Passed straight through to
+  // floating-vue by `getTooltipConfig`, which spreads these options into the tooltip's own config.
+  distance?: number;
   popperClass?: string | string[];
   delay?: TooltipDelay;
   triggers?: string[];
@@ -287,6 +290,26 @@ function isHoverable(options?: TooltipOptions): boolean {
  * @param {string} content The purified tooltip content.
  * @returns {TooltipOptions} The config to create the tooltip with.
  */
+/**
+ * Whether two option sets would produce the same tooltip. Compared field by field rather than by
+ * reference: a binding like `v-clean-tooltip="fn(row)"` hands over a fresh object on every render, so
+ * reference equality would report a change every time and never report one usefully.
+ */
+function sameTooltipOptions(a: TooltipOptions | undefined, b: TooltipOptions | undefined): boolean {
+  if (!a || !b) {
+    return false;
+  }
+
+  return a.content === b.content &&
+    a.placement === b.placement &&
+    a.distance === b.distance &&
+    String(a.popperClass) === String(b.popperClass) &&
+    String(a.triggers) === String(b.triggers) &&
+    String(a.popperTriggers) === String(b.popperTriggers) &&
+    a.delay?.show === b.delay?.show &&
+    a.delay?.hide === b.delay?.hide;
+}
+
 function getTooltipConfig(target: TooltipHTMLElement, options: TooltipOptions, content: string): TooltipOptions {
   const config: TooltipOptions = { ...options, content };
 
@@ -423,6 +446,8 @@ const cleanTooltipDirective: Directive = {
    * @param {object} binding The directive binding object.
    */
   updated(el: TooltipHTMLElement, binding: DirectiveBinding) {
+    const previous = el.__tooltipOptions__;
+
     el.__tooltipOptions__ = getTooltipOptions(binding.value, binding.modifiers);
 
     // doing this here too because the tooltip content may change after mount.
@@ -434,8 +459,12 @@ const cleanTooltipDirective: Directive = {
 
     syncDescription(el);
 
-    // If this element's tooltip is currently shown, update it
-    if (currentTarget === el) {
+    // If this element's tooltip is currently shown, update it — but only when it would actually come out
+    // different. Re-showing tears the popper down and builds a new one, which is a visible blink, and
+    // this hook runs on EVERY re-render of the owning component: a list that refreshes itself behind a
+    // hovered row (the nav's cluster list does, on a timer) made the tooltip flicker for as long as the
+    // pointer stayed there, saying nothing new each time.
+    if (currentTarget === el && !sameTooltipOptions(previous, el.__tooltipOptions__)) {
       showSingletonTooltip(el, el.__tooltipOptions__);
     }
   },

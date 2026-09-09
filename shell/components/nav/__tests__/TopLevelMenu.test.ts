@@ -1033,6 +1033,19 @@ describe('topLevelMenu', () => {
       wrapper.unmount();
     });
 
+    // Once the row is moving, the copy is describing something the user is already doing — and the pointer
+    // crosses every other row on the way, so it would be the rest of them piping up mid-drag.
+    it('says nothing at all while a row is being dragged', () => {
+      const vm = mountNav().vm as any;
+
+      expect(vm.getPinnedTooltip(ready, true).content).not.toBeNull();
+
+      vm.dragId = 'c-a';
+
+      expect(vm.getPinnedTooltip(ready, true).content).toBeNull();
+      expect(vm.getPinnedTooltip(blocked, true).content).toBeNull();
+    });
+
     it('says nothing for a row that is not there', () => {
       const vm = mountNav().vm as any;
 
