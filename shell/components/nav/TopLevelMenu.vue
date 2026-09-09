@@ -92,6 +92,9 @@ export default {
       dragOrder:         null,
       // A search request is in flight (drives the flyout's initial search skeleton).
       listLoading:       false,
+      // Token for the page-1 reset in flight. Two resets can carry the SAME term, so only this
+      // identifies which of them is the live one (see `resetOthersList`).
+      othersRequestId:   0,
       recentLoading:     false,
       routeCombo:        false,
 
@@ -252,11 +255,10 @@ export default {
       ];
     },
 
-    // PINNED and RECENT render the SAME row; describing them as data instead of two copies of the markup
-    // means a new row affordance is written once and the two shelves cannot drift apart. Shelves with no
-    // rows are dropped here so the template keeps a plain `v-for` (no v-if/v-for on one element).
     // The nav shelf is PINNED only: clusters the user chose to keep to hand. RECENTLY USED lives in the
-    // flyout, where the estate it is a shortcut into also lives.
+    // flyout, where the estate it is a shortcut into also lives. Still described as data rather than
+    // inlined markup so a second shelf costs an entry, not a second copy of the row; an empty one is
+    // dropped here so the template keeps a plain `v-for` (no v-if/v-for on one element).
     shelves() {
       return [
         {
@@ -913,6 +915,10 @@ export default {
     // rejects when the fetch itself failed, so `.catch` here means a real failure to report.
     resetOthersList() {
       const requestedTerm = this.search;
+      // The term alone cannot tell a superseded request from the live one when BOTH were issued for the
+      // same term — reopening the flyout fires one directly while the close's debounced reset is still
+      // pending — so each reset carries its own token and only the newest one may report.
+      const requestId = ++this.othersRequestId;
 
       // Every page-1 refresh shows the skeleton — opening the flyout as much as typing in it. Both replace
       // the list wholesale, and without it the old rows sit there until the new ones drop in.
@@ -927,13 +933,13 @@ export default {
         // The flyout has to be told: with nothing pinned and nothing visited there is no other source of
         // rows, so a silent failure left the panel shimmering for as long as it was open — no error, no
         // retry, no list.
-        if (this.search === requestedTerm) {
+        if (requestId === this.othersRequestId) {
           this.listFailed = true;
         }
       }).finally(() => {
-        // Clear the skeleton only when the term this request was issued for is still the one on screen —
-        // an older query must not unhide its own results under the new term.
-        if (this.search === requestedTerm) {
+        // Clear the skeleton only when this request is still the one on screen — an older query must not
+        // unhide its own results under the new term.
+        if (requestId === this.othersRequestId) {
           this.listLoading = false;
         }
       });
@@ -1348,8 +1354,8 @@ export default {
               ref="clusterList"
               class="clusters"
             >
-              <!-- The nav shelf is always PINNED + RECENT (the estate, and the only search, lives in
-                   the flyout) — and both render the identical row, so they share one block. -->
+              <!-- The nav shelf is PINNED only — the estate, RECENTLY USED and the only search live in
+                   the flyout. Driven off `shelves` so a future shelf reuses this row rather than copying it. -->
               <div
                 v-for="shelf in shelves"
                 :key="shelf.key"

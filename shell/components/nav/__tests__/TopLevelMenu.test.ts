@@ -1198,6 +1198,61 @@ describe('topLevelMenu', () => {
       expect((wrapper.vm as any).recentLoading).toBe(false);
     });
 
+    // Closing the flyout clears the search, which arms the debounced reset; reopening inside that window
+    // issues a second one directly. Both carry the same term, so only the per-request token can tell the
+    // superseded one apart — without it a late failure of the first raises the error state over the list
+    // the second already rendered.
+    it('ignores a superseded page-1 reset that fails after the newer one for the same term succeeded', async() => {
+      const store = generateStore([]);
+      const settles: Array<{ resolve: () => void, reject: (e: any) => void }> = [];
+      const resetOthers = jest.fn(() => new Promise<void>((resolve, reject) => {
+        settles.push({ resolve, reject });
+      }));
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue({
+        update:         jest.fn(),
+        refreshRecent:  jest.fn().mockResolvedValue(undefined),
+        resetOthers,
+        loadMoreOthers: jest.fn().mockResolvedValue(undefined),
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
+      } as any);
+
+      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      // Two resets in flight for the same (empty) term.
+      (wrapper.vm as any).resetOthersList();
+      (wrapper.vm as any).resetOthersList();
+
+      expect(settles).toHaveLength(2);
+
+      // The newer one lands and its rows render...
+      settles[1].resolve();
+      await waitForIt();
+
+      // ...then the superseded one fails.
+      settles[0].reject(new Error('500'));
+      await waitForIt();
+
+      expect((wrapper.vm as any).listFailed).toBe(false);
+      expect((wrapper.vm as any).listLoading).toBe(false);
+    });
+
     it('should call helper.update if pagination is disabled', () => {
       const store = generateStore([]);
 
