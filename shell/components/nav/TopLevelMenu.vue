@@ -662,7 +662,12 @@ export default {
     onSwitcherSearch(term) {
       // Show the skeleton from the keystroke, not from the request: the reset is debounced, and clearing
       // the box refetches the whole directory, so both would otherwise sit on stale rows and then swap.
-      this.listLoading = true;
+      // Only when the term the pipeline sees actually changes, though: `search` is lowercased, so a
+      // case-only edit never reaches the watcher that would lower the skeleton again.
+      if ((term || '').toLowerCase() !== this.search) {
+        this.listLoading = true;
+      }
+
       this.clusterFilter = term;
     },
 

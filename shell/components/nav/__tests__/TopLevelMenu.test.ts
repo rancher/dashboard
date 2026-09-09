@@ -1253,6 +1253,51 @@ describe('topLevelMenu', () => {
       expect((wrapper.vm as any).listLoading).toBe(false);
     });
 
+    // The keystroke raises the skeleton, but only the `search` watcher lowers it again — and `search` is
+    // lowercased. A case-only edit (pasting `PROD` over `prod`) leaves `search` untouched, so raising the
+    // skeleton for it would strand the flyout on an empty, permanently busy list.
+    it('leaves the list skeleton down when a search edit only changes case', async() => {
+      const store = generateStore([]);
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue({
+        update:         jest.fn(),
+        refreshRecent:  jest.fn().mockResolvedValue(undefined),
+        resetOthers:    jest.fn().mockResolvedValue(undefined),
+        loadMoreOthers: jest.fn().mockResolvedValue(undefined),
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
+      } as any);
+
+      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      // Twice: the first flushes the debounce that issues the reset, the second lets the request's
+      // `finally` lower the skeleton again.
+      (wrapper.vm as any).onSwitcherSearch('prod');
+      await waitForIt();
+      await waitForIt();
+
+      expect((wrapper.vm as any).listLoading).toBe(false);
+
+      (wrapper.vm as any).onSwitcherSearch('PROD');
+
+      expect((wrapper.vm as any).listLoading).toBe(false);
+    });
+
     it('should call helper.update if pagination is disabled', () => {
       const store = generateStore([]);
 
