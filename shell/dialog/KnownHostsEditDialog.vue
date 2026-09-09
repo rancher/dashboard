@@ -82,7 +82,10 @@ export default {
     ref="sshKnownHostsDialog"
     class="ssh-known-hosts-dialog"
   >
-    <h4 class="mt-10">
+    <h4
+      class="mt-10"
+      data-modal-title
+    >
       {{ t('secret.ssh.editKnownHosts.title') }}
     </h4>
     <div class="custom mt-10">

@@ -14,6 +14,7 @@ export default {
     Checkbox,
     LabeledInput
   },
+
   props: {
     /**
      * Callback when modal is closed
@@ -173,7 +174,7 @@ export default {
 
 <template>
   <div class="plugin-install-dialog">
-    <h4>
+    <h4 data-modal-title>
       {{ t('plugins.developer.title') }}
     </h4>
     <p>

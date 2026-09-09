@@ -279,7 +279,15 @@ export default {
     // This is to enforce the logo display on certain routes like home, about, prefs, account, etc
     isLogoRoute() {
       return !this.$route.name.includes('c-cluster');
-    }
+    },
+
+    extensionHeaderActionsAriaExpanded() {
+      return this.extensionHeaderActions.map((action) => {
+        const expanded = typeof action.ariaExpanded === 'function' ? action.ariaExpanded() : action.ariaExpanded;
+
+        return typeof expanded === 'boolean' ? expanded : undefined;
+      });
+    },
   },
 
   watch: {
@@ -581,7 +589,7 @@ export default {
           class="side-menu-logo-img"
           data-testid="header__brand-img"
           file-name="rancher-logo.svg"
-          :alt="t('branding.logos.label')"
+          :alt="t('branding.logos.logoLabel')"
         />
       </div>
     </div>
@@ -693,6 +701,7 @@ export default {
           role="button"
           tabindex="0"
           :aria-label="action.labelKey ? t(action.labelKey) : action.label"
+          :aria-expanded="extensionHeaderActionsAriaExpanded[i]"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >

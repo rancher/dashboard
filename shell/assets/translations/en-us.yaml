@@ -399,7 +399,7 @@ about:
   title: About
   versions:
     downloadImages: "Download {listName} images list"
-    downloadCli: "Download CLI for {os}"
+    downloadCli: "Download CLI for {os}: {file}"
     githubRepo: "Open GitHub repository for the {name} component"
     title: Versions
     component: Component
@@ -1367,9 +1367,11 @@ catalog:
             upgrade { upgrade }
             downgrade { upgrade }
             editVersion { update }
+            other { update }
           } the {existing, select,
             true { app}
             false { chart}
+            other { chart}
           }. Start by setting some basic information used by {vendor} to manage the App.
         nsCreationDescription: "To install the app into a new namespace enter it's name in the Namespace field and select it."
         createNamespace: "Namespace <code>{namespace}</code> will be created."
@@ -1603,6 +1605,8 @@ compliance:
   testsToSkip: Tests to Skip
   alerting: Alerting
   detail:
+    noReport: 'No scan report is available yet. Current scan state: {state}. The report will appear here once the scan completes.'
+    noReportWithMessage: 'No scan report is available yet. Current scan state: {state} - {message}. The report will appear here once the scan completes.'
     subRow:
       noNodes: No Additional Information
 
@@ -3647,6 +3651,9 @@ fleet:
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
+    deprecationWarning: 'GitRepoRestrictions are deprecated and will be removed in a future release. Use <policiesLink>Policies</policiesLink> instead.'
+    deprecationWarningTargetNamespaces: 'GitRepoRestrictions are deprecated and will be removed in a future release. Restricting allowed target namespaces relies on GitRepoRestriction and has no equivalent in SUSE Continuous Delivery Policies.'
+    migrationGuide: 'See the <docsLink>SUSE Continuous Delivery Policies migration guide</docsLink>.'
     banner: "{count, plural,
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
@@ -4579,7 +4586,7 @@ login:
   login: Login
   howdy: Howdy!
   welcome: Welcome to {vendor}
-  landscapeAlt: Landscape image
+  logoAlt: '{vendor} Logo'
   loggedOut: You have been logged out.
   loggedOutSessionIdle: You've been logged out of Rancher because your session has expired. Log in again to continue.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
@@ -6042,6 +6049,8 @@ promptForceRemove:
 promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
   attemptingToScaleDown: "You are attempting to scale down {type}"
+  machineAlreadyDeleted: "Machine {name} is already being deleted or has been recreated. The machine pool was not scaled down."
+  machineDeleteAnnotationMissing: "Machine {name} could not be marked for deletion. The machine pool was not scaled down."
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
   scaling: |-
@@ -6203,7 +6212,8 @@ rbac:
         description: |-
           Controls what access the {isUser, select,
           true {user}
-          false {group}} has to administer the overall {appName} installation.
+          false {group}
+          other {group}} has to administer the overall {appName} installation.
       custom:
         label: Custom
         description: 'Roles not created by {vendor}.'
@@ -6334,7 +6344,8 @@ resourceDetail:
     managedWarning: |-
       This {type} is managed by {hasName, select,
         no {a {managedBy} app}
-        yes {the {managedBy} app {appName}}}; changes made here will likely be overwritten the next time {managedBy} runs.
+        yes {the {managedBy} app {appName}}
+        other {a {managedBy} app}}; changes made here will likely be overwritten the next time {managedBy} runs.
 resourceList:
   head:
     create: Create
@@ -6714,6 +6725,8 @@ sortableTable:
     sortingIconAsc: Table header ascending sort icon
   genericGroupCheckbox: Table group selection checkbox
   genericRowCheckbox: Table row selection checkbox for item {item}
+  expandColumnHeader: Expand
+  actionsColumnHeader: Actions
   tableActionsLabel: More actions - { resource }
   tableActionsImgAlt: More actions icon
   bulkActions:
@@ -7108,6 +7121,7 @@ tableHeaders:
   effect: Effect
   endpoints: Endpoints
   expires: Expires
+  explore: Explore
   firstSeen: First Seen
   firstSeenTooltip: The time at which the event was first recorded
   flow: Flow
@@ -7360,12 +7374,14 @@ user:
         disableAfter:
           checkbox: Disable user accounts after an inactivity period (duration since last login)
           input:
+            labelDisable: Inactivity period - Disable user accounts
             label: Inactivity period
             tooltip: Uses duration units (e.g. use 30h for 30 hours)
         deleteAfter:
           checkbox: Delete user accounts after an inactivity period (duration since last login)
           input:
             label: Inactivity period
+            labelDelete: Inactivity period - Delete user accounts
             tooltip: Uses duration units (e.g. use 30h for 30 hours)
             subLabel: This value must be larger than the Disable period, if it's active
         cron:
@@ -7907,7 +7923,7 @@ workload:
       tip: The number of successful finished jobs to retain.
     suspend: Suspend
   list:
-    errorCannotScale: Failed to scale {workloadName} {direction, select, up { up } down { down } }
+    errorCannotScale: Failed to scale {workloadName} {direction, select, up { up } down { down } other { } }
   metrics:
     pod: Pod Metrics
     metricsView: Metrics View
@@ -8945,7 +8961,7 @@ oidcclient:
 action:
   ariaLabel:
     hidePass: Hide {area}
-    showPass: Reveal {area}
+    showPass: Show {area}
   clone: Clone
   disable: Disable
   download: Download YAML
@@ -9194,6 +9210,7 @@ branding:
   directoryName: Brand Asset Directory Name
   logos:
     home: Product main page
+    logoLabel: Rancher Logo
     label: Logo
     tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview

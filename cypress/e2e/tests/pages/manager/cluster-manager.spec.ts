@@ -765,17 +765,29 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
     // Delete downloads directory. Need a fresh start to avoid conflicting file names
     cy.deleteDownloadsFolder();
 
+    // Bulk actions that don't fit the action bar are collapsed into the overflow dropdown by
+    // SortableTable (they get an inline display:none). At the default 1000px viewport that is
+    // borderline for the first action, so give the bar room to keep this button inline.
+    cy.viewport(1440, 900);
+
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     // Wait for the list to finish loading before selecting the row: a click on a still-loading
     // list can fail to register the selection, leaving the bulk-action button hidden
     // (display:none) - which then wedges every retry since testIsolation is off.
     clusterList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+    // Select via the row checkbox instead of clicking the row: testIsolation is off, so on a
+    // retry the row can already be selected and a row click would toggle the selection off.
+    clusterList.list().resourceTable().sortableTable().rowSelectCtlWithName('local')
+      .check();
+    // The bulk action bar only lays its buttons out once the selection has registered
+    clusterList.list().resourceTable().sortableTable().selectedCountText()
       .should('be.visible')
-      .click();
+      .and('contain', '1 selected');
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
-    clusterList.list().downloadKubeConfig().click();
+    clusterList.list().downloadKubeConfig().should('be.visible')
+      .and('not.be.disabled')
+      .click();
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
 
     // A single bulk action must only ever generate one kubeconfig, no matter how many clusters are selected

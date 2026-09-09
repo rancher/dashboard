@@ -2,6 +2,7 @@ import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-das
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 export class FleetGitRepoRestrictionListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/fleet.cattle.io.gitreporestriction`;
@@ -12,6 +13,13 @@ export class FleetGitRepoRestrictionListPagePo extends BaseListPagePo {
 
   goTo() {
     return cy.visit(FleetGitRepoRestrictionListPagePo.url);
+  }
+
+  /**
+   * Deprecation banner shown at the top of the GitRepoRestriction list page
+   */
+  deprecationBanner(): BannersPo {
+    return new BannersPo('[data-testid="git-repo-restriction-deprecation-banner"]');
   }
 
   static navTo() {

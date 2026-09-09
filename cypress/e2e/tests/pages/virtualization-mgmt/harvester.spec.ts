@@ -33,6 +33,12 @@ function harvesterExtensionCatalog(version: Cypress.RancherVersion) {
   return version.RancherPrime === 'true' ? HARVESTER_EXTENSION_CATALOG.prime : HARVESTER_EXTENSION_CATALOG.community;
 }
 
+// `extensionsPo.waitForTabs()` scrolls the tab bar into view before asserting. The extensions page
+// re-mounts around installs and the reload banner, so the element handed to `cy.scrollIntoView()`
+// detaches ("the page updated as a result of this command"). The tab bar is always at the top of the
+// page, so skip the scroll.
+const waitForExtensionTabs = () => extensionsPo.extensionTabs.checkVisible(LONG_TIMEOUT_OPT, { scrollIntoView: false });
+
 describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
   before(() => {
     cy.login();
@@ -85,7 +91,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // verify install button and message displays
       harvesterPo.goTo();
       harvesterPo.waitForPage();
-      harvesterPo.updateOrInstallButton().checkVisible();
+      harvesterPo.updateOrInstallButton().checkVisible(undefined, { scrollIntoView: false });
       harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not installed');
 
       // install harvester extension
@@ -100,9 +106,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       // verify harvester extension added to extensions page
       extensionsPo.goTo();
-      extensionsPo.waitForTabs();
+      waitForExtensionTabs();
       extensionsPo.waitForPage(undefined, 'installed');
-      extensionsPo.extensionCard(harvesterTitle).checkVisible();
+      extensionsPo.extensionCard(harvesterTitle).checkVisible(undefined, { scrollIntoView: false });
 
       // verify harvester repo is added to repos list page
       appRepoList.goTo(undefined, 'manager');
@@ -132,9 +138,12 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         // navigate to harvester list page and verify the logo and tagline do not display after cluster created
         HarvesterClusterPagePo.navTo();
         harvesterPo.waitForPage();
-        // Wait for the just-created cluster to render in the list before acting on it.
-        harvesterPo.list().resourceTable().sortableTable().rowWithName(harvesterClusterName)
-          .checkVisible();
+        // Wait for the just-created cluster to render in the list before acting on it. `rowWithName()`
+        // wraps an already-resolved chainable (`.should('exist').contains(...)`), so `checkVisible()`
+        // hands `cy.scrollIntoView()` a frozen subject that detaches when the list re-renders; assert
+        // visibility without scrolling instead.
+        harvesterPo.list().resourceTable().sortableTable().rowElementWithName(harvesterClusterName)
+          .should('be.visible');
         harvesterPo.harvesterLogo().should('not.exist');
         harvesterPo.harvesterTagline().should('not.exist');
 
@@ -181,7 +190,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
 
       extensionsPo.goTo();
-      extensionsPo.waitForTabs();
+      waitForExtensionTabs();
       // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
       // that is #installed, not #available - so explicitly switch to the Available tab before waiting
       // for it, instead of assuming the URL hash is already #available.
@@ -193,7 +202,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.extensionCardInstallClick(harvesterTitle);
       // The modal is fixed-position, so checkVisible()'s scrollIntoView is pointless and detaches the
       // subject while the dialog animates in - assert visibility without scrolling.
-      extensionsPo.installModal().self().should('be.visible');
+      extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
 
       // select latest version and click install
       extensionsPo.installModal().selectVersionClick(1);
@@ -206,7 +215,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       extensionsPo.extensionReloadBanner().should('be.visible');
       extensionsPo.extensionReloadClick();
-      extensionsPo.waitForTabs();
+      waitForExtensionTabs();
       extensionsPo.loading().should('not.exist');
 
       harvesterPo.goTo();
@@ -226,18 +235,20 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       // reload extensions
       extensionsPo.goTo();
-      extensionsPo.waitForTabs();
+      waitForExtensionTabs();
       extensionsPo.waitForPage();
       extensionsPo.loading().should('not.exist');
       extensionsPo.extensionReloadBanner().should('be.visible');
       extensionsPo.extensionReloadClick();
-      extensionsPo.waitForTabs();
+      waitForExtensionTabs();
       extensionsPo.loading().should('not.exist');
 
       // verify install button and message displays
       HarvesterClusterPagePo.navTo();
       harvesterPo.waitForPage();
-      harvesterPo.updateOrInstallButton().checkVisible();
+      // The masthead button is always in view and this page re-renders as the extension warning
+      // resolves, so assert visibility without scrolling (checkVisible() scrolls first).
+      harvesterPo.updateOrInstallButton().checkVisible(undefined, { scrollIntoView: false });
       harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not installed');
     });
   }));
@@ -274,7 +285,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
 
       extensionsPo.goTo();
-      extensionsPo.waitForTabs();
+      waitForExtensionTabs();
       // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
       // that is #installed, not #available - so explicitly switch to the Available tab before waiting
       // for it, instead of assuming the URL hash is already #available.
@@ -284,7 +295,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       // click on install button on card
       extensionsPo.extensionCardInstallClick(harvesterTitle);
-      extensionsPo.installModal().checkVisible();
+      // Fixed-position modal: assert visibility without scrolling (see the note in the 7021 test).
+      extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
 
       // Note - We can't fetch version from `catalog.cattle.io.clusterrepos/harvester?link=index` given it won't filter out invalid extensions
       // for example in rancher 2.12 the harvester 1.7.0 extension is invalid... however still returned... resulting in expected versions that don't exist as valid options
@@ -299,7 +311,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
         extensionsPo.extensionReloadBanner().should('be.visible');
         extensionsPo.extensionReloadClick();
-        extensionsPo.waitForTabs();
+        waitForExtensionTabs();
         extensionsPo.loading().should('not.exist');
 
         // check harvester version on card - should be the latest available version
@@ -328,7 +340,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         harvesterPo.updateOrInstallButton().checkNotExists();
 
         extensionsPo.goTo();
-        extensionsPo.waitForTabs();
+        waitForExtensionTabs();
         extensionsPo.waitForPage(undefined, 'installed');
         extensionsPo.loading().should('not.exist');
         // check harvester version on card after update - should be latest

@@ -1,6 +1,6 @@
 {
   "name": "@rancher/cypress",
-  "version": "1.0.7",
+  "version": "1.0.11",
   "description": "Cypress E2E test, utilities, page objects, and blueprints for Rancher Dashboard",
   "bin": {
     "rancher-cypress": "./bin/cli.js"
@@ -32,7 +32,7 @@
     "@cypress/grep": "6.0.2",
     "@cypress/vue": "5.0.5",
     "@cypress/webpack-dev-server": "3.4.1",
-    "@percy/cli": "1.31.8",
+    "@percy/cli": "1.32.8",
     "@percy/cypress": "3.1.6",
     "axe-core": "4.10.2",
     "axe-html-reporter": "2.2.11",
@@ -70,6 +70,8 @@
     "uuid": "11.1.1",
     "@cypress/request": "4.0.1",
     "tmp": "0.2.7",
-    "webpack-dev-server": "5.2.6"
+    "webpack-dev-server": "5.2.6",
+    "qs": "6.16.0",
+    "fast-xml-parser": "5.11.1"
   }
 }
