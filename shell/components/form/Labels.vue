@@ -232,81 +232,86 @@ export default {
 };
 </script>
 <template>
-    <template v-if="useRc">
-      <RcSection
-        type="secondary"
-        mode="with-header"
-        :expandable="false"
-        :title="showLabelTitle ? t('labels.labels.title') : ''"
-        :class="rcSectionClass"
+  <template v-if="useRc">
+    <RcSection
+      type="secondary"
+      mode="with-header"
+      :expandable="false"
+      :title="showLabelTitle ? t('labels.labels.title') : ''"
+      :class="rcSectionClass"
+    >
+      <template
+        v-if="showToggler"
+        #actions
       >
-        <template
-          v-if="showToggler"
-          #actions
-        >
-          <ToggleSwitch
-            v-model:value="toggler"
-            name="label-system-toggle"
-            :on-label="t('labels.labels.show')"
-          />
-        </template>
-          <p v-if="showLabelDescription">
-            <t k="labels.labels.description" />
-          </p>
-          <slot name="labels">
-            <KeyValue
-              key="labels"
-              data-testid="labels-keyvalue"
-              :value="toggler ? labels.initValue : labels.value"
-              :add-label="t('labels.addLabel')"
-              :add-icon="rcButtons ? 'icon-plus' : ''"
-              :mode="mode"
-              :read-allowed="false"
-              :value-can-be-empty="true"
-              :key-errors="labels.keyErrors"
-              :use-rc-button="rcButtons"
-              @update:value="labels.update($event, (x) => value.setLabels(x))"
-            />
-          </slot>
-      </RcSection>
-      <RcSection
-        v-if="showAnnotations"
-        type="secondary"
-        mode="with-header"
-        :expandable="false"
-        :title="t('labels.annotations.title')"
-        :class="rcSectionClass"
-      >
-        <template
-          v-if="annotationTitleTooltip"
-          #title
-        >
-          <span>
-            {{ t('labels.annotations.title') }}
-            <i
-              v-clean-tooltip="annotationTitleTooltip"
-              class="icon icon-info"
-            />
-          </span>
-        </template>
+        <ToggleSwitch
+          v-model:value="toggler"
+          name="label-system-toggle"
+          :on-label="t('labels.labels.show')"
+        />
+      </template>
+      <div>
+        <p v-if="showLabelDescription">
+          <t k="labels.labels.description" />
+        </p>
+        <slot name="labels">
           <KeyValue
-            key="annotations"
-            data-testid="annotations-keyvalue"
-            :value="toggler ? annotations.initValue : annotations.value"
-            :add-label="t('labels.addAnnotation')"
+            key="labels"
+            data-testid="labels-keyvalue"
+            :value="toggler ? labels.initValue : labels.value"
+            :add-label="t('labels.addLabel')"
             :add-icon="rcButtons ? 'icon-plus' : ''"
             :mode="mode"
             :read-allowed="false"
             :value-can-be-empty="true"
-            :key-errors="annotations.keyErrors"
-            :disabled-keys="value.readOnlyAnnotationKeys || []"
+            :key-errors="labels.keyErrors"
             :use-rc-button="rcButtons"
-            @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
+            @update:value="labels.update($event, (x) => value.setLabels(x))"
           />
-      </RcSection>
-    </template>
-  <div v-else :class="containerClass">
-    <template >
+        </slot>
+      </div>
+    </RcSection>
+    <RcSection
+      v-if="showAnnotations"
+      type="secondary"
+      mode="with-header"
+      :expandable="false"
+      :title="t('labels.annotations.title')"
+      :class="rcSectionClass"
+    >
+      <template
+        v-if="annotationTitleTooltip"
+        #title
+      >
+        <span>
+          {{ t('labels.annotations.title') }}
+          <i
+            v-clean-tooltip="annotationTitleTooltip"
+            class="icon icon-info"
+          />
+        </span>
+      </template>
+      <KeyValue
+        key="annotations"
+        data-testid="annotations-keyvalue"
+        :value="toggler ? annotations.initValue : annotations.value"
+        :add-label="t('labels.addAnnotation')"
+        :add-icon="rcButtons ? 'icon-plus' : ''"
+        :mode="mode"
+        :read-allowed="false"
+        :value-can-be-empty="true"
+        :key-errors="annotations.keyErrors"
+        :disabled-keys="value.readOnlyAnnotationKeys || []"
+        :use-rc-button="rcButtons"
+        @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
+      />
+    </RcSection>
+  </template>
+  <div
+    v-else
+    :class="containerClass"
+  >
+    <template>
       <div :class="defaultSectionClass">
         <div class="labels">
           <div class="labels__header">
