@@ -5,6 +5,8 @@ import isArray from 'lodash/isArray';
 import merge from 'lodash/merge';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
+import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/useKubernetesVersions';
+import { usePodSecurityAdmissionTemplates } from '@shell/composables/usePodSecurityAdmissionTemplates';
 import { normalizeName } from '@shell/utils/kube';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
@@ -21,15 +23,12 @@ import {
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
-import { findBy, removeObject, clear } from '@shell/utils/array';
+import { removeObject, clear } from '@shell/utils/array';
 import { createYaml } from '@shell/utils/create-yaml';
 import {
   clone, diff, set, get, isEmpty, mergeWithReplace
 } from '@shell/utils/object';
-import { allHash } from '@shell/utils/promise';
-import {
-  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization, addonConfigPreserve,
-} from '@shell/utils/cluster';
+import { labelForAddon, initSchedulingCustomization, addonConfigPreserve } from '@shell/utils/cluster';
 import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
 
 import { BadgeState } from '@components/BadgeState';
@@ -150,8 +149,18 @@ export default {
     }
   },
 
+  setup(props) {
+    return {
+      ...useKubernetesVersions(props),
+      ...usePodSecurityAdmissionTemplates(),
+    };
+  },
+
   async fetch() {
-    await this.fetchRke2Versions();
+    await this.fetchK8sVersions();
+    this.errors = this.errors.concat(this.fetchVersionsErrors);
+    await this.fetchAllPSAs();
+    this.errors = this.errors.concat(this.psaErrors);
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
@@ -236,15 +245,10 @@ export default {
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
-      allPSAs:                         [],
       credentialId:                    '',
       credential:                      null,
       initialMachinePoolsValues:       {},
       machinePools:                    null,
-      rke2Versions:                    null,
-      k3sVersions:                     null,
-      defaultRke2:                     '',
-      defaultK3s:                      '',
       s3Backup:                        false,
       /**
        * All info related to a specific version of the chart
@@ -255,7 +259,6 @@ export default {
        */
       versionInfo:                     {},
       membershipUpdate:                {},
-      showDeprecatedPatchVersions:     false,
       systemRegistry:                  null,
       registryHost:                    null,
       showCustomRegistryInput:         false,
@@ -393,97 +396,6 @@ export default {
       console.log(`Global: ${ global }, Kubelet Only: ${ kubeletOnly }, Other: ${ other }`);
 
       return (global > 1 || other > 0);
-    },
-
-    versionOptions() {
-      const cur = this.liveValue?.spec?.kubernetesVersion || '';
-      const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
-      const existingK3s = this.mode === _EDIT && cur.includes('k3s');
-
-      let allValidRke2Versions = getAllOptionsAfterCurrentVersion(this.$store, this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
-      let allValidK3sVersions = getAllOptionsAfterCurrentVersion(this.$store, this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
-
-      if (!this.showDeprecatedPatchVersions) {
-        // Normally, we only want to show the most recent patch version
-        // for each Kubernetes minor version. However, if the user
-        // opts in to showing deprecated versions, we don't filter them.
-        allValidRke2Versions = filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
-        allValidK3sVersions = filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
-      }
-
-      const showRke2 = allValidRke2Versions.length && !existingK3s;
-      const showK3s = allValidK3sVersions.length && !existingRke2;
-      const out = [];
-
-      if (showRke2) {
-        if (showK3s) {
-          out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
-        }
-
-        out.push(...allValidRke2Versions);
-      }
-
-      if (showK3s) {
-        if (showRke2) {
-          out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
-        }
-
-        out.push(...allValidK3sVersions);
-      }
-
-      if (cur) {
-        const existing = out.find((x) => x.value === cur);
-
-        if (existing) {
-          existing.disabled = false;
-        }
-      }
-
-      return out;
-    },
-
-    /**
-     * Kube Version
-     */
-    selectedVersion() {
-      const str = this.value.spec.kubernetesVersion;
-
-      if (!str) {
-        return;
-      }
-
-      const out = findBy(this.versionOptions, 'value', str);
-
-      // Adding the option 'none' to Container Network select (used in Basics component)
-      // https://github.com/rancher/dashboard/issues/10338
-      // there's an update loop on refresh that might include 'none'
-      // multiple times... Prevent that
-      if (out?.serverArgs?.cni?.options && !out.serverArgs?.cni?.options.includes('none')) {
-        out.serverArgs.cni.options.push('none');
-      }
-
-      return out;
-    },
-
-    haveArgInfo() {
-      return Boolean(this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs);
-    },
-
-    serverArgs() {
-      return this.selectedVersion?.serverArgs || {};
-    },
-
-    agentArgs() {
-      return this.selectedVersion?.agentArgs || {};
-    },
-
-    /**
-     * The addons (kube charts) applicable for the selected kube version
-     *
-     * { [chartName:string]: { repo: string, version: string } }
-     */
-    chartVersions() {
-      return this.selectedVersion?.charts || {};
     },
 
     needCredential() {
@@ -757,29 +669,13 @@ export default {
     },
 
     defaultVersion() {
-      const all = this.versionOptions.filter((x) => !!x.value);
-      const first = all[0]?.value;
-      const preferred = all.find((x) => x.value === this.defaultRke2)?.value;
-
-      const rke2 = getAllOptionsAfterCurrentVersion(this.$store, this.rke2Versions, null);
-      const showRke2 = rke2.length;
-      let out;
-
-      if (this.isHarvesterDriver && showRke2) {
-        const satisfiesVersion = rke2.filter((v) => {
-          return isHarvesterSatisfiesVersion(v.value);
-        }) || [];
-
-        if (satisfiesVersion.length > 0) {
-          out = satisfiesVersion[0]?.value;
-        }
-      }
-
-      if (!out) {
-        out = preferred || first;
-      }
-
-      return out;
+      return getDefaultVersion({
+        store:             this.$store,
+        versionOptions:    this.versionOptions,
+        defaultRke2:       this.defaultRke2,
+        rke2Versions:      this.rke2Versions,
+        isHarvesterDriver: this.isHarvesterDriver,
+      });
     },
 
     appsOSWarning() {
@@ -1200,66 +1096,6 @@ export default {
 
       await this.applyHooks(INIT_HOOKS, this.value);
       this.localValue = this.value;
-    },
-
-    /**
-     * Fetch RKE versions and their configurations to be mapped to the form
-     */
-    async fetchRke2Versions() {
-      if (!this.rke2Versions) {
-        const hash = {
-          rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
-          k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
-        };
-
-        if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
-          hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
-        }
-
-        // Get the latest versions from the global settings if possible
-        const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
-        const defaultRke2Setting = globalSettings.find((setting) => setting.id === 'rke2-default-version') || {};
-        const defaultK3sSetting = globalSettings.find((setting) => setting.id === 'k3s-default-version') || {};
-
-        let defaultRke2 = defaultRke2Setting?.value || defaultRke2Setting?.default;
-        let defaultK3s = defaultK3sSetting?.value || defaultK3sSetting?.default;
-
-        // RKE2: Use the channel if we can not get the version from the settings
-        if (!defaultRke2) {
-          hash.rke2Channels = this.$store.dispatch('management/request', { url: '/v1-rke2-release/channels' });
-        }
-
-        // K3S: Use the channel if we can not get the version from the settings
-        if (!defaultK3s) {
-          hash.k3sChannels = this.$store.dispatch('management/request', { url: '/v1-k3s-release/channels' });
-        }
-
-        const res = await allHash(hash);
-
-        this.allPSAs = res.allPSAs || [];
-        this.rke2Versions = res.rke2Versions.data || [];
-        this.k3sVersions = res.k3sVersions.data || [];
-
-        if (!defaultRke2) {
-          const rke2Channels = res.rke2Channels.data || [];
-
-          defaultRke2 = rke2Channels.find((x) => x.id === 'default')?.latest;
-        }
-
-        if (!defaultK3s) {
-          const k3sChannels = res.k3sChannels.data || [];
-
-          defaultK3s = k3sChannels.find((x) => x.id === 'default')?.latest;
-        }
-
-        if (!this.rke2Versions.length && !this.k3sVersions.length) {
-          throw new Error('No version info found in KDM');
-        }
-
-        // Store default versions
-        this.defaultRke2 = defaultRke2;
-        this.defaultK3s = defaultK3s;
-      }
     },
 
     setSchedulingCustomization({ event, agentType }) {
