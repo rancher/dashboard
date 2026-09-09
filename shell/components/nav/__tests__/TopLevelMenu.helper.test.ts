@@ -1,5 +1,5 @@
 import TopLevelMenuHelperService, { TopLevelMenuHelperLegacy, TopLevelMenuHelperPagination, visibleRecentClusters } from '../TopLevelMenu.helper';
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
 import { RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
 
@@ -411,9 +411,10 @@ describe('topLevelMenu.helper', () => {
     });
 
     // The saved count is SHARED with the home page and the Cluster Management nav badge, which list
-    // `local` too — so it counts what the environment actually shows and nothing more. With nothing being
-    // filtered out there is no count worth saving: the raw one those surfaces already hold is the answer.
-    it('saves the shared count only when something is being filtered out', async() => {
+    // `local` too — so it counts what the environment actually shows and nothing more. It is refreshed
+    // even with nothing being filtered out: a count saved while the filters were NOT empty would
+    // otherwise stay behind and have consumers reporting a filtered total for an unfiltered estate.
+    it('refreshes the shared count even when nothing is being filtered out', async() => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
 
       const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
@@ -421,7 +422,10 @@ describe('topLevelMenu.helper', () => {
       // paginationFilterClusters is mocked to [] — nothing to exclude.
       await helper.updateCount(7);
 
-      expect(mockStore.dispatch.mock.calls.find((c: any[]) => c[0] === 'management/findPage')).toBeFalsy();
+      const [, payload] = mockStore.dispatch.mock.calls.find((c: any[]) => c[0] === 'management/findPage') || [];
+
+      expect(payload?.opt?.saveCountAs).toBe(SAVED_COUNTS.K8S_CLUSTERS);
+      expect(payload?.opt?.pagination?.filters).toStrictEqual([]);
     });
 
     it('rewinds the ALL-list page counter when a page fetch fails, so the next scroll re-requests it', async() => {

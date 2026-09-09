@@ -641,13 +641,10 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clusterCount = count;
 
     try {
+      // No early return on an empty filter set: a count saved while the filters were NOT empty stays
+      // behind and outlives the change, so consumers keep reading a filtered total for an unfiltered
+      // estate. The page-size-1 request below refreshes it either way.
       const commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
-
-      if (commonClusterFilters.length === 0) {
-        // Nothing is being filtered out, so the raw count consumers already have is the right answer and
-        // there is nothing to save.
-        return;
-      }
 
       const args:ActionFindPageArgs = {
         pagination: {

@@ -23,10 +23,9 @@ import { RcSeparator } from '@components/RcSeparator';
 import { commitAndReconcile, reorderPinned, reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
 
 // How far the pointer must travel with a shelf row held before it counts as a drag rather than a click.
+// Travel is the ONLY thing that lifts a row: a press held still, however long, stays a click. Lifting on
+// time as well would make an unhurried click indistinguishable from a drag, and swallow it.
 const DRAG_THRESHOLD = 4;
-// ...or how long it must be held still. Holding is the other way a user says "I mean to move this", and
-// answering it with the lift tells them the row is theirs before they have gone anywhere with it.
-const DRAG_HOLD_MS = 200;
 
 export default {
   components: {
@@ -594,8 +593,8 @@ export default {
     document.removeEventListener('keyup', this.handler);
     window.removeEventListener('keydown', this.onSwitcherKeyGuard, true);
 
-    // A drag holds listeners on the WINDOW and a pending hold timer, neither of which the component takes
-    // with it — dropping the nav mid-drag would leave both running against a destroyed instance.
+    // A drag holds listeners on the WINDOW, which the component does not take with it — dropping the nav
+    // mid-drag would leave them running against a destroyed instance.
     this.endRowDrag(false);
 
     // Timers armed in `data()` outlive the listeners — a pending one would otherwise write state on a
@@ -730,8 +729,8 @@ export default {
 
     /**
      * Press on a shelf row: arm a possible drag-reorder. Nothing is taken here — a press is far more often
-     * the start of a click that navigates — so the row is only picked up once the user has said they mean
-     * it, either by moving `DRAG_THRESHOLD` pixels or by holding still for `DRAG_HOLD_MS`.
+     * the start of a click that navigates — so the row is only picked up once the pointer has actually
+     * travelled `DRAG_THRESHOLD` pixels with it held.
      *
      * The pin toggle is its own control inside the row, so a press that starts on it is left alone.
      */
@@ -743,8 +742,6 @@ export default {
 
       this.dragFrom = { id: cluster.id, y: event.clientY };
       this.dragMoved = false;
-      // Held in place long enough is a drag too — the row lifts where it is, and waits.
-      this.dragHold = setTimeout(() => this.beginRowDrag(), DRAG_HOLD_MS);
 
       window.addEventListener('mousemove', this.onRowDragMove, true);
       window.addEventListener('mouseup', this.onRowDragEnd, true);
@@ -781,19 +778,18 @@ export default {
     },
 
     /**
-     * Take the row: lift it, and freeze the slots the shelf's rows sit in. Reached either by moving far
-     * enough or by holding still long enough, and harmless to call again once the row is already held.
+     * Take the row: lift it, and freeze the slots the shelf's rows sit in. Reached by moving far enough
+     * with the row held, and harmless to call again once the row is already held.
      */
     beginRowDrag() {
       if (this.dragMoved || !this.dragFrom) {
         return;
       }
 
-      clearTimeout(this.dragHold);
       this.dragMoved = true;
       this.dragId = this.dragFrom.id;
       this.dragOrder = this.pinnedRows.map((c) => c.id);
-      // Kept so a drag that ends where it started writes nothing: a hold that lifts a row and puts it
+      // Kept so a drag that ends where it started writes nothing: a row taken down the shelf and put
       // straight back has rearranged nothing, and should not spend a write saying so.
       this.dragStartOrder = [...this.dragOrder];
       this.captureDragSlots();
@@ -853,7 +849,6 @@ export default {
     },
 
     endRowDrag(commit) {
-      clearTimeout(this.dragHold);
       window.removeEventListener('mousemove', this.onRowDragMove, true);
       window.removeEventListener('mouseup', this.onRowDragEnd, true);
       window.removeEventListener('keydown', this.onRowDragKey, true);
@@ -914,7 +909,8 @@ export default {
     },
 
     // Fetch page 1 of the ALL directory with the CURRENT pinned/recent/search context — the shared handler
-    // for every "show me the ALL list" trigger. `.catch` swallows the wrapper's benign de-dup rejection.
+    // for every "show me the ALL list" trigger. The helper resolves for a superseded request and only
+    // rejects when the fetch itself failed, so `.catch` here means a real failure to report.
     resetOthersList() {
       const requestedTerm = this.search;
 
@@ -928,9 +924,9 @@ export default {
         recentIds:  this.recentIds,
         searchTerm: requestedTerm,
       }).catch(() => {
-        // Swallowed so a benign de-dup rejection stays quiet, but the flyout still has to be told: with
-        // nothing pinned and nothing visited there is no other source of rows, so a silent failure left
-        // the panel shimmering for as long as it was open — no error, no retry, no list.
+        // The flyout has to be told: with nothing pinned and nothing visited there is no other source of
+        // rows, so a silent failure left the panel shimmering for as long as it was open — no error, no
+        // retry, no list.
         if (this.search === requestedTerm) {
           this.listFailed = true;
         }
@@ -1677,10 +1673,9 @@ export default {
     transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
   }
 
-  // Dragging a row reorders the shelf. The timings and curves are the ones the mainstream reorder
-  // libraries converged on (@hello-pangea/dnd, the maintained react-beautiful-dnd): rows getting out of
-  // the way travel fast on a curve that leaves at once and decelerates into place, while the row let go
-  // of lands on a softer curve over a longer beat, so a drop reads as settling rather than snapping.
+  // Dragging a row reorders the shelf. Rows getting out of the way travel fast on a curve that leaves at
+  // once and decelerates into place, while the row let go of lands on a softer curve over a longer beat,
+  // so a drop reads as settling rather than snapping.
   $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
 

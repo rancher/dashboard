@@ -124,7 +124,7 @@ describe('component: ClusterSwitcher', () => {
 
       await nextTick();
 
-      expect(wrapper.find('.switcher-empty').exists()).toBe(true);
+      expect(wrapper.find('.switcher-empty').text()).toContain('nav.switcher.noMatch');
       expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
     });
 
@@ -135,7 +135,9 @@ describe('component: ClusterSwitcher', () => {
       const wrapper = mountSwitcher({ all: [], clusterCount: 7 });
 
       expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
-      expect(wrapper.find('.switcher-empty').exists()).toBe(true);
+      // Not the search copy: nothing was searched for, so "matching your criteria" names criteria the
+      // user never entered.
+      expect(wrapper.find('.switcher-empty').text()).toContain('nav.switcher.noClusters');
     });
   });
 

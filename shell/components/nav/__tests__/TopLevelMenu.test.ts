@@ -1867,23 +1867,32 @@ describe('topLevelMenu', () => {
       wrapper.unmount();
     });
 
-    // Holding still is the other way a user says "I mean to move this". The row lifts where it is and
-    // waits, so the affordance shows up before they have gone anywhere with it.
-    it('lifts the row after a press held still, with no movement at all', async() => {
-      const { wrapper } = await mountShelf();
+    // Travel is the only thing that lifts a row. A press held still — however unhurried, and 200ms is
+    // well inside a deliberate click — has said nothing about moving anything, so it stays a click and
+    // must still navigate: lifting on time as well made the shelf an intermittently dead target.
+    it('lets an unhurried click through: a press held still never lifts the row', async() => {
+      const { wrapper, dispatch } = await mountShelf();
       const vm = wrapper.vm;
 
       layOutRows(wrapper);
       vm.onRowDragStart(press(), { id: 'a' });
 
-      expect(vm.dragId).toBeNull();
-
-      jest.advanceTimersByTime(250);
+      jest.advanceTimersByTime(400);
       await nextTick();
 
-      expect(vm.dragId).toBe('a');
-      // Lifted, but nothing has been rearranged yet.
-      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+      expect(vm.dragId).toBeNull();
+
+      vm.onRowDragEnd();
+      await nextTick();
+
+      // The click the browser sends after the mouseup has to reach the row, not be swallowed as the
+      // tail of a drag that never happened.
+      const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+      window.dispatchEvent(click);
+
+      expect(click.defaultPrevented).toBe(false);
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
 
       wrapper.unmount();
     });
@@ -1894,7 +1903,6 @@ describe('topLevelMenu', () => {
 
       layOutRows(wrapper);
       vm.onRowDragStart(press(), { id: 'a' });
-      jest.advanceTimersByTime(250);
 
       // Down over the third row and back to where it began.
       vm.onRowDragMove({ clientY: 25 });

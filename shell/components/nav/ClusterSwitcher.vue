@@ -869,14 +869,15 @@ defineExpose({
               @select="explore"
             />
           </div>
-          <!-- Only a search can legitimately come back empty: an empty estate means page 1 has not
-                 landed yet, which the skeleton above covers. -->
+          <!-- Empty for one of two reasons now that the skeleton means IN FLIGHT and nothing else: a
+                 search that matched nothing, or an estate that genuinely came back with no clusters. They
+                 are not the same sentence. -->
           <div
             v-else
             class="switcher-empty"
             aria-hidden="true"
           >
-            {{ t('nav.switcher.noMatch') }}
+            {{ searching ? t('nav.switcher.noMatch') : t('nav.switcher.noClusters') }}
           </div>
 
           <!-- Infinite-scroll loading skeleton — shimmer placeholder rows while the next page loads. -->
