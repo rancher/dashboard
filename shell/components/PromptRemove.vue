@@ -3,7 +3,7 @@ import { shallowRef } from 'vue';
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
 import { escapeHtml, resourceNames } from '@shell/utils/string';
-import { Card } from '@components/Card';
+import { RcModal } from '@components/RcModal';
 import { Checkbox } from '@components/Form/Checkbox';
 import { alternateLabel } from '@shell/utils/platform';
 import { uniq } from '@shell/utils/array';
@@ -17,7 +17,7 @@ export default {
   name: 'PromptRemove',
 
   components: {
-    Card, Checkbox, AsyncButton, LabeledInput, AppModal
+    RcModal, Checkbox, AsyncButton, LabeledInput, AppModal
   },
   props: {
     /**
@@ -346,92 +346,85 @@ export default {
     :trigger-focus-trap="true"
     @close="close"
   >
-    <Card
+    <RcModal
       class="prompt-remove"
-      :show-highlight-border="false"
+      :title="t('promptRemove.title')"
     >
-      <template #title>
-        <h4 class="text-default-text">
-          {{ t('promptRemove.title') }}
-        </h4>
-      </template>
-      <template #body>
-        <div class="mb-10">
-          <template v-if="!hasCustomRemove">
-            {{ t('promptRemove.attemptingToRemove', { type }) }} <span
-              v-clean-html="resourceNames(names, null, t)"
-            />
-          </template>
-
-          <component
-            :is="removeComponent"
-            v-if="hasCustomRemove"
-            ref="customPrompt"
-            v-model:value="toRemove"
-            v-bind="$data"
-            :close="close"
-            :needs-confirm="needsConfirm"
-            :value="toRemove"
-            :names="names"
-            :type="type"
-            :done-location="doneLocation"
-            @errors="e => error = e"
-            @done="done"
+      <div class="mb-10">
+        <template v-if="!hasCustomRemove">
+          {{ t('promptRemove.attemptingToRemove', { type }) }} <span
+            v-clean-html="resourceNames(names, null, t)"
           />
-          <div
-            v-if="needsConfirm"
-            class="mt-10"
-          >
-            <span
-              v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
-              class="confirm-text"
-            />
-          </div>
-        </div>
-        <LabeledInput
-          v-if="needsConfirm"
-          id="confirm"
-          v-model:value="confirmName"
-          v-focus
-          :data-testid="componentTestid + '-input'"
-          type="text"
-          :aria-label="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) })"
-        >
-          <div class="text-warning mb-10 mt-10">
-            {{ warning }}
-          </div>
-          <div class="text-error mb-10 mt-10">
-            {{ error }}
-          </div>
-          <div
-            v-if="!needsConfirm"
-            class="text-info mt-20"
-          >
-            {{ protip }}
-          </div>
-        </LabeledInput>
-        <div v-else-if="!hasCustomRemove">
-          <div
-            v-if="warning"
-            class="text-warning mb-10 mt-10"
-          >
-            {{ warning }}
-          </div>
-          <div
-            v-if="error"
-            class="text-error mb-10 mt-10"
-          >
-            {{ error }}
-          </div>
-        </div>
-        <Checkbox
-          v-if="chartsToRemoveIsApp"
-          v-model:value="chartsDeleteCrd"
-          label-key="promptRemoveApp.removeCrd"
-          class="mt-10 type"
-          @update:value="chartAddCrdToRemove"
+        </template>
+
+        <component
+          :is="removeComponent"
+          v-if="hasCustomRemove"
+          ref="customPrompt"
+          v-model:value="toRemove"
+          v-bind="$data"
+          :close="close"
+          :needs-confirm="needsConfirm"
+          :value="toRemove"
+          :names="names"
+          :type="type"
+          :done-location="doneLocation"
+          @errors="e => error = e"
+          @done="done"
         />
-      </template>
+        <div
+          v-if="needsConfirm"
+          class="mt-10"
+        >
+          <span
+            v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
+            class="confirm-text"
+          />
+        </div>
+      </div>
+      <LabeledInput
+        v-if="needsConfirm"
+        id="confirm"
+        v-model:value="confirmName"
+        v-focus
+        :data-testid="componentTestid + '-input'"
+        type="text"
+        :aria-label="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) })"
+      >
+        <div class="text-warning mb-10 mt-10">
+          {{ warning }}
+        </div>
+        <div class="text-error mb-10 mt-10">
+          {{ error }}
+        </div>
+        <div
+          v-if="!needsConfirm"
+          class="text-info mt-20"
+        >
+          {{ protip }}
+        </div>
+      </LabeledInput>
+      <div v-else-if="!hasCustomRemove">
+        <div
+          v-if="warning"
+          class="text-warning mb-10 mt-10"
+        >
+          {{ warning }}
+        </div>
+        <div
+          v-if="error"
+          class="text-error mb-10 mt-10"
+        >
+          {{ error }}
+        </div>
+      </div>
+      <Checkbox
+        v-if="chartsToRemoveIsApp"
+        v-model:value="chartsDeleteCrd"
+        label-key="promptRemoveApp.removeCrd"
+        class="mt-10 type"
+        @update:value="chartAddCrdToRemove"
+      />
       <template #actions>
         <button
           class="btn role-secondary"
@@ -439,43 +432,37 @@ export default {
         >
           {{ t('generic.cancel') }}
         </button>
-        <div class="spacer" />
         <AsyncButton
           mode="delete"
-          class="btn bg-error ml-10"
+          class="btn bg-error"
           :disabled="deleteDisabled"
           :data-testid="componentTestid + '-confirm-button'"
           @click="remove"
         />
       </template>
-    </Card>
+    </RcModal>
   </app-modal>
 </template>
 
 <style lang='scss'>
   .prompt-remove {
-    &.card-container {
-      box-shadow: none;
-    }
-    #confirm {
-      width: 90%;
-      margin-left: 3px;
-    }
-
-    .actions {
-      text-align: right;
-    }
-
-    .card-actions {
-      display: flex;
-
-      .spacer {
-        flex: 1;
-      }
-    }
-
     .confirm-text b {
       user-select: all;
+    }
+  }
+
+  // ScalePoolDownDialog and SloDialog also carry `prompt-remove`, on a Card,
+  // and rely on these two rules being global. They stay until those dialogs
+  // move onto RcModal, which takes both jobs over.
+  .prompt-remove.card-container {
+    box-shadow: none;
+  }
+
+  .prompt-remove .card-actions {
+    display: flex;
+
+    .spacer {
+      flex: 1;
     }
   }
 </style>

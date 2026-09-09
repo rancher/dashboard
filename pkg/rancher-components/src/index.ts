@@ -16,6 +16,7 @@ export { RcIconTooltip } from './components/RcIconTooltip';
 export { RcSection } from './components/RcSection';
 export { RcSeparator } from './components/RcSeparator';
 export { RcItemCard, RcItemCardAction } from './components/RcItemCard';
+export { RcModal } from './components/RcModal';
 export { default as RcCounterBadge } from './components/Pill/RcCounterBadge';
 export { default as RcStatusBadge } from './components/Pill/RcStatusBadge';
 export { default as RcStatusIndicator } from './components/Pill/RcStatusIndicator';

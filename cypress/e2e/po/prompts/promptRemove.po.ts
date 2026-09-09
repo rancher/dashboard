@@ -4,7 +4,7 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 export default class PromptRemove extends ComponentPo {
   constructor() {
-    super(cy.get('[data-testid="card"].prompt-remove'));
+    super(cy.get('[data-testid="rc-modal"].prompt-remove'));
   }
 
   confirmField() {
@@ -29,7 +29,7 @@ export default class PromptRemove extends ComponentPo {
 
   // Get the warning message
   warning() {
-    return this.self().get('.card-body .text-warning');
+    return this.self().get('[data-testid="rc-modal-body"] .text-warning');
   }
 
   checkbox() {
