@@ -924,9 +924,6 @@ export default {
 
     // make the color of the selected item consistent with the group title when the select dropdown is open
     :deep(.v-select.inline.vs--single.vs--open .vs__selected) {
-      // `opacity: 1` reads as redundant since rancher/dashboard#12642 scoped the base
-      // rule to searchable selects, but useLabeledSelect flips this one to searchable
-      // once its options reach 10 - and it counts group headings - so keep it.
       opacity: 1;
       color: var(--dropdown-disabled-text);
     }

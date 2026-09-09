@@ -299,16 +299,6 @@ $transition-duration: 150ms;
   &.vs--single {
     min-height: 29px;
     &.vs--open {
-      // The current value is lifted out of the flow and dimmed so that the search
-      // input can be typed over it. An unsearchable select has nothing to type, so
-      // there this only dims the value for no reason, and drops it out of the flow
-      // of any select sized by its content - which collapses that select to its
-      // min-width the moment the dropdown opens. See rancher/dashboard#12642.
-      // Fixed-width selects were never affected either way.
-      //
-      // `:not(.vs--unsearchable)` rather than `.vs--searchable`: vue-select sets the
-      // former whenever `searchable` is false, but sets the latter only when
-      // `searchable && !noDrop`, so a `noDrop` select would fall out of both.
       &:not(.vs--unsearchable) .vs__selected {
         position: absolute;
         opacity: 0.4;

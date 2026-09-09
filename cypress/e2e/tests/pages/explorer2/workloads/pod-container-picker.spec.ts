@@ -1,21 +1,12 @@
 import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 import Shell from '@/cypress/e2e/po/components/shell.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-/**
- * https://github.com/rancher/dashboard/issues/12642
- *
- * The log and shell windows size their container picker by its content. vue-select
- * lifts the selected option out of the flow while the dropdown is open, which used
- * to collapse the picker to its min-width and drag everything right of it along.
- */
 describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
   const podsListPage = new WorkloadsPodsListPagePo('local');
   const shell = new Shell();
 
-  // The shell test has to exec into this pod, so it needs a container that actually
-  // has a shell - SMALL_CONTAINER is `pause`, which has none and never connects. The
-  // loop keeps it running and gives the log window something to show.
   const SHELL_CONTAINER = {
     image:   'busybox:1.36',
     command: ['sh', '-c', 'while true; do echo "$(date) log line"; sleep 2; done'],
@@ -32,9 +23,6 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
       spec:       { containers }
     }));
 
-    // Running, not merely created: the log socket has to be able to connect, and the
-    // bar re-renders when it does. The wait resolves false rather than throwing when
-    // it gives up, so assert on it - otherwise a Pending pod is silently accepted.
     cy.waitForRancherResource('v1', 'pods', `default/${ name }`, (resp: any) => resp.body?.status?.phase === 'Running', 30, { failOnStatusCode: false })
       .should('eq', true);
   };
@@ -42,9 +30,6 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
 
-    // Two containers, so the window offers the picker at all, and a container name
-    // long enough that a picker sized by its content is wider than its own
-    // min-width. Without that the assertions below cannot fail.
     cy.createE2EResourceName('picker').then((name) => {
       podId = name;
       createPod(podId, [
@@ -53,9 +38,6 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
       ]);
     });
 
-    // Ten or more options flips the picker to searchable (useLabeledSelect), which
-    // is the one case the fix deliberately leaves alone. This pod only ever opens the
-    // log window, which connects to any container, so the light image is fine here.
     cy.createE2EResourceName('picker-many').then((name) => {
       manyId = name;
       createPod(manyId, Array.from({ length: 11 }, (_, i) => ({ name: `container-number-${ i + 1 }`, image: SMALL_CONTAINER.image })));
@@ -73,27 +55,24 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
   const openWindow = (pod: string, action: string) => {
     podsListPage.goTo();
     podsListPage.waitForPage();
+    podsListPage.list().checkVisible(LONG_TIMEOUT_OPT);
 
-    podsListPage.list().resourceTable().sortableTable()
-      .rowActionMenuOpen(pod)
+    const table = podsListPage.list().resourceTable().sortableTable();
+
+    table.checkLoadingIndicatorNotVisible();
+    table.filter(pod);
+    table.checkLoadingIndicatorNotVisible();
+
+    table.rowActionMenuOpen(pod)
       .getMenuItem(action)
       .click();
 
-    // The drawer animates open and the bar re-renders as the socket resolves. Both
-    // windows paint "Disconnected" on first render, so wait for the connected state
-    // specifically - "contain" is case sensitive, so "Disconnected" does not match it.
-    shell.connectionStatus().should('contain', 'Connected');
+    shell.connectionStatus(LONG_TIMEOUT_OPT).should('contain', 'Connected');
     shell.containerPicker().should('be.visible');
   };
 
-  /**
-   * Open the picker, then close it, asserting that neither it nor the element
-   * beside it moves at any point.
-   */
   const expectNothingMoves = (neighbour: () => Cypress.Chainable) => {
     shell.containerPicker().invoke('outerWidth').then((closedWidth: number) => {
-      // A picker sized by its content has to start out wider than its own min-width,
-      // or it has nothing to collapse to and these assertions pass either way.
       expect(closedWidth).to.be.greaterThan(200);
 
       neighbour().invoke('offset').its('left').then((closedLeft: number) => {
@@ -113,8 +92,6 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
   };
 
   beforeEach(() => {
-    // The bar has to be wide enough that a content-sized picker is wider than its
-    // own min-width, which is what the assertions rely on.
     cy.viewport(1440, 900);
   });
 
@@ -133,16 +110,6 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
   it('should leave a searchable picker alone, so the search input still covers the value', () => {
     openWindow(manyId, 'View Logs');
 
-    // This pins current behaviour, not desired behaviour: ten or more containers is
-    // still the #12642 symptom, and the honest fix is a min-width on the searching
-    // state rather than this guard. See the follow-up issue linked from #12642.
-    //
-    // Until then it guards the `:not(.vs--unsearchable)` half of the fix, stated in
-    // that half's own terms - `vs--unsearchable` is set whenever `searchable` is
-    // false, whereas `vs--searchable` also depends on `noDrop`, so only the absence
-    // of the former is exactly the stylesheet's condition. Dropping the guard would
-    // silently change every searchable select in the product, and the two tests
-    // above would still pass.
     shell.containerPicker().find('.v-select').should('not.have.class', 'vs--unsearchable');
 
     shell.containerPicker().invoke('outerWidth').then((closedWidth: number) => {
@@ -152,8 +119,6 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
         shell.containerPicker().click();
         cy.get('.vs__dropdown-menu').should('be.visible');
 
-        // A searchable select lifts the value out of the flow on purpose, so that the
-        // search input can sit on top of it. Both still move, and that is the point.
         shell.containerPicker().invoke('outerWidth').should('be.lessThan', closedWidth);
         shell.logActionGroup().invoke('offset').its('left').should('be.lessThan', closedLeft);
 

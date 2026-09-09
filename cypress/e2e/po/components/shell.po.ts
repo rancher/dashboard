@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class Shell extends ComponentPo {
   constructor() {
@@ -42,7 +42,7 @@ export default class Shell extends ComponentPo {
   /**
    * The connection status ("Connected" / "Disconnected") at the end of the bar.
    */
-  connectionStatus() {
-    return this.self().find('.status').first();
+  connectionStatus(options?: GetOptions) {
+    return this.self().find('.status', options).first();
   }
 }
