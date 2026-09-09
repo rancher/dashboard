@@ -1143,9 +1143,7 @@ export default {
       return {
         content,
         placement:   'right',
-        // The wider box: this copy is a sentence, not a label, and the default tooltip width breaks it
-        // into a column of single words.
-        popperClass: 'nav-tooltip menu-description-tooltip',
+        popperClass: 'nav-tooltip nav-pinned-tooltip',
       };
     },
 
@@ -1672,6 +1670,16 @@ export default {
   .menu-description-tooltip {
     max-width: 200px;
     white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  // The pinned-row tooltip is a sentence rather than a label, so it needs a column to wrap into. Sized on
+  // the INNER box: the popper's own `max-width` is 700px from the shared tooltip theme, which this copy
+  // does not reach, so it laid out as one long banner across whatever the nav happens to be sitting on.
+  // 320px keeps the longest of the two strings to three lines.
+  .v-popper__popper.v-popper--theme-tooltip.nav-pinned-tooltip .v-popper__inner {
+    max-width: 320px;
+    white-space: normal;
     word-wrap: break-word;
   }
 
