@@ -21,6 +21,10 @@ interface Props {
   active?: boolean;
   /** This row is the cluster currently being explored. */
   current?: boolean;
+  /** Whether THIS row is the one that carries `aria-current`. The same cluster can be on screen more than
+   * once — the fixed tile, a RECENTLY USED shortcut, its row in the estate — and `aria-current` marks one
+   * thing, so only the first occurrence announces it. The rest still look current. */
+  announceCurrent?: boolean;
   /** Overrides the derived provider·version meta line (used by the fixed `local` tile). */
   subtitle?: string;
   /** When false, the pin toggle is hidden (e.g. `local`, which is never pinnable). */
@@ -31,12 +35,13 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  id:         undefined,
-  active:     false,
-  current:    false,
-  subtitle:   '',
-  pinnable:   true,
-  routeCombo: false,
+  id:              undefined,
+  active:          false,
+  current:         false,
+  announceCurrent: true,
+  subtitle:        '',
+  pinnable:        true,
+  routeCombo:      false,
 });
 
 const emit = defineEmits(['select']);
@@ -93,7 +98,7 @@ function select() {
     role="option"
     :aria-label="ariaLabel"
     :aria-selected="active ? 'true' : 'false'"
-    :aria-current="current ? 'true' : undefined"
+    :aria-current="current && announceCurrent ? 'true' : undefined"
     :aria-disabled="!cluster.ready ? 'true' : undefined"
     @click="select"
   >

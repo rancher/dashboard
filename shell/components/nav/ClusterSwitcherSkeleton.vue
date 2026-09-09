@@ -86,4 +86,12 @@ withDefaults(defineProps<{
     background-position: 0 0;
   }
 }
+
+// The placeholder rows say "loading" perfectly well standing still, and unlike the panel's own unroll this
+// animation never ends — so it is the one most worth switching off for a reader who asked for less motion.
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+  }
+}
 </style>

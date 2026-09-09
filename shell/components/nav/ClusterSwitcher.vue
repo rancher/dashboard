@@ -36,6 +36,9 @@ type Props = {
   /** Page 1 of the list is in flight — a search, or the whole directory on open / on clearing the box.
    * Drives the skeleton, so a list about to be replaced is never left sitting there looking current. */
   listLoading?: boolean;
+  /** Page 1 came back an error. The list is empty because the fetch failed, not because it is still on
+   * its way — which the panel has to say out loud rather than shimmer forever. */
+  listFailed?: boolean;
   /** Id of the cluster currently being explored (marked `current`). */
   currentClusterId?: string;
   /** Current search term (v-model:search). */
@@ -60,6 +63,7 @@ const props = withDefaults(defineProps<Props>(), {
   clusterCount:     0,
   searchCount:      0,
   listLoading:      false,
+  listFailed:       false,
   currentClusterId: '',
   search:           '',
   hasMore:          false,
@@ -119,11 +123,16 @@ const rows = computed<TopLevelMenuCluster[]>(() => {
   return props.listLoading ? [] : props.searchResults;
 });
 
-// Page 1 replaces the list wholesale, so while it is in flight the skeleton stands in for the rows — and
-// an estate that has not paged in yet is the same state under a different trigger. Named once because the
-// template and `fillViewport` both need it: what is on screen then is three placeholder rows, which is
-// not the list, and must not be measured as if it were.
-const showingSkeleton = computed<boolean>(() => props.listLoading || (!searching.value && !rows.value.length));
+// Page 1 replaces the list wholesale, so while it is IN FLIGHT the skeleton stands in for the rows.
+// Strictly in flight: an empty list is not the same state, and treating it as one meant a page 1 that
+// came back an error was indistinguishable from one still on its way — the panel shimmered for as long
+// as it was open, saying "nearly there" about a request that had already failed.
+const showingSkeleton = computed<boolean>(() => props.listLoading);
+
+// Nothing for `fillViewport` to measure: the rows are not on screen, whether because they are still
+// coming, because they failed to, or because there are none. Topping up here would ask for page 2 of a
+// list whose page 1 never arrived.
+const noListOnScreen = computed<boolean>(() => showingSkeleton.value || props.listFailed || !rows.value.length);
 
 // The fixed `local` tile belongs to the resting state only — a search takes it down, and `local` then
 // competes for a place in the results like anything else. Resolved to the cluster (or null) rather than a
@@ -141,6 +150,12 @@ const showRecent = computed<boolean>(() => !searching.value && (props.recentLoad
 // The combobox owns all three sections for the keyboard: nav runs the fixed tile, then RECENTLY USED,
 // then the list, while each section renders only its own rows — `resultsOffset` keeps the listbox's
 // indices in lock-step with the flat model.
+// Where the current cluster FIRST appears in the flat list. It can be on screen up to three times — the
+// fixed tile, a RECENTLY USED shortcut and its row in the estate — and `aria-current` marks one thing, so
+// announcing all three tells a screen-reader user there are three current clusters. The first occurrence
+// carries it; the others still render as current, which is what a sighted user is reading.
+const currentAnnouncedAt = computed<number>(() => navRows.value.findIndex((c) => c.id === props.currentClusterId));
+
 const localOffset = computed<number>(() => (localTile.value ? 1 : 0));
 const resultsOffset = computed<number>(() => localOffset.value + recentRows.value.length);
 const navRows = computed<TopLevelMenuCluster[]>(() => [
@@ -205,6 +220,12 @@ const pinAnnouncement = ref<string>('');
 const statusMessage = computed(() => {
   if (pinAnnouncement.value) {
     return pinAnnouncement.value;
+  }
+  // The failure outranks the counts below it: they would otherwise go on reporting an estate total for a
+  // list that failed to load. Announced HERE rather than as an alert beside the rows, because this panel's
+  // one listbox may only contain options and groups — a live region is where a status belongs anyway.
+  if (props.listFailed) {
+    return t('nav.switcher.loadError');
   }
   // Only a SEARCH announces itself as searching; a resting refresh keeps the count it already reported.
   if (props.listLoading && searching.value) {
@@ -481,7 +502,7 @@ const fillViewport = () => {
     // The skeleton is shorter than any real page, so measuring it always reads as "not filled" and tops
     // up a list that is about to be replaced anyway — page 1 lands, this watcher fires, and the rows are
     // in `props` a tick before they are on screen. Wait for them: the watcher re-runs when it clears.
-    if (!open.value || !el || !props.hasMore || props.loadingMore || showingSkeleton.value || rows.value.length === lastFilledCount) {
+    if (!open.value || !el || !props.hasMore || props.loadingMore || noListOnScreen.value || rows.value.length === lastFilledCount) {
       return;
     }
 
@@ -498,7 +519,7 @@ watch(() => [props.search, open.value], () => {
   lastFilledCount = -1;
 });
 
-watch(() => [rows.value.length, props.hasMore, props.loadingMore, showingSkeleton.value, open.value], fillViewport);
+watch(() => [rows.value.length, props.hasMore, props.loadingMore, noListOnScreen.value, open.value], fillViewport);
 
 // Infinite scroll — ask the parent for the next window as the list nears the bottom.
 const onScroll = (e: Event) => {
@@ -751,6 +772,7 @@ defineExpose({
               :route-combo="routeCombo"
               :active="activeIndex === 0"
               :current="localTile.id === currentClusterId"
+              :announce-current="currentAnnouncedAt === 0"
               @select="explore"
             />
           </div>
@@ -782,6 +804,7 @@ defineExpose({
                 :cluster="c"
                 :active="activeIndex === i + localOffset"
                 :current="c.id === currentClusterId"
+                :announce-current="currentAnnouncedAt === i + localOffset"
                 :route-combo="routeCombo"
                 :pinnable="!c.isLocal"
                 @select="explore"
@@ -815,6 +838,16 @@ defineExpose({
             v-if="showingSkeleton"
             :rows="3"
           />
+          <!-- Page 1 failed. Said plainly, because the alternative — the skeleton, forever — reads as a
+               slow request that is still coming, and the caption above goes on asserting a total for a
+               list that is not there. -->
+          <div
+            v-else-if="listFailed"
+            class="switcher-empty"
+            aria-hidden="true"
+          >
+            {{ t('nav.switcher.loadError') }}
+          </div>
           <!-- One list, whichever it is: the estate at rest, the matches while searching. `rows` is
                  already whichever of the two applies, so there is nothing to branch on here. -->
           <div
@@ -830,6 +863,7 @@ defineExpose({
               :cluster="c"
               :active="activeIndex === i + resultsOffset"
               :current="c.id === currentClusterId"
+              :announce-current="currentAnnouncedAt === i + resultsOffset"
               :route-combo="routeCombo"
               :pinnable="!c.isLocal"
               @select="explore"
@@ -1082,9 +1116,7 @@ $flyout-gutter: 12px;
     // `backwards` pins the first keyframe from the moment the element exists, so the panel can never be
     // caught at its resting size in the frames before the animation takes hold.
     animation: cluster-switcher-unroll 0.25s linear backwards;
-  }
-
-  .cluster-switcher-flyout {
+    // The panel is capped at the viewport, which is what makes `100vh` above a safe resting value.
     max-height: calc(100vh - #{$flyout-top} - #{$flyout-gutter});
   }
 }

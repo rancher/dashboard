@@ -5,6 +5,7 @@ import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
 import ClusterSwitcherSkeleton from '@shell/components/nav/ClusterSwitcherSkeleton.vue';
+import ClusterSwitcherRow from '@shell/components/nav/ClusterSwitcherRow.vue';
 
 // The component pulls `t` from the useI18n composable (not the old `this.t` global), so mock it here.
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string, args?: any) => (args ? `${ key }:${ JSON.stringify(args) }` : key) }) }));
@@ -127,13 +128,14 @@ describe('component: ClusterSwitcher', () => {
       expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
     });
 
-    // An estate cannot really be empty here — the switcher only renders at all for a non-zero browsable
-    // count — so an empty one means the request is still out, and the skeleton says so.
-    it('shows the skeleton at rest, not the empty state', () => {
+    // The skeleton is for a request that is IN FLIGHT and nothing else. An estate that is not loading and
+    // did not fail has its answer — an empty one — and shimmering at it says "still coming" about a list
+    // that has already arrived, which is exactly how a failed page 1 used to hide.
+    it('shows the empty state for an estate that came back empty', () => {
       const wrapper = mountSwitcher({ all: [], clusterCount: 7 });
 
-      expect(wrapper.find('.switcher-empty').exists()).toBe(false);
-      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton).length).toBeGreaterThan(0);
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
+      expect(wrapper.find('.switcher-empty').exists()).toBe(true);
     });
   });
 
@@ -736,6 +738,63 @@ describe('component: ClusterSwitcher', () => {
       await nextTick();
 
       expect(wrapper.emitted('load-more')).toHaveLength(1);
+    });
+
+    // `aria-current` marks ONE thing. The same cluster can be on screen up to three times — the fixed
+    // tile, a RECENTLY USED shortcut and its row in the estate — and announcing each of them tells a
+    // screen-reader user there are three current clusters, none of which reads as "the" one.
+    it('announces aria-current once when the current cluster is on screen more than once', () => {
+      const local = cluster('local');
+      const wrapper = mountSwitcher({
+        local, recent: [local, cluster('r1')], all: [cluster('p1')], currentClusterId: 'local'
+      });
+
+      const rows = wrapper.findAllComponents(ClusterSwitcherRow);
+      const announced = rows.filter((row) => row.props('current') && row.props('announceCurrent'));
+      const lookCurrent = rows.filter((row) => row.props('current'));
+
+      // Twice on screen, twice styled as current, announced once.
+      expect(lookCurrent).toHaveLength(2);
+      expect(announced).toHaveLength(1);
+    });
+
+    // A page 1 that fails leaves the list empty — exactly like a page 1 that has not landed yet. Shown as
+    // the skeleton, that reads as "nearly there" about a request that is never coming back, and the panel
+    // shimmers for as long as it is open.
+    it('reports a failed page 1 instead of shimmering forever', async() => {
+      const wrapper = mountSwitcher({
+        all: [], clusterCount: 20, listLoading: true
+      });
+
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton).length).toBeGreaterThan(0);
+
+      await wrapper.setProps({ listLoading: false, listFailed: true } as any);
+
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
+      // The suite renders keys rather than copy, and the template's `t` wraps them in `%…%`.
+      expect(wrapper.find('.switcher-empty').text()).toContain('nav.switcher.loadError');
+      expect(wrapper.find('.switcher-scroll').attributes('aria-busy')).toBe('false');
+      // Announced through the live region, not as an alert among the rows: the listbox may only contain
+      // options and groups, so a status element inside it is invalid for the very readers it is for.
+      expect(wrapper.find('[role="status"]').text()).toContain('nav.switcher.loadError');
+    });
+
+    // Nothing to top up: page 1 never arrived, so asking for page 2 would page a list that has no page 1.
+    it('does not top up the list after a failed page 1', async() => {
+      const wrapper = mountSwitcher({
+        all: [], clusterCount: 20, hasMore: true, listLoading: true
+      });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+      await wrapper.setProps({ listLoading: false, listFailed: true } as any);
+      await nextTick();
+      await nextTick();
+
+      expect(wrapper.emitted('load-more')).toBeUndefined();
+
+      wrapper.unmount();
     });
 
     // A cold open (nothing pinned, no visit history) has an empty directory, and page 1 lands a moment

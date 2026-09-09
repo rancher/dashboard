@@ -83,6 +83,9 @@ export default {
       clusterFilter:     '',
       hasProvCluster,
       loadingMoreOthers: false,
+      // Page 1 came back an error rather than a list. Kept apart from `listLoading` because the two say
+      // different things to the user: one is "wait", the other is "this did not work".
+      listFailed:        false,
       // Drag-reorder of the pinned shelf. `dragId` is the row being held; `dragOrder` is the ids in the
       // order the shelf is CURRENTLY showing them, which the pointer rewrites as it passes other rows.
       // Null when nothing is being dragged, so the shelf falls back to the pref's own order.
@@ -918,12 +921,20 @@ export default {
       // Every page-1 refresh shows the skeleton — opening the flyout as much as typing in it. Both replace
       // the list wholesale, and without it the old rows sit there until the new ones drop in.
       this.listLoading = true;
+      this.listFailed = false;
 
       this.helper.resetOthers({
         pinnedIds:  this.pinnedIds,
         recentIds:  this.recentIds,
         searchTerm: requestedTerm,
-      }).catch(() => {}).finally(() => {
+      }).catch(() => {
+        // Swallowed so a benign de-dup rejection stays quiet, but the flyout still has to be told: with
+        // nothing pinned and nothing visited there is no other source of rows, so a silent failure left
+        // the panel shimmering for as long as it was open — no error, no retry, no list.
+        if (this.search === requestedTerm) {
+          this.listFailed = true;
+        }
+      }).finally(() => {
         // Clear the skeleton only when the term this request was issued for is still the one on screen —
         // an older query must not unhide its own results under the new term.
         if (this.search === requestedTerm) {
@@ -1208,6 +1219,7 @@ export default {
                   :cluster-count="browsableClusterCount"
                   :search-count="switcherSearchCount"
                   :list-loading="listLoading"
+                  :list-failed="listFailed"
                   :current-cluster-id="currentClusterId"
                   :search="clusterFilter"
                   :has-more="hasMoreOthers"
