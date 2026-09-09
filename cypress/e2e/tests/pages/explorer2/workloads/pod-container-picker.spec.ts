@@ -30,7 +30,7 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
 
-    cy.createE2EResourceName('picker').then((name) => {
+    cy.createE2EResourceName('picker-two').then((name) => {
       podId = name;
       createPod(podId, [
         { name: 'application-server', ...SHELL_CONTAINER },
@@ -61,7 +61,7 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
 
     table.checkLoadingIndicatorNotVisible();
     table.filter(pod);
-    table.checkLoadingIndicatorNotVisible();
+    table.rowWithName(pod).checkExists();
 
     table.rowActionMenuOpen(pod)
       .getMenuItem(action)
@@ -92,6 +92,7 @@ describe('Pod container picker', { tags: ['@explorer2', '@adminUser'] }, () => {
   };
 
   beforeEach(() => {
+    cy.login();
     cy.viewport(1440, 900);
   });
 
