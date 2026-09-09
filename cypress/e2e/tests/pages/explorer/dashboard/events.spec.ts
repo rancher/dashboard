@@ -51,27 +51,36 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
       };
 
       // k8s events are emitted (scheduler/kubelet/event-recorder) and indexed into /v1/events
-      // asynchronously. A fixed wait races that latency and, under the load of creating many pods at
-      // once, intermittently let the tests query before the unique pod's event had propagated - so the
-      // event "did not exist" yet. Poll until the unique pod's event actually exists before starting,
-      // instead of blindly waiting a fixed time (the event's id/name embeds the pod name).
-      const waitForUniquePodEvent = (retries = 30): void => {
+      // asynchronously, so the tests can query before the unique pod's event has propagated - the
+      // event then "does not exist" for the whole spec (wedged across all retries).
+      // Poll with the same `filter=<field>=<value>` the list's search box issues for that field, so
+      // setup only completes once the exact queries the tests run return the event.
+      const waitForUniquePodEvent = (filter: string, retries = 60): void => {
         cy.request({
           method:           'GET',
-          url:              `${ Cypress.env('api') }/v1/events?filter=metadata.namespace=${ nsName2 }`,
+          url:              `${ Cypress.env('api') }/v1/events?filter=${ filter }`,
           failOnStatusCode: false,
         }).then((resp) => {
           const hasEvent = resp.status === 200 && (resp.body?.data || []).some(
             (e: any) => `${ e.id || '' }|${ e.metadata?.name || '' }`.includes(uniquePod)
           );
 
-          if (hasEvent || retries === 0) {
+          if (hasEvent) {
+            return;
+          }
+
+          // Give up quietly rather than asserting: this runs in a `before` hook and Cypress does not
+          // retry hook failures, so failing here would take down every test in the describe. The tests
+          // themselves are retryable and a late event still recovers there.
+          if (retries === 0) {
+            cy.log(`waitForUniquePodEvent: gave up waiting for '${ uniquePod }' via filter '${ filter }'`);
+
             return;
           }
 
           cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
 
-          waitForUniquePodEvent(retries - 1);
+          waitForUniquePodEvent(filter, retries - 1);
         });
       };
 
@@ -92,7 +101,14 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
           uniquePod = workloadNames[0];
           nsName2 = ns;
         })
-        .then(() => waitForUniquePodEvent());
+        .then(() => {
+          // The pod has to exist before the events it generates can
+          cy.waitForRancherResource('v1', 'pods', `${ nsName2 }/${ uniquePod }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
+          // Both searches the tests run ('filter events' filters by namespace, then by name) must return it
+          waitForUniquePodEvent(`metadata.namespace=${ nsName2 }`);
+          waitForUniquePodEvent(`metadata.name=${ uniquePod }`);
+        });
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
