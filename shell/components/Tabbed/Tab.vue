@@ -181,6 +181,7 @@ export default {
     class="tab-panel"
     role="tabpanel"
     :aria-labelledby="`tab-${instanceUid}-${name}`"
+    :data-testid="`tab-panel-${name}`"
     tabindex="0"
   >
     <div

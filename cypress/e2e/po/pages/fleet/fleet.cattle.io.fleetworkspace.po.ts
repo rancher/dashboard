@@ -48,11 +48,11 @@ export class FleetWorkspaceCreateEditPo extends BaseDetailPagePo {
   }
 
   allowTargetNsTabList() {
-    return new ArrayListPo('section#allowedtargetnamespaces');
+    return new ArrayListPo('[data-testid="tab-panel-allowedtargetnamespaces"]');
   }
 
   lablesAnnotationsKeyValue() {
-    return new KeyValuePo('section#labels');
+    return new KeyValuePo('[data-testid="tab-panel-labels"]');
   }
 
   defaultOciRegistry() {
@@ -78,10 +78,10 @@ export class FleetWorkspaceDetailsPo extends BaseDetailPagePo {
   }
 
   recentEventsList() {
-    return new ResourceTablePo('#events [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-events"] [data-testid="sortable-table-list-container"]');
   }
 
   relatedResourcesList(index: number) {
-    return new ResourceTablePo(`#related div:nth-of-type(${ index })[data-testid="sortable-table-list-container"]`);
+    return new ResourceTablePo(`[data-testid="tab-panel-related"] div:nth-of-type(${ index })[data-testid="sortable-table-list-container"]`);
   }
 }

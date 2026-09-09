@@ -83,6 +83,6 @@ export default class ClusterProjectMembersPo extends PagePo {
   }
 
   projectTable() {
-    return new SortableTablePo('#project-membership [data-testid="sortable-table-list-container"]');
+    return new SortableTablePo('[data-testid="tab-panel-project-membership"] [data-testid="sortable-table-list-container"]');
   }
 }

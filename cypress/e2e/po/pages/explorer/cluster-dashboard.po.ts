@@ -70,11 +70,11 @@ export default class ClusterDashboardPagePo extends PagePo {
   }
 
   eventsList() {
-    return new ResourceTablePo('#cluster-events [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-cluster-events"] [data-testid="sortable-table-list-container"]');
   }
 
   certificatesList() {
-    return new ResourceTablePo('#cluster-certs [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-cluster-certs"] [data-testid="sortable-table-list-container"]');
   }
 
   clusterActionsHeader() {
