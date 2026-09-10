@@ -13,8 +13,7 @@
  *
  * - `title` renders the heading and names the dialog for assistive technology.
  * - `size` picks the width, padding included.
- * - `clickToClose` decides whether `Esc` and a background click are dismiss
- *   gestures at all.
+ * - `clickToClose` decides whether a background click is a dismiss gesture.
  *
  * Emits `open` when it mounts, `close` whenever the user asks to leave,
  * `cancel` when they backed out specifically (always followed by `close`), and
@@ -29,7 +28,9 @@
  * Attributes that are not props land on the dialog element, so a consumer's
  * `class` and `data-testid` reach it through `RcModal`.
  */
-import { computed, onMounted, ref, useSlots } from 'vue';
+import {
+  computed, onBeforeUnmount, onMounted, ref, useSlots
+} from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
@@ -64,8 +65,36 @@ const hasTitle = computed(() => !!props.title || !!slots.title);
 const hasActions = computed(() => !!slots.actions || !!slots['primary-action']);
 
 const dialog = ref<HTMLElement | null>(null);
+const body = ref<HTMLElement | null>(null);
 
-onMounted(() => emit('open'));
+/**
+ * Whether the body is scrolling its content. A scroll container that is not
+ * focusable leaves whatever it scrolls reachable by mouse only, so the body
+ * becomes a tab stop for exactly as long as it has something to scroll.
+ */
+const bodyScrolls = ref(false);
+
+const measureBody = () => {
+  bodyScrolls.value = !!body.value && body.value.scrollHeight > body.value.clientHeight;
+};
+
+let bodyResize: ResizeObserver | undefined;
+
+onMounted(() => {
+  emit('open');
+
+  measureBody();
+
+  // The body's own box changes size as its content grows, right up to the point
+  // the modal's height caps it, so watching the box catches content that
+  // arrives after the modal opened.
+  if (body.value && typeof ResizeObserver !== 'undefined') {
+    bodyResize = new ResizeObserver(measureBody);
+    bodyResize.observe(body.value);
+  }
+});
+
+onBeforeUnmount(() => bodyResize?.disconnect());
 
 useBasicSetupFocusTrap(`#${ dialogId }`, {
   ...DEFAULT_FOCUS_TRAP_OPTS,
@@ -93,8 +122,12 @@ const slotContext = {
   primaryAction,
 };
 
+// `Esc` closes whatever `clickToClose` says. A modal can be built with no
+// cancel button, from the actions slot, and a keyboard user needs a way out of
+// every one of them. Refusing a close stays the consumer's call, made in its
+// `close` handler, where the same refusal already covers the cancel button.
 function onKeydown(event: KeyboardEvent) {
-  if (props.clickToClose && event.key === 'Escape') {
+  if (event.key === 'Escape') {
     event.stopPropagation();
     cancel();
   }
@@ -135,7 +168,9 @@ function onOverlayClick(event: MouseEvent) {
           </slot>
         </h2>
         <div
+          ref="body"
           class="body"
+          :tabindex="bodyScrolls ? 0 : undefined"
           data-testid="rc-modal-body"
         >
           <slot />
@@ -169,6 +204,11 @@ function onOverlayClick(event: MouseEvent) {
 </template>
 
 <style lang="scss" scoped>
+// A focus ring is drawn outside the element it belongs to, and a scroll
+// container clips anything that leaves its box. This is the room the body's
+// scroll box leaves for one.
+$focus-ring-gutter: 4px;
+
 .rc-modal-overlay {
   --rc-modal-width: v-bind(width);
 
@@ -225,7 +265,19 @@ function onOverlayClick(event: MouseEvent) {
     gap: 24px;
     min-height: 0;
     overflow: auto;
+    overscroll-behavior: contain;
     line-height: 1.4;
+
+    // Pad the scroll box by the gutter and take the same back off the outside,
+    // so a ring on the content has room and the content itself stays where the
+    // design puts it.
+    padding: $focus-ring-gutter;
+    margin: -$focus-ring-gutter;
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: -2px;
+    }
 
     > :deep(:first-child) {
       margin-top: 0;

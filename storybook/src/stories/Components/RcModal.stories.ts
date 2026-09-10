@@ -37,7 +37,7 @@ const meta: Meta<typeof RcModal> = {
     },
     clickToClose: {
       control:     { type: 'boolean' },
-      description: 'When false, clicking the background or pressing Esc does not emit close.',
+      description: 'When false, clicking the background does not emit close. Esc closes either way, so the modal is never a keyboard trap.',
     },
   },
 };
