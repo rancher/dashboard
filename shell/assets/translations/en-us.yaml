@@ -7128,7 +7128,6 @@ tableViews:
     newView: New view
   view:
     label: View
-    display: Display
     allColumns: All
     someColumns: "{count} shown"
   tab:
