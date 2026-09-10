@@ -8,6 +8,10 @@ import { RKE2_INGRESS_NGINX, RKE2_TRAEFIK } from '@shell/edit/provisioning.cattl
 // Payload of the component's `cilium-values-changed` event.
 type CiliumValues = { bandwidthManager: { enabled: boolean, test?: boolean } };
 
+const mockGetVersionData = jest.fn(() => ({ RancherPrime: 'false' }));
+
+jest.mock('@shell/config/version', () => ({ getVersionData: () => mockGetVersionData() }));
+
 const defaultStubs = {
   Banner:          true,
   LabeledSelect:   true,
@@ -436,6 +440,92 @@ describe('component: Basics', () => {
       const expected = '{"bandwidthManager":{"test":true,"enabled":true}}';
 
       expect(JSON.stringify(latest)).toStrictEqual(expected);
+    });
+  });
+
+  describe('kubernetesVersionOptions', () => {
+    const versionOptionsWithV136 = [
+      {
+        id: 'v1.37.0+rke2r1', value: 'v1.37.0+rke2r1', label: 'v1.37.0+rke2r1', serverArgs: mockServerArgs
+      },
+      {
+        id: 'v1.36.0+rke2r1', value: 'v1.36.0+rke2r1', label: 'v1.36.0+rke2r1', serverArgs: mockServerArgs
+      },
+      {
+        id: 'v1.35.0+rke2r1', value: 'v1.35.0+rke2r1', label: 'v1.35.0+rke2r1', serverArgs: mockServerArgs
+      },
+      { kind: 'group', label: 'RKE2' }
+    ];
+
+    function mountBasics(ingressController: string | string[], versionOptions = versionOptionsWithV136) {
+      return mount(Basics, {
+        props: {
+          mode:  'create',
+          value: {
+            spec: {
+              ...defaultSpec,
+              rkeConfig:         { ...defaultSpec.rkeConfig, machineGlobalConfig: { cni: 'calico', 'ingress-controller': ingressController } },
+              kubernetesVersion: 'v1.35.0+rke2r1'
+            },
+            agentConfig: { 'cloud-provider-name': '' },
+          },
+          provider:                    'custom',
+          userChartValues:             {},
+          addonVersions:               [],
+          versionInfo:                 {},
+          cisOverride:                 false,
+          cisPsaChangeBanner:          true,
+          allPsas:                     [],
+          selectedVersion:             versionOptions[0],
+          versionOptions,
+          isHarvesterDriver:           false,
+          isHarvesterIncompatible:     false,
+          showDeprecatedPatchVersions: false,
+          isElementalCluster:          false,
+          hasPsaTemplates:             false,
+          haveArgInfo:                 false,
+          showCni:                     true,
+          showCloudProvider:           false,
+          unsupportedCloudProvider:    false,
+          cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+          isAzureProviderUnsupported:  false,
+          canAzureMigrateOnEdit:       false,
+          complianceOverride:          false,
+        },
+
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: { getters: defaultGetters },
+          },
+          stubs: defaultStubs,
+        },
+      });
+    }
+
+    // eslint-disable-next-line jest/no-hooks
+    afterEach(() => {
+      mockGetVersionData.mockReturnValue({ RancherPrime: 'false' });
+    });
+
+    it('does not disable any versions or show a restriction banner when a prime instance is using traefik ingress', () => {
+      mockGetVersionData.mockReturnValue({ RancherPrime: 'true' });
+
+      const wrapper = mountBasics('traefik');
+      const options = (wrapper.vm as unknown as any).kubernetesVersionOptions;
+
+      expect(options.every((o: any) => !o.disabled)).toBe(true);
+      expect(wrapper.find('[data-testid="clusterBasics__ingressVersionRestrictedBanner"]').exists()).toBe(false);
+    });
+
+    it('does not disable any versions or show a restriction banner when a non-prime instance is using nginx ingress', () => {
+      mockGetVersionData.mockReturnValue({ RancherPrime: 'false' });
+
+      const wrapper = mountBasics('ingress-nginx');
+      const options = (wrapper.vm as unknown as any).kubernetesVersionOptions;
+
+      expect(options.every((o: any) => !o.disabled)).toBe(true);
+      expect(wrapper.find('[data-testid="clusterBasics__ingressVersionRestrictedBanner"]').exists()).toBe(false);
     });
   });
 });

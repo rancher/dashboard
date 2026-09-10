@@ -2709,6 +2709,7 @@ cluster:
     enableIngress: Install Ingress controller to enable external routing
     nginx:
       header: Ingress-NGINX
+      contentCommunity: This option is only available in SUSE Rancher Prime.
       content: Choose this only if your workloads are not yet ready for Traefik.
     dual:
       header: Dual Mode
