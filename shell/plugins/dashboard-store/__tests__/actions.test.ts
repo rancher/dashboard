@@ -1,6 +1,6 @@
 import _actions from '@shell/plugins/dashboard-store/actions';
 
-const { findAll, findMatching } = _actions;
+const { findAll, findMatching, findPage } = _actions;
 
 describe('dashboard-store: actions', () => {
   describe('findAll', () => {
@@ -261,5 +261,68 @@ describe('dashboard-store: actions', () => {
         expect(getters.urlFor).toHaveBeenCalledWith(...output.getters.urlFor);
       }
     );
+  });
+});
+
+describe('dashboard-store: findPage', () => {
+  const setupPageContext = (respond: (opt: any) => Promise<any>) => {
+    const commit = jest.fn();
+    const dispatch = jest.fn((action: string, payload: any) => {
+      if (action === 'request') {
+        return respond(payload.opt);
+      }
+
+      return undefined;
+    });
+    const getters = {
+      normalizeType:      jest.fn((t: string) => t),
+      typeRegistered:     jest.fn(() => true),
+      havePaginatedPage:  jest.fn(() => false),
+      urlFor:             jest.fn(() => 'url'),
+      all:                jest.fn(() => []),
+      haveAll:            jest.fn(() => true),
+      haveAllNamespace:   jest.fn(() => false),
+    };
+
+    return {
+      state: { config: { namespace: 'unitTest' } }, getters, commit, dispatch, rootGetters: {}
+    };
+  };
+
+  const loadPageCalls = (commit: jest.Mock) => commit.mock.calls.filter((c) => c[0] === 'loadPage');
+
+  it('does not let a superseded response overwrite a newer one', async() => {
+    const ctx: any = setupPageContext((opt) => {
+      // the first (unfiltered) request is slow, the second (filtered) one returns straight away
+      const slow = !opt.pagination.filters.length;
+
+      return new Promise((resolve) => setTimeout(
+        () => resolve({ data: [slow ? 'unfiltered' : 'filtered'], count: 1, revision: '1' }),
+        slow ? 30 : 0
+      ));
+    });
+
+    const page = (filters: string[]) => findPage(ctx, {
+      type: 'pod',
+      opt:  { pagination: { page: 1, pageSize: 10, filters } }
+    });
+
+    await Promise.all([page([]), page(['name~foo'])]);
+
+    const committed = loadPageCalls(ctx.commit);
+
+    expect(committed).toHaveLength(1);
+    expect(committed[0][1].data).toStrictEqual(['filtered']);
+  });
+
+  it('still commits when a request is the newest one', async() => {
+    const ctx: any = setupPageContext(() => Promise.resolve({ data: ['only'], count: 1, revision: '1' }));
+
+    await findPage(ctx, {
+      type: 'pod',
+      opt:  { pagination: { page: 1, pageSize: 10, filters: [] } }
+    });
+
+    expect(loadPageCalls(ctx.commit)).toHaveLength(1);
   });
 });
