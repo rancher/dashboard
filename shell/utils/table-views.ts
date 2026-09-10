@@ -17,6 +17,19 @@ import {
 export const LABEL_FIELD_PREFIX = 'label:';
 
 /**
+ * Fields the table itself depends on, so the user is not allowed to hide them. Removing these
+ * leaves rows with nothing to identify or sort them by, and other code assumes they are present.
+ */
+export const CORE_FIELD_IDS = ['name', 'age'];
+
+/**
+ * Is this a column the user must not be able to remove?
+ */
+export function isCoreField(fieldId?: string): boolean {
+  return !!fieldId && CORE_FIELD_IDS.includes(fieldId);
+}
+
+/**
  * A thing the user can filter on, group by, or show as a column
  */
 export interface ViewField {
