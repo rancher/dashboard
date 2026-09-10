@@ -12,13 +12,20 @@ describe('component: Masthead/index', () => {
     cards: []
   };
 
+  const mockMetadataProps = {
+    resource:               mockResource,
+    identifyingInformation: [],
+    labels:                 [],
+    annotations:            []
+  };
+
   const defaultProps = {
     titleBarProps: {
       resource:          mockResource,
       resourceTypeLabel: 'ConfigMap',
       resourceName:      'test-resource'
     },
-    metadataProps: { items: [] }
+    metadataProps: mockMetadataProps
   };
 
   const globalStubs = {
@@ -69,7 +76,7 @@ describe('component: Masthead/index', () => {
 
   it('should not render TitleBar when titleBarProps is undefined', () => {
     const wrapper = mount(Masthead, {
-      props:  { titleBarProps: undefined, metadataProps: { items: [] } },
+      props:  { titleBarProps: undefined, metadataProps: mockMetadataProps },
       global: globalStubs
     });
 
