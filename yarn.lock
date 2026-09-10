@@ -8348,7 +8348,6 @@ eslint-plugin-jest@29.15.2:
 
 "eslint-plugin-local-rules@link:./eslint-plugin-local-rules":
   version "0.0.0"
-  uid ""
 
 "eslint-plugin-local-rules@link:eslint-plugin-local-rules":
   version "0.0.0"
@@ -10956,10 +10955,17 @@ js-yaml-loader@1.2.2:
     loader-utils "^1.2.3"
     un-eval "^1.2.0"
 
-js-yaml@4.1.0, js-yaml@4.3.1, js-yaml@^4.1.0, js-yaml@^4.1.1:
+js-yaml@4.1.0, js-yaml@4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.3.1.tgz#01216c001d67f48e2cd560d708c7af21090a3848"
   integrity sha512-CY6crGq313MX8GkwvB7tzgp99vjQxY1++5y10/BKN/GUfHqWaOGQMNZkBvqSzsZKWk/ijwHlWzzkLulsGHhjWQ==
+  dependencies:
+    argparse "^2.0.1"
+
+js-yaml@4.3.2, js-yaml@^4.1.0, js-yaml@^4.1.1, js-yaml@^4.3.0:
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.3.2.tgz#8e44fb14a2643c59726bb15787b5f1512cb3d3fb"
+  integrity sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==
   dependencies:
     argparse "^2.0.1"
 
@@ -10970,13 +10976,6 @@ js-yaml@^3.13.1:
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
-
-js-yaml@^4.3.0:
-  version "4.3.2"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.3.2.tgz#8e44fb14a2643c59726bb15787b5f1512cb3d3fb"
-  integrity sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==
-  dependencies:
-    argparse "^2.0.1"
 
 jsbn@~0.1.0:
   version "0.1.1"
