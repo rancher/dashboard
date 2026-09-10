@@ -412,6 +412,7 @@ export default {
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
+      :external-pagination-args="pagination"
       @pagination-changed="paginationChanged"
       @view-filters-changed="setTableViewFilters"
     />
