@@ -102,6 +102,29 @@ const createFindWatchArg = ({
   return watchMsg;
 };
 
+/**
+ * The most recent page request per store + type.
+ *
+ * Page requests for the same type can overlap - a list's first, unfiltered fetch is slow because it
+ * returns every row, while the filtered fetch that follows it returns few rows and comes back first.
+ * Without this the slow, superseded response lands last and overwrites the filtered one, leaving the
+ * user looking at rows their filter should have removed.
+ */
+const latestPageRequest = {};
+
+function markPageRequest(ctx, type) {
+  const key = `${ ctx.state?.config?.namespace }/${ type }`;
+  const id = (latestPageRequest[key] || 0) + 1;
+
+  latestPageRequest[key] = id;
+
+  return { key, id };
+}
+
+function isCurrentPageRequest({ key, id }) {
+  return latestPageRequest[key] === id;
+}
+
 export default {
   request() {
     throw new Error('Not Implemented');
@@ -476,6 +499,9 @@ export default {
     opt.url = getters.urlFor(type, null, opt);
 
     let out;
+    // Claim this as the newest page request for the type, so a response that arrives after a
+    // later request can be discarded instead of overwriting it
+    const pageRequest = markPageRequest(ctx, type);
 
     try {
       if (opt.hasManualRefresh) {
@@ -490,6 +516,10 @@ export default {
 
       return Promise.reject(e);
     }
+
+    // A newer page request was made while this one was in flight, so its result - not this one - is
+    // what the user is waiting for. Transient requests never reach the store, so they are unaffected
+    const superseded = !opt.transient && !isCurrentPageRequest(pageRequest);
 
     // Of type @StorePaginationResult
     const pagination = opt.pagination ? {
@@ -506,7 +536,7 @@ export default {
       }
     } : undefined;
 
-    if (!opt.transient) {
+    if (!opt.transient && !superseded) {
       commit('loadPage', {
         ctx,
         type,
@@ -516,7 +546,7 @@ export default {
       });
     }
 
-    if (opt.saveCountAs) {
+    if (opt.saveCountAs && !superseded) {
       commit('setSavedCount', {
         name:  opt.saveCountAs,
         count: out.count,
