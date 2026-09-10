@@ -108,7 +108,18 @@ const searching = computed<boolean>(() => !!props.search);
 
 // The popper is teleported out of this component's scope, so its offset from the nav is carried by a
 // class on the popper itself (see the unscoped block at the bottom).
-const popperClass = computed(() => [SWITCHER_POPPER_CLASS, props.navExpanded ? 'nav-expanded' : ''].filter((c) => !!c).join(' '));
+// The panel is on its way OUT. Our own flag rather than floating-vue's `--hidden` / `--hide-to`, which it
+// also sets while the popper is being CREATED — keying the closing wipe on those played it on the way in,
+// so the panel flashed open, rolled shut and only then unrolled properly.
+// Long enough to out-last the closing wipe. floating-vue's own default is 150ms, which unmounted the
+// panel part-way through it.
+const DISPOSE_TIMEOUT = 300;
+const closing = ref<boolean>(false);
+const popperClass = computed(() => [
+  SWITCHER_POPPER_CLASS,
+  props.navExpanded ? 'nav-expanded' : '',
+  closing.value ? 'is-closing' : '',
+].filter((c) => !!c).join(' '));
 
 // The ALL directory (at rest `local` is the fixed tile above, so it is not listed here as well).
 const directory = computed<TopLevelMenuCluster[]>(() => props.all.filter((c) => !c.isLocal));
@@ -312,6 +323,16 @@ const focusOrigin = ref<HTMLElement | null>(null);
 
 const setOpen = (value: boolean) => {
   const wasOpen = open.value;
+
+  // Only an OPEN clears it. Closing arrives twice on some paths — our own toggle, then floating-vue's
+  // `apply-hide` behind it — and the second call finds `wasOpen` already false, so deriving the flag from
+  // it wiped the class mid-close: the overrides went with it, and swapping the animation name back
+  // restarted the OPENING wipe on a panel that was by then hidden.
+  if (value) {
+    closing.value = false;
+  } else if (wasOpen) {
+    closing.value = true;
+  }
 
   open.value = value;
   emit('update:open', value);
@@ -708,6 +729,7 @@ defineExpose({
     :triggers="[]"
     :auto-hide="true"
     :no-auto-focus="true"
+    :dispose-timeout="DISPOSE_TIMEOUT"
     :popper-class="popperClass"
     @apply-show="focusSearchInput"
     @apply-hide="setOpen(false)"
@@ -1082,6 +1104,14 @@ defineExpose({
 // Where the flyout starts, and how much room it leaves at the bottom of the viewport.
 $flyout-top: 85px;
 $flyout-gutter: 12px;
+// How far the wipe has to travel to cover the panel. Starting from `100vh` instead spent the first stretch
+// of the animation clipping nothing at all — the panel is this tall, not a viewport tall.
+$flyout-reach: calc(100vh - #{$flyout-top} - #{$flyout-gutter});
+// The close is the quicker of the two: opening is an arrival worth watching, closing is an acknowledgement.
+// `dispose-timeout` on the dropdown has to out-last it, or floating-vue unmounts the panel mid-roll — its
+// 150ms default is exactly what used to cut this short.
+$flyout-open-duration: 0.25s;
+$flyout-close-duration: 0.2s;
 
 // The popper is teleported to <body>, out of reach of scoped styles, so target it here (namespaced by
 // popper-class). `!important` overrides floating-ui's inline transform, which it re-applies on
@@ -1135,15 +1165,39 @@ $flyout-gutter: 12px;
     // short side lands first by construction — no ratio to tune, and it holds for any panel height.
     // The resting value has to out-reach the panel: once the animation is over the property falls back to
     // what is declared here, and anything smaller leaves the clip permanently cutting the bottom off.
-    // `100vh` is the bound — the panel is capped at the viewport height minus its insets — so this holds
-    // on a tall screen, where a fixed pixel figure quietly truncated the list.
-    --unroll: 100vh;
+    // The resting value has to out-reach the panel, or the clip permanently cuts its bottom off.
+    --unroll: #{$flyout-reach};
     clip-path: inset(0 calc(100% - var(--unroll)) calc(100% - var(--unroll)) 0);
     // `backwards` pins the first keyframe from the moment the element exists, so the panel can never be
     // caught at its resting size in the frames before the animation takes hold.
-    animation: cluster-switcher-unroll 0.25s linear backwards;
-    // The panel is capped at the viewport, which is what makes `100vh` above a safe resting value.
-    max-height: calc(100vh - #{$flyout-top} - #{$flyout-gutter});
+    animation: cluster-switcher-unroll $flyout-open-duration linear backwards;
+    // The same figure the wipe travels, so the two cannot drift apart.
+    max-height: $flyout-reach;
+  }
+
+  // The panel has to stay PAINTED for as long as it is rolling. floating-vue hides it with `visibility`
+  // as well as opacity, on a transition of its own, and that transition is tied to its own fade — so any
+  // close longer than that fade left the wipe animating something nobody could see.
+  //
+  // It holds full opacity too: a fade running alongside means the wipe does its work half-transparent and
+  // reads as a vanish rather than a roll. Nothing is lost by dropping it — the clip has hidden the panel
+  // completely by the time the animation ends.
+  &.is-closing {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
+
+  // Closing rolls the same wipe BACKWARDS, so the panel leaves by the corner it arrived from rather than
+  // simply ceasing to be there. Keyed on our own `is-closing` — floating-vue sets its `--hidden` and
+  // `--hide-to` classes while CREATING the popper too, so hanging this on those ran it on the way in.
+  //
+  // Its own keyframes rather than the opening ones reversed: an animation whose NAME is unchanged at its
+  // index is not restarted, so reusing the opening name left the finished animation sitting there and
+  // nothing happened. `forwards` holds the panel shut for the frames between the wipe ending and
+  // floating-vue letting go of the element.
+  &.is-closing .cluster-switcher-flyout {
+    animation: cluster-switcher-reroll $flyout-close-duration linear forwards;
   }
 }
 
@@ -1153,6 +1207,18 @@ $flyout-gutter: 12px;
   syntax: '<length>';
   inherits: false;
   initial-value: 0px;
+}
+
+// The closing wipe: the opening one, backwards. Written out under its own name rather than played with
+// `animation-direction: reverse`, because an animation whose NAME is unchanged at its index is not
+// restarted — reusing the opening name left the finished animation sitting there and nothing happened.
+@keyframes cluster-switcher-reroll {
+  from {
+    --unroll: #{$flyout-reach};
+  }
+  to {
+    --unroll: 0px;
+  }
 }
 
 // One distance, both edges: the clip travels the same number of pixels right and down each frame, so
@@ -1165,13 +1231,17 @@ $flyout-gutter: 12px;
     --unroll: 0px;
   }
   to {
-    --unroll: 100vh;
+    --unroll: #{$flyout-reach};
   }
 }
 
 // Motion is decoration here — the flyout is just as usable arriving instantly.
 @media (prefers-reduced-motion: reduce) {
-  .cluster-switcher-popper.v-popper__popper .cluster-switcher-flyout {
+  // Both wipes. The closing one is nested a class deeper than the opening one, so it needs naming here in
+  // its own right — matched on specificity, the shorter selector alone left the panel still rolling shut
+  // for a reader who asked for less motion.
+  .cluster-switcher-popper.v-popper__popper .cluster-switcher-flyout,
+  .cluster-switcher-popper.v-popper__popper.is-closing .cluster-switcher-flyout {
     animation: none;
   }
 }

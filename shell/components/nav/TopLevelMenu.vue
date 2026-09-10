@@ -1776,6 +1776,7 @@ export default {
   // Pinning adds a row to PINNED and unpinning takes one away — a cluster keeps its place in RECENT
   // either way, so nothing crosses between the groups any more. The shelf therefore animates on enter
   // and leave, and the leave is the enter played backwards.
+  //
   .shelf-rows {
     // A leaving row is lifted out of flow (below) and positioned against this.
     position: relative;
@@ -1803,17 +1804,36 @@ export default {
     }
   }
 
+  // ONE off-state for both ends: a chip slides in from the nav's own edge and leaves back through it.
+  // Sharing the value is what keeps the two exact reverses of each other — an arrival animated one way
+  // and a removal another reads as two unrelated effects rather than one thing coming and going.
   .shelf-row-enter-from,
   .shelf-row-leave-to {
     opacity: 0;
     transform: translateX(-6px) scale(0.985);
   }
 
-  // Out of flow while it leaves, so the rows beneath slide up to close the gap instead of jumping the
-  // moment the row is dropped.
+  // The arrival's wash, played backwards: an arriving row lands and the light fades off it, so a leaving
+  // one lights up and then goes. The slide and the fade wait for the light — without the delay the row is
+  // transparent within 0.16s and the glow plays out on something already gone.
+  //
+  // The row stays IN FLOW while it goes. Lifting it out (`position: absolute`) handed its space to the
+  // row below immediately, so the two sat at the same coordinates and drew over each other for the whole
+  // leave. Holding the space means the list closes the gap once the row is actually gone — which the
+  // TransitionGroup's own `-move` animates, so nothing jumps.
   .shelf-row-leave-active {
-    position: absolute;
-    width: 100%;
+    animation: cluster-unwash 0.3s ease-out;
+    transition-delay: 0.14s;
+  }
+
+  @keyframes cluster-unwash {
+    0% {
+      background: transparent;
+    }
+
+    100% {
+      background: color-mix(in srgb, var(--primary) 15%, transparent);
+    }
   }
 
   .shelf-row-move {
@@ -1891,8 +1911,21 @@ export default {
   // still change places, just without the travel and the lift.
   @media (prefers-reduced-motion: reduce) {
     .shelf-rows .cluster.selector,
-    .shelf-rows.is-reordering .shelf-row-move {
+    .shelf-rows.is-reordering .shelf-row-move,
+    .shelf-row-enter-active,
+    .shelf-row-leave-active {
       transition: none;
+    }
+
+    // A row still arrives and still goes — only the travel and the light are dropped.
+    .shelf-row-enter-active,
+    .shelf-row-leave-active {
+      animation: none;
+    }
+
+    .shelf-row-enter-from,
+    .shelf-row-leave-to {
+      transform: none;
     }
 
     .shelf-row-held .cluster.selector {

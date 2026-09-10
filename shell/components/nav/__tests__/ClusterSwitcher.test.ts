@@ -875,6 +875,62 @@ describe('component: ClusterSwitcher', () => {
       });
     });
 
+    // The closing wipe hangs off `is-closing`, and losing that class mid-close does not merely stop the
+    // animation: the panel's hide overrides go with it, and swapping the animation name back restarts the
+    // OPENING wipe on a panel that is on its way out.
+    describe('the closing flag', () => {
+      it('survives a close arriving twice', async() => {
+        const wrapper = mountSwitcher();
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(true);
+        await nextTick();
+        expect(vm.popperClass).not.toContain('is-closing');
+
+        vm.setOpen(false);
+        await nextTick();
+        expect(vm.popperClass).toContain('is-closing');
+
+        // Some paths close twice over — our own toggle, then floating-vue's `apply-hide` behind it.
+        vm.setOpen(false);
+        await nextTick();
+        expect(vm.popperClass).toContain('is-closing');
+
+        wrapper.unmount();
+      });
+
+      it('is cleared by the next open', async() => {
+        const wrapper = mountSwitcher();
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(true);
+        vm.setOpen(false);
+        await nextTick();
+        expect(vm.popperClass).toContain('is-closing');
+
+        vm.setOpen(true);
+        await nextTick();
+
+        expect(vm.popperClass).not.toContain('is-closing');
+
+        wrapper.unmount();
+      });
+
+      // Nothing was open, so nothing is closing — otherwise the panel would be born wearing the class that
+      // drives its own exit.
+      it('stays off when a closed panel is closed again', async() => {
+        const wrapper = mountSwitcher();
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(false);
+        await nextTick();
+
+        expect(vm.popperClass).not.toContain('is-closing');
+
+        wrapper.unmount();
+      });
+    });
+
     // A cold open (nothing pinned, no visit history) has an empty directory, and page 1 lands a moment
     // later. That arrival must not conjure a highlight the user never asked for — a cold open and a warm
     // one both start with nothing selected.
