@@ -2,12 +2,29 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { set } from '@shell/utils/object';
 import { RcButton } from '@components/RcButton';
-import { readFileContents } from '@shell/utils/file';
 
 export function createOnSelected(field) {
   return function(contents) {
     set(this, field, contents);
   };
+}
+
+/**
+ * Reads a file the user selected or dropped, either as plain text or as a data URL.
+ */
+export function readFileContents(file, asDataUrl = false) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (ev) => resolve(ev.target.result);
+    reader.onerror = (err) => reject(err);
+
+    if (asDataUrl) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
+  });
 }
 
 export default {

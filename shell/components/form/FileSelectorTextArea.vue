@@ -7,9 +7,8 @@
 import { computed, ref, useAttrs, type StyleValue } from 'vue';
 import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import FileSelector from '@shell/components/form/FileSelector.vue';
+import FileSelector, { readFileContents } from '@shell/components/form/FileSelector.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import { isFileDrag, readFileContents } from '@shell/utils/file';
 import { _VIEW } from '@shell/config/query-params';
 
 defineOptions({ inheritAttrs: false });
@@ -72,6 +71,9 @@ const rootStyle = computed(() => attrs.style as StyleValue);
 // Nested elements fire their own dragenter/dragleave, so count entries and
 // exits rather than toggling a boolean, otherwise the overlay flickers.
 const dragDepth = ref(0);
+
+// Tells a dragged file apart from text dragged around the page
+const isFileDrag = (event: DragEvent) => Array.from(event.dataTransfer?.types || []).includes('Files');
 
 const isView = computed(() => props.mode === _VIEW);
 const isDropTarget = computed(() => !isView.value && !props.disabled);
@@ -207,8 +209,9 @@ const onDrop = async(event: DragEvent) => {
     backdrop-filter: blur(2px);
     color: var(--on-tertiary-hover, var(--link));
     font-size: 14px;
+    font-style: normal;
     font-weight: 600;
-    line-height: 1.4;
+    line-height: 140%;
     text-align: center;
     // Let the drag events reach the drop zone rather than stopping at the overlay
     pointer-events: none;
