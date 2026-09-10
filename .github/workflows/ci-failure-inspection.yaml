@@ -2,8 +2,8 @@ name: Jenkins CI Failure Inspection
 
 on:
   schedule:
-    # Runs Tue–Sat at 11:00 UTC (4:00 AM PST) — after all Jenkins jobs from the prior day complete
-    - cron: '0 11 * * 2-6'
+    # Runs Tue–Sat at 16:00 UTC (9:00 AM PST) — after all Jenkins jobs from the prior day complete
+    - cron: '0 16 * * 2-6'
   workflow_dispatch:
     inputs:
       dry_run:
