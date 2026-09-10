@@ -74,9 +74,9 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     // edit daemonset - opening the edit form is a SPA navigation + fetch; wait for the edit route to
     // commit and the tab bar to render before clicking a tab.
     workloadsDaemonsetsEditPage.waitForPage();
-    workloadsDaemonsetsEditPage.waitForTab('#DaemonSet', LONG_TIMEOUT_OPT);
-    workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
-    workloadsDaemonsetsEditPage.clickTab('#upgrading');
+    workloadsDaemonsetsEditPage.waitForTab('[data-testid="btn-DaemonSet"]', LONG_TIMEOUT_OPT);
+    workloadsDaemonsetsEditPage.clickTab('[data-testid="btn-DaemonSet"]');
+    workloadsDaemonsetsEditPage.clickTab('[data-testid="btn-upgrading"]');
     workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
     workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
       .click();

@@ -65,7 +65,7 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
       tabbedPo.allTabs().should('have.length', 4);
       installChartPage.selectTab(tabbedPo, 'Other Demo Fields');
 
-      const labeledSelect = new LabeledSelectPo('section[id="Other Demo Fields"] [type="search"]');
+      const labeledSelect = new LabeledSelectPo('[data-testid="tab-panel-Other Demo Fields"] [type="search"]');
 
       labeledSelect.self().scrollIntoView();
       labeledSelect.toggle();

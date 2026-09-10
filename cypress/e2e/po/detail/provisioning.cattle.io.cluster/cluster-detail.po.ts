@@ -47,7 +47,7 @@ export default abstract class ClusterManagerDetailPagePo extends BaseDetailPageP
   }
 
   poolsList(tabId: 'machine' | 'node') {
-    return new MachinePoolsListPo(this.self().find(`#${ tabId }-pools [data-testid="sortable-table-list-container"]`));
+    return new MachinePoolsListPo(this.self().find(`[data-testid="tab-panel-${ tabId }-pools"] [data-testid="sortable-table-list-container"]`));
   }
 
   conditionsList() {

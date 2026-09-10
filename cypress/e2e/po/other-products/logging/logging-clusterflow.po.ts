@@ -49,7 +49,7 @@ export class LoggingClusterFlowCreateEditPagePo extends BaseDetailPagePo {
   }
 
   outputSelector() {
-    return new LabeledSelectPo('section#outputs .labeled-select');
+    return new LabeledSelectPo('[data-testid="tab-panel-outputs"] .labeled-select');
   }
 
   ruleItem(index: number) {
@@ -57,7 +57,7 @@ export class LoggingClusterFlowCreateEditPagePo extends BaseDetailPagePo {
   }
 
   matchesList() {
-    return new ArrayListPo('section#match .array-list-grouped');
+    return new ArrayListPo('[data-testid="tab-panel-match"] .array-list-grouped');
   }
 
   /**
@@ -100,7 +100,7 @@ export class LoggingClusterFlowDetailPagePo extends BaseDetailPagePo {
   }
 
   outputSelector() {
-    return new LabeledSelectPo('section#outputs .labeled-select');
+    return new LabeledSelectPo('[data-testid="tab-panel-outputs"] .labeled-select');
   }
 
   ruleItem(index: number) {

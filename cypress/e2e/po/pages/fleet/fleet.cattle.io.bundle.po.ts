@@ -63,14 +63,14 @@ export class FleetBundleDetailsPo extends BaseDetailPagePo {
   }
 
   resourcesList() {
-    return new ResourceTablePo('#resources [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-resources"] [data-testid="sortable-table-list-container"]');
   }
 
   conditionsList() {
-    return new ResourceTablePo('#conditions [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-conditions"] [data-testid="sortable-table-list-container"]');
   }
 
   eventsList() {
-    return new ResourceTablePo('#events [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-events"] [data-testid="sortable-table-list-container"]');
   }
 }

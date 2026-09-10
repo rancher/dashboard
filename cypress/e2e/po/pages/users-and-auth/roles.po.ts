@@ -65,11 +65,11 @@ export default class RolesPo extends ClusterPage {
    * @returns
    */
   list(tabIdSelector: 'GLOBAL' | 'CLUSTER' | 'NAMESPACE') {
-    return new RoleListPo(`#${ tabIdSelector } [data-testid="sortable-table-list-container"]`);
+    return new RoleListPo(`[data-testid="tab-panel-${ tabIdSelector }"] [data-testid="sortable-table-list-container"]`);
   }
 
   paginatedTab(tabIdSelector: 'GLOBAL' | 'CLUSTER' | 'NAMESPACE') {
-    return new PaginationPo(`#${ tabIdSelector } div.paging`);
+    return new PaginationPo(`[data-testid="tab-panel-${ tabIdSelector }"] div.paging`);
   }
 
   tabs() {

@@ -230,7 +230,7 @@ export class FleetGitRepoDetailsPo extends BaseDetailPagePo {
   }
 
   bundlesList() {
-    return new ResourceTablePo('#bundles [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-bundles"] [data-testid="sortable-table-list-container"]');
   }
 
   showConfig() {

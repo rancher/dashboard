@@ -59,7 +59,7 @@ export class FleetClusterDetailsPo extends BaseDetailPagePo {
   }
 
   appBundlesList() {
-    return new ResourceTablePo('#applications [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-applications"] [data-testid="sortable-table-list-container"]');
   }
 
   addAppButton() {

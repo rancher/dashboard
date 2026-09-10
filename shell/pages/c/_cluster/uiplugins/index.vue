@@ -45,6 +45,10 @@ const TABS_VALUES = {
   BUILTIN:   'builtin',
 };
 
+// id of the container holding the extension cards - the tabs render in `tabs-only` mode, so this is
+// the tab panel they control
+const EXTENSIONS_PANEL_ID = 'extensions-tab-panel';
+
 export default {
   components: {
     ActionMenu,
@@ -63,8 +67,10 @@ export default {
   data() {
     return {
       TABS_VALUES,
+      EXTENSIONS_PANEL_ID,
       kubeVersion:                    null,
       activeTab:                      '',
+      activeTabButtonId:              undefined,
       installing:                     {},
       installedFromRepo:              {},
       errors:                         {},
@@ -452,6 +458,7 @@ export default {
 
     tabChanged(f) {
       this.activeTab = f.selectedName;
+      this.activeTabButtonId = f.tabButtonId;
     },
 
     // Developer Load is in the action menu
@@ -1140,6 +1147,7 @@ export default {
         v-if="!loading"
         ref="tabs"
         :tabs-only="true"
+        :external-panel-id="EXTENSIONS_PANEL_ID"
         data-testid="extension-tabs"
         @changed="tabChanged"
       >
@@ -1174,10 +1182,18 @@ export default {
           :raw="true"
         />
       </div>
+      <!--
+        The tabs above are `tabs-only`, so this is the panel they control. It has to be associated
+        with them explicitly, otherwise the tab structure isn't programmatically complete.
+      -->
       <div
         v-else
+        :id="EXTENSIONS_PANEL_ID"
         class="plugin-cards"
         :class="{'v-margin': !list.length}"
+        role="tabpanel"
+        :aria-labelledby="activeTabButtonId || undefined"
+        tabindex="0"
       >
         <IconMessage
           v-if="list.length === 0"
