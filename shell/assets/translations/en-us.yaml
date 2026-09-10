@@ -5235,6 +5235,14 @@ notificationCenter:
   ariaLabel: 'Notification {title}: Press enter to interact'
 
 persistentVolume:
+  detail:
+    source: Source
+    reclaimPolicy: Reclaim Policy
+    storageClass: Storage Class
+    claim:
+      label: Volume Claim
+      caption: "This volume is bound to the following PersistentVolumeClaim:"
+      none: This volume is not bound to a PersistentVolumeClaim.
   pluginConfiguration:
     label: Plugin configuration
   plugin:
