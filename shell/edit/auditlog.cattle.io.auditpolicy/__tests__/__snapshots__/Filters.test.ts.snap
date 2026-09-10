@@ -28,6 +28,7 @@ exports[`component: Filters rendering & initial state should render with default
         rules=""
         showheader="true"
         title=""
+        usercbutton="false"
         value=""
         valuelabel="Value"
         valuemultiline="false"

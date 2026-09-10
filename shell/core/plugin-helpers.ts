@@ -1,9 +1,7 @@
 import { RouteLocation } from 'vue-router';
 import { ComponentOptionsMixin } from 'vue';
 
-import {
-  ActionLocation, CardLocation, ExtensionLocation, ExtensionPoint
-} from '@shell/core/types';
+import { ActionLocation, CardLocation, ExtensionLocation, ExtensionPoint } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
 import { ucFirst, randomStr } from '@shell/utils/string';
 import {

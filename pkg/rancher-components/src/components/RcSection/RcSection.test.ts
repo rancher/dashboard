@@ -222,7 +222,7 @@ describe('component: RcSection', () => {
     it('should default expanded to true', () => {
       const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true } });
 
-      expect(wrapper.find('.section-content').exists()).toBe(true);
+      expect(wrapper.find('.section-content').isVisible()).toBe(true);
     });
 
     it('should render content when expanded is true', () => {
@@ -231,7 +231,7 @@ describe('component: RcSection', () => {
         slots: { default: '<p>Content</p>' },
       });
 
-      expect(wrapper.find('.section-content').exists()).toBe(true);
+      expect(wrapper.find('.section-content').isVisible()).toBe(true);
       expect(wrapper.find('p').text()).toBe('Content');
     });
 
@@ -241,7 +241,7 @@ describe('component: RcSection', () => {
         slots: { default: '<p>Content</p>' },
       });
 
-      expect(wrapper.find('.section-content').exists()).toBe(false);
+      expect(wrapper.find('.section-content').isVisible()).toBe(false);
     });
 
     it('should apply expandable-content class when expandable is true', () => {
