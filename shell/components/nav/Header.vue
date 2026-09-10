@@ -964,7 +964,7 @@ export default {
       // The pin keeps its size while the name gives way, so a long name is what gets clipped.
       .cluster-pin {
         flex: 0 0 auto;
-        margin-left: 10px;
+        margin-left: 12px;
         color: var(--muted);
 
         &.is-pinned {

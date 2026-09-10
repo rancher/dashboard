@@ -96,6 +96,10 @@ const NO_ACTIVE_INDEX = -1;
 
 const open = ref<boolean>(false);
 const activeIndex = ref<number>(NO_ACTIVE_INDEX);
+// Whether the KEYBOARD put the cursor where it is. The highlight is shared with the pointer, so this is
+// what separates "the row Enter will act on" from "the row the mouse is over" — only the first earns a
+// focus ring, and a pointer move takes it away again.
+const keyboardActive = ref<boolean>(false);
 const searchInput = ref<HTMLElement | null>(null);
 const scroller = ref<HTMLElement | null>(null);
 const flyout = ref<HTMLElement | null>(null);
@@ -257,7 +261,15 @@ const onPointerMove = (e: MouseEvent) => {
 
   const index = indexByOptionId.value[row.id] ?? NO_ACTIVE_INDEX;
 
-  if (index >= 0 && index !== activeIndex.value) {
+  if (index < 0) {
+    return;
+  }
+
+  // The pointer is driving now, whether or not it landed on the row the keyboard had: the ring claims the
+  // keyboard put the cursor there, and that has stopped being true either way.
+  keyboardActive.value = false;
+
+  if (index !== activeIndex.value) {
     activeIndex.value = index;
     cursorMoved.value = true;
   }
@@ -271,6 +283,7 @@ const cursorMoved = ref<boolean>(false);
 // load-more would yank the highlight to the top. Open resets via setOpen.
 watch(() => props.search, () => {
   activeIndex.value = restingIndex();
+  keyboardActive.value = false;
   cursorMoved.value = false;
   pinAnnouncement.value = '';
 });
@@ -306,6 +319,7 @@ const setOpen = (value: boolean) => {
   if (value) {
     focusOrigin.value = document.activeElement as HTMLElement | null;
     activeIndex.value = restingIndex();
+    keyboardActive.value = false;
     cursorMoved.value = false;
     pinAnnouncement.value = '';
     // Focus happens on the dropdown's `apply-show` (focusSearchInput) — here is too early, the teleported
@@ -632,12 +646,14 @@ const onKeydown = (e: KeyboardEvent) => {
   case 'ArrowDown':
     e.preventDefault();
     cursorMoved.value = true;
+    keyboardActive.value = true;
     activeIndex.value = Math.min(activeIndex.value + 1, navRows.value.length - 1);
     revealActive();
     break;
   case 'ArrowUp':
     e.preventDefault();
     cursorMoved.value = true;
+    keyboardActive.value = true;
     // From nothing highlighted, ↑ enters the list at the bottom — ↓ enters it at the top.
     activeIndex.value = activeIndex.value === NO_ACTIVE_INDEX ? navRows.value.length - 1 : Math.max(activeIndex.value - 1, 0);
     revealActive();
@@ -771,6 +787,7 @@ defineExpose({
               :pinnable="false"
               :route-combo="routeCombo"
               :active="activeIndex === 0"
+              :keyboard-active="keyboardActive"
               :current="localTile.id === currentClusterId"
               :announce-current="currentAnnouncedAt === 0"
               @select="explore"
@@ -803,6 +820,7 @@ defineExpose({
                 :key="c.id"
                 :cluster="c"
                 :active="activeIndex === i + localOffset"
+                :keyboard-active="keyboardActive"
                 :current="c.id === currentClusterId"
                 :announce-current="currentAnnouncedAt === i + localOffset"
                 :route-combo="routeCombo"
@@ -862,6 +880,7 @@ defineExpose({
               :key="c.id"
               :cluster="c"
               :active="activeIndex === i + resultsOffset"
+              :keyboard-active="keyboardActive"
               :current="c.id === currentClusterId"
               :announce-current="currentAnnouncedAt === i + resultsOffset"
               :route-combo="routeCombo"
@@ -941,7 +960,9 @@ defineExpose({
       // tint is the one every other input in the product wears, and this box should not be the exception.
       &:focus-visible {
         outline: 2px solid var(--primary-keyboard-focus) !important;
-        outline-offset: 1px;
+        // Inset, exactly as the app's own `input:focus-visible` rule draws it: the ring lands ON the
+        // border rather than around it, so the box gains one crisp edge instead of two concentric greens.
+        outline-offset: -1px;
       }
     }
   }
@@ -1035,8 +1056,8 @@ defineExpose({
       justify-content: center;
       min-width: 22px;
       height: 20px;
-      padding: 0 7px;
-      border-radius: 10px;
+      padding: 0 8px;
+      border-radius: 999px;
       background: color-mix(in srgb, var(--body-text) 10%, transparent);
       font-size: 11px;
       font-weight: 600;
@@ -1048,7 +1069,7 @@ defineExpose({
   }
 
   .switcher-empty {
-    padding: 18px 16px 10px;
+    padding: 16px 16px 8px;
     text-align: left;
     font-size: 12px;
     color: var(--muted);

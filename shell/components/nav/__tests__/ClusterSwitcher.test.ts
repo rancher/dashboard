@@ -800,6 +800,81 @@ describe('component: ClusterSwitcher', () => {
       wrapper.unmount();
     });
 
+    // The highlight is shared by the pointer and the arrows, so on its own it cannot say which is driving.
+    // An `aria-activedescendant` option never holds DOM focus either, so nothing draws a focus ring for
+    // it — the row has to, and only when the keyboard is what put the cursor there. This is the resource
+    // finder's behaviour, which is the pattern the two lists should share.
+    describe('the keyboard focus ring on the cursor', () => {
+      const rowFor = (wrapper: any, id: string) => wrapper.findAllComponents(ClusterSwitcherRow)
+        .find((row: any) => row.props('cluster').id === id);
+
+      // A pointer event shaped the way the delegated handler reads it.
+      const pointerOver = (id: string) => ({ target: { closest: () => ({ id }) } });
+
+      it('rings the row the arrows moved to, and not the one the pointer moved to', async() => {
+        const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(true);
+        await nextTick();
+
+        // Nothing has moved the cursor, so nothing is ringed.
+        expect(vm.keyboardActive).toBe(false);
+
+        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+        await nextTick();
+
+        expect(vm.keyboardActive).toBe(true);
+        expect(rowFor(wrapper, 'p1').props('keyboardActive')).toBe(true);
+
+        vm.onPointerMove(pointerOver('cluster-switcher-opt-p2'));
+        await nextTick();
+
+        expect(vm.keyboardActive).toBe(false);
+        expect(rowFor(wrapper, 'p2').props('keyboardActive')).toBe(false);
+
+        wrapper.unmount();
+      });
+
+      // The pointer takes over even when it lands on the row the keyboard already had: the ring claims
+      // the keyboard put the cursor there, and once the mouse is moving that has stopped being true.
+      it('drops the ring when the pointer lands on the row that already has the cursor', async() => {
+        const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(true);
+        await nextTick();
+        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+        expect(vm.keyboardActive).toBe(true);
+
+        vm.onPointerMove(pointerOver('cluster-switcher-opt-p1'));
+        await nextTick();
+
+        expect(vm.activeIndex).toBe(0);
+        expect(vm.keyboardActive).toBe(false);
+
+        wrapper.unmount();
+      });
+
+      // Typing is keyboard use, but it is not the user steering the cursor: the first match is highlighted
+      // for them, and a ring around it would claim they had put it there.
+      it('does not ring the first match a search highlights', async() => {
+        const wrapper = mountSwitcher({ all: [cluster('p1')], searchResults: [cluster('m1')] });
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(true);
+        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+        expect(vm.keyboardActive).toBe(true);
+
+        await wrapper.setProps({ search: 'm' } as any);
+
+        expect(vm.activeIndex).toBe(0);
+        expect(vm.keyboardActive).toBe(false);
+
+        wrapper.unmount();
+      });
+    });
+
     // A cold open (nothing pinned, no visit history) has an empty directory, and page 1 lands a moment
     // later. That arrival must not conjure a highlight the user never asked for — a cold open and a warm
     // one both start with nothing selected.

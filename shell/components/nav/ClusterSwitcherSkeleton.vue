@@ -52,11 +52,13 @@ withDefaults(defineProps<{
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    // The same 4px the real row puts between its name and meta lines, so the placeholder occupies the
+    // shape it is standing in for.
+    gap: 4px;
   }
 
   .skeleton-line {
-    height: 10px;
+    height: 12px;
     width: 55%;
     border-radius: 4px;
 

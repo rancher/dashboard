@@ -19,6 +19,10 @@ interface Props {
   id?: string;
   /** Keyboard-highlighted row (the ↑↓ cursor). */
   active?: boolean;
+  /** The cursor reached this row by KEYBOARD, so it carries a focus ring as well as the highlight. An
+   * `aria-activedescendant` option never holds DOM focus, so nothing draws that ring for us — and without
+   * it a keyboard user cannot tell what Enter will act on from what the pointer happens to be over. */
+  keyboardActive?: boolean;
   /** This row is the cluster currently being explored. The panel does not mark it — no fill, and nothing
    * in the row's text: the one highlight in here belongs to the cursor, and a second mark competes with it
    * for the same meaning. The nav shelf is where "you are here" is shown. All this drives now is
@@ -40,6 +44,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   id:              undefined,
   active:          false,
+  keyboardActive:  false,
   current:         false,
   announceCurrent: true,
   subtitle:        '',
@@ -94,7 +99,7 @@ function select() {
   <div
     :id="id"
     class="cluster-switcher-row"
-    :class="{ active, disabled: !cluster.ready }"
+    :class="{ active, disabled: !cluster.ready, 'keyboard-active': active && keyboardActive }"
     role="option"
     :aria-label="ariaLabel"
     :aria-selected="active ? 'true' : 'false'"
@@ -165,10 +170,11 @@ function select() {
 .cluster-switcher-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  // Full-line row, no rounding; the 16px padding sets the height. A hairline divides one row from the next.
+  gap: 12px;
+  // The 16px padding sets the height; a hairline divides one row from the next. The radius is the resource
+  // finder's, so the keyboard ring rounds off the same way — an `outline` follows its element's corners.
   padding: 16px;
-  border-radius: 0;
+  border-radius: var(--border-radius);
   border-bottom: 1px solid var(--border);
   cursor: pointer;
 
@@ -225,6 +231,14 @@ function select() {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+  }
+
+  // Matched to the resource finder's own keyboard-focused option, which is the pattern this list should
+  // read like: the highlight says where the cursor is, the ring says the keyboard put it there.
+  &.keyboard-active {
+    @include focus-outline;
+
+    outline-offset: -2px;
   }
 
   // The pin: faint until hover/active or while pinned (its relocation is the feedback); primary when pinned.
