@@ -1,4 +1,6 @@
-import { CLUSTER, PINNED_CLUSTERS, RECENT_CLUSTERS, RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
+import {
+  CLUSTER, PINNED_CLUSTERS, RECENT_CLUSTERS, RECENT_CLUSTERS_FETCHED, enqueuePreferenceWrite
+} from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 /**
@@ -6,9 +8,9 @@ import { BLANK_CLUSTER } from '@shell/store/store-types';
  *
  * Each mutator expresses its change as a pure `apply(current) => next` transform. `commitAndReconcile`
  * applies it optimistically for instant UI, then re-runs it against the server's live value so an
- * external change (another tab, a manual edit) is adopted rather than clobbered. Every write funnels
- * through `enqueue` to run strictly sequentially: the shared per-user Preference is a read-modify-write,
- * so overlapping GET-then-PUTs would 409.
+ * external change (another tab, a manual edit) is adopted rather than clobbered. The server round-trip
+ * goes through the prefs store's shared write queue, which every preference write shares — including the
+ * plain `prefs/set` calls this writer knows nothing about.
  */
 type Dispatch = (action: string, payload?: any) => Promise<any>;
 // The prefs this writer touches are heterogeneous: RECENT/PINNED are string[], CLUSTER is a string.
@@ -88,18 +90,6 @@ export function reportPinWriteFailure(store: Growler, t: Translate, write: Promi
     .catch((e) => console.warn('Unable to toggle the cluster pin', e)); // eslint-disable-line no-console
 }
 
-let chain: Promise<any> = Promise.resolve();
-
-/** Run `task` after every previously-queued write resolves (regardless of their success/failure). */
-function enqueue(task: () => Promise<any>): Promise<any> {
-  const run = chain.then(task, task);
-
-  // Keep the chain alive even if a task rejects, so one failed write can't wedge all future writes.
-  chain = run.then(() => undefined, () => undefined);
-
-  return run;
-}
-
 /**
  * Commit the optimistic client change immediately (outside the queue) so the shelf and its row
  * animation start the instant the user clicks, then serialize only the server round-trip so the UI
@@ -111,7 +101,7 @@ export function commitAndReconcile(dispatch: Dispatch, mutations: Mutation[]): P
   // the whole write. A failed optimistic phase committed nothing, so there is nothing to reconcile.
   const optimistic = dispatch('prefs/applyPrefsOptimistic', mutations);
 
-  return enqueue(() => optimistic.then((o: any) => (
+  return enqueuePreferenceWrite(() => optimistic.then((o: any) => (
     o?.status ? o : dispatch('prefs/reconcilePrefs', { mutations, optimistic: o })
   )));
 }

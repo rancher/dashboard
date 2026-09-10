@@ -19,6 +19,7 @@ import {
   PINNED_CLUSTERS,
   RECENT_CLUSTERS,
 } from '@shell/store/prefs';
+import { commitAndReconcile, prependRecent } from '@shell/utils/cluster-pref-writer';
 
 describe('prefs store', () => {
   describe('create', () => {
@@ -1241,8 +1242,11 @@ describe('prefs store', () => {
       });
 
       afterEach(() => {
-        jest.useRealTimers();
+        // Order matters: the spy was installed on the FAKE `setTimeout`, so restoring it after
+        // `useRealTimers` would put the fake back permanently — and every later test's real timer would
+        // then never fire.
         jest.restoreAllMocks();
+        jest.useRealTimers();
       });
 
       it('dispatches set with dark when watchDark.matches is true', () => {
@@ -1386,6 +1390,88 @@ describe('prefs store', () => {
         expect(() => {
           actions.setBrandStyle({ rootState, rootGetters } as any);
         }).not.toThrow();
+      });
+    });
+
+    // Every preference lives in ONE shared document, and every write to it is a get-before-set — so two
+    // that overlap clobber each other: the later GET reads a value the earlier PUT has not landed yet, and
+    // carries it back over the top. Both then report success. Serializing only the merge writes was not
+    // enough, because a plain `prefs/set` (cleanNamespaces after a cluster is deleted, or a namespace
+    // filter picked mid-switch) does not go through them — and lost the recorded visit, on screen and on
+    // the server. So every write shares one queue.
+    describe('serializing every write to the shared preference', () => {
+      it('keeps a merge write that a plain set overlaps', async() => {
+        create(RECENT_CLUSTERS, [], { parseJSON: true });
+        create(NAMESPACE_FILTERS, {}, { parseJSON: true });
+
+        // The server's copy of the document.
+        let backend: Record<string, any> = { [RECENT_CLUSTERS]: JSON.stringify(['local']), [CLUSTER]: 'local' };
+
+        // ONE Preference model instance, as `management/findAll` hands back from its cache.
+        const server: any = {
+          data: {},
+          save: jest.fn(() => {
+            // The PUT body is fixed when the request goes out; it lands on the backend a tick later.
+            const body = { ...server.data };
+
+            return new Promise<void>((resolve) => setTimeout(() => {
+              backend = { ...body };
+              resolve();
+            }, 0));
+          }),
+        };
+
+        const s: any = state();
+
+        s.data[RECENT_CLUSTERS] = ['local'];
+        s.data[CLUSTER] = 'local';
+
+        const commit = jest.fn((name: string, payload: any) => {
+          if (name === 'load') {
+            s.data[payload.key] = payload.value;
+          }
+        });
+
+        const ctx: any = {
+          state: s, commit, rootGetters: { 'auth/loggedIn': true }, rootState: {}
+        };
+
+        const dispatch: any = (action: string, payload?: any) => {
+          switch (action) {
+          case 'management/findAll':
+            // force: true → re-read the document from the server into the SAME instance.
+            server.data = { ...backend };
+
+            return Promise.resolve([server]);
+          case 'loadServer':
+            return actions.loadServer({ ...ctx, dispatch }, payload);
+          case 'prefs/applyPrefsOptimistic':
+            return Promise.resolve(actions.applyPrefsOptimistic(ctx, payload));
+          case 'prefs/reconcilePrefs':
+            return actions.reconcilePrefs({ ...ctx, dispatch }, payload);
+          case 'prefs/set':
+            return actions.set({ ...ctx, dispatch }, payload);
+          default:
+            return Promise.resolve();
+          }
+        };
+
+        // The cluster switch records the visit...
+        const visit = commitAndReconcile(dispatch, [{ key: CLUSTER, apply: () => 'heron' }, prependRecent('heron')]);
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['heron', 'local']); // optimistic value, on screen
+
+        // ...and cleanNamespaces writes an unrelated preference while that round-trip is still open.
+        const namespaces = dispatch('prefs/set', { key: NAMESPACE_FILTERS, value: { 'heron/x': ['all://user'] } });
+
+        await Promise.all([visit, namespaces]);
+
+        expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['heron', 'local']);
+        expect(JSON.parse(backend[RECENT_CLUSTERS])).toStrictEqual(['heron', 'local']);
+        // The namespace write still landed — serialized, not dropped.
+        expect(JSON.parse(backend[NAMESPACE_FILTERS])).toStrictEqual({ 'heron/x': ['all://user'] });
       });
     });
   });

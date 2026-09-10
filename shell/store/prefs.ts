@@ -345,13 +345,33 @@ export const mutations = {
   }
 };
 
+/**
+ * The user's preferences are ONE shared document, and every write to it is a get-before-set. Two that
+ * overlap therefore clobber each other: the later GET reads a value the earlier PUT has not landed yet,
+ * and its PUT carries that stale value back over the top. Both report success.
+ *
+ * So every server round-trip funnels through here and runs strictly one at a time. Only the round-trip —
+ * the local commit stays outside, so the UI never waits on the queue.
+ *
+ * A task must not itself write a preference, or it would wait on the queue it is holding.
+ */
+let writeChain: Promise<any> = Promise.resolve();
+
+export function enqueuePreferenceWrite<T>(task: () => Promise<T>): Promise<T> {
+  const run = writeChain.then(task, task);
+
+  // Keep the chain alive even if a task rejects, so one failed write can't wedge every write after it.
+  writeChain = run.then(() => undefined, () => undefined);
+
+  return run;
+}
+
 export const actions = {
   async set({
     dispatch, commit, rootGetters, state
   }: PrefsActionContext, opt: { key: string, value?: any, val?: any }): Promise<PrefError | undefined> {
     let { key, value } = opt; // eslint-disable-line prefer-const
     const definition = state.definitions[key];
-    let server;
 
     if ( opt.val ) {
       throw new Error('Use value, not val');
@@ -382,29 +402,32 @@ export const actions = {
         return;
       }
 
-      try {
-        server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
+      // Queued: this is a get-before-set on the shared Preference, so it must not overlap another one.
+      return enqueuePreferenceWrite(async() => {
+        try {
+          const server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
 
-        if ( server?.data ) {
-          if ( definition.mangleWrite ) {
-            value = definition.mangleWrite(value);
+          if ( server?.data ) {
+            if ( definition.mangleWrite ) {
+              value = definition.mangleWrite(value);
+            }
+
+            if ( definition.parseJSON ) {
+              server.data[key] = JSON.stringify(value);
+            } else {
+              server.data[key] = value;
+            }
+
+            await server.save({ redirectUnauthorized: false });
           }
+        } catch (e) {
+          // Well it failed, but not much to do about it...
+          const error = e as PrefError;
 
-          if ( definition.parseJSON ) {
-            server.data[key] = JSON.stringify(value);
-          } else {
-            server.data[key] = value;
-          }
-
-          await server.save({ redirectUnauthorized: false });
+          // Return the error
+          return { type: error.type, status: error.status };
         }
-      } catch (e) {
-        // Well it failed, but not much to do about it...
-        const error = e as PrefError;
-
-        // Return the error
-        return { type: error.type, status: error.status };
-      }
+      });
     }
   },
 
