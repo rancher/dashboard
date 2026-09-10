@@ -159,6 +159,17 @@ export default {
     },
 
     /**
+     * Field to order groups by, defaults to `groupBy`.
+     *
+     * Declared here (rather than left to fall through in `$attrs`) so a caller supplied value
+     * doesn't clobber the path the table views toolbar works out - see `viewGroupSort`.
+     */
+    groupSort: {
+      type:    String,
+      default: null
+    },
+
+    /**
      * Override any product based group options
      */
     groupOptions: {
@@ -669,9 +680,13 @@ export default {
      * returns rows grouped across every page.
      */
     viewGroupSort() {
-      const path = this.viewGroupField ? serverPathFor(this.viewGroupField) : null;
-    
-      return typeof path === 'string' ? path : null;
+      if (!this.viewGroupField) {
+        return this.groupSort;
+      }
+
+      const path = serverPathFor(this.viewGroupField);
+
+      return typeof path === 'string' ? path : this.groupSort;
     },
 
     /**
