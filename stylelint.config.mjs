@@ -40,6 +40,7 @@ export default {
     'unit-no-unknown':                       true,
     'named-grid-areas-no-invalid':           true,
     'no-duplicate-at-import-rules':          true,
+    'block-no-empty':                        true,
     // `no-invalid-position-at-import-rule` is intentionally omitted: SCSS allows
     // `@import` after other statements, so it only produces false positives here.
   },
