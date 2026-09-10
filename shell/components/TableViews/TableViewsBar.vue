@@ -1,9 +1,10 @@
 <script>
 import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
 import { randomStr } from '@shell/utils/string';
-import { LABEL_FIELD_PREFIX, encodeView } from '@shell/utils/table-views';
+import { LABEL_FIELD_PREFIX, encodeView, isCoreField } from '@shell/utils/table-views';
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
 import ButtonGroup from '@shell/components/ButtonGroup';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 /**
  * The toolbar above a resource table - filter query, column picker, group by, export and
@@ -17,7 +18,9 @@ export default {
 
   emits: ['update:view', 'export', 'update:viewMode'],
 
-  components: { TableViewQueryInput, ButtonGroup },
+  components: {
+    TableViewQueryInput, ButtonGroup, Checkbox
+  },
 
   props: {
     /**
@@ -604,36 +607,28 @@ export default {
                   <div class="menu-title">
                     {{ t('tableViews.columns.tableColumns') }}
                   </div>
-                  <label
+                  <Checkbox
                     v-for="field in columnFields"
                     :key="field.id"
                     class="menu-check"
-                  >
-                    <input
-                      type="checkbox"
-                      :checked="isColumnVisible(field)"
-                      :disabled="isCoreColumn(field)"
-                      @change="toggleColumn(field)"
-                    >
-                    <span>{{ field.label }}</span>
-                  </label>
+                    :value="isColumnVisible(field)"
+                    :label="field.label"
+                    :disabled="isCoreColumn(field)"
+                    @update:value="toggleColumn(field)"
+                  />
                   <template v-if="labelFields.length">
                     <div class="menu-title">
                       {{ t('tableViews.columns.labelColumns') }}
                     </div>
-                    <label
+                    <Checkbox
                       v-for="field in labelFields"
                       :key="field.id"
                       class="menu-check"
                       :data-testid="`table-views-label-col-${field.labelKey}`"
-                    >
-                      <input
-                        type="checkbox"
-                        :checked="view.labelColumns.includes(field.labelKey)"
-                        @change="toggleLabelColumn(field)"
-                      >
-                      <span>{{ field.label }}</span>
-                    </label>
+                      :value="view.labelColumns.includes(field.labelKey)"
+                      :label="field.label"
+                      @update:value="toggleLabelColumn(field)"
+                    />
                   </template>
                   <button
                     type="button"
