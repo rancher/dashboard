@@ -39,17 +39,14 @@
  * </template>
  *
  * Focus is trapped inside the modal for as long as it is open and returned to
- * whatever opened it. With `clickToClose` false neither `Esc` nor a click
- * outside emits `close`, and the trap holds.
+ * whatever opened it. `Esc` always emits `close`, whatever `clickToClose` says,
+ * so no modal is a keyboard trap; with `clickToClose` false a click on the
+ * background does not.
  *
  * Attributes that are not props land on the dialog element, so `class` and
  * `data-testid` work as usual.
  *
- * `size` is the width of the modal. A modal that genuinely needs a width
- * outside the three can override the custom property from its own class,
- * without a prop for it:
- *
- * .my-modal { --rc-modal-width: 800px; }
+ * `size` is the width of the modal, and the three sizes are the whole of it.
  *
  * Example:
  *
@@ -68,12 +65,13 @@
  *   </template>
  * </RcModal>
  */
+import { computed } from 'vue';
 import RcModalDialog from './RcModalDialog.vue';
 import type { RcModalProps } from './types';
 
 defineOptions({ inheritAttrs: false });
 
-withDefaults(defineProps<RcModalProps>(), {
+const props = withDefaults(defineProps<RcModalProps>(), {
   show:         false,
   title:        '',
   size:         'medium',
@@ -86,10 +84,23 @@ defineEmits<{
   cancel: [];
   'primary-action': [];
 }>();
+
+const MODALS_CONTAINER = '#modals';
+
+/**
+ * Where the dialog is teleported. The shell renders `#modals` once, at the end
+ * of the body, and that is where a modal belongs, but it is markup like any
+ * other and an extension can replace the page around it. Falling back to the
+ * body keeps the modal on screen rather than rendering nothing at all.
+ *
+ * Resolved each time the modal opens, since the container only has to be there
+ * by then, not when the consumer that renders this was mounted.
+ */
+const teleportTarget = computed(() => (props.show && document.querySelector(MODALS_CONTAINER) ? MODALS_CONTAINER : 'body'));
 </script>
 
 <template>
-  <Teleport to="#modals">
+  <Teleport :to="teleportTarget">
     <RcModalDialog
       v-if="show"
       v-bind="$attrs"
@@ -102,12 +113,35 @@ defineEmits<{
       @primary-action="$emit('primary-action')"
     >
       <template
-        v-for="(_, name) in $slots"
-        #[name]="scope"
+        v-if="$slots.title"
+        #title
       >
+        <!-- @slot The heading, for when it needs more than the string the `title` prop takes. -->
+        <slot name="title" />
+      </template>
+
+      <!-- @slot The modal body. Each direct child is a content section. -->
+      <slot />
+
+      <template
+        v-if="$slots.actions"
+        #actions="scope"
+      >
+        <!-- @slot The whole footer row, cancel button included. Receives `close`, `cancel` and `primaryAction`. -->
         <slot
-          :name="name"
-          v-bind="scope || {}"
+          name="actions"
+          v-bind="scope"
+        />
+      </template>
+
+      <template
+        v-if="$slots['primary-action']"
+        #primary-action="scope"
+      >
+        <!-- @slot Just the confirming button; the cancel button comes with it. Receives `close`, `cancel` and `primaryAction`. -->
+        <slot
+          name="primary-action"
+          v-bind="scope"
         />
       </template>
     </RcModalDialog>

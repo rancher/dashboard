@@ -3,7 +3,7 @@ import { h, nextTick } from 'vue';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { createFocusTrap } from 'focus-trap';
 import RcModal from '../RcModal.vue';
-import { widthFor, type RcModalSize } from '../types';
+import { RC_MODAL_WIDTHS, widthFor, type RcModalSize } from '../types';
 
 jest.mock('focus-trap', () => ({
   createFocusTrap: jest.fn((el, opts) => ({
@@ -18,6 +18,22 @@ jest.mock('focus-trap', () => ({
   })),
 }));
 
+const resizeCallbacks: ResizeObserverCallback[] = [];
+const resizeObservers: ResizeObserverMock[] = [];
+
+class ResizeObserverMock {
+  disconnect = jest.fn();
+  unobserve = jest.fn();
+  observe = jest.fn();
+
+  constructor(callback: ResizeObserverCallback) {
+    resizeCallbacks.push(callback);
+    resizeObservers.push(this);
+  }
+}
+
+global.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver;
+
 type MountOptions = Parameters<typeof mount>[1];
 
 const mountModal = (options: MountOptions = {}): VueWrapper => mount(RcModal, {
@@ -30,9 +46,26 @@ const mountModal = (options: MountOptions = {}): VueWrapper => mount(RcModal, {
 
 const dialog = () => document.querySelector('#modals .rc-modal') as HTMLElement;
 
+const modalBody = () => document.querySelector('[data-testid="rc-modal-body"]') as HTMLElement;
+
+/**
+ * jsdom lays nothing out, so every element measures zero. Say what the body's
+ * scroll box measures and re-run the observer the component registered.
+ */
+const setBodyOverflow = (scrollHeight: number, clientHeight: number) => {
+  const el = modalBody();
+
+  Object.defineProperty(el, 'scrollHeight', { value: scrollHeight, configurable: true });
+  Object.defineProperty(el, 'clientHeight', { value: clientHeight, configurable: true });
+
+  resizeCallbacks.forEach((callback) => callback([], {} as ResizeObserver));
+};
+
 describe('component: RcModal', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="modals"></div>';
+    resizeCallbacks.length = 0;
+    resizeObservers.length = 0;
     (createFocusTrap as jest.Mock).mockClear();
   });
 
@@ -151,6 +184,12 @@ describe('component: RcModal', () => {
       ['enormous'],
     ])('should fall back to medium for %s', (size) => {
       expect(widthFor(size as RcModalSize)).toStrictEqual('640px');
+    });
+
+    it('should hold the widths the design system specs, so a size means the same thing everywhere', () => {
+      expect(RC_MODAL_WIDTHS).toStrictEqual({
+        small: 480, medium: 640, large: 960
+      });
     });
 
     it('should set no inline width on the dialog, since the custom property carries it', () => {
@@ -348,13 +387,38 @@ describe('component: RcModal', () => {
       wrapper.unmount();
     });
 
-    it('should not close on background click or Escape when clickToClose is false', () => {
+    it('should not close on a background click when clickToClose is false', () => {
       const wrapper = mountModal({ props: { clickToClose: false } });
 
       (document.querySelector('.rc-modal-overlay') as HTMLElement).dispatchEvent(new MouseEvent('click'));
-      dialog().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 
       expect(wrapper.emitted('close')).toBeUndefined();
+
+      wrapper.unmount();
+    });
+
+    it('should still close on Escape when clickToClose is false, so no modal is a keyboard trap', () => {
+      const wrapper = mountModal({ props: { clickToClose: false } });
+
+      dialog().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+      expect(wrapper.emitted('cancel')).toHaveLength(1);
+      expect(wrapper.emitted('close')).toHaveLength(1);
+
+      wrapper.unmount();
+    });
+
+    it('should close on Escape from a modal built with no cancel button', () => {
+      const wrapper = mountModal({
+        props: { clickToClose: false },
+        slots: { actions: '<button class="only">Just this</button>' },
+      });
+
+      expect(document.querySelector('[data-testid="rc-modal-cancel"]')).toBeNull();
+
+      dialog().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+      expect(wrapper.emitted('close')).toHaveLength(1);
 
       wrapper.unmount();
     });
@@ -493,6 +557,76 @@ describe('component: RcModal', () => {
       expect(document.querySelector('.confirm')).toBeTruthy();
 
       wrapper.unmount();
+    });
+  });
+
+
+  describe('teleport target', () => {
+    it('should fall back to the body when the modals container is missing, rather than render nothing', () => {
+      document.body.innerHTML = '';
+
+      const wrapper = mountModal();
+
+      expect(document.querySelector('body > .rc-modal-overlay .rc-modal')).toBeTruthy();
+
+      wrapper.unmount();
+    });
+
+    it('should use the modals container once it is there, even if it arrived after the consumer mounted', async() => {
+      document.body.innerHTML = '';
+
+      const wrapper = mountModal({ props: { show: false } });
+
+      document.body.insertAdjacentHTML('beforeend', '<div id="modals"></div>');
+      await wrapper.setProps({ show: true });
+
+      expect(dialog()).toBeTruthy();
+
+      wrapper.unmount();
+    });
+  });
+
+  describe('scrolling body', () => {
+    it('should keep a body that fits out of the tab order, so short modals gain no empty stop', () => {
+      const wrapper = mountModal({ slots: { default: '<p>Short.</p>' } });
+
+      expect(modalBody().getAttribute('tabindex')).toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should make the body a tab stop while it scrolls, so its content is reachable by keyboard', async() => {
+      const wrapper = mountModal({ slots: { default: '<p>Tall.</p>' } });
+
+      setBodyOverflow(900, 300);
+      await nextTick();
+
+      expect(modalBody().getAttribute('tabindex')).toStrictEqual('0');
+
+      wrapper.unmount();
+    });
+
+    it('should take the body back out of the tab order when it stops scrolling', async() => {
+      const wrapper = mountModal({ slots: { default: '<p>Tall.</p>' } });
+
+      setBodyOverflow(900, 300);
+      await nextTick();
+      setBodyOverflow(300, 300);
+      await nextTick();
+
+      expect(modalBody().getAttribute('tabindex')).toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should stop watching the body once the modal is gone', () => {
+      const wrapper = mountModal();
+
+      expect(resizeObservers).toHaveLength(1);
+
+      wrapper.unmount();
+
+      expect(resizeObservers[0].disconnect).toHaveBeenCalledWith();
     });
   });
 
