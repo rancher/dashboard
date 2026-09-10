@@ -31,6 +31,7 @@ import {
   stringifyValue,
   termsToServerFilters,
   isCoreField,
+  serverPathFor,
 } from '@shell/utils/table-views';
 
 // Default group-by in the case the group stored in the preference does not apply
@@ -560,6 +561,24 @@ export default {
       return fieldsFor(this._headers, this.filteredRows, (key) => this.t(key));
     },
 
+    /**
+     * Fields offered in the group by menu.
+     *
+     * Grouping is really a sort, so server side it only works for fields the pagination api can
+     * sort on. Offering the rest would silently group just the rows on the current page.
+     */
+    viewGroupFields() {
+      if (!this.serverSideTableViews) {
+        return this.viewFields;
+      }
+    
+      return this.viewFields.filter((field) => {
+        const path = serverPathFor(field);
+    
+        return typeof path === 'string' && stevePaginationUtils.isValidPaginationField(this.schema, path);
+      });
+    },
+
     viewTerms() {
       return parseQuery(this.view.query, this.viewFields);
     },
@@ -621,6 +640,20 @@ export default {
       }
 
       return findField(this.viewFields, this.view.groupBy) || null;
+    },
+
+    /**
+     * The field path behind the view's group by.
+     *
+     * `computedGroupBy` is a function so it can render label values, and a function cannot
+     * contribute to the sort - which is why grouping only rearranged the rows already on the
+     * page. Handing the path over as `groupSort` puts it back into the sort, so the server
+     * returns rows grouped across every page.
+     */
+    viewGroupSort() {
+      const path = this.viewGroupField ? serverPathFor(this.viewGroupField) : null;
+    
+      return typeof path === 'string' ? path : null;
     },
 
     /**
@@ -957,6 +990,7 @@ export default {
     :loading="loading"
     :alt-loading="altLoading"
     :group-by="computedGroupBy"
+    :group-sort="viewGroupSort"
     :group="group"
     :group-options="_groupOptions"
     :search="showTableViews ? false : search"
@@ -995,6 +1029,7 @@ export default {
         part="tabs"
         :view="view"
         :fields="viewFields"
+        :group-fields="viewGroupFields"
         :rows="filteredRows"
         :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"
@@ -1030,6 +1065,7 @@ export default {
         part="controls"
         :view="view"
         :fields="viewFields"
+        :group-fields="viewGroupFields"
         :rows="filteredRows"
         :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"

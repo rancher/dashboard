@@ -1,6 +1,7 @@
 import {
   applyQuery, decodeView, encodeView, fieldsFor, parseQuery, rowsToCsv, valuesInUse,
-  isCoreField, CORE_FIELD_IDS
+  isCoreField, CORE_FIELD_IDS,
+  serverPathFor
 } from '@shell/utils/table-views';
 
 const HEADERS = [
@@ -160,5 +161,31 @@ describe('core columns', () => {
     [undefined, false],
   ])('isCoreField(%s) is %s', (id, expected) => {
     expect(isCoreField(id as string)).toStrictEqual(expected);
+  });
+});
+
+describe('serverPathFor', () => {
+  it('uses a label key for label fields', () => {
+    expect(serverPathFor({
+      id: 'label:app', label: 'app', isLabel: true, labelKey: 'app'
+    })).toStrictEqual('metadata.labels[app]');
+  });
+
+  it('prefers the header search path', () => {
+    expect(serverPathFor({
+      id: 'name', label: 'Name', isLabel: false, header: { search: 'metadata.name', sort: 'nameSort' }
+    })).toStrictEqual('metadata.name');
+  });
+
+  it('drops a direction suffix when falling back to sort', () => {
+    expect(serverPathFor({
+      id: 'age', label: 'Age', isLabel: false, header: { sort: 'metadata.creationTimestamp:desc' }
+    })).toStrictEqual('metadata.creationTimestamp');
+  });
+
+  it('has no path for a field whose header offers none', () => {
+    expect(serverPathFor({
+      id: 'restarts', label: 'Restarts', isLabel: false, header: { name: 'restarts' }
+    })).toBeNull();
   });
 });

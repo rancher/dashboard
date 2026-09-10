@@ -40,6 +40,15 @@ export default {
     },
 
     /**
+     * Fields offered in the group by menu. Grouping is a sort, so this can be narrower than
+     * `fields` - server side only indexed fields can be grouped on. Defaults to all fields.
+     */
+    groupFields: {
+      type:    Array,
+      default: null
+    },
+
+    /**
      * All rows, before the view query is applied. Used for value autocomplete
      */
     rows: {
@@ -131,7 +140,7 @@ export default {
 
     groupOptions() {
       return [{ id: null, label: this.t('tableViews.group.none') }].concat(
-        this.fields.map((f) => ({
+        (this.groupFields || this.fields).map((f) => ({
           id:    f.id,
           label: f.isLabel ? `${ LABEL_FIELD_PREFIX }${ f.label }` : f.label
         }))
