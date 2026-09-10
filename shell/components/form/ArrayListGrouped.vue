@@ -10,7 +10,7 @@ export default {
   components: {
     ArrayList, InfoBox, RcSection, RcSectionActions
   },
-  props:      {
+  props: {
     /**
      * Allow to remove items by value or computation
      */

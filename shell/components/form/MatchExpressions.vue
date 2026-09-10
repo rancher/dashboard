@@ -11,8 +11,10 @@ import { RcButton } from '@components/RcButton';
 export default {
   emits: ['update:value', 'add', 'remove'],
 
-  components: { Select, LabeledSelect, RcButton },
-  props:      {
+  components: {
+    Select, LabeledSelect, RcButton
+  },
+  props: {
     // Array of actual match expressions
     // or k8s selector Object of {matchExpressions, matchLabels}
     value: {
