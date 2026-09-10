@@ -307,7 +307,6 @@ export default {
 
 .monospace {
   white-space: pre-wrap;
-  word-wrap: break-all
 }
 
 .more-characters {

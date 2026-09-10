@@ -253,7 +253,6 @@ export default {
           line-height: 12px;
           text-align: center;
           display: block;
-          white-space: no-wrap;
           text-overflow: ellipsis;
           // Override default form label properties
           color: var(--card-badge-text);
