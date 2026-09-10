@@ -313,7 +313,7 @@ nav:
     allClusters: All clusters
     matches: Matches
     managementCluster: Management cluster
-    noMatch: No clusters found matching your criteria
+    noMatch: No matching clusters
     noClusters: No clusters to show.
     loadError: Could not load your clusters. Close and reopen to try again.
     aria:
@@ -328,7 +328,7 @@ nav:
           one {1 cluster}
           other {# clusters}
         }
-      noResults: No clusters match your search
+      noResults: No matching clusters
       notReady: not ready
       pinned: pinned
       pinnedCluster: '{cluster} pinned'
