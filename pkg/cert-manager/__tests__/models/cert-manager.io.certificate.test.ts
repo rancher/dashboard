@@ -467,8 +467,8 @@ describe('model: cert-manager.io.certificate', () => {
     });
 
     it('should still match on ownerReferences when the annotation is absent', () => {
-      // Steve does not always include ownerReferences in list responses, hence the annotation
-      // first - but resources created by older cert-manager versions only have the owner ref.
+      // A CertificateRequest carries the certificate-name annotation, hence annotation first,
+      // but Orders and Challenges are linked only through ownerReferences.
       const mine = { metadata: { namespace: 'default', ownerReferences: [{ uid: 'cert-uid' }] } };
 
       expect(certificate({}, {}, { rows: [mine] }).certificateRequests).toStrictEqual([mine]);

@@ -96,7 +96,8 @@ export default class CertificateRequest extends SteveModel {
   }
 
   get ownerCertificateName(): string | undefined {
-    // Annotation first: Steve does not always include ownerReferences in list responses.
+    // A CertificateRequest carries the certificate-name annotation, so prefer it and
+    // fall back to ownerReferences.
     return certificateNameOf(this);
   }
 

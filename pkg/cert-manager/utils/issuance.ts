@@ -1,7 +1,8 @@
 /**
- * cert-manager stamps every resource it creates on a certificate's behalf with the name of that
- * certificate, so the issuance chain can be reassembled without relying on `ownerReferences`
- * (which Steve does not always include in list responses).
+ * cert-manager links the resources it creates back to a Certificate in two ways. A
+ * CertificateRequest carries the `cert-manager.io/certificate-name` annotation, while Orders and
+ * Challenges have no such annotation and are linked only through `ownerReferences`. We match on the
+ * annotation where it exists and fall back to `ownerReferences` otherwise.
  * https://cert-manager.io/docs/reference/api-docs/
  */
 export const CERTIFICATE_NAME_ANNOTATION = 'cert-manager.io/certificate-name';
