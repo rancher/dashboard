@@ -8,7 +8,7 @@ with the Cypress implementation in
 and records which Rancher versions each case runs on.
 
 - **Workflow:** [`.github/workflows/extension-compatibility-test.yml`](../workflows/extension-compatibility-test.yml)
-- **Test extension:** `aalves08/elemental-ui` @ `compatibility-tests-version` (developer-loaded)
+- **Test extension:** `rancher/elemental-ui` @ `compatibility-tests-version` (developer-loaded)
 - **Versions under test:** 2.10, 2.11, 2.12, 2.13, 2.14, `latest` (head = 2.15)
 
 Every PDF case maps 1:1 to a spec test. The spec groups tests by extension-point family

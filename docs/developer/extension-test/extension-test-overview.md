@@ -10,7 +10,7 @@ operate it. For the exact per-test-case mapping see the
 - **Workflow:** [`.github/workflows/extension-compatibility-test.yml`](../../../.github/workflows/extension-compatibility-test.yml)
 - **Spec:** [`cypress/e2e/tests/pages/extensions/extension-compatibility.spec.ts`](../../../cypress/e2e/tests/pages/extensions/extension-compatibility.spec.ts)
 - **k3s launcher:** [`scripts/e2e-extension-k3s-start.sh`](../../../scripts/e2e-extension-k3s-start.sh)
-- **Test extension:** `aalves08/elemental-ui` @ `compatibility-tests-version` (developer-loaded)
+- **Test extension:** `rancher/elemental-ui` @ `compatibility-tests-version` (developer-loaded)
 
 ## Purpose
 
@@ -100,7 +100,7 @@ Defined in the workflow's `on:` block:
 | Input | Default | Effect |
 |---|---|---|
 | `rancher_version` | `""` (all) | Test a single row only, e.g. `v2.14-head`. Empty = full matrix. |
-| `extension_repo` | `aalves08/elemental-ui.git` | Override the test extension repo. |
+| `extension_repo` | `rancher/elemental-ui.git` | Override the test extension repo. |
 | `extension_branch` | `compatibility-tests-version` | Override the extension branch/tag. |
 
 When `rancher_version` is set, non-matching rows short-circuit at the first step ("Skip
