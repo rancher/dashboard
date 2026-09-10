@@ -13,6 +13,8 @@ import { _VIEW } from '@shell/config/query-params';
 
 defineOptions({ inheritAttrs: false });
 
+type TransformFile = (contents: string) => string;
+
 const props = withDefaults(defineProps<{
   value?: string;
   label?: string;
@@ -37,7 +39,7 @@ const props = withDefaults(defineProps<{
   /** Test id for the "Read from File" button. */
   fileSelectorTestid?: string;
   /** Applied to file contents before they land in the field, e.g. to base64-encode them. */
-  transformFile?: (contents: string) => string;
+  transformFile?: TransformFile;
 }>(), {
   value:              '',
   label:              undefined,
