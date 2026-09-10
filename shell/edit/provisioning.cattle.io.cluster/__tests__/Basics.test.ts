@@ -1,6 +1,7 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
+import Ingress from '@shell/edit/provisioning.cattle.io.cluster/ingress/index.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 // import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { RKE2_INGRESS_NGINX, RKE2_TRAEFIK } from '@shell/edit/provisioning.cattle.io.cluster/shared';
@@ -443,29 +444,23 @@ describe('component: Basics', () => {
     });
   });
 
-  describe('kubernetesVersionOptions', () => {
-    const versionOptionsWithV136 = [
-      {
-        id: 'v1.37.0+rke2r1', value: 'v1.37.0+rke2r1', label: 'v1.37.0+rke2r1', serverArgs: mockServerArgs
-      },
-      {
-        id: 'v1.36.0+rke2r1', value: 'v1.36.0+rke2r1', label: 'v1.36.0+rke2r1', serverArgs: mockServerArgs
-      },
-      {
-        id: 'v1.35.0+rke2r1', value: 'v1.35.0+rke2r1', label: 'v1.35.0+rke2r1', serverArgs: mockServerArgs
-      },
-      { kind: 'group', label: 'RKE2' }
-    ];
+  describe('ingress', () => {
+    function mountBasics(ingressController: string | string[], kubernetesVersion = 'v1.35.0+rke2r1') {
+      const versionOptions = [
+        {
+          id: kubernetesVersion, value: kubernetesVersion, label: kubernetesVersion, serverArgs: mockServerArgs
+        },
+        { kind: 'group', label: 'RKE2' }
+      ];
 
-    function mountBasics(ingressController: string | string[], versionOptions = versionOptionsWithV136) {
       return mount(Basics, {
         props: {
           mode:  'create',
           value: {
             spec: {
               ...defaultSpec,
-              rkeConfig:         { ...defaultSpec.rkeConfig, machineGlobalConfig: { cni: 'calico', 'ingress-controller': ingressController } },
-              kubernetesVersion: 'v1.35.0+rke2r1'
+              rkeConfig: { ...defaultSpec.rkeConfig, machineGlobalConfig: { cni: 'calico', 'ingress-controller': ingressController } },
+              kubernetesVersion
             },
             agentConfig: { 'cloud-provider-name': '' },
           },
@@ -503,29 +498,12 @@ describe('component: Basics', () => {
       });
     }
 
-    // eslint-disable-next-line jest/no-hooks
-    afterEach(() => {
-      mockGetVersionData.mockReturnValue({ RancherPrime: 'false' });
-    });
+    it('forwards the selected kubernetes version to the Ingress component', () => {
+      const wrapper = mountBasics('traefik', 'v1.37.0+rke2r1');
+      const ingress = wrapper.findComponent(Ingress);
 
-    it('does not disable any versions or show a restriction banner when a prime instance is using traefik ingress', () => {
-      mockGetVersionData.mockReturnValue({ RancherPrime: 'true' });
-
-      const wrapper = mountBasics('traefik');
-      const options = (wrapper.vm as unknown as any).kubernetesVersionOptions;
-
-      expect(options.every((o: any) => !o.disabled)).toBe(true);
-      expect(wrapper.find('[data-testid="clusterBasics__ingressVersionRestrictedBanner"]').exists()).toBe(false);
-    });
-
-    it('does not disable any versions or show a restriction banner when a non-prime instance is using nginx ingress', () => {
-      mockGetVersionData.mockReturnValue({ RancherPrime: 'false' });
-
-      const wrapper = mountBasics('ingress-nginx');
-      const options = (wrapper.vm as unknown as any).kubernetesVersionOptions;
-
-      expect(options.every((o: any) => !o.disabled)).toBe(true);
-      expect(wrapper.find('[data-testid="clusterBasics__ingressVersionRestrictedBanner"]').exists()).toBe(false);
+      expect(ingress.exists()).toBe(true);
+      expect(ingress.props('kubernetesVersion')).toBe('v1.37.0+rke2r1');
     });
   });
 });
