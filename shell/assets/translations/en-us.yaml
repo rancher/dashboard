@@ -315,7 +315,7 @@ nav:
     managementCluster: Management cluster
     noMatch: No matching clusters
     noClusters: No clusters to show.
-    loadError: Could not load your clusters. Close and reopen to try again.
+    loadError: Could not load your clusters. Close and try again.
     aria:
       # Accessible name for the search box. It has no visible label — only the "Jump to..." placeholder —
       # so the name has to LEAD with those words: a speech-input user says what they can see
