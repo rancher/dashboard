@@ -12,7 +12,7 @@ import {
 export default {
   name: 'TableViewQueryInput',
 
-  emits: ['update:value'],
+  emits: ['update:value', 'request-values'],
 
   props: {
     value: {
@@ -31,6 +31,15 @@ export default {
     /**
      * The rows to read the "values in use" from
      */
+    /**
+     * fieldId -> values in use, fetched from the api by the owning table. When a field has no
+     * entry here yet we fall back to the values on the current page.
+     */
+    fieldValues: {
+      type:    Object,
+      default: () => ({})
+    },
+
     rows: {
       type:    Array,
       default: () => []
@@ -96,7 +105,11 @@ export default {
       const needle = typed.toLowerCase();
 
       if (field) {
-        return valuesInUse(this.rows, field)
+        const fetched = this.fieldValues[field.id];
+        // Values from the api cover every row; the page scan is only a fallback while they load
+        const available = fetched?.length ? fetched : valuesInUse(this.rows, field);
+
+        return available
           .filter((entry) => entry.value.toLowerCase().includes(needle))
           .map((entry) => ({
             key:    `${ field.id }:${ entry.value }`,
@@ -123,6 +136,16 @@ export default {
   },
 
   watch: {
+    /**
+     * Once the user has picked a property, ask the owning table to fetch the values actually in
+     * use for it - the page we can see is rarely the whole story.
+     */
+    'parsedToken.field'(field) {
+      if (field?.id && !this.fieldValues[field.id]) {
+        this.$emit('request-values', field.id);
+      }
+    },
+
     suggestions() {
       this.activeIndex = 0;
     }

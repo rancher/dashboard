@@ -16,7 +16,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 export default {
   name: 'TableViewsBar',
 
-  emits: ['update:view', 'export', 'update:viewMode'],
+  emits: ['update:view', 'export', 'update:viewMode', 'request-values'],
 
   components: {
     TableViewQueryInput, ButtonGroup, Checkbox
@@ -46,6 +46,15 @@ export default {
     groupFields: {
       type:    Array,
       default: null
+    },
+
+    /**
+     * fieldId -> values in use, fetched from the api. Falls back to scanning `rows` when a field
+     * has nothing here yet.
+     */
+    fieldValues: {
+      type:    Object,
+      default: () => ({})
     },
 
     /**
@@ -567,7 +576,9 @@ export default {
         :fields="fields"
         :rows="rows"
         :match-count="matchCount"
+        :field-values="fieldValues"
         @update:value="update({ query: $event })"
+        @request-values="$emit('request-values', $event)"
       />
 
       <!-- Single "View" popup — a compact list; Columns / Group by each open their OWN nested

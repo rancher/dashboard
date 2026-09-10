@@ -32,6 +32,7 @@ import {
   termsToServerFilters,
   isCoreField,
   serverPathFor,
+  summaryToValues,
 } from '@shell/utils/table-views';
 
 // Default group-by in the case the group stored in the preference does not apply
@@ -264,6 +265,8 @@ export default {
 
     return {
       inStore,
+      /** fieldId -> values in use, fetched from the api by fetchFieldValues */
+      fieldValues: {},
       view: {
         query:        shared?.query || '',
         columns:      shared?.columns || null,
@@ -876,6 +879,40 @@ export default {
   },
 
   methods: {
+    /**
+     * Fetch the values in use for a field, so the query input can suggest real values rather
+     * than only those on the page in front of us.
+     *
+     * Steve can summarise a column for us, which counts every row of the type without returning
+     * any, so this stays cheap on a big cluster.
+     */
+    async fetchFieldValues(fieldId) {
+      if (!this.serverSideTableViews || this.fieldValues[fieldId] !== undefined) {
+        return;
+      }
+    
+      const field = findField(this.viewFields, fieldId);
+      const path = field ? serverPathFor(field) : null;
+    
+      if (typeof path !== 'string' || !stevePaginationUtils.isValidPaginationField(this.schema, path)) {
+        return;
+      }
+    
+      // Claim the slot up front so a second keystroke doesn't ask for the same field again
+      this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
+    
+      try {
+        const base = this.$store.getters[`${ this.inStore }/urlFor`](this.schema.id);
+        const url = `${ base }&summary=${ encodeURIComponent(path) }&summaryonly`;
+        const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
+    
+        this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res) };
+      } catch (e) {
+        // Not fatal - the input falls back to the values on the current page
+        this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
+      }
+    },
+
     keyAction(action) {
       const table = this.$refs.table;
 
@@ -1030,12 +1067,14 @@ export default {
         :view="view"
         :fields="viewFields"
         :group-fields="viewGroupFields"
+        :field-values="fieldValues"
         :rows="filteredRows"
         :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"
         :view-mode="group"
         :view-mode-options="showGrouping ? _groupOptions : []"
         @update:view="view = $event"
+        @request-values="fetchFieldValues"
         @update:view-mode="group = $event"
         @export="handleExport"
       />
@@ -1066,12 +1105,14 @@ export default {
         :view="view"
         :fields="viewFields"
         :group-fields="viewGroupFields"
+        :field-values="fieldValues"
         :rows="filteredRows"
         :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"
         :view-mode="group"
         :view-mode-options="showGrouping ? _groupOptions : []"
         @update:view="view = $event"
+        @request-values="fetchFieldValues"
         @update:view-mode="group = $event"
         @export="handleExport"
       />

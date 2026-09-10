@@ -660,6 +660,22 @@ export interface ValueSuggestion {
  * This is what powers the GitHub style "start typing a field and see the values that
  * exist in the data" autocomplete.
  */
+/**
+ * Turn a steve `summary=<field>&summaryonly` response into value suggestions.
+ *
+ * The summary counts every row the type has, not just the page in front of us, so the values it
+ * gives back are the real set in use. Most used first, so the suggestions are worth reading.
+ */
+export function summaryToValues(response: any, max = 50): ValueSuggestion[] {
+  const counts = response?.summary?.[0]?.counts || {};
+
+  return Object.keys(counts)
+    .map((value) => ({ value, count: counts[value]?.total ?? 0 }))
+    .filter((entry) => !!entry.value)
+    .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value))
+    .slice(0, max);
+}
+
 export function valuesInUse(rows: any[], field: ViewField, max = 25): ValueSuggestion[] {
   const counts: Record<string, number> = {};
 
