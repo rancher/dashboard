@@ -5,7 +5,7 @@ import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher';
 import IconOrSvg from '../IconOrSvg';
 import { mapGetters } from 'vuex';
 import { CAPI, COUNT, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
-import { PINNED_CLUSTERS, RECENT_CLUSTERS, SWITCHER_MAX_RECENT } from '@shell/store/prefs';
+import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
@@ -57,6 +57,8 @@ export default {
     const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
 
     if (!canPagination || !sideNavServiceInitialized) {
+      // Reduce the impact of the initial load, or properly initialised
+      // Doing this here means we don't need an 'immediate' on the watches below
       const args = {
         pinnedIds:  this.$store.getters['prefs/get'](PINNED_CLUSTERS),
         recentIds:  this.$store.getters['prefs/get'](RECENT_CLUSTERS),
@@ -92,8 +94,6 @@ export default {
       helper,
       debouncedHelperUpdateSlow:  debounce((...args) => this.helper.update(...args), 1000),
       debouncedHelperUpdateQuick: debounce((...args) => this.helper.update(...args), 200),
-      // The ALL list is unwatched + page-increment: reset to page 1 on the open/search triggers, debounced
-      // so search typing doesn't spam requests.
       debouncedResetOthers:       debounce(() => this.resetOthersList(), 200),
       provClusters,
       mgmtClusters,
@@ -111,10 +111,6 @@ export default {
 
     recentIds() {
       return this.$store.getters['prefs/get'](RECENT_CLUSTERS);
-    },
-
-    recentSkeletonCount() {
-      return Math.min((this.recentIds || []).length, SWITCHER_MAX_RECENT);
     },
 
     allClustersCount() {
@@ -149,10 +145,20 @@ export default {
       return !!this.search;
     },
 
+    /**
+     * Only Clusters that are pinned
+     *
+     * (see description of helper.clustersPinned for more details)
+     */
     pinFiltered() {
       return this.hasProvCluster ? this.helper.clustersPinned : [];
     },
 
+    /**
+     * Used to shown unpinned clusters OR results of text search
+     *
+     * (see description of helper.clustersOthers for more details)
+     */
     clustersFiltered() {
       return this.hasProvCluster ? this.helper.clustersOthers : [];
     },
@@ -275,6 +281,7 @@ export default {
         if (this.isRancherInHarvester) {
           return filterApps && opt.category !== 'hci';
         } else {
+          // We expect the location of Virtualization Management to remain the same when rancher-manage-support is not enabled
           return filterApps;
         }
       });
@@ -295,7 +302,9 @@ export default {
     options() {
       const cluster = this.clusterId || this.$store.getters['defaultClusterId'];
 
+      // TODO plugin routes
       const entries = this.$store.getters['type-map/activeProducts']?.map((p) => {
+        // Try product-specific index first
         const to = p.to || {
           name:   `c-cluster-${ p.name }`,
           params: { cluster }
@@ -310,6 +319,8 @@ export default {
 
         let label;
 
+        // Allow product to specify its label (old DSL product() did not have "label" or "labelKey")
+        // new extensions product registration supports both "label" and "labelKey" (with "labelKey" taking precedence if both are provided)
         if (p.labelKey) {
           label = this.$store.getters['i18n/t'](p.labelKey);
         } else if (p.label) {
@@ -354,10 +365,13 @@ export default {
     },
 
     aboutText() {
+      // If a version number (starts with 'v') then use that
       if (this.displayVersion.startsWith('v')) {
+        // Don't show the '.0' for a minor release (e.g. 2.8.0, 2.9.0 etc)
         return !this.displayVersion.endsWith('.0') ? this.displayVersion : this.displayVersion.substr(0, this.displayVersion.length - 2);
       }
 
+      // Default fallback to 'About'
       return this.t('about.title');
     },
 
@@ -368,6 +382,8 @@ export default {
     appBar() {
       let activeFound = false;
 
+      // order is important for the object keys here
+      // since we want to check last pinFiltered and clustersFiltered
       const appBar = {
         hciApps:           this.hciApps,
         multiClusterApps:  this.multiClusterApps,
@@ -421,10 +437,19 @@ export default {
     }
   },
 
+  // See https://github.com/rancher/dashboard/issues/12831 for outstanding performance related work
   watch: {
     $route() {
       this.hide();
     },
+
+    // Before SSP world all of these changes were kicked off given Vue change detection to properties in a computed method.
+    // Changes could come from two scenarios
+    // 1. Changes made by the user (pin / search). Could be tens per second
+    // 2. Changes made by rancher to clusters (state, label, etc change). Could be hundreds a second
+    // They can be restricted to help the churn caused from above
+    // 1. When SSP enabled reduce http spam
+    // 2. When SSP is disabled (legacy) reduce fn churn (this was a known performance customer issue)
 
     // The shelf is DERIVED from these prefs, so it re-materializes on its own when a pref changes, and
     // the row transitions ride on that. These watchers only refresh the context fetch/watch so a
@@ -454,10 +479,6 @@ export default {
     },
 
     search() {
-      // Search term changed → reset the ALL list to page 1 with the new term (debounced so typing
-      // doesn't spam requests). The context fetch is an id-IN query over local/pinned/recent that
-      // ignores the term, so re-running it per keystroke would just re-issue an identical request —
-      // only the legacy helper needs it, because its `update` recomputes the in-memory ALL list.
       if (!this.canPagination) {
         this.updateClusters(this.pinnedIds, 'quick');
       }
@@ -467,9 +488,11 @@ export default {
     provClusters: {
       handler(neu, old) {
         if (this.canPagination) {
+          // Shouldn't be doing this at all if pagination is on (updates handled by  TopLevelMenu pagination wrapper)
           return;
         }
 
+        // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
         this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
       },
       deep: true,
@@ -478,9 +501,11 @@ export default {
     mgmtClusters: {
       handler(neu, old) {
         if (this.canPagination) {
+          // Shouldn't be doing this at all if pagination is on (updates handled by  TopLevelMenu pagination wrapper)
           return;
         }
 
+        // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
         this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
       },
       deep: true,
@@ -519,10 +544,12 @@ export default {
 
   methods: {
     checkActiveRoute(obj, isClusterRoute) {
+      // for Cluster links in main nav: check if route is a cluster explorer one + check if route cluster matches cluster obj id + check if curr product matches route product
       if (isClusterRoute) {
         return this.isCurrRouteClusterExplorer && this.$route?.params?.cluster === obj?.id && this.productFromRoute === this.currentProduct?.name;
       }
 
+      // for remaining main nav items, check if curr product matches route product is enough
       return this.productFromRoute === obj?.value;
     },
 
@@ -563,10 +590,6 @@ export default {
     },
 
     onSwitcherSearch(term) {
-      // Show the skeleton from the keystroke, not from the request: the reset is debounced, and clearing
-      // the box refetches the whole directory, so both would otherwise sit on stale rows and then swap.
-      // Only when the term the pipeline sees actually changes, though: `search` is lowercased, so a
-      // case-only edit never reaches the watcher that would lower the skeleton again.
       if ((term || '').toLowerCase() !== this.search) {
         this.listLoading = true;
       }
@@ -580,6 +603,13 @@ export default {
       }
     },
 
+    /**
+     * Cmd (Mac) / Ctrl (Windows/Linux) + J toggles the cluster-switcher flyout — mirroring the Cmd/Ctrl+K
+     * resource search nav (see NavActionBar).
+     *
+     * Bound with `.anywhere` because the flyout puts the caret in its own search box, and the directive's
+     * avoid list would otherwise leave the shortcut able to open the flyout but not close it.
+     */
     onSwitcherHotkey() {
       this.$refs.switcher?.toggle();
     },
@@ -621,6 +651,13 @@ export default {
       }
     },
 
+    /**
+     * Press on a shelf row: arm a possible drag-reorder. Nothing is taken here — a press is far more often
+     * the start of a click that navigates — so the row is only picked up once the pointer has actually
+     * travelled `DRAG_THRESHOLD` pixels with it held.
+     *
+     * The pin toggle is its own control inside the row, so a press that starts on it is left alone.
+     */
     onRowDragStart(event, cluster) {
       if (event.button !== 0 || event.target.closest?.('.pin')) {
         return;
@@ -667,6 +704,14 @@ export default {
       this.dragOrder = order;
     },
 
+    /**
+     * Scroll the shelf while a row is held near either end of it, so a row can be dragged to a place that
+     * is not on screen — otherwise the reach of a drag is however much of the list happens to be visible,
+     * and a long shelf can only ever be rearranged within one screenful.
+     *
+     * A frame loop rather than a mousemove handler: the pointer sits still in the band while the list
+     * moves past it, which produces no mouse events at all.
+     */
     startDragScroll() {
       if (!this.dragScrollFrame) {
         this.dragScrollFrame = requestAnimationFrame(this.dragScrollStep);
@@ -708,6 +753,10 @@ export default {
       this.dragScrollFrame = requestAnimationFrame(this.dragScrollStep);
     },
 
+    /**
+     * Take the row: lift it, and freeze the slots the shelf's rows sit in. Reached by moving far enough
+     * with the row held, and harmless to call again once the row is already held.
+     */
     beginRowDrag() {
       if (this.dragMoved || !this.dragFrom) {
         return;
@@ -744,6 +793,11 @@ export default {
       });
     },
 
+    /**
+     * Which slot the pointer is in — the same measurement expanded or collapsed, since the shelf is a
+     * plain vertical list in both. Past either end it clamps, so dragging beyond the last row parks the
+     * row at the end rather than abandoning the move.
+     */
     rowIndexAt(clientY) {
       const slots = this.dragSlots || [];
       const scroller = this.$refs.clusterList;
@@ -835,9 +889,6 @@ export default {
 
     resetOthersList() {
       const requestedTerm = this.search;
-      // The term alone cannot tell a superseded request from the live one when BOTH were issued for the
-      // same term — reopening the flyout fires one directly while the close's debounced reset is still
-      // pending — so each reset carries its own token and only the newest one may report.
       const requestId = ++this.othersRequestId;
 
       this.listLoading = true;
@@ -906,6 +957,15 @@ export default {
       }
     },
 
+    /**
+     * Cmd/Ctrl+J hint on the switcher trigger. Shown in BOTH nav states, but anchored to a different
+     * element in each so it never covers what it describes: beside the chip on the collapsed rail, and
+     * off the end of the row when expanded — the trigger button spans the full 300px, so anchoring the
+     * expanded one to it puts the tooltip past the row rather than on top of the "Cluster Switch" label,
+     * and hovering anywhere on the row still raises it. Same `showWhenClosed` convention as
+     * getTooltipConfig. Suppressed while the flyout is open — nav tooltips layer above it, so it would
+     * otherwise sit on the cluster list.
+     */
     switcherTooltip(showWhenClosed = false) {
       const rightState = showWhenClosed ? !this.shown : this.shown;
 
@@ -920,6 +980,14 @@ export default {
       };
     },
 
+    /**
+     * Hover copy for a PINNED shelf row, which is the one kind of row that can be dragged — so the tooltip
+     * is where that is said. Shown in BOTH nav states, unlike `getTooltipConfig`: the expanded row already
+     * shows the name, but not that the row can be reordered, which nothing else on screen says.
+     *
+     * A row that cannot be explored says why, so "nothing happens when I click it" has an answer in the
+     * same place as the invitation to drag it.
+     */
     getPinnedTooltip(cluster, showWhenClosed = false) {
       const rightState = showWhenClosed ? !this.shown : this.shown;
 
@@ -953,9 +1021,12 @@ export default {
       let content;
       let popperClass = 'nav-tooltip';
 
+      // this is the normal tooltip scenario where we are just passing a string
       if (typeof item === 'string') {
         contentText = item;
         content = this.shown ? null : contentText;
+
+      // if key combo is pressed, then we update the tooltip as well
       } else if (this.routeComboActive &&
         typeof item === 'object' &&
         !Array.isArray(item) &&
@@ -968,8 +1039,11 @@ export default {
         } else {
           content = this.shown ? contentText : null;
         }
+
+      // this is scenario where we show a tooltip when we are on the expanded menu to show full description
       } else {
         contentText = item.label;
+        // this adds a class to the tooltip container so that we can control the max width
         popperClass = 'nav-tooltip menu-description-tooltip';
 
         if (item.description) {
@@ -1008,6 +1082,8 @@ export default {
         }
       } catch (err) {
         if (this.canPagination) {
+          // Double bubble up errors here, errors are tracked further down
+          // Note that this won't pick up async errors, further tweaks are required for that
         } else {
           throw err;
         }
@@ -1124,7 +1200,6 @@ export default {
                   :local="localCluster"
                   :recent="railRecent"
                   :recent-loading="recentLoading"
-                  :recent-count="recentSkeletonCount"
                   :search-results="clustersFiltered"
                   :cluster-count="browsableClusterCount"
                   :search-count="switcherSearchCount"
@@ -1588,9 +1663,6 @@ export default {
   $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
 
-  // On the row's own control, not the wrapper: the button and the disabled span both set a cursor of
-  // their own, and the child wins. A row that cannot be explored keeps its `not-allowed` — dragging it is
-  // allowed, but saying "grab" over the one thing that is refused would be the more confusing of the two.
   .shelf-rows .cluster.selector:not(.disabled) {
     cursor: grab;
   }
@@ -1806,6 +1878,7 @@ export default {
       width: $app-bar-expanded-width;
       box-shadow: 3px 1px 3px var(--shadow);
 
+      // because of accessibility, we force pin action to be visible on menu open
       .pin {
         display: inline-flex !important;
 
