@@ -115,6 +115,8 @@ export default {
   data() {
     return {
       newViewName: '',
+      /** The saved view the current state came from, so we can offer save/discard against it */
+      editingViewId: null,
       copied:      false,
       renameNames: {},
     };
@@ -175,7 +177,21 @@ export default {
       return this.savedViews.find((saved) => this.isSameConfig(saved, this.view))?.id || null;
     },
 
+    /**
+     * The saved view the current state was applied from, if it still exists
+     */
+    editingView() {
+      return this.savedViews.find((v) => v.id === this.editingViewId) || null;
+    },
+
+    /**
+     * Unsaved changes: either edits on top of a saved view, or an unsaved view of one's own
+     */
     isDirty() {
+      if (this.editingView) {
+        return !this.isSameConfig(this.editingView, this.view);
+      }
+
       return !this.activeViewId && this.isModified;
     },
 
@@ -238,12 +254,27 @@ export default {
     },
 
     applyView(saved) {
+      this.editingViewId = saved?.id || null;
+
       this.$emit('update:view', {
         query:        saved?.query || '',
         columns:      saved?.columns || null,
         labelColumns: saved?.labelColumns || [],
         groupBy:      saved?.groupBy || null,
       });
+    },
+
+    /**
+     * Put the view back the way it was - either the saved view being edited, or nothing at all
+     */
+    discardChanges() {
+      this.applyView(this.editingView);
+    },
+
+    saveChanges() {
+      if (this.editingView) {
+        this.updateView(this.editingView);
+      }
     },
 
     persist(views) {
@@ -557,13 +588,6 @@ export default {
         </template>
       </v-dropdown>
 
-      <span
-        v-if="isDirty"
-        class="view-tab dirty"
-        data-testid="table-views-unsaved"
-      >
-        {{ t('tableViews.tabs.unsaved') }}
-      </span>
     </div>
 
     <div
@@ -593,10 +617,39 @@ export default {
           data-testid="table-views-view-menu"
         >
           {{ t('tableViews.view.label') }}
+          <span
+            v-if="isDirty"
+            v-clean-tooltip="t('tableViews.view.unsaved')"
+            class="unsaved-dot"
+            data-testid="table-views-unsaved"
+          />
           <i class="icon icon-chevron-down" />
         </button>
         <template #popper>
           <div class="view-menu view-popup">
+            <template v-if="isDirty">
+              <div class="menu-title">
+                {{ t('tableViews.view.unsaved') }}
+              </div>
+              <button
+                type="button"
+                class="menu-item"
+                data-testid="table-views-discard"
+                @click="discardChanges()"
+              >
+                {{ t('tableViews.view.discard') }}
+              </button>
+              <button
+                v-if="editingView"
+                type="button"
+                class="menu-item"
+                data-testid="table-views-save-changes"
+                @click="saveChanges()"
+              >
+                {{ t('tableViews.view.saveChanges') }}
+              </button>
+              <div class="menu-divider" />
+            </template>
             <template v-if="viewModeOptions.length > 1">
               <div class="view-mode-row">
                 <ButtonGroup
@@ -831,6 +884,20 @@ export default {
       padding: 0 6px;
     }
   }
+}
+
+.unsaved-dot {
+  width: 6px;
+  height: 6px;
+  margin-left: 2px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
+.menu-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border);
 }
 
 .view-menu {
