@@ -6,7 +6,7 @@ import { STORE } from '@shell/store/store-types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
-import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
+import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, isLocalClusterHidden, paginationFilterClusters } from '@shell/utils/cluster';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
 import { sortBy } from '@shell/utils/sort';
 import { reactive } from 'vue';
@@ -149,8 +149,13 @@ export interface TopLevelMenuHelper {
   /** The `local` cluster, fetched by its own request as the fixed top tile (every other slice filters it out). */
   clustersLocal: Array<TopLevelMenuCluster>;
 
-  /** Server-side total for the ALL list; the UI compares loaded length against it to know if more remain. */
-  counts: { others: number };
+  /**
+   * `others` — server-side total for the ALL list; the UI compares loaded length against it to know if more
+   * remain, and it follows the search term.
+   * `browsable` — how many clusters the ALL list holds when nothing is being searched for. Counted WITHOUT
+   * `local` (it has its own fixed tile), so the switcher's chip is this outright.
+   */
+  counts: { others: number, browsable: number };
 
   /** Flip every cached cluster's `pinned` flag from the pinned pref (keeps the pin icon in sync). */
   syncPinnedFlags: (pinnedIds: string[]) => void;
@@ -231,8 +236,7 @@ export abstract class BaseTopLevelMenuHelper {
     });
   }
 
-  // Server-side total for the ALL list; the UI compares loaded length against it to know if more remain.
-  public counts = reactive({ others: 0 });
+  public counts = reactive({ others: 0, browsable: 0 });
 
   constructor({ $store }: {
     $store: VuexStore,
@@ -313,6 +317,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   private othersSeq = 0;
 
   private clusterCount = 0;
+  private countHidesLocal: boolean | null = null;
 
   constructor({ $store }: {
       $store: VuexStore,
@@ -629,43 +634,57 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }
 
   /**
-   * Update the SHARED saved cluster count — the home page and the Cluster Management nav badge read it as
-   * well as the switcher, so it counts what those surfaces list: everything the user can see, `local`
-   * included, minus whatever the environment hides (Harvester, and `local` itself when hide-local is on).
+   * Refresh both cluster totals. They answer different questions and must stay independent — deriving one
+   * from the other is what made the switcher's chip move when `hide-local-cluster` was toggled.
    *
-   * The switcher's own chip wants one fewer, because `local` has its own tile above its list — it takes
-   * that off the shared number rather than narrowing it here, which is what made the home page and the
-   * nav badge under-count by one.
+   * 1. The SHARED saved count, which the home page and the Cluster Management nav badge read as well: it
+   *    counts what THOSE surfaces list — everything the user can see, `local` included, minus whatever the
+   *    environment hides (Harvester, and `local` itself when hide-local is on).
+   * 2. The switcher's own `counts.browsable`: the same query with `local` ALWAYS excluded, because the
+   *    flyout's list never carries it (it has its own fixed tile above). Excluding it unconditionally is
+   *    what makes this total the chip's number outright, and immune to the hide-local setting.
    */
   public async updateCount(count: number) {
-    if (count === this.clusterCount) {
+    // `hide-local-cluster` is one of the shared count's filters, so flipping it changes that answer even
+    // when the number of clusters has not moved — both belong in the guard.
+    const hidesLocal = isLocalClusterHidden(this.$store);
+
+    if (count === this.clusterCount && hidesLocal === this.countHidesLocal) {
       return;
     }
 
     this.clusterCount = count;
+    this.countHidesLocal = hidesLocal;
+
+    const countPage = (filters: PaginationParam[], saveCountAs?: string): ActionFindPageArgs => ({
+      pagination: {
+        filters,
+        page:                 1,
+        pageSize:             1,
+        sort:                 [],
+        projectsOrNamespaces: [],
+      },
+      transient: true,
+      saveCountAs,
+    });
 
     try {
       // No early return on an empty filter set: a count saved while the filters were NOT empty stays
       // behind and outlives the change, so consumers keep reading a filtered total for an unfiltered
-      // estate. The page-size-1 request below refreshes it either way.
-      const commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
+      // estate. The page-size-1 requests below refresh it either way.
+      const [, browsable] = await Promise.all([
+        this.$store.dispatch('management/findPage', {
+          type: MANAGEMENT.CLUSTER,
+          opt:  countPage(paginationFilterClusters({ getters: this.$store.getters }), SAVED_COUNTS.K8S_CLUSTERS)
+        }),
+        this.$store.dispatch('management/findPage', {
+          type: MANAGEMENT.CLUSTER,
+          opt:  countPage(this.constructParams({ excludeLocal: true }))
+        }),
+      ]);
 
-      const args:ActionFindPageArgs = {
-        pagination: {
-          filters:              commonClusterFilters,
-          page:                 1,
-          pageSize:             1,
-          sort:                 [],
-          projectsOrNamespaces: [],
-        },
-        transient:   true,
-        saveCountAs: SAVED_COUNTS.K8S_CLUSTERS
-      };
-
-      await this.$store.dispatch('management/findPage', {
-        type: MANAGEMENT.CLUSTER,
-        opt:  args
-      });
+      // Kept off the saved-count namespace on purpose: it is the switcher's number, not a shared one.
+      this.counts.browsable = browsable?.pagination?.result?.count ?? this.counts.browsable;
     } catch (err) {
       console.warn('Unable to set saved count for clusters', err); // eslint-disable-line no-console
     }
@@ -720,6 +739,9 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     // down — so while searching it is a candidate like any other cluster (mirrors the SSP helper).
     this.othersFull = this.clustersFiltered(args.searchTerm ? clusters : nonLocal, args);
     this.counts.others = this.othersFull.length;
+    // The switcher's chip, exactly — no request and no arithmetic, since the whole estate is already in
+    // memory here. Taken from `nonLocal` rather than `others` so a search cannot move it.
+    this.counts.browsable = nonLocal.length;
 
     this.applyOthers();
   }
@@ -799,7 +821,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     return sortBy(filtered, ['ready:desc', 'label']);
   }
 
-  /** No-op: the legacy helper holds the whole estate in memory, so there is no saved count to maintain. */
+  /** No-op: the whole estate is in memory, so both totals are counted in `update()` instead of fetched. */
   public async updateCount() {}
 }
 

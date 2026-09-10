@@ -2,6 +2,7 @@ import TopLevelMenuHelperService, { TopLevelMenuHelperLegacy, TopLevelMenuHelper
 import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
 import { RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
+import { filterHiddenLocalCluster, isLocalClusterHidden } from '@shell/utils/cluster';
 
 // Mock dependencies
 jest.mock('@shell/utils/pagination-wrapper');
@@ -9,6 +10,7 @@ jest.mock('@shell/utils/cluster', () => ({
   filterHiddenLocalCluster:     jest.fn((clusters) => clusters),
   filterOnlyKubernetesClusters: jest.fn((clusters) => clusters),
   paginationFilterClusters:     jest.fn(() => []),
+  isLocalClusterHidden:         jest.fn(() => false),
 }));
 
 describe('topLevelMenu.helper', () => {
@@ -18,6 +20,8 @@ describe('topLevelMenu.helper', () => {
   let prefsData: Record<string, any>;
 
   beforeEach(() => {
+    (isLocalClusterHidden as jest.Mock).mockReturnValue(false);
+    (filterHiddenLocalCluster as jest.Mock).mockImplementation((clusters) => clusters);
     prefsData = { 'pinned-clusters': [], 'recent-clusters': [] };
     mockStore = {
       getters: {
@@ -47,6 +51,54 @@ describe('topLevelMenu.helper', () => {
       mockStore.getters['management/schemaFor'].mockReturnValue(false);
       new TopLevelMenuHelperLegacy({ $store: mockStore });
       expect(mockStore.dispatch).not.toHaveBeenCalled();
+    });
+
+    // `local` is not in the flyout's list either way — it has its own fixed tile, or hide-local-cluster has
+    // removed it outright — so the switcher's total reads the same with the setting on. Deriving it from a
+    // count that still held `local` while the shelf slice it subtracted had already lost it gained one.
+    it('counts the same browsable total whether or not hide-local-cluster is on', async() => {
+      mockStore.getters['management/schemaFor'].mockReturnValue(true);
+
+      const mgmtClusters = [
+        {
+          id: 'c1', nameDisplay: 'Cluster 1', isReady: true, pin: jest.fn(), unpin: jest.fn()
+        },
+        {
+          id: 'local', nameDisplay: 'Local', isReady: true, isLocal: true, pin: jest.fn(), unpin: jest.fn()
+        },
+      ];
+
+      mockStore.getters['management/all'].mockImplementation((type: string) => {
+        if (type === MANAGEMENT.CLUSTER) {
+          return mgmtClusters;
+        }
+        if (type === CAPI.RANCHER_CLUSTER) {
+          return [{ mgmt: { id: 'c1' } }, { mgmt: { id: 'local' } }];
+        }
+
+        return [];
+      });
+
+      const stateWithHideLocal = async(hideLocal: boolean) => {
+        (filterHiddenLocalCluster as jest.Mock).mockImplementation((clusters: any[]) => (hideLocal ? clusters.filter((c) => !c.isLocal) : clusters));
+
+        const helper = new TopLevelMenuHelperLegacy({ $store: mockStore });
+
+        await helper.update({ searchTerm: '', pinnedIds: [] });
+
+        return { browsable: helper.counts.browsable, localSlice: helper.clustersLocal.length };
+      };
+
+      const shown = await stateWithHideLocal(false);
+      const hidden = await stateWithHideLocal(true);
+
+      expect(shown.browsable).toBe(1);
+      expect(hidden.browsable).toBe(1);
+
+      // And here is the trap the old derivation fell into: the shelf's `local` slice DOES move with the
+      // setting, so a chip that subtracted `local` on the strength of it counted one cluster too many.
+      expect(shown.localSlice).toBe(1);
+      expect(hidden.localSlice).toBe(0);
     });
 
     it('should filter and sort clusters correctly in update', async() => {
@@ -410,6 +462,10 @@ describe('topLevelMenu.helper', () => {
       expect(helper.clustersRecent).toHaveLength(0);
     });
 
+    const countRequests = () => mockStore.dispatch.mock.calls
+      .filter((c: any[]) => c[0] === 'management/findPage')
+      .map((c: any[]) => c[1].opt);
+
     // The saved count is SHARED with the home page and the Cluster Management nav badge, which list
     // `local` too — so it counts what the environment actually shows and nothing more. It is refreshed
     // even with nothing being filtered out: a count saved while the filters were NOT empty would
@@ -422,10 +478,49 @@ describe('topLevelMenu.helper', () => {
       // paginationFilterClusters is mocked to [] — nothing to exclude.
       await helper.updateCount(7);
 
-      const [, payload] = mockStore.dispatch.mock.calls.find((c: any[]) => c[0] === 'management/findPage') || [];
+      const shared = countRequests().find((opt: any) => opt.saveCountAs === SAVED_COUNTS.K8S_CLUSTERS);
 
-      expect(payload?.opt?.saveCountAs).toBe(SAVED_COUNTS.K8S_CLUSTERS);
-      expect(payload?.opt?.pagination?.filters).toStrictEqual([]);
+      expect(shared?.pagination?.filters).toStrictEqual([]);
+    });
+
+    // The switcher's own total is counted by a SEPARATE query that always excludes `local`, because the
+    // flyout's list never carries it. Deriving it from the shared count instead meant subtracting `local`
+    // on a guess, and `hide-local-cluster` moved the chip by one.
+    it('counts the switcher browsable total with its own query, always excluding local', async() => {
+      mockStore.getters['management/schemaFor'].mockReturnValue(true);
+
+      const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+      mockStore.dispatch.mockResolvedValue({ data: [], pagination: { result: { count: 22 } } });
+
+      await helper.updateCount(23);
+
+      const own = countRequests().filter((opt: any) => !opt.saveCountAs);
+
+      expect(own).toHaveLength(1);
+      // paginationFilterClusters is mocked to [], so the local exclusion is the only filter left standing.
+      expect(own[0].pagination.filters).toHaveLength(1);
+      expect(helper.counts.browsable).toBe(22);
+    });
+
+    // `hide-local-cluster` is one of the shared count's filters, so flipping it changes that answer while
+    // leaving the number of clusters alone. Guarding on the number only left the shared count behind for
+    // the home page and the Cluster Management badge.
+    it('re-fetches when hide-local-cluster flips, on an unchanged cluster count', async() => {
+      mockStore.getters['management/schemaFor'].mockReturnValue(true);
+
+      const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+      await helper.updateCount(7);
+      expect(countRequests()).toHaveLength(2);
+
+      // Same count, same setting — nothing to do.
+      await helper.updateCount(7);
+      expect(countRequests()).toHaveLength(2);
+
+      (isLocalClusterHidden as jest.Mock).mockReturnValue(true);
+      await helper.updateCount(7);
+      expect(countRequests()).toHaveLength(4);
     });
 
     it('rewinds the ALL-list page counter when a page fetch fails, so the next scroll re-requests it', async() => {

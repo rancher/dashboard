@@ -6,6 +6,7 @@ import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
 import { mount, Wrapper } from '@vue/test-utils';
 import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
+import { SETTING } from '@shell/config/settings';
 import { defineComponent, nextTick } from 'vue';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { isMac } from '@shell/utils/platform';
@@ -650,60 +651,46 @@ describe('topLevelMenu', () => {
     });
   });
 
-  // The chip counts what its own list holds. The count it reads is SHARED with the home page and the
-  // Cluster Management nav badge, which list `local` too — so the switcher takes `local` off here rather
-  // than narrowing the count for all three, which had those two under-counting by one.
+  // The chip is the helper's own browsable total, counted WITHOUT `local` whatever the environment does
+  // with it. Deriving it from the count the home page and the Cluster Management badge share meant
+  // subtracting `local` on a guess, and `hide-local-cluster` moved the chip by one.
   describe('computed: browsableClusterCount', () => {
-    const count = (ctx: any) => (TopLevelMenu as any).computed.browsableClusterCount.call({
-      $store: {
-        getters: {
-          'management/getSavedCount': () => ctx.saved,
-          'management/all':           () => [{ counts: { 'management.cattle.io.cluster': { summary: { count: ctx.raw } } } }],
-        }
-      },
-      helper: { clustersLocal: ctx.localVisible ? [{ id: 'local' }] : [] },
+    const count = (browsable: any) => (TopLevelMenu as any).computed.browsableClusterCount.call({ helper: { counts: { others: 99, browsable } } });
+
+    it('reports the helper browsable total as-is', () => {
+      expect(count(22)).toBe(22);
     });
 
-    it('drops local from the shared saved count', () => {
-      expect(count({
-        saved: 23, raw: 25, localVisible: true
-      })).toBe(22);
-    });
-
-    // Hide-local is already out of both the count and the list, so there is nothing to subtract.
-    it('subtracts nothing when local is not shown', () => {
-      expect(count({
-        saved: 22, raw: 25, localVisible: false
-      })).toBe(22);
-    });
-
-    // No saved count (nothing filtered out, or the query has not resolved): the raw summary stands in.
-    it('falls back to the raw summary', () => {
-      expect(count({
-        saved: undefined, raw: 23, localVisible: true
-      })).toBe(22);
+    it('reads zero until the helper has a total', () => {
+      expect(count(0)).toBe(0);
+      expect(count(undefined)).toBe(0);
     });
   });
 
   describe('the cluster-switcher trigger', () => {
-    const mountWithClusters = () => mount(TopLevelMenu, {
-      global: {
-        mocks: {
-          $route: {},
-          $store: {
-            ...generateStore([
-              {
-                id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
-              },
-              {
-                id: 'local', mgmt: { id: 'local' }, nameDisplay: 'local', canExplore: true, isLocal: true
-              },
-            ])
-          },
-        },
-        stubs: ['BrandImage', 'router-link'],
+    const twoClusters = [
+      {
+        id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
       },
-    });
+      {
+        id: 'local', mgmt: { id: 'local' }, nameDisplay: 'local', canExplore: true, isLocal: true
+      },
+    ];
+
+    const mountWithClusters = (hideLocal = false) => {
+      const store = generateStore(twoClusters);
+
+      if (hideLocal) {
+        store.getters['management/byId'] = jest.fn((type: string, id: string) => (type === MANAGEMENT.SETTING && id === SETTING.HIDE_LOCAL_CLUSTER ? { value: 'true' } : undefined));
+      }
+
+      return mount(TopLevelMenu, {
+        global: {
+          mocks: { $route: {}, $store: { ...store } },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+    };
 
     it('shows the estate count over the word it counts, with the label and the chevron', async() => {
       const wrapper = mountWithClusters();
@@ -719,6 +706,15 @@ describe('topLevelMenu', () => {
       // The chevron trails the label — it is NOT inside the count chip any more.
       expect(trigger.find('.cluster-all-badge .cluster-all-chevron').exists()).toBe(false);
       expect(trigger.find('.cluster-all-chevron').exists()).toBe(true);
+    });
+
+    it('still reads the setting, and renders a chip, with hide-local-cluster on', async() => {
+      const wrapper = mountWithClusters(true);
+
+      await waitForIt();
+
+      expect((wrapper.vm as any).hideLocalCluster).toBe(true);
+      expect(wrapper.find('[data-testid="cluster-switcher-trigger"] .cluster-all-count').text()).toStrictEqual('1');
     });
 
     it('leaves no search box, ALL CLUSTERS list or CLUSTERS title behind in the nav', async() => {

@@ -4,7 +4,8 @@ import ClusterIconMenu from '@shell/components/ClusterIconMenu';
 import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher';
 import IconOrSvg from '../IconOrSvg';
 import { mapGetters } from 'vuex';
-import { CAPI, COUNT, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
+import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
+import { isLocalClusterHidden } from '@shell/utils/cluster';
 import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 import { sortBy } from '@shell/utils/sort';
@@ -239,12 +240,12 @@ export default {
       return this.helper.counts?.others || 0;
     },
 
+    // How many clusters the ALL CLUSTERS list holds — the chip's number and the caption's. The helper counts
+    // this for the switcher alone, always without `local` (which has its own fixed tile above the list), so
+    // it is the total outright: nothing to subtract, and `hide-local-cluster` cannot move it. Deriving it
+    // from the count the home page and the Cluster Management badge share is what made it wobble by one.
     browsableClusterCount() {
-      const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
-      const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
-      const total = typeof savedCount === 'number' ? savedCount : (counts[MANAGEMENT.CLUSTER]?.summary?.count || 0);
-
-      return Math.max(0, total - (this.helper.clustersLocal.length ? 1 : 0));
+      return this.helper.counts?.browsable || 0;
     },
 
     // The flyout's shortcut in the two forms it needs. `switcherShortcutLabel` is what a user reads in
@@ -424,10 +425,7 @@ export default {
     },
 
     hideLocalCluster() {
-      const hideLocalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
-      const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
-
-      return value === 'true';
+      return isLocalClusterHidden(this.$store);
     },
 
     clusterCountsFromCounts() {
@@ -513,6 +511,9 @@ export default {
 
     hideLocalCluster() {
       this.updateClusters(this.pinnedIds, 'slow');
+      // The setting is one of the SHARED count's filters, so that count is now wrong for the home page and
+      // the Cluster Management badge even though no cluster has come or gone.
+      this.helper.updateCount(this.clusterCountsFromCounts);
     },
 
     clusterCountsFromCounts: {
