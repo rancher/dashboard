@@ -102,16 +102,17 @@ keeps modals looking like each other.
 | `medium` | 640px | The default. Short forms. |
 | `large` | 960px | Long forms, tables, side-by-side content. |
 
-The size is the width of the modal, padding included, so two modals
-of the same size line up whatever they contain. A modal that genuinely needs a
-width outside the three can override the custom property from its own class, so
-no prop is needed for it:
+The size is the width of the modal, padding included, so two modals of the same
+size line up whatever they contain.
 
-```scss
-.my-modal {
-  --rc-modal-width: 820px;
-}
-```
+The widths are in pixels rather than `rem` because a rem buys nothing here: the
+shell pins the root font size to 14px, so a rem is a fixed 14px and tracks
+nothing the user has set. Browser zoom, which is what actually scales a modal,
+scales pixels as it is.
+
+Three sizes is the whole of it. A layout that will not sit in any of them is a
+layout to take back to design, rather than a width to invent from the modal's
+own class.
 
 <Canvas of={RcModalStories.Confirmation} />
 
@@ -129,6 +130,10 @@ The modal never grows past the viewport, less the 40px of breathing room around
 it. Past that only the body scrolls: the title and the actions stay in view, so
 the primary action is never below the fold and the user can always see what the
 dialog is asking.
+
+While it is scrolling, the body is a tab stop, so the content is reachable with
+the arrow keys and not by mouse alone. It leaves the tab order again as soon as
+the content fits, so a short modal gains no empty stop.
 
 <Canvas of={RcModalStories.TallContent} />
 
@@ -148,9 +153,15 @@ still what names the dialog for assistive technology, via `aria-labelledby`.
 - Focus is trapped inside the modal while it is open and returned to whatever
   opened it when it closes. A modal holding nothing focusable takes focus on the
   dialog itself.
-- The trap holds until the modal is gone. `Esc` and a click outside are handled
-  by the modal, so a modal with `click-to-close` false keeps focus rather than
-  letting the user out of the trap while it is still on screen.
+- The trap holds until the modal is gone. `Esc` is handled by the modal rather
+  than by the trap, so focus never leaves a modal that is still on screen.
+- `Esc` always emits `close`, whatever `click-to-close` says, so no modal is a
+  keyboard trap. A modal can be built from the `actions` slot with no cancel
+  button in it, and a keyboard user still needs a way out of that one. Refusing
+  the close stays the consumer's call, made in the `close` handler where the
+  same refusal already covers the cancel button.
+- A scrolling body is a tab stop, so content that only a mouse could reach is
+  reachable by keyboard.
 
 ## Owning the show prop
 

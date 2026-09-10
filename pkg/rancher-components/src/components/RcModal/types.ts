@@ -28,12 +28,22 @@ export interface RcModalProps {
   size?: RcModalSize;
 
   /**
-   * When false, neither clicking the background nor pressing `Esc` emits
-   * `close`. Use for modals whose work must not be abandoned half-done.
+   * When false, clicking the background does not emit `close`. Use for modals
+   * whose work must not be abandoned by a stray click. `Esc` closes either way,
+   * so the modal is never a keyboard trap.
    */
   clickToClose?: boolean;
 }
 
+/**
+ * The width of each size, in pixels, as the design system specs them.
+ *
+ * Not `rem`: the shell pins the root font size (`HTML, BODY { font-size: 14px }`
+ * in `shell/assets/styles/base/_typography.scss`), so a rem in dashboard is a
+ * fixed 14px and tracks nothing the user has set. It would buy no scaling here,
+ * and it would put these three off the spec, at 34.29rem, 45.71rem and 68.57rem.
+ * Browser zoom, which is what actually scales a modal, scales px as it is.
+ */
 export const RC_MODAL_WIDTHS: Record<RcModalSize, number> = {
   small:  480,
   medium: 640,
