@@ -167,6 +167,7 @@ export default defineComponent({
 
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
+      :external-pagination-args="pagination"
 
       @pagination-changed="paginationChanged"
       @view-filters-changed="setTableViewFilters"

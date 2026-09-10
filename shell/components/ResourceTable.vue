@@ -38,6 +38,12 @@ import {
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
 
+/**
+ * Most rows an "all matching" export will fetch. A filter can match an entire cluster's worth of
+ * resources, and neither the browser nor the api wants that in one go
+ */
+const EXPORT_ROW_LIMIT = 10000;
+
 export const defaultTableSortGenerationFn = (schema, $store) => {
   if ( !schema ) {
     return null;
@@ -243,6 +249,15 @@ export default {
     overrideInStore: {
       type:    String,
       default: undefined,
+    },
+
+    /**
+     * The pagination args the owning list is currently using, filters and all. Needed to export
+     * every matching row rather than just the page on screen.
+     */
+    externalPaginationArgs: {
+      type:    Object,
+      default: null
     },
 
     /**
@@ -991,7 +1006,39 @@ export default {
      * Selection and page come from the table itself, everything else is what the view's
      * query has left us with.
      */
-    handleExport({ format, scope }) {
+    /**
+     * Every row the current filter matches, not just the page on screen.
+     *
+     * Re-runs the list's own request with a big page size and `transient`, which fetches without
+     * writing to the store, so the table the user is looking at is left alone.
+     */
+    async allMatchingRows() {
+      if (!this.externalPaginationEnabled || !this.externalPaginationArgs || !this.schema) {
+        return this.viewRows;
+      }
+
+      try {
+        const res = await this.$store.dispatch(`${ this.inStore }/findPage`, {
+          type: this.schema.id,
+          opt:  {
+            transient:  true,
+            watch:      false,
+            pagination: {
+              ...this.externalPaginationArgs,
+              page:     1,
+              pageSize: EXPORT_ROW_LIMIT,
+            },
+          }
+        });
+
+        return res?.data || this.viewRows;
+      } catch (e) {
+        // Fall back to what is on screen rather than exporting nothing
+        return this.viewRows;
+      }
+    },
+
+    async handleExport({ format, scope }) {
       const table = this.$refs.table;
       let rows;
 
@@ -1000,7 +1047,7 @@ export default {
       } else if (scope === 'page') {
         rows = table?.pagedRows || [];
       } else {
-        rows = this.viewRows;
+        rows = await this.allMatchingRows();
       }
 
       if (!rows.length) {
