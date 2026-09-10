@@ -9,7 +9,7 @@ import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
-import { isMac, KEY } from '@shell/utils/platform';
+import { isMac, KEY, shortcutLabel } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
@@ -309,7 +309,7 @@ export default {
     // the tooltip; `switcherKeyShortcut` is the spelled-out form `aria-keyshortcuts` expects, because
     // "⌘J" does not read out sensibly.
     switcherShortcutLabel() {
-      return isMac ? '⌘J' : 'Ctrl+J';
+      return shortcutLabel(isMac ? ['⌘', 'J'] : ['Ctrl', 'J']);
     },
 
     // Cmd+J on a Mac, Ctrl+J elsewhere.

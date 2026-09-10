@@ -10,7 +10,7 @@ import {
   POD, SERVICE, CONFIG_MAP, NODE, WORKLOAD_TYPES
 } from '@shell/config/types';
 import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
-import { isMac } from '@shell/utils/platform';
+import { isMac, shortcutLabel } from '@shell/utils/platform';
 import { compareDisjointMatches, disjointMatch, type DisjointMatch } from '@shell/utils/fuzzy';
 
 /**
@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
 });
 
 const shortcutKeys = { windows: ['ctrl', 'k'], mac: ['meta', 'k'] };
-const shortcutLabel = isMac ? '⌘K' : 'Ctrl+K';
+const shortcutHint = shortcutLabel(isMac ? ['⌘', 'K'] : ['Ctrl', 'K']);
 
 /**
  * The route a node navigates to: its own, or (for a group) the first descendant
@@ -454,7 +454,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
         :aria-activedescendant="open && results.length ? optionId(activeIndex) : undefined"
         :aria-label="t('nav.jumpTo.ariaLabel')"
         :placeholder="t('nav.jumpTo.placeholder')"
-        :title="t('nav.jumpTo.tooltip', { shortcut: shortcutLabel })"
+        :title="t('nav.jumpTo.tooltip', { shortcut: shortcutHint })"
         @mousedown="onMousedown"
         @focus="onFocus"
         @input="onInput"

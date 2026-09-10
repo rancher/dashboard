@@ -27,7 +27,12 @@ jest.mock('@shell/utils/router', () => ({
   filterLocationValidParams: (_router: any, route: any) => route,
   isNavItemActive:           (_router: any, _to: any, navItem: any) => !!activeNavItem && navItem?.name === activeNavItem,
 }));
-jest.mock('@shell/utils/platform', () => ({ isMac: false }));
+// Only the platform flag is faked; the shortcut formatter is real, so the label the tests see is the one
+// a user would read.
+jest.mock('@shell/utils/platform', () => ({
+  ...jest.requireActual('@shell/utils/platform'),
+  isMac: false,
+}));
 
 // jsdom has no layout and no `scrollIntoView`, so the list never really scrolls.
 // What these tests can check is which option was asked to come into view.

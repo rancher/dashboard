@@ -1109,7 +1109,9 @@ describe('topLevelMenu', () => {
     it('renders the shortcut for the current platform', () => {
       const vm = mountNav().vm as any;
 
-      expect(vm.switcherShortcutLabel).toStrictEqual(isMac ? '\u2318J' : 'Ctrl+J');
+      // Hyphenated for reading — `\u2318J` arrives as one unfamiliar word.
+      expect(vm.switcherShortcutLabel).toStrictEqual(isMac ? '\u2318-J' : 'Ctrl-J');
+      // NOT hyphenated: `aria-keyshortcuts` is defined to take this form, and is parsed rather than read.
       expect(vm.switcherKeyShortcut).toStrictEqual(isMac ? 'Meta+J' : 'Control+J');
     });
   });

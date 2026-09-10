@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import { isReactive, markRaw } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
+import { isMac } from '@shell/utils/platform';
 
 describe('component: Header', () => {
   const defaultStoreMock = {
@@ -317,8 +318,11 @@ describe('component: Header', () => {
       const vm = withCluster(cluster()).vm as any;
 
       expect(vm.pinShortcutKeys).toStrictEqual({ windows: ['alt', 'p'], mac: ['meta', 'shift', 'p'] });
-      // Whichever platform this runs on, the label and the announced name describe the same combo.
-      expect(vm.pinAriaShortcut).toBe(vm.pinShortcutLabel === '⌘⇧P' ? 'Meta+Shift+P' : 'Alt+P');
+      // Whichever platform this runs on, the label and the announced name describe the same combo. Keyed
+      // off the platform rather than off the label's own text: comparing against the label meant a change
+      // to how it is WRITTEN silently sent this assertion down the other platform's branch.
+      expect(vm.pinShortcutLabel).toBe(isMac ? '⌘-Shift-P' : 'Alt-P');
+      expect(vm.pinAriaShortcut).toBe(isMac ? 'Meta+Shift+P' : 'Alt+P');
     });
 
     describe('the pin shortcut', () => {

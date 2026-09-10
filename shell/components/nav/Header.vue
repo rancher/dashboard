@@ -4,7 +4,7 @@ import debounce from 'lodash/debounce';
 import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
-import { isAlternate, isMac } from '@shell/utils/platform';
+import { isAlternate, isMac, shortcutLabel } from '@shell/utils/platform';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct, getVendor } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
@@ -266,7 +266,7 @@ export default {
     },
 
     pinShortcutLabel() {
-      return isMac ? '⌘⇧P' : 'Alt+P';
+      return shortcutLabel(isMac ? ['⌘', 'Shift', 'P'] : ['Alt', 'P']);
     },
 
     // The same shortcut in the form `aria-keyshortcuts` is defined to take.
