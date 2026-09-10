@@ -5561,6 +5561,11 @@ persistentVolume:
 
 persistentVolumeClaim:
   name: Persistent Volume Claim Name
+  detail:
+    pods:
+      label: Mounted Pods
+      caption: "The following Pods mount this PersistentVolumeClaim:"
+      none: Could not find any Pods that mount this PersistentVolumeClaim.
   accessModes: Access Modes
   accessModesOptions:
     singleNodeRW: Single-Node Read/Write
