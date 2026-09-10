@@ -1082,7 +1082,8 @@ export default defineComponent({
               <FileSelector
                 :mode="mode"
                 :label="t('aks.sshPublicKey.readFromFile')"
-                class="role-tertiary mt-10"
+                variant="tertiary"
+                class="mt-10"
                 @selected="e => config.sshPublicKey = e"
               />
             </div>

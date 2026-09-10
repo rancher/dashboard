@@ -199,7 +199,8 @@ export default {
                 :hover-tooltip="true"
               />
               <FileSelector
-                class="role-tertiary add mt-5"
+                variant="tertiary"
+                class="add mt-5"
                 :label="t('generic.readFromFile')"
                 :mode="mode"
                 @selected="model.oauthCredential = $event"
@@ -234,7 +235,8 @@ export default {
                 :hover-tooltip="true"
               />
               <FileSelector
-                class="role-tertiary add mt-5"
+                variant="tertiary"
+                class="add mt-5"
                 :label="t('generic.readFromFile')"
                 :mode="mode"
                 @selected="model.serviceAccountCredential = $event"

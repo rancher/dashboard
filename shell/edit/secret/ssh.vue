@@ -94,7 +94,9 @@ export default {
           :placeholder="t('secret.ssh.publicPlaceholder')"
         />
         <FileSelector
-          class="btn btn-sm bg-primary mt-10"
+          variant="primary"
+          size="small"
+          class="mt-10"
           :label="t('generic.readFromFile')"
           @selected="onUsernameSelected"
         />
@@ -112,7 +114,9 @@ export default {
           :placeholder="t('secret.ssh.privatePlaceholder')"
         />
         <FileSelector
-          class="btn btn-sm bg-primary mt-10"
+          variant="primary"
+          size="small"
+          class="mt-10"
           :label="t('generic.readFromFile')"
           @selected="onPasswordSelected"
         />

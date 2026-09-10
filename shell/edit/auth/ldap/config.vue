@@ -165,7 +165,8 @@ export default {
           :label="t('authConfig.ldap.cert')"
         />
         <FileSelector
-          class="role-tertiary add mt-5"
+          variant="tertiary"
+          class="add mt-5"
           :label="t('generic.readFromFile')"
           :mode="mode"
           @selected="model.certificate = $event"

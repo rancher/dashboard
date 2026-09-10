@@ -446,7 +446,8 @@ export default {
               type="multiline"
             />
             <FileSelector
-              class="role-tertiary add mt-5"
+              variant="tertiary"
+              class="add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
               @selected="model.privateKey = $event"
@@ -461,7 +462,8 @@ export default {
               type="multiline"
             />
             <FileSelector
-              class="role-tertiary add mt-5"
+              variant="tertiary"
+              class="add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
               @selected="model.certificate = $event"

@@ -157,7 +157,9 @@ export default {
         <div class="ca-controls">
           <FileSelector
             v-if="mode!=='view'"
-            class="btn btn-sm role-primary mt-5"
+            variant="primary"
+            size="small"
+            class="mt-5"
             :mode="mode"
             :label="t('generic.readFromFile')"
             @selected="e=> setCA(e)"

@@ -44,6 +44,7 @@ generic:
   download: Download
   enabled: Enabled
   error: Error
+  errorReadingFile: Error reading file
   here: here
   id: ID
   ignored: Ignored
@@ -3010,6 +3011,11 @@ etcdInfoBanner:
   hasLeader: "Etcd has a leader:"
   leaderChanges: "Number of leader changes:"
   failedProposals: "Number of failed proposals:"
+
+fileSelectorTextArea:
+  dropHint: or drop the file over the text area above
+  dropToReplace: Dropping the file here will replace any existing content
+  byteLimitExceeded: '{name} exceeds the file size limit of {byteLimit} bytes'
 
 fleet:
   settings:

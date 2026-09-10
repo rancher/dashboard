@@ -62,7 +62,9 @@ export default {
           />
           <FileSelector
             :mode="mode"
-            class="btn btn-sm bg-primary mt-10"
+            variant="primary"
+            size="small"
+            class="mt-10"
             :label="t('generic.readFromFile')"
             @selected="onCertSelected"
           />

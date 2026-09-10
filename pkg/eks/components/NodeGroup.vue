@@ -971,7 +971,8 @@ export default defineComponent({
         <FileSelector
           :mode="mode"
           :label="t('generic.readFromFile')"
-          class="role-tertiary mt-20"
+          variant="tertiary"
+          class="mt-20"
           @selected="$emit('update:userData', $event)"
         />
       </div>

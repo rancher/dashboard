@@ -433,7 +433,8 @@ export default {
               type="multiline"
             />
             <FileSelector
-              class="role-tertiary add mt-5"
+              variant="tertiary"
+              class="add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
               @selected="onSelected($event, 'spKey')"
@@ -451,7 +452,8 @@ export default {
               type="multiline"
             />
             <FileSelector
-              class="role-tertiary add mt-5"
+              variant="tertiary"
+              class="add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
               @selected="onSelected($event, 'spCert')"
@@ -469,7 +471,8 @@ export default {
               type="multiline"
             />
             <FileSelector
-              class="role-tertiary add mt-5"
+              variant="tertiary"
+              class="add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
               @selected="onSelected($event, 'idpMetadataContent')"

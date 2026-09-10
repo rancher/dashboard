@@ -4,7 +4,7 @@ import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SSHKnownHosts from '@shell/components/form/SSHKnownHosts';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
 import { SECRET_TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
@@ -36,7 +36,7 @@ export default {
     LabeledInput,
     LabeledSelect,
     SSHKnownHosts,
-    FileSelector,
+    FileSelectorTextArea,
   },
 
   props: {
@@ -878,24 +878,18 @@ export default {
           label-key="selectOrCreateAuthSecret.githubApp.installationId"
         />
       </div>
-      <div :class="vertical ? 'mt-20' : 'col span-6 gap'">
-        <LabeledInput
-          v-model:value="githubAppPrivateKey"
-          data-testid="auth-secret-github-app-private-key"
-          :mode="mode"
-          type="multiline"
-          :max-height="1000"
-          :resize-on-value-change-and-resize-window="true"
-          label-key="selectOrCreateAuthSecret.githubApp.privateKey"
-        />
-        <FileSelector
-          :as-rc-button="true"
-          :mode="mode"
-          :label="t('generic.readFromFile')"
-          data-testid="auth-secret-github-app-private-key-file"
-          @selected="githubAppPrivateKey = $event"
-        />
-      </div>
+    </div>
+    <div
+      v-if="selected === GITHUB_APP"
+      class="mt-20"
+    >
+      <FileSelectorTextArea
+        v-model:value="githubAppPrivateKey"
+        data-testid="auth-secret-github-app-private-key"
+        file-selector-testid="auth-secret-github-app-private-key-file"
+        :mode="mode"
+        label-key="selectOrCreateAuthSecret.githubApp.privateKey"
+      />
     </div>
   </div>
 </template>
@@ -903,11 +897,5 @@ export default {
 <style scoped lang="scss">
 .select-or-create-auth-secret div.labeled-select {
   min-height: $input-height;
-}
-
-.gap {
-  display: flex;
-  flex-flow: row wrap;
-  gap: var(--gap);
 }
 </style>

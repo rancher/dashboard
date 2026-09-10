@@ -70,7 +70,9 @@ export default {
       @update:value="$emit('valueChanged', 'authEncodedJson', $event)"
     />
     <FileSelector
-      class="role-primary btn-sm mt-20 mb-20"
+      variant="primary"
+      size="small"
+      class="mt-20 mb-20"
       :label="t('generic.readFromFile')"
       @selected="onFileSelected"
     />
