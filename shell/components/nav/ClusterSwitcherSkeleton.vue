@@ -1,13 +1,6 @@
 <script setup lang="ts">
-/**
- * The switcher flyout's loading state: shimmering placeholders shaped like the rows they stand in for, so
- * a list arriving does not shift the panel under the pointer.
- *
- * One component rather than a copy per section — the flyout shows this while RECENTLY USED is fetched,
- * while a search is in flight, while the estate's first page lands, and while a further page is appended.
- */
+/** The flyout's loading state: placeholders shaped like the rows they stand in for. */
 withDefaults(defineProps<{
-  /** How many placeholder rows to draw — as many as the section usually shows, roughly. */
   rows?: number;
 }>(), { rows: 3 });
 </script>
@@ -24,26 +17,35 @@ withDefaults(defineProps<{
     >
       <div class="skeleton-badge shimmer" />
       <div class="skeleton-lines">
-        <div class="skeleton-line shimmer" />
-        <div class="skeleton-line short shimmer" />
+        <div class="skeleton-line">
+          <span class="skeleton-bar shimmer" />
+        </div>
+        <div class="skeleton-line short">
+          <span class="skeleton-bar shimmer" />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-// Placeholder rows mirroring the real row layout.
 .switcher-loading {
+  // Every figure is the real row's. Anything short of that and the list still shifts as it lands.
   .skeleton-row {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 16px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .skeleton-row:last-child {
+    border-bottom: none;
   }
 
   .skeleton-badge {
     flex: 0 0 auto;
-    width: 40px;
+    width: 42px;
     height: 32px;
     border-radius: var(--border-radius);
   }
@@ -52,19 +54,28 @@ withDefaults(defineProps<{
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
-    // The same 4px the real row puts between its name and meta lines, so the placeholder occupies the
-    // shape it is standing in for.
     gap: 4px;
   }
 
+  // The line box is the text's, so the row measures right; the bar inside stays slimmer so it still reads
+  // as a line rather than a slab.
   .skeleton-line {
-    height: 12px;
+    display: flex;
+    align-items: center;
+    height: 17px;
     width: 55%;
-    border-radius: 4px;
 
     &.short {
+      height: 14px;
       width: 32%;
     }
+  }
+
+  .skeleton-bar {
+    display: block;
+    width: 100%;
+    height: 12px;
+    border-radius: 4px;
   }
 }
 
@@ -89,8 +100,7 @@ withDefaults(defineProps<{
   }
 }
 
-// The placeholder rows say "loading" perfectly well standing still, and unlike the panel's own unroll this
-// animation never ends — so it is the one most worth switching off for a reader who asked for less motion.
+// This one never ends, so it is the most worth switching off.
 @media (prefers-reduced-motion: reduce) {
   .shimmer {
     animation: none;

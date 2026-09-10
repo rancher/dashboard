@@ -172,9 +172,33 @@ describe('component: ClusterSwitcher', () => {
 
     // It is fetched on open rather than kept live, so it shimmers like the estate below instead of popping
     // in beside it.
+    // The section is sized from the visit log before the fetch answers, so the panel opens at roughly the
+    // height it is about to be instead of being shoved taller when the rows land.
+    it('draws one placeholder per remembered cluster', async() => {
+      const wrapper = mountSwitcher({
+        recent: [], recentCount: 4, recentLoading: true
+      });
+
+      expect((wrapper.vm as any).recentSkeletonRows).toBe(4);
+
+      wrapper.unmount();
+    });
+
+    // Standing in for rows that are never coming puts up a heading and placeholders and then takes them
+    // away — the very reflow the skeleton exists to prevent.
+    it('shows nothing at all when the visit log is empty', async() => {
+      const wrapper = mountSwitcher({
+        recent: [], recentCount: 0, recentLoading: true
+      });
+
+      expect((wrapper.vm as any).showRecent).toBe(false);
+
+      wrapper.unmount();
+    });
+
     it('shows the skeleton while it is being fetched', async() => {
       const wrapper = mountSwitcher({
-        local: cluster('local'), recent, all: [cluster('p1')]
+        local: cluster('local'), recent, all: [cluster('p1')], recentCount: recent.length
       });
       const vm = wrapper.vm as any;
 

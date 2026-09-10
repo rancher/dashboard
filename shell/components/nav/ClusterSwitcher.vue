@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * Search-first cluster switcher: a combobox over the fixed `local` tile, RECENTLY USED and the estate.
+ * Data comes from the parent; this owns the panel, the cursor and the keyboard.
+ */
 import {
   computed, nextTick, onBeforeUnmount, ref, watch
 } from 'vue';
@@ -9,48 +13,25 @@ import ClusterSwitcherSkeleton from '@shell/components/nav/ClusterSwitcherSkelet
 import type { TopLevelMenuCluster } from '@shell/components/nav/TopLevelMenu.helper';
 import { reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
 import { isMac } from '@shell/utils/platform';
+import { SWITCHER_MAX_RECENT, SWITCHER_PAGE_SIZE } from '@shell/store/prefs';
 import { SWITCHER_POPPER_CLASS } from '@shell/utils/dom';
 
-/**
- * Search-first cluster-switcher popover for the collapsed app-bar. Data (local / all / searchResults /
- * clusterCount) comes from the parent's sideNavService, keeping this component presentational.
- */
 type Props = {
-  /** The `local` management cluster — a FIXED tile at the top, never in the groups (or null). */
   local?: TopLevelMenuCluster | null;
-  /** The complete browsable estate (helper railAll) — local excluded, shown under ALL CLUSTERS. */
   all?: TopLevelMenuCluster[];
-  /** The last few clusters visited, already capped by the parent. Shown above ALL CLUSTERS and NOT
-   * de-duplicated against it or against `local` — it is a shortcut to where the user just was. */
   recent?: TopLevelMenuCluster[];
-  /** RECENTLY USED is being fetched (it is read on open, not kept live). Shows the same skeleton the list
-   * does, so the section does not pop in beside a shimmering one. */
   recentLoading?: boolean;
-  /** Flat match list while searching — the shared, filtered ALL-list results (helper.clustersOthers). */
   searchResults?: TopLevelMenuCluster[];
-  /** Estate size — the ALL CLUSTERS count, and the total a screen reader is told. */
   clusterCount?: number;
-  /** Total clusters matching the search (from the page-1 response), so MATCHES shows the real total, not
-   * just the loaded page. */
   searchCount?: number;
-  /** Page 1 of the list is in flight — a search, or the whole directory on open / on clearing the box.
-   * Drives the skeleton, so a list about to be replaced is never left sitting there looking current. */
   listLoading?: boolean;
-  /** Page 1 came back an error. The list is empty because the fetch failed, not because it is still on
-   * its way — which the panel has to say out loud rather than shimmer forever. */
   listFailed?: boolean;
-  /** Id of the cluster currently being explored (marked `current`). */
+  recentCount?: number;
   currentClusterId?: string;
-  /** Current search term (v-model:search). */
   search?: string;
-  /** Infinite scroll: whether more rows can be loaded for the currently-shown list. */
   hasMore?: boolean;
-  /** Infinite scroll: a load-more fetch is in flight (drives the skeleton shimmer). */
   loadingMore?: boolean;
-  /** Option/Alt is held on a cluster-explorer route — every row shows the "keep this view" combo arrow. */
   routeCombo?: boolean;
-  /** The nav is expanded (300px) rather than the collapsed rail — the flyout and its scrim shift right so
-   * they clear the wider nav. */
   navExpanded?: boolean;
 }
 
@@ -64,6 +45,7 @@ const props = withDefaults(defineProps<Props>(), {
   searchCount:      0,
   listLoading:      false,
   listFailed:       false,
+  recentCount:      0,
   currentClusterId: '',
   search:           '',
   hasMore:          false,
@@ -96,9 +78,6 @@ const NO_ACTIVE_INDEX = -1;
 
 const open = ref<boolean>(false);
 const activeIndex = ref<number>(NO_ACTIVE_INDEX);
-// Whether the KEYBOARD put the cursor where it is. The highlight is shared with the pointer, so this is
-// what separates "the row Enter will act on" from "the row the mouse is over" — only the first earns a
-// focus ring, and a pointer move takes it away again.
 const keyboardActive = ref<boolean>(false);
 const searchInput = ref<HTMLElement | null>(null);
 const scroller = ref<HTMLElement | null>(null);
@@ -121,7 +100,6 @@ const popperClass = computed(() => [
   closing.value ? 'is-closing' : '',
 ].filter((c) => !!c).join(' '));
 
-// The ALL directory (at rest `local` is the fixed tile above, so it is not listed here as well).
 const directory = computed<TopLevelMenuCluster[]>(() => props.all.filter((c) => !c.isLocal));
 
 // The flat list the ↑↓ cursor and Enter operate over: matches while searching, else the ALL directory.
@@ -133,34 +111,25 @@ const rows = computed<TopLevelMenuCluster[]>(() => {
     return directory.value;
   }
 
-  // `local` is NOT filtered out here: a search hides its fixed tile, and it then has to earn its place
-  // in the results like any other cluster — typing "local" has to be able to find it.
   return props.listLoading ? [] : props.searchResults;
 });
 
-// Page 1 replaces the list wholesale, so while it is IN FLIGHT the skeleton stands in for the rows.
-// Strictly in flight: an empty list is not the same state, and treating it as one meant a page 1 that
-// came back an error was indistinguishable from one still on its way — the panel shimmered for as long
-// as it was open, saying "nearly there" about a request that had already failed.
+const SKELETON_FALLBACK_ROWS = 3;
+const estateSkeletonRows = computed<number>(() => Math.min(props.clusterCount || SKELETON_FALLBACK_ROWS, SWITCHER_PAGE_SIZE));
+const recentSkeletonRows = computed<number>(() => Math.min(props.recentCount, SWITCHER_MAX_RECENT));
+
 const showingSkeleton = computed<boolean>(() => props.listLoading);
 
-// Nothing for `fillViewport` to measure: the rows are not on screen, whether because they are still
-// coming, because they failed to, or because there are none. Topping up here would ask for page 2 of a
-// list whose page 1 never arrived.
+// Nothing for `fillViewport` to measure — topping up here would ask for page 2 of a list whose page 1
+// never arrived.
 const noListOnScreen = computed<boolean>(() => showingSkeleton.value || props.listFailed || !rows.value.length);
 
-// The fixed `local` tile belongs to the resting state only — a search takes it down, and `local` then
-// competes for a place in the results like anything else. Resolved to the cluster (or null) rather than a
-// flag so the template narrows `local` off it: everything below reads this one value.
 const localTile = computed<TopLevelMenuCluster | null>(() => (props.local && !searching.value ? props.local : null));
 
-// RECENTLY USED sits between the tile and the estate, and goes down with the tile while searching: the
-// results ARE the answer to the query, and a shortcut list beside them is just noise to scroll past.
 const recentRows = computed<TopLevelMenuCluster[]>(() => (searching.value || props.recentLoading ? [] : props.recent));
 
-// On screen while it is being fetched too, with the skeleton standing in for its rows, so the panel does
-// not reflow as they land.
-const showRecent = computed<boolean>(() => !searching.value && (props.recentLoading || !!recentRows.value.length));
+const showRecent = computed<boolean>(() => !searching.value &&
+  ((props.recentLoading && recentSkeletonRows.value > 0) || !!recentRows.value.length));
 
 // The combobox owns all three sections for the keyboard: nav runs the fixed tile, then RECENTLY USED,
 // then the list, while each section renders only its own rows — `resultsOffset` keeps the listbox's
@@ -179,16 +148,10 @@ const navRows = computed<TopLevelMenuCluster[]>(() => [
   ...rows.value,
 ]);
 
-// Where the cursor sits when the user has not driven it: on a search, the first match, so Enter opens the
-// best answer to what was typed. At rest, nowhere — an open flyout highlights nothing, and the first ↓
-// picks the top row. A highlight nobody asked for reads as a selection, and Enter would act on it.
 const restingIndex = () => (searching.value && navRows.value.length ? 0 : NO_ACTIVE_INDEX);
 
-// The pin shortcut, in the form `aria-keyshortcuts` is defined to take.
 const pinShortcut = isMac ? 'Meta+Shift+P' : 'Alt+P';
 
-// One fixed placeholder — the flyout is the only place a search lives, and it always searches the whole
-// estate.
 const placeholder = computed(() => t('nav.switcher.jumpTo'));
 
 // Accessibility: the search input is a combobox owning the results listbox; each row is an `option` the
@@ -201,7 +164,6 @@ const optionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-${ c.id }`;
 // Vue duplicate keys.
 const recentOptionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-recent-${ c.id }`;
 
-// The id of the option at a position in the flat nav model, which is what the cursor moves over.
 const optionIdAt = (index: number): string | undefined => {
   const c = navRows.value[index];
 
@@ -214,8 +176,6 @@ const optionIdAt = (index: number): string | undefined => {
   return inRecent ? recentOptionId(c) : optionId(c);
 };
 
-// The reverse — option id back to its position — built once per list rather than per pointer move, which
-// fires at screen rate.
 const indexByOptionId = computed<Record<string, number>>(() => navRows.value.reduce((acc, _c, i) => {
   const id = optionIdAt(i);
 
@@ -242,7 +202,6 @@ const statusMessage = computed(() => {
   if (props.listFailed) {
     return t('nav.switcher.loadError');
   }
-  // Only a SEARCH announces itself as searching; a resting refresh keeps the count it already reported.
   if (props.listLoading && searching.value) {
     return t('nav.switcher.aria.searching');
   }
@@ -254,15 +213,6 @@ const statusMessage = computed(() => {
   return t('nav.switcher.aria.results', { count });
 });
 
-/**
- * The pointer owns the cursor as much as ↑/↓ do: the row under the mouse becomes the highlighted row, so
- * the list shows exactly ONE highlight and arrowing on from a hovered row carries on from where the
- * pointer left it.
- *
- * Driven by `mousemove` rather than `mouseenter`, and delegated at the panel: a move means the pointer
- * really moved, whereas an enter also fires when ↑/↓ scroll a row underneath a stationary mouse — which
- * would drag the cursor back to wherever the mouse happened to be resting.
- */
 const onPointerMove = (e: MouseEvent) => {
   const row = (e.target as HTMLElement)?.closest?.('.cluster-switcher-row');
 
@@ -276,8 +226,6 @@ const onPointerMove = (e: MouseEvent) => {
     return;
   }
 
-  // The pointer is driving now, whether or not it landed on the row the keyboard had: the ring claims the
-  // keyboard put the cursor there, and that has stopped being true either way.
   keyboardActive.value = false;
 
   if (index !== activeIndex.value) {
@@ -286,12 +234,8 @@ const onPointerMove = (e: MouseEvent) => {
   }
 };
 
-// Whether the user has driven the cursor with ↑/↓ since the last search change or open. While they have,
-// only a clamp may move it — the auto-placement below is for a cursor the user hasn't touched.
 const cursorMoved = ref<boolean>(false);
 
-// Reset the cursor to the top on SEARCH change only — not on every `rows` change, or a pin toggle or
-// load-more would yank the highlight to the top. Open resets via setOpen.
 watch(() => props.search, () => {
   activeIndex.value = restingIndex();
   keyboardActive.value = false;
@@ -299,10 +243,6 @@ watch(() => props.search, () => {
   pinAnnouncement.value = '';
 });
 
-// A search's results arrive AFTER the keystroke that asked for them, so the placement above ran against
-// an empty list and left the cursor off-list. Put it on the first match as the rows render. Only while
-// searching — at rest there is deliberately no cursor — and never once the user has moved it themselves,
-// so a later page of results cannot take it off the row they chose.
 watch(() => rows.value.length, (len) => {
   if (len && !cursorMoved.value && searching.value) {
     activeIndex.value = restingIndex();
@@ -318,7 +258,6 @@ watch(() => navRows.value.length, (len) => {
   }
 });
 
-// Where focus was when the flyout opened, so closing can hand it back (the trigger, normally).
 const focusOrigin = ref<HTMLElement | null>(null);
 
 const setOpen = (value: boolean) => {
@@ -346,9 +285,6 @@ const setOpen = (value: boolean) => {
     // Focus happens on the dropdown's `apply-show` (focusSearchInput) — here is too early, the teleported
     // input isn't mounted yet.
   } else if (wasOpen) {
-    // Hand focus back to whatever opened us, so Esc doesn't strand a keyboard user on <body>. Only while
-    // the flyout still owns focus: an outside click has already moved focus to what the user clicked, and
-    // stealing it back would fight them.
     const active = document.activeElement;
 
     if (!active || active === document.body || active.closest('.cluster-switcher-popper')) {
@@ -450,9 +386,6 @@ const onKeyCapture = (e: Event) => {
     e.stopImmediatePropagation();
   };
 
-  // The flyout is registered as a shortcut-silencing container, like a modal, so while it is open the
-  // app's `v-shortkey` bindings stand down — including the one that opened it. It therefore has to own
-  // its own toggle: Cmd/Ctrl+J closes it from here.
   if (key.code === 'KeyJ' && (key.metaKey || key.ctrlKey) && !key.altKey && !key.shiftKey) {
     consume();
 
@@ -463,7 +396,6 @@ const onKeyCapture = (e: Event) => {
     return;
   }
 
-  // The pin shortcut acts on the row under the cursor, wherever focus happens to sit inside the panel.
   if (key.code === 'KeyP' && ((key.metaKey && key.shiftKey) || key.altKey)) {
     consume();
 
@@ -484,8 +416,6 @@ const onKeyCapture = (e: Event) => {
     return;
   }
 
-  // A character typed at the panel belongs in its search box, wherever focus drifted to. Focusing during
-  // the keydown is early enough for the character itself to land in the input.
   if (e.type === 'keydown' && key.key.length === 1 && !key.metaKey && !key.ctrlKey && !key.altKey &&
     document.activeElement !== searchInput.value) {
     searchInput.value?.focus();
@@ -525,18 +455,12 @@ const listenForKeys = (on: boolean) => {
 watch(open, (isOpen) => listenForKeys(isOpen));
 onBeforeUnmount(() => listenForKeys(false));
 
-// A list too short to scroll never fires @scroll, so top up until the rows fill the viewport.
-// `lastFilledCount` guards the case where a top-up brings nothing new (RBAC-filtered rows, a moving
-// count), which would otherwise re-request forever.
 let lastFilledCount = -1;
 
 const fillViewport = () => {
   nextTick(() => {
     const el = scroller.value;
 
-    // The skeleton is shorter than any real page, so measuring it always reads as "not filled" and tops
-    // up a list that is about to be replaced anyway — page 1 lands, this watcher fires, and the rows are
-    // in `props` a tick before they are on screen. Wait for them: the watcher re-runs when it clears.
     if (!open.value || !el || !props.hasMore || props.loadingMore || noListOnScreen.value || rows.value.length === lastFilledCount) {
       return;
     }
@@ -548,15 +472,12 @@ const fillViewport = () => {
   });
 };
 
-// A new search term or a reopen rebuilds the list from page 1, so the same row count can legitimately need
-// topping up again — forget the mark. Declared first so it runs before the watcher below in the same flush.
 watch(() => [props.search, open.value], () => {
   lastFilledCount = -1;
 });
 
 watch(() => [rows.value.length, props.hasMore, props.loadingMore, noListOnScreen.value, open.value], fillViewport);
 
-// Infinite scroll — ask the parent for the next window as the list nears the bottom.
 const onScroll = (e: Event) => {
   if (!props.hasMore || props.loadingMore) {
     return;
@@ -583,7 +504,6 @@ const explore = (cluster?: TopLevelMenuCluster | null) => {
  * scrolls as little as it can, so it does nothing while the option is already on screen.
  */
 const revealActive = () => {
-  // After the render that moved the highlight, so the option to scroll to exists.
   nextTick(() => {
     const id = optionIdAt(activeIndex.value);
 
@@ -598,11 +518,6 @@ const revealActive = () => {
 // nowhere to go, so it cannot walk out from behind the scrim.
 const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/**
- * Keep Tab inside the popover. The flyout is a modal surface — it puts up a full-page scrim — so letting
- * Tab walk out leaves a keyboard user driving content that is behind, and click-blocked by, that scrim.
- * `setOpen` already handles the return trip (focus restore) and Esc; this is the containment half.
- */
 const trapFocus = (e: KeyboardEvent) => {
   const items = Array.from(flyout.value?.querySelectorAll<HTMLElement>(TABBABLE) || []);
 
@@ -643,16 +558,12 @@ const togglePin = (cluster?: TopLevelMenuCluster | null) => {
     return;
   }
 
-  // Read BEFORE the toggle: `cluster.pinned` is still the old state here, so this names the new one.
   const announcement = t(
     cluster.pinned ? 'nav.switcher.aria.unpinnedCluster' : 'nav.switcher.aria.pinnedCluster',
     { cluster: cluster.label }
   );
 
   pinAnnouncement.value = announcement;
-  // Transient: hand the live region back to the result count once this has been read, or every later
-  // announcement on the same query is swallowed (it otherwise only clears on a search change / reopen).
-  // Guarded on identity so a newer pin's message is never cleared by an older pin's timer.
   setTimeout(() => {
     if (pinAnnouncement.value === announcement) {
       pinAnnouncement.value = '';
@@ -675,7 +586,6 @@ const onKeydown = (e: KeyboardEvent) => {
     e.preventDefault();
     cursorMoved.value = true;
     keyboardActive.value = true;
-    // From nothing highlighted, ↑ enters the list at the bottom — ↓ enters it at the top.
     activeIndex.value = activeIndex.value === NO_ACTIVE_INDEX ? navRows.value.length - 1 : Math.max(activeIndex.value - 1, 0);
     revealActive();
     break;
@@ -698,9 +608,6 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 };
 
-// `toggle` and `closeAndWait` are the parent's API (TopLevelMenu drives both via `$refs.switcher`); the
-// rest are exposed for the unit tests, which drive these internals directly. Nothing is listed here that
-// no one outside the component reads.
 defineExpose({
   searching,
   rows,
@@ -828,7 +735,7 @@ defineExpose({
             </div>
             <ClusterSwitcherSkeleton
               v-if="recentLoading"
-              :rows="2"
+              :rows="recentSkeletonRows"
             />
             <div
               v-else
@@ -876,7 +783,7 @@ defineExpose({
                  away, and a list about to be replaced should not sit there looking like the answer. -->
           <ClusterSwitcherSkeleton
             v-if="showingSkeleton"
-            :rows="3"
+            :rows="estateSkeletonRows"
           />
           <!-- Page 1 failed. Said plainly, because the alternative — the skeleton, forever — reads as a
                slow request that is still coming, and the caption above goes on asserting a total for a
@@ -952,8 +859,6 @@ defineExpose({
   // have to move together for the bottom gutter to hold.
   background: var(--topmenu-bg);
   color: var(--body-text);
-  // The panel's own chrome, moved off the popper wrappers so it scales with the roll-out. `overflow`
-  // keeps the rows clipped to the rounded corners now that the radius lives here.
   border: 1px solid var(--border);
   border-radius: var(--border-radius-md);
   // Same shadow floating-vue's dropdown theme would have drawn, moved here so it scales with the panel.
@@ -982,46 +887,33 @@ defineExpose({
       // tint is the one every other input in the product wears, and this box should not be the exception.
       &:focus-visible {
         outline: 2px solid var(--primary-keyboard-focus) !important;
-        // Inset, exactly as the app's own `input:focus-visible` rule draws it: the ring lands ON the
-        // border rather than around it, so the box gains one crisp edge instead of two concentric greens.
         outline-offset: -1px;
       }
     }
   }
 
-  // RECENTLY USED heads the scrolling region, above ALL CLUSTERS. Its last row drops the divider, the
-  // caption below being the separator.
   .switcher-recent {
     .cluster-switcher-row:last-child {
       border-bottom: none;
     }
   }
 
-  // Same box as every scrolling row — ClusterSwitcherRow owns the padding.
   .switcher-local {
-    // No hairline under it: the ALL CLUSTERS caption below already separates the tile from the list, and
-    // the divider's job is to part one row from the next — this tile has no next.
     .cluster-switcher-row {
       border-bottom: none;
     }
   }
 
-  // The panel's own edge closes the list, so the last row's divider would read as a double line.
   .switcher-group .cluster-switcher-row:last-child {
     border-bottom: none;
   }
 
-  // The one scrolling region: everything below the search box, so the tile and the section headings
-  // travel with the rows rather than staying put over them.
   .switcher-scroll {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 
-    // Bottom scroll-edge shadow painting OVER the rows: a sticky pseudo-element (a `background` gradient
-    // would sit behind the opaque badge chips). `margin-top` pulls it back so it adds no scroll height;
-    // `pointer-events: none` keeps rows clickable. A scroll-driven animation fades it at the bottom.
     &::after {
       content: "";
       position: sticky;
@@ -1041,7 +933,6 @@ defineExpose({
     }
   }
 
-  // Scroll-edge shadow fade (see `.switcher-scroll::after`): 0% = top of scroll, 100% = bottom.
   @keyframes switcher-scroll-shadow {
     0%, 88% {
       opacity: 1;
@@ -1051,17 +942,11 @@ defineExpose({
     }
   }
 
-  // Group header (ALL CLUSTERS / MATCHES): a static caption above the search box, matching the expanded
-  // nav's section label.
   .switcher-group-label {
     display: flex;
-    // A fixed 32px band: the caption and its count pill are centred in it rather than pushed around by
-    // line-height, so the text, the pill and the rows below all share one vertical centre line.
     align-items: center;
     height: 32px;
     gap: 6px;
-    // Only the 8px above (separating it from the local tile) is spacing — the height owns the rest, so
-    // the caption sits tight to the list it heads.
     margin-top: 8px;
     padding: 0 16px;
     line-height: 1;
@@ -1071,7 +956,6 @@ defineExpose({
     text-transform: uppercase;
     color: var(--muted);
 
-    // Count badge: a neutral pill (Figma rev 2), shared by ALL CLUSTERS + MATCHES.
     .switcher-group-count {
       display: inline-flex;
       align-items: center;
@@ -1101,11 +985,8 @@ defineExpose({
 </style>
 
 <style lang="scss">
-// Where the flyout starts, and how much room it leaves at the bottom of the viewport.
 $flyout-top: 85px;
 $flyout-gutter: 12px;
-// How far the wipe has to travel to cover the panel. Starting from `100vh` instead spent the first stretch
-// of the animation clipping nothing at all — the panel is this tall, not a viewport tall.
 $flyout-reach: calc(100vh - #{$flyout-top} - #{$flyout-gutter});
 // The close is the quicker of the two: opening is an arrival worth watching, closing is an acknowledgement.
 // `dispose-timeout` on the dropdown has to out-last it, or floating-vue unmounts the panel mid-roll — its
@@ -1136,7 +1017,6 @@ $flyout-close-duration: 0.2s;
   left: calc(#{$app-bar-collapsed-width} + 16px) !important;
   top: $flyout-top !important;
   transform: none !important;
-  // Above the scrim (100) and the lifted rail (101).
   z-index: 102 !important;
 
   // These two wrappers only POSITION the flyout — the visible panel (border, corners, background) is
@@ -1157,21 +1037,10 @@ $flyout-close-duration: 0.2s;
     box-shadow: none;
   }
 
-  // Unroll from the top-left corner the flyout hangs off, alongside the shared popper's own .15s
-  // opacity fade (see _tooltip.scss). A clip wipe rather than a scale, so nothing is distorted on the
-  // way in — the panel is drawn at its final size throughout and simply uncovered.
   .cluster-switcher-flyout {
-    // Both edges are driven off ONE distance, so they advance at exactly the same pixels-per-ms and the
-    // short side lands first by construction — no ratio to tune, and it holds for any panel height.
-    // The resting value has to out-reach the panel: once the animation is over the property falls back to
-    // what is declared here, and anything smaller leaves the clip permanently cutting the bottom off.
-    // The resting value has to out-reach the panel, or the clip permanently cuts its bottom off.
     --unroll: #{$flyout-reach};
     clip-path: inset(0 calc(100% - var(--unroll)) calc(100% - var(--unroll)) 0);
-    // `backwards` pins the first keyframe from the moment the element exists, so the panel can never be
-    // caught at its resting size in the frames before the animation takes hold.
     animation: cluster-switcher-unroll $flyout-open-duration linear backwards;
-    // The same figure the wipe travels, so the two cannot drift apart.
     max-height: $flyout-reach;
   }
 
@@ -1201,8 +1070,6 @@ $flyout-close-duration: 0.2s;
   }
 }
 
-// The unroll distance, as a real length so it interpolates — an unregistered custom property would
-// animate discretely and the panel would jump open instead.
 @property --unroll {
   syntax: '<length>';
   inherits: false;
@@ -1221,11 +1088,6 @@ $flyout-close-duration: 0.2s;
   }
 }
 
-// One distance, both edges: the clip travels the same number of pixels right and down each frame, so
-// the panel shoots out to its full 380px width, is momentarily square, then carries on unrolling to the
-// bottom. `linear` is what holds the two rates equal — easing would bend them apart. The end value has to
-// out-reach the tallest the flyout can get, which is bounded by the viewport; past the panel's own size
-// the clip is simply off the element.
 @keyframes cluster-switcher-unroll {
   from {
     --unroll: 0px;
@@ -1235,7 +1097,6 @@ $flyout-close-duration: 0.2s;
   }
 }
 
-// Motion is decoration here — the flyout is just as usable arriving instantly.
 @media (prefers-reduced-motion: reduce) {
   // Both wipes. The closing one is nested a class deeper than the opening one, so it needs naming here in
   // its own right — matched on specificity, the shorter selector alone left the panel still rolling shut
@@ -1246,12 +1107,10 @@ $flyout-close-duration: 0.2s;
   }
 }
 
-// Expanded nav: the same 16px gap, measured from the wider nav's edge.
 .cluster-switcher-popper.nav-expanded.v-popper__popper {
   left: calc(#{$app-bar-expanded-width} + 16px) !important;
 }
 
-// No connector arrow (the flyout floats free of the rail).
 .cluster-switcher-popper .v-popper__arrow-container {
   display: none;
 }

@@ -13,28 +13,19 @@ import type { TopLevelMenuCluster } from '@shell/components/nav/TopLevelMenu.hel
  * affordance and mutates the pref via the reused `Pinned` control.
  */
 interface Props {
-  /** The cluster this row represents. */
   cluster: TopLevelMenuCluster;
-  /** DOM id — lets the combobox input reference this row via aria-activedescendant. */
   id?: string;
-  /** Keyboard-highlighted row (the ↑↓ cursor). */
   active?: boolean;
-  /** The cursor reached this row by KEYBOARD, so it carries a focus ring as well as the highlight. An
-   * `aria-activedescendant` option never holds DOM focus, so nothing draws that ring for us — and without
-   * it a keyboard user cannot tell what Enter will act on from what the pointer happens to be over. */
+  /** Reached by KEYBOARD, so it carries a focus ring too — an `aria-activedescendant` option never holds
+   * DOM focus, so nothing draws one for us. */
   keyboardActive?: boolean;
-  /** This row is the cluster currently being explored. The panel does not mark it — no fill, and nothing
-   * in the row's text: the one highlight in here belongs to the cursor, and a second mark competes with it
-   * for the same meaning. The nav shelf is where "you are here" is shown. All this drives now is
-   * `aria-current`, which says it to assistive tech without drawing anything. */
+  /** The cluster being explored. Drives `aria-current` only — the panel does not mark it, so the one
+   * highlight in here stays the cursor's. */
   current?: boolean;
-  /** Whether THIS row is the one that carries `aria-current`. The same cluster can be on screen more than
-   * once — the fixed tile, a RECENTLY USED shortcut, its row in the estate — and `aria-current` marks one
-   * thing, so only the first occurrence announces it. */
+  /** Whether this is the occurrence that carries `aria-current` — the same cluster can be on screen up to
+   * three times, and the attribute marks one thing. */
   announceCurrent?: boolean;
-  /** Overrides the derived provider·version meta line (used by the fixed `local` tile). */
   subtitle?: string;
-  /** When false, the pin toggle is hidden (e.g. `local`, which is never pinnable). */
   pinnable?: boolean;
   /** Option/Alt is held on a cluster-explorer route — swap the chip's pin overlay for the combo arrow,
    * the same cue the nav-bar rows show, so the flyout advertises "switch and keep this view" too. */
@@ -144,7 +135,6 @@ function select() {
 </template>
 
 <style lang="scss" scoped>
-// The row's pin toggle: a 22×22 hover square holding an icon that fills with subtle grey on hover.
 @mixin icon-hover-square($icon-size) {
   box-sizing: border-box;
   display: inline-flex;
@@ -171,8 +161,8 @@ function select() {
   display: flex;
   align-items: center;
   gap: 12px;
-  // The 16px padding sets the height; a hairline divides one row from the next. The radius is the resource
-  // finder's, so the keyboard ring rounds off the same way — an `outline` follows its element's corners.
+  // The radius is the resource finder's: an `outline` follows its element's corners, so this is what
+  // rounds the keyboard ring.
   padding: 16px;
   border-radius: var(--border-radius);
   border-bottom: 1px solid var(--border);
@@ -198,17 +188,14 @@ function select() {
   }
 
   .row-badge {
-    // The row has its own pin toggle, so ClusterIconMenu's pin overlay on the chip is redundant here —
-    // hidden via :show-pin="false".
     flex: 0 0 auto;
   }
 
   .row-body {
     flex: 1 1 auto;
     min-width: 0;
-    // A column so the space between the name and its meta line is a gap rather than a margin one of them
-    // carries — the meta is conditional, and a margin would leave the name paying for a line that is not
-    // there.
+    // A gap rather than a margin: the meta is conditional, and a margin would leave the name paying for a
+    // line that is not there.
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -233,8 +220,7 @@ function select() {
     }
   }
 
-  // Matched to the resource finder's own keyboard-focused option, which is the pattern this list should
-  // read like: the highlight says where the cursor is, the ring says the keyboard put it there.
+  // The highlight says where the cursor is; the ring says the keyboard put it there.
   &.keyboard-active {
     @include focus-outline;
 

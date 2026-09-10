@@ -5,7 +5,7 @@ import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher';
 import IconOrSvg from '../IconOrSvg';
 import { mapGetters } from 'vuex';
 import { CAPI, COUNT, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
-import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
+import { PINNED_CLUSTERS, RECENT_CLUSTERS, SWITCHER_MAX_RECENT } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
@@ -22,17 +22,9 @@ import { sameContents } from '@shell/utils/array';
 import { RcSeparator } from '@components/RcSeparator';
 import { commitAndReconcile, reorderPinned, reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
 
-// How far the pointer must travel with a shelf row held before it counts as a drag rather than a click.
-// Travel is the ONLY thing that lifts a row: a press held still, however long, stays a click. Lifting on
-// time as well would make an unhurried click indistinguishable from a drag, and swallow it.
 const DRAG_THRESHOLD = 4;
-// The shelf scrolls when a held row is dragged into this band at either end, so a row can be taken past
-// the rows on screen. The speed ramps across the band — a nudge at its inner edge, `DRAG_SCROLL_MAX` per
-// frame hard against the end — so the list is steerable rather than all-or-nothing.
 const DRAG_SCROLL_EDGE = 32;
 const DRAG_SCROLL_MAX = 14;
-// How far the expanded row's tooltip stands off the cluster name it hangs from, so it clears the pin
-// toggle and the nav's edge rather than covering them.
 const PINNED_TOOLTIP_DISTANCE = 44;
 
 export default {
@@ -65,33 +57,23 @@ export default {
     const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
 
     if (!canPagination || !sideNavServiceInitialized) {
-      // Reduce the impact of the initial load, or properly initialised
-      // Doing this here means we don't need an 'immediate' on the watches below
       const args = {
         pinnedIds:  this.$store.getters['prefs/get'](PINNED_CLUSTERS),
         recentIds:  this.$store.getters['prefs/get'](RECENT_CLUSTERS),
         searchTerm: '',
       };
 
-      // `update` refreshes only the watched context set (local/pinned/recent); the ALL list loads lazily
-      // on the open/scroll triggers, not here.
       helper.update(args);
     }
 
     return {
       shown:             false,
-      // The cluster-switcher flyout is open. Everything the estate offers — search, the ALL CLUSTERS
-      // directory — lives in there; the nav itself only ever shows PINNED + RECENT.
       switcherOpen:      false,
       displayVersion,
       fullVersion,
-      // The flyout's search term. It lives here because the `clustersOthers` pipeline (`search` →
-      // resetOthers) does, but the flyout is its only writer and reader.
       clusterFilter:     '',
       hasProvCluster,
       loadingMoreOthers: false,
-      // Page 1 came back an error rather than a list. Kept apart from `listLoading` because the two say
-      // different things to the user: one is "wait", the other is "this did not work".
       listFailed:        false,
       // Drag-reorder of the pinned shelf. `dragId` is the row being held; `dragOrder` is the ids in the
       // order the shelf is CURRENTLY showing them, which the pointer rewrites as it passes other rows.
@@ -131,6 +113,10 @@ export default {
       return this.$store.getters['prefs/get'](RECENT_CLUSTERS);
     },
 
+    recentSkeletonCount() {
+      return Math.min((this.recentIds || []).length, SWITCHER_MAX_RECENT);
+    },
+
     allClustersCount() {
       const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
       const count = counts[MANAGEMENT.CLUSTER] || {};
@@ -143,9 +129,6 @@ export default {
         return false;
       }
 
-      // De-dupe by id and include the fixed `local` tile: `clustersFiltered` (railAll) no longer excludes
-      // pinned rows, so a pinned cluster would be counted twice, and `local` — a valid "keep this view"
-      // target — now lives in its own slice outside every group.
       const byId = new Map([
         ...this.appBar.localCluster,
         ...this.appBar.pinFiltered,
@@ -166,20 +149,10 @@ export default {
       return !!this.search;
     },
 
-    /**
-     * Only Clusters that are pinned
-     *
-     * (see description of helper.clustersPinned for more details)
-     */
     pinFiltered() {
       return this.hasProvCluster ? this.helper.clustersPinned : [];
     },
 
-    /**
-     * Used to shown unpinned clusters OR results of text search
-     *
-     * (see description of helper.clustersOthers for more details)
-     */
     clustersFiltered() {
       return this.hasProvCluster ? this.helper.clustersOthers : [];
     },
@@ -188,17 +161,11 @@ export default {
       return this.hasProvCluster ? this.helper.clustersRecent : [];
     },
 
-    // `local` (the management cluster) is a FIXED slot at the top of the cluster area — never inside
-    // PINNED / RECENT / ALL, not pinnable, never evicted — so pull it out and render its own tile.
     localCluster() {
-      // The `hide-local-cluster` setting removes `local` from the nav entirely — its fixed slot must
-      // honor it too, immediately: the slice does filter on the setting, but only after its next fetch.
       if (this.hideLocalCluster) {
         return null;
       }
 
-      // `local` comes from its own dedicated slice (helper.clustersLocal) — excluded from
-      // pinned/recent/others/search, so it's never scavenged from those groups.
       return (this.hasProvCluster ? this.helper.clustersLocal?.[0] : null) || null;
     },
 
@@ -206,27 +173,16 @@ export default {
       return this.pinFiltered.filter((c) => !c.isLocal);
     },
 
-    // RECENTLY USED, as the flyout lists it. Already capped by the helper, and deliberately unfiltered:
-    // a cluster may be pinned, be `local`, and appear in ALL CLUSTERS as well — this is a shortcut to
-    // where the user just was, not a partition of the estate.
     railRecent() {
       return this.recentClusters;
     },
 
-    // ALL CLUSTERS is fetched server-side (sorted + paginated), so PRESERVE that order rather than
-    // re-sorting the loaded window (else "active first" would hold only within a page). Pinned/recent
-    // are appended from the always-loaded context fetch; local is excluded (its own slot).
     railAll() {
-      // While searching, `local` is a candidate like any other — the flyout takes its fixed tile down for
-      // the duration, so a query for "local" has to be able to find it.
       if (this.searchActive) {
         return this.clustersFiltered;
       }
 
       const rows = this.clustersFiltered.filter((c) => !c.isLocal);
-      // Grow `seen` as the extras land, not just from `others`: PINNED and RECENT overlap (a pinned
-      // cluster stays in the visit history), so a cluster in both would otherwise be appended twice —
-      // duplicate `:key`s, which Vue patches into permanently orphaned rows in the flyout list.
       const seen = new Set(rows.map((c) => c.id));
 
       [...this.pinFiltered, ...this.recentClusters].forEach((c) => {
@@ -255,18 +211,12 @@ export default {
 
       const byId = new Map(rows.map((c) => [c.id, c]));
 
-      // Anything pinned WHILE dragging (another tab) has no place in the dragged order, so it goes last
-      // rather than vanishing until the drop.
       return [
         ...this.dragOrder.map((id) => byId.get(id)).filter((c) => !!c),
         ...rows.filter((c) => !this.dragOrder.includes(c.id)),
       ];
     },
 
-    // The nav shelf is PINNED only: clusters the user chose to keep to hand. RECENTLY USED lives in the
-    // flyout, where the estate it is a shortcut into also lives. Still described as data rather than
-    // inlined markup so a second shelf costs an entry, not a second copy of the row; an empty one is
-    // dropped here so the template keeps a plain `v-for` (no v-if/v-for on one element).
     shelves() {
       return [
         {
@@ -275,33 +225,19 @@ export default {
       ].filter((shelf) => !!shelf.rows.length);
     },
 
-    // Infinite-scroll: more rows exist when the loaded window is smaller than the server-side total.
-    // `others` backs the flyout's ALL CLUSTERS directory AND its search results — one shared pipeline.
     hasMoreOthers() {
       return this.clustersFiltered.length < (this.helper.counts?.others || 0);
     },
 
-    // Total clusters matching the current search (page-1 response total), shown in the flyout's MATCHES
-    // caption. Shared with the expanded nav — same `clustersOthers` pipeline.
     switcherSearchCount() {
       return this.helper.counts?.others || 0;
     },
 
-    // How many clusters the ALL CLUSTERS list holds — the chip's number and the caption's.
-    //
-    // Both sources count every cluster the user can see, `local` included, because they are SHARED with
-    // the home page and the Cluster Management nav badge, which list `local` too. The switcher does not:
-    // `local` has its own fixed tile above the list. So take it off here, in the one place that needs it,
-    // rather than narrowing a count three surfaces read.
     browsableClusterCount() {
       const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
-      // The live /v1/counts summary is the fallback until that query resolves (or when nothing is being
-      // filtered out, in which case it is never saved at all).
       const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
       const total = typeof savedCount === 'number' ? savedCount : (counts[MANAGEMENT.CLUSTER]?.summary?.count || 0);
 
-      // `local` is only in that total when the user can actually see it — with hide-local on it is already
-      // out of both the count and the list, and there is nothing to subtract.
       return Math.max(0, total - (this.helper.clustersLocal.length ? 1 : 0));
     },
 
@@ -312,7 +248,6 @@ export default {
       return shortcutLabel(isMac ? ['⌘', 'J'] : ['Ctrl', 'J']);
     },
 
-    // Cmd+J on a Mac, Ctrl+J elsewhere.
     switcherShortcutKeys() {
       return { windows: ['ctrl', 'j'], mac: ['meta', 'j'] };
     },
@@ -321,10 +256,6 @@ export default {
       return `${ isMac ? 'Meta' : 'Control' }+J`;
     },
 
-    // Id of the cluster currently being explored — marked `current` in the switcher. The route param IS the
-    // mgmt cluster id (`clusterMenuClick` pushes it, `checkActiveRoute` compares against it), so read it
-    // directly: the store's `clusterId` only catches up once `loadCluster` commits, and until then it names
-    // the cluster we just left. On global pages there's no cluster param, so nothing looks selected.
     currentClusterId() {
       const routeCluster = this.$route?.params?.cluster;
 
@@ -344,7 +275,6 @@ export default {
         if (this.isRancherInHarvester) {
           return filterApps && opt.category !== 'hci';
         } else {
-          // We expect the location of Virtualization Management to remain the same when rancher-manage-support is not enabled
           return filterApps;
         }
       });
@@ -365,9 +295,7 @@ export default {
     options() {
       const cluster = this.clusterId || this.$store.getters['defaultClusterId'];
 
-      // TODO plugin routes
       const entries = this.$store.getters['type-map/activeProducts']?.map((p) => {
-        // Try product-specific index first
         const to = p.to || {
           name:   `c-cluster-${ p.name }`,
           params: { cluster }
@@ -382,8 +310,6 @@ export default {
 
         let label;
 
-        // Allow product to specify its label (old DSL product() did not have "label" or "labelKey")
-        // new extensions product registration supports both "label" and "labelKey" (with "labelKey" taking precedence if both are provided)
         if (p.labelKey) {
           label = this.$store.getters['i18n/t'](p.labelKey);
         } else if (p.label) {
@@ -428,13 +354,10 @@ export default {
     },
 
     aboutText() {
-      // If a version number (starts with 'v') then use that
       if (this.displayVersion.startsWith('v')) {
-        // Don't show the '.0' for a minor release (e.g. 2.8.0, 2.9.0 etc)
         return !this.displayVersion.endsWith('.0') ? this.displayVersion : this.displayVersion.substr(0, this.displayVersion.length - 2);
       }
 
-      // Default fallback to 'About'
       return this.t('about.title');
     },
 
@@ -445,8 +368,6 @@ export default {
     appBar() {
       let activeFound = false;
 
-      // order is important for the object keys here
-      // since we want to check last pinFiltered and clustersFiltered
       const appBar = {
         hciApps:           this.hciApps,
         multiClusterApps:  this.multiClusterApps,
@@ -459,7 +380,6 @@ export default {
 
       const clusterSections = ['localCluster', 'pinFiltered', 'recentFiltered', 'clustersFiltered'];
 
-      // Pass 1 — clear every item's active flag.
       Object.keys(appBar).forEach((menuSection) => {
         appBar[menuSection].forEach((item) => {
           item.isMenuActive = false;
@@ -501,19 +421,10 @@ export default {
     }
   },
 
-  // See https://github.com/rancher/dashboard/issues/12831 for outstanding performance related work
   watch: {
     $route() {
       this.hide();
     },
-
-    // Before SSP world all of these changes were kicked off given Vue change detection to properties in a computed method.
-    // Changes could come from two scenarios
-    // 1. Changes made by the user (pin / search). Could be tens per second
-    // 2. Changes made by rancher to clusters (state, label, etc change). Could be hundreds a second
-    // They can be restricted to help the churn caused from above
-    // 1. When SSP enabled reduce http spam
-    // 2. When SSP is disabled (legacy) reduce fn churn (this was a known performance customer issue)
 
     // The shelf is DERIVED from these prefs, so it re-materializes on its own when a pref changes, and
     // the row transitions ride on that. These watchers only refresh the context fetch/watch so a
@@ -556,11 +467,9 @@ export default {
     provClusters: {
       handler(neu, old) {
         if (this.canPagination) {
-          // Shouldn't be doing this at all if pagination is on (updates handled by  TopLevelMenu pagination wrapper)
           return;
         }
 
-        // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
         this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
       },
       deep: true,
@@ -569,11 +478,9 @@ export default {
     mgmtClusters: {
       handler(neu, old) {
         if (this.canPagination) {
-          // Shouldn't be doing this at all if pagination is on (updates handled by  TopLevelMenu pagination wrapper)
           return;
         }
 
-        // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
         this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
       },
       deep: true,
@@ -603,12 +510,8 @@ export default {
     document.removeEventListener('keyup', this.handler);
     window.removeEventListener('keydown', this.onSwitcherKeyGuard, true);
 
-    // A drag holds listeners on the WINDOW, which the component does not take with it — dropping the nav
-    // mid-drag would leave them running against a destroyed instance.
     this.endRowDrag(false);
 
-    // Timers armed in `data()` outlive the listeners — a pending one would otherwise write state on a
-    // destroyed instance (and re-fire the request when the layout recreates the component).
     this.debouncedHelperUpdateSlow.cancel();
     this.debouncedHelperUpdateQuick.cancel();
     this.debouncedResetOthers.cancel();
@@ -616,12 +519,10 @@ export default {
 
   methods: {
     checkActiveRoute(obj, isClusterRoute) {
-      // for Cluster links in main nav: check if route is a cluster explorer one + check if route cluster matches cluster obj id + check if curr product matches route product
       if (isClusterRoute) {
         return this.isCurrRouteClusterExplorer && this.$route?.params?.cluster === obj?.id && this.productFromRoute === this.currentProduct?.name;
       }
 
-      // for remaining main nav items, check if curr product matches route product is enough
       return this.productFromRoute === obj?.value;
     },
 
@@ -635,8 +536,6 @@ export default {
     },
 
     clusterMenuClick(ev, cluster) {
-      // Navigating to a cluster clears the flyout's search, so the next open starts on the ALL CLUSTERS
-      // directory rather than a stale filtered list.
       this.clusterFilter = '';
 
       if (this.routeComboActive) {
@@ -658,15 +557,11 @@ export default {
       return this.$router.push(cluster.clusterRoute);
     },
 
-    // Explore keeps the current view where possible (reuses the route-combo logic); `hide()` closes the
-    // rail after a switch, matching the chip flow.
     switcherExplore(cluster) {
       this.clusterMenuClick({ preventDefault: () => {} }, cluster);
       this.hide();
     },
 
-    // The flyout owns the only cluster search in the nav; its query drives the `clustersOthers` pipeline
-    // via the `search` watcher.
     onSwitcherSearch(term) {
       // Show the skeleton from the keystroke, not from the request: the reset is debounced, and clearing
       // the box refetches the whole directory, so both would otherwise sit on stale rows and then swap.
@@ -680,20 +575,11 @@ export default {
     },
 
     handler(e) {
-      // The flyout handles Escape on keydown and closes itself; its popper is still on screen through the
-      // fade when this keyup arrives, so treat that as "the flyout took it" and leave the nav expanded.
       if (e.keyCode === KEY.ESCAPE && !document.querySelector('.cluster-switcher-popper')) {
         this.hide();
       }
     },
 
-    /**
-     * Cmd (Mac) / Ctrl (Windows/Linux) + J toggles the cluster-switcher flyout — mirroring the Cmd/Ctrl+K
-     * resource search nav (see NavActionBar).
-     *
-     * Bound with `.anywhere` because the flyout puts the caret in its own search box, and the directive's
-     * avoid list would otherwise leave the shortcut able to open the flyout but not close it.
-     */
     onSwitcherHotkey() {
       this.$refs.switcher?.toggle();
     },
@@ -723,34 +609,19 @@ export default {
       }
     },
 
-    // Every way of putting the nav away — the hamburger, a cluster click, a route change, Esc — has to
-    // let the flyout leave FIRST. The flyout is anchored to the nav's width, so resizing underneath it
-    // re-anchors it: it jumps to the other position at full opacity and only then fades out.
-    // `closeAndWait` resolves immediately when nothing is open, so an ordinary close is not delayed.
     async hide() {
       await this.$refs.switcher?.closeAndWait();
 
       this.shown = false;
     },
 
-    // A not-ready cluster row is inert — there is nothing to navigate to — so clicking it leaves the nav
-    // exactly as it was instead of closing it out from under the user. The pin inside such a row still
-    // works; it stops its own click, so it never reaches here.
     onShelfRowClick(cluster) {
       if (cluster.ready) {
         this.hide();
       }
     },
 
-    /**
-     * Press on a shelf row: arm a possible drag-reorder. Nothing is taken here — a press is far more often
-     * the start of a click that navigates — so the row is only picked up once the pointer has actually
-     * travelled `DRAG_THRESHOLD` pixels with it held.
-     *
-     * The pin toggle is its own control inside the row, so a press that starts on it is left alone.
-     */
     onRowDragStart(event, cluster) {
-      // Left button only: a right-click opens the context menu, and a middle-click is a new tab.
       if (event.button !== 0 || event.target.closest?.('.pin')) {
         return;
       }
@@ -772,12 +643,8 @@ export default {
         return;
       }
 
-      // Kept so the shelf can go on placing the row while the pointer is STILL: near an edge the list
-      // scrolls under it, and each frame of that is a new position without a new mouse event.
       this.dragPointerY = event.clientY;
 
-      // A few pixels of travel separates a drag from the small movement inside an ordinary click. Until
-      // then nothing has been taken over, so the click still lands and the row still navigates.
       if (!this.dragMoved && Math.abs(event.clientY - this.dragFrom.y) < DRAG_THRESHOLD) {
         return;
       }
@@ -787,7 +654,6 @@ export default {
       this.startDragScroll();
     },
 
-    /** Put the held row in whichever slot the pointer is over. */
     placeDraggedRow() {
       const order = [...this.dragOrder];
       const from = order.indexOf(this.dragId);
@@ -801,14 +667,6 @@ export default {
       this.dragOrder = order;
     },
 
-    /**
-     * Scroll the shelf while a row is held near either end of it, so a row can be dragged to a place that
-     * is not on screen — otherwise the reach of a drag is however much of the list happens to be visible,
-     * and a long shelf can only ever be rearranged within one screenful.
-     *
-     * A frame loop rather than a mousemove handler: the pointer sits still in the band while the list
-     * moves past it, which produces no mouse events at all.
-     */
     startDragScroll() {
       if (!this.dragScrollFrame) {
         this.dragScrollFrame = requestAnimationFrame(this.dragScrollStep);
@@ -842,21 +700,14 @@ export default {
 
       scroller.scrollTop = before + delta;
 
-      // Nothing moved: the list is already at the end it is being pushed towards, so stop rather than
-      // spin a frame loop for the rest of the drag.
       if (scroller.scrollTop === before) {
         return;
       }
 
-      // The rows under the pointer changed without the pointer moving.
       this.placeDraggedRow();
       this.dragScrollFrame = requestAnimationFrame(this.dragScrollStep);
     },
 
-    /**
-     * Take the row: lift it, and freeze the slots the shelf's rows sit in. Reached by moving far enough
-     * with the row held, and harmless to call again once the row is already held.
-     */
     beginRowDrag() {
       if (this.dragMoved || !this.dragFrom) {
         return;
@@ -865,8 +716,6 @@ export default {
       this.dragMoved = true;
       this.dragId = this.dragFrom.id;
       this.dragOrder = this.pinnedRows.map((c) => c.id);
-      // Kept so a drag that ends where it started writes nothing: a row taken down the shelf and put
-      // straight back has rearranged nothing, and should not spend a write saying so.
       this.dragStartOrder = [...this.dragOrder];
       this.captureDragSlots();
     },
@@ -895,11 +744,6 @@ export default {
       });
     },
 
-    /**
-     * Which slot the pointer is in — the same measurement expanded or collapsed, since the shelf is a
-     * plain vertical list in both. Past either end it clamps, so dragging beyond the last row parks the
-     * row at the end rather than abandoning the move.
-     */
     rowIndexAt(clientY) {
       const slots = this.dragSlots || [];
       const scroller = this.$refs.clusterList;
@@ -908,7 +752,6 @@ export default {
         return -1;
       }
 
-      // Into the scroller's coordinates, where the slots were measured.
       const y = clientY - scroller.getBoundingClientRect().top + scroller.scrollTop;
 
       if (y <= slots[0].top) {
@@ -929,7 +772,6 @@ export default {
       }
     },
 
-    /** Released: keep the order if the row actually travelled, and let a plain click through if it did not. */
     onRowDragEnd() {
       this.endRowDrag(this.dragMoved);
     },
@@ -944,18 +786,11 @@ export default {
       window.removeEventListener('mouseup', this.onRowDragEnd, true);
       window.removeEventListener('keydown', this.onRowDragKey, true);
 
-      // Position by position, NOT `sameContents`: a reorder holds exactly the same ids, so a comparison
-      // that ignores order would call every drag a no-op and never write one.
       const started = this.dragStartOrder || [];
       const moved = !!this.dragOrder && this.dragOrder.some((id, i) => id !== started[i]);
       const order = commit && moved ? [...this.dragOrder] : null;
 
       if (this.dragMoved) {
-        // The mouseup that ends a drag is followed by a click on the row under it, which would navigate
-        // to a cluster the user was only rearranging. Swallow that one click — but only that one: a drag
-        // that ends without a click (released off the list, or cancelled) would otherwise leave this
-        // armed to eat the user's next real click. The timer runs after the click that follows a mouseup,
-        // so whichever happens first, it is gone by the next task.
         const swallowClick = (e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -992,16 +827,12 @@ export default {
       return reportPinWriteFailure(this.$store, this.t, write);
     },
 
-    // Same ordering as `hide` — the flyout goes first, then the nav resizes.
     async toggle() {
       await this.$refs.switcher?.closeAndWait();
 
       this.shown = !this.shown;
     },
 
-    // Fetch page 1 of the ALL directory with the CURRENT pinned/recent/search context — the shared handler
-    // for every "show me the ALL list" trigger. The helper resolves for a superseded request and only
-    // rejects when the fetch itself failed, so `.catch` here means a real failure to report.
     resetOthersList() {
       const requestedTerm = this.search;
       // The term alone cannot tell a superseded request from the live one when BOTH were issued for the
@@ -1009,8 +840,6 @@ export default {
       // pending — so each reset carries its own token and only the newest one may report.
       const requestId = ++this.othersRequestId;
 
-      // Every page-1 refresh shows the skeleton — opening the flyout as much as typing in it. Both replace
-      // the list wholesale, and without it the old rows sit there until the new ones drop in.
       this.listLoading = true;
       this.listFailed = false;
 
@@ -1019,23 +848,16 @@ export default {
         recentIds:  this.recentIds,
         searchTerm: requestedTerm,
       }).catch(() => {
-        // The flyout has to be told: with nothing pinned and nothing visited there is no other source of
-        // rows, so a silent failure left the panel shimmering for as long as it was open — no error, no
-        // retry, no list.
         if (requestId === this.othersRequestId) {
           this.listFailed = true;
         }
       }).finally(() => {
-        // Clear the skeleton only when this request is still the one on screen — an older query must not
-        // unhide its own results under the new term.
         if (requestId === this.othersRequestId) {
           this.listLoading = false;
         }
       });
     },
 
-    // Append the NEXT page of the ALL list (select-style page-increment: fixed page size, concat). The
-    // helper owns the page counter; the component only guards re-entry.
     async loadMoreOthers() {
       if (this.loadingMoreOthers || !this.hasMoreOthers) {
         return;
@@ -1046,32 +868,23 @@ export default {
       try {
         await this.helper.loadMoreOthers();
       } catch {
-        // Best-effort load-more — swallow a benign concurrent-request de-dup rejection; the next scroll
-        // re-fetches the next page (the helper rewinds its page counter on failure).
       } finally {
         this.loadingMoreOthers = false;
       }
     },
 
-    // The flyout scrolled near the bottom of its ALL CLUSTERS / MATCHES list — load the next window.
     onFlyoutLoadMore() {
       this.loadMoreOthers();
     },
 
-    // Flyout opened → page-1 trigger for the (unwatched) ALL list; always re-fetch so the list is fresh.
-    // Closing drops the search so the next open starts on the full directory again.
     onFlyoutOpen(open) {
       this.switcherOpen = open;
 
-      // Alt released outside the guard's reach (the flyout closed mid-combo) would strand the arrow on.
-      // Only on CLOSE — clearing it on open cancels the combo arrows the flyout is meant to advertise
-      // while Alt is still held.
       if (!open) {
         this.routeCombo = false;
       }
 
       if (open) {
-        // RECENTLY USED lives only in this panel, so it is read when the panel opens rather than kept live.
         this.recentLoading = true;
         this.helper.refreshRecent()
           .catch((e) => console.warn('Unable to load the recent clusters', e)) // eslint-disable-line no-console
@@ -1093,15 +906,6 @@ export default {
       }
     },
 
-    /**
-     * Cmd/Ctrl+J hint on the switcher trigger. Shown in BOTH nav states, but anchored to a different
-     * element in each so it never covers what it describes: beside the chip on the collapsed rail, and
-     * off the end of the row when expanded — the trigger button spans the full 300px, so anchoring the
-     * expanded one to it puts the tooltip past the row rather than on top of the "Cluster Switch" label,
-     * and hovering anywhere on the row still raises it. Same `showWhenClosed` convention as
-     * getTooltipConfig. Suppressed while the flyout is open — nav tooltips layer above it, so it would
-     * otherwise sit on the cluster list.
-     */
     switcherTooltip(showWhenClosed = false) {
       const rightState = showWhenClosed ? !this.shown : this.shown;
 
@@ -1116,28 +920,13 @@ export default {
       };
     },
 
-    /**
-     * Hover copy for a PINNED shelf row, which is the one kind of row that can be dragged — so the tooltip
-     * is where that is said. Shown in BOTH nav states, unlike `getTooltipConfig`: the expanded row already
-     * shows the name, but not that the row can be reordered, which nothing else on screen says.
-     *
-     * A row that cannot be explored says why, so "nothing happens when I click it" has an answer in the
-     * same place as the invitation to drag it.
-     */
     getPinnedTooltip(cluster, showWhenClosed = false) {
-      // Each row hangs this off two elements — the icon and the name — and only the one matching the
-      // nav's state answers, so a row shows one tooltip rather than two stacked on the same hover.
       const rightState = showWhenClosed ? !this.shown : this.shown;
 
-      // Not while a row is being dragged. The tooltip explains that the row CAN be dragged, which is of
-      // no use once it is being, and it would otherwise sit over the shelf being rearranged — the pointer
-      // passes across every other row on the way, so it is the rest of them that would speak up.
       if (!cluster || !rightState || this.dragId) {
         return { content: null };
       }
 
-      // While the combo is held the row advertises what it is about to do instead: that is a live
-      // modifier state, and the more urgent of the two things the row could be saying.
       if (this.routeComboActive && cluster.ready) {
         return {
           content: this.t('nav.keyComboTooltip'), placement: 'right', popperClass: 'nav-tooltip'
@@ -1150,9 +939,6 @@ export default {
       return {
         content,
         placement:   'right',
-        // Clear of the nav's edge. The expanded row hangs this off the cluster NAME, which stops short of
-        // the row's own pin toggle, so the default gap put the tooltip over the pin it was sitting beside.
-        // The collapsed rail hangs it off the icon, which fills the rail, and needs no such correction.
         distance:    showWhenClosed ? undefined : PINNED_TOOLTIP_DISTANCE,
         popperClass: 'nav-tooltip nav-pinned-tooltip',
       };
@@ -1167,12 +953,9 @@ export default {
       let content;
       let popperClass = 'nav-tooltip';
 
-      // this is the normal tooltip scenario where we are just passing a string
       if (typeof item === 'string') {
         contentText = item;
         content = this.shown ? null : contentText;
-
-      // if key combo is pressed, then we update the tooltip as well
       } else if (this.routeComboActive &&
         typeof item === 'object' &&
         !Array.isArray(item) &&
@@ -1185,11 +968,8 @@ export default {
         } else {
           content = this.shown ? contentText : null;
         }
-
-      // this is scenario where we show a tooltip when we are on the expanded menu to show full description
       } else {
         contentText = item.label;
-        // this adds a class to the tooltip container so that we can control the max width
         popperClass = 'nav-tooltip menu-description-tooltip';
 
         if (item.description) {
@@ -1199,8 +979,6 @@ export default {
         if (showWhenClosed) {
           content = !this.shown ? contentText : null;
         } else {
-          // No hover tooltip in the EXPANDED nav — the full label + description already shows in the row.
-          // The collapsed rail keeps its tooltip via the showWhenClosed calls above.
           content = null;
         }
       }
@@ -1230,8 +1008,6 @@ export default {
         }
       } catch (err) {
         if (this.canPagination) {
-          // Double bubble up errors here, errors are tracked further down
-          // Note that this won't pick up async errors, further tweaks are required for that
         } else {
           throw err;
         }
@@ -1348,6 +1124,7 @@ export default {
                   :local="localCluster"
                   :recent="railRecent"
                   :recent-loading="recentLoading"
+                  :recent-count="recentSkeletonCount"
                   :search-results="clustersFiltered"
                   :cluster-count="browsableClusterCount"
                   :search-count="switcherSearchCount"
@@ -1684,10 +1461,6 @@ export default {
     word-wrap: break-word;
   }
 
-  // The pinned-row tooltip is a sentence rather than a label, so it needs a column to wrap into. Sized on
-  // the INNER box: the popper's own `max-width` is 700px from the shared tooltip theme, which this copy
-  // does not reach, so it laid out as one long banner across whatever the nav happens to be sitting on.
-  // 320px keeps the longest of the two strings to three lines.
   .v-popper__popper.v-popper--theme-tooltip.nav-pinned-tooltip .v-popper__inner {
     max-width: 320px;
     white-space: normal;
@@ -1726,26 +1499,18 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
-  // Type scale — the shelf + flyout only use these two sizes.
   $font-size-sm:    12px;  // meta / status / footer / counts
   $font-size-body:  14px;  // option row text
 
-  // The cluster "chip": the app-bar icon badge (ClusterIconMenu) is 42×32 / radius 5px; the count chips
-  // mirror it and the icon lane is sized to hold it.
   $chip-width:  42px;
   $chip-height: 32px;
   $chip-radius: 5px;
 
-  // Spacing rhythm (4px base) + the shared nav transition, so the repeated paddings/margins/gaps and
-  // the show/hide easing come from one place. Named `$nav-*` because these are component-local steps —
-  // the shared $space-s/m/l tokens are 10/24/40px and don't fit the shelf's tighter rhythm.
   $nav-space-2: 8px;
   $nav-space-4: 16px;
   $nav-space-5: 20px;
   $transition-nav: all 0.25s ease-in-out;
 
-  // Row action icons (gear + pin): a header-style hover "square" — a 22×22 box holding a 16px icon that
-  // fills with a subtle grey on hover. Centres the glyph via line-height (works for display:block or flex).
   @mixin icon-hover-square {
     box-sizing: border-box;
     align-items: center;
@@ -1768,17 +1533,11 @@ export default {
     }
   }
 
-  // local (management cluster) fixed tile at the top of the cluster area.
   .cluster-local {
     margin-bottom: 0;
   }
 
-  // Pinning adds a row to PINNED and unpinning takes one away — a cluster keeps its place in RECENT
-  // either way, so nothing crosses between the groups any more. The shelf therefore animates on enter
-  // and leave, and the leave is the enter played backwards.
-  //
   .shelf-rows {
-    // A leaving row is lifted out of flow (below) and positioned against this.
     position: relative;
   }
 
@@ -1787,9 +1546,6 @@ export default {
     transition: opacity 0.16s ease-out, transform 0.16s ease-out;
   }
 
-  // The arriving row also flashes a primary tint that fades out — the old "wash", which marked which row
-  // the pin actually acted on. It outlasts the 0.16s slide on purpose; Vue keeps the -enter-active class
-  // for the LONGER of the transition and the animation, so the full 0.6s plays.
   .shelf-row-enter-active {
     animation: cluster-wash 0.6s ease-out;
   }
@@ -1804,23 +1560,12 @@ export default {
     }
   }
 
-  // ONE off-state for both ends: a chip slides in from the nav's own edge and leaves back through it.
-  // Sharing the value is what keeps the two exact reverses of each other — an arrival animated one way
-  // and a removal another reads as two unrelated effects rather than one thing coming and going.
   .shelf-row-enter-from,
   .shelf-row-leave-to {
     opacity: 0;
     transform: translateX(-6px) scale(0.985);
   }
 
-  // The arrival's wash, played backwards: an arriving row lands and the light fades off it, so a leaving
-  // one lights up and then goes. The slide and the fade wait for the light — without the delay the row is
-  // transparent within 0.16s and the glow plays out on something already gone.
-  //
-  // The row stays IN FLOW while it goes. Lifting it out (`position: absolute`) handed its space to the
-  // row below immediately, so the two sat at the same coordinates and drew over each other for the whole
-  // leave. Holding the space means the list closes the gap once the row is actually gone — which the
-  // TransitionGroup's own `-move` animates, so nothing jumps.
   .shelf-row-leave-active {
     animation: cluster-unwash 0.3s ease-out;
     transition-delay: 0.14s;
@@ -1840,9 +1585,6 @@ export default {
     transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
   }
 
-  // Dragging a row reorders the shelf. Rows getting out of the way travel fast on a curve that leaves at
-  // once and decelerates into place, while the row let go of lands on a softer curve over a longer beat,
-  // so a drop reads as settling rather than snapping.
   $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
 
@@ -1853,9 +1595,6 @@ export default {
     cursor: grab;
   }
 
-  // The row lifts off the surface while it is held and is put back down on release. Declared on the
-  // RESTING row with the landing curve so both directions animate: the lift below overrides it with the
-  // quicker one, and taking that class away hands the row back to this.
   .shelf-rows .cluster.selector {
     transition: background-color 0.1s ease-in-out, transform 0.33s $drag-drop-curve, box-shadow 0.33s $drag-drop-curve;
   }
@@ -1864,32 +1603,19 @@ export default {
   // which are set further up the nav's cascade than the lift below can reach.
   .shelf-rows .shelf-row-held .cluster.selector {
     cursor: grabbing;
-    // The nav is dark, and a dark shadow on a dark ground is no shadow at all — so the held row is also
-    // tinted, which is what actually marks it out here. The shadow is what carries the lift on a light
-    // theme, where the tint alone would be the fainter of the two.
     background: color-mix(in srgb, var(--primary) 14%, transparent);
   }
 
   .shelf-row-held {
-    // Above the rows it passes over, so the lift is never drawn underneath a neighbour.
     position: relative;
     z-index: 1;
 
-    // Just enough to read as picked up. The reorder libraries do not scale the dragged item at all, but
-    // a nav row is short enough that the shadow alone is easy to miss.
     .cluster.selector {
       transform: scale(1.02);
       transition: transform 0.2s $drag-displace-curve, box-shadow 0.2s $drag-displace-curve, background-color 0.2s $drag-displace-curve;
     }
   }
 
-  // The shadow needs one ancestor more than the rest of the lift. A shelf row is also an `.option`, and
-  // `.side-menu .body .option:focus` blanks `box-shadow` — so the row the user just clicked, which is
-  // exactly the row they are most likely to drag next, lifted with no shadow at all. Only the shadow is
-  // raised this way: the current cluster keeps its own green fill rather than taking the held tint.
-  //
-  // Plain black, like the flyout's own shadow next door — a shadow mixed from a text colour goes white on
-  // the themes where that colour is light, and lights the row up instead of lifting it.
   .side-menu .shelf-rows .shelf-row-held .cluster.selector {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
   }
@@ -1901,14 +1627,11 @@ export default {
     transition: transform 0.2s $drag-displace-curve;
   }
 
-  // Dragging over the rows would otherwise sweep a text selection across the cluster names behind it.
   .shelf-rows.is-reordering {
     -webkit-user-select: none;
     user-select: none;
   }
 
-  // Motion is the point of a reorder — it is what stops the list rearranging itself unseen — so the rows
-  // still change places, just without the travel and the lift.
   @media (prefers-reduced-motion: reduce) {
     .shelf-rows .cluster.selector,
     .shelf-rows.is-reordering .shelf-row-move,
@@ -1917,7 +1640,6 @@ export default {
       transition: none;
     }
 
-    // A row still arrives and still goes — only the travel and the light are dropped.
     .shelf-row-enter-active,
     .shelf-row-leave-active {
       animation: none;
@@ -1936,9 +1658,6 @@ export default {
   // (The shelf already conveys pinned-ness via the PINNED group + pin toggle, so ClusterIconMenu's
   // redundant pin overlay is hidden with :show-pin="false" on each chip — no scoped-style piercing.)
 
-  // The switcher trigger reuses the app-bar cluster-button so it sits in the shelf like the home / cluster
-  // rows. Its "icon" is a count chip with exactly the ClusterIconMenu badge's footprint — same lane, same
-  // 42x32 — so the collapsed rail reads as one clean column of chips.
   .cluster-all .cluster-all-lane {
     position: relative;
     display: flex;
@@ -1957,14 +1676,11 @@ export default {
     justify-content: center;
     width: 100%;
     height: 100%;
-    // The chip IS a cluster chip, so its text takes ClusterIconMenu's badge colour rather than the
-    // link colour the row label uses — "20 clusters" reads like "CD2" beside it.
     color: var(--default-active-text);
     background: var(--nav-icon-badge-bg);
     border: 1px solid var(--border);
     border-radius: $chip-radius;
 
-    // Two fixed sizes — the count sits over the word it counts, so it never has to shrink to fit.
     .cluster-all-count {
       font-size: 12px;
       font-weight: bold;
@@ -1975,13 +1691,9 @@ export default {
       font-size: 11px;
       font-weight: normal;
       line-height: 12px;
-      // "clusters" is a hair too wide for a 42px chip at 11px — tighten the tracking rather than drop
-      // below the specified size.
       letter-spacing: -0.4px;
     }
   }
-  // "Cluster Switch": the row label. Expanded-nav only — the collapsed rail clips it, exactly like the
-  // cluster names on the rows below.
   .cluster-all .cluster-all-name {
     flex: 1 1 auto;
     min-width: 0;
@@ -1994,38 +1706,25 @@ export default {
     line-height: 16px;
     color: var(--on-tertiary, var(--link));
   }
-  // The chevron trails the label at the END of the row (never inside the chip), so it too shows only on
-  // the expanded nav. Its right margin comes from the shared `.option svg` rule.
   .cluster-all .cluster-all-chevron {
     flex: 0 0 auto;
   }
 
-  // The row takes the app-bar's ordinary hover highlight (inherited from `.body .option:hover`), so it
-  // behaves like every cluster row above it. The chip is the one exception: the generic hover rules
-  // recolour every `div` inside the row white, which would erase the count on the chip's pale
-  // background — so pin the chip's own colours through every state.
   .side-menu .body .option.cluster-all .cluster-all-badge {
     color: var(--default-active-text) !important;
     background: var(--nav-icon-badge-bg) !important;
   }
 
-  // The flyout being open is not an "active/selected" state — this tile is not a cluster you can be
-  // "in" — so it never takes the green `active-menu-link` fill. Only hover, and being open: an open panel
-  // has to show which row opened it.
   .side-menu .body .option.cluster-all:not(:hover):not([aria-expanded='true']) {
     background: transparent;
   }
 
-  // The "door" slot below local: holds the cluster-switcher trigger, identical in both nav states.
   .cluster-door {
     display: flex;
     align-items: center;
     height: 43px;
   }
 
-  // The trigger tile that opens the switcher flyout. It reuses the app-bar cluster-button, so it flows at
-  // full EXPANDED width; the collapsed rail's overflow clips the label + chevron, leaving just the count
-  // chip in the icon lane.
   .clustersAll {
     flex: 1 1 auto;
     min-width: 0;
@@ -2046,8 +1745,6 @@ export default {
     }
   }
 
-  // The pin's base opacity:0 lives deep inside `.side-menu .body .option .pin`, so its hover-reveal must
-  // match that depth to win (a top-level form gets overridden).
   .side-menu .body .cluster.selector:hover .pin:not(.is-pinned),
   .side-menu .body .option:hover .pin:not(.is-pinned) {
     opacity: 1;
@@ -2109,7 +1806,6 @@ export default {
       width: $app-bar-expanded-width;
       box-shadow: 3px 1px 3px var(--shadow);
 
-      // because of accessibility, we force pin action to be visible on menu open
       .pin {
         display: inline-flex !important;
 
@@ -2148,10 +1844,6 @@ export default {
       margin-left: $option-padding-left - 7;
     }
     .body {
-      // A fixed-height column between the title bar and the footer. It must NOT scroll: a nav taller than
-      // the viewport used to push the whole body into a scroll, carrying GLOBAL APPS / CONFIGURATION and
-      // the version footer off-screen. `min-height: 0` lets it actually shrink to the space it is given
-      // (a flex item's default `min-height: auto` is content height, which is what forced the overflow).
       flex: 1 1 auto;
       min-height: 0;
       display: flex;
@@ -2166,8 +1858,6 @@ export default {
           }
         }
       }
-
-      // No divider lines in the nav — labels are the only separators (incl. above Global Apps).
 
       .option {
         align-items: center;
@@ -2189,10 +1879,7 @@ export default {
 
         .pin {
           @include icon-hover-square;
-          // Smaller glyph than the gear (16px), centred in the same 22×22 square.
           font-size: 12px;
-          // The gear (before it) carries the margin-left:auto that pushes the pair right, so the pin
-          // just trails it 10px behind — no auto margin of its own.
           margin-left: 0;
           display: none;
           transition: opacity 0.1s ease-in-out, background-color 0.1s ease-in-out;
@@ -2210,8 +1897,6 @@ export default {
         }
 
         .cluster-name {
-          // Grow to fill the row so the gear + pin sit at the end via flow, instead of being floated there
-          // with margin-left:auto. min-width:0 lets the name ellipsis.
           flex: 1 1 auto;
           min-width: 0;
           line-height: normal;
@@ -2244,8 +1929,6 @@ export default {
         &:hover {
           text-decoration: none;
 
-          // Row hover reveals the pin but must NOT recolour it — keep grey (unpinned) / primary (pinned);
-          // only the pin's own hover adds the grey square behind it.
           .pin {
             color: var(--muted);
 
@@ -2350,8 +2033,6 @@ export default {
           }
         }
 
-        // A row holding its panel open wears the hover highlight for as long as it is open, so it reads as
-        // the source of the thing on screen.
         &:hover,
         &[aria-expanded='true'] {
           color: var(--tertiary-hover-app-bar, var(--primary-hover-text));
@@ -2378,7 +2059,6 @@ export default {
       }
 
       .option, .option-disabled {
-        // No right padding — the pin's own 22×22 square provides the right-edge breathing room.
         padding: $option-padding 0 $option-padding $option-padding-left;
       }
 
@@ -2390,10 +2070,6 @@ export default {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
 
-        // The ONLY scrolling region in the nav. `flex-grow: 0` keeps a short shelf at its natural height
-        // (so GLOBAL APPS still sits at the bottom via the `.category` below); `flex-shrink: 1` plus
-        // `min-height: 0` let a long one give way and scroll internally instead of stretching the nav
-        // past the viewport. No viewport-derived max-height — the flex box already knows what's left.
         flex: 0 1 auto;
         min-height: 0;
 
@@ -2432,8 +2108,6 @@ export default {
          }
       }
 
-      // PINNED CLUSTERS is a plain `.category-title` — identical to GLOBAL APPS and CONFIGURATION, with
-      // no overrides of its own.
       .clustersPinned, .home-link {
         .pin {
           display: block;
@@ -2444,8 +2118,6 @@ export default {
         display: flex;
         flex-direction: column;
         place-content: flex-end;
-        // Grows to push the app links to the bottom, but never shrinks — the cluster shelf above is the
-        // one region allowed to give way when the nav runs out of room.
         flex: 1 0 auto;
 
         &-title {
@@ -2459,8 +2131,6 @@ export default {
           text-transform: uppercase;
 
           span {
-            // Fade only. `all` also animated the rule's width below, and watching that grow out from
-            // under the label is what read as the title sliding rather than fading.
             transition: opacity 0.25s ease-in-out;
             display: flex;
             max-height: 16px;
@@ -2470,7 +2140,6 @@ export default {
             margin: 0;
             max-width: 50px;
             width: 0;
-            // Expanding: the rule goes at once, clearing the way for the title to fade in.
             transition: none;
           }
         }
@@ -2500,7 +2169,6 @@ export default {
           @include focus-outline;
           outline-offset: -4px;
 
-          // Expanded, the ring goes round the whole row, so the icon drops the one it wears on the rail.
           .top-menu-icon, .app-icon, .rancher-provider-icon, .cluster-all-badge {
             outline: none;
             border-radius: 0;
@@ -2521,8 +2189,6 @@ export default {
 
           hr {
             width: 40px;
-            // Collapsing: hold the rule back until the title has finished fading out, so the two never
-            // share the row. Zero duration — it is the delay doing the work, not a slide.
             transition: width 0s linear 0.25s;
           }
         }
