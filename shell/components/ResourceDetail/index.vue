@@ -214,7 +214,11 @@ export default {
       // new. Not applied during create/import: a brand new, unsaved resource never has any
       // links yet regardless of API family, so this check would incorrectly disable YAML
       // for every type while creating.
-      if ( canViewYaml && liveModel?.canYaml === false ) {
+      try {
+        if ( canViewYaml && liveModel?.canYaml === false ) {
+          canViewYaml = false;
+        }
+      } catch (e) {
         canViewYaml = false;
       }
 

@@ -189,6 +189,28 @@ describe('component: ResourceDetail', () => {
 
       expect((wrapper.vm as any).canViewYaml).toBe(false);
     });
+
+    it('defaults to hiding the yaml toggle, without failing the page load, when the resource canYaml getter throws', async() => {
+      const throwingCanYaml = {};
+
+      Object.defineProperty(throwingCanYaml, 'canYaml', {
+        get() {
+          throw new Error('boom, badly-behaved plugin model class');
+        }
+      });
+
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: true },
+        findResult: throwingCanYaml,
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).resourceNotFoundError).toBeNull();
+      expect((wrapper.vm as any).canViewYaml).toBe(false);
+    });
   });
 
   // fullDetailPageOverride should only apply to the detail view, so the config/YAML
