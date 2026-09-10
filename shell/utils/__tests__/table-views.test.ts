@@ -1,5 +1,6 @@
 import {
-  applyQuery, decodeView, encodeView, fieldsFor, parseQuery, rowsToCsv, valuesInUse
+  applyQuery, decodeView, encodeView, fieldsFor, parseQuery, rowsToCsv, valuesInUse,
+  isCoreField, CORE_FIELD_IDS
 } from '@shell/utils/table-views';
 
 const HEADERS = [
@@ -142,5 +143,22 @@ describe('fx: encodeView', () => {
     };
 
     expect(decodeView(encodeView(view))).toStrictEqual(view);
+  });
+});
+
+describe('core columns', () => {
+  it('marks the columns the table depends on as core', () => {
+    expect(CORE_FIELD_IDS).toStrictEqual(['name', 'age']);
+  });
+
+  it.each([
+    ['name', true],
+    ['age', true],
+    ['namespace', false],
+    ['label:app', false],
+    ['', false],
+    [undefined, false],
+  ])('isCoreField(%s) is %s', (id, expected) => {
+    expect(isCoreField(id as string)).toStrictEqual(expected);
   });
 });
