@@ -6,6 +6,9 @@ import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInpu
 import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import AppModal from '@shell/components/AppModal.vue';
+import {
+  RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator
+} from '@components/RcDropdown';
 
 /**
  * The toolbar above a resource table - filter query, column picker, group by, export and
@@ -20,7 +23,14 @@ export default {
   emits: ['update:view', 'export', 'update:viewMode', 'request-values'],
 
   components: {
-    TableViewQueryInput, ButtonGroup, Checkbox, AppModal
+    TableViewQueryInput,
+    ButtonGroup,
+    Checkbox,
+    AppModal,
+    RcDropdown,
+    RcDropdownItem,
+    RcDropdownTrigger,
+    RcDropdownSeparator
   },
 
   props: {
@@ -437,44 +447,31 @@ export default {
         >
           {{ t('tableViews.tabs.all') }}
         </button>
-        <v-dropdown
-          placement="bottom-start"
-          :container="false"
-        >
-          <button
-            type="button"
+        <rc-dropdown :placement="'bottom-start'">
+          <rc-dropdown-trigger
+            variant="link"
             class="view-tab-caret"
             :aria-label="t('tableViews.tab.menu')"
             data-testid="table-views-tab-menu-all"
             @click.stop
           >
             <i class="icon icon-chevron-down" />
-          </button>
-          <template #popper>
-            <div class="view-menu">
-              <button
-                type="button"
-                class="menu-item"
-                data-testid="table-views-copy-link-all"
-                @click="copyShareUrl"
-              >
-                <i class="icon icon-copy" />
-                {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
-              </button>
-
-              <button
-                v-close-popper
-                type="button"
-                class="menu-item"
-                data-testid="table-views-export-all"
-                @click="openExport(null)"
-              >
-                <i class="icon icon-download" />
-                {{ t('tableViews.export.label') }}
-              </button>
-            </div>
+          </rc-dropdown-trigger>
+          <template #dropdownCollection>
+            <rc-dropdown-item
+              data-testid="table-views-copy-link-all"
+              @click="copyShareUrl"
+            >
+              {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              data-testid="table-views-export-all"
+              @click="openExport(null)"
+            >
+              {{ t('tableViews.export.label') }}
+            </rc-dropdown-item>
           </template>
-        </v-dropdown>
+        </rc-dropdown>
       </div>
 
       <!-- Saved views: each tab carries its own caret dropdown (rename / save / delete / export / share) -->
@@ -493,84 +490,56 @@ export default {
         >
           {{ saved.name }}
         </button>
-        <v-dropdown
-          placement="bottom-start"
-          :container="false"
-        >
-          <button
-            type="button"
+        <rc-dropdown :placement="'bottom-start'">
+          <rc-dropdown-trigger
+            variant="link"
             class="view-tab-caret"
             :aria-label="t('tableViews.tab.menu')"
             :data-testid="`table-views-tab-menu-${saved.id}`"
             @click.stop
           >
             <i class="icon icon-chevron-down" />
-          </button>
-          <template #popper>
-            <div class="view-menu">
-              <button
-                v-close-popper
-                type="button"
-                class="menu-item"
-                :data-testid="`table-views-rename-${saved.id}`"
-                @click="openRename(saved)"
-              >
-                <i class="icon icon-edit" />
-                {{ t('tableViews.tab.rename') }}
-              </button>
-              <button
-                v-close-popper
-                type="button"
-                class="menu-item"
-                :data-testid="`table-views-duplicate-${saved.id}`"
-                @click="duplicateView(saved)"
-              >
-                <i class="icon icon-copy" />
-                {{ t('tableViews.tab.duplicate') }}
-              </button>
-              <button
-                v-close-popper
-                type="button"
-                class="menu-item"
-                :data-testid="`table-views-update-${saved.id}`"
-                @click="updateView(saved)"
-              >
-                <i class="icon icon-pin" />
-                {{ t('tableViews.tab.saveChanges') }}
-              </button>
-              <button
-                type="button"
-                class="menu-item"
-                :data-testid="`table-views-copy-link-${saved.id}`"
-                @click="copyShareUrl"
-              >
-                <i class="icon icon-copy" />
-                {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
-              </button>
-              <button
-                v-close-popper
-                type="button"
-                class="menu-item"
-                :data-testid="`table-views-export-${saved.id}`"
-                @click="openExport(saved)"
-              >
-                <i class="icon icon-download" />
-                {{ t('tableViews.export.label') }}
-              </button>
-              <div class="menu-divider" />
-              <button
-                v-close-popper
-                type="button"
-                class="menu-item"
-                :data-testid="`table-views-delete-${saved.id}`"
-                @click="deleteView(saved)"
-              >
-                <i class="icon icon-trash" />
-                {{ t('tableViews.tab.delete') }}
-              </button>
-            </div>
+          </rc-dropdown-trigger>
+          <template #dropdownCollection>
+            <rc-dropdown-item
+              :data-testid="`table-views-rename-${saved.id}`"
+              @click="openRename(saved)"
+            >
+              {{ t('tableViews.tab.rename') }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              :data-testid="`table-views-duplicate-${saved.id}`"
+              @click="duplicateView(saved)"
+            >
+              {{ t('tableViews.tab.duplicate') }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              :data-testid="`table-views-update-${saved.id}`"
+              @click="updateView(saved)"
+            >
+              {{ t('tableViews.tab.saveChanges') }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              :data-testid="`table-views-copy-link-${saved.id}`"
+              @click="copyShareUrl"
+            >
+              {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              :data-testid="`table-views-export-${saved.id}`"
+              @click="openExport(saved)"
+            >
+              {{ t('tableViews.export.label') }}
+            </rc-dropdown-item>
+            <rc-dropdown-separator />
+            <rc-dropdown-item
+              :data-testid="`table-views-delete-${saved.id}`"
+              @click="deleteView(saved)"
+            >
+              {{ t('tableViews.tab.delete') }}
+            </rc-dropdown-item>
           </template>
-        </v-dropdown>
+        </rc-dropdown>
       </div>
 
       <!-- + New View: name and save the current config as a new saved view -->
