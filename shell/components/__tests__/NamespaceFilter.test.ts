@@ -1,5 +1,46 @@
-import { mount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
+import { nextTick, reactive } from 'vue';
 import NamespaceFilter from '@shell/components/nav/NamespaceFilter.vue';
+import { NAMESPACE_FILTERS } from '@shell/store/prefs';
+import {
+  NAMESPACE_FILTER_KINDS,
+  NAMESPACE_FILTER_ALL,
+  NAMESPACE_FILTER_ALL_SYSTEM,
+  NAMESPACE_FILTER_ALL_USER,
+} from '@shell/utils/namespace-filter';
+
+const mountWithRealOptions = ({
+  dispatch = jest.fn(), preferences = {}, product = {}, customOptions = [], state = reactive({ clusterId: 'local' })
+}: { dispatch?: jest.Mock, preferences?: Record<string, string[]>, product?: Record<string, any>, customOptions?: any[], state?: { clusterId: string } } = {}) => shallowMount(NamespaceFilter, {
+  global: {
+    mocks: {
+      $store: {
+        getters: {
+          'i18n/t': (key: string) => key,
+          get clusterId() {
+            return state.clusterId;
+          },
+          currentProduct: {
+            inStore: 'cluster', showNamespaceFilter: true, ...product
+          },
+          currentStore:                     () => '',
+          'type-map/optionsFor':            () => ({}),
+          'prefs/get':                      (pref: any) => (pref === NAMESPACE_FILTERS ? preferences : undefined),
+          'cluster/paginationEnabled':      () => false,
+          'cluster/namespaceFilterOptions': () => customOptions,
+        },
+        dispatch,
+        commit: jest.fn(),
+      },
+      $route:      { params: {} },
+      $fetchState: { pending: false },
+    },
+    directives: {
+      'clean-tooltip': () => {},
+      shortkey:        () => {},
+    },
+  }
+});
 
 describe('component: NamespaceFilter', () => {
   describe('given namespace select input', () => {
@@ -243,6 +284,71 @@ describe('component: NamespaceFilter', () => {
     });
 
     it.todo('should generate the options based on the Rancher resources');
+
+    it('should offer namespace scoping options only', () => {
+      const wrapper = mountWithRealOptions();
+
+      const ids = (wrapper.vm as any).options.map((o: any) => o.id).filter((id: string) => !!id);
+
+      expect(ids).toStrictEqual([NAMESPACE_FILTER_ALL, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_ALL_SYSTEM]);
+      wrapper.unmount();
+    });
+
+    it.each([
+      ['namespaced://true'],
+      ['namespaced://false'],
+    ])('should fall back to the default filter when the stored preference %s is no longer an option', async(stored) => {
+      const dispatch = jest.fn().mockResolvedValue(undefined);
+      const wrapper = mountWithRealOptions({ dispatch, preferences: { local: [stored] } });
+
+      expect((wrapper.vm as any).value).toStrictEqual([]);
+
+      await nextTick();
+
+      expect(dispatch).toHaveBeenCalledWith('switchNamespaces', { ids: [NAMESPACE_FILTER_ALL_USER], key: 'local' });
+      wrapper.unmount();
+    });
+
+    it('should land on the default when a stale selection is met while another is already held', async() => {
+      const dispatch = jest.fn().mockResolvedValue(undefined);
+      const state = reactive({ clusterId: 'clusterA' });
+      const preferences = { clusterA: [NAMESPACE_FILTER_ALL_USER], clusterB: ['namespaced://true'] };
+      const wrapper = mountWithRealOptions({
+        dispatch, preferences, state
+      });
+
+      expect((wrapper.vm as any).value).toStrictEqual([expect.objectContaining({ id: NAMESPACE_FILTER_ALL_USER })]);
+
+      state.clusterId = 'clusterB';
+      await nextTick();
+
+      expect((wrapper.vm as any).value).toStrictEqual([]);
+
+      await nextTick();
+
+      expect(dispatch).toHaveBeenCalledWith('switchNamespaces', { ids: [NAMESPACE_FILTER_ALL_USER], key: 'clusterB' });
+      wrapper.unmount();
+    });
+
+    it('should not offer the removed options for a product that hides system resources', () => {
+      const wrapper = mountWithRealOptions({ product: { hideSystemResources: true } });
+
+      const ids = (wrapper.vm as any).options.map((o: any) => o.id);
+
+      expect(ids).not.toContain('namespaced://true');
+      expect(ids).not.toContain('namespaced://false');
+      wrapper.unmount();
+    });
+
+    it('should leave a product with its own namespace filter options untouched', () => {
+      const ownOptions = [{
+        id: 'ns://only-mine', kind: NAMESPACE_FILTER_KINDS.NAMESPACE, label: 'only-mine'
+      }];
+      const wrapper = mountWithRealOptions({ product: { customNamespaceFilter: true }, customOptions: ownOptions });
+
+      expect((wrapper.vm as any).options).toStrictEqual(ownOptions);
+      wrapper.unmount();
+    });
   });
 
   describe('given filter input text selection', () => {
