@@ -5,6 +5,7 @@ import { LABEL_FIELD_PREFIX, encodeView, isCoreField } from '@shell/utils/table-
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import AppModal from '@shell/components/AppModal.vue';
 
 /**
  * The toolbar above a resource table - filter query, column picker, group by, export and
@@ -19,7 +20,7 @@ export default {
   emits: ['update:view', 'export', 'update:viewMode', 'request-values'],
 
   components: {
-    TableViewQueryInput, ButtonGroup, Checkbox
+    TableViewQueryInput, ButtonGroup, Checkbox, AppModal
   },
 
   props: {
@@ -117,6 +118,10 @@ export default {
       newViewName: '',
       /** The saved view the current state came from, so we can offer save/discard against it */
       editingViewId: null,
+      /** Which modal is open, if any: { kind: 'rename' | 'export', view } */
+      modal:         null,
+      /** Name being typed in the rename / duplicate modal */
+      modalName:     '',
       copied:      false,
       renameNames: {},
     };
@@ -277,6 +282,60 @@ export default {
       }
     },
 
+    openRename(saved) {
+      this.modal = { kind: 'rename', view: saved };
+      this.modalName = saved.name;
+    },
+
+    /**
+     * Export needs a scope and a format, which is more than belongs in a menu - ask in a modal.
+     * `view` is only used to label it, the rows exported are whatever the table is showing.
+     */
+    openExport(saved) {
+      this.modal = { kind: 'export', view: saved || null };
+    },
+
+    closeModal() {
+      this.modal = null;
+      this.modalName = '';
+    },
+
+    confirmRename() {
+      const name = (this.modalName || '').trim();
+      const saved = this.modal?.view;
+
+      if (!name || !saved || name === saved.name) {
+        this.closeModal();
+
+        return;
+      }
+
+      this.persist(this.savedViews.map((v) => (v.id === saved.id ? { ...v, name } : v)));
+      this.closeModal();
+    },
+
+    /**
+     * Copy a saved view, so a variation can be built without losing the original
+     */
+    duplicateView(saved) {
+      const base = `${ saved.name } ${ this.t('tableViews.tab.copySuffix') }`;
+      let name = base;
+      let n = 2;
+
+      while (this.savedViews.find((v) => v.name === name)) {
+        name = `${ base } ${ n++ }`;
+      }
+
+      this.persist(this.savedViews.concat([{
+        ...saved, id: randomStr(8), name
+      }]));
+    },
+
+    exportFromModal(format, scope) {
+      this.doExport(format, scope);
+      this.closeModal();
+    },
+
     persist(views) {
       this.allSavedViews = { ...(this.allSavedViews || {}), [this.resourceType]: views };
     },
@@ -403,30 +462,16 @@ export default {
                 {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
               </button>
 
-              <div class="menu-title">
-                {{ t('tableViews.export.label') }}
-              </div>
-              <template
-                v-for="scope in ['selection', 'page', 'all']"
-                :key="scope"
+              <button
+                v-close-popper
+                type="button"
+                class="menu-item"
+                data-testid="table-views-export-all"
+                @click="openExport(null)"
               >
-                <div class="menu-subtitle">
-                  {{ t(`tableViews.export.scope.${scope}`) }}
-                </div>
-                <div class="export-row">
-                  <button
-                    v-for="format in ['csv', 'json']"
-                    :key="`${scope}-${format}`"
-                    v-close-popper
-                    type="button"
-                    class="btn btn-sm role-secondary"
-                    :data-testid="`table-views-export-all-${scope}-${format}`"
-                    @click="doExport(format, scope)"
-                  >
-                    {{ t(`tableViews.export.format.${format}`) }}
-                  </button>
-                </div>
-              </template>
+                <i class="icon icon-download" />
+                {{ t('tableViews.export.label') }}
+              </button>
             </div>
           </template>
         </v-dropdown>
@@ -463,30 +508,26 @@ export default {
           </button>
           <template #popper>
             <div class="view-menu">
-              <div class="menu-title">
+              <button
+                v-close-popper
+                type="button"
+                class="menu-item"
+                :data-testid="`table-views-rename-${saved.id}`"
+                @click="openRename(saved)"
+              >
+                <i class="icon icon-edit" />
                 {{ t('tableViews.tab.rename') }}
-              </div>
-              <div class="save-row">
-                <input
-                  :value="renameNames[saved.id] ?? saved.name"
-                  type="text"
-                  class="input-sm"
-                  :data-testid="`table-views-rename-${saved.id}`"
-                  :placeholder="saved.name"
-                  @input="renameNames[saved.id] = $event.target.value"
-                  @keydown.enter="renameView(saved)"
-                >
-                <button
-                  v-close-popper
-                  type="button"
-                  class="btn btn-sm role-primary"
-                  :data-testid="`table-views-rename-submit-${saved.id}`"
-                  @click="renameView(saved)"
-                >
-                  {{ t('tableViews.tab.renameSave') }}
-                </button>
-              </div>
-
+              </button>
+              <button
+                v-close-popper
+                type="button"
+                class="menu-item"
+                :data-testid="`table-views-duplicate-${saved.id}`"
+                @click="duplicateView(saved)"
+              >
+                <i class="icon icon-copy" />
+                {{ t('tableViews.tab.duplicate') }}
+              </button>
               <button
                 v-close-popper
                 type="button"
@@ -498,6 +539,26 @@ export default {
                 {{ t('tableViews.tab.saveChanges') }}
               </button>
               <button
+                type="button"
+                class="menu-item"
+                :data-testid="`table-views-copy-link-${saved.id}`"
+                @click="copyShareUrl"
+              >
+                <i class="icon icon-copy" />
+                {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
+              </button>
+              <button
+                v-close-popper
+                type="button"
+                class="menu-item"
+                :data-testid="`table-views-export-${saved.id}`"
+                @click="openExport(saved)"
+              >
+                <i class="icon icon-download" />
+                {{ t('tableViews.export.label') }}
+              </button>
+              <div class="menu-divider" />
+              <button
                 v-close-popper
                 type="button"
                 class="menu-item"
@@ -507,40 +568,6 @@ export default {
                 <i class="icon icon-trash" />
                 {{ t('tableViews.tab.delete') }}
               </button>
-              <button
-                type="button"
-                class="menu-item"
-                :data-testid="`table-views-copy-link-${saved.id}`"
-                @click="copyShareUrl"
-              >
-                <i class="icon icon-copy" />
-                {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
-              </button>
-
-              <div class="menu-title">
-                {{ t('tableViews.export.label') }}
-              </div>
-              <template
-                v-for="scope in ['selection', 'page', 'all']"
-                :key="scope"
-              >
-                <div class="menu-subtitle">
-                  {{ t(`tableViews.export.scope.${scope}`) }}
-                </div>
-                <div class="export-row">
-                  <button
-                    v-for="format in ['csv', 'json']"
-                    :key="`${scope}-${format}`"
-                    v-close-popper
-                    type="button"
-                    class="btn btn-sm role-secondary"
-                    :data-testid="`table-views-export-${saved.id}-${scope}-${format}`"
-                    @click="doExport(format, scope)"
-                  >
-                    {{ t(`tableViews.export.format.${format}`) }}
-                  </button>
-                </div>
-              </template>
             </div>
           </template>
         </v-dropdown>
@@ -749,6 +776,85 @@ export default {
       </v-dropdown>
     </div>
   </div>
+
+  <!-- Rename and export ask for more than belongs in a menu, so they open here instead -->
+  <app-modal
+    v-if="modal"
+    name="tableViewsModal"
+    :width="420"
+    height="auto"
+    :trigger-focus-trap="true"
+    data-testid="table-views-modal"
+    @close="closeModal"
+  >
+    <div class="view-modal">
+      <h4 v-if="modal.kind === 'rename'">
+        {{ t('tableViews.tab.rename') }}
+      </h4>
+      <h4 v-else>
+        {{ t('tableViews.export.label') }}
+      </h4>
+
+      <template v-if="modal.kind === 'rename'">
+        <input
+          v-model="modalName"
+          type="text"
+          class="input-sm"
+          data-testid="table-views-modal-name"
+          @keydown.enter="confirmRename"
+        >
+        <div class="view-modal-actions">
+          <button
+            type="button"
+            class="btn role-secondary"
+            @click="closeModal"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+          <button
+            type="button"
+            class="btn role-primary"
+            :disabled="!modalName.trim()"
+            data-testid="table-views-modal-save"
+            @click="confirmRename"
+          >
+            {{ t('generic.save') }}
+          </button>
+        </div>
+      </template>
+
+      <template v-else>
+        <div
+          v-for="scope in ['selection', 'page', 'all']"
+          :key="scope"
+          class="export-scope"
+        >
+          <span class="export-scope-label">{{ t(`tableViews.export.scope.${scope}`) }}</span>
+          <span>
+            <button
+              v-for="format in ['csv', 'json']"
+              :key="`${scope}-${format}`"
+              type="button"
+              class="btn btn-sm role-secondary"
+              :data-testid="`table-views-modal-export-${scope}-${format}`"
+              @click="exportFromModal(format, scope)"
+            >
+              {{ t(`tableViews.export.format.${format}`) }}
+            </button>
+          </span>
+        </div>
+        <div class="view-modal-actions">
+          <button
+            type="button"
+            class="btn role-secondary"
+            @click="closeModal"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+        </div>
+      </template>
+    </div>
+  </app-modal>
 </template>
 
 <style lang="scss" scoped>
@@ -898,6 +1004,30 @@ export default {
   height: 1px;
   margin: 4px 0;
   background: var(--border);
+}
+
+.view-modal {
+  padding: 16px;
+
+  h4 { margin-bottom: 12px; }
+
+  input { width: 100%; }
+
+  .export-scope {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+
+    .btn { margin-left: 8px; }
+  }
+
+  .view-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+  }
 }
 
 .view-menu {

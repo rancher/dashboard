@@ -7135,6 +7135,8 @@ tableViews:
   tab:
     menu: View options
     rename: Rename view
+    duplicate: Duplicate
+    copySuffix: copy
     renameSave: Rename
     saveChanges: Save changes to this view
     delete: Delete view
