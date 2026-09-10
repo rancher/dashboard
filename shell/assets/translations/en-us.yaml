@@ -7124,10 +7124,12 @@ tableViews:
   matches: "{count} matching"
   tabs:
     all: All
-    unsaved: Unsaved view
     newView: New view
   view:
     label: View
+    unsaved: Unsaved changes
+    discard: Discard changes
+    saveChanges: Save changes to this view
     allColumns: All
     someColumns: "{count} shown"
   tab:
