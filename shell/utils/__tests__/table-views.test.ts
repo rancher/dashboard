@@ -1,7 +1,8 @@
 import {
   applyQuery, decodeView, encodeView, fieldsFor, parseQuery, rowsToCsv, valuesInUse,
   isCoreField, CORE_FIELD_IDS,
-  serverPathFor
+  serverPathFor,
+  summaryToValues
 } from '@shell/utils/table-views';
 
 const HEADERS = [
@@ -187,5 +188,35 @@ describe('serverPathFor', () => {
     expect(serverPathFor({
       id: 'restarts', label: 'Restarts', isLabel: false, header: { name: 'restarts' }
     })).toBeNull();
+  });
+});
+
+describe('summaryToValues', () => {
+  const response = {
+    summary: [{
+      property: 'metadata.namespace',
+      counts:   {
+        'cattle-system': { total: 5 }, default: { total: 12 }, '': { total: 3 }
+      }
+    }]
+  };
+
+  it('lists the values most used first', () => {
+    expect(summaryToValues(response)).toStrictEqual([
+      { value: 'default', count: 12 },
+      { value: 'cattle-system', count: 5 },
+    ]);
+  });
+
+  it('caps how many are returned', () => {
+    expect(summaryToValues(response, 1)).toStrictEqual([{ value: 'default', count: 12 }]);
+  });
+
+  it.each([
+    ['no summary', {}],
+    ['empty summary', { summary: [] }],
+    ['nothing at all', undefined],
+  ])('returns nothing for %s', (_name, input) => {
+    expect(summaryToValues(input as any)).toStrictEqual([]);
   });
 });
