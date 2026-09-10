@@ -64,6 +64,8 @@ const inputAttrs = computed(() => {
 
   return rest;
 });
+// Binding an undefined data-testid would strip the one FileSelector sets for itself
+const fileSelectorAttrs = computed(() => (props.fileSelectorTestid ? { 'data-testid': props.fileSelectorTestid } : {}));
 const rootClass = computed(() => attrs.class as string | string[] | Record<string, boolean> | undefined);
 const rootStyle = computed(() => attrs.style as StyleValue);
 
@@ -173,13 +175,13 @@ const onDrop = async(event: DragEvent) => {
       class="file-selector-row"
     >
       <FileSelector
+        v-bind="fileSelectorAttrs"
         variant="tertiary"
         :mode="mode"
         :disabled="disabled"
         :accept="accept"
         :byte-limit="byteLimit"
         :label="t('generic.readFromFile')"
-        :data-testid="fileSelectorTestid"
         @selected="onSelected"
         @error="onError"
       />
@@ -204,7 +206,9 @@ const onDrop = async(event: DragEvent) => {
     border-radius: var(--border-radius);
     backdrop-filter: blur(2px);
     color: var(--on-tertiary-hover, var(--link));
+    font-size: 14px;
     font-weight: 600;
+    line-height: 1.4;
     text-align: center;
     // Let the drag events reach the drop zone rather than stopping at the overlay
     pointer-events: none;
@@ -219,19 +223,21 @@ const onDrop = async(event: DragEvent) => {
 
     span {
       position: relative;
-      max-width: 80%;
+      // Keeps the message to the design's compact, centred two-line measure
+      max-width: 210px;
     }
   }
 
   .file-selector-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 16px;
     margin-top: 10px;
   }
 
   .drop-hint {
-    color: var(--input-label);
+    color: var(--input-placeholder);
+    font-size: 14px;
   }
 }
 </style>

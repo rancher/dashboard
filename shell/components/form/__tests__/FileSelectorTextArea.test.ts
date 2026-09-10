@@ -44,6 +44,18 @@ describe('component: FileSelectorTextArea', () => {
     expect(wrapper.find('.drop-hint').text()).toContain('fileSelectorTextArea.dropHint');
   });
 
+  it('should keep the file selector default test id when no override is given', () => {
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="file-selector__uploader-button"]').exists()).toBe(true);
+  });
+
+  it('should apply an overridden file selector test id', () => {
+    const wrapper = mountComponent({ fileSelectorTestid: 'my-file-button' });
+
+    expect(wrapper.find('[data-testid="my-file-button"]').exists()).toBe(true);
+  });
+
   it('should not offer the file selector in view mode', () => {
     const wrapper = mountComponent({ mode: _VIEW });
 
