@@ -934,9 +934,13 @@ defineExpose({
       background: var(--input-bg);
       color: var(--input-text);
 
+      // The ring needs `!important` to land at all: the app's rule for text inputs
+      // (`input[type="text"]:focus:not(…):not(…):not(…)`) sets `outline: none` at a specificity nothing
+      // reachable from in here can beat, which is what the shared mixin's own note about `!important` is
+      // for — the mixin itself no longer carries one. The border is left to that rule as well: its focused
+      // tint is the one every other input in the product wears, and this box should not be the exception.
       &:focus-visible {
-        border-color: var(--primary);
-        @include focus-outline;
+        outline: 2px solid var(--primary-keyboard-focus) !important;
         outline-offset: 1px;
       }
     }
