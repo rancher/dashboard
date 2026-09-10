@@ -185,7 +185,16 @@ export default {
       return !this.view.columns || this.view.columns.includes(field.id);
     },
 
+    isCoreColumn(field) {
+      return isCoreField(field?.id);
+    },
+
     toggleColumn(field) {
+      // Core columns (name, age) can't be hidden - the table depends on them
+      if (this.isCoreColumn(field)) {
+        return;
+      }
+
       const current = this.view.columns || this.columnFields.map((f) => f.id);
       const next = current.includes(field.id) ? current.filter((id) => id !== field.id) : current.concat([field.id]);
 
@@ -607,6 +616,7 @@ export default {
                     <input
                       type="checkbox"
                       :checked="isColumnVisible(field)"
+                      :disabled="isCoreColumn(field)"
                       @change="toggleColumn(field)"
                     >
                     <span>{{ field.label }}</span>

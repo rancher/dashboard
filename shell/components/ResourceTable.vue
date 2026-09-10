@@ -30,6 +30,7 @@ import {
   rowsToJson,
   stringifyValue,
   termsToServerFilters,
+  isCoreField,
 } from '@shell/utils/table-views';
 
 // Default group-by in the case the group stored in the preference does not apply
@@ -635,7 +636,8 @@ export default {
       let out = headers;
 
       if (this.view.columns) {
-        out = headers.filter((header) => isIgnoredColumn(header) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
+        // Core columns are always kept, even if a saved or shared view omits them
+        out = headers.filter((header) => isIgnoredColumn(header) || isCoreField(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
       }
 
       if (this.view.labelColumns?.length) {
