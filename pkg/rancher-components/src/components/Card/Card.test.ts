@@ -32,4 +32,16 @@ describe('component: Card', () => {
 
     expect(element.exists()).toBe(true);
   });
+
+  it('should not have an id on the card title when rendered outside of a modal', () => {
+    const wrapper = mount(Card, { slots: { title: '<div>Card title</div>' } });
+
+    expect(wrapper.find('[data-testid="card-title-slot"]').attributes('id')).toBeUndefined();
+  });
+
+  it('should mark the card title with data-modal-title for modal labelling', () => {
+    const wrapper = mount(Card, { props: { title } });
+
+    expect(wrapper.find('[data-testid="card-title-slot"]').attributes('data-modal-title')).toBeDefined();
+  });
 });

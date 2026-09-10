@@ -520,8 +520,20 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.applyDefaultTestTheme();
   });
 
+  // Test isolation clears cookies before every test *and* every retry attempt, so with login only in
+  // `before` a retry (and the `after` hook's api calls) would run logged out and never see the list.
+  beforeEach(() => {
+    cy.login();
+  });
+
   it('should display fleet clusters list page', () => {
+    cy.intercept('GET', '/v1/fleet.cattle.io.clusters?*').as('fleetClustersGet');
+
     fleetClusterListPage.goTo();
+
+    // The sortable table only renders once the list fetch resolves, and checkLoadingIndicatorNotVisible
+    // has a hardcoded 10s window - gate on the real request first.
+    cy.wait('@fleetClustersGet', MEDIUM_TIMEOUT_OPT);
 
     fleetClusterListPage.list().resourceTable().sortableTable().checkVisible();
     fleetClusterListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();

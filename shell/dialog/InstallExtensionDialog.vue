@@ -319,7 +319,10 @@ export default {
 
 <template>
   <div class="plugin-install-dialog">
-    <h4 class="mt-10">
+    <h4
+      class="mt-10"
+      data-modal-title
+    >
       {{ t(`plugins.${ buttonMode }.title`, { name: `"${plugin?.label}"` }, true) }}
     </h4>
     <div class="custom mt-10">

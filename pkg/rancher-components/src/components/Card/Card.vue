@@ -53,7 +53,7 @@ export default defineComponent({
       type:    Boolean,
       default: false,
     }
-  }
+  },
 });
 </script>
 
@@ -67,6 +67,7 @@ export default defineComponent({
     <div class="card-wrap">
       <div
         class="card-title"
+        data-modal-title
         data-testid="card-title-slot"
       >
         <slot name="title">

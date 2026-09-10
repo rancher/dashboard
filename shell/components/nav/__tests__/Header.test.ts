@@ -39,7 +39,7 @@ describe('component: Header', () => {
 
   const defaultConfigMock = { rancherEnv: 'web' };
 
-  function createWrapper(routeOverride = {}, storeOverride = {}, extensionMock: any = { getDynamic: jest.fn() }) {
+  function createWrapper(routeOverride = {}, storeOverride = {}, extensionMock: any = { getDynamic: jest.fn() }, props = {}) {
     const routeMock = {
       ...defaultRouteMock,
       ...routeOverride,
@@ -56,6 +56,7 @@ describe('component: Header', () => {
     };
 
     return shallowMount(Header as any, {
+      props,
       global: {
         mocks: {
           $store:     storeMock,
@@ -83,6 +84,26 @@ describe('component: Header', () => {
       },
     });
   }
+
+  describe('a11y: brand logo', () => {
+    it('should label the logo with the product name, not just "Logo"', () => {
+      const wrapper = createWrapper(
+        {
+          name:   'home',
+          path:   '/home',
+          params: {},
+        },
+        { rootProduct: {} },
+        undefined,
+        { simple: true },
+      );
+
+      const brandImage = wrapper.find('[data-testid="header__brand-img"]');
+
+      expect(brandImage.exists()).toBe(true);
+      expect(brandImage.attributes('alt')).toBe('%branding.logos.logoLabel%');
+    });
+  });
 
   describe('disableWorkspaceSwitcher', () => {
     it('should return false on a list page', () => {
@@ -266,6 +287,79 @@ describe('component: Header', () => {
       const wrapper = createWrapper({}, {}, { getDynamic: jest.fn(() => undefined) });
 
       expect((wrapper.vm as any).navHeaderRight).toBeNull();
+    });
+  });
+
+  describe('extensionHeaderActionsAriaExpanded', () => {
+    it('returns undefined for an action with no ariaExpanded', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [{ label: 'Test', invoke: jest.fn() }];
+
+      expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([undefined]);
+    });
+
+    it('returns the boolean value when ariaExpanded is a boolean', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label:        'Open',
+          invoke:       jest.fn(),
+          ariaExpanded: true
+        },
+        {
+          label:        'Closed',
+          invoke:       jest.fn(),
+          ariaExpanded: false
+        },
+      ];
+
+      expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([true, false]);
+    });
+
+    it('calls ariaExpanded and returns its result when it is a function', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label:        'Dynamic',
+          invoke:       jest.fn(),
+          ariaExpanded: () => true
+        },
+      ];
+
+      expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([true]);
+    });
+
+    it('does not render aria-expanded attribute when value is undefined', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [{ label: 'Test', invoke: jest.fn() }];
+
+      await wrapper.vm.$nextTick();
+
+      const button = wrapper.find('[data-testid="extension-header-action-Test"]');
+
+      expect(button.attributes('aria-expanded')).toBeUndefined();
+    });
+
+    it('renders aria-expanded attribute when value is a boolean', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label:        'Open',
+          invoke:       jest.fn(),
+          ariaExpanded: true
+        },
+      ];
+
+      await wrapper.vm.$nextTick();
+
+      const button = wrapper.find('[data-testid="extension-header-action-Open"]');
+
+      expect(button.attributes('aria-expanded')).toBe('true');
     });
   });
 });

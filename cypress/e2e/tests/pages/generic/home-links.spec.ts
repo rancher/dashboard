@@ -2,6 +2,8 @@ import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/sup
 import { qase } from '@/cypress/support/qase';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
+const RANCHER_PRIME_LINK = 'https://www.suse.com/products/rancher';
+
 describe('Home Page Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   const homePage = new HomePagePo();
 
@@ -82,27 +84,16 @@ describe('Home Page Support Links', { tags: ['@generic', '@adminUser', '@standar
   }));
 
   qase(1476, it('can click on Rancher Prime link', { tags: '@noPrime' }, () => {
-    catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://www.suse.com');
-
-    // click Rancher Prime link (replaces old Commercial Support link)
-    homePage.clickSupportLink(5, true);
-    cy.origin('https://www.suse.com', { args: { RANCHER_PAGE_EXCEPTIONS } }, ({ RANCHER_PAGE_EXCEPTIONS }) => {
-      // The suse.com telemetry pixel (cdn.vector.co) rejects asynchronously and often LATE - after
-      // this test finishes, during the spec's after-all hook. By then the per-test `cy.on` handler
-      // registered by catchTargetPageException is already torn down, and Cypress does NOT retry hook
-      // failures, so the whole spec fails. `cy.on` scopes to the current test; `Cypress.on` scoped to
-      // THIS (suse.com) secondary origin persists for the rest of the spec, so it still swallows the
-      // known third-party rejection when it finally fires in the after-all hook. This must live inside
-      // cy.origin because the primary-context handler in `before()` does not see secondary-origin errors.
-      Cypress.on('uncaught:exception', (err) => {
-        if (RANCHER_PAGE_EXCEPTIONS.some((m) => (err?.message || '').includes(m))) {
-          return false;
-        }
-
-        return undefined;
-      });
-
-      cy.url().should('include', 'suse.com/products/rancher');
+    // Verify the Rancher Prime link (replaces old Commercial Support link) instead of navigating to it.
+    // Loading www.suse.com is an external network dependency that times out in CI; the href/target/rel
+    // is the part the dashboard actually owns.
+    homePage.checkSupportLinkText(5, 'Rancher Prime');
+    homePage.supportLinks().eq(5).should(($el) => {
+      // Prefix match, as in prime.spec.ts: the trailing slash is incidental and a link interceptor may
+      // legitimately rewrite the tail.
+      expect($el.attr('href'), 'href').to.satisfy((href: string) => href?.startsWith(RANCHER_PRIME_LINK));
+      expect($el).to.have.attr('target', '_blank');
+      expect($el).to.have.attr('rel', 'noopener noreferrer nofollow');
     });
   }));
 

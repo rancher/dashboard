@@ -153,7 +153,7 @@
     "@cypress/vue": "5.0.5",
     "@cypress/webpack-dev-server": "4.0.0",
     "@eslint/js": "10.0.1",
-    "@percy/cli": "1.31.8",
+    "@percy/cli": "1.32.8",
     "@percy/cypress": "3.1.6",
     "@types/copy-webpack-plugin": "5.0.3",
     "@types/dompurify": "3.0.5",
@@ -244,6 +244,7 @@
     "postcss": "8.5.25",
     "@tootallnate/once": "^2.0.1",
     "cookie": "0.7.2",
-    "qs": "6.16.0"
+    "qs": "6.16.0",
+    "fast-xml-parser": "5.11.1"
   }
 }

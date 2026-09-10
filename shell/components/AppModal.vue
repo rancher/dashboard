@@ -1,5 +1,7 @@
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import {
+  defineComponent, markRaw, ref, StyleValue, useId
+} from 'vue';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
   getFirstFocusableElement,
@@ -94,6 +96,15 @@ export default defineComponent({
     }
   },
   computed: {
+    /**
+     * An explicit `aria-labelledby` from the caller always wins. Otherwise the
+     * generated title id is used, but only once something inside the modal has
+     * actually rendered with it - a reference to a missing element would leave
+     * the dialog with no accessible name at all.
+     */
+    labelledBy(): string | undefined {
+      return (this.$attrs['aria-labelledby'] as string) || (this.hasTitle ? this.titleId : undefined);
+    },
     modalWidth(): string {
       if (this.isValidWidth(this.width)) {
         const uom = typeof (this.width) === 'number' ? 'px' : '';
@@ -103,17 +114,17 @@ export default defineComponent({
 
       return '600px';
     },
-    stylesPropToObj(): object {
+    stylesPropToObj(): Record<string, string> {
       return this.styles.split(';')
         .map((line) => line.trim().split(':'))
-        .reduce((lines, [key, val]) => {
+        .reduce((lines: Record<string, string>, [key, val]) => {
           return {
             ...lines,
             [key]: val
           };
         }, { });
     },
-    modalStyles(): object {
+    modalStyles(): StyleValue {
       return {
         width: this.modalWidth,
         ...this.stylesPropToObj,
@@ -121,6 +132,8 @@ export default defineComponent({
     }
   },
   setup(props) {
+    const titleId = useId();
+
     if (props.triggerFocusTrap) {
       let opts:any = DEFAULT_FOCUS_TRAP_OPTS;
 
@@ -147,14 +160,41 @@ export default defineComponent({
 
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => props.focusTrapWatcherBasedVariable ?? autoTriggerFocusTrapWatcher, '#modal-container-element', opts, true);
     }
+
+    return { titleId };
+  },
+  data() {
+    return {
+      hasTitle:      false,
+      titleObserver: null as MutationObserver | null,
+    };
   },
   mounted() {
     document.addEventListener('keydown', this.handleEscapeKey);
+
+    this.syncTitle();
+
+    // slot content can render (or re-render) its title at any point after the
+    // modal itself is mounted, so the check can't be a one-off
+    const observer = markRaw(new MutationObserver(() => this.syncTitle()));
+
+    observer.observe(this.$refs.modalRef as HTMLElement, { childList: true, subtree: true });
+    this.titleObserver = observer;
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey);
+    this.titleObserver?.disconnect();
   },
   methods: {
+    syncTitle() {
+      const container = this.$refs.modalRef as HTMLElement | undefined;
+      const titleEl = container?.querySelector('[data-modal-title]') as HTMLElement | null;
+
+      if (titleEl) {
+        titleEl.id = this.titleId;
+      }
+      this.hasTitle = !!titleEl;
+    },
     handleClickOutside(event: MouseEvent) {
       if (
         this.clickToClose &&
@@ -204,9 +244,12 @@ export default defineComponent({
           :style="modalStyles"
           role="dialog"
           aria-modal="true"
+          :aria-labelledby="labelledBy"
           @click.stop
         >
-          <slot><!--Empty content--></slot>
+          <slot>
+            <!--Empty content-->
+          </slot>
         </div>
       </div>
     </transition>
