@@ -19,8 +19,7 @@ const SCSS_VALUE_ESCAPES = [
   '/#\\{/', //                                   SCSS interpolation:        #{ ... }
   '/v-bind\\(/', //                              Vue SFC binding:           v-bind(x)
   '/z-index\\(/', //                             custom SCSS z-index() map function
-  '/\\bcalc\\(/', //                             calc() (often wraps SCSS vars)
-  '/(darken|lighten|mix|rgba|nth|length|map-)/', // common SCSS functions
+  '/(darken|lighten)\\(/', //                     SCSS colour functions CSSTree can't parse
   '/[0-9)]\\s*\\*|\\*\\s*[0-9(]/', //            SCSS multiplication:       2 * $x
 ];
 
