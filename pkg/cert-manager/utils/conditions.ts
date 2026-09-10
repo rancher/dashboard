@@ -6,10 +6,6 @@ export interface Condition {
   lastTransitionTime?: string;
 }
 
-export function conditionOf(resource: any, type: string): Condition | undefined {
-  return (resource?.status?.conditions || []).find((c: Condition) => c.type === type);
-}
-
 /** Condition types that report a failure by being True rather than False. */
 const FAILURE_WHEN_TRUE = ['Failed', 'Denied', 'InvalidRequest'];
 

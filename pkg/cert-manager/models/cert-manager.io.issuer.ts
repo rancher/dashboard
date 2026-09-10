@@ -2,7 +2,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { SECRET } from '@shell/config/types';
 import { CERT_MANAGER } from '../types';
-import { Condition, conditionOf, isFailingCondition } from '../utils/conditions';
+import { Condition, isFailingCondition } from '../utils/conditions';
 import { issuerRefMatches } from '../utils/issuer-ref';
 import { resourceLocation } from '../utils/locations';
 import { stateObjFor } from '../utils/state';
@@ -32,7 +32,7 @@ export default class Issuer extends SteveModel {
   declare metadata: RancherKubeMetadata;
 
   get readyCondition(): Condition | undefined {
-    return conditionOf(this, 'Ready');
+    return this.condition('Ready');
   }
 
   get configType(): IssuerConfigType | undefined {
