@@ -251,7 +251,7 @@ export default {
             :value="matchingSelectorDisplay ? props.row.value : props.row.value.matchExpressions"
             :matching-selector-display="matchingSelectorDisplay"
             :mode="mode"
-            class="col span-12 mt-20" 
+            class="col span-12 mt-20"
             :type="node"
             :show-remove="false"
             :use-rc="useRc"

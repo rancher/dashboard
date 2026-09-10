@@ -132,7 +132,7 @@ export default {
     },
 
     useRcButton: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     }
 
@@ -488,21 +488,22 @@ export default {
           name="add"
           :add="add"
         >
-        <RcButton v-if="useRcButton"
-          size="small"
-          variant="secondary"
-          :class="[addClass]"
-          :data-testid="`${componentTestid}-button`"
-          :disabled="loading || disableAdd"
-          role="button"
-          :aria-label="_addLabel"
-          @click="add()"
-        >
-          <i
-            class="mr-5 icon"
-            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
-          /> {{ _addLabel }}
-        </RcButton>
+          <RcButton
+            v-if="useRcButton"
+            size="small"
+            variant="secondary"
+            :class="[addClass]"
+            :data-testid="`${componentTestid}-button`"
+            :disabled="loading || disableAdd"
+            role="button"
+            :aria-label="_addLabel"
+            @click="add()"
+          >
+            <i
+              class="mr-5 icon"
+              :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
+            /> {{ _addLabel }}
+          </RcButton>
           <button
             v-else
             type="button"
