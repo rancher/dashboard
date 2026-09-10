@@ -23,6 +23,8 @@ const configTabProps = useDefaultConfigTabProps(props.resource);
 
 useDefaultYamlTabProps(props.resource).then((yamlProps) => {
   yamlTabProps.value = yamlProps ?? null;
+}).catch(() => {
+  yamlTabProps.value = null;
 });
 
 const title = computed(() => {

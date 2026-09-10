@@ -35,7 +35,28 @@ describe('composables: ResourceDetailDrawer', () => {
       const getYamlSpy = jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.resolve(yaml));
       const props = await useDefaultYamlTabProps({ ...resource, canYaml: false });
 
-      expect(getYamlSpy).not.toHaveBeenCalledWith({ ...resource, canYaml: false });
+      expect(getYamlSpy).not.toHaveBeenCalled();
+      expect(props).toBeUndefined();
+    });
+
+    it('should return undefined instead of throwing when the resource canYaml getter throws', async() => {
+      const throwingResource = {};
+
+      Object.defineProperty(throwingResource, 'canYaml', {
+        get() {
+          throw new Error('boom, badly-behaved plugin model class');
+        }
+      });
+
+      const props = await useDefaultYamlTabProps(throwingResource);
+
+      expect(props).toBeUndefined();
+    });
+
+    it('should return undefined instead of throwing when getYaml itself rejects', async() => {
+      jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.reject(new Error('boom')));
+      const props = await useDefaultYamlTabProps({ ...resource, canYaml: true });
+
       expect(props).toBeUndefined();
     });
   });

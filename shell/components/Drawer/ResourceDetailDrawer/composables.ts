@@ -4,22 +4,26 @@ import { inject, provide } from 'vue';
 import { useStore } from 'vuex';
 
 export async function useDefaultYamlTabProps(resource: any): Promise<YamlProps | undefined> {
-  // Use the resource's own instance-level canYaml (hasLink('view')) rather than the type-map's
-  // static canYaml option: that option's meaning varies by type/author intent and isn't a
-  // reliable "can this type ever produce real yaml" signal - e.g. ext.cattle.io.kubeconfig sets
-  // canYaml: false purely to hide an unrelated button, while still genuinely supporting yaml
-  // (it has a real `view` link). The instance getter mirrors exactly what getYaml() itself
-  // checks, so it accurately reflects whether fetching yaml here will actually produce content.
-  if (!resource.canYaml) {
-    return;
+  try {
+    // Use the resource's own instance-level canYaml (hasLink('view')) rather than the type-map's
+    // static canYaml option: that option's meaning varies by type/author intent and isn't a
+    // reliable "can this type ever produce real yaml" signal - e.g. ext.cattle.io.kubeconfig sets
+    // canYaml: false purely to hide an unrelated button, while still genuinely supporting yaml
+    // (it has a real `view` link). The instance getter mirrors exactly what getYaml() itself
+    // checks, so it accurately reflects whether fetching yaml here will actually produce content.
+    if (!resource.canYaml) {
+      return;
+    }
+
+    const yaml = await getYaml(resource);
+
+    return {
+      resource,
+      yaml
+    };
+  } catch (e) {
+    console.warn(`Could not determine/fetch yaml for '${ resource?.type }'`, e); // eslint-disable-line no-console
   }
-
-  const yaml = await getYaml(resource);
-
-  return {
-    resource,
-    yaml
-  };
 }
 
 export function useDefaultConfigTabProps(resource: any): ConfigProps | undefined {
