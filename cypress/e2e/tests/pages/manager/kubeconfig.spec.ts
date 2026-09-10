@@ -8,7 +8,7 @@ describe('Kubeconfig', { tags: ['@manager', '@adminUser'] }, () => {
 
   beforeEach(() => {
     cy.login();
-    HomePagePo.goTo();
+    HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
   });
 
   it('"Show Configuration" shows a working, non-blank YAML tab', () => {
@@ -18,12 +18,10 @@ describe('Kubeconfig', { tags: ['@manager', '@adminUser'] }, () => {
     })).then((resp: Cypress.Response<any>) => {
       createdKubeconfigId = resp.body.id;
 
-      const kubeconfigPage = new KubeconfigPagePo();
+      const kubeconfigDetailPage = new KubeconfigPagePo('_', createdKubeconfigId);
 
-      kubeconfigPage.goTo();
-      kubeconfigPage.waitForPage();
-      kubeconfigPage.list().resourceTable().sortableTable().rowElementWithName(createdKubeconfigId)
-        .click();
+      kubeconfigDetailPage.goTo();
+      kubeconfigDetailPage.waitForPage();
 
       cy.get('[data-testid="show-configuration-cta"]').should('be.visible').click();
 
