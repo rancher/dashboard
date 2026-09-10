@@ -185,7 +185,7 @@ function toggle() {
       </div>
     </div>
     <div
-      v-if="expanded"
+      v-show="expanded"
       :class="contentClass"
     >
       <slot />
