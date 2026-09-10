@@ -4,10 +4,9 @@ import { randomStr } from '@shell/utils/string';
 import { LABEL_FIELD_PREFIX, encodeView, isCoreField } from '@shell/utils/table-views';
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
 import ButtonGroup from '@shell/components/ButtonGroup';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import AppModal from '@shell/components/AppModal.vue';
 import {
-  RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator
+  RcDropdown, RcDropdownItem, RcDropdownItemCheckbox, RcDropdownTrigger, RcDropdownSeparator
 } from '@components/RcDropdown';
 
 /**
@@ -25,10 +24,10 @@ export default {
   components: {
     TableViewQueryInput,
     ButtonGroup,
-    Checkbox,
     AppModal,
     RcDropdown,
     RcDropdownItem,
+    RcDropdownItemCheckbox,
     RcDropdownTrigger,
     RcDropdownSeparator
   },
@@ -125,15 +124,14 @@ export default {
 
   data() {
     return {
-      newViewName: '',
       /** The saved view the current state came from, so we can offer save/discard against it */
       editingViewId: null,
-      /** Which modal is open, if any: { kind: 'rename' | 'export', view } */
+      /** Which modal is open, if any: { kind: 'new' | 'rename' | 'export', view } */
       modal:         null,
       /** Name being typed in the rename / duplicate modal */
       modalName:     '',
-      copied:      false,
-      renameNames: {},
+      copied:        false,
+      renameNames:   {},
     };
   },
 
@@ -292,9 +290,32 @@ export default {
       }
     },
 
+    /**
+     * Naming a view is a form rather than a choice, so it belongs in the modal next to
+     * rename, not in a menu.
+     */
+    openNewView() {
+      this.modal = { kind: 'new', view: null };
+      this.modalName = '';
+    },
+
     openRename(saved) {
       this.modal = { kind: 'rename', view: saved };
       this.modalName = saved.name;
+    },
+
+    /**
+     * The modal's name field either creates a view or renames one
+     */
+    confirmName() {
+      if (this.modal?.kind === 'new') {
+        this.saveView();
+        this.closeModal();
+
+        return;
+      }
+
+      this.confirmRename();
     },
 
     /**
@@ -351,7 +372,7 @@ export default {
     },
 
     saveView() {
-      const name = (this.newViewName || '').trim();
+      const name = (this.modalName || '').trim();
 
       if (!name) {
         return;
@@ -367,7 +388,6 @@ export default {
       };
 
       this.persist(this.savedViews.filter((v) => v.name !== name).concat([view]));
-      this.newViewName = '';
     },
 
     renameView(saved) {
@@ -542,48 +562,16 @@ export default {
         </rc-dropdown>
       </div>
 
-      <!-- + New View: name and save the current config as a new saved view -->
-      <v-dropdown
-        placement="bottom-start"
-        :container="false"
+      <!-- + New View: naming a view is a form, so it asks in the modal rather than in a menu -->
+      <button
+        type="button"
+        class="view-tab new-view-tab"
+        data-testid="table-views-new-tab"
+        @click="openNewView"
       >
-        <button
-          type="button"
-          class="view-tab new-view-tab"
-          data-testid="table-views-new-tab"
-        >
-          <i class="icon icon-plus" />
-          {{ t('tableViews.tabs.newView') }}
-        </button>
-        <template #popper>
-          <div class="view-menu save-menu">
-            <div class="menu-title">
-              {{ t('tableViews.save.newView') }}
-            </div>
-            <div class="save-row">
-              <input
-                v-model="newViewName"
-                type="text"
-                class="input-sm"
-                data-testid="table-views-save-name"
-                :placeholder="t('tableViews.save.namePlaceholder')"
-                @keydown.enter="saveView"
-              >
-              <button
-                v-close-popper
-                type="button"
-                class="btn btn-sm role-primary"
-                :disabled="!newViewName.trim()"
-                data-testid="table-views-save-submit"
-                @click="saveView"
-              >
-                {{ t('tableViews.save.save') }}
-              </button>
-            </div>
-          </div>
-        </template>
-      </v-dropdown>
-
+        <i class="icon icon-plus" />
+        {{ t('tableViews.tabs.newView') }}
+      </button>
     </div>
 
     <div
@@ -601,15 +589,12 @@ export default {
         @request-values="$emit('request-values', $event)"
       />
 
-      <!-- Single "View" popup — a compact list; Columns / Group by each open their OWN nested
-           dropdown (a cascading submenu) beside the row, GitHub-style. -->
-      <v-dropdown
-        placement="bottom-end"
-        :container="false"
-      >
-        <button
-          type="button"
-          class="btn role-tertiary view-control-btn"
+      <!-- Single "View" popup - a compact list; Columns / Group by each open their OWN nested
+           dropdown beside the row, GitHub-style. -->
+      <rc-dropdown :placement="'bottom-end'">
+        <rc-dropdown-trigger
+          variant="tertiary"
+          class="view-control-btn"
           data-testid="table-views-view-menu"
         >
           {{ t('tableViews.view.label') }}
@@ -620,129 +605,128 @@ export default {
             data-testid="table-views-unsaved"
           />
           <i class="icon icon-chevron-down" />
-        </button>
-        <template #popper>
-          <div class="view-menu view-popup">
+        </rc-dropdown-trigger>
+        <template #dropdownCollection>
+          <div class="menu-panel">
             <template v-if="isDirty">
               <div class="menu-title">
                 {{ t('tableViews.view.unsaved') }}
               </div>
-              <button
-                type="button"
-                class="menu-item"
+              <rc-dropdown-item
                 data-testid="table-views-discard"
                 @click="discardChanges()"
               >
                 {{ t('tableViews.view.discard') }}
-              </button>
-              <button
+              </rc-dropdown-item>
+              <rc-dropdown-item
                 v-if="editingView"
-                type="button"
-                class="menu-item"
                 data-testid="table-views-save-changes"
                 @click="saveChanges()"
               >
                 {{ t('tableViews.view.saveChanges') }}
-              </button>
-              <div class="menu-divider" />
-            </template>
-            <template v-if="viewModeOptions.length > 1">
-              <div class="view-mode-row">
-                <ButtonGroup
-                  :value="viewMode"
-                  :options="viewModeOptions"
-                  size="medium"
-                  data-testid="table-views-view-mode"
-                  @update:value="setViewMode"
-                />
-              </div>
+              </rc-dropdown-item>
+              <rc-dropdown-separator />
             </template>
 
-            <!-- Columns → its own nested dropdown -->
-            <v-dropdown
-              placement="right-start"
+            <div
+              v-if="viewModeOptions.length > 1"
+              class="view-mode-row"
             >
-              <button
-                type="button"
+              <ButtonGroup
+                :value="viewMode"
+                :options="viewModeOptions"
+                size="medium"
+                data-testid="table-views-view-mode"
+                @update:value="setViewMode"
+              />
+            </div>
+
+            <!-- Columns -> its own nested dropdown. The View button sits at the right hand end of
+                 the toolbar, so the sub menus open to the left of it rather than off screen. -->
+            <rc-dropdown
+              :placement="'left-start'"
+              :distance="4"
+            >
+              <rc-dropdown-trigger
+                variant="link"
                 class="menu-nav"
                 data-testid="table-views-view-columns"
               >
                 <span class="menu-nav-label">{{ t('tableViews.columns.label') }}</span>
                 <span class="menu-nav-value">{{ columnsSummary }}</span>
                 <i class="icon icon-chevron-right" />
-              </button>
-              <template #popper>
-                <div class="view-menu">
+              </rc-dropdown-trigger>
+              <template #dropdownCollection>
+                <div class="menu-panel">
                   <div class="menu-title">
                     {{ t('tableViews.columns.tableColumns') }}
                   </div>
-                  <Checkbox
+                  <rc-dropdown-item-checkbox
                     v-for="field in columnFields"
                     :key="field.id"
-                    class="menu-check"
-                    :value="isColumnVisible(field)"
-                    :label="field.label"
+                    :model-value="isColumnVisible(field)"
                     :disabled="isCoreColumn(field)"
-                    @update:value="toggleColumn(field)"
-                  />
+                    :data-testid="`table-views-col-${field.id}`"
+                    @click="toggleColumn(field)"
+                  >
+                    {{ field.label }}
+                  </rc-dropdown-item-checkbox>
                   <template v-if="labelFields.length">
                     <div class="menu-title">
                       {{ t('tableViews.columns.labelColumns') }}
                     </div>
-                    <Checkbox
+                    <rc-dropdown-item-checkbox
                       v-for="field in labelFields"
                       :key="field.id"
-                      class="menu-check"
+                      :model-value="view.labelColumns.includes(field.labelKey)"
                       :data-testid="`table-views-label-col-${field.labelKey}`"
-                      :value="view.labelColumns.includes(field.labelKey)"
-                      :label="field.label"
-                      @update:value="toggleLabelColumn(field)"
-                    />
+                      @click="toggleLabelColumn(field)"
+                    >
+                      {{ field.label }}
+                    </rc-dropdown-item-checkbox>
                   </template>
-                  <button
-                    type="button"
-                    class="btn btn-sm role-link menu-reset"
+                  <rc-dropdown-item
+                    class="menu-reset"
+                    data-testid="table-views-columns-reset"
                     @click="resetColumns"
                   >
                     {{ t('tableViews.columns.reset') }}
-                  </button>
+                  </rc-dropdown-item>
                 </div>
               </template>
-            </v-dropdown>
+            </rc-dropdown>
 
-            <!-- Group by → its own nested dropdown -->
-            <v-dropdown
-              placement="right-start"
+            <!-- Group by -> its own nested dropdown -->
+            <rc-dropdown
+              :placement="'left-start'"
+              :distance="4"
             >
-              <button
-                type="button"
+              <rc-dropdown-trigger
+                variant="link"
                 class="menu-nav"
                 data-testid="table-views-view-group"
               >
                 <span class="menu-nav-label">{{ t('tableViews.group.byLabel') }}</span>
                 <span class="menu-nav-value">{{ groupLabel }}</span>
                 <i class="icon icon-chevron-right" />
-              </button>
-              <template #popper>
-                <div class="view-menu">
-                  <button
+              </rc-dropdown-trigger>
+              <template #dropdownCollection>
+                <div class="menu-panel">
+                  <rc-dropdown-item
                     v-for="option in groupOptions"
                     :key="option.id || 'none'"
-                    v-close-popper
-                    type="button"
-                    class="menu-item"
                     :class="{ selected: option.id === view.groupBy }"
                     :data-testid="`table-views-group-${option.id || 'none'}`"
                     @click="setGroupBy(option.id)"
                   >
                     {{ option.label }}
-                  </button>
+                  </rc-dropdown-item>
                 </div>
               </template>
-            </v-dropdown>
+            </rc-dropdown>
           </div>
         </template>
-      </v-dropdown>
+      </rc-dropdown>
     </div>
   </div>
 
@@ -757,20 +741,24 @@ export default {
     @close="closeModal"
   >
     <div class="view-modal">
-      <h4 v-if="modal.kind === 'rename'">
+      <h4 v-if="modal.kind === 'new'">
+        {{ t('tableViews.save.newView') }}
+      </h4>
+      <h4 v-else-if="modal.kind === 'rename'">
         {{ t('tableViews.tab.rename') }}
       </h4>
       <h4 v-else>
         {{ t('tableViews.export.label') }}
       </h4>
 
-      <template v-if="modal.kind === 'rename'">
+      <template v-if="modal.kind !== 'export'">
         <input
           v-model="modalName"
           type="text"
           class="input-sm"
+          :placeholder="t('tableViews.save.namePlaceholder')"
           data-testid="table-views-modal-name"
-          @keydown.enter="confirmRename"
+          @keydown.enter="confirmName"
         >
         <div class="view-modal-actions">
           <button
@@ -785,7 +773,7 @@ export default {
             class="btn role-primary"
             :disabled="!modalName.trim()"
             data-testid="table-views-modal-save"
-            @click="confirmRename"
+            @click="confirmName"
           >
             {{ t('generic.save') }}
           </button>
@@ -969,12 +957,6 @@ export default {
   background: var(--warning);
 }
 
-.menu-divider {
-  height: 1px;
-  margin: 4px 0;
-  background: var(--border);
-}
-
 .view-modal {
   padding: 16px;
 
@@ -999,88 +981,32 @@ export default {
   }
 }
 
-.view-menu {
+// Content of an RcDropdown menu. RcDropdown owns the popper, this is the list inside it.
+.menu-panel {
   display: flex;
   flex-direction: column;
   min-width: 220px;
-  max-height: 420px;
+  max-height: 60vh;
   overflow-y: auto;
-  padding: 4px 0;
+  text-align: left;
 
   .menu-title {
-    padding: 6px 12px 2px 12px;
+    padding: 6px 17px 2px 17px;
     font-size: 11px;
     text-transform: uppercase;
     opacity: 0.6;
   }
 
-  .menu-item,
-  .menu-check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 12px;
-    background: transparent;
-    border: none;
-    text-align: left;
-    cursor: pointer;
-    color: var(--body-text);
-    margin: 0;
-
-    &:hover {
-      background: var(--dropdown-hover-bg);
-      color: var(--dropdown-hover-text);
-    }
-
-    &.selected {
-      font-weight: 600;
-    }
-  }
-
-  .menu-subtitle {
-    padding: 4px 12px 2px 12px;
-    font-size: 11px;
-    opacity: 0.6;
-  }
-
-  .menu-reset {
-    align-self: flex-start;
-    padding: 6px 12px;
-  }
-
-  .save-row {
-    display: flex;
-    gap: 6px;
-    padding: 4px 12px 8px 12px;
-  }
-
-  .export-row {
-    display: flex;
-    gap: 6px;
-    padding: 2px 12px 6px 12px;
-  }
-
-  .view-mode-row {
-    padding: 4px 12px 8px 12px;
-  }
-
-  // GitHub-style drill-down rows in the View popup: label (left) + current value + chevron (right)
+  // A row that opens a sub menu: label (left) + current value + chevron (right)
   .menu-nav {
     display: flex;
     align-items: center;
     gap: 8px;
     width: 100%;
-    padding: 8px 12px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
+    justify-content: flex-start;
+    padding: 8px 17px;
     color: var(--body-text);
-    text-align: left;
-
-    &:hover {
-      background: var(--dropdown-hover-bg);
-      color: var(--dropdown-hover-text);
-    }
+    text-decoration: none;
 
     .menu-nav-label { font-weight: 500; }
     .menu-nav-value {
@@ -1094,26 +1020,17 @@ export default {
     .icon-chevron-right { opacity: 0.6; }
   }
 
-  // "Back" header at the top of a sub-panel
-  .menu-back {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    padding: 8px 12px;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    color: var(--body-text);
-    font-weight: 600;
-    text-align: left;
-
-    &:hover { color: var(--link); }
+  .view-mode-row {
+    padding: 4px 17px 8px 17px;
   }
 
-  &.view-popup {
-    min-width: 240px;
+  [dropdown-menu-item].selected {
+    font-weight: 600;
+  }
+
+  .menu-reset {
+    color: var(--link);
   }
 }
+
 </style>
