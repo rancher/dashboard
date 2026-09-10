@@ -2138,6 +2138,96 @@ describe('topLevelMenu', () => {
       wrapper.unmount();
     });
 
+    describe('the drag cursor', () => {
+      const dragging = () => !!document.body.querySelector('.shelf-drag-cursor');
+
+      it('leaves the cursor alone for a hover, a press and a click', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        expect(dragging()).toBe(false);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        expect(dragging()).toBe(false);
+
+        vm.onRowDragMove({ clientY: 7 });
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+
+        vm.onRowDragEnd();
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+
+        wrapper.unmount();
+      });
+
+      it('shows the drag cursor for the length of a drag, and drops it on release', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        expect(dragging()).toBe(false);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 25 });
+        await nextTick();
+
+        expect(vm.dragId).toBe('a');
+        expect(dragging()).toBe(true);
+
+        vm.onRowDragMove({ clientY: 15 });
+        await nextTick();
+
+        expect(dragging()).toBe(true);
+
+        vm.onRowDragEnd();
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+
+        wrapper.unmount();
+      });
+
+      it('drops the drag cursor when Escape abandons the drag', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 25 });
+        await nextTick();
+
+        expect(dragging()).toBe(true);
+
+        vm.onRowDragKey({ key: 'Escape' });
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+
+        wrapper.unmount();
+      });
+
+      it('drops the drag cursor when the nav goes away mid-drag', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 25 });
+        await nextTick();
+
+        expect(dragging()).toBe(true);
+
+        wrapper.unmount();
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+      });
+    });
+
     // A drag can only reach what is on screen unless the list moves: on a shelf taller than the nav, a row
     // at the bottom could never be taken to the top. Holding it against an edge scrolls the shelf.
     describe('scrolling while a row is held', () => {

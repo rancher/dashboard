@@ -1518,10 +1518,27 @@ export default {
         </div>
       </div>
     </transition>
+    <Teleport to="body">
+      <div
+        v-if="dragId"
+        class="shelf-drag-cursor"
+        aria-hidden="true"
+      />
+    </Teleport>
   </div>
 </template>
 
 <style lang="scss">
+  .shelf-drag-cursor {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 104;
+    cursor: grabbing;
+  }
+
   // Nav tooltips must layer above the cluster-switcher flyout (z-index 102) and its page overlay (100).
   // Their poppers are teleported to <body>, so this rule has to be global (unscoped) to reach them — but
   // it is keyed on the `nav-tooltip` class the nav's own tooltip configs set, so the rest of the app's
@@ -1663,18 +1680,13 @@ export default {
   $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
 
-  .shelf-rows .cluster.selector:not(.disabled) {
-    cursor: grab;
-  }
-
   .shelf-rows .cluster.selector {
     transition: background-color 0.1s ease-in-out, transform 0.33s $drag-drop-curve, box-shadow 0.33s $drag-drop-curve;
   }
 
-  // Scoped through `.shelf-rows` so it outranks the resting row's own cursor and background, both of
-  // which are set further up the nav's cascade than the lift below can reach.
+  // Scoped through `.shelf-rows` so it outranks the resting row's own background, which is set further
+  // up the nav's cascade than the lift below can reach.
   .shelf-rows .shelf-row-held .cluster.selector {
-    cursor: grabbing;
     background: color-mix(in srgb, var(--primary) 14%, transparent);
   }
 
@@ -1699,7 +1711,7 @@ export default {
     transition: transform 0.2s $drag-displace-curve;
   }
 
-  .shelf-rows.is-reordering {
+  .shelf-rows > div {
     -webkit-user-select: none;
     user-select: none;
   }
