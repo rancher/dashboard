@@ -9,9 +9,6 @@ const extensionsPo = new ExtensionsPagePo();
 const harvesterPo = new HarvesterClusterPagePo();
 const appRepoList = new RepositoriesPagePo(undefined, 'manager');
 
-const harvesterGitRepoName = 'harvester';
-const harvesterGitRepoUrl = 'https://github.com/harvester/harvester-ui-extension.git';
-const branchName = 'gh-pages';
 let harvesterClusterName = '';
 const harvesterTitle = 'Harvester';
 
@@ -77,16 +74,6 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }?action=install`).as('installHarvesterExtension');
       cy.intercept('POST', '/v3/clusters').as('createHarvesterCluster');
 
-      // create harvester repository and wait for repo downloaded
-      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
-        type:     'catalog.cattle.io.clusterrepo',
-        metadata: { name: harvesterGitRepoName },
-        spec:     {
-          clientSecret: null, gitRepo: harvesterGitRepoUrl, gitBranch: branchName
-        }
-      });
-      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
-
       // verify install button and message displays
       harvesterPo.goTo();
       harvesterPo.waitForPage();
@@ -95,6 +82,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       // install harvester extension
       harvesterPo.updateOrInstallButton().click();
+      cy.wait('@createChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
       cy.wait('@updateChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
       cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT);
       harvesterPo.waitForPage();
