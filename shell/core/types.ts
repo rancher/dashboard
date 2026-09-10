@@ -105,6 +105,12 @@ export enum TableLocation {
   RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
 }
 
+/**
+ * Any of the extensible UI locations, one per ExtensionPoint. Extensions may also
+ * register against an arbitrary string location, hence the `string` member.
+ */
+export type ExtensionLocation = ActionLocation | PanelLocation | TabLocation | CardLocation | TableColumnLocation | TableLocation | string;
+
 /** Definition of a Table extension hook */
 export type TableAction = {
   tableHook: Function

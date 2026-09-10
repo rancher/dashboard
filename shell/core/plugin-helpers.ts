@@ -1,7 +1,9 @@
 import { RouteLocation } from 'vue-router';
 import { ComponentOptionsMixin } from 'vue';
 
-import { ActionLocation, CardLocation, ExtensionPoint } from '@shell/core/types';
+import {
+  ActionLocation, CardLocation, ExtensionLocation, ExtensionPoint
+} from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
 import { ucFirst, randomStr } from '@shell/utils/string';
 import {
@@ -186,7 +188,7 @@ function ensureUIConfigCompat(extensionManager: any) {
 export function getApplicableExtensionEnhancements<T>(
   pluginCtx: ComponentOptionsMixin,
   actionType: ExtensionPoint,
-  uiArea: CardLocation | ActionLocation,
+  uiArea: ExtensionLocation,
   currRoute: RouteLocation,
   translationCtx = pluginCtx,
   context?: ComponentOptionsMixin): T[] {
