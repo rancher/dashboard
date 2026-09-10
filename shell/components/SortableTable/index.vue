@@ -1156,14 +1156,29 @@ export default {
         >
           <slot name="header-left">
             <template v-if="tableActions">
+              <!-- Delete - stays mounted (disabled) even when a filter returns no rows, so the
+                   toolbar keeps its width instead of jumping about -->
+              <button
+                v-clean-tooltip="bulkDeleteAction ? bulkDeleteAction.label : t('generic.delete')"
+                type="button"
+                class="btn role-tertiary bulk-action-delete"
+                :disabled="!bulkDeleteAction || !selectedRows.length || !bulkDeleteAction.enabled"
+                :data-testid="componentTestid + '-' + (bulkDeleteAction ? bulkDeleteAction.action : 'delete')"
+                :aria-label="bulkDeleteAction ? bulkDeleteAction.label : t('generic.delete')"
+                @click="bulkDeleteAction && applyTableAction(bulkDeleteAction, null, $event)"
+                @mouseover="setBulkActionOfInterest(bulkDeleteAction)"
+                @mouseleave="setBulkActionOfInterest(null)"
+              >
+                <i :class="bulkDeleteAction && bulkDeleteAction.icon ? bulkDeleteAction.icon : 'icon icon-delete'" />
+              </button>
+
               <!-- Bulk actions (every action EXCEPT delete) — icon-only cog dropdown.
                    ActionDropdownShell is the component that actually renders on v2.11+
                    (featureDropdownMenu); the legacy ActionDropdown did not, which is why these
                    had gone fully missing. The label is hidden via CSS so the trigger is cog-only. -->
               <ActionDropdownShell
-                v-if="bulkMenuActions.length"
                 class="bulk-action-menu"
-                :disabled="false"
+                :disabled="!bulkMenuActions.length"
                 :hidden-actions="bulkMenuActions"
                 :action-tooltip="actionTooltip"
                 size="medium"
@@ -1173,21 +1188,6 @@ export default {
                 @mouseleave="setBulkActionOfInterest"
               />
 
-              <!-- Delete — its own icon-only button (plain <button>, subtle with a red hover) -->
-              <button
-                v-if="bulkDeleteAction"
-                v-clean-tooltip="bulkDeleteAction.label"
-                type="button"
-                class="btn role-tertiary bulk-action-delete"
-                :disabled="!selectedRows.length || !bulkDeleteAction.enabled"
-                :data-testid="componentTestid + '-' + bulkDeleteAction.action"
-                :aria-label="bulkDeleteAction.label"
-                @click="applyTableAction(bulkDeleteAction, null, $event)"
-                @mouseover="setBulkActionOfInterest(bulkDeleteAction)"
-                @mouseleave="setBulkActionOfInterest(null)"
-              >
-                <i :class="bulkDeleteAction.icon || 'icon icon-delete'" />
-              </button>
 
               <label
                 v-if="selectedRowsText"
@@ -2198,10 +2198,18 @@ export default {
       // cog-only: hide the "Bulk actions" text label in the trigger, keep the gear + chevron icons
       .bulk-action-menu .bulk-actions-dropdown span { display: none; }
 
+      // Delete and the bulk-actions cog share a size so the row keeps its shape whichever of
+      // them is enabled. Delete sits first, so its gap goes on the right
+      .bulk-actions-dropdown,
+      & > .bulk-action-delete {
+        min-width: 40px;
+        justify-content: center;
+      }
+
       & > .bulk-action-delete {
         display: inline-flex !important;
         align-items: center;
-        margin-left: $gap;
+        margin-right: $gap;
         color: var(--body-text);
 
         i { font-size: 18px; }
