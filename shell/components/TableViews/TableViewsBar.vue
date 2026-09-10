@@ -569,16 +569,12 @@ export default {
           class="btn role-tertiary view-control-btn"
           data-testid="table-views-view-menu"
         >
-          <i class="icon icon-gear" />
           {{ t('tableViews.view.label') }}
           <i class="icon icon-chevron-down" />
         </button>
         <template #popper>
           <div class="view-menu view-popup">
             <template v-if="viewModeOptions.length > 1">
-              <div class="menu-title">
-                {{ t('tableViews.view.display') }}
-              </div>
               <div class="view-mode-row">
                 <ButtonGroup
                   :value="viewMode"
@@ -842,7 +838,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 12px;
+    padding: 4px 12px;
     background: transparent;
     border: none;
     text-align: left;
