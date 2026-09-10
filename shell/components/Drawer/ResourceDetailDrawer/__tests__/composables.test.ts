@@ -18,33 +18,24 @@ describe('composables: ResourceDetailDrawer', () => {
   const yaml = 'YAML';
 
   describe('useDefaultYamlTabProps', () => {
-    const optionsFor = jest.fn();
-    const store: any = { getters: { 'type-map/optionsFor': optionsFor } };
-
     afterEach(() => {
       jest.clearAllMocks();
     });
 
-    it('should return the appropriate values based on input when the type allows yaml', async() => {
-      jest.spyOn(vuex, 'useStore').mockImplementation(() => store);
-      const optionsForSpy = optionsFor.mockImplementation(() => ({ canYaml: true }));
+    it('should return the appropriate values based on input when the resource instance allows yaml', async() => {
       const getYamlSpy = jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.resolve(yaml));
-      const props = await useDefaultYamlTabProps(resource);
+      const props = await useDefaultYamlTabProps({ ...resource, canYaml: true });
 
-      expect(optionsForSpy).toHaveBeenCalledWith(resource.type);
-      expect(getYamlSpy).toHaveBeenCalledWith(resource);
+      expect(getYamlSpy).toHaveBeenCalledWith({ ...resource, canYaml: true });
       expect(props?.yaml).toStrictEqual(yaml);
-      expect(props?.resource).toStrictEqual(resource);
+      expect(props?.resource).toStrictEqual({ ...resource, canYaml: true });
     });
 
-    it('should return undefined without fetching yaml when the type has canYaml: false', async() => {
-      jest.spyOn(vuex, 'useStore').mockImplementation(() => store);
-      const optionsForSpy = optionsFor.mockImplementation(() => ({ canYaml: false }));
+    it('should return undefined without fetching yaml when the resource instance has canYaml: false', async() => {
       const getYamlSpy = jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.resolve(yaml));
-      const props = await useDefaultYamlTabProps(resource);
+      const props = await useDefaultYamlTabProps({ ...resource, canYaml: false });
 
-      expect(optionsForSpy).toHaveBeenCalledWith(resource.type);
-      expect(getYamlSpy).not.toHaveBeenCalledWith(resource);
+      expect(getYamlSpy).not.toHaveBeenCalledWith({ ...resource, canYaml: false });
       expect(props).toBeUndefined();
     });
   });
