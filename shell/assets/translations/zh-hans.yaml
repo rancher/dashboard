@@ -171,9 +171,7 @@ nav:
     Storage: 存储
   ns:
     all: 所有命名空间
-    clusterLevel: 集群资源
     namespace: "{name}"
-    namespaced: 命名空间资源
     orphan: 不在项目内
     project: "项目名称: {name}"
     system: 系统命名空间

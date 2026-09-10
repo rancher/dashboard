@@ -1,4 +1,34 @@
-import { getters } from '../index';
+import { getters, mutations } from '../index';
+
+describe('mutations', () => {
+  describe('updateNamespaces', () => {
+    it.each([
+      ['drops a filter left over from the removed "Only Namespaced Resources" option', ['namespaced://true'], []],
+      ['drops a filter left over from the removed "Only Cluster Resources" option', ['namespaced://false'], []],
+      ['keeps namespace and project filters alongside a leftover one', ['ns://a', 'namespaced://true', 'project://p'], ['ns://a', 'project://p']],
+      ['keeps the filters it is given', ['all://user'], ['all://user']],
+      ['keeps an empty selection, which means all namespaces', [], []],
+    ])('%s', (_label, filters, expectation) => {
+      const state = { namespaceFilters: [], allNamespaces: [] } as any;
+
+      mutations.updateNamespaces(state, {
+        filters, all: [], getters: { currentProduct: undefined }
+      });
+
+      expect(state.namespaceFilters).toStrictEqual(expectation);
+    });
+
+    it('leaves a leftover filter meaning all namespaces, as it did before the options were removed', () => {
+      const state = { namespaceFilters: [], allNamespaces: [] } as any;
+
+      mutations.updateNamespaces(state, {
+        filters: ['namespaced://true'], all: [], getters: { currentProduct: undefined }
+      });
+
+      expect(getters.isAllNamespaces(state, { currentProduct: { showNamespaceFilter: true } })).toStrictEqual(true);
+    });
+  });
+});
 
 describe('getters', () => {
   describe('namespaces', () => {
