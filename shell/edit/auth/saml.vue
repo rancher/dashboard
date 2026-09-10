@@ -13,7 +13,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import config, { OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
@@ -70,7 +70,7 @@ export default {
     AllowedPrincipals,
     Checkbox,
     RadioGroup,
-    FileSelector,
+    FileSelectorTextArea,
     config,
     AuthBanner,
     AuthProviderWarningBanners,
@@ -227,11 +227,6 @@ export default {
         this.model.logoutAllForced = false;
         break;
       }
-    }
-  },
-  methods: {
-    onSelected(val, key) {
-      this.model[key] = val;
     }
   },
 };
@@ -421,46 +416,28 @@ export default {
         </div>
 
         <div class="row mb-20">
-          <div class="col span-4">
-            <LabeledInput
+          <div class="col span-12">
+            <FileSelectorTextArea
               v-model:value="model.spKey"
+              class="mb-20"
               name="spKey"
               :label="t(`authConfig.saml.key.label`)"
               :placeholder="t(`authConfig.saml.key.placeholder`)"
               :mode="mode"
               data-testid="saml-key"
               required
-              type="multiline"
             />
-            <FileSelector
-              variant="tertiary"
-              class="add mt-5"
-              :label="t('generic.readFromFile')"
-              :mode="mode"
-              @selected="onSelected($event, 'spKey')"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
+            <FileSelectorTextArea
               v-model:value="model.spCert"
+              class="mb-20"
               name="spCert"
               :label="t(`authConfig.saml.cert.label`)"
               :placeholder="t(`authConfig.saml.cert.placeholder`)"
               :mode="mode"
               data-testid="saml-cert"
               required
-              type="multiline"
             />
-            <FileSelector
-              variant="tertiary"
-              class="add mt-5"
-              :label="t('generic.readFromFile')"
-              :mode="mode"
-              @selected="onSelected($event, 'spCert')"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
+            <FileSelectorTextArea
               v-model:value="model.idpMetadataContent"
               name="idpMetadataContent"
               :label="t(`authConfig.saml.metadata.label`)"
@@ -468,14 +445,6 @@ export default {
               :mode="mode"
               data-testid="saml-metadata"
               required
-              type="multiline"
-            />
-            <FileSelector
-              variant="tertiary"
-              class="add mt-5"
-              :label="t('generic.readFromFile')"
-              :mode="mode"
-              @selected="onSelected($event, 'idpMetadataContent')"
             />
           </div>
         </div>

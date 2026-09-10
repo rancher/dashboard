@@ -1,11 +1,11 @@
 <script>
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 
 export default {
   components: {
-    RadioGroup, LabeledInput, FileSelector
+    RadioGroup, LabeledInput, FileSelectorTextArea
   },
 
   emits: ['fqdn-changed', 'ca-certs-changed', 'local-cluster-auth-endpoint-changed'],
@@ -22,7 +22,6 @@ export default {
     },
   },
 
-  methods: { onCertSelected: createOnSelected('value.caCerts') }
 };
 </script>
 
@@ -50,23 +49,16 @@ export default {
             @update:value="$emit('fqdn-changed', $event)"
           />
         </div>
-        <div class="col span-6">
-          <LabeledInput
+      </div>
+      <div class="row mb-20">
+        <div class="col span-12">
+          <FileSelectorTextArea
             :value="value.caCerts"
             :mode="mode"
             :label="t('cluster.rke2.address.caCerts.label')"
-            type="multiline"
             data-testid="ace-cacerts-input"
             :tooltip="t('cluster.rke2.address.caCerts.toolTip')"
             @update:value="$emit('ca-certs-changed', $event)"
-          />
-          <FileSelector
-            :mode="mode"
-            variant="primary"
-            size="small"
-            class="mt-10"
-            :label="t('generic.readFromFile')"
-            @selected="onCertSelected"
           />
         </div>
       </div>

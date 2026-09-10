@@ -15,7 +15,7 @@ import { findBy } from '@shell/utils/array';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import GithubSteps from '@shell/edit/auth/github-steps.vue';
 import GithubAppSteps from '@shell/edit/auth/github-app-steps.vue';
 import { useI18n } from '@shell/composables/useI18n';
@@ -31,7 +31,7 @@ export default {
     AllowedPrincipals,
     AuthBanner,
     AuthProviderWarningBanners,
-    FileSelector,
+    FileSelectorTextArea,
     GithubSteps,
     GithubAppSteps,
     RcSeparator,
@@ -188,10 +188,6 @@ export default {
         this.model.hostname = match[4] || 'github.com';
       }
     },
-
-    updatePrivateKey(content) {
-      this.model.privateKey = content;
-    },
   },
 };
 </script>
@@ -327,22 +323,14 @@ export default {
             </div>
           </div>
           <div class="row mb-20">
-            <div class="col span-6">
-              <LabeledInput
+            <div class="col span-12">
+              <FileSelectorTextArea
                 v-model:value="model.privateKey"
                 name="privateKey"
                 required
                 data-testid="private-key"
-                type="multiline"
                 :label="t(`authConfig.${NAME}.privateKey.label`)"
                 :mode="mode"
-              />
-              <FileSelector
-                variant="secondary"
-                size="small"
-                class="mt-10"
-                :label="t('generic.readFromFile')"
-                @selected="updatePrivateKey"
               />
             </div>
           </div>

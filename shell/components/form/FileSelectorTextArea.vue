@@ -21,6 +21,8 @@ const props = withDefaults(defineProps<{
   placeholderKey?: string;
   mode?: string;
   name?: string;
+  /** Text area flavour: plain or masked. */
+  type?: 'multiline' | 'multiline-password';
   required?: boolean;
   disabled?: boolean;
   rules?: Array<any>;
@@ -34,6 +36,8 @@ const props = withDefaults(defineProps<{
   byteLimit?: number;
   /** Test id for the "Read from File" button. */
   fileSelectorTestid?: string;
+  /** Applied to file contents before they land in the field, e.g. to base64-encode them. */
+  transformFile?: (contents: string) => string;
 }>(), {
   value:              '',
   label:              undefined,
@@ -42,12 +46,14 @@ const props = withDefaults(defineProps<{
   placeholderKey:     undefined,
   mode:               undefined,
   name:               undefined,
+  type:               'multiline',
   rules:              () => [],
   minHeight:          56,
   maxHeight:          200,
   accept:             '*',
   byteLimit:          0,
   fileSelectorTestid: undefined,
+  transformFile:      undefined,
 });
 
 const emit = defineEmits<{(e: 'update:value', value: string): void}>();
@@ -79,7 +85,7 @@ const isView = computed(() => props.mode === _VIEW);
 const isDropTarget = computed(() => !isView.value && !props.disabled);
 const isDragging = computed(() => dragDepth.value > 0);
 
-const onSelected = (contents: string) => emit('update:value', contents);
+const onSelected = (contents: string) => emit('update:value', props.transformFile ? props.transformFile(contents) : contents);
 
 const onError = (error: unknown) => {
   store.dispatch('growl/fromError', { title: t('generic.errorReadingFile'), error }, { root: true });
@@ -126,7 +132,7 @@ const onDrop = async(event: DragEvent) => {
   }
 
   try {
-    emit('update:value', await readFileContents(file));
+    onSelected(await readFileContents(file));
   } catch (error) {
     onError(error);
   }
@@ -148,7 +154,7 @@ const onDrop = async(event: DragEvent) => {
     >
       <LabeledInput
         v-bind="inputAttrs"
-        type="multiline"
+        :type="type"
         :value="value"
         :label="label"
         :label-key="labelKey"

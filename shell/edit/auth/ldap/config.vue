@@ -4,7 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import UnitInput from '@shell/components/form/UnitInput';
 import { Banner } from '@components/Banner';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 
 const DEFAULT_NON_TLS_PORT = 389;
 const DEFAULT_TLS_PORT = 636;
@@ -23,7 +23,7 @@ export default {
     Banner,
     Checkbox,
     UnitInput,
-    FileSelector
+    FileSelectorTextArea
   },
 
   props: {
@@ -156,20 +156,12 @@ export default {
       class="row mb-20"
     >
       <div class="col span-12">
-        <LabeledInput
+        <FileSelectorTextArea
           v-model:value="model.certificate"
           name="certificate"
           required
-          type="multiline"
           :mode="mode"
           :label="t('authConfig.ldap.cert')"
-        />
-        <FileSelector
-          variant="tertiary"
-          class="add mt-5"
-          :label="t('generic.readFromFile')"
-          :mode="mode"
-          @selected="model.certificate = $event"
         />
       </div>
     </div>
