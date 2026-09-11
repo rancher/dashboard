@@ -249,4 +249,10 @@ describe('rcItemCard', () => {
     expect(emitted).toBeTruthy();
     expect(emitted[0]).toStrictEqual([payload]);
   });
+
+  it('titles the card as a section heading under the page title', () => {
+    const wrapper = mount(RcItemCard, { props: baseProps });
+
+    expect(wrapper.get('[data-testid="item-card-header-title"]').element.tagName).toBe('H2');
+  });
 });

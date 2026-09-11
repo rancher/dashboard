@@ -19,10 +19,11 @@ import { setFavIcon } from '@shell/utils/favicon';
 import TabTitle from '@shell/components/TabTitle';
 
 import Color from 'color';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   components: {
-    LabeledInput, Checkbox, FileImageSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput, TypeDescription, TabTitle
+    LabeledInput, Checkbox, FileImageSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput, TypeDescription, TabTitle, RcHeading
   },
 
   async fetch() {
@@ -265,9 +266,12 @@ export default {
           />
         </div>
       </div>
-      <h3 class="mt-20 mb-5 pb-5">
+      <RcHeading
+        :size="3"
+        class="mt-20 mb-5 pb-5"
+      >
         {{ t('branding.logos.label') }}
-      </h3>
+      </RcHeading>
       <label class="text-label">
         {{ t('branding.logos.tip', {}, true) }}
       </label>
@@ -336,9 +340,12 @@ export default {
         </div>
       </div>
 
-      <h3 class="mt-20 mb-5 pb-5">
+      <RcHeading
+        :size="3"
+        class="mt-20 mb-5 pb-5"
+      >
         {{ t('branding.banner.label') }}
-      </h3>
+      </RcHeading>
       <label class="text-label">
         {{ t('branding.banner.tip', {}, true) }}
       </label>
@@ -407,9 +414,12 @@ export default {
         </div>
       </div>
 
-      <h3 class="mt-20 mb-5 pb-5">
+      <RcHeading
+        :size="3"
+        class="mt-20 mb-5 pb-5"
+      >
         {{ t('branding.loginBackground.label') }}
-      </h3>
+      </RcHeading>
       <label class="text-label">
         {{ t('branding.loginBackground.tip', {}, true) }}
       </label>
@@ -478,9 +488,12 @@ export default {
         </div>
       </div>
 
-      <h3 class="mt-20 mb-5 pb-5">
+      <RcHeading
+        :size="3"
+        class="mt-20 mb-5 pb-5"
+      >
         {{ t('branding.favicon.label') }}
-      </h3>
+      </RcHeading>
       <label class="text-label">
         {{ t('branding.favicon.tip', {}, true) }}
       </label>
@@ -521,9 +534,12 @@ export default {
         </div>
       </div>
 
-      <h3 class="mt-40 mb-5 pb-0">
+      <RcHeading
+        :size="3"
+        class="mt-40 mb-5 pb-0"
+      >
         {{ t('branding.color.label') }}
-      </h3>
+      </RcHeading>
       <label class="text-label">
         {{ t('branding.color.tip', {}, true) }}
       </label>
@@ -544,9 +560,12 @@ export default {
         />
       </div>
 
-      <h3 class="mt-40 mb-5 pb-0">
+      <RcHeading
+        :size="3"
+        class="mt-40 mb-5 pb-0"
+      >
         {{ t('branding.linkColor.label') }}
-      </h3>
+      </RcHeading>
       <label class="text-label">
         {{ t('branding.linkColor.tip', {}, true) }}
       </label>

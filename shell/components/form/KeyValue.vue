@@ -15,6 +15,7 @@ import isEqual from 'lodash/isEqual';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { RcButton } from '@components/RcButton';
 import { RcIconTooltip } from '@components/RcIconTooltip';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   name: 'KeyValue',
@@ -28,7 +29,8 @@ export default {
     FileSelector,
     LabeledTooltip,
     RcButton,
-    RcIconTooltip
+    RcIconTooltip,
+    RcHeading,
   },
   props: {
     value: {
@@ -608,14 +610,14 @@ export default {
       class="clearfix"
     >
       <slot name="title">
-        <h3>
+        <RcHeading :size="3">
           {{ title }}
           <i
             v-if="titleProtip"
             v-clean-tooltip="titleProtip"
             class="icon icon-info"
           />
-        </h3>
+        </RcHeading>
       </slot>
     </div>
     <div

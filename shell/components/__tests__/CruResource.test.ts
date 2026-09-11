@@ -349,4 +349,36 @@ describe('component: CruResource', () => {
 
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
+
+  it('should title each subtype as a section heading under the page title', () => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _CREATE,
+        resource: {},
+        subtypes: [{
+          id: 'opaque', label: 'Opaque', bannerAbbrv: 'O'
+        }]
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: {} },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    expect(wrapper.find('.subtype-body .title h2').text()).toContain('Opaque');
+    expect(wrapper.find('.subtype-body .title h5').exists()).toBe(false);
+  });
 });
