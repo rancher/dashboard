@@ -766,7 +766,13 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
     cy.deleteDownloadsFolder();
 
     ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+    // Wait for the list to finish loading before selecting the row: a click on a still-loading
+    // list can fail to register the selection, leaving the bulk-action button hidden
+    // (display:none) - which then wedges every retry since testIsolation is off.
+    clusterList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+      .should('be.visible')
       .click();
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().downloadKubeConfig().click();

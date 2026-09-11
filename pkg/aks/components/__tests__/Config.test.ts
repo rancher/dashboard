@@ -4,6 +4,7 @@ import { shallowMount, VueWrapper } from '@vue/test-utils';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import * as aksUtil from '@pkg/aks/util/aks';
 // eslint-disable-next-line jest/no-mocks-import
 import { mockVersionsSorted } from '@pkg/aks/util/__mocks__/aks';
 import { AKSConfig, AKSNodePool } from '@pkg/aks/types';
@@ -531,5 +532,92 @@ describe('aks provisioning form', () => {
     const virtualNetworkSelect = wrapper.findComponent<typeof LabeledSelect>('[data-testid="aks-virtual-network-select"]');
 
     expect(virtualNetworkSelect.props().required).toBe(true);
+  });
+
+  describe('kubernetes version and region changes', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should update the selected kubernetes version to a new default when the region changes and the previous selection is no longer available and the user has not touched it', async() => {
+      const wrapper = shallowMount(Config, {
+        props: {
+          config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
+        },
+        ...requiredSetup()
+      });
+
+      await setCredential(wrapper);
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.27.0');
+
+      jest.spyOn(aksUtil, 'getAKSKubernetesVersions').mockResolvedValueOnce(['1.20.0']);
+
+      wrapper.setProps({ config: { ...wrapper.vm.config, resourceLocation: 'westus' } });
+      await flushPromises();
+
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.20.0');
+    });
+
+    it('should leave the selected kubernetes version untouched and show a validation error when the region changes and the user-selected version is no longer available', async() => {
+      const wrapper = shallowMount(Config, {
+        props: {
+          config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
+        },
+        ...requiredSetup()
+      });
+
+      await setCredential(wrapper);
+
+      // simulate the user manually selecting a version, which marks the field as touched
+      wrapper.setProps({ config: { ...wrapper.vm.config, kubernetesVersion: '1.26.5' } });
+      await flushPromises();
+      expect(wrapper.vm.touchedVersion).toBe(true);
+
+      jest.spyOn(aksUtil, 'getAKSKubernetesVersions').mockResolvedValueOnce(['1.20.0']);
+
+      wrapper.setProps({ config: { ...wrapper.vm.config, resourceLocation: 'westus' } });
+      await flushPromises();
+
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.26.5');
+      expect(wrapper.vm.fvExtraRules.k8sVersionAvailable()).toBe('aks.kubernetesVersion.notAvailableInRegion');
+    });
+
+    it('should refetch AKS versions when the credential changes even if the region stays the same', async() => {
+      const getVersionsSpy = jest.spyOn(aksUtil, 'getAKSKubernetesVersions');
+      const wrapper = shallowMount(Config, {
+        props: {
+          config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
+        },
+        ...requiredSetup()
+      });
+
+      await setCredential(wrapper);
+      const callsAfterInitialLoad = getVersionsSpy.mock.calls.length;
+
+      wrapper.setProps({ config: { ...wrapper.vm.config, azureCredentialSecret: 'a-different-credential' } });
+      await flushPromises();
+
+      expect(getVersionsSpy.mock.calls.length).toBeGreaterThan(callsAfterInitialLoad);
+    });
+
+    it('should update the selected kubernetes version to a new default when the credential changes (region unchanged) and the previous selection is no longer available and the user has not touched it', async() => {
+      const config = { ...DEFAULT_CLUSTER_CONFIG };
+      const wrapper = shallowMount(Config, {
+        props: {
+          config, value: {}, mode: _EDIT
+        },
+        ...requiredSetup()
+      });
+
+      await setCredential(wrapper, config);
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.27.0');
+
+      jest.spyOn(aksUtil, 'getAKSKubernetesVersions').mockResolvedValueOnce(['1.20.0']);
+
+      wrapper.setProps({ config: { ...wrapper.vm.config, azureCredentialSecret: 'a-different-credential' } });
+      await flushPromises();
+
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.20.0');
+    });
   });
 });

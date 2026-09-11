@@ -54,7 +54,7 @@ describe('banners', () => {
         id:          'ui-banner-login-consent',
         expectedKey: 'bannerConsent',
       },
-    ])('$desc', ({ id, expectedKey }) => {
+    ] as const)('$desc', ({ id, expectedKey }) => {
       const setting = {
         id,
         value: '{"text":"hello"}',

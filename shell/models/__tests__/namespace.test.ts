@@ -25,11 +25,13 @@ describe('class Namespace', () => {
     ])('should return true if it has the correct annotation', (name, annotation, expectation) => {
       const namespace = new Namespace({});
 
-      namespace.metadata = { ...namespace.metadata, name };
+      const metadata: { name: string, annotations?: Record<string, string> } = { ...namespace.metadata, name };
 
       if (annotation) {
-        namespace.metadata.annotations = { [annotation]: 'true' };
+        metadata.annotations = { [annotation]: 'true' };
       }
+
+      namespace.metadata = metadata;
 
       expect(namespace.isSystem).toBe(expectation);
     });
@@ -42,6 +44,7 @@ describe('class Namespace', () => {
 
     assertionsArr.push(['c-whatever-system', false]);
     assertionsArr.push(['cattle-whatever', false]);
+    assertionsArr.push(['k3k-system', true]);
     assertionsArr.push(['', false]);
 
     it.each(assertionsArr)('should return true if it belongs to the curated list of namespaces', (name, expectation) => {
@@ -76,11 +79,13 @@ describe('class Namespace', () => {
     ])('should return a value if is system AND has the correct prefix', (name, annotation, expectation) => {
       const namespace = new Namespace({});
 
-      namespace.metadata = { ...namespace.metadata, name };
+      const metadata: { name: string, annotations?: Record<string, string> } = { ...namespace.metadata, name };
 
       if (annotation) {
-        namespace.metadata.annotations = { [annotation]: 'true' };
+        metadata.annotations = { [annotation]: 'true' };
       }
+
+      namespace.metadata = metadata;
 
       expect(namespace.isObscure).toBe(expectation);
     });
@@ -188,7 +193,7 @@ describe('class Namespace', () => {
       const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
 
       expect(moveAction).toBeDefined();
-      expect(moveAction.enabled).toBe(true);
+      expect(moveAction?.enabled).toBe(true);
     });
 
     it('should exclude the move action when user cannot update the namespace', () => {
@@ -346,8 +351,9 @@ describe('class Namespace', () => {
       const result = namespace.glance;
       const typeItem = result.find((item: any) => item.name === 'type');
 
-      expect(typeItem.formatter).toBeUndefined();
-      expect(typeItem.formatterOpts).toBeUndefined();
+      expect(typeItem).toBeDefined();
+      expect(typeItem?.formatter).toBeUndefined();
+      expect(typeItem?.formatterOpts).toBeUndefined();
     });
 
     it('should keep type Link formatter when in manager product with local cluster access', () => {
@@ -371,8 +377,9 @@ describe('class Namespace', () => {
       const result = namespace.glance;
       const typeItem = result.find((item: any) => item.name === 'type');
 
-      expect(typeItem.formatter).toBe('Link');
-      expect(typeItem.formatterOpts).toBeDefined();
+      expect(typeItem).toBeDefined();
+      expect(typeItem?.formatter).toBe('Link');
+      expect(typeItem?.formatterOpts).toBeDefined();
     });
 
     it('should keep type Link formatter when not in manager product', () => {
@@ -392,8 +399,9 @@ describe('class Namespace', () => {
       const result = namespace.glance;
       const typeItem = result.find((item: any) => item.name === 'type');
 
-      expect(typeItem.formatter).toBe('Link');
-      expect(typeItem.formatterOpts).toBeDefined();
+      expect(typeItem).toBeDefined();
+      expect(typeItem?.formatter).toBe('Link');
+      expect(typeItem?.formatterOpts).toBeDefined();
     });
   });
 

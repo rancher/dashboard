@@ -1,0 +1,363 @@
+import { shallowMount } from '@vue/test-utils';
+import { nextTick } from 'vue';
+import SideNav from '@shell/components/SideNav.vue';
+
+const navStateStorage = { load: jest.fn(), save: jest.fn() };
+
+jest.mock('@shell/composables/useClusterLocalStorage', () => ({ useClusterLocalStorage: () => navStateStorage }));
+
+const getters: Record<string, any> = {
+  isStandaloneHarvester:      false,
+  productId:                  'explorer',
+  clusterId:                  'c-test',
+  currentProduct:             { inStore: 'cluster' },
+  rootProduct:                { name: 'explorer' },
+  isSingleProduct:            false,
+  namespaceMode:              'both',
+  isExplorer:                 true,
+  isVirtualCluster:           false,
+  'i18n/selectedLocaleLabel': 'English',
+  'i18n/hasMultipleLocales':  false,
+  'type-map/activeProducts':  [],
+  'type-map/productByName':   () => undefined,
+  'prefs/get':                () => [],
+  'cluster/schemaFor':        () => null,
+  'cluster/all':              () => [],
+  activeNamespaceCache:       [],
+};
+
+const mockStore = {
+  // clusterReady false keeps `created()`'s getGroups from building a real tree,
+  // so each test can drive the methods with a tree of its own.
+  state:                { managementReady: true, clusterReady: false },
+  getters:              new Proxy(getters, { get: (target, prop: string) => target[prop] }),
+  dispatch:             jest.fn(),
+  // `mapGetters('type-map', ...)` resolves the namespace through this before it
+  // reads the getter, so a mock without it throws as soon as one is read.
+  _modulesNamespaceMap: { 'type-map/': {} },
+};
+
+/**
+ * Explorer-shaped nav tree: a root group (never collapsible), a flat group, and
+ * two groups that each contain a nested group of the same name.
+ */
+const navTree = (): any[] => [
+  {
+    name:     'root',
+    isRoot:   true,
+    children: [{ name: 'cluster-dashboard', route: { name: 'dashboard' } }],
+  },
+  {
+    name:     'workloads',
+    children: [{ name: 'pod', route: { name: 'pod' } }],
+  },
+  {
+    name:     'more',
+    children: [
+      { name: 'networking', children: [{ name: 'ingress', route: { name: 'ingress' } }] },
+      { name: 'secret', route: { name: 'secret' } },
+    ],
+  },
+  {
+    name:     'istio',
+    children: [{ name: 'networking', children: [{ name: 'gateway', route: { name: 'gateway' } }] }],
+  },
+];
+
+// Stands in for Group, with the pieces SideNav's route sync calls into.
+const GroupStub = {
+  name:     'Group',
+  props:    ['group', 'canCollapse', 'showHeader', 'idPrefix'],
+  template: '<div class="group-stub" />',
+  methods:  {
+    hasActiveRoute: () => false,
+    syncNav:        () => undefined,
+  },
+};
+
+/**
+ * Registers products with the store mock. `activeProducts` is what the user can
+ * see; `type-map/productByName` answers from the full registered list, which is
+ * every product passed here.
+ */
+const registerProducts = (products: any[], visible = products) => {
+  getters['type-map/activeProducts'] = visible;
+  getters['type-map/productByName'] = (name: string) => products.find((p) => p.name === name);
+};
+
+// `wrapper.vm.groups` resolves to the `ref="groups"` template refs, so go through
+// `$data` to reach (and reactively mutate) the nav tree itself.
+const navGroups = (wrapper: any, groups?: any[]) => {
+  if (groups) {
+    wrapper.vm.$data.groups = groups;
+  }
+
+  return wrapper.vm.$data.groups;
+};
+
+const mountNav = () => shallowMount(SideNav as any, {
+  global: {
+    provide: { store: mockStore },
+    stubs:   { Group: GroupStub, 'router-link': true },
+    mocks:   {
+      $store: mockStore,
+      $route: {
+        params: {}, path: '/c/c-test/explorer', matched: []
+      },
+      $router: { resolve: jest.fn().mockReturnValue({ path: '/c/c-test/explorer' }), getRoutes: jest.fn().mockReturnValue([]) },
+      t:       (key: string) => key,
+    },
+  },
+});
+
+describe('component: SideNav', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    navStateStorage.load.mockReturnValue(null);
+    getters.productId = 'explorer';
+    getters.rootProduct = { name: 'explorer' };
+    getters.currentProduct = { name: 'explorer', inStore: 'cluster' };
+    registerProducts([{
+      name: 'explorer', inStore: 'cluster', navSearch: true
+    }]);
+  });
+
+  describe('the nav toolbar is opt-in per root product', () => {
+    const toolbar = (wrapper: any) => wrapper.findComponent({ name: 'NavActionBar' });
+
+    it('shows the toolbar for a product that asked for it', () => {
+      expect(toolbar(mountNav()).exists()).toBe(true);
+    });
+
+    it('leaves it out entirely for a product that did not, collapse-all included', () => {
+      registerProducts([{ name: 'explorer', inStore: 'cluster' }]);
+
+      const wrapper = mountNav();
+
+      expect(toolbar(wrapper).exists()).toBe(false);
+      // The nav starts at the first group rather than at an empty strip
+      expect(wrapper.find('.side-nav').element.firstElementChild?.className).toContain('nav');
+    });
+
+    it('shows it on a sub-product of a root product that asked for it', () => {
+      // Charts is `apps`, but its nav is the explorer's: `inStore: 'cluster'`
+      // roots it into the explorer, and `getGroups` builds that whole tree. The
+      // toolbar belongs to the tree on screen, not to the route's product.
+      getters.productId = 'apps';
+      getters.rootProduct = { name: 'explorer' };
+      registerProducts([
+        {
+          name: 'explorer', inStore: 'cluster', navSearch: true
+        },
+        { name: 'apps', inStore: 'cluster' },
+      ]);
+
+      expect(toolbar(mountNav()).exists()).toBe(true);
+    });
+
+    it('ignores a sub-product\'s own option, so it cannot label a nav that is not its own', () => {
+      // The other half of the same rule: `apps` opting in would put a toolbar
+      // above the explorer's tree, carrying labels written for a product that
+      // tree does not show. The root's option is the only one that decides.
+      getters.productId = 'apps';
+      getters.rootProduct = { name: 'explorer' };
+      registerProducts([
+        { name: 'explorer', inStore: 'cluster' },
+        {
+          name: 'apps', inStore: 'cluster', navSearch: true
+        },
+      ]);
+
+      expect(toolbar(mountNav()).exists()).toBe(false);
+    });
+
+    it('reads this product\'s option, not whichever one currentProduct fell back to', () => {
+      // `currentProduct` answers with an unrelated product while this one is
+      // still registering, and that product's option must not decide this one
+      getters.productId = 'explorer';
+      registerProducts([{
+        name: 'apps', inStore: 'cluster', navSearch: true
+      }]);
+      getters.currentProduct = {
+        name: 'apps', inStore: 'cluster', navSearch: true
+      };
+
+      expect(toolbar(mountNav()).exists()).toBe(false);
+    });
+
+    it('shows it for a product the current user cannot see in activeProducts', () => {
+      // `activeProducts` drops a product whose schemas this user lacks, but the
+      // nav still renders it: a Standard User on Continuous Delivery would
+      // otherwise get the nav with no toolbar at all.
+      getters.productId = 'fleet';
+      getters.rootProduct = { name: 'fleet' };
+      registerProducts(
+        [{
+          name: 'fleet', inStore: 'management', navSearch: true
+        }],
+        [{ name: 'explorer', inStore: 'cluster' }]
+      );
+
+      expect(toolbar(mountNav()).exists()).toBe(true);
+    });
+  });
+
+  describe('persisted expand/collapse state', () => {
+    it('stamps the saved state onto the tree as it is built, including nested groups', () => {
+      navStateStorage.load.mockReturnValue({ workloads: true, more_networking: true });
+
+      const groups = navTree();
+
+      (mountNav().vm as any).stampNavState(groups);
+
+      expect(groups[1].expanded).toBe(true);
+      expect(groups[2].children[0].expanded).toBe(true);
+    });
+
+    it('keys the saved state by path, so groups sharing a name do not share state', () => {
+      navStateStorage.load.mockReturnValue({ more_networking: true });
+
+      const groups = navTree();
+
+      (mountNav().vm as any).stampNavState(groups);
+
+      // `More Resources > Networking` is expanded, `Istio > Networking` is not
+      expect(groups[2].children[0].expanded).toBe(true);
+      expect(groups[3].children[0].expanded).toBeUndefined();
+    });
+
+    it('saves every group at every level, keyed by path', () => {
+      const wrapper = mountNav();
+      const groups = navTree();
+
+      groups[1].expanded = true;
+      navGroups(wrapper, groups);
+
+      (wrapper.vm as any).saveNavState();
+
+      expect(navStateStorage.save).toHaveBeenCalledWith({
+        workloads:        true,
+        more:             false,
+        more_networking:  false,
+        istio:            false,
+        istio_networking: false,
+      });
+    });
+
+    it('keeps the saved state of a group nested inside a collapsed parent', () => {
+      const wrapper = mountNav();
+      const groups = navTree();
+
+      // The nested group isn't rendered while its parent is collapsed, so its
+      // state has to come from the tree rather than from the mounted groups
+      groups[2].expanded = false;
+      groups[2].children[0].expanded = true;
+      navGroups(wrapper, groups);
+
+      (wrapper.vm as any).saveNavState();
+
+      expect(navStateStorage.save).toHaveBeenCalledWith(expect.objectContaining({ more: false, more_networking: true }));
+    });
+
+    it('keeps the saved state of a group that is not in the tree at all', () => {
+      // `More Resources` subgroups are count driven, so narrowing the namespace
+      // filter takes them out of the tree entirely
+      navStateStorage.load.mockReturnValue({ more_gone: true });
+
+      const wrapper = mountNav();
+
+      navGroups(wrapper, navTree());
+
+      (wrapper.vm as any).saveNavState();
+
+      expect(navStateStorage.save).toHaveBeenCalledWith(expect.objectContaining({ more_gone: true, more: false }));
+    });
+
+    it('saves when a group is expanded or collapsed', async() => {
+      const wrapper = mountNav();
+
+      navGroups(wrapper, navTree());
+      await nextTick();
+      // The route sync that runs on mount saves too, so start from a clean slate
+      navStateStorage.save.mockClear();
+
+      const groups = wrapper.findAllComponents({ name: 'Group' });
+
+      groups[0].vm.$emit('expand');
+      expect(navStateStorage.save).toHaveBeenCalledTimes(1);
+
+      groups[0].vm.$emit('close');
+      expect(navStateStorage.save).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('collapse all', () => {
+    it('closes every group at every level and clears the saved state', () => {
+      // Anything stored for a group means it was left expanded, so collapse all
+      // drops the state rather than merging into it
+      navStateStorage.load.mockReturnValue({ more_gone: true });
+
+      const wrapper = mountNav();
+      const groups = navTree();
+
+      groups[1].expanded = true;
+      groups[2].expanded = true;
+      groups[2].children[0].expanded = true;
+      navGroups(wrapper, groups);
+
+      (wrapper.vm as any).collapseAll();
+
+      expect(groups[1].expanded).toBe(false);
+      expect(groups[2].expanded).toBe(false);
+      expect(groups[2].children[0].expanded).toBe(false);
+      expect(navStateStorage.save).toHaveBeenCalledWith({});
+    });
+
+    it('offers the control while only a group nested inside a collapsed parent is expanded', () => {
+      const wrapper = mountNav();
+      const groups = navTree();
+
+      navGroups(wrapper, groups);
+      expect((wrapper.vm as any).hasExpandedGroup).toBe(false);
+
+      navGroups(wrapper)[2].children[0].expanded = true;
+      expect((wrapper.vm as any).hasExpandedGroup).toBe(true);
+    });
+  });
+
+  describe('scrolling a jumped-to section into view', () => {
+    it('scrolls the active item into view when a jump has settled', () => {
+      const wrapper = mountNav();
+      const scroll = jest.spyOn(wrapper.vm as any, 'scrollActiveIntoView').mockImplementation(() => undefined);
+
+      (wrapper.vm as any).onJumped();
+
+      expect(scroll).toHaveBeenCalledWith();
+    });
+
+    it('expands the target group when the jump did not change the route', () => {
+      const wrapper = mountNav();
+      const sync = jest.spyOn(wrapper.vm as any, 'syncNav').mockImplementation(() => undefined);
+
+      jest.spyOn(wrapper.vm as any, 'scrollActiveIntoView').mockImplementation(() => undefined);
+
+      // Jumping to the section already being shown resolves without a route
+      // change, so the $route watcher never runs and only this can expand it.
+      (wrapper.vm as any).onJumped();
+
+      expect(sync).toHaveBeenCalledWith();
+    });
+
+    it('does not scroll on a navigation that was not a jump', async() => {
+      const wrapper = mountNav();
+      const scroll = jest.spyOn(wrapper.vm as any, 'scrollActiveIntoView').mockImplementation(() => undefined);
+
+      // A tab or hash change on the page the user is already on must not yank a
+      // nav they have scrolled back to the active item.
+      (wrapper.vm as any).$options.watch.$route.call(wrapper.vm, {}, {});
+      await nextTick();
+
+      expect(scroll).not.toHaveBeenCalledWith();
+    });
+  });
+});

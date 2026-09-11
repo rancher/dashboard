@@ -12,7 +12,7 @@ repo. This directory only contains what Jenkins needs to kick things off.
 | `Jenkinsfile` | Pipeline stages — pre-clean, preflight, checkout, run tests, grab results, cleanup, report |
 | `Jenkinsfile_multi` | Matrix job — fans out across Rancher versions × K8s versions × tag sets |
 | `init.sh` | Clones qa-infra-automation, builds runner image, generates vars.yaml, runs playbook in container, streams Cypress |
-| `slack-notification.sh` | Posts test results to Slack on failure |
+| `slack-notification.sh` | Posts test results to Slack on failure, with build details read from `notification_values.txt` |
 
 ## How it works
 
@@ -28,6 +28,10 @@ Jenkinsfile → init.sh → ansible-playbook (provision + setup) → docker run 
    Docker image (contains ansible, tofu, helm, kubectl), writes `vars.yaml`
    from the `VARS_YAML_CONFIG` Jenkins text area (required), then:
    - Runs the playbook inside the container with `--skip-tags test` (provision + setup)
+   - Copies `notification_values.txt` from the playbook dir into the Jenkins
+     workspace, where `slack-notification.sh` expects it. The playbook resolves
+     `workspace_dir` to its own directory because `WORKSPACE` is not exported into
+     the container, so without this copy the Slack message loses all build details.
    - Runs `docker run` directly for real-time Cypress streaming with colors
    - On destroy: runs the playbook with `--tags cleanup,never`
 

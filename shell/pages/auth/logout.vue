@@ -1,12 +1,12 @@
 <script>
-import { configType } from '@shell/models/management.cattle.io.authconfig';
+import { configTypeForProvider } from '@shell/models/management.cattle.io.authconfig';
 import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 
 export default {
   async fetch() {
     const publicAuthProviders = await this.$store.dispatch('auth/getAuthProviders');
 
-    const sloAuthProvider = publicAuthProviders.find((authProvider) => SLO_AUTH_PROVIDERS.includes(configType[authProvider?.id]));
+    const sloAuthProvider = publicAuthProviders.find((authProvider) => SLO_AUTH_PROVIDERS.includes(configTypeForProvider(authProvider?.type)));
 
     if (!!sloAuthProvider) {
       const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = sloAuthProvider;

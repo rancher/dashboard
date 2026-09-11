@@ -3,7 +3,7 @@ import { NotificationLevel } from '@shell/types/notifications';
 import { READ_SUPPORT_NOTICE, READ_UPCOMING_SUPPORT_NOTICE } from '@shell/store/prefs';
 import { Context, VersionInfo, SupportInfo } from '../types';
 import * as util from '../util'; // To mock removeMatchingNotifications
-import semver from 'semver';
+import semver, { SemVer } from 'semver';
 import day from 'dayjs';
 
 describe('processSupportNotices', () => {
@@ -81,9 +81,12 @@ describe('processSupportNotices', () => {
       upcoming: {} as any
     };
 
-    await processSupportNotices(mockContext, statusInfo, null as any);
+    // `versionInfo` is required and its `version` is a required `SemVer`, so both of these are
+    // states no well-typed caller can produce. The casts cover the `!versionInfo` and
+    // `!versionInfo.version` guards, which are unreachable from TypeScript.
+    await processSupportNotices(mockContext, statusInfo, null as unknown as VersionInfo);
     expect(mockDispatch).not.toHaveBeenCalled();
-    await processSupportNotices(mockContext, statusInfo, { version: null, isPrime: true });
+    await processSupportNotices(mockContext, statusInfo, { version: null as unknown as SemVer, isPrime: true });
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 

@@ -1,10 +1,16 @@
 <script>
 import { NORMAN } from '@shell/config/types';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-import MembershipEditor, { canViewMembershipEditor } from '@shell/components/form/Members/MembershipEditor';
+import MembershipEditor, { canViewMembershipEditor, canViewMembershipEditorList } from '@shell/components/form/Members/MembershipEditor';
 
 export function canViewProjectMembershipEditor(store) {
   return canViewMembershipEditor(store, true);
+}
+
+// Read-only view gate for the project members list (see `canViewMembershipEditorList`): shows the
+// Members tab to users who can see project members but not fully manage them.
+export function canViewProjectMembershipList(store) {
+  return canViewMembershipEditorList(store, true);
 }
 
 export default {

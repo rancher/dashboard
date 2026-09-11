@@ -213,6 +213,33 @@ describe('component: LabeledInput', () => {
     });
   });
 
+  // The native input used to carry role="textbox" for every type but "number".
+  // On "search" and "password" that role is disallowed outright, and on
+  // "search" it also hid the implicit searchbox role from assistive
+  // technology; on the other types listed below it only repeated the implicit
+  // role. Either way the browser already exposes the right one, so the
+  // component writes none. "number" is listed because it must keep its
+  // implicit spinbutton role, and the "multiline" types are absent because
+  // they render a textarea rather than an input.
+  describe('a11y: leaving the implicit role alone', () => {
+    it.each([
+      ['text'],
+      ['search'],
+      ['password'],
+      ['email'],
+      ['number'],
+      ['integer'],
+      ['cron'],
+    ])('for type %p should not write an explicit role onto the input', (type) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '', type },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.find('input').attributes('role')).toBeUndefined();
+    });
+  });
+
   it('a11y: rendering a "label" should not render an "aria-label" prop', () => {
     const label = 'some-label';
 

@@ -267,7 +267,6 @@ export const MANAGEMENT = {
 
 export const BRAND = {
   SUSE:    'suse',
-  CSP:     'csp',
   FEDERAL: 'federal',
   RGS:     'rgs',
 };

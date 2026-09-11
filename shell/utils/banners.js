@@ -24,6 +24,11 @@ const BANNER_SHOW_KEY_MAP = {
 
 /**
  * Get the individual banner settings
+ *
+ * @param {object} store - The Vuex store to read the management settings from.
+ * @returns {Partial<Record<typeof BANNER_HEADER | typeof BANNER_FOOTER | typeof BANNER_LOGIN, any>>}
+ * The settings, keyed by which banner they configure. Only banners with a setting that has a value
+ * are present.
  */
 export function getIndividualBanners(store) {
   const banners = {};

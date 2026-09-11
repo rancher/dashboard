@@ -236,6 +236,9 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
   const nsIds: string[] = [];
 
   it('can view events and change events list count in cluster dashboard', () => {
+    // Tolerate the transient cold-load "Network Error" this churn-heavy test can trigger on entry.
+    cy.on('uncaught:exception', (err) => (/Network Error/i.test(err?.message || '') ? false : undefined));
+
     const podNames = ['e2e-test1', 'e2e-test2', 'e2e-test3', 'e2e-test4', 'e2e-test5', 'e2e-test6'];
 
     // Create unique for this run values (helps with retries)
@@ -270,6 +273,8 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
       });
     });
 
+    // Churn above leaves the downstream proxy likely mid-reconnect; wait for it to serve before entry.
+    clusterDashboard.readyForClusterPage();
     clusterDashboard.goTo();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 

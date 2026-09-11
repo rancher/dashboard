@@ -222,6 +222,7 @@ const sidebars = {
                 'provisioning/hosted-provider/cluster'
               ]
             },
+            'provisioning/capi-provisioner',
             'provisioning/provider-icon',
             'provisioning/localization',
             'provisioning/cloud-credential',

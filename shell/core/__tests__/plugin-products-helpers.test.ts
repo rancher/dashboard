@@ -1,8 +1,60 @@
+import { RouteMeta } from 'vue-router';
 import {
   ProductChild, ProductChildGroup, ProductChildCustomPage, ProductChildResourcePage, ProductChildPage
 } from '@shell/core/plugin-products-external';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
+import { hasNameProperty, isProductChildGroup } from '@shell/core/plugin-products-type-guards';
+import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
+
+/**
+ * `gatherChildrenOrdering` hands back the `ProductChild` union. Narrow a result back down to a
+ * group, with the same type guard the product code uses, before reaching for `sideMenu.children`.
+ */
+const getGroup = (child: ProductChild): ProductChildGroup => {
+  if (!isProductChildGroup(child)) {
+    throw new Error('Expected the product child to be a group');
+  }
+
+  return child;
+};
+
+/**
+ * Only some members of the `ProductChild` union carry a `name`, so narrow with the same type guard
+ * the product code uses before asserting on it.
+ */
+const getName = (child: ProductChild): string => {
+  if (!hasNameProperty(child)) {
+    throw new Error('Expected the product child to have a name');
+  }
+
+  return child.name;
+};
+
+/**
+ * `sideMenu` and its `weight` are both optional on the union, so narrow the weight that
+ * `gatherChildrenOrdering` assigned down to a number before comparing it.
+ */
+const getWeight = (child: ProductChild): number => {
+  const weight = child.sideMenu?.weight;
+
+  if (typeof weight !== 'number') {
+    throw new Error('Expected the product child to have been assigned a weight');
+  }
+
+  return weight;
+};
+
+/**
+ * The generated routes have an optional `meta`, so narrow it before an assertion reaches into it.
+ */
+const getMeta = (route: RouteRecordRawWithParams): RouteMeta => {
+  if (!route.meta) {
+    throw new Error('Expected the generated route to have meta');
+  }
+
+  return route.meta;
+};
 
 const gatherChildrenOrdering = pluginProductsHelpers.gatherChildrenOrdering.bind(pluginProductsHelpers);
 const generateTopLevelExtensionSimpleBaseRoute = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute.bind(pluginProductsHelpers);
@@ -52,9 +104,9 @@ describe('plugin-products-helpers', () => {
 
       const result = gatherChildrenOrdering(children);
 
-      expect(result[0].sideMenu?.weight).toBe(50);
-      expect(result[1].sideMenu?.weight).toBeLessThan(50); // 49
-      expect(result[2].sideMenu?.weight).toBeLessThan(result[1].sideMenu?.weight); // 48
+      expect(getWeight(result[0])).toBe(50);
+      expect(getWeight(result[1])).toBeLessThan(50); // 49
+      expect(getWeight(result[2])).toBeLessThan(getWeight(result[1])); // 48
     });
 
     it('should use 999 as minWeight when no explicit weights are provided', () => {
@@ -74,9 +126,9 @@ describe('plugin-products-helpers', () => {
 
       // minWeight starts at 999, then each item gets minWeight - (index + 1)
       // so: 999 - 1 = 998, 999 - 2 = 997, 999 - 3 = 996
-      expect(result[0].sideMenu?.weight).toBe(998);
-      expect(result[1].sideMenu?.weight).toBe(997);
-      expect(result[2].sideMenu?.weight).toBe(996);
+      expect(getWeight(result[0])).toBe(998);
+      expect(getWeight(result[1])).toBe(997);
+      expect(getWeight(result[2])).toBe(996);
     });
 
     it('should recursively apply ordering to nested children', () => {
@@ -103,9 +155,11 @@ describe('plugin-products-helpers', () => {
 
       const result = gatherChildrenOrdering(children);
 
-      expect(result[0].sideMenu.children[0].name).toBe('nested-a'); // 20
-      expect(result[0].sideMenu.children[1].name).toBe('nested-b'); // 10
-      expect(result[0].sideMenu.children[2].name).toBe('nested-c'); // auto-assigned 9
+      const nested = getGroup(result[0]).sideMenu.children;
+
+      expect(getName(nested[0])).toBe('nested-a'); // 20
+      expect(getName(nested[1])).toBe('nested-b'); // 10
+      expect(getName(nested[2])).toBe('nested-c'); // auto-assigned 9
     });
 
     it('should handle empty children array', () => {
@@ -131,9 +185,9 @@ describe('plugin-products-helpers', () => {
       const result = gatherChildrenOrdering(children);
 
       // second should be first due to highest weight
-      expect(result[0].name).toBe('second');
-      expect(result[1].name).toBe('first');
-      expect(result[2].name).toBe('third');
+      expect(getName(result[0])).toBe('second');
+      expect(getName(result[1])).toBe('first');
+      expect(getName(result[2])).toBe('third');
     });
   });
 
@@ -331,10 +385,10 @@ describe('plugin-products-helpers', () => {
 
       const routes = generateResourceRoutes('my-product', page);
 
-      expect(routes[2].meta.asyncSetup).toBe(true); // detail route
-      expect(routes[3].meta.asyncSetup).toBe(true); // edit route
-      expect(routes[0].meta.asyncSetup).toBeUndefined(); // list route
-      expect(routes[1].meta.asyncSetup).toBeUndefined(); // create route
+      expect(getMeta(routes[2]).asyncSetup).toBe(true); // detail route
+      expect(getMeta(routes[3]).asyncSetup).toBe(true); // edit route
+      expect(getMeta(routes[0]).asyncSetup).toBeUndefined(); // list route
+      expect(getMeta(routes[1]).asyncSetup).toBeUndefined(); // create route
     });
 
     it('should generate cluster-level extension resource routes when extendProduct is true', () => {
@@ -361,8 +415,8 @@ describe('plugin-products-helpers', () => {
       const routes = generateResourceRoutes('my-product', page);
 
       routes.forEach((route) => {
-        expect((route.meta as any).cluster).toBe(BLANK_CLUSTER);
-        expect(route.meta.product).toBe('my-product');
+        expect(getMeta(route).cluster).toBe(BLANK_CLUSTER);
+        expect(getMeta(route).product).toBe('my-product');
       });
     });
 
@@ -372,8 +426,8 @@ describe('plugin-products-helpers', () => {
       const routes = generateResourceRoutes('my-product', page, { extendProduct: true });
 
       routes.forEach((route) => {
-        expect((route.meta as any).cluster).toBeUndefined();
-        expect(route.meta.product).toBe('my-product');
+        expect(getMeta(route).cluster).toBeUndefined();
+        expect(getMeta(route).product).toBe('my-product');
       });
     });
 
@@ -409,15 +463,15 @@ describe('plugin-products-helpers', () => {
       const ordered = gatherChildrenOrdering(config);
 
       // Should be sorted by weight descending: 15, 10, 5
-      expect(ordered[0].sideMenu?.weight).toBe(15);
-      expect(ordered[0].name).toBe('resources');
-      expect(ordered[1].sideMenu?.weight).toBe(10);
-      expect(ordered[1].name).toBe('overview');
-      expect(ordered[2].sideMenu?.weight).toBe(5);
-      expect(ordered[2].name).toBe('settings');
+      expect(getWeight(ordered[0])).toBe(15);
+      expect(getName(ordered[0])).toBe('resources');
+      expect(getWeight(ordered[1])).toBe(10);
+      expect(getName(ordered[1])).toBe('overview');
+      expect(getWeight(ordered[2])).toBe(5);
+      expect(getName(ordered[2])).toBe('settings');
 
       // Test route generation for each
-      const overviewRoute = generateVirtualTypeRoute('my-product', ordered[1].name);
+      const overviewRoute = generateVirtualTypeRoute('my-product', getName(ordered[1]));
 
       expect(overviewRoute.name).toContain('overview');
 
@@ -449,9 +503,11 @@ describe('plugin-products-helpers', () => {
       ];
       const ordered = gatherChildrenOrdering(config);
 
-      expect(ordered[0].sideMenu?.children[0].name).toBe('page1'); // 100
-      expect(ordered[0].sideMenu?.children[1].name).toBe('page3'); // 50
-      expect(ordered[0].sideMenu?.children[2].name).toBe('page2'); // auto 49
+      const nested = getGroup(ordered[0]).sideMenu.children;
+
+      expect(getName(nested[0])).toBe('page1'); // 100
+      expect(getName(nested[1])).toBe('page3'); // 50
+      expect(getName(nested[2])).toBe('page2'); // auto 49
     });
   });
 });

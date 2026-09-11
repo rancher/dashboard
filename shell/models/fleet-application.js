@@ -1,4 +1,4 @@
-import { matching, convertSelectorObj } from '@shell/utils/selector';
+import { matching, convertSelectorObj, matches } from '@shell/utils/selector';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
@@ -87,8 +87,8 @@ export default class FleetApplication extends SteveModel {
 
   get targetClusters() {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
-    const clusters = workspace?.clusters || [];
-    const groups = workspace?.clusterGroups || [];
+    const clusters = [...(workspace?.clusters || [])];
+    const groups = [...(workspace?.clusterGroups || [])];
 
     if (workspace?.id === 'fleet-local') {
       // should we be getting the clusters from workspace.clusters instead of having to rely on the groups,
@@ -104,6 +104,44 @@ export default class FleetApplication extends SteveModel {
 
     if (!this.spec.targets) {
       return [];
+    }
+
+    const allMappings = this.$getters['all'](FLEET.BUNDLE_NAMESPACE_MAPPING) || [];
+    const bundleNs = this.metadata.namespace;
+
+    for (const mapping of allMappings) {
+      if (mapping.metadata?.namespace !== bundleNs) {
+        continue;
+      }
+
+      if (mapping.bundleSelector) {
+        const bundleExpressions = convertSelectorObj(mapping.bundleSelector);
+
+        if (!matches(this, bundleExpressions)) {
+          continue;
+        }
+      }
+
+      if (mapping.namespaceSelector) {
+        const allWorkspaces = this.$getters['all'](FLEET.WORKSPACE) || [];
+        const nsExpressions = convertSelectorObj(mapping.namespaceSelector);
+
+        for (const ws of allWorkspaces) {
+          if (ws.metadata?.name === bundleNs) {
+            continue;
+          }
+
+          const nsLabels = {
+            ...(ws.metadata?.labels || {}),
+            'kubernetes.io/metadata.name': ws.metadata?.name,
+          };
+
+          if (matches({ metadata: { labels: nsLabels } }, nsExpressions)) {
+            addObjects(clusters, ws.clusters || []);
+            addObjects(groups, ws.clusterGroups || []);
+          }
+        }
+      }
     }
 
     const out = [];

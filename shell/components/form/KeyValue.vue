@@ -14,6 +14,7 @@ import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { RcButton } from '@components/RcButton';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default {
   name: 'KeyValue',
@@ -26,7 +27,8 @@ export default {
     TextAreaAutoGrow,
     FileSelector,
     LabeledTooltip,
-    RcButton
+    RcButton,
+    RcIconTooltip
   },
   props: {
     value: {
@@ -284,6 +286,9 @@ export default {
     },
     _addLabel() {
       return this.addLabel || this.t('generic.add');
+    },
+    _addBtnAriaLabel() {
+      return this.addLabel ? this.t('generic.ariaLabel.addBtnAriaLabel', { label: this.addLabel }) : this.t('generic.ariaLabel.addKeyValue');
     },
 
     isView() {
@@ -636,13 +641,10 @@ export default {
               aria-colindex="1"
             >
               {{ _keyLabel }}
-              <i
+              <rc-icon-tooltip
                 v-if="_protip && !isView && addAllowed"
-                v-clean-tooltip="{content: _protip, triggers: ['hover', 'touch', 'focus'] }"
-                v-stripped-aria-label="_protip"
-                class="icon icon-info"
-                tabindex="0"
-                role="tooltip"
+                :content="_protip"
+                :label="t('generic.hintFor', {label: _keyLabel})"
               />
             </div>
             <div
@@ -651,13 +653,10 @@ export default {
               aria-colindex="2"
             >
               {{ _valueLabel }}
-              <i
+              <rc-icon-tooltip
                 v-if="protipValue && !isView && addAllowed"
-                v-clean-tooltip="{content: protipValue, triggers: ['hover', 'touch', 'focus'] }"
-                v-stripped-aria-label="protipValue"
-                class="icon icon-info"
-                tabindex="0"
-                role="tooltip"
+                :content="protipValue"
+                :label="t('generic.hintFor', {label: _valueLabel})"
               />
             </div>
             <div
@@ -893,7 +892,7 @@ export default {
                   type="button"
                   role="button"
                   :disabled="isView || disabled"
-                  :aria-label="t('generic.ariaLabel.remove', {index: i+1})"
+                  :aria-label="t('generic.ariaLabel.keyValueRemove', {index: i+1})"
                   class="btn role-link"
                   @click="remove(i)"
                 >
@@ -924,7 +923,7 @@ export default {
           :class="[addClass]"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
-          :aria-label="t('generic.ariaLabel.addKeyValue')"
+          :aria-label="_addBtnAriaLabel"
           @click="add()"
         >
           <i
@@ -940,7 +939,7 @@ export default {
           :class="[addClass]"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
-          :aria-label="t('generic.ariaLabel.addKeyValue')"
+          :aria-label="_addBtnAriaLabel"
           @click="add()"
         >
           <i

@@ -16,7 +16,7 @@ const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const userMenu = new UserMenuPo();
 const BANNER_TEXT = "Typical users will not need to change these. Proceed with caution, incorrect values can break your Explorer installation. Settings which have been customized from default settings are tagged 'Modified'.";
-const settingsOriginal: { [id: string]: any} = {};
+const settingsOriginal: { [id: string]: any } = {};
 const resetSettings: string[] = [];
 
 describe('Settings', { testIsolation: false }, () => {
@@ -32,6 +32,17 @@ describe('Settings', { testIsolation: false }, () => {
         settingsOriginal[s.id] = s;
       });
     });
+  });
+
+  afterEach(function() {
+    // Failure-safe cleanup for the Inactivity test only. That test drives the client-side inactivity
+    // modal (faked via useractivities intercepts); if it fails while the modal is up, the modal's
+    // countdown logs the user out client-side. With testIsolation off, that logged-out state then
+    // cascades into every following test in this spec ("side-menu not found"). Force a fresh session so
+    // a failure in this one test cannot poison the rest of the spec (a no-op cost when it passed).
+    if (this.currentTest?.title?.includes('Inactivity')) {
+      cy.login(undefined, undefined, false);
+    }
   });
 
   it('Inactivity ::: can update the setting "auth-user-session-idle-ttl-minutes" and should show the the inactivity modal', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -102,6 +113,10 @@ describe('Settings', { testIsolation: false }, () => {
     newSettingsPage.waitForUrlPathWithoutContext();
     newSettingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
 
+    // Register the revert now (not only at the end): if the modal assertions below fail, the `after`
+    // hook must still restore this setting to its default so the change does not leak past this spec.
+    resetSettings.push(sessionIdleSetting);
+
     cy.wait('@getUpdatedUserActivity', { timeout: 15000 });
 
     // this wait is a delicate balance with the 30 seconds of the intercept
@@ -152,8 +167,6 @@ describe('Settings', { testIsolation: false }, () => {
 
     newSettingsPage.waitForUrlPathWithoutContext();
     newSettingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
-
-    resetSettings.push(sessionIdleSetting);
   });
 
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -554,6 +567,11 @@ describe('Settings', { testIsolation: false }, () => {
     const downloadsFolder = Cypress.config('downloadsFolder');
 
     clusterList.goTo();
+    clusterList.waitForPage();
+    // Wait for the cluster list to finish loading before opening the row action menu. Acting on a
+    // still-loading list fails to find [data-testid="cluster-list"], and with testIsolation off that
+    // mid-test failure wedges the app so later retries cannot even open the side menu to navTo.
+    clusterList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().actionMenu('local').getMenuItem('Download KubeConfig').click();
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);

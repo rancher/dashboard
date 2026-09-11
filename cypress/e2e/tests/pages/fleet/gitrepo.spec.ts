@@ -2,8 +2,9 @@ import { FleetApplicationCreatePo, FleetApplicationListPagePo, FleetGitRepoCreat
 import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
-import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
@@ -53,6 +54,12 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
     });
 
     it('Can create a GitRepo', () => {
+      // Make this test retry-independent: with testIsolation off, a failed attempt leaves the
+      // gitrepo it created behind, so the retry's create fails with "... already exists" and never
+      // gets a real chance to pass. Delete it first if present (failOnStatusCode: false tolerates
+      // the not-found case on a clean first run).
+      cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', `${ workspace }/${ gitRepoCreateRequest.metadata.name }`, false);
+
       // generate a fake cluster that can be usable in fleet
       generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
 
@@ -61,9 +68,15 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
       cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
 
-      // Select the workspace from the list page before navigating to create
+      // Select the workspace from the list page before navigating to create.
       listPage.goTo();
       listPage.waitForPage();
+      // Wait for the fleet list to finish loading before touching the header: while the list data
+      // is still loading the page re-renders and the workspace switcher can detach mid-render, so a
+      // default-timeout toggle click would fail to find it. Gate on the loaded list first, and give
+      // the switcher a longer visibility wait since it renders only after the data settles.
+      listPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      headerPo.workspaceSwitcher().checkVisible(LONG_TIMEOUT_OPT);
       headerPo.selectWorkspace(workspace);
       listPage.create();
       createPage.createGitRepo();
@@ -81,7 +94,9 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
         .set(name);
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
-      // Repository details step
+      // Repository details step - wait for the step to finish rendering before filling it, so a
+      // slow wizard transition does not flake the first field lookup.
+      LabeledInputPo.byLabel(cy.get('body'), 'Repository URL', LONG_TIMEOUT_OPT).checkVisible();
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
       gitRepoCreatePage.setGitRepoPath(paths[0]);
@@ -157,57 +172,6 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
 
         expect(response.statusCode).to.eq(201);
         expect(request.body).to.deep.eq(gitRepoCreateRequest);
-
-        listPage.waitForPage();
-
-        const prefPage = new PreferencesPagePo();
-
-        // START TESTING https://github.com/rancher/dashboard/issues/9984
-        // change language to chinese
-        prefPage.goTo();
-        prefPage.languageDropdownMenu().checkVisible();
-        prefPage.languageDropdownMenu().toggle();
-        prefPage.languageDropdownMenu().isOpened();
-
-        cy.intercept({
-          method: 'PUT', url: 'v1/userpreferences/*', times: 1
-        }).as(`prefUpdateZhHans`);
-        prefPage.languageDropdownMenu().clickOption(2);
-        cy.wait('@prefUpdateZhHans').then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(response?.body.data).to.have.property('locale', 'zh-hans');
-        });
-        prefPage.languageDropdownMenu().isClosed();
-
-        listPage.goTo();
-        listPage.waitForPage();
-        headerPo.selectWorkspace(workspace);
-        listPage.list().resourceTable().checkVisible();
-        listPage.list().resourceTable().sortableTable()
-          .checkVisible();
-        listPage.list().resourceTable().sortableTable()
-          .checkLoadingIndicatorNotVisible();
-        listPage.list().resourceTable().sortableTable()
-          .noRowsShouldNotExist();
-
-        // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
-        listPage.goToDetailsPage('fleet-e2e-test-gitrepo');
-        gitRepoCreatePage.mastheadTitle().then((title) => {
-          expect(title.replace(/\s+/g, ' ')).to.contain('fleet-e2e-test-gitrepo');
-        });
-        // https://github.com/rancher/dashboard/issues/9984 reset lang to EN so that delete action can be performed
-        prefPage.goTo();
-        prefPage.languageDropdownMenu().checkVisible();
-        prefPage.languageDropdownMenu().toggle();
-        prefPage.languageDropdownMenu().isOpened();
-
-        cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateEnUs`);
-        prefPage.languageDropdownMenu().clickOptionWithLabel('English');
-        cy.wait('@prefUpdateEnUs').then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(response?.body.data).to.have.property('locale', 'en-us'); // Flake: This can sometimes be zh-hans.....?!
-        });
-        prefPage.languageDropdownMenu().isClosed();
       });
     });
 
@@ -484,8 +448,61 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
     });
   });
 
+  describe('Details in a non-English locale (https://github.com/rancher/dashboard/issues/9984)', () => {
+    afterEach(() => {
+      // Reset the locale back to English AFTER the UI switch, via the API - the backend preference
+      // persists across specs and runs, so a left-over Chinese locale would poison later tests. Do it
+      // with no concurrent UI write in flight: the resourceVersion conflict ("the object has been
+      // modified ... apply your changes to the latest version" -> HTTP 500 -> fail-whale) only occurs
+      // when this programmatic reset races the test's own UI locale save immediately before it - a
+      // test-only sequence a real user would not hit, so this is test timing, not an app bug.
+      cy.setUserPreference({ locale: 'en-us' }, true);
+    });
+
+    it('loads the GitRepo details page when the UI language is Chinese', () => {
+      const prefPage = new PreferencesPagePo();
+      const gitRepoDetailsPage = new FleetGitRepoCreateEditPo();
+      const repoName = editRepoName as string;
+
+      // Switch the UI language to Chinese via the preferences page.
+      prefPage.goTo();
+      prefPage.languageDropdownMenu().checkVisible();
+      prefPage.languageDropdownMenu().toggle();
+      prefPage.languageDropdownMenu().isOpened();
+
+      cy.intercept({
+        method: 'PUT', url: 'v1/userpreferences/*', times: 1
+      }).as(`prefUpdateZhHans`);
+      prefPage.languageDropdownMenu().clickOption(2);
+      cy.wait('@prefUpdateZhHans').then(({ response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(response?.body.data).to.have.property('locale', 'zh-hans');
+      });
+      prefPage.languageDropdownMenu().isClosed();
+
+      // The list and details pages must render correctly under the non-English locale. All the
+      // selectors below key off data-testids / resource names, not translated text, so they work
+      // regardless of locale.
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+      listPage.list().resourceTable().checkVisible();
+      listPage.list().resourceTable().sortableTable()
+        .checkLoadingIndicatorNotVisible();
+      listPage.list().resourceTable().sortableTable()
+        .noRowsShouldNotExist();
+
+      listPage.goToDetailsPage(repoName);
+      gitRepoDetailsPage.mastheadTitle().then((title) => {
+        expect(title.replace(/\s+/g, ' ')).to.contain(repoName);
+      });
+    });
+  });
+
   after(() => {
-    reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r));
+    // De-duplicate: the retry-independent create test can register the same repo more than once
+    // across attempts. failOnStatusCode: false tolerates a repo that was already removed.
+    reposToDelete.filter((r, i) => reposToDelete.indexOf(r) === i).forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r, false));
   });
 });
 

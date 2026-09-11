@@ -468,14 +468,14 @@ describe('catalog', () => {
         };
 
         const allCharts = [regularChart, deprecatedChart];
-        const state = {};
+        const localState = state();
         const localGetters = {
           charts: allCharts,
-          chart:  (args: any) => getters.chart(state, { charts: allCharts })(args)
+          chart:  (args: any) => getters.chart(localState, { charts: allCharts })(args)
         };
 
         // Scenario 1: Get a version from a regular chart
-        const result1 = getters.version(state, localGetters)({
+        const result1 = getters.version(localState, localGetters)({
           repoType:       'cluster',
           repoName:       'rancher-charts',
           chartName:      'regular-chart',
@@ -486,7 +486,7 @@ describe('catalog', () => {
         expect(result1).toStrictEqual({ version: '1.2.3' });
 
         // Scenario 2: Get a version from a deprecated chart
-        const result2 = getters.version(state, localGetters)({
+        const result2 = getters.version(localState, localGetters)({
           repoType:       'cluster',
           repoName:       'rancher-charts',
           chartName:      'deprecated-chart',
@@ -497,7 +497,7 @@ describe('catalog', () => {
         expect(result2).toStrictEqual({ version: '2.0.0' });
 
         // Scenario 3: Try to get a version from a deprecated chart without the flag should fail
-        const result3 = getters.version(state, localGetters)({
+        const result3 = getters.version(localState, localGetters)({
           repoType:       'cluster',
           repoName:       'rancher-charts',
           chartName:      'deprecated-chart',

@@ -416,7 +416,7 @@ export interface IClusterModelExtension {
   /**
    * Get the display name for the machine provider for this model
    *
-   * @param cluster The cluster model (`provisioning.cattle.io.cluster`)
+   * @param cluster The cluster model (`management.cattle.io.cluster`, not `provisioning.cattle.io.cluster` as with the other members of this interface)
    * @returns Machine provider display name
    */
   machineProviderDisplay?(cluster: any): string;
@@ -424,7 +424,7 @@ export interface IClusterModelExtension {
   /**
    * Get the display name for the provisioner for this model
    *
-   * @param cluster The cluster model (`provisioning.cattle.io.cluster`)
+   * @param cluster The cluster model (`management.cattle.io.cluster`, not `provisioning.cattle.io.cluster` as with the other members of this interface)
    * @returns Provisioner display name
    */
   provisionerDisplay?(cluster: any): string;

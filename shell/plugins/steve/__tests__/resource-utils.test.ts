@@ -1,8 +1,8 @@
-import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
+import { steveCleanForDownload, EDIT_HIDDEN_METADATA_KEYS } from '@shell/plugins/steve/resource-utils';
 
 describe('steve: ressource-utils', () => {
   it('should do nothing if the yaml is not passed', () => {
-    const r = steveCleanForDownload();
+    const r = steveCleanForDownload(undefined as unknown as string);
 
     expect(r).toBeUndefined();
   });
@@ -154,6 +154,51 @@ ${ entries.map(([k, str]) => k === key ? '    - {}' : str).join('\n') }\n`;
       const cleanedYamlStr = steveCleanForDownload(yamlStr, { conditionKeys: [key] });
 
       expect(cleanedYamlStr).toBe(expectedYamlStr);
+    });
+  });
+
+  describe('editing', () => {
+    const yamlStr = `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+  uid: 3f2a
+  generation: 1
+  resourceVersion: '12345'
+  creationTimestamp: '2024-01-01T00:00:00Z'
+  managedFields:
+    - manager: kubectl
+`;
+
+    it('should keep server-managed metadata fields when not editing', () => {
+      const cleanedYamlStr = steveCleanForDownload(yamlStr) as string;
+
+      EDIT_HIDDEN_METADATA_KEYS.forEach((key) => {
+        expect(cleanedYamlStr).toContain(`${ key }:`);
+      });
+    });
+
+    it('should hide server-managed metadata fields when editing', () => {
+      const cleanedYamlStr = steveCleanForDownload(yamlStr, { editing: true }) as string;
+
+      EDIT_HIDDEN_METADATA_KEYS.forEach((key) => {
+        expect(cleanedYamlStr).not.toContain(`${ key }:`);
+      });
+      expect(cleanedYamlStr).toContain('name: my-configmap');
+    });
+
+    it('should still drop the default metadata keys when editing', () => {
+      const withDefaults = `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+  state: active
+  uid: 3f2a
+`;
+      const cleanedYamlStr = steveCleanForDownload(withDefaults, { editing: true }) as string;
+
+      expect(cleanedYamlStr).not.toContain('state:');
+      expect(cleanedYamlStr).not.toContain('uid:');
     });
   });
 });

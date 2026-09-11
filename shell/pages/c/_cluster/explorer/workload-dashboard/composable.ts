@@ -17,7 +17,7 @@ import {
 } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import {
-  WORKLOAD_RESOURCE_TYPES, COLOR_ORDER,
+  WORKLOAD_DASHBOARD_RESOURCE_TYPES, COLOR_ORDER,
   type WorkloadDashboardSummaryEntry,
   type WorkloadDashboardEntry,
   type WorkloadDashboardStateCard,
@@ -66,7 +66,7 @@ export function useWorkloadDashboard() {
     });
 
     // Getting the first schema is sufficient since the namespace filter param structure is the same across all resource types
-    const schema = WORKLOAD_RESOURCE_TYPES
+    const schema = WORKLOAD_DASHBOARD_RESOURCE_TYPES
       .map((type) => store.getters['cluster/schemaFor'](type))
       .find((s) => !!s);
 
@@ -292,7 +292,7 @@ export function useWorkloadDashboard() {
     return Object.entries(nsMap)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([ns, typeMap]) => {
-        const rows = WORKLOAD_RESOURCE_TYPES
+        const rows = WORKLOAD_DASHBOARD_RESOURCE_TYPES
           .filter((type) => typeMap[type])
           .map((type) => {
             const label = t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type;
@@ -397,7 +397,7 @@ export function useWorkloadDashboard() {
     }
 
     try {
-      const accessibleTypes = WORKLOAD_RESOURCE_TYPES.filter(
+      const accessibleTypes = WORKLOAD_DASHBOARD_RESOURCE_TYPES.filter(
         (type) => store.getters['cluster/canList'](type)
       );
 

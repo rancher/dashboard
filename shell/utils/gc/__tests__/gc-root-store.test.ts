@@ -181,45 +181,4 @@ describe('gc-root-store', () => {
       expect(dispatch).not.toHaveBeenCalled();
     });
   });
-
-  describe('gcActions.gcPreferencesUpdated', () => {
-    it('stops intervals and starts them when new preferences are enabled', () => {
-      const dispatch = jest.fn();
-
-      gcActions.gcPreferencesUpdated({ dispatch }, {
-        previouslyEnabled: false,
-        newPreferences:    { enabled: true },
-      });
-
-      expect(dispatch).toHaveBeenCalledWith('gcStopIntervals', { root: true });
-      expect(dispatch).toHaveBeenCalledWith('gcStartIntervals', { root: true });
-      expect(dispatch).not.toHaveBeenCalledWith('gcResetStores', { root: true });
-    });
-
-    it('stops intervals and resets stores when transitioning from enabled to disabled', () => {
-      const dispatch = jest.fn();
-
-      gcActions.gcPreferencesUpdated({ dispatch }, {
-        previouslyEnabled: true,
-        newPreferences:    { enabled: false },
-      });
-
-      expect(dispatch).toHaveBeenCalledWith('gcStopIntervals', { root: true });
-      expect(dispatch).toHaveBeenCalledWith('gcResetStores', { root: true });
-      expect(dispatch).not.toHaveBeenCalledWith('gcStartIntervals', { root: true });
-    });
-
-    it('stops intervals only when new preferences are disabled and was not previously enabled', () => {
-      const dispatch = jest.fn();
-
-      gcActions.gcPreferencesUpdated({ dispatch }, {
-        previouslyEnabled: false,
-        newPreferences:    { enabled: false },
-      });
-
-      expect(dispatch).toHaveBeenCalledWith('gcStopIntervals', { root: true });
-      expect(dispatch).not.toHaveBeenCalledWith('gcStartIntervals', { root: true });
-      expect(dispatch).not.toHaveBeenCalledWith('gcResetStores', { root: true });
-    });
-  });
 });

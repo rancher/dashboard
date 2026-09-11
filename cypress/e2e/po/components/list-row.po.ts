@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class ListRowPo extends ComponentPo {
   column(index: number) {
@@ -9,9 +9,13 @@ export default class ListRowPo extends ComponentPo {
    * Get the action button for a row
    * NB: Depending on the view flat-list or namespaced view,
    * the action button could be in a different column
+   *
+   * `options` (e.g. a longer timeout) is forwarded to the lookup: the button hydrates after the row's
+   * cells (available actions load separately), so callers that act on it right after the row renders
+   * may need to wait for it.
    */
-  actionBtn() {
-    return this.self().find('[data-testid*="action-button"]');
+  actionBtn(options?: GetOptions) {
+    return this.self().find('[data-testid*="action-button"]', options);
   }
 
   get(selector: string, options?: any) {

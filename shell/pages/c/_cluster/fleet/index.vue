@@ -612,7 +612,6 @@ export default {
                 <input
                   :value="searchFilter[workspace.id]"
                   type="search"
-                  role="textbox"
                   class="input"
                   :data-testid="`fleet-dashboard-search-input-${ workspace.id }`"
                   :aria-label="t('fleet.dashboard.cards.search')"

@@ -1,5 +1,5 @@
 import { useWorkloadDashboard } from '@shell/pages/c/_cluster/explorer/workload-dashboard/composable';
-import { WORKLOAD_RESOURCE_TYPES } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
+import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
 import { WORKLOAD_TYPES } from '@shell/config/types';
 import { defineComponent, h } from 'vue';
 import { shallowMount, flushPromises } from '@vue/test-utils';
@@ -70,6 +70,10 @@ const summaryResponse = {
   data: [],
 };
 
+// Every accessible type returns `summaryResponse` (5 running + 2 error), so the
+// total workload count scales with the number of workload dashboard resource types.
+const TOTAL_WORKLOAD_COUNT = WORKLOAD_DASHBOARD_RESOURCE_TYPES.length * 7;
+
 function mountComposable(getterOverrides: Record<string, any> = {}, dispatchResponse: any = summaryResponse) {
   setupGetters({
     'cluster/schemaFor': () => ({ links: { collection: '/v1/test' } }),
@@ -118,7 +122,7 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.allNamespaces% %workloadDashboard.workloadCount%{"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual(`%workloadDashboard.subtitle.allNamespaces% %workloadDashboard.workloadCount%{"count":${ TOTAL_WORKLOAD_COUNT }}`);
       wrapper.unmount();
     });
 
@@ -131,7 +135,7 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.userNamespaces% %workloadDashboard.workloadCount%{"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual(`%workloadDashboard.subtitle.userNamespaces% %workloadDashboard.workloadCount%{"count":${ TOTAL_WORKLOAD_COUNT }}`);
       wrapper.unmount();
     });
 
@@ -144,7 +148,7 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.systemNamespaces% %workloadDashboard.workloadCount%{"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual(`%workloadDashboard.subtitle.systemNamespaces% %workloadDashboard.workloadCount%{"count":${ TOTAL_WORKLOAD_COUNT }}`);
       wrapper.unmount();
     });
 
@@ -162,7 +166,7 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.project%{"name":"My Project"} %workloadDashboard.workloadCount%{"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual(`%workloadDashboard.subtitle.project%{"name":"My Project"} %workloadDashboard.workloadCount%{"count":${ TOTAL_WORKLOAD_COUNT }}`);
       wrapper.unmount();
     });
 
@@ -175,7 +179,7 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.namespace%{"name":"cattle-system"} %workloadDashboard.workloadCount%{"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual(`%workloadDashboard.subtitle.namespace%{"name":"cattle-system"} %workloadDashboard.workloadCount%{"count":${ TOTAL_WORKLOAD_COUNT }}`);
       wrapper.unmount();
     });
 
@@ -188,7 +192,7 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.multipleSelected%{"selected":2} %workloadDashboard.workloadCount%{"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual(`%workloadDashboard.subtitle.multipleSelected%{"selected":2} %workloadDashboard.workloadCount%{"count":${ TOTAL_WORKLOAD_COUNT }}`);
       wrapper.unmount();
     });
 
@@ -321,7 +325,7 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.byTypeCards.value).toHaveLength(WORKLOAD_RESOURCE_TYPES.length);
+      expect(result.byTypeCards.value).toHaveLength(WORKLOAD_DASHBOARD_RESOURCE_TYPES.length);
       wrapper.unmount();
     });
 
@@ -332,7 +336,7 @@ describe('composable: useWorkloadDashboard', () => {
 
       const card = result.byTypeCards.value[0];
 
-      expect(card.type).toStrictEqual(WORKLOAD_RESOURCE_TYPES[0]);
+      expect(card.type).toStrictEqual(WORKLOAD_DASHBOARD_RESOURCE_TYPES[0]);
       expect(card.title).toBeTruthy();
       wrapper.unmount();
     });
@@ -429,8 +433,8 @@ describe('composable: useWorkloadDashboard', () => {
 
       const defaultCard = result.byNamespaceCards.value.find((c) => c.title === 'default');
 
-      expect(defaultCard?.rows).toHaveLength(WORKLOAD_RESOURCE_TYPES.length);
-      expect(defaultCard?.rows.map((r) => r.type)).toStrictEqual(WORKLOAD_RESOURCE_TYPES);
+      expect(defaultCard?.rows).toHaveLength(WORKLOAD_DASHBOARD_RESOURCE_TYPES.length);
+      expect(defaultCard?.rows.map((r) => r.type)).toStrictEqual(WORKLOAD_DASHBOARD_RESOURCE_TYPES);
       wrapper.unmount();
     });
 

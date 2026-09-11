@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class TabbedPo extends ComponentPo {
   constructor(selector = '.dashboard-root', private componentId = 'tabbed') {
@@ -11,6 +11,12 @@ export default class TabbedPo extends ComponentPo {
 
   clickTabWithSelector(selector: string) {
     return this.self().find(`${ selector }`).click();
+  }
+
+  // Wait for a tab (by selector) to render and be visible - e.g. before clicking it, to avoid racing
+  // the tab bar mounting after a SPA navigation.
+  checkTabVisible(selector: string, options?: GetOptions) {
+    return this.self().find(selector, options).should('be.visible');
   }
 
   clickTabWithName(name: string) {

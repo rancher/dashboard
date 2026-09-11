@@ -41,6 +41,8 @@ harvesterManager:
       warning: "Warning, [[Harvester]] UI extension automatic installation failed"
       prompt: "Please refresh the page and try again or install the [[Harvester]] UI extension manually"
       prompt-standard-user: Please contact your system administrator to install or update the [[Harvester]] extension
+    action:
+      retrying: "Retry installing...({attempt}/{max})"
   rke:
     templateError: Incorrect template format
   affinity:

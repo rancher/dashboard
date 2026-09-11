@@ -140,6 +140,15 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoList.waitForPage();
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
     cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', name);
+    // Known issue rancher/dashboard#17554: a clusterrepo can report Active before its Download has
+    // actually completed, and the repo list's state badge then lags the (already-Active) API state
+    // under CI load, only rendering 'Active' after a delayed re-fetch. kubewarden calls this from a
+    // before-all hook, which Cypress does NOT retry, so a badge that outruns the default window fails
+    // the whole suite. Reload once to force a fresh list render off the now-Active API state before
+    // asserting the badge.
+    cy.reload();
+    appRepoList.waitForPage();
+    appRepoList.list().checkVisible();
     appRepoList.list().state(name).should('contain', 'Active');
 
     return cy.wrap(appRepoList.list());
@@ -188,7 +197,39 @@ export default class ExtensionsPagePo extends PagePo {
 
     card.self().should('be.visible');
 
-    return card.openActionMenu().getMenuItem(actionLabel).click();
+    // The Upgrade/Downgrade items appear only once the extension's available versions have loaded
+    // from the (sometimes slow) chart repo. The menu re-renders reactively when they arrive, so give
+    // the item lookup a long window instead of the default - otherwise it outruns a slow repo fetch
+    // and the action is reported missing even though it shows up moments later.
+    return card.openActionMenu().getMenuItem(actionLabel, LONG_TIMEOUT_OPT).click();
+  }
+
+  /**
+   * Open the card action menu and click `actionLabel` only if it is offered; resolves to whether it
+   * was clicked. Used to keep the upgrade/downgrade tests idempotent across retries: a prior attempt
+   * may already have moved the extension to the target version (e.g. upgraded to latest), which
+   * removes that action - so a plain retry, which re-runs the whole test, would otherwise hard-fail on
+   * the now-missing menu item. Waits for the version-dependent actions to load first (Upgrade and/or
+   * Downgrade appear only once the chart repo versions are fetched) so a slow menu is not misread as
+   * "action absent".
+   */
+  clickActionIfPresent(extensionTitle: string, actionLabel: string): Cypress.Chainable<boolean> {
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
+
+    card.self().should('be.visible');
+    const menu = card.openActionMenu();
+
+    // Wait for the version-dependent actions to load before deciding: Upgrade and/or Downgrade appear
+    // only once the chart repo versions are fetched, so their absence earlier is a slow menu, not a
+    // genuinely missing action.
+    menu.menuItems(LONG_TIMEOUT_OPT).should(($items) => {
+      const text = $items.toArray().map((el) => el.textContent || '').join('|');
+
+      expect(text).to.match(/Upgrade|Downgrade/);
+    });
+
+    return menu.clickMenuItemIfPresent(actionLabel);
   }
 
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
@@ -196,8 +237,8 @@ export default class ExtensionsPagePo extends PagePo {
       .invoke('text');
   }
 
-  extensionCardClick(extensionTitle: string): void {
-    this.extensionCard(extensionTitle).click();
+  extensionCardClick(extensionTitle: string, options?: Partial<Cypress.Timeoutable>): void {
+    this.extensionCard(extensionTitle, options).click();
   }
 
   extensionCardInstallClick(extensionTitle: string): Cypress.Chainable {
@@ -293,7 +334,10 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionReloadClick(): Cypress.Chainable {
-    return this.extensionReloadBanner().getId('extension-reload-banner-reload-btn').click();
+    // Force the click: a transient growl toast can overlay the reload button, which makes Cypress
+    // error with "being covered by another element". The button itself is interactable - the growl
+    // is an incidental, self-dismissing overlay - so the covered-element check is a false negative.
+    return this.extensionReloadBanner().getId('extension-reload-banner-reload-btn').click({ force: true });
   }
 
   // ------------------ new repos banner ------------------
@@ -328,7 +372,7 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   addReposModalAddClick(): Cypress.Chainable {
-    return this.addReposModal().get('.dialog-buttons button:last-child').click();
+    return this.addReposModal().get('.dialog-buttons button:last-child').should('be.visible').click();
   }
 
   // ------------------ Import Extension Catalog modal ------------------

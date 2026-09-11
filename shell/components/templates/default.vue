@@ -16,7 +16,6 @@ import Header from '@shell/components/nav/Header';
 import Inactivity from '@shell/components/Inactivity';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
-import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import { MANAGEMENT } from '@shell/config/types';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
@@ -41,7 +40,6 @@ export default {
     ModalManager,
     SlideInPanelManager,
     FixedBanner,
-    AwsComplianceBanner,
     Inactivity,
     SideNav,
     RcButton,
@@ -179,7 +177,6 @@ export default {
       {{ t('nav.skipToContent') }}
     </rc-button>
     <FixedBanner :header="true" />
-    <AwsComplianceBanner v-if="managementReady" />
     <div
       v-if="managementReady"
       class="dashboard-content"

@@ -9,9 +9,12 @@ export interface PaginationSettingsStore {
      */
     enableSome?: {
       /**
-       * Specific resource type to enable
+       * Specific resource type to enable.
+       *
+       * A bare string, or an object naming the resource, enables it in every context. Supply
+       * `context` to restrict it to the listed contexts only.
        */
-      enabled?: (string | { resource: string, context: string[]})[],
+      enabled?: (string | { resource: string, context?: string[]})[],
       /**
        * Additional resource types that do not have any custom pagination settings (headers, lists, etc) but can be generated automatically (headers from CRD additionalPrinterColumns) can be enabled
        */

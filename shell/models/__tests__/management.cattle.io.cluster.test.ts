@@ -13,14 +13,14 @@ jest.mock('@shell/utils/download', () => {
 
 describe('class MgmtCluster', () => {
   describe('provisioner', () => {
-    const testCases = [
+    const testCases: [Record<string, string>, string][] = [
       [{ provider: 'rke2', driver: 'imported' }, 'rke2'],
       [{ provider: 'k3s', driver: 'K3S' }, 'K3S'],
       [{ provider: 'aks', driver: 'AKS' }, 'AKS'],
       [{}, 'imported'],
     ];
 
-    it.each(testCases)('should return provisioner value properly based on the props data', (clusterData: Object, expected: String) => {
+    it.each(testCases)('should return provisioner value properly based on the props data', (clusterData, expected) => {
       const cluster = new MgmtCluster({ status: clusterData });
 
       expect(cluster.provisioner).toBe(expected);

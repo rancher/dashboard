@@ -133,12 +133,22 @@ export default defineComponent({
       touchedVmSize:         false,
       touchedVirtualNetwork: false,
 
+      // false until the first successful versions fetch completes - used to tell an initial load (where an
+      // already-set but not-yet-valid version, eg on edit, should be left alone) apart from a later refetch
+      // (triggered by a credential or region change) where a now-invalid version should be reconciled
+      hasFetchedVersionsBefore: false,
+
       loadingVersions:        false,
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
-      setAuthorizedIPRanges:  false,
-      networkingAuthMode:     NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL,
-      fvFormRuleSets:         [
+
+      // guard against out-of-order responses when a credential or region change triggers overlapping requests
+      versionsRequestId:        0,
+      vmSizesRequestId:         0,
+      virtualNetworksRequestId: 0,
+      setAuthorizedIPRanges:    false,
+      networkingAuthMode:       NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL,
+      fvFormRuleSets:           [
 
         {
           path:  'resourceGroup',
@@ -686,7 +696,12 @@ export default defineComponent({
     'config.azureCredentialSecret'(neu) {
       if (neu) {
         this.resetCredentialDependentProperties();
-        // this.getLocations();
+
+        if (this.config.resourceLocation) {
+          this.getAksVersions();
+          this.getVmSizes();
+          this.getVirtualNetworks();
+        }
       }
     },
 
@@ -751,9 +766,8 @@ export default defineComponent({
   },
 
   methods: {
-    // reset properties dependent on AKS queries so if they're lodaded with a valid credential then an invalid credential is selected, they're cleared
+    // reset properties dependent on AKS queries so if they're loaded with a valid credential then an invalid credential is selected, they're cleared
     resetCredentialDependentProperties(): void {
-    //   this.locationOptions = [];
       this.allAksVersions = [];
       this.vmSizeOptions = [];
       this.allVirtualNetworks = [];
@@ -764,6 +778,8 @@ export default defineComponent({
     },
 
     async getAksVersions(): Promise<void> {
+      const requestId = ++this.versionsRequestId;
+
       this.loadingVersions = true;
       this.allAksVersions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
@@ -771,10 +787,26 @@ export default defineComponent({
       try {
         const res = await getAKSKubernetesVersions(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
+        if (requestId !== this.versionsRequestId) {
+          return;
+        }
+
+        const isRefetch = this.hasFetchedVersionsBefore;
+
         // the default version is set once these are filtered and sorted in computed prop
         this.allAksVersions = res;
         this.loadingVersions = false;
+        this.hasFetchedVersionsBefore = true;
+
+        if (isRefetch && !this.touchedVersion && !this.aksVersionOptions.find((v) => v.value === this.config.kubernetesVersion)) {
+          const firstValid = this.aksVersionOptions.find((v) => !v.disabled);
+
+          this.config.kubernetesVersion = firstValid?.value;
+        }
       } catch (err:any) {
+        if (requestId !== this.versionsRequestId) {
+          return;
+        }
         this.loadingVersions = false;
 
         const parsedError = parseAzureError(err.error || '');
@@ -785,12 +817,18 @@ export default defineComponent({
     },
 
     async getVmSizes(): Promise<void> {
+      const requestId = ++this.vmSizesRequestId;
+
       this.loadingVmSizes = true;
       this.vmSizeOptions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
         const res = await getAKSVMSizes(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
+
+        if (requestId !== this.vmSizesRequestId) {
+          return;
+        }
 
         if (isArray(res)) {
           this.vmSizeOptions = res.sort();
@@ -802,6 +840,9 @@ export default defineComponent({
 
         this.loadingVmSizes = false;
       } catch (err: any) {
+        if (requestId !== this.vmSizesRequestId) {
+          return;
+        }
         this.loadingVmSizes = false;
 
         const parsedError = parseAzureError(err.error || '');
@@ -812,6 +853,8 @@ export default defineComponent({
     },
 
     async getVirtualNetworks(): Promise<void> {
+      const requestId = ++this.virtualNetworksRequestId;
+
       this.loadingVirtualNetworks = true;
       this.allVirtualNetworks = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
@@ -819,12 +862,17 @@ export default defineComponent({
       try {
         const res = await getAKSVirtualNetworks(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
-        if (res && isArray(res)) {
-          this.allVirtualNetworks.push(...res);
+        if (requestId !== this.virtualNetworksRequestId) {
+          return;
         }
+
+        this.allVirtualNetworks = (res && isArray(res)) ? res : [];
 
         this.loadingVirtualNetworks = false;
       } catch (err:any) {
+        if (requestId !== this.virtualNetworksRequestId) {
+          return;
+        }
         const parsedError = parseAzureError(err.error || '');
         const errors = this.errors as Array<string>;
 

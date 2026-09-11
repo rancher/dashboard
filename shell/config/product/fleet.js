@@ -33,6 +33,7 @@ export function init(store) {
     showClusterSwitcher:   false,
     showWorkspaceSwitcher: true,
     extendable:            true,
+    navSearch:             true,
     to:                    {
       name:   'c-cluster-fleet',
       params: { cluster: BLANK_CLUSTER }

@@ -23,6 +23,11 @@ describe('Yaml Editor', { tags: ['@components', '@adminUser', '@standardUser'] }
     cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
     deploymentsCreatePage.createWithUI(name, containerImage, namespace);
     cy.wait('@createDeployment').its('response.statusCode').should('eq', 201);
+
+    // Ensure the deployment is queryable before the tests navigate to the list, so the list's fetch
+    // includes it - the steve/VAI list can omit a row that is not yet indexed, which left
+    // listElementWithName unable to find the deployment's row (wedged across all retries).
+    cy.waitForRancherResource('v1', 'apps.deployments', `${ namespace }/${ name }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
   });
 
   describe('Edit mode', () => {

@@ -27,7 +27,6 @@ import UninstallExtensionDialog from '@shell/dialog/UninstallExtensionDialog.vue
 import UninstallExistingExtensionDialog from '@shell/dialog/UninstallExistingExtensionDialog.vue';
 import KnownHostsEditDialog from '@shell/dialog/KnownHostsEditDialog.vue';
 import ImportDialog from '@shell/dialog/ImportDialog.vue';
-import SearchDialog from '@shell/dialog/SearchDialog.vue';
 import ChangePasswordDialog from '@shell/dialog/ChangePasswordDialog.vue';
 import AssignToDialog from '@shell/dialog/AssignToDialog.vue';
 import FeatureFlagListDialog from '@shell/dialog/FeatureFlagListDialog.vue';
@@ -71,14 +70,8 @@ function generateStore(component: any):any {
       'i18n/t':                () => jest.fn(), // general usage
       'rancher/schemaFor':     () => jest.fn(), // general usage
       'prefs/get':             () => jest.fn(), // ScalePoolDownDialog
-      'type-map/allTypes':     () => jest.fn(), // SearchDialog
       'type-map/labelFor':     () => jest.fn(), // ScaleMachineDownDialog
-      'type-map/getTree':      () => jest.fn().mockReturnValue([]), // SearchDialog
-      'cluster/all':           () => jest.fn(), // SearchDialog
-      currentProduct:          () => { // SearchDialog
-        return { inStore: 'cluster' };
-      },
-      currentCluster: () => { // general usage
+      currentCluster:          () => { // general usage
         'local';
       },
     }
@@ -114,7 +107,6 @@ describe('component: PromptModal', () => {
     ['UninstallExistingExtensionDialog', UninstallExistingExtensionDialog],
     ['KnownHostsEditDialog', KnownHostsEditDialog],
     ['ImportDialog', ImportDialog],
-    ['SearchDialog', SearchDialog],
     ['ChangePasswordDialog', ChangePasswordDialog],
     ['AssignToDialog', AssignToDialog],
     ['FeatureFlagListDialog', FeatureFlagListDialog],

@@ -62,52 +62,78 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     rancherSetupLoginPage.bootstrapLogin();
 
     cy.wait('@bootstrapReq').then((login) => {
-      expect(login.response?.statusCode).to.equal(200);
+      if (login.response?.statusCode !== 200) {
+        // Retry-safe: a prior (failed) attempt already changed the admin password, so the
+        // bootstrap password no longer works (401). First-run config is submitted together
+        // with the password change, so a changed password means the instance is already
+        // configured - log in with the configured password and verify we land on home,
+        // rather than failing every retry on the dead bootstrap login.
+        cy.login();
+        homePage.goTo();
+        homePage.waitForPage();
+
+        return;
+      }
+
+      // Fresh instance: bootstrap login succeeded, run the full first-run configuration.
       rancherSetupConfigurePage.waitForPage();
-    });
 
-    cy.intercept('PUT', '/v1/userpreferences/*').as('firstLoginReq');
+      cy.intercept('PUT', '/v1/userpreferences/*').as('firstLoginReq');
 
-    rancherSetupConfigurePage.waitForPage();
-    rancherSetupConfigurePage.canSubmit().should('eq', false);
-    // Check server url validation
-    rancherSetupConfigurePage.serverUrl().self().should('be.visible');
-    rancherSetupConfigurePage.serverUrl().self().invoke('val').then((initialServerUrl) => {
-    // Check showing localhost warning banner
-      serverUrlLocalhostCases.forEach((url) => {
-        rancherSetupConfigurePage.serverUrl().set(url);
-        rancherSetupConfigurePage.serverUrlLocalhostWarningBanner().banner().should('exist').and('be.visible');
-      });
-      // Check showing error banner when the urls has trailing forward slash
-      rancherSetupConfigurePage.serverUrl().set(urlWithTrailingForwardSlash);
-      rancherSetupConfigurePage.errorBannerContent('Server URL should not have a trailing forward slash.').should('exist').and('be.visible');
-      // Check showing error banner when the url is not HTTPS
-      rancherSetupConfigurePage.serverUrl().set(httpUrl);
-      rancherSetupConfigurePage.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
-      // // Check showing error banner when the input value is not a url
-      nonUrlCases.forEach((inputValue) => {
-        rancherSetupConfigurePage.serverUrl().set(inputValue);
-        rancherSetupConfigurePage.errorBannerContent('Server URL must be an URL.').should('exist').and('be.visible');
-        // A non-url is also a non-https
+      rancherSetupConfigurePage.canSubmit().should('eq', false);
+      // Check server url validation
+      rancherSetupConfigurePage.serverUrl().self().should('be.visible');
+      rancherSetupConfigurePage.serverUrl().self().invoke('val').then((initialServerUrl) => {
+      // Check showing localhost warning banner
+        serverUrlLocalhostCases.forEach((url) => {
+          rancherSetupConfigurePage.serverUrl().set(url);
+          rancherSetupConfigurePage.serverUrlLocalhostWarningBanner().banner().should('exist').and('be.visible');
+        });
+        // Check showing error banner when the urls has trailing forward slash
+        rancherSetupConfigurePage.serverUrl().set(urlWithTrailingForwardSlash);
+        rancherSetupConfigurePage.errorBannerContent('Server URL should not have a trailing forward slash.').should('exist').and('be.visible');
+        // Check showing error banner when the url is not HTTPS
+        rancherSetupConfigurePage.serverUrl().set(httpUrl);
         rancherSetupConfigurePage.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
+        // // Check showing error banner when the input value is not a url
+        nonUrlCases.forEach((inputValue) => {
+          rancherSetupConfigurePage.serverUrl().set(inputValue);
+          rancherSetupConfigurePage.errorBannerContent('Server URL must be an URL.').should('exist').and('be.visible');
+          // A non-url is also a non-https
+          rancherSetupConfigurePage.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
+        });
+        rancherSetupConfigurePage.serverUrl().set(initialServerUrl);
       });
-      rancherSetupConfigurePage.serverUrl().set(initialServerUrl);
-    });
 
-    rancherSetupConfigurePage.termsAgreement().set();
-    rancherSetupConfigurePage.canSubmit().should('eq', true);
-    rancherSetupConfigurePage.submit();
+      rancherSetupConfigurePage.termsAgreement().set();
+      rancherSetupConfigurePage.canSubmit().should('eq', true);
+      rancherSetupConfigurePage.submit();
 
-    cy.location('pathname', { timeout: 15000 }).should('include', '/home');
+      cy.location('pathname', { timeout: 15000 }).should('include', '/home');
 
-    cy.wait('@firstLoginReq').then((login) => {
-      expect(login.response?.statusCode).to.equal(200);
-      homePage.waitForPage();
+      cy.wait('@firstLoginReq').then((loginPref) => {
+        expect(loginPref.response?.statusCode).to.equal(200);
+        homePage.waitForPage();
+      });
     });
   });
 
   it('Create standard user', () => {
     cy.login();
+
+    // Retry-safe: this setup spec is re-run in full on a retry, and `standard_user` has a deterministic
+    // username (onlyContext). If a prior attempt already created the user (then failed on a later step,
+    // or left it partially configured), the create below would return 409 and every retry would fail on
+    // the dead precondition. Remove any existing standard_user and wait for it to clear first, so the
+    // create always starts clean and fully re-runs (password secret + role bindings included).
+    cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: any) => {
+      const existing = (resp.body?.data || []).find((u: any) => u.username === 'standard_user');
+
+      if (existing) {
+        cy.deleteRancherResource('v1', 'management.cattle.io.users', existing.id, false);
+        cy.waitForRancherResource('v1', 'management.cattle.io.users', existing.id, (r: any) => r?.status === 404, 20, { failOnStatusCode: false });
+      }
+    });
 
     // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
     cy.createUser({

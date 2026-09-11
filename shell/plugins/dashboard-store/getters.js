@@ -216,7 +216,7 @@ export default {
       return undefined;
     }
 
-    if ([BRAND.CSP, BRAND.FEDERAL, BRAND.RGS].includes(brand.value)) {
+    if ([BRAND.FEDERAL, BRAND.RGS].includes(brand.value)) {
       return BRAND.SUSE;
     }
 

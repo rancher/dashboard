@@ -8,7 +8,7 @@ import loadPlugins from '@shell/plugins/plugin';
 import { LOGIN_ERRORS } from '@shell/store/auth';
 import { AUTH_BROADCAST_CHANNEL_NAME } from '@shell/utils/auth';
 
-const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
+const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth', 'genericsaml'];
 
 const oauthProviders = ['github', 'githubapp', 'googleoauth', 'azuread'];
 

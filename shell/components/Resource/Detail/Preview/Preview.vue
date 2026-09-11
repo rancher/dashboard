@@ -116,7 +116,8 @@ useBasicSetupFocusTrap('#focus-trap-preview-container-element');
   .content {
     flex: 1;
 
-    overflow: scroll;
+    overflow: auto;
+    padding: 1px 0;
   }
 
   .copy-to-clipboard {

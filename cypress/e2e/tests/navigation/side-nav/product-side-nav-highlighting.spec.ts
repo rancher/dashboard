@@ -7,6 +7,7 @@ import RolesPo from '@/cypress/e2e/po/pages/users-and-auth/roles.po';
 import ClusterProjectMembersPo from '@/cypress/e2e/po/pages/explorer/cluster-project-members.po';
 import { BLANK_CLUSTER } from '@/cypress/support/utils/shell';
 import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 Cypress.config();
 describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser'] }, () => {
@@ -100,10 +101,15 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
 
     roles.goTo(undefined, GLOBAL);
     roles.waitForPage(undefined, GLOBAL);
+    // Wait for the tab's list container to actually render before looking for a row: the tab content
+    // (scoped to #GLOBAL/#CLUSTER) can lag behind waitForPage, and rowWithName then times out because
+    // the sortable-table-list-container is not there yet.
+    roles.list(GLOBAL).checkVisible(LONG_TIMEOUT_OPT);
     roles.list(GLOBAL).rowWithName('Administrator').checkExists();
     productNavPo.activeNavItem().should('equal', 'Role Templates');
 
     roles.tabs().clickTabWithName(CLUSTER);
+    roles.list(CLUSTER).checkVisible(LONG_TIMEOUT_OPT);
     roles.list(CLUSTER).rowWithName('Cluster Owner').checkExists();
     productNavPo.activeNavItem().should('equal', 'Role Templates');
   });

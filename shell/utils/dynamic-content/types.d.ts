@@ -119,7 +119,7 @@ export type Announcement = {
   audience?: 'admin' | 'all'; // Audience - show for just Admins or for all users
   icon?: string;
   cta?: {
-    primary: CallToAction, // Must have a primary call to action, if we have a cta field
+    primary?: CallToAction, // Primary call to action - the content is remote, so it may be absent
     secondary?: CallToAction,
   },
   style?: string; // Styling information that will be interpreted by the rendering component

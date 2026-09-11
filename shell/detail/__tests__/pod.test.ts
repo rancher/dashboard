@@ -1,6 +1,6 @@
 import podDetail from '@shell/detail/pod.vue';
 
-const { containers } = podDetail.computed;
+const { containers } = podDetail.computed!;
 
 describe('view: pod', () => {
   it('should not use 2x icon sizing in init container column', () => {

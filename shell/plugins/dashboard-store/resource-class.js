@@ -1724,8 +1724,8 @@ export default class Resource {
     this.$dispatch(`cleanForDiff`, this.toJSON());
   }
 
-  async cleanForDownload(yaml) {
-    return this.$dispatch(`cleanForDownload`, yaml);
+  async cleanForDownload(yaml, opt = {}) {
+    return this.$dispatch(`cleanForDownload`, { yaml, opt });
   }
 
   yamlForSave(yaml) {
@@ -1774,6 +1774,19 @@ export default class Resource {
 
     let res;
     const isCreate = !this.id;
+
+    // On UPDATE, metadata.resourceVersion is required — norman-managed management.cattle.io resources
+    // (globalroles, roletemplates, users, …) reject an update without it with a 500
+    // ("metadata.resourceVersion is required for update"). When editing, server-managed metadata is
+    // hidden from the YAML (see steveCleanForDownload / EDIT_HIDDEN_METADATA_KEYS), which also drops
+    // resourceVersion from what gets saved. Restore the live value before saving so the update keeps
+    // its optimistic-concurrency token. The other hidden fields (uid/generation/creationTimestamp/
+    // managedFields) are ignored or repopulated by the server on update and need no restoration.
+    if ( !isCreate && parsed?.metadata && !parsed.metadata.resourceVersion && this.metadata?.resourceVersion ) {
+      parsed.metadata.resourceVersion = this.metadata.resourceVersion;
+      yaml = jsyaml.dump(parsed);
+    }
+
     const headers = {
       'content-type': 'application/yaml',
       accept:         'application/json',

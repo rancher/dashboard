@@ -497,6 +497,7 @@ BODY, .theme-light {
   --dropdown-active-bg         : #{$dark};
   --dropdown-hover-text        : var(--body-text);
   --dropdown-hover-bg          : #{$light};
+  --dropdown-secondary-text    : var(--deemphasized);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-group-text        : #{$darker};
@@ -913,6 +914,7 @@ BODY, .theme-dark {
   --dropdown-active-bg         : #{$light};
   --dropdown-hover-text        : #{$lightest};
   --dropdown-hover-bg          : #{$slate};
+  --dropdown-secondary-text    : var(--dropdown-hover-text);
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
   --dropdown-group-text        : #{$lighter};

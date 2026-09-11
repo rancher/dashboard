@@ -1,6 +1,12 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import KeyValue from '@shell/components/form/KeyValue.vue';
+import { getters, state, mutations, I18nState } from '@shell/store/i18n';
+
+// The i18n store imports the en-us yaml, which jest can't parse. The tests below load the small
+// subset of translations they need explicitly, via `loadTranslations`.
+jest.mock('@shell/assets/translations/en-us.yaml', () => ({}));
 
 describe('component: KeyValue', () => {
   it.skip('(Vue3 Skip) should display a not encoded value', () => {
@@ -274,7 +280,7 @@ describe('component: KeyValue', () => {
     expect(valueGroup.attributes('role')).toBe('gridcell');
     expect(firstKeyInput.attributes('aria-label')).toBe('%generic.ariaLabel.key%');
     expect(firstValueInput.attributes('aria-label')).toBe('%generic.ariaLabel.value%');
-    expect(rowRemove.attributes('aria-label')).toBe('%generic.ariaLabel.remove%');
+    expect(rowRemove.attributes('aria-label')).toBe('%generic.ariaLabel.keyValueRemove%');
     expect(rowAdd.attributes('aria-label')).toBe('%generic.ariaLabel.addKeyValue%');
     expect(readKeyValueFromFile.attributes('aria-label')).toBe('%generic.ariaLabel.readKeyValue%');
   });
@@ -341,6 +347,185 @@ describe('component: KeyValue', () => {
 
       expect(textarea.exists()).toBe(true);
       expect(textarea.attributes('disabled')).toBeDefined();
+    });
+  });
+
+  describe('a11y: unique add/remove button labels', () => {
+    // Mirrors the `generic.ariaLabel` block of shell/assets/translations/en-us.yaml, so the
+    // assertions below check the strings a screen reader would actually announce.
+    const TRANSLATIONS = {
+      generic: {
+        add:       'Add',
+        remove:    'Remove',
+        ariaLabel: {
+          keyValue:        'Key-Value input',
+          key:             'Key for row {index}',
+          value:           'Value for row {index}',
+          remove:          'remove row {index}',
+          keyValueRemove:  'Remove Key-Value pair in row {index}',
+          addKeyValue:     'Add a new Key-Value row',
+          addBtnAriaLabel: '{label} in a Key-Value input',
+        }
+      }
+    };
+
+    const store = createStore({
+      state,
+      getters: { 'i18n/t': (s: I18nState) => getters.t(s) },
+      mutations,
+    });
+
+    store.commit('loadTranslations', { locale: 'en-us', translations: TRANSLATIONS });
+
+    /**
+     * Resolves against the real i18n store getter (so `{index}`/`{label}` are interpolated),
+     * falling back to the `%key%` form used by the global test mock for untranslated keys.
+     */
+    const t = jest.fn((key: string, args?: Record<string, unknown>) => {
+      return store.getters['i18n/t'](key, args) ?? `%${ key }%`;
+    });
+
+    const mountKV = (props: Record<string, unknown> = {}) => mount(KeyValue, {
+      props: {
+        mode:           'edit',
+        valueMultiline: false,
+        ...props,
+      } as any,
+      global: {
+        mocks: { t },
+        stubs: { CodeMirror: true },
+      },
+    });
+
+    beforeEach(() => t.mockClear());
+
+    describe('remove buttons', () => {
+      it('should give each row remove button a label naming the Key-Value pair and its row', () => {
+        const wrapper = mountKV({
+          value: {
+            k1: 'v1', k2: 'v2', k3: 'v3'
+          },
+          asMap: true
+        });
+
+        const labels = wrapper
+          .findAll('[data-testid^="remove-column-"] button')
+          .map((btn) => btn.attributes('aria-label'));
+
+        expect(labels).toStrictEqual([
+          'Remove Key-Value pair in row 1',
+          'Remove Key-Value pair in row 2',
+          'Remove Key-Value pair in row 3',
+        ]);
+      });
+
+      it('should keep the remove button labels unique within the component', () => {
+        const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' }, asMap: true });
+
+        const labels = wrapper
+          .findAll('[data-testid^="remove-column-"] button')
+          .map((btn) => btn.attributes('aria-label'));
+
+        expect(new Set(labels).size).toStrictEqual(labels.length);
+      });
+
+      it('should request the key-value specific remove translation, not the generic one', () => {
+        mountKV({ value: { k1: 'v1' }, asMap: true });
+
+        expect(t).toHaveBeenCalledWith('generic.ariaLabel.keyValueRemove', { index: 1 });
+        expect(t).not.toHaveBeenCalledWith('generic.ariaLabel.remove', { index: 1 });
+      });
+
+      it('should re-index the remove button labels after a row is removed', async() => {
+        const wrapper = mountKV({
+          value: {
+            k1: 'v1', k2: 'v2', k3: 'v3'
+          },
+          asMap: true
+        });
+
+        await wrapper.find('[data-testid="remove-column-0"] button').trigger('click');
+        await nextTick();
+
+        const labels = wrapper
+          .findAll('[data-testid^="remove-column-"] button')
+          .map((btn) => btn.attributes('aria-label'));
+
+        expect(labels).toStrictEqual([
+          'Remove Key-Value pair in row 1',
+          'Remove Key-Value pair in row 2',
+        ]);
+      });
+    });
+
+    describe('add button', () => {
+      it.each([
+        ['plain button', false],
+        ['RcButton', true],
+      ])('should fall back to the generic key-value label when no addLabel is given (%s)', (_: string, useRcButton: boolean) => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, useRcButton
+        });
+
+        const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+        expect(addButton.attributes('aria-label')).toStrictEqual('Add a new Key-Value row');
+      });
+
+      it.each([
+        ['plain button', false],
+        ['RcButton', true],
+      ])('should build the label from addLabel so it describes what is being added (%s)', (_: string, useRcButton: boolean) => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Label', useRcButton
+        });
+
+        const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+        expect(addButton.attributes('aria-label')).toStrictEqual('Add Label in a Key-Value input');
+        expect(t).toHaveBeenCalledWith('generic.ariaLabel.addBtnAriaLabel', { label: 'Add Label' });
+      });
+
+      it('should give two Key-Value inputs on the same page distinct add button labels', () => {
+        // Reproduces the reported issue: Labels and Annotations on the same form
+        const labels = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Label'
+        });
+        const annotations = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Annotation'
+        });
+
+        const labelsAdd = labels.find('[data-testid="add_row_item_button"]').attributes('aria-label');
+        const annotationsAdd = annotations.find('[data-testid="add_row_item_button"]').attributes('aria-label');
+
+        expect(labelsAdd).toStrictEqual('Add Label in a Key-Value input');
+        expect(annotationsAdd).toStrictEqual('Add Annotation in a Key-Value input');
+        expect(labelsAdd).not.toStrictEqual(annotationsAdd);
+      });
+
+      it.each([
+        ['undefined addLabel', undefined, 'Add a new Key-Value row'],
+        ['empty addLabel', '', 'Add a new Key-Value row'],
+        ['addLabel with no visible text change', 'Add', 'Add in a Key-Value input'],
+        ['addLabel with special characters', 'Add "Path"', 'Add "Path" in a Key-Value input'],
+      ])('_addBtnAriaLabel: %s', (_: string, addLabel: string | undefined, expected: string) => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel
+        });
+
+        expect((wrapper.vm as any)._addBtnAriaLabel).toStrictEqual(expected);
+      });
+
+      it('should keep the visible add button text independent of the aria-label', () => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Label'
+        });
+
+        const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+        expect(addButton.text()).toStrictEqual('Add Label');
+        expect(addButton.attributes('aria-label')).toStrictEqual('Add Label in a Key-Value input');
+      });
     });
   });
 

@@ -1,4 +1,5 @@
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+import { reply } from '../workload-reply';
 
 // GET /v1/pods - small set of pods data
 const podsGetResponseSmallSet = {
@@ -607,15 +608,6 @@ const podsGetResponseSmallSet = {
   }
   ]
 };
-
-function reply(statusCode: number, body: any) {
-  return (req) => {
-    req.reply({
-      statusCode,
-      body
-    });
-  };
-}
 
 export function generatePodsDataSmall(): Cypress.Chainable<Response> {
   return cy.intercept('GET', '/v1/pods?*', reply(200, podsGetResponseSmallSet)).as('podsDataSmall');

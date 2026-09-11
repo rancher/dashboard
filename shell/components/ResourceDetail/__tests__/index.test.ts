@@ -1,5 +1,8 @@
 import { shallowMount } from '@vue/test-utils';
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
+import {
+  _VIEW, _EDIT, _DETAIL, _CONFIG, _YAML
+} from '@shell/config/query-params';
 
 jest.mock('@shell/mixins/create-edit-view/impl', () => ({
   __esModule: true,
@@ -141,5 +144,38 @@ describe('component: ResourceDetail', () => {
 
     expect((wrapper.vm as any).resourceNotFoundError).toBeNull();
     expect(store.dispatch).not.toHaveBeenCalledWith('loadingError', expect.anything());
+  });
+
+  // fullDetailPageOverride should only apply to the detail view, so the config/YAML
+  // views keep the padded ".outlet" wrapper.
+  describe.each([
+    {
+      desc: 'detail view of a full-page override resource', mode: _VIEW, as: _DETAIL, fullDetailPageOverride: true, expected: true
+    },
+    {
+      desc: 'config view of a full-page override resource', mode: _VIEW, as: _CONFIG, fullDetailPageOverride: true, expected: false
+    },
+    {
+      desc: 'yaml view of a full-page override resource', mode: _VIEW, as: _YAML, fullDetailPageOverride: true, expected: false
+    },
+    {
+      desc: 'detail view of a non-override resource', mode: _VIEW, as: _DETAIL, fullDetailPageOverride: false, expected: false
+    },
+    {
+      desc: 'edit mode of a full-page override resource', mode: _EDIT, as: _CONFIG, fullDetailPageOverride: true, expected: false
+    },
+  ])('isFullPageOverride: $desc', ({
+    mode, as, fullDetailPageOverride, expected
+  }) => {
+    it(`is ${ expected }`, async() => {
+      const store = createStore({ schema: { id: 'bogus-resource-type' } });
+      const { wrapper } = createWrapper(store);
+
+      await wrapper.setData({
+        mode, as, value: { fullDetailPageOverride }
+      });
+
+      expect((wrapper.vm as any).isFullPageOverride).toBe(expected);
+    });
   });
 });

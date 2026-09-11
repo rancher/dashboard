@@ -716,5 +716,8 @@ describe('component: FleetDashboard', () => {
     const searchInput = wrapper.find('[data-testid="fleet-dashboard-search-input-fleet-local"]');
 
     expect(searchInput.exists()).toBe(true);
+    // type="search" already exposes the implicit searchbox role, so no
+    // explicit role should override it.
+    expect(searchInput.attributes('role')).toBeUndefined();
   });
 });

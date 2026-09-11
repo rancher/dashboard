@@ -566,7 +566,6 @@ export default defineComponent({
         :id="inputId"
         ref="value"
         v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
-        :role="nativeType === 'number' ? undefined : 'textbox'"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
         :name="name || undefined"

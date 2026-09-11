@@ -55,12 +55,15 @@ describe('pagination-types', () => {
         expect(filterField.equality).toBe(PaginationFilterEquality.GREATER_THAN);
       });
 
+      // Proves the constructor's throw fires for a value no well-typed caller can produce. The ctor
+      // destructures `equals = true, exact = true`, and a default only fires for `undefined`, never
+      // for `null`, so `null` is the only way to reach the throw.
       it('should throw an error if no equality can be determined', () => {
         expect(() => new PaginationFilterField({
           field:  'f',
           value:  'v',
-          equals: null,
-          exact:  null
+          equals: null as unknown as boolean,
+          exact:  null as unknown as boolean
         })).toThrow('A pagination filter must have either equals or equality set');
       });
 

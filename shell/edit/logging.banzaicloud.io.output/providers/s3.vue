@@ -1,11 +1,12 @@
 <script>
 import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SecretSelector from '@shell/components/form/SecretSelector';
 
 export default {
   components: {
-    Checkbox, LabeledInput, SecretSelector
+    Checkbox, LabeledInput, LabeledSelect, SecretSelector
   },
   props: {
     value: {
@@ -27,6 +28,20 @@ export default {
       required: true
     }
   },
+
+  async fetch() {
+    const regions = await this.$store.dispatch('aws/defaultRegions');
+    const current = this.value.s3_region;
+
+    // An Output can point at an S3-compatible service with a region that AWS
+    // does not know about, so keep it as an option instead of showing nothing.
+    this.knownRegions = current && !regions.includes(current) ? [current, ...regions] : regions;
+  },
+
+  data() {
+    return { knownRegions: [] };
+  },
+
   computed: {
     overwrite: {
       get() {
@@ -49,6 +64,18 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
+        <LabeledSelect
+          v-model:value="value.s3_region"
+          :mode="mode"
+          :disabled="disabled"
+          :options="knownRegions"
+          :taggable="true"
+          :searchable="true"
+          data-testid="s3-region"
+          :label="t('logging.s3.region')"
+        />
+      </div>
+      <div class="col span-6">
         <LabeledInput
           v-model:value="value.s3_endpoint"
           :mode="mode"
@@ -56,6 +83,8 @@ export default {
           :label="t('logging.s3.endpoint')"
         />
       </div>
+    </div>
+    <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.s3_bucket"
@@ -64,8 +93,6 @@ export default {
           :label="t('logging.s3.bucket')"
         />
       </div>
-    </div>
-    <div class="row">
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.path"
@@ -74,7 +101,9 @@ export default {
           :label="t('logging.s3.path')"
         />
       </div>
-      <div class="col span-6 overwrite">
+    </div>
+    <div class="row">
+      <div class="col span-6 offset-6">
         <Checkbox
           v-model:value="overwrite"
           :mode="mode"
@@ -113,10 +142,3 @@ export default {
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.overwrite {
-    display: flex;
-    align-items: center;
-}
-</style>

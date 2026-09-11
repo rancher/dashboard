@@ -1,3 +1,5 @@
+import { waitUntil } from './utils/tooltip';
+
 const mockCreateTooltip = jest.fn();
 const mockDestroyTooltip = jest.fn();
 const mockPurifyHTML = jest.fn((content) => (content || '').trim());
@@ -181,19 +183,42 @@ describe('clean-tooltip.ts', () => {
 
       expect(mockCreateTooltip).toHaveBeenCalledTimes(1);
       expect(mockCreateTooltip).toHaveBeenCalledWith(el, {
-        content: 'Handler Test',
-        delay:   { show: 1, hide: 1 },
+        content:        'Handler Test',
+        delay:          { show: 1, hide: 1 },
+        popperTriggers: ['hover'],
       }, {});
       expect(mockTooltipInstance.show).toHaveBeenCalledTimes(1);
     });
 
-    it('onMouseLeave should hide the tooltip', () => {
+    it('onMouseLeave should hide a hover tooltip only once the grace period is up', async() => {
       const enterEvent = new MouseEvent('mouseenter');
 
       Object.defineProperty(enterEvent, 'currentTarget', { value: el });
       onMouseEnter(enterEvent);
 
       const leaveEvent = new MouseEvent('mouseleave');
+
+      Object.defineProperty(leaveEvent, 'currentTarget', { value: el });
+      onMouseLeave(leaveEvent);
+
+      // The pointer gets the grace period to reach the tooltip before it goes
+      expect(mockDestroyTooltip).not.toHaveBeenCalled();
+
+      await waitUntil(() => mockDestroyTooltip.mock.calls.length > 0);
+
+      expect(mockDestroyTooltip).toHaveBeenCalledTimes(1);
+      expect(mockDestroyTooltip).toHaveBeenCalledWith(el);
+    });
+
+    it('onMouseLeave should hide a tooltip the pointer cannot reach', () => {
+      el.__tooltipOptions__.triggers = ['focus'];
+
+      const enterEvent = new FocusEvent('focus');
+
+      Object.defineProperty(enterEvent, 'currentTarget', { value: el });
+      onMouseEnter(enterEvent);
+
+      const leaveEvent = new FocusEvent('blur');
 
       Object.defineProperty(leaveEvent, 'currentTarget', { value: el });
       onMouseLeave(leaveEvent);
@@ -213,21 +238,9 @@ describe('clean-tooltip.ts', () => {
       expect(mockCreateTooltip).toHaveBeenCalledTimes(1);
       expect(mockTooltipInstance.show).toHaveBeenCalledTimes(1);
 
-      // To simulate it's open, we need to set the internal currentTarget.
-      // We can do this by calling onMouseEnter.
-      const enterEvent = new MouseEvent('mouseenter');
-
-      Object.defineProperty(enterEvent, 'currentTarget', { value: el });
-      onMouseEnter(enterEvent);
-
-      // onMouseEnter destroys the previous tooltip and creates a new one.
-      expect(mockDestroyTooltip).toHaveBeenCalledTimes(1);
-      expect(mockCreateTooltip).toHaveBeenCalledTimes(2);
-
-      // Now that the tooltip for `el` is considered active, a click should hide it.
       onMouseClick(event);
 
-      expect(mockDestroyTooltip).toHaveBeenCalledTimes(2);
+      expect(mockDestroyTooltip).toHaveBeenCalledTimes(1);
       expect(mockDestroyTooltip).toHaveBeenLastCalledWith(el);
     });
   });

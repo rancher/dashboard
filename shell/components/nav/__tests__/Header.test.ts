@@ -1,4 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
+import { isReactive, markRaw } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
 
 describe('component: Header', () => {
@@ -38,7 +39,7 @@ describe('component: Header', () => {
 
   const defaultConfigMock = { rancherEnv: 'web' };
 
-  function createWrapper(routeOverride = {}, storeOverride = {}) {
+  function createWrapper(routeOverride = {}, storeOverride = {}, extensionMock: any = { getDynamic: jest.fn() }) {
     const routeMock = {
       ...defaultRouteMock,
       ...routeOverride,
@@ -60,7 +61,7 @@ describe('component: Header', () => {
           $store:     storeMock,
           $route:     routeMock,
           $config:    defaultConfigMock,
-          $extension: { getDynamic: jest.fn() },
+          $extension: extensionMock,
         },
         stubs: {
           'router-link':        { template: '<a><slot /></a>' },
@@ -245,6 +246,26 @@ describe('component: Header', () => {
       );
 
       expect((wrapper.vm as any).showFilter).toBe(true);
+    });
+  });
+
+  describe('navHeaderRight', () => {
+    it('should store the raw dynamic component from getDynamic without making it reactive', () => {
+      // getDynamic marks component definitions raw; the stored value must stay
+      // non-reactive so Vue does not warn / add overhead when rendering it.
+      const navHeaderRightComponent = markRaw({ name: 'NavHeaderRight', render: () => null });
+      const wrapper = createWrapper({}, {}, { getDynamic: jest.fn(() => navHeaderRightComponent) });
+
+      const stored = (wrapper.vm as any).navHeaderRight;
+
+      expect(stored).toBe(navHeaderRightComponent);
+      expect(isReactive(stored)).toBe(false);
+    });
+
+    it('should be null when no dynamic component is registered', () => {
+      const wrapper = createWrapper({}, {}, { getDynamic: jest.fn(() => undefined) });
+
+      expect((wrapper.vm as any).navHeaderRight).toBeNull();
     });
   });
 });

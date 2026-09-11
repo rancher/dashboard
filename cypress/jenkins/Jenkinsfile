@@ -6,6 +6,8 @@
 
 def branch = "${env.BRANCH}" != 'null' && "${env.BRANCH}" != '' ? "${env.BRANCH}" : 'master'
 def testExecutionResult = null
+def testsTotal = 0
+def testsFailed = 0
 def testExitCode = null
 
 timeout(time: 270, unit: 'MINUTES') {
@@ -123,7 +125,13 @@ node('harvester-vpn-1') {
               try {
                 stage('Test Report') {
                   if (fileExists('results.xml')) {
-                    junit testResults: '**/results.xml', allowEmptyResults: true
+                    // The junit step returns a TestResultSummary — reuse its counts for the
+                    // Slack message rather than parsing results.xml a second time by hand.
+                    def summary = junit testResults: '**/results.xml', allowEmptyResults: true
+                    if (summary != null) {
+                      testsTotal = summary.totalCount
+                      testsFailed = summary.failCount
+                    }
 
                     def resultsContent = readFile('results.xml').trim()
                     if (resultsContent.contains('<failure')) {
@@ -171,7 +179,9 @@ node('harvester-vpn-1') {
 
               if (currentBuild.result != 'SUCCESS') {
                 if ("${env.SLACK_NOTIFICATION}".toLowerCase() != 'false') {
-                  withEnv(["SLACK_BUILD_STATUS=${currentBuild.result}"]) {
+                  withEnv(["SLACK_BUILD_STATUS=${currentBuild.result}",
+                           "TESTS_TOTAL=${testsTotal}",
+                           "TESTS_FAILED=${testsFailed}"]) {
                     sh 'cypress/jenkins/slack-notification.sh $SLACK_BUILD_STATUS'
                   }
                 }

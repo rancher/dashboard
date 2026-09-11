@@ -288,6 +288,17 @@ else
   # Run playbook: provision + setup (skip test — Docker run is below for streaming)
   run_container "" "test"
 
+  # The playbook writes notification_values.txt next to itself: WORKSPACE is not exported
+  # into the runner container, so the playbook's workspace_dir falls back to playbook_dir.
+  # slack-notification.sh reads it from the Jenkins workspace, so copy it across here —
+  # before the exits below, since those are failing builds that still notify Slack.
+  if [[ -f "${PLAYBOOK_DIR}/notification_values.txt" ]]; then
+    cp "${PLAYBOOK_DIR}/notification_values.txt" "${JENKINS_WORKSPACE}/" 2>/dev/null ||
+      echo "[init] WARNING: could not copy notification_values.txt — Slack build details will be omitted"
+  else
+    echo "[init] WARNING: notification_values.txt not found — Slack build details will be omitted"
+  fi
+
   # Run Cypress in Docker directly for real-time log streaming in Jenkins
   echo "[init] Running Cypress tests (docker)..."
 

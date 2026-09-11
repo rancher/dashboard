@@ -569,7 +569,8 @@ describe('fx: mergeWithReplace', () => {
       }
     ]
   ])('should overwrite duplicate object properties when merging objects', (left, right, expected) => {
-    const result = mergeWithReplace(left, right, { replaceObjectProps: true });
+    // mergeWithReplace has no `replaceObjectProps` option, overwriting is its default behaviour
+    const result = mergeWithReplace(left, right);
 
     expect(result).toStrictEqual(expected);
   });

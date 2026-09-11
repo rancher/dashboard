@@ -1,5 +1,26 @@
 import Queue from './queue';
 
+/**
+ * The values of a hash of promises, keyed the same way as the hash they came from.
+ *
+ * @typedef {Record<string, any>} ResolvedHash
+ */
+
+/**
+ * The `PromiseSettledResult` of each promise in a hash, keyed the same way as the hash they came
+ * from.
+ *
+ * @typedef {Record<string, PromiseSettledResult<any>>} SettledHash
+ */
+
+/**
+ * Run `Promise[fnName]` over the values of `hash` and put the results back under the same keys.
+ *
+ * @param hash - An object whose values are promises. Non-promise values are passed through, since
+ * that is what `Promise.all`/`Promise.allSettled` do with them.
+ * @param {'all' | 'allSettled'} fnName - Which `Promise` combinator to use.
+ * @returns {Promise<ResolvedHash>} The results, keyed as `hash` was.
+ */
 async function _hash(hash, fnName) {
   const keys = Object.keys(hash);
   const promises = Object.values(hash);
@@ -14,10 +35,25 @@ async function _hash(hash, fnName) {
   return out;
 }
 
+/**
+ * Resolve every promise in `hash` and return their values keyed the same way. Rejects as soon as
+ * any of them rejects.
+ *
+ * @param hash - An object whose values are the promises to resolve.
+ * @returns {Promise<ResolvedHash>} The resolved value of each promise.
+ */
 export function allHash(hash) {
   return _hash(hash, 'all');
 }
 
+/**
+ * Settle every promise in `hash` and return their `PromiseSettledResult`s keyed the same way.
+ * Never rejects.
+ *
+ * @param hash - An object whose values are the promises to settle.
+ * @returns {Promise<SettledHash>} The settled result of each promise, so `status` plus either
+ * `value` or `reason`.
+ */
 export function allHashSettled(hash) {
   return _hash(hash, 'allSettled');
 }
@@ -83,6 +119,23 @@ export function eachLimit(items, limit, iterator, debug = false) {
   });
 }
 
+/**
+ * A promise together with the two functions that settle it.
+ *
+ * @typedef {object} Deferred
+ * @property {Promise<any>} promise - The promise being deferred.
+ * @property {(value?: any) => void} resolve - Resolves `promise` with the given value.
+ * @property {(reason?: any) => void} reject - Rejects `promise` with the given reason.
+ */
+
+/**
+ * Create a promise whose settling is controlled from outside its executor.
+ *
+ * @param {string} [name] - Ignored. It is passed as the second argument to `new Promise`, which
+ * native promises do not take; a leftover from when this used Bluebird. No production caller passes
+ * it.
+ * @returns {Deferred}
+ */
 export function deferred(name) {
   const out = {};
 

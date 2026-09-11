@@ -21,7 +21,7 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
   it('can create cluster group', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo();
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.baseResourceList().masthead().create();
@@ -46,7 +46,7 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
   it('can edit a cluster group', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo(localWorkspace, clusterGroupName);
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.list().actionMenu(clusterGroupName).getMenuItem('Edit Config')
@@ -69,7 +69,7 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
   it('can clone a cluster group', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo(localWorkspace, clusterGroupName);
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.list().actionMenu(clusterGroupName).getMenuItem('Clone')
@@ -97,7 +97,7 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
   });
 
   it('can delete cluster group', () => {
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.list().actionMenu(clusterGroupName).getMenuItem('Delete')
@@ -124,7 +124,7 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
   it('can open "Edit as YAML"', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo();
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     fleetClusterGroupsListPage.baseResourceList().masthead().create();
     fleetCreateEditClusterGroupPage.resourceDetail().createEditView()
@@ -137,7 +137,7 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
   it('check table headers are available in list and details view', { tags: ['@adminUser'] }, () => {
     const groupName = 'default';
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.list().rowWithName(groupName).checkVisible();

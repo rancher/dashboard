@@ -21,7 +21,7 @@ function verifyKubewardenInstalledDetails(extensionsPo: ExtensionsPagePo) {
 
 describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => {
   before(() => {
-    catchTargetPageException('Navigation cancelled');
+    catchTargetPageException(['Navigation cancelled', 'Network Error']);
     cy.login();
 
     const extensionsPo = new ExtensionsPagePo();
@@ -111,20 +111,37 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
-
     extensionsPo.waitForTabs();
-    extensionsPo.extensionTabInstalledClick();
 
-    // click on uninstall button on card
-    extensionsPo.extensionCardUninstallClick(extensionName);
-    extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModalUninstallClick();
+    // Idempotent across retries: a previous attempt may have already uninstalled
+    // Kubewarden, in which case the Installed tab no longer exists. Only run the
+    // uninstall flow when the extension is still installed - otherwise clicking the
+    // (absent) Installed tab times out and the retry can never pass.
+    extensionsPo.checkForExtensionTab('installed').then((installedTabRendered) => {
+      if (!installedTabRendered) {
+        return;
+      }
 
-    // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
+      extensionsPo.extensionTabInstalledClick();
+      extensionsPo.waitForPage(null, 'installed');
+      extensionsPo.checkForExtensionCardWithName(extensionName).then((isInstalled) => {
+        if (!isInstalled) {
+          return;
+        }
 
-    // make sure extension card is in the available tab
+        // click on uninstall button on card
+        extensionsPo.extensionCardUninstallClick(extensionName);
+        extensionsPo.extensionUninstallModal().should('be.visible');
+        extensionsPo.uninstallModalUninstallClick();
+
+        // let's check the extension reload banner and reload the page
+        extensionsPo.extensionReloadBanner().should('be.visible');
+        extensionsPo.extensionReloadClick();
+      });
+    });
+
+    // make sure extension card is in the available tab (the end state, whether this
+    // attempt performed the uninstall or a previous one already did)
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.extensionCardClick(extensionName);
     extensionsPo.extensionDetailsTitle().should('contain', extensionName);

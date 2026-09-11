@@ -34,21 +34,28 @@ jest.mock('@shell/utils/clipboard', () => {
 });
 
 describe('class ProvCluster', () => {
-  const gkeClusterWithPrivateEndpoint = {
+  type PrivateHostedCluster = {
+    clusterName: string,
+    provisioner: string,
+    spec: Record<string, unknown>,
+    mgmt: MgmtCluster,
+  };
+
+  const gkeClusterWithPrivateEndpoint: PrivateHostedCluster = {
     clusterName: 'test',
     provisioner: 'GKE',
     spec:        { },
     mgmt:        new MgmtCluster({ spec: { gkeConfig: { privateClusterConfig: { enablePrivateEndpoint: true } } } }),
   };
 
-  const eksClusterWithPrivateEndpoint = {
+  const eksClusterWithPrivateEndpoint: PrivateHostedCluster = {
     clusterName: 'test',
     provisioner: 'EKS',
     spec:        { },
     mgmt:        new MgmtCluster({ spec: { eksConfig: { privateAccess: true } } }),
   };
 
-  const aksClusterWithPrivateEndpoint = {
+  const aksClusterWithPrivateEndpoint: PrivateHostedCluster = {
     clusterName: 'test',
     provisioner: 'AKS',
     spec:        { },
@@ -57,7 +64,7 @@ describe('class ProvCluster', () => {
 
   // Related to https://github.com/rancher/dashboard/issues/9402
   describe('isHostedKubernetesProvider + isPrivateHostedProvider', () => {
-    const testCases = [
+    const testCases: [PrivateHostedCluster, boolean][] = [
       [gkeClusterWithPrivateEndpoint, true],
       [eksClusterWithPrivateEndpoint, true],
       [aksClusterWithPrivateEndpoint, true],
@@ -67,7 +74,7 @@ describe('class ProvCluster', () => {
       jest.clearAllMocks();
     };
 
-    it.each(testCases)('should return the isHostedKubernetesProvider and isPrivateHostedProvider values properly based on the props data', (clusterData: Object, expected: Boolean) => {
+    it.each(testCases)('should return the isHostedKubernetesProvider and isPrivateHostedProvider values properly based on the props data', (clusterData, expected) => {
       const cluster = new ProvCluster({ spec: clusterData.spec });
 
       jest.spyOn(clusterData.mgmt, 'provCluster', 'get').mockReturnValue(
@@ -215,6 +222,15 @@ describe('class ProvCluster', () => {
   });
 
   describe('hasError', () => {
+    type ClusterCondition = {
+      error: boolean,
+      lastUpdateTime: string,
+      status: string,
+      message?: string,
+      transitioning: boolean,
+      type: string,
+    };
+
     const conditionsWithoutError = [
       {
         error:          false,
@@ -292,7 +308,7 @@ describe('class ProvCluster', () => {
       }
     ];
 
-    const testCases = [
+    const testCases: [string, ClusterCondition[], boolean][] = [
       ['conditionsWithoutError', conditionsWithoutError, false],
       ['conditionsWithoutReady', conditionsWithoutReady, true],
       ['noConditions', noConditions, false],
@@ -306,7 +322,7 @@ describe('class ProvCluster', () => {
       jest.clearAllMocks();
     };
 
-    it.each(testCases)('should return the hasError value properly based on the "status.conditions" props data for testcase %p', (testName: string, conditions: Array, expected: Boolean) => {
+    it.each(testCases)('should return the hasError value properly based on the "status.conditions" props data for testcase %p', (testName, conditions, expected) => {
       const ctx = { rootGetters: { 'management/byId': jest.fn() } };
       const mgmtCluster = new MgmtCluster({ status: { conditions } }, ctx);
       const cluster = new ProvCluster({}, ctx);

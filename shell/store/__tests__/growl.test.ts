@@ -13,10 +13,10 @@ describe('growl store', () => {
 
   describe('getters', () => {
     const item1 = {
-      id: 1, color: 'success', title: 'item 1'
+      id: 1, started: 1000, color: 'success', title: 'item 1'
     };
     const item2 = {
-      id: 2, color: 'error', title: 'item 2'
+      id: 2, started: 2000, color: 'error', title: 'item 2'
     };
     let mockState: ReturnType<typeof state>;
 

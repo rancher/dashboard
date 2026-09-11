@@ -2238,7 +2238,17 @@ export default {
 
     padding: 10px;
 
-    transition: right .5s ease;
+    // The panel is always rendered and parked off screen, so its contents stay in the DOM while
+    // it's closed. Skipping them keeps them out of the browser's find-in-page results (and out of
+    // the accessibility tree) until the panel is actually shown.
+    // `allow-discrete` delays the switch back to hidden until the slide out has finished, so the
+    // contents don't blank out mid transition. Without it the contents simply hide immediately.
+    content-visibility: hidden;
+
+    transition-property: right, content-visibility;
+    transition-duration: .5s;
+    transition-timing-function: ease;
+    transition-behavior: allow-discrete;
 
     &__header {
       display: flex;
@@ -2282,6 +2292,7 @@ export default {
 
     &__show {
       right: 0;
+      content-visibility: visible;
     }
 
   }

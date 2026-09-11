@@ -147,7 +147,11 @@ describe('class: Workload', () => {
       });
 
       workload.scaleUp = scaleUpMock;
-      workload.$store = { dispatch: dispatchMock };
+      // `$store` does not exist anywhere on the model hierarchy, so the catch block in `scale` only
+      // reaches a dispatch because the test injects one. Once `workload.js:200` is corrected to
+      // `this.$dispatch(...)` the assertion below passes unchanged, since `$dispatch` is
+      // `this.$ctx.dispatch`, the same `dispatchMock`, and only this line gets deleted.
+      Object.defineProperty(workload, '$store', { get: () => ({ dispatch: dispatchMock }) });
 
       await workload.scale(true);
 
@@ -276,9 +280,9 @@ describe('class: Workload', () => {
       const card = workload.podsCard;
 
       expect(card).not.toBeNull();
-      expect(card.props.title).toBe('component.resource.detail.card.podsCard.title');
-      expect(card.props.showScaling).toBe(true);
-      expect(card.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
+      expect(card?.props.title).toBe('component.resource.detail.card.podsCard.title');
+      expect(card?.props.showScaling).toBe(true);
+      expect(card?.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
     });
 
     it('should return card for DaemonSet type without scaling', () => {
@@ -298,7 +302,7 @@ describe('class: Workload', () => {
       const card = workload.podsCard;
 
       expect(card).not.toBeNull();
-      expect(card.props.showScaling).toBe(false);
+      expect(card?.props.showScaling).toBe(false);
     });
 
     it('should return null for unsupported types like CronJob', () => {
@@ -334,8 +338,8 @@ describe('class: Workload', () => {
       const card = workload.podsCard;
 
       expect(card).not.toBeNull();
-      expect(card.props.resources).toStrictEqual([]);
-      expect(card.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
+      expect(card?.props.resources).toStrictEqual([]);
+      expect(card?.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
     });
 
     it('should return null for non-scalable type with empty pods', () => {
@@ -391,7 +395,7 @@ describe('class: Workload', () => {
 
       const card = workload.podsCard;
 
-      expect(card.props.showScaling).toBe(false);
+      expect(card?.props.showScaling).toBe(false);
     });
   });
 
@@ -414,8 +418,8 @@ describe('class: Workload', () => {
       const card = workload.jobsCard;
 
       expect(card).not.toBeNull();
-      expect(card.props.title).toBe('component.resource.detail.card.jobsCard.title');
-      expect(card.props.showScaling).toBe(false);
+      expect(card?.props.title).toBe('component.resource.detail.card.jobsCard.title');
+      expect(card?.props.showScaling).toBe(false);
     });
 
     it('should return null for non-CronJob types', () => {
@@ -479,7 +483,7 @@ describe('class: Workload', () => {
       const cards = workload.cards;
 
       // Cards should include podsCard (not null), jobsCard (null for deployment), and _cards from parent
-      const nonNullCards = cards.filter((c: any) => c !== null);
+      const nonNullCards = cards.filter((c): c is NonNullable<typeof c> => c !== null);
 
       expect(nonNullCards.length).toBeGreaterThanOrEqual(1);
       expect(nonNullCards[0].props.title).toBe('component.resource.detail.card.podsCard.title');
@@ -796,7 +800,7 @@ describe('class: Workload', () => {
       const ingressesRow = rows.find((r: any) => r.label === 'component.resource.detail.card.resourcesCard.rows.ingresses');
 
       expect(ingressesRow).toBeDefined();
-      expect(ingressesRow.to).toBe('#ingresses');
+      expect(ingressesRow?.to).toBe('#ingresses');
     });
 
     it('should order services before ingresses', () => {

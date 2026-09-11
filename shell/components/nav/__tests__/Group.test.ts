@@ -286,16 +286,10 @@ describe('component: Group', () => {
         expect(wrapper.find('.header').attributes('role')).toBe('button');
       });
 
-      it('renders header with tabindex="0" when not fixedOpen', () => {
+      it('renders header with tabindex="0"', () => {
         const wrapper = mountGroupWithMocks(group);
 
         expect(wrapper.find('.header').attributes('tabindex')).toBe('0');
-      });
-
-      it('renders header with tabindex="-1" when fixedOpen is true', () => {
-        const wrapper = mountGroupWithMocks(group, { fixedOpen: true });
-
-        expect(wrapper.find('.header').attributes('tabindex')).toBe('-1');
       });
 
       it('renders header with aria-label from group label', () => {
@@ -389,6 +383,129 @@ describe('component: Group', () => {
 
         expect(link.exists()).toBe(true);
         expect(link.attributes('tabindex')).toBeUndefined();
+      });
+    });
+  });
+
+  describe('expand/collapse state lives on the group', () => {
+    const group = () => ({
+      name:     'workloads',
+      label:    'Workloads',
+      children: [{ route: { name: 'child-route', params: {} } }],
+    });
+
+    const mountForToggle = (grp: any) => shallowMount(Group as any, {
+      props: {
+        group: grp, canCollapse: true, idPrefix: '',
+      },
+      global: {
+        mocks: {
+          $route: {
+            params: {}, path: '/test', fullPath: '/test', matched: [],
+          },
+          $router: {
+            resolve:   jest.fn().mockReturnValue({ path: '/test', fullPath: '/test' }),
+            getRoutes: jest.fn().mockReturnValue([]),
+          },
+          t: (key: string) => key,
+        },
+      },
+    });
+
+    it('renders expanded when the group it is given is expanded', () => {
+      const wrapper = mountForToggle({ ...group(), expanded: true });
+
+      expect((wrapper.vm as any).isExpanded).toBe(true);
+      expect(wrapper.find('.body').exists()).toBe(true);
+    });
+
+    it('renders collapsed when the group it is given is not expanded', () => {
+      const wrapper = mountForToggle(group());
+
+      expect((wrapper.vm as any).isExpanded).toBe(false);
+      expect(wrapper.find('.body').exists()).toBe(false);
+    });
+
+    it('writes the toggled state back to the group and emits it', async() => {
+      const grp = group();
+      const wrapper = mountForToggle(grp);
+
+      await wrapper.find('.toggle-accordion').trigger('click');
+
+      expect(grp).toHaveProperty('expanded', true);
+      expect(wrapper.emitted('expand')?.[0]).toStrictEqual([grp]);
+
+      await wrapper.find('.toggle-accordion').trigger('click');
+
+      expect(grp).toHaveProperty('expanded', false);
+      expect(wrapper.emitted('close')?.[0]).toStrictEqual([grp]);
+    });
+  });
+
+  describe('navigating from a group that does not hold the active route', () => {
+    // Workloads, expanded, while the user is somewhere else entirely
+    const group = () => ({
+      name:     'workloads',
+      label:    'Workloads',
+      expanded: true,
+      children: [{
+        name:  'workload',
+        route: {
+          name:   'c-cluster-product-resource',
+          params: {
+            cluster: 'local', product: 'explorer', resource: 'workload'
+          }
+        },
+      }],
+    });
+
+    const mountElsewhere = (grp: any, replace: jest.Mock) => shallowMount(Group as any, {
+      props: {
+        group: grp, canCollapse: true, idPrefix: '',
+      },
+      global: {
+        mocks: {
+          $route: {
+            params: {
+              cluster: 'local', product: 'explorer', resource: 'configmap'
+            },
+            path:     '/c/local/explorer/configmap',
+            fullPath: '/c/local/explorer/configmap',
+            matched:  [],
+          },
+          $router: {
+            replace,
+            resolve:   jest.fn().mockReturnValue({ path: '/c/local/explorer/workload' }),
+            getRoutes: jest.fn().mockReturnValue([]),
+          },
+          t: (key: string) => key,
+        },
+      },
+    });
+
+    it('does not navigate when a nav item inside the group is selected', () => {
+      const replace = jest.fn();
+      const wrapper = mountElsewhere(group(), replace);
+
+      wrapper.findComponent(Type).vm.$emit('selected');
+
+      // The item routes itself, so navigating to the group's first child here
+      // would cancel that navigation
+      expect(replace).not.toHaveBeenCalled();
+      expect(wrapper.emitted('close')).toHaveLength(1);
+    });
+
+    it('navigates to the first child when the group header is clicked', async() => {
+      const replace = jest.fn();
+      const wrapper = mountElsewhere(group(), replace);
+
+      await wrapper.find('.header').trigger('click');
+
+      expect(replace).toHaveBeenCalledWith({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster: 'local', product: 'explorer', resource: 'workload'
+        }
       });
     });
   });

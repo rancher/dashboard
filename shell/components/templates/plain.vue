@@ -9,7 +9,6 @@ import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
-import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapGetters } from 'vuex';
@@ -29,7 +28,6 @@ export default {
     GrowlManager,
     ModalManager,
     SlideInPanelManager,
-    AwsComplianceBanner,
     Inactivity,
     RcButton
   },
@@ -76,7 +74,6 @@ export default {
       {{ t('nav.skipToContent') }}
     </rc-button>
     <FixedBanner :header="true" />
-    <AwsComplianceBanner />
 
     <div
       class="dashboard-content"
