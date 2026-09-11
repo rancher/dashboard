@@ -312,6 +312,23 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser', '@clusterConfig'
       });
   });
 
+  it('does not offer "Show Configuration", since YAML viewing/editing is intentionally unavailable for cloud credentials', () => {
+    const credsName = `test-show-config-${ Date.now() }`;
+
+    cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayloadDO(credsName, 'token'))).then((resp: Cypress.Response<any>) => {
+      doCreatedCloudCredsIds.push(resp.body.id);
+
+      const cloudCredentialsPage = new CloudCredentialsPagePo();
+
+      cloudCredentialsPage.goTo();
+      cloudCredentialsPage.waitForPage();
+      cloudCredentialsPage.list().resourceTable().sortableTable().rowElementWithName(credsName)
+        .click();
+
+      cy.get('[data-testid="show-configuration-cta"]').should('not.exist');
+    });
+  });
+
   after(() => {
     cy.login(); // this is needed to avoid getting "Unauthorized 401: must authenticate" error
     for (let i = 0; i < doCreatedCloudCredsIds.length; i++) {

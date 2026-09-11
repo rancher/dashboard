@@ -21,8 +21,10 @@ const i18n = useI18n(store);
 const yamlTabProps = ref<YamlProps | null>(null);
 const configTabProps = useDefaultConfigTabProps(props.resource);
 
-useDefaultYamlTabProps(props.resource).then((props) => {
-  yamlTabProps.value = props;
+useDefaultYamlTabProps(props.resource).then((yamlProps) => {
+  yamlTabProps.value = yamlProps ?? null;
+}).catch(() => {
+  yamlTabProps.value = null;
 });
 
 const title = computed(() => {
