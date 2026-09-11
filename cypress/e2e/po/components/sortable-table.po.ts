@@ -174,8 +174,8 @@ export default class SortableTablePo extends ComponentPo {
     return new ListRowPo(this.rowElementWithPartialName(name));
   }
 
-  rowWithName(name: string) {
-    return new ListRowPo(this.rowElementWithName(name));
+  rowWithName(name: string, options?: GetOptions) {
+    return new ListRowPo(this.rowElementWithName(name, options));
   }
 
   /**
