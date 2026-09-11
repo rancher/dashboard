@@ -199,6 +199,12 @@ export default {
       });
     },
 
+    schedulableNodes() {
+      return this.nodes?.filter((node) => {
+        return node.isSchedulable;
+      });
+    },
+
     mgmtNodes() {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
@@ -333,8 +339,12 @@ export default {
       return totalInput;
     },
 
+    hasSchedulableWorkerNodes() {
+      return this.schedulableWorkerNodes?.length > 0;
+    },
+
     hasStats() {
-      return Object.values(this.workerStatsAggregation || {}).every((stat) => !!stat);
+      return this.hasSchedulableWorkerNodes || (this.currentCluster?.status?.allocatable?.cpu !== '0' && this.currentCluster?.status?.requested?.cpu !== '0');
     },
 
     workerStatsAggregation() {
@@ -360,16 +370,28 @@ export default {
     },
 
     cpuReserved() {
-      const total = this.workerStatsAggregation?.cpuAllocatable;
+      const result = !this.hasSchedulableWorkerNodes ? {
+        total:  parseSi(this.currentCluster?.status?.allocatable?.cpu),
+        useful: parseSi(this.currentCluster?.status?.requested?.cpu),
+      } : {
+        total:  this.workerStatsAggregation?.cpuAllocatable,
+        useful: this.workerStatsAggregation?.cpuReserved,
+      };
 
       return {
-        total,
-        useful: this.workerStatsAggregation?.cpuReserved,
-        units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
+        ...result,
+        units: this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: result.total })
       };
     },
 
     podsUsed() {
+      if (!this.hasSchedulableWorkerNodes) {
+        return {
+          total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
+          useful: parseSi(this.currentCluster?.status?.requested?.pods || '0'),
+        };
+      }
+
       return {
         total:  this.workerStatsAggregation?.podCapacity || parseSi('0'),
         useful: this.workerStatsAggregation?.podReserved || parseSi('0'),
@@ -377,11 +399,21 @@ export default {
     },
 
     ramReserved() {
+      if (!this.hasSchedulableWorkerNodes) {
+        return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
+      }
+
       return createMemoryValues(this.workerStatsAggregation?.ramAllocatable, this.workerStatsAggregation?.ramReserved);
     },
 
     metricAggregations() {
-      const metrics = this.nodeMetrics.filter((nodeMetrics) => !!this.schedulableWorkerNodes?.find((nd) => nd.id === nodeMetrics.id));
+      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
+        if (this.hasSchedulableWorkerNodes) {
+          return !!this.schedulableWorkerNodes?.find((nd) => nd.id === nodeMetrics.id);
+        }
+
+        return !!this.schedulableNodes?.find((nd) => nd.id === nodeMetrics.id);
+      });
 
       const initialAggregation = {
         cpu:    0,
@@ -401,7 +433,7 @@ export default {
     },
 
     cpuUsed() {
-      const total = this.workerStatsAggregation?.cpuAllocatable;
+      const total = !this.hasSchedulableWorkerNodes ? parseSi(this.currentCluster?.status?.capacity?.cpu) : this.workerStatsAggregation?.cpuAllocatable;
 
       return {
         total,
@@ -411,6 +443,10 @@ export default {
     },
 
     ramUsed() {
+      if (!this.hasSchedulableWorkerNodes) {
+        return createMemoryValues(this.currentCluster?.status?.capacity?.memory, this.metricAggregations?.memory);
+      }
+
       return createMemoryValues(this.workerStatsAggregation?.ramAllocatable, this.metricAggregations?.memory);
     },
 

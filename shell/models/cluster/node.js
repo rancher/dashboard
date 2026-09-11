@@ -222,15 +222,15 @@ export default class ClusterNode extends SteveModel {
   }
 
   get ramReserved() {
-    return parseSi(this.podRequests?.memory);
+    return parseSi(this.podRequests?.memory || '0');
   }
 
   get cpuReserved() {
-    return parseSi(this.podRequests?.cpu);
+    return parseSi(this.podRequests?.cpu || '0');
   }
 
   get podReserved() {
-    return parseSi(this.podRequests?.pods);
+    return parseSi(this.podRequests?.pods || '0');
   }
 
   get podUsage() {
