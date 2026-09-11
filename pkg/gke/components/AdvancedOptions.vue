@@ -237,7 +237,7 @@ export default defineComponent({
           @update:value="$emit('update:labels', $event)"
         >
           <template #title>
-            <h4>
+            <h4 class="text-h4">
               {{ t('gke.clusterLabels.label') }}
             </h4>
           </template>

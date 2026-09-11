@@ -4,11 +4,12 @@ import { mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
 
-  components: { AsyncButton },
+  components: { AsyncButton, RcHeading },
 
   props: {
     /**
@@ -102,12 +103,14 @@ export default {
 
 <template>
   <div class="plugin-install-dialog">
-    <h4
+    <RcHeading
+      :level="2"
+      size="h4"
       class="mt-10"
       data-modal-title
     >
       {{ t('plugins.uninstall.title', { name: `"${plugin?.label}"` }, true) }}
-    </h4>
+    </RcHeading>
     <div class="mt-10 dialog-panel">
       <div class="dialog-info">
         <p>

@@ -139,7 +139,7 @@ export default {
   <section v-else>
     <header class="row">
       <div class="col span-12">
-        <h1>
+        <h1 class="text-h1">
           <t k="monitoring.overview.title" />
         </h1>
         <div>
@@ -170,11 +170,11 @@ export default {
                 <div class="subtype-logo round-image">
                   <LazyImage :src="fel.iconSrc" />
                 </div>
-                <h5>
+                <div class="text-h5">
                   <span>
                     <t :k="fel.label" />
                   </span>
-                </h5>
+                </div>
                 <div class="flex-right">
                   <i class="icon icon-external-link" />
                 </div>

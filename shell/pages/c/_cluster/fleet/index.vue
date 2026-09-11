@@ -483,7 +483,7 @@ export default {
       :data-testid="'fleet-dashboard-workspace-cards'"
     >
       <div class="dashboard-header">
-        <h1>
+        <h1 class="text-h1">
           <t k="fleet.dashboard.pageTitle" />
         </h1>
 
@@ -530,7 +530,7 @@ export default {
             class="card-panel-main-details"
             :class="{ expand: !isWorkspaceCollapsed[workspace.id] }"
           >
-            <h2 class="workspace-title">
+            <h2 class="workspace-title text-h2">
               <span class="workspace-label label-secondary">
                 <i class="icon icon-folder" />
                 <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
@@ -687,7 +687,7 @@ export default {
                     :class="state.statePanel.icon"
                     :style="{ color: state.statePanel.color }"
                   />
-                  <h3 class="state-title">
+                  <h3 class="state-title text-h3">
                     <span class="state-label">
                       {{ state.stateDisplay }}
                     </span>

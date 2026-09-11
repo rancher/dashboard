@@ -160,7 +160,7 @@ export default {
 
 <template>
   <div>
-    <h3>
+    <h3 class="text-h3">
       {{ t('cluster.rke2.address.header') }}
       <i
         v-clean-tooltip="t('cluster.rke2.address.tooltip')"
@@ -273,7 +273,10 @@ export default {
         />
       </div>
     </div>
-    <h3 v-t="'cluster.tabs.ace'" />
+    <h3
+      v-t="'cluster.tabs.ace'"
+      class="text-h3"
+    />
     <ACE
       v-model:value="localValue.spec.localClusterAuthEndpoint"
       :mode="mode"
@@ -284,7 +287,7 @@ export default {
 
     <h3
       v-t="'cluster.rke2.stackPreference.label'"
-      class="mt-20"
+      class="mt-20 text-h3"
     />
     <t
       k="cluster.rke2.stackPreference.description"
@@ -308,7 +311,7 @@ export default {
     <template v-if="showFlannelMasq">
       <h3
         v-t="'cluster.k3s.flannelMasq.title'"
-        class="mt-20"
+        class="mt-20 text-h3"
       />
       <Banner
         v-if="isProbablyIPv6"

@@ -41,7 +41,7 @@ export default {
       class="collapsible-card-header"
       @click="toggleCollapse"
     >
-      <h2 class="mb-0">
+      <h2 class="mb-0 text-h2">
         <span
           :class="{isTitleClickable: isTitleClickable}"
           @click="titleClick"

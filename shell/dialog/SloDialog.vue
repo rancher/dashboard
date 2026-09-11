@@ -2,11 +2,14 @@
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 import { IS_SSO, LOGGED_OUT } from '@shell/config/query-params';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
 
-  components: { Card, AsyncButton },
+  components: {
+    Card, AsyncButton, RcHeading
+  },
 
   props: {
     authProvider: {
@@ -52,9 +55,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('promptSlo.title', { name }) }}
-      </h4>
+      </RcHeading>
     </template>
     <template #body>
       <div class="pl-10 pr-10 mt-20 mb-20">

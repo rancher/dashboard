@@ -158,9 +158,9 @@ export default {
           :alt="t('catalog.charts.iconAlt', { app: get(r, nameField) })"
         />
       </div>
-      <h4 class="name">
+      <div class="name text-h4">
         {{ get(r, nameField) }}
-      </h4>
+      </div>
       <div
         v-if="get(r, descriptionField)"
         class="description"
@@ -173,7 +173,10 @@ export default {
     v-else
     class="m-50 text-center"
   >
-    <h1 v-t="noDataKey" />
+    <div
+      v-t="noDataKey"
+      class="text-h1"
+    />
   </div>
 </template>
 

@@ -25,7 +25,9 @@ export default {
     :data-testid="'fleet-empty-dashboard'"
   >
     <i class="icon-fleet mb-30" />
-    <h1>{{ t('fleet.dashboard.welcome') }}</h1>
+    <h1 class="text-h1">
+      {{ t('fleet.dashboard.welcome') }}
+    </h1>
     <p class="mb-30">
       <span>{{ t('fleet.dashboard.gitOpsScale') }}</span>
       <a
@@ -38,7 +40,7 @@ export default {
       <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
     </p>
     <template v-if="permissions.gitRepos || permissions.helmOps">
-      <h3 class="mb-30">
+      <h3 class="mb-30 text-h3">
         {{ t('fleet.dashboard.noApplications', null, true) }}
       </h3>
       <rc-button

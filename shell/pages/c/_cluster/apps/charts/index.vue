@@ -585,7 +585,7 @@ export default {
     <div class="header">
       <h1
         data-testid="charts-header-title"
-        class="m-0"
+        class="m-0 text-h1"
       >
         {{ t('catalog.chart.header.charts') }}
       </h1>
@@ -687,7 +687,7 @@ export default {
           data-testid="charts-empty-state"
         >
           <h1
-            class="empty-state-title"
+            class="empty-state-title text-h1"
             data-testid="charts-empty-state-title"
           >
             {{ t('catalog.charts.noCharts.title') }}

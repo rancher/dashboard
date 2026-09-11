@@ -134,7 +134,9 @@ export default {
 
     <template v-if="selectHook === 'exec'">
       <div class="mb-20 single-value">
-        <h4>{{ t('workload.container.lifecycleHook.exec.title') }}</h4>
+        <h4 class="text-h4">
+          {{ t('workload.container.lifecycleHook.exec.title') }}
+        </h4>
         <div>
           <ShellInput
             v-model:value="value.exec.command"
@@ -148,7 +150,9 @@ export default {
     </template>
 
     <template v-if="selectHook === 'httpGet'">
-      <h4>{{ t('workload.container.lifecycleHook.httpGet.title') }}</h4>
+      <h4 class="text-h4">
+        {{ t('workload.container.lifecycleHook.httpGet.title') }}
+      </h4>
       <div class="var-row">
         <LabeledInput
           v-model:value="value.httpGet.host"
@@ -183,7 +187,9 @@ export default {
         />
       </div>
 
-      <h4>{{ t('workload.container.lifecycleHook.httpHeaders.title') }}</h4>
+      <h4 class="text-h4">
+        {{ t('workload.container.lifecycleHook.httpHeaders.title') }}
+      </h4>
       <div
         v-for="(header, index) in value.httpGet.httpHeaders"
         :key="index"

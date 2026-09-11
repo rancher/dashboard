@@ -205,13 +205,13 @@ const cancel = () => {
               class="title"
               :class="{'with-description': !!subtype.description}"
             >
-              <h5>
+              <div class="text-h5">
                 <span
                   v-if="i18nExists(subtype.label)"
                   v-clean-html="t(subtype.label)"
                 />
                 <span v-else>{{ subtype.label }}</span>
-              </h5>
+              </div>
               <a
                 v-if="subtype.docLink"
                 :href="subtype.docLink"
@@ -296,7 +296,7 @@ const cancel = () => {
       display: flex;
       width: 100%;
 
-      h5 {
+      .text-h5 {
         margin: 0;
       }
 

@@ -185,7 +185,10 @@ export default {
         />
       </div>
       <div class="col span-2">
-        <h3 id="decoration-banner-title-id">
+        <h3
+          id="decoration-banner-title-id"
+          class="text-h3"
+        >
           {{ t('banner.bannerDecoration.label') }}
         </h3>
         <div

@@ -34,7 +34,10 @@ export default {
     :aria-label="t('layouts.logout')"
   >
     <div>
-      <h1 v-t="'logout.message'" />
+      <h1
+        v-t="'logout.message'"
+        class="text-h1"
+      />
     </div>
   </main>
 </template>

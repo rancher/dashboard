@@ -93,4 +93,11 @@ describe('component: KnownHostsEditDialog', () => {
       value:   'line1\nline2\n'
     });
   });
+
+  it('should title the dialog one level below the page it opens over', () => {
+    const title = wrapper.find('[data-modal-title]');
+
+    expect(title.element.tagName).toBe('H2');
+    expect(title.classes()).toContain('text-h4');
+  });
 });

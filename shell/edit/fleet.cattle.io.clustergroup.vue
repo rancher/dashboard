@@ -156,7 +156,10 @@ export default {
       @update:value="matchChanged($event)"
     >
       <template #header>
-        <h2 v-t="'fleet.clusterGroup.selector.label'" />
+        <h2
+          v-t="'fleet.clusterGroup.selector.label'"
+          class="text-h2"
+        />
       </template>
     </MatchExpressions>
     <Banner

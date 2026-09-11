@@ -74,7 +74,7 @@ export default {
       <div class="spacer" />
     </template>
 
-    <h3>
+    <h3 class="text-h3">
       {{ value.select ? t('logging.flow.matches.nodes.title.include') : t('logging.flow.matches.nodes.title.exclude') }}
     </h3>
     <div class="row">
@@ -95,7 +95,7 @@ export default {
     </div>
     <div v-if="!isHarvester">
       <div class="spacer" />
-      <h3>
+      <h3 class="text-h3">
         {{ value.select ? t('logging.flow.matches.containerNames.title.include') : t('logging.flow.matches.containerNames.title.exclude') }}
       </h3>
       <div class="row">
@@ -118,7 +118,7 @@ export default {
       </div>
       <div v-if="isClusterFlow">
         <div class="spacer" />
-        <h3>
+        <h3 class="text-h3">
           {{ value.select ? t('logging.flow.matches.namespaces.title.include') : t('logging.flow.matches.namespaces.title.exclude') }}
         </h3>
         <div class="row">

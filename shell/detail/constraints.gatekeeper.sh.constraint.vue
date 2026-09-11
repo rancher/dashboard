@@ -34,7 +34,7 @@ export default {
       class="row mt-20"
     >
       <div class="col span-12">
-        <h3>
+        <h3 class="text-h3">
           {{ t('gatekeeperConstraint.enforcement.action') }}
         </h3>
         {{ value.spec.enforcementAction }}
@@ -42,7 +42,7 @@ export default {
     </div>
     <div class="row mt-20">
       <div class="col span-12">
-        <h3 class="mb-20">
+        <h3 class="mb-20 text-h3">
           {{ t('gatekeeperConstraint.violations.title', { total: value.totalViolations }) }}
         </h3>
         <Banner

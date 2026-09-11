@@ -2,6 +2,16 @@
 // This file contains all application-wide Sass mixins.
 // -----------------------------------------------------------------------------
 
+/// Heading typography, without the outline level a heading tag also carries. Text that is sized
+/// like a heading but is not one - a count, a readout - takes this instead of an `<h1>`.
+@mixin h-css() {
+  color: var(--body-text);
+  font-style: normal;
+  font-weight: 400;
+  margin: 0 0 10px 0;
+  font-family: var(--title-font-family, unset);
+}
+
 /// Clear inner floats
 @mixin clearfix() {
   &:before,
@@ -168,7 +178,7 @@
 @mixin extension-dialog {
   padding: 8px 16px 16px 16px;
 
-  h4 {
+  [data-modal-title] {
     font-weight: bold;
   }
 

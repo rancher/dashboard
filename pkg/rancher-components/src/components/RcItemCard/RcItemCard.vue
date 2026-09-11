@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage.vue';
+import RcHeading from '@components/RcHeading/RcHeading.vue';
 import { DropdownOption } from '@components/RcDropdown/types';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import RcItemCardAction from './RcItemCardAction';
@@ -266,14 +267,15 @@ const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
               </slot>
             </template>
             <slot name="item-card-header-title">
-              <h3
+              <RcHeading
                 v-if="header.title"
                 v-clean-tooltip="headerTitle"
                 :class="['item-card-header-title', variant]"
+                size="h3"
                 data-testid="item-card-header-title"
               >
                 {{ headerTitle }}
-              </h3>
+              </RcHeading>
             </slot>
           </div>
           <div class="item-card-header-right">

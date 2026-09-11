@@ -69,7 +69,9 @@ const redactionLabel = computed(() => {
             class="container-group"
           >
             <fieldset>
-              <h2>{{ t("auditPolicy.additionalRedactions.headers.title") }}</h2>
+              <h2 class="text-h2">
+                {{ t("auditPolicy.additionalRedactions.headers.title") }}
+              </h2>
               <div class="row">
                 <div class="col span-12">
                   <ArrayList
@@ -85,7 +87,7 @@ const redactionLabel = computed(() => {
             </fieldset>
             <div class="spacer" />
             <fieldset>
-              <h2>
+              <h2 class="text-h2">
                 {{ t("auditPolicy.additionalRedactions.paths.title") }}                  <RcIconTooltip
                   :content="t('auditPolicy.additionalRedactions.paths.tooltip')"
                 />

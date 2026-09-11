@@ -5,6 +5,7 @@ import { mapGetters } from 'vuex';
 
 import { labelForAddon } from '@shell/utils/cluster';
 import { resourceNames } from '@shell/utils/string';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -12,6 +13,7 @@ export default {
   components: {
     Card,
     AsyncButton,
+    RcHeading,
   },
   props: {
     resources: {
@@ -90,9 +92,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('addonConfigConfirmation.title') }}
-      </h4>
+      </RcHeading>
     </template>
 
     <template #body>

@@ -200,7 +200,7 @@ export default {
     class="main-layout"
     :aria-label="t('layouts.verify')"
   >
-    <h1 class="text-center mt-50">
+    <h1 class="text-center mt-50 text-h1">
       <span v-if="testing">
         Testing Configuration&hellip;
       </span>

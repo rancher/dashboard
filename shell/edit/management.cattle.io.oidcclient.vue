@@ -118,7 +118,7 @@ export default defineComponent({
           />
         </div>
       </div>
-      <h3 class="mt-40">
+      <h3 class="mt-40 text-h3">
         {{ t('oidcclient.tokenExpirationSeconds.label') }}
       </h3>
       <div class="row mt-20 mb-20">

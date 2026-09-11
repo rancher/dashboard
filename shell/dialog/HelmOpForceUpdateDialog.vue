@@ -5,6 +5,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   name: 'HelmOpForceUpdateDialog',
@@ -15,6 +16,7 @@ export default {
     AsyncButton,
     Banner,
     Card,
+    RcHeading,
   },
 
   props: {
@@ -75,8 +77,10 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4
+      <RcHeading
         v-clean-html="t('fleet.helmOp.actions.forceUpdate.promptTitle')"
+        :level="2"
+        size="h4"
         class="text-default-text"
       />
     </template>

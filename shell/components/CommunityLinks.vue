@@ -99,7 +99,7 @@ export default {
       :pref-key="prefKey"
     >
       <template #title>
-        <h2>
+        <h2 class="text-h2">
           {{ t('customLinks.displayTitle') }}
         </h2>
       </template>

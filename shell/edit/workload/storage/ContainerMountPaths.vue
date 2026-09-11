@@ -145,7 +145,9 @@ export default {
     >
       <!-- Custom/default storage volume form -->
       <template #default="props">
-        <h3>{{ props.row.value.name }} ({{ headerFor(props.row.value) }})</h3>
+        <h3 class="text-h3">
+          {{ props.row.value.name }} ({{ headerFor(props.row.value) }})
+        </h3>
         <Mount
           :container="container"
           :name="props.row.value.name"

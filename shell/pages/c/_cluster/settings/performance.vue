@@ -71,7 +71,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <h1>
+    <h1 class="text-h1">
       {{ t('performance.label') }}
     </h1>
     <Banner
@@ -82,7 +82,9 @@ export default {
       <div class="ui-perf-setting">
         <!-- Websocket Notifications -->
         <div class="mt-20">
-          <h2>{{ t('performance.websocketNotification.label') }}</h2>
+          <h2 class="text-h2">
+            {{ t('performance.websocketNotification.label') }}
+          </h2>
           <p>{{ t('performance.websocketNotification.description') }}</p>
           <Checkbox
             v-model:value="value.disableWebsocketNotification"

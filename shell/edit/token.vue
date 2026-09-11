@@ -273,13 +273,14 @@ export default {
         :paginated-resource-settings="scopePaginatedSettings"
       />
 
-      <h5 class="pt-20">
+      <div class="pt-20 text-h5">
         {{ t('accountAndKeys.apiKeys.add.expiry.label') }}
-      </h5>
+      </div>
 
       <div class="ml-10">
         <RadioGroup
           v-model:value="form.expiryType"
+          :aria-label="t('accountAndKeys.apiKeys.add.expiry.label')"
           :options="expiryOptions"
           data-testid="expiry__options"
           class="mr-20"

@@ -5,7 +5,7 @@ export default class FilterPanelPo extends ComponentPo {
   getFiltersByGroupName(groupName: string) {
     return this.self()
       .find('[data-testid="filter-panel-filter-group"]')
-      .filter(`:has(h4:contains("${ groupName }"))`)
+      .filter(`:has(.filter-panel-filter-group-title:contains("${ groupName }"))`)
       .find('[data-testid="filter-panel-filter-checkbox"]');
   }
 

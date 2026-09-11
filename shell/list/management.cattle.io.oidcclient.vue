@@ -42,7 +42,9 @@ export default {
 <template>
   <div>
     <div class="oidc-application-list-header-data">
-      <h3>{{ t('oidcclient.oidcEndpoints') }}</h3>
+      <h3 class="text-h3">
+        {{ t('oidcclient.oidcEndpoints') }}
+      </h3>
       <div>
         <label>{{ t('oidcclient.issuerURL') }}: </label>
         <CopyToClipboardText

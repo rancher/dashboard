@@ -107,7 +107,9 @@ export default {
         :k8s-version="value.spec.kubernetesVersion"
         :mode="mode"
       />
-      <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
+      <h3 class="text-h3">
+        {{ t('cluster.advanced.argInfo.title') }}
+      </h3>
       <ArrayListGrouped
         v-if="agentArgs['kubelet-arg']"
         v-model:value="rkeConfig.machineSelectorConfig"
@@ -127,12 +129,19 @@ export default {
               :initial-empty-row="true"
             >
               <template #header>
-                <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
+                <h3 class="text-h3">
+                  {{ t('cluster.advanced.argInfo.machineSelector.title') }}
+                </h3>
               </template>
             </MatchExpressions>
-            <h3>{{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}</h3>
+            <h3 class="text-h3">
+              {{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}
+            </h3>
           </template>
-          <h3 v-else>
+          <h3
+            v-else
+            class="text-h3"
+          >
             {{ advancedTitleAlt }}
             <i
               v-if="kubeletArgTooltip"

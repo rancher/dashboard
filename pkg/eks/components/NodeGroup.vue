@@ -701,7 +701,9 @@ export default defineComponent({
 
 <template>
   <div>
-    <h3>{{ t('eks.nodeGroups.groupDetails') }}</h3>
+    <h3 class="text-h3">
+      {{ t('eks.nodeGroups.groupDetails') }}
+    </h3>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
@@ -778,7 +780,7 @@ export default defineComponent({
           @update:value="$emit('update:labels', $event)"
         >
           <template #title>
-            <h4>
+            <h4 class="text-h4">
               {{ t('eks.nodeGroups.groupLabels.label') }}
             </h4>
           </template>
@@ -795,13 +797,17 @@ export default defineComponent({
           @update:value="$emit('update:tags', $event)"
         >
           <template #title>
-            <h4>{{ t('eks.nodeGroups.groupTags.label') }}</h4>
+            <h4 class="text-h4">
+              {{ t('eks.nodeGroups.groupTags.label') }}
+            </h4>
           </template>
         </KeyValue>
       </div>
     </div>
     <RcSeparator class="mb-20" />
-    <h3>{{ t('eks.nodeGroups.templateDetails') }}</h3>
+    <h3 class="text-h3">
+      {{ t('eks.nodeGroups.templateDetails') }}
+    </h3>
     <Banner
       v-if="clusterWillUpgrade && !poolIsUnprovisioned"
       color="info"
@@ -888,7 +894,9 @@ export default defineComponent({
     />
     <div class="row mb-10">
       <div class="col span-2">
-        <h4>{{ t('eks.nodeGroups.architecture.label') }}</h4>
+        <h4 class="text-h4">
+          {{ t('eks.nodeGroups.architecture.label') }}
+        </h4>
         <RadioGroup
           v-model:value="architecture"
           :mode="mode"
@@ -1002,7 +1010,7 @@ export default defineComponent({
           @update:value="$emit('update:resourceTags', $event)"
         >
           <template #title>
-            <h4>
+            <h4 class="text-h4">
               {{ t('eks.nodeGroups.resourceTags.label') }}
             </h4>
           </template>

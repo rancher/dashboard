@@ -44,7 +44,9 @@ const onSourceTypeSelect = (type) => {
 
 <template>
   <div>
-    <h2>{{ t('fleet.helmOp.source.release.title') }}</h2>
+    <h2 class="text-h2">
+      {{ t('fleet.helmOp.source.release.title') }}
+    </h2>
 
     <div class="row mb-20">
       <div class="col span-6">
@@ -57,7 +59,9 @@ const onSourceTypeSelect = (type) => {
       </div>
     </div>
 
-    <h2>{{ t('fleet.helmOp.source.title') }}</h2>
+    <h2 class="text-h2">
+      {{ t('fleet.helmOp.source.title') }}
+    </h2>
 
     <div
       v-if="!isView"

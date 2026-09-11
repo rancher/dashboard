@@ -336,7 +336,9 @@ export default {
         >
           <template v-slot:title>
             <div class="type-title">
-              <h3>{{ t(`rbac.globalRoles.types.${roleType}.label`) }}</h3>
+              <h3 class="text-h3">
+                {{ t(`rbac.globalRoles.types.${roleType}.label`) }}
+              </h3>
               <div class="type-description">
                 {{ t(`rbac.globalRoles.types.${roleType}.description`, { isUser }) }}
               </div>

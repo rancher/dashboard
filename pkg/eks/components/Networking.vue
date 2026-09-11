@@ -330,7 +330,9 @@ export default defineComponent({
           @update:value="$emit('update:ipFamily', $event)"
         >
           <template #label>
-            <h3>{{ t('eks.ipFamily.label') }}</h3>
+            <h3 class="text-h3">
+              {{ t('eks.ipFamily.label') }}
+            </h3>
             <Banner
               v-if="isNewOrUnprovisioned"
               color="info"

@@ -124,7 +124,7 @@ export default {
   <div>
     <div class="spacer" />
     <div class="row mb-10">
-      <h3 class="col span-6">
+      <h3 class="col span-6 text-h3">
         {{ t('workload.serviceAccountName.label') }}
       </h3>
     </div>

@@ -168,10 +168,12 @@ export default {
       v-if="labelKey"
       v-t="labelKey"
       v-clean-tooltip="{content: itemLabel, popperClass: 'detail-text-tooltip'}"
+      class="text-h5"
     />
     <h5
       v-else-if="label"
       v-clean-tooltip="{content: label, popperClass: 'detail-text-tooltip'}"
+      class="text-h5"
     >
       {{ label }}
     </h5>

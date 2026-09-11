@@ -254,7 +254,9 @@ export default {
     >
       <!-- Custom/default storage volume form -->
       <template #default="props">
-        <h3>{{ headerFor(volumeType(props.row.value)) }}</h3>
+        <h3 class="text-h3">
+          {{ headerFor(volumeType(props.row.value)) }}
+        </h3>
         <div class="bordered-section">
           <component
             :is="getComponent(volumeType(props.row.value))"

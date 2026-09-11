@@ -116,7 +116,7 @@ export default {
         <InfoBox>
           <div class="row info-row">
             <div class="col span-6 info-column">
-              <h4>
+              <h4 class="text-h4">
                 <t
                   k="hpa.detail.metricHeader"
                   :source="metric.metricSource"
@@ -173,7 +173,9 @@ export default {
               </div>
             </div>
             <div class="col span-6">
-              <h4><t k="hpa.detail.currentMetrics.header" /></h4>
+              <h4 class="text-h4">
+                <t k="hpa.detail.currentMetrics.header" />
+              </h4>
               <div
                 v-if="(metric.subRowContent.currentMetrics || []).length > 0"
               >
@@ -212,7 +214,7 @@ export default {
         <InfoBox v-if="!!value.spec.behavior[type]">
           <div class="row info-row">
             <div class="col span-6 info-column">
-              <h4>
+              <h4 class="text-h4">
                 <t
                   :k="`hpa.${type}Rules.label`"
                 />

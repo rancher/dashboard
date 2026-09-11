@@ -31,7 +31,7 @@ export default {
 
 <template>
   <div>
-    <h3>
+    <h3 class="text-h3">
       {{ t('cluster.addOns.additionalManifest.title') }}
       <i
         v-clean-tooltip="t('cluster.addOns.additionalManifest.tooltip')"

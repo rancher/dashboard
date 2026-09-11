@@ -561,7 +561,7 @@ export default {
         class="col mt-20 span-10"
         data-testid="gce-scopes-array"
       />
-      <h3 class="mt-20">
+      <h3 class="mt-20 text-h3">
         {{ t('cluster.machineConfig.gce.firewall.header') }}
       </h3>
       <div class="row mt-20 span-12">
@@ -613,7 +613,7 @@ export default {
         </div>
       </div>
       <div class="mt-20">
-        <h3>
+        <h3 class="text-h3">
           <t k="labels.labels.title" />
         </h3>
         <KeyValue

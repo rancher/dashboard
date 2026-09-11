@@ -90,7 +90,10 @@ const updateValuesFrom = (valuesFrom: unknown) => {
         data-testid="helmop-values-info-banner"
       />
 
-      <h2 v-if="!hideTitle">
+      <h2
+        v-if="!hideTitle"
+        class="text-h2"
+      >
         {{ t('fleet.helmOp.values.title') }}
       </h2>
 

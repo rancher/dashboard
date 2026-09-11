@@ -26,7 +26,9 @@ export default {
 
 <template>
   <div>
-    <h1>{{ groupName }}</h1>
+    <h1 class="text-h1">
+      {{ groupName }}
+    </h1>
     <SelectIconGrid
       :rows="entries"
       :aria-label="groupName"

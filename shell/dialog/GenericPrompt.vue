@@ -4,6 +4,7 @@ import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { decodeHtml } from '@shell/utils/string';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -12,6 +13,7 @@ export default {
     Card,
     AsyncButton,
     Banner,
+    RcHeading,
   },
   props: {
     applyAction: {
@@ -88,8 +90,10 @@ export default {
   >
     <template #title>
       <slot name="title">
-        <h4
+        <RcHeading
           v-clean-html="title"
+          :level="2"
+          size="h4"
           class="text-default-text"
         />
       </slot>

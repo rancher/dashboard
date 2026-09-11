@@ -372,7 +372,7 @@ export default {
           :label="t('hpa.tabs.behavior')"
         >
           <div class="col span-12 mb-10">
-            <h3>
+            <h3 class="text-h3">
               {{ t('hpa.scaleDownRules.label') }}
             </h3>
             <div class="row mb-10">
@@ -391,7 +391,7 @@ export default {
             />
           </div>
           <div class="col span-12">
-            <h3>
+            <h3 class="text-h3">
               {{ t('hpa.scaleUpRules.label') }}
             </h3>
             <div class="row mb-10">

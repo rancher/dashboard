@@ -1,3 +1,4 @@
+import type { HeadingLevel } from '@components/RcHeading/types';
 import type { Status } from '@components/utils/status';
 import type { RcIconType } from '@components/RcIcon/types';
 
@@ -83,4 +84,10 @@ export interface RcSectionProps {
    * The section title text. Can also be provided via the `title` slot.
    */
   title?: string;
+
+  /**
+   * Outline level of the section title. Defaults to one level below the enclosing section, or `2`
+   * for a section sitting directly under a page masthead's `h1`.
+   */
+  headingLevel?: HeadingLevel;
 }

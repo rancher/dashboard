@@ -24,7 +24,7 @@ export default {
   >
     <div class="header">
       <div class="title">
-        <h1>
+        <h1 class="text-h1">
           {{ value.id }}
           <span
             v-if="value.fromEnv"
@@ -36,7 +36,9 @@ export default {
             class="modified"
           >{{ t('advancedSettings.modified') }}</span>
         </h1>
-        <h2>{{ t(`advancedSettings.descriptions.${value.id}`) }}</h2>
+        <h2 class="text-h2">
+          {{ t(`advancedSettings.descriptions.${value.id}`) }}
+        </h2>
       </div>
       <div
         v-if="value.hasActions"

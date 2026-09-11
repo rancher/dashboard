@@ -92,7 +92,7 @@ export default defineComponent({
       <slot name="header">
         <h2
           data-testid="accordion-title-slot-content"
-          class="mb-0"
+          class="mb-0 text-h2"
         >
           {{ displayTitle }}
         </h2>

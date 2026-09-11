@@ -164,7 +164,9 @@ export default {
         </div>
         <div class="row">
           <div class="col span-6 mt-20">
-            <h3>{{ t('serviceAccount.imagePullSecrets') }}</h3>
+            <h3 class="text-h3">
+              {{ t('serviceAccount.imagePullSecrets') }}
+            </h3>
 
             <LabeledSelect
               v-model:value="imagePullSecrets"

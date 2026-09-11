@@ -207,7 +207,9 @@ export default {
     </div>
     <div class="row mt-20">
       <div class="col span-6">
-        <h4>{{ t('cluster.rke2.etcd.s3config.snapshotRetention.title') }}</h4>
+        <h4 class="text-h4">
+          {{ t('cluster.rke2.etcd.s3config.snapshotRetention.title') }}
+        </h4>
         <RadioGroup
           v-model:value="differentRetention"
           name="s3config-retention"

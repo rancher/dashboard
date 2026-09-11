@@ -73,7 +73,7 @@ export default {
 
 <template>
   <div>
-    <h3>
+    <h3 class="text-h3">
       {{ t('registryMirror.header') }}
       <i
         v-clean-tooltip="t('registryMirror.toolTip')"
@@ -112,7 +112,7 @@ export default {
         </div>
         <div class="row mt-20">
           <div class="col span-12">
-            <h3>
+            <h3 class="text-h3">
               {{ t('registryMirrorRewrite.header') }}
               <i
                 v-clean-tooltip="t('registryMirrorRewrite.toolTip')"

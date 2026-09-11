@@ -56,7 +56,9 @@ const onTouched = (value) => {
 
 <template>
   <div>
-    <h2>{{ t('fleet.gitRepo.repo.title') }}</h2>
+    <h2 class="text-h2">
+      {{ t('fleet.gitRepo.repo.title') }}
+    </h2>
     <div
       class="row mb-20"
       :class="{'mt-20': isView}"

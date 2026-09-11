@@ -1,5 +1,7 @@
+import { computed, defineComponent } from 'vue';
 import { mount } from '@vue/test-utils';
 import RcItemCard from './RcItemCard.vue';
+import { provideHeadingLevel } from '@components/RcHeading';
 import RcItemCardAction from './RcItemCardAction.vue';
 import { DropdownOption } from '@components/RcDropdown/types';
 
@@ -248,5 +250,32 @@ describe('rcItemCard', () => {
 
     expect(emitted).toBeTruthy();
     expect(emitted[0]).toStrictEqual([payload]);
+  });
+
+  describe('title heading level', () => {
+    it('titles the card one level below a page masthead, at the size it had before', () => {
+      const wrapper = mount(RcItemCard, { props: baseProps });
+
+      const title = wrapper.get('[data-testid="item-card-header-title"]');
+
+      expect(title.element.tagName).toBe('H2');
+      expect(title.classes()).toContain('text-h3');
+    });
+
+    it('titles the card one level deeper when it sits inside a section', () => {
+      const Section = defineComponent({
+        setup() {
+          provideHeadingLevel(computed(() => 3 as const));
+        },
+        template: '<div><slot /></div>',
+      });
+
+      const wrapper = mount(Section, {
+        global: { components: { RcItemCard } },
+        slots:  { default: `<RcItemCard id="${ id }" :header="{ title: { text: 'Card Title' } }" />` },
+      });
+
+      expect(wrapper.get('[data-testid="item-card-header-title"]').element.tagName).toBe('H3');
+    });
   });
 });

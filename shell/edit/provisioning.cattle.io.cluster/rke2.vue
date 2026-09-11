@@ -2440,7 +2440,7 @@ export default {
           <div class="clearfix">
             <h2
               v-t="'cluster.tabs.machinePools'"
-              class="pull-left"
+              class="pull-left text-h2"
             />
             <div
               v-if="!isView"
@@ -2517,7 +2517,10 @@ export default {
         </template>
 
         <!-- Cluster Tabs -->
-        <h2 v-t="'cluster.tabs.cluster'" />
+        <h2
+          v-t="'cluster.tabs.cluster'"
+          class="text-h2"
+        />
         <component
           :is="extensionProvisioningSection"
           v-if="extensionProvisioningSection"

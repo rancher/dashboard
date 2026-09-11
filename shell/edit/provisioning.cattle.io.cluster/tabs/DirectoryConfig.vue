@@ -151,7 +151,7 @@ export default {
 <template>
   <div class="row">
     <div class="col span-8">
-      <h3>
+      <h3 class="text-h3">
         {{ t('cluster.directoryConfig.title') }}
       </h3>
       <Banner

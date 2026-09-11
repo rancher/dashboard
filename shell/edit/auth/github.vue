@@ -251,7 +251,10 @@ export default {
           </template>
         </AuthProviderWarningBanners>
 
-        <h3 v-t="`authConfig.${NAME}.target.label`" />
+        <h3
+          v-t="`authConfig.${NAME}.target.label`"
+          class="text-h3"
+        />
         <RadioGroup
           v-model:value="targetType"
           name="targetType"

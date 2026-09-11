@@ -157,7 +157,7 @@ export default {
   <div v-else>
     <header>
       <div class="title">
-        <h1 class="m-0">
+        <h1 class="m-0 text-h1">
           {{ t('auth.roleTemplate') }}
         </h1>
       </div>

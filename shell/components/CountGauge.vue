@@ -99,7 +99,9 @@ export default {
       />
     </div>
     <div class="data">
-      <h1>{{ useful }}</h1>
+      <div class="count-value">
+        {{ useful }}
+      </div>
       <label>{{ name }}</label>
       <div
         v-if="showAlerts"
@@ -152,7 +154,9 @@ export default {
           margin-right: $padding;
         }
 
-        h1 {
+        .count-value {
+          @include h-css;
+
           font-size: 40px;
           line-height: 36px;
           padding-bottom: math.div($padding, 2);
@@ -160,7 +164,7 @@ export default {
         }
 
         @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
-          h1 {
+          .count-value {
             font-size: 40px;
             line-height: 36px;
           }

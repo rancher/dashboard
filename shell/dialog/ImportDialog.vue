@@ -11,6 +11,7 @@ import { sortBy } from '@shell/utils/sort';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close', 'onReadyYamlEditor'],
@@ -22,7 +23,8 @@ export default {
     YamlEditor,
     FileSelector,
     LabeledSelect,
-    SortableTable
+    SortableTable,
+    RcHeading,
   },
 
   props: {
@@ -133,12 +135,20 @@ export default {
     <template #title>
       <div style="display: block; width: 100%;">
         <template v-if="done">
-          <h4 data-testid="import-yaml-success">
+          <RcHeading
+            :level="2"
+            size="h4"
+            data-testid="import-yaml-success"
+          >
             {{ t('import.success', {count: rows.length}) }}
-          </h4>
+          </RcHeading>
         </template>
         <template v-else>
-          <h4 v-t="'import.title'" />
+          <RcHeading
+            v-t="'import.title'"
+            :level="2"
+            size="h4"
+          />
           <div class="row">
             <div class="col span-6">
               <FileSelector

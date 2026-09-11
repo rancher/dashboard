@@ -296,7 +296,7 @@ export default {
   >
     <slot name="header">
       <div class="header">
-        <h1>
+        <h1 class="text-h1">
           {{ t(`${ labelKeyPrefix }.title`) }}
         </h1>
 

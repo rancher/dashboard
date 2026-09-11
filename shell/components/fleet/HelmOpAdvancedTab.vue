@@ -119,7 +119,9 @@ const validatePollingInterval = () => {
       data-testid="helmOp-advanced-info"
     />
 
-    <h2>{{ t('fleet.helmOp.auth.title') }}</h2>
+    <h2 class="text-h2">
+      {{ t('fleet.helmOp.auth.title') }}
+    </h2>
 
     <SelectOrCreateAuthSecret
       :value="value.spec.helmSecretName"
@@ -148,7 +150,9 @@ const validatePollingInterval = () => {
       </div>
     </div>
 
-    <h2>{{ t('fleet.helmOp.resources.label') }}</h2>
+    <h2 class="text-h2">
+      {{ t('fleet.helmOp.resources.label') }}
+    </h2>
 
     <HelmOpResourcesSection
       :value="value"
@@ -162,7 +166,9 @@ const validatePollingInterval = () => {
     />
 
     <template v-if="sourceType === SOURCE_TYPE.REPO">
-      <h2>{{ t('fleet.helmOp.polling.label') }}</h2>
+      <h2 class="text-h2">
+        {{ t('fleet.helmOp.polling.label') }}
+      </h2>
       <div class="row polling">
         <div class="col span-6">
           <Checkbox

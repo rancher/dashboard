@@ -47,7 +47,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <h2 class="mt-20">
+    <h2 class="mt-20 text-h2">
       Resource Summary
     </h2>
     <ResourcesSummary :value="value.status.resourceCounts" />

@@ -338,7 +338,9 @@ export default {
         :weight="3"
       >
         <div class="access">
-          <h3>{{ t('persistentVolumeClaim.accessModes') }}</h3>
+          <h3 class="text-h3">
+            {{ t('persistentVolumeClaim.accessModes') }}
+          </h3>
           <span class="text-error">*</span>
         </div>
         <div>

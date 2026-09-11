@@ -59,7 +59,9 @@ export default {
     </Banner>
     <div class="spacer" />
     <div class="mb-10">
-      <h2><t k="gatekeeperIndex.violations" /></h2>
+      <h2 class="text-h2">
+        <t k="gatekeeperIndex.violations" />
+      </h2>
     </div>
     <div>
       <SortableTable

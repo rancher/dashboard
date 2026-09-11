@@ -52,7 +52,7 @@ export default {
       icon="icon-gear"
     >
       <template v-slot:message>
-        <h2>
+        <h2 class="text-h2">
           {{ t('plugins.setup.title') }}
         </h2>
         <div v-if="!loading">

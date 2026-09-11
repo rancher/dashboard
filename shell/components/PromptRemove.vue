@@ -12,12 +12,18 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { CATALOG } from '@shell/config/types';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AppModal from '@shell/components/AppModal.vue';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   name: 'PromptRemove',
 
   components: {
-    Card, Checkbox, AsyncButton, LabeledInput, AppModal
+    Card,
+    Checkbox,
+    AsyncButton,
+    LabeledInput,
+    AppModal,
+    RcHeading,
   },
   props: {
     /**
@@ -351,9 +357,13 @@ export default {
       :show-highlight-border="false"
     >
       <template #title>
-        <h4 class="text-default-text">
+        <RcHeading
+          :level="2"
+          size="h4"
+          class="text-default-text"
+        >
           {{ t('promptRemove.title') }}
-        </h4>
+        </RcHeading>
       </template>
       <template #body>
         <div class="mb-10">

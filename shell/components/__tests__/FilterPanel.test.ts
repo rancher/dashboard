@@ -78,4 +78,13 @@ describe('component: FilterPanel', () => {
 
     expect(wrapper.text()).toContain('Custom content');
   });
+
+  it('titles each filter group one level below the page masthead, at the size it had before', () => {
+    const wrapper = mount(FilterPanel, { props: { filters, modelValue: {} } });
+
+    const title = wrapper.find('.filter-panel-filter-group-title');
+
+    expect(title.element.tagName).toBe('H2');
+    expect(title.classes()).toContain('text-h4');
+  });
 });

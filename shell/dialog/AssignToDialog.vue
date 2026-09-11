@@ -8,6 +8,7 @@ import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { set } from '@shell/utils/object';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -17,7 +18,8 @@ export default {
     LabeledSelect,
     KeyValue,
     AsyncButton,
-    Banner
+    Banner,
+    RcHeading,
   },
 
   props: {
@@ -110,8 +112,10 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4
+      <RcHeading
         v-clean-html="t('assignTo.title', {count: resourceCount}, true)"
+        :level="2"
+        size="h4"
         class="text-default-text"
       />
     </template>

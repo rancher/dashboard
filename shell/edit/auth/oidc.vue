@@ -387,7 +387,9 @@ export default {
           :t-args="tArgs"
         />
 
-        <h3>{{ t(`authConfig.oidc.${NAME}`) }}</h3>
+        <h3 class="text-h3">
+          {{ t(`authConfig.oidc.${NAME}`) }}
+        </h3>
 
         <Banner
           v-if="!model.enabled && isAmazonCognito"
@@ -509,7 +511,9 @@ export default {
 
         <!-- Custom Claims -->
         <template v-if="addCustomClaims && supportsCustomClaims">
-          <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
+          <h4 class="text-h4">
+            {{ t('authConfig.oidc.customClaims.label') }}
+          </h4>
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledInput
@@ -553,7 +557,9 @@ export default {
                 data-testid="oidc-custom-endpoint"
               >
                 <template #label>
-                  <h4>{{ t('authConfig.oidc.customEndpoint.label') }}</h4>
+                  <h4 class="text-h4">
+                    {{ t('authConfig.oidc.customEndpoint.label') }}
+                  </h4>
                 </template>
               </RadioGroup>
             </div>
@@ -671,7 +677,9 @@ export default {
         </template>
 
         <template v-if="isAmazonCognito">
-          <h3>{{ t(`authConfig.oidc.cognitoIssuer`) }}</h3>
+          <h3 class="text-h3">
+            {{ t(`authConfig.oidc.cognitoIssuer`) }}
+          </h3>
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledInput
@@ -709,7 +717,9 @@ export default {
         >
           <div class="row">
             <div class="col span-12">
-              <h3>{{ t('authConfig.slo.sloTitle') }}</h3>
+              <h3 class="text-h3">
+                {{ t('authConfig.slo.sloTitle') }}
+              </h3>
             </div>
           </div>
           <div class="row">

@@ -741,7 +741,11 @@ export default defineComponent({
         />
       </Accordion>
       <template v-else>
-        <div><h3>{{ t('eks.nodeGroups.title') }}</h3></div>
+        <div>
+          <h3 class="text-h3">
+            {{ t('eks.nodeGroups.title') }}
+          </h3>
+        </div>
         <Tabbed
           :title="t('eks.nodeGroups.title')"
           class="mb-20"

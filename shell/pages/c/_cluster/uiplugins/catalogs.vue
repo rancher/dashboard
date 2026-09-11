@@ -54,7 +54,7 @@ export default {
       <!-- catalog/airgapped header -->
       <div class="catalog-title">
         <h2
-          class="mb-0 mr-10"
+          class="mb-0 mr-10 text-h2"
           data-testid="extensions-catalog-title"
         >
           <a

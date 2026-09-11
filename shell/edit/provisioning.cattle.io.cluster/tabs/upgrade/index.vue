@@ -42,7 +42,9 @@ export default {
     </Banner>
     <div class="row">
       <div class="col span-6">
-        <h3>{{ t('cluster.rke2.controlPlaneConcurrency.header') }}</h3>
+        <h3 class="text-h3">
+          {{ t('cluster.rke2.controlPlaneConcurrency.header') }}
+        </h3>
         <LabeledInput
           v-model:value="rkeConfig.upgradeStrategy.controlPlaneConcurrency"
           :mode="mode"
@@ -56,7 +58,7 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <h3>
+        <h3 class="text-h3">
           {{ t('cluster.rke2.workNode.label') }}
         </h3>
         <LabeledInput

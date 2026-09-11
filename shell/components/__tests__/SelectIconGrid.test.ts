@@ -54,6 +54,14 @@ describe('component: SelectIconGrid', () => {
 
       expect(wrapper.find('.grid').exists()).toBe(false);
     });
+
+    it('should keep the empty message and the tile names out of the page outline', () => {
+      const empty = shallowMount(SelectIconGrid, { props: { rows: [] } });
+      const filled = shallowMount(SelectIconGrid, { props: { rows: mockRows } });
+
+      expect(empty.findAll('h1, h2, h3, h4, h5, h6')).toStrictEqual([]);
+      expect(filled.findAll('h1, h2, h3, h4, h5, h6')).toStrictEqual([]);
+    });
   });
 
   describe('item roles (asLink=false)', () => {

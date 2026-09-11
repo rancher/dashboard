@@ -504,7 +504,7 @@ export default {
       <div class="col span-8">
         <h3
           v-if="!compact"
-          class="m-0"
+          class="m-0 text-h3"
         >
           {{ t('fleet.clusterTargets.clusters.title') }}
         </h3>

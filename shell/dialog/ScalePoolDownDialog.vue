@@ -3,11 +3,14 @@ import { Card } from '@components/Card';
 import { alternateLabel } from '@shell/utils/platform';
 import { Checkbox } from '@components/Form/Checkbox';
 import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
 
-  components: { Card, Checkbox },
+  components: {
+    Card, Checkbox, RcHeading
+  },
 
   props: {
     resources: {
@@ -74,9 +77,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('promptForceRemove.modalTitle') }}
-      </h4>
+      </RcHeading>
     </template>
     <template #body>
       <div class="pl-10 pr-10">

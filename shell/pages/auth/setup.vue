@@ -312,7 +312,7 @@ export default {
               :alt="t('setup.setup')"
             />
           </div>
-          <h1 class="text-center">
+          <h1 class="text-center text-h1">
             {{ t(customizations.setupLabelKey, {product}) }}
           </h1>
 
@@ -465,7 +465,7 @@ export default {
             <h4
               v-for="(err, i) in errors"
               :key="i"
-              class="text-error text-center"
+              class="text-error text-center text-h4"
             >
               {{ err }}
             </h4>

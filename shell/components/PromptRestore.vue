@@ -263,14 +263,17 @@ export default {
       <template #title>
         <h4
           v-clean-html="t('promptRestore.title', null, true)"
-          class="text-default-text"
+          class="text-default-text text-h4"
         />
       </template>
 
       <template #body>
         <div class="pl-10 pr-10">
           <form>
-            <h3 v-t="'promptRestore.name'" />
+            <h3
+              v-t="'promptRestore.name'"
+              class="text-h3"
+            />
             <div v-if="!isCluster">
               {{ snapshot.nameDisplay }}
             </div>
@@ -285,7 +288,10 @@ export default {
 
             <div class="spacer" />
 
-            <h3 v-t="'promptRestore.date'" />
+            <h3
+              v-t="'promptRestore.date'"
+              class="text-h3"
+            />
             <div>
               <p>
                 <Date

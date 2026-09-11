@@ -7,6 +7,7 @@ import { UI_PLUGIN_NAMESPACE, isChartVersionHigher } from '@shell/config/uiplugi
 import Banner from '@components/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
 import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
+import { RcHeading } from '@components/RcHeading';
 
 // Note: This dialog handles installation, upgrade and downgrade of a plugin
 
@@ -16,7 +17,8 @@ export default {
   components: {
     AsyncButton,
     Banner,
-    LabeledSelect
+    LabeledSelect,
+    RcHeading,
   },
 
   props: {
@@ -319,12 +321,14 @@ export default {
 
 <template>
   <div class="plugin-install-dialog">
-    <h4
+    <RcHeading
+      :level="2"
+      size="h4"
       class="mt-10"
       data-modal-title
     >
       {{ t(`plugins.${ buttonMode }.title`, { name: `"${plugin?.label}"` }, true) }}
-    </h4>
+    </RcHeading>
     <div class="custom mt-10">
       <div class="dialog-panel">
         <p>

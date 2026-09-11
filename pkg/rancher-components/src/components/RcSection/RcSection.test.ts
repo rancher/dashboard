@@ -111,6 +111,62 @@ describe('component: RcSection', () => {
     });
   });
 
+  describe('heading level', () => {
+    const nested = (depth: number) => {
+      let slot = '<span class="leaf" />';
+
+      for (let i = 0; i < depth; i++) {
+        slot = `<RcSection type="primary" mode="with-header" :expandable="false" title="Nested">${ slot }</RcSection>`;
+      }
+
+      return mount(RcSection, {
+        props:  { ...defaultProps, expanded: true },
+        global: { components: { RcSection } },
+        slots:  { default: slot },
+      });
+    };
+
+    it('should title a top level section with an h2, one below a page masthead', () => {
+      const wrapper = mount(RcSection, { props: defaultProps });
+
+      expect(wrapper.find('.title h2').text()).toBe('Test title');
+    });
+
+    it('should add the heading for semantics only, leaving the header to style the title', () => {
+      const wrapper = mount(RcSection, { props: defaultProps });
+
+      expect(wrapper.find('.section-title').classes()).toStrictEqual(['section-title']);
+    });
+
+    it('should take an explicit level for a section that is not under a masthead', () => {
+      const wrapper = mount(RcSection, { props: { ...defaultProps, headingLevel: 4 as const } });
+
+      expect(wrapper.find('.title h4').exists()).toBe(true);
+    });
+
+    it('should put each nested section one level deeper', () => {
+      const levels = nested(2).findAll('.section-title').map((h) => h.element.tagName);
+
+      expect(levels).toStrictEqual(['H2', 'H3', 'H4']);
+    });
+
+    it('should stop at h6 rather than nesting past the levels that exist', () => {
+      const levels = nested(6).findAll('.section-title').map((h) => h.element.tagName);
+
+      expect(levels).toStrictEqual(['H2', 'H3', 'H4', 'H5', 'H6', 'H6', 'H6']);
+    });
+
+    it('should not spend a level on a section that renders no header', () => {
+      const wrapper = mount(RcSection, {
+        props:  { ...defaultProps, mode: 'no-header' as const },
+        global: { components: { RcSection } },
+        slots:  { default: '<RcSection type="primary" mode="with-header" :expandable="false" title="Nested" />' },
+      });
+
+      expect(wrapper.find('.section-title').element.tagName).toBe('H2');
+    });
+  });
+
   describe('expandable behavior', () => {
     it('should render toggle button when expandable is true', () => {
       const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true } });

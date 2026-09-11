@@ -134,7 +134,9 @@ const formatVersionDate = (date: string | null): string => {
         class="chart-body__info"
       >
         <div class="chart-body__info-section">
-          <h4>{{ t('catalog.chart.info.chartVersions.label') }}</h4>
+          <h4 class="text-h4">
+            {{ t('catalog.chart.info.chartVersions.label') }}
+          </h4>
           <div
             v-for="vers of visibleVersions"
             :key="vers.id"
@@ -187,7 +189,9 @@ const formatVersionDate = (date: string | null): string => {
           v-if="appVersion"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.appVersion') }}</h4>
+          <h4 class="text-h4">
+            {{ t('catalog.chart.info.appVersion') }}
+          </h4>
           {{ appVersion }}
         </div>
 
@@ -195,7 +199,9 @@ const formatVersionDate = (date: string | null): string => {
           v-if="repo"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.repository') }}</h4>
+          <h4 class="text-h4">
+            {{ t('catalog.chart.info.repository') }}
+          </h4>
           <router-link
             :to="repo.detailLocation"
             data-testid="chart-repo-link"
@@ -208,7 +214,9 @@ const formatVersionDate = (date: string | null): string => {
           v-if="home"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.home') }}</h4>
+          <h4 class="text-h4">
+            {{ t('catalog.chart.info.home') }}
+          </h4>
           <a
             :href="home"
             rel="nofollow noopener noreferrer"
@@ -218,7 +226,9 @@ const formatVersionDate = (date: string | null): string => {
         </div>
 
         <div class="chart-body__info-section">
-          <h4>{{ t('catalog.chart.info.maintainers') }}</h4>
+          <h4 class="text-h4">
+            {{ t('catalog.chart.info.maintainers') }}
+          </h4>
           <template v-if="maintainers.length">
             <div
               v-for="m of maintainers"
@@ -243,7 +253,9 @@ const formatVersionDate = (date: string | null): string => {
           v-if="version.sources"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.related') }}</h4>
+          <h4 class="text-h4">
+            {{ t('catalog.chart.info.related') }}
+          </h4>
           <a
             v-for="s of version.sources"
             :key="s"
@@ -257,7 +269,9 @@ const formatVersionDate = (date: string | null): string => {
           v-if="version.urls"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.chartUrls') }}</h4>
+          <h4 class="text-h4">
+            {{ t('catalog.chart.info.chartUrls') }}
+          </h4>
           <a
             v-for="url of version.urls"
             :key="url"

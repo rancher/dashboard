@@ -150,7 +150,7 @@ export default {
       class="clearfix"
     >
       <slot name="title">
-        <h3>
+        <h3 class="text-h3">
           {{ title }}
         </h3>
       </slot>

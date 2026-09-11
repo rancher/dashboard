@@ -1633,7 +1633,7 @@ export default {
             </div>
           </div>
           <div class="chart-title">
-            <h1>
+            <h1 class="text-h1">
               <router-link
                 v-if="chart"
                 :to="chartLocation()"
@@ -2096,7 +2096,7 @@ export default {
       class="slideIn"
       :class="{'hide': false, 'slideIn__show': showSlideIn}"
     >
-      <h2 class="slideIn__header">
+      <h2 class="slideIn__header text-h2">
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
         <div class="slideIn__header__buttons">
           <div

@@ -34,7 +34,9 @@ export default {
   <div>
     <div class="row">
       <div class="col span-12">
-        <h3>{{ t('monitoring.receiver.tls.label') }}</h3>
+        <h3 class="text-h3">
+          {{ t('monitoring.receiver.tls.label') }}
+        </h3>
         <Banner color="info">
           <span v-clean-html="t('monitoring.receiver.tls.secretsBanner', {}, true)" />
         </Banner>

@@ -186,7 +186,7 @@ export default {
             :show-header="false"
             :weight="3"
           >
-            <h2 class="">
+            <h2 class="text-h2">
               {{ t('networkpolicy.ingress.label') }}
             </h2>
             <Checkbox
@@ -211,7 +211,7 @@ export default {
             :show-header="false"
             :weight="2"
           >
-            <h2>
+            <h2 class="text-h2">
               {{ t('networkpolicy.egress.label') }}
             </h2>
             <Checkbox
@@ -235,7 +235,7 @@ export default {
             :show-header="false"
             :weight="1"
           >
-            <h2>
+            <h2 class="text-h2">
               {{ t('networkpolicy.selectors.label') }}
               <i
                 v-clean-tooltip="t('networkpolicy.selectors.hint')"

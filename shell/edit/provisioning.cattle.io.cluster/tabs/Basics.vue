@@ -487,7 +487,7 @@ export default {
       <div class="spacer" />
 
       <div class="col span-12">
-        <h3>
+        <h3 class="text-h3">
           {{ t('cluster.rke2.cloudProvider.header') }}
         </h3>
         <YamlEditor
@@ -503,7 +503,7 @@ export default {
 
     <div class="spacer" />
 
-    <h3>
+    <h3 class="text-h3">
       {{ t('cluster.rke2.security.header') }}
     </h3>
 
@@ -616,7 +616,7 @@ export default {
     >
       <div class="col span-12">
         <div>
-          <h3>
+          <h3 class="text-h3">
             {{ t('cluster.rke2.systemService.header') }}
           </h3>
         </div>

@@ -89,7 +89,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <h1 class="mb-20">
+    <h1 class="mb-20 text-h1">
       <TabTitle>{{ t("customLinks.label") }}</TabTitle>
     </h1>
     <div>

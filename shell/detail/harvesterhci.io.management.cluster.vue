@@ -89,16 +89,17 @@ export default {
     >
       <h4
         v-clean-html="t('cluster.harvester.registration.step1', null, true)"
+        class="text-h4"
       />
 
       <h4
         v-clean-html="t('cluster.harvester.registration.step2', null, true)"
-        class="mt-10"
+        class="mt-10 text-h4"
       />
 
       <h4
         v-clean-html="t('cluster.harvester.registration.step3', null, true)"
-        class="mt-10"
+        class="mt-10 text-h4"
       />
       <CopyCode class="m-10 p-10">
         {{ registrationURL }}

@@ -487,13 +487,13 @@ export default defineComponent({
               >
                 <template #header-left>
                   <div class="row table-heading">
-                    <h1 class="mb-0">
+                    <h1 class="mb-0 text-h1">
                       {{ t('landing.clusters.title') }}
                     </h1>
                   </div>
                 </template>
                 <template #sub-header-row>
-                  <h2 class="too-many-clusters">
+                  <h2 class="too-many-clusters text-h2">
                     {{ t('landing.clusters.tooMany.showingSome', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
                     <a @click="toggleAltClusterListDisabled(true)">{{ t('landing.clusters.tooMany.showAll') }}</a>
                   </h2>
@@ -627,7 +627,7 @@ export default defineComponent({
               >
                 <template #header-left>
                   <div class="row table-heading">
-                    <h1 class="mb-0">
+                    <h1 class="mb-0 text-h1">
                       {{ t('landing.clusters.title') }}
                     </h1>
                     <BadgeState
@@ -641,7 +641,7 @@ export default defineComponent({
                   v-if="tooManyClusters"
                   #sub-header-row
                 >
-                  <h2 class="too-many-clusters">
+                  <h2 class="too-many-clusters text-h2">
                     {{ t('landing.clusters.tooMany.showingAll', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
                     <a @click="toggleAltClusterListDisabled(false)">{{ t('landing.clusters.tooMany.showSome') }}</a>
                   </h2>

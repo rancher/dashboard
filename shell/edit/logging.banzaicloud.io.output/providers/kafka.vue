@@ -39,7 +39,9 @@ export default {
   <div class="kafka">
     <div class="row">
       <div class="col span-6">
-        <h3>{{ t('logging.output.sections.target') }}</h3>
+        <h3 class="text-h3">
+          {{ t('logging.output.sections.target') }}
+        </h3>
       </div>
     </div>
     <div class="row">
@@ -63,7 +65,9 @@ export default {
     <div class="spacer" />
     <div class="row">
       <div class="col span-6">
-        <h3>{{ t('logging.output.sections.access') }}</h3>
+        <h3 class="text-h3">
+          {{ t('logging.output.sections.access') }}
+        </h3>
       </div>
     </div>
     <div class="row mb-10">
@@ -101,7 +105,9 @@ export default {
     <div class="spacer" />
     <div class="row">
       <div class="col span-6">
-        <h3>{{ t('logging.output.sections.certificate') }}</h3>
+        <h3 class="text-h3">
+          {{ t('logging.output.sections.certificate') }}
+        </h3>
       </div>
     </div>
     <div class="row mb-10">

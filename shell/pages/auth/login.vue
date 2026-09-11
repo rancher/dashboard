@@ -515,7 +515,7 @@ export default {
           :file-name="brandLogo"
           :alt="t('login.logoAlt', { vendor })"
         />
-        <h1 class="text-center login-welcome">
+        <h1 class="text-center login-welcome text-h1">
           {{ t(customizations.welcomeLabelKey, {vendor}) }}
         </h1>
         <div

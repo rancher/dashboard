@@ -159,7 +159,7 @@ export default {
     </div>
     <div class="row">
       <div class="col span-12">
-        <h3 class="mb-0">
+        <h3 class="mb-0 text-h3">
           Target
         </h3>
       </div>

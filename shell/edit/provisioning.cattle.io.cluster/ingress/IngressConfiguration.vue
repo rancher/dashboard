@@ -7,6 +7,7 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { INGRESS_DUAL, TRAEFIK, INGRESS_NGINX } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import formRulesGenerator from '@shell/utils/validators/formRules';
+import { RcHeading } from '@components/RcHeading';
 
 interface Props {
   mode?: string;
@@ -105,7 +106,9 @@ const isValid = computed(() => {
 watch(isValid, (val) => emit('validation-changed', val), { immediate: true });
 </script>
 <template>
-  <h4>{{ t('cluster.ingress.configurationOptions.title') }}</h4>
+  <RcHeading size="h4">
+    {{ t('cluster.ingress.configurationOptions.title') }}
+  </RcHeading>
   <Checkbox
     v-if="ingressSelection === INGRESS_DUAL"
     v-model:value="compatibilityMode"

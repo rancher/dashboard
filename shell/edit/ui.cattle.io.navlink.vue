@@ -309,7 +309,10 @@ export default {
     />
 
     <div class="spacer" />
-    <h2 v-t="'navLink.tabs.link.label'" />
+    <h2
+      v-t="'navLink.tabs.link.label'"
+      class="text-h2"
+    />
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
@@ -382,7 +385,10 @@ export default {
       </div>
     </template>
     <div class="spacer" />
-    <h2 v-t="'navLink.tabs.target.label'" />
+    <h2
+      v-t="'navLink.tabs.target.label'"
+      class="text-h2"
+    />
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
@@ -404,7 +410,10 @@ export default {
       </div>
     </div>
     <div class="spacer" />
-    <h2 v-t="'navLink.tabs.group.label'" />
+    <h2
+      v-t="'navLink.tabs.group.label'"
+      class="text-h2"
+    />
 
     <div class="row mb-20">
       <div class="col span-6">
@@ -434,7 +443,10 @@ export default {
       </div>
     </div>
 
-    <h4 v-t="'navLink.tabs.groupImage.label'" />
+    <h4
+      v-t="'navLink.tabs.groupImage.label'"
+      class="text-h4"
+    />
     <div class="row">
       <label class="text-label">
         {{ t('navLink.tabs.groupImage.iconSrc.tip', {}, true) }}

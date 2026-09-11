@@ -107,7 +107,7 @@ export default defineComponent({
 });
 </script>
 <template>
-  <h3 class="mb-10">
+  <h3 class="mb-10 text-h3">
     <t k="imported.basics.versionManagement.title" />
   </h3>
   <Banner

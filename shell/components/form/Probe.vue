@@ -149,7 +149,7 @@ export default {
 <template>
   <div>
     <div class="title clearfix">
-      <h3>
+      <h3 class="text-h3">
         {{ label }}
         <i
           v-if="description"
@@ -351,7 +351,7 @@ export default {
                 @update:value="update"
               >
                 <template #title>
-                  <h3>
+                  <h3 class="text-h3">
                     {{ t('workload.container.healthCheck.httpGet.headers') }}
                   </h3>
                 </template>

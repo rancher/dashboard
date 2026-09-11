@@ -155,7 +155,7 @@ export default {
         />
       </div>
     </div>
-    <h3>
+    <h3 class="text-h3">
       {{ t('prometheusRule.labels.title') }}
       <i
         v-clean-tooltip="t('prometheusRule.labels.tooltip')"

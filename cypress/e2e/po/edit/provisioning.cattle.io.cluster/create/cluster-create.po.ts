@@ -31,7 +31,7 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
   }
 
   gridElementGroupTitles() {
-    return this.self().find('.subtypes-container > div > h4');
+    return this.self().find('.subtypes-container > div > .text-h4');
   }
 
   selectKubeProvider(index: number) {

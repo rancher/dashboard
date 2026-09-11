@@ -114,7 +114,10 @@ onBeforeUnmount(() => {
       ref="modalBodyRef"
       class="modal-body"
     >
-      <h4 id="cron-editor-title">
+      <h4
+        id="cron-editor-title"
+        class="text-h4"
+      >
         {{ t('component.cron.expressionEditorModal.title') }}
       </h4>
       <p
@@ -143,7 +146,9 @@ onBeforeUnmount(() => {
         class="cron-info"
       >
         <div class="cron-wildcards">
-          <h5>{{ t('component.cron.expressionEditorModal.wildcards.title') }}</h5>
+          <h5 class="text-h5">
+            {{ t('component.cron.expressionEditorModal.wildcards.title') }}
+          </h5>
           <ul>
             <li
               v-for="(item, idx) in wildcards"
@@ -156,7 +161,9 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="cron-examples">
-          <h5>{{ t('component.cron.expressionEditorModal.examples.title') }}</h5>
+          <h5 class="text-h5">
+            {{ t('component.cron.expressionEditorModal.examples.title') }}
+          </h5>
           <ul>
             <li
               v-for="(ex, idx) in examples"

@@ -403,7 +403,10 @@ export default defineComponent({
         @update:value="$emit('update:tags', $event)"
       >
         <template #title>
-          <h3 v-t="'eks.tags.label'" />
+          <h3
+            v-t="'eks.tags.label'"
+            class="text-h3"
+          />
         </template>
       </KeyValue>
     </div>

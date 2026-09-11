@@ -48,8 +48,10 @@ export default {
     class="empty"
   >
     <i class="icon icon-monitoring mb-10" />
-    <h2>{{ t('monitoring.alertmanagerConfig.empty') }}</h2>
-    <h3 class="mb-30">
+    <h2 class="text-h2">
+      {{ t('monitoring.alertmanagerConfig.empty') }}
+    </h2>
+    <h3 class="mb-30 text-h3">
       {{ t('monitoring.alertmanagerConfig.getStarted') }}
     </h3>
   </div>

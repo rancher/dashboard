@@ -438,7 +438,7 @@ export default {
 
           <div class="row mt-20">
             <div class="col span-12">
-              <h3>
+              <h3 class="text-h3">
                 {{ t('cluster.machineConfig.amazonEc2.securityGroup.title') }}
                 <span
                   v-if="!value.vpcId"

@@ -1,12 +1,13 @@
 <script>
 import { Card } from '@components/Card';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   name: 'PromptRemove',
 
   emits: ['disable', 'close'],
 
-  components: { Card },
+  components: { Card, RcHeading },
   props:      {
     /**
      * Inherited global identifier prefix for tests
@@ -39,9 +40,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('promptRemove.title') }}
-      </h4>
+      </RcHeading>
     </template>
     <template #body>
       <div class="mb-10">

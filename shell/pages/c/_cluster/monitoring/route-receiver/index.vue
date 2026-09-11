@@ -74,7 +74,9 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <div class="row header mb-10">
-      <h1>  {{ t('monitoring.routesAndReceivers') }}</h1>
+      <h1 class="text-h1">
+        {{ t('monitoring.routesAndReceivers') }}
+      </h1>
       <div>
         <button
           class="btn btn-lg role-primary float right"

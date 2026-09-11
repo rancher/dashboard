@@ -10,6 +10,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { getVendor } from '@shell/config/private-label';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   name: 'FeatureFlagListDialog',
@@ -17,7 +18,11 @@ export default {
   emits: ['close'],
 
   components: {
-    Card, Banner, LabeledInput, AsyncButton
+    Card,
+    Banner,
+    LabeledInput,
+    AsyncButton,
+    RcHeading,
   },
 
   props: {
@@ -165,9 +170,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('featureFlags.title') }}
-      </h4>
+      </RcHeading>
     </template>
     <template #body>
       <div
@@ -231,9 +240,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('featureFlags.restart.title') }}
-      </h4>
+      </RcHeading>
     </template>
     <template #body>
       <div class="waiting">

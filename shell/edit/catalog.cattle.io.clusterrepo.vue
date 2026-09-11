@@ -296,7 +296,9 @@ export default {
 
 <template>
   <form>
-    <h2>{{ t('catalog.repo.target.label') }}</h2>
+    <h2 class="text-h2">
+      {{ t('catalog.repo.target.label') }}
+    </h2>
     <div class="row mb-20">
       <div class="col span-12 target-groups">
         <RcItemCard
@@ -487,7 +489,7 @@ export default {
           />
         </div>
       </div>
-      <h4 class="mb-10 mt-20">
+      <h4 class="mb-10 mt-20 text-h4">
         {{ t('catalog.repo.oci.exponentialBackOff.label') }}
       </h4>
       <div class="row mb-40 mt-10">

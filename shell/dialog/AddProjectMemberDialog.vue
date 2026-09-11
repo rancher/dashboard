@@ -4,6 +4,7 @@ import ProjectMemberEditor from '@shell/components/form/ProjectMemberEditor';
 import AsyncButton from '@shell/components/AsyncButton';
 import Banner from '@components/Banner/Banner.vue';
 import { NORMAN } from '@shell/config/types';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -12,7 +13,8 @@ export default {
     Card,
     ProjectMemberEditor,
     AsyncButton,
-    Banner
+    Banner,
+    RcHeading,
   },
 
   props: {
@@ -115,8 +117,10 @@ export default {
     :sticky="true"
   >
     <template #title>
-      <h4
+      <RcHeading
         v-clean-html="t('addProjectMemberDialog.title')"
+        :level="2"
+        size="h4"
         class="text-default-text"
       />
     </template>

@@ -4,11 +4,14 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import { isRancherPrime } from '@shell/config/version';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
 
-  components: { AsyncButton, Checkbox },
+  components: {
+    AsyncButton, Checkbox, RcHeading
+  },
 
   props: {
     /**
@@ -109,9 +112,13 @@ export default {
 
 <template>
   <div class="modal-dialog">
-    <h4 data-modal-title>
+    <RcHeading
+      :level="2"
+      size="h4"
+      data-modal-title
+    >
       {{ t('plugins.addRepos.title') }}
-    </h4>
+    </RcHeading>
     <p class="mb-20">
       {{ t('plugins.addRepos.prompt', {}, true) }}
     </p>
@@ -172,7 +179,7 @@ export default {
   .modal-dialog {
     padding: 10px;
 
-    h4 {
+    [data-modal-title] {
       font-weight: bold;
     }
 

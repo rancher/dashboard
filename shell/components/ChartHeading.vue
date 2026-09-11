@@ -15,7 +15,9 @@ export default {
 
 <template>
   <div class="chart-heading">
-    <h1>{{ t('chartHeading.overview') }}</h1>
+    <h1 class="text-h1">
+      {{ t('chartHeading.overview') }}
+    </h1>
     {{ t('chartHeading.poweredBy') }} <a
       :href="url"
       rel="nofollow noopener noreferrer"

@@ -292,7 +292,9 @@ export default {
             </div>
           </div>
           <div class="col span-6">
-            <h3>{{ t('storageClass.customize.mountOptions.label') }}</h3>
+            <h3 class="text-h3">
+              {{ t('storageClass.customize.mountOptions.label') }}
+            </h3>
             <ArrayList
               v-model:value="value.mountOptions"
               :mode="mode"

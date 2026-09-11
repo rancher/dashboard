@@ -349,4 +349,38 @@ describe('component: CruResource', () => {
 
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
+
+  it('should name a subtype tile without putting it in the page outline', () => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _CREATE,
+        resource: {},
+        subtypes: [{
+          id: 'opaque', label: 'Opaque', bannerAbbrv: 'O'
+        }]
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: {} },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    const name = wrapper.find('.subtype-body .title > div');
+
+    expect(name.text()).toContain('Opaque');
+    expect(wrapper.findAll('h1, h2, h3, h4, h5, h6')).toStrictEqual([]);
+  });
 });

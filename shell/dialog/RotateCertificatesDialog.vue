@@ -8,6 +8,7 @@ import Select from '@shell/components/form/Select';
 
 import { get, set } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -17,7 +18,8 @@ export default {
     RadioGroup,
     Card,
     AsyncButton,
-    Banner
+    Banner,
+    RcHeading,
   },
 
   props: {
@@ -131,7 +133,12 @@ export default {
     :style="{'height':'100%'}"
   >
     <template #title>
-      <h3>{{ t('cluster.rotateCertificates.modalTitle') }}</h3>
+      <RcHeading
+        :level="2"
+        size="h3"
+      >
+        {{ t('cluster.rotateCertificates.modalTitle') }}
+      </RcHeading>
     </template>
     <template #body>
       <Banner

@@ -46,7 +46,7 @@ export default {
 </script>
 <template>
   <div>
-    <h3>
+    <h3 class="text-h3">
       Receiver
       <i
         v-clean-tooltip="t('monitoring.alertmanagerConfig.receiverTooltip')"
@@ -66,7 +66,9 @@ export default {
         />
       </div>
     </div>
-    <h3>Grouping</h3>
+    <h3 class="text-h3">
+      Grouping
+    </h3>
     <div class="row mb-20">
       <div class="col span-6">
         <span class="label">
@@ -84,7 +86,9 @@ export default {
         />
       </div>
     </div>
-    <h3>Waiting and Intervals</h3>
+    <h3 class="text-h3">
+      Waiting and Intervals
+    </h3>
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
@@ -111,7 +115,9 @@ export default {
       </div>
     </div>
 
-    <h3>Matchers</h3>
+    <h3 class="text-h3">
+      Matchers
+    </h3>
     <ArrayListGrouped
       v-model:value="value.matchers"
       class="mt-20"

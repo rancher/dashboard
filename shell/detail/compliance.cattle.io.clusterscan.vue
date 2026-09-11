@@ -315,7 +315,7 @@ export default {
       class="table-header row mb-20"
     >
       <div class="col span-8">
-        <h3>
+        <h3 class="text-h3">
           {{ t('compliance.scan.scanReport') }}
         </h3>
       </div>

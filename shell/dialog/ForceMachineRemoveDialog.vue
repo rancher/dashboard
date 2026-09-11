@@ -6,6 +6,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -14,7 +15,8 @@ export default {
     AsyncButton,
     Banner,
     Card,
-    CopyToClipboardText
+    CopyToClipboardText,
+    RcHeading,
   },
 
   props: {
@@ -75,9 +77,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('promptForceRemove.modalTitle') }}
-      </h4>
+      </RcHeading>
     </template>
     <template #body>
       <div class="pl-10 pr-10">

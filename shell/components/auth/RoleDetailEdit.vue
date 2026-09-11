@@ -595,7 +595,7 @@ export default {
         :key="index"
       >
         <div class="spacer" />
-        <h3>
+        <h3 class="text-h3">
           Inherited from {{ inherited.template.nameDisplay }}
           <template v-if="inherited.showParent">
             {{ inherited.parent ? '(' + inherited.parent.nameDisplay + ')' : '' }}

@@ -91,7 +91,7 @@ export default {
   <div v-else>
     <h2
       v-t="'fleet.cluster.summary'"
-      class="mt-20"
+      class="mt-20 text-h2"
     />
     <ResourcesSummary :value="value.status.resourceCounts" />
 

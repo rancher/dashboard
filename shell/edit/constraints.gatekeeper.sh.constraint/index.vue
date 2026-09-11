@@ -264,7 +264,9 @@ export default {
       </div>
       <div class="row mb-40">
         <div class="col span-12">
-          <h3>Enforcement Action</h3>
+          <h3 class="text-h3">
+            Enforcement Action
+          </h3>
           <RadioGroup
             v-model:value="value.spec.enforcementAction"
             name="enforcementAction"
@@ -326,7 +328,9 @@ export default {
           </div>
           <div class="row mt-40">
             <div class="col span-12">
-              <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaceSelector.title') }}</h3>
+              <h3 class="text-h3">
+                {{ t('gatekeeperConstraint.tab.namespaces.sub.namespaceSelector.title') }}
+              </h3>
               <RuleSelector
                 v-model:value="value.spec.match.namespaceSelector.matchExpressions"
                 add-label="Add Namespace Selector"
@@ -350,7 +354,9 @@ export default {
           </div>
           <div class="row mt-40">
             <div class="col span-12">
-              <h3>{{ t('gatekeeperConstraint.tab.rules.sub.labelSelector.title') }}</h3>
+              <h3 class="text-h3">
+                {{ t('gatekeeperConstraint.tab.rules.sub.labelSelector.title') }}
+              </h3>
               <RuleSelector
                 v-model:value="value.spec.match.labelSelector.matchExpressions"
                 :add-label="t('gatekeeperConstraint.tab.rules.sub.labelSelector.addLabel')"

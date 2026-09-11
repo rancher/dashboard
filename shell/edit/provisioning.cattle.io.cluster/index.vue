@@ -21,6 +21,7 @@ import { KONTAINER_TO_DRIVER } from '@shell/models/management.cattle.io.kontaine
 import Rke2Config from './rke2';
 import { requireAsset } from '@shell/utils/require-asset';
 import { resolveSubType } from './subtype-detection';
+import { RcHeading } from '@components/RcHeading';
 
 const SORT_GROUPS = {
   template:  1,
@@ -43,6 +44,7 @@ export default {
   components: {
     CruResource,
     Loading,
+    RcHeading,
     Rke2Config,
     SelectIconGrid,
     Banner
@@ -550,9 +552,9 @@ export default {
         :class="{'mt-5': i === 0, 'mt-20': i !== 0 }"
         style="width: 100%;"
       >
-        <h4>
+        <RcHeading size="h4">
           {{ obj.label }}
-        </h4>
+        </RcHeading>
         <SelectIconGrid
           :rows="obj.types"
           :aria-label="obj.label"

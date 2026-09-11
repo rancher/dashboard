@@ -37,7 +37,9 @@ import {
   computed, inject, provide, useTemplateRef, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
+import RcHeading from '@components/RcHeading/RcHeading.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
+import { nextHeadingLevel, provideHeadingLevel, useHeadingLevel } from '@components/RcHeading/useHeadingLevel';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
 
@@ -82,6 +84,12 @@ defineExpose({
 const hasHeader = computed(() => {
   return props.mode === 'with-header';
 });
+
+const sectionLevel = useHeadingLevel();
+
+const headingLevel = computed(() => props.headingLevel ?? sectionLevel.value);
+
+provideHeadingLevel(computed(() => (hasHeader.value ? nextHeadingLevel(headingLevel.value) : sectionLevel.value)));
 
 const sectionClass = computed(() => ({
   'rc-section':     true,
@@ -130,9 +138,14 @@ function toggle() {
           />
         </RcButton>
         <div class="title">
-          <slot name="title">
-            {{ props.title }}
-          </slot>
+          <RcHeading
+            class="section-title"
+            :level="headingLevel"
+          >
+            <slot name="title">
+              {{ props.title }}
+            </slot>
+          </RcHeading>
           <slot name="counter" />
           <slot name="errors" />
         </div>

@@ -264,7 +264,7 @@ export default {
           </div>
         </template>
 
-        <h3 class="mb-10 mt-10">
+        <h3 class="mb-10 mt-10 text-h3">
           {{ t('backupRestoreOperator.monitoring.label') }}
         </h3>
         <div class="row monitoring-options">

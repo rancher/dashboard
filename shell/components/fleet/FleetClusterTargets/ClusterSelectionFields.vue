@@ -93,7 +93,10 @@ defineExpose({ focusMatchExpression });
   <div :class="isAppco ? 'appco-select-clusters' : undefined">
     <!-- Select by cluster name -->
     <div>
-      <h4 v-if="isAppco">
+      <h4
+        v-if="isAppco"
+        class="text-h4"
+      >
         {{ t('fleet.clusterTargets.clusters.byName.title') }}
       </h4>
       <LabeledSelect

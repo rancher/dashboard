@@ -67,7 +67,9 @@ export default {
         class="data"
         :class="{ 'compact': compact }"
       >
-        <h1>{{ count }}</h1>
+        <div class="count-value">
+          {{ count }}
+        </div>
         <label>{{ name }}</label>
       </div>
     </div>
@@ -106,7 +108,7 @@ export default {
           align-items: center;
           flex-direction: row;
 
-          h1 {
+          .count-value {
             margin-bottom: 0;
             padding-bottom: 0;
           }
@@ -117,7 +119,9 @@ export default {
         }
       }
 
-      h1 {
+      .count-value {
+        @include h-css;
+
         font-size: 40px;
         line-height: 36px;
         padding-bottom: math.div($padding, 2);
@@ -125,7 +129,7 @@ export default {
       }
 
       @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
-        h1 {
+        .count-value {
           font-size: 40px;
           line-height: 36px;
         }

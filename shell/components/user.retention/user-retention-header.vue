@@ -8,7 +8,7 @@ import TabTitle from '@shell/components/TabTitle';
       <div class="title">
         <h1
           data-testid="charts-header-title"
-          class="m-0"
+          class="m-0 text-h1"
         >
           <TabTitle :show-child="false">
             {{ t('user.retention.edit.title.header') }}
@@ -29,6 +29,8 @@ import TabTitle from '@shell/components/TabTitle';
         </h1>
       </div>
     </header>
-    <h2>{{ t('user.retention.edit.title.subTitle') }}</h2>
+    <h2 class="text-h2">
+      {{ t('user.retention.edit.title.subTitle') }}
+    </h2>
   </div>
 </template>

@@ -1,43 +1,52 @@
-@mixin h-css() {
-  color: var(--body-text);
-  font-style: normal;
-  font-weight: 400;
-  margin: 0 0 10px 0;
-  font-family: var(--title-font-family, unset);
-}
-
 HTML, BODY {
   font-family: $body-font;
   font-size: 14px;
 }
 
+$heading-sizes: (1: 24px, 2: $font-size-h2, 3: 18px, 4: 16px, 5: 14px, 6: 12px);
+
+// A heading tag is structure, not style. It imparts nothing of its own, so putting content in the
+// outline cannot change how that content looks, and a level can only ever be chosen for structure.
+// Whatever renders a heading says how it should look, with one of the classes below.
+//
+// The declarations here are a reset, not a style: without them a bare heading falls back to the
+// browser's own heading look, and `h1` to normalize's `font-size: 2em`.
 H1, H2, H3, H4, H5, H6 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+// The heading scale, with no outline level attached. `RcHeading` applies it, and text that is
+// merely heading-sized takes it directly.
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
   @include h-css;
 }
 
-H1 {
-  font-size: 24px;
+@each $level, $size in $heading-sizes {
+  .text-h#{$level} {
+    font-size: $size;
+  }
 }
 
-H2 {
-  font-size: $font-size-h2;
-}
-
-H3 {
-  font-size: 18px;
-}
-
-H4 {
-  font-size: 16px;
-}
-
-H5 {
-  font-size: 14px;
-}
-
-H6 {
-  font-size: 12px;
+.text-h6 {
   text-transform: uppercase;
+}
+
+// Rendered markdown is the one place the tag has to carry the scale on its own: `Markdown.vue`
+// turns chart READMEs and release notes into bare headings that nothing here can put a class on.
+.markdown {
+  @each $level, $size in $heading-sizes {
+    H#{$level} {
+      @include h-css;
+
+      font-size: $size;
+    }
+  }
+
+  H6 {
+    text-transform: uppercase;
+  }
 }
 
 P {

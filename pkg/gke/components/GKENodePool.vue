@@ -293,7 +293,9 @@ export default defineComponent({
 
 <template>
   <div>
-    <h3>{{ t('gke.groupDetails') }}</h3>
+    <h3 class="text-h3">
+      {{ t('gke.groupDetails') }}
+    </h3>
     <RcSeparator />
     <div class="row mb-10">
       <div class="col span-4">
@@ -371,7 +373,7 @@ export default defineComponent({
         </div>
       </template>
     </div>
-    <h3 class="mt-20">
+    <h3 class="mt-20 text-h3">
       {{ t('gke.nodeDetails') }}
     </h3>
     <RcSeparator />
