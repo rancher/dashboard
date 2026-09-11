@@ -437,4 +437,14 @@ describe('component: PodSecurityAdmission', () => {
       });
     });
   });
+
+  it('titles the exemptions without adding to the page heading outline', () => {
+    const exemptions = {
+      namespaces: [], runtimeClasses: [], usernames: []
+    };
+    const wrapper = mount(PodSecurityAdmission, { props: { mode: 'create', exemptions } });
+
+    expect(wrapper.find('.size-3').exists()).toBe(true);
+    expect(wrapper.find('h1, h2, h3, h4, h5, h6').exists()).toBe(false);
+  });
 });
