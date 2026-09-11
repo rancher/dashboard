@@ -35,7 +35,7 @@ Runs automatically **Tue–Sat at 4:00 AM PST** (11:00 UTC) via GitHub Actions, 
 | `UI_QA_SLACK_GROUP_ID` | Repo secret | Slack user group ID for `@ui-qa` mentions (e.g. `S01234ABC`) |
 | `INSPECTOR_GITHUB_PROJECT_NUMBER` | Repo variable | Project board number |
 | `INSPECTOR_BUILD_WINDOW` | Repo variable | Number of recent builds to scan for the batch anchor (default: `50`) |
-| `INSPECTOR_ANCHOR_DESCRIPTION` | Repo variable | Jenkins build description that marks the batch start (default: `head · community · @adminUser`) |
+| `INSPECTOR_ANCHOR_DESCRIPTION` | Repo variable | Jenkins build description that marks the batch start (default: `head · community · @adminUser`). Only the image tag and the Cypress tag prefix are matched — the build type field is ignored, since it is resolved at run time and reads `<kind> row` on a build that failed before resolution |
 | `INSPECTOR_SLACK_THRESHOLD` | Repo variable | Unique failure count above which a Slack alert is sent instead of creating issues (default: `10`). The alert breaks the failures down into ones with an open issue, ones whose issue would be reopened, and untracked ones |
 | `INSPECTOR_SLACK_NOTIFICATION` | Repo variable | Set to `false` to disable Slack alerts (default: `true`) |
 | `INSPECTOR_COPILOT_MODEL` | Repo variable | Copilot model used for AI fix suggestions (default: `gpt-5.6-luna`). Set this if the default model is retired — the model must support the `/responses` API |
