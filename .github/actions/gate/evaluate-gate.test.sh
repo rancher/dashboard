@@ -2,10 +2,9 @@
 #
 # Tests for evaluate-gate.sh. Run directly: ./evaluate-gate.test.sh
 #
-# These matter more than they look. The gate is the repository's only required
-# status check, so a bug that makes it pass unconditionally silently removes all
-# branch protection, and a bug that makes it hang on `skipped` stalls the merge
-# queue for everyone.
+# The gate is the repository's only required status check, so a bug that makes
+# it pass unconditionally silently removes all branch protection, and a bug that
+# makes it hang on `skipped` stalls the merge queue for everyone.
 
 set -uo pipefail
 
@@ -100,10 +99,29 @@ expect 'empty needs blocks' 1 '{}' "$ALL_SKIPPABLE"
 expect 'malformed needs blocks' 1 'not json' "$ALL_SKIPPABLE"
 expect 'missing result field blocks' 1 '{"lint":{}}' "$ALL_SKIPPABLE"
 
-# Substring matching would let `check-i18n` in SKIPPABLE excuse a skipped
-# `check-i18n-links`. grep -w prevents that; this pins the behaviour.
+# Both directions of partial matching, because they fail differently.
+#
+# Long job id against a short list entry. Note this one passes even under a
+# plain substring match — the needle is longer than the haystack — so on its own
+# it proves nothing. It is kept only to pin the pair.
 expect 'skippable matches whole words only' 1 \
   "{\"check-i18n-links\":$(r skipped)}" 'check-i18n'
+
+# Short job id against a long list entry: the direction that actually broke.
+# `grep -w i18n` matches inside `check-i18n` because `-` is not a word
+# constituent, which silently excused a skipped `i18n` — one of the four
+# always-on merge-queue checks — under the real ci-gate config.
+expect 'skippable does not excuse a job that is a suffix of an entry' 1 \
+  "{\"i18n\":$(r skipped)}" 'check-i18n check-i18n-links'
+
+# Same flaw, soft path.
+expect 'soft does not excuse a job that is a suffix of an entry' 1 \
+  "{\"i18n\":$(r failure)}" '' 'check-i18n'
+
+# A jq error inside the results loop must block. `[1,2]` is valid JSON with
+# non-empty `keys`, so it clears the guards above, but `.value.result` errors —
+# which used to yield zero loop iterations and a green gate.
+expect 'jq failure while reading results blocks' 1 '[1,2]' "$ALL_SKIPPABLE"
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
