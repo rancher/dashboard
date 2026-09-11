@@ -249,7 +249,8 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       .should('exist')
       .scrollIntoView()
       .click({ force: true });
-    cy.get(`[data-testid="tab-panel-${ tabName }"]`, MEDIUM_TIMEOUT_OPT).should('be.visible').and('contain', 'THIS IS A DEMO TAB');
+    // New dashboard: tab panels carry data-testid="tab-panel-<name>"; old dashboard: <section id="<name>">.
+    cy.get(`[data-testid="tab-panel-${ tabName }"], section#${ tabName }`, MEDIUM_TIMEOUT_OPT).should('be.visible').and('contain', 'THIS IS A DEMO TAB');
   };
 
   /**
