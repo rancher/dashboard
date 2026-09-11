@@ -760,7 +760,7 @@ export default defineComponent({
             :weight="-1 * i"
             :label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
             :name="`${node.nodegroupName} ${i}`"
-            :error="node.__nameUnique === false"
+            :error="node.__nameUnique === false || node.__nameRequired === false"
           >
             <NodeGroup
               v-model:node-role="node.nodeRole"

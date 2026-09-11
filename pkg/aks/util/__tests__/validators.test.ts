@@ -153,6 +153,16 @@ describe('fx: nodePoolNamesUnique', () => {
     expect(ctx.nodePools.map((pool) => pool?._validation?._validUnique)).toStrictEqual([false, false, true]);
   });
 
+  it('does not treat pools that have no name as duplicates of each other', () => {
+    const ctx = {
+      ...mockCtx,
+      nodePools: [{ name: '', _validation: {} }, { name: '', _validation: {} }, { name: 'abc', _validation: {} }] as unknown as AKSNodePool[]
+    };
+
+    expect(validators.nodePoolNamesUnique(ctx)()).toBeUndefined();
+    expect(ctx.nodePools.map((pool) => pool?._validation?._validUnique)).toStrictEqual([true, true, true]);
+  });
+
   it('clears the flag once a duplicate name is corrected', () => {
     const ctx = {
       ...mockCtx,

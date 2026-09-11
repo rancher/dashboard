@@ -49,6 +49,30 @@ describe('validate EKS node group names', () => {
     expect(res).toBeDefined();
   });
 
+  it('should flag only the node groups that have no name', () => {
+    const ctx = {
+      nodeGroups: [{ nodegroupName: '' }, { nodegroupName: 'abc' }],
+      t:          mockTranslation,
+    } as any as CruEKSContext;
+
+    EKSValidators.nodeGroupNamesRequired(ctx)(undefined);
+
+    expect(ctx.nodeGroups.map((group) => group.__nameRequired)).toStrictEqual([false, undefined]);
+  });
+
+  it('should clear the flag once a node group is named', () => {
+    const ctx = {
+      nodeGroups: [{ nodegroupName: '' }],
+      t:          mockTranslation,
+    } as any as CruEKSContext;
+
+    EKSValidators.nodeGroupNamesRequired(ctx)(undefined);
+    ctx.nodeGroups[0].nodegroupName = 'abc';
+
+    expect(EKSValidators.nodeGroupNamesRequired(ctx)(undefined)).toBeNull();
+    expect(ctx.nodeGroups[0].__nameRequired).toBeUndefined();
+  });
+
   it.each([
     [{
       nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'def' }],

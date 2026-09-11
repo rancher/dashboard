@@ -175,7 +175,7 @@ export const nodePoolNamesUnique = (ctx: any) => {
     let hasDuplicates = false;
 
     pools.forEach((pool: AKSNodePool) => {
-      const isUnique = poolNames.filter((name: string) => name === pool.name).length === 1;
+      const isUnique = !pool.name || poolNames.filter((name: string) => name === pool.name).length === 1;
 
       set(pool._validation, '_validUnique', isUnique);
       hasDuplicates = hasDuplicates || !isUnique;
