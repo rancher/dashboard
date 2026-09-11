@@ -40,10 +40,11 @@ export default {
       this.$store.dispatch('management/promptModal', {
         component:      'DisableAuthProviderDialog',
         customClass:    'remove-modal',
-        modalWidth:     '400',
+        modalWidth:     '640',
         height:         'auto',
         styles:         'max-height: 100vh;',
         componentProps: {
+          name:      this.tArgs?.provider,
           disableCb: () => {
             this.disable();
           }

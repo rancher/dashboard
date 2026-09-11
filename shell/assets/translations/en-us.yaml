@@ -500,6 +500,48 @@ addProjectMemberDialog:
   title: Add Project Member
 
 authConfig:
+  list:
+    title: Authentication Providers
+    description: Configure the identity providers people can use to log in to Rancher.
+    create: Add provider
+    external: External Providers
+    local: Local Authentication
+    customiseLogin: Customise the login screen
+    docsUrl: '{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config'
+    empty:
+      title: No external providers configured
+      description: Everyone logs in with a local Rancher account. Connect an identity provider so people can use their existing company credentials.
+      create: Add a provider
+      learnMore: How external authentication works
+    disableLocal:
+      label: Disable login with local users
+      descriptionOff: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
+      descriptionOn: Local accounts cannot be used to log in. They still exist and keep their permissions — switch this off to make them a way in again. You can only do that from here, so if the provider stops working while this is on, recovery means command-line access to the cluster.
+    localRow:
+      title: Local authentication
+      chip: Built-in
+      description: Accounts for administrators. Use only when a provider is unavailable.
+      meta: Rancher-managed accounts
+      active: Active
+      disabled: Disabled
+      manageUsers: Manage local users
+  add:
+    title: Add an authentication provider
+    subtitle: Select the provider to connect. Rancher supports one external provider, so this is the one users will log in with. To use a different one later you delete this and configure the new one.
+    searchPlaceholder: Search providers
+    filterLabel: Protocol
+    filterAll: All
+    noResults: No providers match your search.
+  disable:
+    action: Disable
+    title: 'Disable {name}?'
+    titleGeneric: Disable this authentication provider?
+    loggedOut: Any user currently signed in with this provider will be logged out and redirected to the login screen.
+    learnMore: Restoring access after disabling a provider
+    docsUrl: '{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config'
+    irreversible: This cannot be undone. Disabling deletes all resources stored for this provider.
+    acknowledge: I understand these users and permissions will be deleted
+    confirm: Disable and delete
   slo:
     sloTitle: Log Out behavior
     sloOptions:
@@ -844,9 +886,6 @@ authConfig:
     disabled: 'The {provider} authentication provider is currently disabled.'
     enabled: 'The {provider} authentication provider is currently enabled.'
   testAndEnable: Test and Enable Authentication
-  noneEnabled: Local Authentication is always enabled, but you may select another additional authentication provider from those shown below.
-  localEnabled: '{vendor} is configured to allow access to accounts in its local database.'
-  manageLocal: Manage Accounts
 
 authGroups:
   actions:

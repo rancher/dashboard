@@ -1,6 +1,6 @@
-import { insertAt } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { requireAsset } from '@shell/utils/require-asset';
+import { MANAGEMENT, NORMAN } from '@shell/config/types';
 
 /**
  * Normalises a provider identifier to a stable key.
@@ -63,20 +63,74 @@ export const providerIcon = (type) => {
   }
 };
 
+const destructive = ['promptDisable', 'promptRemove'];
+
 export default class AuthConfig extends SteveModel {
   get _availableActions() {
-    const out = super._availableActions;
-
-    insertAt(out, 0, {
-      action:  'disable',
-      label:   'Disable',
-      icon:    'icon icon-spinner',
+    const inherited = super._availableActions.filter((a) => !a.divider);
+    const disable = {
+      action:  'promptDisable',
+      label:   this.t('authConfig.disable.action'),
+      icon:    'icon icon-close',
       enabled: this.enabled === true,
+    };
+
+    const out = inherited.filter((a) => !destructive.includes(a.action));
+    const away = [disable, ...inherited.filter((a) => destructive.includes(a.action))];
+
+    return [...out, { divider: true }, ...away];
+  }
+
+  promptDisable() {
+    this.$dispatch('promptModal', {
+      component:      'DisableAuthProviderDialog',
+      customClass:    'remove-modal',
+      modalWidth:     '640',
+      height:         'auto',
+      styles:         'max-height: 100vh;',
+      componentProps: {
+        name:      this.nameDisplay,
+        disableCb: () => this.disable(),
+      },
     });
+  }
 
-    insertAt(out, 1, { divider: true });
+  async disable() {
+    try {
+      const norman = await this.$dispatch('rancher/find', {
+        type: NORMAN.AUTH_CONFIG,
+        id:   this.id,
+        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.id }`, force: true },
+      }, { root: true });
 
-    return out;
+      if (norman.hasAction('disable')) {
+        await norman.doAction('disable');
+      } else {
+        const clone = await this.$dispatch('rancher/clone', { resource: norman }, { root: true });
+
+        clone.enabled = false;
+        await clone.save();
+      }
+
+      await this.$dispatch('find', {
+        type: MANAGEMENT.AUTH_CONFIG, id: this.id, opt: { force: true }
+      });
+    } catch (e) {
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('generic.notification.title.error'),
+        err:   e.data || e,
+      }, { root: true });
+    }
+  }
+
+  get detailLocation() {
+    return {
+      name:   'c-cluster-auth-config-id',
+      params: {
+        cluster: this.$rootGetters['clusterId'],
+        id:      this.id,
+      },
+    };
   }
 
   get nameDisplay() {
