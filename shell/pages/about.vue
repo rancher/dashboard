@@ -194,16 +194,15 @@ export default {
     <section class="open-source-licenses pt-40">
       <h3>{{ t('about.licenses.title') }}</h3>
       <p>{{ t('about.licenses.description') }}</p>
-      <router-link
+      <rc-button
+        size="small"
         :to="{ name: 'licenses' }"
-        class="btn btn-sm role-primary mt-10"
+        class="mt-10"
         data-testid="about__licenses_button"
-        role="button"
         :aria-label="t('about.licenses.viewLicenses')"
-        @keyup.space="$router.push({ name: 'licenses' })"
       >
         {{ t('about.licenses.viewLicenses') }}
-      </router-link>
+      </rc-button>
     </section>
     <template v-if="downloadCli.length">
       <h3 class="pt-40">

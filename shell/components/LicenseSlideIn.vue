@@ -73,14 +73,25 @@ export default {
       </div>
     </header>
 
+    <!--
+      The license body is the panel's scroll container, so it takes focus in
+      the tab order: without it a keyboard user can't scroll a long license.
+      `role="region"` gives the scrolled area an accessible name.
+    -->
     <Markdown
       v-if="markdownText"
       :value="markdownText"
       class="license-body"
+      tabindex="0"
+      role="region"
+      :aria-label="t('about.licenses.panel.textLabel')"
     />
     <pre
       v-else-if="plainText"
       class="license-body license-body-text"
+      tabindex="0"
+      role="region"
+      :aria-label="t('about.licenses.panel.textLabel')"
     >{{ plainText }}</pre>
     <div
       v-else
@@ -144,6 +155,14 @@ export default {
   flex: 1;
   overflow: auto;
   padding-right: 4px;
+
+  // The container is focusable so it can be scrolled by keyboard — it needs a
+  // visible ring when it gets there. Inset so it isn't clipped by the scroll
+  // container's own edge.
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: -2px;
+  }
 
   // Generated notices use inline code for package and file names. The global
   // `code` style boxes it in a bordered, shaded chip, which reads as a UI

@@ -461,6 +461,7 @@ about:
       declaredAs: "Declared license: {license}"
       rawLicense: "Original expression: {expression}"
       author: "Author: {author}"
+      textLabel: License text
 
 accountAndKeys:
   title: Account and API Keys
