@@ -1478,6 +1478,20 @@ catalog:
       enableLabel: Enable Refresh Interval
     downloaded:
       label: Downloaded
+    detail:
+      overview: Overview
+      source: Source
+      type: Type
+      status: Status
+      authentication: Authentication
+      caBundle: CA Cert Bundle
+      exponentialBackOff: Exponential Back Off (min / max / retries)
+      charts:
+        label: Contents
+        view: View Charts
+        none: No contents available
+      extensions:
+        view: View Extensions
     error:
       refresh: Error refreshing repository
   tools:
