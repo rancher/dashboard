@@ -620,7 +620,7 @@ module.exports = function(dir, appConfig = {}) {
       config.plugins.push(createEnvVariablesPlugin(routerBasePath, rancherEnv));
       config.plugins.push(new NodePolyfillPlugin({ additionalAliases: ['process'] })); // required from Webpack 5 to polyfill node modules
 
-     // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
+      // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
       config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
 
       config.plugins.push(new webpack.IgnorePlugin({ resourceRegExp: /\/__tests__\// }));
