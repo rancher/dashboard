@@ -68,34 +68,47 @@ describe('validate EKS node group names', () => {
     [{
       nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'def' }],
       t:          mockTranslation,
-    } as any as CruEKSContext, 'abc', null],
-    [{
-      nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'abc' }, { nodegroupName: 'def' }],
-      t:          mockTranslation,
-    } as any as CruEKSContext, 'abc', 'eks.errors.nodeGroups.nameUnique'],
-    [{
-      nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'abc' }, { nodegroupName: 'def' }],
-      t:          mockTranslation,
-    } as any as CruEKSContext, 'def', null],
-  ])('should return an error if the node group name passed in is not unique within ctx', (ctx, nodeGroupName, expected) => {
-    const res = EKSValidators.nodeGroupNamesUnique(ctx)(nodeGroupName);
-
-    expect(res).toBe(expected);
-  });
-
-  it.each([
-    [{
-      nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'def' }],
-      t:          mockTranslation,
     } as any as CruEKSContext, null],
     [{
       nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'abc' }, { nodegroupName: 'def' }],
       t:          mockTranslation,
-    } as any as CruEKSContext, 'eks.errors.nodeGroups.nameUnique']
-  ])('should return an error if any node group within ctx has non-unique name, if not passed a name', (ctx, expected) => {
-    const res = EKSValidators.nodeGroupNamesUnique(ctx)(undefined);
+    } as any as CruEKSContext, 'eks.errors.nodeGroups.nameUnique'],
+    [{
+      nodeGroups: [{ nodegroupName: '' }, { nodegroupName: '' }],
+      t:          mockTranslation,
+    } as any as CruEKSContext, null],
+    [{
+      nodeGroups: [],
+      t:          mockTranslation,
+    } as any as CruEKSContext, null]
+  ])('should return an error if any node group within ctx has a non-unique name, ignoring unnamed groups', (ctx, expected) => {
+    const res = EKSValidators.nodeGroupNamesUnique(ctx)();
 
     expect(res).toBe(expected);
+  });
+
+  it('should flag only the node groups sharing a name', () => {
+    const ctx = {
+      nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'abc' }, { nodegroupName: 'def' }],
+      t:          mockTranslation,
+    } as any as CruEKSContext;
+
+    EKSValidators.nodeGroupNamesUnique(ctx)();
+
+    expect(ctx.nodeGroups.map((group) => group.__nameUnique)).toStrictEqual([false, false, undefined]);
+  });
+
+  it('should clear the flag once a duplicate name is corrected', () => {
+    const ctx = {
+      nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'abc' }],
+      t:          mockTranslation,
+    } as any as CruEKSContext;
+
+    EKSValidators.nodeGroupNamesUnique(ctx)();
+    ctx.nodeGroups[1].nodegroupName = 'def';
+
+    expect(EKSValidators.nodeGroupNamesUnique(ctx)()).toBeNull();
+    expect(ctx.nodeGroups.every((group) => group.__nameUnique === undefined)).toBe(true);
   });
 });
 
