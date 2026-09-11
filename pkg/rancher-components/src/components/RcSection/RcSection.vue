@@ -9,6 +9,29 @@
  *   <p>Section content here</p>
  * </RcSection>
  *
+ * The default slot stacks whatever is written into it 16px apart, so form
+ * elements go straight in and no call site needs a wrapper div for the
+ * spacing.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <LabeledInput label="Name" />
+ *   <LabeledInput label="Description" />
+ * </RcSection>
+ *
+ * A section that needs several groups writes RcContentGroups into that same
+ * slot. The section spaces groups 24px apart, and each group stacks its own
+ * content 16px apart.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <RcContentGroup>
+ *     <LabeledInput label="Name" />
+ *     <LabeledInput label="Description" />
+ *   </RcContentGroup>
+ *   <RcContentGroup>
+ *     <LabeledInput label="Namespace" />
+ *   </RcContentGroup>
+ * </RcSection>
+ *
  * <RcSection title="Section title" type="secondary" mode="with-header" expandable v-model:expanded="expanded" background="secondary">
  *   <template #counter>
  *     <RcCounterBadge :count="99" type="inactive" />
@@ -133,7 +156,12 @@ function toggle() {
           <slot name="title">
             {{ props.title }}
           </slot>
-          <slot name="counter" />
+          <div
+            v-if="$slots.counter"
+            class="counter"
+          >
+            <slot name="counter" />
+          </div>
           <slot name="errors" />
         </div>
       </div>
@@ -192,6 +220,11 @@ function toggle() {
 
   &.bg-secondary {
     background-color: var(--rc-section-background-secondary);
+
+    > .section-header .counter {
+      --rc-counter-badge-inactive-background: var(--rc-section-counter-background);
+      --rc-counter-badge-inactive-border: var(--rc-section-counter-border);
+    }
   }
 }
 
@@ -225,6 +258,11 @@ function toggle() {
   font-size: 18px;
   line-height: 1.2;
   color: var(--body-text, inherit);
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
 }
 
 // TODO: Considering removing specificity override when RcButton sizes are refactored (#18062)
@@ -262,9 +300,13 @@ function toggle() {
 .section-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--gap-md, 16px);
   padding: 0 0 16px;
   color: var(--body-text);
+
+  &:has(> .rc-content-group) {
+    gap: var(--gap-lg, 24px);
+  }
 
   &.expandable-content {
     padding: 0 0 16px 24px;

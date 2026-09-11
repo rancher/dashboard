@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils';
+import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcSection from './RcSection.vue';
 
 describe('component: RcSection', () => {
@@ -316,6 +317,54 @@ describe('component: RcSection', () => {
       });
 
       expect(wrapper.find('.test-error').exists()).toBe(true);
+    });
+
+    it('should render the default slot straight into the section content', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, expanded: true },
+        slots: { default: '<p class="test-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.section-content > .test-content').exists()).toBe(true);
+      expect(wrapper.find('.rc-content-group').exists()).toBe(false);
+    });
+
+    it('should not render the default slot content when collapsed', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        },
+        slots: { default: '<p class="test-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.test-content').exists()).toBe(false);
+    });
+
+    it('should keep several content groups as siblings the section can space apart', () => {
+      const wrapper = mount(RcSection, {
+        props:  { ...defaultProps, expanded: true },
+        global: { components: { RcContentGroup } },
+        slots:  { default: '<RcContentGroup><p class="one" /></RcContentGroup><RcContentGroup><p class="two" /></RcContentGroup>' },
+      });
+
+      expect(wrapper.findAll('.section-content > .rc-content-group')).toHaveLength(2);
+    });
+  });
+
+  describe('counter badge colour', () => {
+    it('should give the counter slot its own element', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, background: 'secondary' },
+        slots: { counter: '<span class="test-counter">5</span>' },
+      });
+
+      expect(wrapper.find('.section-header .counter > .test-counter').exists()).toBe(true);
+    });
+
+    it('should not render the counter element when no counter slot is given', () => {
+      const wrapper = mount(RcSection, { props: { ...defaultProps, background: 'secondary' } });
+
+      expect(wrapper.find('.counter').exists()).toBe(false);
     });
   });
 });

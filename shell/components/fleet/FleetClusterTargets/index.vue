@@ -9,6 +9,7 @@ import FleetUtils from '@shell/utils/fleet';
 import { Expression, Selector, Target, TargetMode } from '@shell/types/fleet';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
+import { RcContentGroup } from '@components/Layout';
 import { RcSection } from '@components/RcSection';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList.vue';
@@ -54,6 +55,7 @@ export default {
     Banner,
     ClusterSelectionFields,
     RadioGroup,
+    RcContentGroup,
     RcSection,
     TargetsList,
   },
@@ -443,7 +445,7 @@ export default {
       v-if="targetMode === 'clusters' && compact && !isView"
       class="row"
     >
-      <div class="col span-12 content-group">
+      <RcContentGroup class="col span-12">
         <RcSection
           v-model:expanded="clustersExpanded"
           :title="t('fleet.clusterTargets.clusters.title')"
@@ -493,7 +495,7 @@ export default {
             </div>
           </div>
         </RcSection>
-      </div>
+      </RcContentGroup>
     </div>
 
     <!-- Default: original layout -->
@@ -552,12 +554,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .content-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-md);
-  }
-
   .gap-md {
     display: flex;
     flex-direction: column;
