@@ -1,6 +1,9 @@
 <script>
 import { RcButton } from '@components/RcButton';
 import Login from '@shell/mixins/login';
+
+const KUBECONFIG_RESPONSE_TYPE = 'kubeconfig';
+
 export default {
   components: { RcButton },
   mixins:     [Login],
@@ -37,12 +40,24 @@ export default {
 
       return cli || publicKey || responseType || requestId;
     },
-    // If this is a CLI login, we must have the correct respone type and the other params must not be empty
+    // The CLI asks for `kubeconfig` when no cluster is given and `kubeconfig_<clusterId>`
+    // when one is, which Rancher splits back apart on the first underscore
+    validResponseType() {
+      const responseType = this.$route.query.responseType || '';
+      const separator = responseType.indexOf('_');
+
+      if (separator === -1) {
+        return responseType === KUBECONFIG_RESPONSE_TYPE;
+      }
+
+      return responseType.slice(0, separator) === KUBECONFIG_RESPONSE_TYPE && !!responseType.slice(separator + 1);
+    },
+    // If this is a CLI login, we must have the correct response type and the other params must not be empty
     invalidCLILogin() {
-      const { requestId, publicKey, responseType } = this.$route.query;
+      const { requestId, publicKey } = this.$route.query;
 
       if (this.isCLILogin) {
-        return responseType !== 'kubeconfig' || !requestId || !publicKey;
+        return !this.validResponseType || !requestId || !publicKey;
       }
 
       return false;
