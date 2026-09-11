@@ -17,7 +17,12 @@ description: >-
 
 inputs:
   needs:
-    description: 'The calling job''s `needs` context, passed as `${{ toJSON(needs) }}`.'
+    # Keep this description free of expression syntax. GitHub evaluates
+    # expressions throughout action metadata, descriptions included, and `needs`
+    # is not a valid context inside a composite action — wrapping toJSON(needs)
+    # in expression braces here makes the action fail to load before any step
+    # runs, taking every gate that uses it down with it.
+    description: 'The calling job''s `needs` context, passed by the caller as toJSON(needs).'
     required: true
   skippable:
     description: >-
