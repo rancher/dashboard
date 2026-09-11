@@ -4,228 +4,266 @@
       "name": "@aws-crypto/sha256-browser",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-crypto-helpers",
+      "author": "AWS Crypto Tools Team",
       "licenseRef": "Apache-2.0-3b83ef96387f14655fc854ddc3c6bd57"
     },
     {
       "name": "@aws-sdk/client-ec2",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-0cadec2485b9392a2b53348721dd6714"
     },
     {
       "name": "@aws-sdk/client-eks",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-0cadec2485b9392a2b53348721dd6714"
     },
     {
       "name": "@aws-sdk/client-iam",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-0cadec2485b9392a2b53348721dd6714"
     },
     {
       "name": "@aws-sdk/client-kms",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-0cadec2485b9392a2b53348721dd6714"
     },
     {
       "name": "@aws-sdk/core",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-16a84e54f274f4141031a5947ae6ec8c"
     },
     {
       "name": "@aws-sdk/middleware-host-header",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-fcf654f652254835c051d7b0b8635e86"
     },
     {
       "name": "@aws-sdk/middleware-logger",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-373cef3b9e02bfa12bb917a787f8127d"
     },
     {
       "name": "@aws-sdk/middleware-recursion-detection",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-fcf654f652254835c051d7b0b8635e86"
     },
     {
       "name": "@aws-sdk/middleware-user-agent",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-fcf654f652254835c051d7b0b8635e86"
     },
     {
       "name": "@aws-sdk/region-config-resolver",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-1f39f218e2bceac1f99aa030a730dbcb"
     },
     {
       "name": "@aws-sdk/util-endpoints",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-1f39f218e2bceac1f99aa030a730dbcb"
     },
     {
       "name": "@aws-sdk/util-user-agent-browser",
       "license": "Apache-2.0",
       "home": "https://github.com/aws/aws-sdk-js-v3",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-0cadec2485b9392a2b53348721dd6714"
     },
     {
       "name": "@babel/runtime",
       "license": "MIT",
       "home": "https://github.com/babel/babel",
+      "author": "The Babel Team",
       "licenseRef": "MIT-b1d0cd283a346e919abb3beeb018279d"
     },
     {
       "name": "@oozcitak/dom",
       "license": "MIT",
       "home": "https://github.com/oozcitak/dom",
+      "author": "Ozgur Ozcitak",
       "licenseRef": "MIT-780eb97397135c8d45ea09e5f38a2b6a"
     },
     {
       "name": "@oozcitak/infra",
       "license": "MIT",
       "home": "https://github.com/oozcitak/infra",
+      "author": "Ozgur Ozcitak",
       "licenseRef": "MIT-780eb97397135c8d45ea09e5f38a2b6a"
     },
     {
       "name": "@oozcitak/url",
       "license": "MIT",
       "home": "https://github.com/oozcitak/url",
+      "author": "Ozgur Ozcitak",
       "licenseRef": "MIT-780eb97397135c8d45ea09e5f38a2b6a"
     },
     {
       "name": "@oozcitak/util",
       "license": "MIT",
       "home": "https://github.com/oozcitak/util",
+      "author": "Ozgur Ozcitak",
       "licenseRef": "MIT-780eb97397135c8d45ea09e5f38a2b6a"
     },
     {
       "name": "@popperjs/core",
       "license": "MIT",
       "home": "https://github.com/popperjs/popper-core",
+      "author": "Federico Zivolo",
       "licenseRef": "MIT-a40e4e94f7a8ca8e2883d3ec3674eae4"
     },
     {
       "name": "@rancher/icons",
       "license": "Apache-2.0",
       "home": "https://github.com/rancher/icons",
+      "author": "SUSE",
       "licenseRef": "Apache-2.0-ff253ad767462c46be284da12dda33e8"
     },
     {
       "name": "@smithy/core",
       "license": "Apache-2.0",
       "home": "https://github.com/smithy-lang/smithy-typescript",
+      "author": "AWS Smithy Team",
       "licenseRef": "Apache-2.0-fcf654f652254835c051d7b0b8635e86"
     },
     {
       "name": "@smithy/fetch-http-handler",
       "license": "Apache-2.0",
       "home": "https://github.com/smithy-lang/smithy-typescript",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-1f39f218e2bceac1f99aa030a730dbcb"
     },
     {
       "name": "@smithy/signature-v4",
       "license": "Apache-2.0",
       "home": "https://github.com/smithy-lang/smithy-typescript",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-1f39f218e2bceac1f99aa030a730dbcb"
     },
     {
       "name": "@smithy/types",
       "license": "Apache-2.0",
       "home": "https://github.com/smithy-lang/smithy-typescript",
+      "author": "AWS Smithy Team",
       "licenseRef": "Apache-2.0-fcf654f652254835c051d7b0b8635e86"
     },
     {
       "name": "@smithy/util-base64",
       "license": "Apache-2.0",
       "home": "https://github.com/smithy-lang/smithy-typescript",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-1f39f218e2bceac1f99aa030a730dbcb"
     },
     {
       "name": "@smithy/util-body-length-browser",
       "license": "Apache-2.0",
       "home": "https://github.com/smithy-lang/smithy-typescript",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-1f39f218e2bceac1f99aa030a730dbcb"
     },
     {
       "name": "@smithy/util-utf8",
       "license": "Apache-2.0",
       "home": "https://github.com/smithy-lang/smithy-typescript",
+      "author": "AWS SDK for JavaScript Team",
       "licenseRef": "Apache-2.0-1f39f218e2bceac1f99aa030a730dbcb"
     },
     {
       "name": "@vee-validate/zod",
       "license": "MIT",
       "home": "https://github.com/logaretm/vee-validate",
+      "author": "Abdelrahman Awad",
       "licenseRef": "MIT-776e453114b988e720953109d13f1ba1"
     },
     {
       "name": "@vue/compiler-dom",
       "license": "MIT",
       "home": "https://github.com/vuejs/core",
+      "author": "Evan You",
       "licenseRef": "MIT-80753afcd3540ce1f845ee2cc8f33114"
     },
     {
       "name": "@vue/reactivity",
       "license": "MIT",
       "home": "https://github.com/vuejs/core",
+      "author": "Evan You",
       "licenseRef": "MIT-80753afcd3540ce1f845ee2cc8f33114"
     },
     {
       "name": "@vue/runtime-core",
       "license": "MIT",
       "home": "https://github.com/vuejs/core",
+      "author": "Evan You",
       "licenseRef": "MIT-80753afcd3540ce1f845ee2cc8f33114"
     },
     {
       "name": "@vue/runtime-dom",
       "license": "MIT",
       "home": "https://github.com/vuejs/core",
+      "author": "Evan You",
       "licenseRef": "MIT-80753afcd3540ce1f845ee2cc8f33114"
     },
     {
       "name": "@vue/shared",
       "license": "MIT",
       "home": "https://github.com/vuejs/core",
+      "author": "Evan You",
       "licenseRef": "MIT-80753afcd3540ce1f845ee2cc8f33114"
     },
     {
       "name": "@xterm/addon-canvas",
       "license": "MIT",
       "home": "https://github.com/xtermjs/xterm.js/tree/master/addons/addon-canvas",
+      "author": "The xterm.js authors",
       "licenseRef": "MIT-f26090141cc8b051033a6868211602d3"
     },
     {
       "name": "@xterm/addon-fit",
       "license": "MIT",
       "home": "https://github.com/xtermjs/xterm.js/tree/master/addons/addon-fit",
+      "author": "The xterm.js authors",
       "licenseRef": "MIT-a3f4800475c9254c3fd6abcffbc62d61"
     },
     {
       "name": "@xterm/addon-search",
       "license": "MIT",
       "home": "https://github.com/xtermjs/xterm.js/tree/master/addons/addon-search",
+      "author": "The xterm.js authors",
       "licenseRef": "MIT-f26090141cc8b051033a6868211602d3"
     },
     {
       "name": "@xterm/addon-web-links",
       "license": "MIT",
       "home": "https://github.com/xtermjs/xterm.js/tree/master/addons/addon-web-links",
+      "author": "The xterm.js authors",
       "licenseRef": "MIT-f26090141cc8b051033a6868211602d3"
     },
     {
       "name": "@xterm/addon-webgl",
       "license": "MIT",
       "home": "https://github.com/xtermjs/xterm.js/tree/master/addons/addon-webgl",
+      "author": "The xterm.js authors",
       "licenseRef": "MIT-2ddc53a3fa4d42c80c7c26d01b85aa16"
     },
     {
@@ -238,66 +276,77 @@
       "name": "ansi_up",
       "license": "MIT",
       "home": "https://github.com/drudru/ansi_up",
+      "author": "drudru",
       "licenseRef": "MIT-37e434560a2f407f91146a32e6101f53"
     },
     {
       "name": "axios",
       "license": "MIT",
       "home": "https://github.com/axios/axios",
+      "author": "Matt Zabriskie",
       "licenseRef": "MIT-a9f12edf7bc60d718b6ff862f62b3f1a"
     },
     {
       "name": "axios-retry",
       "license": "Apache-2.0",
       "home": "https://github.com/softonic/axios-retry",
+      "author": "Rubén Norte",
       "licenseRef": "Apache-2.0-29fc3a944b267976ef7e562ddaa5e75c"
     },
     {
       "name": "base64-js",
       "license": "MIT",
       "home": "https://github.com/beatgammit/base64-js",
+      "author": "T. Jameson Little",
       "licenseRef": "MIT-ea9187ca93cdc4f71219d1675712e908"
     },
     {
       "name": "buffer",
       "license": "MIT",
       "home": "https://github.com/feross/buffer",
+      "author": "Feross Aboukhadijeh",
       "licenseRef": "MIT-e49e579dbcc02cf1f699deec85fd96f0"
     },
     {
       "name": "builtin-status-codes",
       "license": "MIT",
       "home": "https://github.com/bendrucker/builtin-status-codes",
+      "author": "Ben Drucker",
       "licenseRef": "MIT-10fe968c1bab841cdadb1a572bd41e9f"
     },
     {
       "name": "call-bind-apply-helpers",
       "license": "MIT",
       "home": "https://github.com/ljharb/call-bind-apply-helpers",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-8fe23ea421aaf9f9d687709f6a6a09b7"
     },
     {
       "name": "call-bound",
       "license": "MIT",
       "home": "https://github.com/ljharb/call-bound",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-8fe23ea421aaf9f9d687709f6a6a09b7"
     },
     {
       "name": "clipboard-polyfill",
       "license": "MIT",
       "home": "https://github.com/lgarron/clipboard-polyfill",
-      "licenseRef": "MIT-9ce32932f98f71ff622de7098ef2700d"
+      "author": "Lucas Garron",
+      "licenseRef": "MIT-503b3fc6ec585b5cea67ff9d32da6ed1"
     },
     {
       "name": "codemirror",
       "license": "MIT",
       "home": "https://github.com/codemirror/CodeMirror",
+      "author": "Marijn Haverbeke",
       "licenseRef": "MIT-d935e58dfcf97600708f61e6da346b61"
     },
     {
       "name": "codemirror-editor-vue3",
       "license": "MIT",
       "home": "https://github.com/rennzhang/codemirror-editor-vue3",
+      "author": "RennCheung",
       "licenseRef": "MIT-22a4899b4dc91d6b2a8d30f89745c3b2"
     },
     {
@@ -310,102 +359,56 @@
       "name": "cookie-universal",
       "license": "MIT",
       "home": "https://github.com/microcipcip/cookie-universal/tree/master/packages/cookie-universal",
+      "author": "Salvatore Tedde",
       "licenseRef": "MIT-f763258ee7bb6cc9af77a54882ed00ea"
     },
     {
       "name": "cron-validator",
       "license": "MIT",
       "home": "https://github.com/GuillaumeRochat/cron-validator",
+      "author": "Guillaume Rochat",
       "licenseRef": "MIT-21bf53cd69883a439ed599ce2600b6e9"
     },
     {
       "name": "cronstrue",
       "license": "MIT",
       "home": "https://github.com/bradymholt/cronstrue",
+      "author": "Brady Holt",
       "licenseRef": "MIT-00dbc017ae4a825b5f3c34dac7206d7f"
     },
     {
       "name": "css-loader",
       "license": "MIT",
       "home": "https://github.com/webpack-contrib/css-loader",
+      "author": "Tobias Koppers @sokra",
       "licenseRef": "MIT-95a881ed5cb29fc8a0fa0356525f30ac"
     },
     {
       "name": "custom-event-polyfill",
       "license": "MIT",
       "home": "https://github.com/kumarharsh/custom-event-polyfill",
+      "author": "Evan Krambuhl",
       "licenseRef": "MIT-5546a27f38c84d98870bcd03cb64b436"
     },
     {
       "name": "d3",
       "license": "ISC",
       "home": "https://github.com/d3/d3",
+      "author": "Mike Bostock",
       "licenseRef": "ISC-bd18a9b972cd2b43fca5be7c3d6642be"
-    },
-    {
-      "name": "dashboard",
-      "license": "Apache-2.0",
-      "home": "https://github.com/rancher/dashboard",
-      "licenseRef": "Apache-2.0-ff253ad767462c46be284da12dda33e8"
-    },
-    {
-      "name": "dashboard",
-      "license": "Apache-2.0",
-      "home": "https://github.com/rancher/dashboard",
-      "licenseRef": "Apache-2.0-ff253ad767462c46be284da12dda33e8"
-    },
-    {
-      "name": "dashboard",
-      "license": "Apache-2.0",
-      "home": "https://github.com/rancher/dashboard",
-      "licenseRef": "Apache-2.0-ff253ad767462c46be284da12dda33e8"
-    },
-    {
-      "name": "dashboard",
-      "license": "Apache-2.0",
-      "home": "https://github.com/rancher/dashboard",
-      "licenseRef": "Apache-2.0-ff253ad767462c46be284da12dda33e8"
-    },
-    {
-      "name": "dashboard",
-      "license": "Apache-2.0",
-      "home": "https://github.com/rancher/dashboard",
-      "licenseRef": "Apache-2.0-ff253ad767462c46be284da12dda33e8"
-    },
-    {
-      "name": "dashboard",
-      "license": "Apache-2.0",
-      "home": "https://github.com/rancher/dashboard",
-      "licenseRef": "Apache-2.0-ff253ad767462c46be284da12dda33e8"
-    },
-    {
-      "name": "dashboard",
-      "license": "Apache-2.0",
-      "home": "https://github.com/rancher/dashboard",
-      "licenseRef": "Apache-2.0-ff253ad767462c46be284da12dda33e8"
-    },
-    {
-      "name": "dashboard",
-      "license": "Apache-2.0",
-      "home": "https://github.com/rancher/dashboard",
-      "licenseRef": "Apache-2.0-ff253ad767462c46be284da12dda33e8"
     },
     {
       "name": "dayjs",
       "license": "MIT",
       "home": "https://github.com/iamkun/dayjs",
+      "author": "iamkun",
       "licenseRef": "MIT-928913777077eb4559660390651e482e"
     },
     {
       "name": "diff",
       "license": "BSD-3-Clause",
       "home": "https://github.com/kpdecker/jsdiff",
-      "licenseRef": "BSD-3-Clause-bc34dfd9615750eb7545e8e692ea2eaa"
-    },
-    {
-      "name": "diff",
-      "license": "BSD-3-Clause",
-      "home": "https://github.com/kpdecker/jsdiff",
+      "author": "Kevin Decker",
       "licenseRef": "BSD-3-Clause-bc34dfd9615750eb7545e8e692ea2eaa"
     },
     {
@@ -418,6 +421,7 @@
       "name": "diff2html",
       "license": "MIT",
       "home": "https://github.com/rtfpessoa/diff2html",
+      "author": "Rodrigo Fernandes",
       "licenseRef": "MIT-117688ccac1784d52d6b01a4df80c7ff"
     },
     {
@@ -425,12 +429,14 @@
       "license": "Apache-2.0",
       "licenseField": "(MPL-2.0 OR Apache-2.0)",
       "home": "https://github.com/cure53/DOMPurify",
+      "author": "Dr.-Ing. Mario Heiderich, Cure53",
       "licenseRef": "Apache-2.0-3b83ef96387f14655fc854ddc3c6bd57"
     },
     {
       "name": "dunder-proto",
       "license": "MIT",
       "home": "https://github.com/es-shims/dunder-proto",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-a5b1dd92a77a6632ebcc7425b08e9078"
     },
     {
@@ -438,120 +444,140 @@
       "license": "MIT",
       "licenseField": "MIT (https://jelmer.mit-license.org/)",
       "home": "https://github.com/jelmerdemaat/element-matches",
+      "author": "Jelmer de Maat",
       "licenseRef": "MIT-31a80769a837f8aef8c005779d8c265a"
     },
     {
       "name": "es-define-property",
       "license": "MIT",
       "home": "https://github.com/ljharb/es-define-property",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-8fe23ea421aaf9f9d687709f6a6a09b7"
     },
     {
       "name": "es-errors",
       "license": "MIT",
       "home": "https://github.com/ljharb/es-errors",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-8fe23ea421aaf9f9d687709f6a6a09b7"
     },
     {
       "name": "es-object-atoms",
       "license": "MIT",
       "home": "https://github.com/ljharb/es-object-atoms",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-8fe23ea421aaf9f9d687709f6a6a09b7"
     },
     {
       "name": "event-target-shim",
       "license": "MIT",
       "home": "https://github.com/mysticatea/event-target-shim",
+      "author": "Toru Nagashima",
       "licenseRef": "MIT-893385a31dda2493704bc7f39bc976a0"
     },
     {
       "name": "events",
       "license": "MIT",
       "home": "https://github.com/Gozala/events",
+      "author": "Irakli Gozalishvili",
       "licenseRef": "MIT-d6ec4b5e129a1d757b41126ba3934078"
     },
     {
       "name": "file-saver",
       "license": "MIT",
       "home": "https://github.com/eligrey/FileSaver.js",
+      "author": "Eli Grey",
       "licenseRef": "MIT-4e3ff6c1d69fb44aff045adc3756d2a6"
     },
     {
       "name": "floating-vue",
       "license": "MIT",
       "home": "https://github.com/Akryum/floating-vue",
+      "author": "Guillaume Chau",
       "licenseRef": "MIT-bbe1309fe76be373b311c80507241559"
     },
     {
       "name": "focus-trap",
       "license": "MIT",
       "home": "https://github.com/focus-trap/focus-trap",
+      "author": "David Clark",
       "licenseRef": "MIT-11fb7eb4ad04d94add4876d6456d03b5"
     },
     {
       "name": "function-bind",
       "license": "MIT",
       "home": "https://github.com/Raynos/function-bind",
+      "author": "Raynos",
       "licenseRef": "MIT-e7417c1a8ad83f88bcac21ad440d48b2"
     },
     {
       "name": "get-intrinsic",
       "license": "MIT",
       "home": "https://github.com/ljharb/get-intrinsic",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-0eb2c73daa0ecf037cbdf3d0bb0c98d5"
     },
     {
       "name": "get-proto",
       "license": "MIT",
       "home": "https://github.com/ljharb/get-proto",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-a0b3a4562fb57e50242fb66b24fd2cdf"
     },
     {
       "name": "gopd",
       "license": "MIT",
       "home": "https://github.com/ljharb/gopd",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-8478c87d16770f6d32a4578c475d3930"
     },
     {
       "name": "has-symbols",
       "license": "MIT",
       "home": "https://github.com/inspect-js/has-symbols",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-afee57a289508ed4df3456667778aaf6"
     },
     {
       "name": "hasown",
       "license": "MIT",
       "home": "https://github.com/inspect-js/hasOwn",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-19283ee92f78c91154834571c1f05a94"
     },
     {
       "name": "highlight.js",
       "license": "BSD-3-Clause",
       "home": "https://github.com/highlightjs/highlight.js",
+      "author": "Josh Goebel",
       "licenseRef": "BSD-3-Clause-1536cfb4c71fcc69423296231a64c1c4"
     },
     {
       "name": "hogan.js",
       "license": "Apache-2.0",
       "home": "https://github.com/twitter/hogan.js",
+      "author": "Twitter Inc.",
       "licenseRef": "Apache-2.0-a832eda17114b48ae16cda6a500941c2"
     },
     {
       "name": "https-browserify",
       "license": "MIT",
       "home": "https://github.com/substack/https-browserify",
+      "author": "James Halliday",
       "licenseRef": "MIT-b1ebebdb7dfa6f9fb52ca049bdfa0e13"
     },
     {
       "name": "identicon.js",
       "license": "BSD",
       "home": "https://github.com/stewartlord/identicon.js",
+      "author": "stewardlord",
       "licenseRef": "BSD-185e2298eabc96c0ca37c6a0c9304d8a"
     },
     {
       "name": "ieee754",
       "license": "BSD-3-Clause",
       "home": "https://github.com/feross/ieee754",
+      "author": "Feross Aboukhadijeh",
       "licenseRef": "BSD-3-Clause-56c3be003027d64d24ca6b69a2612f2f"
     },
     {
@@ -564,48 +590,56 @@
       "name": "intl-messageformat",
       "license": "BSD-3-Clause",
       "home": "https://github.com/formatjs/formatjs",
-      "licenseRef": "BSD-3-Clause-913015c0e75ff89ef9461fadca555f65"
+      "author": "Eric Ferraiuolo",
+      "licenseRef": "BSD-3-Clause-a93f41ed37d71934a82df1f5c939c27f"
     },
     {
       "name": "ipaddr.js",
       "license": "MIT",
       "home": "https://github.com/whitequark/ipaddr.js",
+      "author": "whitequark",
       "licenseRef": "MIT-88f60a4b6e44cb849b5d907a7664c0ef"
     },
     {
       "name": "is-retry-allowed",
       "license": "MIT",
       "home": "https://github.com/floatdrop/is-retry-allowed",
+      "author": "Vsevolod Strukchinsky",
       "licenseRef": "MIT-be72c3ad86c1c4e9578a1945b082b17d"
     },
     {
       "name": "jexl",
       "license": "MIT",
       "home": "https://github.com/TomFrost/jexl",
+      "author": "Tom Shawver",
       "licenseRef": "MIT-9a54d8806e5c6b88ee4f732b7a4e2b84"
     },
     {
       "name": "jquery",
       "license": "MIT",
       "home": "https://github.com/jquery/jquery",
+      "author": "JS Foundation and other contributors",
       "licenseRef": "MIT-75308107741f7dcdc39127209c7e3fc8"
     },
     {
       "name": "js-yaml",
       "license": "MIT",
       "home": "https://github.com/nodeca/js-yaml",
+      "author": "Vladimir Zapparov",
       "licenseRef": "MIT-effd621a9bf5d72d6a7e6ef819bf3afb"
     },
     {
       "name": "jsonpath-plus",
       "license": "MIT",
       "home": "https://github.com/s3u/JSONPath",
+      "author": "Stefan Goessner",
       "licenseRef": "MIT-f22a3260cc206f2a0346284c5d1992ee"
     },
     {
       "name": "jsrsasign",
       "license": "MIT",
       "home": "https://github.com/kjur/jsrsasign",
+      "author": "Kenji Urushima",
       "licenseRef": "MIT-5ea79881c48517ce5e5c8cb8235a1ac0"
     },
     {
@@ -613,60 +647,70 @@
       "license": "MIT",
       "licenseField": "(MIT OR GPL-3.0-or-later)",
       "home": "https://github.com/Stuk/jszip",
+      "author": "Stuart Knightley",
       "licenseRef": "MIT-972867a34dded26d9a1b2feb6978b5f2"
     },
     {
       "name": "lodash",
       "license": "MIT",
       "home": "https://github.com/lodash/lodash",
+      "author": "John-David Dalton",
       "licenseRef": "MIT-8e2fca844c70b3833d7228885447c026"
     },
     {
       "name": "marked",
       "license": "MIT",
       "home": "https://github.com/markedjs/marked",
+      "author": "Christopher Jeffrey",
       "licenseRef": "MIT-63067ac27c0f658572e4798649c2ef4a"
     },
     {
       "name": "math-intrinsics",
       "license": "MIT",
       "home": "https://github.com/es-shims/math-intrinsics",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-a5b1dd92a77a6632ebcc7425b08e9078"
     },
     {
       "name": "node-stdlib-browser",
       "license": "MIT",
       "home": "https://github.com/niksy/node-stdlib-browser",
+      "author": "Ivan Nikolić",
       "licenseRef": "MIT-cd56d1561912ad450086930c8d6c1bbd"
     },
     {
       "name": "object-inspect",
       "license": "MIT",
       "home": "https://github.com/inspect-js/object-inspect",
+      "author": "James Halliday",
       "licenseRef": "MIT-288162f1d1bfa064f127f2b42d2a656f"
     },
     {
       "name": "papaparse",
       "license": "MIT",
       "home": "https://github.com/mholt/PapaParse",
+      "author": "Matthew Holt",
       "licenseRef": "MIT-2e43bc37092314c7c34840d148f34495"
     },
     {
       "name": "portal-vue",
       "license": "MIT",
       "home": "https://github.com/LinusBorg/portal-vue",
+      "author": "Thorsten Lünborg",
       "licenseRef": "MIT-9132188cf3f43fa42bfcce28968bd132"
     },
     {
       "name": "punycode",
       "license": "MIT",
       "home": "https://github.com/bestiejs/punycode.js",
+      "author": "Mathias Bynens",
       "licenseRef": "MIT-141d84f694cfe9f7ae99a983ce8d926a"
     },
     {
       "name": "qs",
       "license": "BSD-3-Clause",
       "home": "https://github.com/ljharb/qs",
+      "author": "Jordan Harband",
       "licenseRef": "BSD-3-Clause-b289135779dd930509ae81e6041690c0"
     },
     {
@@ -679,48 +723,56 @@
       "name": "safe-buffer",
       "license": "MIT",
       "home": "https://github.com/feross/safe-buffer",
+      "author": "Feross Aboukhadijeh",
       "licenseRef": "MIT-badd5e91c737e7ffdf10b40c1f907761"
     },
     {
       "name": "semver",
       "license": "ISC",
       "home": "https://github.com/npm/node-semver",
+      "author": "GitHub Inc.",
       "licenseRef": "ISC-82703a69f6d7411dde679954c2fd9dca"
     },
     {
       "name": "side-channel",
       "license": "MIT",
       "home": "https://github.com/ljharb/side-channel",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-375dc7ca936a14e9c29418d5263bd066"
     },
     {
       "name": "side-channel-list",
       "license": "MIT",
       "home": "https://github.com/ljharb/side-channel-list",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-8fe23ea421aaf9f9d687709f6a6a09b7"
     },
     {
       "name": "side-channel-map",
       "license": "MIT",
       "home": "https://github.com/ljharb/side-channel-map",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-8fe23ea421aaf9f9d687709f6a6a09b7"
     },
     {
       "name": "side-channel-weakmap",
       "license": "MIT",
       "home": "https://github.com/ljharb/side-channel-weakmap",
+      "author": "Jordan Harband",
       "licenseRef": "MIT-375dc7ca936a14e9c29418d5263bd066"
     },
     {
       "name": "sortablejs",
       "license": "MIT",
       "home": "https://github.com/SortableJS/Sortable",
+      "author": "Konstantin Lebedev",
       "licenseRef": "MIT-de4aebaf7b7d0d4c8906e079c511b3d0"
     },
     {
       "name": "stream-http",
       "license": "MIT",
       "home": "https://github.com/jhiesey/stream-http",
+      "author": "John Hiesey",
       "licenseRef": "MIT-a7bee217be23aae11dffa55c3909b333"
     },
     {
@@ -745,60 +797,70 @@
       "name": "url",
       "license": "MIT",
       "home": "https://github.com/defunctzombie/node-url",
+      "author": "defunctzombie",
       "licenseRef": "MIT-656523ff828d6c813ce5d4f6c39eec54"
     },
     {
       "name": "util-deprecate",
       "license": "MIT",
       "home": "https://github.com/TooTallNate/util-deprecate",
+      "author": "Nathan Rajlich",
       "licenseRef": "MIT-b7c99ef4b0f3ad9911a52219947f8cf0"
     },
     {
       "name": "vee-validate",
       "license": "MIT",
       "home": "https://github.com/logaretm/vee-validate",
+      "author": "Abdelrahman Awad",
       "licenseRef": "MIT-776e453114b988e720953109d13f1ba1"
     },
     {
       "name": "vue",
       "license": "MIT",
       "home": "https://github.com/vuejs/core",
+      "author": "Evan You",
       "licenseRef": "MIT-80753afcd3540ce1f845ee2cc8f33114"
     },
     {
       "name": "vue-loader",
       "license": "MIT",
       "home": "https://github.com/vuejs/vue-loader",
+      "author": "Evan You",
       "licenseRef": "MIT-e398890ee626c3e1801b7c1a90443aef"
     },
     {
       "name": "vue-router",
       "license": "MIT",
       "home": "https://github.com/vuejs/router",
+      "author": "Eduardo San Martin Morote",
       "licenseRef": "MIT-c6972b63f41e7aa5567e73d7c133fd47"
     },
     {
       "name": "vue-select",
       "license": "MIT",
       "home": "https://github.com/sagalbot/vue-select",
+      "author": "Jeff Sagal",
       "licenseRef": "MIT-c2e959e357ad1b51335309a0ff887276"
     },
     {
       "name": "vue-style-loader",
       "license": "MIT",
       "home": "https://github.com/vuejs/vue-style-loader",
+      "author": "Evan You",
       "licenseRef": "MIT-95a881ed5cb29fc8a0fa0356525f30ac"
     },
     {
       "name": "vue3-resize",
       "license": "MIT",
       "home": "https://github.com/Akryum/vue-resize",
+      "author": "Guillaume Chau",
       "licenseRef": "MIT-e94bd9cdaa4f47dc20cd9dc22e28f267"
     },
     {
       "name": "vue3-virtual-scroll-list",
       "license": "MIT",
       "home": "https://github.com/reactjser/vue3-virtual-scroll-list",
+      "author": "reactjser",
       "licenseRef": "MIT-19030a021982ed56a4b2527cf7d0583a"
     },
     {
@@ -811,36 +873,42 @@
       "name": "vuex",
       "license": "MIT",
       "home": "https://github.com/vuejs/vuex",
+      "author": "Evan You",
       "licenseRef": "MIT-761fb17e53b4b87a0507c26d4bd5bfa4"
     },
     {
       "name": "worker-loader",
       "license": "MIT",
       "home": "https://github.com/webpack-contrib/worker-loader",
+      "author": "Tobias Koppers @sokra",
       "licenseRef": "MIT-95a881ed5cb29fc8a0fa0356525f30ac"
     },
     {
       "name": "xmlbuilder2",
       "license": "MIT",
       "home": "https://github.com/oozcitak/xmlbuilder2",
+      "author": "Ozgur Ozcitak",
       "licenseRef": "MIT-780eb97397135c8d45ea09e5f38a2b6a"
     },
     {
       "name": "xtend",
       "license": "MIT",
       "home": "https://github.com/Raynos/xtend",
+      "author": "Raynos",
       "licenseRef": "MIT-66787c5cd698a0b30b358c7e30f500ca"
     },
     {
       "name": "yaml",
       "license": "ISC",
       "home": "https://github.com/eemeli/yaml",
+      "author": "Eemeli Aro",
       "licenseRef": "ISC-128142eeb7d706269284a8f0e5aa587c"
     },
     {
       "name": "zod",
       "license": "MIT",
       "home": "https://github.com/colinhacks/zod",
+      "author": "Colin McDonnell",
       "licenseRef": "MIT-5ba88f73243a1f2aca88f85ac1baca58"
     }
   ],
@@ -914,8 +982,8 @@
     "MIT-8fe23ea421aaf9f9d687709f6a6a09b7": {
       "text": "MIT License\n\nCopyright (c) 2024 Jordan Harband\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
     },
-    "MIT-9ce32932f98f71ff622de7098ef2700d": {
-      "markdown": "Copyright 2026 Lucas Garron\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
+    "MIT-503b3fc6ec585b5cea67ff9d32da6ed1": {
+      "markdown": "# No license file shipped\n\n`clipboard-polyfill` declares the **MIT** license in its `package.json`, but does not ship an explicit license file, so no license text could be included here.\n\nPlease refer to the home page above for this library's license terms.\n\n_This notice was generated by the Rancher Dashboard license report. It is not part of the library._\n"
     },
     "MIT-d935e58dfcf97600708f61e6da346b61": {
       "text": "MIT License\n\nCopyright (C) 2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n"
@@ -1013,8 +1081,8 @@
     "ISC-5b2ef2247af6d355ae9d9f988092d470": {
       "text": "The ISC License\n\nCopyright (c) Isaac Z. Schlueter\n\nPermission to use, copy, modify, and/or distribute this software for any\npurpose with or without fee is hereby granted, provided that the above\ncopyright notice and this permission notice appear in all copies.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH\nREGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND\nFITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,\nINDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM\nLOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR\nOTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR\nPERFORMANCE OF THIS SOFTWARE.\n\n"
     },
-    "BSD-3-Clause-913015c0e75ff89ef9461fadca555f65": {
-      "markdown": "Copyright (c) 2019, Oath Inc.\n\nLicensed under the terms of the New BSD license. See below for terms.\n\nRedistribution and use of this software in source and binary forms,\nwith or without modification, are permitted provided that the following\nconditions are met:\n\n- Redistributions of source code must retain the above\n  copyright notice, this list of conditions and the\n  following disclaimer.\n\n- Redistributions in binary form must reproduce the above\n  copyright notice, this list of conditions and the\n  following disclaimer in the documentation and/or other\n  materials provided with the distribution.\n\n- Neither the name of Oath Inc. nor the names of its\n  contributors may be used to endorse or promote products\n  derived from this software without specific prior\n  written permission of Oath Inc.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS\nIS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED\nTO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A\nPARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\nOWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\nSPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\nLIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\nDATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\nTHEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n"
+    "BSD-3-Clause-a93f41ed37d71934a82df1f5c939c27f": {
+      "markdown": "Copyright (c) 2023, Oath Inc.\n\nLicensed under the terms of the New BSD license. See below for terms.\n\nRedistribution and use of this software in source and binary forms,\nwith or without modification, are permitted provided that the following\nconditions are met:\n\n- Redistributions of source code must retain the above\n  copyright notice, this list of conditions and the\n  following disclaimer.\n\n- Redistributions in binary form must reproduce the above\n  copyright notice, this list of conditions and the\n  following disclaimer in the documentation and/or other\n  materials provided with the distribution.\n\n- Neither the name of Oath Inc. nor the names of its\n  contributors may be used to endorse or promote products\n  derived from this software without specific prior\n  written permission of Oath Inc.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS\nIS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED\nTO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A\nPARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\nOWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\nSPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\nLIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\nDATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\nTHEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n"
     },
     "MIT-88f60a4b6e44cb849b5d907a7664c0ef": {
       "text": "Copyright (C) 2011-2017 whitequark <whitequark@whitequark.org>\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n"
