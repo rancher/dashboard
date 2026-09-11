@@ -67,5 +67,18 @@ describe('component: LicenseSlideIn', () => {
       expect(wrapper.find('.empty').exists()).toBe(true);
       expect(wrapper.find('.declared').text()).toBe('about.licenses.panel.declaredAs-{"license":"MIT"}');
     });
+
+    // The body is the panel's scroll container, so a keyboard user needs to be
+    // able to tab to it and scroll a license that doesn't fit on screen.
+    it.each([
+      ['markdown', { markdown: '# No license file shipped' }],
+      ['plain text', { text: 'MIT License' }]
+    ])('should expose the %s body as a focusable, labelled region', (_label, content) => {
+      const body = mount({ content }).find('.license-body');
+
+      expect(body.attributes('tabindex')).toBe('0');
+      expect(body.attributes('role')).toBe('region');
+      expect(body.attributes('aria-label')).toBe('about.licenses.panel.textLabel');
+    });
   });
 });

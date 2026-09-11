@@ -4,6 +4,7 @@ import SortableTable from '@shell/components/SortableTable';
 import TabTitle from '@shell/components/TabTitle';
 import Banner from '@components/Banner/Banner.vue';
 import LicenseSlideIn from '@shell/components/LicenseSlideIn.vue';
+import { RcButton } from '@components/RcButton';
 
 // Build the URL relative to the deployed router base — e.g. `/licenses.json`
 // at root, `/dashboard/licenses.json` when the app is served from /dashboard.
@@ -14,7 +15,7 @@ export default {
   name: 'Licenses',
 
   components: {
-    Banner, Loading, SortableTable, TabTitle
+    Banner, Loading, RcButton, SortableTable, TabTitle
   },
 
   async fetch() {
@@ -150,14 +151,14 @@ export default {
       >
         <template #col:name="{ row }">
           <td>
-            <button
-              type="button"
-              class="btn role-link package-link"
+            <RcButton
+              variant="link"
+              class="package-link"
               :aria-label="t('about.licenses.table.viewFor', { license: row.license, name: row.name })"
               @click="openPanel(row)"
             >
               {{ row.name }}
-            </button>
+            </RcButton>
           </td>
         </template>
       </SortableTable>
@@ -191,7 +192,11 @@ export default {
     font-size: 13px;
   }
 
-  .package-link {
+  // RcButton's own scoped styles size it as a standalone button. In a table
+  // cell the package name has to sit inline with the rest of the row, so the
+  // padding and min-height are reset here — the element and variant classes
+  // are in the selector to match the component's specificity.
+  button.rc-button.variant-link.package-link {
     padding: 0;
     height: auto;
     min-height: 0;
