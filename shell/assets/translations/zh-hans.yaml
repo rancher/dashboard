@@ -2439,6 +2439,8 @@ hpa:
 
 import:
   title: 导入 YAML
+  instructions: 你可以通过使用 `---` 作为分隔符同时导入多个策略的 YAML。
+  namespace: 命名空间
   defaultNamespace:
     label: 默认命名空间
   success: |-

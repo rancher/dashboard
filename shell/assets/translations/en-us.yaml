@@ -3866,6 +3866,8 @@ hpa:
 
 import:
   title: Import YAML
+  instructions: You can import multiple policies at the same time by separating their YAML using `---` as divider.
+  namespace: Namespace
   editor:
     label: YAML Editor
   defaultNamespace:
