@@ -64,7 +64,7 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   scalePool(delta) {
-    this.norman.quantity += delta;
+    this.norman.quantity = Math.max(0, (this.norman.quantity || 0) + delta);
 
     if ( this.scaleTimer ) {
       clearTimeout(this.scaleTimer);
