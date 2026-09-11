@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 553
+# Total errors: 540
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 pkg/aks/components/Config.vue: error TS2532: Object is possibly 'undefined'.
@@ -12,7 +12,6 @@ pkg/aks/components/Config.vue: error TS7006: Parameter 'sn' implicitly has an 'a
 pkg/aks/components/Config.vue: error TS7006: Parameter 'v' implicitly has an 'any' type.
 pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"_validSize"' can't be used to index type 'AKSNodePool'.
 pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"_validSize"' can't be used to index type 'AKSNodePool'.
-pkg/aks/components/CruAks.vue: error TS2339: Property 'pending' does not exist on type 'never'.
 pkg/aks/components/CruAks.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
 pkg/aks/components/CruAks.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
 pkg/aks/components/CruAks.vue: error TS7006: Parameter 'val' implicitly has an 'any' type.
@@ -63,7 +62,6 @@ pkg/gke/components/Config.vue: error TS2531: Object is possibly 'null'.
 pkg/gke/components/Config.vue: error TS2554: Expected 4 arguments, but got 5.
 pkg/gke/components/Config.vue: error TS7006: Parameter 'z' implicitly has an 'any' type.
 pkg/gke/components/CruGKE.vue: error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-pkg/gke/components/CruGKE.vue: error TS2339: Property 'pending' does not exist on type 'never'.
 pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
 pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
 pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
@@ -92,7 +90,6 @@ shell/apis/shell/proxy.ts: error TS2305: Module '"@shell/apis/intf/shell"' has n
 shell/apis/shell/proxy.ts: error TS2305: Module '"@shell/apis/intf/shell"' has no exported member 'ProxyRequestOptions'.
 shell/apis/shell/proxy.ts: error TS2459: Module '"@shell/apis/intf/shell"' declares 'ProxyApi' locally, but it is not exported.
 shell/components/AppModal.vue: error TS2345: Argument of type '{ role: string; 'aria-modal': "true"; style: object; class: string; id: string; ref: string; onClick: () => void; }' is not assignable to parameter of type 'HTMLAttributes & ReservedProps & Record<string, unknown>'.
-shell/components/Certificates.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<{}, {}>, {}, Data, { expiredData(): any; }, {}, ComponentOptionsMixin, ComponentOptionsMixin, ... 18 more ..., {}>'.
 shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
 shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
 shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
@@ -258,8 +255,6 @@ shell/components/__tests__/TabTitle.test.ts: error TS2540: Cannot assign to 'get
 shell/components/__tests__/TabTitle.test.ts: error TS2540: Cannot assign to 'updatePageTitle' because it is a read-only property.
 shell/components/__tests__/TabTitle.test.ts: error TS2740: Type '{ warn: Mock<any, any, any>; error: Mock<any, any, any>; }' is missing the following properties from type 'Console': assert, clear, count, countReset, and 14 more.
 shell/components/fleet/FleetClusterTargets/index.vue: error TS2345: Argument of type '{ raw: boolean; }' is not assignable to parameter of type 'boolean | undefined'.
-shell/components/fleet/FleetConfigMapSelector.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ value: { type: ObjectConstructor; required: true; }; namespace: { type: StringConstructor; required: true; }; inStore: { type: StringConstructor; default: string; }; mode: { ...; }; label: { ...; }; }>, { ...; }>, ... 24 more ..., { ...; }>'.
-shell/components/fleet/FleetSecretSelector.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ value: { type: ObjectConstructor; required: true; }; namespace: { type: StringConstructor; required: true; }; inStore: { type: StringConstructor; default: string; }; mode: { ...; }; label: { ...; }; lockedOptions: { ...; }; }>, { ...; }>, ......'.
 shell/components/fleet/HelmOpAdvancedTab.vue: error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
 shell/components/fleet/HelmOpAdvancedTab.vue: error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
 shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2739: Type 'Record<string, any>' is missing the following properties from type 'HelmOpResource': spec, metadata
@@ -292,8 +287,6 @@ shell/components/form/GitPicker.vue: error TS2322: Type 'unknown' is not assigna
 shell/components/form/NodeScheduling.vue: error TS18046: 'n' is of type 'unknown'.
 shell/components/form/NodeScheduling.vue: error TS2322: Type 'string | null' is not assignable to type 'string | boolean | Record<string, any> | undefined'.
 shell/components/form/NodeScheduling.vue: error TS2554: Expected 1-2 arguments, but got 3.
-shell/components/form/ResourceLabeledSelect.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ resourceType: { type: StringConstructor; required: true; }; context: { type: StringConstructor; default: null; }; inStore: { type: StringConstructor; default: undefined; }; paginateMode: { ...; }; allResourcesSettings: { ...; }; paginatedReso...'.
-shell/components/form/ResourceLabeledSelect.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ resourceType: { type: StringConstructor; required: true; }; context: { type: StringConstructor; default: null; }; inStore: { type: StringConstructor; default: undefined; }; paginateMode: { ...; }; allResourcesSettings: { ...; }; paginatedReso...'.
 shell/components/form/ResourceQuota/__tests__/ResourceQuotaEntry.test.ts: error TS2322: Type '{ id: string; mode: string; types: { value: string; inputExponent: number; baseUnit: string; placeholder: string; increment: number; }[]; resourceType: string; resourceIdentifier: string; projectLimit: string; namespaceDefaultLimit: string; }' is not assignable to type 'VNodeProps & { __v_isVNode?: undefined; [Symbol.iterator]?: undefined; } & Record<string, any> & { readonly id: string; readonly index: number; readonly mode: string; ... 9 more ...; readonly "onUpdate:namespaceDefaultLimit"?: ((value: string | undefined) => any) | undefined; } & AllowedComponentProps & ComponentCus...'.
 shell/components/form/__tests__/ArrayList.test.ts: error TS2307: Cannot find module 'vue/types/options' or its corresponding type declarations.
 shell/components/form/__tests__/ArrayList.test.ts: error TS2307: Cannot find module 'vue/types/vue' or its corresponding type declarations.
@@ -342,7 +335,6 @@ shell/components/nav/NotificationCenter/Notification.vue: error TS7053: Element 
 shell/components/nav/__tests__/Group.test.ts: error TS2322: Type 'Record<string, unknown>' is not assignable to type 'Stubs | undefined'.
 shell/components/nav/__tests__/TopLevelMenu.test.ts: error TS2305: Module '"@vue/test-utils"' has no exported member 'Wrapper'.
 shell/composables/useUserRetentionValidation.ts: error TS2769: No overload matches this call.
-shell/detail/auditlog.cattle.io.auditpolicy.vue: error TS2339: Property 'pending' does not exist on type 'never'.
 shell/detail/management.cattle.io.oidcclient.vue: error TS2307: Cannot find module '~shell/assets/images/key.svg' or its corresponding type declarations.
 shell/dialog/__tests__/KnownHostsEditDialog.test.ts: error TS2769: No overload matches this call.
 shell/dialog/__tests__/KnownHostsEditDialog.test.ts: error TS2769: No overload matches this call.
@@ -383,8 +375,6 @@ shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exis
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
-shell/edit/auditlog.cattle.io.auditpolicy/index.vue: error TS2339: Property 'pending' does not exist on type 'never'.
-shell/edit/autoscaling.horizontalpodautoscaler/index.vue: error TS2339: Property 'pending' does not exist on type 'never'.
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS2322: Type '{ selected: string; } | null' is not assignable to type 'Record<string, any> | undefined'.
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS2345: Argument of type 'string | LocationQueryValue[]' is not assignable to parameter of type 'string'.
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'clusterRepoType' implicitly has an 'any' type.
@@ -392,7 +382,6 @@ shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'key' impl
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'newVal' implicitly has an 'any' type.
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'old' implicitly has an 'any' type.
-shell/edit/management.cattle.io.podsecurityadmissionconfigurationtemplate.vue: error TS2339: Property 'pending' does not exist on type 'never'.
 shell/list/__tests__/workload.test.ts: error TS2307: Cannot find module 'vue/types/options' or its corresponding type declarations.
 shell/list/__tests__/workload.test.ts: error TS2307: Cannot find module 'vue/types/vue' or its corresponding type declarations.
 shell/list/node.vue: error TS2339: Property 'id' does not exist on type 'string'.
@@ -451,7 +440,6 @@ shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'item' implicitl
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'item' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'key' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'name' implicitly has an 'any' type.
-shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'name' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'obj' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'obj' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'resources' implicitly has an 'any' type.
@@ -474,7 +462,6 @@ shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'type' implicitl
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'type' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'value' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'value' implicitly has an 'any' type.
-shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
 shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
