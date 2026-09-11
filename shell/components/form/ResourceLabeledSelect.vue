@@ -174,7 +174,7 @@ export default defineComponent({
     v-bind="labelSelectAttributes"
     :loading="$fetchState.pending"
     :options="allOfType"
-    :paginate="paginateType"
+    :paginate="paginate ? paginateType : undefined"
     :multiple="$attrs.multiple || false"
     @update:value="$emit('update:value', $event)"
   >

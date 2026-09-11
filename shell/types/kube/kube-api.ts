@@ -35,14 +35,28 @@ export interface KubeLabelSelector {
 }
 
 /**
+ * https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#ownerreference-v1-meta
+ */
+export interface KubeOwnerReference {
+  apiVersion?: string,
+  kind?: string,
+  name?: string,
+  uid?: string,
+  controller?: boolean,
+  blockOwnerDeletion?: boolean,
+}
+
+/**
  * https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#objectmeta-v1-meta
  */
 export interface KubeMetadata {
   namespace?: string,
   name: string
 
+  uid?: string,
   labels?: { [key: string]: string },
   annotations?: { [key: string]: string },
+  ownerReferences?: KubeOwnerReference[],
 }
 
 /**

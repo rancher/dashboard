@@ -564,7 +564,13 @@ export abstract class BasePluginProduct {
         // Since ProductChildPage with type has component?: never, this is a runtime validation
 
         // configureType page (resource)
-        if (!this.addedResourceRoutes) {
+        // Only a brand new product needs generic resource routes. When extending an existing
+        // product the parent already registers them (c/:cluster/<product>/:resource and friends),
+        // and re-adding them here shadows the parent's own specific routes (e.g. projectsnamespaces):
+        // the extension's static product segment outranks the core's dynamic :product segment, so
+        // /c/:cluster/explorer/projectsnamespaces would resolve to the generic :resource page and
+        // fail with "Resource type projectsnamespaces not found".
+        if (this.isNewProduct && !this.addedResourceRoutes) {
           this.addedResourceRoutes = true;
 
           const resourceRoutes = pluginProductsHelpers.generateResourceRoutes(parentName, child, { extendProduct: !this.isNewProduct });

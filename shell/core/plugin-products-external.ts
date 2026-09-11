@@ -146,7 +146,16 @@ export type ProductChildResourcePage = {
 
   /** Control how all lists that show this resource behave  */
   listConfig?: {
-    /** Table headers for this resource type (server-side pagination) */
+    /**
+     * Table headers for this resource type when it renders client-side (no server-side pagination).
+     * `sort`/`search` may reference any field or model getter, as filtering and sorting happen in the
+     * browser over the full set of rows.
+     */
+    localHeaders?: HeaderOptions[];
+    /**
+     * Table headers for this resource type when it renders under server-side pagination. `sort`/`search`
+     * on these must be string paths to fields the backend indexes.
+     */
     headers?: HeaderOptions[];
     /** Whether to hide bulk actions for this resource */
     hideBulkActions?: boolean;
