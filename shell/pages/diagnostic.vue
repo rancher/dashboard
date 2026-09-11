@@ -317,6 +317,16 @@ export default {
 <template>
   <div>
     <div class="title-block mt-20 mb-40">
+      <h1 class="breadcrumb-title">
+        <router-link
+          :to="{ name: 'about' }"
+          class="crumb"
+        >
+          {{ t('about.title') }}
+        </router-link>
+        <span class="separator">/</span>
+        {{ t('about.diagnostic.title') }}
+      </h1>
       <div>
         <AsyncButton
           mode="timing"
@@ -440,14 +450,29 @@ export default {
 <style lang="scss" scoped>
 .title-block {
   display: flex;
-  justify-content: right;
+  justify-content: space-between;
   align-items: center;
 
   h1 {
     margin: 0 !important;
   }
 
-  div {
+  .breadcrumb-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+
+    .crumb {
+      color: var(--link);
+    }
+
+    .separator {
+      color: var(--muted);
+      font-weight: normal;
+    }
+  }
+
+  > div {
     display: flex;
     align-items: center;
   }
