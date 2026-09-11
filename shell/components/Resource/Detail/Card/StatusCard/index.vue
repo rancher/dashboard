@@ -16,7 +16,24 @@ export interface Props {
   resources?: any[];
   summaryData?: SummaryResult | null;
   showScaling?: boolean;
+  /**
+   * The value the scale buttons change, and therefore the value they must show. For a workload
+   * this is the desired replica count, which is not the same as the number of resources the card
+   * counts (pods matching the workload's label selector).
+   */
+  scaleValue?: number;
   noResourcesMessage?: string;
+  /**
+   * Handlers for the scale buttons. These are callback props rather than emitted events so that
+   * the card does not have to know which resource it is scaling. They take no new value: the
+   * handler moves the live resource by one, which cannot be stale the way a value captured at
+   * render time can.
+   *
+   * They are not awaited. Every click has to register straight away, so the handler is expected
+   * to update what `scaleValue` reads synchronously and to send the request in its own time.
+   */
+  onIncrease?: () => void | Promise<void>;
+  onDecrease?: () => void | Promise<void>;
 }
 </script>
 
@@ -28,9 +45,11 @@ const props = withDefaults(defineProps<Props>(), {
   resources:          undefined,
   summaryData:        undefined,
   showScaling:        false,
-  noResourcesMessage: undefined
+  scaleValue:         0,
+  noResourcesMessage: undefined,
+  onIncrease:         undefined,
+  onDecrease:         undefined
 });
-const emit = defineEmits(['decrease', 'increase']);
 
 const summaryStateCounts = computed(() => {
   const summary = props.summaryData?.summary;
@@ -142,13 +161,16 @@ const rows = computed(() => {
       v-if="props.showScaling"
       #heading-action
     >
-      <Scaler
-        :ariaResourceName="i18n.t('component.resource.detail.card.podsCard.ariaResourceName')"
-        :value="count"
-        :min="0"
-        @increase="(newValue) => emit('increase', newValue)"
-        @decrease="(newValue) => emit('decrease', newValue)"
-      />
+      <div class="scale-action">
+        <span class="scale-label">{{ i18n.t('tableHeaders.scale') }}</span>
+        <Scaler
+          :ariaResourceName="i18n.t('component.resource.detail.card.scaler.ariaResourceName')"
+          :value="props.scaleValue"
+          :min="0"
+          @increase="() => props.onIncrease?.()"
+          @decrease="() => props.onDecrease?.()"
+        />
+      </div>
     </template>
     <StatusBar
       v-if="rows.length > 0"
@@ -181,5 +203,15 @@ const rows = computed(() => {
 .pod-distribution {
     display: flex;
     flex-direction: column;
+}
+
+.scale-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .scale-label {
+      color: var(--body-text);
+    }
 }
 </style>

@@ -1,4 +1,5 @@
-import Workload from '@shell/models/workload.js';
+import { flushPromises } from '@vue/test-utils';
+import Workload, { scaleQueues } from '@shell/models/workload.js';
 import { steveClassJunkObject } from '@shell/plugins/steve/__tests__/utils/steve-mocks';
 import { WORKLOAD_TYPES, SERVICE, INGRESS, GATEWAY_API } from '@shell/config/types';
 import HttpRoute from '@shell/models/gateway.networking.k8s.io.httproute';
@@ -6,6 +7,13 @@ import Gateway from '@shell/models/gateway.networking.k8s.io.gateway';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 
 describe('class: Workload', () => {
+  // Scale requests are queued in module scope, so an entry left behind by one test changes what
+  // the next one counts from
+  afterEach(() => {
+    scaleQueues.forEach((queue: any) => clearTimeout(queue.forget));
+    scaleQueues.clear();
+  });
+
   describe('given custom workload keys', () => {
     const customContainerImage = 'image';
     const customContainer = {
@@ -147,11 +155,6 @@ describe('class: Workload', () => {
       });
 
       workload.scaleUp = scaleUpMock;
-      // `$store` does not exist anywhere on the model hierarchy, so the catch block in `scale` only
-      // reaches a dispatch because the test injects one. Once `workload.js:200` is corrected to
-      // `this.$dispatch(...)` the assertion below passes unchanged, since `$dispatch` is
-      // `this.$ctx.dispatch`, the same `dispatchMock`, and only this line gets deleted.
-      Object.defineProperty(workload, '$store', { get: () => ({ dispatch: dispatchMock }) });
 
       await workload.scale(true);
 
@@ -163,6 +166,458 @@ describe('class: Workload', () => {
         }),
         { root: true }
       );
+    });
+  });
+
+  describe('methods: scaleUp and scaleDown', () => {
+    const dispatch = jest.fn();
+
+    // Requests are queued per resource, so each test needs its own workload rather than another
+    // one wearing the same id
+    let nextId = 0;
+
+    const scalableWorkload = (replicas: number, patch: () => Promise<unknown>) => {
+      const name = `test-${ ++nextId }`;
+      const workload = new Workload({
+        id:       `default/${ name }`,
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name, namespace: 'default' },
+        spec:     { replicas }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch,
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      workload.patch = patch;
+
+      return workload;
+    };
+
+    beforeEach(() => dispatch.mockClear());
+
+    it('should merge patch the new replica count and nothing else', async() => {
+      const patch = jest.fn().mockResolvedValue(undefined);
+      const workload = scalableWorkload(2, patch);
+
+      await workload.scaleUp();
+
+      expect(workload.spec.replicas).toBe(3);
+      // A save would send the whole workload as the browser last saw it, which both writes back
+      // any other field that has changed since and carries a resourceVersion the cluster has
+      // usually moved past
+      expect(patch).toHaveBeenCalledWith({ spec: { replicas: 3 } }, {}, true);
+
+      await workload.scaleDown();
+
+      expect(workload.spec.replicas).toBe(2);
+      expect(patch).toHaveBeenCalledWith({ spec: { replicas: 2 } }, {}, true);
+    });
+
+    it('should not write below zero replicas', async() => {
+      const patch = jest.fn().mockResolvedValue(undefined);
+      const workload = scalableWorkload(0, patch);
+
+      await workload.scaleDown();
+
+      expect(workload.spec.replicas).toBe(0);
+      expect(patch).toHaveBeenCalledTimes(0);
+    });
+
+    it('should roll the replica count back when the write fails', async() => {
+      const workload = scalableWorkload(2, jest.fn().mockRejectedValue(new Error('Forbidden')));
+
+      // The optimistic write must not survive a rejected request. The store only re-fetches on a
+      // 409, so nothing else puts the real count back.
+      await expect(workload.scaleUp()).rejects.toThrow('Forbidden');
+
+      expect(workload.spec.replicas).toBe(2);
+
+      await expect(workload.scaleDown()).rejects.toThrow('Forbidden');
+
+      expect(workload.spec.replicas).toBe(2);
+    });
+
+    it('should growl and leave the replica count unchanged when scale handles the failure', async() => {
+      const workload = scalableWorkload(2, jest.fn().mockRejectedValue(new Error('Forbidden')));
+
+      await workload.scale(true);
+
+      expect(workload.spec.replicas).toBe(2);
+      // Without the growl the count snaps back with nothing said, which reads as the button
+      // having done nothing at all
+      expect(dispatch).toHaveBeenCalledWith(
+        'growl/fromError',
+        expect.objectContaining({
+          title: expect.stringContaining('workload.list.errorCannotScale'),
+          err:   expect.any(Error)
+        }),
+        { root: true }
+      );
+    });
+  });
+
+  describe('scaling faster than the cluster answers', () => {
+    const dispatch = jest.fn();
+
+    // Requests are queued per resource, so each test needs its own workload rather than another
+    // one wearing the same id
+    let nextId = 0;
+
+    const burstWorkload = (replicas: number, generation = 10) => {
+      // The replica count in each request body, in order, and the resolver for each of those
+      // requests. A request stays in flight until the test settles it.
+      const writes: number[] = [];
+      const settlers: Array<(err?: Error) => void> = [];
+      const name = `burst-${ ++nextId }`;
+
+      const workload = new Workload({
+        id:       `default/${ name }`,
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: {
+          name, namespace: 'default', generation
+        },
+        spec: { replicas }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch,
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      // A patch carries the count it was given and answers with the generation the write produced,
+      // the way the cluster does. It does not touch the resource: what the cluster holds only
+      // reaches the model when the change comes back round the websocket, which `echo` stands in
+      // for.
+      let nextGeneration = generation;
+
+      workload.patch = jest.fn((data: any) => {
+        writes.push(data.spec.replicas);
+
+        const produced = ++nextGeneration;
+
+        return new Promise((resolve, reject) => {
+          settlers.push((err?: Error) => (err ? reject(err) : resolve({ metadata: { generation: produced } })));
+        });
+      });
+
+      const settleNext = async(err?: Error) => {
+        settlers.shift()?.(err);
+
+        await flushPromises();
+      };
+
+      return {
+        workload,
+        writes,
+        settleNext,
+        // A websocket update landing on the resource: the count it now holds, and the generation
+        // that produced it
+        echo: (count: number, gen = nextGeneration) => {
+          workload.spec.replicas = count;
+          (workload.metadata as any).generation = gen;
+        },
+        inFlight:  () => settlers.length,
+        settleAll: async(err?: Error) => {
+          // A settled request can queue the next one, so keep going until nothing is in flight
+          while (settlers.length) {
+            await settleNext(err);
+          }
+        }
+      };
+    };
+
+    beforeEach(() => {
+      dispatch.mockClear();
+    });
+
+    it('should move the count on every click, before any request has answered', () => {
+      const { workload, writes } = burstWorkload(2);
+
+      workload.scale(true);
+      workload.scale(true);
+      workload.scale(true);
+
+      // Nothing has settled, so every click after the first landed whilst a request was in flight
+      expect(workload.spec.replicas).toBe(5);
+      expect(writes).toStrictEqual([3]);
+    });
+
+    it('should coalesce a burst into one follow up request and land on the last click', async() => {
+      const { workload, writes, settleAll } = burstWorkload(2);
+
+      workload.scale(true);
+      workload.scale(true);
+      workload.scale(true);
+
+      await settleAll();
+
+      // Three clicks, two requests: the one already in flight and one carrying everything clicked
+      // whilst it ran. Each carries an absolute target worked out at click time, so no two ask for
+      // the same number, which is what loses a click to a read-modify-write race.
+      expect(writes).toStrictEqual([3, 5]);
+      expect(workload.spec.replicas).toBe(5);
+    });
+
+    it('should keep the clicked count when an update carrying the old one lands', async() => {
+      const { workload, echo, settleNext } = burstWorkload(2);
+
+      workload.scale(true);
+      workload.scale(true);
+
+      // The first request's change comes back round the websocket carrying 3, a count the user has
+      // already moved past
+      echo(3);
+
+      await settleNext();
+
+      expect(workload.spec.replicas).toBe(4);
+    });
+
+    it('should report the clicked count as desired whilst the requests settle', async() => {
+      const { workload, echo, settleAll } = burstWorkload(2);
+
+      workload.scale(true);
+      workload.scale(true);
+
+      // An update carrying the count from before the burst lands on the resource
+      echo(2);
+
+      // Every control that can change the count reads `desired`, and it has to stay on the number
+      // the user asked for rather than flicking back to one the cluster has been told to leave
+      expect(workload.desired).toBe(4);
+
+      await settleAll();
+
+      expect(workload.desired).toBe(4);
+    });
+
+    it('should hand the count back to the resource once it reports the generation the write produced', async() => {
+      const { workload, echo, settleAll } = burstWorkload(2);
+
+      workload.scale(true);
+      await settleAll();
+
+      // Accepted, but the change has not come back round the websocket yet, so the target is still
+      // the only place the count the user asked for exists
+      expect(workload.desired).toBe(3);
+      expect(scaleQueues.size).toBe(1);
+
+      echo(3);
+
+      // The resource now carries the generation that write produced, so the queued target has
+      // nothing left to say and the resource speaks for itself again
+      expect(workload.desired).toBe(3);
+
+      // ...including when what it carries is not what was asked for. Something else scaled it, and
+      // that has to show rather than be hidden behind a target the cluster has moved past.
+      echo(9);
+
+      expect(workload.desired).toBe(9);
+    });
+
+    it('should count from the last click until the resource catches up', async() => {
+      const {
+        workload, writes, echo, settleAll
+      } = burstWorkload(2);
+
+      workload.scale(true);
+      await settleAll();
+
+      // The cluster has accepted 3, but the change has not come back round the websocket yet, so
+      // an update carrying the count from before it can still arrive and put it back
+      echo(2, 10);
+
+      workload.scale(true);
+      await settleAll();
+
+      // Counting the second click from what is on the resource writes 3 twice and loses it
+      expect(writes).toStrictEqual([3, 4]);
+      expect(workload.spec.replicas).toBe(4);
+    });
+
+    it('should count from the last click, not from a count put back whilst a request is in flight', async() => {
+      const {
+        workload, writes, echo, settleAll
+      } = burstWorkload(2);
+
+      workload.scale(true);
+      workload.scale(true);
+
+      // A websocket update carrying the count the first request produced arrives whilst the second
+      // click is still queued. Counting the next click from that is the read-modify-write race by
+      // another route, and it is the one a real cluster actually takes.
+      echo(3);
+
+      workload.scale(true);
+
+      expect(workload.spec.replicas).toBe(5);
+
+      await settleAll();
+
+      expect(writes).toStrictEqual([3, 5]);
+      expect(workload.spec.replicas).toBe(5);
+    });
+
+    it('should coalesce clicks in both directions', async() => {
+      const { workload, writes, settleAll } = burstWorkload(2);
+
+      workload.scale(true);
+      workload.scale(true);
+      workload.scale(false);
+
+      await settleAll();
+
+      // The three clicks come back to the number the request already in flight is carrying, so
+      // there is nothing left to send
+      expect(writes).toStrictEqual([3]);
+      expect(workload.spec.replicas).toBe(3);
+    });
+
+    it('should send one request per click when each has time to answer', async() => {
+      const { workload, writes, settleAll } = burstWorkload(2);
+
+      workload.scale(true);
+      await settleAll();
+
+      workload.scale(true);
+      await settleAll();
+
+      expect(writes).toStrictEqual([3, 4]);
+      expect(workload.spec.replicas).toBe(4);
+    });
+
+    it('should not leave a target queued behind a failed request', async() => {
+      const { workload, writes, settleAll } = burstWorkload(2);
+
+      workload.scale(true);
+      workload.scale(true);
+
+      await settleAll(new Error('Forbidden'));
+
+      // Nothing more is sent and the count goes back to one the cluster holds. Both clicks shared
+      // the one refused request, so between them they report it once rather than twice.
+      expect(writes).toStrictEqual([3]);
+      expect(workload.spec.replicas).toBe(2);
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(dispatch).toHaveBeenCalledWith(
+        'growl/fromError',
+        expect.objectContaining({
+          title: expect.stringContaining('workload.list.errorCannotScale'),
+          err:   expect.any(Error)
+        }),
+        { root: true }
+      );
+    });
+
+    it('should report every refused request when each click gets one of its own', async() => {
+      const { workload, writes, settleAll } = burstWorkload(2);
+
+      // Clicks the cluster answers faster than the user makes them, which is what a burst against
+      // a responsive cluster looks like. Nothing coalesces, so nothing is folded into anything
+      // else, and each refusal is its own piece of news.
+      workload.scale(true);
+      await settleAll(new Error('Forbidden'));
+
+      workload.scale(true);
+      await settleAll(new Error('Forbidden'));
+
+      workload.scale(true);
+      await settleAll(new Error('Forbidden'));
+
+      expect(writes).toStrictEqual([3, 3, 3]);
+      expect(workload.spec.replicas).toBe(2);
+      expect(dispatch).toHaveBeenCalledTimes(3);
+    });
+
+    it('should fall back to the last count the cluster confirmed', async() => {
+      const {
+        workload, writes, settleNext, settleAll
+      } = burstWorkload(2);
+
+      workload.scale(true);
+      workload.scale(true);
+      workload.scale(true);
+
+      // The first request is accepted, so 3 is confirmed. The follow up carrying 5 is refused.
+      await settleNext();
+
+      expect(writes).toStrictEqual([3, 5]);
+
+      await settleAll(new Error('Forbidden'));
+
+      expect(workload.spec.replicas).toBe(3);
+    });
+
+    it('should scale again after a failure', async() => {
+      const { workload, writes, settleAll } = burstWorkload(2);
+
+      workload.scale(true);
+      await settleAll(new Error('Forbidden'));
+
+      expect(workload.spec.replicas).toBe(2);
+
+      workload.scale(true);
+      await settleAll();
+
+      expect(writes).toStrictEqual([3, 3]);
+      expect(workload.spec.replicas).toBe(3);
+    });
+
+    it('should queue per resource rather than across them', () => {
+      const first = burstWorkload(2);
+      const second = burstWorkload(7);
+
+      first.workload.scale(true);
+      second.workload.scale(true);
+
+      // A request in flight for one workload must not hold up, or coalesce with, another's
+      expect(first.writes).toStrictEqual([3]);
+      expect(second.writes).toStrictEqual([8]);
+    });
+
+    it('should give up on a request that never answers', async() => {
+      jest.useFakeTimers();
+
+      try {
+        const { workload } = burstWorkload(2);
+
+        const settled = workload.scaleUp();
+
+        expect(workload.desired).toBe(3);
+
+        // Nothing is ever settled. Without a bound the target would be reported for ever, for a
+        // count the cluster may never have been told about, and the caller below would wait for
+        // ever rather than the test finishing.
+        jest.advanceTimersByTime(30000);
+
+        await settled;
+
+        expect(scaleQueues.size).toBe(0);
+        expect(workload.desired).toBe(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('should stop sending a burst once the workload has left the store', async() => {
+      const { workload, writes, settleNext } = burstWorkload(2);
+      let present = true;
+
+      // `byId` is how the model asks whether the store still holds it, which is what deleting the
+      // workload, or navigating away from its cluster, changes
+      (workload as any).$ctx.getters['byId'] = () => (present ? workload : undefined);
+
+      workload.scale(true);
+      workload.scale(true);
+
+      present = false;
+      await settleNext();
+
+      // The follow up carrying 4 is never sent: it would answer 404 and growl about scaling on
+      // whatever page the user is now looking at
+      expect(writes).toStrictEqual([3]);
+      expect(scaleQueues.size).toBe(0);
+      expect(dispatch).not.toHaveBeenCalledWith('growl/fromError', expect.anything(), expect.anything());
     });
   });
 
@@ -283,6 +738,56 @@ describe('class: Workload', () => {
       expect(card?.props.title).toBe('component.resource.detail.card.podsCard.title');
       expect(card?.props.showScaling).toBe(true);
       expect(card?.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
+    });
+
+    it('should scale by spec.replicas rather than by the number of matching pods', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { replicas: 2 }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      // More pods match the label selector than the deployment has replicas
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod, mockPod, mockPod, mockPod] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+
+      const card = workload.podsCard;
+
+      expect(card?.props.scaleValue).toBe(2);
+      expect(card?.props.resources).toHaveLength(4);
+    });
+
+    it('should scale from zero when spec.replicas is not set', async() => {
+      const patch = jest.fn().mockResolvedValue(undefined);
+      const workload = new Workload({
+        id:       'default/unset-replicas',
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     {}
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+      workload.patch = patch;
+
+      const card = workload.podsCard;
+
+      expect(card?.props.scaleValue).toBe(0);
+
+      // The action has to agree with what the card shows: an unset `replicas` scales to 1, not to
+      // NaN, which would be written as null
+      await card?.props.onIncrease();
+
+      expect(workload.spec.replicas).toBe(1);
+      expect(patch).toHaveBeenCalledWith({ spec: { replicas: 1 } }, {}, true);
     });
 
     it('should return card for DaemonSet type without scaling', () => {
