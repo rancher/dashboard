@@ -89,6 +89,7 @@ export default {
           licenseId:    pkg.license,
           licenseField: pkg.licenseField,
           home:         pkg.home,
+          author:       pkg.author,
           content,
           title:        pkg.name,
           width:        'wide'

@@ -460,6 +460,7 @@ about:
       none: No license content is available for this package.
       declaredAs: "Declared license: {license}"
       rawLicense: "Original expression: {expression}"
+      author: "Author: {author}"
 
 accountAndKeys:
   title: Account and API Keys

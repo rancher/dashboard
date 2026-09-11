@@ -19,6 +19,10 @@ export default {
       type:    String,
       default: null
     },
+    author: {
+      type:    String,
+      default: null
+    },
     // The license payload from licenses.json — either `{ markdown }` or
     // `{ text }`, or null when no license content was found.
     content: {
@@ -61,6 +65,12 @@ export default {
       >
         {{ home }}
       </a>
+      <div
+        v-if="author"
+        class="author"
+      >
+        {{ t('about.licenses.panel.author', { author }) }}
+      </div>
     </header>
 
     <Markdown
@@ -125,10 +135,34 @@ export default {
   word-break: break-all;
 }
 
+.author {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .license-body {
   flex: 1;
   overflow: auto;
   padding-right: 4px;
+
+  // Generated notices use inline code for package and file names. The global
+  // `code` style boxes it in a bordered, shaded chip, which reads as a UI
+  // element in the middle of a paragraph — here we only want the typeface.
+  :deep(code) {
+    display: inline;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+  }
+
+  :deep(p) {
+    margin: 0 0 14px 0;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .license-body-text {
