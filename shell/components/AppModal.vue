@@ -232,6 +232,16 @@ export default defineComponent({
       max-height: 95vh;
       overflow: auto;
       border: 2px solid var(--modal-border);
+
+      // RcModal pins its header and its actions and lets only its body scroll,
+      // which needs this box to be a column that does not scroll itself. At
+      // three levels of specificity this beats the `overflow` above it and any
+      // per-modal `customClass`.
+      &:has(.rc-modal) {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
     }
   }
 

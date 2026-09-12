@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Card } from '@components/Card';
+import { RcModal } from '@components/RcModal';
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
@@ -12,7 +12,7 @@ export default {
   emits: ['close'],
 
   components: {
-    AsyncButton, Card, LabeledSelect
+    AsyncButton, RcModal, LabeledSelect
   },
 
   props: {
@@ -107,33 +107,23 @@ export default {
 };
 </script>
 <template>
-  <Card
-    class="move-modal-card"
-    :show-highlight-border="false"
-  >
-    <template #title>
-      <h4 class="text-default-text">
-        {{ t('moveModal.title') }}
-      </h4>
-    </template>
-    <template #body>
-      <div>
-        {{ t('moveModal.description') }}
-        <ul class="namespaces">
-          <li
-            v-for="(namespace, i) in toMove"
-            :key="i"
-          >
-            {{ namespace.nameDisplay }}
-          </li>
-        </ul>
-      </div>
-      <LabeledSelect
-        v-model:value="targetProject"
-        :options="projectOptions"
-        :label="t('moveModal.targetProject')"
-      />
-    </template>
+  <RcModal :title="t('moveModal.title')">
+    <div>
+      {{ t('moveModal.description') }}
+      <ul class="namespaces">
+        <li
+          v-for="(namespace, i) in toMove"
+          :key="i"
+        >
+          {{ namespace.nameDisplay }}
+        </li>
+      </ul>
+    </div>
+    <LabeledSelect
+      v-model:value="targetProject"
+      :options="projectOptions"
+      :label="t('moveModal.targetProject')"
+    />
     <template #actions>
       <button
         class="btn role-secondary"
@@ -143,31 +133,17 @@ export default {
       </button>
       <AsyncButton
         :action-label="t('moveModal.moveButtonLabel')"
-        class="btn bg-primary ml-10"
+        class="btn bg-primary"
         :disabled="targetProject === null"
         @click="move"
       />
     </template>
-  </Card>
+  </RcModal>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
   .namespaces {
     max-height: 200px;
-    overflow-y: scroll;
-  }
-
-  .move-modal-card {
-      box-shadow: none;
-
-      border-radius: var(--border-radius);
-  }
-
-  .actions {
-    text-align: right;
-  }
-  .card-actions {
-    display: flex;
-    justify-content: center;
+    overflow-y: auto;
   }
 </style>
