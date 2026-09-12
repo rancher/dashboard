@@ -27,6 +27,10 @@ const DRAG_THRESHOLD = 4;
 const DRAG_SCROLL_EDGE = 32;
 const DRAG_SCROLL_MAX = 14;
 const PINNED_TOOLTIP_DISTANCE = 44;
+// Every search that fires re-measures the flyout, so the panel resizes under the cursor. At 200ms that
+// landed inside an ordinary typing rhythm and the height moved on almost every character; this sits past
+// it, so the list settles when you pause rather than while you are still typing.
+const SEARCH_DEBOUNCE = 400;
 
 export default {
   components: {
@@ -93,9 +97,10 @@ export default {
 
       canPagination,
       helper,
-      debouncedHelperUpdateSlow:  debounce((...args) => this.helper.update(...args), 1000),
-      debouncedHelperUpdateQuick: debounce((...args) => this.helper.update(...args), 200),
-      debouncedResetOthers:       debounce(() => this.resetOthersList(), 200),
+      debouncedHelperUpdateSlow:   debounce((...args) => this.helper.update(...args), 1000),
+      debouncedHelperUpdateQuick:  debounce((...args) => this.helper.update(...args), 200),
+      debouncedHelperUpdateSearch: debounce((...args) => this.helper.update(...args), SEARCH_DEBOUNCE),
+      debouncedResetOthers:        debounce(() => this.resetOthersList(), SEARCH_DEBOUNCE),
       provClusters,
       mgmtClusters,
     };
@@ -478,7 +483,7 @@ export default {
 
     search() {
       if (!this.canPagination) {
-        this.updateClusters(this.pinnedIds, 'quick');
+        this.updateClusters(this.pinnedIds, 'search');
       }
       this.debouncedResetOthers();
     },
@@ -540,6 +545,7 @@ export default {
 
     this.debouncedHelperUpdateSlow.cancel();
     this.debouncedHelperUpdateQuick.cancel();
+    this.debouncedHelperUpdateSearch.cancel();
     this.debouncedResetOthers.cancel();
   },
 
@@ -1079,6 +1085,9 @@ export default {
           break;
         case 'quick':
           this.debouncedHelperUpdateQuick(args);
+          break;
+        case 'search':
+          this.debouncedHelperUpdateSearch(args);
           break;
         }
       } catch (err) {
