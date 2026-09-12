@@ -1,7 +1,7 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect';
 import { mapGetters } from 'vuex';
 import { SECRET } from '@shell/config/types';
@@ -12,7 +12,7 @@ export default {
   components: {
     LabeledInput,
     Checkbox,
-    FileSelector,
+    FileSelectorTextArea,
     ResourceLabeledSelect,
   },
 
@@ -70,14 +70,15 @@ export default {
   },
 
   methods: {
-    setCA(ca) {
+    // The chart expects the CA base64-encoded, so a file's contents are encoded on the way in
+    encodeCA(ca) {
       try {
-        const encoded = btoa(ca);
-
-        this.value['endpointCA'] = encoded;
+        return btoa(ca);
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn(e);
+
+        return ca;
       }
     },
   },
@@ -147,44 +148,17 @@ export default {
           :label="t('backupRestoreOperator.s3.insecureTLSSkipVerify')"
         />
       </div>
-      <div class="col span-6">
-        <LabeledInput
+    </div>
+    <div class="row mb-10">
+      <div class="col span-12">
+        <FileSelectorTextArea
           v-model:value="value.endpointCA"
           :mode="mode"
-          type="multiline"
           :label="t('backupRestoreOperator.s3.endpointCA.label')"
+          :tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')"
+          :transform-file="encodeCA"
         />
-        <div class="ca-controls">
-          <FileSelector
-            v-if="mode!=='view'"
-            class="btn btn-sm role-primary mt-5"
-            :mode="mode"
-            :label="t('generic.readFromFile')"
-            @selected="e=> setCA(e)"
-          />
-          <div class="ca-tooltip">
-            <i
-              v-clean-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')"
-              class="icon icon-info"
-            />
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </template>
-<style lang="scss" scoped>
-  .ca-controls {
-    display: flex;
-
-    .ca-tooltip {
-      flex: 1;
-      margin-top: 4px;
-      text-align: right;
-
-      > i {
-        font-size: 16px;
-      };
-    }
-  }
-</style>

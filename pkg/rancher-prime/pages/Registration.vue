@@ -188,7 +188,8 @@ onMounted(async() => {
         <!-- Show file selector for offline registration -->
         <div v-else>
           <FileSelector
-            class="role-primary mt-20"
+            variant="primary"
+            class="mt-20"
             :label="t('registration.offline.button.register.label')"
             :disabled="isRegistered || isRegistering"
             accept=".cert"

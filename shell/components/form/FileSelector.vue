@@ -9,6 +9,27 @@ export function createOnSelected(field) {
   };
 }
 
+/**
+ * Reads a file the user selected or dropped, either as plain text or as a data URL.
+ */
+export function readFileContents(file, asDataUrl = false) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (ev) => resolve(ev.target.result);
+    // `onerror` is handed a ProgressEvent, not the failure. The DOMException that says what went wrong
+    // — NotFoundError for a dropped folder, NotReadableError for a file pulled out from under us — is on
+    // the reader. Rejecting with the event instead left every caller with nothing to report.
+    reader.onerror = () => reject(reader.error || new Error(`Could not read ${ file.name }`));
+
+    if (asDataUrl) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
+  });
+}
+
 export default {
   emits: ['error', 'selected'],
 
@@ -70,34 +91,28 @@ export default {
       default: '*'
     },
 
-    class: {
-      type:    [String, Array],
-      default: () => [],
+    /**
+     * The RcButton variant used for the trigger button.
+     * @values primary, secondary, tertiary, link, ghost
+     */
+    variant: {
+      type:    String,
+      default: 'secondary'
     },
 
     /**
-     * Render the trigger as a small, secondary RcButton instead of the default
-     * plain button.
+     * The RcButton size used for the trigger button.
+     * @values small, medium, large
      */
-    asRcButton: {
-      type:    Boolean,
-      default: false,
+    size: {
+      type:    String,
+      default: 'medium'
     }
-
   },
 
   computed: {
     isView() {
       return this.mode === _VIEW;
-    },
-
-    customClass() {
-      return ['file-selector', 'btn', ...(Array.isArray(this.class) ? this.class : [this.class])];
-    },
-
-    // RcButton provides its own `btn` class, so we omit it here to avoid clashing styles
-    rcButtonClass() {
-      return ['file-selector', ...(Array.isArray(this.class) ? this.class : [this.class])];
     },
   },
 
@@ -139,32 +154,17 @@ export default {
       } catch (error) {
         this.$emit('error', error);
         if (this.showGrowlError) {
-          this.$store.dispatch('growl/fromError', { title: 'Error reading file', error }, { root: true });
+          // `err`, not `error`: growl/fromError reads `err`, so the other spelling threw the detail away
+          // and left the growl with a title and no body.
+          this.$store.dispatch('growl/fromError', { title: this.t('generic.errorReadingFile'), err: error }, { root: true });
         }
       }
     },
 
-    getFileContents(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
+    async getFileContents(file) {
+      const value = await readFileContents(file, this.readAsDataUrl);
 
-        reader.onload = (ev) => {
-          const value = ev.target.result;
-          const name = file.name;
-          const fileContents = this.includeFileName ? { value, name } : value;
-
-          resolve(fileContents);
-        };
-
-        reader.onerror = (err) => {
-          reject(err);
-        };
-        if (this.readAsDataUrl) {
-          reader.readAsDataURL(file);
-        } else {
-          reader.readAsText(file);
-        }
-      });
+      return this.includeFileName ? { value, name: file.name } : value;
     }
   }
 };
@@ -172,12 +172,12 @@ export default {
 
 <template>
   <RcButton
-    v-if="!isView && asRcButton"
-    variant="secondary"
-    size="small"
+    v-if="!isView"
+    :variant="variant"
+    :size="size"
     :disabled="disabled"
     :aria-label="label"
-    :class="rcButtonClass"
+    class="file-selector"
     data-testid="file-selector__uploader-button"
     @click="selectFile"
   >
@@ -192,25 +192,4 @@ export default {
       @change="fileChange"
     >
   </RcButton>
-  <button
-    v-else-if="!isView"
-    :disabled="disabled"
-    :aria-label="label"
-    type="button"
-    role="button"
-    :class="customClass"
-    data-testid="file-selector__uploader-button"
-    @click="selectFile"
-  >
-    <span>{{ label }}</span>
-    <input
-      ref="uploader"
-      type="file"
-      class="hide"
-      :multiple="multiple"
-      :webkitdirectory="directory"
-      :accept="accept"
-      @change="fileChange"
-    >
-  </button>
 </template>

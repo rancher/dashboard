@@ -17,7 +17,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import FileSelector from '@shell/components/form/FileSelector.vue';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
@@ -61,7 +61,7 @@ export default defineComponent({
     AksNodePool,
     LabeledInput,
     Checkbox,
-    FileSelector,
+    FileSelectorTextArea,
     KeyValue,
     ArrayList,
     Tabbed,
@@ -1070,23 +1070,16 @@ export default defineComponent({
           </div>
         </div>
         <div class="row mb-10">
-          <div class="col span-6">
-            <div class="ssh-key">
-              <LabeledInput
-                v-model:value="config.sshPublicKey"
-                :mode="mode"
-                label-key="aks.sshPublicKey.label"
-                type="multiline"
-                placeholder-key="aks.sshPublicKey.placeholder"
-              />
-              <FileSelector
-                :mode="mode"
-                :label="t('aks.sshPublicKey.readFromFile')"
-                class="role-tertiary mt-10"
-                @selected="e => config.sshPublicKey = e"
-              />
-            </div>
+          <div class="col span-12">
+            <FileSelectorTextArea
+              v-model:value="config.sshPublicKey"
+              :mode="mode"
+              label-key="aks.sshPublicKey.label"
+              placeholder-key="aks.sshPublicKey.placeholder"
+            />
           </div>
+        </div>
+        <div class="row mb-10">
           <div class="col span-6">
             <KeyValue
               v-model:value="config.tags"
