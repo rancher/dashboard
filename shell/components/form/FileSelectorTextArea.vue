@@ -218,7 +218,7 @@ const onDrop = async(event: DragEvent) => {
     color: var(--on-tertiary-hover, var(--link));
     font-size: 14px;
     font-style: normal;
-    font-weight: 600;
+    font-weight: 400;
     line-height: 140%;
     text-align: center;
     // Let the drag events reach the drop zone rather than stopping at the overlay
