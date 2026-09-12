@@ -8,9 +8,6 @@ import {
   NAMESPACE_FILTER_ALL_SYSTEM,
   NAMESPACE_FILTER_ALL_USER,
   NAMESPACE_FILTER_ALL_ORPHANS,
-  NAMESPACE_FILTER_NAMESPACED_PREFIX,
-  NAMESPACE_FILTER_NAMESPACED_YES,
-  NAMESPACE_FILTER_NAMESPACED_NO,
   NAMESPACE_FILTER_KINDS,
   createNamespaceFilterKey,
   createNamespaceFilterKeyWithId,
@@ -34,12 +31,6 @@ describe('namespace-filter constants', () => {
     expect(NAMESPACE_FILTER_ALL_SYSTEM).toStrictEqual('all://system');
     expect(NAMESPACE_FILTER_ALL_USER).toStrictEqual('all://user');
     expect(NAMESPACE_FILTER_ALL_ORPHANS).toStrictEqual('all://orphans');
-  });
-
-  it('namespaced filter constants have expected values', () => {
-    expect(NAMESPACE_FILTER_NAMESPACED_PREFIX).toStrictEqual('namespaced://');
-    expect(NAMESPACE_FILTER_NAMESPACED_YES).toStrictEqual('namespaced://true');
-    expect(NAMESPACE_FILTER_NAMESPACED_NO).toStrictEqual('namespaced://false');
   });
 
   it('nAMESPACE_FILTER_KINDS has expected shape', () => {

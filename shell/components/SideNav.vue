@@ -86,15 +86,6 @@ export default {
       }
     },
 
-    // Queue namespaceMode and namespaces
-    // Changes to namespaceMode can also change namespaces, so keep this simple and execute both in a shortened queue
-
-    namespaceMode(a, b) {
-      if ( a !== b ) {
-        this.queueUpdate();
-      }
-    },
-
     namespaces(a, b) {
       if ( !isEqual(a, b) ) {
         this.queueUpdate();
@@ -123,7 +114,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster']),
+    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'isExplorer', 'isVirtualCluster']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -261,8 +252,6 @@ export default {
 
       const currentProduct = this.$store.getters['productId'];
 
-      // Always show cluster-level types, regardless of the namespace filter
-      const namespaceMode = 'both';
       const out = [];
       const loadProducts = this.isExplorer ? [EXPLORER] : [];
 
@@ -281,7 +270,7 @@ export default {
       // This should already have come into the list from above, but in case it hasn't...
       addObject(loadProducts, currentProduct);
 
-      this.getProductsGroups(out, loadProducts, namespaceMode, productMap);
+      this.getProductsGroups(out, loadProducts, productMap);
 
       this.getExplorerGroups(out);
 
@@ -345,7 +334,7 @@ export default {
       });
     },
 
-    getProductsGroups(out, loadProducts, namespaceMode, productMap) {
+    getProductsGroups(out, loadProducts, productMap) {
       const clusterId = this.$store.getters['clusterId'];
       const currentType = this.$route.params.resource || '';
 
@@ -367,7 +356,7 @@ export default {
 
         for ( const mode of modes ) {
           const types = typesByMode[mode] || {};
-          const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, currentType);
+          const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, currentType);
 
           if ( productId === EXPLORER || !this.isExplorer ) {
             addObjects(out, more);
