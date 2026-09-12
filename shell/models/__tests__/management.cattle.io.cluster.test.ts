@@ -1,7 +1,11 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { EXT } from '@shell/config/types';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { downloadFile } from '@shell/utils/download';
+
+const PAUSED_MIN = CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_PAUSED_MIN_SIZE;
+const PAUSED_MAX = CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_PAUSED_MAX_SIZE;
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -309,6 +313,39 @@ describe('class MgmtCluster', () => {
       await cluster.downloadKubeConfigBulk([]);
 
       expect(downloadFile).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isAutoscalerEnabled', () => {
+    const clusterWithPools = (machinePools?: any[]) => {
+      const cluster = new MgmtCluster({ id: 'cluster-1' }) as any;
+
+      Object.defineProperty(cluster, 'provCluster', { value: machinePools ? { spec: { rkeConfig: { machinePools } } } : undefined });
+
+      return cluster;
+    };
+
+    it('should be false when there is no provisioning cluster', () => {
+      expect(clusterWithPools().isAutoscalerEnabled).toBe(false);
+    });
+
+    it('should be false when no pool has an autoscaling range', () => {
+      expect(clusterWithPools([{ name: 'pool1' }]).isAutoscalerEnabled).toBe(false);
+    });
+
+    it('should be true when a pool has an autoscaling range', () => {
+      expect(clusterWithPools([{
+        name: 'pool1', autoscalingMinSize: 1, autoscalingMaxSize: 3
+      }]).isAutoscalerEnabled).toBe(true);
+    });
+
+    it('should stay true when every pool is paused', () => {
+      const machinePools = [
+        { name: 'pool1', machineDeploymentAnnotations: { [PAUSED_MIN]: '1', [PAUSED_MAX]: '3' } },
+        { name: 'pool2', machineDeploymentAnnotations: { [PAUSED_MIN]: '2', [PAUSED_MAX]: '4' } }
+      ];
+
+      expect(clusterWithPools(machinePools).isAutoscalerEnabled).toBe(true);
     });
   });
 });

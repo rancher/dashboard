@@ -318,6 +318,11 @@ export default {
 
       clusterToken: null,
 
+      // Ids of the machine pools with a pause or resume of their autoscaler in flight
+      autoscalerPauseSaving:  [],
+      // What the last pause or resume did, for the live region to announce
+      autoscalerAnnouncement: '',
+
       logOpen:   false,
       logSocket: null,
       logs:      [],
@@ -731,12 +736,96 @@ export default {
       return this.extDetailTabs?.conditions;
     },
 
+    isAutoscalerFeatureEnabled() {
+      return isAutoscalerFeatureFlagEnabled(this.$store);
+    },
+
     showAutoScalerTab() {
-      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
+      return this.isAutoscalerFeatureEnabled && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
     }
   },
 
   methods: {
+    /**
+     * The machine count of a pool is scaled by hand unless the autoscaler is actively managing it. A paused pool is the
+     * user's to scale again, and so is every pool while the autoscaler feature is off
+     */
+    showPoolMachineControls(pool) {
+      return !!pool && (!this.isAutoscalerFeatureEnabled || !pool.isAutoscalerEnabled || pool.isAutoscalerPaused);
+    },
+
+    /**
+     * Pause and resume are only offered for a pool the autoscaler knows about, and only while the feature is on
+     */
+    showPoolAutoscalerControls(pool) {
+      return !!pool && this.isAutoscalerFeatureEnabled && pool.isAutoscalerEnabled;
+    },
+
+    isAutoscalerPauseSaving(pool) {
+      return this.autoscalerPauseSaving.includes(pool?.id);
+    },
+
+    /**
+     * Pause or resume the autoscaler for one machine pool. Resuming a pool that was scaled outside its stored range
+     * while paused is confirmed first, because the autoscaler resizes the pool as soon as it takes it back
+     */
+    togglePoolAutoscalerPause(pool) {
+      if (!pool || this.isAutoscalerPauseSaving(pool)) {
+        return;
+      }
+
+      const resize = pool.autoscalerResumeResize;
+
+      if (resize) {
+        return this.$store.dispatch('management/promptModal', {
+          component:      'GenericPrompt',
+          componentProps: {
+            title: this.t('cluster.machinePool.autoscaler.resumePrompt.title'),
+            body:  this.t(`cluster.machinePool.autoscaler.resumePrompt.scale${ resize.direction === 'up' ? 'Up' : 'Down' }`, {
+              name: pool.nameDisplay, count: resize.count, target: resize.target
+            }),
+            applyMode:   'continue',
+            applyAction: () => this.setPoolAutoscalerPause(pool),
+          }
+        });
+      }
+
+      return this.setPoolAutoscalerPause(pool).catch(() => {
+        // Already announced and growled, and there is nowhere else for it to go from a click
+      });
+    },
+
+    /**
+     * Keeps the control disabled until the save settles so two clicks can't race each other, and announces the outcome
+     * of what is otherwise an optimistic change. Only what the model actually saved is announced, and a failure is
+     * rethrown so a confirmation prompt can report it too
+     */
+    async setPoolAutoscalerPause(pool) {
+      const wasPaused = pool.isAutoscalerPaused;
+      const name = pool.nameDisplay;
+
+      this.autoscalerPauseSaving = [...this.autoscalerPauseSaving, pool.id];
+
+      try {
+        const save = pool.toggleAutoscalerPause();
+
+        if (!save) {
+          return;
+        }
+
+        await save;
+
+        this.autoscalerAnnouncement = this.t(wasPaused ? 'cluster.machinePool.autoscaler.announce.resumed' : 'cluster.machinePool.autoscaler.announce.paused', { name });
+      } catch (err) {
+        // The model has already put the pool back and growled the error
+        this.autoscalerAnnouncement = this.t(wasPaused ? 'cluster.machinePool.autoscaler.announce.resumeError' : 'cluster.machinePool.autoscaler.announce.pauseError', { name });
+
+        throw err;
+      } finally {
+        this.autoscalerPauseSaving = this.autoscalerPauseSaving.filter((id) => id !== pool.id);
+      }
+    },
+
     toggleScaleDownModal( event, resources ) {
       // Check if the user held alt key when an action is clicked.
       const alt = isAlternate(event);
@@ -983,7 +1072,7 @@ export default {
                     </div>
                   </div>
                   <div
-                    v-if="group.ref && !group.ref.isAutoscalerEnabled"
+                    v-if="group.ref && (showPoolMachineControls(group.ref) || showPoolAutoscalerControls(group.ref))"
                     class="right group-header-buttons mr-20"
                   >
                     <MachineSummaryGraph
@@ -992,7 +1081,7 @@ export default {
                       :horizontal="true"
                       class="mr-20"
                     />
-                    <template v-if="value.hasLink('update') && group.ref.showScalePool">
+                    <template v-if="showPoolMachineControls(group.ref) && value.hasLink('update') && group.ref.showScalePool">
                       <button
                         v-clean-tooltip="t('node.list.scaleDown')"
                         :disabled="!group.ref.canScaleDownPool()"
@@ -1014,10 +1103,36 @@ export default {
                         <i class="icon icon-sm icon-plus" />
                       </button>
                     </template>
+                    <template v-if="showPoolAutoscalerControls(group.ref)">
+                      <span
+                        class="ml-20 text-no-break"
+                        data-testid="machine-pool-autoscaler-status"
+                      >
+                        {{ group.ref.isAutoscalerPaused ? t('cluster.machinePool.autoscaler.status.paused') : t('cluster.machinePool.autoscaler.status.running') }}
+                      </span>
+                      <button
+                        v-if="group.ref.canPauseResumeAutoscaler"
+                        :aria-label="group.ref.isAutoscalerPaused ? t('cluster.machinePool.autoscaler.resumeAriaLabel', { name: group.ref.nameDisplay }) : t('cluster.machinePool.autoscaler.pauseAriaLabel', { name: group.ref.nameDisplay })"
+                        :aria-disabled="isAutoscalerPauseSaving(group.ref)"
+                        :class="{ disabled: isAutoscalerPauseSaving(group.ref) }"
+                        type="button"
+                        class="btn btn-sm role-secondary ml-10"
+                        data-testid="machine-pool-autoscaler-pause-button"
+                        @click="togglePoolAutoscalerPause(group.ref)"
+                      >
+                        <i :class="group.ref.isAutoscalerPaused ? 'icon icon-sm icon-play' : 'icon icon-sm icon-pause'" />
+                        <span>{{ group.ref.isAutoscalerPaused ? t('autoscaler.card.resume') : t('autoscaler.card.pause') }}</span>
+                      </button>
+                    </template>
                   </div>
                 </div>
               </template>
             </ResourceTable>
+            <span
+              class="sr-only"
+              role="status"
+              data-testid="machine-pool-autoscaler-announcement"
+            >{{ autoscalerAnnouncement }}</span>
           </Tab>
 
           <Tab

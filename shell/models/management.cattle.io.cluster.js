@@ -21,6 +21,7 @@ import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import { SETTING } from '@shell/config/settings';
+import { isMachinePoolAutoscalerEnabled } from '@shell/utils/autoscaler-utils';
 const DEFAULT_BADGE_COLOR = '#707070';
 
 // See translation file cluster.providers for list of providers
@@ -859,9 +860,9 @@ export default class MgmtCluster extends SteveModel {
       return false;
     }
 
-    return !!this.provCluster.spec?.rkeConfig?.machinePools?.some((pool) => {
-      return typeof pool.autoscalingMinSize !== 'undefined' || typeof pool.autoscalingMaxSize !== 'undefined';
-    });
+    // A paused pool still counts as enabled, otherwise pausing every pool would hide the autoscaler column, popover,
+    // tab and the cluster level pause action
+    return !!this.provCluster.spec?.rkeConfig?.machinePools?.some((pool) => isMachinePoolAutoscalerEnabled(pool));
   }
 
   _statusInfoWarned = false;

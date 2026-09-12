@@ -14,13 +14,15 @@ const RULESETS = [
     path:  FIELDS.NAME,
     rules: ['required', 'uniquePoolName'],
   },
+  // The autoscaler bounds live on the pool while it is autoscaling and in the pool's stash while it is paused, so they
+  // are checked by rules that read the range rather than the value at the path
   {
     path:  FIELDS.AUTOSCALER_MIN,
-    rules: ['isPositive', 'isAutoscalerMaxGreaterThanMin'],
+    rules: ['isAutoscalerMinSizeValid', 'isAutoscalerMaxGreaterThanMin'],
   },
   {
     path:  FIELDS.AUTOSCALER_MAX,
-    rules: ['isPositive', 'isAutoscalerMaxGreaterThanMin'],
+    rules: ['isAutoscalerMaxSizeValid', 'isAutoscalerMaxGreaterThanMin'],
   },
 ];
 
