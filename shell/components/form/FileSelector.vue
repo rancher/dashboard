@@ -17,7 +17,10 @@ export function readFileContents(file, asDataUrl = false) {
     const reader = new FileReader();
 
     reader.onload = (ev) => resolve(ev.target.result);
-    reader.onerror = (err) => reject(err);
+    // `onerror` is handed a ProgressEvent, not the failure. The DOMException that says what went wrong
+    // — NotFoundError for a dropped folder, NotReadableError for a file pulled out from under us — is on
+    // the reader. Rejecting with the event instead left every caller with nothing to report.
+    reader.onerror = () => reject(reader.error || new Error(`Could not read ${ file.name }`));
 
     if (asDataUrl) {
       reader.readAsDataURL(file);
@@ -151,7 +154,9 @@ export default {
       } catch (error) {
         this.$emit('error', error);
         if (this.showGrowlError) {
-          this.$store.dispatch('growl/fromError', { title: this.t('generic.errorReadingFile'), error }, { root: true });
+          // `err`, not `error`: growl/fromError reads `err`, so the other spelling threw the detail away
+          // and left the growl with a title and no body.
+          this.$store.dispatch('growl/fromError', { title: this.t('generic.errorReadingFile'), err: error }, { root: true });
         }
       }
     },

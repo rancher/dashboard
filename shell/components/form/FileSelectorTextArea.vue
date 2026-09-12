@@ -96,7 +96,9 @@ const isDragging = computed(() => dragDepth.value > 0);
 const onSelected = (contents: string) => emit('update:value', props.transformFile ? props.transformFile(contents) : contents);
 
 const onError = (error: unknown) => {
-  store.dispatch('growl/fromError', { title: t('generic.errorReadingFile'), error }, { root: true });
+  // `err`, not `error`: growl/fromError reads `err`, so the other spelling threw the detail away and
+  // left the growl with a title and no body.
+  store.dispatch('growl/fromError', { title: t('generic.errorReadingFile'), err: error }, { root: true });
 };
 
 const onDragEnter = (event: DragEvent) => {

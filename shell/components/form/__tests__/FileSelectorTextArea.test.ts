@@ -7,8 +7,11 @@ import { _VIEW } from '@shell/config/query-params';
 
 const DROP_OVERLAY = '[data-testid="file-selector-text-area__drop-overlay"]';
 
+// The store the most recent mount was given, so a test can assert on what the component dispatched.
+let store: any;
+
 const mountComponent = (props = {}) => {
-  const store = createStore({});
+  store = createStore({});
 
   store.dispatch = jest.fn();
 
@@ -153,6 +156,45 @@ describe('component: FileSelectorTextArea', () => {
 
     expect(wrapper.emitted('update:value')).toStrictEqual([['dropped contents']]);
     expect(wrapper.find(DROP_OVERLAY).exists()).toBe(false);
+  });
+
+  // growl/fromError reads `err`; dispatching `error` instead handed it undefined, and the user got a
+  // growl titled "Error reading file" with nothing under it and no way to tell what had gone wrong.
+  describe('when a dropped file cannot be read', () => {
+    // A folder dropped on the field is the reachable case: FileReader fails it with a DOMException.
+    const unreadable = () => {
+      const file = new File([], 'a-folder', { type: '' });
+      const failure = new DOMException('The requested file could not be read', 'NotReadableError');
+
+      jest.spyOn(FileReader.prototype, 'readAsText').mockImplementation(function(this: FileReader) {
+        Object.defineProperty(this, 'error', { value: failure, configurable: true });
+        this.onerror?.(new ProgressEvent('error') as ProgressEvent<FileReader>);
+      });
+
+      return { file, failure };
+    };
+
+    afterEach(() => jest.restoreAllMocks());
+
+    it('should growl the reason the read failed', async() => {
+      const wrapper = mountComponent();
+      const { file, failure } = unreadable();
+
+      await wrapper.find('.drop-zone').trigger('drop', fileDragEvent(['Files'], [file]));
+      await flushFileRead(wrapper);
+
+      expect(store.dispatch).toHaveBeenCalledWith('growl/fromError', { title: 'generic.errorReadingFile', err: failure }, { root: true });
+    });
+
+    it('should not emit a value when the read fails', async() => {
+      const wrapper = mountComponent();
+      const { file } = unreadable();
+
+      await wrapper.find('.drop-zone').trigger('drop', fileDragEvent(['Files'], [file]));
+      await flushFileRead(wrapper);
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
   });
 
   it('should reject a dropped file that exceeds the byte limit', async() => {
