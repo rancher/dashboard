@@ -264,6 +264,18 @@ export const AGE_NORMAN = {
   sort:     'created:desc',
 };
 
+export const DEPLOYED = {
+  name:      'deployed',
+  labelKey:  'tableHeaders.deployed',
+  value:     'deployedTimestamp',
+  getValue:  (row) => row.deployedTimestamp,
+  sort:      'deployedTimestamp:desc',
+  search:    false,
+  formatter: 'LiveDate',
+  width:     100,
+  align:     'left'
+};
+
 export const CREATION_DATE = {
   name:      'date',
   labelKey:  'tableHeaders.date',
