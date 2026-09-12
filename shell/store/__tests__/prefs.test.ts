@@ -1503,6 +1503,55 @@ describe('prefs store', () => {
       });
     });
 
+    // Requests here have no timeout: the store's HTTP path sets none, so a stalled connection produces a
+    // promise that neither resolves nor rejects. The queue advances when a task SETTLES, so one of those
+    // would hold it for the life of the page and every later preference write — pins, visits, theme —
+    // would queue behind it and never run, while the UI went on showing them applied.
+    describe('a write that never settles', () => {
+      afterEach(() => {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      });
+
+      it('should let the queue move on rather than hold it forever', async() => {
+        jest.useFakeTimers();
+
+        const ran: string[] = [];
+        // A hung request: never resolves, never rejects.
+        const hung = enqueuePreferenceWrite(() => new Promise<void>(() => undefined));
+
+        hung.catch(() => undefined);
+
+        const next = enqueuePreferenceWrite(async() => {
+          ran.push('next');
+        });
+
+        // Still correctly waiting its turn.
+        await Promise.resolve();
+        expect(ran).toStrictEqual([]);
+
+        await jest.advanceTimersByTimeAsync(30000);
+        await next;
+
+        expect(ran).toStrictEqual(['next']);
+      });
+
+      it('should not wait out the timeout when the write settles normally', async() => {
+        jest.useFakeTimers();
+
+        const ran: string[] = [];
+
+        await enqueuePreferenceWrite(async() => {
+          ran.push('first');
+        });
+        await enqueuePreferenceWrite(async() => {
+          ran.push('second');
+        });
+
+        expect(ran).toStrictEqual(['first', 'second']);
+      });
+    });
+
     // `loadServer` writes as well as reads: preferences set before login are replayed onto the server from
     // inside it. From `set`/`reconcilePrefs` that is already covered — they hold the queue — but the boot
     // call holds nothing, and the router runs loadManagement alongside loadCluster. Unqueued, that replay

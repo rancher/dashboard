@@ -357,11 +357,36 @@ export const mutations = {
  */
 let writeChain: Promise<any> = Promise.resolve();
 
+/**
+ * How long the queue will wait on one write before letting the next one go.
+ *
+ * A REJECTED write releases the queue immediately; this is for one that never settles at all. Requests
+ * here have no timeout — the store's HTTP path sets none — so a stalled connection leaves a promise that
+ * neither resolves nor rejects, and without this the queue would hold for the life of the page: pins,
+ * visits, theme, all silently stuck behind it while the UI went on showing them applied.
+ *
+ * Letting the next write go means two can overlap, which is where this was before the queue existed. That
+ * is the lesser failure: the writes merge on read, and losing one is better than never writing again.
+ */
+const WRITE_QUEUE_TIMEOUT = 30000;
+
 export function enqueuePreferenceWrite<T>(task: () => Promise<T>): Promise<T> {
   const run = writeChain.then(task, task);
 
-  // Keep the chain alive even if a task rejects, so one failed write can't wedge every write after it.
-  writeChain = run.then(() => undefined, () => undefined);
+  // Resolves when the task settles OR when it has taken too long, whichever comes first. The caller still
+  // waits on the task itself; it is only the QUEUE that moves on.
+  writeChain = new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, WRITE_QUEUE_TIMEOUT);
+
+    // Don't hold a test runner (or node) open on a queue slot nobody is waiting for.
+    (timer as any)?.unref?.();
+
+    // Settling covers rejection too, so one failed write can't wedge every write after it.
+    run.then(() => undefined, () => undefined).then(() => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
 
   return run;
 }
