@@ -1604,6 +1604,12 @@ export default {
   $nav-space-5: 20px;
   $transition-nav: all 0.25s ease-in-out;
 
+  // The nav and the cluster-switcher flyout open on top of each other, so they open and close at the same
+  // speed — two durations that differ read as two separate animations. These mirror
+  // $flyout-open-duration / $flyout-close-duration in ClusterSwitcher.vue; change them together.
+  $nav-open-duration: 0.25s;
+  $nav-close-duration: 0.2s;
+
   @mixin icon-hover-square {
     box-sizing: border-box;
     align-items: center;
@@ -1877,7 +1883,7 @@ export default {
     flex-direction: column;
     padding: 0;
     overflow: hidden;
-    transition: width 250ms;
+    transition: width $nav-open-duration;
 
     &:focus, &:focus-visible {
       outline: 0;
@@ -2217,7 +2223,7 @@ export default {
           text-transform: uppercase;
 
           span {
-            transition: opacity 0.25s ease-in-out;
+            transition: opacity $nav-open-duration ease-in-out;
             display: flex;
             max-height: 16px;
           }
@@ -2264,18 +2270,23 @@ export default {
     }
 
     &.menu-close {
+      transition: width $nav-close-duration;
+
       .side-menu-logo  {
         opacity: 0;
+        transition: all $nav-close-duration;
       }
       .category {
         &-title {
           span {
             opacity: 0;
+            transition: opacity $nav-close-duration ease-in-out;
           }
 
           hr {
             width: 40px;
-            transition: width 0s linear 0.25s;
+            // Held until the label has gone, so the two never cross over.
+            transition: width 0s linear $nav-close-duration;
           }
         }
       }
@@ -2335,7 +2346,7 @@ export default {
     max-width: 200px;
     width: 100%;
     justify-content: center;
-    transition: all 0.5s;
+    transition: all $nav-open-duration;
     overflow: hidden;
     & IMG {
       object-fit: contain;
@@ -2345,12 +2356,12 @@ export default {
   }
 
   .fade-enter-active, .fade-leave-active {
-    transition: all 0.25s;
+    transition: all $nav-open-duration;
     transition-timing-function: ease;
   }
 
   .fade-leave-active {
-    transition: all 0.25s;
+    transition: all $nav-close-duration;
   }
 
   .fade-leave-to {
