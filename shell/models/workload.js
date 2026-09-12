@@ -677,6 +677,33 @@ export default class Workload extends WorkloadService {
     return this.podSelector ? parse(this.podSelector) : null;
   }
 
+  /**
+   * True when server-side pagination is enabled for this workload type and list health
+   * uses includeAssociatedData instead of the global pod store.
+   */
+  get hasPaginatedWorkloadHealth() {
+    const typesWithEmbeddedHealth = [
+      WORKLOAD_TYPES.DEPLOYMENT,
+      WORKLOAD_TYPES.DAEMON_SET,
+      WORKLOAD_TYPES.STATEFUL_SET,
+      WORKLOAD_TYPES.JOB,
+    ];
+
+    if (!typesWithEmbeddedHealth.includes(this.type)) {
+      return false;
+    }
+
+    return !!this.$getters['paginationEnabled']?.({ id: this.type });
+  }
+
+  get healthAssociatedData() {
+    if (!this.hasPaginatedWorkloadHealth) {
+      return undefined;
+    }
+
+    return this.metadata?.associatedData || [];
+  }
+
   calcPodGauges(pods) {
     const out = { };
     let refPods = pods;
@@ -717,7 +744,51 @@ export default class Workload extends WorkloadService {
     return out;
   }
 
+  calcPodGaugesFromAssociatedData(associatedData) {
+    const out = { };
+
+    if (!Array.isArray(associatedData)) {
+      return out;
+    }
+
+    const refPods = [];
+
+    associatedData.forEach((w) => {
+      if (w.gvk.kind.toLowerCase() !== POD) {
+        return;
+      }
+
+      w.data.forEach((p) => {
+        refPods.push({
+          stateColor:   colorForStateFn(p.state.name, p.state.error === 'true', p.state.transitioning === 'true'),
+          stateDisplay: stateDisplayFn(p.state.name),
+        });
+      });
+    });
+
+    refPods.map((pod) => {
+      const { stateColor, stateDisplay } = pod;
+
+      if (out[stateDisplay]) {
+        out[stateDisplay].count++;
+      } else {
+        out[stateDisplay] = {
+          color: stateColor.replace('text-', ''),
+          count: 1
+        };
+      }
+    });
+
+    return out;
+  }
+
   get podGauges() {
+    const associatedData = this.healthAssociatedData;
+
+    if (associatedData !== undefined) {
+      return this.calcPodGaugesFromAssociatedData(associatedData);
+    }
+
     return this.calcPodGauges(this.pods);
   }
 
