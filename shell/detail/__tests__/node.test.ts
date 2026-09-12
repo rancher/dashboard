@@ -28,7 +28,7 @@ describe('view: node detail', () => {
     pods:               [],
     cpuCapacity:        4,
     cpuUsage:           2,
-    ramReserved:        8000,
+    ramAllocatable:     8000,
     ramUsage:           4000,
     podCapacity:        110,
     podConsumed:        5,
