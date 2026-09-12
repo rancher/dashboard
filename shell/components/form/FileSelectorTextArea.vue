@@ -83,6 +83,12 @@ const dragDepth = ref(0);
 // Tells a dragged file apart from text dragged around the page
 const isFileDrag = (event: DragEvent) => Array.from(event.dataTransfer?.types || []).includes('Files');
 
+// The button always reads "Read from File", so two of these on one form — a private key and a
+// certificate, say — give a screen reader two buttons with identical names and nothing to tell them
+// apart. The visible text stays as designed; the accessible name carries the field it fills.
+const fieldLabel = computed(() => props.label || (props.labelKey ? t(props.labelKey) : ''));
+const fileSelectorLabel = computed(() => (fieldLabel.value ? t('generic.readFromFileArea', { area: fieldLabel.value }) : t('generic.readFromFile')));
+
 const isView = computed(() => props.mode === _VIEW);
 const isDropTarget = computed(() => !isView.value && !props.disabled);
 const isDragging = computed(() => dragDepth.value > 0);
@@ -191,6 +197,7 @@ const onDrop = async(event: DragEvent) => {
         :disabled="disabled"
         :accept="accept"
         :byte-limit="byteLimit"
+        :aria-label="fileSelectorLabel"
         :label="t('generic.readFromFile')"
         @selected="onSelected"
         @error="onError"

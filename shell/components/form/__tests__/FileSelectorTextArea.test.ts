@@ -18,6 +18,8 @@ const mountComponent = (props = {}) => {
   });
 };
 
+const fileButton = (wrapper: any) => wrapper.find('[data-testid="file-selector__uploader-button"]');
+
 const fileDragEvent = (types = ['Files'], files: File[] = []) => ({ dataTransfer: { types, files } });
 
 // Reading a dropped file resolves on a FileReader event, so give it a few ticks
@@ -54,6 +56,38 @@ describe('component: FileSelectorTextArea', () => {
     const wrapper = mountComponent({ fileSelectorTestid: 'my-file-button' });
 
     expect(wrapper.find('[data-testid="my-file-button"]').exists()).toBe(true);
+  });
+
+  // Stack two of these on a form and both buttons read "Read from File", so a screen reader announces two
+  // identically named buttons with nothing to say which field each one fills. `generic.readFromFileArea`
+  // is "Read from File - {area}", so the name still leads with the text on the button.
+  describe('the file button accessible name', () => {
+    it('should name the field it fills, so two on a form can be told apart', () => {
+      const privateKey = fileButton(mountComponent()).attributes('aria-label');
+      const certificate = fileButton(mountComponent({ label: 'Certificate' })).attributes('aria-label');
+
+      expect(privateKey).toBe('generic.readFromFileArea-{"area":"Private Key"}');
+      expect(certificate).toBe('generic.readFromFileArea-{"area":"Certificate"}');
+      expect(privateKey).not.toBe(certificate);
+    });
+
+    it('should resolve the field name from a label key too', () => {
+      const wrapper = mountComponent({ label: undefined, labelKey: 'secret.certificate.privateKey' });
+
+      expect(fileButton(wrapper).attributes('aria-label')).toBe('generic.readFromFileArea-{"area":"secret.certificate.privateKey"}');
+    });
+
+    // The visible text is untouched: WCAG 2.5.3 wants the accessible name to contain what is on screen,
+    // or speaking the label stops selecting the control.
+    it('should leave the visible button text alone', () => {
+      expect(fileButton(mountComponent()).text()).toContain('generic.readFromFile');
+    });
+
+    it('should fall back to the plain name when the field has no label', () => {
+      const wrapper = mountComponent({ label: undefined });
+
+      expect(fileButton(wrapper).attributes('aria-label')).toBe('generic.readFromFile');
+    });
   });
 
   it('should not offer the file selector in view mode', () => {
