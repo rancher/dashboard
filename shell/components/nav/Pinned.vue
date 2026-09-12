@@ -1,33 +1,48 @@
-<script>
+<script setup lang="ts">
 // Allow the user to pin a cluster by clicking it.
-export default {
-  props: {
-    cluster: {
-      type:     Object,
-      required: true,
-    },
-    tabOrder: {
-      type:    Number,
-      default: null,
-    }
-  },
+import { computed, nextTick, ref } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
+import type { TopLevelMenuCluster } from '@shell/components/nav/TopLevelMenu.helper';
+import { reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
 
-  computed: {
-    pinned() {
-      return this.cluster.pinned;
-    }
-  },
+// Derived, not restated: every caller passes a `TopLevelMenuCluster`, so picking the fields keeps this
+// control from silently drifting if one of their types changes in the helper.
+type PinnableCluster = Pick<TopLevelMenuCluster, 'pinned' | 'label' | 'pin' | 'unpin'>;
 
-  methods: {
-    toggle() {
-      if ( this.pinned ) {
-        this.cluster.unpin();
-      } else {
-        this.cluster.pin();
-      }
-    }
-  }
-};
+interface Props {
+  cluster: PinnableCluster;
+  /** tabindex for the toggle (-1 removes it from the tab order on the collapsed rail; omit to leave unset). */
+  tabOrder?: number;
+}
+
+const props = defineProps<Props>();
+
+const store = useStore();
+const { t } = useI18n(store);
+
+const pinned = computed(() => props.cluster.pinned);
+
+// Restart the one-shot pop animation on each toggle: clear the class, wait a tick so Vue drops it from the
+// DOM, then re-add so the animation replays — keeps the retrigger reactive with no direct DOM manipulation.
+const popping = ref(false);
+
+// Exposed so a surface that offers its own route to the pin — the header's Cmd+Shift+P / Alt+P — toggles
+// THROUGH this control rather than writing the pref itself: one path for the write, the growl on failure
+// and the pop, so the icon reacts to the shortcut exactly as it does to a click.
+defineExpose({ toggle });
+
+async function toggle() {
+  // `pin`/`unpin` return the serialized pref write; `reportPinWriteFailure` owns its failure contract
+  // and the growl, so this surface and the switcher flyout cannot drift apart on it.
+  const write = pinned.value ? props.cluster.unpin() : props.cluster.pin();
+
+  reportPinWriteFailure(store, t, write);
+
+  popping.value = false;
+  await nextTick();
+  popping.value = true;
+}
 </script>
 
 <template>
@@ -35,18 +50,47 @@ export default {
     :tabindex="tabOrder"
     :aria-pressed="!!pinned"
     class="pin icon"
-    :class="{'icon-pin-outlined': !pinned, 'icon-pin': pinned}"
+    :class="{ 'icon-pin': pinned, 'icon-pin-outlined': !pinned, 'is-pinned': pinned, 'pin-pop': popping }"
     role="button"
     :aria-label="t('nav.ariaLabel.pinCluster', { cluster: cluster.label })"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"
     @keydown.space.prevent="toggle"
+    @animationend="popping = false"
   />
 </template>
 
 <style lang="scss" scoped>
+  // Every transform keeps the scaleX(-1) flip: bigger on hover, presses down on click, pops after toggle.
   .icon {
     font-size: 14px;
     transform: scaleX(-1);
+    transition: transform 0.1s ease;
+
+    &:hover {
+      transform: scaleX(-1) scale(1.12);
+    }
+
+    &:active {
+      transform: scaleX(-1) scale(0.9);
+    }
+  }
+
+  .pin-pop {
+    animation: pin-pop 0.18s ease-out;
+  }
+
+  @keyframes pin-pop {
+    0% {
+      transform: scaleX(-1) scale(1);
+    }
+
+    55% {
+      transform: scaleX(-1) scale(1.3);
+    }
+
+    100% {
+      transform: scaleX(-1) scale(1);
+    }
   }
 </style>

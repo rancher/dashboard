@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash';
+
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
@@ -98,6 +100,7 @@ export const WORKSPACE = create('workspace', '');
 export const EXPANDED_GROUPS = create('open-groups', ['cluster', 'policy', 'rbac', 'serviceDiscovery', 'storage', 'workload'], { parseJSON });
 export const FAVORITE_TYPES = create('fav-type', [], { parseJSON });
 export const PINNED_CLUSTERS = create('pinned-clusters', [], { parseJSON });
+export const RECENT_CLUSTERS = create('recent-clusters', [], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
 export const THEME = create('theme', 'auto', {
@@ -156,6 +159,16 @@ export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2
 
 // Maximum number of clusters to show in the slide-in menu
 export const MENU_MAX_CLUSTERS = 10;
+// Page size for the cluster-switcher flyout's ALL CLUSTERS directory and its search results. Bigger than
+// MENU_MAX_CLUSTERS because the flyout now runs the full height of the viewport — one page should be
+// enough to fill it, rather than leaning on the top-up fetch.
+export const SWITCHER_PAGE_SIZE = 20;
+// How many recently-visited clusters the switcher flyout lists. Short on purpose: RECENTLY USED is a
+// shortcut to the last few clusters, sitting above the whole estate, so a long list would push that off.
+export const SWITCHER_MAX_RECENT = 5;
+// How many are stored and asked for. The request is by id, and an id can no longer resolve (the cluster
+// was deleted, or access was lost), so ask for more than are shown and take the first that come back.
+export const RECENT_CLUSTERS_FETCHED = 10;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
 
@@ -332,13 +345,58 @@ export const mutations = {
   }
 };
 
+/**
+ * The user's preferences are ONE shared document, and every write to it is a get-before-set. Two that
+ * overlap therefore clobber each other: the later GET reads a value the earlier PUT has not landed yet,
+ * and its PUT carries that stale value back over the top. Both report success.
+ *
+ * So every server round-trip funnels through here and runs strictly one at a time. Only the round-trip —
+ * the local commit stays outside, so the UI never waits on the queue.
+ *
+ * A task must not itself write a preference, or it would wait on the queue it is holding.
+ */
+let writeChain: Promise<any> = Promise.resolve();
+
+/**
+ * How long the queue will wait on one write before letting the next one go.
+ *
+ * A REJECTED write releases the queue immediately; this is for one that never settles at all. Requests
+ * here have no timeout — the store's HTTP path sets none — so a stalled connection leaves a promise that
+ * neither resolves nor rejects, and without this the queue would hold for the life of the page: pins,
+ * visits, theme, all silently stuck behind it while the UI went on showing them applied.
+ *
+ * Letting the next write go means two can overlap, which is where this was before the queue existed. That
+ * is the lesser failure: the writes merge on read, and losing one is better than never writing again.
+ */
+const WRITE_QUEUE_TIMEOUT = 30000;
+
+export function enqueuePreferenceWrite<T>(task: () => Promise<T>): Promise<T> {
+  const run = writeChain.then(task, task);
+
+  // Resolves when the task settles OR when it has taken too long, whichever comes first. The caller still
+  // waits on the task itself; it is only the QUEUE that moves on.
+  writeChain = new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, WRITE_QUEUE_TIMEOUT);
+
+    // Don't hold a test runner (or node) open on a queue slot nobody is waiting for.
+    (timer as any)?.unref?.();
+
+    // Settling covers rejection too, so one failed write can't wedge every write after it.
+    run.then(() => undefined, () => undefined).then(() => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+
+  return run;
+}
+
 export const actions = {
   async set({
     dispatch, commit, rootGetters, state
   }: PrefsActionContext, opt: { key: string, value?: any, val?: any }): Promise<PrefError | undefined> {
     let { key, value } = opt; // eslint-disable-line prefer-const
     const definition = state.definitions[key];
-    let server;
 
     if ( opt.val ) {
       throw new Error('Use value, not val');
@@ -369,29 +427,182 @@ export const actions = {
         return;
       }
 
-      try {
-        server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
+      // Queued: this is a get-before-set on the shared Preference, so it must not overlap another one.
+      return enqueuePreferenceWrite(async() => {
+        try {
+          const server = await dispatch('readServer'); // There's no watch on prefs, so get before set...
 
-        if ( server?.data ) {
-          if ( definition.mangleWrite ) {
-            value = definition.mangleWrite(value);
+          if ( server?.data ) {
+            if ( definition.mangleWrite ) {
+              value = definition.mangleWrite(value);
+            }
+
+            if ( definition.parseJSON ) {
+              server.data[key] = JSON.stringify(value);
+            } else {
+              server.data[key] = value;
+            }
+
+            await server.save({ redirectUnauthorized: false });
           }
+        } catch (e) {
+          // Well it failed, but not much to do about it...
+          const error = e as PrefError;
 
-          if ( definition.parseJSON ) {
-            server.data[key] = JSON.stringify(value);
-          } else {
-            server.data[key] = value;
-          }
-
-          await server.save({ redirectUnauthorized: false });
+          // Return the error
+          return { type: error.type, status: error.status };
         }
-      } catch (e) {
-        // Well it failed, but not much to do about it...
-        const error = e as PrefError;
+      });
+    }
+  },
 
-        // Return the error
-        return { type: error.type, status: error.status };
+  // A merge-write is a read-modify-write of a preference via a PURE apply(currentValue) => newValue, split
+  // into two phases so the UI can feel instant: applyPrefsOptimistic commits against the client value now
+  // (outside any write queue), and reconcilePrefs does the one GET-then-PUT against what the server holds.
+  // `enqueuePreferenceWrite` serializes the reconcile, never the optimistic phase.
+
+  // Phase 1 — optimistic. SYNC (no awaits) so the commits land in the same tick; returns the committed
+  // values so reconcilePrefs can detect server drift without re-deriving the wrong base.
+  //
+  // NOTE: like `set` and `reconcilePrefs`, this REPORTS failure by returning `{ type, status }` rather
+  // than throwing, so a caller needs one check across both phases of a merge write.
+  applyPrefsOptimistic(
+    { commit, rootGetters, state }: PrefsActionContext,
+    writes: Array<{ key: string, apply: (value: any) => any }>
+  ): Record<string, any> | PrefError {
+    const list = Array.isArray(writes) ? writes.filter((m) => m && m.key && typeof m.apply === 'function') : [];
+    const optimistic: Record<string, any> = {};
+
+    const currentValue = (key: string) => {
+      const v = state.data[key];
+
+      // Clone, as the `get` getter does: `apply` is documented as pure, but handing out the live state
+      // (or the shared default object) makes a mutating transform corrupt the store rather than fail.
+      return clone(v === undefined ? state.definitions[key]?.def : v);
+    };
+
+    // A merge-write persists to the server only — it doesn't maintain the cookie mirror that `set` does,
+    // so a cookie-backed pref would leave the cookie holding the old value. Reject the whole batch before
+    // committing anything, rather than half-applying it.
+    const cookieBacked = list.find(({ key }) => state.definitions[key]?.asCookie);
+
+    if (cookieBacked) {
+      console.error(`Preference "${ cookieBacked.key }" is cookie-backed and cannot be merge-written`); // eslint-disable-line no-console
+
+      return { type: 'error', status: 400 };
+    }
+
+    list.forEach(({ key, apply }) => {
+      const next = apply(currentValue(key));
+
+      optimistic[key] = next;
+      commit('load', { key, value: next });
+    });
+
+    // Before login there's no server to reconcile against — stash so loadServer replays them post-login.
+    if (!rootGetters['auth/loggedIn']) {
+      list.forEach(({ key }) => {
+        if (state.definitions[key]?.asUserPreference) {
+          prefsBeforeLogin[key] = optimistic[key];
+        }
+      });
+    }
+
+    return optimistic;
+  },
+
+  // Phase 2 — reconcile + persist. Re-runs the transforms against the value the server holds AT THE MOMENT
+  // OF THE WRITE and adopts that result if it drifted from what we optimistically committed, so a change
+  // made elsewhere (another tab, a manual edit) is merged rather than overwritten. Persists only the keys
+  // a transform actually changed.
+  //
+  // That is a merge on write, NOT a subscription — preferences are not watched. A change made in another
+  // tab reaches this one when this tab next writes a preference of its own, or on reload; until then this
+  // tab goes on showing what it last read.
+  //
+  // NOTE: like `set`, this RESOLVES with `{ type, status }` on failure rather than rejecting — callers
+  // have to inspect the resolved value, not just attach a `.catch`.
+  async reconcilePrefs(
+    {
+      dispatch, commit, rootGetters, state
+    }: PrefsActionContext,
+    { mutations: writes, optimistic }: { mutations: Array<{ key: string, apply: (value: any) => any }>, optimistic?: Record<string, any> }
+  ): Promise<PrefError | undefined> {
+    const list = Array.isArray(writes) ? writes.filter((m) => m && m.key && typeof m.apply === 'function') : [];
+    const serverEntries = list.filter(({ key }) => state.definitions[key]?.asUserPreference);
+
+    if (!serverEntries.length || !rootGetters['auth/loggedIn']) {
+      return;
+    }
+
+    const keys = serverEntries.map(({ key }) => key);
+
+    try {
+      const server = await dispatch('readServer');
+
+      // `readServer` swallows its own error and resolves undefined, so this is "could not read the
+      // preference", not "nothing to do". Report it, or the caller counts the write as persisted.
+      if ( !server?.data ) {
+        return { type: 'error', status: 500 };
       }
+
+      let dirty = false;
+
+      serverEntries.forEach(({ key, apply }) => {
+        const definition = state.definitions[key];
+        let base = server.data[key];
+
+        // Same reason as `currentValue` above — the server value is ours to hand out, but the shared
+        // default object is not.
+        if (base === undefined) {
+          base = clone(definition.def);
+        } else if (definition.parseJSON) {
+          try {
+            base = JSON.parse(base);
+          } catch {
+            base = clone(definition.def);
+          }
+        }
+        if (definition.mangleRead) {
+          base = definition.mangleRead(base);
+        }
+
+        const reconciled = apply(base);
+
+        // Leave the STORE holding the reconciled value, comparing against what it holds NOW rather than
+        // against what we optimistically committed. Those are not the same thing: anything that read the
+        // document while this write was in flight will have committed the server's copy over our
+        // optimistic one, and comparing against the optimistic value would then agree with itself, skip
+        // the commit, and leave the store disagreeing with what we are about to persist.
+        // Structural compare: `JSON.stringify` is key-order sensitive, and the merge-write API is generic,
+        // so an object-valued pref (NAMESPACE_FILTERS, HIDE_HOME_PAGE_CARDS) would read as drift purely
+        // from re-serialisation.
+        if (!isEqual(reconciled, state.data[key])) {
+          commit('load', { key, value: reconciled });
+        }
+
+        // Skip the write for a key the action left unchanged (e.g. a duplicate visit / already-pinned).
+        if (!isEqual(reconciled, base)) {
+          const toWrite = definition.mangleWrite ? definition.mangleWrite(reconciled) : reconciled;
+
+          server.data[key] = definition.parseJSON ? JSON.stringify(toWrite) : toWrite;
+          dirty = true;
+        }
+      });
+
+      if (dirty) {
+        await server.save({ redirectUnauthorized: false });
+      }
+    } catch (e) {
+      // Every caller is fire-and-forget, so an unlogged failure here is invisible: the optimistic
+      // commit stays in the client and the server never got it.
+      console.error('Error reconciling preferences', keys, e); // eslint-disable-line no-console
+
+      const error = e as PrefError;
+
+      // Anything that isn't a Steve error has no `status`, and callers treat a falsy `status` as success
+      // — fall back to 500 so an unexpected throw is never reported as a persisted write.
+      return { type: error.type || 'error', status: error.status || 500 };
     }
   },
 
@@ -478,9 +689,57 @@ export const actions = {
     }
   },
 
+  /**
+   * `loadServer` at boot, taking its turn in the write queue.
+   *
+   * loadServer does not only READ the preference: when values were set before login it writes them back.
+   * Called from `set` or `reconcilePrefs` that write is already covered, because those tasks are holding
+   * the queue. At boot nothing holds it, and the router runs `loadManagement` in parallel with
+   * `loadCluster` — so the replay could overlap the write that records the visit, and one would land on
+   * top of the other.
+   *
+   * It is queued HERE rather than inside `loadServer`, which would wait on the queue its own caller is
+   * already holding and never resolve.
+   */
+  loadServerQueued({ dispatch }: PrefsActionContext): Promise<any> {
+    return enqueuePreferenceWrite(() => dispatch('loadServer'));
+  },
+
+  /**
+   * The preference document itself, for a caller that is about to change it.
+   *
+   * Deliberately commits NOTHING. `loadServer` commits the server's value for every preference it reads,
+   * which is right when loading them but wrong in the middle of a write: a value committed optimistically
+   * for some OTHER key, still on its way to the server, would be replaced by the copy the server last saw
+   * — and the shelf would revert under the user.
+   */
+  async readServer({ dispatch }: PrefsActionContext): Promise<any> {
+    try {
+      const all = await dispatch('management/findAll', {
+        type: STEVE.PREFERENCE,
+        opt:  {
+          url:                  'userpreferences',
+          force:                true,
+          watch:                false,
+          redirectUnauthorized: false,
+          stream:               false,
+        }
+      }, { root: true });
+
+      return all?.[0];
+    } catch (e) {
+      console.error('Error loading preferences', e); // eslint-disable-line no-console
+
+      return undefined;
+    }
+  },
+
   async loadServer( {
     state, dispatch, commit, rootState, rootGetters
-  }: PrefsActionContext, ignoreKey?: string) {
+  }: PrefsActionContext, ignoreKey?: string | string[]) {
+    // `ignoreKey` may be a single key or an array of keys (a batched merge write ignores all its keys,
+    // so the get-before-set doesn't re-commit — and thus revert — a sibling that was just set locally).
+    const ignoreKeys = Array.isArray(ignoreKey) ? ignoreKey : [ignoreKey].filter((k) => k !== undefined);
     let server: any = { data: {} };
 
     try {
@@ -526,7 +785,7 @@ export const actions = {
         value = clone(server.data[definition.inheritFrom]);
       }
 
-      if ( value === undefined || key === ignoreKey) {
+      if ( value === undefined || ignoreKeys.includes(key)) {
         continue;
       }
 

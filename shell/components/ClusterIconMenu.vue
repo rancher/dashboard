@@ -11,6 +11,12 @@ export default {
       type:    Boolean,
       default: false
     },
+    // Defaults on so extensions (and the badge/appearance previews, which don't pass it) keep the chip's
+    // pinned overlay; the app-bar switcher passes false — it conveys pinned-ness with its own toggle.
+    showPin: {
+      type:    Boolean,
+      default: true
+    },
   },
   computed: {
     isEnabled() {
@@ -105,14 +111,14 @@ export default {
       </svg>
     </div>
     <i
-      v-if="!routeCombo && cluster.pinned"
+      v-if="!routeCombo && cluster.pinned && showPin"
       class="icon icon-pin cluster-pin-icon"
-      :alt="t('nav.ariaLabel.pinCluster', { cluster: cluster.nameDisplay })"
+      aria-hidden="true"
     />
     <i
       v-else-if="routeCombo"
       class="icon icon-keyboard_tab key-combo-icon"
-      :alt="t('nav.ariaLabel.clusterIconKeyCombo')"
+      aria-hidden="true"
     />
   </div>
 </template>

@@ -201,7 +201,6 @@ nav:
     popularHeading: Popular entries
     recentHeading: Recently used
   ariaLabel:
-    clusterIconKeyCombo: Cluster keyboard shortcut combination icon
     localClusterIcon: Local Cluster icon
     clusterProvIcon: Cluster {cluster} provider icon
     topLevelMenu: Main menu
@@ -209,7 +208,6 @@ nav:
     homePage: Home page navigation menu
     cluster: Cluster menu item
     harvesterCluster: '[[Harvester]] cluster menu item'
-    seeAll: See all clusters menu item
     multiClusterApps: Main menu multi cluster app menu item
     configurationApps: Main menu configuration app menu item
     support: Support page link
@@ -247,8 +245,6 @@ nav:
   rotateCertificates: Rotate Certificates
   rotateEncryptionKeys: Rotate Encryption Keys
   takeSnapshot: Take Snapshot
-  seeAllClusters: See all clusters
-  seeAllClustersCollapsed: See all
   keyComboTooltip: Switch clusters and keep location
   group:
     cluster: Cluster
@@ -297,14 +293,51 @@ nav:
     legacy: Legacy Apps
     configuration: Configuration
     hci: HCI
+  pinClusterError: Could not save your pinned clusters
+  pinnedCluster:
+    explore: Explore {name} or drag it to change the order of your pinned clusters
+    blocked: You cannot explore {name} ({reason}), but you can drag it to change the order of your pinned clusters
   search:
-    placeholder: Filter clusters by...
-    noResults: No matching clusters
-    clusters: clusters
-    ariaLabel: Filter clusters on main menu
+    clusters: |-
+      {count, plural,
+        one {cluster}
+        other {clusters}
+      }
+  switcher:
+    ariaLabel: Cluster switcher
+    clusterSwitch: Cluster Switch
+    shortcutTooltip: Cluster Switch ({shortcut})
+    jumpTo: Jump to...
+    pinned: Pinned clusters
+    recent: Recently used
+    allClusters: All clusters
+    matches: Matches
+    managementCluster: Management cluster
+    noMatch: No matching clusters
+    noClusters: No clusters to show.
+    loadError: Could not load your clusters. Close and try again.
+    aria:
+      # Accessible name for the search box. It has no visible label — only the "Jump to..." placeholder —
+      # so the name has to LEAD with those words: a speech-input user says what they can see
+      # (WCAG 2.5.3 Label in Name), while the rest tells a screen-reader user what the box searches.
+      search: Jump to a cluster (searches all clusters)
+      clusterList: Cluster list
+      searching: Searching clusters
+      results: |-
+        {count, plural,
+          one {1 cluster}
+          other {# clusters}
+        }
+      noResults: No matching clusters
+      notReady: not ready
+      pinned: pinned
+      pinnedCluster: '{cluster} pinned'
+      unpinnedCluster: '{cluster} unpinned'
   header:
     setLoginPage: Set as login page
     showHideBanner: Show/Hide Banner
+    pinCluster: Pin cluster ({shortcut})
+    unpinCluster: Unpin cluster ({shortcut})
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys

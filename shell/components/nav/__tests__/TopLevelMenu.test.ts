@@ -1,9 +1,15 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { load } from 'js-yaml';
 import TopLevelMenu from '@shell/components/nav/TopLevelMenu.vue';
+import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
 import { mount, Wrapper } from '@vue/test-utils';
 import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
-import { nextTick } from 'vue';
+import { SETTING } from '@shell/config/settings';
+import { defineComponent, nextTick } from 'vue';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
+import { isMac } from '@shell/utils/platform';
 
 jest.mock('@shell/utils/pagination-wrapper', () => {
   return jest.fn().mockImplementation(() => {
@@ -21,6 +27,7 @@ const generateStore = (clusters: any[], settings = [{}]) => {
   return {
     getters: {
       'management/byId':              jest.fn(),
+      'management/getSavedCount':     () => undefined,
       'management/schemaFor':         () => ({}),
       'management/paginationEnabled': () => false,
       'i18n/t':                       jest.fn(),
@@ -42,8 +49,10 @@ const generateStore = (clusters: any[], settings = [{}]) => {
         }
       },
       'prefs/get': (pref: string) => {
+        // The shelf is DERIVED from this pref: PINNED = the ids of the pinned clusters, in array
+        // order. `local` is the fixed top tile (its own slice), so it's never part of the pinned group.
         if (pref === PINNED_CLUSTERS) {
-          return [];
+          return clusters.filter((c: any) => c.pinned && c.id !== 'local').map((c: any) => c.id);
         }
       },
     },
@@ -54,6 +63,12 @@ const generateStore = (clusters: any[], settings = [{}]) => {
     }
   };
 };
+
+// The nav shelf shows ONLY local + PINNED + RECENT — the estate and the one search box
+// moved into the switcher flyout, which is teleported and rendered on demand. So the nav's half of that
+// contract is what it hands the `ClusterSwitcher`: assert on those props rather than on rows the nav no
+// longer renders.
+const switcherProp = (wrapper: any, prop: string) => wrapper.findComponent(ClusterSwitcher).props(prop);
 
 const waitForIt = async() => {
   jest.advanceTimersByTime(1000); // Wait for debounced call to fetch updated cluster list
@@ -93,9 +108,7 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    const cluster = wrapper.find('[data-testid="top-level-menu-cluster-0"]');
-
-    expect(cluster.exists()).toBe(true);
+    expect(switcherProp(wrapper, 'all').map((c: any) => c.id)).toStrictEqual(['an-id1']);
   });
 
   it('should show local cluster always on top of the list of clusters (unpinned and ready clusters)', async() => {
@@ -131,7 +144,8 @@ describe('topLevelMenu', () => {
                 id:          'local',
                 mgmt:        { id: 'local' },
                 nameDisplay: 'local',
-                canExplore:  true
+                canExplore:  true,
+                isLocal:     true,
               },
             ])
           }
@@ -143,10 +157,11 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('a-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('c-cluster');
+    // `local` is no longer forced to the top of the combined cluster list — it has its
+    // own fixed tile (`menu-cluster-local`) above the groups. The rest of the estate goes to the flyout's
+    // ALL CLUSTERS directory, alphabetically.
+    expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
+    expect(switcherProp(wrapper, 'all').map((c: any) => c.label)).toStrictEqual(['a-cluster', 'b-cluster', 'c-cluster']);
   });
 
   it('should show local cluster always on top of the list of clusters (unpinned and mix ready/unready clusters)', async() => {
@@ -194,10 +209,11 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('a-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('b-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('c-cluster');
+    // `local` sits in its own fixed tile above the groups. The ALL CLUSTERS directory is
+    // sorted active (ready) first, then alphabetical — so the unready `a-cluster` sorts below the ready
+    // `b-cluster` / `c-cluster` (matching legacy behavior).
+    expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
+    expect(switcherProp(wrapper, 'all').map((c: any) => c.label)).toStrictEqual(['b-cluster', 'c-cluster', 'a-cluster']);
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and ready clusters)', async() => {
@@ -249,10 +265,12 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    // `local` is the fixed top tile (its own slice), not part of the pinned group. PINNED shows in PREF
+    // order (the pinned-clusters array), so c/a/b (an-id1/2/3).
+    expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('c-cluster');
     expect(wrapper.find('[data-testid="pinned-ready-cluster-1"] .cluster-name p').text()).toStrictEqual('a-cluster');
     expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-3"] .cluster-name p').text()).toStrictEqual('c-cluster');
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and mix ready/unready clusters)', async() => {
@@ -308,13 +326,19 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    // `local` is the fixed top tile (its own slice). PINNED shows in PREF order regardless of ready state,
+    // so c/a/b (an-id1/2/3) — b-cluster is not-ready but keeps its pref position.
+    expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('c-cluster');
     expect(wrapper.find('[data-testid="pinned-ready-cluster-1"] .cluster-name p').text()).toStrictEqual('a-cluster');
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('c-cluster');
-    expect(wrapper.find('[data-testid="pinned-ready-cluster-3"] .cluster-name p').text()).toStrictEqual('b-cluster');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
   });
 
-  it('should show description if it is available on the prov cluster', async() => {
+  // The cluster META — `providerDisplay · kubernetesVersion` — is a flyout-row detail now
+  // (the nav shelf is a bare cluster name), so the coverage moves to the fields the nav resolves and hands
+  // the flyout. providerDisplay resolves from the prov cluster's provisionerDisplay here; the four row
+  // types (pinned/unpinned × ready/not-ready) are all still represented.
+  it('should show meta (provider/k8s version) resolved from the prov cluster', async() => {
     const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
@@ -323,39 +347,43 @@ describe('topLevelMenu', () => {
             ...generateStore([
               // pinned ready cluster
               {
-                name:        'whatever',
-                id:          'an-id1',
-                mgmt:        { id: 'an-id1' },
-                description: 'some-description1',
-                nameDisplay: 'some-label',
-                canExplore:  true,
-                pinned:      true
+                name:                 'whatever',
+                id:                   'an-id1',
+                mgmt:                 { id: 'an-id1' },
+                provisionerDisplay:   'provider-1',
+                kubernetesVersionRaw: 'v1.31.1',
+                nameDisplay:          'some-label',
+                canExplore:           true,
+                pinned:               true
               },
               // pinned NOT ready cluster
               {
-                name:        'whatever',
-                id:          'an-id2',
-                mgmt:        { id: 'an-id2' },
-                description: 'some-description2',
-                nameDisplay: 'some-label',
-                pinned:      true
+                name:                 'whatever',
+                id:                   'an-id2',
+                mgmt:                 { id: 'an-id2' },
+                provisionerDisplay:   'provider-2',
+                kubernetesVersionRaw: 'v1.31.2',
+                nameDisplay:          'some-label',
+                pinned:               true
               },
               // unpinned ready cluster
               {
-                name:        'whatever',
-                id:          'an-id3',
-                mgmt:        { id: 'an-id3' },
-                description: 'some-description3',
-                nameDisplay: 'some-label',
-                canExplore:  true
+                name:                 'whatever',
+                id:                   'an-id3',
+                mgmt:                 { id: 'an-id3' },
+                provisionerDisplay:   'provider-3',
+                kubernetesVersionRaw: 'v1.31.3',
+                nameDisplay:          'some-label',
+                canExplore:           true
               },
               // unpinned NOT ready cluster
               {
-                name:        'whatever',
-                id:          'an-id4',
-                mgmt:        { id: 'an-id4' },
-                description: 'some-description4',
-                nameDisplay: 'some-label'
+                name:                 'whatever',
+                id:                   'an-id4',
+                mgmt:                 { id: 'an-id4' },
+                provisionerDisplay:   'provider-4',
+                kubernetesVersionRaw: 'v1.31.4',
+                nameDisplay:          'some-label'
               },
             ])
           },
@@ -367,18 +395,25 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    const description1 = wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description');
-    const description2 = wrapper.find('[data-testid="pinned-menu-cluster-disabled-an-id2"] .description');
-    const description3 = wrapper.find('[data-testid="menu-cluster-an-id3"] .description');
-    const description4 = wrapper.find('[data-testid="menu-cluster-disabled-an-id4"] .description');
+    // The nav rows are a bare cluster name now — the provider · version meta line lives
+    // only on the flyout rows, so check the fields the nav hands the flyout (ClusterSwitcherRow joins
+    // them into that same "provider · version" string).
+    expect(wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description').exists()).toBe(false);
 
-    expect(description1.text()).toStrictEqual('some-description1');
-    expect(description2.text()).toStrictEqual('some-description2');
-    expect(description3.text()).toStrictEqual('some-description3');
-    expect(description4.text()).toStrictEqual('some-description4');
+    const flyoutMeta = switcherProp(wrapper, 'all')
+      .map((c: any) => `${ c.providerDisplay } · ${ c.kubernetesVersion }`);
+
+    expect(flyoutMeta).toStrictEqual([
+      'provider-1 · v1.31.1',
+      'provider-3 · v1.31.3',
+      'provider-2 · v1.31.2',
+      'provider-4 · v1.31.4',
+    ]);
   });
 
-  it('should show description if it is available on the mgmt cluster (relevant for RKE1/ember world)', async() => {
+  // As above, but the provider falls back to the MGMT cluster's `provider` field (no prov provisionerDisplay)
+  // — the RKE1/ember world. Verifies the provider resolution order still surfaces the meta.
+  it('should show meta (provider/k8s version) resolved from the mgmt cluster (relevant for RKE1/ember world)', async() => {
     const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
@@ -387,39 +422,43 @@ describe('topLevelMenu', () => {
             ...generateStore([
               // pinned ready cluster
               {
-                name:        'whatever',
-                id:          'an-id1',
-                mgmt:        { id: 'an-id1' },
-                description: 'some-description1',
-                nameDisplay: 'some-label',
-                canExplore:  true,
-                pinned:      true
+                name:                 'whatever',
+                id:                   'an-id1',
+                mgmt:                 { id: 'an-id1' },
+                provider:             'provider-1',
+                kubernetesVersionRaw: 'v1.31.1',
+                nameDisplay:          'some-label',
+                canExplore:           true,
+                pinned:               true
               },
               // pinned NOT ready cluster
               {
-                name:        'whatever',
-                id:          'an-id2',
-                mgmt:        { id: 'an-id2' },
-                description: 'some-description2',
-                nameDisplay: 'some-label',
-                pinned:      true
+                name:                 'whatever',
+                id:                   'an-id2',
+                mgmt:                 { id: 'an-id2' },
+                provider:             'provider-2',
+                kubernetesVersionRaw: 'v1.31.2',
+                nameDisplay:          'some-label',
+                pinned:               true
               },
               // unpinned ready cluster
               {
-                name:        'whatever',
-                id:          'an-id3',
-                mgmt:        { id: 'an-id3' },
-                description: 'some-description3',
-                nameDisplay: 'some-label',
-                canExplore:  true
+                name:                 'whatever',
+                id:                   'an-id3',
+                mgmt:                 { id: 'an-id3' },
+                provider:             'provider-3',
+                kubernetesVersionRaw: 'v1.31.3',
+                nameDisplay:          'some-label',
+                canExplore:           true
               },
               // unpinned NOT ready cluster
               {
-                name:        'whatever',
-                id:          'an-id4',
-                mgmt:        { id: 'an-id4' },
-                description: 'some-description4',
-                nameDisplay: 'some-label'
+                name:                 'whatever',
+                id:                   'an-id4',
+                mgmt:                 { id: 'an-id4' },
+                provider:             'provider-4',
+                kubernetesVersionRaw: 'v1.31.4',
+                nameDisplay:          'some-label'
               },
             ]),
           }
@@ -431,15 +470,20 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    const description1 = wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description');
-    const description2 = wrapper.find('[data-testid="pinned-menu-cluster-disabled-an-id2"] .description');
-    const description3 = wrapper.find('[data-testid="menu-cluster-an-id3"] .description');
-    const description4 = wrapper.find('[data-testid="menu-cluster-disabled-an-id4"] .description');
+    // The nav rows are a bare cluster name now — the provider · version meta line lives
+    // only on the flyout rows, so check the fields the nav hands the flyout (ClusterSwitcherRow joins
+    // them into that same "provider · version" string).
+    expect(wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description').exists()).toBe(false);
 
-    expect(description1.text()).toStrictEqual('some-description1');
-    expect(description2.text()).toStrictEqual('some-description2');
-    expect(description3.text()).toStrictEqual('some-description3');
-    expect(description4.text()).toStrictEqual('some-description4');
+    const flyoutMeta = switcherProp(wrapper, 'all')
+      .map((c: any) => `${ c.providerDisplay } · ${ c.kubernetesVersion }`);
+
+    expect(flyoutMeta).toStrictEqual([
+      'provider-1 · v1.31.1',
+      'provider-3 · v1.31.3',
+      'provider-2 · v1.31.2',
+      'provider-4 · v1.31.4',
+    ]);
   });
 
   describe('searching a term', () => {
@@ -468,15 +512,13 @@ describe('topLevelMenu', () => {
 
         await waitForIt();
 
-        const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');
-
-        expect(noResults.exists()).toBe(true);
+        // The "no clusters match" caption is the flyout's (see ClusterSwitcher) — the nav's job is to
+        // hand it an empty match list.
+        expect(switcherProp(wrapper, 'searchResults')).toStrictEqual([]);
       });
 
       it('given no matched pinned clusters', async() => {
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data: () => ({ clusterFilter: 'whatever' }),
-
           global: {
             mocks: {
               $route: {},
@@ -496,11 +538,13 @@ describe('topLevelMenu', () => {
           },
         });
 
+        // Set the filter AFTER mount so the `search` watcher fires and re-filters the ALL slice — the
+        // initial helper seed always runs with an empty term, so a data()-preset filter never narrows it.
+        await wrapper.setData({ clusterFilter: 'whatever' });
+
         await waitForIt();
 
-        const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');
-
-        expect(noResults.exists()).toBe(true);
+        expect(switcherProp(wrapper, 'searchResults')).toStrictEqual([]);
       });
     });
 
@@ -530,10 +574,8 @@ describe('topLevelMenu', () => {
 
         await waitForIt();
 
-        const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');
-
         expect(wrapper.vm.clustersFiltered).toHaveLength(1);
-        expect(noResults.exists()).toBe(false);
+        expect(switcherProp(wrapper, 'searchResults')).toHaveLength(1);
       });
 
       it('given clusters with status pinned', async() => {
@@ -562,10 +604,650 @@ describe('topLevelMenu', () => {
 
         await waitForIt();
 
-        const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');
-
         expect(wrapper.vm.pinFiltered).toHaveLength(1);
-        expect(noResults.exists()).toBe(false);
+      });
+    });
+  });
+
+  // The nav's only estate affordance is the switcher trigger — a count chip ("N" over
+  // the word "clusters") plus the "Cluster Switch" label and a trailing chevron. No search box, no ALL
+  // CLUSTERS list and no CLUSTERS title live in the nav any more.
+  // RECENTLY USED moved into the flyout, where the estate it is a shortcut into also lives. The nav shelf
+  // is PINNED only: the clusters the user chose to keep to hand.
+  describe('recently used', () => {
+    const withClusters = () => mount(TopLevelMenu, {
+      global: {
+        mocks: {
+          $route: {},
+          $store: {
+            ...generateStore([
+              {
+                id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
+              },
+            ])
+          },
+        },
+        stubs: ['BrandImage', 'router-link'],
+      },
+    });
+
+    it('is gone from the nav shelf', async() => {
+      const wrapper = withClusters();
+
+      await waitForIt();
+
+      expect(wrapper.vm.shelves.map((s: any) => s.key)).not.toContain('recent');
+      expect(wrapper.find('.clustersRecent').exists()).toBe(false);
+    });
+
+    // One number governs the whole chain — stored, fetched and shown — so the flyout gets exactly the
+    // helper's list, unfiltered: a cluster can be pinned, be `local`, and sit in ALL CLUSTERS as well.
+    // This is a shortcut to where the user just was, not a partition of the estate.
+    it('hands the flyout the helper list as-is', () => {
+      const recentClusters = [{ id: 'local' }, { id: 'pinned-one' }, { id: 'c-3' }];
+      const out = (TopLevelMenu as any).computed.railRecent.call({ recentClusters, hasProvCluster: true });
+
+      expect(out.map((c: any) => c.id)).toStrictEqual(['local', 'pinned-one', 'c-3']);
+    });
+  });
+
+  // The chip is the helper's own browsable total, counted WITHOUT `local` whatever the environment does
+  // with it. Deriving it from the count the home page and the Cluster Management badge share meant
+  // subtracting `local` on a guess, and `hide-local-cluster` moved the chip by one.
+  describe('computed: browsableClusterCount', () => {
+    const count = (browsable: any) => (TopLevelMenu as any).computed.browsableClusterCount.call({ helper: { counts: { others: 99, browsable } } });
+
+    it('reports the helper browsable total as-is', () => {
+      expect(count(22)).toBe(22);
+    });
+
+    it('reads zero until the helper has a total', () => {
+      expect(count(0)).toBe(0);
+      expect(count(undefined)).toBe(0);
+    });
+  });
+
+  describe('the cluster-switcher trigger', () => {
+    const twoClusters = [
+      {
+        id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
+      },
+      {
+        id: 'local', mgmt: { id: 'local' }, nameDisplay: 'local', canExplore: true, isLocal: true
+      },
+    ];
+
+    const mountWithClusters = (hideLocal = false) => {
+      const store = generateStore(twoClusters);
+
+      if (hideLocal) {
+        store.getters['management/byId'] = jest.fn((type: string, id: string) => (type === MANAGEMENT.SETTING && id === SETTING.HIDE_LOCAL_CLUSTER ? { value: 'true' } : undefined));
+      }
+
+      return mount(TopLevelMenu, {
+        global: {
+          mocks: { $route: {}, $store: { ...store } },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+    };
+
+    it('shows the estate count over the word it counts, with the label and the chevron', async() => {
+      const wrapper = mountWithClusters();
+
+      await waitForIt();
+
+      const trigger = wrapper.find('[data-testid="cluster-switcher-trigger"]');
+
+      expect(trigger.exists()).toBe(true);
+      expect(trigger.find('.cluster-all-count').text()).toStrictEqual('1');
+      expect(trigger.find('.cluster-all-unit').exists()).toBe(true);
+      expect(trigger.find('.cluster-all-name').exists()).toBe(true);
+      // The chevron trails the label — it is NOT inside the count chip any more.
+      expect(trigger.find('.cluster-all-badge .cluster-all-chevron').exists()).toBe(false);
+      expect(trigger.find('.cluster-all-chevron').exists()).toBe(true);
+    });
+
+    it('still reads the setting, and renders a chip, with hide-local-cluster on', async() => {
+      const wrapper = mountWithClusters(true);
+
+      await waitForIt();
+
+      expect((wrapper.vm as any).hideLocalCluster).toBe(true);
+      expect(wrapper.find('[data-testid="cluster-switcher-trigger"] .cluster-all-count').text()).toStrictEqual('1');
+    });
+
+    it('leaves no search box, ALL CLUSTERS list or CLUSTERS title behind in the nav', async() => {
+      const wrapper = mountWithClusters();
+
+      await waitForIt();
+
+      expect(wrapper.find('.clusters-search').exists()).toBe(false);
+      expect(wrapper.find('.clustersList').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="top-level-menu-no-results"]').exists()).toBe(false);
+    });
+
+    // The open-state highlight — the row wearing its hover fill for as long as the panel it opened is up
+    // — hangs off `aria-expanded`, so the attribute has to track the flyout.
+    it('marks itself expanded while the flyout is open', async() => {
+      const wrapper = mountWithClusters();
+
+      await waitForIt();
+
+      const trigger = () => wrapper.find('[data-testid="cluster-switcher-trigger"]');
+
+      expect(trigger().attributes('aria-expanded')).toStrictEqual('false');
+
+      (wrapper.vm as any).$refs.switcher.setOpen(true);
+      await nextTick();
+
+      expect(trigger().attributes('aria-expanded')).toStrictEqual('true');
+    });
+
+    it('drops the flyout search when the flyout closes, so the next open starts on the full estate', async() => {
+      const wrapper = mountWithClusters();
+
+      await waitForIt();
+      await wrapper.setData({ clusterFilter: 'prod' });
+
+      wrapper.vm.onFlyoutOpen(false);
+
+      expect(wrapper.vm.clusterFilter).toStrictEqual('');
+    });
+  });
+
+  // An empty estate has nothing to switch to, so the whole switcher affordance stays out of the nav —
+  // no count chip (which would otherwise read "0 clusters"), and no empty shelf headings.
+  describe('with no clusters at all', () => {
+    it('renders no trigger, no shelf and no pins', async() => {
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: { ...generateStore([]) },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      expect((wrapper.vm as any).browsableClusterCount).toStrictEqual(0);
+      expect((wrapper.vm as any).shelves).toStrictEqual([]);
+      expect(wrapper.find('[data-testid="cluster-switcher-trigger"]').exists()).toBe(false);
+      expect(wrapper.find('.cluster-all-unit').exists()).toBe(false);
+      expect(wrapper.find('.clustersPinned').exists()).toBe(false);
+      expect(wrapper.find('.clustersRecent').exists()).toBe(false);
+      expect(wrapper.find('.pin').exists()).toBe(false);
+    });
+
+    // Cmd/Ctrl+J opens the flyout, and with nothing to switch to there is no flyout to open. It must
+    // also leave the keystroke alone rather than swallowing it — the browser has its own Cmd+J.
+    it('leaves Cmd/Ctrl+J to the browser', async() => {
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: { ...generateStore([]) },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      const event = {
+        key: 'j', code: 'KeyJ', metaKey: true, altKey: false, shiftKey: false, preventDefault: jest.fn()
+      };
+
+      expect(wrapper.vm.$refs.switcher).toBeUndefined();
+      expect(() => (wrapper.vm as any).onSwitcherHotkey(event)).not.toThrow();
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+  });
+
+  // A not-ready cluster has nowhere to navigate to, so its row is inert — clicking it must leave the nav
+  // exactly as it was rather than closing it out from under the user.
+  describe('clicking a shelf row', () => {
+    const mountNav = () => mount(TopLevelMenu, {
+      global: {
+        mocks: {
+          $route: {},
+          $store: { ...generateStore([]) },
+        },
+        stubs: ['BrandImage', 'router-link'],
+      },
+    });
+
+    it('leaves the nav open when the cluster is not ready', async() => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+
+      await wrapper.setData({ shown: true });
+      await vm.onShelfRowClick({ id: 'an-id1', ready: false });
+
+      expect(vm.shown).toBe(true);
+    });
+
+    it('closes the nav when the cluster is ready', async() => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+
+      await wrapper.setData({ shown: true });
+      await vm.onShelfRowClick({ id: 'an-id1', ready: true });
+
+      expect(vm.shown).toBe(false);
+    });
+  });
+
+  // Resizing the nav re-anchors the flyout, so an open flyout has to be gone BEFORE the nav moves —
+  // otherwise it jumps to the other position at full opacity and only then fades out.
+  describe('expanding/collapsing the nav with the flyout open', () => {
+    // A stand-in for the real switcher that exposes a `closeAndWait` we control, so the test can hold the
+    // flyout "on screen" and watch what the nav does meanwhile.
+    const switcherStub = (closeAndWait: () => Promise<void>) => defineComponent({
+      name:     'ClusterSwitcher',
+      template: '<div />',
+      setup(_props, { expose }) {
+        expose({ closeAndWait });
+
+        return {};
+      },
+    });
+
+    // One browsable cluster, so the trigger (and therefore the `switcher` ref) actually renders.
+    const mountNav = (closeAndWait: () => Promise<void>) => mount(TopLevelMenu, {
+      global: {
+        mocks: {
+          $route: {},
+          $store: {
+            ...generateStore([{
+              id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster'
+            }])
+          },
+        },
+        stubs: {
+          BrandImage: true, 'router-link': true, ClusterSwitcher: switcherStub(closeAndWait)
+        },
+      },
+    });
+
+    it('waits for the flyout to leave before resizing the nav', async() => {
+      let release: () => void = () => {};
+      const gone = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const closeAndWait = jest.fn(() => gone);
+      const wrapper = mountNav(closeAndWait);
+      const vm = wrapper.vm as any;
+
+      await waitForIt();
+
+      const toggling = vm.toggle();
+
+      await nextTick();
+      // Still collapsed: the flyout is on its way out, and the nav must not move until it has gone.
+      expect(closeAndWait).toHaveBeenCalledWith();
+      expect(vm.shown).toBe(false);
+
+      release();
+      await toggling;
+
+      expect(vm.shown).toBe(true);
+    });
+
+    // Navigating away closes the nav too (directly, and via the $route watcher), so it has to wait for
+    // the flyout in exactly the same way the hamburger does.
+    it('waits for the flyout to leave before closing the nav', async() => {
+      let release: () => void = () => {};
+      const gone = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const closeAndWait = jest.fn(() => gone);
+      const wrapper = mountNav(closeAndWait);
+      const vm = wrapper.vm as any;
+
+      await waitForIt();
+      await wrapper.setData({ shown: true });
+
+      const hiding = vm.hide();
+
+      await nextTick();
+      expect(closeAndWait).toHaveBeenCalledWith();
+      expect(vm.shown).toBe(true);
+
+      release();
+      await hiding;
+
+      expect(vm.shown).toBe(false);
+    });
+
+    it('does not stall when the flyout is already closed', async() => {
+      const wrapper = mountNav(() => Promise.resolve());
+      const vm = wrapper.vm as any;
+
+      await waitForIt();
+      await vm.toggle();
+
+      expect(vm.shown).toBe(true);
+    });
+  });
+
+  // A pinned row is the one kind of row that can be dragged, and nothing else on screen says so — so the
+  // hover copy does, in both nav states, and tells a row that cannot be explored why not.
+  describe('the pinned row tooltip', () => {
+    const mountNav = ($route: any = {}) => mount(TopLevelMenu, {
+      global: {
+        mocks: {
+          $route,
+          $store: generateStore([]),
+        },
+        stubs: ['BrandImage', 'router-link'],
+      },
+    });
+
+    const ready = {
+      id: 'c-a', label: 'prod-eu', ready: true, stateDisplay: 'Active'
+    };
+    const blocked = {
+      id: 'c-b', label: 'prod-us', ready: false, stateDisplay: 'Unavailable'
+    };
+
+    it('offers to explore a row that can be explored', () => {
+      const vm = mountNav().vm as any;
+
+      // The nav starts collapsed, so the icon's half is the one that answers.
+      expect(vm.shown).toBe(false);
+      expect(vm.getPinnedTooltip(ready, true).content).toContain('nav.pinnedCluster.explore');
+    });
+
+    it('says why a row cannot be explored', () => {
+      const vm = mountNav().vm as any;
+
+      expect(vm.getPinnedTooltip(blocked, true).content).toContain('nav.pinnedCluster.blocked');
+    });
+
+    // The suite renders keys rather than copy, so what each key SAYS is checked against the translations:
+    // the name, the reason and the invitation to drag are the whole point of these two strings.
+    it('names the cluster, the reason and the drag in the copy itself', () => {
+      const en = load(readFileSync(resolve(__dirname, '../../../assets/translations/en-us.yaml'), 'utf8')) as any;
+      const { explore, blocked: blockedCopy } = en.nav.pinnedCluster;
+
+      expect(explore).toContain('{name}');
+      expect(explore).toContain('drag');
+      expect(blockedCopy).toContain('{name}');
+      expect(blockedCopy).toContain('{reason}');
+      expect(blockedCopy).toContain('drag');
+    });
+
+    // Each row hangs the tooltip off two elements, one per nav state. Both answering would stack two
+    // tooltips on one hover; neither would leave the expanded row with nothing saying it can be dragged.
+    it.each([
+      ['collapsed', false],
+      ['expanded', true],
+    ])('answers from exactly one of its two anchors when %s', (_label, shown) => {
+      const vm = mountNav().vm as any;
+
+      vm.shown = shown;
+
+      const fromIcon = vm.getPinnedTooltip(ready, true).content;
+      const fromName = vm.getPinnedTooltip(ready).content;
+
+      expect([fromIcon, fromName].filter((c) => !!c)).toHaveLength(1);
+    });
+
+    // Holding the combo is a live modifier state — the row is about to do something else, and that is the
+    // more urgent of the two things it could be saying.
+    it('gives way to the key-combo hint while the combo is held', async() => {
+      // The combo only lights up on a cluster-explorer route with somewhere else to jump to, so the row
+      // needs both before the precedence is even reachable.
+      const wrapper: any = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
+            $store: {
+              ...generateStore([
+                {
+                  nameDisplay: 'cluster1', id: 'an-id1', mgmt: { id: 'an-id1' }, canExplore: true
+                },
+                {
+                  nameDisplay: 'cluster2', id: 'an-id2', mgmt: { id: 'an-id2' }, canExplore: true
+                },
+              ])
+            },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+      await wrapper.setData({ routeCombo: true });
+
+      expect(wrapper.vm.routeComboActive).toBe(true);
+      expect(wrapper.vm.getPinnedTooltip(ready, true).content).toContain('nav.keyComboTooltip');
+
+      wrapper.unmount();
+    });
+
+    // Once the row is moving, the copy is describing something the user is already doing — and the pointer
+    // crosses every other row on the way, so it would be the rest of them piping up mid-drag.
+    it('says nothing at all while a row is being dragged', () => {
+      const vm = mountNav().vm as any;
+
+      expect(vm.getPinnedTooltip(ready, true).content).not.toBeNull();
+
+      vm.dragId = 'c-a';
+
+      expect(vm.getPinnedTooltip(ready, true).content).toBeNull();
+      expect(vm.getPinnedTooltip(blocked, true).content).toBeNull();
+    });
+
+    it('says nothing for a row that is not there', () => {
+      const vm = mountNav().vm as any;
+
+      expect(vm.getPinnedTooltip(null, true).content).toBeNull();
+    });
+  });
+
+  // The Cmd/Ctrl+J hint on the switcher trigger. It is anchored to a different element per nav state so
+  // it never covers what it describes, so each state must light exactly one of the two up.
+  describe('the switcher shortcut tooltip', () => {
+    const mountNav = () => {
+      const store: any = generateStore([]);
+
+      store.getters['i18n/t'] = jest.fn((key: string, args: any) => `${ key }:${ JSON.stringify(args) }`);
+
+      return mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+    };
+
+    it('shows beside the chip on the collapsed rail, and only there', () => {
+      const vm = mountNav().vm as any;
+
+      expect(vm.shown).toBe(false);
+      expect(vm.switcherTooltip(true).content).toContain('nav.switcher.shortcutTooltip');
+      expect(vm.switcherTooltip(true).placement).toStrictEqual('right');
+      // The row-anchored one would sit 300px out, detached from the rail.
+      expect(vm.switcherTooltip().content).toBeNull();
+    });
+
+    it('shows off the end of the row when the nav is expanded, and only there', async() => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+
+      await wrapper.setData({ shown: true });
+
+      expect(vm.switcherTooltip().content).toContain('nav.switcher.shortcutTooltip');
+      expect(vm.switcherTooltip().placement).toStrictEqual('right');
+      // The chip-anchored one would land on top of the "Cluster Switch" label.
+      expect(vm.switcherTooltip(true).content).toBeNull();
+    });
+
+
+    it.each([[true], [false]])('stays hidden while the flyout is open (showWhenClosed: %s)', async(showWhenClosed) => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+
+      await wrapper.setData({ switcherOpen: true });
+
+      expect(vm.switcherTooltip(showWhenClosed).content).toBeNull();
+    });
+
+    // The Mac glyph vs the Windows/Linux spelling — plus the spelled-out form for assistive tech, since
+    // the glyph does not read out sensibly.
+    it('renders the shortcut for the current platform', () => {
+      const vm = mountNav().vm as any;
+
+      // Hyphenated for reading — `\u2318J` arrives as one unfamiliar word.
+      expect(vm.switcherShortcutLabel).toStrictEqual(isMac ? '\u2318-J' : 'Ctrl-J');
+      // NOT hyphenated: `aria-keyshortcuts` is defined to take this form, and is parsed rather than read.
+      expect(vm.switcherKeyShortcut).toStrictEqual(isMac ? 'Meta+J' : 'Control+J');
+    });
+  });
+
+  // While the flyout is open it owns the keyboard: every other app shortcut behind it is swallowed.
+  describe('Cmd/Ctrl+J, the flyout toggle', () => {
+    const press = async() => {
+      const toggle = jest.fn();
+      // Stand in for the flyout so the assertion is "was it asked to open", not the flyout's own behaviour.
+      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            // A browsable estate, so the switcher (and this ref) actually renders.
+            $store: {
+              ...generateStore([
+                {
+                  id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
+                },
+              ])
+            },
+          },
+          stubs: {
+            BrandImage:      true,
+            'router-link':   true,
+            ClusterSwitcher: { template: '<div />', methods: { toggle } },
+          },
+        },
+      });
+
+      await waitForIt();
+
+      // Matching the keys is the `v-shortkey` binding's job; this handler runs once it has fired.
+      (wrapper.vm as any).onSwitcherHotkey();
+
+      return { toggle };
+    };
+
+    it('toggles the flyout', async() => {
+      const { toggle } = await press();
+
+      expect(toggle).toHaveBeenCalledWith();
+    });
+
+    // The binding is `.anywhere` on purpose: the flyout puts the caret in its own search box, so the
+    // directive's avoid list would otherwise let the shortcut open the flyout but never close it.
+    it('binds Cmd/Ctrl+J on the trigger, live even from a text field', async() => {
+      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: {
+              ...generateStore([
+                {
+                  id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
+                },
+              ])
+            },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      expect((wrapper.vm as any).switcherShortcutKeys).toStrictEqual({ windows: ['ctrl', 'j'], mac: ['meta', 'j'] });
+      expect(wrapper.find('[data-testid="cluster-switcher-trigger"]').exists()).toBe(true);
+    });
+  });
+
+  // The flyout is registered as a shortcut-silencing container (like the modal one), so the plugin stands
+  // every binding down while it is open. What is left here is the Cmd/Ctrl+K hand-off, which is behaviour
+  // rather than blocking: put the panel and the nav away, then open the jump.
+  describe('the flyout and the resource jump', () => {
+    const guardEvent = (over: any = {}) => ({
+      key:      'f',
+      code:     'KeyF',
+      metaKey:  false,
+      ctrlKey:  false,
+      altKey:   false,
+      shiftKey: false,
+      target:   { closest: () => null },
+      ...over,
+    });
+
+    // Cmd/Ctrl+K has to clear the nav out of the way — including when only the nav is expanded, with no
+    // flyout open at all, which is the case a handler gated on `switcherOpen` used to miss entirely.
+    describe('Cmd/Ctrl+K, the resource jump', () => {
+      const jumpEvent = () => guardEvent({
+        key: 'k', code: 'KeyK', metaKey: true, type: 'keydown'
+      });
+
+      const withJumpOnPage = (present: boolean) => {
+        document.body.innerHTML = present ? '<input data-testid="nav-jump-to-input" />' : '';
+      };
+
+      afterEach(() => {
+        document.body.innerHTML = '';
+      });
+
+      it('collapses an expanded nav even with no flyout open', async() => {
+        withJumpOnPage(true);
+        const wrapper = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: {},
+              $store: { ...generateStore([]) },
+            },
+            stubs: ['BrandImage', 'router-link'],
+          },
+        });
+
+        await waitForIt();
+        await wrapper.setData({ shown: true, switcherOpen: false });
+
+        (wrapper.vm as any).onSwitcherKeyGuard(jumpEvent());
+        await nextTick();
+
+        expect(wrapper.vm.shown).toBe(false);
+      });
+
+      it('leaves the nav alone when the page has no resource jump', async() => {
+        withJumpOnPage(false);
+        const wrapper = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: {},
+              $store: { ...generateStore([]) },
+            },
+            stubs: ['BrandImage', 'router-link'],
+          },
+        });
+
+        await waitForIt();
+        await wrapper.setData({ shown: true, switcherOpen: false });
+
+        (wrapper.vm as any).onSwitcherKeyGuard(jumpEvent());
+        await nextTick();
+
+        expect(wrapper.vm.shown).toBe(true);
       });
     });
   });
@@ -587,6 +1269,152 @@ describe('topLevelMenu', () => {
       expect(spyInit).toHaveBeenCalled(); // eslint-disable-line jest/prefer-called-with
     });
 
+    // RECENTLY USED is read when the flyout opens, not kept live — so the open has to ask for it, and the
+    // skeleton has to be raised and lowered around the request.
+    it('fetches the recent clusters when the flyout opens, with the skeleton up meanwhile', async() => {
+      const store = generateStore([]);
+      let settle: () => void = () => {};
+      const refreshRecent = jest.fn(() => new Promise<void>((resolve) => {
+        settle = resolve;
+      }));
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue({
+        update:         jest.fn(),
+        refreshRecent,
+        resetOthers:    jest.fn().mockResolvedValue(undefined),
+        loadMoreOthers: jest.fn().mockResolvedValue(undefined),
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
+      } as any);
+
+      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      (wrapper.vm as any).onFlyoutOpen(true);
+
+      expect(refreshRecent).toHaveBeenCalledWith();
+      expect((wrapper.vm as any).recentLoading).toBe(true);
+
+      settle();
+      await waitForIt();
+
+      expect((wrapper.vm as any).recentLoading).toBe(false);
+    });
+
+    // Closing the flyout clears the search, which arms the debounced reset; reopening inside that window
+    // issues a second one directly. Both carry the same term, so only the per-request token can tell the
+    // superseded one apart — without it a late failure of the first raises the error state over the list
+    // the second already rendered.
+    it('ignores a superseded page-1 reset that fails after the newer one for the same term succeeded', async() => {
+      const store = generateStore([]);
+      const settles: Array<{ resolve: () => void, reject: (e: any) => void }> = [];
+      const resetOthers = jest.fn(() => new Promise<void>((resolve, reject) => {
+        settles.push({ resolve, reject });
+      }));
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue({
+        update:         jest.fn(),
+        refreshRecent:  jest.fn().mockResolvedValue(undefined),
+        resetOthers,
+        loadMoreOthers: jest.fn().mockResolvedValue(undefined),
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
+      } as any);
+
+      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      // Two resets in flight for the same (empty) term.
+      (wrapper.vm as any).resetOthersList();
+      (wrapper.vm as any).resetOthersList();
+
+      expect(settles).toHaveLength(2);
+
+      // The newer one lands and its rows render...
+      settles[1].resolve();
+      await waitForIt();
+
+      // ...then the superseded one fails.
+      settles[0].reject(new Error('500'));
+      await waitForIt();
+
+      expect((wrapper.vm as any).listFailed).toBe(false);
+      expect((wrapper.vm as any).listLoading).toBe(false);
+    });
+
+    // The keystroke raises the skeleton, but only the `search` watcher lowers it again — and `search` is
+    // lowercased. A case-only edit (pasting `PROD` over `prod`) leaves `search` untouched, so raising the
+    // skeleton for it would strand the flyout on an empty, permanently busy list.
+    it('leaves the list skeleton down when a search edit only changes case', async() => {
+      const store = generateStore([]);
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue({
+        update:         jest.fn(),
+        refreshRecent:  jest.fn().mockResolvedValue(undefined),
+        resetOthers:    jest.fn().mockResolvedValue(undefined),
+        loadMoreOthers: jest.fn().mockResolvedValue(undefined),
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
+      } as any);
+
+      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      // Twice: the first flushes the debounce that issues the reset, the second lets the request's
+      // `finally` lower the skeleton again.
+      (wrapper.vm as any).onSwitcherSearch('prod');
+      await waitForIt();
+      await waitForIt();
+
+      expect((wrapper.vm as any).listLoading).toBe(false);
+
+      (wrapper.vm as any).onSwitcherSearch('PROD');
+
+      expect((wrapper.vm as any).listLoading).toBe(false);
+    });
+
     it('should call helper.update if pagination is disabled', () => {
       const store = generateStore([]);
 
@@ -595,7 +1423,13 @@ describe('topLevelMenu', () => {
       jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
       const updateSpy = jest.fn();
       const mockHelper = {
-        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
+        update:         updateSpy,
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
       };
 
       jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
@@ -610,8 +1444,11 @@ describe('topLevelMenu', () => {
         },
       });
 
+      // data() seeds the helper with the watched context set — pinned + recent + search
+      // term — dropping the legacy `unPinnedMax` (the ALL list is now a separate page-increment slice).
+      // `recentIds` reads the RECENT_CLUSTERS pref, which this mock leaves unset (undefined).
       expect(updateSpy).toHaveBeenCalledWith({
-        pinnedIds: [], searchTerm: '', unPinnedMax: 10
+        pinnedIds: [], recentIds: undefined, searchTerm: ''
       });
     });
 
@@ -624,7 +1461,13 @@ describe('topLevelMenu', () => {
       jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
       const updateSpy = jest.fn();
       const mockHelper = {
-        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
+        update:         updateSpy,
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
       };
 
       jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
@@ -639,8 +1482,11 @@ describe('topLevelMenu', () => {
         },
       });
 
+      // data() seeds the helper with the watched context set — pinned + recent + search
+      // term — dropping the legacy `unPinnedMax` (the ALL list is now a separate page-increment slice).
+      // `recentIds` reads the RECENT_CLUSTERS pref, which this mock leaves unset (undefined).
       expect(updateSpy).toHaveBeenCalledWith({
-        pinnedIds: [], searchTerm: '', unPinnedMax: 10
+        pinnedIds: [], recentIds: undefined, searchTerm: ''
       });
     });
 
@@ -653,7 +1499,13 @@ describe('topLevelMenu', () => {
       jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
       const updateSpy = jest.fn();
       const mockHelper = {
-        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
+        update:         updateSpy,
+        clustersPinned: [],
+        clustersOthers: [],
+        clustersRecent: [],
+        clustersLocal:  [],
+        counts:         { others: 0 },
+        updateCount:    () => {}
       };
 
       jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
@@ -711,6 +1563,52 @@ describe('topLevelMenu', () => {
 
       expect(wrapper.vm.provClusters).toStrictEqual([]);
       expect(wrapper.vm.mgmtClusters).toStrictEqual([]);
+    });
+  });
+
+  // `railAll` is the flyout's ALL CLUSTERS list. It renders keyed by cluster id, so one cluster listed
+  // twice is not a cosmetic slip: Vue's keyed patch leaves the extra rows orphaned in the DOM, and they
+  // stay there for the life of the flyout even once the model is clean again.
+  describe('computed: railAll', () => {
+    const railAll = (ctx: any) => (TopLevelMenu as any).computed.railAll.call(ctx);
+    const c = (id: string, isLocal = false) => ({ id, isLocal });
+
+    // PINNED and RECENT overlap by design (a pinned cluster stays in the visit history), and both are
+    // appended to the loaded page so a pinned/recent cluster is reachable before its page arrives.
+    it('lists a cluster that is both pinned and recent only once', () => {
+      const both = c('both');
+      const rows = railAll({
+        searchActive:     false,
+        clustersFiltered: [],
+        pinFiltered:      [both, c('p1')],
+        recentClusters:   [both, c('r1')],
+      });
+
+      expect(rows.map((r: any) => r.id)).toStrictEqual(['both', 'p1', 'r1']);
+    });
+
+    it('appends only the pinned/recent rows the loaded page has not reached, page order first', () => {
+      const rows = railAll({
+        searchActive:     false,
+        clustersFiltered: [c('a'), c('b'), c('local', true)],
+        pinFiltered:      [c('b'), c('p1')],
+        recentClusters:   [c('a'), c('r1'), c('local', true)],
+      });
+
+      expect(rows.map((r: any) => r.id)).toStrictEqual(['a', 'b', 'p1', 'r1']);
+    });
+
+    // A search takes the fixed `local` tile down, so `local` is a candidate like any other and the
+    // server's match list stands on its own — nothing pinned/recent is appended to it.
+    it('is the raw match list while searching', () => {
+      const rows = railAll({
+        searchActive:     true,
+        clustersFiltered: [c('m1'), c('local', true)],
+        pinFiltered:      [c('p1')],
+        recentClusters:   [c('r1')],
+      });
+
+      expect(rows.map((r: any) => r.id)).toStrictEqual(['m1', 'local']);
     });
   });
 
@@ -808,6 +1706,38 @@ describe('topLevelMenu', () => {
         expect(wrapper.vm.routeComboActive).toBe(false);
       });
 
+      // The jump-target set is DE-DUPED by id: ALL (`railAll`) no longer excludes pinned rows, so a pinned
+      // cluster appears in both `pinFiltered` and `clustersFiltered` and a plain concatenation counts it
+      // twice — lighting the combo arrows up on the only cluster there is, the one you are already on.
+      it('should be false when the one ready cluster is pinned and is the current cluster', async() => {
+        const store = generateStore([
+          {
+            nameDisplay: 'cluster1',
+            id:          'an-id1',
+            mgmt:        { id: 'an-id1' },
+            canExplore:  true,
+            pinned:      true
+          }
+        ]);
+
+        store.getters.clusterId = 'an-id1' as any;
+
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: { name: 'c-cluster-explorer', params: { cluster: 'an-id1', product: 'explorer' } },
+              $store: store
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+        await wrapper.setData({ routeCombo: true });
+
+        expect(wrapper.vm.routeComboActive).toBe(false);
+      });
+
       it('should be true when there is only one ready cluster but it is not the current cluster', async() => {
         const store = generateStore([
           {
@@ -834,6 +1764,43 @@ describe('topLevelMenu', () => {
         await wrapper.setData({ routeCombo: true });
 
         expect(wrapper.vm.routeComboActive).toBe(true);
+      });
+    });
+
+    // `current` in the switcher has to name the cluster the user is LOOKING at. The route param is the
+    // mgmt cluster id, and it changes before the store's `clusterId` catches up, so the store read this
+    // replaced marked the previous cluster as current for the length of that window.
+    describe('currentClusterId', () => {
+      const mountMenu = (route: any, clusterId: any) => {
+        const store: any = generateStore([]);
+
+        store.getters.clusterId = clusterId;
+
+        return mount(TopLevelMenu, {
+          global: {
+            mocks: { $route: route, $store: store },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        }) as Wrapper<InstanceType<typeof TopLevelMenu>>;
+      };
+
+      it('names the route\'s cluster even while the store still holds the one we came from', async() => {
+        const wrapper = mountMenu(
+          { name: 'c-cluster-explorer', params: { cluster: 'clusterB', product: 'explorer' } },
+          'clusterA'
+        );
+
+        await waitForIt();
+
+        expect(wrapper.vm.currentClusterId).toBe('clusterB');
+      });
+
+      it('is empty off a cluster route, so nothing in the switcher looks selected', async() => {
+        const wrapper = mountMenu({ name: 'home', params: {} }, 'clusterA');
+
+        await waitForIt();
+
+        expect(wrapper.vm.currentClusterId).toBe('');
       });
     });
 
@@ -1019,6 +1986,382 @@ describe('topLevelMenu', () => {
 
         expect(mockPush).toHaveBeenCalledWith(clusterRoute);
       });
+    });
+  });
+
+  // Dragging a pinned row rearranges the nav shelf. The shelf renders the pinned pref IN ORDER, so the
+  // drop writes that order back — the same markup, and so the same behaviour, in the collapsed rail.
+  describe('drag-reorder of the pinned shelf', () => {
+    const pinnedClusters = ['a', 'b', 'c'].map((id) => ({
+      name: id, id, mgmt: { id }, nameDisplay: id, canExplore: true, pinned: true
+    }));
+
+    // jsdom has no layout, so every row measures 0x0 and the pointer is never "over" any of them. Give
+    // the real rows the boxes a browser would: a 10px-tall row each, stacked.
+    const layOutRows = (wrapper: any) => {
+      const rows = wrapper.findAll('.clustersPinned .shelf-rows > div');
+
+      rows.forEach((row: any, i: number) => {
+        row.element.getBoundingClientRect = () => ({ top: i * 10, bottom: (i * 10) + 10 });
+      });
+
+      return rows.length;
+    };
+
+    const mountShelf = async() => {
+      const base = generateStore(pinnedClusters);
+      const dispatch = jest.fn((action: string, args: any) => (
+        action.startsWith('prefs/') ? Promise.resolve({}) : base.dispatch(action, args)
+      ));
+      const wrapper: any = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: { ...base, dispatch },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      return { wrapper, dispatch };
+    };
+
+    /** The mutation the component handed the pref writer, applied to `stored`. */
+    const writtenOrder = (dispatch: jest.Mock, stored: string[]) => {
+      const [, mutations] = dispatch.mock.calls.find(([action]) => action === 'prefs/applyPrefsOptimistic') || [];
+
+      return mutations?.[0]?.apply(stored);
+    };
+
+    const press = (button = 0, target = {}) => ({
+      button, clientY: 5, target: { closest: () => null, ...target }
+    });
+
+    it('rearranges the shelf under the pointer, and writes that order on release', async() => {
+      const { wrapper, dispatch } = await mountShelf();
+      const vm = wrapper.vm;
+
+      expect(layOutRows(wrapper)).toBe(3);
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+
+      // Press the first row and drag it down over the third.
+      vm.onRowDragStart(press(), { id: 'a' });
+      vm.onRowDragMove({ clientY: 25 });
+
+      // The shelf follows the pointer before anything is written, so the row does not snap back on
+      // every move.
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['b', 'c', 'a']);
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
+
+      vm.onRowDragEnd();
+      await nextTick();
+
+      expect(writtenOrder(dispatch, ['a', 'b', 'c'])).toStrictEqual(['b', 'c', 'a']);
+
+      wrapper.unmount();
+    });
+
+    // A press is far more often the start of a click that navigates, so a drag has to be a deliberate
+    // movement — otherwise every click would swallow itself.
+    it('does not treat a press that barely moves as a drag', async() => {
+      const { wrapper, dispatch } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(), { id: 'a' });
+      vm.onRowDragMove({ clientY: 7 });
+
+      expect(vm.dragId).toBeNull();
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+
+      vm.onRowDragEnd();
+      await nextTick();
+
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
+
+      wrapper.unmount();
+    });
+
+    // Travel is the only thing that lifts a row. A press held still — however unhurried, and 200ms is
+    // well inside a deliberate click — has said nothing about moving anything, so it stays a click and
+    // must still navigate: lifting on time as well made the shelf an intermittently dead target.
+    it('lets an unhurried click through: a press held still never lifts the row', async() => {
+      const { wrapper, dispatch } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(), { id: 'a' });
+
+      jest.advanceTimersByTime(400);
+      await nextTick();
+
+      expect(vm.dragId).toBeNull();
+
+      vm.onRowDragEnd();
+      await nextTick();
+
+      // The click the browser sends after the mouseup has to reach the row, not be swallowed as the
+      // tail of a drag that never happened.
+      const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+      window.dispatchEvent(click);
+
+      expect(click.defaultPrevented).toBe(false);
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
+
+      wrapper.unmount();
+    });
+
+    it('writes nothing when a lifted row is put back where it started', async() => {
+      const { wrapper, dispatch } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(), { id: 'a' });
+
+      // Down over the third row and back to where it began.
+      vm.onRowDragMove({ clientY: 25 });
+      vm.onRowDragMove({ clientY: 5 });
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+
+      vm.onRowDragEnd();
+      await nextTick();
+
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
+
+      wrapper.unmount();
+    });
+
+    describe('the drag cursor', () => {
+      const dragging = () => !!document.body.querySelector('.shelf-drag-cursor');
+
+      it('leaves the cursor alone for a hover, a press and a click', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        expect(dragging()).toBe(false);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        expect(dragging()).toBe(false);
+
+        vm.onRowDragMove({ clientY: 7 });
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+
+        vm.onRowDragEnd();
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+
+        wrapper.unmount();
+      });
+
+      it('shows the drag cursor for the length of a drag, and drops it on release', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        expect(dragging()).toBe(false);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 25 });
+        await nextTick();
+
+        expect(vm.dragId).toBe('a');
+        expect(dragging()).toBe(true);
+
+        vm.onRowDragMove({ clientY: 15 });
+        await nextTick();
+
+        expect(dragging()).toBe(true);
+
+        vm.onRowDragEnd();
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+
+        wrapper.unmount();
+      });
+
+      it('drops the drag cursor when Escape abandons the drag', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 25 });
+        await nextTick();
+
+        expect(dragging()).toBe(true);
+
+        vm.onRowDragKey({ key: 'Escape' });
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+
+        wrapper.unmount();
+      });
+
+      it('drops the drag cursor when the nav goes away mid-drag', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 25 });
+        await nextTick();
+
+        expect(dragging()).toBe(true);
+
+        wrapper.unmount();
+        await nextTick();
+
+        expect(dragging()).toBe(false);
+      });
+    });
+
+    // A drag can only reach what is on screen unless the list moves: on a shelf taller than the nav, a row
+    // at the bottom could never be taken to the top. Holding it against an edge scrolls the shelf.
+    describe('scrolling while a row is held', () => {
+      // A 200px-tall scroller showing a taller list, with a settable scrollTop that clamps like a real one.
+      const makeScroller = (vm: any, maxScroll = 100) => {
+        const scroller = vm.$refs.clusterList;
+        let scrollTop = 0;
+
+        scroller.getBoundingClientRect = () => ({ top: 0, bottom: 200 });
+        Object.defineProperty(scroller, 'scrollTop', {
+          configurable: true,
+          get:          () => scrollTop,
+          set:          (v: number) => {
+            scrollTop = Math.max(0, Math.min(maxScroll, v));
+          },
+        });
+
+        return scroller;
+      };
+
+      it('scrolls down while the row is held against the bottom edge', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+
+        const scroller = makeScroller(vm);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 195 });
+        expect(vm.dragId).toBe('a');
+
+        vm.dragScrollStep();
+
+        expect(scroller.scrollTop).toBeGreaterThan(0);
+
+        vm.endRowDrag(false);
+        wrapper.unmount();
+      });
+
+      it('leaves the shelf alone while the pointer is away from the edges', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+
+        const scroller = makeScroller(vm);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 100 });
+        vm.dragScrollStep();
+
+        expect(scroller.scrollTop).toBe(0);
+
+        vm.endRowDrag(false);
+        wrapper.unmount();
+      });
+
+      // Nothing left to scroll: keeping the frame loop alive would spin for the rest of the drag.
+      it('stops once the shelf is already at the end', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+
+        const scroller = makeScroller(vm, 0);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        vm.onRowDragMove({ clientY: 195 });
+        vm.dragScrollStep();
+
+        expect(scroller.scrollTop).toBe(0);
+        expect(vm.dragScrollFrame).toBeNull();
+
+        vm.endRowDrag(false);
+        wrapper.unmount();
+      });
+
+      // The slots are measured once, so they are held in the SCROLLER'S coordinates — measured in the
+      // viewport's they would drift by exactly the distance scrolled and stop matching the rows.
+      it('still finds the right slot after the shelf has scrolled', async() => {
+        const { wrapper } = await mountShelf();
+        const vm = wrapper.vm;
+
+        layOutRows(wrapper);
+        makeScroller(vm);
+
+        vm.onRowDragStart(press(), { id: 'a' });
+        // Far enough to count as a drag rather than a click, so the slots are captured.
+        vm.onRowDragMove({ clientY: 25 });
+
+        // Rows were laid out at 0-10, 10-20, 20-30 with the shelf unscrolled.
+        expect(vm.rowIndexAt(25)).toBe(2);
+
+        // Scroll by a row: the pointer now over what was the third row sits where the second one was.
+        vm.$refs.clusterList.scrollTop = 10;
+        expect(vm.rowIndexAt(15)).toBe(2);
+
+        vm.endRowDrag(false);
+        wrapper.unmount();
+      });
+    });
+
+    it('abandons the drag on Escape without writing the order', async() => {
+      const { wrapper, dispatch } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(), { id: 'a' });
+      vm.onRowDragMove({ clientY: 25 });
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['b', 'c', 'a']);
+
+      vm.onRowDragKey({ key: 'Escape' });
+      await nextTick();
+
+      // Back to the pref's order, and nothing written.
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+      expect(dispatch).not.toHaveBeenCalledWith('prefs/applyPrefsOptimistic', expect.anything());
+
+      wrapper.unmount();
+    });
+
+    // The pin toggle is its own control inside the row, and a right-click is the context menu.
+    it.each([
+      ['the pin toggle', 0, { closest: () => ({}) }],
+      ['a non-left button', 2, {}],
+    ])('does not start a drag from %s', async(_label, button, target) => {
+      const { wrapper } = await mountShelf();
+      const vm = wrapper.vm;
+
+      layOutRows(wrapper);
+      vm.onRowDragStart(press(button as number, target), { id: 'a' });
+      vm.onRowDragMove({ clientY: 25 });
+
+      expect(vm.dragId).toBeNull();
+      expect(vm.pinnedRows.map((c: any) => c.id)).toStrictEqual(['a', 'b', 'c']);
+
+      wrapper.unmount();
     });
   });
 });
