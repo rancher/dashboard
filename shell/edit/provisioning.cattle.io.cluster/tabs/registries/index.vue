@@ -59,7 +59,9 @@ export default {
 <template>
   <div>
     <div class="row">
-      <h3>{{ t('cluster.privateRegistry.label') }}</h3>
+      <h3 class="text-h3">
+        {{ t('cluster.privateRegistry.label') }}
+      </h3>
     </div>
     <PrivateRegistry
       :value="registryHost"

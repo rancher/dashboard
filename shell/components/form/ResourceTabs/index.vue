@@ -287,7 +287,10 @@ export default {
       label-key="resourceTabs.related.tab"
       :weight="-3"
     >
-      <h3 v-t="'resourceTabs.related.from'" />
+      <h3
+        v-t="'resourceTabs.related.from'"
+        class="text-h3"
+      />
       <RelatedResources
         :ignore-types="[value.type]"
         :value="value"
@@ -296,7 +299,7 @@ export default {
 
       <h3
         v-t="'resourceTabs.related.to'"
-        class="mt-20"
+        class="mt-20 text-h3"
       />
       <RelatedResources
         :ignore-types="[value.type]"

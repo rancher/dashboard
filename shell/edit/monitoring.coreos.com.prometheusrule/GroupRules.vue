@@ -122,7 +122,7 @@ export default {
 <template>
   <div class="container-group-rules">
     <div :class="[{ hide: hideRecordingRulesOnView }, 'container-recording-rules']">
-      <h3 class="mt-20 mb-20">
+      <h3 class="mt-20 mb-20 text-h3">
         <t k="prometheusRule.recordingRules.label" />
         <i
           v-if="disableAddRecord"
@@ -166,7 +166,7 @@ export default {
     </div>
     <div :class="[{ hide: hideAlertingRulesOnView }, 'container-alerting-rules']">
       <div class="mt-20 mb-20">
-        <h3>
+        <h3 class="text-h3">
           <t k="prometheusRule.alertingRules.label" />
           <i
             v-if="disableAddAlert"

@@ -67,7 +67,9 @@ export default {
     />
     <div class="spacer" />
     <div v-if="hasClusterFlowAccess">
-      <h2>{{ t('logging.overview.clusterLevel') }}</h2>
+      <h2 class="text-h2">
+        {{ t('logging.overview.clusterLevel') }}
+      </h2>
       <SortableTable
         class="sortable-table"
         :headers="clusterFlowTableHeaders"
@@ -78,7 +80,10 @@ export default {
         key-field="id"
       />
     </div>
-    <h2 :class="{ 'mt-20': hasClusterFlowAccess }">
+    <h2
+      :class="{ 'mt-20': hasClusterFlowAccess }"
+      class="text-h2"
+    >
       {{ t('logging.overview.namespaceLevel') }}
     </h2>
     <SortableTable

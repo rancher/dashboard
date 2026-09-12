@@ -108,7 +108,7 @@ export default {
       />
     </div>
 
-    <h2>
+    <h2 class="text-h2">
       {{ t('advancedSettings.provisioning.header') }}
     </h2>
     <div

@@ -1,10 +1,11 @@
 <script>
 import AppModal from '@shell/components/AppModal.vue';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['cancel-cancel', 'confirm-cancel'],
 
-  components: { AppModal },
+  components: { AppModal, RcHeading },
 
   props: {
     isCancelModal: {
@@ -61,7 +62,9 @@ export default {
   >
     <template #default>
       <div class="header">
-        <h4
+        <RcHeading
+          :level="2"
+          size="h4"
           class="text-default-text"
           data-modal-title
         >
@@ -70,7 +73,7 @@ export default {
             k="generic.cancel"
           />
           <span v-else>{{ t("cruResource.backToForm") }}</span>
-        </h4>
+        </RcHeading>
       </div>
       <div class="body">
         <p v-if="isCancelModal">
@@ -119,7 +122,7 @@ export default {
     padding: 15px 0 0 15px;
     height: 50px;
 
-    h4 {
+    [data-modal-title] {
       color: white;
     }
   }

@@ -19,6 +19,7 @@ import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartC
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
 import { RcButton } from '@components/RcButton';
+import { RcHeading } from '@components/RcHeading';
 import { RcButtonSplit } from '@components/RcButtonSplit';
 import { RcDropdownItem } from '@components/RcDropdown';
 
@@ -33,7 +34,8 @@ export default {
     AppChartCardFooter,
     RcButton,
     RcButtonSplit,
-    RcDropdownItem
+    RcDropdownItem,
+    RcHeading
   },
 
   mixins: [
@@ -410,7 +412,7 @@ export default {
       <div class="header-body">
         <div class="header-top">
           <h1
-            class="title"
+            class="title text-h1"
             data-testid="chart-header-title"
           >
             <router-link :to="{ name: 'c-cluster-apps-charts' }">
@@ -582,7 +584,12 @@ export default {
         class="chart-body__info"
       >
         <div class="chart-body__info-section">
-          <h4>{{ t('catalog.chart.info.chartVersions.label') }}</h4>
+          <RcHeading
+            class="info-section-title"
+            size="h4"
+          >
+            {{ t('catalog.chart.info.chartVersions.label') }}
+          </RcHeading>
           <div
             v-for="vers of versions"
             :key="vers.id"
@@ -645,14 +652,24 @@ export default {
           v-if="appVersion"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.appVersion') }}</h4>
+          <RcHeading
+            class="info-section-title"
+            size="h4"
+          >
+            {{ t('catalog.chart.info.appVersion') }}
+          </RcHeading>
           {{ appVersion }}
         </div>
         <div
           v-if="repo"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.repository') }}</h4>
+          <RcHeading
+            class="info-section-title"
+            size="h4"
+          >
+            {{ t('catalog.chart.info.repository') }}
+          </RcHeading>
           <router-link
             :to="repo.detailLocation"
             data-testid="chart-repo-link"
@@ -664,7 +681,12 @@ export default {
           v-if="home"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.home') }}</h4>
+          <RcHeading
+            class="info-section-title"
+            size="h4"
+          >
+            {{ t('catalog.chart.info.home') }}
+          </RcHeading>
           <a
             :href="home"
             rel="nofollow noopener noreferrer"
@@ -673,7 +695,12 @@ export default {
           >{{ home }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
         <div class="chart-body__info-section">
-          <h4>{{ t('catalog.chart.info.maintainers') }}</h4>
+          <RcHeading
+            class="info-section-title"
+            size="h4"
+          >
+            {{ t('catalog.chart.info.maintainers') }}
+          </RcHeading>
           <template v-if="maintainers.length">
             <div
               v-for="m of maintainers"
@@ -697,7 +724,12 @@ export default {
           v-if="version.sources"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.related') }}</h4>
+          <RcHeading
+            class="info-section-title"
+            size="h4"
+          >
+            {{ t('catalog.chart.info.related') }}
+          </RcHeading>
           <a
             v-for="s of version.sources"
             :key="s"
@@ -710,7 +742,12 @@ export default {
           v-if="version.urls"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.chartUrls') }}</h4>
+          <RcHeading
+            class="info-section-title"
+            size="h4"
+          >
+            {{ t('catalog.chart.info.chartUrls') }}
+          </RcHeading>
           <a
             v-for="url of version.urls"
             :key="url"
@@ -723,7 +760,12 @@ export default {
           v-if="version.keywords"
           class="chart-body__info-section chart-body__info-section--keywords"
         >
-          <h4>{{ t('catalog.chart.info.keywords') }}</h4>
+          <RcHeading
+            class="info-section-title"
+            size="h4"
+          >
+            {{ t('catalog.chart.info.keywords') }}
+          </RcHeading>
           <div class="keyword-links">
             <span
               v-for="(keyword, i) in version.keywords"
@@ -901,7 +943,7 @@ export default {
         word-break: break-all;
         line-height: 21px;
 
-        h4 {
+        .info-section-title {
           font-weight: bold;
         }
 

@@ -7,6 +7,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -16,7 +17,8 @@ export default {
     Banner,
     Card,
     RadioGroup,
-    UnitInput
+    UnitInput,
+    RcHeading,
   },
 
   props: {
@@ -132,14 +134,18 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         <template v-if="kubeNodes.length > 1">
           {{ t('drainNode.titleMultiple', { count: kubeNodes.length }) }}
         </template>
         <template v-else>
           {{ t('drainNode.titleOne', { name: kubeNodes[0]?.name }, true) }}
         </template>
-      </h4>
+      </RcHeading>
     </template>
 
     <template #body>
@@ -147,34 +153,43 @@ export default {
         <div>
           <RadioGroup
             v-model:value="body.deleteLocalData"
+            :aria-label="t('drainNode.deleteLocalData')"
             name="deleteLocalData"
             :options="radioOptions"
             :row="true"
             class="mb-15"
           >
             <template #label>
-              <h5>{{ t('drainNode.deleteLocalData') }}</h5>
+              <div class="text-h5">
+                {{ t('drainNode.deleteLocalData') }}
+              </div>
             </template>
           </RadioGroup>
           <RadioGroup
             v-model:value="body.force"
+            :aria-label="t('drainNode.force')"
             name="force"
             :options="radioOptions"
             :row="true"
             class="mb-15"
           >
             <template #label>
-              <h5>{{ t('drainNode.force') }}</h5>
+              <div class="text-h5">
+                {{ t('drainNode.force') }}
+              </div>
             </template>
           </RadioGroup>
           <RadioGroup
             v-model:value="gracePeriod"
+            :aria-label="t('drainNode.gracePeriod.title')"
             name="gracePeriod"
             :options="gracePeriodOptions"
             class="mb-15"
           >
             <template #label>
-              <h5>{{ t('drainNode.gracePeriod.title') }}</h5>
+              <div class="text-h5">
+                {{ t('drainNode.gracePeriod.title') }}
+              </div>
             </template>
           </RadioGroup>
           <UnitInput
@@ -188,12 +203,15 @@ export default {
           />
           <RadioGroup
             v-model:value="timeout"
+            :aria-label="t('drainNode.timeout.title')"
             name="timeout"
             :options="timeoutOptions"
             class="mb-15"
           >
             <template #label>
-              <h5>{{ t('drainNode.timeout.title') }}</h5>
+              <div class="text-h5">
+                {{ t('drainNode.timeout.title') }}
+              </div>
             </template>
           </RadioGroup>
           <UnitInput
@@ -236,7 +254,7 @@ export default {
   .prompt-rotate {
     margin: 0;
   }
-  .card-title h4 {
+  .card-title .text-h4 {
     margin-bottom: 0;
   }
   .buttons {

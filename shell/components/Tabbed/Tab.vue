@@ -4,11 +4,14 @@ import { useInSummary } from '@shell/components/TableOfContents/composables';
 import { computed, inject, useTemplateRef } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import { RcHeading, nextHeadingLevel, provideHeadingLevel, useHeadingLevel } from '@components/RcHeading';
 
 export default {
   name: 'Tab',
 
-  inject: ['addTab', 'removeTab', 'sideTabs', 'select', 'instanceUid'],
+  components: { RcHeading },
+
+  inject: ['addTab', 'removeTab', 'select', 'instanceUid'],
 
   emits: ['active'],
 
@@ -89,8 +92,15 @@ export default {
       elementRef: summarizedContainerRef,
     });
 
+    const sideTabs = inject('sideTabs', false);
+    const shouldShowHeader = computed(() => (props.showHeader !== null ? props.showHeader : sideTabs || false));
+
+    const headingLevel = useHeadingLevel();
+
+    provideHeadingLevel(computed(() => (shouldShowHeader.value ? nextHeadingLevel(headingLevel.value) : headingLevel.value)));
+
     return {
-      inferredCount: count, isInferredCountVisible: isCountVisible, summary
+      inferredCount: count, isInferredCountVisible: isCountVisible, summary, shouldShowHeader, headingLevel
     };
   },
 
@@ -119,14 +129,6 @@ export default {
       }
 
       return `${ baseLabel } (${ this.displayCount })`;
-    },
-
-    shouldShowHeader() {
-      if ( this.showHeader !== null ) {
-        return this.showHeader;
-      }
-
-      return this.sideTabs || false;
     },
 
     displayCount() {
@@ -188,14 +190,17 @@ export default {
       v-if="shouldShowHeader"
       class="tab-header"
     >
-      <h2>
+      <RcHeading
+        :level="headingLevel"
+        size="h2"
+      >
         {{ labelDisplay }}
         <i
           v-if="tooltip"
           v-clean-tooltip="tooltip"
           class="icon icon-info icon-lg"
         />
-      </h2>
+      </RcHeading>
       <slot name="tab-header-right" />
     </div>
     <slot v-bind="{active}" />
@@ -214,9 +219,8 @@ export default {
   margin-bottom: 15px;
   align-items: center;
 
-  h2 {
+  .text-h2 {
     margin: 0;
-
   }
 }
 </style>

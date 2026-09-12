@@ -5,6 +5,7 @@ import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { resourceNames } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -13,6 +14,7 @@ export default {
     Card,
     AsyncButton,
     Banner,
+    RcHeading,
   },
 
   props: {
@@ -76,9 +78,13 @@ export default {
     :data-testid="'prompt-deactivate'"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('drivers.deactivate.title') }}
-      </h4>
+      </RcHeading>
     </template>
 
     <template #body>

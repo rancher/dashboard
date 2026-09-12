@@ -50,7 +50,7 @@ const {
       class="empty-state"
       data-testid="workload-dashboard-empty"
     >
-      <h1 class="m-0">
+      <h1 class="m-0 text-h1">
         {{ t('workloadDashboard.empty.title') }}
       </h1>
       <div class="empty-state-tips">
@@ -105,7 +105,7 @@ const {
           class="section"
           data-testid="workload-dashboard-by-state"
         >
-          <h4 class="m-0 text-deemphasized">
+          <h4 class="m-0 text-deemphasized text-h4">
             {{ t('workloadDashboard.sections.byState') }}
           </h4>
           <ByStateSection
@@ -119,7 +119,7 @@ const {
           class="section"
           data-testid="workload-dashboard-by-type"
         >
-          <h4 class="m-0 text-deemphasized">
+          <h4 class="m-0 text-deemphasized text-h4">
             {{ t('workloadDashboard.sections.byType') }}
           </h4>
           <ByTypeSection
@@ -133,7 +133,7 @@ const {
           class="section"
           data-testid="workload-dashboard-by-namespace"
         >
-          <h4 class="m-0 text-deemphasized">
+          <h4 class="m-0 text-deemphasized text-h4">
             {{ t('workloadDashboard.sections.byNamespace') }}
           </h4>
           <ByNamespaceSection

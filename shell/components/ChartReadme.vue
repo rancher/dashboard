@@ -45,7 +45,7 @@ export default {
       />
       <h1
         v-if="showAppReadme && appReadme && readme && appReadmeLoaded && readmeLoaded"
-        class="pt-10"
+        class="pt-10 text-h1"
       >
         {{ t('catalog.install.appReadmeTitle') }}
       </h1>

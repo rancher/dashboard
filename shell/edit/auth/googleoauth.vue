@@ -138,7 +138,10 @@ export default {
           :step="1"
           class=" mt-20 mb-20"
         >
-          <h3 v-clean-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)" />
+          <h3
+            v-clean-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)"
+            class="text-h3"
+          />
           <ul class="mt-0 step-list">
             <li>{{ t('authConfig.googleoauth.steps.1.body.1', {}, true) }} </li>
             <li>
@@ -164,7 +167,10 @@ export default {
           class="mb-20"
         >
           <div class="row">
-            <h3 v-clean-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)" />
+            <h3
+              v-clean-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)"
+              class="text-h3"
+            />
           </div>
           <div class="row">
             <div class="col span-6">
@@ -212,7 +218,10 @@ export default {
           class="mb-20"
         >
           <div class="row">
-            <h3 v-clean-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)" />
+            <h3
+              v-clean-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)"
+              class="text-h3"
+            />
           </div>
           <div class="row">
             <div class="col span-6">

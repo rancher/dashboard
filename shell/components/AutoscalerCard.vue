@@ -56,7 +56,10 @@ const details: ComputedRef<Detail[]> = computed(() => fetch.value.data);
         >
           {{ detail.label }}
         </label>
-        <h5 v-else-if="detail.label">
+        <h5
+          v-else-if="detail.label"
+          class="text-h5"
+        >
           {{ detail.label }}
         </h5>
         <div

@@ -5,6 +5,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
+import { RcHeading } from '@components/RcHeading';
 
 const NONE_VALUE = ' ';
 
@@ -12,7 +13,10 @@ export default {
   emits: ['close'],
 
   components: {
-    AsyncButton, Card, LabeledSelect
+    AsyncButton,
+    Card,
+    LabeledSelect,
+    RcHeading,
   },
 
   props: {
@@ -112,9 +116,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('moveModal.title') }}
-      </h4>
+      </RcHeading>
     </template>
     <template #body>
       <div>

@@ -1,6 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -8,6 +9,7 @@ export default {
   components: {
     Card,
     AsyncButton,
+    RcHeading,
   },
   props: {
     warnings: {
@@ -57,8 +59,10 @@ export default {
     data-testid="ipv6-dialog"
   >
     <template #title>
-      <h4
+      <RcHeading
         v-clean-html="t('cluster.rke2.modal.ipv6Warning.title')"
+        :level="2"
+        size="h4"
         class="text-default-text"
       />
     </template>

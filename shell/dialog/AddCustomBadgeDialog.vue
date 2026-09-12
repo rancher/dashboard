@@ -15,6 +15,7 @@ import { NORMAN } from '@shell/config/types';
 import { abbreviateClusterName } from '@shell/utils/cluster';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import ClusterIconMenu from '@shell/components/ClusterIconMenu';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   name:  'AddCustomBadgeDialog',
@@ -30,6 +31,7 @@ export default {
     ClusterBadge,
     ClusterIconMenu,
     ClusterProviderIcon,
+    RcHeading,
   },
   props: {
     isCreate:        { type: Boolean, default: false },
@@ -215,9 +217,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('clusterBadge.modal.title') }}
-      </h4>
+      </RcHeading>
     </template>
 
     <template #body>

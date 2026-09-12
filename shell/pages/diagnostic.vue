@@ -334,7 +334,7 @@ export default {
 
     <!-- System info -->
     <div class="mb-40">
-      <h2 class="mb-20">
+      <h2 class="mb-20 text-h2">
         {{ t('about.diagnostic.systemInformation.subtitle') }}
       </h2>
       <table class="full-width">
@@ -360,7 +360,7 @@ export default {
 
     <!-- Resources -->
     <div class="mb-40">
-      <h2 class="mb-20">
+      <h2 class="mb-20 text-h2">
         {{ t('about.diagnostic.resourceCounts', { count: clusterCount }) }}
       </h2>
       <div class="resources-count-container">

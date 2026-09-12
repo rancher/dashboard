@@ -754,13 +754,13 @@ export default {
                     class="title"
                     :class="{'with-description': !!subtype.description}"
                   >
-                    <h5>
+                    <div class="text-h5">
                       <span
                         v-if="$store.getters['i18n/exists'](subtype.label)"
                         v-clean-html="t(subtype.label)"
                       />
                       <span v-else>{{ subtype.label }}</span>
-                    </h5>
+                    </div>
                     <a
                       v-if="subtype.docLink"
                       :href="subtype.docLink"

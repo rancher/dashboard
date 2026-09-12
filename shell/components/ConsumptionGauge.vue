@@ -100,7 +100,10 @@ export default {
 
 <template>
   <div class="consumption-gauge">
-    <h3 v-if="resourceName && !usedAsResourceName">
+    <h3
+      v-if="resourceName && !usedAsResourceName"
+      class="text-h3"
+    >
       {{ resourceName }}
     </h3>
     <div class="numbers">
@@ -110,7 +113,10 @@ export default {
         :amountTemplateValues="amountTemplateValues"
         :formattedPercentage="formattedPercentage"
       >
-        <h4 v-if="usedAsResourceName">
+        <h4
+          v-if="usedAsResourceName"
+          class="text-h4"
+        >
           {{ resourceName }}
         </h4>
         <span v-else>{{ usedLabel || t('node.detail.glance.consumptionGauge.used') }}</span>

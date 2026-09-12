@@ -268,13 +268,14 @@ export default {
             :to="headerRoute"
             :exact="group.children[0].exact"
           >
-            <h6>
+            <h6 class="text-h6">
               <span v-clean-html="group.labelDisplay || group.label" />
             </h6>
           </router-link>
           <!-- Non-linked group header -->
           <h6
             v-else-if="hasChildren"
+            class="text-h6"
           >
             <span v-clean-html="group.labelDisplay || group.label" />
           </h6>

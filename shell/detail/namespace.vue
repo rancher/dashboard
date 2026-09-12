@@ -228,7 +228,9 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <div class="mb-20">
-      <h3>{{ t('namespace.resources') }}</h3>
+      <h3 class="text-h3">
+        {{ t('namespace.resources') }}
+      </h3>
       <ResourcesSummary
         state-key="namespace.resourceStates"
         :value="accumulatedStateCounts"

@@ -15,6 +15,7 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { set, get, mergeWithReplace } from '@shell/utils/object';
 import { saferDump } from '@shell/utils/create-yaml';
 import RichTranslation from '@shell/components/RichTranslation.vue';
+import { RcHeading, nextHeadingLevel, provideHeadingLevel, useHeadingLevel } from '@components/RcHeading';
 
 interface Props {
   mode?: string;
@@ -42,6 +43,10 @@ const {
 const emit = defineEmits(['update:value', 'error', 'config-validation-changed', 'yaml-validation-changed', 'update-values']);
 const store = useStore();
 const { t } = useI18n(store);
+
+const headingLevel = useHeadingLevel();
+
+provideHeadingLevel(computed(() => nextHeadingLevel(headingLevel.value)));
 const nginxYaml = useTemplateRef('nginx-yaml');
 const traefikYaml = useTemplateRef('traefik-yaml');
 
@@ -241,9 +246,13 @@ function updateYaml(component: any, value: any) {
 
 </script>
 <template>
-  <h3 class="mb-10">
+  <RcHeading
+    class="mb-10"
+    :level="headingLevel"
+    size="h3"
+  >
     {{ t('cluster.ingress.title') }}
-  </h3>
+  </RcHeading>
   <Checkbox
     v-model:value="ingressEnabled"
     :mode="mode"

@@ -15,7 +15,7 @@ const handleScrollTo = (entry, event) => {
 <template>
   <div class="toc-root">
     <div class="toc-container">
-      <h4>
+      <h4 class="text-h4">
         {{ t('cruResource.tableOfContents.jumpTo') }}
       </h4>
       <ul>

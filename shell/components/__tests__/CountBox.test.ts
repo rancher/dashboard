@@ -60,7 +60,13 @@ describe('component: CountBox', () => {
     it('should display the count', () => {
       const wrapper = shallowMount(CountBox, { props: defaultProps });
 
-      expect(wrapper.find('h1').text()).toBe('5');
+      expect(wrapper.find('.count-value').text()).toBe('5');
+    });
+
+    it('should keep the count out of the page outline', () => {
+      const wrapper = shallowMount(CountBox, { props: defaultProps });
+
+      expect(wrapper.findAll('h1, h2, h3, h4, h5, h6')).toStrictEqual([]);
     });
 
     it('should display the name', () => {

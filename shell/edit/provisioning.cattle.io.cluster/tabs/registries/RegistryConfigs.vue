@@ -161,7 +161,7 @@ export default {
 
 <template>
   <div>
-    <h3>
+    <h3 class="text-h3">
       {{ t('registryConfig.header') }}
       <i
         v-clean-tooltip="t('registryConfig.toolTip')"

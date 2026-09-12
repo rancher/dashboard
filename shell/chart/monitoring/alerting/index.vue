@@ -119,7 +119,9 @@ export default {
 <template>
   <div>
     <div class="title">
-      <h3><t k="monitoring.alerting.title" /></h3>
+      <h3 class="text-h3">
+        <t k="monitoring.alerting.title" />
+      </h3>
     </div>
     <div class="alerting-config">
       <div class="row">

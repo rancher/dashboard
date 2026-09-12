@@ -9,7 +9,9 @@ exports[`component: General rendering & initial state should render with default
       class="col span-6"
     >
       <fieldset>
-        <h3>
+        <h3
+          class="text-h3"
+        >
           auditPolicy.general.enabled.title
         </h3>
         <checkbox-stub
@@ -38,7 +40,9 @@ exports[`component: General rendering & initial state should render with default
       class="col span-6"
     >
       <fieldset>
-        <h3>
+        <h3
+          class="text-h3"
+        >
           auditPolicy.general.verbosity.title
         </h3>
         <banner-stub
@@ -49,7 +53,9 @@ exports[`component: General rendering & initial state should render with default
           labelkey="auditPolicy.general.verbosity.banner"
           stacked="false"
         />
-        <h4>
+        <h4
+          class="text-h4"
+        >
           auditPolicy.general.verbosity.level.title 
           <i
             aria-describedby="clean-tooltip-description-1"
@@ -99,7 +105,9 @@ exports[`component: General rendering & initial state should render with default
           <div
             class="col span-6"
           >
-            <h4>
+            <h4
+              class="text-h4"
+            >
               auditPolicy.general.verbosity.request.title 
               <i
                 aria-describedby="clean-tooltip-description-2"
@@ -142,7 +150,9 @@ exports[`component: General rendering & initial state should render with default
           <div
             class="col span-6"
           >
-            <h4>
+            <h4
+              class="text-h4"
+            >
               auditPolicy.general.verbosity.response.title 
               <i
                 aria-describedby="clean-tooltip-description-3"

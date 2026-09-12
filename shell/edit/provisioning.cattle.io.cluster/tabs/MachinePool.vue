@@ -345,7 +345,7 @@ export default {
         />
       </div>
       <div class="col span-4 pt-5">
-        <h3>
+        <h3 class="text-h3">
           {{ t('cluster.machinePool.role.label') }}
         </h3>
         <Checkbox
@@ -416,12 +416,12 @@ export default {
       />
 
       <div class="spacer" />
-      <h3>
+      <h3 class="text-h3">
         {{ t('cluster.machinePool.automation.label') }}
       </h3>
       <div class="row">
         <div class="col span-4">
-          <h4>
+          <h4 class="text-h4">
             {{ t('cluster.machinePool.autoReplace.label') }}
             <i
               v-clean-tooltip="t('cluster.machinePool.autoReplace.toolTip')"
@@ -440,7 +440,7 @@ export default {
           />
         </div>
         <div class="col span-4">
-          <h4>
+          <h4 class="text-h4">
             {{ t('cluster.machinePool.drain.header') }}
           </h4>
           <Checkbox
@@ -454,7 +454,7 @@ export default {
       <div v-if="isAutoscalerFeatureEnabled">
         <div class="row mt-10">
           <div class="col span-12">
-            <h4>
+            <h4 class="text-h4">
               {{ t('cluster.machinePool.autoscaler.heading') }}
             </h4>
             <Banner

@@ -108,7 +108,9 @@ export default {
       v-if="versionInfo && addonVersion"
       :key="addonsRev"
     >
-      <h3>{{ labelForAddon($store, addonVersion.name) }}</h3>
+      <h3 class="text-h3">
+        {{ labelForAddon($store, addonVersion.name) }}
+      </h3>
       <Questions
         v-if="versionInfo[addonVersion.name] && versionInfo[addonVersion.name].questions && addonVersion.name && userChartValuesTemp[addonVersion.name]"
         v-model:value="userChartValuesTemp[addonVersion.name]"

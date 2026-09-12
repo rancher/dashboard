@@ -821,7 +821,7 @@ export default {
       :show-actions="false"
     >
       <template #title>
-        <h4 class="text-default-text mb-5">
+        <h4 class="text-default-text mb-5 text-h4">
           {{ t('cluster.machineConfig.vsphere.scheduling.label') }}
           <p class="text-muted text-small">
             {{ t('cluster.machineConfig.vsphere.scheduling.description') }}
@@ -959,7 +959,7 @@ export default {
       :show-actions="false"
     >
       <template #title>
-        <h4 class="text-default-text mb-5">
+        <h4 class="text-default-text mb-5 text-h4">
           {{ t('cluster.machineConfig.vsphere.instanceOptions.label') }}
           <p class="text-muted text-small">
             {{ t('cluster.machineConfig.vsphere.instanceOptions.description') }}
@@ -1163,7 +1163,7 @@ export default {
       :show-actions="false"
     >
       <template #title>
-        <h4 class="text-default-text mb-5">
+        <h4 class="text-default-text mb-5 text-h4">
           {{ t('cluster.machineConfig.vsphere.tags.label') }}
           <p class="text-muted text-small">
             {{ t('cluster.machineConfig.vsphere.tags.description') }}
@@ -1189,7 +1189,7 @@ export default {
       :show-actions="false"
     >
       <template #title>
-        <h4 class="text-default-text mb-5">
+        <h4 class="text-default-text mb-5 text-h4">
           {{ t('cluster.machineConfig.vsphere.customAttributes.label') }}
           <p class="text-muted text-small">
             {{ t('cluster.machineConfig.vsphere.customAttributes.description') }}
@@ -1218,7 +1218,7 @@ export default {
       :show-actions="false"
     >
       <template #title>
-        <h4 class="text-default-text mb-5">
+        <h4 class="text-default-text mb-5 text-h4">
           {{ t('cluster.machineConfig.vsphere.vAppOptions.label') }}
           <p class="text-muted text-small">
             {{ t('cluster.machineConfig.vsphere.vAppOptions.description') }}

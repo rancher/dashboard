@@ -630,7 +630,9 @@ export default {
         >
           <div class="row">
             <div class="col span-12">
-              <h3>{{ t('authConfig.slo.sloTitle') }}</h3>
+              <h3 class="text-h3">
+                {{ t('authConfig.slo.sloTitle') }}
+              </h3>
             </div>
           </div>
           <div class="row">

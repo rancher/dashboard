@@ -1,13 +1,14 @@
 <script>
 import { _VIEW } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   name: 'DefaultLinksEditor',
 
   emits: ['update:value'],
 
-  components: { Checkbox },
+  components: { Checkbox, RcHeading },
 
   props: {
     // Array of objects with key, label, value and enabled properties
@@ -42,9 +43,9 @@ export default {
 <template>
   <div class="key-value">
     <div class="clearfix">
-      <h3>
+      <RcHeading size="h3">
         {{ t('customLinks.settings.default') }}
-      </h3>
+      </RcHeading>
     </div>
 
     <div class="kv-container">

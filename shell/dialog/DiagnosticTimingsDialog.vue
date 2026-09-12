@@ -4,6 +4,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -12,6 +13,7 @@ export default {
     Card,
     AsyncButton,
     Banner,
+    RcHeading,
   },
 
   props: {
@@ -69,8 +71,10 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4
+      <RcHeading
         v-clean-html="title"
+        :level="2"
+        size="h4"
         class="text-default-text"
       />
     </template>

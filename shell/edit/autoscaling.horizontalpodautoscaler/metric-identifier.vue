@@ -73,7 +73,9 @@ export default {
           @input="matchChanged($event)"
         >
           <template #header>
-            <h3>{{ t('hpa.metricIdentifier.selector.header') }}</h3>
+            <h3 class="text-h3">
+              {{ t('hpa.metricIdentifier.selector.header') }}
+            </h3>
           </template>
         </MatchExpressions>
       </div>

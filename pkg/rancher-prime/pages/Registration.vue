@@ -71,7 +71,9 @@ onMounted(async() => {
     v-else
     style="padding: 20px;"
   >
-    <h1>{{ t('registration.title') }}</h1>
+    <h1 class="text-h1">
+      {{ t('registration.title') }}
+    </h1>
 
     <!-- Status Banner -->
     <Banner
@@ -201,7 +203,9 @@ onMounted(async() => {
 
     <!-- List -->
     <div class="mt-40">
-      <h3>{{ t('registration.list.title') }}</h3>
+      <h3 class="text-h3">
+        {{ t('registration.list.title') }}
+      </h3>
 
       <div class="mt-40 grid-5">
         <div class="color-disabled-text">

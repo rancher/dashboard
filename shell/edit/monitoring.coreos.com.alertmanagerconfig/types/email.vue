@@ -80,7 +80,9 @@ export default {
   <div>
     <div class="row">
       <div class="col span-12">
-        <h3>Target</h3>
+        <h3 class="text-h3">
+          Target
+        </h3>
       </div>
     </div>
     <div class="row mb-20">
@@ -101,7 +103,7 @@ export default {
         />
       </div>
     </div>
-    <h2 class="mb-10">
+    <h2 class="mb-10 text-h2">
       SMTP
     </h2>
     <div class="row mb-20">

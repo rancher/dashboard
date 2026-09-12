@@ -53,7 +53,7 @@ const { t } = useI18n(store);
     </div>
     <div class="header-body">
       <div class="header-top">
-        <h1 class="title">
+        <h1 class="title text-h1">
           <slot name="back-link" />
           {{ chartName }}
         </h1>

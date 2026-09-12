@@ -329,7 +329,9 @@ export default {
       <div class="bordered-section">
         <div class="row mb-10">
           <div class="col span-12">
-            <h3>{{ t('backupRestoreOperator.backup.label') }}</h3>
+            <h3 class="text-h3">
+              {{ t('backupRestoreOperator.backup.label') }}
+            </h3>
             <div>{{ t('backupRestoreOperator.backup.description') }}</div>
           </div>
         </div>

@@ -11,6 +11,9 @@ export {
   RcDropdownTrigger,
   RcDropdownMenu
 } from './components/RcDropdown';
+export {
+  RcHeading, nextHeadingLevel, provideHeadingLevel, useHeadingLevel
+} from './components/RcHeading';
 export { RcIcon } from './components/RcIcon';
 export { RcIconTooltip } from './components/RcIconTooltip';
 export { RcSection } from './components/RcSection';

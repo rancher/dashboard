@@ -186,7 +186,7 @@ onMounted(async() => {
       <AppCoPageHeader :subtitle="true" />
 
       <div class="credentials-content">
-        <h2 class="subtitle">
+        <h2 class="subtitle text-h2">
           {{ t('fleet.appCo.credentials.subtitle') }}
         </h2>
 

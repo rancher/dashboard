@@ -43,7 +43,7 @@ export default {
   >
     <h3
       v-if="!compact"
-      class="m-0"
+      class="m-0 text-h3"
     >
       {{ t('fleet.clusterTargets.rules.matching.title', { n: clustersRenderList.length }) }}
     </h3>
@@ -51,7 +51,9 @@ export default {
       v-else
       class="compact-title"
     >
-      <h3>{{ t('fleet.clusterTargets.rules.matching.selectedClusters') }}</h3>
+      <h3 class="text-h3">
+        {{ t('fleet.clusterTargets.rules.matching.selectedClusters') }}
+      </h3>
       <RcCounterBadge
         :count="clustersRenderList.length"
         type="inactive"

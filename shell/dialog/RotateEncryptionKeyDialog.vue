@@ -11,6 +11,7 @@ import { escapeHtml } from '@shell/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
 import { createOperationCR } from '@shell/utils/operation-cr';
+import { RcHeading } from '@components/RcHeading';
 export default {
   emits: ['close'],
 
@@ -18,6 +19,7 @@ export default {
     Card,
     AsyncButton,
     Banner,
+    RcHeading,
   },
 
   props: {
@@ -129,8 +131,10 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4
+      <RcHeading
         v-clean-html="t('promptRotateEncryptionKey.title')"
+        :level="2"
+        size="h4"
         class="text-default-text"
       />
     </template>

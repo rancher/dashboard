@@ -348,7 +348,9 @@ export default {
           :t-args="tArgs"
         />
 
-        <h3>{{ t(`authConfig.saml.${NAME}`) }}</h3>
+        <h3 class="text-h3">
+          {{ t(`authConfig.saml.${NAME}`) }}
+        </h3>
 
         <div class="row mb-20">
           <div class="col span-6">
@@ -530,7 +532,9 @@ export default {
         >
           <div class="row">
             <div class="col span-12">
-              <h3>{{ t('authConfig.slo.sloTitle') }}</h3>
+              <h3 class="text-h3">
+                {{ t('authConfig.slo.sloTitle') }}
+              </h3>
             </div>
           </div>
           <div class="row">
@@ -549,7 +553,9 @@ export default {
         <!-- LDAP search -->
         <div v-if="supportsLDAPSearch">
           <div class="row">
-            <h3>{{ t('authConfig.saml.search.title') }}</h3>
+            <h3 class="text-h3">
+              {{ t('authConfig.saml.search.title') }}
+            </h3>
           </div>
           <div class="row">
             <Banner

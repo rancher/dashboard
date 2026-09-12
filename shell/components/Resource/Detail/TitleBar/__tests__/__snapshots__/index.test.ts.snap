@@ -3,7 +3,7 @@
 exports[`component: TitleBar/index should match the full component snapshot 1`] = `
 <div class="title-bar">
   <div class="top">
-    <h1 class="title">
+    <h1 class="title text-h1 title">
       <!----><a class="resource-link">RESOURCE_TYPE_LABEL: </a><span class="resource-name masthead-resource-title">RESOURCE_NAME</span><span class="badge-state bg-success badge-state"><!--v-if--><span class="msg">Active</span></span>
     </h1>
     <div class="actions"><button role="button" class="rc-button btn variant-primary btn-medium">

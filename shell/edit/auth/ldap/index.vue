@@ -186,14 +186,18 @@ export default {
           :t-args="tArgs"
         />
 
-        <h3>{{ t(`authConfig.ldap.${NAME}`) }}</h3>
+        <h3 class="text-h3">
+          {{ t(`authConfig.ldap.${NAME}`) }}
+        </h3>
         <config
           v-model:value="model"
           :type="NAME"
           :mode="mode"
         />
 
-        <h4>{{ t('authConfig.testAndEnable') }}</h4>
+        <h4 class="text-h4">
+          {{ t('authConfig.testAndEnable') }}
+        </h4>
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput

@@ -334,7 +334,10 @@ export default {
                   </slot>
                   <!-- Title with subtext -->
                   <div class="subtitle">
-                    <h2 v-if="bannerTitle">
+                    <h2
+                      v-if="bannerTitle"
+                      class="text-h2"
+                    >
                       {{ bannerTitle }}
                     </h2>
                     <span
@@ -349,7 +352,9 @@ export default {
                 v-if="activeStep && showSteps && showStepHeader"
                 class="subtitle"
               >
-                <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
+                <h2 class="text-h2">
+                  {{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}
+                </h2>
                 <slot name="bannerSubtext">
                   <span
                     v-if="activeStep.subtext !== null"

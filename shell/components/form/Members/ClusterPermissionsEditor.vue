@@ -252,7 +252,9 @@ export default {
     >
       <template v-slot:title>
         <div class="type-title">
-          <h3>{{ t('members.clusterPermissions.label') }}</h3>
+          <h3 class="text-h3">
+            {{ t('members.clusterPermissions.label') }}
+          </h3>
           <div class="type-description">
             {{ t('members.clusterPermissions.description') }}
           </div>

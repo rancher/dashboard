@@ -205,7 +205,10 @@ export default defineComponent({
     v-if="showVersionInformation"
     class="mt-10 mb-10"
   >
-    <h3 v-t="'imported.upgradeStrategy.header'" />
+    <h3
+      v-t="'imported.upgradeStrategy.header'"
+      class="text-h3"
+    />
     <div class="col mt-10 mb-10">
       <div class="col mt-5">
         <Checkbox

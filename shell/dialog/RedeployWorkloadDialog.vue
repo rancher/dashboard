@@ -6,6 +6,7 @@ import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { resourceNames } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
+import { RcHeading } from '@components/RcHeading';
 
 interface Workload {
   nameDisplay: string;
@@ -30,6 +31,7 @@ export default {
     Card,
     AsyncButton,
     Banner,
+    RcHeading,
   },
 
   props: {
@@ -107,9 +109,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('promptRedeploy.title', { type }) }}
-      </h4>
+      </RcHeading>
     </template>
 
     <template #body>

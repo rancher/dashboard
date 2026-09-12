@@ -816,7 +816,11 @@ export default defineComponent({
       </Accordion>
 
       <template v-else>
-        <div><h3>{{ t('gke.accordion.nodePools') }}</h3></div>
+        <div>
+          <h3 class="text-h3">
+            {{ t('gke.accordion.nodePools') }}
+          </h3>
+        </div>
         <Tabbed
           ref="pools"
           :side-tabs="true"

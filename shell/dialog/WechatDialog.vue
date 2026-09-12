@@ -1,9 +1,13 @@
 <script>
 // i18n-ignore footer.wechat.modalText, footer.wechat.modalText2
+import { RcHeading } from '@components/RcHeading';
+
 export default {
   emits: ['close'],
 
   name: 'WechatModal',
+
+  components: { RcHeading },
 
   methods: {
     close() {
@@ -15,10 +19,16 @@ export default {
 
 <template>
   <div class="wechat-modal">
-    <h1 data-modal-title>
+    <RcHeading
+      :level="2"
+      size="h1"
+      data-modal-title
+    >
       {{ t('footer.wechat.modalText') }}
-    </h1>
-    <h1>{{ t('footer.wechat.modalText2') }}</h1>
+    </RcHeading>
+    <p class="text-h1">
+      {{ t('footer.wechat.modalText2') }}
+    </p>
     <div class="qr-img" />
     <div>
       <button

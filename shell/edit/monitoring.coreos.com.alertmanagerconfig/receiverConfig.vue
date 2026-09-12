@@ -340,7 +340,7 @@ export default {
               <div class="logo">
                 <img :src="receiverType.logo">
               </div>
-              <h4 class="name ml-10">
+              <h4 class="name ml-10 text-h4">
                 <t :k="receiverType.label" />
               </h4>
             </div>

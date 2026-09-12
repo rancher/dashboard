@@ -298,7 +298,7 @@ export default {
             </div>
             <div class="plugin-title">
               <h2
-                class="slideIn__header"
+                class="slideIn__header text-h2"
                 data-testid="extension-details-title"
               >
                 {{ info.label }}
@@ -344,7 +344,7 @@ export default {
           </Banner>
 
           <div class="plugin-versions-container">
-            <h3>
+            <h3 class="text-h3">
               {{ t('plugins.info.versions') }}
             </h3>
             <div v-if="!info.versions.length">
@@ -376,7 +376,7 @@ export default {
             </div>
           </div>
           <div class="plugin-actions-container">
-            <h3>
+            <h3 class="text-h3">
               {{ t('plugins.info.actions') }}
             </h3>
             <div class="plugin-actions">
@@ -404,7 +404,10 @@ export default {
           <div v-if="versionError">
             {{ t('plugins.info.versionError') }}
           </div>
-          <h3 v-if="versionInfo">
+          <h3
+            v-if="versionInfo"
+            class="text-h3"
+          >
             {{ t('plugins.info.detail') }}
           </h3>
           <div

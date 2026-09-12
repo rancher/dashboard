@@ -84,7 +84,9 @@ const levelOptionsMap = computed(() => levelOptions.map((value) => {
     <div class="row">
       <div class="col span-6">
         <fieldset>
-          <h3>{{ t("auditPolicy.general.enabled.title") }}</h3>
+          <h3 class="text-h3">
+            {{ t("auditPolicy.general.enabled.title") }}
+          </h3>
           <Checkbox
             v-model:value="spec.enabled"
             :mode="mode"
@@ -98,14 +100,16 @@ const levelOptionsMap = computed(() => levelOptions.map((value) => {
     <div class="row">
       <div class="col span-6">
         <fieldset>
-          <h3>{{ t("auditPolicy.general.verbosity.title") }}</h3>
+          <h3 class="text-h3">
+            {{ t("auditPolicy.general.verbosity.title") }}
+          </h3>
           <Banner
             class="mt-0"
             color="info"
             label-key="auditPolicy.general.verbosity.banner"
           />
 
-          <h4>
+          <h4 class="text-h4">
             {{ t("auditPolicy.general.verbosity.level.title") }}
             <i
               v-clean-tooltip="t('auditPolicy.general.verbosity.level.tooltip')"
@@ -127,7 +131,7 @@ const levelOptionsMap = computed(() => levelOptions.map((value) => {
             class="row"
           >
             <div class="col span-6">
-              <h4>
+              <h4 class="text-h4">
                 {{ t("auditPolicy.general.verbosity.request.title") }}
                 <i
                   v-clean-tooltip="t('auditPolicy.general.verbosity.requestResponse.tooltip')"
@@ -150,7 +154,7 @@ const levelOptionsMap = computed(() => levelOptions.map((value) => {
               </div>
             </div>
             <div class="col span-6">
-              <h4>
+              <h4 class="text-h4">
                 {{ t("auditPolicy.general.verbosity.response.title") }}
                 <i
                   v-clean-tooltip="t('auditPolicy.general.verbosity.requestResponse.tooltip')"

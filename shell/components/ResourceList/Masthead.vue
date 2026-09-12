@@ -210,7 +210,7 @@ export default {
       <TypeDescription :resource="resource" />
     </slot>
     <div class="title">
-      <h1 class="m-0">
+      <h1 class="m-0 text-h1">
         <TabTitle>{{ _typeDisplay }}</TabTitle> <Favorite
           v-if="isExplorer && showFavorite"
           :resource="favoriteResource || resource"

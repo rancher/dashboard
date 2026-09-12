@@ -290,7 +290,9 @@ export default {
                     />
                   </div>
                 </div>
-                <h3>{{ t('workload.container.titles.image') }}</h3>
+                <h3 class="text-h3">
+                  {{ t('workload.container.titles.image') }}
+                </h3>
                 <div class="row mb-20">
                   <div class="col span-6">
                     <LabeledInput
@@ -330,7 +332,7 @@ export default {
               </div>
               <div class="spacer" />
               <div>
-                <h3>
+                <h3 class="text-h3">
                   {{ t('workload.container.ports.expose') }}
                   <rc-icon-tooltip :content="t('workload.container.ports.toolTip')" />
                 </h3>
@@ -348,7 +350,9 @@ export default {
               </div>
               <div class="spacer" />
               <div>
-                <h3>{{ t('workload.container.titles.command') }}</h3>
+                <h3 class="text-h3">
+                  {{ t('workload.container.titles.command') }}
+                </h3>
                 <Command
                   v-model:value="allContainers[i]"
                   :secrets="namespacedSecrets"
@@ -369,7 +373,9 @@ export default {
               />
               <div class="spacer" />
               <div>
-                <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
+                <h3 class="text-h3">
+                  {{ t('workload.container.titles.lifecycle') }}
+                </h3>
                 <LifecycleHooks
                   v-model:value="allContainers[i].lifecycle"
                   :mode="mode"
@@ -516,7 +522,7 @@ export default {
             >
               <div>
                 <div>
-                  <h3 class="mb-10">
+                  <h3 class="mb-10 text-h3">
                     <t k="workload.scheduling.titles.tolerations" />
                   </h3>
                   <div class="row">
@@ -529,7 +535,7 @@ export default {
 
                 <div>
                   <div class="spacer" />
-                  <h3 class="mb-10">
+                  <h3 class="mb-10 text-h3">
                     <t k="workload.scheduling.titles.priority" />
                   </h3>
                   <div class="row">
@@ -634,7 +640,9 @@ export default {
               :weight="tabWeightMap['labels']"
             >
               <div>
-                <h3>{{ t('workload.container.titles.podLabels') }}</h3>
+                <h3 class="text-h3">
+                  {{ t('workload.container.titles.podLabels') }}
+                </h3>
                 <div class="row mb-20">
                   <KeyValue
                     key="labels"
@@ -646,7 +654,9 @@ export default {
                   />
                 </div>
                 <div class="spacer" />
-                <h3>{{ t('workload.container.titles.podAnnotations') }}</h3>
+                <h3 class="text-h3">
+                  {{ t('workload.container.titles.podAnnotations') }}
+                </h3>
                 <div class="row">
                   <KeyValue
                     key="annotations"

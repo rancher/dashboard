@@ -609,7 +609,10 @@ export default {
       v-for="(g, i) in groups"
       :key="i"
     >
-      <h3 v-if="groups.length > 1">
+      <h3
+        v-if="groups.length > 1"
+        class="text-h3"
+      >
         {{ g.label }}
       </h3>
       <div

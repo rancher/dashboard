@@ -42,7 +42,7 @@ export default {
   <div class="rule">
     <div class="row mb-40">
       <div class="col span-12">
-        <h2>
+        <h2 class="text-h2">
           {{ t(`networkpolicy.${type}.ruleLabel`) }}
           <i
             v-clean-tooltip="t(`networkpolicy.${type}.ruleHint`)"
@@ -70,7 +70,7 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <h2>
+        <h2 class="text-h2">
           {{ t('networkpolicy.rules.ports.label') }}
           <i
             v-clean-tooltip="t(`networkpolicy.${type}.portHint`)"

@@ -657,7 +657,9 @@ export default {
 
     <portal :to="'advanced-' + uuid">
       <div v-if="useAvailabilitySet">
-        <h2>{{ t('cluster.machineConfig.azure.sections.availabilitySetConfiguration') }}</h2>
+        <h2 class="text-h2">
+          {{ t('cluster.machineConfig.azure.sections.availabilitySetConfiguration') }}
+        </h2>
         <div class="row mt-20">
           <div class="col span-6">
             <LabeledInput
@@ -680,7 +682,9 @@ export default {
         </div>
       </div>
       <RcSeparator class="mt-20 mb-20" />
-      <h2>{{ t('cluster.machineConfig.azure.sections.purchasePlan') }}</h2>
+      <h2 class="text-h2">
+        {{ t('cluster.machineConfig.azure.sections.purchasePlan') }}
+      </h2>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -693,7 +697,9 @@ export default {
         </div>
       </div>
       <RcSeparator class="mt-20" />
-      <h2>{{ t('cluster.machineConfig.azure.sections.network') }}</h2>
+      <h2 class="text-h2">
+        {{ t('cluster.machineConfig.azure.sections.network') }}
+      </h2>
       <div class="row mt-20 mb-20">
         <div class="col span-6">
           <LabeledInput
@@ -738,7 +744,9 @@ export default {
           />
         </div>
         <div class="col span-6 inline-banner-container">
-          <h3><t k="cluster.machineConfig.azure.publicIpOptions.header" /></h3>
+          <h3 class="text-h3">
+            <t k="cluster.machineConfig.azure.publicIpOptions.header" />
+          </h3>
           <Checkbox
             v-model:value="value.noPublicIp"
             :mode="mode"
@@ -815,7 +823,9 @@ export default {
         </div>
       </div>
       <RcSeparator class="mt-20 mb-20" />
-      <h2>{{ t('cluster.machineConfig.azure.sections.disks') }}</h2>
+      <h2 class="text-h2">
+        {{ t('cluster.machineConfig.azure.sections.disks') }}
+      </h2>
       <div class="row mt-20 mb-20">
         <div class="col span-6">
           <LabeledSelect
@@ -889,7 +899,9 @@ export default {
 
       <div class="row mt-20">
         <div class="col span-12">
-          <h3><t k="cluster.machineConfig.azure.tags.label" /></h3>
+          <h3 class="text-h3">
+            <t k="cluster.machineConfig.azure.tags.label" />
+          </h3>
           <KeyValue
             :value="tags"
             :mode="mode"

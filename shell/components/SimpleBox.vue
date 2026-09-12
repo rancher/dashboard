@@ -43,6 +43,7 @@ export default {
         <h2
           v-if="title"
           data-testid="simple-box-title"
+          class="text-h2"
         >
           {{ title }}
         </h2>

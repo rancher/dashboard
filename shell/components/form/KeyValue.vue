@@ -14,6 +14,7 @@ import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { RcButton } from '@components/RcButton';
+import { RcHeading } from '@components/RcHeading';
 import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default {
@@ -28,6 +29,7 @@ export default {
     FileSelector,
     LabeledTooltip,
     RcButton,
+    RcHeading,
     RcIconTooltip
   },
   props: {
@@ -608,14 +610,14 @@ export default {
       class="clearfix"
     >
       <slot name="title">
-        <h3>
+        <RcHeading size="h3">
           {{ title }}
           <i
             v-if="titleProtip"
             v-clean-tooltip="titleProtip"
             class="icon icon-info"
           />
-        </h3>
+        </RcHeading>
       </slot>
     </div>
     <div

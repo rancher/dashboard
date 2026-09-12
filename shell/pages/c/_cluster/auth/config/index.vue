@@ -89,7 +89,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <h1 class="m-0">
+    <h1 class="m-0 text-h1">
       {{ displayName }}
     </h1>
     <Banner

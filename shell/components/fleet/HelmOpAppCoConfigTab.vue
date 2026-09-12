@@ -250,7 +250,7 @@ defineExpose({ refreshYamlEditor });
         </div>
         <div class="chart-header-info">
           <div class="chart-header-title-row">
-            <h3 class="chart-header-title">
+            <h3 class="chart-header-title text-h3">
               {{ selectedChartName }}
             </h3>
             <RcIcon

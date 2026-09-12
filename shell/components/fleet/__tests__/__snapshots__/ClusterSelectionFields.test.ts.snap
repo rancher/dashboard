@@ -6,7 +6,9 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
 >
   <!-- Select by cluster name -->
   <div>
-    <h4>
+    <h4
+      class="text-h4"
+    >
       %fleet.clusterTargets.clusters.byName.title%
     </h4>
     <labeled-select-stub

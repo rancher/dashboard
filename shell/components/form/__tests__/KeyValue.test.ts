@@ -655,4 +655,19 @@ describe('component: KeyValue', () => {
       });
     });
   });
+
+  describe('title', () => {
+    it('should title the editor one level below the page masthead, at the size it had before', () => {
+      const wrapper = mount(KeyValue, {
+        props:  { mode: 'edit', title: 'Custom Links' } as any,
+        global: { mocks: { t: (key: string) => key }, stubs: { CodeMirror: true } },
+      });
+
+      const title = wrapper.find('.clearfix > *');
+
+      expect(title.element.tagName).toBe('H2');
+      expect(title.classes()).toContain('text-h3');
+      expect(title.text()).toContain('Custom Links');
+    });
+  });
 });

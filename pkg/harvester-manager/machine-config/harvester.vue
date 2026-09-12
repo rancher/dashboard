@@ -1352,7 +1352,7 @@ export default {
         </div>
       </div>
 
-      <h2 class="mt-20">
+      <h2 class="mt-20 text-h2">
         {{ t('cluster.credential.harvester.volume.title') }}
       </h2>
       <draggable
@@ -1382,7 +1382,7 @@ export default {
                 <i class="icon icon-x" />
               </button>
 
-              <h4>
+              <h4 class="text-h4">
                 {{ headerFor(disk) }}
               </h4>
 
@@ -1481,7 +1481,9 @@ export default {
 
       <RcSeparator class="mt-10 mb-10" />
 
-      <h2>{{ t('cluster.credential.harvester.network.title') }}</h2>
+      <h2 class="text-h2">
+        {{ t('cluster.credential.harvester.network.title') }}
+      </h2>
       <div
         v-for="(network, i) in interfaces"
         :key="i"
@@ -1499,7 +1501,7 @@ export default {
             <i class="icon icon-x" />
           </button>
 
-          <h4>
+          <h4 class="text-h4">
             <span>
               {{ t('cluster.credential.harvester.network.network') }}
             </span>
@@ -1542,7 +1544,7 @@ export default {
       </button>
 
       <portal :to="'advanced-'+uuid">
-        <h3 class="mt-20">
+        <h3 class="mt-20 text-h3">
           {{ t("harvesterManager.vGpu.title") }}
         </h3>
         <div>
@@ -1570,7 +1572,7 @@ export default {
           />
         </div>
 
-        <h3 class="mt-20">
+        <h3 class="mt-20 text-h3">
           {{ t("cluster.credential.harvester.userData.title") }}
         </h3>
         <div>
@@ -1642,7 +1644,9 @@ export default {
           </Banner>
         </div>
 
-        <h3>{{ t('cluster.credential.harvester.networkData.title') }}</h3>
+        <h3 class="text-h3">
+          {{ t('cluster.credential.harvester.networkData.title') }}
+        </h3>
         <div>
           <LabeledSelect
             v-if="isCreate"
@@ -1667,7 +1671,7 @@ export default {
 
         <RcSeparator class="divider mt-20" />
 
-        <h3 class="mt-20">
+        <h3 class="mt-20 text-h3">
           {{ t("workload.container.titles.nodeScheduling") }}
         </h3>
         <NodeAffinity
@@ -1676,7 +1680,7 @@ export default {
           @update:value="updateNodeScheduling"
         />
 
-        <h3 class="mt-20">
+        <h3 class="mt-20 text-h3">
           {{ t("harvesterManager.affinity.vmAffinityTitle") }}
         </h3>
         <PodAffinity

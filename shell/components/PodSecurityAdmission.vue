@@ -4,6 +4,7 @@ import { _VIEW, _CREATE } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { RcHeading } from '@components/RcHeading';
 import { PSADimension, PSAMode } from '@shell/types/resources/pod-security-admission';
 import {
   PSADefaultLevel,
@@ -29,7 +30,7 @@ export default defineComponent({
   emits: ['updateLabels', 'updateExemptions'],
 
   components: {
-    Checkbox, LabeledSelect, LabeledInput
+    Checkbox, LabeledSelect, LabeledInput, RcHeading
   },
   props: {
     /**
@@ -266,9 +267,9 @@ export default defineComponent({
     <!-- Exemptions -->
     <template v-if="hasExemptions">
       <slot name="title">
-        <h3>
+        <RcHeading size="h3">
           <t k="podSecurityAdmission.exemptions.title" />
-        </h3>
+        </RcHeading>
       </slot>
       <p class="mb-30">
         <t k="podSecurityAdmission.exemptions.description" />

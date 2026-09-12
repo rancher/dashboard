@@ -74,7 +74,7 @@ export default {
 <template>
   <SimpleBox class="hardware-resource-gauge">
     <div class="chart">
-      <h3>
+      <h3 class="text-h3">
         {{ name }}
       </h3>
       <div

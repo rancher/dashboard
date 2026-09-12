@@ -175,7 +175,9 @@ export default {
 <template>
   <div>
     <div class="title">
-      <h3>{{ t('monitoring.prometheus.title') }}</h3>
+      <h3 class="text-h3">
+        {{ t('monitoring.prometheus.title') }}
+      </h3>
     </div>
     <!-- https://github.com/rancher/dashboard/issues/1167 -->
     <Banner
@@ -256,7 +258,7 @@ export default {
       </div>
       <div class="row">
         <div class="col span-12 mt-5">
-          <h4 class="mb-0">
+          <h4 class="mb-0 text-h4">
             {{ t('monitoring.prometheus.config.resourceLimits') }}
           </h4>
         </div>
@@ -353,7 +355,7 @@ export default {
             >
               <template #header>
                 <div class="mb-5 mt-5">
-                  <h4 class=" mb-10">
+                  <h4 class="mb-10 text-h4">
                     {{ t('monitoring.prometheus.storage.selector') }}
                   </h4>
                 </div>

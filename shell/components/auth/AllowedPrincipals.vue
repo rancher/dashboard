@@ -64,7 +64,9 @@ export default {
 
 <template>
   <div>
-    <h3>{{ t('authConfig.accessMode.label', {provider: authConfig.nameDisplay}) }}</h3>
+    <h3 class="text-h3">
+      {{ t('authConfig.accessMode.label', {provider: authConfig.nameDisplay}) }}
+    </h3>
 
     <div class="row">
       <div class="col span-6">
@@ -76,7 +78,10 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <h4 v-if="accessMode!=='unrestricted'">
+        <h4
+          v-if="accessMode!=='unrestricted'"
+          class="text-h4"
+        >
           <t
             k="authConfig.allowedPrincipalIds.title"
             :raw="true"

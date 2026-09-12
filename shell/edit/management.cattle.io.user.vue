@@ -259,7 +259,9 @@ export default {
     @error="e=>errors = e"
   >
     <div class="credentials">
-      <h2> {{ t("user.edit.credentials.label") }}</h2>
+      <h2 class="text-h2">
+        {{ t("user.edit.credentials.label") }}
+      </h2>
       <div class="row">
         <div class="col span-4">
           <LabeledInput

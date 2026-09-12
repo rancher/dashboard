@@ -2,6 +2,7 @@ import { mount, VueWrapper } from '@vue/test-utils';
 import { defineComponent } from 'vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
+import { RcHeading } from '@components/RcHeading';
 
 jest.mock('@shell/components/form/ResourceTabs/composable', () => ({ useTabCountWatcher: () => ({}) }));
 
@@ -380,5 +381,41 @@ describe('component: Tabbed, side tab add/remove controls', () => {
 
     expect(wrapper.emitted('addTab')).toStrictEqual([[1]]);
     expect(wrapper.emitted('removeTab')).toStrictEqual([[1]]);
+  });
+
+  describe('heading level', () => {
+    const TabWithHeading = defineComponent({
+      components: { Tab, RcHeading },
+      template:   `
+        <Tab name="tab1" label="Tab 1" :show-header="showHeader">
+          <RcHeading size="h3">Section</RcHeading>
+        </Tab>
+      `,
+      props: { showHeader: { type: Boolean, default: true } },
+    });
+
+    const mountTab = (showHeader: boolean) => mount(Tabbed, {
+      props:  { defaultTab: 'tab1' },
+      slots:  { default: `<TabWithHeading :show-header="${ showHeader }" />` },
+      global: {
+        ...defaultGlobalMountOptions,
+        components: { ...defaultGlobalMountOptions.components, TabWithHeading },
+      },
+    });
+
+    it('should title a tab with an h2, one below the page masthead', () => {
+      expect(mountTab(true).find('.tab-header h2').text()).toContain('Tab 1');
+    });
+
+    it('should put the content of a titled tab one level deeper', () => {
+      expect(mountTab(true).find('.tab-panel h3').exists()).toBe(true);
+    });
+
+    it('should not spend a level on a tab that renders no header', () => {
+      const wrapper = mountTab(false);
+
+      expect(wrapper.find('.tab-header').exists()).toBe(false);
+      expect(wrapper.find('.tab-panel h2').exists()).toBe(true);
+    });
   });
 });

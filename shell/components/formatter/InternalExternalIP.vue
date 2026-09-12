@@ -141,7 +141,9 @@ export default {
             class="ip-list"
             data-testid="external-ip-list"
           >
-            <h5>{{ t('generic.externalIps') }}</h5>
+            <h5 class="text-h5">
+              {{ t('generic.externalIps') }}
+            </h5>
             <div
               v-for="ip in remainingExternalIps"
               :key="ip"
@@ -161,7 +163,9 @@ export default {
             class="ip-list"
             data-testid="internal-ip-list"
           >
-            <h5>{{ t('generic.internalIps') }}</h5>
+            <h5 class="text-h5">
+              {{ t('generic.internalIps') }}
+            </h5>
             <div
               v-for="ip in remainingInternalIps"
               :key="ip"

@@ -437,4 +437,15 @@ describe('component: PodSecurityAdmission', () => {
       });
     });
   });
+
+  it('titles the exemptions section one level below the page masthead', () => {
+    const exemptions = {
+      namespaces: [], runtimeClasses: [], usernames: []
+    };
+    const wrapper = mount(PodSecurityAdmission, { props: { mode: 'create', exemptions } });
+
+    const title = wrapper.find('.text-h3');
+
+    expect(title.element.tagName).toBe('H2');
+  });
 });

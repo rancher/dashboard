@@ -271,7 +271,7 @@ export default defineComponent({
 
       <!-- clientID -->
       <h3
-        class="mt-10 mb-20"
+        class="mt-10 mb-20 text-h3"
       >
         {{ t('oidcclient.clientId') }}:
         <CopyToClipboardText
@@ -284,7 +284,7 @@ export default defineComponent({
       <div
         class="mb-20"
       >
-        <h3 class="mt-20 mb-20">
+        <h3 class="mt-20 mb-20 text-h3">
           {{ t('oidcclient.clientSecrets') }}
         </h3>
         <div class="card-grid-container">

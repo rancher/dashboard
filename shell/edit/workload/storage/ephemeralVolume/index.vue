@@ -59,7 +59,9 @@ export default {
       <i class="icon icon-x" />
     </button>
     <div>
-      <h3>{{ t('workload.storage.subtypes.csi') }}</h3>
+      <h3 class="text-h3">
+        {{ t('workload.storage.subtypes.csi') }}
+      </h3>
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledSelect

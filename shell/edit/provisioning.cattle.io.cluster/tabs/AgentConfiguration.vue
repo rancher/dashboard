@@ -279,7 +279,10 @@ export default {
         <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)" />
       </Banner>
 
-      <h4 v-if="canEditAffinity">
+      <h4
+        v-if="canEditAffinity"
+        class="text-h4"
+      >
         {{ t('cluster.agentConfig.subGroups.podAffinityAnti') }}
       </h4>
 
@@ -302,7 +305,7 @@ export default {
       />
       <h4
         v-if="canEditAffinity"
-        class="mt-20"
+        class="mt-20 text-h4"
       >
         {{ t('cluster.agentConfig.subGroups.nodeAffinity') }}
       </h4>

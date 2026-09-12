@@ -160,13 +160,16 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <BackLink :link="backLink" />
-    <h1>
+    <h1 class="text-h1">
       <TabTitle breadcrumb="vendor-only">
         {{ t('accountAndKeys.title') }}
       </TabTitle>
     </h1>
 
-    <h2 v-t="'accountAndKeys.account.title'" />
+    <h2
+      v-t="'accountAndKeys.account.title'"
+      class="text-h2"
+    />
     <div class="account">
       <Principal
         :value="principal.id"
@@ -191,7 +194,10 @@ export default {
     <RcSeparator />
     <div class="keys-header">
       <div>
-        <h2 v-t="'accountAndKeys.apiKeys.title'" />
+        <h2
+          v-t="'accountAndKeys.apiKeys.title'"
+          class="text-h2"
+        />
         <div class="api-url">
           <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
           <CopyToClipboardText

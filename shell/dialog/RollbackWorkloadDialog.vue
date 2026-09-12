@@ -12,6 +12,7 @@ import { mapGetters } from 'vuex';
 import { ACTIVELY_REMOVE, NEVER_ADD } from '@shell/utils/create-yaml';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
+import { RcHeading } from '@components/RcHeading';
 
 const HIDE = [
   'metadata.labels.pod-template-hash',
@@ -37,6 +38,7 @@ export default {
     LabeledSelect,
     Banner,
     YamlEditor,
+    RcHeading,
   },
   props: {
     workload: {
@@ -200,9 +202,13 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :level="2"
+        size="h4"
+        class="text-default-text"
+      >
         {{ t('promptRollback.modalTitle', { workloadName }, true) }}
-      </h4>
+      </RcHeading>
     </template>
     <template #body>
       <div class="pl-10 pr-10 ">

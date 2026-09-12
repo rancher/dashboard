@@ -1,13 +1,15 @@
 <script>
 import { Card } from '@components/Card';
 import ClusterPermissionsEditor from '@shell/components/form/Members/ClusterPermissionsEditor';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
 
   components: {
     Card,
-    ClusterPermissionsEditor
+    ClusterPermissionsEditor,
+    RcHeading,
   },
 
   props: {
@@ -40,8 +42,10 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4
+      <RcHeading
         v-clean-html="t('addClusterMemberDialog.title')"
+        :level="2"
+        size="h4"
         class="text-default-text"
       />
     </template>

@@ -90,7 +90,9 @@ export default {
         class="rancher-icon"
         width="32"
       />
-      <h1>{{ t('glance.clusterInfo') }}</h1>
+      <h1 class="text-h1">
+        {{ t('glance.clusterInfo') }}
+      </h1>
     </div>
 
     <div class="single-cluster-info">

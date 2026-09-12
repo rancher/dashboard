@@ -176,7 +176,9 @@ export default {
         />
       </div>
       <div class="col span-6 pt-5">
-        <h3>Additional Linode Options</h3>
+        <h3 class="text-h3">
+          Additional Linode Options
+        </h3>
         <Checkbox
           v-model:value="value.createPrivateIp"
           :mode="mode"

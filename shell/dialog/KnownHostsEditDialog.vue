@@ -2,6 +2,7 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import CodeMirror from '@shell/components/CodeMirror';
 import FileSelector from '@shell/components/form/FileSelector.vue';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -9,6 +10,7 @@ export default {
   components: {
     FileSelector,
     CodeMirror,
+    RcHeading,
   },
 
   props: {
@@ -82,12 +84,14 @@ export default {
     ref="sshKnownHostsDialog"
     class="ssh-known-hosts-dialog"
   >
-    <h4
+    <RcHeading
+      :level="2"
+      size="h4"
       class="mt-10"
       data-modal-title
     >
       {{ t('secret.ssh.editKnownHosts.title') }}
-    </h4>
+    </RcHeading>
     <div class="custom mt-10">
       <div class="dialog-panel">
         <CodeMirror
@@ -132,7 +136,7 @@ export default {
   .ssh-known-hosts-dialog {
     padding: 15px;
 
-    h4 {
+    [data-modal-title] {
       font-weight: bold;
       margin-bottom: 20px;
     }

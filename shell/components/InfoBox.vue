@@ -18,7 +18,9 @@ export default {
       v-if="step"
       class="step-number mb-10"
     >
-      <h2>Step {{ step }}</h2>
+      <h2 class="text-h2">
+        Step {{ step }}
+      </h2>
     </div>
     <slot />
   </div>

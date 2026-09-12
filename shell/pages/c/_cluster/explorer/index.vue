@@ -572,7 +572,7 @@ export default {
   <section class="dashboard">
     <header>
       <div class="title">
-        <h1>
+        <h1 class="text-h1">
           <TabTitle>
             {{ t('clusterIndexPage.header') }}
           </TabTitle>
@@ -667,7 +667,7 @@ export default {
         class="extension-card"
         :style="item.style"
       >
-        <h3>
+        <h3 class="text-h3">
           {{ item.label }}
         </h3>
         <component
@@ -679,7 +679,7 @@ export default {
 
     <h3
       v-if="hasStats"
-      class="mt-40"
+      class="mt-40 text-h3"
     >
       {{ t('clusterIndexPage.sections.capacity.label') }}
     </h3>

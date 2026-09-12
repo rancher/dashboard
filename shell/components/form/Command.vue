@@ -192,7 +192,9 @@ export default {
       </div>
     </div>
     <div class="spacer" />
-    <h3>{{ t('workload.container.titles.env') }}</h3>
+    <h3 class="text-h3">
+      {{ t('workload.container.titles.env') }}
+    </h3>
     <EnvVars
       :mode="mode"
       :config-maps="configMaps"

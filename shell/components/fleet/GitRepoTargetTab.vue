@@ -39,7 +39,9 @@ const onCreated = (value) => {
 
 <template>
   <div>
-    <h2>{{ t('fleet.gitRepo.target.label') }}</h2>
+    <h2 class="text-h2">
+      {{ t('fleet.gitRepo.target.label') }}
+    </h2>
     <FleetClusterTargets
       :targets="value.spec.targets"
       :matching="value.targetClusters"
@@ -50,7 +52,7 @@ const onCreated = (value) => {
       @created="onCreated"
     />
 
-    <h3 class="mmt-16">
+    <h3 class="mmt-16 text-h3">
       {{ t('fleet.gitRepo.target.additionalOptions') }}
     </h3>
     <div class="row mt-20">

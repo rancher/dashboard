@@ -1,11 +1,14 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import AppModal, { DEFAULT_ITERABLE_NODE_SELECTOR } from '@shell/components/AppModal.vue';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['okay', 'closed'],
 
-  components: { AsyncButton, AppModal },
+  components: {
+    AsyncButton, AppModal, RcHeading
+  },
 
   props: {
     name: {
@@ -84,9 +87,13 @@ export default {
   >
     <template #default>
       <div class="modal-dialog">
-        <h4 data-modal-title>
+        <RcHeading
+          :level="2"
+          size="h4"
+          data-modal-title
+        >
           {{ title }}
-        </h4>
+        </RcHeading>
         <slot />
         <div class="dialog-buttons mt-20">
           <slot name="buttons" />
@@ -121,7 +128,7 @@ export default {
   .modal-dialog {
     padding: 10px;
 
-    h4 {
+    [data-modal-title] {
       font-weight: bold;
     }
 

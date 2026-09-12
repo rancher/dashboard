@@ -442,7 +442,7 @@ export default {
     <header>
       <div class="title">
         <div class="primaryheader">
-          <h1>
+          <h1 class="text-h1">
             <TabTitle
               v-if="isCreate"
               :showChild="false"

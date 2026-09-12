@@ -159,7 +159,9 @@ export default {
 <template>
   <div>
     <div>
-      <h3>{{ t('workload.container.titles.networkSettings') }}</h3>
+      <h3 class="text-h3">
+        {{ t('workload.container.titles.networkSettings') }}
+      </h3>
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
@@ -208,7 +210,9 @@ export default {
     <div class="spacer" />
 
     <div>
-      <h3>{{ t('workload.networking.dns') }}</h3>
+      <h3 class="text-h3">
+        {{ t('workload.networking.dns') }}
+      </h3>
       <div class="row">
         <div class="col span-6">
           <ArrayList
@@ -277,7 +281,9 @@ export default {
           @update:value="updateHostAliases"
         >
           <template #title>
-            <h3>{{ t('workload.networking.hostAliases.label') }}</h3>
+            <h3 class="text-h3">
+              {{ t('workload.networking.hostAliases.label') }}
+            </h3>
           </template>
         </KeyValue>
       </div>

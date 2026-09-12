@@ -279,7 +279,9 @@ export default {
     </div>
 
     <div class="row">
-      <h3>  {{ t('authConfig.ldap.customizeSchema') }}</h3>
+      <h3 class="text-h3">
+        {{ t('authConfig.ldap.customizeSchema') }}
+      </h3>
     </div>
     <Banner
       v-if="type === OKTA && isCreate"
@@ -289,7 +291,9 @@ export default {
     />
     <div class="schema-container">
       <div class="schema-column">
-        <h4>{{ t('authConfig.ldap.users') }}</h4>
+        <h4 class="text-h4">
+          {{ t('authConfig.ldap.users') }}
+        </h4>
         <LabeledInput
           v-model:value="model.userObjectClass"
           :mode="mode"
@@ -338,7 +342,9 @@ export default {
         />
       </div>
       <div class="schema-column">
-        <h4>{{ t('authConfig.ldap.groups') }}</h4>
+        <h4 class="text-h4">
+          {{ t('authConfig.ldap.groups') }}
+        </h4>
         <LabeledInput
           v-model:value="model.groupObjectClass"
           :mode="mode"

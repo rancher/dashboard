@@ -137,7 +137,9 @@ const validatePollingInterval = () => {
       data-testid="gitrepo-advanced-info"
     />
 
-    <h2>{{ t('fleet.gitRepo.auth.title') }}</h2>
+    <h2 class="text-h2">
+      {{ t('fleet.gitRepo.auth.title') }}
+    </h2>
     <Banner
       v-if="isGithubDotComRepository && isBasicAuthSelected"
       color="warning"
@@ -223,7 +225,7 @@ const validatePollingInterval = () => {
     </template>
     <div class="spacer" />
 
-    <h2>
+    <h2 class="text-h2">
       {{ t('fleet.gitRepo.ociStorageSecret.title') }}
     </h2>
     <div class="row mt-20">
@@ -238,7 +240,7 @@ const validatePollingInterval = () => {
     </div>
     <div class="spacer" />
 
-    <h2>
+    <h2 class="text-h2">
       {{ t('fleet.gitRepo.resources.label') }}
     </h2>
     <div class="resource-handling">
@@ -264,7 +266,7 @@ const validatePollingInterval = () => {
     </div>
 
     <div class="spacer" />
-    <h2>
+    <h2 class="text-h2">
       {{ t('fleet.gitRepo.polling.label') }}
     </h2>
     <div class="row polling">

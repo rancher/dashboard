@@ -163,12 +163,14 @@ export default {
       data-testid="advanced_settings_warning_banner"
     />
 
-    <h4>{{ description }}</h4>
+    <h4 class="text-h4">
+      {{ description }}
+    </h4>
 
     <h5
       v-if="editHelp"
       v-clean-html="editHelp"
-      class="edit-help"
+      class="edit-help text-h5"
     />
 
     <Banner
@@ -178,7 +180,10 @@ export default {
       data-testid="setting-agent-config-banner"
     />
     <div class="edit-change mt-20">
-      <h5 v-t="'advancedSettings.edit.changeSetting'" />
+      <h5
+        v-t="'advancedSettings.edit.changeSetting'"
+        class="text-h5"
+      />
       <button
         data-testid="advanced_settings_use_default"
         :disabled="!canReset"

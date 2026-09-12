@@ -253,7 +253,7 @@ export default defineComponent({
       class="radio-group label"
     >
       <slot name="label">
-        <h3>
+        <h3 class="text-h3">
           <t
             v-if="labelKey"
             :k="labelKey"

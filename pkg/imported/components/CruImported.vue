@@ -584,7 +584,9 @@ export default defineComponent({
         </router-link>
         .
         <div class="spacer-small" />
-        <h3>{{ t('cluster.agentConfig.groups.agentsScheduling.label') }}</h3>
+        <h3 class="text-h3">
+          {{ t('cluster.agentConfig.groups.agentsScheduling.label') }}
+        </h3>
         <SchedulingCustomization
           :value="clusterAgentDeploymentCustomization.schedulingCustomization"
           :mode="mode"
@@ -639,7 +641,9 @@ export default defineComponent({
           />
         </div>
         <div v-if="!isLocal">
-          <h3>{{ t('cluster.tabs.ace') }}</h3>
+          <h3 class="text-h3">
+            {{ t('cluster.tabs.ace') }}
+          </h3>
           <ACE
             v-model:value="normanCluster.localClusterAuthEndpoint"
             :mode="mode"
@@ -674,7 +678,7 @@ export default defineComponent({
         title-key="imported.accordions.advanced"
         :open-initially="false"
       >
-        <h3>
+        <h3 class="text-h3">
           {{ t('imported.agentEnv.header') }}
         </h3>
         <KeyValue

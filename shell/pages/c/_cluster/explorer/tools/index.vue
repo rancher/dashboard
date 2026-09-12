@@ -248,7 +248,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="appChartCards.length">
-    <h1 class="mmb-6">
+    <h1 class="mmb-6 text-h1">
       <TabTitle>{{ t('catalog.tools.header') }}</TabTitle>
     </h1>
 

@@ -176,8 +176,14 @@ export default {
       :step="1"
       class="step-box"
     >
-      <h3 v-t="'cluster.custom.nodeRole.label'" />
-      <h4 v-t="'cluster.custom.nodeRole.detail'" />
+      <h3
+        v-t="'cluster.custom.nodeRole.label'"
+        class="text-h3"
+      />
+      <h4
+        v-t="'cluster.custom.nodeRole.detail'"
+        class="text-h4"
+      />
       <Checkbox
         v-model:value="etcd"
         label-key="model.machine.role.etcd"
@@ -203,8 +209,14 @@ export default {
       :step="2"
       class="step-box"
     >
-      <h3 v-t="'cluster.custom.advanced.label'" />
-      <h4 v-t="'cluster.custom.advanced.detail'" />
+      <h3
+        v-t="'cluster.custom.advanced.label'"
+        class="text-h3"
+      />
+      <h4
+        v-t="'cluster.custom.advanced.detail'"
+        class="text-h4"
+      />
       <Banner
         v-if="isIpv6OrDualStack"
         color="warning"
@@ -273,8 +285,14 @@ export default {
       :step="showAdvanced ? 3 : 2"
       class="step-box"
     >
-      <h3 v-t="'cluster.custom.registrationCommand.label'" />
-      <h4 v-t="'cluster.custom.registrationCommand.linuxDetail'" />
+      <h3
+        v-t="'cluster.custom.registrationCommand.label'"
+        class="text-h3"
+      />
+      <h4
+        v-t="'cluster.custom.registrationCommand.linuxDetail'"
+        class="text-h4"
+      />
       <CopyCode
         id="copiedLinux"
         class="m-10 p-10"
@@ -289,7 +307,10 @@ export default {
 
       <template v-if="cluster.supportsWindows">
         <RcSeparator class="mt-20 mb-20" />
-        <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
+        <h4
+          v-t="'cluster.custom.registrationCommand.windowsDetail'"
+          class="text-h4"
+        />
         <Banner
           v-if="readyForWindows"
           color="info"

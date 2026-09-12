@@ -306,7 +306,10 @@ export default {
 };
 </script>
 <template>
-  <h3 v-t="'fleet.gitRepo.paths.title'" />
+  <h3
+    v-t="'fleet.gitRepo.paths.title'"
+    class="text-h3"
+  />
   <p class="text-label m-0">
     {{ t('fleet.gitRepo.paths.description1') }}<br>
     {{ t('fleet.gitRepo.paths.description2') }}
@@ -331,7 +334,7 @@ export default {
       <div class="row-container">
         <div>
           <div class="header">
-            <h4 class="m-0">
+            <h4 class="m-0 text-h4">
               {{ t('fleet.gitRepo.paths.index', { index: i + 1 }, true) }}
             </h4>
             <RcButton

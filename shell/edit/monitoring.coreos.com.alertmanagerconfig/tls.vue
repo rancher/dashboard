@@ -189,7 +189,9 @@ export default {
   <div>
     <div class="row">
       <div class="col span-12">
-        <h3>{{ t('monitoring.receiver.tls.label') }}</h3>
+        <h3 class="text-h3">
+          {{ t('monitoring.receiver.tls.label') }}
+        </h3>
       </div>
     </div>
     <div class="row mb-20">

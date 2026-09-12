@@ -1058,7 +1058,10 @@ export default {
   <div id="extensions-main-page">
     <div class="plugin-header">
       <!-- normal extensions view header -->
-      <h2 data-testid="extensions-page-title">
+      <h2
+        data-testid="extensions-page-title"
+        class="text-h2"
+      >
         <TabTitle breadcrumb="vendor-only">
           {{ t('plugins.title') }}
         </TabTitle>

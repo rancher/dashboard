@@ -1,5 +1,6 @@
 <script>
 import SimpleBox from '@shell/components/SimpleBox';
+import { RcHeading } from '@components/RcHeading';
 import { COUNT } from '@shell/config/types';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 
@@ -40,7 +41,7 @@ export function resourceCounts(store, resource) {
 }
 
 export default {
-  components: { SimpleBox },
+  components: { RcHeading, SimpleBox },
 
   props: {
     resource: {
@@ -117,10 +118,15 @@ export default {
       :class="{'has-link': !!location}"
       @click="goToResource"
     >
-      <h1>{{ resourceCounts.total }}</h1>
-      <h3>
+      <div class="summary-count">
+        {{ resourceCounts.total }}
+      </div>
+      <RcHeading
+        class="summary-name"
+        size="h3"
+      >
         {{ name }}
-      </h3>
+      </RcHeading>
       <div class="warnings">
         <div
           v-if="resourceCounts.warningCount"
@@ -152,7 +158,14 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    & H1, H3 {
+
+    .summary-count {
+        @include h-css;
+
+        font-size: 24px;
+    }
+
+    .summary-count, .summary-name {
         margin: 0;
     }
 

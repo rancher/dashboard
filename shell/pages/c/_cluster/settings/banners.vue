@@ -251,7 +251,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <h1 class="mb-20">
+    <h1 class="mb-20 text-h1">
       {{ t('banner.label') }}
     </h1>
     <div>
@@ -260,7 +260,7 @@ export default {
       </label>
 
       <!-- Header Settings -->
-      <h2 class="mt-40 mb-10 setting-title">
+      <h2 class="mt-40 mb-10 setting-title text-h2">
         {{ t('banner.bannerHeader') }}
         <i
           v-if="!!uiBannerIndividual.bannerHeader"
@@ -295,7 +295,7 @@ export default {
       />
 
       <!-- Footer settings -->
-      <h2 class="mt-40 mb-10 setting-title">
+      <h2 class="mt-40 mb-10 setting-title text-h2">
         {{ t('banner.bannerFooter') }}
         <i
           v-if="!!uiBannerIndividual.bannerFooter"
@@ -330,7 +330,7 @@ export default {
       />
 
       <!-- Consent settings -->
-      <h2 class="mt-40 mb-10 setting-title">
+      <h2 class="mt-40 mb-10 setting-title text-h2">
         {{ t('banner.bannerConsent') }}
         <i
           v-if="!!uiBannerIndividual.bannerConsent"
@@ -363,7 +363,7 @@ export default {
         banner-type="bannerConsent"
         :mode="consentMode"
       />
-      <h2 class="mt-40 mb-40">
+      <h2 class="mt-40 mb-40 text-h2">
         {{ t('notifications.loginError.header') }}
       </h2>
       <NotificationSettings

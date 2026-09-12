@@ -58,7 +58,7 @@ export default {
       v-else-if="title"
       v-clean-html="title"
       data-testid="banner-title"
-      class="title"
+      class="title text-h1"
     />
   </div>
 </template>

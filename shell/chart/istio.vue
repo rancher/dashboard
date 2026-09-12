@@ -140,7 +140,7 @@ export default {
 
 <template>
   <div>
-    <h3>
+    <h3 class="text-h3">
       {{ t('istio.titles.components') }}
     </h3>
     <div class="row mb-10">
@@ -238,7 +238,9 @@ export default {
       </div>
     </div>
 
-    <h3>{{ t('istio.customOverlayFile.label') }}</h3>
+    <h3 class="text-h3">
+      {{ t('istio.customOverlayFile.label') }}
+    </h3>
     <div class="custom-overlay">
       <Banner color="info">
         <span

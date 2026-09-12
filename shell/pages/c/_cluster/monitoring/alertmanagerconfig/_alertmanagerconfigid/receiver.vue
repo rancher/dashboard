@@ -259,7 +259,7 @@ export default {
     <header class="header">
       <div class="title">
         <div class="primaryheader">
-          <h1>
+          <h1 class="text-h1">
             {{ heading }}
           </h1>
         </div>

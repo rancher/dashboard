@@ -88,8 +88,13 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <h1>Overview</h1>
-    <h4 v-clean-html="t('istio.poweredBy', {}, true)" />
+    <h1 class="text-h1">
+      Overview
+    </h1>
+    <h4
+      v-clean-html="t('istio.poweredBy', {}, true)"
+      class="text-h4"
+    />
     <div class="links">
       <div
         :class="{'disabled':!kialiUrl}"

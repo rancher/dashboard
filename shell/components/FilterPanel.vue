@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DefineComponent } from 'vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { RcHeading } from '@components/RcHeading';
 
 /**
  * Generic type for the passed components as props
@@ -73,9 +74,12 @@ const updateFilter = (key: string, value: string[]) => {
       class="filter-panel-filter-group"
       data-testid="filter-panel-filter-group"
     >
-      <h4 class="filter-panel-filter-group-title">
+      <RcHeading
+        class="filter-panel-filter-group-title"
+        size="h4"
+      >
         {{ filter.title }}
-      </h4>
+      </RcHeading>
       <div
         v-for="(option, i) in filter.options"
         :key="`${filter.key}-${i}`"

@@ -305,7 +305,9 @@ export default {
       >
         <div class="row mb-20">
           <div class="col span-6">
-            <h3>{{ t('persistentVolume.customize.accessModes.label') }}</h3>
+            <h3 class="text-h3">
+              {{ t('persistentVolume.customize.accessModes.label') }}
+            </h3>
             <div>
               <Checkbox
                 v-model:value="readWriteOnce"
@@ -349,7 +351,7 @@ export default {
         </div>
         <div class="row">
           <div class="col span-12">
-            <h3>
+            <h3 class="text-h3">
               {{ t('persistentVolume.customize.affinity.label') }} <span
                 v-if="areNodeSelectorsRequired"
                 class="required text-small"

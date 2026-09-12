@@ -5,6 +5,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { UI_PLUGIN } from '@shell/config/types';
 import { UI_PLUGIN_CHART_ANNOTATIONS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { DEVELOPER_LOAD_NAME_SUFFIX } from '@shell/core/extension-manager-impl';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -12,7 +13,8 @@ export default {
   components: {
     AsyncButton,
     Checkbox,
-    LabeledInput
+    LabeledInput,
+    RcHeading,
   },
 
   props: {
@@ -174,9 +176,13 @@ export default {
 
 <template>
   <div class="plugin-install-dialog">
-    <h4 data-modal-title>
+    <RcHeading
+      :level="2"
+      size="h4"
+      data-modal-title
+    >
       {{ t('plugins.developer.title') }}
-    </h4>
+    </RcHeading>
     <p>
       {{ t('plugins.developer.prompt') }}
     </p>
@@ -226,7 +232,7 @@ export default {
   .plugin-install-dialog {
     padding: 10px;
 
-    h4 {
+    [data-modal-title] {
       font-weight: bold;
     }
 

@@ -1177,14 +1177,17 @@ export default {
               @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true"
             />
             <template v-else>
-              <h4 v-clean-html="t('cluster.import.commandInstructions', null, true)" />
+              <h4
+                v-clean-html="t('cluster.import.commandInstructions', null, true)"
+                class="text-h4"
+              />
               <CopyCode class="m-10 p-10">
                 {{ clusterToken.command }}
               </CopyCode>
 
               <h4
                 v-clean-html="t('cluster.import.commandInstructionsInsecure', null, true)"
-                class="mt-10"
+                class="mt-10 text-h4"
               />
               <CopyCode class="m-10 p-10">
                 {{ clusterToken.insecureCommand }}
@@ -1192,7 +1195,7 @@ export default {
 
               <h4
                 v-clean-html="t('cluster.import.clusterRoleBindingInstructions', null, true)"
-                class="mt-10"
+                class="mt-10 text-h4"
               />
               <CopyCode class="m-10 p-10">
                 {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}

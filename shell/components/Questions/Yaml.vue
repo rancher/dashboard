@@ -20,7 +20,7 @@ export default {
     class="row"
   >
     <div class="col span-6">
-      <h3>
+      <h3 class="text-h3">
         {{ displayLabel }}
         <i
           v-if="displayTooltip"

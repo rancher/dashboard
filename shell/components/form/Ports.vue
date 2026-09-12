@@ -110,7 +110,9 @@ export default {
   <div>
     <div class="spacer" />
     <div class="clearfix">
-      <h4>Ports</h4>
+      <h4 class="text-h4">
+        Ports
+      </h4>
     </div>
 
     <table

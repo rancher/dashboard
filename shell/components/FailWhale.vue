@@ -74,22 +74,28 @@ const suggestionHtml = computed(() => {
         width="900"
         height="300"
       />
-      <h1 v-if="error && error.status">
+      <h1
+        v-if="error && error.status"
+        class="text-h1"
+      >
         HTTP Error {{ error.status }}: {{ error.statusText }}
       </h1>
-      <h1 v-else>
+      <h1
+        v-else
+        class="text-h1"
+      >
         Error
       </h1>
       <h2
         v-if="error"
-        class="text-secondary mt-20"
+        class="text-secondary mt-20 text-h2"
       >
         {{ displayError }}
       </h2>
       <h2
         v-if="suggestionHtml"
         v-clean-html="suggestionHtml"
-        class="text-secondary mt-20"
+        class="text-secondary mt-20 text-h2"
         data-testid="fail-whale-suggestion"
       />
       <slot name="actions" />

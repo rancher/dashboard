@@ -313,7 +313,9 @@ export default {
       </div>
     </div>
     <template v-if="canBeScheduled">
-      <h3>{{ t('compliance.scheduling.title') }}</h3>
+      <h3 class="text-h3">
+        {{ t('compliance.scheduling.title') }}
+      </h3>
       <div class="row mb-20">
         <div class="col">
           <RadioGroup
@@ -346,7 +348,7 @@ export default {
             />
           </div>
         </div>
-        <h3 class="mt-20">
+        <h3 class="mt-20 text-h3">
           {{ t('compliance.alerting') }}
         </h3>
         <div class="row mb-20">
