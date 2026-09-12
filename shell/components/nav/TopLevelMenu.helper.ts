@@ -90,6 +90,13 @@ type ProvCluster = {
   [key: string]: any
 }
 
+// A count request that fails takes the switcher's door down with it, and nothing else re-triggers on an
+// unchanged cluster count — so a blip would hide the switcher for the rest of the session. Retried on a
+// widening delay instead, with no attempt limit: giving up is what makes an outage permanent, and the
+// delay ceiling keeps a lasting one down to a single page-size-1 request a minute.
+const COUNT_RETRY_DELAY = 2000;
+const COUNT_RETRY_MAX_DELAY = 60000;
+
 /**
  * Order of v1 mgmt clusters
  * 1. local cluster - https://github.com/rancher/dashboard/issues/10975
@@ -317,8 +324,14 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   // flight together, and only the newest response may touch `clustersOthers`.
   private othersSeq = 0;
 
-  private clusterCount = 0;
+  // The inputs the counts below were last successfully fetched for; `null` until they have been.
+  private clusterCount: number | null = null;
   private countHidesLocal: boolean | null = null;
+  private countRetries = 0;
+  private countRetryTimer: ReturnType<typeof setTimeout> | undefined;
+  // Monotonic token for the counts, as for the lists above: a refresh and a retry can be in flight
+  // together, and only the newest may write them.
+  private countSeq = 0;
 
   constructor({ $store }: {
       $store: VuexStore,
@@ -484,6 +497,10 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }
 
   async destroy() {
+    // Bumped as well as cleared: a count request still in flight would otherwise settle after this and
+    // schedule a retry against a helper that is gone. The token makes it stand down instead.
+    this.countSeq += 1;
+    clearTimeout(this.countRetryTimer);
     this.clustersContextWrapper.onDestroy();
     this.clustersOthersWrapper.onDestroy();
     this.clustersRecentWrapper.onDestroy();
@@ -654,8 +671,17 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       return;
     }
 
-    this.clusterCount = count;
-    this.countHidesLocal = hidesLocal;
+    clearTimeout(this.countRetryTimer);
+    this.countRetries = 0;
+
+    return this.fetchCounts(count);
+  }
+
+  private async fetchCounts(count: number): Promise<void> {
+    const seq = ++this.countSeq;
+    // Read at request time rather than carried in from the caller: a retry can fire long after it was
+    // scheduled, and what gets recorded below has to be the setting the requests actually went out with.
+    const hidesLocal = isLocalClusterHidden(this.$store);
 
     const countPage = (filters: PaginationParam[], saveCountAs?: string): ActionFindPageArgs => ({
       pagination: {
@@ -669,26 +695,56 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       saveCountAs,
     });
 
-    try {
-      // No early return on an empty filter set: a count saved while the filters were NOT empty stays
-      // behind and outlives the change, so consumers keep reading a filtered total for an unfiltered
-      // estate. The page-size-1 requests below refresh it either way.
-      const [, browsable] = await Promise.all([
-        this.$store.dispatch('management/findPage', {
-          type: MANAGEMENT.CLUSTER,
-          opt:  countPage(paginationFilterClusters({ getters: this.$store.getters }), SAVED_COUNTS.K8S_CLUSTERS)
-        }),
-        this.$store.dispatch('management/findPage', {
-          type: MANAGEMENT.CLUSTER,
-          opt:  countPage(this.constructParams({ excludeLocal: true }))
-        }),
-      ]);
+    // No early return on an empty filter set: a count saved while the filters were NOT empty stays behind
+    // and outlives the change, so consumers keep reading a filtered total for an unfiltered estate. The
+    // page-size-1 requests below refresh it either way.
+    //
+    // Settled, not `all`: the two answer different questions, so one failing is no reason to throw away
+    // the other's answer — and the switcher's door hangs off the second one.
+    const [shared, browsable] = await Promise.allSettled([
+      this.$store.dispatch('management/findPage', {
+        type: MANAGEMENT.CLUSTER,
+        opt:  countPage(paginationFilterClusters({ getters: this.$store.getters }), SAVED_COUNTS.K8S_CLUSTERS)
+      }),
+      this.$store.dispatch('management/findPage', {
+        type: MANAGEMENT.CLUSTER,
+        opt:  countPage(this.constructParams({ excludeLocal: true }))
+      }),
+    ]);
 
-      // Kept off the saved-count namespace on purpose: it is the switcher's number, not a shared one.
-      this.counts.browsable = browsable?.pagination?.result?.count ?? this.counts.browsable;
-    } catch (err) {
-      console.warn('Unable to set saved count for clusters', err); // eslint-disable-line no-console
+    // A newer refresh started while this one was in flight; it owns the counts and the retry from here.
+    if (seq !== this.countSeq) {
+      return;
     }
+
+    // A resolved request is not the same as an answer: a response without a total leaves the count where
+    // it was, and treating that as success would record the attempt and stop anything asking again.
+    const browsableCount = browsable.status === 'fulfilled' ? browsable.value?.pagination?.result?.count : undefined;
+
+    if (typeof browsableCount === 'number') {
+      // Kept off the saved-count namespace on purpose: it is the switcher's number, not a shared one.
+      this.counts.browsable = browsableCount;
+    }
+
+    if (shared.status === 'fulfilled' && typeof browsableCount === 'number') {
+      // Recorded only now that these inputs have actually been answered. Recording them up front turned a
+      // single failed request into a permanent one: every later call matched the guard and returned, so
+      // nothing ever asked again.
+      this.clusterCount = count;
+      this.countHidesLocal = hidesLocal;
+      this.countRetries = 0;
+
+      return;
+    }
+
+    const rejected = [shared, browsable].find((r) => r.status === 'rejected') as PromiseRejectedResult | undefined;
+
+    console.warn('Unable to count clusters, retrying', rejected?.reason || 'the response carried no total'); // eslint-disable-line no-console
+
+    const delay = Math.min(COUNT_RETRY_DELAY * (2 ** this.countRetries), COUNT_RETRY_MAX_DELAY);
+
+    this.countRetries += 1;
+    this.countRetryTimer = setTimeout(() => this.fetchCounts(count), delay);
   }
 }
 

@@ -475,6 +475,8 @@ describe('topLevelMenu.helper', () => {
 
       const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
 
+      mockStore.dispatch.mockResolvedValue({ data: [], pagination: { result: { count: 7 } } });
+
       // paginationFilterClusters is mocked to [] — nothing to exclude.
       await helper.updateCount(7);
 
@@ -503,6 +505,36 @@ describe('topLevelMenu.helper', () => {
       expect(helper.counts.browsable).toBe(22);
     });
 
+    // The invariance the chip rests on: its query excludes `local` on its own account, not because the
+    // environment happens to. Whatever hide-local is doing, the total means the same thing.
+    it('excludes local from the switcher query whether or not hide-local-cluster is on', async() => {
+      mockStore.getters['management/schemaFor'].mockReturnValue(true);
+
+      const ownQueryFilters = async(hideLocal: boolean) => {
+        (isLocalClusterHidden as jest.Mock).mockReturnValue(hideLocal);
+        mockStore.dispatch.mockClear();
+
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockResolvedValue({ data: [], pagination: { result: { count: 22 } } });
+        await helper.updateCount(23);
+
+        const own = countRequests().filter((opt: any) => !opt.saveCountAs);
+
+        return { filters: own[0].pagination.filters, browsable: helper.counts.browsable };
+      };
+
+      const shown = await ownQueryFilters(false);
+      const hidden = await ownQueryFilters(true);
+
+      // paginationFilterClusters is mocked to [], so the local exclusion is the only filter left standing
+      // — and it is there either way, which is what keeps the total from moving.
+      expect(shown.filters).toHaveLength(1);
+      expect(hidden.filters).toHaveLength(1);
+      expect(shown.browsable).toBe(22);
+      expect(hidden.browsable).toBe(22);
+    });
+
     // `hide-local-cluster` is one of the shared count's filters, so flipping it changes that answer while
     // leaving the number of clusters alone. Guarding on the number only left the shared count behind for
     // the home page and the Cluster Management badge.
@@ -510,6 +542,8 @@ describe('topLevelMenu.helper', () => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
 
       const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+      mockStore.dispatch.mockResolvedValue({ data: [], pagination: { result: { count: 7 } } });
 
       await helper.updateCount(7);
       expect(countRequests()).toHaveLength(2);
@@ -521,6 +555,265 @@ describe('topLevelMenu.helper', () => {
       (isLocalClusterHidden as jest.Mock).mockReturnValue(true);
       await helper.updateCount(7);
       expect(countRequests()).toHaveLength(4);
+    });
+
+    // The switcher's door hangs off the browsable count, so what happens when a count request fails is not
+    // a cosmetic question: it decides whether the nav still has a cluster switcher in it.
+    describe('when a count request fails', () => {
+      // Shared count rejects, the switcher's own resolves.
+      const halfFailing = () => (action: string, payload?: any) => {
+        if (action !== 'management/findPage') {
+          return Promise.resolve();
+        }
+
+        return payload.opt.saveCountAs ? Promise.reject(new Error('count request failed')) : Promise.resolve({ data: [], pagination: { result: { count: 22 } } });
+      };
+
+      beforeEach(() => {
+        jest.useFakeTimers();
+        jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        mockStore.getters['management/schemaFor'].mockReturnValue(true);
+      });
+
+      afterEach(() => {
+        jest.clearAllTimers();
+        jest.restoreAllMocks();
+        jest.useRealTimers();
+      });
+
+      // The two counts answer different questions and are requested together; `Promise.all` would have
+      // thrown away the answer that arrived because the other one did not.
+      it('keeps the count that succeeded', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockImplementation(halfFailing());
+
+        await helper.updateCount(23);
+
+        expect(helper.counts.browsable).toBe(22);
+
+        helper.destroy();
+      });
+
+      // Nothing re-triggers on an unchanged cluster count, so remembering the attempt before it succeeded
+      // made one failed request permanent — every later call matched the guard and returned.
+      it('does not treat the attempt as answered, so a later call asks again', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockImplementation(halfFailing());
+
+        await helper.updateCount(23);
+        const afterFirst = countRequests().length;
+
+        // Same count, same setting: this is the call the guard used to swallow.
+        await helper.updateCount(23);
+
+        expect(countRequests().length).toBeGreaterThan(afterFirst);
+
+        helper.destroy();
+      });
+
+      // ...and because that later call may never come, it asks again on its own.
+      it('retries on a timer, and stops once both land', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockImplementation(halfFailing());
+
+        await helper.updateCount(23);
+        const afterFirst = countRequests().length;
+
+        await jest.advanceTimersByTimeAsync(2000);
+        expect(countRequests().length).toBeGreaterThan(afterFirst);
+
+        // The estate comes back: the retry settles both counts and schedules nothing further.
+        mockStore.dispatch.mockResolvedValue({ data: [], pagination: { result: { count: 22 } } });
+        await jest.advanceTimersByTimeAsync(6000);
+
+        const afterRecovery = countRequests().length;
+
+        await jest.advanceTimersByTimeAsync(60000);
+        expect(countRequests()).toHaveLength(afterRecovery);
+
+        helper.destroy();
+      });
+
+      // Only the browsable query fails this time. The chip has a number already and it is still the best
+      // one available — zeroing it would take the door down over a single blip.
+      it('keeps the last total it knew when the browsable query fails', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockResolvedValue({ data: [], pagination: { result: { count: 22 } } });
+        await helper.updateCount(23);
+        expect(helper.counts.browsable).toBe(22);
+
+        mockStore.dispatch.mockImplementation((action: string, payload?: any) => {
+          if (action !== 'management/findPage') {
+            return Promise.resolve();
+          }
+
+          return payload.opt.saveCountAs ? Promise.resolve({ data: [], pagination: { result: { count: 23 } } }) : Promise.reject(new Error('count request failed'));
+        });
+        await helper.updateCount(24);
+
+        expect(helper.counts.browsable).toBe(22);
+
+        helper.destroy();
+      });
+
+      it('retries when both requests fail', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockRejectedValue(new Error('offline'));
+
+        await helper.updateCount(23);
+        const afterFirst = countRequests().length;
+
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(countRequests().length).toBeGreaterThan(afterFirst);
+
+        helper.destroy();
+      });
+
+      // A request can resolve without answering the question. Counting that as an answer would record the
+      // attempt and leave the chip on a total nothing ever asked for again.
+      it('treats a response carrying no total as a failure', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockResolvedValue({ data: [] });
+
+        await helper.updateCount(23);
+        const afterFirst = countRequests().length;
+
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(countRequests().length).toBeGreaterThan(afterFirst);
+
+        helper.destroy();
+      });
+
+      // Giving up is what makes an outage permanent: nothing else asks again on an unchanged cluster
+      // count, so the door would stay down until the page is reloaded.
+      it('keeps retrying rather than giving up', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockRejectedValue(new Error('offline'));
+
+        await helper.updateCount(23);
+        await jest.advanceTimersByTimeAsync(10 * 60 * 1000);
+
+        // Two requests per attempt; the delay ceiling keeps a long outage to roughly one attempt a minute.
+        expect(countRequests().length / 2).toBeGreaterThan(6);
+
+        helper.destroy();
+      });
+
+      // A retry can fire long after it was scheduled. What it records has to be the setting its requests
+      // actually went out with, or the guard swallows the refresh for the setting now in effect.
+      it('records the hide-local state the retry actually fetched with', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockImplementation(halfFailing());
+        await helper.updateCount(23);
+
+        // The setting flips while the retry is pending, and the retry is what succeeds.
+        (isLocalClusterHidden as jest.Mock).mockReturnValue(true);
+        mockStore.dispatch.mockResolvedValue({ data: [], pagination: { result: { count: 22 } } });
+        await jest.advanceTimersByTimeAsync(2000);
+
+        const settled = countRequests().length;
+
+        // Same count, and hide-local is still on: already answered, nothing to ask.
+        await helper.updateCount(23);
+        expect(countRequests()).toHaveLength(settled);
+
+        // Flip it back and it must ask again.
+        (isLocalClusterHidden as jest.Mock).mockReturnValue(false);
+        await helper.updateCount(23);
+        expect(countRequests().length).toBeGreaterThan(settled);
+
+        helper.destroy();
+      });
+
+      // A retry left running would keep firing at a torn-down helper.
+      it('drops a pending retry on destroy', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        mockStore.dispatch.mockImplementation(halfFailing());
+
+        await helper.updateCount(23);
+        helper.destroy();
+
+        const afterDestroy = countRequests().length;
+
+        await jest.advanceTimersByTimeAsync(60000);
+
+        expect(countRequests()).toHaveLength(afterDestroy);
+      });
+
+      // Clearing the pending timer is not enough on its own: a request still in flight settles after the
+      // teardown and would schedule a fresh retry from there.
+      it('drops a retry that an in-flight request would have scheduled', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+        const rejectors: Array<(e: any) => void> = [];
+
+        mockStore.dispatch.mockImplementation((action: string) => {
+          if (action !== 'management/findPage') {
+            return Promise.resolve();
+          }
+
+          return new Promise((_resolve, reject) => rejectors.push(reject));
+        });
+
+        const inFlight = helper.updateCount(23);
+
+        helper.destroy();
+
+        // The requests only fail once the helper is already gone.
+        rejectors.forEach((reject) => reject(new Error('offline')));
+        await inFlight;
+
+        const afterDestroy = countRequests().length;
+
+        await jest.advanceTimersByTimeAsync(60000);
+
+        expect(countRequests()).toHaveLength(afterDestroy);
+      });
+
+      // Two refreshes overlap on the ordinary startup path alone: the nav asks once before the live counts
+      // have loaded, then again when they arrive. An older response landing last must not put its total
+      // back.
+      it('ignores a response a newer refresh has overtaken', async() => {
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+        const resolvers: Array<(v: any) => void> = [];
+
+        mockStore.dispatch.mockImplementation((action: string) => {
+          if (action !== 'management/findPage') {
+            return Promise.resolve();
+          }
+
+          return new Promise((resolve) => resolvers.push(resolve));
+        });
+
+        const page = (count: number) => ({ data: [], pagination: { result: { count } } });
+
+        const first = helper.updateCount(10); // resolvers 0 + 1
+        const second = helper.updateCount(20); // resolvers 2 + 3
+
+        // The newer pair answers first...
+        resolvers[2](page(20));
+        resolvers[3](page(20));
+        await second;
+
+        // ...and then the older pair reports what it saw.
+        resolvers[0](page(10));
+        resolvers[1](page(10));
+        await first;
+
+        expect(helper.counts.browsable).toBe(20);
+
+        helper.destroy();
+      });
     });
 
     it('rewinds the ALL-list page counter when a page fetch fails, so the next scroll re-requests it', async() => {
