@@ -24,9 +24,17 @@ jobs:
           secrets: |
             github/token/rancher--qa-tasks--issues--write token | QA_GH_TOKEN
 
+      - name: Read project secrets from Vault
+        uses: rancher-eio/read-vault-secrets@dfae8acd43a9e170fca5f90168da22f814fe4e9a # v3
+        with:
+          secrets: |
+            github/token/rancher--organization_projects--write token | GH_PROJECT_TOKEN
+
       - name: Create QA automation issue
         env:
           GH_TOKEN: ${{ env.QA_GH_TOKEN }}
+          GH_PROJECT_TOKEN: ${{ env.GH_PROJECT_TOKEN }}
+          PROJECT_NUMBER: ${{ vars.INSPECTOR_GITHUB_PROJECT_NUMBER }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
           ORIGINAL_ISSUE_URL: ${{ github.event.issue.html_url }}
         run: |
@@ -50,6 +58,7 @@ jobs:
 
           if NEW_ISSUE=$(gh issue create -R "rancher/qa-tasks" --title "[UI Automation]: ${ORIGINAL_TITLE}" --body-file "${BODY}" "${additional_cmd[@]}"); then
               echo "QA task issue created: ${NEW_ISSUE}" >> $GITHUB_STEP_SUMMARY
+              GH_TOKEN=${GH_PROJECT_TOKEN} gh project item-add "${PROJECT_NUMBER}" --owner rancher --url "${NEW_ISSUE}"
           else
               echo "Failed to create issue"
               GH_TOKEN=${{ secrets.GITHUB_TOKEN }} gh issue comment ${ORIGINAL_ISSUE_URL} --body "No QA automation issue was created. Failed to create issue in rancher/qa-tasks."
