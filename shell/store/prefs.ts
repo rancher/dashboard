@@ -660,6 +660,22 @@ export const actions = {
     }
   },
 
+  /**
+   * `loadServer` at boot, taking its turn in the write queue.
+   *
+   * loadServer does not only READ the preference: when values were set before login it writes them back.
+   * Called from `set` or `reconcilePrefs` that write is already covered, because those tasks are holding
+   * the queue. At boot nothing holds it, and the router runs `loadManagement` in parallel with
+   * `loadCluster` — so the replay could overlap the write that records the visit, and one would land on
+   * top of the other.
+   *
+   * It is queued HERE rather than inside `loadServer`, which would wait on the queue its own caller is
+   * already holding and never resolve.
+   */
+  loadServerQueued({ dispatch }: PrefsActionContext): Promise<any> {
+    return enqueuePreferenceWrite(() => dispatch('loadServer'));
+  },
+
   async loadServer( {
     state, dispatch, commit, rootState, rootGetters
   }: PrefsActionContext, ignoreKey?: string | string[]) {

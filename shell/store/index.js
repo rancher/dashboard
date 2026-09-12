@@ -827,7 +827,7 @@ export const actions = {
     const isRancher = res.rancherSchemas.status === 'fulfilled' && !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
 
     if ( isRancher ) {
-      promises['prefs'] = dispatch('prefs/loadServer');
+      promises['prefs'] = dispatch('prefs/loadServerQueued');
       promises['rancherSubscribe'] = dispatch('rancher/subscribe');
     }
 

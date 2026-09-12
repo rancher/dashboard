@@ -18,6 +18,7 @@ import {
   NAMESPACE_FILTERS,
   PINNED_CLUSTERS,
   RECENT_CLUSTERS,
+  enqueuePreferenceWrite,
 } from '@shell/store/prefs';
 import { commitAndReconcile, prependRecent } from '@shell/utils/cluster-pref-writer';
 
@@ -1390,6 +1391,42 @@ describe('prefs store', () => {
         expect(() => {
           actions.setBrandStyle({ rootState, rootGetters } as any);
         }).not.toThrow();
+      });
+    });
+
+    // `loadServer` writes as well as reads: preferences set before login are replayed onto the server from
+    // inside it. From `set`/`reconcilePrefs` that is already covered — they hold the queue — but the boot
+    // call holds nothing, and the router runs loadManagement alongside loadCluster. Unqueued, that replay
+    // could overlap the write recording the visit.
+    describe('the boot-time preference load', () => {
+      it('should take its turn in the write queue', async() => {
+        const order: string[] = [];
+        let releaseFirst: () => void = () => undefined;
+
+        const first = enqueuePreferenceWrite(() => new Promise<void>((resolve) => {
+          order.push('queued-write:start');
+          releaseFirst = () => {
+            order.push('queued-write:end');
+            resolve();
+          };
+        }));
+
+        const dispatch = jest.fn((action: string) => {
+          order.push(`dispatch:${ action }`);
+
+          return Promise.resolve();
+        });
+
+        const boot = actions.loadServerQueued({ dispatch } as any);
+
+        // The queue is still held by the write above, so the boot load must not have started.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(order).toStrictEqual(['queued-write:start']);
+
+        releaseFirst();
+        await Promise.all([first, boot]);
+
+        expect(order).toStrictEqual(['queued-write:start', 'queued-write:end', 'dispatch:loadServer']);
       });
     });
 
