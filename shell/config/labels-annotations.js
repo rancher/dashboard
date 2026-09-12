@@ -80,9 +80,15 @@ export const CAPI = {
   /**
    * Annotations for autoscaler
    */
-  AUTOSCALER_CLUSTER_PAUSE:         'provisioning.cattle.io/cluster-autoscaler-paused',
-  AUTOSCALER_MACHINE_POOL_MIN_SIZE: 'cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size',
-  AUTOSCALER_MACHINE_POOL_MAX_SIZE: 'cluster.x-k8s.io/cluster-api-autoscaler-node-group-max-size'
+  AUTOSCALER_CLUSTER_PAUSE:                'provisioning.cattle.io/cluster-autoscaler-paused',
+  AUTOSCALER_MACHINE_POOL_MIN_SIZE:        'cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size',
+  AUTOSCALER_MACHINE_POOL_MAX_SIZE:        'cluster.x-k8s.io/cluster-api-autoscaler-node-group-max-size',
+  /**
+   * Machine pool level autoscaler pause. The live autoscaling range is stashed in these two keys, in the pool's own
+   * `machineDeploymentAnnotations`, while the pool is paused, and restored from them when it is resumed.
+   */
+  AUTOSCALER_MACHINE_POOL_PAUSED_MIN_SIZE: 'provisioning.cattle.io/cluster-autoscaler-paused-min-size',
+  AUTOSCALER_MACHINE_POOL_PAUSED_MAX_SIZE: 'provisioning.cattle.io/cluster-autoscaler-paused-max-size'
 };
 
 export const CATALOG = {

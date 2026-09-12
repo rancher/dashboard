@@ -10,7 +10,15 @@ import UnitInput from '@shell/components/form/UnitInput.vue';
 import { randomStr } from '@shell/utils/string';
 import FormValidation from '@shell/mixins/form-validation';
 import { MACHINE_POOL_VALIDATION } from '@shell/utils/validators/machine-pool';
-import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
+import {
+  disableMachinePoolAutoscaler,
+  enableMachinePoolAutoscaler,
+  isAutoscalerFeatureFlagEnabled,
+  isMachinePoolAutoscalerEnabled,
+  isMachinePoolAutoscalerPaused,
+  machinePoolAutoscalerRange,
+  setMachinePoolAutoscalerRange
+} from '@shell/utils/autoscaler-utils';
 import { RcSeparator } from '@components/RcSeparator';
 
 export default {
@@ -108,13 +116,30 @@ export default {
 
       validationErrors: [],
 
+      /**
+       * Whether the autoscaler section is shown, held here rather than derived from the pool's range. Deriving it would
+       * fold the section away the moment both bounds are empty, which is a state a user passes through whenever they
+       * clear a value to type another one. Only the checkbox changes it
+       */
+      autoscalerEnabled: false,
+
+      /**
+       * Whether this pool's autoscaler was paused when the form opened. Held here for the same reason: it decides where
+       * an edited range is written, and the pool's own answer disappears for as long as the stash is empty
+       */
+      autoscalerPaused: false,
+
       MACHINE_POOL_VALIDATION,
 
       fvFormRuleSets: MACHINE_POOL_VALIDATION.RULESETS,
       fvExtraRules:   {
+        isAutoscalerMinSizeValid: () => this.autoscalerSizeError(this.autoscalerRange.min, this.t('cluster.machinePool.autoscaler.min')),
+
+        isAutoscalerMaxSizeValid: () => this.autoscalerSizeError(this.autoscalerRange.max, this.t('cluster.machinePool.autoscaler.max')),
+
         isAutoscalerMaxGreaterThanMin: () => {
-          const min = this.value?.pool?.autoscalingMinSize || 0;
-          const max = this.value?.pool?.autoscalingMaxSize || 0;
+          // The range is read through the utils so it is still checked while the pool is paused and the range is stashed
+          const { min = 0, max = 0 } = machinePoolAutoscalerRange(this.value?.pool);
 
           return max - min >= 0 ? undefined : this.t('cluster.machinePool.autoscaler.validation.isAutoscalerMaxGreaterThanMin');
         },
@@ -149,18 +174,63 @@ export default {
       return isAutoscalerFeatureFlagEnabled(this.$store);
     },
 
+    /**
+     * The autoscaler is not the user's to change: the pool has a role the autoscaler should not manage, or the form is
+     * saving. Neither is a state to explain what turning the autoscaler off would do
+     */
+    isAutoscalerLocked() {
+      return !!(this.value?.pool?.etcdRole || this.value?.pool?.controlPlaneRole || this.busy);
+    },
+
     isAutoscalerEnabled: {
       get() {
-        return typeof this.value?.pool?.autoscalingMinSize !== 'undefined' || typeof this.value?.pool?.autoscalingMinSize !== 'undefined';
+        return this.autoscalerEnabled;
       },
       set(val) {
+        this.autoscalerEnabled = val;
+        // Either way the stash is gone: turning the autoscaler off discards it, turning it on replaces it with a live
+        // range, so the pool is no longer paused
+        this.autoscalerPaused = false;
+
         if (!val) {
-          delete this.value.pool.autoscalingMinSize;
-          delete this.value.pool.autoscalingMaxSize;
+          disableMachinePoolAutoscaler(this.value?.pool);
         } else {
-          this.value.pool.autoscalingMinSize = 1;
-          this.value.pool.autoscalingMaxSize = 2;
+          enableMachinePoolAutoscaler(this.value?.pool, { min: 1, max: 2 });
         }
+      }
+    },
+
+    /**
+     * The autoscaler has been paused for this pool from the cluster detail page, so its range is stashed away until it
+     * is resumed there
+     */
+    isAutoscalerPaused() {
+      return this.autoscalerEnabled && this.autoscalerPaused;
+    },
+
+    autoscalerRange() {
+      return machinePoolAutoscalerRange(this.value?.pool);
+    },
+
+    /**
+     * The autoscaling range, read and written wherever it currently lives. While the pool is paused that is the stash
+     * on the pool, so the range stays editable and the pool stays paused
+     */
+    autoscalerMinSize: {
+      get() {
+        return this.autoscalerRange.min;
+      },
+      set(min) {
+        setMachinePoolAutoscalerRange(this.value?.pool, { ...this.autoscalerRange, min }, this.isAutoscalerPaused);
+      }
+    },
+
+    autoscalerMaxSize: {
+      get() {
+        return this.autoscalerRange.max;
+      },
+      set(max) {
+        setMachinePoolAutoscalerRange(this.value?.pool, { ...this.autoscalerRange, max }, this.isAutoscalerPaused);
       }
     }
   },
@@ -208,6 +278,9 @@ export default {
   created() {
     this.unhealthyNodeTimeoutInteger = this.value.pool.unhealthyNodeTimeout ? this.parseDuration(this.value.pool.unhealthyNodeTimeout) : 0;
 
+    this.autoscalerEnabled = isMachinePoolAutoscalerEnabled(this.value?.pool);
+    this.autoscalerPaused = isMachinePoolAutoscalerPaused(this.value?.pool);
+
     this.$emit('validationChanged', true);
   },
 
@@ -217,6 +290,23 @@ export default {
   },
 
   methods: {
+    /**
+     * Both bounds are required while the autoscaler section is shown, so the pool cannot be saved with an empty range,
+     * and neither can be negative. Read through the range rather than the pool's fields, which are empty while it is
+     * paused
+     */
+    autoscalerSizeError(value, key) {
+      if (!this.isAutoscalerEnabled) {
+        return undefined;
+      }
+
+      if (value === undefined) {
+        return this.t('validation.required', { key });
+      }
+
+      return value < 0 ? this.t('validation.number.isPositive', { key }) : undefined;
+    },
+
     parseDuration(duration) {
       // The back end stores the timeout in Duration format, for example, "42d31h10m30s".
       // Here we convert that string to an integer and return the duration as seconds.
@@ -308,6 +398,12 @@ export default {
         {{ t('cluster.machinePool.truncationPool', { limit: value.pool.hostnameLengthLimit }) }}
       </div>
     </Banner>
+    <Banner
+      v-if="isAutoscalerFeatureEnabled && isAutoscalerPaused"
+      color="info"
+      label-key="cluster.machinePool.autoscaler.pausedBanner"
+      data-testid="machine-pool-autoscaler-paused-banner"
+    />
     <div class="row">
       <div class="col span-4">
         <LabeledInput
@@ -323,7 +419,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-if="!isAutoscalerFeatureEnabled || !isAutoscalerEnabled"
+          v-if="!isAutoscalerFeatureEnabled || !isAutoscalerEnabled || isAutoscalerPaused"
           v-model:value.number="value.pool.quantity"
           :mode="mode"
           :label="t('cluster.machinePool.quantity.label')"
@@ -366,6 +462,13 @@ export default {
           :label="t('cluster.machinePool.role.worker')"
           :disabled="busy"
         />
+        <p
+          v-if="isAutoscalerFeatureEnabled && isAutoscalerEnabled && !value.pool.etcdRole && !value.pool.controlPlaneRole"
+          class="text-muted text-small mt-5"
+          data-testid="machine-pool-autoscaler-role-hint"
+        >
+          {{ t('cluster.machinePool.autoscaler.roleHint') }}
+        </p>
       </div>
     </div>
     <RcSeparator class="mt-10" />
@@ -466,8 +569,15 @@ export default {
               v-model:value="isAutoscalerEnabled"
               :mode="mode"
               :label="t('cluster.machinePool.autoscaler.enable', undefined, true)"
-              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
+              :disabled="isAutoscalerLocked"
             />
+            <p
+              v-if="isAutoscalerEnabled && !isAutoscalerLocked"
+              class="text-muted text-small mt-5"
+              data-testid="machine-pool-autoscaler-disable-hint"
+            >
+              {{ t('cluster.machinePool.autoscaler.disableHint') }}
+            </p>
           </div>
         </div>
         <div
@@ -476,26 +586,30 @@ export default {
         >
           <div class="col span-4">
             <UnitInput
-              v-model:value="value.pool.autoscalingMinSize"
+              v-model:value="autoscalerMinSize"
               :label="t('cluster.machinePool.autoscaler.min')"
               :hide-arrows="true"
               :placeholder="t('containerResourceLimit.cpuPlaceholder')"
               :mode="mode"
               :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
               :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MIN)"
-              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
+              :required="true"
+              :disabled="isAutoscalerLocked"
+              data-testid="machine-pool-autoscaler-min-input"
             />
           </div>
           <div class="col span-4">
             <UnitInput
-              v-model:value="value.pool.autoscalingMaxSize"
+              v-model:value="autoscalerMaxSize"
               :label="t('cluster.machinePool.autoscaler.max')"
               :hide-arrows="true"
               :placeholder="t('containerResourceLimit.cpuPlaceholder')"
               :mode="mode"
               :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
               :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MAX)"
-              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
+              :required="true"
+              :disabled="isAutoscalerLocked"
+              data-testid="machine-pool-autoscaler-max-input"
             />
           </div>
         </div>

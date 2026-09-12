@@ -364,4 +364,183 @@ describe('view: provisioning.cattle.io.cluster', () => {
       expect(result.metadataProps).toStrictEqual(metadataProps);
     });
   });
+
+  describe('machine pool autoscaler controls', () => {
+    let dispatch: jest.Mock;
+
+    const autoscalerMocks = (featureEnabled = true) => ({
+      ...mocks,
+      $store: {
+        ...mockStore,
+        getters: {
+          ...mockStore.getters,
+          'features/get': () => featureEnabled,
+        },
+        dispatch,
+      },
+    });
+
+    const mountCluster = (featureEnabled = true) => shallowMount(ProvisioningCattleIoCluster, {
+      props:  { value: {} },
+      global: { mocks: autoscalerMocks(featureEnabled) },
+    });
+
+    beforeEach(() => {
+      dispatch = jest.fn();
+    });
+
+    const machinePool = (overrides: any = {}) => ({
+      id:                       'fleet-default/cluster-pool1',
+      nameDisplay:              'pool1',
+      isAutoscalerEnabled:      false,
+      isAutoscalerPaused:       false,
+      canPauseResumeAutoscaler: true,
+      toggleAutoscalerPause:    jest.fn(() => Promise.resolve({})),
+      ...overrides
+    });
+
+    describe('showPoolMachineControls', () => {
+      const testCases: [string, any, boolean][] = [
+        ['a pool the autoscaler does not manage', machinePool(), true],
+        ['a pool the autoscaler manages', machinePool({ isAutoscalerEnabled: true }), false],
+        ['a paused pool, which the user scales again', machinePool({ isAutoscalerEnabled: true, isAutoscalerPaused: true }), true],
+        ['no pool', undefined, false],
+      ];
+
+      it.each(testCases)('should be %s -> %s', (_label, pool, expected) => {
+        expect(mountCluster().vm.showPoolMachineControls(pool)).toBe(expected);
+      });
+
+      it('should scale by hand when the autoscaler feature is off, whatever the pool says', () => {
+        expect(mountCluster(false).vm.showPoolMachineControls(machinePool({ isAutoscalerEnabled: true }))).toBe(true);
+      });
+    });
+
+    describe('showPoolAutoscalerControls', () => {
+      it('should show for a pool the autoscaler manages', () => {
+        expect(mountCluster().vm.showPoolAutoscalerControls(machinePool({ isAutoscalerEnabled: true }))).toBe(true);
+      });
+
+      it('should show for a paused pool, so it can be resumed', () => {
+        expect(mountCluster().vm.showPoolAutoscalerControls(machinePool({ isAutoscalerEnabled: true, isAutoscalerPaused: true }))).toBe(true);
+      });
+
+      it('should not show for a pool the autoscaler does not manage', () => {
+        expect(mountCluster().vm.showPoolAutoscalerControls(machinePool())).toBe(false);
+      });
+
+      it('should not show when the autoscaler feature is off', () => {
+        expect(mountCluster(false).vm.showPoolAutoscalerControls(machinePool({ isAutoscalerEnabled: true }))).toBe(false);
+      });
+
+      it('should not show without a pool', () => {
+        expect(mountCluster().vm.showPoolAutoscalerControls(undefined)).toBe(false);
+      });
+    });
+
+    describe('togglePoolAutoscalerPause', () => {
+      it('should hold the control disabled until the save settles, then announce the pause', async() => {
+        const wrapper = mountCluster();
+        const pool = machinePool({ isAutoscalerEnabled: true });
+
+        const done = wrapper.vm.togglePoolAutoscalerPause(pool);
+
+        expect(wrapper.vm.isAutoscalerPauseSaving(pool)).toBe(true);
+
+        await done;
+
+        expect(pool.toggleAutoscalerPause).toHaveBeenCalledWith();
+        expect(wrapper.vm.isAutoscalerPauseSaving(pool)).toBe(false);
+        expect(wrapper.vm.autoscalerAnnouncement).toBe('%cluster.machinePool.autoscaler.announce.paused%');
+      });
+
+      it('should announce the resume of a paused pool', async() => {
+        const wrapper = mountCluster();
+        const pool = machinePool({ isAutoscalerEnabled: true, isAutoscalerPaused: true });
+
+        await wrapper.vm.togglePoolAutoscalerPause(pool);
+
+        expect(wrapper.vm.autoscalerAnnouncement).toBe('%cluster.machinePool.autoscaler.announce.resumed%');
+      });
+
+      it('should announce a failure, and free the control again', async() => {
+        const wrapper = mountCluster();
+        const pool = machinePool({ isAutoscalerEnabled: true, toggleAutoscalerPause: jest.fn(() => Promise.reject(new Error('nope'))) });
+
+        await wrapper.vm.togglePoolAutoscalerPause(pool);
+
+        expect(wrapper.vm.autoscalerAnnouncement).toBe('%cluster.machinePool.autoscaler.announce.pauseError%');
+        expect(wrapper.vm.isAutoscalerPauseSaving(pool)).toBe(false);
+      });
+
+      it('should ignore a second click while the first save is in flight', async() => {
+        const wrapper = mountCluster();
+        const pool = machinePool({ isAutoscalerEnabled: true });
+
+        const done = wrapper.vm.togglePoolAutoscalerPause(pool);
+
+        await wrapper.vm.togglePoolAutoscalerPause(pool);
+        await done;
+
+        expect(pool.toggleAutoscalerPause).toHaveBeenCalledTimes(1);
+      });
+
+      it('should do nothing without a pool', async() => {
+        const wrapper = mountCluster();
+
+        await wrapper.vm.togglePoolAutoscalerPause(undefined);
+
+        expect(wrapper.vm.autoscalerAnnouncement).toBe('');
+      });
+
+      it('should not announce a change the model did not make', async() => {
+        const wrapper = mountCluster();
+        const pool = machinePool({ isAutoscalerEnabled: true, toggleAutoscalerPause: jest.fn(() => undefined) });
+
+        await wrapper.vm.togglePoolAutoscalerPause(pool);
+
+        expect(wrapper.vm.autoscalerAnnouncement).toBe('');
+        expect(wrapper.vm.isAutoscalerPauseSaving(pool)).toBe(false);
+      });
+
+      it.each([
+        ['down', 'scaleDown'],
+        ['up', 'scaleUp'],
+      ])('should confirm a resume that would scale the pool %s, rather than resuming it', async(direction, key) => {
+        const wrapper = mountCluster();
+        const pool = machinePool({
+          isAutoscalerEnabled:    true,
+          isAutoscalerPaused:     true,
+          autoscalerResumeResize: {
+            direction, target: 5, count: 10
+          }
+        });
+
+        await wrapper.vm.togglePoolAutoscalerPause(pool);
+
+        expect(pool.toggleAutoscalerPause).not.toHaveBeenCalled();
+        expect(dispatch).toHaveBeenCalledWith('management/promptModal', expect.objectContaining({
+          component:      'GenericPrompt',
+          componentProps: expect.objectContaining({ body: `%cluster.machinePool.autoscaler.resumePrompt.${ key }%` })
+        }));
+      });
+
+      it('should resume from the confirmation', async() => {
+        const wrapper = mountCluster();
+        const pool = machinePool({
+          isAutoscalerEnabled:    true,
+          isAutoscalerPaused:     true,
+          autoscalerResumeResize: {
+            direction: 'down', target: 5, count: 10
+          }
+        });
+
+        await wrapper.vm.togglePoolAutoscalerPause(pool);
+        await dispatch.mock.calls[0][1].componentProps.applyAction();
+
+        expect(pool.toggleAutoscalerPause).toHaveBeenCalledWith();
+        expect(wrapper.vm.autoscalerAnnouncement).toBe('%cluster.machinePool.autoscaler.announce.resumed%');
+      });
+    });
+  });
 });
