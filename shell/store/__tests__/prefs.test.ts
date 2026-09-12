@@ -785,7 +785,7 @@ describe('prefs store', () => {
         expect(cookieSetCall).toBeUndefined();
       });
 
-      it('dispatches loadServer when logged in and asUserPreference is true', async() => {
+      it('reads the document without committing when logged in and asUserPreference is true', async() => {
         const s = state();
         const commit = jest.fn();
         const serverObj = { data: {}, save: jest.fn().mockResolvedValue(undefined) };
@@ -797,7 +797,7 @@ describe('prefs store', () => {
           dispatch, commit, rootGetters, state: s
         } as any, { key: ROWS_PER_PAGE, value: 25 });
 
-        expect(dispatch).toHaveBeenCalledWith('loadServer', ROWS_PER_PAGE);
+        expect(dispatch).toHaveBeenCalledWith('readServer');
       });
 
       it('writes mangleWrite-transformed value to server.data, json-stringified due to parseJSON', async() => {
@@ -963,7 +963,7 @@ describe('prefs store', () => {
         const { commit, dispatch } = await run(['b'], ['b'], prepend('a'));
 
         expect(commit).toHaveBeenCalledWith('load', { key: RECENT_CLUSTERS, value: ['a', 'b'] });
-        expect(dispatch).toHaveBeenCalledWith('loadServer', [RECENT_CLUSTERS]);
+        expect(dispatch).toHaveBeenCalledWith('readServer');
       });
 
       it('phase 2: when client === server, persists the reconciled value with no divergent re-commit', async() => {
@@ -1394,6 +1394,115 @@ describe('prefs store', () => {
       });
     });
 
+    // A write in flight is a read in flight, and `loadServer` commits the server's value for every
+    // preference it reads. Mid-write that is wrong: a value committed optimistically for some OTHER key,
+    // still on its way to the server, was replaced by the copy the server last saw — so the shelf reverted
+    // under the user even though the write itself succeeded.
+    describe('a read taken in the middle of a write', () => {
+      const twoWriters = () => {
+        let backend: Record<string, any> = { 'recent-clusters': JSON.stringify(['local']) };
+        const server: any = {
+          data: {},
+          save: jest.fn(() => {
+            const body = { ...server.data };
+
+            return new Promise<void>((resolve) => setTimeout(() => {
+              backend = { ...body };
+              resolve();
+            }, 0));
+          }),
+        };
+
+        const s: any = state();
+
+        s.data[RECENT_CLUSTERS] = ['local'];
+
+        const commit = jest.fn((name: string, payload: any) => {
+          if (name === 'load') {
+            s.data[payload.key] = payload.value;
+          }
+        });
+        const ctx: any = {
+          state: s, commit, rootGetters: { 'auth/loggedIn': true }, rootState: {}
+        };
+        const dispatch: any = (action: string, payload?: any) => {
+          switch (action) {
+          case 'management/findAll':
+            server.data = { ...backend };
+
+            return Promise.resolve([server]);
+          case 'loadServer':
+            return actions.loadServer({ ...ctx, dispatch }, payload);
+          case 'readServer':
+            return actions.readServer({ ...ctx, dispatch });
+          case 'prefs/applyPrefsOptimistic':
+            return Promise.resolve(actions.applyPrefsOptimistic(ctx, payload));
+          case 'prefs/reconcilePrefs':
+            return actions.reconcilePrefs({ ...ctx, dispatch }, payload);
+          case 'prefs/set':
+            return actions.set({ ...ctx, dispatch }, payload);
+          default:
+            return Promise.resolve();
+          }
+        };
+
+        return {
+          s, dispatch, onServer: () => JSON.parse(backend[RECENT_CLUSTERS])
+        };
+      };
+
+      it('should not revert an optimistic value it has no business touching', async() => {
+        const { s, dispatch } = twoWriters();
+
+        // An unrelated preference write is already awaiting its GET...
+        const namespaces = dispatch('prefs/set', { key: NAMESPACE_FILTERS, value: { a: ['b'] } });
+
+        // ...when the visit commits optimistically and queues its reconcile behind it.
+        const visit = commitAndReconcile(dispatch, [prependRecent('heron')]);
+        const seen: string[] = [];
+
+        for (let i = 0; i < 6; i++) {
+          await Promise.resolve();
+          seen.push(JSON.stringify(s.data[RECENT_CLUSTERS]));
+        }
+        await Promise.all([namespaces, visit]);
+
+        expect([...new Set(seen)]).toStrictEqual(['["heron","local"]']);
+      });
+
+      // The boot load is the one read that SHOULD commit everything — loading the preferences is its job —
+      // so it can still land on an optimistic value, and the router runs it alongside the cluster load.
+      // That is what the reconcile's own guard is for.
+      it('should recover an optimistic value the boot load legitimately overwrote', async() => {
+        const { s, dispatch, onServer } = twoWriters();
+
+        const boot = actions.loadServerQueued({ dispatch } as any);
+        const visit = commitAndReconcile(dispatch, [prependRecent('heron')]);
+
+        await Promise.all([boot, visit]);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['heron', 'local']);
+        expect(onServer()).toStrictEqual(['heron', 'local']);
+      });
+
+      // And if something does revert it, the reconcile has to put it back. It used to compare against the
+      // value it had committed optimistically, which agreed with itself and skipped the commit — leaving
+      // the store showing one thing and the server holding another, until the next write or a reload.
+      it('should leave the store agreeing with what it persisted', async() => {
+        const { s, dispatch, onServer } = twoWriters();
+
+        const namespaces = dispatch('prefs/set', { key: NAMESPACE_FILTERS, value: { a: ['b'] } });
+        const visit = commitAndReconcile(dispatch, [prependRecent('heron')]);
+
+        await Promise.all([namespaces, visit]);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        expect(s.data[RECENT_CLUSTERS]).toStrictEqual(['heron', 'local']);
+        expect(onServer()).toStrictEqual(['heron', 'local']);
+      });
+    });
+
     // `loadServer` writes as well as reads: preferences set before login are replayed onto the server from
     // inside it. From `set`/`reconcilePrefs` that is already covered — they hold the queue — but the boot
     // call holds nothing, and the router runs loadManagement alongside loadCluster. Unqueued, that replay
@@ -1482,6 +1591,8 @@ describe('prefs store', () => {
             return Promise.resolve([server]);
           case 'loadServer':
             return actions.loadServer({ ...ctx, dispatch }, payload);
+          case 'readServer':
+            return actions.readServer({ ...ctx, dispatch });
           case 'prefs/applyPrefsOptimistic':
             return Promise.resolve(actions.applyPrefsOptimistic(ctx, payload));
           case 'prefs/reconcilePrefs':

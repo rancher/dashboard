@@ -405,7 +405,7 @@ export const actions = {
       // Queued: this is a get-before-set on the shared Preference, so it must not overlap another one.
       return enqueuePreferenceWrite(async() => {
         try {
-          const server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
+          const server = await dispatch('readServer'); // There's no watch on prefs, so get before set...
 
           if ( server?.data ) {
             if ( definition.mangleWrite ) {
@@ -513,9 +513,9 @@ export const actions = {
     const keys = serverEntries.map(({ key }) => key);
 
     try {
-      const server = await dispatch('loadServer', keys);
+      const server = await dispatch('readServer');
 
-      // `loadServer` swallows its own error and resolves undefined, so this is "could not read the
+      // `readServer` swallows its own error and resolves undefined, so this is "could not read the
       // preference", not "nothing to do". Report it, or the caller counts the write as persisted.
       if ( !server?.data ) {
         return { type: 'error', status: 500 };
@@ -544,11 +544,15 @@ export const actions = {
 
         const reconciled = apply(base);
 
-        // Server drifted from what we optimistically committed → adopt the server-based result.
+        // Leave the STORE holding the reconciled value, comparing against what it holds NOW rather than
+        // against what we optimistically committed. Those are not the same thing: anything that read the
+        // document while this write was in flight will have committed the server's copy over our
+        // optimistic one, and comparing against the optimistic value would then agree with itself, skip
+        // the commit, and leave the store disagreeing with what we are about to persist.
         // Structural compare: `JSON.stringify` is key-order sensitive, and the merge-write API is generic,
         // so an object-valued pref (NAMESPACE_FILTERS, HIDE_HOME_PAGE_CARDS) would read as drift purely
         // from re-serialisation.
-        if (!isEqual(reconciled, optimistic?.[key])) {
+        if (!isEqual(reconciled, state.data[key])) {
           commit('load', { key, value: reconciled });
         }
 
@@ -674,6 +678,35 @@ export const actions = {
    */
   loadServerQueued({ dispatch }: PrefsActionContext): Promise<any> {
     return enqueuePreferenceWrite(() => dispatch('loadServer'));
+  },
+
+  /**
+   * The preference document itself, for a caller that is about to change it.
+   *
+   * Deliberately commits NOTHING. `loadServer` commits the server's value for every preference it reads,
+   * which is right when loading them but wrong in the middle of a write: a value committed optimistically
+   * for some OTHER key, still on its way to the server, would be replaced by the copy the server last saw
+   * — and the shelf would revert under the user.
+   */
+  async readServer({ dispatch }: PrefsActionContext): Promise<any> {
+    try {
+      const all = await dispatch('management/findAll', {
+        type: STEVE.PREFERENCE,
+        opt:  {
+          url:                  'userpreferences',
+          force:                true,
+          watch:                false,
+          redirectUnauthorized: false,
+          stream:               false,
+        }
+      }, { root: true });
+
+      return all?.[0];
+    } catch (e) {
+      console.error('Error loading preferences', e); // eslint-disable-line no-console
+
+      return undefined;
+    }
   },
 
   async loadServer( {
