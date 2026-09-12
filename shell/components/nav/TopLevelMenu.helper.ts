@@ -182,8 +182,9 @@ export abstract class BaseTopLevelMenuHelper {
   protected $store: VuexStore;
 
   // Every fetched cluster, id-keyed. The pinned/recent/local shelf slices are DERIVED from this cache ×
-  // the prefs, so membership + order always follow the pref (cross-tab safe) and the fetch only supplies
-  // live row data.
+  // the prefs, so membership + order always follow the pref and the fetch only supplies live row data.
+  // The PREF is not watched, though: a cluster pinned in another tab reaches this shelf when this tab next
+  // writes a preference of its own, or on reload.
   protected clusterCache: Record<string, TopLevelMenuCluster> = reactive({});
 
   private get pinnedPref(): string[] {

@@ -433,8 +433,8 @@ export const actions = {
 
   // A merge-write is a read-modify-write of a preference via a PURE apply(currentValue) => newValue, split
   // into two phases so the UI can feel instant: applyPrefsOptimistic commits against the client value now
-  // (outside any write queue), and reconcilePrefs does the one GET-then-PUT against the server's live value.
-  // Callers serialize reconcile (overlapping writes on the shared Preference would 409), never the optimistic phase.
+  // (outside any write queue), and reconcilePrefs does the one GET-then-PUT against what the server holds.
+  // `enqueuePreferenceWrite` serializes the reconcile, never the optimistic phase.
 
   // Phase 1 — optimistic. SYNC (no awaits) so the commits land in the same tick; returns the committed
   // values so reconcilePrefs can detect server drift without re-deriving the wrong base.
@@ -486,9 +486,14 @@ export const actions = {
     return optimistic;
   },
 
-  // Phase 2 — reconcile + persist. Re-runs the transforms against the server's live value and adopts that
-  // result if it drifted from what we optimistically committed, so an external change (another tab / manual
-  // edit) is merged, not clobbered. Persists only the keys a transform actually changed.
+  // Phase 2 — reconcile + persist. Re-runs the transforms against the value the server holds AT THE MOMENT
+  // OF THE WRITE and adopts that result if it drifted from what we optimistically committed, so a change
+  // made elsewhere (another tab, a manual edit) is merged rather than overwritten. Persists only the keys
+  // a transform actually changed.
+  //
+  // That is a merge on write, NOT a subscription — preferences are not watched. A change made in another
+  // tab reaches this one when this tab next writes a preference of its own, or on reload; until then this
+  // tab goes on showing what it last read.
   //
   // NOTE: like `set`, this RESOLVES with `{ type, status }` on failure rather than rejecting — callers
   // have to inspect the resolved value, not just attach a `.catch`.

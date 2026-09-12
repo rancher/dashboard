@@ -7,10 +7,14 @@ import { BLANK_CLUSTER } from '@shell/store/store-types';
  * Centralized, serialized writer for the app-bar cluster preferences (pinned + recent).
  *
  * Each mutator expresses its change as a pure `apply(current) => next` transform. `commitAndReconcile`
- * applies it optimistically for instant UI, then re-runs it against the server's live value so an
- * external change (another tab, a manual edit) is adopted rather than clobbered. The server round-trip
- * goes through the prefs store's shared write queue, which every preference write shares — including the
- * plain `prefs/set` calls this writer knows nothing about.
+ * applies it optimistically for instant UI, then re-runs it against what the server holds when the write
+ * goes out, so a change made elsewhere (another tab, a manual edit) is merged rather than overwritten.
+ *
+ * That merge happens ON WRITE only. Preferences are not watched, so a cluster pinned in another tab does
+ * not arrive here on its own: it shows up when this tab next writes a preference, or on reload.
+ *
+ * The server round-trip goes through the prefs store's shared write queue, which every preference write
+ * shares — including the plain `prefs/set` calls this writer knows nothing about.
  */
 type Dispatch = (action: string, payload?: any) => Promise<any>;
 // The prefs this writer touches are heterogeneous: RECENT/PINNED are string[], CLUSTER is a string.
@@ -39,8 +43,9 @@ export const prependRecent = (id: string): Mutation => ({
 });
 
 // PINNED mutation for a drag-reorder: the shelf's rows in their new order. Written as a MERGE rather
-// than a wholesale replace because `commitAndReconcile` re-runs this against the server's live value —
-// a plain overwrite would resurrect a cluster unpinned in another tab, and lose one pinned there.
+// than a wholesale replace because `commitAndReconcile` re-runs this against what the server holds when
+// the write goes out — a plain overwrite would resurrect a cluster unpinned in another tab, and lose one
+// pinned there.
 //
 // `orderedIds` is only what the shelf can show, so the rest of the pref has to be carried across: the
 // shelf never lists `local` (it has its own fixed slot) and never lists a cluster whose data has not
