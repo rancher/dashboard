@@ -168,10 +168,18 @@ export const nodePoolNames = (ctx: any) => {
 };
 
 export const nodePoolNamesUnique = (ctx: any) => {
+  // Flags each colliding pool the way nodePoolNames does, so its tab shows an error icon.
   return () :string | undefined => {
-    const poolNames = (ctx.nodePools || []).map((pool: AKSNodePool) => pool.name);
+    const pools = ctx.nodePools || [];
+    const poolNames = pools.map((pool: AKSNodePool) => pool.name);
+    let hasDuplicates = false;
 
-    const hasDuplicates = poolNames.some((name: string, idx: number) => poolNames.indexOf(name) !== idx);
+    pools.forEach((pool: AKSNodePool) => {
+      const isUnique = !pool.name || poolNames.filter((name: string) => name === pool.name).length === 1;
+
+      set(pool._validation, '_validUnique', isUnique);
+      hasDuplicates = hasDuplicates || !isUnique;
+    });
 
     if (hasDuplicates) {
       return ctx.t('aks.errors.poolNamesUnique');

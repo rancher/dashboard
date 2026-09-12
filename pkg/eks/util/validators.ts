@@ -1,4 +1,3 @@
-import { set } from '@shell/utils/object';
 import { EKSConfig, EKSNodeGroup, NormanCluster } from '@pkg/eks/types';
 
 export interface CruEKSContext {
@@ -20,35 +19,55 @@ const clusterNameRequired = (ctx: CruEKSContext) => {
   };
 };
 
+/**
+ * Validates one name when given it, and every node group when not. The message stays on the name
+ * input either way; the context-wide arm marks unnamed node groups with `__nameRequired` so their
+ * tab is flagged, which is the only sign an unnamed node group gives on a tab the user is not on.
+ */
 const nodeGroupNamesRequired = (ctx: CruEKSContext) => {
   return (nodeName: string | undefined): null | string => {
+    const msg = ctx.t('validation.required', { key: ctx.t('eks.nodeGroups.name.label') });
+
     if (nodeName !== undefined) {
-      return nodeName === '' ? ctx.t('validation.required', { key: ctx.t('eks.nodeGroups.name.label') }) : null;
+      return nodeName === '' ? msg : null;
     }
 
-    return !!ctx.nodeGroups.find((group) => !group.nodegroupName) ? ctx.t('validation.required', { key: ctx.t('eks.nodeGroups.name.label') }) : null;
+    let out = null as null|string;
+
+    ctx.nodeGroups.forEach((group) => {
+      if (group.nodegroupName) {
+        delete group.__nameRequired;
+      } else {
+        group.__nameRequired = false;
+        out = msg;
+      }
+    });
+
+    return out;
   };
 };
 
+/**
+ * Compares node groups against each other rather than validating one field, so it is not passed to
+ * fvGetAndReportPathRules and its message appears as a banner at the top of the form instead.
+ * Unnamed node groups are left to nodeGroupNamesRequired. Colliding node groups are marked with
+ * `__nameUnique` so the tab component can flag them; the mark is removed rather than set true,
+ * because node groups are sent to the API as they are.
+ */
 const nodeGroupNamesUnique = (ctx: CruEKSContext) => {
-  return (nodeName: string | undefined): null | string => {
+  return (): null | string => {
     let out = null as null|string;
 
-    const names = ctx.nodeGroups.map((node) => node.nodegroupName);
+    const names = ctx.nodeGroups.map((node) => node.nodegroupName).filter((name) => !!name);
 
-    if (nodeName !== undefined) {
-      const matchingNames = names.filter((n) => n === nodeName);
-
-      return matchingNames.length > 1 ? ctx.t('eks.errors.nodeGroups.nameUnique') : null;
-    }
     ctx.nodeGroups.forEach((group) => {
-      const name = group.nodegroupName;
-
-      if (names.filter((n) => n === name).length > 1) {
-        set(group, '__nameUnique', false);
+      if (names.filter((name) => name === group.nodegroupName).length > 1) {
+        group.__nameUnique = false;
         if (!out) {
           out = ctx.t('eks.errors.nodeGroups.nameUnique');
         }
+      } else {
+        delete group.__nameUnique;
       }
     });
 

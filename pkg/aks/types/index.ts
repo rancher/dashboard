@@ -28,6 +28,7 @@ export interface AKSNodePool {
   _id?: string
   _validation: {
     _validName?: boolean
+    _validUnique?: boolean
     _validSize?: boolean
     _validAZ?: boolean
     _validCount?: boolean
