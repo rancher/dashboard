@@ -20,6 +20,9 @@
 
   if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_TEST_IMPROVER != 'true'
 
+
+  max-ai-credits: 350
+
   timeout-minutes: 30
 
   permissions:
