@@ -70,6 +70,13 @@ jobs:
   # Required status check for this workflow, replacing the `Build` context. `deploy`
   # is deliberately not a dependency — it only runs on push to master, so gating on
   # it would make every pull request wait for a job that never runs.
+  #
+  # Every dependency here is PR-only, so unlike ci-gate there is nothing to
+  # promote to a required check in its own right and no fail-fast to recover.
+  # The corollary is that this gate verifies nothing inside a merge queue: on
+  # merge_group `build` skips and the gate reports green unconditionally. It
+  # exists so the required check reports rather than stalls. Docs build breakage
+  # is caught on the pull request or not at all.
   docs-gate:
     name: docs-gate
     if: always()

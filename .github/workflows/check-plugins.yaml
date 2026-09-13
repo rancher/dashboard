@@ -54,6 +54,13 @@ jobs:
   # Required status check for this workflow. Replaces `validate`, which cannot be
   # required directly because it must be absent from the merge group. See the
   # header comment in .github/actions/gate/action.yaml.
+  #
+  # Every dependency here is PR-only, so unlike ci-gate there is nothing to
+  # promote to a required check in its own right and no fail-fast to recover.
+  # The corollary is that this gate verifies nothing inside a merge queue: on
+  # merge_group `validate` skips and the gate reports green unconditionally. It
+  # exists so the required check reports rather than stalls. Plugin build
+  # breakage is caught on the pull request or not at all.
   plugins-gate:
     name: plugins-gate
     if: always()
