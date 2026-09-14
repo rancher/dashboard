@@ -1,7 +1,10 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage } from '@shell/core/plugin-products-external';
+import { ProductChildCustomPage, ProductChildGroup } from '@shell/core/plugin-products-external';
+// `localHeaders` (local pagination) is deliberately not part of the external extension API - see
+// plugin-products-internal. As a builtin extension we use the internal resource page type to set it.
+import { ProductChildResourcePageInternal } from '@shell/core/plugin-products-internal';
 import { CERT_MANAGER } from './types';
 import {
   CERTIFICATE_HEADERS, ISSUER_HEADERS, CLUSTER_ISSUER_HEADERS,
@@ -25,37 +28,37 @@ const overviewPage: ProductChildCustomPage = {
 // backend does not index, so SSP could neither sort nor filter on what these lists actually show.
 // Columns are supplied as `listConfig.localHeaders`, which the shell's generic list renders through
 // a client-side ResourceTable; sort/search may reference any field or model getter - see table-headers.
-const certificatesPage: ProductChildResourcePage = {
+const certificatesPage: ProductChildResourcePageInternal = {
   type:       CERT_MANAGER.CERTIFICATE,
   sideMenu:   { weight: 90 },
   listConfig: { localHeaders: CERTIFICATE_HEADERS },
 };
 
-const issuersPage: ProductChildResourcePage = {
+const issuersPage: ProductChildResourcePageInternal = {
   type:       CERT_MANAGER.ISSUER,
   sideMenu:   { weight: 80 },
   listConfig: { localHeaders: ISSUER_HEADERS },
 };
 
-const clusterIssuersPage: ProductChildResourcePage = {
+const clusterIssuersPage: ProductChildResourcePageInternal = {
   type:       CERT_MANAGER.CLUSTER_ISSUER,
   sideMenu:   { weight: 70 },
   listConfig: { localHeaders: CLUSTER_ISSUER_HEADERS },
 };
 
-const certificateRequestsPage: ProductChildResourcePage = {
+const certificateRequestsPage: ProductChildResourcePageInternal = {
   type:       CERT_MANAGER.CERTIFICATE_REQUEST,
   sideMenu:   { weight: 30 },
   listConfig: { localHeaders: CERTIFICATE_REQUEST_HEADERS },
 };
 
-const ordersPage: ProductChildResourcePage = {
+const ordersPage: ProductChildResourcePageInternal = {
   type:       CERT_MANAGER.ORDER,
   sideMenu:   { weight: 20 },
   listConfig: { localHeaders: ORDER_HEADERS },
 };
 
-const challengesPage: ProductChildResourcePage = {
+const challengesPage: ProductChildResourcePageInternal = {
   type:       CERT_MANAGER.CHALLENGE,
   sideMenu:   { weight: 10 },
   listConfig: { localHeaders: CHALLENGE_HEADERS },
