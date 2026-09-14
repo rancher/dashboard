@@ -15,20 +15,24 @@ function makeView(id: string, name: string, overrides = {}) {
 
 describe('TableViewsBar', () => {
   describe('selectedViewId', () => {
-    // Two saved views can hold the same config - a duplicate, or one saved on top of another.
+    // Two saved views can hold the same config - a duplicate, or one saved on top of another -
+    // and a saved view can hold the same config as the All tab
     const running = { query: 'state:Running', groupBy: 'namespace' };
     const first = makeView('aaa', 'Need attention', running);
     const second = makeView('bbb', 'test', running);
+    const sameAsAll = makeView('ccc', 'same as all');
 
-    function createContext(editingViewId: string | null, view: any = { ...EMPTY, ...running }) {
+    function createContext(pickedViewId: string | null | undefined, view: any = { ...EMPTY, ...running }) {
       const ctx: any = {
-        savedViews: [first, second],
+        pickedViewId,
+        savedViews: [first, second, sameAsAll],
         view,
         isSameConfig,
       };
 
-      ctx.editingView = (TableViewsBar as any).computed.editingView.call({ ...ctx, editingViewId });
+      ctx.editingView = (TableViewsBar as any).computed.editingView.call(ctx);
       ctx.activeViewId = activeViewId.call(ctx);
+      ctx.isModified = (TableViewsBar as any).computed.isModified.call(ctx);
 
       return ctx;
     }
@@ -37,9 +41,22 @@ describe('TableViewsBar', () => {
       expect(selectedViewId.call(createContext('bbb'))).toBe('bbb');
     });
 
-    it('should still select the first matching view when nothing has been picked', () => {
-      // A view arriving in the URL is only identifiable by its config
-      expect(selectedViewId.call(createContext(null))).toBe('aaa');
+    it('should select nothing when the All tab was picked, even if a view holds the same config', () => {
+      // Otherwise clicking All jumps to that view and All can never be got back to
+      const ctx = createContext(null, { ...EMPTY });
+
+      expect(ctx.activeViewId).toBe('ccc');
+      expect(selectedViewId.call(ctx)).toBeNull();
+    });
+
+    it('should select the matching view when one arrives in a shared url', () => {
+      // Nothing picked here, so the config is the only handle on it
+      expect(selectedViewId.call(createContext(undefined))).toBe('aaa');
+    });
+
+    it('should select nothing on a fresh unmodified list', () => {
+      // Nothing picked and nothing applied is the All tab, whatever configs happen to be saved
+      expect(selectedViewId.call(createContext(undefined, { ...EMPTY }))).toBeNull();
     });
 
     it('should keep the picked view selected once it has been edited away from', () => {
@@ -49,16 +66,44 @@ describe('TableViewsBar', () => {
       expect(selectedViewId.call(ctx)).toBe('bbb');
     });
 
-    it('should select nothing when the All tab is showing', () => {
-      const ctx = createContext(null, { ...EMPTY });
+    it('should fall back to the config when the picked view has been deleted', () => {
+      expect(selectedViewId.call(createContext('gone'))).toBe('aaa');
+    });
+  });
 
-      expect(selectedViewId.call(ctx)).toBeNull();
+  describe('isDirty', () => {
+    const { isDirty } = (TableViewsBar as any).computed;
+    const sameAsAll = makeView('ccc', 'same as all');
+
+    it('should report changes made on top of the All tab as unsaved', () => {
+      // Even when a saved view happens to hold the same config as what was typed
+      const ctx: any = {
+        pickedViewId: null,
+        savedViews:   [sameAsAll],
+        view:         { ...EMPTY, query: 'name:foo' },
+        isSameConfig,
+      };
+
+      ctx.editingView = null;
+      ctx.activeViewId = activeViewId.call(ctx);
+      ctx.isModified = (TableViewsBar as any).computed.isModified.call(ctx);
+
+      expect(isDirty.call(ctx)).toBe(true);
     });
 
-    it('should fall back to the config when the picked view has been deleted', () => {
-      const ctx = createContext('gone');
+    it('should report the All tab itself as clean', () => {
+      const ctx: any = {
+        pickedViewId: null,
+        savedViews:   [sameAsAll],
+        view:         { ...EMPTY },
+        isSameConfig,
+      };
 
-      expect(selectedViewId.call(ctx)).toBe('aaa');
+      ctx.editingView = null;
+      ctx.activeViewId = activeViewId.call(ctx);
+      ctx.isModified = (TableViewsBar as any).computed.isModified.call(ctx);
+
+      expect(isDirty.call(ctx)).toBe(false);
     });
   });
 
@@ -69,14 +114,14 @@ describe('TableViewsBar', () => {
 
     // persist() really does replace savedViews, so by the time the old code asked which view
     // was selected the answer was already "none" - the context has to behave the same way
-    function createContext(editingViewId: string | null) {
+    function createContext(pickedViewId: string | null) {
       return {
-        editingViewId,
+        pickedViewId,
         savedViews: [first, second],
         applied:    [] as any[],
         isSameConfig,
         get editingView() {
-          return this.savedViews.find((v: any) => v.id === this.editingViewId) || null;
+          return this.savedViews.find((v: any) => v.id === this.pickedViewId) || null;
         },
         get activeViewId() {
           return activeViewId.call(this);
