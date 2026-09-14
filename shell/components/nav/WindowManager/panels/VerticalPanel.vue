@@ -2,6 +2,7 @@
 import { RIGHT, LEFT } from '@shell/utils/position';
 import { PropType } from 'vue';
 import { RcButton } from '@components/RcButton';
+import { RcIcon } from '@components/RcIcon';
 import { Position } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
 import { tabBodyId } from './tab-body';
@@ -120,7 +121,10 @@ const {
           @click.stop="onTabClose(tab.id)"
           @keyup.enter.space.stop="onTabClose(tab.id)"
         >
-          <i class="icon icon-x" />
+          <RcIcon
+            type="close"
+            size="inherit"
+          />
         </RcButton>
       </div>
       <div
@@ -253,7 +257,8 @@ const {
             outline-offset: 1px;
           }
 
-          .icon {
+          .icon,
+          .rc-icon {
             font-size: 10px;
             line-height: 1;
           }
