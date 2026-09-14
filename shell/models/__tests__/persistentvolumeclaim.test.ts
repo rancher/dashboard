@@ -35,7 +35,7 @@ describe('class: PVC', () => {
         getters: {}, dispatch: jest.fn(), rootGetters
       });
 
-      const volume = pvc.details.find((d: any) => d.label === 'persistentVolumeClaim.volumeName');
+      const volume: any = pvc.details.find((d: any) => d.label === 'persistentVolumeClaim.volumeName');
 
       expect(volume.content).toBe('pv-1');
       expect(volume.formatter).toBe('LinkName');

@@ -92,7 +92,7 @@ describe('class: WorkloadService PersistentVolumeClaim helpers', () => {
       }, storageCtx);
 
       // volumeClaimTemplates create per-pod claims which only surface via the loaded pods
-      statefulSet.pods = [
+      (statefulSet as any).pods = [
         { spec: { volumes: [{ persistentVolumeClaim: { claimName: 'data-s-0' } }, { persistentVolumeClaim: { claimName: 'shared' } }] } },
         { spec: { volumes: [{ persistentVolumeClaim: { claimName: 'data-s-1' } }] } },
       ];
