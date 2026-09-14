@@ -198,6 +198,18 @@ export default {
     },
 
     /**
+     * Which saved view the tab bar shows as selected.
+     *
+     * The view the user picked wins. Two saved views can hold the same config, and matching
+     * on config alone would always light up the first of them - so picking the second looked
+     * like nothing happened. Fall back to the config when nothing has been picked here yet,
+     * so a view arriving in the URL still shows as selected.
+     */
+    selectedViewId() {
+      return this.editingView?.id || this.activeViewId;
+    },
+
+    /**
      * Unsaved changes: either edits on top of a saved view, or an unsaved view of one's own
      */
     isDirty() {
@@ -388,6 +400,7 @@ export default {
       };
 
       this.persist(this.savedViews.filter((v) => v.name !== name).concat([view]));
+      this.editingViewId = view.id;
     },
 
     renameView(saved) {
@@ -416,9 +429,12 @@ export default {
     },
 
     deleteView(saved) {
+      // Ask before removing it - afterwards it is gone from savedViews and nothing matches
+      const wasSelected = this.selectedViewId === saved.id;
+
       this.persist(this.savedViews.filter((v) => v.id !== saved.id));
 
-      if (this.activeViewId === saved.id) {
+      if (wasSelected) {
         this.applyView(null);
       }
     },
@@ -456,12 +472,12 @@ export default {
            (Copy link + Export) — it can't be renamed, updated or deleted. -->
       <div
         class="view-tab-wrap"
-        :class="{ active: !activeViewId && !isDirty }"
+        :class="{ active: !selectedViewId && !isDirty }"
       >
         <button
           type="button"
           class="view-tab in-wrap"
-          :class="{ active: !activeViewId && !isDirty }"
+          :class="{ active: !selectedViewId && !isDirty }"
           data-testid="table-views-tab-all"
           @click="applyView(null)"
         >
@@ -499,12 +515,12 @@ export default {
         v-for="saved in savedViews"
         :key="saved.id"
         class="view-tab-wrap"
-        :class="{ active: activeViewId === saved.id }"
+        :class="{ active: selectedViewId === saved.id }"
       >
         <button
           type="button"
           class="view-tab in-wrap"
-          :class="{ active: activeViewId === saved.id }"
+          :class="{ active: selectedViewId === saved.id }"
           :data-testid="`table-views-tab-${saved.id}`"
           @click="applyView(saved)"
         >
