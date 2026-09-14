@@ -317,6 +317,15 @@ export default {
   },
 
   watch: {
+    /**
+     * Suggested values are cached per field, so they have to be dropped when the list's scope
+     * changes - switching the namespace filter otherwise kept offering values from the namespaces
+     * the user has just navigated away from
+     */
+    summaryBaseUrl() {
+      this.fieldValues = {};
+    },
+
     filteredRows: {
       handler() {
         // This is only prevalent in fleet world and the workspace switcher
@@ -634,6 +643,36 @@ export default {
     },
 
     /**
+     * Base url for a value summary request.
+     *
+     * Suggestions should offer what this list can actually show, so the summary is scoped the
+     * same way the list is - the project / namespace filter above all, which otherwise offered
+     * values from namespaces the user isn't looking at.
+     *
+     * Two things are left off. Paging and sort, because a summary counts the whole matching set
+     * rather than a page of it. And the view's own query filters, because suggestions for a field
+     * shouldn't be narrowed by the term being edited - a field is usually picked to change the
+     * term already there.
+     */
+    summaryBaseUrl() {
+      const urlFor = this.$store.getters[`${ this.inStore }/urlFor`];
+      const args = this.externalPaginationArgs;
+
+      if (!args) {
+        return urlFor(this.schema.id);
+      }
+
+      const own = this.serverViewFilters.filters;
+
+      return urlFor(this.schema.id, null, {
+        pagination: {
+          filters:              (args.filters || []).filter((filter) => !own.includes(filter)),
+          projectsOrNamespaces: args.projectsOrNamespaces || [],
+        }
+      });
+    },
+
+    /**
      * Rows left once the view's query has been applied.
      *
      * Server-side: the rows are already filtered by the API, so pass them through. Client
@@ -932,8 +971,7 @@ export default {
       this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
     
       try {
-        const base = this.$store.getters[`${ this.inStore }/urlFor`](this.schema.id);
-        const url = `${ base }&summary=${ encodeURIComponent(path) }&summaryonly`;
+        const url = `${ this.summaryBaseUrl }&summary=${ encodeURIComponent(path) }&summaryonly`;
         const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
     
         this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res) };
