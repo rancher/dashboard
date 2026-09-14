@@ -246,7 +246,7 @@
     "mocha/diff": "5.2.2",
     "diff2html/diff": "5.2.2",
     "webpack-dev-server": "5.2.6",
-    "postcss": "8.5.25",
+    "postcss": "8.5.26",
     "@tootallnate/once": "^2.0.1",
     "cookie": "0.7.2",
     "qs": "6.16.0",
