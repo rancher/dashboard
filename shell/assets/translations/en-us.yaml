@@ -2316,7 +2316,6 @@ cluster:
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
   agentConfig:
     tabs:
-      agentsScheduling: Agents Scheduling
       cluster: Cluster Agent
       fleet: Fleet Agent
     groups:
@@ -2326,10 +2325,6 @@ cluster:
       podTolerations: Tolerations
       podRequestsAndLimits: Requests and Limits
       schedulingCustomization: Scheduling Customization
-      agentsScheduling:
-        text: Ensure that cluster- and/or fleet-agent pods are not evicted due to node pressure, resource constraints or scheduler policies When enabled, these settings may be configured in the 
-        textLink: Global Settings
-        label: 'Prevent agent pod eviction for:'
     subGroups:
       podAffinityAnti: Pod Affinity/Anti-Affinity
       nodeAffinity: Node Affinity
