@@ -188,7 +188,9 @@ export default {
                 <li>{{ t('authConfig.googleoauth.steps.2.body.5', {}, true) }} </li>
               </ul>
             </div>
-            <div class="col span-12 mt-20">
+          </div>
+          <div class="row mt-20">
+            <div class="col span-12">
               <FileSelectorTextArea
                 v-model:value="model.oauthCredential"
                 type="multiline-password"
@@ -217,7 +219,9 @@ export default {
                 <li>{{ t('authConfig.googleoauth.steps.3.body.3', {}, true) }} </li>
               </ul>
             </div>
-            <div class="col span-12 mt-20">
+          </div>
+          <div class="row mt-20">
+            <div class="col span-12">
               <FileSelectorTextArea
                 v-model:value="model.serviceAccountCredential"
                 type="multiline-password"
