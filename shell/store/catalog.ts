@@ -689,7 +689,6 @@ function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, rep
       repoNameDisplay:  ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
       certifiedSort:    CERTIFIED_SORTS[certified] || 99,
       icon:             chart.icon,
-      color:            repo.color,
       chartType:        chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
       chartName:        chart.name,
       chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
