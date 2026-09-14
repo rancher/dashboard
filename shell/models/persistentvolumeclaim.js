@@ -62,6 +62,10 @@ export default class PVC extends SteveModel {
     this.currentRouter().push(location);
   }
 
+  get fullDetailPageOverride() {
+    return true;
+  }
+
   get details() {
     const out = [
       {
