@@ -20,6 +20,7 @@ generic:
   ascending: ascending
   and: ' and '
   back: Back
+  byteLimitExceeded: '{name} exceeds the file size limit of {byteLimit} bytes'
   cancel: Cancel
   confirm: Confirm
   colorPicker: Color picker
@@ -3015,7 +3016,6 @@ etcdInfoBanner:
 fileSelectorTextArea:
   dropHint: or drop the file over the text area above
   dropToReplace: Dropping the file here will replace any existing content
-  byteLimitExceeded: '{name} exceeds the file size limit of {byteLimit} bytes'
 
 fleet:
   settings:

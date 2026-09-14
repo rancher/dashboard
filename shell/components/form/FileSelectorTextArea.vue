@@ -10,6 +10,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector, { readFileContents } from '@shell/components/form/FileSelector.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
+import type { Validator } from '@shell/utils/validators/formRules/index';
 
 defineOptions({ inheritAttrs: false });
 
@@ -27,7 +28,7 @@ const props = withDefaults(defineProps<{
   type?: 'multiline' | 'multiline-password';
   required?: boolean;
   disabled?: boolean;
-  rules?: Array<any>;
+  rules?: Validator[];
   /** Height the text area never shrinks below, in pixels. */
   minHeight?: number;
   /** Height the text area never grows beyond, in pixels, after which it scrolls. */
@@ -136,7 +137,7 @@ const onDrop = async(event: DragEvent) => {
   }
 
   if (props.byteLimit && file.size > props.byteLimit) {
-    onError(t('fileSelectorTextArea.byteLimitExceeded', { name: file.name, byteLimit: props.byteLimit }));
+    onError(t('generic.byteLimitExceeded', { name: file.name, byteLimit: props.byteLimit }));
 
     return;
   }
@@ -199,6 +200,7 @@ const onDrop = async(event: DragEvent) => {
         :disabled="disabled"
         :accept="accept"
         :byte-limit="byteLimit"
+        :show-growl-error="false"
         :aria-label="fileSelectorLabel"
         :label="t('generic.readFromFile')"
         @selected="onSelected"

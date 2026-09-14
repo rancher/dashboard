@@ -1008,12 +1008,6 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-.user-data{
-  &>button{
-    float: right;
-  }
-}
-
 .upgrade-version {
   display: flex;
   align-items: center;

@@ -967,10 +967,6 @@ export default {
 <style lang="scss">
 .key-value {
   width: 100%;
-  .file-selector.role-link {
-    text-transform: initial;
-    padding: 0;
-  }
   .kv-container {
     display: grid;
     align-items: center;

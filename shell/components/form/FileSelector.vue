@@ -130,7 +130,7 @@ export default {
       if (this.byteLimit) {
         for (const file of files) {
           if (file.size > this.byteLimit) {
-            this.$emit('error', `${ file.name } exceeds the file size limit of ${ this.byteLimit } bytes`);
+            this.$emit('error', this.t('generic.byteLimitExceeded', { name: file.name, byteLimit: this.byteLimit }));
 
             return;
           }

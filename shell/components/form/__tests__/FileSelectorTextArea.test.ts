@@ -107,6 +107,14 @@ describe('component: FileSelectorTextArea', () => {
     expect(wrapper.emitted('update:value')).toStrictEqual([['file contents']]);
   });
 
+  it('should pass file contents through transformFile before emitting them', () => {
+    const wrapper = mountComponent({ transformFile: (contents: string) => `encoded:${ contents }` });
+
+    wrapper.findComponent(FileSelector).vm.$emit('selected', 'file contents');
+
+    expect(wrapper.emitted('update:value')).toStrictEqual([['encoded:file contents']]);
+  });
+
   it('should show the drop overlay only while a file is dragged over the text area', async() => {
     const wrapper = mountComponent();
     const dropZone = wrapper.find('.drop-zone');

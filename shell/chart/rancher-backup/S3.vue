@@ -70,16 +70,11 @@ export default {
   },
 
   methods: {
-    // The chart expects the CA base64-encoded, so a file's contents are encoded on the way in
+    // The chart expects the CA base64-encoded, so a file's contents are encoded on the way in.
+    // btoa throws on characters above U+00FF; letting that through leaves the field untouched and
+    // growls, rather than silently storing text the chart cannot decode.
     encodeCA(ca) {
-      try {
-        return btoa(ca);
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn(e);
-
-        return ca;
-      }
+      return btoa(ca);
     },
   },
 
