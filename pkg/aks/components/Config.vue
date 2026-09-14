@@ -1070,7 +1070,7 @@ export default defineComponent({
           </div>
         </div>
         <div class="row mb-10">
-          <div class="col span-12">
+          <div class="col span-6">
             <FileSelectorTextArea
               v-model:value="config.sshPublicKey"
               :mode="mode"

@@ -957,7 +957,7 @@ export default defineComponent({
       </div>
     </div>
     <div class="row mb-15">
-      <div class="col span-12 user-data">
+      <div class="col span-6 user-data">
         <FileSelectorTextArea
           label-key="eks.nodeGroups.userData.label"
           :mode="mode"

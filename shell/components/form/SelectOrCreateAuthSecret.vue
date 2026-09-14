@@ -882,14 +882,17 @@ export default {
     <div
       v-if="selected === GITHUB_APP"
       class="mt-20"
+      :class="{'row': !vertical}"
     >
-      <FileSelectorTextArea
-        v-model:value="githubAppPrivateKey"
-        data-testid="auth-secret-github-app-private-key"
-        file-selector-testid="auth-secret-github-app-private-key-file"
-        :mode="mode"
-        label-key="selectOrCreateAuthSecret.githubApp.privateKey"
-      />
+      <div :class="vertical ? '' : 'col span-6'">
+        <FileSelectorTextArea
+          v-model:value="githubAppPrivateKey"
+          data-testid="auth-secret-github-app-private-key"
+          file-selector-testid="auth-secret-github-app-private-key-file"
+          :mode="mode"
+          label-key="selectOrCreateAuthSecret.githubApp.privateKey"
+        />
+      </div>
     </div>
   </div>
 </template>

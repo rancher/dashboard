@@ -51,7 +51,7 @@ export default {
         </div>
       </div>
       <div class="row mb-20">
-        <div class="col span-12">
+        <div class="col span-6">
           <FileSelectorTextArea
             :value="value.caCerts"
             :mode="mode"
