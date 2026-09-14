@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RIGHT, LEFT } from '@shell/utils/position';
 import { PropType } from 'vue';
+import { RcButton } from '@components/RcButton';
 import { Position } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
 import { tabBodyId } from './tab-body';
@@ -109,15 +110,18 @@ const {
         >
           {{ tab.label }}
         </span>
-        <i
+        <RcButton
           data-testid="wm-tab-close-button"
-          class="closer icon icon-x wm-closer-button"
-          :alt="t('wm.closeTab', { tabId: tab.label })"
+          variant="ghost"
+          size="small"
+          class="closer wm-closer-button"
           tabindex="0"
           :aria-label="t('wm.closeTab', { tabId: tab.id })"
           @click.stop="onTabClose(tab.id)"
           @keyup.enter.space.stop="onTabClose(tab.id)"
-        />
+        >
+          <i class="icon icon-x" />
+        </RcButton>
       </div>
       <div
         v-if="props.position === LEFT"
@@ -229,6 +233,11 @@ const {
           line-height: 12px;
           font-size: 10px;
           width: 14px;
+          min-width: 14px;
+          height: 14px;
+          min-height: 14px;
+          padding: 0;
+          color: var(--body-text);
           align-self: center;
           display: flex;
           justify-content: center;
@@ -242,6 +251,11 @@ const {
           &:focus-visible {
             @include focus-outline;
             outline-offset: 1px;
+          }
+
+          .icon {
+            font-size: 10px;
+            line-height: 1;
           }
         }
       }
