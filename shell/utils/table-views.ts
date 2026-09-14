@@ -529,11 +529,21 @@ export function termsToServerFilters(
     return paths.length ? paths : null;
   };
 
-  // Every server-searchable path, for free-text tokens to OR across
+  // Every server-searchable path, for free-text tokens to OR across.
+  //
+  // Label columns are deliberately left out. Each `metadata.labels[key]` term costs the
+  // pagination API a join, and OR'ing a handful of them together is enough to hang it - a pod
+  // list carrying 14 label columns never answered at all, while the same query across the
+  // ordinary columns came back in under a second. Labels stay searchable by naming one,
+  // `label:app:nginx`, which is a single join.
   const freeTextPaths: string[] = [];
   const seenPath: Record<string, boolean> = {};
 
   fields.forEach((field) => {
+    if (field.isLabel) {
+      return;
+    }
+
     const raw = serverPathFor(field);
 
     if (!raw) {
