@@ -1,11 +1,21 @@
 import type { Status } from '@components/utils/status';
 import type { RcIconType } from '@components/RcIcon/types';
 
-export type SectionType = 'primary' | 'secondary';
+export const SECTION_TYPE = {
+  PRIMARY:   'primary',
+  SECONDARY: 'secondary',
+} as const;
+
+export type SectionType = typeof SECTION_TYPE[keyof typeof SECTION_TYPE];
 
 export type SectionMode = 'with-header' | 'no-header';
 
-export type SectionBackground = 'primary' | 'secondary';
+export const SECTION_BACKGROUND = {
+  PRIMARY:   'primary',
+  SECONDARY: 'secondary',
+} as const;
+
+export type SectionBackground = typeof SECTION_BACKGROUND[keyof typeof SECTION_BACKGROUND];
 
 // ---------------------------------------------------------------------------
 // Badge helpers

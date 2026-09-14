@@ -11,6 +11,7 @@ import { randomStr } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import debounce from 'lodash/debounce';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
+import { RcSection, SECTION_TYPE, SECTION_BACKGROUND } from '@components/RcSection';
 
 const NAMESPACE_SELECTION_OPTION_VALUES = {
   POD:      'pod',
@@ -22,7 +23,7 @@ export default {
   emits: ['update'],
 
   components: {
-    ArrayListGrouped, MatchExpressions, LabeledSelect, RadioGroup, LabeledInput
+    ArrayListGrouped, MatchExpressions, LabeledSelect, RadioGroup, LabeledInput, RcSection
   },
 
   props: {
@@ -32,6 +33,29 @@ export default {
       default: () => {
         return {};
       }
+    },
+
+    rcCompatible: {
+      type:    Boolean,
+      default: false
+    },
+
+    // Heading shown when rcCompatible renders the fields inside a nested RcSection.
+    title: {
+      type:    String,
+      default: ''
+    },
+
+    // RcSection `type` used when rcCompatible is true.
+    sectionType: {
+      type:    String,
+      default: SECTION_TYPE.PRIMARY
+    },
+
+    // RcSection `background` used when rcCompatible is true.
+    sectionBackground: {
+      type:    String,
+      default: SECTION_BACKGROUND.SECONDARY
     },
 
     // Field key on the value object to store the pod affinity - typically this is 'affinity'
@@ -166,6 +190,10 @@ export default {
 
     hasNamespaces() {
       return this.allNamespacesOptions.length;
+    },
+
+    sectionTitle() {
+      return this.title || this.t('cluster.agentConfig.subGroups.podAffinityAnti');
     },
   },
 
@@ -338,7 +366,133 @@ export default {
 </script>
 
 <template>
+  <RcSection
+    v-if="rcCompatible"
+    :title="sectionTitle"
+    mode="with-header"
+    :type="sectionType"
+    :background="sectionBackground"
+    :expandable="true"
+  >
+    <div
+      :style="{'width':'100%'}"
+      class="row"
+      @update:value="queueUpdate"
+    >
+      <div class="col span-12">
+        <ArrayListGrouped
+          v-model:value="allSelectorTerms"
+          class="mt-20"
+          :default-add-value="defaultAddValue"
+          :mode="mode"
+          :add-label="addLabel"
+          @remove="remove"
+        >
+          <template #default="props">
+            <div class="row mt-20 mb-20">
+              <div class="col span-6">
+                <LabeledSelect
+                  :mode="mode"
+                  :options="[t('workload.scheduling.affinity.affinityOption'),t('workload.scheduling.affinity.antiAffinityOption')]"
+                  :value="props.row.value._anti ?t('workload.scheduling.affinity.antiAffinityOption') :t('workload.scheduling.affinity.affinityOption') "
+                  :label="t('workload.scheduling.affinity.type')"
+                  :data-testid="`pod-affinity-type-index${props.i}`"
+                  @update:value="props.row.value._anti = !props.row.value._anti"
+                />
+              </div>
+              <div class="col span-6">
+                <LabeledSelect
+                  :mode="mode"
+                  :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
+                  :value="priorityDisplay(props.row.value)"
+                  :label="t('workload.scheduling.affinity.priority')"
+                  :data-testid="`pod-affinity-priority-index${props.i}`"
+                  @update:value="changePriority(props.row.value, props.i)"
+                />
+              </div>
+            </div>
+            <div class="row">
+              <RadioGroup
+                :options="namespaceSelectionOptions"
+                :labels="namespaceSelectionLabels"
+                :name="`namespaces-${props.row.value._id}`"
+                :mode="mode"
+                :value="props.row.value._namespaceOption"
+                :data-testid="`pod-affinity-namespacetype-index${props.i}`"
+                @update:value="changeNamespaceMode($event, props.row.value, props.i)"
+              />
+            </div>
+            <div
+              v-if="props.row.value._namespaceOption === NAMESPACE_SELECTION_OPTION_VALUES.SELECTED"
+              class="row mt-10 mb-20"
+            >
+              <LabeledSelect
+                v-if="hasNamespaces && !forceInputNamespaceSelection"
+                v-model:value="props.row.value.namespaces"
+                :mode="mode"
+                :multiple="true"
+                :taggable="true"
+                :options="allNamespacesOptions"
+                :label="labeledInputNamespaceLabel"
+                :data-testid="`pod-affinity-namespace-select-index${props.i}`"
+                @update:value="updateNamespaces(props.row.value, props.row.value.namespaces)"
+              />
+              <LabeledInput
+                v-else
+                v-model:value="props.row.value._namespaces"
+                :mode="mode"
+                :label="labeledInputNamespaceLabel"
+                :placeholder="t('harvesterManager.affinity.namespaces.placeholder')"
+                :data-testid="`pod-affinity-namespace-input-index${props.i}`"
+                @update:value="updateNamespaces(props.row.value, props.row.value._namespaces)"
+              />
+            </div>
+            <MatchExpressions
+              :mode="mode"
+              class=" col span-12 mt-20"
+              :type="pod"
+              :value="get(props.row.value, 'labelSelector.matchExpressions')"
+              :show-remove="false"
+              :data-testid="`pod-affinity-expressions-index${props.i}`"
+              @update:value="e=>updateLabelSelector(e, props)"
+            />
+            <div class="row mt-20">
+              <div class="col span-9">
+                <LabeledInput
+                  v-model:value="props.row.value.topologyKey"
+                  :mode="mode"
+                  :label="t('workload.scheduling.affinity.topologyKey.label')"
+                  :placeholder="topologyKeyPlaceholder"
+                  required
+                  :data-testid="`pod-affinity-topology-input-index${props.i}`"
+                  @update:value="update"
+                />
+              </div>
+              <div
+                v-if="'weight' in props.row.value"
+                class="col span-3"
+              >
+                <LabeledInput
+                  v-model:value.number="props.row.value.weight"
+                  :mode="mode"
+                  type="number"
+                  min="1"
+                  max="100"
+                  :label="t('workload.scheduling.affinity.weight.label')"
+                  :placeholder="t('workload.scheduling.affinity.weight.placeholder')"
+                  :data-testid="`pod-affinity-weight-index${props.i}`"
+                  @update:value="update"
+                />
+              </div>
+            </div>
+          </template>
+        </ArrayListGrouped>
+      </div>
+    </div>
+  </RcSection>
+
   <div
+    v-else
     :style="{'width':'100%'}"
     class="row"
     @update:value="queueUpdate"

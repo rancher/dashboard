@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import UnitInput from '@shell/components/form/UnitInput';
-import { RcSection } from '@components/RcSection';
+import { RcSection, SECTION_TYPE, SECTION_BACKGROUND } from '@components/RcSection';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT } from '@shell/config/labels-annotations';
 import { cleanUp } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
@@ -52,6 +52,18 @@ export default {
     title: {
       type:    String,
       default: ''
+    },
+
+    // RcSection `type` used when rcCompatible is true.
+    sectionType: {
+      type:    String,
+      default: SECTION_TYPE.PRIMARY
+    },
+
+    // RcSection `background` used when rcCompatible is true.
+    sectionBackground: {
+      type:    String,
+      default: SECTION_BACKGROUND.SECONDARY
     }
   },
 
@@ -177,23 +189,25 @@ export default {
     v-if="rcCompatible"
     :title="sectionTitle"
     mode="with-header"
-    type="primary"
-    background="secondary"
+    :type="sectionType"
+    :background="sectionBackground"
     :expandable="true"
   >
-    <p
-      v-if="showTip"
-      class="helper-text"
-    >
-      <t
-        v-if="mode === viewMode"
-        k="containerResourceLimit.helpTextDetail"
-      />
-      <t
-        v-else
-        k="containerResourceLimit.helpText"
-      />
-    </p>
+    <slot name="banner">
+      <p
+        v-if="showTip"
+        class="helper-text"
+      >
+        <t
+          v-if="mode === viewMode"
+          k="containerResourceLimit.helpTextDetail"
+        />
+        <t
+          v-else
+          k="containerResourceLimit.helpText"
+        />
+      </p>
+    </slot>
 
     <div class="row">
       <span class="col span-6">
@@ -272,21 +286,26 @@ export default {
   </RcSection>
 
   <div v-else>
-    <div class="row">
-      <div
-        v-if="showTip"
-        class="col span-12"
-      >
-        <p class="helper-text mb-10">
-          <t
-            v-if="mode === viewMode"
-            k="containerResourceLimit.helpTextDetail"
-          />
-          <t
-            v-else
-            k="containerResourceLimit.helpText"
-          />
-        </p>
+    <div
+      v-if="showTip || $slots.banner"
+      class="row"
+    >
+      <div class="col span-12">
+        <slot name="banner">
+          <p
+            v-if="showTip"
+            class="helper-text mb-10"
+          >
+            <t
+              v-if="mode === viewMode"
+              k="containerResourceLimit.helpTextDetail"
+            />
+            <t
+              v-else
+              k="containerResourceLimit.helpText"
+            />
+          </p>
+        </slot>
       </div>
     </div>
 

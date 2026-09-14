@@ -1,7 +1,7 @@
 <script>
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import Banner from '@components/Banner/Banner.vue';
-import { RcSection } from '@components/RcSection';
+import { RcSection, SECTION_TYPE, SECTION_BACKGROUND } from '@components/RcSection';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 export default {
   name:       'SchedulingCustomization',
@@ -37,6 +37,18 @@ export default {
     checkboxWithOnlyAgentName: {
       type:    Boolean,
       default: false
+    },
+
+    // RcSection `type`.
+    sectionType: {
+      type:    String,
+      default: SECTION_TYPE.PRIMARY
+    },
+
+    // RcSection `background`.
+    sectionBackground: {
+      type:    String,
+      default: SECTION_BACKGROUND.SECONDARY
     }
   },
   data() {
@@ -67,7 +79,8 @@ export default {
   <RcSection
     :title="t('cluster.agentConfig.groups.schedulingCustomization')"
     mode="with-header"
-    type="primary"
+    :type="sectionType"
+    :background="sectionBackground"
     :expandable="true"
   >
     <Checkbox

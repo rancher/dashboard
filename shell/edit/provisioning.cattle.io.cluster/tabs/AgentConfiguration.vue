@@ -1,6 +1,6 @@
 <script>
 import { Banner } from '@components/Banner';
-import { RcSection } from '@components/RcSection';
+import { RcSection, SECTION_TYPE, SECTION_BACKGROUND } from '@components/RcSection';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
@@ -60,6 +60,18 @@ export default {
     defaultPDB: {
       type:    Object,
       default: () => {},
+    },
+
+    // RcSection `type` used for each of this tab's sections.
+    sectionType: {
+      type:    String,
+      default: SECTION_TYPE.PRIMARY
+    },
+
+    // RcSection `background` used for each of this tab's sections.
+    sectionBackground: {
+      type:    String,
+      default: SECTION_BACKGROUND.SECONDARY
     }
   },
 
@@ -171,6 +183,15 @@ export default {
 
     canEditAffinity() {
       return this.affinitySetting === CUSTOM;
+    },
+
+    // PodAffinity/NodeAffinity nest inside the Pod Affinity RcSection, so their own
+    // section should contrast with it rather than repeat its type/background.
+    nestedSectionType() {
+      return this.sectionType === SECTION_TYPE.PRIMARY ? SECTION_TYPE.SECONDARY : SECTION_TYPE.PRIMARY;
+    },
+    nestedSectionBackground() {
+      return this.sectionBackground === SECTION_BACKGROUND.PRIMARY ? SECTION_BACKGROUND.SECONDARY : SECTION_BACKGROUND.PRIMARY;
     }
   },
 
@@ -216,59 +237,57 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="agent-configuration">
     <Banner
       :closable="false"
       color="info"
       label-key="cluster.agentConfig.banners.advanced"
-      class="mt-0"
+      class="mt-0 mb-0"
     />
 
-    <RcSection
+    <ContainerResourceLimit
+      v-model:value="flatResources"
+      :mode="mode"
+      :show-tip="false"
+      :handle-gpu-limit="false"
+      :rc-compatible="true"
       :title="t('cluster.agentConfig.groups.podRequestsAndLimits')"
-      mode="with-header"
-      type="primary"
-      background="secondary"
-      :expandable="true"
+      :section-type="sectionType"
+      :section-background="sectionBackground"
     >
-      <Banner
-        :closable="false"
-        color="info"
-        label-key="cluster.agentConfig.banners.limits"
-        class="mt-0"
-      />
-      <ContainerResourceLimit
-        v-model:value="flatResources"
-        :mode="mode"
-        :show-tip="false"
-        :handle-gpu-limit="false"
-      />
-    </RcSection>
+      <template #banner>
+        <Banner
+          :closable="false"
+          color="info"
+          label-key="cluster.agentConfig.banners.limits"
+          class="mt-0"
+        />
+      </template>
+    </ContainerResourceLimit>
 
-    <RcSection
+    <Tolerations
+      v-model:value="value.appendTolerations"
+      :mode="mode"
+      :rc-compatible="true"
       :title="t('cluster.agentConfig.groups.podTolerations')"
-      mode="with-header"
-      type="primary"
-      background="secondary"
-      :expandable="true"
+      :section-type="sectionType"
+      :section-background="sectionBackground"
     >
-      <Banner
-        :closable="false"
-        color="info"
-        label-key="cluster.agentConfig.banners.tolerations"
-        class="mt-0"
-      />
-      <Tolerations
-        v-model:value="value.appendTolerations"
-        :mode="mode"
-      />
-    </RcSection>
+      <template #banner>
+        <Banner
+          :closable="false"
+          color="info"
+          label-key="cluster.agentConfig.banners.tolerations"
+          class="mt-0"
+        />
+      </template>
+    </Tolerations>
 
     <RcSection
       :title="t('cluster.agentConfig.groups.podAffinity')"
       mode="with-header"
-      type="primary"
-      background="secondary"
+      :type="sectionType"
+      :background="sectionBackground"
       :expandable="true"
     >
       <RadioGroup
@@ -289,10 +308,6 @@ export default {
         <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)" />
       </Banner>
 
-      <h4 v-if="canEditAffinity">
-        {{ t('cluster.agentConfig.subGroups.podAffinityAnti') }}
-      </h4>
-
       <PodAffinity
         v-if="canEditAffinity"
         :value="value"
@@ -301,25 +316,21 @@ export default {
         :all-namespaces-option-available="true"
         :force-input-namespace-selection="true"
         :remove-labeled-input-namespace-label="true"
+        :rc-compatible="true"
+        :section-type="nestedSectionType"
+        :section-background="nestedSectionBackground"
         data-testid="pod-affinity"
         @update:value="$emit('input', $event)"
       />
-
-      <div
-        v-if="canEditAffinity"
-        class="separator"
-      />
-      <h4
-        v-if="canEditAffinity"
-      >
-        {{ t('cluster.agentConfig.subGroups.nodeAffinity') }}
-      </h4>
 
       <NodeAffinity
         v-if="canEditAffinity"
         v-model:value="nodeAffinity"
         :matching-selector-display="true"
         :mode="mode"
+        :rc-compatible="true"
+        :section-type="nestedSectionType"
+        :section-background="nestedSectionBackground"
         data-testid="node-affinity"
         @update:value="updateNodeAffinity"
       />
@@ -332,14 +343,21 @@ export default {
       :feature="schedulingCustomizationFeatureEnabled"
       :default-p-c="defaultPC"
       :default-p-d-b="defaultPDB"
+      :section-type="sectionType"
+      :section-background="sectionBackground"
       @scheduling-customization-changed="$emit('scheduling-customization-changed', $event)"
     />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.separator {
-  width: 100%;
-  border-top: 1px solid var(--border);
+// RcSection only spaces its own header from its content (and its own direct
+// slot children apart) - it doesn't space one RcSection from a sibling one,
+// so this stacks the top-level sections themselves the same way RcSection
+// spaces a section's own direct content apart.
+.agent-configuration {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md, 16px);
 }
 </style>
