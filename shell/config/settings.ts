@@ -68,6 +68,7 @@ export const SETTING = {
   UI_OFFLINE_PREFERRED:                          'ui-offline-preferred',
   SYSTEM_DEFAULT_REGISTRY:                       'system-default-registry',
   SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS:          'system-default-registry-pull-secrets',
+  SYSTEM_CATALOG:                                'system-catalog',
   UI_ISSUES:                                     'ui-issues',
   PL:                                            'ui-pl',
   PL_RANCHER_VALUE:                              'rancher',
