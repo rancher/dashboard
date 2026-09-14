@@ -42,6 +42,10 @@ export default class PV extends SteveModel {
     return this.state !== 'bound';
   }
 
+  get fullDetailPageOverride() {
+    return true;
+  }
+
   get details() {
     const out = [
       {

@@ -1,86 +1,55 @@
-<script>
-import CreateEditView from '@shell/mixins/create-edit-view';
-import { NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
-import { PVC } from '@shell/config/types';
-import Loading from '@shell/components/Loading';
-import Tab from '@shell/components/Tabbed/Tab';
-import ResourceTabs from '@shell/components/form/ResourceTabs';
-import ResourceTable from '@shell/components/ResourceTable';
+<script setup lang="ts">
+import { useStore } from 'vuex';
+import DetailPage from '@shell/components/Resource/Detail/Page.vue';
+import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
+import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
+import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
+import Tab from '@shell/components/Tabbed/Tab.vue';
+import ResourceTable from '@shell/components/ResourceTable.vue';
+import { useI18n } from '@shell/composables/useI18n';
+import { useBoundPersistentVolumeClaim } from './composables';
 
-export default {
-  name: 'DetailPersistentVolume',
+const props = defineProps<{ value: any }>();
 
-  components: {
-    Loading,
-    Tab,
-    ResourceTabs,
-    ResourceTable,
-  },
+const store = useStore();
+const { t } = useI18n(store);
+const pv = props.value;
 
-  mixins: [CreateEditView],
-
-  async fetch() {
-    if (this.pvcSchema) {
-      this.persistentVolumeClaim = await this.value.fetchPersistentVolumeClaim();
-    }
-  },
-
-  data() {
-    return { persistentVolumeClaim: null };
-  },
-
-  computed: {
-    pvcSchema() {
-      return this.$store.getters['cluster/schemaFor'](PVC);
-    },
-
-    pvcHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.pvcSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
-    },
-
-    claims() {
-      return this.persistentVolumeClaim ? [this.persistentVolumeClaim] : [];
-    },
-  },
-};
+const defaultMastheadProps = useDefaultMastheadProps(pv);
+const { pvcSchema, pvcHeaders, claims } = useBoundPersistentVolumeClaim(pv);
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
-    <ResourceTabs :value="value">
-      <Tab
-        v-if="pvcSchema"
-        name="volume-claim"
-        :label="t('persistentVolume.detail.claim.label')"
-        :weight="3"
-      >
-        <p
-          v-if="claims.length === 0"
-          class="caption"
+  <DetailPage>
+    <template #top-area>
+      <Masthead v-bind="defaultMastheadProps" />
+    </template>
+    <template #bottom-area>
+      <ResourceTabs :value="pv">
+        <Tab
+          v-if="pvcSchema"
+          name="volume-claim"
+          :label="t('persistentVolume.detail.claim.label')"
+          :weight="3"
         >
-          {{ t('persistentVolume.detail.claim.none') }}
-        </p>
-        <p
-          v-else
-          class="caption"
-        >
-          {{ t('persistentVolume.detail.claim.caption') }}
-        </p>
-        <ResourceTable
-          v-if="claims.length > 0"
-          :rows="claims"
-          :headers="pvcHeaders"
-          key-field="id"
-          :schema="pvcSchema"
-          :namespaced="false"
-          :groupable="false"
-          :search="false"
-          :table-actions="false"
-        />
-      </Tab>
-    </ResourceTabs>
-  </div>
+          <p class="caption">
+            {{ claims.length ? t('persistentVolume.detail.claim.caption') : t('persistentVolume.detail.claim.none') }}
+          </p>
+          <ResourceTable
+            v-if="claims.length"
+            :rows="claims"
+            :headers="pvcHeaders"
+            key-field="id"
+            :schema="pvcSchema"
+            :namespaced="false"
+            :groupable="false"
+            :search="false"
+            :table-actions="false"
+          />
+        </Tab>
+      </ResourceTabs>
+    </template>
+  </DetailPage>
 </template>
 
 <style lang="scss" scoped>
