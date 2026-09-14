@@ -124,14 +124,20 @@ export default {
 
   data() {
     return {
-      /** The saved view the current state came from, so we can offer save/discard against it */
-      editingViewId: null,
+      /**
+       * The tab the user picked, so we can offer save/discard against it and light it up.
+       *
+       * Three states: `undefined` if nothing has been picked here yet, `null` for the All tab,
+       * or the id of a saved view. All has to be distinguishable from "nothing picked", or a
+       * saved view holding the same config as All is matched instead of it.
+       */
+      pickedViewId: undefined,
       /** Which modal is open, if any: { kind: 'new' | 'rename' | 'export', view } */
-      modal:         null,
+      modal:        null,
       /** Name being typed in the rename / duplicate modal */
-      modalName:     '',
-      copied:        false,
-      renameNames:   {},
+      modalName:    '',
+      copied:       false,
+      renameNames:  {},
     };
   },
 
@@ -194,7 +200,7 @@ export default {
      * The saved view the current state was applied from, if it still exists
      */
     editingView() {
-      return this.savedViews.find((v) => v.id === this.editingViewId) || null;
+      return this.savedViews.find((v) => v.id === this.pickedViewId) || null;
     },
 
     /**
@@ -206,7 +212,15 @@ export default {
      * so a view arriving in the URL still shows as selected.
      */
     selectedViewId() {
-      return this.editingView?.id || this.activeViewId;
+      if (this.pickedViewId !== undefined) {
+        // An explicit pick wins, the All tab included. Saved views can hold the same config as
+        // each other and as All, so matching on config alone lights up the wrong tab.
+        return this.pickedViewId === null ? null : this.editingView?.id || this.activeViewId;
+      }
+
+      // Nothing picked here yet, so the only handle on the view is its config - that is how a
+      // view arriving in a shared url is recognised. An unmodified view is just the All tab.
+      return this.isModified ? this.activeViewId : null;
     },
 
     /**
@@ -215,6 +229,12 @@ export default {
     isDirty() {
       if (this.editingView) {
         return !this.isSameConfig(this.editingView, this.view);
+      }
+
+      if (this.pickedViewId === null) {
+        // Picked All and then changed something - unsaved, whether or not a saved view happens
+        // to hold the same config
+        return this.isModified;
       }
 
       return !this.activeViewId && this.isModified;
@@ -279,7 +299,7 @@ export default {
     },
 
     applyView(saved) {
-      this.editingViewId = saved?.id || null;
+      this.pickedViewId = saved?.id || null;
 
       this.$emit('update:view', {
         query:        saved?.query || '',
@@ -400,7 +420,7 @@ export default {
       };
 
       this.persist(this.savedViews.filter((v) => v.name !== name).concat([view]));
-      this.editingViewId = view.id;
+      this.pickedViewId = view.id;
     },
 
     renameView(saved) {
