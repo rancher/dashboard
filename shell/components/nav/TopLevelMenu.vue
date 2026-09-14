@@ -1222,6 +1222,7 @@ export default {
                   :local="localCluster"
                   :recent="railRecent"
                   :recent-loading="recentLoading"
+                  :recent-count="recentIds?.length || 0"
                   :search-results="clustersFiltered"
                   :cluster-count="browsableClusterCount"
                   :search-count="switcherSearchCount"
@@ -2383,7 +2384,6 @@ export default {
       height: 36px;
     }
   }
-
 
   .locale-chooser {
     cursor: pointer;

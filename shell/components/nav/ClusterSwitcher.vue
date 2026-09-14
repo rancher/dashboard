@@ -1121,6 +1121,14 @@ $flyout-close-duration: 0.2s;
   .cluster-switcher-popper.v-popper__popper.is-closing .cluster-switcher-flyout {
     animation: none;
   }
+
+  // With the wipe cancelled there is nothing left to keep painted. The hold-open overrides would only pin
+  // the panel fully opaque and motionless for the whole dispose timeout and then blink it away — more
+  // jarring than the roll they replace, and slower to dismiss than the reader asked for.
+  .cluster-switcher-popper.v-popper__popper.is-closing {
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
 }
 
 .cluster-switcher-popper.nav-expanded.v-popper__popper {

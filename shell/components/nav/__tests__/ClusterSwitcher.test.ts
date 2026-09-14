@@ -819,11 +819,11 @@ describe('component: ClusterSwitcher', () => {
 
       const rows = wrapper.findAllComponents(ClusterSwitcherRow);
       const announced = rows.filter((row) => row.props('current') && row.props('announceCurrent'));
-      const lookCurrent = rows.filter((row) => row.props('current'));
+      const markedCurrent = rows.filter((row) => row.props('current'));
 
       // Twice on screen, announced once. Neither is marked in the panel — no fill, no "current" in the
       // row's text — so `aria-current` is the only thing saying it, and it may only say it once.
-      expect(lookCurrent).toHaveLength(2);
+      expect(markedCurrent).toHaveLength(2);
       expect(announced).toHaveLength(1);
     });
 

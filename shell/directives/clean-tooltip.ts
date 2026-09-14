@@ -283,14 +283,6 @@ function isHoverable(options?: TooltipOptions): boolean {
 }
 
 /**
- * Builds the config handed to floating-vue, adding what WCAG 1.4.13 asks of content shown on
- * hover: a popper the pointer can reach, and a click that does not dismiss what it just opened.
- * @param {TooltipHTMLElement} target The element the tooltip is attached to.
- * @param {TooltipOptions} options The element's tooltip options.
- * @param {string} content The purified tooltip content.
- * @returns {TooltipOptions} The config to create the tooltip with.
- */
-/**
  * Whether two option sets would produce the same tooltip. Compared field by field rather than by
  * reference: a binding like `v-clean-tooltip="fn(row)"` hands over a fresh object on every render, so
  * reference equality would report a change every time and never report one usefully.
@@ -310,6 +302,14 @@ function sameTooltipOptions(a: TooltipOptions | undefined, b: TooltipOptions | u
     a.delay?.hide === b.delay?.hide;
 }
 
+/**
+ * Builds the config handed to floating-vue, adding what WCAG 1.4.13 asks of content shown on
+ * hover: a popper the pointer can reach, and a click that does not dismiss what it just opened.
+ * @param {TooltipHTMLElement} target The element the tooltip is attached to.
+ * @param {TooltipOptions} options The element's tooltip options.
+ * @param {string} content The purified tooltip content.
+ * @returns {TooltipOptions} The config to create the tooltip with.
+ */
 function getTooltipConfig(target: TooltipHTMLElement, options: TooltipOptions, content: string): TooltipOptions {
   const config: TooltipOptions = { ...options, content };
 

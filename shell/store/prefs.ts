@@ -376,15 +376,23 @@ let writeChain: Promise<any> = Promise.resolve();
 const WRITE_QUEUE_TIMEOUT = 30000;
 
 export function enqueuePreferenceWrite<T>(task: () => Promise<T>): Promise<T> {
-  const run = writeChain.then(task, task);
+  const previous = writeChain;
+  const run = previous.then(task, task);
 
   // Resolves when the task settles OR when it has taken too long, whichever comes first. The caller still
   // waits on the task itself; it is only the QUEUE that moves on.
   writeChain = new Promise<void>((resolve) => {
-    const timer = setTimeout(resolve, WRITE_QUEUE_TIMEOUT);
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    // Don't hold a test runner (or node) open on a queue slot nobody is waiting for.
-    (timer as any)?.unref?.();
+    // Armed when this slot's task actually STARTS, which is when the slot before it lets go. Armed at
+    // enqueue instead, a backlog counts down together and one tick releases every write at once — which
+    // is the overlap the queue exists to prevent.
+    previous.then(() => undefined, () => undefined).then(() => {
+      timer = setTimeout(resolve, WRITE_QUEUE_TIMEOUT);
+
+      // Don't hold a test runner (or node) open on a queue slot nobody is waiting for.
+      (timer as any)?.unref?.();
+    });
 
     // Settling covers rejection too, so one failed write can't wedge every write after it.
     run.then(() => undefined, () => undefined).then(() => {

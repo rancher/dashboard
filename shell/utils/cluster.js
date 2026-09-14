@@ -57,6 +57,7 @@ export function paginationFilterClusters(store, filterMgmtCluster = true) {
  *
  * @export
  * @param {*} store
+ * @param {boolean} [filterMgmtCluster=true] Filter on the mgmt cluster's `spec.internal` rather than the prov cluster's field.
  * @returns string
  */
 export function clusterFilterSignature(store, filterMgmtCluster = true) {

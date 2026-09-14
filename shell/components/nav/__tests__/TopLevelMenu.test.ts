@@ -5,7 +5,7 @@ import TopLevelMenu from '@shell/components/nav/TopLevelMenu.vue';
 import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
 import { mount, Wrapper } from '@vue/test-utils';
 import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
-import { PINNED_CLUSTERS } from '@shell/store/prefs';
+import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { SETTING } from '@shell/config/settings';
 import { defineComponent, nextTick } from 'vue';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
@@ -648,6 +648,35 @@ describe('topLevelMenu', () => {
       const out = (TopLevelMenu as any).computed.railRecent.call({ recentClusters, hasProvCluster: true });
 
       expect(out.map((c: any) => c.id)).toStrictEqual(['local', 'pinned-one', 'c-3']);
+    });
+
+    // The flyout sizes its RECENTLY USED skeleton from this count, and it has to be known BEFORE the rows
+    // are fetched — so it comes from the visit log (the pref), not from the resolved rows. Unbound it
+    // defaults to 0, the skeleton never renders, and the panel jumps by the height of the section when
+    // the rows land: the reflow the skeleton exists to hold open.
+    it('tells the flyout how many recent rows to expect from the visit log', async() => {
+      const store = generateStore([
+        {
+          id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
+        },
+      ]);
+      const prefs = store.getters['prefs/get'];
+
+      store.getters['prefs/get'] = (pref: string) => (pref === RECENT_CLUSTERS ? ['an-id1', 'an-id2'] : prefs(pref));
+
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      expect(switcherProp(wrapper, 'recentCount')).toBe(2);
     });
   });
 

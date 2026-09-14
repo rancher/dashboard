@@ -1613,6 +1613,40 @@ describe('prefs store', () => {
         expect(ran).toStrictEqual(['next']);
       });
 
+      // The watchdog guards ONE write, so it has to start counting when that write does. Armed at enqueue
+      // instead, a backlog of three is three timers all running from t=0, and a single tick releases the
+      // whole queue at once — every write after the stalled one starts together, which is exactly the
+      // overlap the queue was added to prevent.
+      it('should give each queued write its own window rather than releasing the backlog at once', async() => {
+        jest.useFakeTimers();
+
+        const ran: string[] = [];
+        const hang = (name: string) => enqueuePreferenceWrite(() => new Promise<void>(() => {
+          ran.push(name);
+        }));
+
+        hang('first').catch(() => undefined);
+        hang('second').catch(() => undefined);
+        // The last one settles, so the queue is drained rather than left held for the tests after this.
+        const third = enqueuePreferenceWrite(async() => {
+          ran.push('third');
+        });
+
+        await Promise.resolve();
+        expect(ran).toStrictEqual(['first']);
+
+        // One timeout releases ONE slot, so only the next write in line starts. Armed at enqueue, this
+        // same tick would have released 'third' as well.
+        await jest.advanceTimersByTimeAsync(30000);
+        expect(ran).toStrictEqual(['first', 'second']);
+
+        // ...and the one after it waits out its own window in turn.
+        await jest.advanceTimersByTimeAsync(30000);
+        await third;
+
+        expect(ran).toStrictEqual(['first', 'second', 'third']);
+      });
+
       it('should not wait out the timeout when the write settles normally', async() => {
         jest.useFakeTimers();
 
