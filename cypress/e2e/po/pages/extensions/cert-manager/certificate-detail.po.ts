@@ -39,10 +39,11 @@ export default class CertificateDetailPo extends PagePo {
 
   /**
    * The Issuance History tab's table of CertificateRequests. The tab content pane is the
-   * `<section role="tabpanel">` (the `[data-testid]` of the same name is on the header tab), so
-   * scope to that to avoid matching the tab button.
+   * `<section role="tabpanel">`, whose `id` is prefixed with the Tabbed instance uid; its stable
+   * handle is the `tab-panel-<name>` test id. Scope to that to avoid matching the header tab button
+   * (which carries the `btn-<name>` test id).
    */
   issuanceHistoryTable(): ResourceTablePo {
-    return new ResourceTablePo('section#issuance-history[role="tabpanel"]');
+    return new ResourceTablePo('section[data-testid="tab-panel-issuance-history"][role="tabpanel"]');
   }
 }
