@@ -2209,6 +2209,12 @@ export default {
       & > .bulk-action-delete {
         display: inline-flex !important;
         align-items: center;
+        // `.btn` carries a 40px min-height. The bulk actions menu next to it is a medium
+        // RcButton at 32px, so match that and the two sit level
+        height: 32px;
+        min-height: 32px;
+        padding: 0;
+        line-height: normal;
         margin-right: $gap;
         color: var(--body-text);
 
