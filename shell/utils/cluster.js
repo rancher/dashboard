@@ -12,6 +12,19 @@ import isEmptyLodash from 'lodash/isEmpty';
 import { set, diff, isEmpty, clone } from '@shell/utils/object';
 
 /**
+ * Is the `local` cluster hidden from the UI by the `hide-local-cluster` setting?
+ *
+ * @export
+ * @param {*} store
+ * @returns boolean
+ */
+export function isLocalClusterHidden(store) {
+  const hideLocalSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
+
+  return (hideLocalSetting.value || hideLocalSetting.default || 'false') === 'true';
+}
+
+/**
  * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters
  *
  * @param {*} store
@@ -35,6 +48,23 @@ export function paginationFilterClusters(store, filterMgmtCluster = true) {
 }
 
 /**
+ * A stable fingerprint of the filters every cluster query is built with.
+ *
+ * The number of clusters is not enough to know whether a cached cluster count is still right: the answer
+ * also moves when the ENVIRONMENT changes what counts — `hide-local-cluster` being switched on, or the
+ * Harvester feature flag being flipped — and neither of those touches the number. Comparing this tells a
+ * caller the question itself has changed, without having to know which filters exist.
+ *
+ * @export
+ * @param {*} store
+ * @param {boolean} [filterMgmtCluster=true] Filter on the mgmt cluster's `spec.internal` rather than the prov cluster's field.
+ * @returns string
+ */
+export function clusterFilterSignature(store, filterMgmtCluster = true) {
+  return JSON.stringify(paginationFilterClusters(store, filterMgmtCluster));
+}
+
+/**
  * The vai backed api's `filter` equivalent of `filterHiddenLocalCluster`
  *
  * @export
@@ -42,11 +72,7 @@ export function paginationFilterClusters(store, filterMgmtCluster = true) {
  * @returns PaginationParam | null
  */
 export function paginationFilterHiddenLocalCluster(store, filterMgmtCluster = true) {
-  const hideLocalSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
-  const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
-  const hideLocal = value === 'true';
-
-  if (!hideLocal) {
+  if (!isLocalClusterHidden(store)) {
     return null;
   }
 
@@ -132,11 +158,7 @@ export function isHarvesterSatisfiesVersion(version = '') {
 }
 
 export function filterHiddenLocalCluster(mgmtClusters, store) {
-  const hideLocalSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
-  const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
-  const hideLocal = value === 'true';
-
-  if (!hideLocal) {
+  if (!isLocalClusterHidden(store)) {
     return mgmtClusters;
   }
 

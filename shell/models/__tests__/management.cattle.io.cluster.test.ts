@@ -1,5 +1,6 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 import { EXT } from '@shell/config/types';
+import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { downloadFile } from '@shell/utils/download';
 
@@ -309,6 +310,70 @@ describe('class MgmtCluster', () => {
       await cluster.downloadKubeConfigBulk([]);
 
       expect(downloadFile).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('pin / unpin', () => {
+    // A dispatch that records what the model sends to the shared cluster-pref writer.
+    const makeCluster = (id: string) => {
+      const calls: { action: string, payload: any }[] = [];
+      const dispatch = jest.fn((action: string, payload: any) => {
+        calls.push({ action, payload });
+
+        return Promise.resolve(action === 'prefs/applyPrefsOptimistic' ? {} : undefined);
+      });
+
+      return { cluster: new MgmtCluster({ id }, { dispatch }) as any, calls };
+    };
+
+    it('pin routes through the shared writer (one optimistic commit, then one reconcile)', async() => {
+      const { cluster, calls } = makeCluster('c-a');
+
+      await cluster.pin();
+
+      expect(calls.map((c) => c.action)).toStrictEqual(['prefs/applyPrefsOptimistic', 'prefs/reconcilePrefs']);
+    });
+
+    it('pin sends a single PINNED_CLUSTERS mutation that adds the cluster at the top, idempotently', async() => {
+      const { cluster, calls } = makeCluster('c-a');
+
+      await cluster.pin();
+
+      const mutations = calls[0].payload;
+
+      expect(mutations).toHaveLength(1);
+      expect(mutations[0].key).toBe(PINNED_CLUSTERS);
+      expect(mutations[0].apply([])).toStrictEqual(['c-a']);
+      // The shelf renders this pref in order, so a new pin belongs at the head of it.
+      expect(mutations[0].apply(['c-b'])).toStrictEqual(['c-a', 'c-b']);
+      expect(mutations[0].apply(['c-a'])).toStrictEqual(['c-a']); // already pinned — no duplicate
+      // Re-pinning one that is already down the list moves it up rather than adding it twice.
+      expect(mutations[0].apply(['c-b', 'c-a', 'c-c'])).toStrictEqual(['c-a', 'c-b', 'c-c']);
+    });
+
+    // RECENT is a log of clusters the user actually went to, so unpinning must not write to it: an
+    // unpinned cluster keeps whatever place its own visits earned, and one never visited stays absent.
+    it('unpin touches PINNED only', async() => {
+      const { cluster, calls } = makeCluster('c-a');
+
+      await cluster.unpin();
+
+      const mutations = calls[0].payload;
+
+      expect(calls.map((c) => c.action)).toStrictEqual(['prefs/applyPrefsOptimistic', 'prefs/reconcilePrefs']);
+      expect(mutations.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS]);
+      expect(mutations[0].apply(['c-a', 'c-b'])).toStrictEqual(['c-b']);
+    });
+
+    it('unpin of local touches PINNED only', async() => {
+      const { cluster, calls } = makeCluster('local');
+
+      await cluster.unpin();
+
+      const mutations = calls[0].payload;
+
+      expect(mutations.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS]);
+      expect(mutations[0].apply(['local', 'c-b'])).toStrictEqual(['c-b']);
     });
   });
 });
