@@ -78,6 +78,8 @@ export function init(store) {
     'providers',
   ]);
 
+  configureType(NORMAN.CLOUD_CREDENTIAL, { canYaml: false });
+
   configureType(SNAPSHOT, { depaginate: true });
   configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 

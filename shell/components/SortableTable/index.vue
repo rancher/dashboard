@@ -265,6 +265,16 @@ export default {
     },
 
     /**
+     * Readable, plural name of the resource being listed, used for the select
+     * all checkbox label. Defaults to the name derived from the schema (via
+     * pagingParams) and falls back to a generic label when neither is known.
+     */
+    selectAllLabel: {
+      type:    String,
+      default: null,
+    },
+
+    /**
      * Allows you to override the default preference of the number of
      * items to display per page. This is used by ./paging.js if you're
      * looking for a reference.
@@ -593,6 +603,15 @@ export default {
       return !!(!this.isLoading && !this._didinit && this.rows?.length);
     },
 
+    /**
+     * Accessible label for the select all checkbox in the table header
+     */
+    selectAllCheckboxLabel() {
+      const resource = this.selectAllLabel || this.pagingParams?.pluralLabel;
+
+      return resource ? this.t('sortableTable.selectAllResources', { resource }) : this.t('sortableTable.genericGroupCheckbox');
+    },
+
     manualRefreshLoadingFinished() {
       const res = !!(!this.isLoading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
 
@@ -908,6 +927,15 @@ export default {
       }
 
       return ucFirst(col.name);
+    },
+
+    /**
+     * Accessible label for a row's selection checkbox
+     */
+    rowCheckboxLabel(row) {
+      const item = row?.row?.id;
+
+      return item ? this.t('sortableTable.genericRowCheckbox', { item }) : this.t('sortableTable.genericRowCheckboxNoItem');
     },
 
     valueFor(row, col, isLabel) {
@@ -1338,6 +1366,7 @@ export default {
       <THead
         v-if="showHeaders"
         :label-for="labelFor"
+        :select-all-label="selectAllCheckboxLabel"
         :columns="columns"
         :group="group"
         :group-options="advGroupOptions"
@@ -1466,7 +1495,7 @@ export default {
                     :data-node-id="row.key"
                     :data-testid="componentTestid + '-' + i + '-checkbox'"
                     :value="selectedRows.includes(row.row)"
-                    :alternate-label="t('sortableTable.genericRowCheckbox', { item: row && row.row ? row.row.id : '' })"
+                    :alternate-label="rowCheckboxLabel(row)"
                   />
                 </td>
                 <td

@@ -23,8 +23,12 @@ export default class TabbedPo extends ComponentPo {
     return this.self().get(`[data-testid="btn-${ name }"]`).click();
   }
 
+  /**
+   * The tablist `<ul>` only holds `<li role="presentation">` tab wrappers; controls and extras
+   * are rendered as siblings outside the `<ul>`, so `> li.tab` safely scopes to actual tabs.
+   */
   allTabs(componentTestId = this.componentId) {
-    return this.self().get(`[data-testid="${ componentTestId }-block"] > li`);
+    return this.self().get(`[data-testid="${ componentTestId }-block"] > li.tab`);
   }
 
   assertTabIsActive(selector: string) {

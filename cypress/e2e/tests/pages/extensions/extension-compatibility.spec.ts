@@ -249,8 +249,8 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       .should('exist')
       .scrollIntoView()
       .click({ force: true });
-    // Content lives in `section#<name>` (the tab nav `<li>` shares the same id, so scope to section).
-    cy.get(`section#${ tabName }`, MEDIUM_TIMEOUT_OPT).should('be.visible').and('contain', 'THIS IS A DEMO TAB');
+    // New dashboard: tab panels carry data-testid="tab-panel-<name>"; old dashboard: <section id="<name>">.
+    cy.get(`[data-testid="tab-panel-${ tabName }"], section#${ tabName }`, MEDIUM_TIMEOUT_OPT).should('be.visible').and('contain', 'THIS IS A DEMO TAB');
   };
 
   /**

@@ -97,8 +97,8 @@ describe('Workloads', { tags: ['@adminUser'] }, () => {
         deploymentsListPage.goToEditConfigPage(nodeSchedulingDeploymentId);
 
         // Navigate to Pod tab > Node Scheduling tab
-        deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('li#pod');
-        deploymentEditConfigPage.podTabs().clickTabWithSelector('li#nodeScheduling-pod');
+        deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('[data-testid="btn-pod"]');
+        deploymentEditConfigPage.podTabs().clickTabWithSelector('[data-testid="btn-nodeScheduling-pod"]');
 
         const nodeScheduling = new NodeSchedulingPo();
 

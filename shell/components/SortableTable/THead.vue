@@ -74,6 +74,14 @@ export default {
       type:     Function,
       required: true,
     },
+    /**
+     * Accessible label for the select all checkbox. Supplied by SortableTable,
+     * which resolves it from the resource type where one is known.
+     */
+    selectAllLabel: {
+      type:    String,
+      default: '',
+    },
     noRows: {
       type:    Boolean,
       default: true,
@@ -231,7 +239,7 @@ export default {
           data-testid="sortable-table_check_select_all"
           :indeterminate="isIndeterminate"
           :disabled="noRows || noResults"
-          :alternate-label="t('sortableTable.genericGroupCheckbox')"
+          :alternate-label="selectAllLabel || t('sortableTable.genericGroupCheckbox')"
         />
       </th>
       <th
