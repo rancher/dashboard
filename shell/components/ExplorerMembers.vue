@@ -62,16 +62,39 @@ export default {
       });
     }
 
-    if (projectRoleTemplateBindingSchema) {
-      this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, opt: { force: true } }, { root: true })
-        .then((bindings) => {
-          this['projectRoleTemplateBindings'] = bindings;
-          this.loadingProjectBindings = false;
-        });
-    }
+    // Fetch projects first so we can scope the PRTB request to this cluster's projects only.
+    // Fetching all PRTBs globally without a filter causes the Norman API's page limit to be
+    // hit before cluster-specific results are loaded, resulting in most bindings being invisible
+    // after client-side filtering.
+    const allProjects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
-    this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
-      .then((projects) => (this['projects'] = projects));
+    this['projects'] = allProjects;
+
+    if (projectRoleTemplateBindingSchema) {
+      const clusterId = this.$store.getters['currentCluster'].id;
+      // Norman projectId format is 'clusterId:projectNamespace' (e.g. 'local:p-v679w').
+      // Management project id format is 'clusterId/projectNamespace' — replace '/' with ':'.
+      // projectId is a proper Norman reference field and is safe to filter on; namespaceId is
+      // a mapper-moved field that may not be indexed for filtering.
+      const projectIds = allProjects
+        .filter((p) => p?.spec?.clusterName === clusterId)
+        .map((p) => p.id.replace('/', ':'))
+        .filter(Boolean);
+
+      if (projectIds.length > 0) {
+        // Norman's _in filter does not split comma-separated values — each value must be
+        // a separate repeated query parameter (e.g. ?projectId_in=a&projectId_in=b).
+        const url = `/v3/projectroletemplatebindings?${ projectIds.map((id) => `projectId_in=${ encodeURIComponent(id) }`).join('&') }`;
+
+        this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, opt: { force: true, url } }, { root: true })
+          .then((bindings) => {
+            this['projectRoleTemplateBindings'] = bindings;
+            this.loadingProjectBindings = false;
+          });
+      } else {
+        this.loadingProjectBindings = false;
+      }
+    }
 
     const hydration = {
       normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
@@ -186,7 +209,7 @@ export default {
       });
 
       // We need to group each of the TemplateRoleBindings by the user + project
-      const userRoles = [...fakeRows, ...this.filteredProjectRoleTemplateBindings].reduce((rows, curr) => {
+      const userRoles = this.filteredProjectRoleTemplateBindings.reduce((rows, curr) => {
         const {
           userId, groupPrincipalId, roleTemplate, projectId
         } = curr;
@@ -211,7 +234,9 @@ export default {
         return rows;
       }, {});
 
-      return Object.values(userRoles);
+      // fakeRows must be added outside the reduce — they have no userId/groupPrincipalId
+      // and would be silently dropped if included in the reduce input.
+      return [...Object.values(userRoles), ...fakeRows];
     },
     canManageMembers() {
       return canViewClusterPermissionsEditor(this.$store);
