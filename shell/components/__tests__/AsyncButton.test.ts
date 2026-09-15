@@ -184,4 +184,26 @@ describe('component: AsyncButton', () => {
     expect(item.find('span[data-testid="async-btn-display-label"]').attributes('id')).toBe(wrapper.vm.describedbyId);
     expect(item.find('i').attributes('alt')).toBeDefined();
   });
+
+  it('a11y: passes the tabIndex prop correctly to the HTML tabindex attribute', () => {
+    const mockExists = jest.fn().mockReturnValue(true);
+    const mockT = jest.fn().mockReturnValue('some-string');
+    const wrapper: VueWrapper<InstanceType<typeof AsyncButton>> = mount(AsyncButton, {
+      props:  { tabIndex: 0 },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              'i18n/exists': mockExists,
+              'i18n/t':      mockT
+            }
+          },
+        }
+      },
+    });
+
+    const button = wrapper.find('button');
+
+    expect(button.element.getAttribute('tabindex')).toBe('0');
+  });
 });
