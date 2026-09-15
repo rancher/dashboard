@@ -55,4 +55,4 @@ exports[`view: fleet.cattle.io.bundle should render the bundle detail page with 
 </div>
 `;
 
-exports[`view: fleet.cattle.io.bundle should show Loading when fetch is pending 1`] = `<loading-stub loading="true" mode="content" nodelay="false"></loading-stub>`;
+exports[`view: fleet.cattle.io.bundle should show Loading when fetch is pending 1`] = `<loading-stub loading="true" mode="content" nodelay="false" announcestatus="true"></loading-stub>`;
