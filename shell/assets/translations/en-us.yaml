@@ -904,6 +904,16 @@ assignTo:
 asyncButton:
   alt:
     iconAlt: Async button icon
+  # Read out to screen readers when no phase label of its own says anything useful.
+  # See AsyncButton.vue `announcementFor`.
+  announcement:
+    waiting: In progress
+    success: Succeeded
+    error: Failed
+    withLabel:
+      waiting: '{label}: in progress'
+      success: '{label}: succeeded'
+      error: '{label}: failed'
   registerApplication:
     action: Add Application
     success: Added
@@ -1022,6 +1032,9 @@ asyncButton:
     successIcon: checkmark
     waiting: ''
     waitingIcon: refresh
+    waitingAnnouncement: Refreshing&hellip;
+    successAnnouncement: Refreshed
+    errorAnnouncement: Refresh failed
   manual-refresh:
     action: ''
     actionIcon: refresh
@@ -1031,6 +1044,9 @@ asyncButton:
     successIcon: checkmark
     waiting: ''
     waitingIcon: refresh
+    waitingAnnouncement: Refreshing&hellip;
+    successAnnouncement: Refreshed
+    errorAnnouncement: Refresh failed
   remove:
     action: Remove
     success: Removed
@@ -2904,6 +2920,12 @@ containerResourceLimit:
 resource:
   errors:
     update: "Error updating {name}"
+
+copyToClipboard:
+  action: Copy
+  waiting: Copying&hellip;
+  success: Copied!
+  error: Error Copying
 
 codeMirror:
   escapeText: Press Shift+Escape to blur from editor
