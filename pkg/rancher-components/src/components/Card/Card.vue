@@ -52,6 +52,13 @@ export default defineComponent({
     sticky: {
       type:    Boolean,
       default: false,
+    },
+    /**
+     * Toggles the card's separator.
+     */
+    showSeparator: {
+      type:    Boolean,
+      default: true
     }
   },
 });
@@ -74,7 +81,8 @@ export default defineComponent({
           {{ title }}
         </slot>
       </div>
-      <RcSeparator />
+      <RcSeparator v-if="showSeparator" />
+      <div v-else class="card-separator-placeholder"></div>
       <div
         class="card-body"
         data-testid="card-body-slot"
@@ -167,6 +175,10 @@ export default defineComponent({
         flex: 1;
       }
     }
+   }
+   // Placeholder for when the separator is not shown to keep the card body and actions aligned, as per UX design
+   .card-separator-placeholder {
+    margin-top: 24px;
    }
  }
 </style>

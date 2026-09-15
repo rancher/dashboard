@@ -11,6 +11,7 @@ import { sortBy } from '@shell/utils/sort';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
+import RcButton from '@components/RcButton/RcButton.vue';
 
 export default {
   emits: ['close', 'onReadyYamlEditor'],
@@ -22,7 +23,8 @@ export default {
     YamlEditor,
     FileSelector,
     LabeledSelect,
-    SortableTable
+    SortableTable,
+    RcButton
   },
 
   props: {
@@ -128,7 +130,9 @@ export default {
 <template>
   <Card
     :show-highlight-border="false"
+    :show-separator="false"
     data-testid="import-yaml"
+    class="import-dialog-card"
   >
     <template #title>
       <div style="display: block; width: 100%;">
@@ -139,21 +143,31 @@ export default {
         </template>
         <template v-else>
           <h4 v-t="'import.title'" />
+          <Banner
+            class="import-instruction-banner"
+            color="info"
+          >
+            <span class="banner-text">
+              {{ t('import.instructions') }}
+            </span>
+          </Banner>
           <div class="row">
             <div class="col span-6">
               <FileSelector
                 role="button"
-                :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
-                class="btn role-secondary pull-left"
+                :aria-label="t('generic.readFromFileArea', { area: t('import.importYaml') })"
+                class="btn role-secondary pull-left medium"
                 :label="t('generic.readFromFile')"
                 @selected="onFileSelected"
               />
             </div>
-            <div class="col span-6">
+            <div class="col span-6 namespace-col">
+              <label>{{ t('import.namespace') }}</label>
               <LabeledSelect
+                class="namespace-select"
                 v-model:value="selectedNamespace"
                 :options="namespaceOptions"
-                label-key="import.defaultNamespace.label"
+                size="medium"
                 mode="edit"
               />
             </div>
@@ -196,13 +210,10 @@ export default {
     <template #actions>
       <div
         v-if="done"
-        class="text-center"
-        style="width: 100%"
+        class="button-section"
       >
         <button
           :aria-label="t('generic.close')"
-          role="button"
-          type="button"
           class="btn role-primary"
           data-testid="import-yaml-close"
           @click="close"
@@ -212,22 +223,22 @@ export default {
       </div>
       <div
         v-else
-        class="text-center"
+        class="text-right button-section"
         style="width: 100%"
       >
-        <button
-          :aria-label="t('generic.cancel')"
-          role="button"
-          type="button"
-          class="btn role-secondary mr-10"
-          data-testid="import-yaml-cancel"
+         <RcButton
+          variant="link"
+          size="large"
+          class="cancel-btn"
           @click="close"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </RcButton>
         <AsyncButton
           v-if="!done"
           mode="import"
+          class="import-btn"
+          icon="icon-upload"
           :disabled="!currentYaml.length"
           data-testid="import-yaml-import-action"
           :aria-label="t('import.title')"
@@ -259,5 +270,54 @@ export default {
         max-height: $max;
       }
     }
+  }
+
+  .import-dialog-card {
+    box-shadow: none;
+    margin: 14px; // To combine with the 10px padding of the dialog to make it 24px by UX design
+  }
+
+  .import-instruction-banner {
+    margin: 16px 0 24px 0;
+  }
+
+  .medium {
+    height: 32px;
+    min-height: 32px;
+    padding: 0 12px;
+  }
+
+  .namespace-select {
+    max-width: 300px;
+  }
+
+  .namespace-col {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+
+    label {
+      margin: 0;
+      white-space: nowrap;
+    }
+  }
+
+  .import-btn {
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-left: 8px;
+  }
+
+  .cancel-btn {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .button-section {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 20px; // add 20px padding to make it 40px from the bottom of the yaml window, as per UX design
   }
 </style>
