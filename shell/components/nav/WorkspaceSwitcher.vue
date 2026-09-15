@@ -76,9 +76,6 @@ export default {
     const initValue = this.workspace || this.$store.getters['prefs/get'](LAST_NAMESPACE) || '';
     const value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
 
-    // The workspaces may have changed while no switcher was mounted - the selected one can be
-    // deleted from the workspaces list, which has no switcher - so restore through the store,
-    // which drops a selection that no longer exists
     this.$store.dispatch('restoreWorkspace', { value });
   },
 

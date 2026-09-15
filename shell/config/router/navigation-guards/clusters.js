@@ -75,10 +75,7 @@ export async function loadClusters(to, from, next, { store }) {
       // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
       setProduct(store, to);
 
-      store.commit('updateWorkspace', {
-        value:   store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
-        getters: store.getters
-      });
+      store.dispatch('restoreWorkspace', { value: store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE });
     }
 
     // Always run loadCluster, it handles 'unload' as well

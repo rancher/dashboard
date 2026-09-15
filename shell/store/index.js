@@ -655,19 +655,14 @@ export const mutations = {
   updateWorkspace(state, { value, all, getters }) {
     if ( all ) {
       state.allWorkspaces = all;
-    }
 
-    // Validate against every known workspace, so a selection that no longer exists never sticks
-    const known = all || state.allWorkspaces;
-
-    if ( known?.length ) {
-      if ( findBy(known, 'id', value) ) {
+      if ( findBy(all, 'id', value) ) {
         // The value is a valid option, good
-      } else if ( findBy(known, 'id', DEFAULT_WORKSPACE) ) {
+      } else if ( findBy(all, 'id', DEFAULT_WORKSPACE) ) {
         // How about the default
         value = DEFAULT_WORKSPACE;
-      } else {
-        value = known[0].id;
+      } else if ( all.length ) {
+        value = all[0].id;
       }
     }
 
@@ -1312,20 +1307,16 @@ export const actions = {
     commit('showWorkspaceSwitcher', value);
   },
 
-  /**
-   * Restore the fleet workspace from the user's preference. Only a stored workspace that
-   * no longer exists is replaced and written back - anything else leaves the preference
-   * alone, so a selection is never lost to a value that was merely unavailable at the time.
-   */
   restoreWorkspace({
     commit, dispatch, getters, state
   }, { value, all }) {
+    const known = all || state.allWorkspaces;
+
     commit('updateWorkspace', {
-      value, all, getters
+      value, all: known, getters
     });
 
     const stored = getters['prefs/get'](WORKSPACE);
-    const known = all || state.allWorkspaces;
 
     if ( stored && known?.length && !findBy(known, 'id', stored) && state.workspace !== stored ) {
       return dispatch('prefs/set', { key: WORKSPACE, value: state.workspace });

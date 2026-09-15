@@ -8,6 +8,7 @@ const defaultWorkspace = 'fleet-default';
 
 describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => {
   const appBundlesPage = new FleetApplicationListPagePo();
+  const homePage = new HomePagePo();
   const headerPo = new HeaderPo();
 
   let workspace = '';
@@ -29,7 +30,6 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     appBundlesPage.waitForPage();
     headerPo.checkCurrentWorkspace(workspace);
 
-    // Leave the user preference on a workspace that outlives this spec
     headerPo.selectWorkspace(defaultWorkspace);
   });
 
@@ -39,7 +39,7 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     headerPo.selectWorkspace(workspace);
 
     HomePagePo.goTo();
-    new HomePagePo().waitForPage();
+    homePage.waitForPage();
 
     cy.deleteRancherResource('v3', 'fleetworkspaces', workspace);
 
@@ -48,8 +48,6 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
 
     headerPo.checkCurrentWorkspace(defaultWorkspace);
     headerPo.workspaceSwitcher().self().should('not.contain.text', workspace);
-
-    workspace = '';
   });
 
   it('should not keep a workspace that was deleted from the workspaces list', () => {
@@ -78,13 +76,9 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
 
     headerPo.checkCurrentWorkspace(defaultWorkspace);
     headerPo.workspaceSwitcher().self().should('not.contain.text', workspace);
-
-    workspace = '';
   });
 
   afterEach(() => {
-    if (workspace) {
-      cy.deleteRancherResource('v3', 'fleetworkspaces', workspace, false);
-    }
+    cy.deleteRancherResource('v3', 'fleetworkspaces', workspace, false);
   });
 });
