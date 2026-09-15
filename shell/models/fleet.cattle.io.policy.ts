@@ -30,8 +30,6 @@ export default class FleetPolicy extends SteveModel {
 
     meta.namespace = meta.namespace || this.$rootGetters['workspace'];
 
-    // A policy that enforces nothing has no effect, so new ones start by requiring a service account
-    set(this, 'requireServiceAccount', this.requireServiceAccount ?? true);
     set(this, 'metadata', meta);
   }
 

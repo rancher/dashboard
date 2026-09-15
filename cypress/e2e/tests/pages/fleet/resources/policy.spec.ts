@@ -59,7 +59,7 @@ describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] 
       createPage.waitForPage();
 
       createPage.nameNsDescription().name().set(policyName);
-      createPage.requireServiceAccount().isChecked();
+      createPage.requireServiceAccount().check();
 
       createPage.restrictServiceAccounts().set(1);
       serviceAccounts.forEach((name) => createPage.enterName(createPage.allowedServiceAccounts(), name));

@@ -3719,8 +3719,8 @@ fleet:
         label: Default service account
         description: This will be applied to HelmOps app bundles with no service account provided.
       defaultSecret:
-        label: Default client secret
-        description: This will be applied to HelmOps app bundles with no client secret provided.
+        label: Default Helm secret
+        description: This will be applied to HelmOps app bundles with no Helm secret provided.
       restrict:
         all: Allow all Helm secrets
         selected: Only allow selected Helm secrets

@@ -26,20 +26,12 @@ describe('class FleetPolicy', () => {
       expect(instance.metadata.namespace).toBe('fleet-local');
     });
 
-    it('should require a service account on a new policy', () => {
+    it('should leave the enforcement flags to the user, as Fleet applies them across the whole workspace', () => {
       const instance = policy();
 
       instance.applyDefaults();
 
-      expect(instance.requireServiceAccount).toBe(true);
-    });
-
-    it('should keep requireServiceAccount when it is already false', () => {
-      const instance = policy({ requireServiceAccount: false });
-
-      instance.applyDefaults();
-
-      expect(instance.requireServiceAccount).toBe(false);
+      expect(instance.requireServiceAccount).toBeUndefined();
     });
   });
 
