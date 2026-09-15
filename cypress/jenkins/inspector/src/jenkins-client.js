@@ -150,6 +150,8 @@ export class JenkinsClient {
       const raw = await this.getFailingTests(build);
       const desc = build.description || '';
       const parts = desc.split(' · ').map((p) => p.trim());
+      // "<image tag> · <build type> · <cypress tags>". `env` is the Rancher build
+      // type and `user` the Cypress tag expression, not a user.
       const environment = {
         version: parts[0] || 'unknown',
         env:     parts[1] || 'unknown',

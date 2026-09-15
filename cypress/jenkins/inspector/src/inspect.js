@@ -104,14 +104,14 @@ async function groupAndCreateIssues(failures, existingIssues) {
         continue;
       }
       if (existing?.state === 'closed') {
-        // Test was fixed but is failing again — reopen and move back to Backlog.
+        // Test was fixed but is failing again — reopen and move to the Reopened column.
         // Always call addToProject on reopen: addProjectV2ItemById is idempotent so it's safe
-        // even if the issue is already on the board, and it ensures the status resets to Backlog.
+        // even if the issue is already on the board, and it ensures the status is reset for triage.
         const aiSuggestions = await aiClient.generateFixSuggestions(failure);
 
         await githubClient.reopenIssue(existing.id, failure.environments, failure, aiSuggestions);
         try {
-          await githubClient.addToProject(existing.nodeId);
+          await githubClient.addToProject(existing.nodeId, githubClient.reopenedOptionId);
         } catch (e) {
           console.error(`  Warning: could not add #${ existing.id } to project: ${ e.message }`);
           boardAssignmentFailures.push({ id: existing.id, url: existing.url });
