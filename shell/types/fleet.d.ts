@@ -58,3 +58,27 @@ export interface Target {
   clusterGroup?: string,
   clusterGroupSelector?: Selector
 }
+
+export interface FleetPolicySource {
+  defaultServiceAccount?: string,
+  defaultClientSecretName?: string,
+  allowedClientSecretNames?: string[],
+  allowedRepoPatterns?: string[],
+  defaultHelmSecretName?: string,
+  allowedHelmSecretNames?: string[],
+  allowedHelmRepoPatterns?: string[],
+  allowedChartPatterns?: string[]
+}
+
+export interface FleetPolicy {
+  metadata?: {
+    name?: string,
+    namespace?: string,
+    annotations?: Record<string, string>
+  },
+  requireServiceAccount?: boolean,
+  allowedServiceAccounts?: string[],
+  allowNamespaceCreation?: boolean,
+  gitRepo?: FleetPolicySource,
+  helmOp?: FleetPolicySource
+}
