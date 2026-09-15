@@ -3,7 +3,8 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
-import { STATE, SIMPLE_NAME, IMAGE_NAME } from '@shell/config/table-headers';
+import ResourceTable from '@shell/components/ResourceTable';
+import { STATE, SIMPLE_NAME, IMAGE_NAME, NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { findBy } from '@shell/utils/array';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
@@ -12,7 +13,7 @@ import { allDashboardsExist } from '@shell/utils/grafana';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
-import { NAMESPACE } from '@shell/config/types';
+import { NAMESPACE, PVC } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
 
 const POD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1';
@@ -26,11 +27,16 @@ export default {
     ResourceTabs,
     Tab,
     SortableTable,
+    ResourceTable,
   },
 
   mixins: [CreateEditView],
 
   async fetch() {
+    if (this.pvcSchema) {
+      this.persistentVolumeClaims = await this.value.fetchPersistentVolumeClaims();
+    }
+
     this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [POD_METRICS_DETAIL_URL, POD_METRICS_SUMMARY_URL]);
     if (!this.showMetrics) {
       const namespace = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.value.metadata.namespace });
@@ -54,11 +60,21 @@ export default {
       POD_PROJECT_METRICS_SUMMARY_URL: '',
       showMetrics:                     false,
       showProjectMetrics:              false,
+      persistentVolumeClaims:          [],
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
+
+    pvcSchema() {
+      return this.$store.getters['cluster/schemaFor'](PVC);
+    },
+
+    pvcHeaders() {
+      return this.$store.getters['type-map/headersFor'](this.pvcSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
+    },
+
     containers() {
       const containers = this.allContainers;
       const statuses = this.allStatuses;
@@ -221,6 +237,36 @@ export default {
       />
     </Tab>
     <Tab
+      v-if="pvcSchema"
+      name="storage"
+      :label="t('workload.detail.storage')"
+      :weight="2.7"
+    >
+      <p
+        v-if="persistentVolumeClaims.length === 0"
+        class="caption"
+      >
+        {{ t('workload.detail.cannotFindStorage') }}
+      </p>
+      <p
+        v-else
+        class="caption"
+      >
+        {{ t('workload.detail.storageListCaption') }}
+      </p>
+      <ResourceTable
+        v-if="persistentVolumeClaims.length > 0"
+        :rows="persistentVolumeClaims"
+        :headers="pvcHeaders"
+        key-field="id"
+        :schema="pvcSchema"
+        :namespaced="false"
+        :groupable="false"
+        :search="false"
+        :table-actions="false"
+      />
+    </Tab>
+    <Tab
       v-if="showMetrics"
       :label="t('workload.container.titles.metrics')"
       name="pod-metrics"
@@ -254,3 +300,9 @@ export default {
     </Tab>
   </ResourceTabs>
 </template>
+
+<style lang="scss" scoped>
+.caption {
+  margin-bottom: 16px;
+}
+</style>
