@@ -741,15 +741,18 @@ describe('topLevelMenu', () => {
   // Unpinning destroys the row that holds focus. Left alone the browser drops focus to `<body>`, and the
   // nav says nothing — so the shelf has to hand focus on and announce what happened.
   describe('unpinning a row from the shelf', () => {
-    const ctx = (rows, el) => ({
+    type Row = { id: string, label: string };
+    const methods = (TopLevelMenu as any).methods;
+
+    const ctx = (rows: Row[], el: HTMLElement) => ({
       pinnedRows: rows,
-      t:          (key, args) => `${ key }:${ JSON.stringify(args) }`,
+      t:          (key: string, args: unknown) => `${ key }:${ JSON.stringify(args) }`,
       announce:   jest.fn(),
-      $nextTick:  (fn) => fn(),
+      $nextTick:  (fn: () => void) => fn(),
       $el:        el,
     });
 
-    const shelfDom = (ids) => {
+    const shelfDom = (ids: string[]): HTMLElement => {
       const el = document.createElement('div');
 
       el.innerHTML = `${ ids.map((id) => `<div class="shelf-row" data-row-id="${ id }"><button class="pin"></button></div>`).join('')
@@ -758,48 +761,50 @@ describe('topLevelMenu', () => {
       return el;
     };
 
+    const spyFocus = (el: HTMLElement, selector: string) => jest.spyOn(el.querySelector(selector) as HTMLElement, 'focus');
+
     it('should move focus to the row that took its place, and announce the change', () => {
-      const rows = [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }];
+      const rows: Row[] = [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }];
       // `b` is unpinned, so the DOM the handler sees no longer has it.
       const el = shelfDom(['a', 'c']);
       const context = ctx(rows, el);
-      const focus = jest.spyOn(el.querySelector('[data-row-id="c"] .pin'), 'focus');
+      const focus = spyFocus(el, '[data-row-id="c"] .pin');
 
-      TopLevelMenu.methods.onShelfUnpinned.call(context, rows[1], 1);
+      methods.onShelfUnpinned.call(context, rows[1], 1);
 
       expect(focus).toHaveBeenCalledWith();
       expect(context.announce).toHaveBeenCalledWith('nav.switcher.aria.unpinnedCluster:{"cluster":"B"}');
     });
 
     it('should fall back to the previous row when the last one goes', () => {
-      const rows = [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }];
+      const rows: Row[] = [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }];
       const el = shelfDom(['a']);
-      const focus = jest.spyOn(el.querySelector('[data-row-id="a"] .pin'), 'focus');
+      const focus = spyFocus(el, '[data-row-id="a"] .pin');
 
-      TopLevelMenu.methods.onShelfUnpinned.call(ctx(rows, el), rows[1], 1);
+      methods.onShelfUnpinned.call(ctx(rows, el), rows[1], 1);
 
       expect(focus).toHaveBeenCalledWith();
     });
 
     it('should fall back to the switcher when the shelf empties', () => {
-      const rows = [{ id: 'a', label: 'A' }];
+      const rows: Row[] = [{ id: 'a', label: 'A' }];
       const el = shelfDom([]);
-      const focus = jest.spyOn(el.querySelector('[data-testid="cluster-switcher-trigger"]'), 'focus');
+      const focus = spyFocus(el, '[data-testid="cluster-switcher-trigger"]');
 
-      TopLevelMenu.methods.onShelfUnpinned.call(ctx(rows, el), rows[0], 0);
+      methods.onShelfUnpinned.call(ctx(rows, el), rows[0], 0);
 
       expect(focus).toHaveBeenCalledWith();
     });
 
     // A live region ignores an unchanged value, so unpinning two rows with the same name in a row would
     // announce only the first without the clear-then-set.
-    it('should re-announce an identical message', async() => {
-      const context = { navAnnouncement: 'x', $nextTick: (fn) => fn() };
+    it('should re-announce an identical message', () => {
+      const context = { navAnnouncement: 'x', $nextTick: (fn: () => void) => fn() };
 
-      TopLevelMenu.methods.announce.call(context, 'same');
+      methods.announce.call(context, 'same');
       expect(context.navAnnouncement).toStrictEqual('same');
 
-      TopLevelMenu.methods.announce.call(context, 'same');
+      methods.announce.call(context, 'same');
       expect(context.navAnnouncement).toStrictEqual('same');
     });
   });
