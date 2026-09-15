@@ -46,6 +46,7 @@ const RowStub = {
   emits:    ['focus-row', 'select', 'unpinned'],
   template: `<li :id="id" class="cluster-switcher-row" :class="{ active }">
                 <button class="row-main" :tabindex="tabbable ? 0 : -1" @focus="$emit('focus-row')"></button>
+                <button class="row-pin" :tabindex="tabbable ? 0 : -1"></button>
               </li>`,
 };
 
@@ -544,6 +545,30 @@ describe('component: ClusterSwitcher', () => {
     expect((wrapper.emitted('select')?.[0]?.[0] as any)?.id).toBe('p2');
   });
 
+  // Space is the other half of the native button contract: once a row and its pin are real buttons, Space
+  // has to reach them rather than be read as the user starting to type in the search box.
+  it.each([
+    ['row', '.row-main'],
+    ['pin', '.row-pin'],
+  ])('leaves Space on a focused %s to the button, rather than routing it to the search box', async(_what, selector) => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    await nextTick();
+
+    const control = wrapper.find(selector).element as HTMLElement;
+
+    control.focus();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    await nextTick();
+
+    expect(document.activeElement).toStrictEqual(control);
+    expect(wrapper.emitted('update:search')).toBeUndefined();
+  });
+
   it('leaves Enter on a focused row to the button itself, so it is not explored twice', async() => {
     const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
     const vm = wrapper.vm as any;
@@ -712,8 +737,8 @@ describe('component: ClusterSwitcher', () => {
       expect(input().attributes('aria-haspopup')).toBeUndefined();
       expect(input().attributes('aria-expanded')).toBeUndefined();
       expect(input().attributes('aria-activedescendant')).toBeUndefined();
-      // It still says which region it searches.
-      expect(input().attributes('aria-controls')).toBe('cluster-switcher-listbox');
+      // `aria-controls` went with the combobox too — it has no meaning on a plain textbox.
+      expect(input().attributes('aria-controls')).toBeUndefined();
 
       (wrapper.vm as any).setOpen(true);
       await wrapper.vm.$nextTick();
@@ -752,12 +777,10 @@ describe('component: ClusterSwitcher', () => {
         local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2
       });
       const vm = wrapper.vm as any;
-      const input = () => wrapper.find('input.switcher-search-input');
 
       // local heads the navigation model, but the visible list still renders only the directory.
       expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'p1', 'p2']);
       expect(vm.rows.map((c: any) => c.id)).toStrictEqual(['p1', 'p2']);
-      expect(input().attributes('aria-controls')).toBe('cluster-switcher-listbox');
 
       // Opening highlights nothing — a highlight nobody asked for reads as a selection, and Enter would
       // act on it — so Enter is inert until the user has driven the cursor.
@@ -978,13 +1001,11 @@ describe('component: ClusterSwitcher', () => {
         await nextTick();
 
         // Nothing has moved the cursor, so no row holds focus.
-        expect(vm.keyboardActive).toBe(false);
         expect(activeLabel(wrapper)).toBeNull();
 
         vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
         await nextTick();
 
-        expect(vm.keyboardActive).toBe(true);
         expect(activeLabel(wrapper)).toBe('cluster-switcher-opt-p1');
 
         // The pointer moves the highlight but must NOT steal focus — dragging the mouse across the list
@@ -992,47 +1013,24 @@ describe('component: ClusterSwitcher', () => {
         vm.onPointerMove(pointerOver('cluster-switcher-opt-p2'));
         await nextTick();
 
-        expect(vm.keyboardActive).toBe(false);
         expect(vm.activeIndex).toBe(1);
         expect(activeLabel(wrapper)).toBe('cluster-switcher-opt-p1');
       });
 
-      // The pointer takes over even when it lands on the row the keyboard already had: the ring claims
-      // the keyboard put the cursor there, and once the mouse is moving that has stopped being true.
-      it('drops the ring when the pointer lands on the row that already has the cursor', async() => {
-        const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+      // Typing is keyboard use, but it is not the user steering the cursor: the first match takes the
+      // cursor without focus following it, so the caret stays in the field the user is typing into.
+      it('highlights the first match of a search without moving focus to it', async() => {
+        const wrapper = mountFocusable({ all: [cluster('p1')], searchResults: [cluster('m1')] });
         const vm = wrapper.vm as any;
 
         vm.setOpen(true);
         await nextTick();
-        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
-        expect(vm.keyboardActive).toBe(true);
-
-        vm.onPointerMove(pointerOver('cluster-switcher-opt-p1'));
-        await nextTick();
-
-        expect(vm.activeIndex).toBe(0);
-        expect(vm.keyboardActive).toBe(false);
-
-        wrapper.unmount();
-      });
-
-      // Typing is keyboard use, but it is not the user steering the cursor: the first match is highlighted
-      // for them, and a ring around it would claim they had put it there.
-      it('does not ring the first match a search highlights', async() => {
-        const wrapper = mountSwitcher({ all: [cluster('p1')], searchResults: [cluster('m1')] });
-        const vm = wrapper.vm as any;
-
-        vm.setOpen(true);
-        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
-        expect(vm.keyboardActive).toBe(true);
 
         await wrapper.setProps({ search: 'm' } as any);
+        await nextTick();
 
         expect(vm.activeIndex).toBe(0);
-        expect(vm.keyboardActive).toBe(false);
-
-        wrapper.unmount();
+        expect(activeLabel(wrapper)).toBeNull();
       });
     });
 

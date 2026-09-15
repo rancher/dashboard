@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import ClusterIconMenu from '@shell/components/ClusterIconMenu.vue';
@@ -49,11 +49,6 @@ const emit = defineEmits(['select', 'focus-row', 'unpinned']);
 const store = useStore();
 const { t } = useI18n(store);
 
-const main = ref<HTMLButtonElement | null>(null);
-
-// The list moves focus here when the cursor lands on this row.
-defineExpose({ focus: () => main.value?.focus() });
-
 const meta = computed(() => {
   if (props.subtitle) {
     return props.subtitle;
@@ -95,7 +90,6 @@ function select() {
     :class="{ active, disabled: !cluster.ready }"
   >
     <button
-      ref="main"
       type="button"
       class="row-main"
       :tabindex="tabbable ? 0 : -1"
@@ -212,7 +206,6 @@ function select() {
     // own text carries its line-height on `.row-name` / `.row-meta`.
     min-height: 0;
     line-height: normal;
-
 
     // The row carries the ring (see below); two would be drawn otherwise.
     &:focus-visible {

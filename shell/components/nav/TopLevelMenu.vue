@@ -894,13 +894,15 @@ export default {
      * the next pin in the shelf (or the previous, when the last row goes), and announce the change —
      * the row leaving is the only other feedback, and that is invisible to a screen reader.
      */
-    onShelfUnpinned(cluster, index) {
+    onShelfUnpinned(cluster, index, rows) {
       this.announce(this.t('nav.switcher.aria.unpinnedCluster', { cluster: cluster.label }));
 
       // Pick the target by id, not by position in the DOM: the TransitionGroup keeps the unpinned row
       // mounted for the length of its leave animation, so a query right now still returns it — and
       // focusing a row that is on its way out drops focus to `<body>` a moment later.
-      const remaining = this.pinnedRows.filter((row) => row.id !== cluster.id);
+      // `rows` is the shelf the row was unpinned FROM — `index` indexes that shelf, not `pinnedRows`,
+      // and the two only coincide while `shelves` has the single pinned entry.
+      const remaining = rows.filter((row) => row.id !== cluster.id);
       const next = remaining[Math.min(index, remaining.length - 1)];
 
       this.$nextTick(() => {
@@ -1483,7 +1485,7 @@ export default {
                       v-if="!c.isLocal"
                       :cluster="c"
                       :tab-order="shown ? 0 : -1"
-                      @unpinned="onShelfUnpinned(c, index)"
+                      @unpinned="onShelfUnpinned(c, index, shelf.rows)"
                     />
                   </div>
                 </TransitionGroup>

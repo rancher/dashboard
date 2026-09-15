@@ -77,7 +77,6 @@ const NO_ACTIVE_INDEX = -1;
 
 const open = ref<boolean>(false);
 const activeIndex = ref<number>(NO_ACTIVE_INDEX);
-const keyboardActive = ref<boolean>(false);
 const searchInput = ref<HTMLElement | null>(null);
 const scroller = ref<HTMLElement | null>(null);
 const flyout = ref<HTMLElement | null>(null);
@@ -199,9 +198,9 @@ const indexByOptionId = computed<Record<string, number>>(() => navRows.value.red
   return acc;
 }, {} as Record<string, number>));
 
-// A pin toggle has nothing else to announce it — the pin control is `aria-hidden` inside the option and
-// the pin shortcut is the only keyboard route to it — so route a one-line confirmation through this live
-// region. Cleared whenever the result set is re-announced (search change / reopen).
+// The pin shortcut toggles the row under the cursor without focus ever being on the pin, so its own
+// `aria-pressed` is never spoken — route a one-line confirmation through this live region instead.
+// Cleared whenever the result set is re-announced (search change / reopen).
 const pinAnnouncement = ref<string>('');
 
 const statusMessage = computed(() => {
@@ -238,8 +237,6 @@ const onPointerMove = (e: MouseEvent) => {
     return;
   }
 
-  keyboardActive.value = false;
-
   if (index !== activeIndex.value) {
     activeIndex.value = index;
     cursorMoved.value = true;
@@ -250,7 +247,6 @@ const cursorMoved = ref<boolean>(false);
 
 watch(() => props.search, () => {
   activeIndex.value = restingIndex();
-  keyboardActive.value = false;
   cursorMoved.value = false;
   pinAnnouncement.value = '';
 });
@@ -291,7 +287,6 @@ const setOpen = (value: boolean) => {
   if (value) {
     focusOrigin.value = document.activeElement as HTMLElement | null;
     activeIndex.value = restingIndex();
-    keyboardActive.value = false;
     cursorMoved.value = false;
     pinAnnouncement.value = '';
     // Focus happens on the dropdown's `apply-show` (focusSearchInput) — here is too early, the teleported
@@ -428,7 +423,11 @@ const onKeyCapture = (e: Event) => {
     return;
   }
 
+  // Typing anywhere in the panel comes back to the search box — but a space on one of the panel's own
+  // buttons is not typing, it is how that button is activated. `key.length === 1` cannot tell the two
+  // apart, so the control holding focus decides.
   if (e.type === 'keydown' && key.key.length === 1 && !key.metaKey && !key.ctrlKey && !key.altKey &&
+    !(key.key === ' ' && rowControlHasFocus()) &&
     document.activeElement !== searchInput.value) {
     searchInput.value?.focus();
   }
@@ -516,6 +515,13 @@ const rowControls = (): HTMLElement[] => Array.from(
 );
 
 /**
+ * Focus is on a row's own control — the row button or its pin. Both are real `<button>`s, so the platform
+ * already turns the activation keys (Enter AND Space) into a click on them: the panel has to keep its
+ * hands off both while one of them holds focus, or it acts on the key the button is about to act on.
+ */
+const rowControlHasFocus = (): boolean => !!(document.activeElement as HTMLElement)?.closest?.('.row-main, .row-pin');
+
+/**
  * Move the cursor AND the focus. The rows are real buttons now, so the cursor is simply where focus is;
  * `nearest` scrolls as little as it can, so it does nothing while the row is already on screen.
  */
@@ -539,7 +545,6 @@ const isTabbable = (index: number): boolean => (activeIndex.value === NO_ACTIVE_
 /** A row took focus on its own — by Tab, or by a click. Keep the cursor with it rather than fighting it. */
 const onRowFocused = (index: number) => {
   activeIndex.value = index;
-  keyboardActive.value = true;
 };
 
 /**
@@ -630,13 +635,11 @@ const onKeydown = (e: KeyboardEvent) => {
   case 'ArrowDown':
     e.preventDefault();
     cursorMoved.value = true;
-    keyboardActive.value = true;
     focusRow(Math.min(activeIndex.value + 1, navRows.value.length - 1));
     break;
   case 'ArrowUp':
     e.preventDefault();
     cursorMoved.value = true;
-    keyboardActive.value = true;
 
     if (activeIndex.value === NO_ACTIVE_INDEX) {
       // The other way in: from nothing highlighted, Up enters the list at the bottom.
@@ -654,7 +657,7 @@ const onKeydown = (e: KeyboardEvent) => {
     // A focused row is a real button, so the platform already turns Enter into a click on it — handling
     // it here as well would explore the same cluster twice. Anywhere else in the panel, Enter belongs to
     // the cursor.
-    if (!(document.activeElement as HTMLElement)?.closest?.('.row-main, .row-pin')) {
+    if (!rowControlHasFocus()) {
       e.preventDefault();
       // Inert while nothing is highlighted: a row the user never moved to is not a choice they made.
       explore(navRows.value[activeIndex.value]);
@@ -726,6 +729,7 @@ defineExpose({
         ref="flyout"
         class="cluster-switcher-flyout"
         role="dialog"
+        aria-modal="true"
         :aria-label="t('nav.switcher.ariaLabel')"
         @mousemove="onPointerMove"
         @mousedown="keepSearchFocus"
@@ -752,7 +756,6 @@ defineExpose({
             :placeholder="placeholder"
             :aria-label="t('nav.switcher.aria.search')"
             :aria-keyshortcuts="pinShortcut"
-            :aria-controls="listboxId"
             @input="onInput"
           >
         </div>
