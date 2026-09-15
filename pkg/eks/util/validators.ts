@@ -1,4 +1,3 @@
-import { set } from '@shell/utils/object';
 import { EKSConfig, EKSNodeGroup, NormanCluster } from '@pkg/eks/types';
 
 export interface CruEKSContext {
@@ -20,35 +19,51 @@ const clusterNameRequired = (ctx: CruEKSContext) => {
   };
 };
 
+/**
+ * Validates `nodeName` when given, otherwise every node group in `ctx`: marks each unnamed node
+ * group with `__nameRequired: false` and removes the mark from the rest.
+ */
 const nodeGroupNamesRequired = (ctx: CruEKSContext) => {
   return (nodeName: string | undefined): null | string => {
+    const msg = ctx.t('validation.required', { key: ctx.t('eks.nodeGroups.name.label') });
+
     if (nodeName !== undefined) {
-      return nodeName === '' ? ctx.t('validation.required', { key: ctx.t('eks.nodeGroups.name.label') }) : null;
+      return nodeName === '' ? msg : null;
     }
 
-    return !!ctx.nodeGroups.find((group) => !group.nodegroupName) ? ctx.t('validation.required', { key: ctx.t('eks.nodeGroups.name.label') }) : null;
+    let out = null as null|string;
+
+    ctx.nodeGroups.forEach((group) => {
+      if (group.nodegroupName) {
+        delete group.__nameRequired;
+      } else {
+        group.__nameRequired = false;
+        out = msg;
+      }
+    });
+
+    return out;
   };
 };
 
+/**
+ * Validates every named node group in `ctx`: marks each one whose name is shared with
+ * `__nameUnique: false` and removes the mark from the rest.
+ */
 const nodeGroupNamesUnique = (ctx: CruEKSContext) => {
-  return (nodeName: string | undefined): null | string => {
+  return (): null | string => {
     let out = null as null|string;
 
-    const names = ctx.nodeGroups.map((node) => node.nodegroupName);
+    const names = ctx.nodeGroups.map((node) => node.nodegroupName).filter((name) => !!name);
 
-    if (nodeName !== undefined) {
-      const matchingNames = names.filter((n) => n === nodeName);
-
-      return matchingNames.length > 1 ? ctx.t('eks.errors.nodeGroups.nameUnique') : null;
-    }
     ctx.nodeGroups.forEach((group) => {
-      const name = group.nodegroupName;
-
-      if (names.filter((n) => n === name).length > 1) {
-        set(group, '__nameUnique', false);
+      if (names.filter((name) => name === group.nodegroupName).length > 1) {
+        group.__nameUnique = false;
         if (!out) {
           out = ctx.t('eks.errors.nodeGroups.nameUnique');
         }
+      } else {
+        delete group.__nameUnique;
       }
     });
 
