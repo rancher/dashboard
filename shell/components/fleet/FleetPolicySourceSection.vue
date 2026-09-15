@@ -81,37 +81,41 @@ const updateAllowed = (val: string[]) => {
     expandable
     :data-testid="testid"
   >
-    <div class="policy-field">
-      <LabeledSelect
-        v-model:value="defaultServiceAccount"
-        :options="props.serviceAccountOptions"
-        :label="t(`${ prefix }.defaultServiceAccount.label`)"
-        :placeholder="t('fleet.policy.placeholder.serviceAccount')"
-        :mode="props.mode"
-        :taggable="true"
-        :searchable="true"
-        :clearable="true"
-        :data-testid="`${ testid }-default-service-account`"
-      />
-      <p class="sub-description">
-        {{ t(`${ prefix }.defaultServiceAccount.description`) }}
-      </p>
+    <div class="row">
+      <div class="col span-6 policy-field">
+        <LabeledSelect
+          v-model:value="defaultServiceAccount"
+          :options="props.serviceAccountOptions"
+          :label="t(`${ prefix }.defaultServiceAccount.label`)"
+          :placeholder="t('fleet.policy.placeholder.serviceAccount')"
+          :mode="props.mode"
+          :taggable="true"
+          :searchable="true"
+          :clearable="true"
+          :data-testid="`${ testid }-default-service-account`"
+        />
+        <p class="sub-description">
+          {{ t(`${ prefix }.defaultServiceAccount.description`) }}
+        </p>
+      </div>
     </div>
-    <div class="policy-field">
-      <LabeledSelect
-        v-model:value="defaultSecret"
-        :options="props.secretOptions"
-        :label="t(`${ prefix }.defaultSecret.label`)"
-        :placeholder="t('fleet.policy.placeholder.secret')"
-        :mode="props.mode"
-        :taggable="true"
-        :searchable="true"
-        :clearable="true"
-        :data-testid="`${ testid }-default-secret`"
-      />
-      <p class="sub-description">
-        {{ t(`${ prefix }.defaultSecret.description`) }}
-      </p>
+    <div class="row">
+      <div class="col span-6 policy-field">
+        <LabeledSelect
+          v-model:value="defaultSecret"
+          :options="props.secretOptions"
+          :label="t(`${ prefix }.defaultSecret.label`)"
+          :placeholder="t('fleet.policy.placeholder.secret')"
+          :mode="props.mode"
+          :taggable="true"
+          :searchable="true"
+          :clearable="true"
+          :data-testid="`${ testid }-default-secret`"
+        />
+        <p class="sub-description">
+          {{ t(`${ prefix }.defaultSecret.description`) }}
+        </p>
+      </div>
     </div>
     <RadioGroup
       v-model:value="restricted"
@@ -138,9 +142,9 @@ const updateAllowed = (val: string[]) => {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-width: 50%;
 
   .sub-description {
+    color: var(--input-label);
     font-size: 12px;
   }
 }
