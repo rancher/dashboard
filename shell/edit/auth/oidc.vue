@@ -9,7 +9,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import { Banner } from '@components/Banner';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
@@ -32,7 +32,7 @@ export default {
     Loading,
     CruResource,
     AllowedPrincipals,
-    FileSelector,
+    FileSelectorTextArea,
     AuthBanner,
     AuthProviderWarningBanners,
     AdvancedSection,
@@ -437,34 +437,19 @@ export default {
           v-if="requiresCert"
           class="row mb-20"
         >
-          <div class="col span-6">
-            <LabeledInput
+          <div class="col span-12">
+            <FileSelectorTextArea
               v-model:value="model.privateKey"
+              class="mb-20"
               :label="t(`authConfig.oidc.key.label`)"
               :placeholder="t(`authConfig.oidc.key.placeholder`)"
               :mode="mode"
-              type="multiline"
             />
-            <FileSelector
-              class="role-tertiary add mt-5"
-              :label="t('generic.readFromFile')"
-              :mode="mode"
-              @selected="model.privateKey = $event"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledInput
+            <FileSelectorTextArea
               v-model:value="model.certificate"
               :label="t(`authConfig.oidc.cert.label`)"
               :placeholder="t(`authConfig.oidc.cert.placeholder`)"
               :mode="mode"
-              type="multiline"
-            />
-            <FileSelector
-              class="role-tertiary add mt-5"
-              :label="t('generic.readFromFile')"
-              :mode="mode"
-              @selected="model.certificate = $event"
             />
           </div>
         </div>
