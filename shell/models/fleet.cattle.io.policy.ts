@@ -1,9 +1,10 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { set } from '@shell/utils/object';
+import type { FleetPolicySource } from '@shell/types/fleet';
 
-const SOURCE_KEYS = ['gitRepo', 'helmOp'];
+const SOURCE_KEYS = ['gitRepo', 'helmOp'] as const;
 
-function isEmptyValue(value) {
+function isEmptyValue(value: unknown): boolean {
   if (value === undefined || value === null || value === '') {
     return true;
   }
@@ -12,6 +13,18 @@ function isEmptyValue(value) {
 }
 
 export default class FleetPolicy extends SteveModel {
+  declare metadata: {
+    name?: string;
+    namespace?: string;
+    annotations?: Record<string, string>;
+  };
+
+  declare requireServiceAccount?: boolean;
+  declare allowedServiceAccounts?: string[];
+  declare allowNamespaceCreation?: boolean;
+  declare gitRepo?: FleetPolicySource;
+  declare helmOp?: FleetPolicySource;
+
   applyDefaults() {
     const meta = this.metadata || {};
 
@@ -22,7 +35,7 @@ export default class FleetPolicy extends SteveModel {
     set(this, 'metadata', meta);
   }
 
-  cleanForSave(data, forNew) {
+  cleanForSave(data: Record<string, any>, forNew?: boolean): Record<string, any> {
     const val = super.cleanForSave(data, forNew);
 
     if (isEmptyValue(val.allowedServiceAccounts)) {
