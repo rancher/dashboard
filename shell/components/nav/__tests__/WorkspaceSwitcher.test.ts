@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import WorkspaceSwitcher from '@shell/components/nav/WorkspaceSwitcher.vue';
 
 describe('component: WorkspaceSwitcher', () => {
@@ -7,14 +7,15 @@ describe('component: WorkspaceSwitcher', () => {
     { id: 'fleet-local', nameDisplay: 'fleet-local' }
   ];
 
-  const mountSwitcher = (workspace: string, dispatch = jest.fn()) => {
-    const wrapper = mount(WorkspaceSwitcher, {
+  const mountSwitcher = (workspace: string, allWorkspaces = workspaces) => {
+    const dispatch = jest.fn();
+    const wrapper = shallowMount(WorkspaceSwitcher, {
       global: {
         mocks: {
           $store: {
             state: {
               workspace,
-              allWorkspaces:    workspaces,
+              allWorkspaces,
               allNamespaces:    [],
               defaultNamespace: '',
             },
@@ -22,8 +23,7 @@ describe('component: WorkspaceSwitcher', () => {
             commit:  jest.fn(),
             dispatch,
           }
-        },
-        stubs: { Select: true }
+        }
       }
     });
 
@@ -42,10 +42,16 @@ describe('component: WorkspaceSwitcher', () => {
     expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'removed-workspace' });
   });
 
+  it('should restore the first workspace when there is nothing selected', () => {
+    const { dispatch } = mountSwitcher('');
+
+    expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'fleet-default' });
+  });
+
   it('should offer every known workspace as an option', () => {
     const { wrapper } = mountSwitcher('fleet-default');
 
-    expect((wrapper.vm as any).options).toStrictEqual([
+    expect(wrapper.vm.options).toStrictEqual([
       { label: 'fleet-default', value: 'fleet-default' },
       { label: 'fleet-local', value: 'fleet-local' }
     ]);
