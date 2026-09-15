@@ -41,7 +41,8 @@ const i18n = useI18n(store);
     top: 0;
   }
 
-  :deep() .cru-resource-footer {
+  :deep() .cru-resource-footer,
+  :deep() .cru__footer {
     display: none;
   }
 }
