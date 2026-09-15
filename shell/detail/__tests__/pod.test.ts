@@ -1,4 +1,5 @@
 import podDetail from '@shell/detail/pod.vue';
+import { AGE, NAME, NAMESPACE, STATE } from '@shell/config/table-headers';
 
 const { containers } = podDetail.computed!;
 
@@ -37,5 +38,21 @@ describe('view: pod', () => {
 
     expect(initRow.initIcon).toBe('icon-checkmark text-success ml-5');
     expect(appRow.initIcon).toBe('icon-minus text-muted ml-5');
+  });
+
+  describe('pvcHeaders', () => {
+    const configuredHeaders = [STATE, NAME, NAMESPACE, AGE];
+
+    const stub = {
+      $store:    { getters: { 'type-map/headersFor': () => [...configuredHeaders] } },
+      pvcSchema: {},
+    };
+
+    it('drops the namespace column', () => {
+      const names = (podDetail as any).computed.pvcHeaders.call(stub).map((h: any) => h.name);
+
+      expect(names).not.toContain(NAMESPACE.name);
+      expect(names).toStrictEqual([STATE.name, NAME.name, AGE.name]);
+    });
   });
 });
