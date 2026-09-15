@@ -23,6 +23,7 @@ import {
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
 import { RcSeparator } from '@components/RcSeparator';
+import { RcHeading } from '@components/RcHeading';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
@@ -40,6 +41,7 @@ export default {
     Wizard,
     TableOfContents,
     RcSeparator,
+    RcHeading,
   },
 
   props: {
@@ -754,13 +756,13 @@ export default {
                     class="title"
                     :class="{'with-description': !!subtype.description}"
                   >
-                    <h5>
+                    <RcHeading :size="5">
                       <span
                         v-if="$store.getters['i18n/exists'](subtype.label)"
                         v-clean-html="t(subtype.label)"
                       />
                       <span v-else>{{ subtype.label }}</span>
-                    </h5>
+                    </RcHeading>
                     <a
                       v-if="subtype.docLink"
                       :href="subtype.docLink"
@@ -1049,6 +1051,10 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+  .subtype-body .title h2 {
+    margin: 0;
+  }
+
 $logo: 60px;
 $logo-space: 100px;
 
