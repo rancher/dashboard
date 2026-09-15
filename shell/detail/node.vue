@@ -222,7 +222,7 @@ export default {
       />
       <ConsumptionGauge
         :resource-name="t('node.detail.glance.consumptionGauge.memory')"
-        :capacity="value.ramReserved"
+        :capacity="value.ramAllocatable"
         :used="value.ramUsage"
         :number-formatter="memoryFormatter"
       />
