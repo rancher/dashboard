@@ -139,86 +139,35 @@ describe('getters', () => {
   });
 });
 
-describe('mutations', () => {
-  describe('updateWorkspace', () => {
-    const workspaces = [{ id: 'fleet-default' }, { id: 'fleet-local' }, { id: 'my-workspace' }];
-    const stateGetters = { currentProduct: { showWorkspaceSwitcher: true } };
-
-    const workspaceState = (allWorkspaces: { id: string }[]): { allWorkspaces: { id: string }[], workspace: string } => ({ allWorkspaces, workspace: '' });
-
-    it('should keep a workspace that exists', () => {
-      const state = workspaceState(workspaces);
-
-      mutations.updateWorkspace(state, {
-        value: 'my-workspace', all: undefined, getters: stateGetters
-      });
-
-      expect(state.workspace).toBe('my-workspace');
-    });
-
-    it('should fall back to the default workspace when the given one is not known', () => {
-      const state = workspaceState(workspaces);
-
-      mutations.updateWorkspace(state, {
-        value: 'removed-workspace', all: undefined, getters: stateGetters
-      });
-
-      expect(state.workspace).toBe('fleet-default');
-    });
-
-    it('should fall back to the first workspace when there is no default one', () => {
-      const state = workspaceState([{ id: 'my-workspace' }]);
-
-      mutations.updateWorkspace(state, {
-        value: 'removed-workspace', all: undefined, getters: stateGetters
-      });
-
-      expect(state.workspace).toBe('my-workspace');
-    });
-
-    it('should keep the given value when no workspaces are known yet', () => {
-      const state = workspaceState([]);
-
-      mutations.updateWorkspace(state, {
-        value: 'my-workspace', all: undefined, getters: stateGetters
-      });
-
-      expect(state.workspace).toBe('my-workspace');
-    });
-
-    it('should store the given list of workspaces', () => {
-      const state = workspaceState([]);
-
-      mutations.updateWorkspace(state, {
-        value: 'fleet-local', all: workspaces, getters: stateGetters
-      });
-
-      expect(state.allWorkspaces).toStrictEqual(workspaces);
-      expect(state.workspace).toBe('fleet-local');
-    });
-  });
-});
-
 describe('actions', () => {
   describe('restoreWorkspace', () => {
-    const workspaces = [{ id: 'fleet-default' }, { id: 'fleet-local' }];
+    const workspaces = [{ id: 'fleet-default' }, { id: 'fleet-local' }, { id: 'my-workspace' }];
 
-    const context = (storedWorkspace: string) => {
-      const state = { allWorkspaces: workspaces, workspace: '' };
+    const context = (stored: string, allWorkspaces: { id: string }[] = workspaces) => {
+      const state = { allWorkspaces, workspace: '' };
       const getters = {
         currentProduct: { showWorkspaceSwitcher: true },
-        'prefs/get':    () => storedWorkspace,
+        'prefs/get':    () => stored,
       };
 
       return {
         state,
         getters,
-        commit:   (_name: string, payload: { value: string, all: undefined, getters: unknown }) => mutations.updateWorkspace(state, payload),
+        commit:   (_name: string, payload: { value: string, all: { id: string }[], getters: unknown }) => mutations.updateWorkspace(state, payload),
         dispatch: jest.fn(),
       };
     };
 
-    it('should replace and persist a stored workspace that no longer exists', () => {
+    it('should keep a workspace that exists', () => {
+      const ctx = context('my-workspace');
+
+      actions.restoreWorkspace(ctx, { value: 'my-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('my-workspace');
+      expect(ctx.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should replace a stored workspace that no longer exists and correct the preference', () => {
       const ctx = context('removed-workspace');
 
       actions.restoreWorkspace(ctx, { value: 'removed-workspace', all: undefined });
@@ -227,28 +176,28 @@ describe('actions', () => {
       expect(ctx.dispatch).toHaveBeenCalledWith('prefs/set', { key: 'workspace', value: 'fleet-default' });
     });
 
-    it('should not persist a workspace that is already stored', () => {
-      const ctx = context('fleet-local');
+    it('should fall back to the first workspace when there is no default one', () => {
+      const ctx = context('removed-workspace', [{ id: 'my-workspace' }]);
 
-      actions.restoreWorkspace(ctx, { value: 'fleet-local', all: undefined });
+      actions.restoreWorkspace(ctx, { value: 'removed-workspace', all: undefined });
 
-      expect(ctx.state.workspace).toBe('fleet-local');
+      expect(ctx.state.workspace).toBe('my-workspace');
+      expect(ctx.dispatch).toHaveBeenCalledWith('prefs/set', { key: 'workspace', value: 'my-workspace' });
+    });
+
+    it('should leave the value alone when no workspaces are known', () => {
+      const ctx = context('my-workspace', []);
+
+      actions.restoreWorkspace(ctx, { value: 'my-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('my-workspace');
       expect(ctx.dispatch).not.toHaveBeenCalled();
     });
 
-    it('should leave a stored workspace alone when restoring a different value', () => {
-      const ctx = context('fleet-local');
+    it('should not touch the preference when restoring a value the user did not store', () => {
+      const ctx = context('my-workspace');
 
       actions.restoreWorkspace(ctx, { value: 'fleet-default', all: undefined });
-
-      expect(ctx.dispatch).not.toHaveBeenCalled();
-    });
-
-    it('should leave the preference alone when no workspaces are known', () => {
-      const ctx = context('removed-workspace');
-
-      ctx.state.allWorkspaces = [];
-      actions.restoreWorkspace(ctx, { value: 'removed-workspace', all: undefined });
 
       expect(ctx.dispatch).not.toHaveBeenCalled();
     });
@@ -258,6 +207,16 @@ describe('actions', () => {
 
       actions.restoreWorkspace(ctx, { value: 'fleet-default', all: undefined });
 
+      expect(ctx.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should store a list of workspaces given to it', () => {
+      const ctx = context('fleet-local', []);
+
+      actions.restoreWorkspace(ctx, { value: 'fleet-local', all: workspaces });
+
+      expect(ctx.state.allWorkspaces).toStrictEqual(workspaces);
+      expect(ctx.state.workspace).toBe('fleet-local');
       expect(ctx.dispatch).not.toHaveBeenCalled();
     });
   });
