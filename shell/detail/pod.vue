@@ -303,6 +303,6 @@ export default {
 
 <style lang="scss" scoped>
 .caption {
-  margin-bottom: .5em;
+  margin-bottom: 16px;
 }
 </style>
