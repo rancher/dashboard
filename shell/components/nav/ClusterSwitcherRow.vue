@@ -174,9 +174,9 @@ function select() {
   }
 
   // ONE highlight, never two: `.active` is the cursor, and the pointer moves it by hovering (see the
-  // flyout's `onRowHover`) rather than painting a second highlight of its own. Two independent ones let
-  // the list show a keyboard row and a hovered row at the same time, neither of which was clearly "the"
-  // row Enter would take.
+  // flyout's `onPointerMove`) rather than painting a second highlight of its own. Two independent ones
+  // let the list show a keyboard row and a hovered row at the same time, neither of which was clearly
+  // "the" row Enter would take.
   &.active {
     background: color-mix(in srgb, var(--body-text) 6%, transparent);
   }

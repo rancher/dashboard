@@ -564,6 +564,16 @@ const onRowUnpinned = (index: number) => {
   });
 };
 
+// The row can also leave LATER: a cluster that is in this list only because it is pinned goes with the
+// pref, and the parent's `all` lands a store round-trip after the toggle — long after the check above has
+// had its look, by which time focus has already fallen to `<body>`. So watch the list rather than the
+// click, and watch it `post` so the row is really gone by the time we ask.
+watch(() => navRows.value.length, () => {
+  if (open.value && document.activeElement === document.body) {
+    searchInput.value?.focus();
+  }
+}, { flush: 'post' });
+
 // What Tab can land on inside the popover: the search box, and the cursor row's two controls — the row
 // itself and its pin. Everything else is `tabindex="-1"`, so Tab walks the row a user is actually on and
 // cannot wander the whole estate, while the pin stays reachable without knowing its shortcut.
@@ -586,11 +596,19 @@ const trapFocus = (e: KeyboardEvent) => {
 
   e.preventDefault();
 
-  const last = items.length - 1;
-  const current = items.indexOf(document.activeElement as HTMLElement);
+  // The pointer moves the cursor without moving focus, so the row HOLDING focus can be the one row that
+  // is no longer the tab stop — `tabindex="-1"` keeps it out of `items` altogether. Walking `items` from
+  // -1 would throw the user back to the search box instead of onto that row's pin, which is the one
+  // journey this panel exists to make possible, so fall back to the focused row's own two controls.
+  const focused = document.activeElement as HTMLElement;
+  const ownRow = items.includes(focused) ? null : focused?.closest?.('.cluster-switcher-row');
+  const ring = ownRow ? Array.from(ownRow.querySelectorAll<HTMLElement>('.row-main, .row-pin')) : items;
+
+  const last = ring.length - 1;
+  const current = ring.indexOf(focused);
   const next = e.shiftKey ? (current <= 0 ? last : current - 1) : (current === -1 || current === last ? 0 : current + 1);
 
-  items[next].focus();
+  ring[next].focus();
 };
 
 /**

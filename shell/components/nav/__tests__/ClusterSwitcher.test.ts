@@ -526,6 +526,60 @@ describe('component: ClusterSwitcher', () => {
     expect(tabindexes).toStrictEqual(['0', '-1', '-1']);
   });
 
+  // The pointer moves the cursor WITHOUT moving focus, so the row holding focus can be the one row that
+  // is no longer the tab stop. Tab still has to step onto that row's own pin — wrapping back to the
+  // search box strands the user midway through the one journey this panel exists to make possible.
+  it('Tab reaches the focused row\'s pin after the pointer has moved the cursor off it', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // focus onto the first row
+    await nextTick();
+
+    const rows = wrapper.findAll('.cluster-switcher-row');
+    const main = rows[0].element.querySelector('.row-main') as HTMLElement;
+    const pin = rows[0].element.querySelector('.row-pin') as HTMLElement;
+
+    expect(document.activeElement).toBe(main);
+
+    // The pointer drifts onto a different row: the cursor moves, and the tab stop with it, but focus stays.
+    vm.onPointerMove({ target: rows[2].element });
+    await nextTick();
+
+    expect(main.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(main);
+
+    vm.onKeydown({ key: 'Tab', preventDefault() {} });
+
+    expect(document.activeElement).toBe(pin);
+  });
+
+  // Unpinning a cluster that is in this list ONLY because it is pinned removes its row — but the parent's
+  // `all` lands a store round-trip later, long after the unpin handler has looked. Focus must not be left
+  // on `<body>`, outside the dialog and driving nothing.
+  it('returns focus to the search box when the unpinned row leaves on the parent update', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // onto the pinned-only row
+    await nextTick();
+
+    const pin = wrapper.findAll('.cluster-switcher-row')[1].element.querySelector('.row-pin') as HTMLElement;
+
+    pin.focus();
+    expect(document.activeElement).toBe(pin);
+
+    // The pref write comes back and the parent stops carrying the row.
+    await wrapper.setProps({ all: [cluster('p1')], clusterCount: 1 } as any);
+
+    expect(document.activeElement).toBe(wrapper.find('input.switcher-search-input').element);
+  });
+
   // Enter from the SEARCH BOX explores whatever the cursor is on. A focused row is a real button, so
   // Enter there is the platform's click — handling it here as well would explore the same row twice.
   it('Enter in the search box explores the active row', async() => {
