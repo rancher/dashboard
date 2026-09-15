@@ -23,8 +23,8 @@ const mocks = {
 };
 
 const policy = (data: Record<string, any> = {}) => ({
-  type:     'fleet.cattle.io.policy',
-  metadata: { namespace: 'fleet-default' },
+  type:          'fleet.cattle.io.policy',
+  metadata:      { namespace: 'fleet-default' },
   ...data,
   applyDefaults: jest.fn(),
 });
@@ -42,6 +42,14 @@ describe('edit: fleet.cattle.io.policy', () => {
     mountPolicy(value);
 
     expect(value).toStrictEqual(expect.objectContaining({ gitRepo: {}, helmOp: {} }));
+  });
+
+  it('should leave the defaults to the model, which only get applied when creating', () => {
+    const value = policy();
+
+    mountPolicy(value);
+
+    expect(value.applyDefaults).not.toHaveBeenCalled();
   });
 
   it('should render a section for GitRepo and one for HelmOps', () => {
@@ -68,13 +76,31 @@ describe('edit: fleet.cattle.io.policy', () => {
         { metadata: { name: 'tenant-1-deployer', namespace: 'fleet-default' } },
         { metadata: { name: 'elsewhere', namespace: 'fleet-local' } },
       ],
-      secrets: [{ metadata: { name: 'tenant-1-git-credentials', namespace: 'fleet-default' } }],
+      secrets: [
+        { _type: 'kubernetes.io/basic-auth', metadata: { name: 'tenant-1-git-credentials', namespace: 'fleet-default' } },
+        { _type: 'kubernetes.io/basic-auth', metadata: { name: 'elsewhere', namespace: 'fleet-local' } },
+      ],
     });
 
     await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.serviceAccountOptions).toStrictEqual(['tenant-1-deployer']);
     expect(wrapper.vm.secretOptions).toStrictEqual(['tenant-1-git-credentials']);
+  });
+
+  it('should only offer secrets a policy can actually reference', async() => {
+    const wrapper = mountPolicy(policy(), {
+      secrets: [
+        { _type: 'kubernetes.io/basic-auth', metadata: { name: 'tenant-1-git-credentials', namespace: 'fleet-default' } },
+        { _type: 'kubernetes.io/ssh-auth', metadata: { name: 'tenant-1-ssh', namespace: 'fleet-default' } },
+        { _type: 'helm.sh/release.v1', metadata: { name: 'sh.helm.release.v1.some-chart.v1', namespace: 'fleet-default' } },
+        { _type: 'kubernetes.io/service-account-token', metadata: { name: 'tenant-1-deployer-token', namespace: 'fleet-default' } },
+      ],
+    });
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.secretOptions).toStrictEqual(['tenant-1-git-credentials', 'tenant-1-ssh']);
   });
 
   describe('validation', () => {

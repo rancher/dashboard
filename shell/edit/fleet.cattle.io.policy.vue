@@ -7,7 +7,12 @@ import FleetPolicyServiceAccountsSection from '@shell/components/fleet/FleetPoli
 import FleetPolicySourceSection from '@shell/components/fleet/FleetPolicySourceSection.vue';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { FLEET, SECRET, SERVICE_ACCOUNT } from '@shell/config/types';
+import { SECRET_TYPES } from '@shell/config/secret';
 import { set } from '@shell/utils/object';
+
+// GitRepo and HelmOp credentials are basic-auth or SSH secrets; the other secrets a workspace
+// holds (helm releases, service account tokens) can never be referenced by a policy
+const CREDENTIAL_SECRET_TYPES = [SECRET_TYPES.BASIC, SECRET_TYPES.SSH];
 
 export default {
   name: 'CruFleetPolicy',
@@ -48,10 +53,6 @@ export default {
   },
 
   data() {
-    // The form always binds to both sub-objects; empty ones are dropped again on save
-    set(this.value, 'gitRepo', this.value.gitRepo || {});
-    set(this.value, 'helmOp', this.value.helmOp || {});
-
     return {
       workspaces:              [],
       serviceAccounts:         [],
@@ -63,7 +64,10 @@ export default {
   },
 
   created() {
-    this.value.applyDefaults?.();
+    // The form always binds to both sub-objects; empty ones are dropped again on save.
+    // Defaults for a new policy come from the model, applied by ResourceDetail on create only.
+    set(this.value, 'gitRepo', this.value.gitRepo || {});
+    set(this.value, 'helmOp', this.value.helmOp || {});
   },
 
   computed: {
@@ -80,7 +84,7 @@ export default {
     },
 
     secretOptions() {
-      return this.namesInNamespace(this.secrets);
+      return this.namesInNamespace(this.secrets.filter((secret) => CREDENTIAL_SECRET_TYPES.includes(secret._type || secret.type)));
     },
 
     // Restricting to a set of names only means anything once at least one name is picked;
@@ -122,15 +126,16 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription
-      :value="value"
-      :mode="mode"
-      :namespace-options="workspaceOptions"
-      name-label="fleet.policy.name.label"
-      data-testid="fleet-policy-name-ns-description"
-      @update:value="$emit('input', $event)"
-    />
-    <div class="policy-sections">
+    <div class="policy-form">
+      <NameNsDescription
+        :value="value"
+        :mode="mode"
+        :namespace-options="workspaceOptions"
+        name-label="fleet.policy.name.label"
+        :no-bottom-margin="true"
+        data-testid="fleet-policy-name-ns-description"
+        @update:value="$emit('input', $event)"
+      />
       <FleetPolicyServiceAccountsSection
         v-model:restricted="restrictServiceAccounts"
         :value="value"
@@ -158,9 +163,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.policy-sections {
+.policy-form {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-lg);
+  gap: var(--gap-md);
 }
 </style>
