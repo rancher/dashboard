@@ -168,7 +168,6 @@ export const nodePoolNames = (ctx: any) => {
 };
 
 export const nodePoolNamesUnique = (ctx: any) => {
-  // Flags each colliding pool the way nodePoolNames does, so its tab shows an error icon.
   return () :string | undefined => {
     const pools = ctx.nodePools || [];
     const poolNames = pools.map((pool: AKSNodePool) => pool.name);

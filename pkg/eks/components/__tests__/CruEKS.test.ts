@@ -57,8 +57,6 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   };
 };
 
-// Tabbed is stubbed by shallow mounting and a stub renders no default slot, so read the Tabs it
-// was given out of its slot vnodes; the first slot entry is the node group v-for fragment
 const nodeGroupTabErrors = (wrapper: VueWrapper<any>) => {
   const tabbed = wrapper.findComponent({ name: 'Tabbed' });
 
@@ -230,7 +228,6 @@ describe('eKS provisioning form', () => {
       shallow: true,
     });
 
-    // see above - DEFAULT_EKS_CONFIG does not satisfy EKSConfig
     await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG } as unknown as EKSConfig);
     wrapper.setData({ nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'abc' }, { nodegroupName: 'def' }] });
     await wrapper.vm.$nextTick();

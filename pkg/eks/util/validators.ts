@@ -20,9 +20,8 @@ const clusterNameRequired = (ctx: CruEKSContext) => {
 };
 
 /**
- * Validates one name when given it, and every node group when not. The message stays on the name
- * input either way; the context-wide arm marks unnamed node groups with `__nameRequired` so their
- * tab is flagged, which is the only sign an unnamed node group gives on a tab the user is not on.
+ * Validates `nodeName` when given, otherwise every node group in `ctx`: marks each unnamed node
+ * group with `__nameRequired: false` and removes the mark from the rest.
  */
 const nodeGroupNamesRequired = (ctx: CruEKSContext) => {
   return (nodeName: string | undefined): null | string => {
@@ -48,11 +47,8 @@ const nodeGroupNamesRequired = (ctx: CruEKSContext) => {
 };
 
 /**
- * Compares node groups against each other rather than validating one field, so it is not passed to
- * fvGetAndReportPathRules and its message appears as a banner at the top of the form instead.
- * Unnamed node groups are left to nodeGroupNamesRequired. Colliding node groups are marked with
- * `__nameUnique` so the tab component can flag them; the mark is removed rather than set true,
- * because node groups are sent to the API as they are.
+ * Validates every named node group in `ctx`: marks each one whose name is shared with
+ * `__nameUnique: false` and removes the mark from the rest.
  */
 const nodeGroupNamesUnique = (ctx: CruEKSContext) => {
   return (): null | string => {
