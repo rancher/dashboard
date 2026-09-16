@@ -34,7 +34,10 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
   it('should restore the selected workspace after a page reload', () => {
     appBundlesPage.goTo();
     appBundlesPage.waitForPage();
+
+    cy.intercept('PUT', '/v1/userpreferences/*').as('workspacePreference');
     headerPo.selectWorkspace(workspace);
+    cy.wait('@workspacePreference');
 
     cy.reload();
     appBundlesPage.waitForPage();
