@@ -36,6 +36,10 @@ const secretFields = computed(() => SECRET_FIELDS[props.variant]);
 const prefix = computed(() => `fleet.policy.${ props.variant }`);
 const testid = computed(() => `fleet-policy-${ props.variant === 'gitRepo' ? 'git-repo' : 'helm-op' }`);
 
+const setField = (field: keyof FleetPolicySource, value: string | string[]) => {
+  (props.value as Record<string, unknown>)[field] = value;
+};
+
 const allowedSecrets = computed(() => (props.value[secretFields.value.allowed] as string[]) || []);
 const restricted = defineModel<boolean>('restricted', { default: false });
 
@@ -48,9 +52,7 @@ const defaultServiceAccount = computed({
 
 const defaultSecret = computed({
   get: () => (props.value[secretFields.value.default] as string) || '',
-  set: (val: string) => {
-    (props.value as Record<string, unknown>)[secretFields.value.default] = val || '';
-  }
+  set: (val: string) => setField(secretFields.value.default, val || ''),
 });
 
 const restrictOptions = computed(() => [
@@ -64,13 +66,11 @@ const restrictOptions = computed(() => [
 
 watch(restricted, (val) => {
   if (!val) {
-    (props.value as Record<string, unknown>)[secretFields.value.allowed] = [];
+    setField(secretFields.value.allowed, []);
   }
 });
 
-const updateAllowed = (val: string[]) => {
-  (props.value as Record<string, unknown>)[secretFields.value.allowed] = val;
-};
+const updateAllowed = (val: string[]) => setField(secretFields.value.allowed, val);
 </script>
 
 <template>
