@@ -887,7 +887,7 @@ export const actions = {
     });
 
     if ( res[FLEET.WORKSPACE] ) {
-      await dispatch('restoreWorkspace', {
+      dispatch('restoreWorkspace', {
         value: getters['prefs/get'](WORKSPACE),
         all:   res[FLEET.WORKSPACE]
       });
@@ -1307,20 +1307,10 @@ export const actions = {
     commit('showWorkspaceSwitcher', value);
   },
 
-  restoreWorkspace({
-    commit, dispatch, getters, state
-  }, { value, all }) {
-    const known = all || state.allWorkspaces;
-
+  restoreWorkspace({ commit, getters, state }, { value, all }) {
     commit('updateWorkspace', {
-      value, all: known, getters
+      value, all: all || state.allWorkspaces, getters
     });
-
-    const stored = getters['prefs/get'](WORKSPACE);
-
-    if ( stored && known?.length && !findBy(known, 'id', stored) && state.workspace !== stored ) {
-      return dispatch('prefs/set', { key: WORKSPACE, value: state.workspace });
-    }
   },
 
   ...gcActions
