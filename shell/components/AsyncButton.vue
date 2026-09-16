@@ -302,6 +302,7 @@ export default defineComponent({
     :type="type"
     :disabled="disabled"
     :aria-disabled="appearsDisabled"
+    :aria-label="displayLabel"
     :tab-index="tabIndex"
     :data-testid="componentTestid + '-async-button'"
     @click="clicked"

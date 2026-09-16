@@ -184,4 +184,30 @@ describe('component: AsyncButton', () => {
     expect(item.find('span[data-testid="async-btn-display-label"]').attributes('id')).toBe(wrapper.vm.describedbyId);
     expect(item.find('i').attributes('alt')).toBeDefined();
   });
+
+  it('a11y: should have aria-label from displayLabel when no explicit aria-label is provided', () => {
+    const mockExists = jest.fn().mockReturnValue(true);
+    const mockT = jest.fn().mockReturnValue('Refresh');
+
+    const wrapper: VueWrapper<InstanceType<typeof AsyncButton>> = mount(AsyncButton, {
+      props:  { mode: 'refresh' },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              'i18n/exists': mockExists,
+              'i18n/t':      mockT
+            }
+          },
+        }
+      },
+    });
+
+    const button = wrapper.find('button');
+    const ariaLabel = button.attributes('aria-label');
+
+    // aria-label should be set to the displayLabel computed value
+    expect(ariaLabel).toBe('Refresh');
+    expect(wrapper.vm.displayLabel).toBe('Refresh');
+  });
 });
