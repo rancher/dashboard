@@ -550,12 +550,13 @@ authConfig:
       learnMore: How external authentication works
     disableLocal:
       label: Disable login with local users
-      descriptionOff: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
-      descriptionOn: Local accounts cannot be used to log in. They still exist and keep their permissions — switch this off to make them a way in again. You can only do that from here, so if the provider stops working while this is on, recovery means command-line access to the cluster.
+      description: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
+      risk: Local login is off. If every external provider becomes unreachable, no one will be able to sign in and recovery requires command-line access to the cluster.
     localRow:
       title: Local authentication
       chip: Built-in
       description: Accounts for administrators. Use only when a provider is unavailable.
+      descriptionDisabled: Accounts still exist and keep their permissions, but cannot be used to log in.
       meta: Rancher-managed accounts
       active: Active
       disabled: Disabled

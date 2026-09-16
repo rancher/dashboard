@@ -29,6 +29,16 @@ describe('component: AuthProviderRow', () => {
     expect(wrapper.find('.auth-provider-row__meta').text()).toBe('okta-corp');
   });
 
+  // A provider nobody can log in with has to read as more than an ordinary row.
+  it.each([
+    ['should set a provider that cannot be logged in with apart', true, true],
+    ['should leave a usable provider unmarked', false, false],
+  ])('%s', (_label, disabled, marked) => {
+    const wrapper = createWrapper({ title: 'local', disabled });
+
+    expect(wrapper.find('.auth-provider-row').classes('auth-provider-row--disabled')).toBe(marked);
+  });
+
   // Neither the description nor the meta line is guaranteed for a given config.
   it.each([
     ['description', '.auth-provider-row__description'],

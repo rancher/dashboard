@@ -68,7 +68,11 @@ export default {
     },
 
     localDescription() {
-      return this.localConfig?.description || this.t('authConfig.list.localRow.description');
+      if (this.localConfig?.description) {
+        return this.localConfig.description;
+      }
+
+      return this.disableLocalAuth ? this.t('authConfig.list.localRow.descriptionDisabled') : this.t('authConfig.list.localRow.description');
     },
 
     localUsersRoute() {
@@ -232,7 +236,8 @@ export default {
       :chips="[t('authConfig.list.localRow.chip')]"
       :description="localDescription"
       :meta="t('authConfig.list.localRow.meta')"
-      :status="disableLocalAuth ? 'none' : 'success'"
+      :disabled="disableLocalAuth"
+      :status="disableLocalAuth ? 'error' : 'success'"
       :status-label="disableLocalAuth ? t('authConfig.list.localRow.disabled') : t('authConfig.list.localRow.active')"
       data-testid="auth-config-row-local"
     >
