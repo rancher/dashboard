@@ -127,6 +127,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
+    :yaml-modifiers="{ collapseEmptyObjects: true }"
     :validation-passed="validationPassed"
     :errors="errors"
     @error="e => errors = e"
