@@ -15,6 +15,28 @@ const defaultMocks = {
   t: jest.fn((key) => key),
 };
 
+type MockRole = { isControlPlane?: boolean; isEtcd?: boolean };
+
+/**
+ * The subset of a machine/node that the dialog reads. RKE2 machines and non-RKE2 nodes
+ * expose different halves of it, so everything outside the common fields is optional.
+ */
+interface MockMachine extends MockRole {
+  id?: string;
+  cluster: { isRke2: boolean; machines?: MockRole[]; save?: jest.Mock };
+  provisioningCluster?: { nodes: MockRole[] };
+  norman?: { doAction: jest.Mock };
+  isWorker?: boolean;
+  poolName?: string;
+  pool?: { scalePool: jest.Mock };
+  save?: jest.Mock;
+  setAnnotation?: jest.Mock;
+  nameDisplay: string;
+  namespace?: string;
+  schema: string;
+  metadata?: { annotations: Record<string, string> };
+}
+
 const defaultCluster = {
   isRke2:   true,
   machines: [],
@@ -43,7 +65,7 @@ const createResource = (overrides: Record<string, any> = {}) => {
 };
 
 describe('component: ScaleMachineDownDialog', () => {
-  const createWrapper = (props: { resources?: ReturnType<typeof createResource>[] } = {}, mocks = {}) => {
+  const createWrapper = (props: { resources?: MockMachine[] } = {}, mocks = {}) => {
     const resources = props.resources || [createResource()];
 
     return shallowMount(ScaleMachineDownDialog, {

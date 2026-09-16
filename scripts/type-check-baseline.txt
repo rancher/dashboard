@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 303
+# Total errors: 301
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 pkg/aks/components/Config.vue: error TS2532: Object is possibly 'undefined'.
@@ -141,7 +141,6 @@ shell/components/google/util/gcp.ts: error TS2307: Cannot find module 'types/gcp
 shell/components/nav/NotificationCenter/Notification.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'NotificationLevel' can't be used to index type '{ 0: string; 5: string; 2: string; 1: string; 4: string; 3: string; }'.
 shell/composables/useUserRetentionValidation.ts: error TS2769: No overload matches this call.
 shell/detail/management.cattle.io.oidcclient.vue: error TS2307: Cannot find module '~shell/assets/images/key.svg' or its corresponding type declarations.
-shell/dialog/__tests__/ScaleMachineDownDialog.test.ts: error TS2740: Type '{ cluster: { isRke2: boolean; }; provisioningCluster: { nodes: never[]; }; norman: { doAction: Mock<any, any, any>; }; nameDisplay: string; schema: string; }' is missing the following properties from type '{ id: string; cluster: { isRke2: boolean; machines: never[]; save: Mock<any, any, any>; }; isWorker: boolean; poolName: string; pool: { scalePool: Mock<any, any, any>; }; save: Mock<any, any, any>; ... 4 more ...; metadata: { ...; }; }': id, isWorker, poolName, pool, and 4 more.
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
@@ -300,7 +299,6 @@ shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 
 shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
 shell/pages/home.vue: error TS18048: '__VLS_ctx.altClusterListFeature.configuration' is possibly 'undefined'.
 shell/plugins/steve/accept-or-reject-socket-message.ts: error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'ActionFindAllArgs'.
-shell/store/i18n.ts: error TS2353: Object literal may only specify known properties, and 'ignoreTag' does not exist in type 'Options'.
 shell/utils/duration.ts: error TS2345: Argument of type 'string' is not assignable to parameter of type 'null | undefined'.
 shell/utils/gc/gc-interval.ts: error TS2769: No overload matches this call.
 shell/utils/validators/private-registry.ts: error TS2307: Cannot find module 'types/store/vuex' or its corresponding type declarations.
