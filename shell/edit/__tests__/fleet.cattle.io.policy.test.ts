@@ -1,7 +1,9 @@
 import { shallowMount } from '@vue/test-utils';
+import flushPromises from 'flush-promises';
 import FleetPolicyComponent from '@shell/edit/fleet.cattle.io.policy.vue';
 import FleetPolicySourceSection from '@shell/components/fleet/FleetPolicySourceSection.vue';
 import { _CREATE } from '@shell/config/query-params';
+import { SECRET } from '@shell/config/types';
 
 const mockStore = {
   dispatch: jest.fn(),
@@ -29,10 +31,13 @@ const policy = (data: Record<string, any> = {}) => ({
   applyDefaults: jest.fn(),
 });
 
-const mountPolicy = (value = policy(), data = {}) => shallowMount(FleetPolicyComponent, {
+const mountPolicy = (value = policy(), data = {}, $store = mockStore) => shallowMount(FleetPolicyComponent, {
   props:  { value, mode: _CREATE },
   data:   () => data,
-  global: { mocks, stubs: { CruResource: { template: '<div><slot /></div>' } } },
+  global: {
+    mocks: { ...mocks, $store },
+    stubs: { CruResource: { template: '<div><slot /></div>' } }
+  },
 });
 
 describe('edit: fleet.cattle.io.policy', () => {
@@ -86,6 +91,21 @@ describe('edit: fleet.cattle.io.policy', () => {
 
     expect(wrapper.vm.serviceAccountOptions).toStrictEqual(['tenant-1-deployer']);
     expect(wrapper.vm.secretOptions).toStrictEqual(['tenant-1-git-credentials']);
+  });
+
+  it('should surface an error when the name lists cannot be fetched', async() => {
+    const failure = new Error('secrets is forbidden');
+    const store = {
+      ...mockStore,
+      dispatch: jest.fn((_action, { type }) => (type === SECRET ? Promise.reject(failure) : Promise.resolve([]))),
+      getters:  { ...mockStore.getters, 'management/schemaFor': () => ({ id: 'schema' }) },
+    };
+    const wrapper = mountPolicy(policy(), {}, store);
+
+    await wrapper.vm.$options.fetch.call(wrapper.vm);
+    await flushPromises();
+
+    expect(wrapper.vm.errors).toStrictEqual([failure]);
   });
 
   it('should only offer secrets a policy can actually reference', async() => {

@@ -8,6 +8,7 @@ import FleetPolicySourceSection from '@shell/components/fleet/FleetPolicySourceS
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { FLEET, SECRET, SERVICE_ACCOUNT } from '@shell/config/types';
 import { SECRET_TYPES } from '@shell/config/secret';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 import { set } from '@shell/utils/object';
 
 // GitRepo and HelmOp credentials are basic-auth or SSH secrets; the other secrets a workspace
@@ -53,6 +54,8 @@ export default {
     }, this.$store).then((names) => {
       this.serviceAccounts = names.serviceAccounts || [];
       this.secrets = names.secrets || [];
+    }).catch((e) => {
+      this.errors = exceptionToErrorsArray(e);
     });
   },
 
