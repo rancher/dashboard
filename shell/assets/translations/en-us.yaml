@@ -577,6 +577,13 @@ authConfig:
     irreversible: This cannot be undone. Disabling deletes all resources stored for this provider.
     acknowledge: I understand these users and permissions will be deleted
     confirm: Disable and delete
+  disableLocal:
+    title: Disable login with local users?
+    effect: From now on users sign in through external providers only. Local accounts are not deleted and keep their permissions, but they cannot be used to sign in.
+    recovery: You can switch this back off at any time from the provider list — but only while you can still sign in. If every external provider becomes unreachable while this is on, recovery requires command-line access to the cluster.
+    soleRoute: External providers become the only way to sign in, for every user including administrators.
+    acknowledge: I understand local accounts will no longer be able to sign in
+    confirm: Disable local login
   slo:
     sloTitle: Log Out behavior
     sloOptions:

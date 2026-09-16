@@ -4,6 +4,21 @@ import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
 const createWrapper = (props = {}) => mount(DisableLocalLoginCard, { props: { value: false, ...props } });
 
+const isChecked = (wrapper: any) => (wrapper.find('input[role="switch"]').element as HTMLInputElement).checked;
+
+/**
+ * The card resyncs the switch a tick after it moves, so the parent's answer - if
+ * it has one - has to land in between.
+ */
+const flipSwitch = async(wrapper: any, respond?: () => Promise<unknown>) => {
+  await wrapper.find('input[role="switch"]').trigger('input');
+
+  await respond?.();
+
+  await wrapper.vm.$nextTick();
+  await wrapper.vm.$nextTick();
+};
+
 describe('component: DisableLocalLoginCard', () => {
   it('should spell out what turning the switch on costs', () => {
     const wrapper = createWrapper();
@@ -40,6 +55,25 @@ describe('component: DisableLocalLoginCard', () => {
     wrapper.findComponent(ToggleSwitch).vm.$emit('update:value', true);
 
     expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([true]);
+  });
+
+  // ToggleSwitch tracks its own checked state, so a switch the parent declines to
+  // move - the confirmation was cancelled, the save was rejected - would otherwise
+  // sit there showing a value the flag was never put into.
+  it('should put the switch back when the parent declines the change', async() => {
+    const wrapper = createWrapper();
+
+    await flipSwitch(wrapper);
+
+    expect(isChecked(wrapper)).toBe(false);
+  });
+
+  it('should leave the switch flipped when the parent accepts the change', async() => {
+    const wrapper = createWrapper();
+
+    await flipSwitch(wrapper, () => wrapper.setProps({ value: true }));
+
+    expect(isChecked(wrapper)).toBe(true);
   });
 
   // The flag can be locked by the server, or out of reach for this user.
