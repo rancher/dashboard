@@ -664,7 +664,7 @@ export default {
   display: flex;
   box-shadow: 0 0 20px var(--shadow);
   border-radius: calc(var(--border-radius) * 2);
-  background-color: #f5f7FA;
+  background-color: var(--tabbed-sidebar-bg);
 
   .tab-container {
     padding: 20px;
