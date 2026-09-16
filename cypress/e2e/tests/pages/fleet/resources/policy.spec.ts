@@ -71,7 +71,7 @@ describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] 
       createPage.restrictSecrets('git-repo').set(1);
       createPage.enterName(createPage.allowedSecrets('git-repo'), clientSecret);
 
-      createPage.cruResource().saveOrCreate().click();
+      createPage.resourceDetail().cruResource().saveOrCreate().click();
 
       cy.wait('@createPolicy').then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
