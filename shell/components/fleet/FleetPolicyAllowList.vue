@@ -29,7 +29,6 @@ const update = (value: string[]) => emit('update:value', value || []);
     :title="props.title"
     mode="with-header"
     type="secondary"
-    background="secondary"
     expandable
     :data-testid="`${ props.dataTestid }-section`"
   >

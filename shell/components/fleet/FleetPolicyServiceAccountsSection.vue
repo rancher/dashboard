@@ -111,6 +111,7 @@ const updateAllowed = (val: string[]) => {
       name="fleet-policy-restrict-service-accounts"
       :options="restrictOptions"
       :mode="props.mode"
+      :aria-label="t('fleet.policy.serviceAccounts.title')"
       data-testid="fleet-policy-restrict-service-accounts"
     />
     <FleetPolicyAllowList
