@@ -227,13 +227,40 @@ describe('class AuthConfig', () => {
   describe('_availableActions', () => {
     // The parent getter reads runtime config the tests don't have, so it stands
     // in for whatever the base class offers.
-    const inherited = [
-      { action: 'showConfiguration', label: 'action.showConfiguration' },
+    const inherited: typeof Resource.prototype._availableActions = [
+      {
+        action:  'showConfiguration',
+        label:   'action.showConfiguration',
+        icon:    'icon icon-document',
+        enabled: true,
+      },
       { divider: true },
-      { action: 'goToEdit', label: 'action.edit' },
+      {
+        action:  'goToEdit',
+        label:   'action.edit',
+        icon:    'icon icon-edit',
+        enabled: true,
+      },
       { divider: true },
-      { action: 'download', label: 'action.download' },
-      { action: 'promptRemove', label: 'action.remove' },
+      {
+        action:     'download',
+        label:      'action.download',
+        icon:       'icon icon-download',
+        bulkable:   true,
+        bulkAction: 'downloadBulk',
+        enabled:    true,
+        weight:     0,
+      },
+      {
+        action:     'promptRemove',
+        altAction:  'remove',
+        label:      'action.remove',
+        icon:       'icon icon-trash',
+        bulkable:   true,
+        bulkAction: 'promptRemove',
+        enabled:    true,
+        weight:     -10,
+      },
     ];
 
     beforeEach(() => {
