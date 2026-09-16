@@ -42,11 +42,11 @@ const mountSwitcher = (props = {}, attachTo?: HTMLElement) => trackWrapper(shall
 // The rows are real buttons now, and the cursor is simply where focus is — so the keyboard tests need a
 // stub that can actually take focus, mounted in the real document.
 const RowStub = {
-  props:    ['cluster', 'active', 'tabbable', 'id'],
+  props:    ['cluster', 'active', 'tabbable', 'id', 'pinnable'],
   emits:    ['focus-row', 'select', 'unpinned'],
   template: `<li :id="id" class="cluster-switcher-row" :class="{ active }">
                 <button class="row-main" :tabindex="tabbable ? 0 : -1" @focus="$emit('focus-row')"></button>
-                <button class="row-pin" :tabindex="tabbable ? 0 : -1"></button>
+                <button v-if="pinnable !== false" class="row-pin" :tabindex="tabbable ? 0 : -1"></button>
               </li>`,
 };
 
@@ -554,6 +554,43 @@ describe('component: ClusterSwitcher', () => {
     vm.onKeydown({ key: 'Tab', preventDefault() {} });
 
     expect(document.activeElement).toBe(pin);
+
+    // …and Tab again has to LEAVE the row for the search box. The fallback ring is built from the row
+    // alone, so without the search box in it Tab shuttles between the row's two controls for ever.
+    vm.onKeydown({ key: 'Tab', preventDefault() {} });
+
+    expect(document.activeElement).toBe(wrapper.find('input.switcher-search-input').element);
+  });
+
+  // The `local` tile is `:pinnable="false"`, so the fallback ring built from its row alone is a SINGLE
+  // element — Tab re-focuses what is already focused and, with the keydown already prevented, visibly
+  // does nothing. The search box has to be in the ring for Tab to have anywhere to go.
+  it('Tab leaves the focused local tile for the search box, even though it has no pin', async() => {
+    const wrapper = mountFocusable({
+      local: cluster('local'), all: [cluster('p1')], clusterCount: 1
+    });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // focus onto the local tile
+    await nextTick();
+
+    const tile = wrapper.find('.switcher-local .cluster-switcher-row').element;
+    const main = tile.querySelector('.row-main') as HTMLElement;
+
+    expect(tile.querySelector('.row-pin')).toBeNull();
+    expect(document.activeElement).toBe(main);
+
+    // The pointer drifts onto the estate row: the tab stop moves, focus stays on the tile.
+    vm.onPointerMove({ target: wrapper.findAll('.switcher-group .cluster-switcher-row')[0].element });
+    await nextTick();
+
+    expect(main.getAttribute('tabindex')).toBe('-1');
+
+    vm.onKeydown({ key: 'Tab', preventDefault() {} });
+
+    expect(document.activeElement).toBe(wrapper.find('input.switcher-search-input').element);
   });
 
   // Unpinning a cluster that is in this list ONLY because it is pinned removes its row — but the parent's

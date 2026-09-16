@@ -599,10 +599,16 @@ const trapFocus = (e: KeyboardEvent) => {
   // The pointer moves the cursor without moving focus, so the row HOLDING focus can be the one row that
   // is no longer the tab stop — `tabindex="-1"` keeps it out of `items` altogether. Walking `items` from
   // -1 would throw the user back to the search box instead of onto that row's pin, which is the one
-  // journey this panel exists to make possible, so fall back to the focused row's own two controls.
+  // journey this panel exists to make possible, so fall back to that row's own controls — plus the
+  // panel's non-row tab stops, so Tab still has somewhere to go once it runs off the end of the row.
+  // Drop them and Tab shuttles between the row's two controls for ever; on the unpinnable `local` tile
+  // the ring is a single element, so Tab re-focuses what already has focus and visibly does nothing.
   const focused = document.activeElement as HTMLElement;
   const ownRow = items.includes(focused) ? null : focused?.closest?.('.cluster-switcher-row');
-  const ring = ownRow ? Array.from(ownRow.querySelectorAll<HTMLElement>('.row-main, .row-pin')) : items;
+  const ring = ownRow ? [
+    ...items.filter((el) => !el.closest('.cluster-switcher-row')),
+    ...Array.from(ownRow.querySelectorAll<HTMLElement>('.row-main, .row-pin')),
+  ] : items;
 
   const last = ring.length - 1;
   const current = ring.indexOf(focused);
