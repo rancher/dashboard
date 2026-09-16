@@ -18,7 +18,7 @@
     "serve-pkgs": "./shell/scripts/serve-pkgs",
     "publish-shell-reset-reg": "cd shell && npm publish",
     "clean": "./shell/scripts/clean",
-    "lint": "yarn lint:js && yarn lint:style",
+    "lint": "lint() { yarn lint:js \"$@\" && yarn lint:style \"$@\"; }; lint",
     "lint:js": "./node_modules/.bin/eslint --max-warnings 0 .",
     "lint:lib": "cd pkg/rancher-components && yarn lint",
     "lint:style": "./node_modules/.bin/stylelint \"{shell,pkg,storybook,docusaurus}/**/*.{vue,scss,css}\"",
