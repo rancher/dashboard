@@ -70,6 +70,9 @@ export default {
 
     return {
       authInfo:                {},
+      // The pin shortcut fires from anywhere on the page, so the toggle usually happens with focus
+      // elsewhere and its `aria-pressed` change is never spoken. This says what happened.
+      pinAnnouncement:         '',
       show:                    false,
       showTooltip:             false,
       isUserMenuOpen:          false,
@@ -436,6 +439,23 @@ export default {
       this.$refs.clusterPin?.toggle();
     },
 
+    /**
+     * Only when the pin does NOT have focus: a focused toggle reports itself through `aria-pressed`, and
+     * announcing as well would say it twice. Clearing first lets the same message repeat.
+     */
+    announcePin(cluster, pinned) {
+      if (this.$refs.clusterPin?.$el === document.activeElement) {
+        return;
+      }
+
+      const message = this.t(pinned ? 'nav.switcher.aria.pinnedCluster' : 'nav.switcher.aria.unpinnedCluster', { cluster: cluster.label });
+
+      this.pinAnnouncement = '';
+      this.$nextTick(() => {
+        this.pinAnnouncement = message;
+      });
+    },
+
     showMenu(show) {
       this.isUserMenuOpen = show;
     },
@@ -614,7 +634,16 @@ export default {
             class="cluster-pin"
             :aria-keyshortcuts="pinAriaShortcut"
             @shortkey="onPinShortcut"
+            @pinned="announcePin($event, true)"
+            @unpinned="announcePin($event, false)"
           />
+          <div
+            class="sr-only"
+            role="status"
+            aria-live="polite"
+          >
+            {{ pinAnnouncement }}
+          </div>
           <ClusterBadge
             v-if="currentCluster"
             :cluster="currentCluster"
