@@ -2,16 +2,26 @@ import { FleetApplicationListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.c
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { FleetWorkspaceListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.fleetworkspace.po';
+import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const defaultWorkspace = 'fleet-default';
 
 describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => {
   const appBundlesPage = new FleetApplicationListPagePo();
+  const fleetDashboardPage = new FleetDashboardListPagePo('_');
   const homePage = new HomePagePo();
   const headerPo = new HeaderPo();
 
   let workspace = '';
+
+  const navToAppBundles = () => {
+    FleetDashboardListPagePo.navTo();
+    fleetDashboardPage.waitForPage();
+    new ProductNavPo().navToSideMenuEntryByLabel('App Bundles');
+    appBundlesPage.waitForPage();
+  };
 
   beforeEach(() => {
     cy.login();
@@ -43,8 +53,7 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
 
     cy.deleteRancherResource('v3', 'fleetworkspaces', workspace);
 
-    appBundlesPage.navTo();
-    appBundlesPage.waitForPage();
+    navToAppBundles();
 
     headerPo.checkCurrentWorkspace(defaultWorkspace);
     headerPo.workspaceSwitcher().self().should('not.contain.text', workspace);
@@ -71,8 +80,7 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     promptRemove.remove();
     cy.wait('@deleteWorkspace');
 
-    appBundlesPage.navTo();
-    appBundlesPage.waitForPage();
+    navToAppBundles();
 
     headerPo.checkCurrentWorkspace(defaultWorkspace);
     headerPo.workspaceSwitcher().self().should('not.contain.text', workspace);
