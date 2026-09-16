@@ -252,7 +252,7 @@ export default {
         },
         image: {
           src: plugin.icon || this.defaultIcon,
-          alt: { text: this.t('plugins.altIcon', { extension: plugin.name }) },
+          alt: { text: '' },
         },
         content:        { text: plugin.description },
         actions:        this.getPluginActions(plugin),

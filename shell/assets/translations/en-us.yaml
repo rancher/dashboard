@@ -188,7 +188,7 @@ graph:
   rendering: Rendering chart...
 
 locale:
-  menu: Locale selector menu
+  menu: Language selector
   en-us: English
   zh-hans: 简体中文
   none: (None)
@@ -348,9 +348,9 @@ nav:
     button:
       label: Open user menu
   actionMenu:
-    label: Page actions menu
+    label: Page actions
     button:
-      label: Open page actions menu
+      label: Open page actions
   notifications:
     label: Notification Center
     button:
