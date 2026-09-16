@@ -64,7 +64,7 @@ export const graphConfig = {
   parseData:   (data) => {
     const bundles = data.bundles.map((bundle) => {
       const bundleLowercaseState = bundle.state ? bundle.state.toLowerCase() : 'unknown';
-      const bundleStateColor = STATES[bundleLowercaseState].color;
+      const bundleStateColor = STATES[bundleLowercaseState]?.color;
 
       const appChild = {
         id:             bundle.id,
@@ -108,7 +108,7 @@ export const graphConfig = {
     });
 
     const appLowercaseState = data.state ? data.state.toLowerCase() : 'unknown';
-    const appStateColor = STATES[appLowercaseState].color;
+    const appStateColor = STATES[appLowercaseState]?.color;
 
     return {
       id:             data.id,
