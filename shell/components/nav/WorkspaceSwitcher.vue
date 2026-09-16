@@ -65,7 +65,7 @@ export default {
       const currentExists = curr.find((item) => item.value === this.value);
 
       if (curr.length && !currentExists) {
-        this.value = curr[0]?.value;
+        this.$store.dispatch('restoreWorkspace', { value: this.value });
       }
     },
   },
@@ -76,7 +76,7 @@ export default {
     const initValue = this.workspace || this.$store.getters['prefs/get'](LAST_NAMESPACE) || '';
     const value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
 
-    if (!this.options.length || this.options.find((item) => item.value === value)) {
+    if (!this.options.length || this.options.some((item) => item.value === value)) {
       this.value = value;
     } else {
       this.$store.dispatch('restoreWorkspace', { value });

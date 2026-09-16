@@ -45,13 +45,18 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     appBundlesPage.waitForPage();
     headerPo.checkCurrentWorkspace(workspace);
 
+    // Leave the stored preference on the default, so the next test does not start out pointing at the
+    // workspace afterEach is about to delete.
     headerPo.selectWorkspace(defaultWorkspace);
   });
 
   it('should select the default workspace when the selected one is removed while the user is elsewhere', () => {
     appBundlesPage.goTo();
     appBundlesPage.waitForPage();
+
+    cy.intercept('PUT', '/v1/userpreferences/*').as('workspacePreference');
     headerPo.selectWorkspace(workspace);
+    cy.wait('@workspacePreference');
 
     HomePagePo.goTo();
     homePage.waitForPage();
@@ -69,7 +74,10 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
 
     appBundlesPage.goTo();
     appBundlesPage.waitForPage();
+
+    cy.intercept('PUT', '/v1/userpreferences/*').as('workspacePreference');
     headerPo.selectWorkspace(workspace);
+    cy.wait('@workspacePreference');
 
     FleetWorkspaceListPagePo.navTo();
     fleetWorkspacesListPage.waitForPage();

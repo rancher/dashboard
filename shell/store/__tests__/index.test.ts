@@ -145,12 +145,16 @@ describe('actions', () => {
 
     const context = (allWorkspaces: { id: string }[] = workspaces) => {
       const state = { allWorkspaces, workspace: '' };
-      const getters = { currentProduct: { showWorkspaceSwitcher: true } };
+      const storeGetters = { currentProduct: { showWorkspaceSwitcher: true } };
 
       return {
         state,
-        getters,
-        commit: (_name: string, payload: { value: string, all: { id: string }[], getters: unknown }) => mutations.updateWorkspace(state, payload),
+        getters: storeGetters,
+        commit:  (name: string, payload: { value: string, all: { id: string }[], getters: unknown }) => {
+          expect(name).toBe('updateWorkspace');
+
+          return mutations.updateWorkspace(state, payload);
+        },
       };
     };
 
