@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import WorkloadDetailEndpoints from '@shell/components/formatter/WorkloadDetailEndpoints.vue';
-import Tag from '@shell/components/Tag.vue';
+import Tag from '@shell/components/Tag';
 
 describe('component: WorkloadDetailEndpoints', () => {
   const withIngressAndHostname = [{
