@@ -6,7 +6,6 @@ import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.p
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
-import CruResourcePo from '@/cypress/e2e/po/components/cru-resource.po';
 
 export type PolicyVariant = 'git-repo' | 'helm-op';
 
@@ -102,9 +101,5 @@ export class FleetPolicyCreateEditPo extends BaseDetailPagePo {
     select.self().find('input.vs__search').click().type(name);
     cy.get('.vs__dropdown-menu').contains('li', name).click();
     select.self().find('.vs__selected').should('contain.text', name);
-  }
-
-  cruResource(): CruResourcePo {
-    return new CruResourcePo('.cru-resource-container');
   }
 }
