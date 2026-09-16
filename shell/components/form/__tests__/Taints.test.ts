@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Taints from '@shell/components/form/Taints.vue';
-import KeyValue from '@shell/components/form/KeyValue.vue';
+import KeyValue from '@shell/components/form/KeyValue';
 
 /**
  * `Select` takes its value through the `labeledFormElement` mixin, so `modelValue`

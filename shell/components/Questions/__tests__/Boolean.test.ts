@@ -1,4 +1,4 @@
-import Questions from '@shell/components/Questions/index.vue';
+import Questions from '@shell/components/Questions';
 import { mount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 import defaults from './utils/questions-defaults';
