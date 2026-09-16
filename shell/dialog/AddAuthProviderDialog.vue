@@ -159,6 +159,7 @@ const select = (id: string) => {
 <style lang="scss" scoped>
 // How far a focus ring reaches beyond the element it belongs to (offset + width)
 $tile-focus-ring: 4px;
+$results-height: 400px;
 
 .add-auth-provider {
   &.card-container {
@@ -205,6 +206,7 @@ $tile-focus-ring: 4px;
   &__grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    align-content: start;
     gap: 12px;
 
     // A scrolling box clips at its padding edge, which would cut the ring off an
@@ -213,7 +215,7 @@ $tile-focus-ring: 4px;
     margin: -$tile-focus-ring;
     padding: $tile-focus-ring;
     list-style: none;
-    max-height: 400px;
+    height: $results-height;
     overflow-y: auto;
 
     // The list scrolls, so browsers make it focusable in its own right - give it
@@ -235,8 +237,12 @@ $tile-focus-ring: 4px;
   }
 
   &__empty {
-    margin: 0;
-    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: $results-height;
+    margin: -$tile-focus-ring;
+    padding: $tile-focus-ring;
     color: var(--label-secondary);
     text-align: center;
   }
