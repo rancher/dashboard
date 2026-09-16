@@ -57,7 +57,7 @@ export default {
   },
 
   watch: {
-    options(curr, prev) {
+    options(curr) {
       if (curr.length === 0) {
         this.value = '';
       }
@@ -65,7 +65,7 @@ export default {
       const currentExists = curr.find((item) => item.value === this.value);
 
       if (curr.length && !currentExists) {
-        this.$store.dispatch('restoreWorkspace', { value: this.value });
+        this.restoreSelection(this.value);
       }
     },
   },
@@ -79,7 +79,7 @@ export default {
     if (!this.options.length || this.options.some((item) => item.value === value)) {
       this.value = value;
     } else {
-      this.$store.dispatch('restoreWorkspace', { value });
+      this.restoreSelection(value);
     }
   },
 
@@ -88,6 +88,17 @@ export default {
   },
 
   methods: {
+    // The store validates against the workspaces it knows about, but when the user cannot list them
+    // the options come from the workspace-annotated namespaces instead, which the store cannot see.
+    // Correct against the options that are actually rendered in that case.
+    restoreSelection(value) {
+      if (this.allWorkspaces.length) {
+        this.$store.dispatch('restoreWorkspace', { value });
+      } else {
+        this.value = this.options[0]?.value;
+      }
+    },
+
     focus() {
       this.$refs.select.$refs.search.focus();
     },
