@@ -93,11 +93,15 @@ export class FleetPolicyCreateEditPo extends BaseDetailPagePo {
   }
 
   /**
-   * The name selects are taggable, so a name that does not exist in the workspace yet is
-   * entered as free text and committed with Enter rather than picked from the options.
+   * The name fields are taggable selects, so a name that does not exist in the workspace yet is
+   * typed and then picked from the option the select creates for it. The dropdown is rendered
+   * outside the select, and only one is open at a time.
    */
   enterName(select: LabeledSelectPo, name: string) {
-    select.self().find('input.vs__search').type(`${ name }{enter}`);
+    // Clicking opens the dropdown - typing on its own leaves it closed and nothing is committed
+    select.self().find('input.vs__search').click().type(name);
+    cy.get('.vs__dropdown-menu').contains('li', name).click();
+    select.self().find('.vs__selected').should('contain.text', name);
   }
 
   cruResource(): CruResourcePo {
