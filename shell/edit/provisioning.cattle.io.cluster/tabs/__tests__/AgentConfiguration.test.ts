@@ -26,12 +26,20 @@ const createWrapper = (propsData: any = {}) => {
 
 describe('component: AgentConfiguration', () => {
   describe('nested section styling', () => {
-    it('should use the secondary section type for the Pod Affinity RcSection', () => {
+    it('should use the primary section type for the sections nested directly inside this tab', () => {
+      const wrapper = createWrapper({ schedulingCustomizationFeatureEnabled: true });
+
+      expect(wrapper.findComponent({ name: 'ContainerResourceLimit' }).props('sectionType')).toBe(SECTION_TYPE.PRIMARY);
+      expect(wrapper.findComponent({ name: 'Tolerations' }).props('sectionType')).toBe(SECTION_TYPE.PRIMARY);
+      expect(wrapper.findComponent({ name: 'SchedulingCustomization' }).props('sectionType')).toBe(SECTION_TYPE.PRIMARY);
+    });
+
+    it('should use the primary section type for the Pod Affinity RcSection', () => {
       const wrapper = createWrapper();
 
       const section = wrapper.findComponent({ name: 'RcSection' });
 
-      expect(section.props('type')).toBe(SECTION_TYPE.SECONDARY);
+      expect(section.props('type')).toBe(SECTION_TYPE.PRIMARY);
     });
   });
 });

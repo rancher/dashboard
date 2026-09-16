@@ -59,6 +59,14 @@ describe('component: ContainerResourceLimit', () => {
       expect(section.props('title')).toBe('Custom Title');
     });
 
+    it('should use a caller-provided sectionType over the default when rcCompatible is true', () => {
+      const wrapper = mount(ContainerResourceLimit, { propsData: { rcCompatible: true, sectionType: SECTION_TYPE.PRIMARY } });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.props('type')).toBe(SECTION_TYPE.PRIMARY);
+    });
+
     it('should still render the field inputs inside the RcSection', () => {
       const wrapper = mount(ContainerResourceLimit, { propsData: { rcCompatible: true, value: { requestsCpu: '111m' } } });
 

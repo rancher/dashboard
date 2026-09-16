@@ -43,6 +43,14 @@ describe('component: Tolerations', () => {
       expect(section.props('title')).toBe('Custom Title');
     });
 
+    it('should use a caller-provided sectionType over the default when rcCompatible is true', () => {
+      const wrapper = createWrapper({ propsData: { rcCompatible: true, sectionType: SECTION_TYPE.PRIMARY } });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.props('type')).toBe(SECTION_TYPE.PRIMARY);
+    });
+
     it('should render caller-provided banner slot content when rcCompatible is true', () => {
       const wrapper = createWrapper({
         propsData: { rcCompatible: true },

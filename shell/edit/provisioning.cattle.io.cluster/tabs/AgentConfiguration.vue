@@ -217,113 +217,109 @@ export default {
 </script>
 
 <template>
-  <RcSection
-    :title="t('cluster.agentConfig.groups.podAffinity')"
-    mode="with-header"
-    :type="SECTION_TYPE.PRIMARY"
-    :expandable="false"
-  >
-    <div class="agent-configuration">
-      <Banner
-        :closable="false"
-        color="info"
-        label-key="cluster.agentConfig.banners.advanced"
-        class="mt-0 mb-0"
-      />
+  <div class="agent-configuration">
+    <Banner
+      :closable="false"
+      color="info"
+      label-key="cluster.agentConfig.banners.advanced"
+      class="mt-0 mb-0"
+    />
 
-      <ContainerResourceLimit
-        v-model:value="flatResources"
-        :mode="mode"
-        :show-tip="false"
-        :handle-gpu-limit="false"
-        :rc-compatible="true"
-        :title="t('cluster.agentConfig.groups.podRequestsAndLimits')"
-      >
-        <template #banner>
-          <Banner
-            :closable="false"
-            color="info"
-            label-key="cluster.agentConfig.banners.limits"
-            class="mt-0"
-          />
-        </template>
-      </ContainerResourceLimit>
-
-      <Tolerations
-        v-model:value="value.appendTolerations"
-        :mode="mode"
-        :rc-compatible="true"
-        :title="t('cluster.agentConfig.groups.podTolerations')"
-      >
-        <template #banner>
-          <Banner
-            :closable="false"
-            color="info"
-            label-key="cluster.agentConfig.banners.tolerations"
-            class="mt-0"
-          />
-        </template>
-      </Tolerations>
-
-      <RcSection
-        :title="t('cluster.agentConfig.groups.podAffinity')"
-        mode="with-header"
-        :type="SECTION_TYPE.SECONDARY"
-        :expandable="true"
-      >
-        <RadioGroup
-          v-model:value="affinitySetting"
-          name="affinity-override"
-          :mode="mode"
-          :options="affinityOptions"
-          data-testid="affinity-options"
-          @update:value="affinitySettingChange"
-        />
-
+    <ContainerResourceLimit
+      v-model:value="flatResources"
+      :mode="mode"
+      :show-tip="false"
+      :handle-gpu-limit="false"
+      :rc-compatible="true"
+      :title="t('cluster.agentConfig.groups.podRequestsAndLimits')"
+      :section-type="SECTION_TYPE.PRIMARY"
+    >
+      <template #banner>
         <Banner
-          v-if="canEditAffinity"
           :closable="false"
-          color="warning"
+          color="info"
+          label-key="cluster.agentConfig.banners.limits"
           class="mt-0"
-        >
-          <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)" />
-        </Banner>
-
-        <PodAffinity
-          v-if="canEditAffinity"
-          :value="value"
-          field="overrideAffinity"
-          :mode="mode"
-          :all-namespaces-option-available="true"
-          :force-input-namespace-selection="true"
-          :remove-labeled-input-namespace-label="true"
-          :rc-compatible="true"
-          data-testid="pod-affinity"
-          @update:value="$emit('input', $event)"
         />
+      </template>
+    </ContainerResourceLimit>
 
-        <NodeAffinity
-          v-if="canEditAffinity"
-          v-model:value="nodeAffinity"
-          :matching-selector-display="true"
-          :mode="mode"
-          :rc-compatible="true"
-          data-testid="node-affinity"
-          @update:value="updateNodeAffinity"
+    <Tolerations
+      v-model:value="value.appendTolerations"
+      :mode="mode"
+      :rc-compatible="true"
+      :title="t('cluster.agentConfig.groups.podTolerations')"
+      :section-type="SECTION_TYPE.PRIMARY"
+    >
+      <template #banner>
+        <Banner
+          :closable="false"
+          color="info"
+          label-key="cluster.agentConfig.banners.tolerations"
+          class="mt-0"
         />
-      </RcSection>
-      <SchedulingCustomization
-        v-if="schedulingCustomizationVisible"
-        :value="value.schedulingCustomization"
+      </template>
+    </Tolerations>
+
+    <RcSection
+      :title="t('cluster.agentConfig.groups.podAffinity')"
+      mode="with-header"
+      :type="SECTION_TYPE.PRIMARY"
+      :expandable="true"
+    >
+      <RadioGroup
+        v-model:value="affinitySetting"
+        name="affinity-override"
         :mode="mode"
-        :type="type"
-        :feature="schedulingCustomizationFeatureEnabled"
-        :default-p-c="defaultPC"
-        :default-p-d-b="defaultPDB"
-        @scheduling-customization-changed="$emit('scheduling-customization-changed', $event)"
+        :options="affinityOptions"
+        data-testid="affinity-options"
+        @update:value="affinitySettingChange"
       />
-    </div>
-  </RcSection>
+
+      <Banner
+        v-if="canEditAffinity"
+        :closable="false"
+        color="warning"
+        class="mt-0"
+      >
+        <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)" />
+      </Banner>
+
+      <PodAffinity
+        v-if="canEditAffinity"
+        :value="value"
+        field="overrideAffinity"
+        :mode="mode"
+        :all-namespaces-option-available="true"
+        :force-input-namespace-selection="true"
+        :remove-labeled-input-namespace-label="true"
+        :rc-compatible="true"
+        data-testid="pod-affinity"
+        @update:value="$emit('input', $event)"
+      />
+
+      <NodeAffinity
+        v-if="canEditAffinity"
+        v-model:value="nodeAffinity"
+        :matching-selector-display="true"
+        :mode="mode"
+        :rc-compatible="true"
+        data-testid="node-affinity"
+        @update:value="updateNodeAffinity"
+      />
+    </RcSection>
+    <SchedulingCustomization
+      v-if="schedulingCustomizationVisible"
+      :value="value.schedulingCustomization"
+      :mode="mode"
+      :type="type"
+      :feature="schedulingCustomizationFeatureEnabled"
+      :default-p-c="defaultPC"
+      :default-p-d-b="defaultPDB"
+      :section-type="SECTION_TYPE.PRIMARY"
+      @scheduling-customization-changed="$emit('scheduling-customization-changed', $event)"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>

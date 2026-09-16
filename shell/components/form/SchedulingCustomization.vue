@@ -37,10 +37,16 @@ export default {
     checkboxWithOnlyAgentName: {
       type:    Boolean,
       default: false
+    },
+
+    // RcSection `type`.
+    sectionType: {
+      type:    String,
+      default: SECTION_TYPE.SECONDARY
     }
   },
   data() {
-    return { applyGlobal: false, SECTION_TYPE };
+    return { applyGlobal: false };
   },
   computed: {
     isEdit() {
@@ -67,7 +73,7 @@ export default {
   <RcSection
     :title="t('cluster.agentConfig.groups.schedulingCustomization')"
     mode="with-header"
-    :type="SECTION_TYPE.SECONDARY"
+    :type="sectionType"
     :expandable="true"
   >
     <Checkbox

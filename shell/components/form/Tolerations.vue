@@ -38,11 +38,17 @@ export default {
     title: {
       type:    String,
       default: ''
+    },
+
+    // RcSection `type` used when rcCompatible is true.
+    sectionType: {
+      type:    String,
+      default: SECTION_TYPE.SECONDARY
     }
   },
 
   data() {
-    return { rules: [], SECTION_TYPE };
+    return { rules: [] };
   },
 
   created() {
@@ -206,7 +212,7 @@ export default {
     v-if="rcCompatible"
     :title="sectionTitle"
     mode="with-header"
-    :type="SECTION_TYPE.SECONDARY"
+    :type="sectionType"
     :expandable="true"
   >
     <slot name="banner" />

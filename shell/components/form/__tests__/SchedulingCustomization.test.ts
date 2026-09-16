@@ -240,13 +240,21 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
   });
 
   describe('rcSection styling', () => {
-    it('should render the RcSection with the secondary type', () => {
+    it('should render the RcSection with the secondary type by default', () => {
       wrapper = createWrapper();
 
       const section = wrapper.findComponent({ name: 'RcSection' });
 
       expect(section.exists()).toBe(true);
       expect(section.props('type')).toBe(SECTION_TYPE.SECONDARY);
+    });
+
+    it('should use a caller-provided sectionType over the default', () => {
+      wrapper = createWrapper({ sectionType: SECTION_TYPE.PRIMARY });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.props('type')).toBe(SECTION_TYPE.PRIMARY);
     });
   });
 });
