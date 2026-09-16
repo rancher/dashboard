@@ -19,8 +19,6 @@ export default {
 
   inheritAttrs: false,
 
-  emits: ['input'],
-
   components: {
     CruResource,
     Loading,
@@ -37,6 +35,13 @@ export default {
         inStoreType: 'management',
         type:        FLEET.WORKSPACE
       },
+    }, this.$store);
+
+    this.workspaces = hash.workspaces || [];
+
+    // Every name select is taggable, so the form is usable before these land; awaiting them holds
+    // the whole form behind the spinner while every secret in the cluster is fetched
+    checkSchemasForFindAllHash({
       serviceAccounts: {
         inStoreType: 'management',
         type:        SERVICE_ACCOUNT
@@ -45,11 +50,10 @@ export default {
         inStoreType: 'management',
         type:        SECRET
       },
-    }, this.$store);
-
-    this.workspaces = hash.workspaces || [];
-    this.serviceAccounts = hash.serviceAccounts || [];
-    this.secrets = hash.secrets || [];
+    }, this.$store).then((names) => {
+      this.serviceAccounts = names.serviceAccounts || [];
+      this.secrets = names.secrets || [];
+    });
   },
 
   data() {
@@ -96,7 +100,7 @@ export default {
         [this.restrictHelmOpSecrets, this.value.helmOp?.allowedHelmSecretNames],
       ];
 
-      return restrictions.every(([restricted, allowed]) => !restricted || !!allowed?.length);
+      return !!this.value.name && restrictions.every(([restricted, allowed]) => !restricted || !!allowed?.length);
     },
   },
 
@@ -134,7 +138,6 @@ export default {
         name-label="fleet.policy.name.label"
         :no-bottom-margin="true"
         data-testid="fleet-policy-name-ns-description"
-        @update:value="$emit('input', $event)"
       />
       <FleetPolicyServiceAccountsSection
         v-model:restricted="restrictServiceAccounts"

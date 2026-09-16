@@ -104,14 +104,20 @@ describe('edit: fleet.cattle.io.policy', () => {
   });
 
   describe('validation', () => {
-    it('should pass when nothing is restricted', () => {
+    it('should fail while the policy has no name', () => {
       const wrapper = mountPolicy();
+
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('should pass when nothing is restricted', () => {
+      const wrapper = mountPolicy(policy({ name: 'tenant-1-policy' }));
 
       expect(wrapper.vm.validationPassed).toBe(true);
     });
 
     it('should fail while a restriction has no name selected yet', async() => {
-      const wrapper = mountPolicy();
+      const wrapper = mountPolicy(policy({ name: 'tenant-1-policy' }));
 
       await wrapper.setData({ restrictServiceAccounts: true });
 
@@ -119,7 +125,7 @@ describe('edit: fleet.cattle.io.policy', () => {
     });
 
     it('should pass once the restriction lists a name', async() => {
-      const value = policy({ allowedServiceAccounts: ['tenant-1-deployer'] });
+      const value = policy({ name: 'tenant-1-policy', allowedServiceAccounts: ['tenant-1-deployer'] });
       const wrapper = mountPolicy(value);
 
       await wrapper.setData({ restrictServiceAccounts: true });

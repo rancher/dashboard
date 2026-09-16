@@ -122,6 +122,7 @@ const updateAllowed = (val: string[]) => setField(secretFields.value.allowed, va
       :name="`${ testid }-restrict-secrets`"
       :options="restrictOptions"
       :mode="props.mode"
+      :aria-label="t(`${ prefix }.title`)"
       :data-testid="`${ testid }-restrict-secrets`"
     />
     <FleetPolicyAllowList
