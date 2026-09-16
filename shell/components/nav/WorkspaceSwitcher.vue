@@ -76,7 +76,11 @@ export default {
     const initValue = this.workspace || this.$store.getters['prefs/get'](LAST_NAMESPACE) || '';
     const value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
 
-    this.$store.dispatch('restoreWorkspace', { value });
+    if (!this.options.length || this.options.find((item) => item.value === value)) {
+      this.value = value;
+    } else {
+      this.$store.dispatch('restoreWorkspace', { value });
+    }
   },
 
   data() {
