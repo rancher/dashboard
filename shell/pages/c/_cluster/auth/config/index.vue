@@ -114,7 +114,20 @@ export default {
       return row.sideLabel ? [row.sideLabel] : [];
     },
 
-    async setDisableLocalAuth(value) {
+    setDisableLocalAuth(value) {
+      if (!value) {
+        return this.writeDisableLocalAuth(false);
+      }
+
+      this.$store.dispatch('management/promptModal', {
+        component:      'DisableLocalLoginDialog',
+        height:         'auto',
+        styles:         'max-height: 100vh;',
+        componentProps: { disableCb: () => this.writeDisableLocalAuth(true) },
+      });
+    },
+
+    async writeDisableLocalAuth(value) {
       const feature = this.localAuthFeature;
 
       if (!feature) {

@@ -211,26 +211,62 @@ describe('page: AuthConfigList', () => {
   });
 
   describe('disabling local login', () => {
-    it('should write the value straight to the feature flag', async() => {
+    const disableCbFrom = (wrapper: any) => {
+      const [action, payload] = (wrapper.vm.$store.dispatch as jest.Mock).mock.calls[0];
+
+      expect(action).toBe('management/promptModal');
+      expect(payload.component).toBe('DisableLocalLoginDialog');
+
+      return payload.componentProps.disableCb;
+    };
+
+    // Leaving the external providers as the only way in is worth a confirmation,
+    // so the switch must not write the flag on its own.
+    it('should confirm before turning local login off', async() => {
       const feature = createFeature(false);
-      const wrapper = createWrapper({ feature });
-
-      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
-
-      expect(feature.spec.value).toBe(true);
-      expect(feature.save).toHaveBeenCalledWith();
-    });
-
-    it('should put the flag back and explain itself when the save fails', async() => {
-      const feature = createFeature(false);
-
-      feature.save.mockRejectedValue(new Error('nope'));
-
       const wrapper = createWrapper({ feature });
 
       await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
 
       expect(feature.spec.value).toBe(false);
+      expect(feature.save).not.toHaveBeenCalled();
+      expect(disableCbFrom(wrapper)).toEqual(expect.any(Function));
+    });
+
+    it('should write the flag once the dialog confirms', async() => {
+      const feature = createFeature(false);
+      const wrapper = createWrapper({ feature });
+
+      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
+      await disableCbFrom(wrapper)();
+
+      expect(feature.spec.value).toBe(true);
+      expect(feature.save).toHaveBeenCalledWith();
+    });
+
+    // Putting local login back is only ever a widening of the ways in, so there
+    // is nothing to warn about.
+    it('should write the value straight to the feature flag when turning it back on', async() => {
+      const feature = createFeature(true);
+      const wrapper = createWrapper({ feature });
+
+      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', false);
+
+      expect(feature.spec.value).toBe(false);
+      expect(feature.save).toHaveBeenCalledWith();
+      expect(wrapper.vm.$store.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should put the flag back and explain itself when the save fails', async() => {
+      const feature = createFeature(true);
+
+      feature.save.mockRejectedValue(new Error('nope'));
+
+      const wrapper = createWrapper({ feature });
+
+      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', false);
+
+      expect(feature.spec.value).toBe(true);
       expect((wrapper.vm as any).toggleError).toBe('nope');
     });
 

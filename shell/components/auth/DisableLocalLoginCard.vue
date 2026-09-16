@@ -1,24 +1,38 @@
 <script setup lang="ts">
+import { nextTick, ref } from 'vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
-defineProps<{
+const props = defineProps<{
   value: boolean;
   disabled?: boolean;
 }>();
 
-defineEmits<{(e: 'update:value', value: boolean): void }>();
+const emit = defineEmits<{(e: 'update:value', value: boolean): void }>();
+
+const switchKey = ref(0);
+
+const onToggle = async(next: boolean) => {
+  emit('update:value', next);
+
+  await nextTick();
+
+  if (props.value !== next) {
+    switchKey.value++;
+  }
+};
 </script>
 
 <template>
   <div class="disable-local-login">
     <div class="disable-local-login__row">
       <toggle-switch
+        :key="switchKey"
         :value="value"
         :disabled="disabled"
         :on-label="t('authConfig.list.disableLocal.label')"
         class="disable-local-login__switch"
         data-testid="auth-config-disable-local"
-        @update:value="$emit('update:value', $event)"
+        @update:value="onToggle"
       />
       <div class="disable-local-login__copy">
         <span class="disable-local-login__title">
