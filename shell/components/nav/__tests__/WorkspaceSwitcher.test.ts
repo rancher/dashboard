@@ -9,6 +9,7 @@ describe('component: WorkspaceSwitcher', () => {
 
   const mountSwitcher = (workspace: string, allWorkspaces = workspaces) => {
     const dispatch = jest.fn();
+    const commit = jest.fn();
     const wrapper = shallowMount(WorkspaceSwitcher, {
       global: {
         mocks: {
@@ -20,32 +21,36 @@ describe('component: WorkspaceSwitcher', () => {
               defaultNamespace: '',
             },
             getters: { 'prefs/get': () => '' },
-            commit:  jest.fn(),
+            commit,
             dispatch,
           }
         }
       }
     });
 
-    return { wrapper, dispatch };
+    return {
+      wrapper, dispatch, commit
+    };
   };
 
-  it('should restore the workspace through the store when mounted', () => {
-    const { dispatch } = mountSwitcher('fleet-local');
-
-    expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'fleet-local' });
-  });
-
-  it('should restore a workspace that no longer exists, so a deleted one is not kept', () => {
+  it('should restore a workspace that no longer exists through the store', () => {
     const { dispatch } = mountSwitcher('removed-workspace');
 
     expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'removed-workspace' });
   });
 
-  it('should restore the first workspace when there is nothing selected', () => {
-    const { dispatch } = mountSwitcher('');
+  it('should leave a workspace that exists alone', () => {
+    const { dispatch, commit } = mountSwitcher('fleet-local');
 
-    expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'fleet-default' });
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(commit).not.toHaveBeenCalled();
+  });
+
+  it('should leave the selection alone when no workspaces are known yet', () => {
+    const { dispatch, commit } = mountSwitcher('a-workspace', []);
+
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(commit).not.toHaveBeenCalled();
   });
 
   it('should offer every known workspace as an option', () => {
