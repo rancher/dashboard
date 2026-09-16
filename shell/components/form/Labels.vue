@@ -137,12 +137,22 @@ export default {
       default: '',
     },
 
+    showLabels: {
+      type:    Boolean,
+      default: true,
+    },
+
     showAnnotations: {
       type:    Boolean,
       default: true,
     },
 
     showLabelTitle: {
+      type:    Boolean,
+      default: true,
+    },
+
+    showAnnotationTitle: {
       type:    Boolean,
       default: true,
     },
@@ -208,7 +218,10 @@ export default {
 </script>
 <template>
   <div :class="containerClass">
-    <div :class="defaultSectionClass">
+    <div
+      v-if="showLabels"
+      :class="defaultSectionClass"
+    >
       <div class="labels">
         <div class="labels__header">
           <component
@@ -249,7 +262,10 @@ export default {
         </div>
       </div>
     </div>
-    <div :class="compact ? 'compact-spacer' : 'spacer'" />
+    <div
+      v-if="showLabels && showAnnotations"
+      :class="compact ? 'compact-spacer' : 'spacer'"
+    />
     <div
       v-if="showAnnotations"
       :class="sectionClass"
@@ -261,7 +277,7 @@ export default {
         :add-label="t('labels.addAnnotation')"
         :add-icon="addIcon"
         :mode="mode"
-        :title="t('labels.annotations.title')"
+        :title="showAnnotationTitle ? t('labels.annotations.title') : undefined"
         :title-protip="annotationTitleTooltip"
         :read-allowed="false"
         :value-can-be-empty="true"

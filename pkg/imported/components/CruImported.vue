@@ -9,10 +9,10 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
-import Accordion from '@components/Accordion/Accordion.vue';
+import { RcSection, SECTION_TYPE } from '@components/RcSection';
 import Banner from '@components/Banner/Banner.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
-import Labels from '@shell/components/form/Labels.vue';
+import RCLabelsAndAnnotations from '@shell/components/RCLabelsAndAnnotations.vue';
 import Basics from '@pkg/imported/components/Basics.vue';
 import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE';
 import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
@@ -48,7 +48,7 @@ export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
+    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, RcSection, Banner, ClusterMembershipEditor, RCLabelsAndAnnotations, Checkbox, SchedulingCustomization, PrivateRegistry
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -150,6 +150,7 @@ export default defineComponent({
       }
       ],
       AGENT_CONFIGURATION_TYPES,
+      SECTION_TYPE
     };
   },
 
@@ -506,11 +507,13 @@ export default defineComponent({
           :rules="{name: fvGetAndReportPathRules('name')}"
         />
       </div>
-      <Accordion
+      <RcSection
         v-if="showBasics"
         :title="providerTabKey"
-        :open-initially="true"
-        class="mb-20 accordion"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="true"
       >
         <Basics
           :value="normanCluster"
@@ -538,20 +541,24 @@ export default defineComponent({
           @version-management-changed="(val)=>versionManagement=val"
           @enable-day-two-ops-changed="(val)=>dayTwoOps=val"
         />
-      </Accordion>
-      <Accordion
-        class="mb-20 accordion"
-        title-key="members.memberRoles"
-        :open-initially="true"
+      </RcSection>
+      <RcSection
+        :title="t('members.memberRoles')"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="true"
       >
         <Banner
           v-if="isLocal"
           color="warning"
           label-key="imported.memberRoles.localBanner"
+          class="m-0"
         />
         <Banner
           v-if="isEdit"
           color="info"
+          class="m-0"
         >
           {{ t('cluster.memberRoles.removeMessage') }}
         </Banner>
@@ -561,12 +568,15 @@ export default defineComponent({
           :parent-id="normanCluster.id ? normanCluster.id : null"
           @membership-update="onMembershipUpdate"
         />
-      </Accordion>
-      <Accordion
+      </RcSection>
+      <RcSection
         v-if="schedulingCustomizationVisible"
-        class="mb-20 accordion"
-        title-key="cluster.agentConfig.tabs.agentsScheduling"
-        :open-initially="false"
+        :title="t('cluster.agentConfig.tabs.agentsScheduling')"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="false"
+        data-testid="cluster-agent-config-accordion"
       >
         {{ t('cluster.agentConfig.groups.agentsScheduling.text') }}
 
@@ -605,23 +615,21 @@ export default defineComponent({
           :checkbox-with-only-agent-name="true"
           @scheduling-customization-changed="setSchedulingCustomization"
         />
-      </Accordion>
-      <Accordion
-        class="mb-20 accordion"
-        title-key="imported.accordions.labels"
-        :open-initially="false"
-      >
-        <Labels
-          v-model:value="normanCluster"
-          :mode="mode"
-        />
-      </Accordion>
-      <Accordion
+      </RcSection>
+      <RCLabelsAndAnnotations
+        :mode="mode"
+        :value="normanCluster"
+        expandable
+        :expanded="false"
+      />
+      <RcSection
         v-if="!isCreate && !isRKE1 && (!isLocal || enableNetworkPolicySupported)"
-        class="mb-20 accordion"
-        title-key="imported.accordions.networking"
+        :title="t('imported.accordions.networking')"
         data-testid="network-accordion"
-        :open-initially="false"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="false"
       >
         <div
           v-if="enableNetworkPolicySupported"
@@ -631,6 +639,7 @@ export default defineComponent({
             v-if="!!normanCluster.enableNetworkPolicy"
             color="info"
             label-key="imported.network.banner"
+            class="m-0"
           />
           <Checkbox
             v-model:value="normanCluster.enableNetworkPolicy"
@@ -648,13 +657,15 @@ export default defineComponent({
             @fqdn-changed="(val)=>normanCluster.localClusterAuthEndpoint.fqdn = val"
           />
         </div>
-      </Accordion>
-      <Accordion
+      </RcSection>
+      <RcSection
         v-if="!isRKE1"
-        class="mb-20 accordion"
-        title-key="imported.accordions.registries"
+        :title="t('imported.accordions.registries')"
         data-testid="registries-accordion"
-        :open-initially="false"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="false"
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
@@ -667,12 +678,14 @@ export default defineComponent({
           checkbox-test-id="private-registry-enable-checkbox"
           input-test-id="private-registry-url"
         />
-      </Accordion>
-      <Accordion
+      </RcSection>
+      <RcSection
         v-if="!isRKE1"
-        class="mb-20 accordion"
-        title-key="imported.accordions.advanced"
-        :open-initially="false"
+        :title="t('imported.accordions.advanced')"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="false"
       >
         <h3>
           {{ t('imported.agentEnv.header') }}
@@ -689,7 +702,7 @@ export default defineComponent({
           :key-label="t('cluster.agentEnvVars.keyLabel')"
           :parse-lines-from-file="true"
         />
-      </Accordion>
+      </RcSection>
     </div>
   </CruResource>
 </template>
