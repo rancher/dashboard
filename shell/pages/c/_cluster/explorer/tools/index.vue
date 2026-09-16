@@ -8,7 +8,6 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { isAlternate } from '@shell/utils/platform';
 import IconMessage from '@shell/components/IconMessage';
 import TabTitle from '@shell/components/TabTitle';
-import { get } from '@shell/utils/object';
 import { RcItemCard } from '@components/RcItemCard';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
@@ -102,7 +101,7 @@ export default {
             iconTooltip: { key: 'generic.tags' },
             labels:      [this.t('catalog.charts.deploysOnWindows')],
           }] : [],
-          image:    { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
+          image:    { src: chart.versions[0].icon, alt: { text: '' } },
           content:  { text: chart.chartDescription },
           rawChart: chart,
           installedApp,

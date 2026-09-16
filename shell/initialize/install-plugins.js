@@ -29,8 +29,13 @@ import 'floating-vue/dist/style.css';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
 
 import dynamicContent from '@shell/plugins/dynamic-content';
+import { initAriaAnnouncer } from '@shell/utils/aria-announce';
 
 export async function installPlugins(vueApp) {
+  // The screen reader live regions have to be in the accessibility tree before the first
+  // status change, so they go in ahead of the mount. See @shell/utils/aria-announce.
+  initAriaAnnouncer();
+
   vueApp.use(globalFormatters);
   vueApp.use(PortalVue);
   vueApp.use(Vue3Resize);
