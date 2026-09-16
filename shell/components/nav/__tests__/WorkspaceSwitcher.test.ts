@@ -1,6 +1,8 @@
 import { nextTick, reactive } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import WorkspaceSwitcher from '@shell/components/nav/WorkspaceSwitcher.vue';
+import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
+import { WORKSPACE } from '@shell/store/prefs';
 
 describe('component: WorkspaceSwitcher', () => {
   const workspaces = [
@@ -8,13 +10,13 @@ describe('component: WorkspaceSwitcher', () => {
     { id: 'fleet-local', nameDisplay: 'fleet-local' }
   ];
 
-  const mountSwitcher = (workspace: string, allWorkspaces = workspaces, lastNamespace = '') => {
+  const mountSwitcher = (workspace: string, allWorkspaces = workspaces, lastNamespace = '', allNamespaces: unknown[] = []) => {
     const dispatch = jest.fn();
     const commit = jest.fn();
     const state = reactive({
       workspace,
       allWorkspaces,
-      allNamespaces:    [],
+      allNamespaces,
       defaultNamespace: '',
     });
     const wrapper = shallowMount(WorkspaceSwitcher, {
@@ -68,6 +70,16 @@ describe('component: WorkspaceSwitcher', () => {
     await nextTick();
 
     expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'removed-workspace' });
+  });
+
+  it('should fall back to a rendered option when the workspaces cannot be listed', () => {
+    const namespaces = [{
+      id: 'ws-a', nameDisplay: 'ws-a', metadata: { annotations: { [WORKSPACE_ANNOTATION]: WORKSPACE } }
+    }];
+    const { commit, dispatch } = mountSwitcher('removed-workspace', [], '', namespaces);
+
+    expect(commit).toHaveBeenCalledWith('updateWorkspace', expect.objectContaining({ value: 'ws-a' }));
+    expect(dispatch).not.toHaveBeenCalledWith('restoreWorkspace', expect.anything());
   });
 
   it('should offer every known workspace as an option', () => {

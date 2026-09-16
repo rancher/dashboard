@@ -5,8 +5,9 @@ import { FleetWorkspaceListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cat
 import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import { FLEET_DEFAULT_WORKSPACE } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 
-const defaultWorkspace = 'fleet-default';
+const defaultWorkspace = FLEET_DEFAULT_WORKSPACE;
 
 describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => {
   const appBundlesPage = new FleetApplicationListPagePo();

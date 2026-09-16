@@ -149,8 +149,9 @@ describe('actions', () => {
 
       return {
         state,
-        getters: storeGetters,
-        commit:  (name: string, payload: { value: string, all: { id: string }[], getters: unknown }) => {
+        getters:  storeGetters,
+        dispatch: jest.fn(),
+        commit:   (name: string, payload: { value: string, all: { id: string }[], getters: unknown }) => {
           expect(name).toBe('updateWorkspace');
 
           return mutations.updateWorkspace(state, payload);
@@ -172,6 +173,7 @@ describe('actions', () => {
       actions.restoreWorkspace(ctx, { value: 'removed-workspace', all: undefined });
 
       expect(ctx.state.workspace).toBe('fleet-default');
+      expect(ctx.dispatch).not.toHaveBeenCalled();
     });
 
     it('should fall back to the first workspace when there is no default one', () => {
