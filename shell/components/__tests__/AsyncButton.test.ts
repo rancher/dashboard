@@ -256,7 +256,7 @@ describe('component: AsyncButton', () => {
       expect(button.attributes('aria-label')).toBe('Apply');
     });
 
-    it('should omit aria-label for icon-only modes so they keep their existing accessible name', () => {
+    it('should omit aria-label for icon-only modes — the parent is expected to supply one via aria-label attr', () => {
       const wrapper = mount(AsyncButton, {
         props:  { mode: 'refresh' },
         global: { mocks: { $store: storeWithTranslations({ 'asyncButton.refresh.action': '' }) } }
