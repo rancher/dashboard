@@ -20,18 +20,25 @@ const flipSwitch = async(wrapper: any, respond?: () => Promise<unknown>) => {
 };
 
 describe('component: DisableLocalLoginCard', () => {
-  it('should spell out what turning the switch on costs', () => {
-    const wrapper = createWrapper();
+  it.each([true, false])('should say what the setting does while it is %s', (value) => {
+    const wrapper = createWrapper({ value });
 
     expect(wrapper.find('.disable-local-login__title').text()).toBe('%authConfig.list.disableLocal.label%');
-    expect(wrapper.find('.disable-local-login__description').text()).toBe('%authConfig.list.disableLocal.descriptionOff%');
+    expect(wrapper.find('.disable-local-login__description').text()).toBe('%authConfig.list.disableLocal.description%');
   });
 
-  // Once local login is off, the warning is spent - what matters is the way back.
-  it('should explain how to undo it once it is on', () => {
+  // Losing every external provider while this is on locks everyone out, and that
+  // stays worth saying for as long as it is on - not just as it is turned on.
+  it('should warn about the risk while local login is off', () => {
     const wrapper = createWrapper({ value: true });
 
-    expect(wrapper.find('.disable-local-login__description').text()).toBe('%authConfig.list.disableLocal.descriptionOn%');
+    expect(wrapper.find('[data-testid="auth-config-disable-local-risk"]').text()).toBe('%authConfig.list.disableLocal.risk%');
+  });
+
+  it('should not warn while local login is still available', () => {
+    const wrapper = createWrapper();
+
+    expect(wrapper.find('[data-testid="auth-config-disable-local-risk"]').exists()).toBe(false);
   });
 
   // The title is rendered beside the description, so the switch keeps it only as

@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<{
   statusLabel?: string;
   to?: RouteLocationRaw;
   divided?: boolean;
+  disabled?: boolean;
 }>(), { chips: () => [], divided: true });
 
 const router = useRouter();
@@ -31,7 +32,11 @@ const activate = (event: MouseEvent) => {
 <template>
   <div
     class="auth-provider-row"
-    :class="{ 'auth-provider-row--link': to, 'auth-provider-row--divided': divided }"
+    :class="{
+      'auth-provider-row--link': to,
+      'auth-provider-row--divided': divided,
+      'auth-provider-row--disabled': disabled,
+    }"
     @click="activate"
   >
     <AuthProviderLogo :icon="icon" />
@@ -118,6 +123,17 @@ $header-line: 32px;
 
     &:hover {
       background-color: var(--dropdown-hover-bg);
+    }
+  }
+
+  // A provider nobody can log in with is not an ordinary row, so it carries the
+  // same tint as the banner that explains why
+  &--disabled {
+    background-color: var(--error-banner-bg);
+    border-left: 4px solid var(--error);
+
+    &.auth-provider-row--link:hover {
+      background-color: var(--error-banner-bg);
     }
   }
 

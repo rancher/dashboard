@@ -192,12 +192,40 @@ describe('page: AuthConfigList', () => {
       expect(localRow(createWrapper()).props('description')).toBe('%authConfig.list.localRow.description%');
     });
 
+    // What local accounts are for stops being the point once they cannot be used.
+    it('should describe what became of local accounts once login is off', () => {
+      const wrapper = createWrapper({ feature: createFeature(true) });
+
+      expect(localRow(wrapper).props('description')).toBe('%authConfig.list.localRow.descriptionDisabled%');
+    });
+
     // An admin can annotate the local config the same as any other, and that
-    // wins over the generic copy.
-    it('should prefer a description set on the local config', () => {
-      const wrapper = createWrapper({ configs: [{ ...localConfig, description: 'Break-glass only.' }, oktaConfig] });
+    // wins over either piece of generic copy.
+    it.each([true, false])('should prefer a description set on the local config while disabled is %s', (disabled) => {
+      const wrapper = createWrapper({
+        configs: [{ ...localConfig, description: 'Break-glass only.' }, oktaConfig],
+        feature: createFeature(disabled),
+      });
 
       expect(localRow(wrapper).props('description')).toBe('Break-glass only.');
+    });
+
+    // The row is the one place that says local login is unusable, so it cannot
+    // read like every other active provider.
+    it('should mark the row as disabled once local login is off', () => {
+      const wrapper = createWrapper({ feature: createFeature(true) });
+
+      expect(localRow(wrapper).props('disabled')).toBe(true);
+      expect(localRow(wrapper).props('status')).toBe('error');
+      expect(localRow(wrapper).props('statusLabel')).toBe('%authConfig.list.localRow.disabled%');
+    });
+
+    it('should leave the row unmarked while local login works', () => {
+      const wrapper = createWrapper();
+
+      expect(localRow(wrapper).props('disabled')).toBe(false);
+      expect(localRow(wrapper).props('status')).toBe('success');
+      expect(localRow(wrapper).props('statusLabel')).toBe('%authConfig.list.localRow.active%');
     });
 
     // Local closes the page, so a rule under it parts it from nothing.

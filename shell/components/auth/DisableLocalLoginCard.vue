@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue';
+import { Banner } from '@components/Banner';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
 const props = defineProps<{
@@ -39,10 +40,18 @@ const onToggle = async(next: boolean) => {
           {{ t('authConfig.list.disableLocal.label') }}
         </span>
         <span class="disable-local-login__description">
-          {{ value ? t('authConfig.list.disableLocal.descriptionOn') : t('authConfig.list.disableLocal.descriptionOff') }}
+          {{ t('authConfig.list.disableLocal.description') }}
         </span>
       </div>
     </div>
+
+    <Banner
+      v-if="value"
+      color="error"
+      class="disable-local-login__risk"
+      data-testid="auth-config-disable-local-risk"
+      :label="t('authConfig.list.disableLocal.risk')"
+    />
   </div>
 </template>
 
@@ -91,6 +100,10 @@ const onToggle = async(next: boolean) => {
     color: var(--label-secondary);
     font-size: 13px;
     line-height: 20px;
+  }
+
+  &__risk {
+    margin: 16px 0 0 0;
   }
 }
 </style>
