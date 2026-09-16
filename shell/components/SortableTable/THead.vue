@@ -149,6 +149,11 @@ export default {
     },
     hasColumnWithSubLabel() {
       return this.columns.some((col) => col.subLabel);
+    },
+    sortedTableColsOptions() {
+      return [...(this.tableColsOptions || [])]
+        .filter((col) => col.isTableOption && !col.hide)
+        .sort((a, b) => (a.label || '').localeCompare((b.label || ''), undefined, { sensitivity: 'base' }));
     }
   },
 
@@ -212,6 +217,14 @@ export default {
       });
     },
 
+    isHeaderColumnVisible(col) {
+      if (!col || col.hide) {
+        return false;
+      }
+
+      return !this.hasAdvancedFiltering || (this.hasAdvancedFiltering && col.isColVisible);
+    },
+
     tooltip(col) {
       if (!col.tooltip) {
         return null;
@@ -252,7 +265,7 @@ export default {
       </th>
       <th
         v-for="(col) in columns"
-        v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.isColVisible)"
+        v-show="isHeaderColumnVisible(col)"
         :key="col.name"
         :align="col.align || 'left'"
         :width="col.width"
@@ -358,9 +371,9 @@ export default {
             </p>
             <ul>
               <li
-                v-for="(col, index) in tableColsOptions"
+                v-for="(col, index) in sortedTableColsOptions"
                 v-show="col.isTableOption"
-                :key="index"
+                :key="`${ col.name || col.label }-${ index }`"
                 :class="{ 'visible': !col.preventColToggle }"
               >
                 <Checkbox
