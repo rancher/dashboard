@@ -28,6 +28,8 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
 
     cy.createFleetWorkspace('fleet-workspace-selection', undefined, true, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
       workspace = resp.body.id;
+
+      cy.waitForRancherResource('v1', 'management.cattle.io.fleetworkspaces', workspace, (resp: Cypress.Response<any>) => resp?.status === 200 && resp?.body?.id === workspace, 20, { failOnStatusCode: false });
     });
   });
 
