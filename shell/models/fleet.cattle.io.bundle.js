@@ -123,7 +123,7 @@ export default class FleetBundle extends SteveModel {
   }
 
   get stateObj() {
-    return FleetUtils.resourceStateObj(this.metadata?.state);
+    return FleetUtils.resourceStateObj(this.metadata?.state) || {};
   }
 
   /**

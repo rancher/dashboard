@@ -203,5 +203,20 @@ describe('class FleetApplication', () => {
 
       expect(app.stateColor).toBe('text-error');
     });
+
+    it('should still describe a state whose error flag was dropped', () => {
+      const app = new FleetApplication({
+        kind:     'HelmOp',
+        metadata: {
+          namespace: 'fleet-local',
+          state:     {
+            name: 'waitingfordependency', error: true, message: 'waiting for dependent bundle(s)'
+          }
+        },
+        spec: {},
+      });
+
+      expect(app.stateDescription).toBe('Waiting for dependent bundle(s)');
+    });
   });
 });

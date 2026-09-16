@@ -31,9 +31,12 @@ describe('fx: graphConfig.parseData', () => {
 
   // A state the backend adds that the UI does not know yet must degrade, not break the whole chart.
   it.each([
-    ['app', 'somethingnewfromfleet', 'ready'],
-    ['bundle', 'ready', 'somethingnewfromfleet'],
-  ])('should not throw on an unknown %s state', (_label, appState, bundleState) => {
-    expect(() => graphConfig.parseData(createData(appState, bundleState))).not.toThrow();
+    ['app', 'somethingnewfromfleet', 'ready', 'warning', 'success'],
+    ['bundle', 'ready', 'somethingnewfromfleet', 'success', 'warning'],
+  ])('should degrade an unknown %s state to the unknown colour', (_label, appState, bundleState, appColor, bundleColor) => {
+    const out = graphConfig.parseData(createData(appState, bundleState));
+
+    expect(out.stateColor).toBe(appColor);
+    expect(out.children[0].stateColor).toBe(bundleColor);
   });
 });

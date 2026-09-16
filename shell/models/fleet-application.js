@@ -1,6 +1,6 @@
 import { matching, convertSelectorObj, matches } from '@shell/utils/selector';
 import isEmpty from 'lodash/isEmpty';
-import { escapeHtml } from '@shell/utils/string';
+import { escapeHtml, ucFirst } from '@shell/utils/string';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
@@ -87,6 +87,16 @@ export default class FleetApplication extends SteveModel {
 
   get stateObj() {
     return FleetUtils.resourceStateObj(this.metadata?.state);
+  }
+
+  /**
+   * Read from the Steve state rather than from `stateObj`, whose `error` flag is deliberately dropped for
+   * states that are not failures - gating on it would remove the message instead of unstyling it.
+   */
+  get stateDescription() {
+    const { error, transitioning, message } = this.metadata?.state || {};
+
+    return error || transitioning ? ucFirst(message) : '';
   }
 
   get targetClusters() {

@@ -332,9 +332,9 @@ class Fleet {
    * classification is the more accurate of the two, so the flag is dropped.
    */
   resourceStateObj(state?: { name?: string, error?: boolean }): { name?: string, error?: boolean } | undefined {
-    const known = state?.name ? STATES[state.name] : undefined;
+    const known = state?.name ? STATES[state.name.toLowerCase()] : undefined;
 
-    if (state?.error && known && known.color !== STATES_ENUM.ERROR) {
+    if (state?.error && known && known.color !== STATES[STATES_ENUM.ERROR].color) {
       return { ...state, error: false };
     }
 

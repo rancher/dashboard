@@ -308,7 +308,6 @@ describe('class FleetBundle', () => {
       expect(bundle.stateColor).not.toBe('text-error');
     });
 
-
     // The backend raises `error` on anything that is not Ready, and does so unevenly - bundles in the
     // same state disagree on it - so the state itself has to decide the colour.
     describe('given the backend also flags the state as an error', () => {
