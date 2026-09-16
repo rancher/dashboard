@@ -1343,6 +1343,8 @@ export const actions = {
     commit('showWorkspaceSwitcher', value);
   },
 
+  // Corrects the selection in use only. The stored preference is deliberately left alone, so a list
+  // that has not caught up yet - right after creating a workspace - can never cost the user their choice.
   restoreWorkspace({ commit, getters, state }, { value, all }) {
     commit('updateWorkspace', {
       value, all: all || state.allWorkspaces, getters
