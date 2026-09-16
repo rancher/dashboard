@@ -179,10 +179,10 @@ describe('class FleetApplication', () => {
   describe('state', () => {
     // Fleet sets `status.display.error` for every state that is not Ready, and Steve passes it through
     // as `metadata.state.error`, so it cannot decide the colour on its own.
-    function createFleetApplication(stateName: string, error = true) {
+    function createFleetApplication(stateName: string) {
       return new FleetApplication({
         kind:     'HelmOp',
-        metadata: { namespace: 'fleet-local', state: { name: stateName, error } },
+        metadata: { namespace: 'fleet-local', state: { name: stateName, error: true } },
         spec:     {},
       });
     }

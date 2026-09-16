@@ -350,6 +350,24 @@ describe('class FleetBundle', () => {
 
         expect(bundle.stateDescription).toBe('');
       });
+
+      it('should not describe a ready bundle whose Ready condition carries a message', () => {
+        const bundle = new FleetBundle({
+          metadata: {
+            namespace: 'fleet-local',
+            state:     {
+              name: 'active', error: false, transitioning: false, message: ''
+            }
+          },
+          status: {
+            conditions: [{
+              type: 'Ready', status: 'True', message: 'Deployment ready'
+            }]
+          },
+        });
+
+        expect(bundle.stateDescription).toBe('');
+      });
     });
   });
 });

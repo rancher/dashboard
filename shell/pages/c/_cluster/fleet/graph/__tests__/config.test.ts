@@ -40,3 +40,35 @@ describe('fx: graphConfig.parseData', () => {
     expect(out.children[0].stateColor).toBe(bundleColor);
   });
 });
+
+describe('fx: graphConfig.infoDetails', () => {
+  function createNode(stateColor: string) {
+    return {
+      id:         'fleet-local/my-app',
+      type:       'fleet.cattle.io.helmop',
+      stateColor,
+      stateLabel: 'Waiting for Dependency',
+      errorMsg:   'Waiting for dependent bundle(s) to reach an accepted state',
+    };
+  }
+
+  function messageRow(stateColor: string) {
+    const moreInfo = graphConfig.infoDetails(createNode(stateColor));
+
+    return moreInfo[moreInfo.length - 1];
+  }
+
+  it('should report the state message of a failed node as an error', () => {
+    const row = messageRow('error');
+
+    expect(row.type).toBe('single-error');
+    expect(row.labelKey).toBe('fleet.fdc.error');
+  });
+
+  it('should report the state message of a node that has not failed as a message', () => {
+    const row = messageRow('info');
+
+    expect(row.type).toBe('single-message');
+    expect(row.labelKey).toBe('fleet.fdc.message');
+  });
+});

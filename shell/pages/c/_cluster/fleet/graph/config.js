@@ -245,9 +245,11 @@ export const graphConfig = {
     });
 
     if (data.errorMsg) {
+      const isError = data.stateColor === STATES[STATES_ENUM.ERROR].color;
+
       moreInfo.push({
-        type:     'single-error',
-        labelKey: 'fleet.fdc.error',
+        type:     isError ? 'single-error' : 'single-message',
+        labelKey: isError ? 'fleet.fdc.error' : 'fleet.fdc.message',
         value:    data.errorMsg
       });
     }

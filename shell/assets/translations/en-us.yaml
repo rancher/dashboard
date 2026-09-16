@@ -3664,6 +3664,7 @@ fleet:
     state: State
     cluster: Cluster
     error: Error
+    message: Message
     ready: Ready
     errors: Errors
   workspaces:

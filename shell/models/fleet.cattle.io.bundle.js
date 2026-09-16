@@ -131,13 +131,11 @@ export default class FleetBundle extends SteveModel {
    * used for the description. Its `error` and `transitioning` flags are not used: the backend raises both
    * for every state that is not Ready, which would present states such as WaitingForDependency - a bundle
    * held back by a dependency, not a failure - as an error.
-   *
-   * The condition is absent, or carries no message, exactly when the bundle is ready.
    */
   get stateDescription() {
-    const message = this.readyCondition?.message;
+    const { status, message } = this.readyCondition || {};
 
-    return message ? ucFirst(message) : '';
+    return status !== 'True' && message ? ucFirst(message) : '';
   }
 
   get groupByLabel() {
