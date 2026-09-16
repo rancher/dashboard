@@ -80,6 +80,7 @@ describe('component: WorkspaceSwitcher', () => {
 
     expect(commit).toHaveBeenCalledWith('updateWorkspace', expect.objectContaining({ value: 'ws-a' }));
     expect(dispatch).not.toHaveBeenCalledWith('restoreWorkspace', expect.anything());
+    expect(dispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything());
   });
 
   it('should offer every known workspace as an option', () => {

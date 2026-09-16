@@ -95,7 +95,8 @@ export default {
       if (this.allWorkspaces.length) {
         this.$store.dispatch('restoreWorkspace', { value });
       } else {
-        this.value = this.options[0]?.value;
+        // Same contract as restoreWorkspace: correct the selection in use, never the stored preference.
+        this.$store.commit('updateWorkspace', { value: this.options[0]?.value, getters: this.$store.getters });
       }
     },
 
