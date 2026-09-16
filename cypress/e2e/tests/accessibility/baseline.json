@@ -163,13 +163,6 @@
       "help": "Certain ARIA roles must be contained by particular parents"
     },
     {
-      "fingerprint": "d6b8aa7bd3471fce81430eecf717b1f6a4418365ed4974a5cbdd2301b4310866",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Settings page",
-      "rule": "empty-heading",
-      "impact": "minor",
-      "help": "Headings should not be empty"
-    },
-    {
       "fingerprint": "d76482d5cbc36b44f93ddeb706ec5aa43a826c115d3d906b0b3adf30c1568f7b",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Delete",
       "rule": "aria-dialog-name",
