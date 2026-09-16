@@ -260,12 +260,12 @@ describe('class FleetBundle', () => {
     // Payloads as Steve serves them: `metadata.state` is normalised from the backend's
     // `status.display.state`, and the Ready condition flags every non-ready state as an
     // error that is transitioning.
-    function createFleetBundle(stateName: string, message = '') {
+    function createFleetBundle(stateName: string, message = '', error = false) {
       return new FleetBundle({
         metadata: {
           namespace: 'fleet-local',
           state:     {
-            name: stateName, error: false, transitioning: false, message: ''
+            name: stateName, error, transitioning: false, message: ''
           }
         },
         status: {
@@ -306,6 +306,37 @@ describe('class FleetBundle', () => {
 
       expect(bundle.state).toBe('notready');
       expect(bundle.stateColor).not.toBe('text-error');
+    });
+
+
+    // The backend raises `error` on anything that is not Ready, and does so unevenly - bundles in the
+    // same state disagree on it - so the state itself has to decide the colour.
+    describe('given the backend also flags the state as an error', () => {
+      it.each([
+        ['waitingfordependency', 'text-info'],
+        ['waitapplied', 'text-info'],
+        ['pending', 'text-info'],
+        ['modified', 'text-warning'],
+        ['notready', 'text-warning'],
+      ])('should colour %s from the state, not from the flag', (stateName, color) => {
+        const flagged = createFleetBundle(stateName, 'some message', true);
+        const unflagged = createFleetBundle(stateName, 'some message', false);
+
+        expect(flagged.stateColor).toBe(color);
+        expect(flagged.stateColor).toBe(unflagged.stateColor);
+      });
+
+      it('should still colour a state the UI classifies as an error as an error', () => {
+        const bundle = createFleetBundle('errapplied', 'ErrApplied(1) [...]', true);
+
+        expect(bundle.stateColor).toBe('text-error');
+      });
+
+      it('should leave a state the UI does not know to the flag', () => {
+        const bundle = createFleetBundle('somethingnewfromfleet', 'some message', true);
+
+        expect(bundle.stateColor).toBe('text-error');
+      });
     });
 
     describe('stateDescription', () => {

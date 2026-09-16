@@ -85,6 +85,10 @@ export default class FleetApplication extends SteveModel {
     return this.metadata?.state?.name || 'unknown';
   }
 
+  get stateObj() {
+    return FleetUtils.resourceStateObj(this.metadata?.state);
+  }
+
   get targetClusters() {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const clusters = [...(workspace?.clusters || [])];

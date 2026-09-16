@@ -4,6 +4,7 @@ import { addObject, addObjects, findBy } from '@shell/utils/array';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { convertSelectorObj, matches, matching } from '@shell/utils/selector';
+import FleetUtils from '@shell/utils/fleet';
 
 export default class FleetBundle extends SteveModel {
   get lastUpdateTime() {
@@ -119,6 +120,10 @@ export default class FleetBundle extends SteveModel {
 
   get readyCondition() {
     return this.status?.conditions?.find((c) => c.type === 'Ready');
+  }
+
+  get stateObj() {
+    return FleetUtils.resourceStateObj(this.metadata?.state);
   }
 
   /**

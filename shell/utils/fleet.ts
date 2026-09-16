@@ -322,6 +322,25 @@ class Fleet {
     }, {});
   }
 
+  /**
+   * The backend raises `error` on the state of anything that is not Ready, and does so unevenly - two
+   * bundles in the same state can disagree on it. `colorForState` reads that flag before it reads the
+   * state, so it decides the colour, and the same state ends up rendered red on one row and not on the
+   * next.
+   *
+   * Where the state is one the UI knows, and is classified as something other than an error, that
+   * classification is the more accurate of the two, so the flag is dropped.
+   */
+  resourceStateObj(state?: { name?: string, error?: boolean }): { name?: string, error?: boolean } | undefined {
+    const known = state?.name ? STATES[state.name] : undefined;
+
+    if (state?.error && known && known.color !== STATES_ENUM.ERROR) {
+      return { ...state, error: false };
+    }
+
+    return state;
+  }
+
   getDashboardStateId(resource: { stateColor: string }): string {
     return resource?.stateColor?.replace('text-', '') || 'warning';
   }
