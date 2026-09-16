@@ -337,7 +337,7 @@ describe('component: RcSection', () => {
         slots: { default: '<p class="test-content">Content</p>' },
       });
 
-      expect(wrapper.find('.test-content').exists()).toBe(false);
+      expect(wrapper.find('.test-content').isVisible()).toBe(false);
     });
 
     it('should keep several content groups as siblings the section can space apart', () => {
