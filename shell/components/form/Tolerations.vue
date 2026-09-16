@@ -3,6 +3,7 @@ import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Select from '@shell/components/form/Select';
 import UnitInput from '@shell/components/form/UnitInput';
+import { RcSection, SECTION_TYPE } from '@components/RcSection';
 import { _VIEW } from '@shell/config/query-params';
 import { random32 } from '@shell/utils/string';
 
@@ -13,7 +14,8 @@ export default {
     LabeledInput,
     Select,
     // SortableTable,
-    UnitInput
+    UnitInput,
+    RcSection
   },
   props: {
     // pod tolerations array
@@ -25,11 +27,22 @@ export default {
     mode: {
       type:    String,
       default: 'edit'
+    },
+
+    rcCompatible: {
+      type:    Boolean,
+      default: false
+    },
+
+    // Heading shown when rcCompatible renders the fields inside an RcSection.
+    title: {
+      type:    String,
+      default: ''
     }
   },
 
   data() {
-    return { rules: [] };
+    return { rules: [], SECTION_TYPE };
   },
 
   created() {
@@ -129,6 +142,10 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+
+    sectionTitle() {
+      return this.title || this.t('workload.scheduling.titles.tolerations');
+    },
     ...mapGetters({ t: 'i18n/t' })
   },
 
@@ -185,7 +202,123 @@ export default {
 </script>
 
 <template>
-  <div class="tolerations">
+  <RcSection
+    v-if="rcCompatible"
+    :title="sectionTitle"
+    mode="with-header"
+    :type="SECTION_TYPE.SECONDARY"
+    :expandable="true"
+  >
+    <slot name="banner" />
+
+    <div class="tolerations">
+      <div
+        v-if="rules.length"
+        class="toleration-headers"
+      >
+        <span>{{ t('workload.scheduling.tolerations.labelKey') }}</span>
+        <span>{{ t('workload.scheduling.tolerations.operator') }}</span>
+        <span>{{ t('workload.scheduling.tolerations.value') }}</span>
+        <span>{{ t('workload.scheduling.tolerations.effect') }}</span>
+        <span>{{ t('workload.scheduling.tolerations.tolerationSeconds') }}</span>
+        <span />
+      </div>
+      <div
+        v-for="(rule, index) in rules"
+        :key="index"
+        class="rule"
+      >
+        <div class="col">
+          <LabeledInput
+            v-model:value="rule.key"
+            :mode="mode"
+            :data-testid="`toleration-key-index${ index }`"
+            class="height-adjust-input"
+            @update:value="update"
+          />
+        </div>
+        <div class="col">
+          <Select
+            id="operator"
+            v-model:value="rule.operator"
+            :options="operatorOpts"
+            :mode="mode"
+            :data-testid="`toleration-operator-index${ index }`"
+            @update:value="update"
+          />
+        </div>
+        <template v-if="rule.operator==='Exists'">
+          <div class="col">
+            <LabeledInput
+              value="n/a"
+              :mode="mode"
+              disabled
+              class="height-adjust-input"
+            />
+          </div>
+        </template>
+        <template v-else>
+          <div class="col">
+            <LabeledInput
+              v-model:value="rule.value"
+              :mode="mode"
+              :data-testid="`toleration-value-index${ index }`"
+              class="height-adjust-input"
+              @update:value="update"
+            />
+          </div>
+        </template>
+        <div class="col">
+          <Select
+            v-model:value="rule.effect"
+            :options="effectOpts"
+            :mode="mode"
+            :data-testid="`toleration-effect-index${ index }`"
+            @update:value="e=>updateEffect(e, rule)"
+          />
+        </div>
+        <div class="col">
+          <UnitInput
+            v-model:value="rule.tolerationSeconds"
+            :disabled="rule.effect !== 'NoExecute'"
+            :mode="mode"
+            suffix="Seconds"
+            :data-testid="`toleration-seconds-index${ index }`"
+            class="height-adjust-input"
+            @update:value="update"
+          />
+        </div>
+        <div class="col remove">
+          <button
+            v-if="!isView"
+            type="button"
+            class="btn role-link"
+            :disabled="mode==='view'"
+            :data-testid="`toleration-remove-index${ index }`"
+            @click="remove(rule)"
+          >
+            <t k="generic.remove" />
+          </button>
+        </div>
+      </div>
+      <button
+        v-if="!isView"
+        type="button"
+        class="btn role-tertiary"
+        data-testid="add-toleration-btn"
+        @click="addToleration"
+      >
+        <t k="workload.scheduling.tolerations.addToleration" />
+      </button>
+    </div>
+  </RcSection>
+
+  <div
+    v-else
+    class="tolerations"
+  >
+    <slot name="banner" />
+
     <div
       v-if="rules.length"
       class="toleration-headers"

@@ -458,9 +458,11 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         // check accordions are displayed or not
         importClusterPage.accordion(2, 'Basics').should('be.visible');
         importClusterPage.accordion(3, 'Member Roles').should('be.visible');
-        importClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-        importClusterPage.accordion(5, 'Registries').scrollIntoView().should('be.visible');
-        importClusterPage.accordion(6, 'Advanced').scrollIntoView().should('be.visible');
+        importClusterPage.accordion(4, 'Cluster Agent').should('be.visible');
+        importClusterPage.accordion(5, 'Fleet Agent').should('be.visible');
+        importClusterPage.accordion(6, 'Labels and Annotations').scrollIntoView().should('be.visible');
+        importClusterPage.accordion(7, 'Registries').scrollIntoView().should('be.visible');
+        importClusterPage.accordion(8, 'Advanced').scrollIntoView().should('be.visible');
         importClusterPage.networkingAccordion().should('not.exist');
 
         importClusterPage.nameNsDescription().name().checkVisible();
@@ -524,8 +526,8 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         importClusterPage.selectGeneric(0);
         importClusterPage.waitForPage('mode=import&type=import&rkeType=rke2');
         cy.wait('@getUsers');
-        // verify that the table of contents is shown and contains the same number of entries as there are accordions on the page
-        cy.get('[data-testid="accordion-header"]')
+        // verify that the table of contents is shown and contains the same number of entries as there are accordions (RcSections) on the page
+        cy.get('.section-header')
           .its('length')
           .then((accordionHeaderCount) => {
             cy.get('[data-testid^="toc-list-item-"]')
@@ -533,12 +535,12 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           });
 
         // verify that clicking an accordion label in the table of contents scrolls the page to the associated accordion and opens it
-        cy.get('[data-testid="toc-list-item-3"] button').click();
+        cy.get('[data-testid="toc-list-item-5"] button').click();
 
         cy.window().its('scrollY').should('be.greaterThan', 0);
 
         cy.get('[data-testid="registries-accordion"]')
-          .find('[data-testid="accordion-body"]')
+          .find('.section-content')
           .should('be.visible');
       });
 
@@ -558,10 +560,12 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           // check accordions are properly displayed
           editImportedClusterPage.accordion(2, 'K3S Options').should('be.visible');
           editImportedClusterPage.accordion(3, 'Member Roles').should('be.visible');
-          editImportedClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-          editImportedClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
-          editImportedClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
-          editImportedClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(4, 'Cluster Agent').should('be.visible');
+          editImportedClusterPage.accordion(5, 'Fleet Agent').should('be.visible');
+          editImportedClusterPage.accordion(6, 'Labels and Annotations').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(7, 'Networking').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(8, 'Registries').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(9, 'Advanced').scrollIntoView().should('be.visible');
 
           // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
           editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
@@ -573,12 +577,12 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           editImportedClusterPage.versionManagementBanner().should('exist').and('be.visible');
           editImportedClusterPage.defaultVersionManagement();
 
-          editImportedClusterPage.toggleAccordion(5, 'Networking');
+          editImportedClusterPage.toggleAccordion(7, 'Networking');
           editImportedClusterPage.ace().enable();
           editImportedClusterPage.ace().enterFdqn(fqdn);
           editImportedClusterPage.ace().enterCaCerts(cacert);
 
-          editImportedClusterPage.toggleAccordion(6, 'Registries');
+          editImportedClusterPage.toggleAccordion(8, 'Registries');
           editImportedClusterPage.enablePrivateRegistryCheckbox();
           editImportedClusterPage.privateRegistry().set(privateRegistry);
 

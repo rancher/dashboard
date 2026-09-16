@@ -55,8 +55,9 @@ export default abstract class ClusterManagerCreateImportPagePo extends PagePo {
     return new BasicsRke2();
   }
 
+  // Imported cluster form groups are RcSection components (previously Accordion)
   accordion(index: number, label: string) {
-    return this.self().find(`.accordion-container:nth-of-type(${ index })`).contains(label);
+    return this.self().find(`.rc-section:nth-of-type(${ index })`).contains(label);
   }
 
   toggleAccordion(index: number, label: string) {

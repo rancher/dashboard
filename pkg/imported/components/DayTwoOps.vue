@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { _EDIT } from '@shell/config/query-params';
 import Banner from '@components/Banner/Banner.vue';
 import { RadioGroup } from '@components/Form/Radio';
+import { RcSection, SECTION_TYPE } from '@components/RcSection';
 import { useStore } from 'vuex';
 import { DAY_2_OPS_DEFAULT as DEFAULT } from '@pkg/imported/util/shared.ts';
 
@@ -24,11 +25,19 @@ const props = defineProps({
     type:    String,
     default: DEFAULT
   },
+
+  // Heading shown by the RcSection wrapping these fields.
+  title: {
+    type:    String,
+    default: ''
+  }
 });
 
 defineEmits(['update:value']);
 const store = useStore();
 const t = store.getters['i18n/t'];
+
+const sectionTitle = computed(() => props.title || t('imported.basics.dayTwoOpsEnabled.title'));
 
 const globalConfigurationText = computed(() => {
   return !props.globalSetting ? t('imported.basics.dayTwoOpsEnabled.globallyDisabled', {}, true) : t('imported.basics.dayTwoOpsEnabled.globallyEnabled', {}, true);
@@ -73,8 +82,12 @@ const showBanner = computed(() => {
 </script>
 
 <template>
-  <div class="mt-10">
-    <h3>{{ t('imported.basics.dayTwoOpsEnabled.title') }}</h3>
+  <RcSection
+    :title="sectionTitle"
+    mode="with-header"
+    :type="SECTION_TYPE.SECONDARY"
+    :expandable="true"
+  >
     <p class="mb-10">
       {{ t('imported.basics.dayTwoOpsEnabled.description') }}
     </p>
@@ -82,6 +95,7 @@ const showBanner = computed(() => {
       v-if="showBanner"
       color="info"
       data-testid="day-two-ops-banner"
+      class="m-0"
     >
       {{ dayTwoOpsInfo }}
     </Banner>
@@ -103,5 +117,5 @@ const showBanner = computed(() => {
         class="summary mb-10"
       />
     </div>
-  </div>
+  </RcSection>
 </template>

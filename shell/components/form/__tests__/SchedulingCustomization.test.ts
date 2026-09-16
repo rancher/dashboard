@@ -3,6 +3,7 @@ import { nextTick } from 'vue';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization.vue';
 import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { SECTION_TYPE } from '@components/RcSection';
 
 const mockStore = { getters: { 'i18n/t': jest.fn().mockImplementation((key: string) => key) } };
 
@@ -235,6 +236,17 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
 
       expect(wrapper.vm.isEdit).toBe(false);
       // Banner should not show because not in edit mode
+    });
+  });
+
+  describe('rcSection styling', () => {
+    it('should render the RcSection with the secondary type', () => {
+      wrapper = createWrapper();
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.exists()).toBe(true);
+      expect(section.props('type')).toBe(SECTION_TYPE.SECONDARY);
     });
   });
 });
