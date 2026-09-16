@@ -1,4 +1,4 @@
-import { getters } from '../index';
+import { actions, getters, mutations } from '../index';
 
 describe('getters', () => {
   describe('namespaces', () => {
@@ -105,6 +105,89 @@ describe('getters', () => {
       const result = getters.namespaces(state, stateGetters)();
 
       expect(result).toStrictEqual(expectation);
+    });
+  });
+});
+
+describe('actions', () => {
+  describe('restoreWorkspace', () => {
+    const workspaces = [{ id: 'fleet-default' }, { id: 'fleet-local' }, { id: 'my-workspace' }];
+
+    const context = (stored: string, allWorkspaces: { id: string }[] = workspaces) => {
+      const state = { allWorkspaces, workspace: '' };
+      const getters = {
+        currentProduct: { showWorkspaceSwitcher: true },
+        'prefs/get':    () => stored,
+      };
+
+      return {
+        state,
+        getters,
+        commit:   (_name: string, payload: { value: string, all: { id: string }[], getters: unknown }) => mutations.updateWorkspace(state, payload),
+        dispatch: jest.fn(),
+      };
+    };
+
+    it('should keep a workspace that exists', () => {
+      const ctx = context('my-workspace');
+
+      actions.restoreWorkspace(ctx, { value: 'my-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('my-workspace');
+      expect(ctx.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should replace a stored workspace that no longer exists and correct the preference', () => {
+      const ctx = context('removed-workspace');
+
+      actions.restoreWorkspace(ctx, { value: 'removed-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('fleet-default');
+      expect(ctx.dispatch).toHaveBeenCalledWith('prefs/set', { key: 'workspace', value: 'fleet-default' });
+    });
+
+    it('should fall back to the first workspace when there is no default one', () => {
+      const ctx = context('removed-workspace', [{ id: 'my-workspace' }]);
+
+      actions.restoreWorkspace(ctx, { value: 'removed-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('my-workspace');
+      expect(ctx.dispatch).toHaveBeenCalledWith('prefs/set', { key: 'workspace', value: 'my-workspace' });
+    });
+
+    it('should leave the value alone when no workspaces are known', () => {
+      const ctx = context('my-workspace', []);
+
+      actions.restoreWorkspace(ctx, { value: 'my-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('my-workspace');
+      expect(ctx.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should not touch the preference when restoring a value the user did not store', () => {
+      const ctx = context('my-workspace');
+
+      actions.restoreWorkspace(ctx, { value: 'fleet-default', all: undefined });
+
+      expect(ctx.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should not write a preference when nothing is stored yet', () => {
+      const ctx = context('');
+
+      actions.restoreWorkspace(ctx, { value: 'fleet-default', all: undefined });
+
+      expect(ctx.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should store a list of workspaces given to it', () => {
+      const ctx = context('fleet-local', []);
+
+      actions.restoreWorkspace(ctx, { value: 'fleet-local', all: workspaces });
+
+      expect(ctx.state.allWorkspaces).toStrictEqual(workspaces);
+      expect(ctx.state.workspace).toBe('fleet-local');
+      expect(ctx.dispatch).not.toHaveBeenCalled();
     });
   });
 });
