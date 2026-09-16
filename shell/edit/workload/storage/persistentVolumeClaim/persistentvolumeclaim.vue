@@ -7,7 +7,6 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { mapGetters } from 'vuex';
 import { removeObject, addObject } from '@shell/utils/array';
 import { STORAGE_CLASS, PV } from '@shell/config/types';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 
@@ -51,11 +50,10 @@ export default {
     this.storageClasses = hash.storageClasses;
     this.persistentVolumes = hash.persistentVolumes;
 
-    // Only default the storage class when creating a new PVC. When editing an
-    // existing StatefulSet, `volumeClaimTemplates` is immutable, so mutating a
-    // previously empty storageClassName here makes the save fail with
-    // "updates to statefulset spec for fields other than ... are forbidden".
-    if (this.mode !== _EDIT && this.mode !== _VIEW) {
+    // Only default the storage class for a new PVC, which `applyDefaults` sets
+    // to an empty string. An existing StatefulSet volumeClaimTemplate without a
+    // storage class has no such key, and adding one is a forbidden mutation.
+    if (typeof this.spec.storageClassName === 'string') {
       this.spec['storageClassName'] = (this.spec.storageClassName || this.defaultStorageClassName);
     }
   },
