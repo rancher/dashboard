@@ -64,6 +64,10 @@ export class FleetPolicyCreateEditPo extends BaseDetailPagePo {
     return new CheckboxInputPo('[data-testid="fleet-policy-require-service-account"]');
   }
 
+  allowNamespaceCreation(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid="fleet-policy-allow-namespace-creation"]');
+  }
+
   restrictServiceAccounts(): RadioGroupInputPo {
     return new RadioGroupInputPo('[data-testid="fleet-policy-restrict-service-accounts"]');
   }

@@ -59,7 +59,10 @@ describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] 
       createPage.waitForPage();
 
       createPage.nameNsDescription().name().set(policyName);
+      // Namespace creation is only offered once a service account is required
+      createPage.allowNamespaceCreation().checkNotExists();
       createPage.requireServiceAccount().check();
+      createPage.allowNamespaceCreation().check();
 
       createPage.restrictServiceAccounts().set(1);
       serviceAccounts.forEach((name) => createPage.enterName(createPage.allowedServiceAccounts(), name));
@@ -77,6 +80,7 @@ describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] 
         const body = response?.body;
 
         expect(body.requireServiceAccount).to.eq(true);
+        expect(body.allowNamespaceCreation).to.eq(true);
         expect(body.allowedServiceAccounts).to.deep.eq(serviceAccounts);
         expect(body.gitRepo.defaultServiceAccount).to.eq(serviceAccounts[0]);
         expect(body.gitRepo.allowedClientSecretNames).to.deep.eq([clientSecret]);
@@ -95,6 +99,7 @@ describe('Fleet Policy', { testIsolation: false, tags: ['@fleet', '@adminUser'] 
       editPage.waitForPage('mode=edit');
 
       editPage.requireServiceAccount().isChecked();
+      editPage.allowNamespaceCreation().isChecked();
       editPage.restrictServiceAccounts().isChecked(1);
       serviceAccounts.forEach((name) => editPage.allowedServiceAccounts().checkContainsOptionSelected(name));
 
