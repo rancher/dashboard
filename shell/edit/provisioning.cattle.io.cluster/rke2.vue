@@ -2727,6 +2727,7 @@ export default {
             v-if="value.spec.clusterAgentDeploymentCustomization"
             name="clusteragentconfig"
             label-key="cluster.agentConfig.tabs.cluster"
+            :showHeader="false"
           >
             <AgentConfiguration
               v-model:value="value.spec.clusterAgentDeploymentCustomization"

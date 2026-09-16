@@ -1,6 +1,6 @@
 <script>
 import { Banner } from '@components/Banner';
-import GroupPanel from '@shell/components/GroupPanel';
+import { RcSection, SECTION_TYPE } from '@components/RcSection';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
@@ -22,7 +22,7 @@ export default {
   components: {
     Banner,
     ContainerResourceLimit,
-    GroupPanel,
+    RcSection,
     PodAffinity,
     NodeAffinity,
     RadioGroup,
@@ -60,7 +60,7 @@ export default {
     defaultPDB: {
       type:    Object,
       default: () => {},
-    }
+    },
   },
 
   async fetch() {
@@ -84,7 +84,8 @@ export default {
     return {
       defaultAffinity: {},
       affinitySetting: DEFAULT,
-      nodeAffinity:    {}
+      nodeAffinity:    {},
+      SECTION_TYPE
     };
   },
 
@@ -171,7 +172,7 @@ export default {
 
     canEditAffinity() {
       return this.affinitySetting === CUSTOM;
-    }
+    },
   },
 
   watch: {
@@ -216,113 +217,103 @@ export default {
 </script>
 
 <template>
-  <div>
-    <Banner
-      :closable="false"
-      color="info"
-      label-key="cluster.agentConfig.banners.advanced"
-    />
-
-    <GroupPanel
-      label-key="cluster.agentConfig.groups.podRequestsAndLimits"
-      class="mt-20"
-    >
+  <RcSection
+    :title="t('cluster.agentConfig.groups.podAffinity')"
+    mode="with-header"
+    :type="SECTION_TYPE.PRIMARY"
+    :expandable="false"
+  >
+    <div class="agent-configuration">
       <Banner
         :closable="false"
         color="info"
-        label-key="cluster.agentConfig.banners.limits"
+        label-key="cluster.agentConfig.banners.advanced"
+        class="mt-0 mb-0"
       />
+
       <ContainerResourceLimit
         v-model:value="flatResources"
         :mode="mode"
         :show-tip="false"
         :handle-gpu-limit="false"
-        class="mt-10"
-      />
-    </GroupPanel>
+        :rc-compatible="true"
+        :title="t('cluster.agentConfig.groups.podRequestsAndLimits')"
+      >
+        <template #banner>
+          <Banner
+            :closable="false"
+            color="info"
+            label-key="cluster.agentConfig.banners.limits"
+            class="mt-0"
+          />
+        </template>
+      </ContainerResourceLimit>
 
-    <GroupPanel
-      label-key="cluster.agentConfig.groups.podTolerations"
-      class="mt-20"
-    >
-      <Banner
-        :closable="false"
-        color="info"
-        label-key="cluster.agentConfig.banners.tolerations"
-      />
       <Tolerations
         v-model:value="value.appendTolerations"
         :mode="mode"
-        class="mt-10"
-      />
-    </GroupPanel>
-
-    <GroupPanel
-      label-key="cluster.agentConfig.groups.podAffinity"
-      class="mt-20"
-    >
-      <RadioGroup
-        v-model:value="affinitySetting"
-        name="affinity-override"
-        :mode="mode"
-        :options="affinityOptions"
-        class="mt-10"
-        data-testid="affinity-options"
-        @update:value="affinitySettingChange"
-      />
-
-      <Banner
-        v-if="canEditAffinity"
-        :closable="false"
-        color="warning"
+        :rc-compatible="true"
+        :title="t('cluster.agentConfig.groups.podTolerations')"
       >
-        <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)" />
-      </Banner>
+        <template #banner>
+          <Banner
+            :closable="false"
+            color="info"
+            label-key="cluster.agentConfig.banners.tolerations"
+            class="mt-0"
+          />
+        </template>
+      </Tolerations>
 
-      <h4 v-if="canEditAffinity">
-        {{ t('cluster.agentConfig.subGroups.podAffinityAnti') }}
-      </h4>
-
-      <PodAffinity
-        v-if="canEditAffinity"
-        :value="value"
-        field="overrideAffinity"
-        :mode="mode"
-        class="mt-0 mb-20"
-        :all-namespaces-option-available="true"
-        :force-input-namespace-selection="true"
-        :remove-labeled-input-namespace-label="true"
-        data-testid="pod-affinity"
-        @update:value="$emit('input', $event)"
-      />
-
-      <div
-        v-if="canEditAffinity"
-        class="separator"
-      />
-      <h4
-        v-if="canEditAffinity"
-        class="mt-20"
+      <RcSection
+        :title="t('cluster.agentConfig.groups.podAffinity')"
+        mode="with-header"
+        :type="SECTION_TYPE.SECONDARY"
+        :expandable="true"
       >
-        {{ t('cluster.agentConfig.subGroups.nodeAffinity') }}
-      </h4>
+        <RadioGroup
+          v-model:value="affinitySetting"
+          name="affinity-override"
+          :mode="mode"
+          :options="affinityOptions"
+          data-testid="affinity-options"
+          @update:value="affinitySettingChange"
+        />
 
-      <NodeAffinity
-        v-if="canEditAffinity"
-        v-model:value="nodeAffinity"
-        :matching-selector-display="true"
-        :mode="mode"
-        class="mt-0"
-        data-testid="node-affinity"
-        @update:value="updateNodeAffinity"
-      />
-    </GroupPanel>
-    <GroupPanel
-      v-if="schedulingCustomizationVisible"
-      label-key="cluster.agentConfig.groups.schedulingCustomization"
-      class="mt-20"
-    >
+        <Banner
+          v-if="canEditAffinity"
+          :closable="false"
+          color="warning"
+          class="mt-0"
+        >
+          <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)" />
+        </Banner>
+
+        <PodAffinity
+          v-if="canEditAffinity"
+          :value="value"
+          field="overrideAffinity"
+          :mode="mode"
+          :all-namespaces-option-available="true"
+          :force-input-namespace-selection="true"
+          :remove-labeled-input-namespace-label="true"
+          :rc-compatible="true"
+          data-testid="pod-affinity"
+          @update:value="$emit('input', $event)"
+        />
+
+        <NodeAffinity
+          v-if="canEditAffinity"
+          v-model:value="nodeAffinity"
+          :matching-selector-display="true"
+          :mode="mode"
+          :rc-compatible="true"
+          data-testid="node-affinity"
+          @update:value="updateNodeAffinity"
+        />
+      </RcSection>
       <SchedulingCustomization
+        v-if="schedulingCustomizationVisible"
         :value="value.schedulingCustomization"
         :mode="mode"
         :type="type"
@@ -331,13 +322,18 @@ export default {
         :default-p-d-b="defaultPDB"
         @scheduling-customization-changed="$emit('scheduling-customization-changed', $event)"
       />
-    </GroupPanel>
-  </div>
+    </div>
+  </RcSection>
 </template>
 
 <style lang="scss" scoped>
-.separator {
-  width: 100%;
-  border-top: 1px solid var(--border);
+// RcSection only spaces its own header from its content (and its own direct
+// slot children apart) - it doesn't space one RcSection from a sibling one,
+// so this stacks the top-level sections themselves the same way RcSection
+// spaces a section's own direct content apart.
+.agent-configuration {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md, 16px);
 }
 </style>

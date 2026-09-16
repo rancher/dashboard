@@ -9,7 +9,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
-import { RcSection } from '@components/RcSection';
+import { RcSection, SECTION_TYPE } from '@components/RcSection';
 import Banner from '@components/Banner/Banner.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import Labels from '@shell/components/form/Labels.vue';
@@ -154,6 +154,7 @@ export default defineComponent({
       }
       ],
       AGENT_CONFIGURATION_TYPES,
+      SECTION_TYPE
     };
   },
 
@@ -568,7 +569,7 @@ export default defineComponent({
         v-if="showBasics"
         :title="providerTabKey"
         mode="with-header"
-        type="primary"
+        :type="SECTION_TYPE.PRIMARY"
         expandable
         :expanded="true"
       >
@@ -602,7 +603,7 @@ export default defineComponent({
       <RcSection
         :title="t('members.memberRoles')"
         mode="with-header"
-        type="primary"
+        :type="SECTION_TYPE.PRIMARY"
         expandable
         :expanded="true"
       >
@@ -630,7 +631,7 @@ export default defineComponent({
         v-if="showAgentConfiguration"
         :title="t('cluster.agentConfig.tabs.cluster')"
         mode="with-header"
-        type="primary"
+        :type="SECTION_TYPE.PRIMARY"
         expandable
         :expanded="false"
         data-testid="cluster-agent-config-accordion"
@@ -651,7 +652,7 @@ export default defineComponent({
         v-if="showAgentConfiguration"
         :title="t('cluster.agentConfig.tabs.fleet')"
         mode="with-header"
-        type="primary"
+        :type="SECTION_TYPE.PRIMARY"
         expandable
         :expanded="false"
         data-testid="fleet-agent-config-accordion"
@@ -671,7 +672,7 @@ export default defineComponent({
       <RcSection
         :title="t('imported.accordions.labels')"
         mode="with-header"
-        type="primary"
+        :type="SECTION_TYPE.PRIMARY"
         expandable
         :expanded="false"
       >
@@ -685,7 +686,7 @@ export default defineComponent({
         :title="t('imported.accordions.networking')"
         data-testid="network-accordion"
         mode="with-header"
-        type="primary"
+        :type="SECTION_TYPE.PRIMARY"
         expandable
         :expanded="false"
       >
@@ -720,7 +721,7 @@ export default defineComponent({
         :title="t('imported.accordions.registries')"
         data-testid="registries-accordion"
         mode="with-header"
-        type="primary"
+        :type="SECTION_TYPE.PRIMARY"
         expandable
         :expanded="false"
       >
@@ -740,7 +741,7 @@ export default defineComponent({
         v-if="!isRKE1"
         :title="t('imported.accordions.advanced')"
         mode="with-header"
-        type="primary"
+        :type="SECTION_TYPE.PRIMARY"
         expandable
         :expanded="false"
       >
