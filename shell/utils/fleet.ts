@@ -309,6 +309,7 @@ class Fleet {
       STATES_ENUM.ERROR,
       STATES_ENUM.ERR_APPLIED,
       STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.WAITING_FOR_DEPENDENCY,
       STATES_ENUM.UNKNOWN,
     ].reduce((acc: Record<string, any>, state) => {
       acc[state] = {
@@ -331,7 +332,7 @@ class Fleet {
    * Where the state is one the UI knows, and is classified as something other than an error, that
    * classification is the more accurate of the two, so the flag is dropped.
    */
-  resourceStateObj(state?: { name?: string, error?: boolean }): { name?: string, error?: boolean } | undefined {
+  resourceStateObj<T extends { name?: string, error?: boolean }>(state?: T): T | undefined {
     const known = state?.name ? STATES[state.name.toLowerCase()] : undefined;
 
     if (state?.error && known && known.color !== STATES[STATES_ENUM.ERROR].color) {

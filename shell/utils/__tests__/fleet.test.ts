@@ -595,6 +595,7 @@ describe('fleet: getBundlesDefaultState', () => {
       STATES_ENUM.ERROR,
       STATES_ENUM.ERR_APPLIED,
       STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.WAITING_FOR_DEPENDENCY,
       STATES_ENUM.UNKNOWN,
     ];
 
