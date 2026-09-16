@@ -44,7 +44,7 @@ export default {
       >
         <action-menu
           :resource="value.data"
-          :button-aria-label="t('advancedSettings.edit.label')"
+          :button-aria-label="t('advancedSettings.edit.moreActions', { setting: value.id })"
           data-testid="action-button"
           button-variant="tertiary"
         />
