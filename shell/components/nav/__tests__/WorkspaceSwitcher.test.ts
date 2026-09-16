@@ -1,3 +1,4 @@
+import { nextTick, reactive } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import WorkspaceSwitcher from '@shell/components/nav/WorkspaceSwitcher.vue';
 
@@ -7,20 +8,21 @@ describe('component: WorkspaceSwitcher', () => {
     { id: 'fleet-local', nameDisplay: 'fleet-local' }
   ];
 
-  const mountSwitcher = (workspace: string, allWorkspaces = workspaces) => {
+  const mountSwitcher = (workspace: string, allWorkspaces = workspaces, lastNamespace = '') => {
     const dispatch = jest.fn();
     const commit = jest.fn();
+    const state = reactive({
+      workspace,
+      allWorkspaces,
+      allNamespaces:    [],
+      defaultNamespace: '',
+    });
     const wrapper = shallowMount(WorkspaceSwitcher, {
       global: {
         mocks: {
           $store: {
-            state: {
-              workspace,
-              allWorkspaces,
-              allNamespaces:    [],
-              defaultNamespace: '',
-            },
-            getters: { 'prefs/get': () => '' },
+            state,
+            getters: { 'prefs/get': () => lastNamespace },
             commit,
             dispatch,
           }
@@ -29,7 +31,7 @@ describe('component: WorkspaceSwitcher', () => {
     });
 
     return {
-      wrapper, dispatch, commit
+      wrapper, dispatch, commit, state
     };
   };
 
@@ -37,6 +39,12 @@ describe('component: WorkspaceSwitcher', () => {
     const { dispatch } = mountSwitcher('removed-workspace');
 
     expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'removed-workspace' });
+  });
+
+  it('should restore a last-namespace that is not a workspace', () => {
+    const { dispatch } = mountSwitcher('', workspaces, 'cattle-system');
+
+    expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'cattle-system' });
   });
 
   it('should leave a workspace that exists alone', () => {
@@ -51,6 +59,15 @@ describe('component: WorkspaceSwitcher', () => {
 
     expect(dispatch).not.toHaveBeenCalled();
     expect(commit).not.toHaveBeenCalled();
+  });
+
+  it('should restore through the store when the workspace list arrives without the selection', async() => {
+    const { dispatch, state } = mountSwitcher('removed-workspace', []);
+
+    state.allWorkspaces = workspaces;
+    await nextTick();
+
+    expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'removed-workspace' });
   });
 
   it('should offer every known workspace as an option', () => {
