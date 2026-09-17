@@ -413,6 +413,7 @@ export default {
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
       :external-pagination-args="pagination"
+      :external-pagination-scope="paginationScope"
       @pagination-changed="paginationChanged"
       @view-filters-changed="setTableViewFilters"
     />

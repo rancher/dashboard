@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { get } from '@shell/utils/object';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
-import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
+import { mapPref, GROUP_RESOURCES, TABLE_VIEWS } from '@shell/store/prefs';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE, AGE } from '@shell/config/table-headers';
@@ -272,6 +272,16 @@ export default {
     },
 
     /**
+     * What scopes the list no matter what the user has typed - the namespace/project selection
+     * and the page's own filters. Used to count and to suggest values against the whole of what
+     * this list can show, rather than against the query being typed.
+     */
+    externalPaginationScope: {
+      type:    Object,
+      default: null
+    },
+
+    /**
      * Show the table views toolbar (query, columns, group by, export, saved views).
      * Null means "decide automatically" - on for any table showing a known resource type
      */
@@ -286,16 +296,23 @@ export default {
     // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
     const inStore = this.overrideInStore || (this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined);
 
-    // A shared view can arrive in the url, eg ?view=<encoded>
-    const shared = decodeView(this.$route?.query?.view);
+    // A shared view can arrive in the url, eg ?view=<encoded>. Failing that the user may have
+    // marked one of their saved views as the one this list opens on.
+    const saved = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
+    const shared = decodeView(this.$route?.query?.view) ||
+      (saved?.views || []).find((view) => view.id === saved?.defaultViewId) ||
+      null;
 
     return {
       inStore,
       /** fieldId -> values in use, fetched from the api by fetchFieldValues */
       fieldValues: {},
-      view: {
+      /** viewId ('' for the default tab) -> how many rows it matches, shown on the tabs */
+      viewCounts:  {},
+      view:        {
         query:        shared?.query || '',
         columns:      shared?.columns || null,
+        columnOrder:  shared?.columnOrder || null,
         labelColumns: shared?.labelColumns || [],
         groupBy:      shared?.groupBy || null,
       },
@@ -309,11 +326,21 @@ export default {
       listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
       hasSearchFilter:              false,
       // Debounced emit of the server-side view filters (see serverViewFilters watcher)
-      debouncedEmitViewFilters:     debounce((filters) => this.$emit('view-filters-changed', filters), 200),
+      debouncedEmitViewFilters:     debounce((filters) => this.$emit('view-filters-changed', filters), 500),
       // Serialized form of the last emitted filters, to skip redundant emits. Starts as
       // the empty state so an initial empty query doesn't fire (matches the fallback path)
       lastViewFiltersKey:           '[]',
+      // Counting every saved view costs one (tiny) request each, so it waits for the list to
+      // settle rather than running on each row that arrives
+      debouncedFetchViewCounts:     debounce(() => this.fetchViewCounts(), 800),
+      debouncedRefreshViewCounts:   debounce(() => this.fetchViewCounts(true), 400),
     };
+  },
+
+  mounted() {
+    if (this.showTableViews) {
+      this.debouncedFetchViewCounts();
+    }
   },
 
   watch: {
@@ -322,8 +349,35 @@ export default {
      * changes - switching the namespace filter otherwise kept offering values from the namespaces
      * the user has just navigated away from
      */
-    summaryBaseUrl() {
+    summaryBaseUrl(neu, old) {
+      if (neu === old) {
+        return;
+      }
+
+      // Re-fetch rather than just drop them. Clearing alone left the input quietly falling back
+      // to scanning the page, which offers the value a column *shows* ("Active") in place of the
+      // one a query has to use ("active")
+      const known = Object.keys(this.fieldValues);
+
       this.fieldValues = {};
+      known.forEach((fieldId) => this.fetchFieldValues(fieldId));
+    },
+
+    /**
+     * A new tab, or a new query in the box, needs a count of its own. Debounced, so typing a
+     * query asks once it is finished rather than once per keystroke.
+     */
+    viewCountsKey() {
+      this.debouncedFetchViewCounts();
+    },
+
+    /**
+     * The same query counts differently in another namespace, so every count is taken again -
+     * the only time they are. Deliberately not tied to the rows: a count that moved with the
+     * table would blink to zero every time the list went to fetch a page.
+     */
+    viewCountsScope() {
+      this.debouncedRefreshViewCounts();
     },
 
     filteredRows: {
@@ -609,10 +663,10 @@ export default {
       if (!this.serverSideTableViews) {
         return this.viewFields;
       }
-    
+
       return this.viewFields.filter((field) => {
         const path = serverPathFor(field);
-    
+
         return typeof path === 'string' && stevePaginationUtils.isValidPaginationField(this.schema, path);
       });
     },
@@ -654,6 +708,36 @@ export default {
      * shouldn't be narrowed by the term being edited - a field is usually picked to change the
      * term already there.
      */
+    /**
+     * The filters that scope the list itself - the namespace/project filter and anything the
+     * page added - with the view's own query filters taken back out.
+     *
+     * Compared by value: the filter objects handed to the list are rebuilt on every render, so
+     * the ones we sent are never the same objects coming back.
+     */
+    listScopeFilters() {
+      if (this.externalPaginationScope) {
+        return this.externalPaginationScope.filters || [];
+      }
+
+      // No explicit scope (an older caller), so work it out by taking the view's own filters back
+      // out of what the list is asking for
+      const args = this.externalPaginationArgs;
+
+      if (!args?.filters?.length) {
+        return [];
+      }
+
+      const own = this.serverViewFilters.filters.map((filter) => JSON.stringify(filter));
+
+      return args.filters.filter((filter) => !own.includes(JSON.stringify(filter)));
+    },
+
+    /** The namespaces/projects the list is scoped to, from whichever source we have */
+    listScopeNamespaces() {
+      return this.externalPaginationScope?.projectsOrNamespaces || this.externalPaginationArgs?.projectsOrNamespaces || [];
+    },
+
     summaryBaseUrl() {
       const urlFor = this.$store.getters[`${ this.inStore }/urlFor`];
       const args = this.externalPaginationArgs;
@@ -662,12 +746,13 @@ export default {
         return urlFor(this.schema.id);
       }
 
-      const own = this.serverViewFilters.filters;
-
+      // Deliberately no page of its own. `summaryonly` returns no rows but still aggregates over
+      // the page window, so asking for a small one counts a handful of rows and offers the user
+      // a fraction of the values that are really in use.
       return urlFor(this.schema.id, null, {
         pagination: {
-          filters:              (args.filters || []).filter((filter) => !own.includes(filter)),
-          projectsOrNamespaces: args.projectsOrNamespaces || [],
+          filters:              this.listScopeFilters,
+          projectsOrNamespaces: this.listScopeNamespaces,
         }
       });
     },
@@ -745,6 +830,17 @@ export default {
         out = headers.filter((header) => isIgnoredColumn(header) || isCoreField(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
       }
 
+      if (this.view.columnOrder?.length) {
+        // Only the data columns are reordered; `check`, `actions` and the rest are structural
+        // and stay where the table put them
+        const order = this.view.columnOrder;
+        const movable = out.filter((header) => !isIgnoredColumn(header) && order.includes(headerFieldId(header)));
+        const sorted = movable.slice().sort((a, b) => order.indexOf(headerFieldId(a)) - order.indexOf(headerFieldId(b)));
+        let next = 0;
+
+        out = out.map((header) => (movable.includes(header) ? sorted[next++] : header));
+      }
+
       if (this.view.labelColumns?.length) {
         out = out.slice();
 
@@ -764,6 +860,78 @@ export default {
       }
 
       return out;
+    },
+
+    /**
+     * The saved views for this type, so the tabs can be counted without the toolbar telling us
+     * about them
+     */
+    savedViews() {
+      const stored = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
+
+      // Older preferences held the array directly, before a default view had to live beside it
+      return stored?.views || (Array.isArray(stored) ? stored : []) || [];
+    },
+
+    /**
+     * Every tab that needs a count: the default one (no query) and each saved view. Keyed by
+     * the query, because that is all a count depends on.
+     */
+    /**
+     * Every distinct query a tab needs counted: the default tab's (nothing), each saved view's,
+     * and whatever the user currently has in the box.
+     *
+     * Queries rather than views, because that is all a count depends on - two views filtering the
+     * same way share one count and one request.
+     */
+    countableQueries() {
+      const out = [''].concat(this.savedViews.map((view) => view.query || '')).concat([this.view.query || '']);
+
+      return Array.from(new Set(out));
+    },
+
+    /** Changes exactly when the set of counts we'd have to fetch changes */
+    viewCountsKey() {
+      return JSON.stringify(this.countableQueries);
+    },
+
+    /**
+     * The scope the counts were taken in. When this changes they are all worth taking again -
+     * the same query counts differently in another namespace.
+     */
+    viewCountsScope() {
+      return JSON.stringify(this.listScopeFilters) + JSON.stringify(this.listScopeNamespaces);
+    },
+
+    /**
+     * Plural display name of what the table holds, for the export modal's sentence
+     */
+    resourceLabel() {
+      if (!this.schema?.id) {
+        return '';
+      }
+
+      return this.$store.getters['type-map/labelFor'](this.schema, 99).toLowerCase();
+    },
+
+    /**
+     * Counts for the tabs, worked out here when the filtering is happening in the browser
+     */
+    localViewCounts() {
+      const out = {};
+
+      this.countableQueries.forEach((query) => {
+        const terms = parseQuery(query, this.viewFields);
+
+        out[query] = terms.length ? applyQuery(this.filteredRows, terms, this.viewFields).length : this.filteredRows.length;
+      });
+
+      return out;
+    },
+
+    /** What the toolbar shows on each tab */
+    tabCounts() {
+      return this.serverSideTableViews ? this.viewCounts : this.localViewCounts;
     },
 
     /**
@@ -959,26 +1127,90 @@ export default {
       if (!this.serverSideTableViews || this.fieldValues[fieldId] !== undefined) {
         return;
       }
-    
+
       const field = findField(this.viewFields, fieldId);
       const path = field ? serverPathFor(field) : null;
-    
+
       if (typeof path !== 'string' || !stevePaginationUtils.isValidPaginationField(this.schema, path)) {
+        // Nothing to ask the api for - claim the slot anyway so the input stops asking on every
+        // row that arrives, and falls back to the values on the page
+        this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
+
         return;
       }
-    
+
       // Claim the slot up front so a second keystroke doesn't ask for the same field again
       this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
-    
+
       try {
         const url = `${ this.summaryBaseUrl }&summary=${ encodeURIComponent(path) }&summaryonly`;
         const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
-    
+
         this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res) };
       } catch (e) {
         // Not fatal - the input falls back to the values on the current page
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
       }
+    },
+
+    /**
+     * Count the rows each saved view matches, so its tab can say so.
+     *
+     * One request per view, asking for a single row and reading the total off the response -
+     * the rows themselves are never wanted here. Views whose query the pagination API can't
+     * express are left without a count rather than shown a wrong one.
+     */
+    async fetchViewCounts(refresh = false) {
+      if (!this.serverSideTableViews) {
+        return;
+      }
+
+      // Only what we don't already know. A count already taken stays on its tab until a fresh one
+      // replaces it, so nothing ever blinks back to zero while the list is busy
+      const wanted = this.countableQueries.filter((query) => refresh || this.viewCounts[query] === undefined);
+
+      if (!wanted.length) {
+        return;
+      }
+
+      await Promise.all(wanted.map(async(query) => {
+        const terms = parseQuery(query, this.viewFields);
+        const { filters, unsupported } = termsToServerFilters(terms, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
+
+        if (unsupported.length) {
+          return;
+        }
+
+        try {
+          const url = this.countUrl(filters);
+          const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
+          const count = res?.count ?? res?.data?.length;
+
+          if (count !== undefined) {
+            this.viewCounts = { ...this.viewCounts, [query]: count };
+          }
+        } catch (e) {
+          // No count is better than a wrong one - the tab simply shows its name
+        }
+      }));
+    },
+
+    /**
+     * A url that returns the total for `filters` and none of the rows behind it
+     */
+    countUrl(filters) {
+      const urlFor = this.$store.getters[`${ this.inStore }/urlFor`];
+
+      return urlFor(this.schema.id, null, {
+        pagination: {
+          // The list's own scope (the namespace/project filter) still applies - a view counts
+          // what it would show, not what exists elsewhere
+          filters:              (this.listScopeFilters || []).concat(filters),
+          projectsOrNamespaces: this.listScopeNamespaces,
+          page:                 1,
+          pageSize:             1,
+        }
+      });
     },
 
     keyAction(action) {
@@ -1091,28 +1323,28 @@ export default {
       }
     },
 
-    async handleExport({ format, scope }) {
-      const table = this.$refs.table;
-      let rows;
+    /**
+     * Write the view out, one file per format asked for.
+     *
+     * What gets exported is every row the view matches, not the page on screen - the view is
+     * what the user picked, the page is just where they happen to be in it.
+     */
+    async handleExport({ formats }) {
+      const rows = await this.allMatchingRows();
 
-      if (scope === 'selection') {
-        rows = table?.selectedRows || [];
-      } else if (scope === 'page') {
-        rows = table?.pagedRows || [];
-      } else {
-        rows = await this.allMatchingRows();
-      }
-
-      if (!rows.length) {
+      if (!rows.length || !formats?.length) {
         return;
       }
 
       const columns = this.exportColumns;
       const name = (this.schema?.id || 'resources').replace(/[^a-z0-9]+/gi, '-');
-      const content = format === 'json' ? rowsToJson(rows, columns) : rowsToCsv(rows, columns);
-      const contentType = format === 'json' ? 'application/json;charset=utf-8' : 'text/csv;charset=utf-8';
 
-      downloadFile(`${ name }-${ scope }.${ format }`, content, contentType);
+      formats.forEach((format) => {
+        const content = format === 'json' ? rowsToJson(rows, columns) : rowsToCsv(rows, columns);
+        const contentType = format === 'json' ? 'application/json;charset=utf-8' : 'text/csv;charset=utf-8';
+
+        downloadFile(`${ name }.${ format }`, content, contentType);
+      });
     },
   }
 };
@@ -1131,7 +1363,7 @@ export default {
     :group="group"
     :group-options="_groupOptions"
     :search="showTableViews ? false : search"
-    :header-right-fill="showTableViews"
+    :table-views-layout="showTableViews"
     :paging="true"
     :paging-params="parsedPagingParams"
     :paging-label="pagingLabel"
@@ -1170,12 +1402,11 @@ export default {
         :field-values="fieldValues"
         :rows="filteredRows"
         :match-count="viewMatchCount"
+        :view-counts="tabCounts"
+        :resource-label="resourceLabel"
         :resource-type="schema ? schema.id : ''"
-        :view-mode="group"
-        :view-mode-options="showGrouping ? _groupOptions : []"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
-        @update:view-mode="group = $event"
         @export="handleExport"
       />
     </template>
@@ -1208,12 +1439,11 @@ export default {
         :field-values="fieldValues"
         :rows="filteredRows"
         :match-count="viewMatchCount"
+        :view-counts="tabCounts"
+        :resource-label="resourceLabel"
         :resource-type="schema ? schema.id : ''"
-        :view-mode="group"
-        :view-mode-options="showGrouping ? _groupOptions : []"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
-        @update:view-mode="group = $event"
         @export="handleExport"
       />
       <slot

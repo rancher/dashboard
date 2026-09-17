@@ -1,6 +1,6 @@
 import ResourceTable from '@shell/components/ResourceTable.vue';
 
-const { summaryBaseUrl } = (ResourceTable as any).computed;
+const { summaryBaseUrl, listScopeFilters, listScopeNamespaces } = (ResourceTable as any).computed;
 
 describe('ResourceTable', () => {
   describe('summaryBaseUrl', () => {
@@ -13,7 +13,7 @@ describe('ResourceTable', () => {
     } = {}) {
       const calls: any[] = [];
 
-      return {
+      const ctx: any = {
         calls,
         inStore:                'cluster',
         schema:                 { id: 'pod' },
@@ -31,6 +31,12 @@ describe('ResourceTable', () => {
           }
         },
       };
+
+      // summaryBaseUrl reads these computeds off the instance
+      Object.defineProperty(ctx, 'listScopeFilters', { get: () => listScopeFilters.call(ctx) });
+      Object.defineProperty(ctx, 'listScopeNamespaces', { get: () => listScopeNamespaces.call(ctx) });
+
+      return ctx;
     }
 
     it('should ask for a plain url when the list has no pagination args', () => {

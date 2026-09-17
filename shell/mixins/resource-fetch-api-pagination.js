@@ -217,6 +217,29 @@ export default {
     },
 
     /**
+     * What scopes this list regardless of anything the user has typed: the namespace / project
+     * selection and any filters the page itself applies.
+     *
+     * Kept apart from {@link pagination} because the table views toolbar needs a scope that holds
+     * still while a query is being typed. Subtracting the view's filters back out of `pagination`
+     * looked equivalent but isn't - the request is debounced, so between keystrokes `pagination`
+     * carries the *previous* query's filters and the scope appeared to change on every character.
+     *
+     * @returns {{filters: PaginationParamFilter[], projectsOrNamespaces: any[]}}
+     */
+    paginationScope() {
+      // A copy, because `apiFilter` appends to the array it is handed
+      const scope = {
+        filters:              [...this.requestFilters.filters],
+        projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
+      };
+
+      // The page's own api filter is part of the scope too - on the cluster list it is what keeps
+      // harvester clusters out. Leaving it off counted rows the list would never show.
+      return this.apiFilter ? this.apiFilter(scope) : scope;
+    },
+
+    /**
      * Should this list be paginated via API?
      */
     canPaginate() {
