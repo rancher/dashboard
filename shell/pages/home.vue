@@ -4,13 +4,12 @@ import { mapPref, AFTER_LOGIN_ROUTE, HIDE_HOME_PAGE_CARDS } from '@shell/store/p
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
-import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
 import DynamicContentBanner from '@shell/components/DynamicContent/DynamicContentBanner.vue';
 import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContentPanel.vue';
 import { mapGetters, mapState } from 'vuex';
-import { MANAGEMENT, CAPI, COUNT, SAVED_COUNTS } from '@shell/config/types';
+import { MANAGEMENT, CAPI, COUNT } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
@@ -44,7 +43,6 @@ export default defineComponent({
     BannerGraphic,
     IndentedPanel,
     PaginatedResourceTable,
-    BadgeState,
     CommunityLinks,
     SingleClusterInfo,
     TabTitle,
@@ -234,12 +232,6 @@ export default defineComponent({
       return this.tooManyClusters && !this.altClusterListDisabled;
     },
 
-    clusterCountDisplay() {
-      // If we have the cluster count from the store, use that instead
-      const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
-
-      return typeof savedCount !== 'undefined' ? savedCount : this.clusterCount;
-    }
   },
 
   watch: {
@@ -505,18 +497,19 @@ export default defineComponent({
                   v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
-                  <div class="table-heading">
+                  <div class="table-heading cluster-actions">
                     <rc-button
-                      v-if="!!provClusterSchema"
+                      v-if="canCreateCluster"
                       variant="secondary"
-                      :to="manageLocation"
-                      data-testid="cluster-management-manage-button"
-                      :aria-label="t('cluster.manageAction')"
+                      :to="createLocation"
+                      data-testid="cluster-create-button"
+                      :aria-label="t('generic.create')"
                     >
-                      {{ t('cluster.manageAction') }}
+                      {{ t('generic.create') }}
                     </rc-button>
                     <rc-button
                       v-if="canCreateCluster"
+                      variant="secondary"
                       :to="importLocation"
                       data-testid="cluster-create-import-button"
                       :aria-label="t('cluster.importAction')"
@@ -524,12 +517,12 @@ export default defineComponent({
                       {{ t('cluster.importAction') }}
                     </rc-button>
                     <rc-button
-                      v-if="canCreateCluster"
-                      :to="createLocation"
-                      data-testid="cluster-create-button"
-                      :aria-label="t('generic.create')"
+                      v-if="!!provClusterSchema"
+                      :to="manageLocation"
+                      data-testid="cluster-management-manage-button"
+                      :aria-label="t('cluster.manageAction')"
                     >
-                      {{ t('generic.create') }}
+                      {{ t('cluster.manageAction') }}
                     </rc-button>
                   </div>
                 </template>
@@ -630,11 +623,6 @@ export default defineComponent({
                     <h1 class="mb-0">
                       {{ t('landing.clusters.title') }}
                     </h1>
-                    <BadgeState
-                      v-if="clusterCount && !tooManyClusters"
-                      :label="clusterCountDisplay.toString()"
-                      color="bg-info ml-20 mr-20"
-                    />
                   </div>
                 </template>
                 <template
@@ -650,18 +638,19 @@ export default defineComponent({
                   v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
-                  <div class="table-heading">
+                  <div class="table-heading cluster-actions">
                     <rc-button
-                      v-if="!!provClusterSchema"
+                      v-if="canCreateCluster"
                       variant="secondary"
-                      :to="manageLocation"
-                      data-testid="cluster-management-manage-button"
-                      :aria-label="t('cluster.manageAction')"
+                      :to="createLocation"
+                      data-testid="cluster-create-button"
+                      :aria-label="t('generic.create')"
                     >
-                      {{ t('cluster.manageAction') }}
+                      {{ t('generic.create') }}
                     </rc-button>
                     <rc-button
                       v-if="canCreateCluster"
+                      variant="secondary"
                       :to="importLocation"
                       data-testid="cluster-create-import-button"
                       :aria-label="t('cluster.importAction')"
@@ -669,12 +658,12 @@ export default defineComponent({
                       {{ t('cluster.importAction') }}
                     </rc-button>
                     <rc-button
-                      v-if="canCreateCluster"
-                      :to="createLocation"
-                      data-testid="cluster-create-button"
-                      :aria-label="t('generic.create')"
+                      v-if="!!provClusterSchema"
+                      :to="manageLocation"
+                      data-testid="cluster-management-manage-button"
+                      :aria-label="t('cluster.manageAction')"
                     >
-                      {{ t('generic.create') }}
+                      {{ t('cluster.manageAction') }}
                     </rc-button>
                   </div>
                 </template>
@@ -781,6 +770,12 @@ export default defineComponent({
     & > a {
       margin-left: 10px;
     }
+  }
+
+  // The cluster actions sit at the right hand end of the heading row, above the table's own edge
+  .cluster-actions {
+    justify-content: flex-end;
+    gap: 10px;
   }
   .panel:not(:first-child) {
     margin-top: 20px;
