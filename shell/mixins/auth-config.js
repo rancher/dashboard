@@ -39,11 +39,14 @@ export default {
   },
 
   data() {
+    // An enabled provider opens on who may log in with it, unless whoever sent
+    // us here asked for the provider's own configuration
+    const openedOnConfig = this.$route.query?.[EDIT_CONFIG] === 'true';
+
     return {
       isEnabling:     false,
-      // An enabled provider opens on who may log in with it, unless whoever sent
-      // us here asked for the provider's own configuration
-      editConfig:     this.$route.query?.[EDIT_CONFIG] === 'true',
+      editConfig:     openedOnConfig,
+      openedOnConfig,
       model:          null,
       serverSetting:  null,
       errors:         [],
@@ -314,6 +317,13 @@ export default {
       // go back to provider selection screen
       if (!this.model.enabled) {
         this.$router.go(-1);
+      } else if (this.openedOnConfig) {
+        // The provider was opened on its own configuration, so this page has no
+        // earlier state to fall back to - the list is where the edit began
+        this.$router.push({
+          name:   'c-cluster-auth-config',
+          params: { cluster: this.$route.params.cluster },
+        });
       } else {
         // must be cancelling edit of an enabled config; reset any changes and return to add users/groups view for that config
         this.$store.dispatch(`rancher/clone`, { resource: this.originalModel }).then((cloned) => {
