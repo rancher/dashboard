@@ -103,6 +103,19 @@ describe('component: AuthProviderAccessDrawer', () => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false);
   });
 
+  // The drawer body is a plain canvas, so the form needs a surface of its own to
+  // read as a form, and it is too narrow for the two columns the page uses.
+  it('should show the form on a card in a single column', async() => {
+    const { wrapper } = createWrapper();
+
+    await flushPromises();
+
+    const card = wrapper.find('.drawer-card');
+
+    expect(card.findComponent(AllowedPrincipals).exists()).toBe(true);
+    expect(wrapper.findComponent(AllowedPrincipals).props('stacked')).toBe(true);
+  });
+
   // The credentials an oauth provider hands back cannot be sent again, and the
   // save is rejected if they are.
   it('should leave the write-only credentials out of an oauth save', async() => {
