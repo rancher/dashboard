@@ -25,6 +25,7 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import TableSelectionActions from '@shell/components/TableViews/TableSelectionActions.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
@@ -65,6 +66,7 @@ export default {
     LabeledInput,
     ButtonMultiAction,
     ActionMenu,
+    TableSelectionActions,
   },
 
   mixins: [
@@ -151,11 +153,11 @@ export default {
     },
 
     /**
-     * Make the masthead's search/right cell fill the width so injected content (the table-views
-     * filter + View button) shares one toolbar row with the bulk actions. Off by default so every
-     * other table keeps its default masthead grid exactly as-is.
+     * Lay the masthead out for the table views toolbar: the page's own title and buttons keep
+     * the top row, the view tabs take a second, and the filter shares a third with the selection
+     * actions. Off by default, so every other table keeps its single row masthead exactly as-is.
      */
-    headerRightFill: {
+    tableViewsLayout: {
       type:    Boolean,
       default: false
     },
@@ -1139,7 +1141,6 @@ export default {
     ref="container"
     :data-testid="componentTestid + '-list-container'"
   >
-    <slot name="table-views" />
     <div
       :class="{'titled': $slots.title && $slots.title.length}"
       class="sortable-table-header"
@@ -1148,14 +1149,22 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'header-right-fill': headerRightFill}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': tableViewsLayout}"
       >
+        <!-- Table views puts its tabs on a row of their own between the page's own masthead and
+             the filter, so the slot is a grid item here rather than a block above the header -->
+        <div
+          v-if="tableViewsLayout"
+          class="table-views-row"
+        >
+          <slot name="table-views" />
+        </div>
         <div
           :class="bulkActionsClass"
           class="bulk"
         >
           <slot name="header-left">
-            <template v-if="tableActions">
+            <template v-if="tableActions && !tableViewsLayout">
               <!-- Delete - stays mounted (disabled) even when a filter returns no rows, so the
                    toolbar keeps its width instead of jumping about -->
               <button
@@ -1227,6 +1236,18 @@ export default {
               <div class="bg" />
             </li>
           </ul>
+          <!-- Table views mode collapses every bulk action into one "N Selected" menu, which
+               shares the filter's row and is only there when there is a selection to act on -->
+          <TableSelectionActions
+            v-if="tableViewsLayout && tableActions"
+            :actions="availableActions"
+            :count="selectedRows.length"
+            :action-tooltip="actionTooltip"
+            :testid="componentTestid"
+            @click="applyTableAction"
+            @mouseover="setBulkActionOfInterest"
+            @mouseleave="setBulkActionOfInterest"
+          />
           <slot name="watch-controls" />
           <slot name="header-right" />
           <AsyncButton
@@ -2160,16 +2181,48 @@ export default {
       grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
     }
 
-    // table-views mode only: let the [search] cell FILL so the injected filter + View button share
-    // this one row with .bulk, vertically centered. Gated on .header-right-fill — every other
-    // table keeps the default grid above untouched.
-    &.header-right-fill {
-      grid-template-columns: [bulk] auto [middle] min-content [search] 1fr;
+    // Table views mode: three rows rather than one. The page's own masthead keeps the top row,
+    // the view tabs get the second, and the filter shares the third with the selection actions.
+    // Gated on the class — every other table keeps the default single row grid above untouched.
+    &.table-views-layout {
+      grid-template-columns: [left] auto [middle] minmax(0, 1fr);
+      grid-template-areas:
+        "bulk   middle"
+        "views  views"
+        "filter filter";
       align-items: center;
+      row-gap: 12px;
 
+      .bulk { grid-area: bulk; }
+
+      // Whatever the page puts here - its own action buttons - sits at the far right of the
+      // heading row, lined up with the table's right hand edge
+      .middle {
+        grid-area: middle;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .table-views-row { grid-area: views; }
+
+      // Row three, the full width of the table: the selection actions (when there are any) and
+      // then the filter, which takes the rest
       .search {
+        grid-area: filter;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
         max-width: none;
         width: 100%;
+        margin-left: 0;
+        text-align: left;
+
+        // `.row`'s clearfix pseudo elements become flex items here, and with a gap either side
+        // they push the filter 10px in from the table it sits above
+        &::before,
+        &::after {
+          display: none;
+        }
       }
     }
 
