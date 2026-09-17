@@ -52,6 +52,14 @@ const save = async(btnCb: AsyncButtonCallback) => {
 
 const load = async() => {
   try {
+    // The members already on the provider are read from here, as the provider
+    // page reads them, rather than a request each. Access can still be
+    // configured without them, so the rows are left to report a failure
+    await store.dispatch('rancher/findAll', {
+      type: NORMAN.PRINCIPAL,
+      opt:  { url: '/v3/principals', force: true },
+    }).catch(() => undefined);
+
     const norman = await store.dispatch('rancher/find', {
       type: NORMAN.AUTH_CONFIG,
       id:   props.resource.id,
@@ -109,13 +117,3 @@ load();
     </template>
   </Drawer>
 </template>
-
-<style lang="scss" scoped>
-// The member search keeps its results in the panel rather than on the body,
-// where they would be behind it. Results on the body are sized by the
-// positioner that puts them there, so these take the width of the search
-// instead of the nothing that leaves them
-:deep(.vs__dropdown-menu) {
-  width: calc(100% + 4px);
-}
-</style>
