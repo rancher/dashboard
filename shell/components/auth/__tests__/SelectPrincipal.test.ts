@@ -124,6 +124,17 @@ describe('component: SelectPrincipal', () => {
 
       expect(wrapper.findComponent(LabeledSelect).props('appendToBody')).toBe(expected);
     });
+
+    // Results on the body are sized by the positioner that places them, results
+    // left in place have to be sized against the search.
+    it.each([
+      ['leave the width of results on the body alone', {}, false],
+      ['give results kept in place the width of the search', { appendToBody: false }, true],
+    ])('should %s', (_case, props, expected) => {
+      const wrapper: VueWrapper<any> = mountWithProps(props);
+
+      expect(wrapper.findComponent(LabeledSelect).classes().includes('results-in-place')).toBe(expected);
+    });
   });
 
   describe('minSearchLength', () => {
