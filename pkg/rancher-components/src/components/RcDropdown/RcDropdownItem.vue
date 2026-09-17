@@ -45,6 +45,14 @@ const handleClick = (e: MouseEvent) => {
     <slot name="default">
       <!--Empty slot content-->
     </slot>
+    <!-- Trailing content - a tick on the chosen item, a keyboard shortcut - pushed to the far
+         end of the row. Matches the before/after pair RcDropdownTrigger already takes. -->
+    <span
+      v-if="$slots.after"
+      class="dropdown-item-after"
+    >
+      <slot name="after" />
+    </span>
   </div>
 </template>
 
@@ -70,6 +78,13 @@ const handleClick = (e: MouseEvent) => {
       &:hover {
         cursor: not-allowed;
       }
+    }
+
+    .dropdown-item-after {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      padding-left: 16px;
     }
   }
 </style>
