@@ -142,7 +142,7 @@ describe('fx: rowsToCsv', () => {
 describe('fx: encodeView', () => {
   it('round trips a view through a url safe string', () => {
     const view = {
-      name: 'Need attention', query: 'state:Error', columns: ['name'], labelColumns: ['app'], groupBy: 'namespace'
+      name: 'Need attention', query: 'state: error', columns: ['name'], columnOrder: ['name', 'state'], labelColumns: ['app'], groupBy: 'namespace'
     };
 
     expect(decodeView(encodeView(view))).toStrictEqual(view);
@@ -151,12 +151,13 @@ describe('fx: encodeView', () => {
 
 describe('core columns', () => {
   it('marks the columns the table depends on as core', () => {
-    expect(CORE_FIELD_IDS).toStrictEqual(['name', 'age']);
+    expect(CORE_FIELD_IDS).toStrictEqual(['state', 'name']);
   });
 
   it.each([
+    ['state', true],
     ['name', true],
-    ['age', true],
+    ['age', false],
     ['namespace', false],
     ['label:app', false],
     ['', false],
