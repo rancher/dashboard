@@ -69,7 +69,7 @@ describe('component: HorizontalPanel', () => {
 
     const children = wrapper.find('[role="tablist"]').element.children;
 
-    expect([...children].map((child) => child.getAttribute('role'))).toStrictEqual(tabs.map(() => 'tab'));
+    expect(Array.from(children).map((child) => child.getAttribute('role'))).toStrictEqual(tabs.map(() => 'tab'));
   });
 
   it('should render a close control for each tab', () => {
@@ -81,7 +81,7 @@ describe('component: HorizontalPanel', () => {
   it('should not render focusable or interactive elements inside a tab', () => {
     const wrapper = mountPanel();
 
-    const interactive = wrapper.findAll('[role="tab"]').flatMap((tab) => [...tab.element.querySelectorAll('button, a[href], input, select, textarea, [tabindex], [role]')]);
+    const interactive = wrapper.findAll('[role="tab"]').flatMap((tab) => Array.from(tab.element.querySelectorAll('button, a[href], input, select, textarea, [tabindex], [role]')));
 
     expect(interactive).toStrictEqual([]);
   });
