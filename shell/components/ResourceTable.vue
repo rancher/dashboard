@@ -306,10 +306,12 @@ export default {
     return {
       inStore,
       /** fieldId -> values in use, fetched from the api by fetchFieldValues */
-      fieldValues: {},
-      /** viewId ('' for the default tab) -> how many rows it matches, shown on the tabs */
-      viewCounts:  {},
-      view:        {
+      fieldValues:      {},
+      /** query -> how many rows it matches, or null when the api wouldn't say. Shown on the tabs */
+      viewCounts:       {},
+      /** True while a round of counts is out, so triggers don't stack up on top of each other */
+      countingInFlight: false,
+      view:             {
         query:        shared?.query || '',
         columns:      shared?.columns || null,
         columnOrder:  shared?.columnOrder || null,
@@ -1169,10 +1171,23 @@ export default {
       // replaces it, so nothing ever blinks back to zero while the list is busy
       const wanted = this.countableQueries.filter((query) => refresh || this.viewCounts[query] === undefined);
 
-      if (!wanted.length) {
+      // One round at a time. Without this a second trigger arriving mid-flight asks for the same
+      // counts again, and the requests already out are left to be superseded - which is what a
+      // list of cancelled requests in the network panel looks like.
+      if (!wanted.length || this.countingInFlight) {
         return;
       }
 
+      this.countingInFlight = true;
+
+      try {
+        await this.requestViewCounts(wanted);
+      } finally {
+        this.countingInFlight = false;
+      }
+    },
+
+    async requestViewCounts(wanted) {
       await Promise.all(wanted.map(async(query) => {
         const terms = parseQuery(query, this.viewFields);
         const { filters, unsupported } = termsToServerFilters(terms, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
@@ -1190,7 +1205,11 @@ export default {
             this.viewCounts = { ...this.viewCounts, [query]: count };
           }
         } catch (e) {
-          // No count is better than a wrong one - the tab simply shows its name
+          // Remember that this one was asked for and couldn't be answered. Leaving it unset meant
+          // every later trigger tried it again, so a type whose count the api won't serve turned
+          // into a stream of failing requests rather than one. The tab just shows its name, and
+          // the next scope change is free to try again.
+          this.viewCounts = { ...this.viewCounts, [query]: null };
         }
       }));
     },
