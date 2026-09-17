@@ -302,8 +302,15 @@ export interface QueryToken {
  */
 export const CONNECTIVES = ['and', 'or'];
 
+/** Spelled out negation, the word form of the `-` and `!` prefixes */
+export const NEGATORS = ['not'];
+
 export function isConnective(text: string): boolean {
   return CONNECTIVES.includes((text || '').toLowerCase());
+}
+
+export function isNegator(text: string): boolean {
+  return NEGATORS.includes((text || '').toLowerCase());
 }
 
 /**
@@ -315,8 +322,12 @@ export function isConnective(text: string): boolean {
  */
 export interface QueryTerm extends QueryToken {
   kind: 'term' | 'connective';
-  /** `-` or `!` if the term is negated, otherwise empty */
+  /** The `-` or `!` written at the front of this token, if any. Empty for a spelled out `not`,
+   * which is a token of its own - so this stays the count of characters to skip, and `negated`
+   * is what says whether the term is negated at all */
   negate: string;
+  /** Is this term negated, by either form? */
+  negated: boolean;
   /** The field the term resolved to, or null for free text */
   field: ViewField | null;
   /** The field as typed, without the colon */
@@ -423,6 +434,8 @@ function fieldAt(text: string, fields: ViewField[]): ViewField | null {
 export function scanQuery(query: string, fields: ViewField[]): QueryTerm[] {
   const raw = tokenize(query || '');
   const out: QueryTerm[] = [];
+  // Set by a `not` standing on its own, and spent on the term that follows it
+  let pendingNot = false;
 
   for (let i = 0; i < raw.length; i++) {
     const chunk = raw[i];
@@ -430,7 +443,15 @@ export function scanQuery(query: string, fields: ViewField[]): QueryTerm[] {
 
     if (isConnective(text)) {
       out.push({
-        ...chunk, kind: 'connective', negate: '', field: null, fieldText: '', value: text, valueStart: chunk.start
+        ...chunk, kind: 'connective', negate: '', negated: false, field: null, fieldText: '', value: text, valueStart: chunk.start
+      });
+      continue;
+    }
+
+    if (isNegator(text)) {
+      pendingNot = true;
+      out.push({
+        ...chunk, kind: 'connective', negate: '', negated: false, field: null, fieldText: '', value: text, valueStart: chunk.start
       });
       continue;
     }
@@ -442,11 +463,15 @@ export function scanQuery(query: string, fields: ViewField[]): QueryTerm[] {
       text = text.substring(1);
     }
 
+    const negated = !!negate || pendingNot;
+
+    pendingNot = false;
+
     const field = fieldAt(text, fields);
 
     if (!field) {
       out.push({
-        ...chunk, kind: 'term', negate, field: null, fieldText: '', value: unquote(text), valueStart: chunk.start + negate.length
+        ...chunk, kind: 'term', negate, negated, field: null, fieldText: '', value: unquote(text), valueStart: chunk.start + negate.length
       });
       continue;
     }
@@ -459,6 +484,7 @@ export function scanQuery(query: string, fields: ViewField[]): QueryTerm[] {
       text:       chunk.text,
       kind:       'term',
       negate,
+      negated,
       field,
       fieldText:  text.substring(0, field.id.length),
       value:      unquote(typed),
@@ -556,7 +582,7 @@ export function parseQuery(query: string, fields: ViewField[]): ViewTerm[] {
     .map((token) => ({
       field:   token.field ? token.field.id : null,
       value:   token.value,
-      negated: !!token.negate,
+      negated: token.negated,
     }));
 }
 
@@ -884,9 +910,23 @@ export function termsToServerFilters(
 
   // Free text: one param per token, CONTAINS across every searchable column (OR)
   freeText.forEach((term) => {
-    // Negated free text (OR of NOT across columns) can't be expressed server-side, drop it
-    if (term.negated || !freeTextPaths.length) {
+    if (!freeTextPaths.length) {
       unsupported.push(term);
+
+      return;
+    }
+
+    // Negated free text means the word appears in no column at all. `not (a or b)` is
+    // `(not a) and (not b)`, and separate params are AND'd - so it is one NOT_CONTAINS per
+    // column rather than something the api can't express.
+    if (term.negated) {
+      freeTextPaths.forEach((path) => {
+        filters.push(new PaginationParamFilter({
+          fields: [new PaginationFilterField({
+            field: path, value: term.value, equality: PaginationFilterEquality.NOT_CONTAINS
+          })]
+        }));
+      });
 
       return;
     }
