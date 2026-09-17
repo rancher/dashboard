@@ -39,6 +39,23 @@ export default (props: { position: Position }) => {
     lockedPosition
   } = useDragHandler({ position: props.position });
 
+  const activePanelTab = computed<Tab | undefined>(() => tabs.value.find((t: Tab) => t.id === activeTab.value[props.position]));
+
+  function focusActiveTab(source: EventTarget | null) {
+    const tabBar = (source as HTMLElement | null)?.closest('.tabs');
+
+    nextTick(() => tabBar?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus());
+  }
+
+  function closeActiveTab(event: Event) {
+    const id = activePanelTab.value?.id;
+
+    if (id) {
+      onTabClose(id);
+      focusActiveTab(event.currentTarget);
+    }
+  }
+
   function onTabKeydown(event: KeyboardEvent, id: string) {
     if (event.key !== 'Delete' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
       return;
@@ -46,10 +63,8 @@ export default (props: { position: Position }) => {
 
     event.preventDefault();
 
-    const tablist = (event.currentTarget as HTMLElement | null)?.closest('[role="tablist"]');
-
     onTabClose(id);
-    nextTick(() => tablist?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus());
+    focusActiveTab(event.currentTarget);
   }
 
   onMounted(() => openPanel(props.position));
@@ -62,6 +77,7 @@ export default (props: { position: Position }) => {
   return {
     tabs,
     activeTab,
+    activePanelTab,
     isTabsHeaderEnabled,
     height,
     width,
@@ -70,6 +86,7 @@ export default (props: { position: Position }) => {
     setTabActive,
     onTabReady,
     onTabClose,
+    closeActiveTab,
     onTabKeydown,
     onPanelClose,
     mouseResizeXStart,

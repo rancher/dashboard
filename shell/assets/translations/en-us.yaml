@@ -7618,6 +7618,8 @@ sideWindow:
 wm:
   resize: Resize Window - use arrow keys {arrow1} and {arrow2} to resize with keyboard
   tabIcon: Window tab icon
+  closeTab: Close tab {tabLabel}
+  tabList: Window manager tabs
   connection:
     connected: Connected
     connecting: Connecting&hellip;

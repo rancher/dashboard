@@ -190,6 +190,53 @@ describe('component: ContainerShell', () => {
     expect(windowComponent.isVisible()).toBe(true);
   });
 
+  it('leaves key events alone while neither the terminal nor its container is focused', async() => {
+    resetMocks();
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+    const event = {
+      code: 'Space', shiftKey: false, preventDefault: jest.fn(), stopPropagation: jest.fn()
+    };
+
+    (wrapper.vm as any).handleKeyPress(event);
+
+    expect(event.preventDefault).not.toHaveBeenCalledWith();
+    expect(event.stopPropagation).not.toHaveBeenCalledWith();
+  });
+
+  it('claims key events while the terminal container is focused', async() => {
+    resetMocks();
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+    const event = {
+      code: 'Space', shiftKey: false, preventDefault: jest.fn(), stopPropagation: jest.fn()
+    };
+
+    const vm = wrapper.vm as any;
+
+    vm.currFocusedElem = vm.xtermContainerRef;
+    vm.handleKeyPress(event);
+
+    expect(event.preventDefault).toHaveBeenCalledWith();
+    expect(event.stopPropagation).toHaveBeenCalledWith();
+  });
+
+  it('moves focus out to the terminal container on shift+Escape while the terminal is focused', async() => {
+    resetMocks();
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+    const event = {
+      code: 'Escape', shiftKey: true, preventDefault: jest.fn(), stopPropagation: jest.fn()
+    };
+    const vm = wrapper.vm as any;
+
+    vm.terminal.textarea = document.createElement('textarea');
+    vm.currFocusedElem = vm.terminal.textarea;
+
+    const containerFocus = jest.spyOn(vm.$refs.xterm, 'focus');
+
+    vm.handleKeyPress(event);
+
+    expect(containerFocus).toHaveBeenCalledWith();
+  });
+
   it('loads the webgl renderer by default when it is supported', async() => {
     resetMocks();
 

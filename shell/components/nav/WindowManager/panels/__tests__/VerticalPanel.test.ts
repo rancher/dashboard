@@ -15,12 +15,20 @@ const tabsFor = (position: Position) => [
 
 let attachedWrapper: VueWrapper | undefined;
 
-const mountPanel = (position: Position, customMutations: Record<string, (state: any, payload: any) => void> = {}, attachTo?: HTMLElement) => {
+const t = (key: string, args?: Record<string, string>) => `%${ key }%${ args ? JSON.stringify(args) : '' }`;
+
+interface PanelOptions {
+  mutations?: Record<string, (state: any, payload: any) => void>;
+  attachTo?: HTMLElement;
+  activeId?: string;
+}
+
+const mountPanel = (position: Position, { mutations = {}, attachTo, activeId }: PanelOptions = {}) => {
   const tabs = tabsFor(position);
   const store = createStore({
     state: {
       wm: {
-        active:          { [position]: tabs[0].id },
+        active:          { [position]: activeId ?? tabs[0].id },
         panelHeight:     { [position]: 100 },
         panelWidth:      { [position]: 100 },
         userPin:         CENTER,
@@ -33,13 +41,16 @@ const mountPanel = (position: Position, customMutations: Record<string, (state: 
       'wm/setPanelHeight': jest.fn(),
       'wm/setPanelWidth':  jest.fn(),
       'wm/closeTab':       jest.fn(),
-      ...customMutations,
+      ...mutations,
     },
   });
 
   const wrapper = mount(VerticalPanel, {
     props:  { position },
-    global: { plugins: [store] },
+    global: {
+      plugins: [store],
+      mocks:   { t },
+    },
     attachTo,
   });
 
@@ -75,39 +86,107 @@ describe('component: VerticalPanel', () => {
     expect(Array.from(children).map((child) => child.getAttribute('role'))).toStrictEqual(tabs.map(() => 'tab'));
   });
 
-  it('should render a close control for each tab', () => {
-    const wrapper = mountPanel(RIGHT);
-
-    expect(wrapper.findAll('[data-testid="wm-tab-close-button"]')).toHaveLength(tabsFor(RIGHT).length);
-  });
-
-  it('should not render focusable or interactive elements inside a tab', () => {
-    const wrapper = mountPanel(RIGHT);
+  it.each<Position>([RIGHT, LEFT])('should not render focusable or interactive elements inside a tab (%s)', (position) => {
+    const wrapper = mountPanel(position);
 
     const interactive = wrapper.findAll('[role="tab"]').flatMap((tab) => Array.from(tab.element.querySelectorAll('button, a[href], input, select, textarea, [tabindex], [role]')));
 
     expect(interactive).toStrictEqual([]);
   });
 
-  it('should hide the close control from assistive technology', () => {
-    const wrapper = mountPanel(RIGHT);
+  it.each<Position>([RIGHT, LEFT])('should close the active tab with a native button (%s)', (position) => {
+    const wrapper = mountPanel(position);
+
+    expect(wrapper.get('[data-testid="wm-close-active-tab-button"]').element.tagName).toStrictEqual('BUTTON');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should name the close active tab button after the active tab (%s)', (position) => {
+    const tabs = tabsFor(position);
+    const wrapper = mountPanel(position, { activeId: tabs[1].id });
+
+    expect(wrapper.get('[data-testid="wm-close-active-tab-button"]').attributes('aria-label')).toStrictEqual(t('wm.closeTab', { tabLabel: tabs[1].label }));
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should keep the close active tab button outside the tablist (%s)', (position) => {
+    const wrapper = mountPanel(position);
+
+    expect(wrapper.get('[data-testid="wm-close-active-tab-button"]').element.closest('[role="tablist"]')).toBeNull();
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should close the active tab when the close active tab button is clicked (%s)', async(position) => {
+    const closeTabMock = jest.fn();
+    const tabs = tabsFor(position);
+    const wrapper = mountPanel(position, { mutations: { 'wm/closeTab': closeTabMock }, activeId: tabs[1].id });
+
+    await wrapper.get('[data-testid="wm-close-active-tab-button"]').trigger('click');
+
+    expect(closeTabMock).toHaveBeenCalledWith(expect.anything(), { id: tabs[1].id });
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should close a single tab for each activation of the close active tab button (%s)', async(position) => {
+    const closeTabMock = jest.fn();
+    const tabs = tabsFor(position);
+    const wrapper = mountPanel(position, { mutations: { 'wm/closeTab': closeTabMock }, activeId: tabs[1].id });
+
+    await wrapper.get('[data-testid="wm-close-active-tab-button"]').trigger('click');
+
+    expect(closeTabMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should move focus to the newly active tab after the close active tab button closes a tab (%s)', async(position) => {
+    const tabs = tabsFor(position);
+    const wrapper = mountPanel(position, {
+      mutations: {
+        'wm/closeTab': (state: any) => {
+          state.wm.active[position] = tabs[1].id;
+        }
+      },
+      attachTo: document.body
+    });
+
+    await wrapper.get('[data-testid="wm-close-active-tab-button"]').trigger('click');
+    await flushPromises();
+
+    expect(document.activeElement).toStrictEqual(wrapper.findAll('[role="tab"]')[1].element);
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should hide the close active tab tooltip host from assistive technology (%s)', (position) => {
+    const wrapper = mountPanel(position);
+
+    expect(wrapper.get('[data-testid="wm-close-active-tab-button"] .has-clean-tooltip').attributes('aria-hidden')).toStrictEqual('true');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should not describe the close active tab button with its own name (%s)', (position) => {
+    const wrapper = mountPanel(position);
+
+    expect(wrapper.get('[data-testid="wm-close-active-tab-button"]').attributes('aria-describedby')).toBeUndefined();
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should name the tablist (%s)', (position) => {
+    const wrapper = mountPanel(position);
+
+    expect(wrapper.get('[role="tablist"]').attributes('aria-label')).toStrictEqual(t('wm.tabList'));
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should hide the close control from assistive technology (%s)', (position) => {
+    const wrapper = mountPanel(position);
 
     const hidden = wrapper.findAll('[data-testid="wm-tab-close-button"]').map((closeControl) => closeControl.attributes('aria-hidden'));
 
-    expect(hidden).toStrictEqual(tabsFor(RIGHT).map(() => 'true'));
+    expect(hidden).toStrictEqual(tabsFor(position).map(() => 'true'));
   });
 
-  it('should advertise the Delete shortcut on each tab', () => {
-    const wrapper = mountPanel(RIGHT);
+  it.each<Position>([RIGHT, LEFT])('should advertise the Delete shortcut on each tab (%s)', (position) => {
+    const wrapper = mountPanel(position);
 
     const shortcuts = wrapper.findAll('[role="tab"]').map((tab) => tab.attributes('aria-keyshortcuts'));
 
-    expect(shortcuts).toStrictEqual(tabsFor(RIGHT).map(() => 'Delete'));
+    expect(shortcuts).toStrictEqual(tabsFor(position).map(() => 'Delete'));
   });
 
   it.each<Position>([RIGHT, LEFT])('should close the tab when the close button is clicked (%s)', async(position) => {
     const closeTabMock = jest.fn();
-    const wrapper = mountPanel(position, { 'wm/closeTab': closeTabMock });
+    const wrapper = mountPanel(position, { mutations: { 'wm/closeTab': closeTabMock } });
     const tabs = tabsFor(position);
 
     const firstCloseButton = wrapper.findAll('[data-testid="wm-tab-close-button"]').at(0);
@@ -117,38 +196,43 @@ describe('component: VerticalPanel', () => {
     expect(closeTabMock).toHaveBeenCalledWith(expect.anything(), { id: tabs[0].id });
   });
 
-  it('should close the tab when Delete is pressed on it', async() => {
+  it.each<Position>([RIGHT, LEFT])('should close the tab when Delete is pressed on it (%s)', async(position) => {
     const closeTabMock = jest.fn();
-    const wrapper = mountPanel(RIGHT, { 'wm/closeTab': closeTabMock });
+    const wrapper = mountPanel(position, { mutations: { 'wm/closeTab': closeTabMock } });
 
     await wrapper.findAll('[role="tab"]').at(1)?.trigger('keydown', { key: 'Delete' });
 
-    expect(closeTabMock).toHaveBeenCalledWith(expect.anything(), { id: tabsFor(RIGHT)[1].id });
+    expect(closeTabMock).toHaveBeenCalledWith(expect.anything(), { id: tabsFor(position)[1].id });
   });
 
-  it.each([
-    ['Backspace', { key: 'Backspace' }],
-    ['a held Delete key repeats', { key: 'Delete', repeat: true }],
-    ['Shift+Delete', { key: 'Delete', shiftKey: true }],
-    ['Ctrl+Delete', { key: 'Delete', ctrlKey: true }],
-    ['Alt+Delete', { key: 'Delete', altKey: true }],
-    ['Meta+Delete', { key: 'Delete', metaKey: true }],
-  ])('should not close the tab when %s', async(_, keyboardEvent) => {
-    const closeTabMock = jest.fn();
-    const wrapper = mountPanel(RIGHT, { 'wm/closeTab': closeTabMock });
+  describe.each<Position>([RIGHT, LEFT])('position %s', (position) => {
+    it.each([
+      ['Backspace', { key: 'Backspace' }],
+      ['a held Delete key repeats', { key: 'Delete', repeat: true }],
+      ['Shift+Delete', { key: 'Delete', shiftKey: true }],
+      ['Ctrl+Delete', { key: 'Delete', ctrlKey: true }],
+      ['Alt+Delete', { key: 'Delete', altKey: true }],
+      ['Meta+Delete', { key: 'Delete', metaKey: true }],
+    ])('should not close the tab when %s', async(_, keyboardEvent) => {
+      const closeTabMock = jest.fn();
+      const wrapper = mountPanel(position, { mutations: { 'wm/closeTab': closeTabMock } });
 
-    await wrapper.findAll('[role="tab"]').at(1)?.trigger('keydown', keyboardEvent);
+      await wrapper.findAll('[role="tab"]').at(1)?.trigger('keydown', keyboardEvent);
 
-    expect(closeTabMock).not.toHaveBeenCalledWith(expect.anything(), expect.anything());
+      expect(closeTabMock).not.toHaveBeenCalledWith(expect.anything(), expect.anything());
+    });
   });
 
-  it('should move focus to the newly active tab after closing a tab with Delete', async() => {
-    const tabs = tabsFor(RIGHT);
-    const wrapper = mountPanel(RIGHT, {
-      'wm/closeTab': (state: any) => {
-        state.wm.active[RIGHT] = tabs[1].id;
-      }
-    }, document.body);
+  it.each<Position>([RIGHT, LEFT])('should move focus to the newly active tab after closing a tab with Delete (%s)', async(position) => {
+    const tabs = tabsFor(position);
+    const wrapper = mountPanel(position, {
+      mutations: {
+        'wm/closeTab': (state: any) => {
+          state.wm.active[position] = tabs[1].id;
+        }
+      },
+      attachTo: document.body
+    });
     const tabElements = wrapper.findAll('[role="tab"]');
 
     (tabElements[0].element as HTMLElement).focus();

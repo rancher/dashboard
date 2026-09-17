@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RIGHT, LEFT } from '@shell/utils/position';
 import { PropType } from 'vue';
+import { RcButton } from '@components/RcButton';
 import { RcIcon } from '@components/RcIcon';
 import { Position } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
@@ -17,12 +18,14 @@ const props = defineProps({
 const {
   tabs,
   activeTab,
+  activePanelTab,
   isTabsHeaderEnabled,
   dragOverPositionsActive,
   dragOverTabBarActive,
   setTabActive,
   onTabReady,
   onTabClose,
+  closeActiveTab,
   onTabKeydown,
   mouseResizeXStart,
   keyboardResizeX,
@@ -81,6 +84,7 @@ const {
       <div
         class="tab-list"
         role="tablist"
+        :aria-label="t('wm.tabList')"
       >
         <div
           v-for="(tab, i) in tabs"
@@ -129,6 +133,21 @@ const {
           </span>
         </div>
       </div>
+      <RcButton
+        v-if="activePanelTab"
+        data-testid="wm-close-active-tab-button"
+        variant="ghost"
+        size="small"
+        class="close-active-tab"
+        :aria-label="t('wm.closeTab', { tabLabel: activePanelTab.label })"
+        @click="closeActiveTab($event)"
+      >
+        <RcIcon
+          v-clean-tooltip="t('wm.closeTab', { tabLabel: activePanelTab.label })"
+          type="close"
+          size="inherit"
+        />
+      </RcButton>
       <div
         v-if="props.position === LEFT"
         class="resizer resizer-x resizer-align-right"
@@ -166,6 +185,7 @@ const {
     grid-template-areas:
       "body";
     grid-template-rows: auto;
+    grid-template-columns: minmax(0, 1fr);
 
     &.tabs-header-enabled {
       grid-template-areas:
@@ -200,7 +220,9 @@ const {
 
       .tab-list {
         display: flex;
+        flex: 0 1 auto;
         min-width: 0;
+        overflow: hidden;
       }
 
       .tab {
@@ -266,7 +288,7 @@ const {
         }
       }
 
-      .resizer {
+      .resizer, .close-active-tab {
         width: var(--wm-tab-height);
         padding: 0 5px;
         margin: 0 0 0 1px;
@@ -275,10 +297,25 @@ const {
         border-right: 1px solid var(--wm-border);
         line-height: var(--wm-tab-height);
         height: calc(var(--wm-tab-height) + 1px);
-        flex-grow: 0;
+        flex: 0 0 auto;
 
         &:hover {
           background-color: var(--wm-closer-hover-bg);
+        }
+      }
+
+      .close-active-tab {
+        min-width: var(--wm-tab-height);
+        min-height: 0;
+        border-top: none;
+        border-bottom: none;
+        border-radius: 0;
+        font-size: 14px;
+        color: var(--body-text);
+
+        &:focus-visible {
+          @include focus-outline;
+          outline-offset: -3px;
         }
       }
 
