@@ -238,6 +238,7 @@ export const FLEET: {
     TOKEN: string;
     BUNDLE_NAMESPACE_MAPPING: string;
     GIT_REPO_RESTRICTION: string;
+    POLICY: string;
 };
 export const GATEKEEPER: {
     CONSTRAINT_TEMPLATE: string;

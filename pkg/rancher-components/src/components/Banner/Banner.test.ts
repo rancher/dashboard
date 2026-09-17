@@ -129,4 +129,21 @@ describe('component: Banner', () => {
       expect(statusWrapper.find('.banner').attributes('role')).toBe('status');
     });
   });
+
+  describe('a11y: tabindex', () => {
+    it('should not be a tab stop when role is "alert", since the content is announced by the live region', () => {
+      const wrapper = mount(Banner, { props: { label: 'Something went wrong', role: 'alert' } });
+
+      expect(wrapper.find('.banner').attributes('tabindex')).toBe('-1');
+    });
+
+    it.each([
+      ['no role', undefined],
+      ['role "status"', 'status'],
+    ])('should remain a tab stop with %s', (_description, role) => {
+      const wrapper = mount(Banner, { props: { label: 'test', role } });
+
+      expect(wrapper.find('.banner').attributes('tabindex')).toBe('0');
+    });
+  });
 });

@@ -461,7 +461,7 @@ export default {
     class="plugin-install-dialog"
   >
     <div>
-      <h4>
+      <h4 data-modal-title>
         {{ t('plugins.manageCatalog.imageLoad.load') }}
       </h4>
       <p>

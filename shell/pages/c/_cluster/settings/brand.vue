@@ -289,7 +289,7 @@ export default {
             <FileImageSelector
               :byte-limit="20000"
               :read-as-data-url="true"
-              class="role-secondary"
+              variant="secondary"
               :label="t('branding.logos.uploadLight')"
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
@@ -314,7 +314,7 @@ export default {
             <FileImageSelector
               :byte-limit="20000"
               :read-as-data-url="true"
-              class="role-secondary"
+              variant="secondary"
               :label="t('branding.logos.uploadDark')"
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
@@ -360,7 +360,7 @@ export default {
             <FileImageSelector
               :byte-limit="200000"
               :read-as-data-url="true"
-              class="role-secondary"
+              variant="secondary"
               :label="t('branding.banner.uploadLight')"
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
@@ -385,7 +385,7 @@ export default {
             <FileImageSelector
               :byte-limit="200000"
               :read-as-data-url="true"
-              class="role-secondary"
+              variant="secondary"
               :label="t('branding.banner.uploadDark')"
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
@@ -431,7 +431,7 @@ export default {
             <FileImageSelector
               :byte-limit="200000"
               :read-as-data-url="true"
-              class="role-secondary"
+              variant="secondary"
               :label="t('branding.loginBackground.uploadLight')"
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
@@ -456,7 +456,7 @@ export default {
             <FileImageSelector
               :byte-limit="200000"
               :read-as-data-url="true"
-              class="role-secondary"
+              variant="secondary"
               :label="t('branding.loginBackground.uploadDark')"
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
@@ -502,7 +502,7 @@ export default {
             <FileImageSelector
               :byte-limit="20000"
               :read-as-data-url="true"
-              class="role-secondary"
+              variant="secondary"
               :label="t('branding.favicon.upload')"
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"

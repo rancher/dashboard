@@ -12,7 +12,7 @@ on:
         description: "Test extension git repo URL"
         required: false
         type: string
-        default: "https://github.com/aalves08/elemental-ui.git"
+        default: "https://github.com/rancher/elemental-ui.git"
       extension_branch:
         description: "Test extension git branch or tag"
         required: false
@@ -235,7 +235,7 @@ jobs:
           VERDACCIO_NPM_REGISTRY="http://localhost:4873"
           yarn config set registry ${DEFAULT_NPM_REGISTRY}
           git clone --depth 1 --branch ${{ github.event.inputs.extension_branch || 'compatibility-tests-version' }} \
-            ${{ github.event.inputs.extension_repo || 'https://github.com/aalves08/elemental-ui.git' }} /tmp/elemental-ui
+            ${{ github.event.inputs.extension_repo || 'https://github.com/rancher/elemental-ui.git' }} /tmp/elemental-ui
           cd /tmp/elemental-ui
           # Switch to the Node version required by the extension (from its .nvmrc)
           export NVM_DIR="$HOME/.nvm"

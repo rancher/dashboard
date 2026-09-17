@@ -1,3 +1,5 @@
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+
 // Custom violation callback function that prints a list of violations
 // Used when logging to the Cypress log
 const severityIndicators = {
@@ -12,6 +14,38 @@ const severityIndicators = {
 const screenshotIndexes: {[key: string]: number} = {};
 
 const MARKER_DIV_ID = 'a11y_violation_marker_cypress';
+
+type AxeResults = {
+  violations: any[];
+  incomplete: any[];
+  passes: any[];
+  inapplicable: any[];
+  // Every rule axe knows about, whether or not it produced a result. Lets us tell "the rule ran and
+  // found nothing" apart from "the rule never ran".
+  availableRules: string[];
+};
+
+/**
+ * Run axe directly instead of going through `cy.checkA11y`.
+ *
+ * `cy.checkA11y` only ever hands its callback `results.violations` (see `violationCallback` in
+ * cypress-axe's `dist/index.js`). That means axe's `incomplete` results were being discarded
+ * before they reached the report - and `incomplete` is exactly where `color-contrast` lands
+ * whenever axe can't resolve the background colour with certainty (background images, gradients,
+ * overlapping elements, alpha transparency, elements outside the viewport - 15 documented reasons
+ * in axe-core's `lib/checks/color/color-contrast.json`). Calling `axe.run` ourselves gives us the
+ * full results object.
+ *
+ * As before, nothing here fails the test - we only record.
+ */
+function runAxe(context?: any): Cypress.Chainable<AxeResults> {
+  return cy.window({ log: false }).then(LONG_TIMEOUT_OPT, (win: any) => {
+    return (win.axe.run(context || win.document, {}) as Promise<AxeResults>).then((results) => ({
+      ...results,
+      availableRules: win.axe.getRules().map((rule: any) => rule.ruleId),
+    }));
+  });
+}
 
 // Log violations to the terminal
 function terminalLog(violations) {
@@ -152,21 +186,88 @@ function getAccessibilityViolationsCallback(description?: string) {
 }
 
 /**
+ * Log the 'needs review' (incomplete) results.
+ *
+ * Deliberately lighter than the violation path - no screenshots and no DOM marking. Incomplete
+ * results are high volume by nature (axe files everything it can't be certain about here) and they
+ * are a triage queue rather than failures, so screenshotting every node would balloon both the run
+ * time and the artifact size for little benefit.
+ */
+function reportIncomplete(incomplete: any[], description?: string) {
+  const suiteTitle = Cypress.currentTest.titlePath.slice(0, -1).join(' > ');
+  const testTitle = Cypress.currentTest.titlePath.slice(-1)[0];
+
+  cy.task('log', `\n📝 Test Suite: ${ suiteTitle }`);
+  cy.task('log', `📌 Test Case: ${ testTitle }`);
+  cy.task('log', `🔍 ${ incomplete.length } accessibility check(s) need manual review\n`);
+
+  cy.task('table', incomplete.map(({
+    id, impact, description: ruleDescription, nodes
+  }) => ({
+    id,
+    impact,
+    description: ruleDescription,
+    nodes:       nodes.length
+  })));
+
+  incomplete.forEach((item) => {
+    Cypress.log({
+      name:         '🔍 A11y review',
+      consoleProps: () => item,
+      $el:          Cypress.$(item.nodes.map((node: any) => node.target).join(',')),
+      message:      `[${ item.help }][${ item.helpUrl }]`
+    });
+  });
+
+  // The violation path appends `<test name> (#n)` because that segment is keyed to the screenshot
+  // index. We take no screenshots, so incomplete results group under the plain test name.
+  const testPath = [...Cypress.currentTest.titlePath];
+
+  testPath.push(description || testPath[testPath.length - 1]);
+
+  cy.task('a11yIncomplete', { incomplete, titlePath: testPath });
+}
+
+function reportResults(results: AxeResults, description?: string) {
+  const violations = Array.isArray(results?.violations) ? results.violations : [];
+  const incomplete = Array.isArray(results?.incomplete) ? results.incomplete : [];
+
+  if (violations.length) {
+    getAccessibilityViolationsCallback(description)(violations);
+  }
+
+  if (incomplete.length) {
+    reportIncomplete(incomplete, description);
+  }
+
+  // Hand every bucket to the plugin. The two paths above own their own reporting (screenshots, DOM
+  // marking, the per-test tree); this is what feeds the run-level rule summary and the `passes` and
+  // `inapplicable` reports. The plugin does the summarising so all four buckets are treated the same
+  // way in one place.
+  cy.task('a11yResults', {
+    titlePath:      [...Cypress.currentTest.titlePath],
+    availableRules: results?.availableRules,
+    violations,
+    incomplete,
+    passes:         results?.passes,
+    inapplicable:   results?.inapplicable,
+  });
+}
+
+/**
  * Checks accessibility of the entire page
  */
-// skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
-  cy.checkA11y(undefined, {}, getAccessibilityViolationsCallback(description), true);
+  runAxe().then((results) => reportResults(results, description));
 });
 
 /**
  * Checks accessibility of a specific element
  */
-// skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string) => {
   cy.get(subject).then(($el) => {
     cy.log(`✅ Found ${ $el.length } elements matching`);
   });
 
-  cy.checkA11y(subject, {}, getAccessibilityViolationsCallback(description), true);
+  runAxe(subject).then((results) => reportResults(results, description));
 });

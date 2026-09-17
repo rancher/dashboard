@@ -15,6 +15,7 @@ import {
 } from './edit-cluster';
 
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
+import { PAGINATION_UTILS, SWITCHER_PAGE_SIZE } from '@/cypress/support/utils/shell';
 
 // GENERAL DATA NOT CONFIGURABLE, for now...
 const MACHINE_POOL_ID = '995mj';
@@ -2565,16 +2566,35 @@ export function generateFakeClusterDataAndIntercepts({
   };
 
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
+  // The cluster-switcher flyout fetches its ALL CLUSTERS / "others" window a page at a time — this
+  // intercept injects the fake cluster into that list. It is keyed on the page size, so it tracks
+  // SWITCHER_PAGE_SIZE rather than a literal: hard-coding it silently stops matching the moment the
+  // flyout asks for a different page, and the fake cluster just never shows up.
   cy.intercept({
     method:   'GET',
     pathname: '/v1/management.cattle.io.clusters',
-    query:    { pagesize: '10' }
+    query:    { pagesize: `${ SWITCHER_PAGE_SIZE }` }
   }, (req) => {
     req.continue((res) => {
       update(res.body.data);
       res.send(res.body);
     });
   }).as('mgmtClustersSideNav');
+
+  // The redesigned side-nav loads its "context" set (local + pinned + recent) via an id-filtered
+  // request at the store's default page size on mount — this is the request to wait on for the nav to be
+  // ready (the old pagesize=10 request now only fires when the ALL CLUSTERS door is opened). Keyed on the
+  // shared constant for the same reason as above: a literal silently stops matching if the default moves.
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: `${ PAGINATION_UTILS.defaultPageSize }` }
+  }, (req) => {
+    req.continue((res) => {
+      update(res.body.data);
+      res.send(res.body);
+    });
+  }).as('mgmtClustersSideNavContext');
 
   cy.intercept({
     method:   'GET',
@@ -2586,6 +2606,23 @@ export function generateFakeClusterDataAndIntercepts({
       res.send(res.body);
     });
   }).as('mgmtClustersLists');
+
+  // The shared cluster count — a pageSize:1 findPage (saveCountAs) read by the home page, the Cluster
+  // Management nav badge AND the switcher, so it counts everything the user can see, `local` included
+  // (the switcher's own chip takes local off it). The real backend can't see the injected fake cluster,
+  // so add it to whatever the environment really has; otherwise browsableClusterCount is 0 and the
+  // empty-state gate hides the search "door" / flyout that these specs rely on. `count` is read from the
+  // response body by saveCountAs.
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: '1' }
+  }, (req) => {
+    req.continue((res) => {
+      res.body.count = (res.body.count || 0) + 1;
+      res.send(res.body);
+    });
+  }).as('mgmtClustersCount');
 
   cy.intercept('GET', `/v1/management.cattle.io.clusters/${ fakeNavClusterData.mgmtClusterObj.id }?*`, (req) => {
     req.reply({

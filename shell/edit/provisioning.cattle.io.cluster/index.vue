@@ -474,13 +474,9 @@ export default {
 
       if ( parts[0] === 'chart' ) {
         const chart = this.$store.getters['catalog/chart']({ key: parts[1] });
-        let localCluster;
+        const installClusterId = this.$store.getters['localCluster']?.id || BLANK_CLUSTER;
 
-        if (this.$store.getters[`management/canList`](MANAGEMENT.CLUSTER)) {
-          localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find((x) => x.isLocal);
-        }
-
-        chart.goToInstall(FROM_CLUSTER, localCluster?.id || BLANK_CLUSTER, true);
+        chart.goToInstall(FROM_CLUSTER, installClusterId, true);
 
         return;
       }

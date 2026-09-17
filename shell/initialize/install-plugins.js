@@ -1,4 +1,5 @@
 import PortalVue from 'portal-vue';
+import { MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR } from '@shell/utils/dom';
 import Vue3Resize from 'vue3-resize';
 import FloatingVue from 'floating-vue';
 import 'vue3-resize/dist/vue3-resize.css';
@@ -28,8 +29,13 @@ import 'floating-vue/dist/style.css';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
 
 import dynamicContent from '@shell/plugins/dynamic-content';
+import { initAriaAnnouncer } from '@shell/utils/aria-announce';
 
 export async function installPlugins(vueApp) {
+  // The screen reader live regions have to be in the accessibility tree before the first
+  // status change, so they go in ahead of the mount. See @shell/utils/aria-announce.
+  initAriaAnnouncer();
+
   vueApp.use(globalFormatters);
   vueApp.use(PortalVue);
   vueApp.use(Vue3Resize);
@@ -38,7 +44,8 @@ export async function installPlugins(vueApp) {
     ShortKey,
     {
       prevent:          ['input', 'textarea', 'select'],
-      preventContainer: ['#modal-container-element']
+      // A surface that owns the screen silences the app's shortcuts while it is up.
+      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR]
     });
   vueApp.use(InstallCodeMirror);
 }

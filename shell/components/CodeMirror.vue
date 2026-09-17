@@ -283,7 +283,7 @@ export default {
         :disabled="isDisabled"
         :original-style="true"
         @ready="onReady"
-        @input="onInput"
+        @update:value="onInput"
         @changes="onChanges"
         @focus="onFocus"
         @blur="onBlur"

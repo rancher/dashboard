@@ -152,7 +152,7 @@ export default {
         <img
           :src="principal.avatarSrc"
           :class="{'round': principal.roundAvatar}"
-          :alt="t('principal.alt.avatar')"
+          alt=""
         >
       </div>
       <div

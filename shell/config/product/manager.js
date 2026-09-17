@@ -78,6 +78,8 @@ export function init(store) {
     'providers',
   ]);
 
+  configureType(NORMAN.CLOUD_CREDENTIAL, { canYaml: false });
+
   configureType(SNAPSHOT, { depaginate: true });
   configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 
@@ -174,12 +176,13 @@ export function init(store) {
   };
 
   const EXPLORER = {
-    name:   'explorer',
-    label:  ' ',
-    align:  'right',
-    width:  65,
-    sort:   false,
-    search: false
+    name:                'explorer',
+    labelKey:            'tableHeaders.explore',
+    labelVisuallyHidden: true,
+    align:               'right',
+    width:               65,
+    sort:                false,
+    search:              false
   };
 
   headers(MANAGEMENT.CLUSTER, [

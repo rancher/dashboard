@@ -146,7 +146,8 @@ export function init(store) {
     FLEET.BUNDLE,
     FLEET.TOKEN,
     FLEET.BUNDLE_NAMESPACE_MAPPING,
-    FLEET.GIT_REPO_RESTRICTION
+    FLEET.GIT_REPO_RESTRICTION,
+    FLEET.POLICY
   ], 'resources');
 
   configureType(FLEET.GIT_REPO, { showListMasthead: false });

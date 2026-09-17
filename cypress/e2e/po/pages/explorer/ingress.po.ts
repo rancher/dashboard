@@ -50,7 +50,7 @@ export class IngressCreateEditPo extends BaseDetailPagePo {
   }
 
   rulesList() {
-    return new ArrayListPo('section#rules .array-list-grouped');
+    return new ArrayListPo('[data-testid="tab-panel-rules"] .array-list-grouped');
   }
 
   setRuleRequestHostValue(arrayListIndex: number, value: string) {
@@ -84,7 +84,7 @@ export class IngressCreateEditPo extends BaseDetailPagePo {
   }
 
   certificatesList() {
-    return new ArrayListPo('section#certificates .array-list-grouped');
+    return new ArrayListPo('[data-testid="tab-panel-certificates"] .array-list-grouped');
   }
 
   setSecretNameValueByLabel(arrayListIndex: number, value: string, parentIndex?: number) {
@@ -121,7 +121,7 @@ export class IngressDetailPagePo extends BaseDetailPagePo {
    * @returns the list of the tab
    */
   list(tabId: 'rules' | 'events' | 'related', index?: number) {
-    const baseSelector = `#${ tabId } [data-testid="sortable-table-list-container"]`;
+    const baseSelector = `[data-testid="tab-panel-${ tabId }"] [data-testid="sortable-table-list-container"]`;
     const selector = tabId === 'related' ? `${ baseSelector }:nth-of-type(${ index })` : baseSelector;
 
     return new ResourceTablePo(selector);

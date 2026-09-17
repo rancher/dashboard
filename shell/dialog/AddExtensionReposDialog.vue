@@ -109,7 +109,7 @@ export default {
 
 <template>
   <div class="modal-dialog">
-    <h4>
+    <h4 data-modal-title>
       {{ t('plugins.addRepos.title') }}
     </h4>
     <p class="mb-20">

@@ -211,7 +211,7 @@ export default {
               v-if="d.cliLink"
               :href="d.cliLink"
               role="link"
-              :aria-label="t('about.versions.downloadCli', { os: t(d.label) })"
+              :aria-label="t('about.versions.downloadCli', { os: t(d.label), file: d.cliFile })"
             >{{ d.cliFile }}</a>
           </td>
         </tr>

@@ -20,6 +20,7 @@ generic:
   ascending: ascending
   and: ' and '
   back: Back
+  byteLimitExceeded: '{name} exceeds the file size limit of {byteLimit} bytes'
   cancel: Cancel
   confirm: Confirm
   colorPicker: Color picker
@@ -44,6 +45,7 @@ generic:
   download: Download
   enabled: Enabled
   error: Error
+  errorReadingFile: Error reading file
   here: here
   id: ID
   ignored: Ignored
@@ -186,7 +188,7 @@ graph:
   rendering: Rendering chart...
 
 locale:
-  menu: Locale selector menu
+  menu: Language selector
   en-us: English
   zh-hans: 简体中文
   none: (None)
@@ -201,7 +203,6 @@ nav:
     popularHeading: Popular entries
     recentHeading: Recently used
   ariaLabel:
-    clusterIconKeyCombo: Cluster keyboard shortcut combination icon
     localClusterIcon: Local Cluster icon
     clusterProvIcon: Cluster {cluster} provider icon
     topLevelMenu: Main menu
@@ -209,7 +210,6 @@ nav:
     homePage: Home page navigation menu
     cluster: Cluster menu item
     harvesterCluster: '[[Harvester]] cluster menu item'
-    seeAll: See all clusters menu item
     multiClusterApps: Main menu multi cluster app menu item
     configurationApps: Main menu configuration app menu item
     support: Support page link
@@ -247,8 +247,6 @@ nav:
   rotateCertificates: Rotate Certificates
   rotateEncryptionKeys: Rotate Encryption Keys
   takeSnapshot: Take Snapshot
-  seeAllClusters: See all clusters
-  seeAllClustersCollapsed: See all
   keyComboTooltip: Switch clusters and keep location
   group:
     cluster: Cluster
@@ -297,14 +295,51 @@ nav:
     legacy: Legacy Apps
     configuration: Configuration
     hci: HCI
+  pinClusterError: Could not save your pinned clusters
+  pinnedCluster:
+    explore: Explore {name} or drag it to change the order of your pinned clusters
+    blocked: You cannot explore {name} ({reason}), but you can drag it to change the order of your pinned clusters
   search:
-    placeholder: Filter clusters by...
-    noResults: No matching clusters
-    clusters: clusters
-    ariaLabel: Filter clusters on main menu
+    clusters: |-
+      {count, plural,
+        one {cluster}
+        other {clusters}
+      }
+  switcher:
+    ariaLabel: Cluster switcher
+    clusterSwitch: Cluster Switch
+    shortcutTooltip: Cluster Switch ({shortcut})
+    jumpTo: Jump to...
+    pinned: Pinned clusters
+    recent: Recently used
+    allClusters: All clusters
+    matches: Matches
+    managementCluster: Management cluster
+    noMatch: No matching clusters
+    noClusters: No clusters to show.
+    loadError: Could not load your clusters. Close and try again.
+    aria:
+      # Accessible name for the search box. It has no visible label — only the "Jump to..." placeholder —
+      # so the name has to LEAD with those words: a speech-input user says what they can see
+      # (WCAG 2.5.3 Label in Name), while the rest tells a screen-reader user what the box searches.
+      search: Jump to a cluster (searches all clusters)
+      clusterList: Cluster list
+      searching: Searching clusters
+      results: |-
+        {count, plural,
+          one {1 cluster}
+          other {# clusters}
+        }
+      noResults: No matching clusters
+      notReady: not ready
+      pinned: pinned
+      pinnedCluster: '{cluster} pinned'
+      unpinnedCluster: '{cluster} unpinned'
   header:
     setLoginPage: Set as login page
     showHideBanner: Show/Hide Banner
+    pinCluster: Pin cluster ({shortcut})
+    unpinCluster: Unpin cluster ({shortcut})
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys
@@ -313,9 +348,9 @@ nav:
     button:
       label: Open user menu
   actionMenu:
-    label: Page actions menu
+    label: Page actions
     button:
-      label: Open page actions menu
+      label: Open page actions
   notifications:
     label: Notification Center
     button:
@@ -399,7 +434,7 @@ about:
   title: About
   versions:
     downloadImages: "Download {listName} images list"
-    downloadCli: "Download CLI for {os}"
+    downloadCli: "Download CLI for {os}: {file}"
     githubRepo: "Open GitHub repository for the {name} component"
     title: Versions
     component: Component
@@ -871,6 +906,16 @@ assignTo:
 asyncButton:
   alt:
     iconAlt: Async button icon
+  # Read out to screen readers when no phase label of its own says anything useful.
+  # See AsyncButton.vue `announcementFor`.
+  announcement:
+    waiting: In progress
+    success: Succeeded
+    error: Failed
+    withLabel:
+      waiting: '{label}: in progress'
+      success: '{label}: succeeded'
+      error: '{label}: failed'
   registerApplication:
     action: Add Application
     success: Added
@@ -989,6 +1034,9 @@ asyncButton:
     successIcon: checkmark
     waiting: ''
     waitingIcon: refresh
+    waitingAnnouncement: Refreshing&hellip;
+    successAnnouncement: Refreshed
+    errorAnnouncement: Refresh failed
   manual-refresh:
     action: ''
     actionIcon: refresh
@@ -998,6 +1046,9 @@ asyncButton:
     successIcon: checkmark
     waiting: ''
     waitingIcon: refresh
+    waitingAnnouncement: Refreshing&hellip;
+    successAnnouncement: Refreshed
+    errorAnnouncement: Refresh failed
   remove:
     action: Remove
     success: Removed
@@ -1591,6 +1642,8 @@ compliance:
   testsToSkip: Tests to Skip
   alerting: Alerting
   detail:
+    noReport: 'No scan report is available yet. Current scan state: {state}. The report will appear here once the scan completes.'
+    noReportWithMessage: 'No scan report is available yet. Current scan state: {state} - {message}. The report will appear here once the scan completes.'
     subRow:
       noNodes: No Additional Information
 
@@ -2870,6 +2923,12 @@ resource:
   errors:
     update: "Error updating {name}"
 
+copyToClipboard:
+  action: Copy
+  waiting: Copying&hellip;
+  success: Copied!
+  error: Error Copying
+
 codeMirror:
   escapeText: Press Shift+Escape to blur from editor
   keymap:
@@ -3008,6 +3067,10 @@ etcdInfoBanner:
   hasLeader: "Etcd has a leader:"
   leaderChanges: "Number of leader changes:"
   failedProposals: "Number of failed proposals:"
+
+fileSelectorTextArea:
+  dropHint: or drop the file over the text area above
+  dropToReplace: Dropping the file here will replace any existing content
 
 fleet:
   settings:
@@ -3635,6 +3698,9 @@ fleet:
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
+    deprecationWarning: 'GitRepoRestrictions are deprecated and will be removed in a future release. Use <policiesLink>Policies</policiesLink> instead.'
+    deprecationWarningTargetNamespaces: 'GitRepoRestrictions are deprecated and will be removed in a future release. Restricting allowed target namespaces relies on GitRepoRestriction and has no equivalent in SUSE Continuous Delivery Policies.'
+    migrationGuide: 'See the <docsLink>SUSE Continuous Delivery Policies migration guide</docsLink>.'
     banner: "{count, plural,
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
@@ -4567,7 +4633,7 @@ login:
   login: Login
   howdy: Howdy!
   welcome: Welcome to {vendor}
-  landscapeAlt: Landscape image
+  logoAlt: '{vendor} Logo'
   loggedOut: You have been logged out.
   loggedOutSessionIdle: You've been logged out of Rancher because your session has expired. Log in again to continue.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
@@ -6030,6 +6096,8 @@ promptForceRemove:
 promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
   attemptingToScaleDown: "You are attempting to scale down {type}"
+  machineAlreadyDeleted: "Machine {name} is already being deleted or has been recreated. The machine pool was not scaled down."
+  machineDeleteAnnotationMissing: "Machine {name} could not be marked for deletion. The machine pool was not scaled down."
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
   scaling: |-
@@ -6702,8 +6770,12 @@ sortableTable:
     lastPageBtn: Last page of results icon
     sortingIconDesc: Table header descending sort icon
     sortingIconAsc: Table header ascending sort icon
-  genericGroupCheckbox: Table group selection checkbox
-  genericRowCheckbox: Table row selection checkbox for item {item}
+  genericGroupCheckbox: Select all rows
+  genericRowCheckbox: Select {item}
+  genericRowCheckboxNoItem: Select row
+  selectAllResources: Select all {resource}
+  expandColumnHeader: Expand
+  actionsColumnHeader: Actions
   tableActionsLabel: More actions - { resource }
   tableActionsImgAlt: More actions icon
   bulkActions:
@@ -7098,6 +7170,7 @@ tableHeaders:
   effect: Effect
   endpoints: Endpoints
   expires: Expires
+  explore: Explore
   firstSeen: First Seen
   firstSeenTooltip: The time at which the event was first recorded
   flow: Flow
@@ -7350,12 +7423,14 @@ user:
         disableAfter:
           checkbox: Disable user accounts after an inactivity period (duration since last login)
           input:
+            labelDisable: Inactivity period - Disable user accounts
             label: Inactivity period
             tooltip: Uses duration units (e.g. use 30h for 30 hours)
         deleteAfter:
           checkbox: Delete user accounts after an inactivity period (duration since last login)
           input:
             label: Inactivity period
+            labelDelete: Inactivity period - Delete user accounts
             tooltip: Uses duration units (e.g. use 30h for 30 hours)
             subLabel: This value must be larger than the Disable period, if it's active
         cron:
@@ -8935,7 +9010,7 @@ oidcclient:
 action:
   ariaLabel:
     hidePass: Hide {area}
-    showPass: Reveal {area}
+    showPass: Show {area}
   clone: Clone
   disable: Disable
   download: Download YAML
@@ -9184,6 +9259,7 @@ branding:
   directoryName: Brand Asset Directory Name
   logos:
     home: Product main page
+    logoLabel: Rancher Logo
     label: Logo
     tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview

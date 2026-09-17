@@ -134,6 +134,7 @@ export type Action = {
   icon?: string;
   multiple?: boolean;
   enabled?: Function | boolean;
+  ariaExpanded?: boolean | (() => boolean);
   invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 

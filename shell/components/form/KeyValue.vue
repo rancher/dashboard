@@ -848,7 +848,8 @@ export default {
                   >
                   <FileSelector
                     v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
-                    class="btn btn-sm role-secondary file-selector"
+                    variant="secondary"
+                    size="small"
                     :label="t('generic.upload')"
                     :include-file-name="true"
                     :accept="readAccept"
@@ -951,7 +952,7 @@ export default {
           v-if="readAllowed"
           :aria-label="t('generic.ariaLabel.readKeyValue')"
           :disabled="isView"
-          class="role-tertiary"
+          variant="tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
           :accept="readAccept"
@@ -966,10 +967,6 @@ export default {
 <style lang="scss">
 .key-value {
   width: 100%;
-  .file-selector.role-link {
-    text-transform: initial;
-    padding: 0;
-  }
   .kv-container {
     display: grid;
     align-items: center;
