@@ -1,5 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import AuthConfigList from '@shell/pages/c/_cluster/auth/config/index.vue';
+import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessDrawer.vue';
 import AuthProviderRow from '@shell/components/auth/AuthProviderRow.vue';
 import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptyState.vue';
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
@@ -39,6 +40,7 @@ const createWrapper = ({
       $route:      { params: { cluster: 'local' } },
       $fetchState: { pending: false, error: null },
       $store:      {
+        commit:   jest.fn(),
         dispatch: jest.fn(),
         getters:  {
           'features/get':         () => feature.spec.value,
@@ -87,13 +89,47 @@ describe('page: AuthConfigList', () => {
     expect(titles).not.toContain('GitHub');
   });
 
-  it('should link a configured provider to its edit page', () => {
-    const wrapper = createWrapper();
+  // The provider page opens on how the provider itself is configured, which is
+  // not what the row is about - who may log in with it is.
+  describe('opening a provider', () => {
+    it('should open the access panel rather than leave the page', async() => {
+      const wrapper = createWrapper();
+      const row = wrapper.findAllComponents(AuthProviderRow)[0];
 
-    expect(wrapper.findAllComponents(AuthProviderRow)[0].props('to')).toStrictEqual({
-      name:   'c-cluster-auth-config-id',
-      params: { cluster: 'local', id: 'okta' },
-      query:  { mode: 'edit' },
+      expect(row.props('to')).toBeUndefined();
+      expect(row.props('selectable')).toBe(true);
+
+      await row.vm.$emit('select');
+
+      const [mutation, payload] = ((wrapper.vm as any).$store.commit as jest.Mock).mock.calls[0];
+
+      expect(mutation).toBe('slideInPanel/open');
+      expect(payload.component).toBe(AuthProviderAccessDrawer);
+      expect(payload.componentProps.resource).toStrictEqual(oktaConfig);
+    });
+
+    it('should close the panel when it asks to be closed', async() => {
+      const wrapper = createWrapper();
+
+      await wrapper.findAllComponents(AuthProviderRow)[0].vm.$emit('select');
+
+      const { onClose } = ((wrapper.vm as any).$store.commit as jest.Mock).mock.calls[0][1].componentProps;
+
+      onClose();
+
+      expect((wrapper.vm as any).$store.commit).toHaveBeenCalledWith('slideInPanel/close');
+    });
+
+    // The panel is a trap for focus while it is open, so focus has to have
+    // somewhere to go back to once it closes.
+    it('should send focus back to the row it was opened from', async() => {
+      const wrapper = createWrapper();
+
+      await wrapper.findAllComponents(AuthProviderRow)[0].vm.$emit('select');
+
+      const { returnFocusSelector } = ((wrapper.vm as any).$store.commit as jest.Mock).mock.calls[0][1].componentProps;
+
+      expect(returnFocusSelector).toBe('[data-testid="auth-config-row-okta"] .auth-provider-row__title');
     });
   });
 

@@ -561,6 +561,8 @@ authConfig:
       active: Active
       disabled: Disabled
       manageUsers: Manage local users
+  access:
+    title: '{provider} access'
   add:
     title: Add an authentication provider
     subtitle: Select the provider to connect. Rancher supports one external provider, so this is the one users will log in with. To use a different one later you delete this and configure the new one.

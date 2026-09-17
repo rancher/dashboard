@@ -159,4 +159,34 @@ describe('mixin: authConfigMixin', () => {
       expect(instance.model.accessMode).toStrictEqual('unrestricted');
     });
   });
+
+  // An enabled provider opens on who may log in with it. Editing the provider
+  // itself is a state of the same page, so whoever links there has to ask for it.
+  describe('opening on the provider configuration', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const createMock = (query: Record<string, string>) => ({
+      data:   () => ({ value: { configType: 'oidc' }, model: {} }),
+      global: {
+        mocks: {
+          $store:  { dispatch: jest.fn() },
+          $router: { applyQuery: jest.fn() },
+          $route:  { params: { id: 'github' }, query },
+        }
+      }
+    });
+
+    it.each([
+      ['asked for', { mode: 'edit', editConfig: 'true' }, true],
+      ['not asked for', { mode: 'edit' }, false],
+    ])('should edit the configuration when it is %s', (_case, query, expected) => {
+      const instance = mount(FakeComponent, createMock(query)).vm as any;
+
+      expect(instance.editConfig).toBe(expected);
+    });
+  });
 });

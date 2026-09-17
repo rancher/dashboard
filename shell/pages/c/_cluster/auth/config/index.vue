@@ -4,6 +4,7 @@ import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { RcCounterBadge } from '@components/Pill';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessDrawer.vue';
 import AuthProviderRow from '@shell/components/auth/AuthProviderRow.vue';
 import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptyState.vue';
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
@@ -118,6 +119,20 @@ export default {
       return row.sideLabel ? [row.sideLabel] : [];
     },
 
+    showAccess(row) {
+      this.$store.commit('slideInPanel/open', {
+        component:      AuthProviderAccessDrawer,
+        componentProps: {
+          resource:            row,
+          onClose:             () => this.$store.commit('slideInPanel/close'),
+          width:               'wide',
+          height:              'full',
+          triggerFocusTrap:    true,
+          returnFocusSelector: `[data-testid="auth-config-row-${ row.id }"] .auth-provider-row__title`,
+        },
+      });
+    },
+
     setDisableLocalAuth(value) {
       if (!value) {
         return this.writeDisableLocalAuth(false);
@@ -213,8 +228,9 @@ export default {
         :meta="row.id"
         status="success"
         :status-label="row.stateDisplay"
-        :to="editLocation(row)"
+        selectable
         :data-testid="`auth-config-row-${ row.id }`"
+        @select="showAccess(row)"
       >
         <template #trailing>
           <ActionMenu
