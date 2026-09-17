@@ -7123,47 +7123,68 @@ storageClass:
 tableViews:
   matches: "{count} matching"
   tabs:
-    all: All
-    newView: New view
+    all: Explorer
+    newView: Add View
+    count: "{name} ({count})"
   view:
     label: View
-    unsaved: Unsaved changes
-    discard: Discard changes
-    saveChanges: Save changes to this view
-    allColumns: All
-    someColumns: "{count} shown"
+    unsaved: You have unsaved changes...
+    unsavedShort: Unsaved changes
+    discard: Discard Changes
+    saveChanges: Save Changes
+    saveAsNew: Save Changes to New View
+    groupBy: Group By
+    columnsConfiguration: Columns Configuration
+    columnsDefault: Default
+    columnsCount: "{shown} / {total}"
+    reset: Reset to Default
   tab:
     menu: View options
-    rename: Rename view
-    duplicate: Duplicate
+    rename: Rename View
+    duplicate: Duplicate View
     copySuffix: copy
     renameSave: Rename
-    saveChanges: Save changes to this view
-    delete: Delete view
+    saveChanges: Save Changes
+    delete: Delete View
+    setDefault: Set as Default View
+    isDefault: Default View
     copyLink: Copy link to this view
+    untitled: Untitled
+  bulk:
+    selected: "{count} Selected"
+    deleteSelected: Delete Selected
   query:
-    placeholder: 'Filter by field, eg state:error namespace:default'
+    placeholder: 'Filter across all columns or only specific ones (e.g. state:error)'
     inUse: "{count} in use"
     label: Label
   columns:
     label: Columns
     tableColumns: Table columns
     labelColumns: Show label as column
-    reset: Reset to defaults
+    selectAll: Select All Columns
+    reset: Reset to Default
+    locked: This column cannot be hidden
+    reorder: Drag to reorder
   group:
     label: 'Group: {field}'
-    byLabel: Group by
+    byLabel: Group By
     none: None
     empty: (none)
   export:
-    label: Export
-    scope:
-      selection: Selected rows
-      page: Current page
-      all: All matching rows
+    label: Export View Contents
+    title: Export View Contents
+    intro: 'You are about to export <b>{count}</b> from the <b>{name}</b> view. The structure of the export will match the current view settings (selected grouping method and / of columns configuration).'
+    rows: "{count, plural, one {# matching row} other {# matching rows}}"
+    resources: "{count} matching {type}"
+    choose: '<b>Please choose at least 1 format</b> below to continue...'
+    download: Download
     format:
       csv: CSV
       json: JSON
+  shortcut:
+    save: CMD-S
+    saveAsNew: CMD-Shift-S
+    duplicate: CMD-D
   save:
     label: Save
     save: Save
@@ -7174,7 +7195,6 @@ tableViews:
     share: Share
     copyLink: Copy link to this view
     copied: Link copied
-
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
