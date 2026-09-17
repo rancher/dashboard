@@ -17,10 +17,13 @@ import {
 export const LABEL_FIELD_PREFIX = 'label:';
 
 /**
- * Fields the table itself depends on, so the user is not allowed to hide them. Removing these
- * leaves rows with nothing to identify or sort them by, and other code assumes they are present.
+ * Fields the table itself depends on, so the user is not allowed to hide them.
+ *
+ * A row has to say what it is and how it is doing: without the name there is nothing to identify
+ * or sort it by, and without the state there is no way to see that anything is wrong. Everything
+ * else, age included, is the user's to turn off.
  */
-export const CORE_FIELD_IDS = ['name', 'age'];
+export const CORE_FIELD_IDS = ['state', 'name'];
 
 /**
  * Is this a column the user must not be able to remove?
@@ -57,6 +60,8 @@ export interface SavedView {
   query: string;
   /** Column names to show. null means "whatever the table shows by default" */
   columns: string[] | null;
+  /** Column names in the order they are shown. null means the table's own order */
+  columnOrder?: string[] | null;
   /** Label keys shown as extra columns */
   labelColumns: string[];
   /** Field id to group by, or null */
@@ -142,6 +147,34 @@ export function fieldValue(row: any, field: ViewField): any {
   }
 
   return '';
+}
+
+/**
+ * The value a query actually filters on, which is not always the value the column shows.
+ *
+ * `state` is the one that bites: the column renders `stateDisplay` ("Active"), while the server
+ * filters `metadata.state.name` ("active"). Suggesting the display value handed the user a term
+ * the pagination API could never match, so anything offered as a value - and the values we count
+ * - comes from the filterable path whenever the field has one.
+ */
+export function rawFieldValue(row: any, field: ViewField): any {
+  if (!row || !field || field.isLabel) {
+    return fieldValue(row, field);
+  }
+
+  const path = serverPathFor(field);
+  // `search` can list several paths; the first is the column's own value, the rest are extras
+  const first = Array.isArray(path) ? path[0] : path;
+
+  if (typeof first === 'string') {
+    const out = safeGet(row, first);
+
+    if (out !== undefined && out !== null && out !== '') {
+      return out;
+    }
+  }
+
+  return fieldValue(row, field);
 }
 
 /**
@@ -259,6 +292,42 @@ export interface QueryToken {
 }
 
 /**
+ * The words that spell out how two terms combine.
+ *
+ * Accepted so that a query reads the way someone would write it - `state:active or state:error`
+ * parses the same as `state:active state:error`. They carry no meaning of their own: what a
+ * query does is decided by its fields (same field OR'd, different fields AND'd, see
+ * {@link applyQuery}), and parsing skips the words, so a hand typed `and` between two terms of
+ * the same field does not narrow it. Nothing writes them for the user.
+ */
+export const CONNECTIVES = ['and', 'or'];
+
+export function isConnective(text: string): boolean {
+  return CONNECTIVES.includes((text || '').toLowerCase());
+}
+
+/**
+ * One term of a query, resolved against the table's fields and located in the text.
+ *
+ * `state: active` is a single term written as two whitespace separated chunks, which is why
+ * this exists rather than the raw {@link tokenize} output - the autocomplete has to replace the
+ * whole of it, and the highlighter has to colour each part of it.
+ */
+export interface QueryTerm extends QueryToken {
+  kind: 'term' | 'connective';
+  /** `-` or `!` if the term is negated, otherwise empty */
+  negate: string;
+  /** The field the term resolved to, or null for free text */
+  field: ViewField | null;
+  /** The field as typed, without the colon */
+  fieldText: string;
+  /** The value as typed, unquoted */
+  value: string;
+  /** Offset of the value in the query, so the highlighter can reproduce the gap before it */
+  valueStart: number;
+}
+
+/**
  * Split a query into tokens, keeping quoted values (`app:"my app"`) together and
  * recording where each token sits so the autocomplete can replace the one being typed.
  */
@@ -318,42 +387,192 @@ export function quoteIfNeeded(value: string): string {
 }
 
 /**
+ * Resolve the field named at the start of `text`, if any.
+ *
+ * A label field's own id contains a colon (`label:app`), so where an ordinary field ends at the
+ * first colon a label one ends at the last.
+ */
+function fieldAt(text: string, fields: ViewField[]): ViewField | null {
+  const idx = text.indexOf(':');
+
+  if (idx <= 0) {
+    return null;
+  }
+
+  const field = findField(fields, text.substring(0, idx));
+
+  if (field) {
+    return field;
+  }
+
+  if (text.toLowerCase().startsWith(LABEL_FIELD_PREFIX)) {
+    return findField(fields, text.substring(0, text.lastIndexOf(':'))) || null;
+  }
+
+  return null;
+}
+
+/**
+ * Read a query as a list of terms and connectives, resolved against this table's fields.
+ *
+ * A term is a single run of non-space characters, `state:active`. What separates the field from
+ * its value on screen is the badge drawn around the value, not a character in the query - so a
+ * space always ends the term, and `state: active` is the field with nothing in it followed by
+ * the free text `active`.
+ */
+export function scanQuery(query: string, fields: ViewField[]): QueryTerm[] {
+  const raw = tokenize(query || '');
+  const out: QueryTerm[] = [];
+
+  for (let i = 0; i < raw.length; i++) {
+    const chunk = raw[i];
+    let text = chunk.text;
+
+    if (isConnective(text)) {
+      out.push({
+        ...chunk, kind: 'connective', negate: '', field: null, fieldText: '', value: text, valueStart: chunk.start
+      });
+      continue;
+    }
+
+    let negate = '';
+
+    if (text.startsWith('-') || text.startsWith('!')) {
+      negate = text.substring(0, 1);
+      text = text.substring(1);
+    }
+
+    const field = fieldAt(text, fields);
+
+    if (!field) {
+      out.push({
+        ...chunk, kind: 'term', negate, field: null, fieldText: '', value: unquote(text), valueStart: chunk.start + negate.length
+      });
+      continue;
+    }
+
+    const typed = text.substring(field.id.length + 1);
+
+    out.push({
+      start:      chunk.start,
+      end:        chunk.end,
+      text:       chunk.text,
+      kind:       'term',
+      negate,
+      field,
+      fieldText:  text.substring(0, field.id.length),
+      value:      unquote(typed),
+      valueStart: chunk.start + negate.length + field.id.length + 1,
+    });
+  }
+
+  return out;
+}
+
+/**
+ * `value` is a value the field actually has; `value-unknown` is one it does not - typed by hand,
+ * or half typed. Only the first is worth dressing up as a badge.
+ */
+export type QuerySegmentKind = 'field' | 'value' | 'value-unknown' | 'connective' | 'text' | 'plain';
+
+export interface QuerySegment {
+  text: string;
+  kind: QuerySegmentKind;
+}
+
+/**
+ * Break a query into coloured segments for the input to draw.
+ *
+ * The segments put back together are the query, character for character, whitespace included.
+ *
+ * `isKnownValue` decides whether a term's value is one the field actually has, which is what
+ * separates a `value` segment from a `value-unknown` one. Left out, every value is taken at face
+ * value - callers that have no way to check are no worse off than before.
+ */
+export function highlightQuery(
+  query: string,
+  fields: ViewField[],
+  isKnownValue?: (fieldId: string, value: string) => boolean
+): QuerySegment[] {
+  const str = query || '';
+  const out: QuerySegment[] = [];
+  let at = 0;
+
+  const plain = (end: number) => {
+    if (end > at) {
+      out.push({ text: str.substring(at, end), kind: 'plain' });
+      at = end;
+    }
+  };
+
+  scanQuery(str, fields).forEach((token) => {
+    plain(token.start);
+
+    if (token.kind === 'connective') {
+      out.push({ text: token.text, kind: 'connective' });
+      at = token.end;
+
+      return;
+    }
+
+    if (!token.field) {
+      out.push({ text: token.text, kind: 'text' });
+      at = token.end;
+
+      return;
+    }
+
+    // `-state:` — the negation reads as part of the field
+    out.push({ text: str.substring(token.start, token.start + token.negate.length + token.fieldText.length + 1), kind: 'field' });
+    at = token.start + token.negate.length + token.fieldText.length + 1;
+
+    // whatever sits between the colon and the value, normally a single space
+    plain(token.valueStart);
+
+    if (token.end > at) {
+      const known = !isKnownValue || isKnownValue(token.field.id, token.value);
+
+      out.push({ text: str.substring(at, token.end), kind: known ? 'value' : 'value-unknown' });
+      at = token.end;
+    }
+  });
+
+  plain(str.length);
+
+  return out;
+}
+
+
+/**
  * Parse `state:error -namespace:kube-system nginx` into terms.
  *
  * `field:value` only becomes a field term when the field actually exists on this table,
  * otherwise it stays free text (so searching for an image tag still works).
  */
 export function parseQuery(query: string, fields: ViewField[]): ViewTerm[] {
-  return tokenize(query).map((token) => {
-    let text = token.text;
-    let negated = false;
+  return scanQuery(query, fields)
+    // The connectives are there to be read; the fields are what decide how terms combine
+    .filter((token) => token.kind === 'term' && !!token.value)
+    .map((token) => ({
+      field:   token.field ? token.field.id : null,
+      value:   token.value,
+      negated: !!token.negate,
+    }));
+}
 
-    if (text.startsWith('-') || text.startsWith('!')) {
-      negated = true;
-      text = text.substring(1);
-    }
+/**
+ * Does this field on this row contain `needle`?
+ *
+ * Both the shown value and the filterable one count, so the same query behaves the same way
+ * client-side and server-side: `state:active` has to match the row whose column reads "Active",
+ * and someone typing what they can see, `state:Act`, has to match it too.
+ */
+function fieldContains(row: any, field: ViewField, needle: string): boolean {
+  if (stringifyValue(fieldValue(row, field)).toLowerCase().includes(needle)) {
+    return true;
+  }
 
-    const idx = text.indexOf(':');
-
-    if (idx > 0) {
-      let field = findField(fields, text.substring(0, idx));
-
-      if (!field && text.toLowerCase().startsWith(LABEL_FIELD_PREFIX)) {
-        // A label field id is itself `label:<key>`, so the value starts after the last colon
-        field = findField(fields, text.substring(0, text.lastIndexOf(':')));
-      }
-
-      if (field) {
-        return {
-          field: field.id, value: unquote(text.substring(field.id.length + 1)), negated
-        };
-      }
-    }
-
-    return {
-      field: null, value: unquote(text), negated
-    };
-  }).filter((term) => !!term.value);
+  return stringifyValue(rawFieldValue(row, field)).toLowerCase().includes(needle);
 }
 
 function matchesTerm(row: any, term: ViewTerm, fields: ViewField[]): boolean {
@@ -366,10 +585,10 @@ function matchesTerm(row: any, term: ViewTerm, fields: ViewField[]): boolean {
       return true;
     }
 
-    return stringifyValue(fieldValue(row, field)).toLowerCase().includes(needle);
+    return fieldContains(row, field, needle);
   }
 
-  return fields.some((field) => stringifyValue(fieldValue(row, field)).toLowerCase().includes(needle));
+  return fields.some((field) => fieldContains(row, field, needle));
 }
 
 /**
@@ -415,9 +634,10 @@ export function applyQuery(rows: any[], terms: ViewTerm[], fields: ViewField[]):
 }
 
 /**
- * Well known field ids whose server-side path we know for certain, regardless of how the
- * table header happens to be configured. Overlaid on top of the header-derived path so a
- * mis-configured header can't send us to a path the vai cache can't filter on.
+ * Well known field ids whose server-side path we know for certain, for columns that don't say
+ * how they are searched. A column that declares its own `search` is taken at its word - see
+ * serverPathFor - and this is what the rest fall back to rather than a `value` the api cannot
+ * filter on (`stateDisplay` and friends).
  */
 const SERVER_PATH_SAFETY_NET: Record<string, string> = {
   state:     'metadata.state.name',
@@ -443,23 +663,27 @@ export function serverPathFor(field: ViewField): string | string[] | null {
     return field.labelKey ? `metadata.labels[${ field.labelKey }]` : null;
   }
 
-  // Safety net wins for the handful of ids we know the canonical path for
+  const header = field.header;
+
+  // An explicit `search` is the column saying what it is searched on, so it wins. The cluster
+  // list is the one that matters: its name column searches `spec.displayName`, because a
+  // management cluster's `metadata.name` is an id (`c-m-zv88n64p`) and never what is on screen.
+  if (typeof header?.search === 'string') {
+    return header.search;
+  }
+
+  if (Array.isArray(header?.search)) {
+    return header.search;
+  }
+
+  // Then the handful of ids we know the canonical path for, which covers the columns that say
+  // nothing about how to search them
   if (SERVER_PATH_SAFETY_NET[field.id]) {
     return SERVER_PATH_SAFETY_NET[field.id];
   }
 
-  const header = field.header;
-
   if (!header) {
     return null;
-  }
-
-  if (typeof header.search === 'string') {
-    return header.search;
-  }
-
-  if (Array.isArray(header.search)) {
-    return header.search;
   }
 
   if (typeof header.value === 'string') {
@@ -603,11 +827,19 @@ export function termsToServerFilters(
           if (negated) {
             // NOT: row must satisfy all of them -> AND (one param each)
             values.forEach((value) => {
-              filters.push(new PaginationParamFilter({ fields: [new PaginationFilterField({ field: path, value, equality: PaginationFilterEquality.NOT_CONTAINS })] }));
+              filters.push(new PaginationParamFilter({
+                fields: [new PaginationFilterField({
+                  field: path, value, equality: PaginationFilterEquality.NOT_CONTAINS
+                })]
+              }));
             });
           } else {
             // OR within one param
-            filters.push(new PaginationParamFilter({ fields: values.map((value) => new PaginationFilterField({ field: path, value, equality: PaginationFilterEquality.CONTAINS })) }));
+            filters.push(new PaginationParamFilter({
+              fields: values.map((value) => new PaginationFilterField({
+                field: path, value, equality: PaginationFilterEquality.CONTAINS
+              }))
+            }));
           }
         } else {
           filters.push(new PaginationParamFilter({
@@ -627,7 +859,11 @@ export function termsToServerFilters(
       // Multiple columns, negated: row must not match in ANY column -> AND (one param each)
       values.forEach((value) => {
         paths.forEach((path) => {
-          filters.push(new PaginationParamFilter({ fields: [new PaginationFilterField({ field: path, value, equality: PaginationFilterEquality.NOT_CONTAINS })] }));
+          filters.push(new PaginationParamFilter({
+            fields: [new PaginationFilterField({
+              field: path, value, equality: PaginationFilterEquality.NOT_CONTAINS
+            })]
+          }));
         });
       });
     } else {
@@ -636,7 +872,9 @@ export function termsToServerFilters(
 
       values.forEach((value) => {
         paths.forEach((path) => {
-          oredFields.push(new PaginationFilterField({ field: path, value, equality: PaginationFilterEquality.CONTAINS }));
+          oredFields.push(new PaginationFilterField({
+            field: path, value, equality: PaginationFilterEquality.CONTAINS
+          }));
         });
       });
 
@@ -653,7 +891,11 @@ export function termsToServerFilters(
       return;
     }
 
-    filters.push(new PaginationParamFilter({ fields: freeTextPaths.map((path) => new PaginationFilterField({ field: path, value: term.value, equality: PaginationFilterEquality.CONTAINS })) }));
+    filters.push(new PaginationParamFilter({
+      fields: freeTextPaths.map((path) => new PaginationFilterField({
+        field: path, value: term.value, equality: PaginationFilterEquality.CONTAINS
+      }))
+    }));
   });
 
   return { filters, unsupported };
@@ -690,7 +932,8 @@ export function valuesInUse(rows: any[], field: ViewField, max = 25): ValueSugge
   const counts: Record<string, number> = {};
 
   (rows || []).slice(0, SCAN_LIMIT).forEach((row) => {
-    const raw = fieldValue(row, field);
+    // The filterable value, not the rendered one - see rawFieldValue
+    const raw = rawFieldValue(row, field);
     const values = Array.isArray(raw) ? raw : [raw];
 
     values.forEach((entry) => {
@@ -721,8 +964,16 @@ export function replaceToken(query: string, token: QueryToken | null, replacemen
   return `${ query.substring(0, token.start) }${ replacement }${ query.substring(token.end) }`;
 }
 
-export function tokenAt(query: string, caret: number): QueryToken | null {
-  return tokenize(query).find((token) => caret >= token.start && caret <= token.end) || null;
+/**
+ * The term the caret is sitting in, so the autocomplete can replace the whole of it.
+ *
+ * Without `fields` this falls back to raw chunks, which is enough for callers that only need to
+ * know where a word starts and ends.
+ */
+export function tokenAt(query: string, caret: number, fields?: ViewField[]): QueryToken | null {
+  const tokens = fields ? scanQuery(query, fields).filter((token) => token.kind === 'term') : tokenize(query);
+
+  return tokens.find((token) => caret >= token.start && caret <= token.end) || null;
 }
 
 function csvCell(value: string): string {
@@ -768,6 +1019,7 @@ export function encodeView(view: Partial<SavedView>): string {
     n: view.name || '',
     q: view.query || '',
     c: view.columns || null,
+    o: view.columnOrder || null,
     l: view.labelColumns || [],
     g: view.groupBy || null,
   });
@@ -791,6 +1043,7 @@ export function decodeView(encoded: string): Partial<SavedView> | null {
       name:         payload.n || '',
       query:        payload.q || '',
       columns:      payload.c || null,
+      columnOrder:  payload.o || null,
       labelColumns: payload.l || [],
       groupBy:      payload.g || null,
     };
