@@ -72,6 +72,16 @@ describe('component: WorkspaceSwitcher', () => {
     expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'removed-workspace' });
   });
 
+  it('should not rewrite the stored preference when the options empty out', async() => {
+    const { commit, dispatch, state } = mountSwitcher('fleet-local');
+
+    state.allWorkspaces = [];
+    await nextTick();
+
+    expect(commit).toHaveBeenCalledWith('updateWorkspace', expect.objectContaining({ value: '' }));
+    expect(dispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything());
+  });
+
   it('should fall back to a rendered option when the workspaces cannot be listed', () => {
     const namespaces = [{
       id: 'ws-a', nameDisplay: 'ws-a', metadata: { annotations: { [WORKSPACE_ANNOTATION]: WORKSPACE } }
