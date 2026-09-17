@@ -59,7 +59,8 @@ export default {
   watch: {
     options(curr) {
       if (curr.length === 0) {
-        this.value = '';
+        // Same contract as restoreWorkspace: correct the selection in use, never the stored preference.
+        this.$store.commit('updateWorkspace', { value: '', getters: this.$store.getters });
       }
 
       const currentExists = curr.find((item) => item.value === this.value);
