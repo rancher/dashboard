@@ -55,6 +55,11 @@ describe('component: AuthProviderAccessDrawer', () => {
 
     await flushPromises();
 
+    expect(storeDispatch).toHaveBeenCalledWith('rancher/findAll', {
+      type: 'principal',
+      opt:  { url: '/v3/principals', force: true },
+    });
+
     expect(storeDispatch).toHaveBeenCalledWith('rancher/find', {
       type: 'authconfig',
       id:   'github',

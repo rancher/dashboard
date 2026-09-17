@@ -273,8 +273,14 @@ export default {
   }
 </style>
 <style lang="scss">
-  .vs__dropdown-menu {
+  // Results put on the body have nothing to take their width from, so they are
+  // left to the positioner that places them. Results left in place keep the
+  // width vue-select gives them, which is the width of the search.
+  body > .vs__dropdown-menu {
     width: 0%;
+  }
+
+  .vs__dropdown-menu {
     * {
       overflow-x: hidden;
       text-overflow: ellipsis;
