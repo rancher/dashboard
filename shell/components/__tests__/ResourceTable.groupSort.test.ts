@@ -37,7 +37,11 @@ describe('ResourceTable', () => {
     });
 
     it('should return the label path when the toolbar groups by a label', () => {
-      const ctx = createContext({ viewGroupField: { id: 'label:app', isLabel: true, labelKey: 'app' } });
+      const ctx = createContext({
+        viewGroupField: {
+          id: 'label:app', isLabel: true, labelKey: 'app'
+        }
+      });
 
       expect(viewGroupSort.call(ctx)).toBe('metadata.labels[app]');
     });

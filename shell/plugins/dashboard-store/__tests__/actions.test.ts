@@ -275,13 +275,13 @@ describe('dashboard-store: findPage', () => {
       return undefined;
     });
     const getters = {
-      normalizeType:      jest.fn((t: string) => t),
-      typeRegistered:     jest.fn(() => true),
-      havePaginatedPage:  jest.fn(() => false),
-      urlFor:             jest.fn(() => 'url'),
-      all:                jest.fn(() => []),
-      haveAll:            jest.fn(() => true),
-      haveAllNamespace:   jest.fn(() => false),
+      normalizeType:     jest.fn((t: string) => t),
+      typeRegistered:    jest.fn(() => true),
+      havePaginatedPage: jest.fn(() => false),
+      urlFor:            jest.fn(() => 'url'),
+      all:               jest.fn(() => []),
+      haveAll:           jest.fn(() => true),
+      haveAllNamespace:  jest.fn(() => false),
     };
 
     return {
@@ -297,14 +297,20 @@ describe('dashboard-store: findPage', () => {
       const slow = !opt.pagination.filters.length;
 
       return new Promise((resolve) => setTimeout(
-        () => resolve({ data: [slow ? 'unfiltered' : 'filtered'], count: 1, revision: '1' }),
+        () => resolve({
+          data: [slow ? 'unfiltered' : 'filtered'], count: 1, revision: '1'
+        }),
         slow ? 30 : 0
       ));
     });
 
     const page = (filters: string[]) => findPage(ctx, {
       type: 'pod',
-      opt:  { pagination: { page: 1, pageSize: 10, filters } }
+      opt:  {
+        pagination: {
+          page: 1, pageSize: 10, filters
+        }
+      }
     });
 
     await Promise.all([page([]), page(['name~foo'])]);
@@ -316,11 +322,17 @@ describe('dashboard-store: findPage', () => {
   });
 
   it('still commits when a request is the newest one', async() => {
-    const ctx: any = setupPageContext(() => Promise.resolve({ data: ['only'], count: 1, revision: '1' }));
+    const ctx: any = setupPageContext(() => Promise.resolve({
+      data: ['only'], count: 1, revision: '1'
+    }));
 
     await findPage(ctx, {
       type: 'pod',
-      opt:  { pagination: { page: 1, pageSize: 10, filters: [] } }
+      opt:  {
+        pagination: {
+          page: 1, pageSize: 10, filters: []
+        }
+      }
     });
 
     expect(loadPageCalls(ctx.commit)).toHaveLength(1);
