@@ -57,15 +57,16 @@ export default {
   },
 
   watch: {
-    options(curr, prev) {
+    options(curr) {
       if (curr.length === 0) {
-        this.value = '';
+        // Same contract as restoreWorkspace: correct the selection in use, never the stored preference.
+        this.$store.commit('updateWorkspace', { value: '', getters: this.$store.getters });
       }
 
       const currentExists = curr.find((item) => item.value === this.value);
 
       if (curr.length && !currentExists) {
-        this.value = curr[0]?.value;
+        this.restoreSelection(this.value);
       }
     },
   },
@@ -74,8 +75,13 @@ export default {
     // in fleet standard user with just the project owner and global git repo permissions
     // returns 'default'
     const initValue = this.workspace || this.$store.getters['prefs/get'](LAST_NAMESPACE) || '';
+    const value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
 
-    this.value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
+    if (!this.options.length || this.options.some((item) => item.value === value)) {
+      this.value = value;
+    } else {
+      this.restoreSelection(value);
+    }
   },
 
   data() {
@@ -83,6 +89,18 @@ export default {
   },
 
   methods: {
+    // The store validates against the workspaces it knows about, but when the user cannot list them
+    // the options come from the workspace-annotated namespaces instead, which the store cannot see.
+    // Correct against the options that are actually rendered in that case.
+    restoreSelection(value) {
+      if (this.allWorkspaces.length) {
+        this.$store.dispatch('restoreWorkspace', { value });
+      } else {
+        // Same contract as restoreWorkspace: correct the selection in use, never the stored preference.
+        this.$store.commit('updateWorkspace', { value: this.options[0]?.value, getters: this.$store.getters });
+      }
+    },
+
     focus() {
       this.$refs.select.$refs.search.focus();
     },
