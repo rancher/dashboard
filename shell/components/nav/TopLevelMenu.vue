@@ -1765,6 +1765,14 @@ export default {
     // The control used to span the row and carry this itself. With the pin pulled out to a sibling the
     // row is what reserves the pin's gutter, so the pin lands exactly where it always did.
     padding-right: 14px;
+    // The whole row explores the cluster, the strip beside the pin included, so the row carries the hand
+    // the control used to carry across all of it. A row that cannot be explored keeps the control's
+    // `not-allowed` rather than promising a target.
+    cursor: pointer;
+
+    &.is-disabled {
+      cursor: not-allowed;
+    }
 
     .cluster.selector {
       flex:       1 1 auto;
