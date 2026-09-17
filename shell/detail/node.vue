@@ -217,7 +217,7 @@ export default {
     <div class="mt-20 resources">
       <ConsumptionGauge
         :resource-name="t('node.detail.glance.consumptionGauge.cpu')"
-        :capacity="value.cpuCapacity"
+        :capacity="value.cpuAllocatable"
         :used="value.cpuUsage"
       />
       <ConsumptionGauge

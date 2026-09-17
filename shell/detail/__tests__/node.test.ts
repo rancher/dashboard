@@ -26,7 +26,7 @@ describe('view: node detail', () => {
     },
     spec:               { taints: [] },
     pods:               [],
-    cpuCapacity:        4,
+    cpuAllocatable:     4,
     cpuUsage:           2,
     ramAllocatable:     8000,
     ramUsage:           4000,
