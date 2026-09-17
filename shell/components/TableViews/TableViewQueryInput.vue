@@ -144,7 +144,10 @@ export default {
       return {
         negate: token.negate || '',
         field:  token.field || null,
-        typed:  token.field ? token.value : token.text,
+        // `value` rather than `text`: the raw token still carries a leading `-` or `!`, and
+        // matching field names against "-sta" found nothing, so negating a term lost the
+        // suggestions entirely
+        typed:  token.value,
       };
     },
 
