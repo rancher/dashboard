@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import authConfigMixin from '@shell/mixins/auth-config';
 import childHook from '@shell/mixins/child-hook';
 //
@@ -187,6 +187,73 @@ describe('mixin: authConfigMixin', () => {
       const instance = mount(FakeComponent, createMock(query)).vm as any;
 
       expect(instance.editConfig).toBe(expected);
+    });
+  });
+
+  describe('method: cancel', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const createMock = (model: any, query: Record<string, string>, $router: any) => ({
+      data:   () => ({ value: { configType: 'oidc' }, model }),
+      global: {
+        mocks: {
+          $store: { dispatch: jest.fn().mockResolvedValue(model) },
+          $router,
+          $route: {
+            name:   'c-cluster-auth-config-id',
+            params: { cluster: 'local', id: 'github' },
+            query,
+          },
+        }
+      }
+    });
+
+    const createRouter = () => ({
+      applyQuery: jest.fn(), push: jest.fn(), go: jest.fn()
+    });
+
+    // The configuration is the whole page when it's opened from the list, so
+    // there's nothing left on the page to cancel back to.
+    it('should return to the provider list when the page was opened on the configuration', () => {
+      const $router = createRouter();
+      const model = { enabled: true };
+      const instance = mount(FakeComponent, createMock(model, { mode: 'edit', editConfig: 'true' }, $router)).vm as any;
+
+      instance.cancel();
+
+      expect($router.push).toHaveBeenCalledWith({
+        name:   'c-cluster-auth-config',
+        params: { cluster: 'local' },
+      });
+    });
+
+    // Editing started on this page, so cancelling puts the page back as it was.
+    it('should show who may log in again when the edit started on the page', async() => {
+      const $router = createRouter();
+      const model = { enabled: true };
+      const instance = mount(FakeComponent, createMock(model, { mode: 'edit' }, $router)).vm as any;
+
+      instance.goToEdit();
+      instance.cancel();
+      await flushPromises();
+
+      expect(instance.editConfig).toBe(false);
+      expect($router.push).not.toHaveBeenCalled();
+    });
+
+    it('should go back to wherever a provider that is not enabled yet was picked from', () => {
+      const $router = createRouter();
+      const model = { enabled: false };
+      const instance = mount(FakeComponent, createMock(model, { mode: 'edit', editConfig: 'true' }, $router)).vm as any;
+
+      instance.cancel();
+
+      expect($router.go).toHaveBeenCalledWith(-1);
+      expect($router.push).not.toHaveBeenCalled();
     });
   });
 });
