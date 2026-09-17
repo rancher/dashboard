@@ -11,8 +11,10 @@ import {
   FLEET,
   MANAGEMENT,
   NAMESPACE, NORMAN,
+  SECRET,
   UI, VIRTUAL_HARVESTER_PROVIDER, HCI
 } from '@shell/config/types';
+import { projectScopedSecretsCountRequest } from '@shell/utils/project-scoped-secrets';
 import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
 import Steve from '@shell/plugins/steve';
 import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
@@ -1124,6 +1126,20 @@ export const actions = {
     });
 
     await dispatch('cleanNamespaces');
+
+    // Project scoped secrets are `management` store secrets carrying a label, so they have no COUNT
+    // entry to drive the side nav badge. Fetch just their count (single transient row) so the nav can
+    // show it without loading the secrets themselves. Fire and forget so it doesn't hold up the cluster.
+    if (
+      getters['isRancher'] &&
+      getters['management/schemaFor'](SECRET) &&
+      getters['management/paginationEnabled']({ id: SECRET })
+    ) {
+      dispatch('management/findPage', {
+        type: SECRET,
+        opt:  projectScopedSecretsCountRequest(id),
+      }).catch(() => {});
+    }
 
     const filters = getters['prefs/get'](NAMESPACE_FILTERS)?.[id];
     const allNamespaces = res.namespaces;

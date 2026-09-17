@@ -14,7 +14,9 @@ import {
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 
-import { HCI, UI, SCHEMA } from '@shell/config/types';
+import { HCI, UI, SCHEMA, SECRET } from '@shell/config/types';
+import { STORE } from '@shell/store/store-types';
+import { projectScopedSecretsCountRequest, selectedProjectNames } from '@shell/utils/project-scoped-secrets';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { TYPE_MODES } from '@shell/store/type-map';
@@ -101,6 +103,15 @@ export default {
       }
     },
 
+    // Project scoped secrets have no COUNT entry, so the side nav badge relies on a saved count
+    // (fetched in `loadCluster`). Re-fetch it with the current project selection so the badge stays
+    // consistent with the filtered list when the ns/project header changes.
+    namespaceFilters(a, b) {
+      if ( !isEqual(a, b) ) {
+        this.refreshProjectScopedSecretsCount();
+      }
+    },
+
     clusterReady(a, b) {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
@@ -123,7 +134,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster']),
+    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster', 'isRancher', 'currentCluster', 'namespaceFilters']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -243,6 +254,29 @@ export default {
   },
 
   methods: {
+    /**
+     * Re-fetch the project scoped secrets count, scoped to the current project selection, so the
+     * side nav badge matches the filtered list. Fire and forget, mirroring the initial fetch in
+     * `loadCluster`.
+     */
+    refreshProjectScopedSecretsCount() {
+      if (
+        !this.isRancher ||
+        !this.currentCluster?.id ||
+        !this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](SECRET) ||
+        !this.$store.getters[`${ STORE.MANAGEMENT }/paginationEnabled`]({ id: SECRET })
+      ) {
+        return;
+      }
+
+      const projectNames = selectedProjectNames(this.namespaceFilters);
+
+      this.$store.dispatch(`${ STORE.MANAGEMENT }/findPage`, {
+        type: SECRET,
+        opt:  projectScopedSecretsCountRequest(this.currentCluster.id, projectNames),
+      }).catch(() => {});
+    },
+
     /**
      * Fetch navigation by creating groups from product schemas
      */
