@@ -212,7 +212,7 @@ export default {
     :searchable="true"
     :filterable="false"
     class="select-principal"
-    :class="{'retain-selection': retainSelection}"
+    :class="{'retain-selection': retainSelection, 'results-in-place': !appendToBody}"
     @update:value="add"
     @search="onSearch"
     @on-open="resetTooltipContent()"
@@ -262,6 +262,17 @@ export default {
   }
 
   .select-principal {
+    &.results-in-place {
+      :deep(.v-select) {
+        display: block !important;
+      }
+
+      :deep(.vs__dropdown-menu) {
+        left: calc(-1 * var(--border-width));
+        width: calc(100% + 2 * var(--border-width));
+      }
+    }
+
     &.retain-selection {
       min-height: 91px;
       &.focused {
