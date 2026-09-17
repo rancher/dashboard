@@ -34,6 +34,11 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    appendSearchToBody: {
+      type:    Boolean,
+      default: true,
+    },
   },
 
   computed: {
@@ -117,6 +122,7 @@ export default {
           <template #add>
             <SelectPrincipal
               :mode="mode"
+              :append-to-body="appendSearchToBody"
               @add="addPrincipal"
             />
           </template>

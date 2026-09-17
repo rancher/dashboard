@@ -42,6 +42,11 @@ export default {
     project: {
       type:    Boolean,
       default: false
+    },
+
+    appendToBody: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -203,6 +208,7 @@ export default {
     :label="label"
     :placeholder="placeholder"
     :options="options"
+    :append-to-body="appendToBody"
     :searchable="true"
     :filterable="false"
     class="select-principal"

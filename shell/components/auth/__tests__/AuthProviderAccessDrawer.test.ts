@@ -79,6 +79,16 @@ describe('component: AuthProviderAccessDrawer', () => {
     expect(wrapper.findComponent(AllowedPrincipals).props('stacked')).toBe(true);
   });
 
+  // The panel is drawn above the body, so member search results put there are
+  // hidden behind it.
+  it('should keep the member search results inside the panel', async() => {
+    const { wrapper } = createWrapper();
+
+    await flushPromises();
+
+    expect(wrapper.findComponent(AllowedPrincipals).props('appendSearchToBody')).toBe(false);
+  });
+
   // The credentials an oauth provider hands back cannot be sent again, and the
   // save is rejected if they are.
   it('should leave the write-only credentials out of an oauth save', async() => {
