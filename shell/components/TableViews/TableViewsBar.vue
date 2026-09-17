@@ -303,6 +303,24 @@ export default {
   },
 
   methods: {
+    /**
+     * Is `target` part of this table's toolbar - its tabs, its filter, or its View menu?
+     *
+     * Both halves of the bar live in the same table masthead, so that is what is compared. A
+     * second table on the page has its own, and keeps its own shortcuts.
+     */
+    ownsTarget(target) {
+      // `$el` is no use here - the component has a modal beside its bar, so its root is a
+      // fragment whose first node may not be an element at all
+      const masthead = this.$refs.root?.closest?.('.fixed-header-actions');
+
+      if (!masthead || !target?.closest) {
+        return false;
+      }
+
+      return target.closest('.fixed-header-actions') === masthead;
+    },
+
     isSameConfig(a, b) {
       return (a.query || '') === (b.query || '') &&
         (a.groupBy || null) === (b.groupBy || null) &&
@@ -697,10 +715,16 @@ export default {
         return;
       }
 
-      const tag = (event.target?.tagName || '').toLowerCase();
+      // Anywhere in this table's toolbar counts, the filter box included - saving the view is
+      // what ⌘S means while you are working on one, whether you are typing its query or not.
+      // Somewhere else on the page that takes text does not: ⌘S there belongs to whatever the
+      // user is writing in.
+      if (!this.ownsTarget(event.target)) {
+        const tag = (event.target?.tagName || '').toLowerCase();
 
-      if (tag === 'input' || tag === 'textarea' || event.target?.isContentEditable) {
-        return;
+        if (tag === 'input' || tag === 'textarea' || event.target?.isContentEditable) {
+          return;
+        }
       }
 
       const match = SHORTCUTS.find((s) => s.key === event.key.toLowerCase() && s.shift === event.shiftKey);
@@ -735,6 +759,7 @@ export default {
 
 <template>
   <div
+    ref="root"
     class="table-views"
     :class="{ 'part-controls': part === 'controls', 'part-tabs': part === 'tabs' }"
     data-testid="table-views-bar"
