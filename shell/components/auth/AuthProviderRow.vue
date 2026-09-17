@@ -205,10 +205,13 @@ $header-line: 32px;
   &__title {
     flex: 1;
     min-width: 0;
+    display: block;
+    min-height: 0;
     padding: 0;
     background: none;
     border: none;
     text-align: left;
+    white-space: normal;
     cursor: inherit;
 
     color: var(--body-text);
