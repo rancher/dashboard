@@ -962,12 +962,16 @@ describe('topLevelMenu', () => {
       },
     });
 
+    // A click on the row's own control has already navigated through the control's handler; one on the
+    // strip of row beside the pin has not, and the row is what carries it.
+    const clickOn = (selector?: string) => ({ target: { closest: (sel: string) => (selector === sel ? {} : null) } });
+
     it('leaves the nav open when the cluster is not ready', async() => {
       const wrapper = mountNav();
       const vm = wrapper.vm as any;
 
       await wrapper.setData({ shown: true });
-      await vm.onShelfRowClick({ id: 'an-id1', ready: false });
+      await vm.onShelfRowClick(clickOn('.cluster.selector'), { id: 'an-id1', ready: false });
 
       expect(vm.shown).toBe(true);
     });
@@ -977,8 +981,36 @@ describe('topLevelMenu', () => {
       const vm = wrapper.vm as any;
 
       await wrapper.setData({ shown: true });
-      await vm.onShelfRowClick({ id: 'an-id1', ready: true });
+      await vm.onShelfRowClick(clickOn('.cluster.selector'), { id: 'an-id1', ready: true });
 
+      expect(vm.shown).toBe(false);
+    });
+
+    it('does not navigate again when the click landed on the row\'s own control', async() => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+      const clusterMenuClick = jest.spyOn(vm, 'clusterMenuClick');
+
+      await wrapper.setData({ shown: true });
+      await vm.onShelfRowClick(clickOn('.cluster.selector'), { id: 'an-id1', ready: true });
+
+      expect(clusterMenuClick).not.toHaveBeenCalled();
+    });
+
+    // The control stops short of the pin, so the row keeps a strip of its own. Before this the whole row
+    // was the control and a click there explored the cluster — clicking it must still do that, not just
+    // close the nav.
+    it('explores the cluster when the click landed on the row beside the pin', async() => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+      const clusterMenuClick = jest.spyOn(vm, 'clusterMenuClick').mockImplementation(() => undefined);
+      const cluster = { id: 'an-id1', ready: true };
+      const event = clickOn();
+
+      await wrapper.setData({ shown: true });
+      await vm.onShelfRowClick(event, cluster);
+
+      expect(clusterMenuClick).toHaveBeenCalledWith(event, cluster);
       expect(vm.shown).toBe(false);
     });
   });

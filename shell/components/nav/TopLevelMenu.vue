@@ -665,10 +665,24 @@ export default {
       this.shown = false;
     },
 
-    onShelfRowClick(cluster) {
-      if (cluster.ready) {
-        this.hide();
+    /**
+     * Click on a shelf row. The whole row explores the cluster, as it did when the row's control spanned
+     * it: the control now stops short of the pin, so the strip of row beside the pin belongs to the row
+     * itself, and a click landing there is forwarded to the control rather than only closing the nav.
+     *
+     * The pin stops its own clicks, so nothing that reaches here is the pin's; a click that landed ON the
+     * control has already navigated through the control's own handler, and must not be pushed twice.
+     */
+    onShelfRowClick(event, cluster) {
+      if (!cluster.ready) {
+        return;
       }
+
+      if (!event.target?.closest?.('.cluster.selector')) {
+        this.clusterMenuClick(event, cluster);
+      }
+
+      this.hide();
     },
 
     /**
@@ -1436,7 +1450,7 @@ export default {
                     class="shelf-row"
                     :class="{ 'shelf-row-held': dragId === c.id, 'is-active': c.isMenuActive, 'is-disabled': !c.ready }"
                     @mousedown="onRowDragStart($event, c)"
-                    @click="onShelfRowClick(c)"
+                    @click="onShelfRowClick($event, c)"
                   >
                     <button
                       v-if="c.ready"
