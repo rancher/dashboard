@@ -12,13 +12,20 @@ describe('component: Masthead/index', () => {
     cards: []
   };
 
+  const mockMetadataProps = {
+    resource:               mockResource,
+    identifyingInformation: [],
+    labels:                 [],
+    annotations:            []
+  };
+
   const defaultProps = {
     titleBarProps: {
       resource:          mockResource,
       resourceTypeLabel: 'ConfigMap',
       resourceName:      'test-resource'
     },
-    metadataProps: { items: [] }
+    metadataProps: mockMetadataProps
   };
 
   const globalStubs = {
@@ -69,7 +76,7 @@ describe('component: Masthead/index', () => {
 
   it('should not render TitleBar when titleBarProps is undefined', () => {
     const wrapper = mount(Masthead, {
-      props:  { titleBarProps: undefined, metadataProps: { items: [] } },
+      props:  { titleBarProps: undefined, metadataProps: mockMetadataProps },
       global: globalStubs
     });
 
@@ -103,5 +110,31 @@ describe('component: Masthead/index', () => {
     expect(wrapper.findComponent(TitleBar).exists()).toBe(false);
     expect(wrapper.findComponent(Metadata).exists()).toBe(false);
     expect(wrapper.findComponent(Cards).exists()).toBe(false);
+  });
+
+  it('should render content passed to the banner slot', () => {
+    const wrapper = mount(Masthead, {
+      props:  defaultProps,
+      global: globalStubs,
+      slots:  { banner: '<div class="test-banner">error</div>' }
+    });
+
+    expect(wrapper.find('.test-banner').exists()).toBe(true);
+  });
+
+  it('should render the banner slot between the title bar and the metadata', () => {
+    const wrapper = mount(Masthead, {
+      props:  defaultProps,
+      global: globalStubs,
+      slots:  { banner: '<div class="test-banner">error</div>' }
+    });
+
+    const html = wrapper.html();
+    const titleBarIndex = html.indexOf('title-bar-stub');
+    const bannerIndex = html.indexOf('test-banner');
+    const metadataIndex = html.indexOf('metadata-stub');
+
+    expect(titleBarIndex).toBeLessThan(bannerIndex);
+    expect(bannerIndex).toBeLessThan(metadataIndex);
   });
 });
