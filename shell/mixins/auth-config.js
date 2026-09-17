@@ -1,4 +1,4 @@
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, EDIT_CONFIG } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { BASE_SCOPES, SLO_AUTH_PROVIDERS } from '@shell/store/auth';
@@ -41,7 +41,9 @@ export default {
   data() {
     return {
       isEnabling:     false,
-      editConfig:     false,
+      // An enabled provider opens on who may log in with it, unless whoever sent
+      // us here asked for the provider's own configuration
+      editConfig:     this.$route.query?.[EDIT_CONFIG] === 'true',
       model:          null,
       serverSetting:  null,
       errors:         [],

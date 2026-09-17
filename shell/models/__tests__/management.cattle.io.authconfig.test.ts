@@ -224,6 +224,39 @@ describe('class AuthConfig', () => {
     });
   });
 
+  // The list row opens a drawer of its own for who may log in with a provider,
+  // and two drawers over one row is one too many.
+  it('should opt out of the generic configuration drawer', () => {
+    expect(makeConfig({ id: 'github' }).disableResourceDetailDrawer).toBe(true);
+  });
+
+  describe('goToEdit', () => {
+    // The provider page opens on who may log in with the provider, so the action
+    // menu's edit has to say that the provider's own configuration is wanted.
+    it('should open the provider page on the provider configuration', () => {
+      const push = jest.fn();
+
+      jest.spyOn(Resource.prototype, 'currentRouter').mockReturnValue({ push } as any);
+
+      const config = new AuthConfig(
+        { id: 'github', _type: 'githubConfig' },
+        { rootGetters: { ...rootGetters, clusterId: 'local' } } as any
+      );
+
+      config.goToEdit();
+
+      expect(push).toHaveBeenCalledWith({
+        name:   'c-cluster-auth-config-id',
+        params: { cluster: 'local', id: 'github' },
+        query:  {
+          mode: 'edit', as: undefined, editConfig: 'true'
+        },
+      });
+
+      jest.restoreAllMocks();
+    });
+  });
+
   describe('_availableActions', () => {
     // The parent getter reads runtime config the tests don't have, so it stands
     // in for whatever the base class offers.

@@ -160,6 +160,70 @@ describe('component: AuthProviderRow', () => {
     });
   });
 
+  // A row whose page opens a panel rather than another page has nowhere to link
+  // to, so it reports the choice back instead.
+  describe('selecting the row', () => {
+    const to = { name: 'c-cluster-auth-config-id', params: { id: 'okta-corp' } };
+
+    it.each([
+      ['the title', '.auth-provider-row__title'],
+      ['the description', '.auth-provider-row__description'],
+      ['empty space in the row', '.auth-provider-row__content'],
+    ])('should report a click on %s once', async(_case, selector) => {
+      const wrapper = createWrapper({
+        title: 'okta-corp', description: 'Partners and contractors.', selectable: true
+      });
+
+      await wrapper.find(selector).trigger('click');
+
+      expect(wrapper.emitted('select')).toHaveLength(1);
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    // The row is activated by keyboard through the title, so the title has to be
+    // a control rather than text.
+    it('should make the title a button', () => {
+      const wrapper = createWrapper({ title: 'okta-corp', selectable: true });
+
+      const title = wrapper.find('.auth-provider-row__title');
+
+      expect(title.element.tagName).toBe('BUTTON');
+      expect(title.attributes('type')).toBe('button');
+    });
+
+    it('should let a control in the trailing slot act instead of selecting', async() => {
+      const wrapper = mount(AuthProviderRow, {
+        props:  { title: 'okta-corp', selectable: true },
+        slots:  { trailing: '<button class="row-action">Actions</button>' },
+        global: { stubs: { 'router-link': RouterLinkStub } }
+      });
+
+      await wrapper.find('.row-action').trigger('click');
+
+      expect(wrapper.emitted('select')).toBeUndefined();
+    });
+
+    // Where a row can be linked, the link is what navigates.
+    it('should not report a selection from a row that links elsewhere', async() => {
+      const wrapper = createWrapper({
+        title: 'okta-corp', to, selectable: true
+      });
+
+      await wrapper.find('.auth-provider-row__content').trigger('click');
+
+      expect(wrapper.emitted('select')).toBeUndefined();
+      expect(mockPush).toHaveBeenCalledWith(to);
+    });
+
+    it('should report nothing from a row that cannot be selected', async() => {
+      const wrapper = createWrapper({ title: 'Local authentication' });
+
+      await wrapper.find('.auth-provider-row__content').trigger('click');
+
+      expect(wrapper.emitted('select')).toBeUndefined();
+    });
+  });
+
   // The slot used to be gated on a name that never matched, so a row carrying a
   // meta control but no meta line dropped the control entirely.
   it('should keep a meta control on a row that has no meta line', () => {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 import { useRouter } from 'vue-router';
 import { RcStatusBadge, RcTag } from '@components/Pill';
@@ -14,18 +15,43 @@ const props = withDefaults(defineProps<{
   status?: Status;
   statusLabel?: string;
   to?: RouteLocationRaw;
+  selectable?: boolean;
   divided?: boolean;
   disabled?: boolean;
 }>(), { chips: () => [], divided: true });
 
+const emit = defineEmits(['select']);
+
 const router = useRouter();
 
+const interactive = computed(() => !!props.to || props.selectable);
+
 const activate = (event: MouseEvent) => {
-  if (!props.to || (event.target as HTMLElement).closest('a, button, [data-row-action]')) {
+  if (!interactive.value || (event.target as HTMLElement).closest('a, button, [data-row-action]')) {
     return;
   }
 
-  router.push(props.to);
+  if (props.to) {
+    router.push(props.to);
+  } else {
+    emit('select');
+  }
+};
+
+const isTitleButton = computed(() => !props.to && props.selectable);
+
+const titleTag = computed(() => {
+  if (props.to) {
+    return 'router-link';
+  }
+
+  return isTitleButton.value ? 'button' : 'span';
+});
+
+const activateFromTitle = () => {
+  if (isTitleButton.value) {
+    emit('select');
+  }
 };
 </script>
 
@@ -33,7 +59,7 @@ const activate = (event: MouseEvent) => {
   <div
     class="auth-provider-row"
     :class="{
-      'auth-provider-row--link': to,
+      'auth-provider-row--link': interactive,
       'auth-provider-row--divided': divided,
       'auth-provider-row--disabled': disabled,
     }"
@@ -43,9 +69,11 @@ const activate = (event: MouseEvent) => {
     <div class="auth-provider-row__content">
       <div class="auth-provider-row__title-row">
         <component
-          :is="to ? 'router-link' : 'span'"
+          :is="titleTag"
           :to="to"
+          :type="isTitleButton ? 'button' : undefined"
           class="auth-provider-row__title"
+          @click="activateFromTitle"
         >
           {{ title }}
         </component>
@@ -177,8 +205,14 @@ $header-line: 32px;
   &__title {
     flex: 1;
     min-width: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: inherit;
 
     color: var(--body-text);
+    font-family: inherit;
     font-size: 14px;
     font-weight: 700;
     line-height: 21px;

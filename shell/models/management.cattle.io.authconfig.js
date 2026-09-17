@@ -1,6 +1,7 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { requireAsset } from '@shell/utils/require-asset';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { EDIT_CONFIG } from '@shell/config/query-params';
 
 /**
  * Normalises a provider identifier to a stable key.
@@ -66,6 +67,14 @@ export const providerIcon = (type) => {
 const destructive = ['promptDisable', 'promptRemove'];
 
 export default class AuthConfig extends SteveModel {
+  get disableResourceDetailDrawer() {
+    return true;
+  }
+
+  goToEdit(moreQuery = {}) {
+    super.goToEdit({ [EDIT_CONFIG]: 'true', ...moreQuery });
+  }
+
   get _availableActions() {
     const inherited = super._availableActions.filter((a) => !a.divider);
     const disable = {
