@@ -106,6 +106,7 @@ const activate = (event: MouseEvent) => {
 $header-line: 32px;
 
 .auth-provider-row {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -114,7 +115,15 @@ $header-line: 32px;
   color: var(--body-text);
   border-radius: var(--border-radius);
 
-  &--divided {
+  // The rule parts one row from the next, so it runs straight across rather than
+  // following the row's own rounded corners
+  &--divided::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
     border-bottom: 1px solid var(--border);
   }
 
