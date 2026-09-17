@@ -1,7 +1,11 @@
 import { mount } from '@vue/test-utils';
-import Ingress from '@shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue';
-import { _EDIT } from '@shell/config/query-params';
+import Ingress from '@shell/edit/provisioning.cattle.io.cluster/ingress/index.vue';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE } from '@shell/edit/provisioning.cattle.io.cluster/shared';
+
+const mockGetVersionData = jest.fn(() => ({ RancherPrime: 'false' }));
+
+jest.mock('@shell/config/version', () => ({ getVersionData: () => mockGetVersionData() }));
 
 jest.mock('vuex', () => ({
   useStore:   () => ({ getters: { 'i18n/t': (key: string) => key } }),
@@ -45,12 +49,15 @@ jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
     doc:       { url: 'https://docs.rke2.io/networking/networking_services?_highlight=ingress#ingress-controller' }
   },
   {
-    id:        'ingress-nginx',
-    image:     { src: '', alt: 'NGINX' },
-    header:    { title: { key: 'cluster.ingress.nginx.header' } },
-    subHeader: { label: { key: 'cluster.ingress.legacy' } },
-    content:   { key: 'cluster.ingress.nginx.content' },
-    doc:       { url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' }
+    id:         'ingress-nginx',
+    image:      { src: '', alt: 'NGINX' },
+    header:     { title: { key: 'cluster.ingress.nginx.header' } },
+    subHeader:  { label: { key: 'cluster.ingress.legacy' } },
+    newContent: { key: 'cluster.ingress.nginx.contentCommunity' },
+    oldContent: { key: 'cluster.ingress.nginx.content' },
+    newDoc:     { url: 'https://www.suse.com/c/trade-the-ingress-nginx-retirement-for-up-to-2-years-of-rke2-support-stability/' },
+    oldDoc:     { url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' },
+    prime:      true
   },
   {
     id:        'dual',
@@ -355,6 +362,60 @@ describe('ingress.vue', () => {
       const emitted = wrapper.emitted('update-values');
 
       expect(emitted).toBeFalsy();
+    });
+  });
+
+  describe('ingress-nginx prime-only restriction', () => {
+    // eslint-disable-next-line jest/no-hooks
+    afterEach(() => {
+      mockGetVersionData.mockReturnValue({ RancherPrime: 'false' });
+    });
+
+    const nginxOption = (props = {}) => {
+      const wrapper = createWrapper({ value: TRAEFIK, ...props });
+      const options = wrapper.findComponent({ name: 'IngressCards' }).props('options') as any[];
+
+      return options.find((o) => o.id === INGRESS_NGINX);
+    };
+
+    it('disables the nginx card and shows community content/doc on a non-prime instance creating a cluster with k8s >= v1.37.0', () => {
+      const nginx = nginxOption({ mode: _CREATE, kubernetesVersion: 'v1.37.0+rke2r1' });
+
+      expect(nginx.disabled).toBe(true);
+      expect(nginx.content).toStrictEqual({ key: 'cluster.ingress.nginx.contentCommunity' });
+      expect(nginx.doc).toStrictEqual({ url: 'https://www.suse.com/c/trade-the-ingress-nginx-retirement-for-up-to-2-years-of-rke2-support-stability/' });
+    });
+
+    it('leaves the nginx card enabled with the default content/doc when k8s is below v1.37.0', () => {
+      const nginx = nginxOption({ mode: _CREATE, kubernetesVersion: 'v1.36.0+rke2r1' });
+
+      expect(nginx.disabled).toBe(false);
+      expect(nginx.content).toStrictEqual({ key: 'cluster.ingress.nginx.content' });
+      expect(nginx.doc).toStrictEqual({ url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' });
+    });
+
+    it('leaves the nginx card enabled with the default content/doc on a prime instance even when k8s is >= v1.37.0', () => {
+      mockGetVersionData.mockReturnValue({ RancherPrime: 'true' });
+
+      const nginx = nginxOption({ mode: _CREATE, kubernetesVersion: 'v1.37.0+rke2r1' });
+
+      expect(nginx.disabled).toBe(false);
+      expect(nginx.content).toStrictEqual({ key: 'cluster.ingress.nginx.content' });
+      expect(nginx.doc).toStrictEqual({ url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' });
+    });
+
+    it('does not apply the restriction outside of create mode', () => {
+      const nginx = nginxOption({ mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1' });
+
+      expect(nginx.disabled).toBe(false);
+      expect(nginx.content).toStrictEqual({ key: 'cluster.ingress.nginx.content' });
+    });
+
+    it('disables every card in view mode', () => {
+      const wrapper = createWrapper({ value: TRAEFIK, mode: _VIEW });
+      const options = wrapper.findComponent({ name: 'IngressCards' }).props('options') as any[];
+
+      expect(options.every((o) => o.disabled)).toBe(true);
     });
   });
 });
