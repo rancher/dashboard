@@ -349,21 +349,25 @@ export default {
 
     workerStatsAggregation() {
       const initialAggregation = {
-        ramAllocatable: 0,
-        cpuAllocatable: 0,
-        ramReserved:    0,
-        cpuReserved:    0,
-        podReserved:    0,
-        podCapacity:    0
+        ramAllocatable:    0,
+        cpuAllocatable:    0,
+        ramReserved:       0,
+        cpuReserved:       0,
+        podReserved:       0,
+        podCapacity:       0,
+        systemReservedRam: 0,
+        systemReservedCpu: 0
       };
 
       return this.schedulableWorkerNodes?.reduce((agg, node) => {
         agg.ramAllocatable += node.ramAllocatable;
-        agg.cpuAllocatable += node.cpuCapacity;
+        agg.cpuAllocatable += node.cpuAllocatable;
         agg.ramReserved += node.ramReserved;
         agg.cpuReserved += node.cpuReserved;
         agg.podReserved += node.podReserved;
         agg.podCapacity += node.podCapacity;
+        agg.systemReservedCpu += node.systemReservedCpu;
+        agg.systemReservedRam += node.systemReservedRam;
 
         return agg;
       }, initialAggregation);
@@ -433,21 +437,27 @@ export default {
     },
 
     cpuUsed() {
-      const total = !this.hasSchedulableWorkerNodes ? parseSi(this.currentCluster?.status?.capacity?.cpu) : this.workerStatsAggregation?.cpuAllocatable;
+      if (!this.metricAggregations) {
+        return null;
+      }
+
+      const total = !this.hasSchedulableWorkerNodes ? parseSi(this.currentCluster?.status?.allocatable?.cpu) : this.workerStatsAggregation?.cpuAllocatable;
 
       return {
         total,
-        useful: this.metricAggregations?.cpu,
+        useful: this.metricAggregations?.cpu - this.workerStatsAggregation?.systemReservedCpu,
         units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
     },
 
     ramUsed() {
-      if (!this.hasSchedulableWorkerNodes) {
-        return createMemoryValues(this.currentCluster?.status?.capacity?.memory, this.metricAggregations?.memory);
+      if (!this.metricAggregations) {
+        return null;
       }
 
-      return createMemoryValues(this.workerStatsAggregation?.ramAllocatable, this.metricAggregations?.memory);
+      const total = !this.hasSchedulableWorkerNodes ? this.currentCluster?.status?.allocatable?.memory : this.workerStatsAggregation?.ramAllocatable;
+
+      return createMemoryValues(total, this.metricAggregations?.memory - this.workerStatsAggregation?.systemReservedRam);
     },
 
     hasMonitoring() {
