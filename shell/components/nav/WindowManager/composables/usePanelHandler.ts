@@ -1,4 +1,4 @@
-import { computed, onMounted, onBeforeUnmount } from 'vue';
+import { computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { Position, Tab } from '@shell/types/window-manager';
 import useResizeHandler from '../composables/useResizeHandler';
@@ -39,6 +39,19 @@ export default (props: { position: Position }) => {
     lockedPosition
   } = useDragHandler({ position: props.position });
 
+  function onTabKeydown(event: KeyboardEvent, id: string) {
+    if (event.key !== 'Delete' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const tablist = (event.currentTarget as HTMLElement | null)?.closest('[role="tablist"]');
+
+    onTabClose(id);
+    nextTick(() => tablist?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus());
+  }
+
   onMounted(() => openPanel(props.position));
 
   onBeforeUnmount(() => {
@@ -57,6 +70,7 @@ export default (props: { position: Position }) => {
     setTabActive,
     onTabReady,
     onTabClose,
+    onTabKeydown,
     onPanelClose,
     mouseResizeXStart,
     mouseResizeYStart,

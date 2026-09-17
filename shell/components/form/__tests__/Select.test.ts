@@ -66,6 +66,19 @@ describe('select.vue', () => {
     expect(vSelectInput.attributes('aria-label')).toBe('-');
   });
 
+  it('a11y: should not set role listitem on the v-select root', () => {
+    const wrapper = mount(SelectComponent, {
+      props: {
+        value:   'foo',
+        options: [{ label: 'Foo', value: 'foo' }],
+      }
+    });
+
+    const vSelect = wrapper.find('.v-select');
+
+    expect(vSelect.attributes('role')).toBeUndefined();
+  });
+
   it('pressing space key while focused on search should not prevent event propagation', async() => {
     const value = 'value-1';
     const options = [

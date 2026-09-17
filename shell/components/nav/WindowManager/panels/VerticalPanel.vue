@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { RIGHT, LEFT } from '@shell/utils/position';
 import { PropType } from 'vue';
-import { RcButton } from '@components/RcButton';
 import { RcIcon } from '@components/RcIcon';
 import { Position } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
@@ -24,6 +23,7 @@ const {
   setTabActive,
   onTabReady,
   onTabClose,
+  onTabKeydown,
   mouseResizeXStart,
   keyboardResizeX,
   lockedPosition,
@@ -57,7 +57,6 @@ const {
           'resizer-left': props.position === LEFT,
         }
       ]"
-      role="tablist"
       @dragover="onTabBarDragOver"
       @dragleave="onTabBarDragLeave"
       @drop="onTabBarDrop"
@@ -80,52 +79,55 @@ const {
         />
       </div>
       <div
-        v-for="(tab, i) in tabs"
-        :key="i"
-        class="tab"
-        :class="{
-          'active': tab.id === activeTab[props.position],
-          'draggable': !lockedPosition,
-        }"
-        :draggable="tab.id === activeTab[props.position] && !lockedPosition"
-        role="tab"
-        :aria-selected="tab.id === activeTab[props.position]"
-        :aria-label="tab.label"
-        :aria-controls="tabBodyId(props.position, tab.id)"
-        tabindex="0"
-        @click="setTabActive({ position: props.position, id: tab.id })"
-        @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"
-        @dragstart="onDragPositionStart({ event: $event, tab })"
-        @dragend="onDragPositionEnd({ event: $event, tab })"
+        class="tab-list"
+        role="tablist"
       >
-        <i
-          v-if="tab.icon"
-          class="icon"
+        <div
+          v-for="(tab, i) in tabs"
+          :key="i"
+          class="tab"
           :class="{
-            ['icon-'+ tab.icon]: true,
+            'active': tab.id === activeTab[props.position],
+            'draggable': !lockedPosition,
           }"
-          :alt="t('wm.tabIcon')"
-        />
-        <span
-          class="tab-label"
-        >
-          {{ tab.label }}
-        </span>
-        <RcButton
-          data-testid="wm-tab-close-button"
-          variant="ghost"
-          size="small"
-          class="closer wm-closer-button"
+          :draggable="tab.id === activeTab[props.position] && !lockedPosition"
+          role="tab"
+          :aria-selected="tab.id === activeTab[props.position]"
+          :aria-label="tab.label"
+          :aria-controls="tabBodyId(props.position, tab.id)"
+          aria-keyshortcuts="Delete"
           tabindex="0"
-          :aria-label="t('wm.closeTab', { tabId: tab.id })"
-          @click.stop="onTabClose(tab.id)"
-          @keyup.enter.space.stop="onTabClose(tab.id)"
+          @click="setTabActive({ position: props.position, id: tab.id })"
+          @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"
+          @keydown="onTabKeydown($event, tab.id)"
+          @dragstart="onDragPositionStart({ event: $event, tab })"
+          @dragend="onDragPositionEnd({ event: $event, tab })"
         >
-          <RcIcon
-            type="close"
-            size="inherit"
+          <i
+            v-if="tab.icon"
+            class="icon"
+            :class="{
+              ['icon-'+ tab.icon]: true,
+            }"
+            :alt="t('wm.tabIcon')"
           />
-        </RcButton>
+          <span
+            class="tab-label"
+          >
+            {{ tab.label }}
+          </span>
+          <span
+            data-testid="wm-tab-close-button"
+            class="closer wm-closer-button"
+            aria-hidden="true"
+            @click.stop="onTabClose(tab.id)"
+          >
+            <RcIcon
+              type="close"
+              size="inherit"
+            />
+          </span>
+        </div>
       </div>
       <div
         v-if="props.position === LEFT"
@@ -196,6 +198,11 @@ const {
       display: flex;
       align-content: stretch;
 
+      .tab-list {
+        display: flex;
+        min-width: 0;
+      }
+
       .tab {
         cursor: pointer;
         user-select: none;
@@ -239,22 +246,16 @@ const {
           width: 14px;
           min-width: 14px;
           height: 14px;
-          min-height: 14px;
-          padding: 0;
           color: var(--body-text);
           align-self: center;
           display: flex;
+          align-items: center;
           justify-content: center;
           cursor: pointer;
 
           &:hover {
             border-color: var(--link-border);
             color: var(--link-border);
-          }
-
-          &:focus-visible {
-            @include focus-outline;
-            outline-offset: 1px;
           }
 
           .icon,
