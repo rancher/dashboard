@@ -63,6 +63,7 @@ export enum ExtensionPoint {
   CARD = 'Card', // eslint-disable-line no-unused-vars
   TABLE_COL = 'TableColumn', // eslint-disable-line no-unused-vars
   TABLE = 'Table', // eslint-disable-line no-unused-vars
+  EDITABLE_RELATED_RESOURCES = 'EditableRelatedResources', // eslint-disable-line no-unused-vars
 }
 
 /** Enum regarding action locations that are extensible in the UI */
@@ -105,9 +106,28 @@ export enum TableLocation {
   RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
 }
 
+/** Enum regarding editable related resource locations that are extensible in the UI */
+export enum EditableRelatedResourcesLocation {
+  RESOURCE_YAML = 'resource-yaml', // eslint-disable-line no-unused-vars
+}
+
 /** Definition of a Table extension hook */
 export type TableAction = {
   tableHook: Function
+};
+
+/**
+ * Definition of an editable related resources extension
+ *
+ * `editableRelatedResources` is given the resource being shown and the list of related resources
+ * gathered so far (from the resource's `fetchEditableRelatedResources` and any previously applied
+ * extensions). It should return the new list, so entries can be added, removed or re-ordered.
+ *
+ * It is resolved when the consuming component initialises (and not in a computed property), so it
+ * may be async, for example to fetch the related resources it wants to add.
+ */
+export type EditableRelatedResources = {
+  editableRelatedResources: (resource: any, relatedResources: any[]) => any[] | Promise<any[]>
 };
 
 /** Definition of the shortcut object (keyboard shortcuts) */
@@ -628,6 +648,16 @@ export interface IExtension extends IExtensionProducts {
    * @param action
    */
   addTableHook(where: TableLocation | string, when: LocationConfig | string, action: TableAction): void;
+
+  /**
+   * Adds to the list of related resources that can be edited alongside a resource (for example in
+   * the multi-resource YAML editor)
+   *
+   * @param where
+   * @param when
+   * @param action
+   */
+  addEditableRelatedResources(where: EditableRelatedResourcesLocation | string, when: LocationConfig | string, action: EditableRelatedResources): void;
 
   /**
    * Set the component to use for the landing home page

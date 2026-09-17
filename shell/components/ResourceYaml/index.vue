@@ -18,6 +18,8 @@ import {
 } from '@shell/config/query-params';
 import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { ExtensionPoint, EditableRelatedResourcesLocation } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 export default {
   emits: ['error'],
@@ -90,13 +92,18 @@ export default {
     this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
     return {
-      initialYaml:  this.initialYamlForDiff || this.yaml,
-      currentYaml:  this.yaml,
-      showPreview:  false,
-      errors:       null,
-      cm:           null,
-      initialReady: true
+      initialYaml:              this.initialYamlForDiff || this.yaml,
+      currentYaml:              this.yaml,
+      showPreview:              false,
+      errors:                   null,
+      cm:                       null,
+      initialReady:             true,
+      editableRelatedResources: [],
     };
+  },
+
+  async fetch() {
+    await this.loadEditableRelatedResources();
   },
 
   computed: {
@@ -135,9 +142,20 @@ export default {
     canDiff() {
       return this.initialYaml !== this.currentYaml;
     },
+
+    /**
+     * Does this resource have related resources that can also be edited by YAML?
+     */
+    needsMultiEdit() {
+      return this.editableRelatedResources.length > 0;
+    },
   },
 
   watch: {
+    value() {
+      this.loadEditableRelatedResources();
+    },
+
     yaml(neu) {
       if ( this.mode === _VIEW ) {
         this.currentYaml = neu;
@@ -154,6 +172,52 @@ export default {
   },
 
   methods: {
+    /**
+     * Resolve the related resources that can be edited by YAML alongside this one
+     *
+     * This starts with the list from the resource's model, which extensions can then add to or
+     * remove from via `addEditableRelatedResources`
+     *
+     * Both the model and the extensions can be async, so this must be resolved on initialisation
+     * rather than in a computed property
+     */
+    async loadEditableRelatedResources() {
+      // Ensure a slow load for a previous resource doesn't overwrite the result for the current one
+      const forResource = this.value;
+
+      let resources = [];
+
+      if (typeof this.value?.fetchEditableRelatedResources === 'function') {
+        resources = await this.value.fetchEditableRelatedResources() || [];
+      }
+
+      // gate it so that we prevent errors on older versions of dashboard
+      if (this.$store.$extension?.getUIConfig) {
+        const extensions = getApplicableExtensionEnhancements(
+          this,
+          ExtensionPoint.EDITABLE_RELATED_RESOURCES,
+          EditableRelatedResourcesLocation.RESOURCE_YAML,
+          this.$route
+        );
+
+        for (const { editableRelatedResources } of extensions) {
+          if (typeof editableRelatedResources !== 'function') {
+            continue;
+          }
+
+          const neu = await editableRelatedResources(this.value, resources);
+
+          if (Array.isArray(neu)) {
+            resources = neu;
+          }
+        }
+      }
+
+      if (this.value === forResource) {
+        this.editableRelatedResources = resources;
+      }
+    },
+
     onInput(yaml) {
       this.currentYaml = yaml;
       this.onReady(this.cm);

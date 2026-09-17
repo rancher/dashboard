@@ -4,7 +4,7 @@ import { _VIEW } from '@shell/config/query-params';
 import { useStore } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import { useTemplateRef } from 'vue';
-import ResourceYaml from '@shell/components/ResourceYaml.vue';
+import ResourceYaml from '@shell/components/ResourceYaml/index.vue';
 import { YamlProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 
 const props = defineProps<YamlProps>();

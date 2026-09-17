@@ -50,6 +50,27 @@ export default class SteveModel extends HybridModel {
     return this.$extension.getDynamic(EXT_IDS.MODEL_EXTENSION, this.type) || [];
   }
 
+  /**
+   * Resources related to this one that the user should be able to edit by YAML alongside it
+   *
+   * This is resolved when the consuming component initialises (and not in a computed property), so
+   * models extending this class can override it with an async implementation, for example to fetch
+   * the resources they want to add
+   *
+   * ```
+   * async fetchEditableRelatedResources() {
+   *   const others = await this.$dispatch('findAll', { type: SOME_TYPE });
+   *
+   *   return [...await super.fetchEditableRelatedResources(), ...others];
+   * }
+   * ```
+   *
+   * @returns {Promise<Array>} Classified resource instances
+   */
+  async fetchEditableRelatedResources() {
+    return [];
+  }
+
   cleanForSave(data, forNew) {
     const val = super.cleanForSave(data);
 

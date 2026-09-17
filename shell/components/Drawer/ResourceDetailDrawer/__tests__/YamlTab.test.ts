@@ -4,10 +4,10 @@ import { createStore } from 'vuex';
 
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import { _VIEW } from '@shell/config/query-params';
-import ResourceYaml from '@shell/components/ResourceYaml.vue';
+import ResourceYaml from '@shell/components/ResourceYaml/index.vue';
 import { nextTick } from 'vue';
 
-jest.mock('@shell/components/ResourceYaml.vue', () => ({
+jest.mock('@shell/components/ResourceYaml/index.vue', () => ({
   template: `<div>ResourceYaml</div>`,
   props:    {
     value: {
