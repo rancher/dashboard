@@ -4,6 +4,7 @@ import { useStore } from 'vuex';
 import { Banner } from '@components/Banner';
 import AsyncButton, { AsyncButtonCallback } from '@shell/components/AsyncButton.vue';
 import Drawer from '@shell/components/Drawer/Chrome.vue';
+import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
 import Loading from '@shell/components/Loading.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals.vue';
 import { useI18n } from '@shell/composables/useI18n';
@@ -76,23 +77,26 @@ load();
       {{ title }}
     </template>
     <template #body>
-      <Loading
-        v-if="loading"
-        mode="relative"
-      />
-      <Banner
-        v-for="(error, i) in errors"
-        :key="i"
-        color="error"
-        :label="error"
-      />
-      <AllowedPrincipals
-        v-if="model"
-        :provider="resource.id"
-        :auth-config="model"
-        :mode="mode"
-        data-testid="auth-provider-access-principals"
-      />
+      <DrawerCard>
+        <Loading
+          v-if="loading"
+          mode="relative"
+        />
+        <Banner
+          v-for="(error, i) in errors"
+          :key="i"
+          color="error"
+          :label="error"
+        />
+        <AllowedPrincipals
+          v-if="model"
+          :provider="resource.id"
+          :auth-config="model"
+          :mode="mode"
+          :stacked="true"
+          data-testid="auth-provider-access-principals"
+        />
+      </DrawerCard>
     </template>
     <template #additional-actions>
       <AsyncButton
