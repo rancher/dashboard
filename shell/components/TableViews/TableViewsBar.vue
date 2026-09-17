@@ -349,7 +349,9 @@ export default {
     tabLabel(tab) {
       const count = this.tabCount(tab);
 
-      return count === undefined ? tab.name : this.t('tableViews.tabs.count', { name: tab.name, count });
+      // undefined: not counted yet. null: asked, and the api wouldn't say. Either way the tab
+      // shows its name rather than a number that isn't true.
+      return count === undefined || count === null ? tab.name : this.t('tableViews.tabs.count', { name: tab.name, count });
     },
 
     isTabDirty(tab) {
