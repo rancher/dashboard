@@ -1,5 +1,6 @@
 import { shallowMount, type VueWrapper } from '@vue/test-utils';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 describe('component: SelectPrincipal', () => {
   const mockStore = { dispatch: jest.fn().mockResolvedValue([]) };
@@ -103,6 +104,25 @@ describe('component: SelectPrincipal', () => {
       wrapper.vm.onSearch('xy', loadingFn);
 
       expect(debouncedSearchSpy).toHaveBeenCalledWith('xy', loadingFn);
+    });
+  });
+
+  // Results are drawn on the body, which is behind anything that stacks above
+  // it, so somewhere like a slide in panel has to keep them in place.
+  describe('where the results are drawn', () => {
+    const mountWithProps = (props: Record<string, unknown>) => shallowMount(SelectPrincipal, {
+      ...defaultMountOptions,
+      props,
+      global: { ...defaultMountOptions.global, stubs: { Principal: true } },
+    });
+
+    it.each([
+      ['on the body by default', {}, true],
+      ['in place when asked to', { appendToBody: false }, false],
+    ])('should draw them %s', (_case, props, expected) => {
+      const wrapper: VueWrapper<any> = mountWithProps(props);
+
+      expect(wrapper.findComponent(LabeledSelect).props('appendToBody')).toBe(expected);
     });
   });
 

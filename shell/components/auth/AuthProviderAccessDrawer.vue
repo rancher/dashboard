@@ -91,6 +91,7 @@ const save = async(btnCb: AsyncButtonCallback) => {
           :auth-config="model"
           :mode="mode"
           :stacked="true"
+          :append-search-to-body="false"
           data-testid="auth-provider-access-principals"
         />
       </DrawerCard>
@@ -105,3 +106,13 @@ const save = async(btnCb: AsyncButtonCallback) => {
     </template>
   </Drawer>
 </template>
+
+<style lang="scss" scoped>
+// The member search keeps its results in the panel rather than on the body,
+// where they would be behind it. Results on the body are sized by the
+// positioner that puts them there, so these take the width of the search
+// instead of the nothing that leaves them
+:deep(.vs__dropdown-menu) {
+  width: calc(100% + 4px);
+}
+</style>
