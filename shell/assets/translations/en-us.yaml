@@ -680,6 +680,7 @@ authConfig:
     cert: Certificate
     disabledStatusBitmask: Disabled Status Bitmask
     groupDNAttribute: Group DN Attribute
+    groupIDAttribute: Group Identifier Attribute
     groupMemberMappingAttribute: Group Member Mapping Attribute
     groupMemberUserAttribute: Group Member User Attribute
     groupSearchBase:
@@ -689,6 +690,10 @@ authConfig:
       label: Hostname/IP
       placeholder: eg server1,server2
       hint: Multiple servers can be specified as a comma separated list
+    idAttribute:
+      tip: Attribute whose value identifies the user or group in Rancher instead of its Distinguished Name, so that moving or renaming the entry in the directory keeps its permissions. Leave empty to use the Distinguished Name.
+      locked: Cannot be changed while the provider is enabled. Disable the provider to change it.
+      samlTip: Attribute whose value matches what the identity provider sends in the UID Field for users or the Groups Field for groups, so that search results match logged-in principals. Leave empty to use the Login Attribute for users and the Group DN Attribute for groups.
     loginAttribute: Login Attribute
     nameAttribute: Name Attribute
     nestedGroupMembership:
@@ -722,6 +727,7 @@ authConfig:
       tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
+    userIDAttribute: User Identifier Attribute
     userMemberAttribute: User Member Attribute
     userLoginFilter: User Login Filter
     userSearchBase:

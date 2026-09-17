@@ -168,6 +168,12 @@ export default {
           <template #rows>
             <tr><td>{{ t(`authConfig.ldap.table.server`) }}: </td><td>{{ serverUrl }}</td></tr>
             <tr><td>{{ t(`authConfig.ldap.table.clientId`) }}: </td><td>{{ model.serviceAccountDistinguishedName || model.serviceAccountUsername }}</td></tr>
+            <tr v-if="model.userIDAttribute">
+              <td>{{ t('authConfig.ldap.userIDAttribute') }}: </td><td>{{ model.userIDAttribute }}</td>
+            </tr>
+            <tr v-if="model.groupIDAttribute">
+              <td>{{ t('authConfig.ldap.groupIDAttribute') }}: </td><td>{{ model.groupIDAttribute }}</td>
+            </tr>
           </template>
         </AuthBanner>
 
@@ -191,6 +197,7 @@ export default {
           v-model:value="model"
           :type="NAME"
           :mode="mode"
+          :is-create="!model.enabled"
         />
 
         <h4>{{ t('authConfig.testAndEnable') }}</h4>
@@ -199,6 +206,7 @@ export default {
             <LabeledInput
               v-model:value="username"
               name="username"
+              data-testid="ldap-test-username"
               :label="t(`authConfig.${AUTH_TYPE}.username`)"
               :mode="mode"
               required
@@ -208,6 +216,7 @@ export default {
             <Password
               v-model:value="password"
               name="password"
+              data-testid="ldap-test-password"
               :label="t(`authConfig.${AUTH_TYPE}.password`)"
               :mode="mode"
               required
