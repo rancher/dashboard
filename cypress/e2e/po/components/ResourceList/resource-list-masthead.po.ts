@@ -1,8 +1,8 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class ResourceListMastheadPo extends ComponentPo {
-  actions() {
-    return this.self().get('.actions-container .actions .btn, [data-testid="masthead-action-menu"]');
+  actions(options?: GetOptions) {
+    return this.self().get('.actions-container .actions .btn, [data-testid="masthead-action-menu"]', options);
   }
 
   title() {

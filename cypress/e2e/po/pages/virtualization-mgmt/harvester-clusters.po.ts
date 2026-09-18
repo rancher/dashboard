@@ -32,8 +32,8 @@ export class HarvesterClusterPagePo extends PagePo {
     return this.masthead().title();
   }
 
-  importHarvesterClusterButton() {
-    return this.masthead().actions();
+  importHarvesterClusterButton(options?: GetOptions) {
+    return this.masthead().actions(options);
   }
 
   list(): BaseResourceList {
