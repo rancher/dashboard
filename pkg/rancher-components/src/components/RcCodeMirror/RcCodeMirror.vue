@@ -1,4 +1,28 @@
 <script setup lang="ts">
+/**
+ * A code editor built on CodeMirror 6 with YAML and JSON support, swappable
+ * keymaps (default, vim, emacs) and configurable code folding. Every prop can
+ * change after mount without rebuilding the editor.
+ *
+ * Example:
+ *
+ * <RcCodeMirror v-model="yaml" language="yaml" />
+ *
+ * <RcCodeMirror
+ *   v-model="yaml"
+ *   language="yaml"
+ *   keymap="vim"
+ *   theme="one-dark"
+ *   :read-only="false"
+ *   :line-wrapping="true"
+ *   :fold-options="{ strategy: 'indent' }"
+ *   :extensions="[foldByYamlPath('metadata.labels')]"
+ *   @ready="(view) => foldYamlPath(view, 'metadata.labels')"
+ * />
+ *
+ * The underlying EditorView is emitted with `ready` and exposed as `view` on
+ * the component ref for anything the props do not cover.
+ */
 import {
   ref, shallowRef, onMounted, onBeforeUnmount, watch
 } from 'vue';
@@ -24,25 +48,12 @@ import {
 import { closeBrackets, autocompletion } from '@codemirror/autocomplete';
 import { search } from '@codemirror/search';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { getLanguageExtension } from '../extensions/syntax';
-import { getKeymapExtension } from '../extensions/keymaps';
-import { buildFoldExtension } from '../extensions/fold';
-import type { FoldOptions } from '../extensions/fold';
+import { getLanguageExtension } from './extensions/syntax';
+import { getKeymapExtension } from './extensions/keymaps';
+import { buildFoldExtension } from './extensions/fold';
+import type { RcCodeMirrorProps, RcCodeMirrorTheme } from './types';
 
-export interface Props {
-  modelValue?: string;
-  language?: 'yaml' | 'json';
-  keymap?: 'default' | 'vim' | 'emacs';
-  theme?: 'one-dark' | 'none';
-  readOnly?: boolean;
-  lineNumbers?: boolean;
-  foldGutter?: boolean;
-  lineWrapping?: boolean;
-  extensions?: Extension[];
-  foldOptions?: FoldOptions;
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
   modelValue:   '',
   language:     undefined,
   keymap:       undefined,
@@ -74,7 +85,7 @@ const readOnlyCompartment = new Compartment();
 const lineNumbersCompartment = new Compartment();
 const lineWrappingCompartment = new Compartment();
 
-function getThemeExtension(theme?: 'one-dark' | 'none'): Extension {
+function getThemeExtension(theme?: RcCodeMirrorTheme): Extension {
   if (theme === 'one-dark') {
     return oneDark;
   }
@@ -234,20 +245,20 @@ defineExpose({ view });
 <template>
   <div
     ref="container"
-    class="rancher-codemirror"
+    class="rc-code-mirror"
   />
 </template>
 
-<style>
-.rancher-codemirror {
+<style lang="scss" scoped>
+.rc-code-mirror {
   display: contents;
-}
 
-.rancher-codemirror .cm-editor {
-  height: 100%;
-}
+  :deep(.cm-editor) {
+    height: 100%;
+  }
 
-.rancher-codemirror .cm-editor.cm-focused {
-  outline: none;
+  :deep(.cm-editor.cm-focused) {
+    outline: none;
+  }
 }
 </style>

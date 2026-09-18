@@ -1,0 +1,205 @@
+import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { EditorView } from '@codemirror/view';
+import { foldable } from '@codemirror/language';
+import { foldByLineMatch } from './extensions/fold';
+import RcCodeMirror from './RcCodeMirror.vue';
+
+type Wrapper = VueWrapper<InstanceType<typeof RcCodeMirror>>;
+
+function getView(wrapper: Wrapper): EditorView {
+  return (wrapper.vm as unknown as { view: EditorView }).view;
+}
+
+function replaceDoc(view: EditorView, insert: string) {
+  view.dispatch({
+    changes: {
+      from: 0, to: view.state.doc.length, insert
+    }
+  });
+}
+
+describe('component: RcCodeMirror', () => {
+  let wrapper: Wrapper;
+
+  function mountEditor(props: Record<string, unknown> = {}): Wrapper {
+    wrapper = shallowMount(RcCodeMirror, { props, attachTo: document.body }) as Wrapper;
+
+    return wrapper;
+  }
+
+  afterEach(() => {
+    wrapper?.unmount();
+  });
+
+  describe('mounting', () => {
+    it('should render the editor inside the container', () => {
+      mountEditor();
+
+      expect(wrapper.find('.rc-code-mirror .cm-editor').exists()).toBe(true);
+    });
+
+    it('should load modelValue as the initial document', () => {
+      mountEditor({ modelValue: 'foo: bar' });
+
+      expect(getView(wrapper).state.doc.toString()).toBe('foo: bar');
+    });
+
+    it('should emit ready with the EditorView', () => {
+      mountEditor();
+
+      expect(wrapper.emitted('ready')![0][0]).toBe(getView(wrapper));
+    });
+
+    it('should expose an EditorView instance as view', () => {
+      mountEditor();
+
+      expect(getView(wrapper)).toBeInstanceOf(EditorView);
+    });
+  });
+
+  describe('v-model', () => {
+    it('should emit update:modelValue when the document changes', () => {
+      mountEditor({ modelValue: 'a' });
+
+      replaceDoc(getView(wrapper), 'b');
+
+      expect(wrapper.emitted('update:modelValue')).toStrictEqual([['b']]);
+    });
+
+    it('should emit change when the document changes', () => {
+      mountEditor({ modelValue: 'a' });
+
+      replaceDoc(getView(wrapper), 'b');
+
+      expect(wrapper.emitted('change')).toStrictEqual([['b']]);
+    });
+
+    it('should not emit update:modelValue for selection-only transactions', () => {
+      mountEditor({ modelValue: 'abc' });
+
+      getView(wrapper).dispatch({ selection: { anchor: 1 } });
+
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+    });
+
+    it('should replace the document when modelValue changes', async() => {
+      mountEditor({ modelValue: 'a' });
+
+      await wrapper.setProps({ modelValue: 'b' });
+
+      expect(getView(wrapper).state.doc.toString()).toBe('b');
+    });
+
+    it('should not dispatch when modelValue matches the document', async() => {
+      mountEditor({ modelValue: 'a' });
+      const dispatch = jest.spyOn(getView(wrapper), 'dispatch');
+
+      replaceDoc(getView(wrapper), 'b');
+      dispatch.mockClear();
+      await wrapper.setProps({ modelValue: 'b' });
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('readOnly prop', () => {
+    it('should make the content editable by default', () => {
+      mountEditor();
+
+      expect(getView(wrapper).contentDOM.getAttribute('contenteditable')).toBe('true');
+    });
+
+    it('should make the content non-editable when readOnly is true', () => {
+      mountEditor({ readOnly: true });
+
+      expect(getView(wrapper).contentDOM.getAttribute('contenteditable')).toBe('false');
+    });
+
+    it('should toggle editability when readOnly changes', async() => {
+      mountEditor();
+
+      await wrapper.setProps({ readOnly: true });
+
+      expect(getView(wrapper).contentDOM.getAttribute('contenteditable')).toBe('false');
+    });
+  });
+
+  describe('lineNumbers prop', () => {
+    it('should show line numbers by default', () => {
+      mountEditor();
+
+      expect(wrapper.find('.cm-lineNumbers').exists()).toBe(true);
+    });
+
+    it('should hide line numbers when lineNumbers is false', () => {
+      mountEditor({ lineNumbers: false });
+
+      expect(wrapper.find('.cm-lineNumbers').exists()).toBe(false);
+    });
+
+    it('should hide line numbers when lineNumbers changes to false', async() => {
+      mountEditor();
+
+      await wrapper.setProps({ lineNumbers: false });
+
+      expect(wrapper.find('.cm-lineNumbers').exists()).toBe(false);
+    });
+  });
+
+  describe('lineWrapping prop', () => {
+    it('should not wrap lines by default', () => {
+      mountEditor();
+
+      expect(getView(wrapper).contentDOM.classList).not.toContain('cm-lineWrapping');
+    });
+
+    it('should wrap lines when lineWrapping is true', () => {
+      mountEditor({ lineWrapping: true });
+
+      expect(getView(wrapper).contentDOM.classList).toContain('cm-lineWrapping');
+    });
+
+    it('should wrap lines when lineWrapping changes to true', async() => {
+      mountEditor();
+
+      await wrapper.setProps({ lineWrapping: true });
+
+      expect(getView(wrapper).contentDOM.classList).toContain('cm-lineWrapping');
+    });
+  });
+
+  describe('foldGutter prop', () => {
+    it('should show the fold gutter by default', () => {
+      mountEditor();
+
+      expect(wrapper.find('.cm-foldGutter').exists()).toBe(true);
+    });
+
+    it('should hide the fold gutter when foldGutter is false', () => {
+      mountEditor({ foldGutter: false });
+
+      expect(wrapper.find('.cm-foldGutter').exists()).toBe(false);
+    });
+  });
+
+  describe('extensions prop', () => {
+    it('should register the given extensions with the editor', () => {
+      mountEditor({ modelValue: 'spec:\n  a: 1', extensions: [foldByLineMatch(/^spec:/)] });
+      const { state } = getView(wrapper);
+      const line = state.doc.line(1);
+
+      expect(foldable(state, line.from, line.to)).toStrictEqual({ from: 5, to: 12 });
+    });
+  });
+
+  describe('unmounting', () => {
+    it('should destroy the EditorView', () => {
+      mountEditor();
+      const destroy = jest.spyOn(getView(wrapper), 'destroy');
+
+      wrapper.unmount();
+
+      expect(destroy).toHaveBeenCalledWith();
+    });
+  });
+});
