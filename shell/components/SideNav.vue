@@ -16,7 +16,7 @@ import { ucFirst } from '@shell/utils/string';
 
 import { HCI, UI, SCHEMA, SECRET } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
-import { projectScopedSecretsCountRequest } from '@shell/utils/project-scoped-secrets';
+import { isProjectScopedSecretInCluster, projectScopedSecretsCountRequest } from '@shell/utils/project-scoped-secrets';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { TYPE_MODES } from '@shell/store/type-map';
@@ -146,7 +146,7 @@ export default {
       }
 
       return this.$store.getters[`${ STORE.MANAGEMENT }/all`](SECRET)
-        .filter((s) => s.isProjectScoped && s.projectScopedClusterId === this.currentCluster.id)
+        .filter((s) => isProjectScopedSecretInCluster(s, this.currentCluster.id))
         .length;
     },
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', hasMultipleLocales: 'i18n/hasMultipleLocales' }),

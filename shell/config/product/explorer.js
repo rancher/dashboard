@@ -17,6 +17,7 @@ import {
 } from '@shell/config/types';
 import { markRaw } from 'vue';
 import { STORE } from '@shell/store/store-types';
+import { isProjectScopedSecretInCluster } from '@shell/utils/project-scoped-secrets';
 
 import {
   STATE, USER_STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
@@ -224,7 +225,7 @@ export function init(store) {
 
         const clusterId = getters['currentCluster']?.id;
         const loadedCount = (getters[`${ STORE.MANAGEMENT }/all`](SECRET) || [])
-          .filter((secret) => secret.isProjectScoped && secret.projectScopedClusterId === clusterId).length;
+          .filter((secret) => isProjectScopedSecretInCluster(secret, clusterId)).length;
 
         return loadedCount || undefined;
       })

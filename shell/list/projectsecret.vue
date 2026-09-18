@@ -5,7 +5,7 @@ import { SECRET, VIRTUAL_TYPES } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { PaginationArgs } from '@shell/types/store/pagination.types';
-import { projectScopedSecretsFilters } from '@shell/utils/project-scoped-secrets';
+import { isProjectScopedSecretInCluster, projectScopedSecretsFilters } from '@shell/utils/project-scoped-secrets';
 import Secret from '@shell/models/secret';
 import { TableColumn } from '@shell/types/store/type-map';
 import { mapGetters } from 'vuex';
@@ -136,7 +136,7 @@ export default {
      * header selection is intentionally not applied here (see side nav count).
      */
     filterRowsLocal(rows: Secret[]) {
-      return rows.filter((r: Secret) => r.isProjectScoped && r.projectScopedClusterId === this.currentCluster.id);
+      return rows.filter((r: Secret) => isProjectScopedSecretInCluster(r, this.currentCluster.id));
     },
 
     /**

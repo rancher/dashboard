@@ -4,6 +4,20 @@ import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 /**
+ * Whether the given secret is a project-scoped secret (and not one of their downstream copies)
+ * belonging to the given cluster.
+ *
+ * Shared by the project-scoped secrets list and the side nav count so they all agree on what counts
+ * as one of a cluster's project-scoped secrets.
+ */
+export function isProjectScopedSecretInCluster(
+  secret: { isProjectScoped?: boolean, projectScopedClusterId?: string },
+  clusterId: string
+): boolean {
+  return !!secret.isProjectScoped && secret.projectScopedClusterId === clusterId;
+}
+
+/**
  * Pagination filters that select the project-scoped secrets, and exclude their downstream copies,
  * that belong to the given cluster.
  *

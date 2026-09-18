@@ -1,6 +1,6 @@
 import { UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { SAVED_COUNTS } from '@shell/config/types';
-import { projectScopedSecretsCountRequest, projectScopedSecretsFilters } from '@shell/utils/project-scoped-secrets';
+import { isProjectScopedSecretInCluster, projectScopedSecretsCountRequest, projectScopedSecretsFilters } from '@shell/utils/project-scoped-secrets';
 
 describe('fx: projectScopedSecretsFilters', () => {
   const clusterId = 'c-abc123';
@@ -23,6 +23,26 @@ describe('fx: projectScopedSecretsFilters', () => {
     expect(clusterFilter.fields[0].value).toStrictEqual(clusterId);
     expect(clusterFilter.fields[0].equals).toStrictEqual(true);
     expect(clusterFilter.fields[0].exact).toStrictEqual(true);
+  });
+});
+
+describe('fx: isProjectScopedSecretInCluster', () => {
+  const clusterId = 'c-abc123';
+
+  it('returns true for a project scoped secret in the given cluster', () => {
+    expect(isProjectScopedSecretInCluster({ isProjectScoped: true, projectScopedClusterId: clusterId }, clusterId)).toStrictEqual(true);
+  });
+
+  it('returns false when the secret is not project scoped', () => {
+    expect(isProjectScopedSecretInCluster({ isProjectScoped: false, projectScopedClusterId: clusterId }, clusterId)).toStrictEqual(false);
+  });
+
+  it('returns false when the secret belongs to another cluster', () => {
+    expect(isProjectScopedSecretInCluster({ isProjectScoped: true, projectScopedClusterId: 'c-other' }, clusterId)).toStrictEqual(false);
+  });
+
+  it('returns false when the project scoped flag is missing', () => {
+    expect(isProjectScopedSecretInCluster({ projectScopedClusterId: clusterId }, clusterId)).toStrictEqual(false);
   });
 });
 
