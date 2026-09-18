@@ -1,0 +1,38 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcCodeMirrorStories from './RcCodeMirror.stories';
+
+<Meta of={RcCodeMirrorStories} />
+
+# RcCodeMirror
+
+A code editor built on CodeMirror 6 for YAML and JSON documents. Bind the document with `v-model`. Language, keymap, theme, read-only, line numbers and line wrapping can all change after mount.
+
+<Canvas of={RcCodeMirrorStories.Default} />
+
+<Controls of={RcCodeMirrorStories.Default} />
+
+## JSON
+
+<Canvas of={RcCodeMirrorStories.Json} />
+
+## Read only
+
+<Canvas of={RcCodeMirrorStories.ReadOnly} />
+
+## Custom folding
+
+`foldOptions.strategy` picks how fold ranges are found: `language` (the default) uses the language's syntax tree, `indent` folds by indentation and `bracket` folds matching brackets.
+
+The package also exports fold services for the `extensions` prop and imperative helpers to call from the `ready` event:
+
+- `foldByLineMatch(pattern)` and `foldMatchingLines(view, pattern)` for lines matching a regular expression
+- `foldByYamlPath(path)` and `foldYamlPath(view, path)` for a dot-notation YAML path such as `metadata.labels`
+- `commentFoldService` and `foldAllComments(view)` for nested comment blocks
+
+This story folds `spec` and `metadata.labels` on load.
+
+<Canvas of={RcCodeMirrorStories.CustomFolding} />
+
+## v-model
+
+<Canvas of={RcCodeMirrorStories.VModel} />
