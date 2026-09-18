@@ -186,7 +186,8 @@ describe('mixin: authConfigMixin', () => {
     ])('should edit the configuration when it is %s', (_case, query, expected) => {
       const instance = mount(FakeComponent, createMock(query)).vm as any;
 
-      expect(instance.editConfig).toBe(expected);
+      expect(instance.openedOnConfig).toStrictEqual(expected);
+      expect(instance.editConfig).toStrictEqual(expected);
     });
   });
 
