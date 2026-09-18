@@ -126,12 +126,33 @@ export class Plugin implements IPlugin {
     this._validators = vals;
   }
 
-  _registerTopLevelProduct(productName: string) {
-    this.topLevelProducts.add(productName);
+  /**
+   * @deprecated Use {@link topLevelProducts} and {@link startRouteWithProductByProduct}.
+   *
+   * Rancher 2.15 exposed a single plugin-wide `topLevelProduct` boolean. Extensions built
+   * against that release bundled copies of `Masthead.vue` and `resource-class.js` that read
+   * it straight off the host's `Plugin` instance, so it has to keep resolving here or those
+   * already-published extensions silently lose top-level product routing on 2.16+.
+   *
+   * Deliberately reproduces the old plugin-wide semantics: a 2.15 reader has no product
+   * context to pass, so this is the most it could ever have known.
+   */
+  get topLevelProduct(): boolean {
+    return this.topLevelProducts.size > 0;
+  }
+
+  _registerTopLevelProduct(productName?: string) {
+    // Guard: a missing name would add `undefined` to the set, making the deprecated
+    // `topLevelProduct` getter above report true for a product that was never registered.
+    if (productName) {
+      this.topLevelProducts.add(productName);
+    }
   }
 
   _setStartRouteWithProduct(productName: string, val: boolean) {
-    this.startRouteWithProductByProduct[productName] = val;
+    if (typeof productName === 'string') {
+      this.startRouteWithProductByProduct[productName] = val;
+    }
   }
 
   // Track which products the plugin creates

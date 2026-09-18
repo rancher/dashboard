@@ -21,6 +21,7 @@ import { clone, get } from '@shell/utils/object';
 import { eachLimit } from '@shell/utils/promise';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { escapeHtml, ucFirst } from '@shell/utils/string';
+import { isProductPrefixedTopLevel } from '@shell/utils/extension-product-routing';
 import {
   validateChars,
   validateDnsLikeTypes,
@@ -1439,13 +1440,9 @@ export default class Resource {
       }
     });
 
-    // Both flags are tracked per-product so that a single plugin registering multiple
-    // products (some top-level, some extending) gets the correct answer for whichever
-    // product is currently active.
-    const isTopLevel = plugins[currPluginName]?.topLevelProducts?.has(currentProductId);
-    const startsWithProduct = plugins[currPluginName]?.startRouteWithProductByProduct?.[currentProductId];
-
-    return Boolean(isTopLevel && startsWithProduct);
+    // Resolved per-product, so a single plugin registering several products (some top-level,
+    // some extending) gets the correct answer for whichever product is currently active.
+    return isProductPrefixedTopLevel(plugins[currPluginName], currentProductId);
   }
 
   get listLocation() {

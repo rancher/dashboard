@@ -2,7 +2,9 @@ import { IExtension } from '@shell/core/types';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { TopLevelPluginProduct } from '@shell/core/plugin-products-top-level';
 import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
-import { AdvancedProductConfigOptions, ProductChild, ProductMetadata, ProductMetadataSinglePage, StandardProductName } from '@shell/core/plugin-products-external';
+import {
+  AdvancedProductConfigOptions, ProductChild, ProductMetadata, ProductMetadataSinglePage, StandardProductName
+} from '@shell/core/plugin-products-external';
 import { ProductFunction } from '@shell/core/plugin';
 
 /**
