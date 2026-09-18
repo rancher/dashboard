@@ -64,7 +64,7 @@ export default {
      * This function will be invoked with the arraylist slot props object and should return a string
      */
     getItemTitle: {
-      type: Function,
+      type:     Function,
       required: false
     }
   },
@@ -110,7 +110,7 @@ export default {
 
 <template>
   <!-- remove IS allowed when useRc is true, but it is controlled by this component instead.
-    remove-allow=false removes css rules that add space for a remove button to the right of each item 
+    remove-allow=false removes css rules that add space for a remove button to the right of each item
   -->
   <ArrayList
     class="array-list-grouped"
