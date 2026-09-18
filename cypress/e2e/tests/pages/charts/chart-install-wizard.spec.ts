@@ -78,6 +78,29 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const chartPage = new ChartPage();
     const chartName = 'Rancher Backups';
     const customRegistry = 'my.custom.registry:5000';
+    const chartNamespace = 'cattle-resources-system';
+    const chartApp = 'rancher-backup';
+    const chartCrd = 'rancher-backup-crd';
+
+    // Uninstall (if present) and wait for the apps to actually be gone, rather than
+    // just firing the uninstall request and moving on. This test relies on being able
+    // to freshly *install* rancher-backup (not upgrade it): if a prior failed attempt
+    // (e.g. a Cypress retry) left the app installed, install.vue treats it as an
+    // upgrade instead (`this.existing` becomes truthy), which POSTs to
+    // `?action=upgrade` instead of `?action=install` - so this test's
+    // `cy.wait('@installApp')` never sees a matching request and times out, even
+    // though the click and the resulting chart operation both succeeded. Ensuring a
+    // clean slate before the test starts avoids that class of failure.
+    const cleanupInstalledApp = () => {
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp.status === 404, 20, { failOnStatusCode: false });
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartCrd }`, (resp: any) => resp.status === 404, 20, { failOnStatusCode: false });
+    };
+
+    before(() => {
+      cleanupInstalledApp();
+    });
 
     it('should persist custom registry when changing chart version', function() {
       runTestWhenChartAvailable('rancher-charts', 'rancher-backup', this, () => {
@@ -121,12 +144,7 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     });
 
     after('clean up', () => {
-      const chartNamespace = 'cattle-resources-system';
-      const chartApp = 'rancher-backup';
-      const chartCrd = 'rancher-backup-crd';
-
-      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
-      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
+      cleanupInstalledApp();
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });
   });
