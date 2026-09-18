@@ -1,6 +1,27 @@
 import { mount } from '@vue/test-utils';
 import PodSecurityAdmission from '@shell/components/PodSecurityAdmission.vue';
 
+/** `wrapper.element` is typed as the generic `Element`; these selectors all resolve to form controls. */
+const asFormControl = (element: Element): HTMLInputElement => element as HTMLInputElement;
+
+type ExemptionsProp = InstanceType<typeof PodSecurityAdmission>['$props']['exemptions'];
+
+/**
+ * `exemptions` is declared as `Record<PSADimension, string[]>`, which demands every
+ * dimension. The component reads each one defensively and these cases deliberately
+ * supply a single dimension at a time.
+ */
+const asExemptions = (exemptions: object): ExemptionsProp => exemptions as ExemptionsProp;
+
+type PsaControlsData = InstanceType<typeof PodSecurityAdmission>['psaControls'];
+
+/**
+ * `psaControls` is declared as `Record<PSAMode, PSAControl>`, which demands every
+ * mode. The component reads each one defensively and these cases deliberately
+ * only enforce the `enforce` mode.
+ */
+const asPsaControls = (psaControls: object): PsaControlsData => psaControls as PsaControlsData;
+
 describe('component: PodSecurityAdmission', () => {
   it.each([
     ['updateLabels', {
@@ -29,12 +50,12 @@ describe('component: PodSecurityAdmission', () => {
       const wrapper = mount(PodSecurityAdmission, { props: { mode: 'edit' } });
 
       const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);
-      let element;
+      let element: HTMLInputElement;
 
       if (inputId === 'version') {
-        element = input.element;
+        element = input.element as HTMLInputElement;
       } else {
-        element = input.find('input').element;
+        element = input.find('input').element as HTMLInputElement;
       }
 
       expect(element.value).toStrictEqual(value);
@@ -139,13 +160,13 @@ describe('component: PodSecurityAdmission', () => {
             },
             // Unable to toggle the checkbox, so we enforce the data
             data: () => ({
-              psaControls: {
+              psaControls: asPsaControls({
                 enforce: {
                   active:  true,
                   level:   '',
                   version: ''
                 }
-              }
+              })
             }),
           });
 
@@ -172,13 +193,13 @@ describe('component: PodSecurityAdmission', () => {
             },
             // Unable to toggle the checkbox, so we enforce the data
             data: () => ({
-              psaControls: {
+              psaControls: asPsaControls({
                 enforce: {
                   active:  true,
                   level:   '',
                   version: ''
                 }
-              }
+              })
             }),
           });
 
@@ -208,13 +229,13 @@ describe('component: PodSecurityAdmission', () => {
             },
             // Unable to toggle the checkbox, so we enforce the data
             data: () => ({
-              psaControls: {
+              psaControls: asPsaControls({
                 enforce: {
                   active:  true,
                   level:   '',
                   version: ''
                 }
-              }
+              })
             }),
           });
           const newLabels = {
@@ -249,7 +270,7 @@ describe('component: PodSecurityAdmission', () => {
           element = input.find('input').element;
         }
 
-        expect(element.disabled).toBe(false);
+        expect(asFormControl(element).disabled).toBe(false);
       });
 
       it('given existing values', () => {
@@ -272,7 +293,7 @@ describe('component: PodSecurityAdmission', () => {
           element = input.find('input').element;
         }
 
-        expect(element.disabled).toBe(false);
+        expect(asFormControl(element).disabled).toBe(false);
       });
     });
 
@@ -295,20 +316,20 @@ describe('component: PodSecurityAdmission', () => {
           element = input.find('input').element;
         }
 
-        expect(element.disabled).toBe(true);
+        expect(asFormControl(element).disabled).toBe(true);
       });
 
       it('given disabled active status', () => {
         const wrapper = mount(PodSecurityAdmission, {
           props: { mode: 'edit' },
           data:  () => ({
-            psaControls: {
+            psaControls: asPsaControls({
               enforce: {
                 active:  false,
                 level:   '',
                 version: ''
               }
-            }
+            })
           }),
         });
 
@@ -321,7 +342,7 @@ describe('component: PodSecurityAdmission', () => {
           element = input.find('input').element;
         }
 
-        expect(element.disabled).toBe(true);
+        expect(asFormControl(element).disabled).toBe(true);
       });
 
       it('given view mode and provided labels', () => {
@@ -344,7 +365,7 @@ describe('component: PodSecurityAdmission', () => {
           element = input.find('input').element;
         }
 
-        expect(element.disabled).toBe(true);
+        expect(asFormControl(element).disabled).toBe(true);
       });
     });
 
@@ -368,7 +389,7 @@ describe('component: PodSecurityAdmission', () => {
     it.each([
       [['namespace1', 'namespace2'], 'namespace1,namespace2'],
     ])('should map %p to the form control as %p', (exemption, control) => {
-      const exemptions = { namespaces: exemption };
+      const exemptions = asExemptions({ namespaces: exemption });
       const result = {
         namespaces: {
           active: true,
@@ -398,7 +419,7 @@ describe('component: PodSecurityAdmission', () => {
       // ['true', 'active'],
       ['username', 'value'],
     ])('should map to the form, with value %p for input %p', (value, inputId) => {
-      const exemptions = { usernames: [value] };
+      const exemptions = asExemptions({ usernames: [value] });
       const wrapper = mount(PodSecurityAdmission, {
         props: {
           mode: 'edit',

@@ -2,8 +2,6 @@ import { shallowMount } from '@vue/test-utils';
 import Workload from '@shell/list/workload.vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import ResourceTable from '@shell/components/ResourceTable.vue';
-import { ExtendedVue, Vue } from 'vue/types/vue';
-import { DefaultProps } from 'vue/types/options';
 
 describe('component: workload', () => {
   it('should load the schema for the workload', () => {
@@ -18,7 +16,7 @@ describe('component: workload', () => {
       metadata: { name: resource },
     };
 
-    const wrapper = shallowMount(Workload as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
+    const wrapper = shallowMount(Workload, {
       components: { ResourceTable },
       mixins:     [ResourceFetch],
       global:     {

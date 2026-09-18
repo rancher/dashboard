@@ -31,8 +31,8 @@ describe('component: Networking', () => {
     const keyInput = hostAliases.find('[data-testid="input-kv-item-key-0"]');
     const valueInput = hostAliases.find('[data-testid="kv-item-value-0"]');
 
-    expect(keyInput.element.value).toBe(hostAliasesConfig.ip);
-    expect(valueInput.find('[data-testid="value-multiline"]').element.value).toBe(hostAliasesConfig.hostnames.join(', '));
+    expect((keyInput.element as HTMLInputElement).value).toBe(hostAliasesConfig.ip);
+    expect((valueInput.find('[data-testid="value-multiline"]').element as HTMLTextAreaElement).value).toBe(hostAliasesConfig.hostnames.join(', '));
   });
 
   it('should not render host aliases form, if there is no host aliases configuration', async() => {
