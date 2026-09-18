@@ -18,7 +18,7 @@ export const GITHUB_NONCE = 'state';
 export const GITHUB_SCOPE = 'scope';
 export const GITHUB_REDIRECT = 'redirect_uri';
 
-//Auth Provider
+// Auth Provider
 export const EDIT_CONFIG = 'editConfig';
 
 // General
