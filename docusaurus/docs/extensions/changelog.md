@@ -2,6 +2,7 @@
 
 | Date | Version | Description |
 |---|---|---|
+| 18&#160;September&#160;2026 | **3.0.14** | **[BREAKING]** Removed the "Only Namespaced Resources" and "Only Cluster Resources" namespace filter options, along with the `namespaceMode` argument to the `type-map/getTree` getter and the related `@shell/store/type-map` and `@shell/utils/namespace-filter` exports. |
 | 08&#160;April&#160;2026 | [**3.0.11**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.11) | Fixed a silent error that swallowed the real failure message when an extension failed to initialize — errors are now properly surfaced. Fixed a compatibility issue where certain extension points were not available when running against older Rancher versions. Updated creators package to v3.0.10. |
 | 19&#160;March&#160;2026 | [**3.0.10**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.10) | Fixed a cross-version compatibility problem with extension formatters. Fixed a bug where extensions loaded in older Rancher instances would unexpectedly display the new resource detail page layout. Upgraded to Node.js v24 and Vue 3.5. |
 | 13&#160;March&#160;2026 | [**3.0.9**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.9) | **[BREAKING]** The SlideIn Shell API now receives `props` as a direct property — update any extension using `slideIn` to pass `props` at the top level. New extension point: extensions can now customize action buttons on resource detail pages. Modal API callback usage is now documented. |

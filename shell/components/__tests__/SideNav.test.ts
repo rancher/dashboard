@@ -13,7 +13,6 @@ const getters: Record<string, any> = {
   currentProduct:             { inStore: 'cluster' },
   rootProduct:                { name: 'explorer' },
   isSingleProduct:            false,
-  namespaceMode:              'both',
   isExplorer:                 true,
   isVirtualCluster:           false,
   'i18n/selectedLocaleLabel': 'English',
