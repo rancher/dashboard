@@ -27,6 +27,10 @@ const LANGUAGE_TEST = 'Can select a language';
 
 describe('User can update their preferences', () => {
   beforeEach(() => {
+    // Unrelated to preferences: logging out resets the store while the Prime registration extension
+    // is still resolving, and its rejection is unhandled. Remove once rancher/dashboard#19172 is fixed.
+    cy.on('uncaught:exception', (err) => (err.message.includes(`Schemas aren't loaded yet`) ? false : undefined));
+
     cy.login();
   });
 
@@ -482,6 +486,26 @@ describe('User can update their preferences', () => {
 
   // You want this to be last, there's some issues with logging in and logging out without sessions
 
+  /**
+   * The landing page preference is only honoured once the release notes for the running version
+   * have been seen. Clear that record and let the app re-make it from the home page, so these tests
+   * start from a known state, and wait for it to be saved before the logout below.
+   */
+  function seeReleaseNotes() {
+    cy.setUserPreference({ 'seen-whatsnew': '' }, true);
+
+    HomePagePo.goToAndWaitForGet();
+
+    cy.getRancherResource('v1', 'userpreferences').then((prefs: Cypress.Response<any>) => {
+      cy.waitForRancherResource(
+        'v1',
+        'userpreferences',
+        prefs.body.data[0].id,
+        (resp: any) => !!resp?.body?.data?.['seen-whatsnew']
+      ).should('eq', true);
+    });
+  }
+
   function testLandingPageOption(key: { index: string, value: string, page: string}) {
     /*
     Select each radio button and verify its highlighted
@@ -489,6 +513,8 @@ describe('User can update their preferences', () => {
     Verify user is landing on correct page after login
     Verify selection is preserved after logout/login
     */
+
+    seeReleaseNotes();
 
     prefPage.goTo();
     prefPage.landingPageRadioBtn().checkVisible();
