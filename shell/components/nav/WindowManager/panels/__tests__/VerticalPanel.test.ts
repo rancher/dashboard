@@ -1,8 +1,10 @@
+import { nextTick } from 'vue';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import VerticalPanel from '@shell/components/nav/WindowManager/panels/VerticalPanel.vue';
 import { Position } from '@shell/types/window-manager';
 import { CENTER, LEFT, RIGHT } from '@shell/utils/position';
+import { mockResizeObserver, rect, stubTabBarRects } from './utils/tab-bar';
 
 const tabsFor = (position: Position) => [
   {
@@ -62,6 +64,12 @@ const mountPanel = (position: Position, { mutations = {}, attachTo, activeId }: 
 };
 
 describe('component: VerticalPanel', () => {
+  let resizeObserver: ReturnType<typeof mockResizeObserver>;
+
+  beforeEach(() => {
+    resizeObserver = mockResizeObserver();
+  });
+
   afterEach(() => {
     attachedWrapper?.unmount();
     attachedWrapper = undefined;
@@ -150,10 +158,166 @@ describe('component: VerticalPanel', () => {
     expect(document.activeElement).toStrictEqual(wrapper.findAll('[role="tab"]')[1].element);
   });
 
-  it.each<Position>([RIGHT, LEFT])('should hide the close active tab tooltip host from assistive technology (%s)', (position) => {
+  it.each<Position>([RIGHT, LEFT])('should hide the close active tab button until it is focused (%s)', (position) => {
     const wrapper = mountPanel(position);
 
-    expect(wrapper.get('[data-testid="wm-close-active-tab-button"] .has-clean-tooltip').attributes('aria-hidden')).toStrictEqual('true');
+    expect(wrapper.get('[data-testid="wm-close-active-tab-button"]').classes()).toContain('sr-only');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should place the close active tab button over the active tab close icon while it is focused (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const button = wrapper.get('[data-testid="wm-close-active-tab-button"]');
+
+    stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(150, 80), closer: rect(180, 14, 7, 14)
+    });
+
+    await button.trigger('focus');
+
+    expect(button.attributes('style')).toStrictEqual('left: 79px; top: 6px; width: 14px; height: 14px; min-height: 14px;');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should fall back to the end of the tab list when the active tab clips its own close icon (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const button = wrapper.get('[data-testid="wm-close-active-tab-button"]');
+
+    stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(170, 20), closer: rect(180, 14, 7, 14)
+    });
+
+    await button.trigger('focus');
+
+    expect(button.attributes('style')).toStrictEqual('left: 370px; top: -1px; width: 29px; height: 29px; min-height: 29px;');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should mark the close active tab button as detached while it sits at the end of the tab list (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const button = wrapper.get('[data-testid="wm-close-active-tab-button"]');
+
+    stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(170, 20), closer: rect(180, 14, 7, 14)
+    });
+
+    await button.trigger('focus');
+
+    expect(button.classes()).toContain('close-active-tab-detached');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should fall back to the end of the tab list when the active tab close icon is outside the tab list (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const button = wrapper.get('[data-testid="wm-close-active-tab-button"]');
+
+    stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(520, 80), closer: rect(560, 14, 7, 14)
+    });
+
+    await button.trigger('focus');
+
+    expect(button.attributes('style')).toStrictEqual('left: 370px; top: -1px; width: 29px; height: 29px; min-height: 29px;');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should measure the close active tab button again when the tab bar reflows (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const button = wrapper.get('[data-testid="wm-close-active-tab-button"]');
+    const stubs = stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(150, 80), closer: rect(180, 14, 7, 14)
+    });
+
+    await button.trigger('focus');
+    stubs.closerElement.getBoundingClientRect = () => rect(200, 14, 7, 14);
+    window.dispatchEvent(new Event('resize'));
+    await nextTick();
+
+    expect(button.attributes('style')).toStrictEqual('left: 99px; top: 6px; width: 14px; height: 14px; min-height: 14px;');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should observe the tab bar and the tab list while the close active tab button is focused (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const stubs = stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(150, 80), closer: rect(180, 14, 7, 14)
+    });
+
+    await wrapper.get('[data-testid="wm-close-active-tab-button"]').trigger('focus');
+
+    expect(resizeObserver.observed).toStrictEqual([stubs.barElement, stubs.listElement]);
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should measure the close active tab button again when the observer reports a resize (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const button = wrapper.get('[data-testid="wm-close-active-tab-button"]');
+    const stubs = stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(150, 80), closer: rect(180, 14, 7, 14)
+    });
+
+    await button.trigger('focus');
+    stubs.closerElement.getBoundingClientRect = () => rect(200, 14, 7, 14);
+    resizeObserver.notify();
+    await nextTick();
+
+    expect(button.attributes('style')).toStrictEqual('left: 99px; top: 6px; width: 14px; height: 14px; min-height: 14px;');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should stop observing the previous elements when the close active tab button is focused twice (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const button = wrapper.get('[data-testid="wm-close-active-tab-button"]');
+
+    stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(150, 80), closer: rect(180, 14, 7, 14)
+    });
+
+    await button.trigger('focus');
+    await button.trigger('focus');
+
+    expect(resizeObserver.disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should stop observing when the close active tab button loses focus (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const button = wrapper.get('[data-testid="wm-close-active-tab-button"]');
+
+    stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(150, 80), closer: rect(180, 14, 7, 14)
+    });
+
+    await button.trigger('focus');
+    await button.trigger('blur');
+
+    expect(resizeObserver.disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should stop observing when the panel unmounts while the close active tab button is focused (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+
+    stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(150, 80), closer: rect(180, 14, 7, 14)
+    });
+
+    await wrapper.get('[data-testid="wm-close-active-tab-button"]').trigger('focus');
+    wrapper.unmount();
+
+    expect(resizeObserver.disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should stop measuring the close active tab button once it loses focus (%s)', async(position) => {
+    const wrapper = mountPanel(position);
+    const button = wrapper.get('[data-testid="wm-close-active-tab-button"]');
+    const stubs = stubTabBarRects(wrapper, {
+      bar: rect(100, 800), list: rect(100, 400), tab: rect(150, 80), closer: rect(180, 14, 7, 14)
+    });
+
+    await button.trigger('focus');
+    await button.trigger('blur');
+    stubs.closerElement.getBoundingClientRect = () => rect(300, 14, 7, 14);
+    window.dispatchEvent(new Event('resize'));
+    await nextTick();
+
+    expect(button.attributes('style')).toStrictEqual('');
+  });
+
+  it.each<Position>([RIGHT, LEFT])('should keep the hidden close active tab button in the accessibility tree (%s)', (position) => {
+    const wrapper = mountPanel(position);
+
+    expect(wrapper.get('[data-testid="wm-close-active-tab-button"]').attributes('aria-hidden')).toBeUndefined();
   });
 
   it.each<Position>([RIGHT, LEFT])('should not describe the close active tab button with its own name (%s)', (position) => {

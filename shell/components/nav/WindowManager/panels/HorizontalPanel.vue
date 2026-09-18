@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { PropType } from 'vue';
-import { RcButton } from '@components/RcButton';
 import { RcIcon } from '@components/RcIcon';
 import { BOTTOM } from '@shell/utils/position';
 import { Position } from '@shell/types/window-manager';
+import CloseActiveTabButton from './CloseActiveTabButton.vue';
 import TabBodyContainer from './TabBodyContainer.vue';
 import { tabBodyId } from './tab-body';
 import usePanelHandler from '../composables/usePanelHandler';
@@ -26,6 +26,10 @@ const {
   onTabReady,
   onTabClose,
   closeActiveTab,
+  closeOverlayStyle,
+  closeOverlayDetached,
+  onCloseActiveTabFocus,
+  onCloseActiveTabBlur,
   onTabKeydown,
   mouseResizeYStart,
   keyboardResizeY,
@@ -108,21 +112,15 @@ const {
           </span>
         </div>
       </div>
-      <RcButton
+      <CloseActiveTabButton
         v-if="activePanelTab"
-        data-testid="wm-close-active-tab-button"
-        variant="ghost"
-        size="small"
-        class="close-active-tab"
+        :class="{ 'close-active-tab-detached': closeOverlayDetached }"
+        :style="closeOverlayStyle"
         :aria-label="t('wm.closeTab', { tabLabel: activePanelTab.label })"
+        @focus="onCloseActiveTabFocus($event)"
+        @blur="onCloseActiveTabBlur()"
         @click="closeActiveTab($event)"
-      >
-        <RcIcon
-          v-clean-tooltip="t('wm.closeTab', { tabLabel: activePanelTab.label })"
-          type="close"
-          size="inherit"
-        />
-      </RcButton>
+      />
       <div
         class="resizer resizer-y"
         role="button"
@@ -179,6 +177,7 @@ const {
 
     .tabs {
       grid-area: tabs;
+      position: relative;
       background-color: var(--wm-tabs-bg);
       border-top: 1px solid var(--wm-border);
       border-bottom: 1px solid var(--wm-border);
@@ -256,7 +255,7 @@ const {
         }
       }
 
-      .resizer, .close-active-tab {
+      .resizer {
         width: var(--wm-tab-height);
         padding: 0 5px;
         margin: 0 0 0 1px;
@@ -269,21 +268,6 @@ const {
 
         &:hover {
           background-color: var(--wm-closer-hover-bg);
-        }
-      }
-
-      .close-active-tab {
-        min-width: var(--wm-tab-height);
-        min-height: 0;
-        border-top: none;
-        border-bottom: none;
-        border-radius: 0;
-        font-size: 14px;
-        color: var(--body-text);
-
-        &:focus-visible {
-          @include focus-outline;
-          outline-offset: -3px;
         }
       }
 
