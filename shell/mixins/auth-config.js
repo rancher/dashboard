@@ -32,6 +32,10 @@ export default {
 
   created() {
     this.registerAfterHook(this.updateAuthProviders, 'force-update-auth-providers');
+
+    if (this.openedOnConfig) {
+      this.editConfig = true;
+    }
   },
 
   async fetch() {
@@ -39,14 +43,9 @@ export default {
   },
 
   data() {
-    // An enabled provider opens on who may log in with it, unless whoever sent
-    // us here asked for the provider's own configuration
-    const openedOnConfig = this.$route.query?.[EDIT_CONFIG] === 'true';
-
     return {
       isEnabling:     false,
-      editConfig:     openedOnConfig,
-      openedOnConfig,
+      editConfig:     false,
       model:          null,
       serverSetting:  null,
       errors:         [],
@@ -93,6 +92,10 @@ export default {
 
     showCancel() {
       return this.editConfig || !this.model.enabled;
+    },
+
+    openedOnConfig() {
+      return this.$route.query?.[EDIT_CONFIG] === 'true';
     }
   },
 
