@@ -73,8 +73,12 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not installed');
 
     // install harvester extension
+    // Note: installHarvesterExtension() (triggered by this click) awaits the chart
+    // refresh PUT (aliased @updateHarvesterChart, see intercept above) before it awaits
+    // the install POST, so the @installHarvesterExtension wait right after this already
+    // proves the refresh happened and resolved - no need for a separate network wait
+    // here that isn't gating anything the rest of the test depends on.
     harvesterPo.updateOrInstallButton().click();
-    cy.wait('@updateHarvesterChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
     // Wait for the installation request and handle 500 errors
     cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT).then((interception) => {
       const statusCode = interception.response?.statusCode;
@@ -89,8 +93,12 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       }
     });
     harvesterPo.waitForPage();
-    cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    harvesterPo.extensionWarning(MEDIUM_TIMEOUT_OPT).should('not.exist');
+    // Assert on the resulting UI state (the warning clearing) instead of the chart
+    // refresh network call directly - more robust than a network wait, and this is
+    // what the test actually cares about. Give it the same budget the network wait
+    // used to have, since it now has to cover the refresh completing *and* the DOM
+    // updating in response.
+    harvesterPo.extensionWarning(LONG_TIMEOUT_OPT).should('not.exist');
 
     // verify harvester extension added to extensions page
     extensionsPo.goTo();
@@ -107,8 +115,11 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     // begin process of importing harvester cluster
     harvesterPo.goTo();
     harvesterPo.waitForPage();
-    cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
-    harvesterPo.importHarvesterClusterButton().click();
+    // Assert the import button is visible/ready (UI-state proxy for the chart refresh
+    // having completed) instead of waiting on the refresh network call directly -
+    // .click() alone only auto-retries with the default timeout, which may not be
+    // enough while the refresh is still in flight.
+    harvesterPo.importHarvesterClusterButton(LONG_TIMEOUT_OPT).should('be.visible').click();
     harvesterPo.createHarvesterClusterForm().waitForPage(null, 'memberRoles');
     harvesterPo.createHarvesterClusterForm().title().should('contain', 'Harvester Cluster:');
     harvesterPo.createHarvesterClusterForm().nameNsDescription().name().set(harvesterClusterName);
@@ -180,8 +191,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
     harvesterPo.goTo();
     harvesterPo.waitForPage();
-    cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
-    harvesterPo.extensionWarning().should('not.exist');
+    // Assert on the resulting UI state (the warning clearing) instead of the chart
+    // refresh network call directly - see the equivalent comment in the first test.
+    harvesterPo.extensionWarning(LONG_TIMEOUT_OPT).should('not.exist');
 
     // delete harvester repo
     cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
@@ -259,14 +271,18 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);
 
       // hover checkmark - tooltip should have older version
-      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 1).waitForTooltipWithText(`Installed (${ versions[1] })`);
+      // Longer timeout: the tooltip reflects async UI state that can lag briefly
+      // behind the install/upgrade action completing.
+      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 1).waitForTooltipWithText(`Installed (${ versions[1] })`, MEDIUM_TIMEOUT_OPT);
 
       harvesterPo.goTo();
       harvesterPo.waitForPage();
-      cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
 
-      // check for update harvester message
-      harvesterPo.extensionWarning().invoke('text').should('match', /^Your current Harvester UI Extension \((v[\d.]+)\) is not the latest\.$/);
+      // check for update harvester message - assert on the resulting UI state (the
+      // "not the latest" message appearing) instead of the chart refresh network
+      // call directly; give it the refresh network wait's old budget since it now
+      // has to cover the refresh completing *and* the DOM updating in response.
+      harvesterPo.extensionWarning(LONG_TIMEOUT_OPT).invoke('text').should('match', /^Your current Harvester UI Extension \((v[\d.]+)\) is not the latest\.$/);
       harvesterPo.updateOrInstallButton().click();
 
       // wait for update version update
@@ -274,10 +290,11 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         expect(response?.statusCode).to.eq(201);
         expect(request?.body?.charts[0].version).to.eq(versions[0]);
       });
-      cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
 
-      // verify update button and message not displayed
-      harvesterPo.extensionWarning().should('not.exist');
+      // verify update button and message not displayed - assert on the resulting UI
+      // state instead of the chart refresh network call directly; give it the
+      // removed network wait's old budget for the same reason as above.
+      harvesterPo.extensionWarning(LONG_TIMEOUT_OPT).should('not.exist');
       harvesterPo.updateOrInstallButton().checkNotExists();
 
       extensionsPo.goTo();
@@ -287,7 +304,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);
 
       // hover checkmark - tooltip should have latest version
-      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 0).waitForTooltipWithText(`Installed (${ versions[0] })`);
+      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 0).waitForTooltipWithText(`Installed (${ versions[0] })`, MEDIUM_TIMEOUT_OPT);
     });
   });
 

@@ -78,6 +78,42 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const chartPage = new ChartPage();
     const chartName = 'Rancher Backups';
     const customRegistry = 'my.custom.registry:5000';
+    const chartNamespace = 'cattle-resources-system';
+    const chartApp = 'rancher-backup';
+    const chartCrd = 'rancher-backup-crd';
+
+    // Uninstall (if present) and wait for the apps to actually be gone, rather than
+    // just firing the uninstall request and moving on. This test relies on being able
+    // to freshly *install* rancher-backup (not upgrade it): if a prior failed attempt
+    // (e.g. a Cypress retry) left the app installed, install.vue treats it as an
+    // upgrade instead (`this.existing` becomes truthy), which POSTs to
+    // `?action=upgrade` instead of `?action=install` - so this test's
+    // `cy.wait('@installApp')` never sees a matching request and times out, even
+    // though the click and the resulting chart operation both succeeded. Ensuring a
+    // clean slate before the test starts avoids that class of failure.
+    //
+    // IMPORTANT: this must be a beforeEach(), not a before(). Cypress only re-runs
+    // beforeEach()/afterEach() hooks between retries of a failing test (retries.runMode
+    // is 2 here) - before()/after() run exactly once for the whole describe block
+    // regardless of retries (https://docs.cypress.io/app/guides/test-retries). A
+    // before() here only protected the *first* attempt: if that attempt installed the
+    // app successfully but then failed later for an unrelated reason (e.g. the app was
+    // still "Pending-Install" when a later assertion needed "Deployed" - installs can
+    // be slow on CI runners), every retry after that would find rancher-backup already
+    // installed and hit the exact same "upgrade instead of install" failure again, since
+    // nothing cleaned it up in between. This was confirmed against real CI runs: the
+    // app's own "Age" in later attempts' screenshots lines up with it having been
+    // created during the *same* attempt sequence, not a separate job or an old leftover.
+    const cleanupInstalledApp = () => {
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp.status === 404, 20, { failOnStatusCode: false });
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartCrd }`, (resp: any) => resp.status === 404, 20, { failOnStatusCode: false });
+    };
+
+    beforeEach(() => {
+      cleanupInstalledApp();
+    });
 
     it('should persist custom registry when changing chart version', function() {
       runTestWhenChartAvailable('rancher-charts', 'rancher-backup', this, () => {
@@ -121,12 +157,7 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     });
 
     after('clean up', () => {
-      const chartNamespace = 'cattle-resources-system';
-      const chartApp = 'rancher-backup';
-      const chartCrd = 'rancher-backup-crd';
-
-      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
-      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
+      cleanupInstalledApp();
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });
   });
