@@ -1,4 +1,4 @@
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, EDIT_CONFIG } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { BASE_SCOPES, SLO_AUTH_PROVIDERS } from '@shell/store/auth';
@@ -32,6 +32,10 @@ export default {
 
   created() {
     this.registerAfterHook(this.updateAuthProviders, 'force-update-auth-providers');
+
+    if (this.openedOnConfig) {
+      this.editConfig = true;
+    }
   },
 
   async fetch() {
@@ -88,6 +92,10 @@ export default {
 
     showCancel() {
       return this.editConfig || !this.model.enabled;
+    },
+
+    openedOnConfig() {
+      return this.$route.query?.[EDIT_CONFIG] === 'true';
     }
   },
 
@@ -312,6 +320,13 @@ export default {
       // go back to provider selection screen
       if (!this.model.enabled) {
         this.$router.go(-1);
+      } else if (this.openedOnConfig) {
+        // The provider was opened on its own configuration, so this page has no
+        // earlier state to fall back to - the list is where the edit began
+        this.$router.push({
+          name:   'c-cluster-auth-config',
+          params: { cluster: this.$route.params.cluster },
+        });
       } else {
         // must be cancelling edit of an enabled config; reset any changes and return to add users/groups view for that config
         this.$store.dispatch(`rancher/clone`, { resource: this.originalModel }).then((cloned) => {

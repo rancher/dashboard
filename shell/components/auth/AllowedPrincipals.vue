@@ -29,6 +29,16 @@ export default {
       type:    String,
       default: _EDIT,
     },
+
+    stacked: {
+      type:    Boolean,
+      default: false,
+    },
+
+    appendSearchToBody: {
+      type:    Boolean,
+      default: true,
+    },
   },
 
   computed: {
@@ -66,8 +76,8 @@ export default {
   <div>
     <h3>{{ t('authConfig.accessMode.label', {provider: authConfig.nameDisplay}) }}</h3>
 
-    <div class="row">
-      <div class="col span-6">
+    <div :class="stacked ? 'allowed-principals__sections' : 'row'">
+      <div :class="stacked ? null : 'col span-6'">
         <RadioGroup
           v-model:value="authConfig.accessMode"
           name="accessMode"
@@ -75,7 +85,7 @@ export default {
           :options="accessModeOptions"
         />
       </div>
-      <div class="col span-6">
+      <div :class="stacked ? null : 'col span-6'">
         <h4 v-if="accessMode!=='unrestricted'">
           <t
             k="authConfig.allowedPrincipalIds.title"
@@ -112,6 +122,7 @@ export default {
           <template #add>
             <SelectPrincipal
               :mode="mode"
+              :append-to-body="appendSearchToBody"
               @add="addPrincipal"
             />
           </template>
@@ -120,3 +131,11 @@ export default {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.allowed-principals__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+</style>
