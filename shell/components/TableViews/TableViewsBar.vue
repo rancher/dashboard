@@ -518,7 +518,8 @@ export default {
       if (this.editingView) {
         this.updateView(this.editingView);
       } else if (this.isDirty) {
-        // Nothing to save over, so this is a new view and it needs a name
+        // The default tab can't be saved over, and an unsaved view has nothing to save over, so
+        // either way what is being asked for is a new view - and it needs a name
         this.openSaveAsNew();
       }
     },
@@ -613,6 +614,21 @@ export default {
     },
 
     /**
+     * Copy any tab, the default one included - copying it is how you start a view from the table
+     * as it comes, since the default tab itself can never be saved over.
+     */
+    duplicateTab(tab) {
+      this.duplicateView(tab.view || {
+        name:         this.t('tableViews.tabs.all'),
+        query:        '',
+        columns:      null,
+        columnOrder:  null,
+        labelColumns: [],
+        groupBy:      null,
+      });
+    },
+
+    /**
      * Copy a saved view, so a variation can be built without losing the original
      */
     duplicateView(saved) {
@@ -633,23 +649,24 @@ export default {
     },
 
     duplicateCurrent() {
-      if (this.editingView) {
-        this.duplicateView(this.editingView);
+      const tab = this.tabs.find((t) => t.id === this.selectedViewId);
+
+      if (tab) {
+        this.duplicateTab(tab);
       }
     },
 
     /**
-     * The view this list opens on. Picking the one already set turns it back off, so there is a
-     * way out without another control.
+     * The view this list opens on. No toggle: choosing the default tab is itself how you go back
+     * to opening on the table as it comes, which is what an empty default means.
      */
-    setDefaultView(saved) {
-      const id = this.defaultViewId === saved?.id ? null : saved?.id || null;
-
-      this.persistAll(this.savedViews, id);
+    setDefaultView(tab) {
+      this.persistAll(this.savedViews, tab.isDefaultTab ? null : tab.view?.id || null);
     },
 
-    isDefaultView(saved) {
-      return !!saved && this.defaultViewId === saved.id;
+    /** Is this the tab the list opens on? With nothing set, that is the default tab */
+    isDefaultTab(tab) {
+      return tab.isDefaultTab ? !this.defaultViewId : this.defaultViewId === tab.view?.id;
     },
 
     persist(views) {
@@ -809,6 +826,7 @@ export default {
                   {{ t('tableViews.view.unsaved') }}
                 </div>
                 <rc-dropdown-item
+                  v-if="!tab.isDefaultTab"
                   data-testid="table-views-save-changes"
                   @click="saveChanges()"
                 >
@@ -838,30 +856,30 @@ export default {
                 <rc-dropdown-separator />
               </template>
 
-              <!-- The default tab is the table as it comes, so it can't be renamed or deleted -->
-              <template v-if="!tab.isDefaultTab">
-                <rc-dropdown-item
-                  :data-testid="`table-views-rename-${ tab.id }`"
-                  @click="openRename(tab.view)"
-                >
-                  <template #before>
-                    <i class="icon icon-edit" />
-                  </template>
-                  {{ t('tableViews.tab.rename') }}
-                </rc-dropdown-item>
-                <rc-dropdown-item
-                  :data-testid="`table-views-duplicate-${ tab.id }`"
-                  @click="duplicateView(tab.view)"
-                >
-                  <template #before>
-                    <i class="icon icon-copy" />
-                  </template>
-                  {{ t('tableViews.tab.duplicate') }}
-                  <template #after>
-                    <span class="menu-shortcut">{{ t('tableViews.shortcut.duplicate') }}</span>
-                  </template>
-                </rc-dropdown-item>
-              </template>
+              <!-- The default tab is the table as it comes: it can't be renamed, saved over or
+                   deleted. Copying it is how you start a view from what it holds. -->
+              <rc-dropdown-item
+                v-if="!tab.isDefaultTab"
+                :data-testid="`table-views-rename-${ tab.id }`"
+                @click="openRename(tab.view)"
+              >
+                <template #before>
+                  <i class="icon icon-edit" />
+                </template>
+                {{ t('tableViews.tab.rename') }}
+              </rc-dropdown-item>
+              <rc-dropdown-item
+                :data-testid="tab.isDefaultTab ? 'table-views-duplicate-all' : `table-views-duplicate-${ tab.id }`"
+                @click="duplicateTab(tab)"
+              >
+                <template #before>
+                  <i class="icon icon-copy" />
+                </template>
+                {{ t('tableViews.tab.duplicate') }}
+                <template #after>
+                  <span class="menu-shortcut">{{ t('tableViews.shortcut.duplicate') }}</span>
+                </template>
+              </rc-dropdown-item>
 
               <rc-dropdown-item
                 :data-testid="tab.isDefaultTab ? 'table-views-export-all' : `table-views-export-${ tab.id }`"
@@ -871,14 +889,13 @@ export default {
               </rc-dropdown-item>
 
               <rc-dropdown-item
-                v-if="!tab.isDefaultTab"
-                :class="{ selected: isDefaultView(tab.view) }"
-                :data-testid="`table-views-set-default-${ tab.id }`"
-                @click="setDefaultView(tab.view)"
+                :class="{ selected: isDefaultTab(tab) }"
+                :data-testid="tab.isDefaultTab ? 'table-views-set-default-all' : `table-views-set-default-${ tab.id }`"
+                @click="setDefaultView(tab)"
               >
                 {{ t('tableViews.tab.setDefault') }}
                 <template
-                  v-if="isDefaultView(tab.view)"
+                  v-if="isDefaultTab(tab)"
                   #after
                 >
                   <i class="icon icon-checkmark" />
