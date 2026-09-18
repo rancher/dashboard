@@ -359,6 +359,7 @@ export default {
         :mode="mode"
         :add-label="addLabel"
         :use-rc="useRc"
+        :get-item-title="(r)=>t('workload.scheduling.affinity.podSelectorTitle', { i: r.i })"
         @remove="remove"
       >
         <template #default="props">

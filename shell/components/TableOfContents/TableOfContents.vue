@@ -27,7 +27,7 @@ const handleScrollTo = (entry, event) => {
           <button
             v-if="acc.scrollTo"
             type="button"
-            class="btn role-link accordion-link"
+            class="btn role-link accordion-link top-level-link"
             @click="handleScrollTo(acc, $event)"
           >
             {{ acc.label }}
@@ -89,6 +89,9 @@ const handleScrollTo = (entry, event) => {
   }
 
   .accordion-link {
+    &.top-level-link {
+      font-weight: bold;
+    }
     padding: 0px;
     min-height: 0px;
     line-height: 1.3em;

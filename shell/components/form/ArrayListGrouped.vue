@@ -57,6 +57,16 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    /**
+     * Only relevant when useRc is true
+     * Function to get a title to use in the RcSection component for each element
+     * This function will be invoked with the arraylist slot props object and should return a string
+     */
+    getItemTitle: {
+      type: Function,
+      required: false
+    }
   },
 
   emits: ['update:value', 'add', 'remove'],
@@ -66,7 +76,8 @@ export default {
 
     isView() {
       return this.mode === _VIEW;
-    }
+    },
+
   },
 
   methods: {
@@ -84,11 +95,23 @@ export default {
 
       return this.canRemove;
     },
+
+
+    getTitle(scope) {
+      if ( this.getItemTitle && typeof this.getItemTitle === 'function' ) {
+        return this.getItemTitle(scope);
+      }
+
+      return '';
+    }
   }
 };
 </script>
 
 <template>
+  <!-- remove IS allowed when useRc is true, but it is controlled by this component instead.
+    remove-allow=false removes css rules that add space for a remove button to the right of each item 
+  -->
   <ArrayList
     class="array-list-grouped"
     :value="value"
@@ -97,6 +120,7 @@ export default {
     :mode="mode"
     :initial-empty-row="initialEmptyRow"
     :use-rc-button="useRc"
+    :remove-allowed="!useRc"
     :add-icon="useRc ? 'icon-plus' : ''"
     @update:value="$emit('update:value', $event)"
     @add="$emit('add')"
@@ -107,6 +131,7 @@ export default {
         v-if="useRc"
         type="secondary"
         :mode="canRemoveRow(scope.row, scope.i) ? 'with-header' : 'no-header'"
+        :title="getTitle(scope)"
         :expandable="false"
       >
         <div>

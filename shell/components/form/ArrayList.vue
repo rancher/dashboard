@@ -375,7 +375,7 @@ export default {
           :key="idx"
           :data-testid="`${componentTestid}-box${ idx }`"
           class="box"
-          :class="{'hide-remove-is-view': isView}"
+          :class="{'hide-remove': isView || !removeAllowed}"
           role="group"
         >
           <slot
@@ -553,7 +553,7 @@ export default {
     }
   }
 
-  .box.hide-remove-is-view {
+  .box.hide-remove {
     grid-template-columns: auto;
   }
 

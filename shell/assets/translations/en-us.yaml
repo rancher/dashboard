@@ -8030,6 +8030,8 @@ workload:
     activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
     affinity:
       addNodeSelector: Add Node Selector
+      nodeSelectorTitle: "node-selector-{i}"
+      podSelectorTitle: "pod-selector-{i}"
       anyNode: Run pods on any available node
       affinityTitle: Run pods on nodes with pods matching these selectors
       antiAffinityTitle: Run pods on nodes without pods matching these selectors

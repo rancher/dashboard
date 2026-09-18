@@ -216,6 +216,7 @@ export default {
         :default-add-value="{matchExpressions:[]}"
         :add-label="t('workload.scheduling.affinity.addNodeSelector')"
         :use-rc="useRc"
+        :get-item-title="(r)=>t('workload.scheduling.affinity.nodeSelectorTitle', { i: r.i })"
         @remove="remove"
       >
         <template #default="props">
