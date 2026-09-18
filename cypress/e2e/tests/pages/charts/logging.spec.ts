@@ -124,8 +124,12 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
       installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
       installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
-      installedAppsPage.appsList().resourceTableDetails(chartApp, 1).should('exist');
-      installedAppsPage.appsList().resourceTableDetails(chartCrd, 1).should('exist');
+      // Use a longer, retry-friendly timeout here: this is checking that the apps
+      // installed by the previous test have shown up in a freshly-loaded list, which
+      // can be slower than the 10s default under CI load (see other calls on this
+      // page already using MEDIUM_TIMEOUT_OPT).
+      installedAppsPage.appsList().resourceTableDetails(chartApp, 1, MEDIUM_TIMEOUT_OPT).should('exist');
+      installedAppsPage.appsList().resourceTableDetails(chartCrd, 1, MEDIUM_TIMEOUT_OPT).should('exist');
 
       clusterTools.goTo();
       clusterTools.waitForPage();

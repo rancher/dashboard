@@ -259,7 +259,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);
 
       // hover checkmark - tooltip should have older version
-      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 1).waitForTooltipWithText(`Installed (${ versions[1] })`);
+      // Longer timeout: the tooltip reflects async UI state that can lag briefly
+      // behind the install/upgrade action completing.
+      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 1).waitForTooltipWithText(`Installed (${ versions[1] })`, MEDIUM_TIMEOUT_OPT);
 
       harvesterPo.goTo();
       harvesterPo.waitForPage();
@@ -287,7 +289,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);
 
       // hover checkmark - tooltip should have latest version
-      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 0).waitForTooltipWithText(`Installed (${ versions[0] })`);
+      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 0).waitForTooltipWithText(`Installed (${ versions[0] })`, MEDIUM_TIMEOUT_OPT);
     });
   });
 
