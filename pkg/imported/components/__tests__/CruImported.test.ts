@@ -27,14 +27,14 @@ describe('cruImported component', () => {
       },
       stubs: {
         CruResource:             { template: '<div><slot></slot></div>' },
-        Accordion:               { template: '<div class="accordion"><slot></slot></div>' },
+        RcSection:               { template: '<div class="rc-section"><slot name="title" /><slot></slot></div>' },
         Banner:                  true,
         ClusterMembershipEditor: true,
         Labels:                  true,
         Basics:                  true,
         ACE:                     true,
         Checkbox:                true,
-        SchedulingCustomization: true,
+        AgentConfiguration:      true,
         KeyValue:                true,
         NameNsDescription:       true,
         Loading:                 true,
@@ -348,6 +348,95 @@ describe('cruImported component', () => {
       expect(wrapper.vm.dayTwoOpsFlagEnabled).toBe(false);
       expect(wrapper.vm.dayTwoOpsGlobalSetting).toBe(false);
       expect(wrapper.vm.dayTwoOpsOld).toBe(DAY_2_OPS_DEFAULT);
+    });
+  });
+
+  describe('agent configuration', () => {
+    it.each([
+      ['not local and not RKE1', false, false, true],
+      ['the local cluster', true, false, false],
+      ['an RKE1 cluster', false, true, false],
+    ])('should show the cluster/fleet agent configuration accordions for %s', (_, isLocal, isRke1, expected) => {
+      const wrapper = shallowMount(CruImported, {
+        props: {
+          mode:  _EDIT,
+          value: { isRke1, isLocal }
+        },
+        ...defaultSetup
+      });
+
+      expect(wrapper.vm.showAgentConfiguration).toBe(expected);
+    });
+
+    it('should populate empty cluster/fleet agent deployment customization objects', () => {
+      const wrapper = shallowMount(CruImported, {
+        props: {
+          mode:  _EDIT,
+          value: { isRke1: false, isLocal: false }
+        },
+        ...defaultSetup
+      });
+
+      delete wrapper.vm.normanCluster.clusterAgentDeploymentCustomization;
+      delete wrapper.vm.normanCluster.fleetAgentDeploymentCustomization;
+
+      wrapper.vm.ensureAgentConfiguration();
+
+      expect(wrapper.vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual({});
+      expect(wrapper.vm.normanCluster.fleetAgentDeploymentCustomization).toStrictEqual({});
+    });
+
+    it('should not overwrite existing cluster/fleet agent deployment customization objects', () => {
+      const wrapper = shallowMount(CruImported, {
+        props: {
+          mode:  _EDIT,
+          value: { isRke1: false, isLocal: false }
+        },
+        ...defaultSetup
+      });
+
+      wrapper.vm.normanCluster.clusterAgentDeploymentCustomization = { appendTolerations: [{ key: 'foo' }] };
+
+      wrapper.vm.ensureAgentConfiguration();
+
+      expect(wrapper.vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual({ appendTolerations: [{ key: 'foo' }] });
+    });
+
+    it('should remove empty agent deployment customization objects, keeping populated ones, before save', () => {
+      const wrapper = shallowMount(CruImported, {
+        props: {
+          mode:  _EDIT,
+          value: { isRke1: false, isLocal: false }
+        },
+        ...defaultSetup
+      });
+
+      wrapper.vm.normanCluster.clusterAgentDeploymentCustomization = { overrideAffinity: {}, appendTolerations: [] };
+      wrapper.vm.normanCluster.fleetAgentDeploymentCustomization = { schedulingCustomization: { priorityClass: 'my-priority-class' } };
+
+      wrapper.vm.agentConfigurationCleanup();
+
+      expect(wrapper.vm.normanCluster.clusterAgentDeploymentCustomization).toBeUndefined();
+      expect(wrapper.vm.normanCluster.fleetAgentDeploymentCustomization).toStrictEqual({ schedulingCustomization: { priorityClass: 'my-priority-class' } });
+    });
+
+    it('should clean up agent configuration before saving', async() => {
+      const save = jest.fn().mockResolvedValue({});
+      const wrapper = shallowMount(CruImported, {
+        props: {
+          mode:  _EDIT,
+          value: { isRke1: false, isLocal: false }
+        },
+        ...defaultSetup
+      });
+
+      wrapper.vm.normanCluster.clusterAgentDeploymentCustomization = { overrideAffinity: {} };
+      wrapper.vm.normanCluster.save = save;
+
+      await wrapper.vm.actuallySave();
+
+      expect(wrapper.vm.normanCluster.clusterAgentDeploymentCustomization).toBeUndefined();
+      expect(save).toHaveBeenCalledWith({ replace: false });
     });
   });
 });

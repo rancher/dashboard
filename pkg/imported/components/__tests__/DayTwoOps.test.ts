@@ -1,9 +1,10 @@
 import { nextTick } from 'vue';
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import DayTwoOps from '../DayTwoOps.vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { DAY_2_OPS_DEFAULT as DEFAULT } from '../../util/shared';
+import { SECTION_TYPE } from '@components/RcSection';
 
 describe('component: DayTwoOps', () => {
   const defaultSetup = () => {
@@ -12,20 +13,28 @@ describe('component: DayTwoOps', () => {
     return {
       global: {
         plugins: [store],
-        stubs:   { Banner: { template: '<div v-bind="$attrs"><slot /></div>' } }
+        stubs:   {
+          Banner:    { template: '<div v-bind="$attrs"><slot /></div>' },
+          RcSection: {
+            name:     'RcSection',
+            props:    ['title', 'mode', 'type', 'expandable'],
+            template: '<div class="rc-section"><slot name="title" /><slot></slot></div>'
+          }
+        }
       }
     };
   };
 
-  it('should render the title and radio group with default props', () => {
+  it('should render the section title and radio group with default props', () => {
     const wrapper = shallowMount(DayTwoOps, {
       props: { globalSetting: true },
       ...defaultSetup()
     });
 
     const radioGroup = wrapper.findComponent({ name: 'RadioGroup' });
+    const section = wrapper.findComponent({ name: 'RcSection' });
 
-    expect(wrapper.find('h3').exists()).toBe(true);
+    expect(section.props('title')).toBe('imported.basics.dayTwoOpsEnabled.title');
     expect(radioGroup.exists()).toBe(true);
     expect(radioGroup.props('value')).toBe(DEFAULT);
     expect(radioGroup.props('mode')).toBe(_EDIT);
@@ -191,5 +200,40 @@ describe('component: DayTwoOps', () => {
     expect(wrapper.emitted('update:value')).toHaveLength(2);
     expect(wrapper.emitted('update:value')?.[0]).toStrictEqual(['true']);
     expect(wrapper.emitted('update:value')?.[1]).toStrictEqual([DEFAULT]);
+  });
+
+  describe('rcSection styling', () => {
+    it('should render the fields inside an RcSection with the default title and the secondary type', () => {
+      const wrapper = shallowMount(DayTwoOps, {
+        props: { globalSetting: true },
+        ...defaultSetup()
+      });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.exists()).toBe(true);
+      expect(section.props('title')).toBe('imported.basics.dayTwoOpsEnabled.title');
+      expect(section.props('type')).toBe(SECTION_TYPE.SECONDARY);
+    });
+
+    it('should use a caller-provided title over the default', () => {
+      const wrapper = shallowMount(DayTwoOps, {
+        props: { globalSetting: true, title: 'Custom Title' },
+        ...defaultSetup()
+      });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.props('title')).toBe('Custom Title');
+    });
+
+    it('should render the radio group inside the RcSection', () => {
+      const wrapper = mount(DayTwoOps, {
+        props: { globalSetting: true },
+        ...defaultSetup()
+      });
+
+      expect(wrapper.find('[data-testid="imported-day-two-ops-radio"]').exists()).toBe(true);
+    });
   });
 });
