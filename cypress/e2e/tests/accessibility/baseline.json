@@ -9,13 +9,6 @@
   },
   "violations": [
     {
-      "fingerprint": "027b9fcc88d33f162bce93d46c19b8e641d78173d2d96e38589a9fa319039bc5",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Preferences page",
-      "rule": "aria-required-parent",
-      "impact": "critical",
-      "help": "Certain ARIA roles must be contained by particular parents"
-    },
-    {
       "fingerprint": "0b950a339cb91b3069a95122e775d8ec3c7ea2212344a5c42275387bb8fe7c83",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
       "rule": "landmark-main-is-top-level",
@@ -42,13 +35,6 @@
       "rule": "heading-order",
       "impact": "moderate",
       "help": "Heading levels should only increase by one"
-    },
-    {
-      "fingerprint": "3501fd35ffe85b2f64c176949316ec23798f6f0c2ec9e0c48b8c97b9fc019ad1",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Create",
-      "rule": "aria-required-parent",
-      "impact": "critical",
-      "help": "Certain ARIA roles must be contained by particular parents"
     },
     {
       "fingerprint": "369701d3305beb3059f2d21821bceb5be66d7f4b579e5dff93351ee30c7959e4",
@@ -177,13 +163,6 @@
       "help": "Table header text should not be empty"
     },
     {
-      "fingerprint": "8b7dac544134c42002817a46a5e10844110253974037a89d3dadd6e3d736dcfc",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Burger Menu",
-      "rule": "nested-interactive",
-      "impact": "serious",
-      "help": "Interactive controls must not be nested"
-    },
-    {
       "fingerprint": "8bbe670e2e84fc6b427c4ceec097a747b271ce0751443db1cad36dbf6ae2efbf",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Add Project Member",
       "rule": "heading-order",
@@ -247,13 +226,6 @@
       "help": "Heading levels should only increase by one"
     },
     {
-      "fingerprint": "c71400568c9e60043c9da8d29ed7aa0937bd219e6d39415da422e07448864423",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Fleet GitRepo - Add Repository page",
-      "rule": "aria-required-parent",
-      "impact": "critical",
-      "help": "Certain ARIA roles must be contained by particular parents"
-    },
-    {
       "fingerprint": "ca8e9c8177266ce3b70255bc66faa5305e042f8c53cb963354059bb63b1dae36",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Tools > Cluster Tools Page",
       "rule": "heading-order",
@@ -287,13 +259,6 @@
       "rule": "heading-order",
       "impact": "moderate",
       "help": "Heading levels should only increase by one"
-    },
-    {
-      "fingerprint": "dfcb29b8bfd5d9a1eb2a592f4ee24e366a7b2bc3edab16855663c6abb249b73c",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Kubectl Shell",
-      "rule": "aria-required-children",
-      "impact": "critical",
-      "help": "Certain ARIA roles must contain particular children"
     },
     {
       "fingerprint": "f55046a0ca68902676d6a71a172f6663a8fb584f73c8cf5b73ce2b4e4b924003",

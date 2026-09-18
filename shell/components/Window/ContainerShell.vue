@@ -223,6 +223,10 @@ export default {
     },
 
     handleKeyPress(ev) {
+      if (!this.currFocusedElem || (!this.isXtermFocused && !this.isXtermContainerFocused)) {
+        return;
+      }
+
       ev.preventDefault();
       ev.stopPropagation();
 

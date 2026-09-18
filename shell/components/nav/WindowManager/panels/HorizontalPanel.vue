@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { PropType } from 'vue';
-import { RcButton } from '@components/RcButton';
 import { RcIcon } from '@components/RcIcon';
 import { BOTTOM } from '@shell/utils/position';
 import { Position } from '@shell/types/window-manager';
+import CloseActiveTabButton from './CloseActiveTabButton.vue';
 import TabBodyContainer from './TabBodyContainer.vue';
 import { tabBodyId } from './tab-body';
 import usePanelHandler from '../composables/usePanelHandler';
@@ -18,12 +18,19 @@ const props = defineProps({
 const {
   tabs,
   activeTab,
+  activePanelTab,
   isTabsHeaderEnabled,
   dragOverPositionsActive,
   dragOverTabBarActive,
   setTabActive,
   onTabReady,
   onTabClose,
+  closeActiveTab,
+  closeOverlayStyle,
+  closeOverlayDetached,
+  onCloseActiveTabFocus,
+  onCloseActiveTabBlur,
+  onTabKeydown,
   mouseResizeYStart,
   keyboardResizeY,
   onTabBarDragOver,
@@ -49,59 +56,71 @@ const {
     <div
       v-if="isTabsHeaderEnabled"
       :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive }]"
-      role="tablist"
       @dragover="onTabBarDragOver"
       @dragleave="onTabBarDragLeave"
       @drop="onTabBarDrop"
     >
       <div
-        v-for="(tab, i) in tabs"
-        :key="i"
-        class="tab"
-        :class="{
-          'active': tab.id === activeTab[props.position],
-          'draggable': !lockedPosition,
-        }"
-        :draggable="tab.id === activeTab[props.position] && !lockedPosition"
-        role="tab"
-        :aria-selected="tab.id === activeTab[props.position]"
-        :aria-label="tab.label"
-        :aria-controls="tabBodyId(props.position, tab.id)"
-        tabindex="0"
-        @click="setTabActive({ position: props.position, id: tab.id })"
-        @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"
-        @dragstart="onDragPositionStart({ event: $event, tab })"
-        @dragend="onDragPositionEnd({ event: $event, tab })"
+        class="tab-list"
+        role="tablist"
+        :aria-label="t('wm.tabList')"
       >
-        <i
-          v-if="tab.icon"
-          class="icon"
+        <div
+          v-for="(tab, i) in tabs"
+          :key="i"
+          class="tab"
           :class="{
-            ['icon-'+ tab.icon]: true,
+            'active': tab.id === activeTab[props.position],
+            'draggable': !lockedPosition,
           }"
-          :alt="t('wm.tabIcon')"
-        />
-        <span
-          class="tab-label"
-        >
-          {{ tab.label }}
-        </span>
-        <RcButton
-          data-testid="wm-tab-close-button"
-          variant="ghost"
-          size="small"
-          class="closer wm-closer-button"
+          :draggable="tab.id === activeTab[props.position] && !lockedPosition"
+          role="tab"
+          :aria-selected="tab.id === activeTab[props.position]"
+          :aria-label="tab.label"
+          :aria-controls="tabBodyId(props.position, tab.id)"
+          aria-keyshortcuts="Delete"
           tabindex="0"
-          :aria-label="t('wm.closeTab', { tabId: tab.id })"
-          @click.stop="onTabClose(tab.id)"
-          @keyup.enter.space.stop="onTabClose(tab.id)"
+          @click="setTabActive({ position: props.position, id: tab.id })"
+          @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"
+          @keydown="onTabKeydown($event, tab.id)"
+          @dragstart="onDragPositionStart({ event: $event, tab })"
+          @dragend="onDragPositionEnd({ event: $event, tab })"
         >
-          <RcIcon
-            type="close"
-            size="inherit"
+          <i
+            v-if="tab.icon"
+            class="icon"
+            :class="{
+              ['icon-'+ tab.icon]: true,
+            }"
+            :alt="t('wm.tabIcon')"
           />
-        </RcButton>
+          <span
+            class="tab-label"
+          >
+            {{ tab.label }}
+          </span>
+          <span
+            data-testid="wm-tab-close-button"
+            class="closer wm-closer-button"
+            aria-hidden="true"
+            @click.stop="onTabClose(tab.id)"
+          >
+            <RcIcon
+              type="close"
+              size="inherit"
+            />
+          </span>
+        </div>
       </div>
+      <CloseActiveTabButton
+        v-if="activePanelTab"
+        :class="{ 'close-active-tab-detached': closeOverlayDetached }"
+        :style="closeOverlayStyle"
+        :aria-label="t('wm.closeTab', { tabLabel: activePanelTab.label })"
+        @focus="onCloseActiveTabFocus($event)"
+        @blur="onCloseActiveTabBlur()"
+        @click="closeActiveTab($event)"
+      />
       <div
         class="resizer resizer-y"
         role="button"
@@ -138,6 +157,7 @@ const {
     grid-template-areas:
       "body";
     grid-template-rows: auto;
+    grid-template-columns: minmax(0, 1fr);
 
     &.tabs-header-enabled {
       grid-template-areas:
@@ -157,12 +177,20 @@ const {
 
     .tabs {
       grid-area: tabs;
+      position: relative;
       background-color: var(--wm-tabs-bg);
       border-top: 1px solid var(--wm-border);
       border-bottom: 1px solid var(--wm-border);
 
       display: flex;
       align-content: stretch;
+
+      .tab-list {
+        display: flex;
+        flex: 0 1 auto;
+        min-width: 0;
+        overflow: hidden;
+      }
 
       .tab {
         cursor: pointer;
@@ -207,22 +235,16 @@ const {
           width: 14px;
           min-width: 14px;
           height: 14px;
-          min-height: 14px;
-          padding: 0;
           color: var(--body-text);
           align-self: center;
           display: flex;
+          align-items: center;
           justify-content: center;
           cursor: pointer;
 
           &:hover {
             border-color: var(--link-border);
             color: var(--link-border);
-          }
-
-          &:focus-visible {
-            @include focus-outline;
-            outline-offset: 1px;
           }
 
           .icon,
@@ -242,7 +264,7 @@ const {
         border-right: 1px solid var(--wm-border);
         line-height: var(--wm-tab-height);
         height: calc(var(--wm-tab-height) + 1px);
-        flex-grow: 0;
+        flex: 0 0 auto;
 
         &:hover {
           background-color: var(--wm-closer-hover-bg);
