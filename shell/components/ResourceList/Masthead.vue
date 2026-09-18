@@ -5,6 +5,7 @@ import TypeDescription from '@shell/components/TypeDescription';
 import { RcButton } from '@components/RcButton';
 import { get } from '@shell/utils/object';
 import { AS, _YAML } from '@shell/config/query-params';
+import { isProductPrefixedTopLevel } from '@shell/utils/extension-product-routing';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import TabTitle from '@shell/components/TabTitle';
 
@@ -102,19 +103,20 @@ export default {
     // `data()` runs during the very first render, which is before Vue assigns `__vue_app__`,
     // so the `$extension`/`$plugin` compat shim in `@shell/pkg/auto-import` cannot have run
     // yet when this component is bundled into an extension loaded on an older Rancher.
-    // Fall through to `{}` there: `topLevelProduct` is a V2 product registration flag that
-    // doesn't exist on those versions, so the non-override branch below is correct for them.
+    // Fall through to `{}` there: with no plugins to inspect the non-override branch below
+    // is correct, which is what Rancher without V2 product registration needs anyway.
     const plugins = this.$extension?.getPlugins?.() || {};
+    const currentProductId = this.$store.getters['productId'];
 
     Object.keys(plugins).forEach((key) => {
-      if (plugins[key].productNames.includes(this.$store.getters['productId'])) {
+      if (plugins[key].productNames.includes(currentProductId)) {
         currPluginName = key;
       }
     });
 
-    if (currPluginName && plugins[currPluginName]?.topLevelProduct) {
+    if (isProductPrefixedTopLevel(plugins[currPluginName], currentProductId)) {
       // override create route for extension resource lists
-      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: this.$store.getters['productId'] } };
+      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: currentProductId } };
       overrideCreateLocationByExtension = true;
     } else {
       // this was the original logic before the topLevelProduct override was added

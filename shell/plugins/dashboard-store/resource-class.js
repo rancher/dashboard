@@ -21,6 +21,7 @@ import { clone, get } from '@shell/utils/object';
 import { eachLimit } from '@shell/utils/promise';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { escapeHtml, ucFirst } from '@shell/utils/string';
+import { isProductPrefixedTopLevel } from '@shell/utils/extension-product-routing';
 import {
   validateChars,
   validateDnsLikeTypes,
@@ -1426,15 +1427,17 @@ export default class Resource {
     // this is for the new extension product registration model
     let currPluginName = '';
     const plugins = this.$extension.getPlugins();
+    const currentProductId = this.$rootGetters['productId'];
 
     Object.keys(plugins).forEach((key) => {
-      if (plugins[key].productNames.includes(this.$rootGetters['productId'])) {
+      if (plugins[key].productNames.includes(currentProductId)) {
         currPluginName = key;
       }
     });
 
-    // the flag "topLevelProduct" only exists in the V2 product registration model
-    return plugins[currPluginName]?.topLevelProduct || false;
+    // Resolved per-product, so a single plugin registering several products (some top-level,
+    // some extending) gets the correct answer for whichever product is currently active.
+    return isProductPrefixedTopLevel(plugins[currPluginName], currentProductId);
   }
 
   get listLocation() {
