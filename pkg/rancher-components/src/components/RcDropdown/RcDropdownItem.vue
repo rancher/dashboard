@@ -4,7 +4,15 @@
  */
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 
-const props = defineProps({ disabled: Boolean });
+const props = defineProps({
+  disabled:     Boolean,
+  /**
+   * Whether picking this item closes the menu. Off for items that are settings rather than
+   * commands - a column toggle is one of several the user is likely to want in a row, and a menu
+   * that shuts after each one has to be reopened to make the next change.
+   */
+  closeOnClick: { type: Boolean, default: true },
+});
 const emits = defineEmits(['click']);
 
 const {
@@ -20,7 +28,10 @@ const handleClick = (e: MouseEvent) => {
   }
 
   emits('click', e);
-  close();
+
+  if (props.closeOnClick) {
+    close();
+  }
 };
 
 </script>
