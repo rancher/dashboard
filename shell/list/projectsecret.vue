@@ -5,7 +5,7 @@ import { SECRET, VIRTUAL_TYPES } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { PaginationArgs } from '@shell/types/store/pagination.types';
-import { projectScopedSecretsFilters, projectScopedSecretsProjectFilter, selectedProjectNames } from '@shell/utils/project-scoped-secrets';
+import { projectScopedSecretsFilters } from '@shell/utils/project-scoped-secrets';
 import Secret from '@shell/models/secret';
 import { TableColumn } from '@shell/types/store/type-map';
 import { mapGetters } from 'vuex';
@@ -108,7 +108,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentCluster', 'namespaceFilters']),
+    ...mapGetters(['currentCluster']),
 
     createLocation() {
       return {
@@ -129,38 +129,22 @@ export default {
   methods: {
     /**
      * Locally filter out secrets that are...
-     * - not project-scoped
-     * - not in current cluster (mgmt secrets are global)
-     * - not in the selected project(s), when the ns/project header has a project selection
+     * - not project-scoped (also excludes their copies)
+     * - not in the current cluster (mgmt secrets are global)
+     *
+     * Project scoped secrets are a cluster / project level management resource, so the ns/project
+     * header selection is intentionally not applied here (see side nav count).
      */
     filterRowsLocal(rows: Secret[]) {
-      const projectNames = selectedProjectNames(this.namespaceFilters);
-
-      return rows.filter((r: Secret) => {
-        // Filter in pss but not the copies
-        if (!r.isProjectScoped) {
-          return false;
-        }
-
-        // Filter out if not this cluster
-        if (r.projectScopedClusterId !== this.currentCluster.id) {
-          return false;
-        }
-
-        // Filter out if a project is selected and this secret doesn't belong to it
-        if (projectNames.length && !projectNames.includes(r.projectScopedProjectName)) {
-          return false;
-        }
-
-        return true;
-      });
+      return rows.filter((r: Secret) => r.isProjectScoped && r.projectScopedClusterId === this.currentCluster.id);
     },
 
     /**
-     * Remotely filter out secrets that are..
-     * - not project-scoped
-     * - not in current cluster (mgmt secrets are global)
-     * - not in the selected project(s), when the ns/project header has a project selection
+     * Map the local sort field onto the one vai understands, strip the ns/project header injection,
+     * and filter in this cluster's project scoped secrets (excluding their copies).
+     *
+     * The ns/project header selection is intentionally not applied: project scoped secrets are a
+     * cluster / project level management resource, so the list always shows all of them.
      */
     filterRowsApi(pagination: PaginationArgs): PaginationArgs {
       const sort = pagination.sort?.find((s) => s.field === this.sortFields.local);
@@ -182,13 +166,7 @@ export default {
       // same set.
       const { labelFilter, annotationFilter, clusterFilter } = projectScopedSecretsFilters(this.currentCluster.id);
 
-      pagination.filters.push(clusterFilter, annotationFilter);
-
-      // ...and translate a project selection into the project scoped secret's project label so the
-      // list only shows secrets belonging to the selected project(s).
-      const projectFilter = projectScopedSecretsProjectFilter(selectedProjectNames(this.namespaceFilters));
-
-      pagination.filters.push(projectFilter || labelFilter);
+      pagination.filters.push(clusterFilter, annotationFilter, labelFilter);
 
       return pagination;
     },

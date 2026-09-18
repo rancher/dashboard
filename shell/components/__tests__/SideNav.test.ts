@@ -23,6 +23,7 @@ const getters: Record<string, any> = {
   'prefs/get':                () => [],
   'cluster/schemaFor':        () => null,
   'cluster/all':              () => [],
+  'management/all':           () => [],
   activeNamespaceCache:       [],
 };
 
@@ -328,11 +329,11 @@ describe('component: SideNav', () => {
 
   describe('project scoped secrets count', () => {
     // The nav badge for project scoped secrets is driven by a single shared saved count, so it
-    // has to be re-fetched (and invalidated on failure) as the cluster or project selection changes.
+    // has to be re-fetched (and invalidated on failure) as the cluster changes or a secret is
+    // created / deleted.
     beforeEach(() => {
       getters.isRancher = true;
       getters.currentCluster = { id: 'c-test' };
-      getters.namespaceFilters = [];
       getters['management/schemaFor'] = () => ({ id: 'secret' });
       getters['management/paginationEnabled'] = () => true;
     });
@@ -340,13 +341,11 @@ describe('component: SideNav', () => {
     afterEach(() => {
       delete getters.isRancher;
       delete getters.currentCluster;
-      delete getters.namespaceFilters;
       delete getters['management/schemaFor'];
       delete getters['management/paginationEnabled'];
     });
 
-    it('re-fetches the count, scoped to the selected project(s)', () => {
-      getters.namespaceFilters = ['project://p-aaaaa'];
+    it('re-fetches the count for the current cluster', () => {
       const wrapper = mountNav();
 
       mockStore.dispatch.mockClear();
@@ -358,7 +357,11 @@ describe('component: SideNav', () => {
 
       expect(type).toStrictEqual('management/findPage');
       expect(opt.saveCountAs).toStrictEqual(SAVED_COUNTS.PROJECT_SCOPED_SECRETS);
-      expect(opt.pagination.filters[0].fields[0].value).toStrictEqual('p-aaaaa');
+      expect(opt.pagination.filters.map((f: any) => f.fields[0].field)).toStrictEqual([
+        'metadata.labels[management.cattle.io/project-scoped-secret]',
+        'metadata.annotations[management.cattle.io/project-scoped-secret-copy]',
+        'spec.clusterName',
+      ]);
     });
 
     it('clears the stale saved count when the fetch fails', async() => {
@@ -396,6 +399,29 @@ describe('component: SideNav', () => {
       (wrapper.vm as any).refreshProjectScopedSecretsCount();
 
       expect(mockStore.dispatch).not.toHaveBeenCalledWith('management/findPage', expect.anything());
+    });
+
+    it('counts only this cluster\'s project scoped secrets held in the store', () => {
+      getters['management/all'] = () => [
+        { isProjectScoped: true, projectScopedClusterId: 'c-test' },
+        { isProjectScoped: true, projectScopedClusterId: 'c-other' },
+        { isProjectScoped: false, projectScopedClusterId: 'c-test' },
+      ];
+
+      const wrapper = mountNav();
+
+      expect((wrapper.vm as any).projectScopedSecretsStoreCount).toStrictEqual(1);
+
+      getters['management/all'] = () => [];
+    });
+
+    it('re-fetches the count when the project scoped secrets in the store change', () => {
+      const wrapper = mountNav();
+      const spy = jest.spyOn(wrapper.vm as any, 'queueRefreshProjectScopedSecretsCount');
+
+      (wrapper.vm as any).$options.watch.projectScopedSecretsStoreCount.call(wrapper.vm, 1, 0);
+
+      expect(spy).toHaveBeenCalledWith();
     });
   });
 

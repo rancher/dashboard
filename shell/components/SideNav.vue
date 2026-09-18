@@ -16,7 +16,7 @@ import { ucFirst } from '@shell/utils/string';
 
 import { HCI, UI, SCHEMA, SECRET } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
-import { projectScopedSecretsCountRequest, selectedProjectNames } from '@shell/utils/project-scoped-secrets';
+import { projectScopedSecretsCountRequest } from '@shell/utils/project-scoped-secrets';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { TYPE_MODES } from '@shell/store/type-map';
@@ -47,6 +47,9 @@ export default {
   created() {
     // Ensure that changes to resource that change often don't resort to spamming redraw of the side nav
     this.queueUpdate = debounce(this.getGroups, 500);
+
+    // Debounce so a burst of project scoped secret changes results in a single count re-fetch
+    this.queueRefreshProjectScopedSecretsCount = debounce(this.refreshProjectScopedSecretsCount, 500);
 
     this.getGroups();
   },
@@ -94,12 +97,12 @@ export default {
       }
     },
 
-    // Project scoped secrets have no COUNT entry, so the side nav badge relies on a saved count
-    // (fetched in `loadCluster`). Re-fetch it with the current project selection so the badge stays
-    // consistent with the filtered list when the ns/project header changes.
-    namespaceFilters(a, b) {
-      if ( !isEqual(a, b) ) {
-        this.refreshProjectScopedSecretsCount();
+    // The nav badge relies on a saved count that isn't refreshed when secrets are created / removed.
+    // Watch the project scoped secrets in the store as a change signal and re-fetch the count so the
+    // badge updates after a project scoped secret is created or deleted.
+    projectScopedSecretsStoreCount(a, b) {
+      if ( a !== b ) {
+        this.queueRefreshProjectScopedSecretsCount();
       }
     },
 
@@ -125,7 +128,27 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'isExplorer', 'isVirtualCluster', 'isRancher', 'currentCluster', 'namespaceFilters']),
+    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'isExplorer', 'isVirtualCluster', 'isRancher', 'currentCluster']),
+
+    /**
+     * Count of project scoped secrets currently held in the management store for this cluster.
+     *
+     * Used purely as a change signal: the nav badge is driven by a saved count that isn't updated on
+     * create / delete, so when this changes we re-fetch the authoritative count.
+     */
+    projectScopedSecretsStoreCount() {
+      if (
+        !this.isRancher ||
+        !this.currentCluster?.id ||
+        !this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](SECRET)
+      ) {
+        return 0;
+      }
+
+      return this.$store.getters[`${ STORE.MANAGEMENT }/all`](SECRET)
+        .filter((s) => s.isProjectScoped && s.projectScopedClusterId === this.currentCluster.id)
+        .length;
+    },
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -246,8 +269,8 @@ export default {
 
   methods: {
     /**
-     * Re-fetch the project scoped secrets count, scoped to the current project selection, so the
-     * side nav badge matches the filtered list. Fire and forget, mirroring the initial fetch in
+     * Re-fetch the project scoped secrets count so the side nav badge stays up to date (e.g. after a
+     * project scoped secret is created or deleted). Fire and forget, mirroring the initial fetch in
      * `loadCluster`.
      */
     refreshProjectScopedSecretsCount() {
@@ -260,15 +283,14 @@ export default {
         return;
       }
 
-      const projectNames = selectedProjectNames(this.namespaceFilters);
-      const opt = projectScopedSecretsCountRequest(this.currentCluster.id, projectNames);
+      const opt = projectScopedSecretsCountRequest(this.currentCluster.id);
 
       this.$store.dispatch(`${ STORE.MANAGEMENT }/findPage`, {
         type: SECRET,
         opt,
       }).catch(() => {
         // The saved count is a single shared key. Clear it on failure so a stale value from a
-        // previous cluster or project selection doesn't linger in the nav badge.
+        // previous cluster doesn't linger in the nav badge.
         this.$store.commit(`${ STORE.MANAGEMENT }/setSavedCount`, { name: opt.saveCountAs, count: undefined });
       });
     },

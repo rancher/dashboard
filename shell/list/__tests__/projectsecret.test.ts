@@ -3,11 +3,11 @@ import ProjectSecretList from '@shell/list/projectsecret.vue';
 import { SECRET } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import { UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
-import { PaginationFilterEquality, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 const CLUSTER_ID = 'c-abc123';
 
-const mountList = ({ namespaceFilters = [] }: { namespaceFilters?: string[] } = {}) => {
+const mountList = () => {
   return shallowMount(ProjectSecretList, {
     props:  { resource: SECRET },
     global: {
@@ -16,7 +16,6 @@ const mountList = ({ namespaceFilters = [] }: { namespaceFilters?: string[] } = 
         $store: {
           getters: {
             currentCluster:                      { id: CLUSTER_ID },
-            namespaceFilters,
             [`${ STORE.MANAGEMENT }/schemaFor`]: () => ({ id: SECRET }),
             [`${ STORE.CLUSTER }/schemaFor`]:    () => ({ id: SECRET }),
             'prefs/get':                         () => 'none',
@@ -59,15 +58,12 @@ describe('component: ProjectSecretList', () => {
       ]);
     });
 
-    it('translates a project selection into a project label IN filter', () => {
-      const wrapper = mountList({ namespaceFilters: ['project://p-aaaaa', 'project://p-bbbbb'] });
+    it('maps the local sort field onto the one vai understands', () => {
+      const wrapper = mountList();
 
-      const out = (wrapper.vm as any).filterRowsApi({ sort: [], filters: [] });
+      const out = (wrapper.vm as any).filterRowsApi({ sort: [{ field: 'groupByProject' }], filters: [] });
 
-      const projectFilter = out.filters.find((f: PaginationParamFilter) => f.fields[0].field === `metadata.labels[${ UI_PROJECT_SECRET }]`);
-
-      expect(projectFilter.fields[0].value).toStrictEqual('p-aaaaa,p-bbbbb');
-      expect(projectFilter.fields[0].equality).toStrictEqual(PaginationFilterEquality.IN);
+      expect(out.sort[0].field).toStrictEqual(`metadata.labels[${ UI_PROJECT_SECRET }]`);
     });
   });
 
@@ -85,18 +81,6 @@ describe('component: ProjectSecretList', () => {
         secret(),
         secret({ isProjectScoped: false }),
         secret({ projectScopedClusterId: 'c-other' }),
-      ];
-
-      const out = (wrapper.vm as any).filterRowsLocal(rows);
-
-      expect(out).toStrictEqual([rows[0]]);
-    });
-
-    it('filters by the selected project', () => {
-      const wrapper = mountList({ namespaceFilters: ['project://p-aaaaa'] });
-      const rows = [
-        secret({ projectScopedProjectName: 'p-aaaaa' }),
-        secret({ projectScopedProjectName: 'p-bbbbb' }),
       ];
 
       const out = (wrapper.vm as any).filterRowsLocal(rows);
