@@ -91,6 +91,19 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     // `cy.wait('@installApp')` never sees a matching request and times out, even
     // though the click and the resulting chart operation both succeeded. Ensuring a
     // clean slate before the test starts avoids that class of failure.
+    //
+    // IMPORTANT: this must be a beforeEach(), not a before(). Cypress only re-runs
+    // beforeEach()/afterEach() hooks between retries of a failing test (retries.runMode
+    // is 2 here) - before()/after() run exactly once for the whole describe block
+    // regardless of retries (https://docs.cypress.io/app/guides/test-retries). A
+    // before() here only protected the *first* attempt: if that attempt installed the
+    // app successfully but then failed later for an unrelated reason (e.g. the app was
+    // still "Pending-Install" when a later assertion needed "Deployed" - installs can
+    // be slow on CI runners), every retry after that would find rancher-backup already
+    // installed and hit the exact same "upgrade instead of install" failure again, since
+    // nothing cleaned it up in between. This was confirmed against real CI runs: the
+    // app's own "Age" in later attempts' screenshots lines up with it having been
+    // created during the *same* attempt sequence, not a separate job or an old leftover.
     const cleanupInstalledApp = () => {
       cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
       cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
@@ -98,7 +111,7 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartCrd }`, (resp: any) => resp.status === 404, 20, { failOnStatusCode: false });
     };
 
-    before(() => {
+    beforeEach(() => {
       cleanupInstalledApp();
     });
 
