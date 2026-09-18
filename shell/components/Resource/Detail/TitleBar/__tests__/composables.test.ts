@@ -1,6 +1,7 @@
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
+import type { RouteLocationNamedRaw } from 'vue-router';
 
 const mockStore = {
   getters: {
@@ -36,15 +37,16 @@ describe('composables: TitleBar', () => {
     mockStore.getters['type-map/labelFor'].mockImplementation(() => labelFor);
 
     const props = useDefaultTitleBarProps(resource, ref(undefined));
+    const resourceTo = props.value.resourceTo as RouteLocationNamedRaw;
 
     expect(props.value.resourceTypeLabel).toStrictEqual(labelFor);
     expect(mockStore.getters['type-map/labelFor']).toHaveBeenLastCalledWith(schema);
     expect(mockStore.getters['currentStore']).toHaveBeenLastCalledWith(resource.type);
     expect(mockStore.getters['cluster/schemaFor']).toHaveBeenLastCalledWith(resource.type);
-    expect(props.value.resourceTo?.params.product).toStrictEqual('explorer');
-    expect(props.value.resourceTo?.params.cluster).toStrictEqual(route.params.cluster);
-    expect(props.value.resourceTo?.params.namespace).toStrictEqual(resource.namespace);
-    expect(props.value.resourceTo?.params.resource).toStrictEqual(resource.type);
+    expect(resourceTo?.params?.product).toStrictEqual('explorer');
+    expect(resourceTo?.params?.cluster).toStrictEqual(route.params.cluster);
+    expect(resourceTo?.params?.namespace).toStrictEqual(resource.namespace);
+    expect(resourceTo?.params?.resource).toStrictEqual(resource.type);
     expect(props.value.resourceName).toStrictEqual(resource.nameDisplay);
 
     expect(props.value.actionMenuResource).toStrictEqual(resource);
