@@ -142,19 +142,23 @@ export default {
        * tab, or the id of a saved view. The default tab has to be distinguishable from "nothing
        * picked", or a saved view holding the same config as it is matched instead.
        */
-      pickedViewId:  undefined,
+      pickedViewId: undefined,
       /** Which modal is open, if any: { kind: 'new' | 'export', view } */
-      modal:         null,
+      modal:        null,
       /** Name being typed in the new view modal */
-      modalName:     '',
+      modalName:    '',
       /** id of the view being renamed in place, and the name being typed for it */
-      renamingId:    null,
-      renameDraft:   '',
-      copied:        false,
-      /** Column picker drag: the row picked up, and the row it is currently over */
-      dragIndex:     null,
-      dragOverIndex: null,
-      dragMoved:     false,
+      renamingId:   null,
+      renameDraft:  '',
+      copied:       false,
+      /**
+       * Column picker drag. `dragId` is the row being held; `dragOrder` is the ids in the order
+       * the list is showing them mid-drag, which is what lets the rows shuffle under the cursor
+       * instead of waiting for the drop.
+       */
+      dragId:       null,
+      dragOrder:    null,
+      dragMoved:    false,
     };
   },
 
@@ -196,15 +200,12 @@ export default {
       return this.fields.filter((f) => !f.isLabel);
     },
 
-    labelFields() {
-      return this.fields.filter((f) => f.isLabel);
-    },
-
     /**
      * Columns in the order the view puts them, so the picker reads the way the table does
      */
     orderedColumnFields() {
-      const order = this.view.columnOrder;
+      // Mid-drag the list follows the pointer rather than the saved order
+      const order = this.dragOrder || this.view.columnOrder;
 
       if (!order?.length) {
         return this.columnFields;
@@ -385,89 +386,67 @@ export default {
       this.update({ columns: next });
     },
 
-    toggleLabelColumn(field) {
-      const current = this.view.labelColumns || [];
-      const next = current.includes(field.labelKey) ? current.filter((key) => key !== field.labelKey) : current.concat([field.labelKey]);
-
-      this.update({ labelColumns: next });
-    },
-
     selectAllColumns() {
       this.update({ columns: this.columnFields.map((f) => f.id) });
     },
 
-    /**
-     * Move a column to a new position in the picker, which is the order the table renders in
-     */
-    moveColumn(from, to) {
-      const ids = this.orderedColumnFields.map((f) => f.id);
-
-      if (to < 0 || to >= ids.length || from === to) {
-        return;
-      }
-
-      const next = ids.slice();
-
-      next.splice(to, 0, next.splice(from, 1)[0]);
-
-      this.update({ columnOrder: next });
-    },
-
-    /**
-     * Pick a column row up by its handle.
-     *
-     * Native HTML5 dragging is not available here: a menu item calls `preventDefault` on
-     * mousedown (so that clicking one doesn't move focus), and without that default there is no
-     * `dragstart` to hang a drag off. Tracking the pointer ourselves works regardless.
-     */
-    startColumnDrag(index, event) {
+    startColumnDrag(id, event) {
       if (event.button !== 0) {
         return;
       }
 
-      this.dragIndex = index;
-      this.dragOverIndex = index;
+      this.dragId = id;
+      this.dragOrder = this.orderedColumnFields.map((f) => f.id);
       this.dragMoved = false;
 
       window.addEventListener('mousemove', this.onColumnDragMove);
       window.addEventListener('mouseup', this.endColumnDrag);
     },
 
+    /**
+     * Put the held row wherever the pointer is now, so the rest shuffle around it as it travels
+     */
     onColumnDragMove(event) {
-      if (this.dragIndex === null) {
+      if (this.dragId === null) {
         return;
       }
 
-      const over = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-col-index]');
+      const over = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-col-id]');
+      const id = over?.getAttribute('data-col-id');
 
-      if (!over) {
+      if (!id || id === this.dragId) {
         return;
       }
 
-      const index = parseInt(over.getAttribute('data-col-index'), 10);
+      const order = [...this.dragOrder];
+      const from = order.indexOf(this.dragId);
+      const to = order.indexOf(id);
 
-      if (!isNaN(index) && index !== this.dragOverIndex) {
-        this.dragOverIndex = index;
-        this.dragMoved = true;
+      if (from === -1 || to === -1 || from === to) {
+        return;
       }
+
+      order.splice(to, 0, ...order.splice(from, 1));
+      this.dragOrder = order;
+      this.dragMoved = true;
     },
 
     endColumnDrag() {
       window.removeEventListener('mousemove', this.onColumnDragMove);
       window.removeEventListener('mouseup', this.endColumnDrag);
 
-      const { dragIndex, dragOverIndex, dragMoved } = this;
+      const { dragOrder, dragMoved } = this;
 
-      this.dragIndex = null;
-      this.dragOverIndex = null;
+      this.dragId = null;
+      this.dragOrder = null;
       this.dragMoved = false;
 
-      if (!dragMoved || dragIndex === null || dragOverIndex === null) {
+      if (!dragMoved) {
         return;
       }
 
       // The click that follows this mouseup would land on whichever row the pointer ended over,
-      // toggling it and closing the menu. A drag is not a click, so it is swallowed.
+      // toggling it. A drag is not a click, so it is swallowed.
       const swallow = (event) => {
         event.stopPropagation();
         event.preventDefault();
@@ -476,7 +455,7 @@ export default {
 
       window.addEventListener('click', swallow, true);
 
-      this.moveColumn(dragIndex, dragOverIndex);
+      this.update({ columnOrder: dragOrder });
     },
 
     setGroupBy(id) {
@@ -1060,61 +1039,50 @@ export default {
               </rc-dropdown-trigger>
               <template #dropdownCollection>
                 <div class="menu-panel columns-panel">
-                  <rc-dropdown-item
-                    v-for="(field, i) in orderedColumnFields"
-                    :key="field.id"
-                    :class="{ 'column-row': true, locked: isCoreColumn(field), shown: isColumnVisible(field), dragging: dragIndex === i, 'drag-over': dragIndex !== null && dragOverIndex === i }"
-                    :disabled="isCoreColumn(field)"
-                    :data-col-index="i"
-                    :data-testid="`table-views-col-${ field.id }`"
-                    @click="toggleColumn(field)"
+                  <!-- The list reorders live under the cursor and the rows shuffle on the
+                       TransitionGroup's own FLIP move, the same way the pinned shelf does -->
+                  <TransitionGroup
+                    name="column-row"
+                    tag="div"
+                    :class="{ 'is-reordering': dragId !== null }"
                   >
-                    <template #before>
-                      <i
-                        v-if="isCoreColumn(field)"
-                        v-clean-tooltip="t('tableViews.columns.locked')"
-                        class="icon icon-lock column-handle"
-                      />
-                      <span
-                        v-else
-                        v-clean-tooltip="t('tableViews.columns.reorder')"
-                        class="column-handle grip"
-                        :data-testid="`table-views-col-handle-${ field.id }`"
-                        @mousedown="startColumnDrag(i, $event)"
-                      />
-                    </template>
-                    {{ field.label }}
-                    <template
-                      v-if="isColumnVisible(field)"
-                      #after
-                    >
-                      <i class="icon icon-checkmark" />
-                    </template>
-                  </rc-dropdown-item>
-
-                  <template v-if="labelFields.length">
-                    <div class="menu-title">
-                      {{ t('tableViews.columns.labelColumns') }}
-                    </div>
                     <rc-dropdown-item
-                      v-for="field in labelFields"
+                      v-for="field in orderedColumnFields"
                       :key="field.id"
-                      :class="{ 'column-row': true, shown: view.labelColumns.includes(field.labelKey) }"
-                      :data-testid="`table-views-label-col-${ field.labelKey }`"
-                      @click="toggleLabelColumn(field)"
+                      :class="{ 'column-row': true, locked: isCoreColumn(field), shown: isColumnVisible(field), held: dragId === field.id }"
+                      :disabled="isCoreColumn(field)"
+                      :close-on-click="false"
+                      :data-col-id="field.id"
+                      :data-testid="`table-views-col-${ field.id }`"
+                      @click="toggleColumn(field)"
                     >
+                      <template #before>
+                        <i
+                          v-if="isCoreColumn(field)"
+                          v-clean-tooltip="t('tableViews.columns.locked')"
+                          class="icon icon-lock column-handle"
+                        />
+                        <span
+                          v-else
+                          v-clean-tooltip="t('tableViews.columns.reorder')"
+                          class="column-handle grip"
+                          :data-testid="`table-views-col-handle-${ field.id }`"
+                          @mousedown="startColumnDrag(field.id, $event)"
+                        />
+                      </template>
                       {{ field.label }}
                       <template
-                        v-if="view.labelColumns.includes(field.labelKey)"
+                        v-if="isColumnVisible(field)"
                         #after
                       >
                         <i class="icon icon-checkmark" />
                       </template>
                     </rc-dropdown-item>
-                  </template>
+                  </TransitionGroup>
 
                   <rc-dropdown-separator />
                   <rc-dropdown-item
+                    :close-on-click="false"
                     data-testid="table-views-columns-select-all"
                     @click="selectAllColumns"
                   >
@@ -1122,6 +1090,7 @@ export default {
                   </rc-dropdown-item>
                   <rc-dropdown-item
                     class="menu-reset"
+                    :close-on-click="false"
                     data-testid="table-views-columns-reset"
                     @click="resetColumns"
                   >
@@ -1404,8 +1373,25 @@ export default {
     color: var(--link);
   }
 
+  // Lifting and settling, and the shuffle of the rows going past - the same curves and timings the
+  // pinned shelf in the side nav uses, so a drag feels the same wherever it is done
+  $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
+  $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
+
+  // TransitionGroup's own FLIP move. Re-timed only while a drag is actually in progress, so the
+  // rows travel with the held one rather than teleporting into their new slots.
+  .column-row-move {
+    transition: transform 0.25s $drag-drop-curve;
+  }
+
+  .is-reordering .column-row-move {
+    transition: transform 0.2s $drag-displace-curve;
+  }
+
   // Column rows carry a drag handle (or a lock) and tick only what is shown
   .column-row {
+    transition: background-color 0.1s ease-in-out, transform 0.33s $drag-drop-curve, box-shadow 0.33s $drag-drop-curve;
+    user-select: none;
     .column-handle {
       color: var(--muted);
       font-size: 14px;
@@ -1446,13 +1432,14 @@ export default {
       .column-handle { cursor: default; }
     }
 
-    &.dragging {
-      opacity: 0.5;
-    }
-
-    // Where the row would land if it were dropped now
-    &.drag-over {
-      box-shadow: inset 0 -2px 0 var(--primary);
+    // The row being carried, lifted off the list the way a dragged shelf row is
+    &.held {
+      position: relative;
+      z-index: 1;
+      background: color-mix(in srgb, var(--primary) 14%, transparent);
+      transform: scale(1.02);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+      transition: transform 0.2s $drag-displace-curve, box-shadow 0.2s $drag-displace-curve, background-color 0.2s $drag-displace-curve;
     }
   }
 }
