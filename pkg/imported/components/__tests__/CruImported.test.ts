@@ -27,10 +27,10 @@ describe('cruImported component', () => {
       },
       stubs: {
         CruResource:             { template: '<div><slot></slot></div>' },
-        Accordion:               { template: '<div class="accordion"><slot></slot></div>' },
+        RcSection:               { template: '<div><slot></slot></div>' },
         Banner:                  true,
         ClusterMembershipEditor: true,
-        Labels:                  true,
+        RCLabelsAndAnnotations:  true,
         Basics:                  true,
         ACE:                     true,
         Checkbox:                true,

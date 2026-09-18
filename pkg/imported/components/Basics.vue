@@ -164,8 +164,9 @@ export default defineComponent({
       v-if="versionMismatch"
       label-key="imported.basics.versionMismatch"
       color="warning"
+      class="m-0"
     />
-    <div class="row row-basics mb-20">
+    <div class="row row-basics">
       <div class="col-basics mr-10 span-6">
         <LabeledSelect
           v-model:value="kubernetesVersion"
@@ -180,7 +181,7 @@ export default defineComponent({
           @update:value="$emit('kubernetes-version-changed', $event)"
         />
       </div>
-      <div class="col-basics span-6 mt-15">
+      <div class="col-basics span-6">
         <Checkbox
           v-model:value="showDeprecatedPatchVersions"
           :mode="mode"
@@ -203,11 +204,10 @@ export default defineComponent({
   />
   <div
     v-if="showVersionInformation"
-    class="mt-10 mb-10"
   >
     <h3 v-t="'imported.upgradeStrategy.header'" />
-    <div class="col mt-10 mb-10">
-      <div class="col mt-5">
+    <div class="col">
+      <div class="col">
         <Checkbox
           :value="upgradeStrategy.drainServerNodes"
           :mode="mode"
@@ -216,7 +216,7 @@ export default defineComponent({
           @update:value="$emit('drain-server-nodes-changed', $event)"
         />
       </div>
-      <div class="col mt-5">
+      <div class="col">
         <Checkbox
           :value="upgradeStrategy.drainWorkerNodes"
           :mode="mode"
@@ -235,7 +235,6 @@ export default defineComponent({
           :rules="rules.concurrency"
           :disabled="versionInformationDisabled"
           required
-          class="mb-10"
           @update:value="$emit('server-concurrency-changed', $event)"
         />
       </div>
@@ -247,7 +246,6 @@ export default defineComponent({
           :rules="rules.concurrency"
           :disabled="versionInformationDisabled"
           required
-          class="mb-10"
           @update:value="$emit('worker-concurrency-changed', $event)"
         />
       </div>

@@ -5,11 +5,14 @@ import { mapGetters } from 'vuex';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
 import Banner from '@components/Banner/Banner.vue';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
+import { RcSection, SECTION_TYPE } from '@components/RcSection';
 
 export default defineComponent({
   emits: ['version-management-changed'],
 
-  components: { RadioGroup, Banner },
+  components: {
+    RadioGroup, Banner, RcSection
+  },
 
   props: {
     value: {
@@ -32,6 +35,9 @@ export default defineComponent({
       type:    Boolean,
       default: false
     }
+  },
+  data() {
+    return { SECTION_TYPE };
   },
 
   computed: {
@@ -107,38 +113,43 @@ export default defineComponent({
 });
 </script>
 <template>
-  <h3 class="mb-10">
-    <t k="imported.basics.versionManagement.title" />
-  </h3>
-  <Banner
-    v-if="showVersionManagementBanner"
-    color="info"
-    data-testid="version-management-banner"
+  <RcSection
+    :title="t('imported.basics.versionManagement.title')"
+    mode="with-header"
+    :type="SECTION_TYPE.SECONDARY"
+    :expandable="true"
   >
-    {{ versionManagementInfo }}
-  </Banner>
-  <RadioGroup
-    :value="value"
-    :mode="mode"
-    :options="versionManagementOptions"
-    name="versionManagement"
-    data-testid="imported-version-management-radio"
-    @update:value="$emit('version-management-changed', $event)"
-  />
-  <div class="col mt-10">
-    <label
-      v-clean-html="globalConfigurationText"
-      class="summary"
-    /><br>
-    <label
-      v-clean-html="clusterConfigurationText"
-      class="summary mb-10"
+    <Banner
+      v-if="showVersionManagementBanner"
+      color="info"
+      data-testid="version-management-banner"
+      class="m-0"
+    >
+      {{ versionManagementInfo }}
+    </Banner>
+    <RadioGroup
+      :value="value"
+      :mode="mode"
+      :options="versionManagementOptions"
+      name="versionManagement"
+      data-testid="imported-version-management-radio"
+      @update:value="$emit('version-management-changed', $event)"
     />
-  </div>
+    <div class="col">
+      <p
+        v-clean-html="globalConfigurationText"
+        class="summary"
+      />
+      <p
+        v-clean-html="clusterConfigurationText"
+        class="summary"
+      />
+    </div>
+  </RcSection>
 </template>
 
 <style lang='scss'>
     .summary{
-        margin: 0pt
+        #margin: 0pt
     }
 </style>
