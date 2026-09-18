@@ -143,10 +143,13 @@ export default {
        * picked", or a saved view holding the same config as it is matched instead.
        */
       pickedViewId:  undefined,
-      /** Which modal is open, if any: { kind: 'new' | 'rename' | 'export', view } */
+      /** Which modal is open, if any: { kind: 'new' | 'export', view } */
       modal:         null,
-      /** Name being typed in the rename / duplicate modal */
+      /** Name being typed in the new view modal */
       modalName:     '',
+      /** id of the view being renamed in place, and the name being typed for it */
+      renamingId:    null,
+      renameDraft:   '',
       copied:        false,
       /** Column picker drag: the row picked up, and the row it is currently over */
       dragIndex:     null,
@@ -567,23 +570,53 @@ export default {
       return name;
     },
 
+    /**
+     * Rename in place. The name lives on the tab, so that is where it is edited - a modal to
+     * change one word puts the thing being renamed behind the thing renaming it.
+     */
     openRename(saved) {
-      this.modal = { kind: 'rename', view: saved };
-      this.modalName = saved.name;
+      this.renamingId = saved.id;
+      this.renameDraft = saved.name;
+
+      this.$nextTick(() => {
+        // A ref inside a v-for collects into an array, so this is a list of one
+        const held = this.$refs[`rename-${ saved.id }`];
+        const input = Array.isArray(held) ? held[0] : held;
+
+        input?.focus();
+        input?.select();
+      });
+    },
+
+    /**
+     * Keep the typed name. Blank, or unchanged, simply closes - there is nothing to record.
+     */
+    commitRename() {
+      const id = this.renamingId;
+      const name = (this.renameDraft || '').trim();
+      const saved = this.savedViews.find((v) => v.id === id);
+
+      this.renamingId = null;
+      this.renameDraft = '';
+
+      if (!name || !saved || name === saved.name) {
+        return;
+      }
+
+      this.persist(this.savedViews.map((v) => (v.id === id ? { ...v, name } : v)));
+    },
+
+    cancelRename() {
+      this.renamingId = null;
+      this.renameDraft = '';
     },
 
     /**
      * The modal's name field either creates a view or renames one
      */
     confirmName() {
-      if (this.modal?.kind === 'new') {
-        this.saveView();
-        this.closeModal();
-
-        return;
-      }
-
-      this.confirmRename();
+      this.saveView();
+      this.closeModal();
     },
 
     /**
@@ -597,20 +630,6 @@ export default {
     closeModal() {
       this.modal = null;
       this.modalName = '';
-    },
-
-    confirmRename() {
-      const name = (this.modalName || '').trim();
-      const saved = this.modal?.view;
-
-      if (!name || !saved || name === saved.name) {
-        this.closeModal();
-
-        return;
-      }
-
-      this.persist(this.savedViews.map((v) => (v.id === saved.id ? { ...v, name } : v)));
-      this.closeModal();
     },
 
     /**
@@ -793,7 +812,23 @@ export default {
         class="view-tab-wrap"
         :class="{ active: selectedViewId === tab.id }"
       >
+        <!-- Renaming happens on the tab itself, so the name is edited where it is read -->
+        <input
+          v-if="renamingId === tab.id"
+          :ref="`rename-${ tab.id }`"
+          v-model="renameDraft"
+          type="text"
+          class="view-tab rename-input"
+          :size="Math.max(renameDraft.length, 4)"
+          :aria-label="t('tableViews.tab.rename')"
+          :data-testid="`table-views-rename-input-${ tab.id }`"
+          @keydown.enter.prevent="commitRename"
+          @keydown.esc.prevent="cancelRename"
+          @blur="commitRename"
+          @click.stop
+        >
         <button
+          v-else
           type="button"
           class="view-tab"
           :data-testid="tab.isDefaultTab ? 'table-views-tab-all' : `table-views-tab-${ tab.id }`"
@@ -1112,7 +1147,7 @@ export default {
 
   <!-- Naming a view asks for more than belongs in a menu, so it opens here instead -->
   <app-modal
-    v-if="modal && modal.kind !== 'export'"
+    v-if="modal && modal.kind === 'new'"
     name="tableViewsModal"
     :width="420"
     height="auto"
@@ -1122,7 +1157,7 @@ export default {
   >
     <div class="view-modal">
       <h4>
-        {{ modal.kind === 'new' ? t('tableViews.save.newView') : t('tableViews.tab.rename') }}
+        {{ t('tableViews.save.newView') }}
       </h4>
       <input
         v-model="modalName"
@@ -1218,6 +1253,18 @@ export default {
     font-size: 14px;
     line-height: 20px;
     white-space: nowrap;
+
+    // Sits where the label was: same metrics, no chrome of its own beyond a focus ring
+    &.rename-input {
+      min-width: 60px;
+      max-width: 220px;
+      border: 1px solid var(--primary);
+      border-radius: var(--border-radius);
+      background: var(--input-bg);
+      color: var(--input-text);
+      font: inherit;
+      outline: none;
+    }
 
     &.new-view-tab {
       gap: 4px;
