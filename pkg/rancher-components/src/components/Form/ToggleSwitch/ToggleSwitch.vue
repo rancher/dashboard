@@ -152,6 +152,7 @@ $toggle-height: 16px;
   position: relative;
   display: inline-block;
   width: 48px;
+  min-width: 48px;
   height: $toggle-height + 8px;
 }
 
