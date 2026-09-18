@@ -7,8 +7,9 @@ import {
 } from '@codemirror/commands';
 import { searchKeymap } from '@codemirror/search';
 import { vim } from '@replit/codemirror-vim';
+import type { RcCodeMirrorKeymap } from '../types';
 
-export function getKeymapExtension(mode?: 'default' | 'vim' | 'emacs'): Extension {
+export function getKeymapExtension(mode?: RcCodeMirrorKeymap): Extension {
   if (mode === 'vim') {
     return vim();
   }

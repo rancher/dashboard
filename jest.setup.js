@@ -55,7 +55,14 @@ config.global.stubs['t'] = { template: '<span><slot /></span>' };
 beforeAll(() => {
   // matchMedia and getContext methods aren't included in jest's version of jsdom for us to mock
   // implemented as per jest documentation: https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
-  Object.defineProperty(window, 'matchMedia', { value: jest.fn().mockImplementation(() => ({ addListener: jest.fn() })) });
+  Object.defineProperty(window, 'matchMedia', {
+    value: jest.fn().mockImplementation(() => ({
+      addListener:         jest.fn(),
+      removeListener:      jest.fn(),
+      addEventListener:    jest.fn(),
+      removeEventListener: jest.fn()
+    }))
+  });
   Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
     value: jest.fn().mockImplementation(() => ({
       createLinearGradient: jest.fn(),
