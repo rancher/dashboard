@@ -1135,10 +1135,16 @@ export const actions = {
       getters['management/schemaFor'](SECRET) &&
       getters['management/paginationEnabled']({ id: SECRET })
     ) {
+      const opt = projectScopedSecretsCountRequest(id);
+
       dispatch('management/findPage', {
         type: SECRET,
-        opt:  projectScopedSecretsCountRequest(id),
-      }).catch(() => {});
+        opt,
+      }).catch(() => {
+        // The saved count is a single shared key. Clear it on failure so a stale value from a
+        // previous cluster doesn't linger in the nav badge.
+        commit('management/setSavedCount', { name: opt.saveCountAs, count: undefined });
+      });
     }
 
     const filters = getters['prefs/get'](NAMESPACE_FILTERS)?.[id];

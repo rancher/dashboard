@@ -270,11 +270,16 @@ export default {
       }
 
       const projectNames = selectedProjectNames(this.namespaceFilters);
+      const opt = projectScopedSecretsCountRequest(this.currentCluster.id, projectNames);
 
       this.$store.dispatch(`${ STORE.MANAGEMENT }/findPage`, {
         type: SECRET,
-        opt:  projectScopedSecretsCountRequest(this.currentCluster.id, projectNames),
-      }).catch(() => {});
+        opt,
+      }).catch(() => {
+        // The saved count is a single shared key. Clear it on failure so a stale value from a
+        // previous cluster or project selection doesn't linger in the nav badge.
+        this.$store.commit(`${ STORE.MANAGEMENT }/setSavedCount`, { name: opt.saveCountAs, count: undefined });
+      });
     },
 
     /**
