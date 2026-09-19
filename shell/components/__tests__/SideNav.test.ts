@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import SideNav from '@shell/components/SideNav.vue';
+import { SAVED_COUNTS } from '@shell/config/types';
 
 const navStateStorage = { load: jest.fn(), save: jest.fn() };
 
@@ -22,6 +23,7 @@ const getters: Record<string, any> = {
   'prefs/get':                () => [],
   'cluster/schemaFor':        () => null,
   'cluster/all':              () => [],
+  'management/all':           () => [],
   activeNamespaceCache:       [],
 };
 
@@ -31,6 +33,7 @@ const mockStore = {
   state:                { managementReady: true, clusterReady: false },
   getters:              new Proxy(getters, { get: (target, prop: string) => target[prop] }),
   dispatch:             jest.fn(),
+  commit:               jest.fn(),
   // `mapGetters('type-map', ...)` resolves the namespace through this before it
   // reads the getter, so a mock without it throws as soon as one is read.
   _modulesNamespaceMap: { 'type-map/': {} },
@@ -321,6 +324,104 @@ describe('component: SideNav', () => {
 
       navGroups(wrapper)[2].children[0].expanded = true;
       expect((wrapper.vm as any).hasExpandedGroup).toBe(true);
+    });
+  });
+
+  describe('project scoped secrets count', () => {
+    // The nav badge for project scoped secrets is driven by a single shared saved count, so it
+    // has to be re-fetched (and invalidated on failure) as the cluster changes or a secret is
+    // created / deleted.
+    beforeEach(() => {
+      getters.isRancher = true;
+      getters.currentCluster = { id: 'c-test' };
+      getters['management/schemaFor'] = () => ({ id: 'secret' });
+      getters['management/paginationEnabled'] = () => true;
+    });
+
+    afterEach(() => {
+      delete getters.isRancher;
+      delete getters.currentCluster;
+      delete getters['management/schemaFor'];
+      delete getters['management/paginationEnabled'];
+    });
+
+    it('re-fetches the count for the current cluster', () => {
+      const wrapper = mountNav();
+
+      mockStore.dispatch.mockClear();
+      mockStore.dispatch.mockResolvedValueOnce({});
+
+      (wrapper.vm as any).refreshProjectScopedSecretsCount();
+
+      const [type, { opt }] = mockStore.dispatch.mock.calls.find(([action]) => action === 'management/findPage');
+
+      expect(type).toStrictEqual('management/findPage');
+      expect(opt.saveCountAs).toStrictEqual(SAVED_COUNTS.PROJECT_SCOPED_SECRETS);
+      expect(opt.pagination.filters.map((f: any) => f.fields[0].field)).toStrictEqual([
+        'metadata.labels[management.cattle.io/project-scoped-secret]',
+        'metadata.annotations[management.cattle.io/project-scoped-secret-copy]',
+        'spec.clusterName',
+      ]);
+    });
+
+    it('clears the stale saved count when the fetch fails', async() => {
+      const wrapper = mountNav();
+
+      mockStore.dispatch.mockClear();
+      mockStore.commit.mockClear();
+      mockStore.dispatch.mockRejectedValueOnce(new Error('forbidden'));
+
+      (wrapper.vm as any).refreshProjectScopedSecretsCount();
+      await nextTick();
+
+      expect(mockStore.commit).toHaveBeenCalledWith('management/setSavedCount', { name: SAVED_COUNTS.PROJECT_SCOPED_SECRETS, count: undefined });
+    });
+
+    it('does not clear the saved count when the fetch succeeds', async() => {
+      const wrapper = mountNav();
+
+      mockStore.dispatch.mockClear();
+      mockStore.commit.mockClear();
+      mockStore.dispatch.mockResolvedValueOnce({});
+
+      (wrapper.vm as any).refreshProjectScopedSecretsCount();
+      await nextTick();
+
+      expect(mockStore.commit).not.toHaveBeenCalledWith('management/setSavedCount', { name: SAVED_COUNTS.PROJECT_SCOPED_SECRETS, count: undefined });
+    });
+
+    it('no-ops when the management secret schema is absent', () => {
+      getters['management/schemaFor'] = () => null;
+      const wrapper = mountNav();
+
+      mockStore.dispatch.mockClear();
+
+      (wrapper.vm as any).refreshProjectScopedSecretsCount();
+
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith('management/findPage', expect.anything());
+    });
+
+    it('counts only this cluster\'s project scoped secrets held in the store', () => {
+      getters['management/all'] = () => [
+        { isProjectScoped: true, projectScopedClusterId: 'c-test' },
+        { isProjectScoped: true, projectScopedClusterId: 'c-other' },
+        { isProjectScoped: false, projectScopedClusterId: 'c-test' },
+      ];
+
+      const wrapper = mountNav();
+
+      expect((wrapper.vm as any).projectScopedSecretsStoreCount).toStrictEqual(1);
+
+      getters['management/all'] = () => [];
+    });
+
+    it('re-fetches the count when the project scoped secrets in the store change', () => {
+      const wrapper = mountNav();
+      const spy = jest.spyOn(wrapper.vm as any, 'queueRefreshProjectScopedSecretsCount');
+
+      (wrapper.vm as any).$options.watch.projectScopedSecretsStoreCount.call(wrapper.vm, 1, 0);
+
+      expect(spy).toHaveBeenCalledWith();
     });
   });
 
