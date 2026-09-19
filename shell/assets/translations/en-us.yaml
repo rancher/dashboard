@@ -3704,6 +3704,59 @@ fleet:
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
         }"
+  policy:
+    name:
+      label: Policy name
+    serviceAccounts:
+      title: Service accounts
+      require:
+        label: Require service account
+        description: Enforces that a ServiceAccount is specified on targeted resources.
+      allowNamespaceCreation:
+        label: Allow namespace creation
+        description: While a service account is required, Fleet does not create namespaces on downstream clusters, so target namespaces have to exist already. Allow it only where namespace creation is controlled by other means.
+        link: Namespace creation in the Fleet documentation
+      restrict:
+        all: Allow all service accounts
+        selected: Only allow selected service accounts
+        description: Restricts the set of service accounts that GitRepo, HelmOp and Bundle resources may reference.
+      allowed:
+        title: Select allowed service accounts
+        label: Allowed service accounts
+    gitRepo:
+      title: GitRepo Policy
+      defaultServiceAccount:
+        label: Default service account
+        description: This will be applied to GitRepo app bundles with no service account provided.
+      defaultSecret:
+        label: Default client secret
+        description: This will be applied to GitRepo app bundles with no client secret provided.
+      restrict:
+        all: Allow all client secrets
+        selected: Only allow selected client secrets
+        description: Restricts the set of clientSecretName values GitRepos may reference.
+      allowed:
+        title: Select allowed client secrets
+        label: Allowed client secrets
+    helmOp:
+      title: HelmOps Policy
+      defaultServiceAccount:
+        label: Default service account
+        description: This will be applied to HelmOps app bundles with no service account provided.
+      defaultSecret:
+        label: Default Helm secret
+        description: This will be applied to HelmOps app bundles with no Helm secret provided.
+      restrict:
+        all: Allow all Helm secrets
+        selected: Only allow selected Helm secrets
+        description: Restricts the set of credential secret names HelmOps may reference.
+      allowed:
+        title: Select allowed Helm secrets
+        label: Allowed Helm secrets
+    placeholder:
+      serviceAccount: Select or enter a service account name
+      secret: Select or enter a secret name
+      allowList: Select or enter names
   configMaps:
     label: Config Maps
   secrets:
