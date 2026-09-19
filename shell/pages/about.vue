@@ -81,7 +81,7 @@ export default {
     class="about"
   >
     <BackLink :link="backLink" />
-    <div class="title-block mt-20 mb-40">
+    <div class="title-block mb-20">
       <h1>
         <TabTitle breadcrumb="vendor-only">
           {{ t('about.title') }}
@@ -194,6 +194,19 @@ export default {
         {{ t('about.versions.releaseNotes') }}
       </a>
     </p>
+    <section class="open-source-licenses pt-40">
+      <h3>{{ t('about.licenses.title') }}</h3>
+      <p>{{ t('about.licenses.description') }}</p>
+      <rc-button
+        size="small"
+        :to="{ name: 'licenses' }"
+        class="mt-10"
+        data-testid="about__licenses_button"
+        :aria-label="t('about.licenses.viewLicenses')"
+      >
+        {{ t('about.licenses.viewLicenses') }}
+      </rc-button>
+    </section>
     <template v-if="downloadCli.length">
       <RcHeading
         :size="3"
