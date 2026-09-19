@@ -29,6 +29,10 @@ export default {
     document.removeEventListener('click', this.onClickOutside);
   },
 
+  mounted() {
+    this.loadHealthIfPaginated();
+  },
+
   data() {
     return {
       disabled: false,
@@ -76,6 +80,12 @@ export default {
     startDelayedLoading() {
       this.loading = false;
       this.liveUpdate();
+    },
+
+    loadHealthIfPaginated() {
+      if (this.row?.hasPaginatedWorkloadHealth) {
+        this.startDelayedLoading();
+      }
     },
 
     onClickOutside(event) {
