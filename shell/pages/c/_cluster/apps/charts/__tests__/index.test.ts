@@ -231,4 +231,43 @@ describe('page: Charts Index', () => {
       expect(search.attributes('role')).toBeUndefined();
     });
   });
+
+  describe('computed: suseAppCollectionEnabled', () => {
+    const createContext = (value?: string) => ({ $store: { getters: { 'management/byId': (_type: string, _id: string) => (value !== undefined ? { value } : undefined) } } });
+
+    // Gated on the `system-catalog` setting: `bundle` (airgap / bundled charts only) disables it.
+    it.each([
+      [undefined, true],
+      ['external', true],
+      ['bundle', false],
+    ])('reflects the system-catalog setting (value: %s)', (value, expected) => {
+      const ctx = createContext(value);
+
+      expect((Charts.computed!.suseAppCollectionEnabled as () => boolean).call(ctx)).toBe(expected);
+    });
+  });
+
+  describe('computed: showAppCollectionBannerLogic', () => {
+    const baseContext = {
+      hasSuseAppCollectionRepo: false,
+      canCreateRepos:           true,
+      showAppCollectionBanner:  true,
+      hideBannerPref:           false,
+      isPrime:                  true,
+      suseAppCollectionEnabled: true,
+    };
+
+    it('is truthy when all conditions including the setting are met', () => {
+      const result = (Charts.computed!.showAppCollectionBannerLogic as () => unknown).call(baseContext);
+
+      expect(!!result).toBe(true);
+    });
+
+    it('is falsy when the SUSE Application Collection integration is disabled (system-catalog is bundle)', () => {
+      const ctx = { ...baseContext, suseAppCollectionEnabled: false };
+      const result = (Charts.computed!.showAppCollectionBannerLogic as () => unknown).call(ctx);
+
+      expect(!!result).toBe(false);
+    });
+  });
 });
