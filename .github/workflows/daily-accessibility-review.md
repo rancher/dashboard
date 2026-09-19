@@ -12,6 +12,9 @@ on:
 
 if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_ACCESSIBILITY_REVIEW != 'true'
 
+
+max-ai-credits: 300
+
 permissions:
   actions: read
   attestations: read
