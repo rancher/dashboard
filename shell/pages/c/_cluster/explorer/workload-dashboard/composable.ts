@@ -3,12 +3,11 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { NAMESPACE, WORKLOAD_TYPES } from '@shell/config/types';
+import { WORKLOAD_TYPES } from '@shell/config/types';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
-import { ALL_NAMESPACES } from '@shell/store/prefs';
 import {
   NAMESPACE_FILTER_ALL_USER,
   NAMESPACE_FILTER_ALL_SYSTEM,
@@ -16,6 +15,7 @@ import {
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { getWorkloadNamespaceFilterParams } from './namespaceFilter';
 import {
   WORKLOAD_DASHBOARD_RESOURCE_TYPES, COLOR_ORDER,
   type WorkloadDashboardSummaryEntry,
@@ -55,15 +55,7 @@ export function useWorkloadDashboard() {
   const namespaceFilterParam = ref('');
 
   function buildNamespaceFilterParam(): string {
-    const selection: string[] = store.getters['namespaceFilters'];
-    const { projectsOrNamespaces, filters } = stevePaginationUtils.createParamsFromNsFilter({
-      allNamespaces:                 store.getters['cluster/all'](NAMESPACE),
-      selection,
-      isAllNamespaces:               isAllNamespaces.value,
-      isLocalCluster:                store.getters['currentCluster']?.isLocal,
-      showReservedRancherNamespaces: store.getters['prefs/get'](ALL_NAMESPACES),
-      productHidesSystemNamespaces:  store.getters['currentProduct']?.hideSystemResources,
-    });
+    const { projectsOrNamespaces, filters } = getWorkloadNamespaceFilterParams(store);
 
     // Getting the first schema is sufficient since the namespace filter param structure is the same across all resource types
     const schema = WORKLOAD_DASHBOARD_RESOURCE_TYPES
