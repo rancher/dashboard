@@ -145,6 +145,12 @@ export default {
       pickedViewId: undefined,
       /** Which modal is open, if any: { kind: 'new' | 'export', view } */
       modal:        null,
+      /**
+       * Which sub menu of the View menu is open - 'group', 'columns', or null. A menu item has
+       * no trigger of its own, so the row that opens one says so here and the menu takes its
+       * open state from it.
+       */
+      subMenu:      null,
       /** Name being typed in the new view modal */
       modalName:    '',
       /** id of the view being renamed in place, and the name being typed for it */
@@ -553,28 +559,13 @@ export default {
     },
 
     /**
-     * Arrow keys walk a menu's rows. The rows that open sub menus are buttons rather than menu
-     * items, so they carry the item's marker to stand in the same list, and move focus the same
-     * way the items do - the item's own handler reads that list, so it steps onto them too.
+     * A sub menu closing itself - a click outside it, Escape, picking something - is what takes
+     * the row out of the open state the click put it in.
      */
-    moveMenuFocus(event) {
-      const row = event.currentTarget;
-      const panel = row?.closest('.menu-panel');
-
-      if (!panel) {
-        return;
+    closeSubMenu(key, open) {
+      if (!open && this.subMenu === key) {
+        this.subMenu = null;
       }
-
-      const rows = [...panel.querySelectorAll('[dropdown-menu-item]')].filter((el) => el.offsetParent !== null);
-      const at = rows.indexOf(row);
-
-      if (at < 0) {
-        return;
-      }
-
-      const next = event.key === 'ArrowDown' ? at + 1 : at - 1;
-
-      rows[(next + rows.length) % rows.length]?.focus();
     },
 
     /**
@@ -1046,28 +1037,35 @@ export default {
           {{ t('tableViews.view.label') }}
         </rc-dropdown-trigger>
         <template #dropdownCollection>
-          <div class="menu-panel">
+          <div
+            ref="viewMenu"
+            class="menu-panel"
+          >
             <!-- The View button sits at the right hand end of the toolbar, so the sub menus
-                 open to the left of it rather than off screen. -->
-            <rc-dropdown
-              :placement="'left-start'"
-              :distance="-1"
-              :skidding="-9"
-              :shift="false"
-              :flip="false"
+                 open to the left of it rather than off screen. They are positioned against this
+                 menu rather than the row that opens them: the rows are inset from its edges, and
+                 a sub menu belongs alongside the menu, top with top. -->
+            <rc-dropdown-item
+              :close-on-click="false"
+              data-testid="table-views-view-group"
+              @click="subMenu = 'group'"
             >
-              <rc-dropdown-trigger
-                variant="link"
-                class="menu-nav"
-                dropdown-menu-item
-                tabindex="-1"
-                data-testid="table-views-view-group"
-                @keydown.up.down.prevent.stop="moveMenuFocus"
-              >
-                <span class="menu-nav-label">{{ t('tableViews.view.groupBy') }}</span>
+              {{ t('tableViews.view.groupBy') }}
+              <template #after>
                 <span class="menu-nav-value">{{ groupLabel }}</span>
                 <i class="icon icon-chevron-right" />
-              </rc-dropdown-trigger>
+              </template>
+            </rc-dropdown-item>
+            <rc-dropdown
+              :open="subMenu === 'group'"
+              :placement="'left-start'"
+              :distance="-1"
+              :skidding="-1"
+              :shift="false"
+              :flip="false"
+              :reference-node="() => $refs.viewMenu"
+              @update:open="(open) => closeSubMenu('group', open)"
+            >
               <template #dropdownCollection>
                 <div class="menu-panel">
                   <rc-dropdown-item
@@ -1097,25 +1095,27 @@ export default {
               </template>
             </rc-dropdown>
 
-            <rc-dropdown
-              :placement="'left-start'"
-              :distance="-1"
-              :skidding="-9"
-              :shift="false"
-              :flip="false"
+            <rc-dropdown-item
+              :close-on-click="false"
+              data-testid="table-views-view-columns"
+              @click="subMenu = 'columns'"
             >
-              <rc-dropdown-trigger
-                variant="link"
-                class="menu-nav"
-                dropdown-menu-item
-                tabindex="-1"
-                data-testid="table-views-view-columns"
-                @keydown.up.down.prevent.stop="moveMenuFocus"
-              >
-                <span class="menu-nav-label">{{ t('tableViews.view.columnsConfiguration') }}</span>
+              {{ t('tableViews.view.columnsConfiguration') }}
+              <template #after>
                 <span class="menu-nav-value">{{ columnsSummary }}</span>
                 <i class="icon icon-chevron-right" />
-              </rc-dropdown-trigger>
+              </template>
+            </rc-dropdown-item>
+            <rc-dropdown
+              :open="subMenu === 'columns'"
+              :placement="'left-start'"
+              :distance="-1"
+              :skidding="-1"
+              :shift="false"
+              :flip="false"
+              :reference-node="() => $refs.viewMenu"
+              @update:open="(open) => closeSubMenu('columns', open)"
+            >
               <template #dropdownCollection>
                 <div class="menu-panel columns-panel">
                   <!-- The list reorders live under the cursor and the rows shuffle on the
@@ -1517,53 +1517,25 @@ export default {
     white-space: nowrap;
   }
 
-  // A row that opens a sub menu stands in its own popper wrapper, so that is what carries the
-  // inset the menu items get from their margin
-  :deep(.v-popper) {
-    margin: 0 9px;
+  // A focus ring is drawn on the row's own box, so anything painted after it covers its edge -
+  // the tint the row below takes under the cursor, most visibly. The focused row rises over them.
+  [dropdown-menu-item]:focus-visible {
+    position: relative;
+    z-index: 1;
   }
 
-  // The row itself: label (left) + current value + chevron (right). It is a button rather than a
-  // menu item, so it is tinted to match the rows around it instead of taking the link button's
-  // own blue.
-  .menu-nav {
-    display: flex;
-    align-items: center;
+  // What a row that opens a sub menu carries at its end: where that sub menu stands, and the
+  // arrow into it. The row itself is an ordinary menu item and is left to the component.
+  .dropdown-item-after {
     gap: 8px;
-    width: 100%;
-    height: 33px;
-    min-height: 33px;
-    justify-content: flex-start;
-    // The button's own size class sets its padding from this, and wins a plain `padding` on
-    // specificity, so the hook is what the row is inset by
-    --rc-button-padding: 0 8px;
-    border-radius: 4px;
-    color: var(--body-text);
-    text-decoration: none;
 
-    &:hover {
-      background-color: var(--sortable-table-hover-bg);
-    }
-
-    // The link button rings on any focus, so clicking a row left a ring on it. Only the keyboard
-    // needs one.
-    &:focus:not(:focus-visible) {
-      outline: none;
-      color: var(--body-text);
-    }
-
-    .menu-nav-label { font-weight: 400; }
     .menu-nav-value {
-      margin-left: auto;
       color: var(--muted);
       max-width: 150px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    // Left to take the row's own colour. Muted, it washed out against the tint the row picks up
-    // under the cursor, and read as a different grey to the one on the row above it.
-    .icon-chevron-right { color: inherit; }
   }
 
   // Blue marks what is currently in force, the same way the shown columns are marked

@@ -20,7 +20,7 @@
  *    </template>
  *  </rc-dropdown>
  */
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
 
@@ -29,7 +29,7 @@ import type { Placement } from 'floating-vue';
 /** Hands the popper the element to position against */
 type ReferenceNode = () => Element | undefined | null;
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     // eslint-disable-next-line vue/require-default-prop
     ariaLabel?: string;
@@ -48,6 +48,12 @@ withDefaults(
      * sub menu that has to stay lined up with the row that opened it, being in line matters more
      * than the tail of a long list being on screen - the menu scrolls for that.
      */
+    /**
+     * Opens and closes the menu from outside, completing the `update:open` this already emits.
+     * A row of one menu that opens another is a menu item, and an item has no way to open
+     * anything itself - this is what lets it, without a trigger of its own.
+     */
+    open?: boolean;
     shift?: boolean;
     /**
      * Off holds the menu to its placement rather than turning it over when it runs out of room.
@@ -58,9 +64,10 @@ withDefaults(
     placement?: Placement;
   }>(),
   // `shift` carries floating-vue's own default: a boolean prop left alone would come through as
-  // false and stop every menu in the product being nudged back into view
+  // false and stop every menu in the product being nudged back into view. `open` false is the
+  // state every menu starts in, so a caller that never passes it is left to open itself.
   {
-    placement: 'bottom-end', shift: true, flip: true
+    placement: 'bottom-end', shift: true, flip: true, open: false
   }
 );
 
@@ -78,6 +85,12 @@ const {
 } = useDropdownContext(emit);
 
 provideDropdownContext();
+
+watch(() => props.open, (open) => {
+  if (open !== isMenuOpen.value) {
+    showMenu(open);
+  }
+});
 
 const popperContainer = ref(null);
 const dropdownTarget = ref(null);
