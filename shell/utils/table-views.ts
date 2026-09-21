@@ -34,6 +34,34 @@ export function isCoreField(fieldId?: string): boolean {
 }
 
 /**
+ * The columns a table will not let go of, given the ones it shows by default.
+ *
+ * Whatever a row is identified by leads the table, so that is what cannot be hidden: state and
+ * name where they lead, and otherwise simply the first column. An events list leads with its
+ * state and carries a name further along, and the events on a detail page lead with when they
+ * were last seen - neither has an identity column in the place the rest of the product puts it,
+ * and both would be left showing nothing to recognise a row by.
+ */
+export function coreFieldIdsFor(defaultColumnIds?: string[]): string[] {
+  const defaults = defaultColumnIds || [];
+  const leading: string[] = [];
+
+  for (const id of defaults) {
+    if (!CORE_FIELD_IDS.includes(id)) {
+      break;
+    }
+
+    leading.push(id);
+  }
+
+  if (leading.length) {
+    return leading;
+  }
+
+  return defaults.length ? [defaults[0]] : [];
+}
+
+/**
  * A thing the user can filter on, group by, or show as a column
  */
 export interface ViewField {

@@ -20,6 +20,7 @@ import { optionalHeadersFor } from '@shell/config/optional-table-headers';
 import {
   LABEL_FIELD_PREFIX,
   applyQueryExpression,
+  coreFieldIdsFor,
   decodeView,
   fieldValue,
   fieldsFor,
@@ -34,7 +35,6 @@ import {
   rowsToYaml,
   stringifyValue,
   queryToServerFilters,
-  isCoreField,
   serverPathFor,
   summaryToValues,
 } from '@shell/utils/table-views';
@@ -836,6 +836,11 @@ export default {
       return (this._headers || []).filter((header) => !isIgnoredColumn(header)).map((header) => headerFieldId(header));
     },
 
+    /** The columns this table will not let go of - see coreFieldIdsFor */
+    coreColumnIds() {
+      return coreFieldIdsFor(this.defaultColumnIds);
+    },
+
     /**
      * Everything the user can filter on, group by, or add as a column
      */
@@ -1074,7 +1079,7 @@ export default {
         // Chosen from everything the type has rather than only what this page shows, so a column
         // the page left out can be added. Core columns are always kept, even if a saved or
         // shared view omits them.
-        out = this.availableHeaders.filter((header) => isIgnoredColumn(header) || isCoreField(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
+        out = this.availableHeaders.filter((header) => isIgnoredColumn(header) || this.coreColumnIds.includes(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
       }
 
       if (this.view.columnOrder?.length) {
@@ -1571,8 +1576,24 @@ export default {
         return;
       }
 
+      // The view asked to be sorted this way and the table has obliged. That the sort happens to
+      // be the one the table would have chosen anyway does not make it an edit - recording it as
+      // "no sort" leaves the view no longer matching what was saved, so it opens on the default
+      // tab wearing its columns and a changed mark.
+      if (wanted === sortBy && !!this.view.sortDescending === !!descending) {
+        return;
+      }
+
       if (!this.defaultSort) {
         this.defaultSort = { sortBy, descending: !!descending };
+
+        // The table's first report is the sort it arrived with, which it made before being told
+        // what the view wants. Recording it over a view that asked for something else throws the
+        // view's own sort away before it has been applied - and the view then no longer matches
+        // what was saved, so it opens on the default tab wearing its columns and a changed mark.
+        if (wanted && wanted !== sortBy) {
+          return;
+        }
       }
 
       const isDefault = sortBy === this.defaultSort.sortBy && !!descending === this.defaultSort.descending;
@@ -1758,6 +1779,7 @@ export default {
         :resource-type="schema ? schema.id : ''"
         :unsupported-fields="unsupportedViewFields"
         :default-columns="defaultColumnIds"
+        :core-columns="coreColumnIds"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
         @tab-queries="tabQueries = $event"
@@ -1798,6 +1820,7 @@ export default {
         :resource-type="schema ? schema.id : ''"
         :unsupported-fields="unsupportedViewFields"
         :default-columns="defaultColumnIds"
+        :core-columns="coreColumnIds"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
         @export="handleExport"
