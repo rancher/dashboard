@@ -85,7 +85,7 @@ const save = async(btnCb: AsyncButtonCallback) => {
         :config="model"
         :name="resource.nameDisplay"
       />
-      <DrawerCard>
+      <DrawerCard data-testid="auth-provider-access-form">
         <Loading
           v-if="fetch.loading"
           mode="relative"

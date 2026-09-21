@@ -116,7 +116,7 @@ describe('component: AuthProviderAccessDrawer', () => {
 
     await flushPromises();
 
-    const card = wrapper.find('.drawer-card');
+    const card = wrapper.find('[data-testid="auth-provider-access-form"].drawer-card');
 
     expect(card.findComponent(AllowedPrincipals).exists()).toBe(true);
     expect(wrapper.findComponent(AllowedPrincipals).props('stacked')).toBe(true);
@@ -134,6 +134,10 @@ describe('component: AuthProviderAccessDrawer', () => {
 
     expect(details.props('config')).toStrictEqual(model);
     expect(details.props('name')).toBe('GitHub');
+
+    // On a card of its own, so it reads as what the provider is rather than as
+    // part of the form below it
+    expect(details.find('.drawer-card').exists()).toBe(true);
   });
 
   it('should leave out the configuration of a provider it cannot load', async() => {

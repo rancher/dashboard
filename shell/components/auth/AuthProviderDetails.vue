@@ -7,6 +7,7 @@
  */
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { authProviderDetails } from '@shell/utils/auth-provider-details';
 
@@ -24,35 +25,42 @@ const details = computed(() => authProviderDetails(props.config, i18n.t, props.n
 </script>
 
 <template>
-  <dl
+  <DrawerCard
     v-if="details.length"
-    class="auth-provider-details"
-    data-testid="auth-provider-details"
+    class="auth-provider-details-card"
   >
-    <div
-      v-for="detail in details"
-      :key="detail.label"
-      class="auth-provider-details__item"
+    <dl
+      class="auth-provider-details"
+      data-testid="auth-provider-details"
     >
-      <dt class="auth-provider-details__label">
-        {{ detail.label }}
-      </dt>
-      <dd class="auth-provider-details__value">
-        {{ detail.value }}
-      </dd>
-    </div>
-  </dl>
+      <div
+        v-for="detail in details"
+        :key="detail.label"
+        class="auth-provider-details__item"
+      >
+        <dt class="auth-provider-details__label">
+          {{ detail.label }}
+        </dt>
+        <dd class="auth-provider-details__value">
+          {{ detail.value }}
+        </dd>
+      </div>
+    </dl>
+  </DrawerCard>
 </template>
 
 <style lang="scss" scoped>
+.auth-provider-details-card {
+  margin-bottom: 16px;
+}
+
 .auth-provider-details {
   display: grid;
   // Values are as long as whatever was configured, so they are given a column
   // each and left to wrap rather than squeezed onto one line
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px 24px;
-  margin: 0 0 16px 0;
-  padding: 0 16px;
+  margin: 0;
 
   &__item {
     display: flex;

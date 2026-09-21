@@ -6,7 +6,12 @@ const createWrapper = (config: any, name = 'GitHub') => {
 
   return shallowMount(AuthProviderDetails, {
     props:  { config, name },
-    global: { provide: { store }, mocks: { $store: store } },
+    global: {
+      provide: { store },
+      mocks:   { $store: store },
+      // The pairs are the card's content, so the card has to pass them through
+      stubs:   { DrawerCard: { template: '<div><slot /></div>' } },
+    },
   });
 };
 
