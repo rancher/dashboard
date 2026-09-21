@@ -89,6 +89,18 @@ describe('page: AuthConfigList', () => {
     expect(titles).not.toContain('GitHub');
   });
 
+  // The rule between rows parts one from the next, so a single external provider
+  // has nothing to be parted from.
+  it.each([
+    ['a single external provider is configured', [localConfig, oktaConfig], false],
+    ['multiple external providers are configured', [localConfig, oktaConfig, { ...oktaConfig, id: 'azuread' }], true],
+  ])('should draw the rule below the row when %s', (_label, configs, expected) => {
+    const wrapper = createWrapper({ configs });
+    const [externalRow] = wrapper.findAllComponents(AuthProviderRow);
+
+    expect(externalRow.props('divided')).toBe(expected);
+  });
+
   // The provider page opens on how the provider itself is configured, which is
   // not what the row is about - who may log in with it is.
   describe('opening a provider', () => {
@@ -267,9 +279,7 @@ describe('page: AuthConfigList', () => {
     // Local closes the page, so a rule under it parts it from nothing.
     it('should end the page without a rule under it', () => {
       const wrapper = createWrapper();
-      const rows = wrapper.findAllComponents(AuthProviderRow);
 
-      expect(rows[0].props('divided')).toBe(true);
       expect(localRow(wrapper).props('divided')).toBe(false);
     });
   });
