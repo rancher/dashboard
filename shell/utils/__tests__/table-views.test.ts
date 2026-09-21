@@ -1,5 +1,6 @@
 import {
-  applyQuery, decodeView, encodeView, fieldsFor, parseQuery, rowsToCsv, valuesInUse,
+  applyQuery, applyQueryExpression, decodeView, encodeView, fieldsFor, parseQuery,
+  parseQueryExpression, queryToServerFilters, rowsToCsv, valuesInUse,
   isCoreField, CORE_FIELD_IDS,
   serverPathFor,
   summaryToValues,
@@ -280,5 +281,113 @@ describe('fx: termsToServerFilters', () => {
 
     expect(filters).toStrictEqual([]);
     expect(unsupported).toStrictEqual(terms);
+  });
+});
+
+describe('fx: parseQueryExpression', () => {
+  const fields = fieldsFor(HEADERS, ROWS);
+  const shape = (query: string) => parseQueryExpression(query, fields)
+    .clauses.map((clause) => clause.groups.map((group) => group.map((term) => `${ term.negated ? '!' : '' }${ term.field }:${ term.value }`)));
+
+  it('should read a query with no joining words as one group', () => {
+    expect(shape('state:Error name:nginx')).toStrictEqual([[['state:Error', 'name:nginx']]]);
+  });
+
+  it('should start a new group at each "and"', () => {
+    expect(shape('state:Error and name:nginx')).toStrictEqual([[['state:Error'], ['name:nginx']]]);
+  });
+
+  it('should start a new clause at each "or"', () => {
+    expect(shape('state:Error or name:nginx')).toStrictEqual([[['state:Error']], [['name:nginx']]]);
+  });
+
+  it('should bind "and" tighter than "or"', () => {
+    expect(shape('name:a or name:b and state:Error')).toStrictEqual([
+      [['name:a']],
+      [['name:b'], ['state:Error']],
+    ]);
+  });
+
+  it('should leave "not" attached to its term rather than dividing groups', () => {
+    expect(shape('not state:Error name:nginx')).toStrictEqual([[['!state:Error', 'name:nginx']]]);
+  });
+
+  it('should ignore a joining word with nothing after it', () => {
+    expect(shape('state:Error and')).toStrictEqual([[['state:Error']]]);
+    expect(shape('state:Error or')).toStrictEqual([[['state:Error']]]);
+    expect(shape('or state:Error')).toStrictEqual([[['state:Error']]]);
+  });
+});
+
+describe('fx: applyQueryExpression', () => {
+  const fields = fieldsFor(HEADERS, ROWS);
+  const names = (query: string) => applyQueryExpression(ROWS, parseQueryExpression(query, fields), fields).map((r) => r.metadata.name);
+
+  it('should keep treating terms written side by side the way it always has', () => {
+    // Same field, either matches
+    expect(names('state:Running state:Error')).toStrictEqual(['nginx-a', 'nginx-b', 'redis-a']);
+    // Different fields, both must match
+    expect(names('state:Error name:nginx')).toStrictEqual(['nginx-b']);
+  });
+
+  it('should require both sides of an "and"', () => {
+    expect(names('state:Running and state:Error')).toStrictEqual([]);
+    expect(names('state:Error and name:nginx')).toStrictEqual(['nginx-b']);
+  });
+
+  it('should accept either side of an "or"', () => {
+    expect(names('name:redis or state:Running')).toStrictEqual(['nginx-a', 'redis-a']);
+    expect(names('name:redis or name:nothing')).toStrictEqual(['redis-a']);
+  });
+
+  it('should read "a or b and c" as "a or (b and c)"', () => {
+    expect(names('name:redis or name:nginx and state:Running')).toStrictEqual(['nginx-a', 'redis-a']);
+  });
+
+  it('should negate only the term the "not" belongs to', () => {
+    expect(names('not state:Error')).toStrictEqual(['nginx-a']);
+    expect(names('not state:Error or name:redis')).toStrictEqual(['nginx-a', 'redis-a']);
+  });
+});
+
+describe('fx: queryToServerFilters', () => {
+  const fields = fieldsFor(HEADERS, ROWS);
+  const isAllowed = () => true;
+  const build = (query: string) => queryToServerFilters(parseQueryExpression(query, fields), fields, { isAllowed });
+
+  it('should give one param per group when the clauses are AND\'d', () => {
+    const { filters } = build('state:Error and name:nginx');
+
+    expect(filters).toHaveLength(2);
+    expect(filters[0].fields).toHaveLength(1);
+    expect(filters[1].fields).toHaveLength(1);
+  });
+
+  it('should OR the fields of a single param when the clauses are OR\'d', () => {
+    const { filters } = build('state:Error or name:nginx');
+
+    // The api ORs the fields within one param, so an `or` of two simple sides is one param
+    expect(filters).toHaveLength(1);
+    expect(filters[0].fields).toHaveLength(2);
+  });
+
+  it('should turn "(a and b) or c" inside out into "(a or c) and (b or c)"', () => {
+    const { filters } = build('state:Error and name:nginx or namespace:default');
+
+    expect(filters).toHaveLength(2);
+    expect(filters[0].fields).toHaveLength(2);
+    expect(filters[1].fields).toHaveLength(2);
+  });
+
+  it('should filter nothing when one side of an "or" cannot be asked for', () => {
+    // Nothing is filterable, so the side that could be asked for must not narrow the list alone
+    const { filters, unsupported } = queryToServerFilters(
+      parseQueryExpression('state:Error or name:nginx', fields),
+      fields,
+      { isAllowed: (path: string) => path === 'stateDisplay' }
+    );
+
+    expect(filters).toHaveLength(0);
+    expect(unsupported.map((t) => t.value)).toStrictEqual(['Error', 'nginx']);
   });
 });

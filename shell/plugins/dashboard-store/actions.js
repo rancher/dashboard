@@ -500,8 +500,12 @@ export default {
 
     let out;
     // Claim this as the newest page request for the type, so a response that arrives after a
-    // later request can be discarded instead of overwriting it
-    const pageRequest = markPageRequest(ctx, type);
+    // later request can be discarded instead of overwriting it.
+    //
+    // Only a request that will write to the store may claim it. A transient one - the export
+    // re-running the list to get every matching row - writes nothing, so having it supersede
+    // anything meant exporting mid-load threw away the page the user was actually waiting for.
+    const pageRequest = opt.transient ? null : markPageRequest(ctx, type);
 
     try {
       if (opt.hasManualRefresh) {
@@ -519,7 +523,7 @@ export default {
 
     // A newer page request was made while this one was in flight, so its result - not this one - is
     // what the user is waiting for. Transient requests never reach the store, so they are unaffected
-    const superseded = !opt.transient && !isCurrentPageRequest(pageRequest);
+    const superseded = !!pageRequest && !isCurrentPageRequest(pageRequest);
 
     // Of type @StorePaginationResult
     const pagination = opt.pagination ? {

@@ -55,6 +55,30 @@ export interface ViewTerm {
   negated: boolean;
 }
 
+/**
+ * Terms written next to each other with no joining word between them.
+ *
+ * These keep the rule the box has always used - repeated terms for one field mean either, terms
+ * for different fields mean both - so a view saved before `and` and `or` meant anything still
+ * filters exactly as it did.
+ */
+export type ViewGroup = ViewTerm[];
+
+/** Groups joined by `and`: every one of them has to match */
+export interface ViewClause {
+  groups: ViewGroup[];
+}
+
+/**
+ * A whole query: clauses joined by `or`, so a row is kept when any one of them matches.
+ *
+ * `and` binds tighter than `or`, the way it does everywhere else, so `a or b and c` reads as
+ * `a or (b and c)`.
+ */
+export interface ViewQuery {
+  clauses: ViewClause[];
+}
+
 export interface SavedView {
   id: string;
   name: string;
@@ -316,6 +340,10 @@ export function isConnective(text: string): boolean {
 
 export function isNegator(text: string): boolean {
   return NEGATORS.includes((text || '').toLowerCase());
+}
+
+function isOr(text: string): boolean {
+  return (text || '').toLowerCase() === 'or';
 }
 
 /**
@@ -592,6 +620,68 @@ export function parseQuery(query: string, fields: ViewField[]): ViewTerm[] {
 }
 
 /**
+ * Read a query as what it actually asks for: clauses joined by `or`, each a set of groups
+ * joined by `and`.
+ *
+ * A query with no joining words in it comes back as a single group, which is what every query
+ * was treated as before - so nothing already saved changes meaning.
+ */
+export function parseQueryExpression(query: string, fields: ViewField[]): ViewQuery {
+  const clauses: ViewClause[] = [];
+  let groups: ViewGroup[] = [];
+  let group: ViewGroup = [];
+
+  const endGroup = () => {
+    if (group.length) {
+      groups.push(group);
+      group = [];
+    }
+  };
+
+  const endClause = () => {
+    endGroup();
+
+    if (groups.length) {
+      clauses.push({ groups });
+      groups = [];
+    }
+  };
+
+  scanQuery(query || '', fields).forEach((token) => {
+    if (token.kind === 'connective') {
+      // `not` belongs to the term after it, which scanQuery has already marked - it joins
+      // nothing, so it never divides one group from the next
+      if (isNegator(token.text)) {
+        return;
+      }
+
+      if (isOr(token.text)) {
+        endClause();
+      } else {
+        endGroup();
+      }
+
+      return;
+    }
+
+    // A term still being typed has nothing to match on yet
+    if (!token.value) {
+      return;
+    }
+
+    group.push({
+      field:   token.field ? token.field.id : null,
+      value:   token.value,
+      negated: token.negated,
+    });
+  });
+
+  endClause();
+
+  return { clauses };
+}
+
+/**
  * Does this field on this row contain `needle`?
  *
  * Both the shown value and the filterable one count, so the same query behaves the same way
@@ -623,14 +713,12 @@ function matchesTerm(row: any, term: ViewTerm, fields: ViewField[]): boolean {
 }
 
 /**
- * Apply the parsed query. Terms for different fields are ANDed, repeated terms for the
- * same field are ORed (`state:error state:crash` = either), which is what GitHub does.
+ * Does a row satisfy one group of terms?
+ *
+ * Terms for different fields are ANDed, repeated terms for the same field are ORed
+ * (`state:error state:crash` = either), which is what GitHub does.
  */
-export function applyQuery(rows: any[], terms: ViewTerm[], fields: ViewField[]): any[] {
-  if (!terms.length) {
-    return rows;
-  }
-
+function matchesGroup(row: any, terms: ViewGroup, fields: ViewField[]): boolean {
   const positive: Record<string, ViewTerm[]> = {};
   const negative: ViewTerm[] = [];
 
@@ -645,23 +733,44 @@ export function applyQuery(rows: any[], terms: ViewTerm[], fields: ViewField[]):
     }
   });
 
-  const groups = Object.values(positive);
-
-  return rows.filter((row) => {
-    for (const group of groups) {
-      if (!group.some((term) => matchesTerm(row, term, fields))) {
-        return false;
-      }
+  for (const group of Object.values(positive)) {
+    if (!group.some((term) => matchesTerm(row, term, fields))) {
+      return false;
     }
+  }
 
-    for (const term of negative) {
-      if (matchesTerm(row, term, fields)) {
-        return false;
-      }
+  for (const term of negative) {
+    if (matchesTerm(row, term, fields)) {
+      return false;
     }
+  }
 
-    return true;
-  });
+  return true;
+}
+
+/**
+ * Apply a whole query: any clause matching keeps the row, and a clause matches when every one
+ * of its groups does.
+ */
+export function applyQueryExpression(rows: any[], query: ViewQuery, fields: ViewField[]): any[] {
+  const clauses = query?.clauses || [];
+
+  if (!clauses.length) {
+    return rows;
+  }
+
+  return rows.filter((row) => clauses.some((clause) => clause.groups.every((group) => matchesGroup(row, group, fields))));
+}
+
+/**
+ * Apply a flat list of terms - a query with no joining words in it, which is one group.
+ */
+export function applyQuery(rows: any[], terms: ViewTerm[], fields: ViewField[]): any[] {
+  if (!terms.length) {
+    return rows;
+  }
+
+  return applyQueryExpression(rows, { clauses: [{ groups: [terms] }] }, fields);
 }
 
 /**
@@ -944,6 +1053,88 @@ export function termsToServerFilters(
   });
 
   return { filters, unsupported };
+}
+
+/**
+ * How many filter params an `or` is allowed to expand into.
+ *
+ * The api AND's separate params and OR's the fields inside one, so an `or` between two sides
+ * that each carry several conditions has to be turned inside out - and that multiplies. A query
+ * elaborate enough to go past this is reported rather than sent as something enormous.
+ */
+const MAX_OR_FILTERS = 16;
+
+/** Every term in a query, whichever clause or group it sits in */
+function allTerms(query: ViewQuery): ViewTerm[] {
+  return (query?.clauses || []).reduce((acc: ViewTerm[], clause) => acc.concat(...clause.groups), []);
+}
+
+/**
+ * Convert a whole query into steve/vai `filter=` params.
+ *
+ * The api gives us exactly one shape: separate params are AND'd, and the fields within a param
+ * are OR'd. `and` is therefore free - it is just more params - while `or` has to be turned
+ * inside out, `(a and b) or c` becoming `(a or c) and (b or c)`.
+ *
+ * Where that cannot be done - a side of an `or` that the api cannot constrain at all, or an
+ * expansion too large to be worth sending - nothing is filtered and every term is reported as
+ * unsupported, so the toolbar says the query did not run rather than the table narrowing by
+ * half of it.
+ */
+export function queryToServerFilters(
+  query: ViewQuery,
+  fields: ViewField[],
+  opts: { isAllowed: (path: string) => boolean }
+): ServerFilterResult {
+  const clauses = query?.clauses || [];
+
+  if (!clauses.length) {
+    return { filters: [], unsupported: [] };
+  }
+
+  const unsupported: ViewTerm[] = [];
+  // `and` between groups is just another param, so a clause is the concatenation of its groups
+  const perClause = clauses.map((clause) => {
+    const filters: PaginationParamFilter[] = [];
+
+    clause.groups.forEach((group) => {
+      const result = termsToServerFilters(group, fields, opts);
+
+      filters.push(...result.filters);
+      unsupported.push(...result.unsupported);
+    });
+
+    return filters;
+  });
+
+  if (perClause.length === 1) {
+    return { filters: perClause[0], unsupported };
+  }
+
+  // A side of an `or` that constrains nothing leaves the whole query constraining nothing -
+  // narrowing by the other side alone would hide the rows this one was asking for
+  if (perClause.some((filters) => !filters.length)) {
+    return { filters: [], unsupported: allTerms(query) };
+  }
+
+  if (perClause.reduce((acc, filters) => acc * filters.length, 1) > MAX_OR_FILTERS) {
+    return { filters: [], unsupported: allTerms(query) };
+  }
+
+  // One param for each way of taking one param from every clause, holding all their fields OR'd
+  let combinations: PaginationFilterField[][] = [[]];
+
+  perClause.forEach((filters) => {
+    const next: PaginationFilterField[][] = [];
+
+    combinations.forEach((sofar) => {
+      filters.forEach((filter) => next.push(sofar.concat(filter.fields || [])));
+    });
+
+    combinations = next;
+  });
+
+  return { filters: combinations.map((f) => new PaginationParamFilter({ fields: f })), unsupported };
 }
 
 export interface ValueSuggestion {

@@ -7156,10 +7156,22 @@ tableViews:
     placeholder: 'Filter across all columns or only specific ones (e.g. state:error)'
     inUse: "{count} in use"
     label: Label
+    suggestions: Filter suggestions
+    suggestionsAvailable: |-
+      {count, plural,
+      one {1 suggestion available}
+      other {{count} suggestions available}
+      }
     connective:
       and: Both must match
       or: Either can match
       not: Leave these out
+    # Shown when part of a query names something this list cannot be filtered by on the server
+    unsupported: |-
+      {count, plural,
+      one {<b>{fields}</b> cannot be filtered on this list, so that part of the query was ignored.}
+      other {<b>{fields}</b> cannot be filtered on this list, so those parts of the query were ignored.}
+      }
   columns:
     label: Columns
     tableColumns: Table columns

@@ -58,6 +58,15 @@ export default {
     },
 
     /**
+     * Names of fields the query mentions that this list cannot be filtered by, so the toolbar
+     * can say the query did not entirely run
+     */
+    unsupportedFields: {
+      type:    Array,
+      default: () => []
+    },
+
+    /**
      * ViewField[] - everything filterable/groupable on this table
      */
     fields: {
@@ -207,6 +216,14 @@ export default {
 
   computed: {
     allSavedViews: mapPref(TABLE_VIEWS),
+
+    /** What the toolbar says about the part of the query that could not be run */
+    unsupportedNotice() {
+      return this.t('tableViews.query.unsupported', {
+        count:  this.unsupportedFields.length,
+        fields: this.unsupportedFields.join(', '),
+      }, true);
+    },
 
     savedViews() {
       return this.allSavedViews?.[this.resourceType]?.views || this.allSavedViews?.[this.resourceType] || [];
@@ -1248,15 +1265,26 @@ export default {
       v-if="part !== 'tabs'"
       class="view-controls"
     >
-      <TableViewQueryInput
-        class="query-grow"
-        :value="view.query"
-        :fields="fields"
-        :rows="rows"
-        :field-values="fieldValues"
-        @update:value="update({ query: $event })"
-        @request-values="$emit('request-values', $event)"
-      />
+      <div class="query-grow query-column">
+        <TableViewQueryInput
+          :value="view.query"
+          :fields="fields"
+          :rows="rows"
+          :field-values="fieldValues"
+          @update:value="update({ query: $event })"
+          @request-values="$emit('request-values', $event)"
+        />
+        <!-- A query that names something this list cannot be filtered by is answered without
+             that part of it. Saying so beats a table that quietly disagrees with what is in the
+             box. `alert` rather than a `Banner`: it belongs to the box, under it, not to the page. -->
+        <p
+          v-if="unsupportedFields.length"
+          v-clean-html="unsupportedNotice"
+          class="query-unsupported"
+          role="alert"
+          data-testid="table-views-unsupported"
+        />
+      </div>
 
       <!-- Single "View" popup - Group by and Columns each open their own nested dropdown
            beside the row, GitHub style. -->
@@ -1665,6 +1693,22 @@ export default {
 
   .query-grow {
     flex: 1 1 auto;
+  }
+
+  // The box and anything it has to say about itself, stacked - so the notice sits under the box
+  // rather than beside it in the toolbar's own row
+  .query-column {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .query-unsupported {
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--warning);
   }
 
   .view-control-btn {
