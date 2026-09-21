@@ -1150,6 +1150,7 @@ export default {
 <template>
   <div
     ref="container"
+    :class="{ 'has-table-views': tableViewsLayout }"
     :data-testid="componentTestid + '-list-container'"
   >
     <div
@@ -2168,6 +2169,16 @@ export default {
   }
   .fixed-header-actions.button{
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
+  }
+
+  // The toolbar above this table opens menus over the rows, and a row can be left carrying a
+  // z-index of its own by something outside this component - the AI extension leaves one on every
+  // state chip the pointer has passed over - which would then paint over those menus. Giving the
+  // table a stacking context of its own keeps whatever the rows do contained to the rows, without
+  // moving anything up the shared scale.
+  .has-table-views .sortable-table {
+    position: relative;
+    z-index: 0;
   }
 
   $header-padding: 20px;
