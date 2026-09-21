@@ -55,17 +55,16 @@ const details = computed(() => authProviderDetails(props.config, i18n.t, props.n
 }
 
 .auth-provider-details {
-  display: grid;
-  // Values are as long as whatever was configured, so they are given a column
-  // each and left to wrap rather than squeezed onto one line
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 48px;
   margin: 0;
 
   &__item {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    max-width: 100%;
     min-width: 0;
   }
 
