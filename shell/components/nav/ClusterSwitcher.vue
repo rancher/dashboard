@@ -185,7 +185,7 @@ const optionIdAt = (index: number): string | undefined => {
     return undefined;
   }
 
-  if (localTile.value && index === 0) {
+  if (index < localOffset.value) {
     return tileOptionId(c);
   }
 

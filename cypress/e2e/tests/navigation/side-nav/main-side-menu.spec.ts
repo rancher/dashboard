@@ -160,7 +160,7 @@ describe('Side Menu: main', () => {
       burgerMenuPo.openClusterSwitcher();
       burgerMenuPo.clusterListRowByLabel('local').should('exist');
 
-      burgerMenuPo.clusterList().find('.cluster-switcher-row').its('length').then((rows) => {
+      burgerMenuPo.clusterListRows().its('length').then((rows) => {
         burgerMenuPo.clusterSwitcherCount().should('have.text', `${ rows }`);
       });
     });

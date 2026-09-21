@@ -24,6 +24,7 @@ describe('topLevelMenu.helper', () => {
     (isLocalClusterHidden as jest.Mock).mockReturnValue(false);
     (clusterFilterSignature as jest.Mock).mockReturnValue('[]');
     (filterHiddenLocalCluster as jest.Mock).mockImplementation((clusters) => clusters);
+    (paginationFilterClusters as jest.Mock).mockReturnValue([]);
     prefsData = { 'pinned-clusters': [], 'recent-clusters': [] };
     mockStore = {
       getters: {
@@ -565,8 +566,6 @@ describe('topLevelMenu.helper', () => {
       expect(requests).toHaveLength(1);
       expect(requests[0].pagination.filters).toStrictEqual([hideLocalFilter]);
       expect(helper.counts.browsable).toBe(21);
-
-      (paginationFilterClusters as jest.Mock).mockReturnValue([]);
     });
 
     // What the environment counts as a cluster is the other half of the answer: `hide-local-cluster` and
@@ -888,7 +887,6 @@ describe('topLevelMenu.helper', () => {
       expect(mockRequestOthers.mock.calls[1][0].pagination.filters[0]).toStrictEqual(hideLocalFilter);
       expect(mockRequestOthers.mock.calls[1][0].pagination.filters).toHaveLength(2);
 
-      (paginationFilterClusters as jest.Mock).mockReturnValue([]);
       helper.destroy();
     });
 

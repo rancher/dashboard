@@ -93,9 +93,8 @@ const COUNT_RETRY_MAX_DELAY = 60000;
  * 1. working clusters
  * 2. name
  *
- * `local` takes its turn in that order like any other cluster. It used to be sorted to the head of every
- * page (`spec.internal` first), from when the nav was one list and `local` had to lead it; it now has its
- * own tile above the list, so holding its row at the top as well just made the directory read out of order.
+ * `local` takes its turn in that order like any other cluster: it has its own tile above the list, so
+ * holding its row at the top as well just made the directory read out of order.
  */
 const DEFAULT_SORT: Array<PaginationSort> = [
   {

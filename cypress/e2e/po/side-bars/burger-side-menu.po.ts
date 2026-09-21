@@ -219,10 +219,17 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * Every row of the estate list — ALL CLUSTERS at rest, the matches while searching.
+   */
+  clusterListRows(): Cypress.Chainable {
+    return this.clusterList().find('.cluster-switcher-row');
+  }
+
+  /**
    * The rows currently matching the flyout's search term.
    */
   clusterSearchResults(): Cypress.Chainable {
-    return this.clusterList().find('.cluster-switcher-row');
+    return this.clusterListRows();
   }
 
   /**
