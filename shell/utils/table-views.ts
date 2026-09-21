@@ -41,8 +41,11 @@ export function isCoreField(fieldId?: string): boolean {
  * state and carries a name further along, and the events on a detail page lead with when they
  * were last seen - neither has an identity column in the place the rest of the product puts it,
  * and both would be left showing nothing to recognise a row by.
+ *
+ * The column the table is ordered by is kept too, for the same sort of reason: an order the
+ * reader cannot see the basis of looks like no order at all.
  */
-export function coreFieldIdsFor(defaultColumnIds?: string[]): string[] {
+export function coreFieldIdsFor(defaultColumnIds?: string[], sortedById?: string | null): string[] {
   const defaults = defaultColumnIds || [];
   const leading: string[] = [];
 
@@ -54,11 +57,15 @@ export function coreFieldIdsFor(defaultColumnIds?: string[]): string[] {
     leading.push(id);
   }
 
-  if (leading.length) {
-    return leading;
+  const out = leading.length ? leading : defaults.slice(0, 1);
+
+  // Whatever the table is ordered by stays as well - hiding it leaves the rows in an order
+  // nothing on screen accounts for. On an events list that is when each was last seen.
+  if (sortedById && defaults.includes(sortedById) && !out.includes(sortedById)) {
+    out.push(sortedById);
   }
 
-  return defaults.length ? [defaults[0]] : [];
+  return out;
 }
 
 /**
