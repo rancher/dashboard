@@ -125,7 +125,16 @@ export default {
   },
 
   watch: {
-    sortFields() {
+    sortFields(neu, old) {
+      // `sortFields` is a computed array, so every re-render hands back a new one whose contents
+      // are usually identical. Emitting on that asks the list to fetch again for the sort it is
+      // already showing, and when a server side filter is in play the answer comes back as a fresh
+      // set of rows, which recomputes this, which emits again - the list then refetches forever.
+      // Only a sort that really changed is worth a request.
+      if (neu?.join(',') === old?.join(',')) {
+        return;
+      }
+
       this.debouncedPaginationChanged();
     },
 
