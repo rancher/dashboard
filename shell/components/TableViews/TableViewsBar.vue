@@ -1884,9 +1884,11 @@ export default {
     }
   }
 
-  // Blue marks what is currently in force, the same way the shown columns are marked
+  // What is currently in force, marked the way the selected tab is. `--active` rather than
+  // `--info`: an alert severity does not follow the brand, so it stayed Rancher blue on a Prime
+  // install where everything around it had gone green - and it has no dark theme value of its own.
   [dropdown-menu-item].selected {
-    color: var(--info);
+    color: var(--active, var(--primary));
   }
 
 
@@ -1962,11 +1964,15 @@ export default {
     }
 
     &.shown {
-      color: var(--info);
+      color: var(--active, var(--primary));
     }
 
+    // A locked column is shown and cannot be turned off, so it reads as the same colour the other
+    // shown ones do, only fainter. Grey said "off", when the column is very much on - it is the
+    // switch that is unavailable, not the column. Mixed from the same token so it follows the
+    // brand with the rest of them.
     &.locked {
-      color: var(--muted);
+      color: color-mix(in srgb, var(--active, var(--primary)) 85%, transparent);
       cursor: default;
 
       .column-handle { cursor: default; }
