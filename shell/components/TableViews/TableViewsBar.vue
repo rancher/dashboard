@@ -11,6 +11,9 @@ import { RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator } fr
 /** How far the pointer travels with a row held before it counts as a drag rather than a click */
 const DRAG_THRESHOLD = 4;
 
+/** Clears the handle's tooltip of the row's hover highlight rather than sitting over the handle */
+const TOOLTIP_DISTANCE = 12;
+
 const SHORTCUTS = [
   {
     key: 's', shift: false, method: 'saveChanges'
@@ -213,6 +216,25 @@ export default {
 
     columnFields() {
       return this.fields.filter((f) => !f.isLabel);
+    },
+
+    /**
+     * The handle's tooltip. Empty content is how the directive is told to show nothing, so the
+     * tooltip goes the moment a row is picked up rather than riding along with it.
+     *
+     * Far enough left to clear the row's hover highlight: on the handle itself it sat over the
+     * thing being dragged, which is the one place it is in the way.
+     */
+    reorderTip() {
+      return {
+        content: this.dragId ? '' : this.t('tableViews.columns.reorder'), placement: 'left', distance: TOOLTIP_DISTANCE
+      };
+    },
+
+    lockedTip() {
+      return {
+        content: this.t('tableViews.columns.locked'), placement: 'left', distance: TOOLTIP_DISTANCE
+      };
     },
 
     /**
@@ -454,6 +476,9 @@ export default {
       this.dragOrder = this.orderedColumnFields.map((f) => f.id);
       this.dragStartOrder = [...this.dragOrder];
       this.captureColumnSlots();
+      // The list's own rows are told to say `grabbing` in CSS; this is for everywhere else the
+      // pointer can go while still carrying a row.
+      document.body.style.cursor = 'grabbing';
     },
 
     /**
@@ -570,6 +595,8 @@ export default {
         window.addEventListener('click', swallow, { capture: true, once: true });
         setTimeout(() => window.removeEventListener('click', swallow, true), 0);
       }
+
+      document.body.style.cursor = '';
 
       this.dragFrom = null;
       this.dragId = null;
@@ -1262,12 +1289,12 @@ export default {
                       <template #before>
                         <i
                           v-if="isCoreColumn(field)"
-                          v-clean-tooltip="{ content: t('tableViews.columns.locked'), placement: 'left' }"
+                          v-clean-tooltip="lockedTip"
                           class="icon icon-lock column-handle"
                         />
                         <span
                           v-else
-                          v-clean-tooltip="{ content: t('tableViews.columns.reorder'), placement: 'left' }"
+                          v-clean-tooltip="reorderTip"
                           class="column-handle grip"
                           :data-testid="`table-views-col-handle-${ field.id }`"
                           @mousedown="startColumnDrag(field.id, $event)"
@@ -1689,6 +1716,18 @@ export default {
 
   .is-reordering .column-row-move {
     transition: transform 0.2s $drag-displace-curve;
+  }
+
+  // A row is being carried, so the pointer says so over the whole list - the rows' own `pointer`
+  // would otherwise take over the moment the cursor crossed one
+  .is-reordering {
+    cursor: grabbing;
+
+    [dropdown-menu-item],
+    [dropdown-menu-item]:hover,
+    .column-handle {
+      cursor: grabbing;
+    }
   }
 
   // Column rows carry a drag handle (or a lock) and tick only what is shown
