@@ -1419,15 +1419,22 @@ export default {
   }
 
   // The "you have unsaved changes" banner at the top of a dirty view's menu. A quiet tint, not a
-  // solid block - it is telling the user where they stand, not asking them to act
-  // The unsaved banner is the exception: it runs to the very top of the menu, so it cancels the
-  // 8 above it and keeps the 8 below
+  // solid block - it is telling the user where they stand, not asking them to act.
+  // It runs to the very top of the menu, so the menu gives up its own 8 above rather than the
+  // banner pulling itself up over it: the panel scrolls, and a scroll container clips whatever is
+  // dragged above its top padding edge.
+  &:has(> .menu-notice) {
+    padding-top: 0;
+  }
+
   .menu-notice {
     display: flex;
     align-items: center;
     gap: 8px;
     height: 40px;
-    margin: -8px 0 8px;
+    margin: 0 0 8px;
+    // Sitting in the menu's top corners, it takes their rounding with them
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     padding: 0 17px;
     background: var(--accent-btn);
     color: var(--body-text);
