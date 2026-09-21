@@ -1263,12 +1263,14 @@ export default {
     border-bottom: 2px solid transparent;
     margin-bottom: -1px; // sit the underline on the row's own border rather than above it
 
+    // The same colours the tabs elsewhere in the product use: every tab reads as a link, and the
+    // active one is told apart by the rule under it rather than by a colour of its own
     &.active {
-      border-bottom-color: var(--primary);
+      border-bottom-color: var(--active, var(--primary));
 
       .view-tab,
       .view-tab-caret {
-        color: var(--primary);
+        color: var(--active, var(--primary));
       }
     }
   }
@@ -1285,7 +1287,7 @@ export default {
     border: none;
     padding: 0;
     cursor: pointer;
-    color: var(--body-text);
+    color: var(--link);
     font-size: 14px;
     line-height: 20px;
     white-space: nowrap;
@@ -1324,7 +1326,7 @@ export default {
     background: transparent;
     border: none;
     cursor: pointer;
-    color: var(--body-text);
+    color: var(--link);
     height: 100%;
     min-height: 32px;
     padding: 0;
