@@ -67,6 +67,10 @@ export interface SavedView {
   labelColumns: string[];
   /** Field id to group by, or null */
   groupBy: string | null;
+  /** Column name the table is sorted by. null means the table's own default */
+  sort?: string | null;
+  /** Which way that sort runs */
+  sortDescending?: boolean;
 }
 
 /** Columns that are structural rather than data, so never offered as fields */
