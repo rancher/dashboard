@@ -561,10 +561,15 @@ export default {
     /**
      * A sub menu closing itself - a click outside it, Escape, picking something - is what takes
      * the row out of the open state the click put it in.
+     *
+     * A menu normally hands focus back to the button that opened it, and this one has no button:
+     * it is opened by a row of the menu above. So the row takes focus back, leaving the keyboard
+     * where it was rather than at the top of the page.
      */
     closeSubMenu(key, open) {
       if (!open && this.subMenu === key) {
         this.subMenu = null;
+        this.$nextTick(() => this.$refs.viewMenu?.querySelector(`[data-testid="table-views-view-${ key }"]`)?.focus());
       }
     },
 
@@ -1039,7 +1044,7 @@ export default {
         <template #dropdownCollection>
           <div
             ref="viewMenu"
-            class="menu-panel"
+            class="menu-panel view-menu"
           >
             <!-- The View button sits at the right hand end of the toolbar, so the sub menus
                  open to the left of it rather than off screen. They are positioned against this
@@ -1431,6 +1436,14 @@ export default {
   display: flex;
   flex-direction: column;
   min-width: 240px;
+
+  // The View menu carries a value beside each row - the field grouped by, the columns preset -
+  // so it is given more room than a menu of plain commands before those values start crowding
+  // the labels they sit against.
+  &.view-menu {
+    min-width: 300px;
+  }
+
   max-height: 60vh;
   // Only ever downwards. Naming one axis leaves the other computing to `auto`, and a panel whose
   // width lands on a fraction is enough to raise a scrollbar along the bottom with nothing to
