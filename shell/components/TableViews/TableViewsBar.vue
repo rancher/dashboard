@@ -1386,6 +1386,15 @@ export default {
   }
 }
 
+// A menu is 8 clear at the top and bottom, and that 8 is the panel's own. RcDropdown's target
+// gives up its own 3 and its scrolling with it: the panel scrolls itself, and the 10 the popper
+// keeps is pulled back below, which leaves the panel hanging outside the target - a scroller
+// there turns that into a scrollbar with 10 to travel.
+.table-views :deep(.dropdownTarget) {
+  padding: 0;
+  overflow: visible;
+}
+
 // Content of an RcDropdown menu. RcDropdown owns the popper, this is the list inside it.
 .menu-panel {
   display: flex;
@@ -1398,9 +1407,8 @@ export default {
   overflow-x: hidden;
   overflow-y: auto;
   text-align: left;
-  // A menu is 8 clear at the top and bottom. Getting there means taking back what sits above it
-  // first: the popper pads itself 10, and RcDropdown's own target adds another 3.
-  margin: -13px 0;
+  // Takes back the padding the popper keeps, so the panel's own 8 is what shows
+  margin: -10px 0;
   padding: 8px 0;
 
   [dropdown-menu-item] {

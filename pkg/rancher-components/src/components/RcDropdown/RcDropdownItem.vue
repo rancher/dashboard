@@ -80,7 +80,9 @@ const handleClick = (e: MouseEvent) => {
       cursor: pointer;
       background-color: var(--dropdown-hover-bg);
     }
-    &:focus-visible, &:focus {
+    // Only when the keyboard put the focus here. Clicking an item focuses it too, and a ring
+    // drawn then is the menu answering a mouse with something only a keyboard needs.
+    &:focus-visible {
       @include focus-outline;
       outline-offset: 0;
     }
