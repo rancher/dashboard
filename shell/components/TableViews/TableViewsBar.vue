@@ -8,6 +8,9 @@ import AppModal from '@shell/components/AppModal.vue';
 import { RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator } from '@components/RcDropdown';
 
 /** Where a saved view's key bindings apply, and what they do */
+/** How far the pointer travels with a row held before it counts as a drag rather than a click */
+const DRAG_THRESHOLD = 4;
+
 const SHORTCUTS = [
   {
     key: 's', shift: false, method: 'saveChanges'
@@ -142,29 +145,34 @@ export default {
        * tab, or the id of a saved view. The default tab has to be distinguishable from "nothing
        * picked", or a saved view holding the same config as it is matched instead.
        */
-      pickedViewId: undefined,
+      pickedViewId:   undefined,
       /** Which modal is open, if any: { kind: 'new' | 'export', view } */
-      modal:        null,
+      modal:          null,
       /**
        * Which sub menu of the View menu is open - 'group', 'columns', or null. A menu item has
        * no trigger of its own, so the row that opens one says so here and the menu takes its
        * open state from it.
        */
-      subMenu:      null,
+      subMenu:        null,
       /** Name being typed in the new view modal */
-      modalName:    '',
+      modalName:      '',
       /** id of the view being renamed in place, and the name being typed for it */
-      renamingId:   null,
-      renameDraft:  '',
-      copied:       false,
+      renamingId:     null,
+      renameDraft:    '',
+      copied:         false,
       /**
        * Column picker drag. `dragId` is the row being held; `dragOrder` is the ids in the order
        * the list is showing them mid-drag, which is what lets the rows shuffle under the cursor
-       * instead of waiting for the drop.
+       * instead of waiting for the drop. `dragSlots` are the places the rows sat when the drag
+       * began - see captureColumnSlots for why they are taken once rather than read live.
        */
-      dragId:       null,
-      dragOrder:    null,
-      dragMoved:    false,
+      dragId:         null,
+      dragOrder:      null,
+      dragMoved:      false,
+      dragFrom:       null,
+      dragPointerY:   0,
+      dragSlots:      null,
+      dragStartOrder: null,
     };
   },
 
@@ -177,6 +185,7 @@ export default {
 
   beforeUnmount() {
     window.removeEventListener('keydown', this.onShortcut);
+    this.endColumnDrag(false);
   },
 
   computed: {
@@ -399,72 +408,179 @@ export default {
       this.update({ columns: this.columnFields.map((f) => f.id) });
     },
 
+    /**
+     * Press on a column's grip: arm a possible drag. Nothing is picked up here - a press on a row
+     * is far more often the start of a click that toggles the column - so the row is only taken
+     * once the pointer has travelled `DRAG_THRESHOLD` with it held.
+     */
     startColumnDrag(id, event) {
       if (event.button !== 0) {
         return;
       }
 
-      this.dragId = id;
-      this.dragOrder = this.orderedColumnFields.map((f) => f.id);
+      // Otherwise the pointer selects the labels it crosses on the way
+      event.preventDefault();
+
+      this.dragFrom = { id, y: event.clientY };
       this.dragMoved = false;
 
-      window.addEventListener('mousemove', this.onColumnDragMove);
-      window.addEventListener('mouseup', this.endColumnDrag);
+      window.addEventListener('mousemove', this.onColumnDragMove, true);
+      window.addEventListener('mouseup', this.onColumnDragEnd, true);
+      window.addEventListener('keydown', this.onColumnDragKey, true);
+    },
+
+    onColumnDragMove(event) {
+      if (!this.dragFrom) {
+        return;
+      }
+
+      this.dragPointerY = event.clientY;
+
+      if (!this.dragMoved && Math.abs(event.clientY - this.dragFrom.y) < DRAG_THRESHOLD) {
+        return;
+      }
+
+      this.beginColumnDrag();
+      this.placeDraggedColumn();
+    },
+
+    beginColumnDrag() {
+      if (this.dragMoved || !this.dragFrom) {
+        return;
+      }
+
+      this.dragMoved = true;
+      this.dragId = this.dragFrom.id;
+      this.dragOrder = this.orderedColumnFields.map((f) => f.id);
+      this.dragStartOrder = [...this.dragOrder];
+      this.captureColumnSlots();
     },
 
     /**
-     * Put the held row wherever the pointer is now, so the rest shuffle around it as it travels
+     * The places the rows occupy, measured once as the drag begins.
+     *
+     * They cannot be read live. A row's box reflects any transform it is under, and the rows
+     * displaced by a drag are mid-FLIP for as long as that move lasts - so measuring during the
+     * drag reads the positions rows are traveling THROUGH. The pointer then lands on a row that is
+     * only passing by, which reorders, which starts another move: the row flails between places
+     * instead of settling under the cursor.
+     *
+     * Held in the panel's own coordinates rather than the viewport's, so that a panel scrolled
+     * mid-drag does not put every boundary where the rows no longer are.
      */
-    onColumnDragMove(event) {
-      if (this.dragId === null) {
-        return;
+    captureColumnSlots() {
+      const scroller = this.$refs.columnsPanel;
+      const rows = scroller?.querySelectorAll('[data-col-id]') || [];
+      const origin = scroller ? scroller.getBoundingClientRect().top - scroller.scrollTop : 0;
+
+      this.dragSlots = [...rows].map((el) => {
+        const box = el.getBoundingClientRect();
+
+        return { top: box.top - origin, bottom: box.bottom - origin };
+      });
+    },
+
+    /**
+     * Which row the pointer is over. Past either end it clamps, so dragging beyond the last row
+     * parks the column at the end rather than abandoning the move.
+     */
+    columnIndexAt(clientY) {
+      const slots = this.dragSlots || [];
+      const scroller = this.$refs.columnsPanel;
+
+      if (!slots.length || !scroller) {
+        return -1;
       }
 
-      const over = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-col-id]');
-      const id = over?.getAttribute('data-col-id');
+      const y = clientY - scroller.getBoundingClientRect().top + scroller.scrollTop;
 
-      if (!id || id === this.dragId) {
-        return;
+      if (y <= slots[0].top) {
+        return 0;
       }
 
+      if (y >= slots[slots.length - 1].bottom) {
+        return slots.length - 1;
+      }
+
+      return slots.findIndex((slot) => y >= slot.top && y <= slot.bottom);
+    },
+
+    /**
+     * The first place a column can be dropped into. The locked columns hold the head of the list
+     * and cannot be moved themselves, so nothing may be carried above them either.
+     */
+    firstMovableIndex(order) {
+      let i = 0;
+
+      while (i < order.length && isCoreField(order[i])) {
+        i++;
+      }
+
+      return i;
+    },
+
+    /** Put the held row where the pointer is, so the rest shuffle around it as it travels */
+    placeDraggedColumn() {
       const order = [...this.dragOrder];
       const from = order.indexOf(this.dragId);
-      const to = order.indexOf(id);
+      const at = this.columnIndexAt(this.dragPointerY);
 
-      if (from === -1 || to === -1 || from === to) {
+      if (from === -1 || at === -1) {
+        return;
+      }
+
+      const to = Math.max(at, this.firstMovableIndex(order));
+
+      if (from === to) {
         return;
       }
 
       order.splice(to, 0, ...order.splice(from, 1));
       this.dragOrder = order;
-      this.dragMoved = true;
     },
 
-    endColumnDrag() {
-      window.removeEventListener('mousemove', this.onColumnDragMove);
-      window.removeEventListener('mouseup', this.endColumnDrag);
+    /** Escape abandons the drag: the list snaps back to the view, and nothing is written */
+    onColumnDragKey(event) {
+      if (event.key === 'Escape') {
+        this.endColumnDrag(false);
+      }
+    },
 
-      const { dragOrder, dragMoved } = this;
+    onColumnDragEnd() {
+      this.endColumnDrag(this.dragMoved);
+    },
 
-      this.dragId = null;
-      this.dragOrder = null;
-      this.dragMoved = false;
+    endColumnDrag(commit) {
+      window.removeEventListener('mousemove', this.onColumnDragMove, true);
+      window.removeEventListener('mouseup', this.onColumnDragEnd, true);
+      window.removeEventListener('keydown', this.onColumnDragKey, true);
 
-      if (!dragMoved) {
-        return;
+      const started = this.dragStartOrder || [];
+      const order = this.dragOrder;
+      const moved = !!order && order.some((id, i) => id !== started[i]);
+
+      if (this.dragMoved) {
+        // The click that follows this mouseup would land on whichever row the pointer ended over,
+        // toggling it. A drag is not a click, so it is swallowed.
+        const swallow = (event) => {
+          event.stopPropagation();
+          event.preventDefault();
+        };
+
+        window.addEventListener('click', swallow, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener('click', swallow, true), 0);
       }
 
-      // The click that follows this mouseup would land on whichever row the pointer ended over,
-      // toggling it. A drag is not a click, so it is swallowed.
-      const swallow = (event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        window.removeEventListener('click', swallow, true);
-      };
+      this.dragFrom = null;
+      this.dragId = null;
+      this.dragMoved = false;
+      this.dragSlots = null;
+      this.dragStartOrder = null;
+      this.dragOrder = null;
 
-      window.addEventListener('click', swallow, true);
-
-      this.update({ columnOrder: dragOrder });
+      if (commit && moved) {
+        this.update({ columnOrder: order });
+      }
     },
 
     setGroupBy(id) {
@@ -1122,7 +1238,10 @@ export default {
               @update:open="(open) => closeSubMenu('columns', open)"
             >
               <template #dropdownCollection>
-                <div class="menu-panel columns-panel">
+                <div
+                  ref="columnsPanel"
+                  class="menu-panel columns-panel"
+                >
                   <!-- The list reorders live under the cursor and the rows shuffle on the
                        TransitionGroup's own FLIP move, the same way the pinned shelf does -->
                   <TransitionGroup
@@ -1143,12 +1262,12 @@ export default {
                       <template #before>
                         <i
                           v-if="isCoreColumn(field)"
-                          v-clean-tooltip="t('tableViews.columns.locked')"
+                          v-clean-tooltip="{ content: t('tableViews.columns.locked'), placement: 'left' }"
                           class="icon icon-lock column-handle"
                         />
                         <span
                           v-else
-                          v-clean-tooltip="t('tableViews.columns.reorder')"
+                          v-clean-tooltip="{ content: t('tableViews.columns.reorder'), placement: 'left' }"
                           class="column-handle grip"
                           :data-testid="`table-views-col-handle-${ field.id }`"
                           @mousedown="startColumnDrag(field.id, $event)"
