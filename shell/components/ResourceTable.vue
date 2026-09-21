@@ -291,6 +291,14 @@ export default {
      * Show the table views toolbar (query, columns, group by, export, saved views).
      * Null means "decide automatically" - on for any table showing a known resource type
      */
+    /**
+     * Force the saved view tabs on or off. Null works it out - see showTableViewTabs
+     */
+    tableViewTabs: {
+      type:    Boolean,
+      default: null
+    },
+
     tableViews: {
       type:    Boolean,
       default: null,
@@ -717,7 +725,36 @@ export default {
         return this.tableViews;
       }
 
-      return !!this.schema?.id && !this.hasAdvancedFiltering && this.search;
+      return !!this.schema?.id && !this.hasAdvancedFiltering;
+    },
+
+    /**
+     * Whether the saved view tabs belong above this table.
+     *
+     * The filter, the View menu and the selection actions suit any table. Saved views do not:
+     * they are keyed by resource type and kept per user, and a table embedded in something
+     * else's detail page is one resource's pods rather than the pod list - there is nothing for
+     * a view of "all pods" to mean there, and saving one would put it on the real list.
+     *
+     * What tells them apart is the route: a detail page names the one resource it is showing,
+     * and a list page names the type it lists. Neither needs every call site to say so.
+     */
+    showTableViewTabs() {
+      if (this.tableViewTabs !== null) {
+        return this.tableViewTabs;
+      }
+
+      if (!this.showTableViews) {
+        return false;
+      }
+
+      // A route naming one resource is a detail page, and every table on it is a sub list of
+      // that resource - one deployment's pods, its own events - rather than the type's own list.
+      //
+      // Only the id is looked at. Comparing the route's type against the table's looked more
+      // precise and is wrong: the cluster list is routed as `provisioning.cattle.io.cluster`
+      // while its table carries the management type, and it lost its tabs.
+      return !this.$route?.params?.id;
     },
 
     /**
@@ -1624,7 +1661,7 @@ export default {
     @sortable-table-interaction="handleSortableTableInteraction"
   >
     <template
-      v-if="showTableViews"
+      v-if="showTableViewTabs"
       #table-views
     >
       <TableViewsBar
