@@ -36,7 +36,7 @@ const SHORTCUTS = [
 export default {
   name: 'TableViewsBar',
 
-  emits: ['update:view', 'export', 'request-values'],
+  emits: ['update:view', 'export', 'request-values', 'tab-queries'],
 
   components: {
     TableViewQueryInput,
@@ -182,6 +182,15 @@ export default {
       dragSlots:      null,
       dragStartOrder: null,
     };
+  },
+
+  watch: {
+    tabQueries: {
+      handler(queries) {
+        this.$emit('tab-queries', queries);
+      },
+      immediate: true,
+    },
   },
 
   mounted() {
@@ -353,6 +362,11 @@ export default {
       };
     },
 
+    /** Every query on show, so the table knows which counts it has to go and get */
+    tabQueries() {
+      return Array.from(new Set(this.tabs.map((tab) => this.tabQuery(tab))));
+    },
+
     isModified() {
       return !!this.view.query || !!this.view.groupBy || !!this.view.columns || !!this.view.labelColumns?.length ||
         !!this.view.columnOrder || !!this.view.sort;
@@ -399,10 +413,22 @@ export default {
      * Counts are looked up by query and never taken from the table's own rows, so a tab keeps
      * its number while the list goes off to fetch a page instead of falling to zero.
      */
-    tabCount(tab) {
-      const query = (tab.id === this.selectedViewId ? this.view.query : tab.view?.query) || '';
+    /**
+     * What a tab is actually filtering by: the box for the tab in front of the user, the edits
+     * held for a tab left with some, and the saved query for the rest.
+     */
+    tabQuery(tab) {
+      if (tab.id === this.selectedViewId) {
+        return this.view.query || '';
+      }
 
-      return this.viewCounts[query];
+      const draft = this.drafts[this.draftKey(tab.id)];
+
+      return (draft ? draft.query : tab.view?.query) || '';
+    },
+
+    tabCount(tab) {
+      return this.viewCounts[this.tabQuery(tab)];
     },
 
     tabLabel(tab) {
