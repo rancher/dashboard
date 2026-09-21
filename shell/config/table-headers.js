@@ -1202,6 +1202,36 @@ export const PROJECT = {
   labelKey: 'tableHeaders.project',
 };
 
+// The capacity columns the home page shows. Here rather than inline on that page so any list of
+// clusters can offer them - they are the same numbers wherever a cluster is listed.
+export const MGMT_CLUSTER_CPU = {
+  name:      'cpu',
+  labelKey:  'tableHeaders.cpu',
+  value:     '',
+  sort:      ['status.allocatable.cpuRaw'],
+  search:    ['status.allocatable.cpuRaw'],
+  formatter: 'ClusterCpu',
+};
+
+export const MGMT_CLUSTER_MEMORY = {
+  name:      'memory',
+  labelKey:  'tableHeaders.memory',
+  value:     '',
+  sort:      ['status.allocatable.memoryRaw'],
+  search:    ['status.allocatable.memoryRaw'],
+  formatter: 'ClusterMemory',
+};
+
+export const MGMT_CLUSTER_PODS = {
+  name:         'pods',
+  labelKey:     'tableHeaders.pods',
+  value:        '',
+  sort:         ['status.allocatable.pods', 'status.requested.pods'],
+  search:       ['status.allocatable.pods', 'status.requested.pods'],
+  formatter:    'PodsUsage',
+  delayLoading: true,
+};
+
 export const AUTOSCALER_ENABLED = {
   name:      'autoscaler',
   labelKey:  'tableHeaders.autoscaler',

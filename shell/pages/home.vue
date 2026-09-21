@@ -11,9 +11,11 @@ import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContent
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI, COUNT } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, STATE } from '@shell/config/table-headers';
+import {
+  AGE, MGMT_CLUSTER_CPU, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_MEMORY, MGMT_CLUSTER_PODS, MGMT_CLUSTER_PROVIDER, STATE
+} from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
-import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
+import { parseSi, createMemoryValues } from '@shell/utils/units';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
@@ -70,29 +72,9 @@ export default defineComponent({
       query: { [MODE]: _IMPORT }
     };
 
-    const cpuHeader = {
-      label:  this.t('tableHeaders.cpu'),
-      value:  '',
-      name:   'cpu',
-      sort:   ['status.allocatable.cpuRaw'],
-      search: ['status.allocatable.cpuRaw'],
-    };
-    const memoryHeader = {
-      label:  this.t('tableHeaders.memory'),
-      value:  '',
-      name:   'memory',
-      sort:   ['status.allocatable.memoryRaw'],
-      search: ['status.allocatable.memoryRaw'],
-    };
-    const podsHeader = {
-      label:        this.t('tableHeaders.pods'),
-      name:         'pods',
-      value:        '',
-      sort:         ['status.allocatable.pods', 'status.requested.pods'],
-      search:       ['status.allocatable.pods', 'status.requested.pods'],
-      formatter:    'PodsUsage',
-      delayLoading: true
-    };
+    const cpuHeader = MGMT_CLUSTER_CPU;
+    const memoryHeader = MGMT_CLUSTER_MEMORY;
+    const podsHeader = MGMT_CLUSTER_PODS;
 
     return {
       HIDE_HOME_PAGE_CARDS,
@@ -329,17 +311,6 @@ export default defineComponent({
 
     cpuUsed(cluster: any) {
       return parseSi(cluster.status?.requested?.cpu);
-    },
-
-    cpuAllocatable(cluster: any) {
-      return parseSi(cluster.status?.allocatable?.cpu);
-    },
-
-    memoryAllocatable(cluster: any) {
-      const parsedAllocatable = (parseSi(cluster.status?.allocatable?.memory) || 0).toString();
-      const format = createMemoryFormat(parsedAllocatable);
-
-      return formatSi(parsedAllocatable, format);
     },
 
     memoryReserved(cluster: any) {
@@ -600,22 +571,6 @@ export default defineComponent({
                     </div>
                   </td>
                 </template>
-                <template #col:cpu="{row}">
-                  <td v-if="row.mgmt && cpuAllocatable(row.mgmt)">
-                    {{ `${cpuAllocatable(row.mgmt)} ${t('landing.clusters.cores', {count:cpuAllocatable(row.mgmt) })}` }}
-                  </td>
-                  <td v-else>
-                    &mdash;
-                  </td>
-                </template>
-                <template #col:memory="{row}">
-                  <td v-if="row.mgmt && memoryAllocatable(row.mgmt) && !memoryAllocatable(row.mgmt).match(/^0 [a-zA-z]/)">
-                    {{ memoryAllocatable(row.mgmt) }}
-                  </td>
-                  <td v-else>
-                    &mdash;
-                  </td>
-                </template>
               </ResourceTable>
             </div>
             <div
@@ -722,22 +677,6 @@ export default defineComponent({
                         {{ row.description }}
                       </p>
                     </div>
-                  </td>
-                </template>
-                <template #col:cpu="{row}">
-                  <td v-if="cpuAllocatable(row)">
-                    {{ `${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
-                  </td>
-                  <td v-else>
-                    &mdash;
-                  </td>
-                </template>
-                <template #col:memory="{row}">
-                  <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
-                    {{ memoryAllocatable(row) }}
-                  </td>
-                  <td v-else>
-                    &mdash;
                   </td>
                 </template>
               </PaginatedResourceTable>

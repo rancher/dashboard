@@ -8,6 +8,9 @@ import {
   WORKLOAD_HEALTH_SCALE,
   MGMT_CLUSTER_PROVIDER,
   MGMT_CLUSTER_KUBE_VERSION,
+  MGMT_CLUSTER_CPU,
+  MGMT_CLUSTER_MEMORY,
+  MGMT_CLUSTER_PODS,
   AUTOSCALER_ENABLED
 } from '@shell/config/table-headers';
 
@@ -120,6 +123,25 @@ export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
   ...MGMT_CLUSTER_KUBE_VERSION,
   sort:   'status.info.kubernetesVersion',
   search: 'status.info.kubernetesVersion',
+};
+
+// The capacity numbers are model side, so there is no raw response field to sort or search on
+export const STEVE_MGMT_CLUSTER_CPU = {
+  ...MGMT_CLUSTER_CPU,
+  sort:   false,
+  search: false,
+};
+
+export const STEVE_MGMT_CLUSTER_MEMORY = {
+  ...MGMT_CLUSTER_MEMORY,
+  sort:   false,
+  search: false,
+};
+
+export const STEVE_MGMT_CLUSTER_PODS = {
+  ...MGMT_CLUSTER_PODS,
+  sort:   false,
+  search: false,
 };
 
 export const STEVE_AUTOSCALER_ENABLED = {
