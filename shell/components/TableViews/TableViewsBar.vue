@@ -550,6 +550,16 @@ export default {
     },
 
     /**
+     * The tab a menu belongs to, for the menu to line itself up against.
+     */
+    tabWrap(tab) {
+      // A ref inside a v-for collects into an array, so this is a list of one
+      const held = this.$refs[`tab-wrap-${ tab.id }`];
+
+      return Array.isArray(held) ? held[0] : held;
+    },
+
+    /**
      * Rename in place. The name lives on the tab, so that is where it is edited - a modal to
      * change one word puts the thing being renamed behind the thing renaming it.
      */
@@ -792,6 +802,7 @@ export default {
       <div
         v-for="tab in tabs"
         :key="tab.id || 'all'"
+        :ref="`tab-wrap-${ tab.id }`"
         class="view-tab-wrap"
         :class="{ active: selectedViewId === tab.id }"
       >
@@ -828,11 +839,13 @@ export default {
           />
         </button>
 
-        <!-- 9 below the line under the tabs. The offset is measured from the trigger, which sits
-             a pixel above that line, so it is one more than the gap it produces. -->
+        <!-- The menu belongs to the whole tab, not to the chevron that opens it, so it is
+             positioned against the tab: flush with the start of the name and 9 below the line the
+             tab draws under itself. -->
         <rc-dropdown
           :placement="'bottom-start'"
-          :distance="10"
+          :distance="9"
+          :reference-node="() => tabWrap(tab)"
         >
           <rc-dropdown-trigger
             variant="link"
@@ -995,7 +1008,8 @@ export default {
                  open to the left of it rather than off screen. -->
             <rc-dropdown
               :placement="'left-start'"
-              :distance="4"
+              :distance="-1"
+              :skidding="-9"
             >
               <rc-dropdown-trigger
                 variant="link"
@@ -1037,7 +1051,8 @@ export default {
 
             <rc-dropdown
               :placement="'left-start'"
-              :distance="4"
+              :distance="-1"
+              :skidding="-9"
             >
               <rc-dropdown-trigger
                 variant="link"
@@ -1178,6 +1193,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+// The icons beside a toolbar label are drawn at 11 but keep the 14 square the icon font lays out
+// on, so a label sits in the same place whichever icon it is next to
+@mixin toolbar-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 11px;
+  line-height: 14px;
+  text-align: center;
+}
+
 .table-views {
   display: flex;
   flex-direction: column;
@@ -1256,10 +1281,10 @@ export default {
       height: 32px;
       min-height: 32px;
       padding: 0;
-      color: var(--link);
+      color: var(--primary);
 
       .icon {
-        font-size: 14px;
+        @include toolbar-icon;
       }
     }
   }
@@ -1301,6 +1326,10 @@ export default {
     height: 32px;
     padding: 0 12px;
     white-space: nowrap;
+
+    .icon {
+      @include toolbar-icon;
+    }
   }
 }
 
@@ -1409,12 +1438,9 @@ export default {
 
   // Blue marks what is currently in force, the same way the shown columns are marked
   [dropdown-menu-item].selected {
-    color: var(--link);
+    color: var(--primary);
   }
 
-  .menu-reset {
-    color: var(--link);
-  }
 
   // Lifting and settling, and the shuffle of the rows going past - the same curves and timings the
   // pinned shelf in the side nav uses, so a drag feels the same wherever it is done
@@ -1465,7 +1491,7 @@ export default {
     }
 
     &.shown {
-      color: var(--link);
+      color: var(--primary);
     }
 
     &.locked {

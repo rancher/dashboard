@@ -648,7 +648,7 @@ $query-height: 32px;
     padding: 2px 6px;
     border-radius: 4px;
     background: var(--accent-btn);
-    color: var(--link);
+    color: var(--primary);
   }
 
   // Half typed, or simply not a value this field has: plain text until it is one

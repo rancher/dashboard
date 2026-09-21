@@ -26,12 +26,23 @@ import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
 
 import type { Placement } from 'floating-vue';
 
+/** Hands the popper the element to position against */
+type ReferenceNode = () => Element | undefined | null;
+
 withDefaults(
   defineProps<{
     // eslint-disable-next-line vue/require-default-prop
     ariaLabel?: string;
     // eslint-disable-next-line vue/require-default-prop
     distance?: number;
+    // eslint-disable-next-line vue/require-default-prop
+    skidding?: number;
+    /**
+     * Positions the menu against this element instead of the trigger, for a trigger that is only
+     * part of what the menu belongs to - an icon at the end of a tab, say.
+     */
+    // eslint-disable-next-line vue/require-default-prop
+    referenceNode?: ReferenceNode;
     placement?: Placement;
   }>(),
   { placement: 'bottom-end' }
@@ -74,6 +85,8 @@ const applyShow = () => {
     :container="popperContainer"
     :placement="placement"
     :distance="distance"
+    :skidding="skidding"
+    :reference-node="referenceNode"
     @apply-show="applyShow"
   >
     <slot name="default">
