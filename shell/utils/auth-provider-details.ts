@@ -1,15 +1,13 @@
 import { configTypeForProvider, providerKey } from '@shell/models/management.cattle.io.authconfig';
+import type { Translation } from '@shell/types/t';
 
 export interface AuthProviderDetail {
   label: string;
   value: string;
 }
 
-/** Translation function, as handed out by `useI18n`. */
-type Translate = (key: string, args?: unknown) => string;
-
 interface DetailContext {
-  t: Translate;
+  t: Translation;
   name: string;
 }
 
@@ -27,7 +25,7 @@ const ldapServer = (config: AuthConfig): string => {
   return hosts && config.port ? `${ hosts }:${ config.port }` : hosts;
 };
 
-const toggle = (t: Translate, on: unknown): string => t(on ? 'generic.enabled' : 'generic.disabled');
+const toggle = (t: Translation, on: unknown): string => t(on ? 'generic.enabled' : 'generic.disabled');
 
 const logoutBehaviour = (config: AuthConfig, { t, name }: DetailContext): string => {
   if (!config.logoutAllSupported) {
@@ -130,7 +128,7 @@ const byCategory: Record<string, Builder> = {
  * @param t translation function
  * @param name the provider's display name
  */
-export const authProviderDetails = (config: AuthConfig | null | undefined, t: Translate, name = ''): AuthProviderDetail[] => {
+export const authProviderDetails = (config: AuthConfig | null | undefined, t: Translation, name = ''): AuthProviderDetail[] => {
   if (!config?.id) {
     return [];
   }

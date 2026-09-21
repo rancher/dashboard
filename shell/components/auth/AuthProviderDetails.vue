@@ -1,10 +1,4 @@
 <script setup lang="ts">
-/**
- * How a provider is configured, summarised as label and value pairs above the
- * access form so that the provider being changed is never in doubt.
- *
- * Read-only: the values are changed from the provider's config page.
- */
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
@@ -12,9 +6,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { authProviderDetails } from '@shell/utils/auth-provider-details';
 
 const props = withDefaults(defineProps<{
-  /** The provider's Norman config */
   config: Record<string, any> | null;
-  /** The provider's display name */
   name?: string;
 }>(), { name: '' });
 
