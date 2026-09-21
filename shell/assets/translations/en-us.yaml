@@ -7156,6 +7156,10 @@ tableViews:
     placeholder: 'Filter across all columns or only specific ones (e.g. state:error)'
     inUse: "{count} in use"
     label: Label
+    connective:
+      and: Both must match
+      or: Either can match
+      not: Leave these out
   columns:
     label: Columns
     tableColumns: Table columns

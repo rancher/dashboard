@@ -1,6 +1,6 @@
 <script>
 import {
-  LABEL_FIELD_PREFIX, highlightQuery, quoteIfNeeded, replaceToken, scanQuery, tokenAt, valuesInUse
+  CONNECTIVES, LABEL_FIELD_PREFIX, NEGATORS, highlightQuery, isNegator, quoteIfNeeded, replaceToken, scanQuery, tokenAt, valuesInUse
 } from '@shell/utils/table-views';
 
 /**
@@ -160,6 +160,58 @@ export default {
       return this.parsedToken.field?.id || null;
     },
 
+    /**
+     * The token the caret is following, which is what decides whether a joining word can go here.
+     * The one the caret is inside does not count - that is the word being typed.
+     */
+    precedingToken() {
+      const active = this.activeToken;
+
+      const before = scanQuery(this.value || '', this.fields)
+        .filter((token) => token.end <= this.caret && (!active || token.start !== active.start));
+
+      return before[before.length - 1] || null;
+    },
+
+    /**
+     * `and`, `or` and `not`, offered only where they would read.
+     *
+     * `not` negates whatever comes next, so it can open a query or follow a joining word, and it
+     * can follow a finished term too - that is the implicit `and` with the next term left out.
+     * `and` and `or` join two terms, so they need a finished one behind them. Nothing joins onto
+     * a `not` that is still waiting for its term, and nothing joins onto a value being typed.
+     */
+    connectiveSuggestions() {
+      const { negate, field, typed } = this.parsedToken;
+
+      // Mid-value, or mid `-term`: a joining word is not what comes next
+      if (field || negate) {
+        return [];
+      }
+
+      const previous = this.precedingToken;
+      let allowed;
+
+      if (!previous) {
+        allowed = NEGATORS;
+      } else if (previous.kind === 'connective') {
+        allowed = isNegator(previous.text) ? [] : NEGATORS;
+      } else {
+        allowed = [...CONNECTIVES, ...NEGATORS];
+      }
+
+      const needle = typed.toLowerCase();
+
+      return allowed
+        .filter((word) => word.includes(needle))
+        .map((word) => ({
+          key:    `connective:${ word }`,
+          label:  word,
+          detail: this.t(`tableViews.query.connective.${ word }`),
+          insert: `${ word } `,
+        }));
+    },
+
     suggestions() {
       const { negate, field, typed } = this.parsedToken;
       const needle = typed.toLowerCase();
@@ -180,7 +232,7 @@ export default {
           }));
       }
 
-      return this.fields
+      return this.connectiveSuggestions.concat(this.fields
         .filter((f) => f.id.toLowerCase().includes(needle) || f.label.toLowerCase().includes(needle))
         .slice(0, 20)
         .map((f) => ({
@@ -190,7 +242,7 @@ export default {
           // A field on its own gets no connective - there is nothing to join until it has a value
           insert: `${ negate }${ f.id }:`,
           field:  f,
-        }));
+        })));
     },
 
     showSuggestions() {
