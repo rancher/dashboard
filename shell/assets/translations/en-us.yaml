@@ -7148,7 +7148,7 @@ tableViews:
     delete: Delete View
     setDefault: Set as Default View
     isDefault: Default View
-    untitled: Untitled
+    newViewName: New View
   bulk:
     selected: "{count} Selected"
     deleteSelected: Delete Selected
