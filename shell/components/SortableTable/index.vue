@@ -670,6 +670,16 @@ export default {
       return this.tableViewsLayout && !this.$slots['header-left'] && !this.$slots['header-middle'];
     },
 
+    /**
+     * Whether the view tabs row has anything to hold.
+     *
+     * A table embedded in a detail page takes the filter and the selection actions without the
+     * saved view tabs, so the row they would have sat on has to go rather than hold its height.
+     */
+    tableViewsTabsEmpty() {
+      return this.tableViewsLayout && !this.$slots['table-views'];
+    },
+
     showHeaderRow() {
       // All of these are used to show content in the header
       return this.search ||
@@ -1161,12 +1171,12 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': tableViewsLayout, 'no-top-row': tableViewsTopRowEmpty}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': tableViewsLayout, 'no-top-row': tableViewsTopRowEmpty, 'no-views-row': tableViewsTabsEmpty}"
       >
         <!-- Table views puts its tabs on a row of their own between the page's own masthead and
              the filter, so the slot is a grid item here rather than a block above the header -->
         <div
-          v-if="tableViewsLayout"
+          v-if="tableViewsLayout && !tableViewsTabsEmpty"
           class="table-views-row"
         >
           <slot name="table-views" />
@@ -2225,6 +2235,22 @@ export default {
         grid-template-areas:
           "views  views"
           "filter filter";
+
+        .bulk {
+          display: none;
+        }
+      }
+
+      // No saved view tabs - the filter and the selection actions on their own, under whatever
+      // the page put on the top row
+      &.no-views-row {
+        grid-template-areas:
+          "bulk   middle"
+          "filter filter";
+      }
+
+      &.no-top-row.no-views-row {
+        grid-template-areas: "filter filter";
 
         .bulk {
           display: none;
