@@ -7148,7 +7148,6 @@ tableViews:
     delete: Delete View
     setDefault: Set as Default View
     isDefault: Default View
-    copyLink: Copy link to this view
     untitled: Untitled
   bulk:
     selected: "{count} Selected"
@@ -7192,8 +7191,6 @@ tableViews:
     updateExisting: Update saved view
     delete: Delete view
     share: Share
-    copyLink: Copy link to this view
-    copied: Link copied
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
