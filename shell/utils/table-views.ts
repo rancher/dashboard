@@ -1034,6 +1034,28 @@ export interface ExportColumn {
   field: ViewField;
 }
 
+/**
+ * The columns an export writes, worked out from a table's headers.
+ *
+ * Shared so that the two ways of exporting agree: the toolbar writes the view's columns, and a
+ * selection exported from a resource's own actions writes that resource's columns. Both come
+ * through here, so neither can quietly grow a column set of its own.
+ */
+export function exportColumnsFor(headers: any[], t: (key: string) => string): ExportColumn[] {
+  return (headers || [])
+    .filter((header) => !isIgnoredColumn(header) && (header.label || header.labelKey))
+    .map((header) => {
+      const label = header.label || t(header.labelKey);
+
+      return {
+        label,
+        field: {
+          id: headerFieldId(header), label, isLabel: false, header
+        }
+      };
+    });
+}
+
 export function rowsToCsv(rows: any[], columns: ExportColumn[]): string {
   const lines = [columns.map((c) => csvCell(c.label)).join(',')];
 

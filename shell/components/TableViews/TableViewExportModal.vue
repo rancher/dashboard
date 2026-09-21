@@ -1,6 +1,7 @@
 <script>
 import { RadioGroup } from '@components/Form/Radio';
 import { downloadFile } from '@shell/utils/download';
+import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views';
 
 /** The formats a selection or a view can be written out as */
 const FORMATS = ['yaml', 'json', 'csv'];
@@ -66,6 +67,30 @@ export default {
       return FORMATS.map((format) => ({ value: format, label: this.t(`tableViews.export.format.${ format }`) }));
     },
 
+    /**
+     * The columns to write for a selection: the ones this resource's table shows.
+     *
+     * Taken from the type rather than from the table on screen - the action is dispatched by the
+     * resource and never learns which table it was picked in. A view that has hidden or added
+     * columns is therefore not reflected here, only the type's own set.
+     */
+    selectionColumns() {
+      const first = this.resources[0];
+      const schema = first?.schema;
+
+      if (!schema) {
+        return [];
+      }
+
+      // Server side pagination gives a type its own set of columns, and the table on screen is
+      // showing whichever set applies - asking for the other one puts a column in the file that
+      // is not in the table, or leaves one out
+      const paginated = !!first.$ctx?.getters?.paginationEnabled?.({ id: first.type });
+      const headers = this.$store.getters['type-map/headersFor'](schema, paginated);
+
+      return exportColumnsFor(headers, (key) => this.t(key));
+    },
+
     title() {
       return this.isSelection ? this.t('tableViews.export.selectionTitle') : this.t('tableViews.export.title');
     },
@@ -87,8 +112,11 @@ export default {
     },
 
     /**
-     * The export for resources that arrived without a table behind them. YAML is the resources
-     * themselves; the other two are what can be said about them without a set of columns to go on.
+     * The export for resources that arrived without a table behind them.
+     *
+     * YAML is the resources themselves. The other two are the columns the resource's own table
+     * shows, written by the same code the toolbar's export uses - a selection exported from an
+     * action and a view exported from the toolbar should not disagree about what a row is.
      */
     async exportResources() {
       const items = this.resources;
@@ -98,23 +126,14 @@ export default {
         return items.length === 1 ? first.downloadYaml() : first.downloadYamlBulk(items);
       }
 
-      const records = items.map((item) => ({
-        name:      item.nameDisplay ?? item.metadata?.name ?? item.id,
-        namespace: item.metadata?.namespace ?? '',
-        type:      item.type ?? '',
-        state:     item.stateDisplay ?? item.state ?? '',
-        age:       item.creationTimestamp ?? item.metadata?.creationTimestamp ?? '',
-      }));
+      const columns = this.selectionColumns;
+      const name = (first?.type || 'resources').replace(/[^a-z0-9]+/gi, '-');
 
       if (this.format === 'json') {
-        return downloadFile('resources.json', JSON.stringify(records, null, 2), 'application/json;charset=utf-8');
+        return downloadFile(`${ name }.json`, rowsToJson(items, columns), 'application/json;charset=utf-8');
       }
 
-      const columns = Object.keys(records[0] || {});
-      const escape = (value) => `"${ `${ value ?? '' }`.replace(/"/g, '""') }"`;
-      const csv = [columns.join(','), ...records.map((r) => columns.map((c) => escape(r[c])).join(','))].join('\n');
-
-      return downloadFile('resources.csv', csv, 'text/csv;charset=utf-8');
+      return downloadFile(`${ name }.csv`, rowsToCsv(items, columns), 'text/csv;charset=utf-8');
     },
   }
 };
