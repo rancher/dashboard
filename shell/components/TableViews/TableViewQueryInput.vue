@@ -656,8 +656,10 @@ $query-height: 32px;
   }
 
   // The spelled out logic is chrome rather than something the user wrote, so it recedes
+  // The words joining the terms are part of the query, not commentary on it, so they carry the
+  // same blue the values do
   .segment-connective {
-    color: var(--muted);
+    color: var(--link);
     font-style: italic;
   }
 
