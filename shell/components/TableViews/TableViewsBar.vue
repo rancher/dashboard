@@ -554,6 +554,10 @@ export default {
      * change one word puts the thing being renamed behind the thing renaming it.
      */
     openRename(saved) {
+      if (!saved?.id) {
+        return;
+      }
+
       this.renamingId = saved.id;
       this.renameDraft = saved.name;
 
@@ -791,9 +795,11 @@ export default {
         class="view-tab-wrap"
         :class="{ active: selectedViewId === tab.id }"
       >
-        <!-- Renaming happens on the tab itself, so the name is edited where it is read -->
+        <!-- Renaming happens on the tab itself, so the name is edited where it is read. The
+             default tab is excluded outright: it has no name of its own to change, and its id is
+             null, which is also what "nothing is being renamed" looks like. -->
         <input
-          v-if="renamingId === tab.id"
+          v-if="!tab.isDefaultTab && renamingId === tab.id"
           :ref="`rename-${ tab.id }`"
           v-model="renameDraft"
           type="text"
