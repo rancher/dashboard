@@ -859,7 +859,7 @@ export default {
             <i class="icon icon-chevron-down" />
           </rc-dropdown-trigger>
           <template #dropdownCollection>
-            <div class="menu-panel has-icons">
+            <div :class="['menu-panel', 'has-icons', { 'has-notice': isTabDirty(tab) }]">
               <!-- Unsaved changes, and the three ways out of them -->
               <template v-if="isTabDirty(tab)">
                 <div class="menu-notice">
@@ -883,6 +883,9 @@ export default {
                   data-testid="table-views-save-as-new"
                   @click="openSaveAsNew()"
                 >
+                  <template #before>
+                    <i class="icon" />
+                  </template>
                   {{ t('tableViews.view.saveAsNew') }}
                   <template #after>
                     <span class="menu-shortcut">{{ t('tableViews.shortcut.saveAsNew') }}</span>
@@ -892,6 +895,9 @@ export default {
                   data-testid="table-views-discard"
                   @click="discardChanges()"
                 >
+                  <template #before>
+                    <i class="icon" />
+                  </template>
                   {{ t('tableViews.view.discard') }}
                 </rc-dropdown-item>
                 <rc-dropdown-separator />
@@ -926,6 +932,9 @@ export default {
                 :data-testid="tab.isDefaultTab ? 'table-views-export-all' : `table-views-export-${ tab.id }`"
                 @click="openExport(tab.view)"
               >
+                <template #before>
+                  <i class="icon" />
+                </template>
                 {{ t('tableViews.export.label') }}
               </rc-dropdown-item>
 
@@ -934,6 +943,9 @@ export default {
                 :data-testid="tab.isDefaultTab ? 'table-views-set-default-all' : `table-views-set-default-${ tab.id }`"
                 @click="setDefaultView(tab)"
               >
+                <template #before>
+                  <i class="icon" />
+                </template>
                 {{ t('tableViews.tab.setDefault') }}
                 <template
                   v-if="isDefaultTab(tab)"
@@ -947,6 +959,9 @@ export default {
                 :data-testid="tab.isDefaultTab ? 'table-views-copy-link-all' : `table-views-copy-link-${ tab.id }`"
                 @click="copyShareUrl"
               >
+                <template #before>
+                  <i class="icon" />
+                </template>
                 {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
               </rc-dropdown-item>
 
@@ -1397,9 +1412,10 @@ export default {
     }
   }
 
-  // The icons in this menu get a column to themselves, so every label starts in the same place
-  // whether or not its row has one to show. The columns panel is left out: its handles already
-  // hold that column, and not every row there has one to put in it.
+  // The icons in this menu get a column to themselves, so every label starts in the same place.
+  // A row with nothing to show there carries a blank `.icon` to hold it rather than the rule
+  // picking those rows out, so the column does not depend on `:has`. The columns panel is left
+  // out: its handles already hold that column.
   // The class cannot be called `icon-column`: the icon font claims `[class*=" icon-"]` with an
   // !important, and would set the whole menu in it.
   &.has-icons [dropdown-menu-item] {
@@ -1407,10 +1423,6 @@ export default {
       @include toolbar-icon(16px, 14px);
     }
 
-    &:not(:has(> .icon))::before {
-      content: '';
-      flex: 0 0 16px;
-    }
   }
 
   hr {
@@ -1429,7 +1441,7 @@ export default {
   // It runs to the very top of the menu, so the menu gives up its own 8 above rather than the
   // banner pulling itself up over it: the panel scrolls, and a scroll container clips whatever is
   // dragged above its top padding edge.
-  &:has(> .menu-notice) {
+  &.has-notice {
     padding-top: 0;
   }
 

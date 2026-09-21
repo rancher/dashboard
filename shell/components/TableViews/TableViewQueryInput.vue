@@ -644,10 +644,10 @@ $query-height: 32px;
   // between the colon and it is this margin - there is no space in the query itself.
   .segment-value {
     margin-left: 4px;
-    padding: 2px 6px;
+    padding: 0 4px;
     border-radius: 4px;
-    background: var(--accent-btn);
-    color: var(--primary);
+    background: var(--sortable-table-hover-bg);
+    color: var(--link);
   }
 
   // Half typed, or simply not a value this field has: plain text until it is one
