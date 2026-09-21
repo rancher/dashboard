@@ -718,13 +718,19 @@ export default {
       const to = saved?.id || null;
       const moving = from !== to;
 
+      this.pickedViewId = to;
+
+      // Clicking the tab already in front of you is not a request to throw away what is on it.
+      // Discarding says so outright, and comes through here with `useDraft` off.
+      if (!moving && useDraft) {
+        return;
+      }
+
       if (moving) {
         this.rememberDraft(from);
       }
 
-      this.pickedViewId = to;
-
-      const draft = useDraft && moving ? this.drafts[this.draftKey(to)] : null;
+      const draft = useDraft ? this.drafts[this.draftKey(to)] : null;
 
       if (draft) {
         this.$emit('update:view', { ...draft });
@@ -774,13 +780,13 @@ export default {
     },
 
     /**
-     * A new tab starts life as an unsaved "Untitled" view holding the table's defaults, so it
-     * can be built up in place and named when it is worth keeping
+     * A new tab starts life as an unsaved "New View" holding the table's defaults, so it can be
+     * built up in place and named when it is worth keeping
      */
     addView() {
       const view = {
         id:           randomStr(8),
-        name:         this.nextUntitledName(),
+        name:         this.nextNewViewName(),
         query:        '',
         columns:      null,
         columnOrder:  null,
@@ -792,10 +798,11 @@ export default {
       this.applyView(view);
     },
 
-    nextUntitledName() {
-      const base = this.t('tableViews.tab.untitled');
+    /** The first is just the name; the ones after it are numbered from one */
+    nextNewViewName() {
+      const base = this.t('tableViews.tab.newViewName');
       let name = base;
-      let n = 2;
+      let n = 1;
 
       while (this.savedViews.find((v) => v.name === name)) {
         name = `${ base } ${ n++ }`;
