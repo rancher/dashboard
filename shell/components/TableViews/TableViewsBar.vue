@@ -1474,10 +1474,14 @@ export default {
     line-height: 20px;
     white-space: nowrap;
 
-    // Sits where the label was: same metrics, no chrome of its own beyond a focus ring
+    // Sits where the label was, but as a field rather than a label: it takes the spacing an input
+    // has inside it, so the name being typed is not run up against its own border.
     &.rename-input {
       min-width: 60px;
       max-width: 220px;
+      height: 28px;
+      min-height: 28px;
+      padding: 0 8px;
       border: 1px solid var(--primary);
       border-radius: var(--border-radius);
       background: var(--input-bg);
