@@ -418,13 +418,13 @@ export default {
       }
 
       &.active {
-        color: var(--on-active, var(--primary-hover-text));
+        color: var(--on-active-nav, var(--primary-hover-text));
         background-color: var(--active-nav, var(--primary-hover-bg));
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--on-active, var(--primary-hover-text));
+          color: var(--on-active-nav, var(--primary-hover-text));
         }
 
         &:hover {
@@ -432,7 +432,7 @@ export default {
         }
 
         ~ I {
-          color: var(--on-active, var(--primary-hover-text));
+          color: var(--on-active-nav, var(--primary-hover-text));
         }
       }
       &:hover:not(.active) {
@@ -537,11 +537,11 @@ export default {
     padding: 0;
 
     A, A I {
-      color: var(--on-active, var(--primary-hover-text));
+      color: var(--on-active-nav, var(--primary-hover-text));
     }
 
     A {
-      color: var(--on-active, var(--primary-hover-text));
+      color: var(--on-active-nav, var(--primary-hover-text));
       background-color: var(--active-nav, var(--primary-hover-bg));
       font-weight: bold;
 

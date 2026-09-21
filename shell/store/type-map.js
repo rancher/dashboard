@@ -159,10 +159,6 @@ import { createHeaders, rowValueGetter } from '@shell/store/type-map.utils';
 import { defineAsyncComponent } from 'vue';
 import { filterLocationValidParams } from '@shell/utils/router';
 
-export const NAMESPACED = 'namespaced';
-export const CLUSTER_LEVEL = 'cluster';
-export const BOTH = 'both';
-
 export const TYPE_MODES = {
   /**
    * allTypes usage: All resource types
@@ -694,14 +690,12 @@ export const getters = {
 
   getTree(state, getters, rootState, rootGetters) {
     // Name the function so it's easily identifiable when performance tracing
-    return function getTree(productId, mode, allTypes, clusterId, namespaceMode, currentType, search) {
+    return function getTree(productId, mode, allTypes, clusterId, currentType, search) {
       // getTree has four modes:
       // - `basic` matches data types that should always be shown (even if there are 0 of them).
       // - `used` matches the data types that have been used, shown regardless of their current count.
       // - `all` matches all types.
       // - `favorite` matches starred types.
-      // namespaceMode: 'namespaced', 'cluster', or 'both'
-      // namespaces: null means all, otherwise it will be an array of specific namespaces to include
       const isBasic = mode === TYPE_MODES.BASIC;
 
       let searchRegex;
@@ -729,12 +723,6 @@ export const getters = {
         }
 
         const namespaced = typeObj.namespaced;
-
-        if ( (namespaceMode === NAMESPACED && !namespaced ) || (namespaceMode === CLUSTER_LEVEL && namespaced) ) {
-          // Skip types that are not the right namespace mode
-          continue;
-        }
-
         const inStore = rootGetters.currentStore(typeObj.name);
         const count = rootGetters[`${ inStore }/count`](typeObj);
         const groupForBasicType = getters.groupForBasicType(productId, typeObj.name);

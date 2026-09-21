@@ -5,8 +5,6 @@ import {
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
   NAMESPACE_FILTER_ALL as ALL,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
-  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
-  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
   NAMESPACE_FILTER_KINDS,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
   NAMESPACE_FILTER_P_FULL_PREFIX,
@@ -46,7 +44,7 @@ class PaginationUtils {
    *
    * This basically blocks 'Not in a Project'.. which would involve a projectsornamespaces param with every ns not in a project.
    */
-  readonly validNsProjectFilters = [ALL, ALL_SYSTEM, ALL_USER, ALL_SYSTEM, NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACED_YES, NAMESPACED_NO];
+  readonly validNsProjectFilters = [ALL, ALL_SYSTEM, ALL_USER, ALL_SYSTEM, NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT];
 
   private getSettings({ rootGetters }: any): PaginationSettings {
     const perf = getPerformanceSetting(rootGetters);

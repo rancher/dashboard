@@ -7,9 +7,9 @@
  *
  * How batch detection works:
  *   Jenkins runs multiple builds per day across different environments.
- *   A special "anchor" build (`head · community · @adminUser`) marks the
- *   start of each daily batch. This client finds the most recent anchor
- *   and collects all builds from that point forward as "today's batch".
+ *   A special "anchor" build (the `head` row running the `@adminUser` tag set)
+ *   marks the start of each daily batch. This client finds the most recent
+ *   anchor and collects all builds from that point forward as "today's batch".
  */
 
 import { fetchWithRetry } from './fetch-utils.js';
@@ -17,12 +17,28 @@ import { fetchWithRetry } from './fetch-utils.js';
 const JENKINS_BASE = process.env.JENKINS_BASE_URL || 'https://your-jenkins-instance';
 const JOB_PATH = process.env.JENKINS_JOB_PATH || 'rancher_qa/ui-automation-ansible-job';
 const ANCHOR_DESCRIPTION = process.env.INSPECTOR_ANCHOR_DESCRIPTION || 'head · community · @adminUser';
+
+// The description is "<image tag> · <build type> · <cypress tags>". Only the image tag
+// identifies the anchor row; the other two fields are no longer stable enough to
+// compare exactly:
+//   - the build type is resolved at run time, so it reads `community` or `prime` once
+//     the playbook has asked the deployed Rancher, but stays `<kind> row` on a build
+//     that failed before that point — which is exactly when the anchor must be found;
+//   - the tag set carries the full Cypress expression, e.g.
+//     `@adminUser+-@prime+-@noVai`, so it is matched by prefix.
+const [ANCHOR_VERSION, , ANCHOR_TAGS = ''] = ANCHOR_DESCRIPTION.split(' · ').map((p) => p.trim());
 const ANCHOR_MAX_AGE_MS = 36 * 60 * 60 * 1000; // 36 hours
 const VERSION_FILTER = process.env.INSPECTOR_VERSION_FILTER || null; // e.g. "head" to only process head builds
 
 // Converts "rancher_qa/ui-automation-ansible-job" → "/job/rancher_qa/job/ui-automation-ansible-job"
 function toJobUrl(jobPath) {
   return jobPath.split('/').map((p) => `job/${ p }`).join('/');
+}
+
+function isAnchor(description) {
+  const parts = (description || '').split(' · ').map((p) => p.trim());
+
+  return parts.length >= 3 && parts[0] === ANCHOR_VERSION && parts[2].startsWith(ANCHOR_TAGS);
 }
 
 export class JenkinsClient {
@@ -59,11 +75,11 @@ export class JenkinsClient {
     );
 
     const builds = data.builds;
-    const anchorIdx = builds.findIndex((b) => b.description === ANCHOR_DESCRIPTION);
+    const anchorIdx = builds.findIndex((b) => isAnchor(b.description));
 
     if (anchorIdx === -1) {
       throw new Error(
-        `Could not find batch anchor ("${ ANCHOR_DESCRIPTION }") in the last ${ window } builds. ` +
+        `Could not find batch anchor ("${ ANCHOR_VERSION } · … · ${ ANCHOR_TAGS }…") in the last ${ window } builds. ` +
         `If the job runs frequently, increase INSPECTOR_BUILD_WINDOW. ` +
         `If the description format changed, update INSPECTOR_ANCHOR_DESCRIPTION.`
       );

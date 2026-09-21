@@ -12,7 +12,7 @@ const tabs = [
   },
 ];
 
-const mountPanel = () => {
+const mountPanel = (customMutations: Record<string, jest.Mock> = {}) => {
   const store = createStore({
     state: {
       wm: {
@@ -28,6 +28,8 @@ const mountPanel = () => {
       'wm/setActive':      jest.fn(),
       'wm/setPanelHeight': jest.fn(),
       'wm/setPanelWidth':  jest.fn(),
+      'wm/closeTab':       jest.fn(),
+      ...customMutations,
     },
   });
 
@@ -46,5 +48,29 @@ describe('component: HorizontalPanel', () => {
 
     expect(controls).toHaveLength(tabs.length);
     expect(panelIds).toStrictEqual(controls);
+  });
+
+  it('should render a close button with role="button" and accessible label for each tab', () => {
+    const wrapper = mountPanel();
+
+    const closeButtons = wrapper.findAll('[data-testid="wm-tab-close-button"]');
+
+    expect(closeButtons).toHaveLength(tabs.length);
+    closeButtons.forEach((button) => {
+      expect(button.attributes('role')).toStrictEqual('button');
+      expect(button.attributes('aria-label')).toStrictEqual('%wm.closeTab%');
+      expect(button.element.tagName).toStrictEqual('BUTTON');
+    });
+  });
+
+  it('should close the tab when the close button is clicked', async() => {
+    const closeTabMock = jest.fn();
+    const wrapper = mountPanel({ 'wm/closeTab': closeTabMock });
+
+    const firstCloseButton = wrapper.findAll('[data-testid="wm-tab-close-button"]').at(0);
+
+    await firstCloseButton?.trigger('click');
+
+    expect(closeTabMock).toHaveBeenCalledWith(expect.anything(), { id: tabs[0].id });
   });
 });

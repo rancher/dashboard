@@ -1,12 +1,17 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
+import Ingress from '@shell/edit/provisioning.cattle.io.cluster/ingress/index.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 // import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { RKE2_INGRESS_NGINX, RKE2_TRAEFIK } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 // Payload of the component's `cilium-values-changed` event.
 type CiliumValues = { bandwidthManager: { enabled: boolean, test?: boolean } };
+
+const mockGetVersionData = jest.fn(() => ({ RancherPrime: 'false' }));
+
+jest.mock('@shell/config/version', () => ({ getVersionData: () => mockGetVersionData() }));
 
 const defaultStubs = {
   Banner:          true,
@@ -436,6 +441,69 @@ describe('component: Basics', () => {
       const expected = '{"bandwidthManager":{"test":true,"enabled":true}}';
 
       expect(JSON.stringify(latest)).toStrictEqual(expected);
+    });
+  });
+
+  describe('ingress', () => {
+    function mountBasics(ingressController: string | string[], kubernetesVersion = 'v1.35.0+rke2r1') {
+      const versionOptions = [
+        {
+          id: kubernetesVersion, value: kubernetesVersion, label: kubernetesVersion, serverArgs: mockServerArgs
+        },
+        { kind: 'group', label: 'RKE2' }
+      ];
+
+      return mount(Basics, {
+        props: {
+          mode:  'create',
+          value: {
+            spec: {
+              ...defaultSpec,
+              rkeConfig: { ...defaultSpec.rkeConfig, machineGlobalConfig: { cni: 'calico', 'ingress-controller': ingressController } },
+              kubernetesVersion
+            },
+            agentConfig: { 'cloud-provider-name': '' },
+          },
+          provider:                    'custom',
+          userChartValues:             {},
+          addonVersions:               [],
+          versionInfo:                 {},
+          cisOverride:                 false,
+          cisPsaChangeBanner:          true,
+          allPsas:                     [],
+          selectedVersion:             versionOptions[0],
+          versionOptions,
+          isHarvesterDriver:           false,
+          isHarvesterIncompatible:     false,
+          showDeprecatedPatchVersions: false,
+          isElementalCluster:          false,
+          hasPsaTemplates:             false,
+          haveArgInfo:                 false,
+          showCni:                     true,
+          showCloudProvider:           false,
+          unsupportedCloudProvider:    false,
+          cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+          isAzureProviderUnsupported:  false,
+          canAzureMigrateOnEdit:       false,
+          complianceOverride:          false,
+        },
+
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: { getters: defaultGetters },
+          },
+          stubs: defaultStubs,
+        },
+      });
+    }
+
+    it('forwards the selected kubernetes version to the Ingress component', () => {
+      const wrapper = mountBasics('traefik', 'v1.37.0+rke2r1');
+      const ingress = wrapper.findComponent(Ingress);
+
+      expect(ingress.exists()).toBe(true);
+      expect(ingress.props('kubernetesVersion')).toBe('v1.37.0+rke2r1');
     });
   });
 });

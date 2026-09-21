@@ -15,6 +15,7 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { set, get, mergeWithReplace } from '@shell/utils/object';
 import { saferDump } from '@shell/utils/create-yaml';
 import RichTranslation from '@shell/components/RichTranslation.vue';
+import { getVersionData } from '@shell/config/version';
 
 interface Props {
   mode?: string;
@@ -26,6 +27,7 @@ interface Props {
   userChartValues: any;
   versionInfo: any;
   originalIngressController?: string | string[];
+  kubernetesVersion?: string;
 }
 const {
   mode = _CREATE,
@@ -36,7 +38,8 @@ const {
   traefikSupported,
   userChartValues,
   versionInfo,
-  originalIngressController = INGRESS_NONE
+  originalIngressController = INGRESS_NONE,
+  kubernetesVersion
 } = defineProps<Props>();
 
 const emit = defineEmits(['update:value', 'error', 'config-validation-changed', 'yaml-validation-changed', 'update-values']);
@@ -48,10 +51,14 @@ const traefikYaml = useTemplateRef('traefik-yaml');
 const showAdvanced = ref<Boolean>(false);
 const isView = computed(() => mode === _VIEW);
 const isEdit = computed(() => mode === _EDIT);
+const isCreate = computed(() => mode === _CREATE);
 const showTraefikBanner = ref<Boolean>(false);
 const traefikMerged = ref(initYamlEditor(traefikChart));
 const nginxMerged = ref(initYamlEditor(nginxChart));
 const showConfig = computed(() => !!versionInfo[traefikChart] || !!versionInfo[nginxChart]);
+const isPrime = ref( getVersionData().RancherPrime === 'true');
+const isIngressDisableVersion = computed(() => isCreate.value && !!kubernetesVersion && semver.gte(kubernetesVersion, 'v1.37.0'));
+const showTransitioningBanner = computed(() => traefikSupported && (!isIngressDisableVersion.value || !!isPrime.value));
 
 // in traefik v40 the nginx key changed from kubernetesIngressNginx to kubernetesIngressNGINX
 const traefikNginxKey = computed(() => {
@@ -114,9 +121,14 @@ const ingressOptions = computed(() => {
 
     return true;
   }).map((option) => {
+    const primeOnlyDisabled = !isPrime.value && !!option.prime && isIngressDisableVersion.value;
+
     return {
       ...option,
-      selected: option.id === ingressSelection.value
+      content:  primeOnlyDisabled && option.newContent ? option.newContent : (option.oldContent || option.content),
+      doc:      primeOnlyDisabled && option.newDoc ? option.newDoc : (option.oldDoc || option.doc),
+      selected: option.id === ingressSelection.value,
+      disabled: mode === _VIEW || primeOnlyDisabled
     };
   });
 });
@@ -257,14 +269,15 @@ function updateYaml(component: any, value: any) {
   </div>
   <div v-else>
     <Banner
-      v-if="traefikSupported"
+      v-if="showTransitioningBanner"
       color="info"
       label-key="cluster.ingress.banners.transitioning.label"
     />
     <IngressCards
       :options="ingressOptions"
       :mode="mode"
-      :class="!traefikSupported ? 'mt-10' : ''"
+      :class="!showTransitioningBanner ? 'mt-10' : ''"
+      :is-prime="isPrime"
       @select="selectIngress"
     />
     <Banner

@@ -34,7 +34,7 @@ describe('the yaml Component', () => {
     const labelFields = wrapper.findAll('[data-testid="yaml-row-var_name"] h3');
 
     expect(labelFields).toHaveLength(1);
-    expect(labelFields.at(0).text()).toBe('var_name');
+    expect(labelFields.at(0)?.text()).toBe('var_name');
   });
 
   it('description is present', () => {
@@ -63,7 +63,7 @@ describe('the yaml Component', () => {
     const descriptionFields = wrapper.findAll('[data-testid="yaml-description-var_name"]');
 
     expect(descriptionFields).toHaveLength(1);
-    expect(descriptionFields.at(0).text()).toBe('test description');
+    expect(descriptionFields.at(0)?.text()).toBe('test description');
   });
 
   it('label is present', () => {
@@ -92,7 +92,7 @@ describe('the yaml Component', () => {
     const labelFields = wrapper.findAll('[data-testid="yaml-row-var_name"] h3');
 
     expect(labelFields).toHaveLength(1);
-    expect(labelFields.at(0).text()).toBe('test label');
+    expect(labelFields.at(0)?.text()).toBe('test label');
   });
 
   it('tooltip is present', () => {

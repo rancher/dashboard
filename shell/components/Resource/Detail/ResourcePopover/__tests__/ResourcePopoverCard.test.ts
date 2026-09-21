@@ -79,7 +79,7 @@ describe('component: ResourcePopoverCard.vue', () => {
 
     expect(formatterComponent.exists()).toBe(true);
     expect(formatterComponent.props('value')).toBe(mockResource.glance[1].content);
-    expect(formatterComponent.props('opt1')).toBe(mockResource.glance[1].formatterOpts.opt1);
+    expect(formatterComponent.props('opt1')).toBe(mockResource.glance[1].formatterOpts?.opt1);
   });
 
   it('should generate a unique ID for label `for` and value `id` attributes', () => {

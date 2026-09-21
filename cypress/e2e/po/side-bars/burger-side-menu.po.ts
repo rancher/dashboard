@@ -38,7 +38,7 @@ export default class BurgerMenuPo extends ComponentPo {
 
       menu.openClusterSwitcher();
 
-      return menu.clusterListRowByLabel(label).click({ force: true });
+      return menu.clusterListRowControlByLabel(label).click({ force: true });
     }
 
     return this.sideMenu().should('exist').find('.option .cluster-name').contains(label)
@@ -239,6 +239,14 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * The control that explores a flyout row. The row is a list item holding two sibling buttons — this
+   * one and the pin — so a click has to land on the control, not on the item that contains it.
+   */
+  clusterListRowControlByLabel(label: string): Cypress.Chainable {
+    return this.clusterListRowByLabel(label).find('.row-main');
+  }
+
+  /**
    * Pin a cluster from the (open) flyout by clicking its row's pin toggle.
    */
   pinClusterByLabel(label: string): Cypress.Chainable {
@@ -258,7 +266,7 @@ export default class BurgerMenuPo extends ComponentPo {
     if (clusterId !== 'local') {
       this.openClusterSwitcher();
 
-      return this.clusterListRowByLabel(clusterId).click({ force: true });
+      return this.clusterListRowControlByLabel(clusterId).click({ force: true });
     }
 
     this.self().find('.cluster-name').contains(clusterId).should('exist');

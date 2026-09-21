@@ -252,7 +252,8 @@ export default {
         @onInput="valuesChanged"
       />
       <FileSelector
-        class="role-primary  btn-sm"
+        variant="primary"
+        size="small"
         :label="t('generic.readFromFile')"
         @selected="onFileSelected"
       />

@@ -101,7 +101,7 @@ export default {
       <div class="dialog-actions">
         <div class="action-pannel file-selector">
           <FileSelector
-            class="btn role-secondary"
+            variant="secondary"
             data-testid="ssh-known-hosts-dialog_file-selector"
             :label="t('generic.readFromFile')"
             @selected="onTextChange"

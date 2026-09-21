@@ -4,8 +4,66 @@ import { shallowMount } from '@vue/test-utils';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { WORKLOAD_TYPES } from '@shell/config/types';
 
+interface MockCluster {
+  id: string;
+  metadata: { creationTimestamp: number };
+  status: {
+    provider: string;
+    componentStatuses?: { name: string, conditions: unknown }[];
+  };
+  isLocal?: boolean;
+  /** Folded in from the management-cluster fixtures via `mergeWithReplace`. */
+  provisionerDisplay?: string;
+  architecture?: { label: string | null };
+}
+
+interface MockGetters {
+  currentCluster: MockCluster;
+  'management/byId': jest.Mock;
+  'cluster/inError': () => boolean;
+  'cluster/schemaFor': jest.Mock;
+  'cluster/canList': (type: string) => boolean;
+  'cluster/byId': () => object;
+  'cluster/all': jest.Mock;
+  'i18n/exists': jest.Mock;
+  'i18n/t': (label: string) => unknown;
+}
+
+/**
+ * Without an explicit type `vue-tsc` infers this from the object literal below and
+ * narrows every mock to exactly the value it is seeded with, so the individual
+ * tests can no longer add `componentStatuses`, `isLocal` or `$router`, nor swap a
+ * `jest.fn()` for a plain stub. Describe the mock surface the tests drive instead.
+ */
+type DashboardMountOptions = {
+  global: {
+    stubs: Record<string, boolean>;
+    mocks: {
+      $router?: { push: (route: unknown) => void };
+      $store: {
+        dispatch: jest.Mock;
+        getters: MockGetters;
+      };
+    };
+  };
+}
+
+/** `mergeWithReplace` is declared in plain JS and so is typed as returning `Object`. */
+const asMockCluster = (merged: Object): MockCluster => merged as MockCluster;
+
+type State = typeof STATES_ENUM[keyof typeof STATES_ENUM];
+
+/** `[state, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas]` */
+type AgentStatusRow = [State, string, boolean, boolean, boolean, { status: string }[] | string, number, number];
+
+/** `[state, iconClass, clickable, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas]` */
+type ClickableAgentStatusRow = [State, string, boolean, boolean, boolean, boolean, { status: string }[] | string, number, number];
+
+/** `[clusterLabel, agentId, isLocal, agentResources, statuses]` */
+type AgentHealthBoxCase<T> = [string, string, boolean, string[], T[]];
+
 describe('page: cluster dashboard', () => {
-  const createMountOptions = () => ({
+  const createMountOptions = (): DashboardMountOptions => ({
     global: {
       stubs: {
         'router-link': true,
@@ -68,7 +126,7 @@ describe('page: cluster dashboard', () => {
     });
   });
 
-  describe.each([
+  const agentHealthBoxCases: AgentHealthBoxCase<AgentStatusRow>[] = [
     ['local', 'fleet', true, ['fleetControllerResource', 'fleetAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
@@ -96,7 +154,9 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]]
-  ])('%p cluster - %p agent health box :', (_, agentId, isLocal, agentResources, statuses) => {
+  ];
+
+  describe.each(agentHealthBoxCases)('%p cluster - %p agent health box :', (_, agentId, isLocal, agentResources, statuses) => {
     it.each(statuses)('should NOT show %p status due to missing canList permissions', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
       const options = createMountOptions();
 
@@ -134,7 +194,7 @@ describe('page: cluster dashboard', () => {
     });
   });
 
-  describe.each([
+  const clickableAgentHealthBoxCases: AgentHealthBoxCase<ClickableAgentStatusRow>[] = [
     ['local', 'fleet', true, ['fleetControllerResource', 'fleetAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
@@ -162,7 +222,9 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', false, true, false, false, [{ status: 'True' }], 1, 0],
     ]]
-  ])('%p cluster - %p agent health box ::', (_, agentId, isLocal, agentResources, statuses) => {
+  ];
+
+  describe.each(clickableAgentHealthBoxCases)('%p cluster - %p agent health box ::', (_, agentId, isLocal, agentResources, statuses) => {
     it.each(statuses)('should show %p status', async(status, iconClass, clickable, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
       let agentRoute = null;
 
@@ -250,7 +312,7 @@ describe('page: cluster dashboard', () => {
 
       const currentCluster = options.global.mocks.$store.getters['currentCluster'];
 
-      options.global.mocks.$store.getters['currentCluster'] = mgmtCluster ? mergeWithReplace(currentCluster, mgmtCluster) : currentCluster; // eslint-disable-line jest/no-conditional-in-test
+      options.global.mocks.$store.getters['currentCluster'] = mgmtCluster ? asMockCluster(mergeWithReplace(currentCluster, mgmtCluster)) : currentCluster; // eslint-disable-line jest/no-conditional-in-test
 
       const wrapper = shallowMount(Dashboard, options);
 

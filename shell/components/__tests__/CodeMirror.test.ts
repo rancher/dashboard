@@ -1,11 +1,11 @@
 import { nextTick } from 'vue';
-import { shallowMount, Wrapper } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 import CodeMirror from '@shell/components/CodeMirror.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
 
 // eslint-disable-next-line jest/no-disabled-tests
 describe('component: CodeMirror.vue', () => {
-  let wrapper: Wrapper<InstanceType<typeof CodeMirror>>;
+  let wrapper: VueWrapper<InstanceType<typeof CodeMirror>>;
 
   const options = {
     readOnly: false,
@@ -24,7 +24,7 @@ describe('component: CodeMirror.vue', () => {
   };
 
   const mountOptions = {
-    propsData: {
+    props: {
       value:         '',
       mode:          _EDIT,
       options,
@@ -82,7 +82,7 @@ describe('component: CodeMirror.vue', () => {
 
       const closeIcon = keyMapBox.find('.icon-close');
 
-      closeIcon.element.click();
+      (closeIcon.element as HTMLElement).click();
       await nextTick();
 
       keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');

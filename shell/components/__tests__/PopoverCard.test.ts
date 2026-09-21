@@ -2,6 +2,17 @@
 import { mount } from '@vue/test-utils';
 import PopoverCard from '@shell/components/PopoverCard.vue';
 
+/**
+ * PopoverCard.vue uses `<script setup>`, so `vue-tsc` cannot infer the exposed
+ * refs as public instance members. Describe just the surface these tests drive.
+ */
+interface PopoverCardInstance {
+  showPopover: boolean;
+  focusOpen: boolean;
+}
+
+const asPopoverCard = (wrapper: { vm: unknown }): PopoverCardInstance => wrapper.vm as PopoverCardInstance;
+
 const mockFocusTrap = jest.fn();
 
 jest.mock('@shell/composables/focusTrap', () => ({
@@ -84,12 +95,12 @@ describe('component: PopoverCard.vue', () => {
       const target = wrapper.find('.popover-card-target');
 
       await target.trigger('mouseenter');
-      expect(wrapper.vm.showPopover).toBe(true);
+      expect(asPopoverCard(wrapper).showPopover).toBe(true);
 
       const root = wrapper.find('.popover-card-base');
 
       await root.trigger('mouseleave');
-      expect(wrapper.vm.showPopover).toBe(false);
+      expect(asPopoverCard(wrapper).showPopover).toBe(false);
     });
 
     it('should show on button click', async() => {
@@ -97,8 +108,8 @@ describe('component: PopoverCard.vue', () => {
       const button = wrapper.find('button');
 
       await button.trigger('click');
-      expect(wrapper.vm.showPopover).toBe(true);
-      expect(wrapper.vm.focusOpen).toBe(true);
+      expect(asPopoverCard(wrapper).showPopover).toBe(true);
+      expect(asPopoverCard(wrapper).focusOpen).toBe(true);
     });
 
     it('should hide on Escape keydown', async() => {
@@ -106,16 +117,16 @@ describe('component: PopoverCard.vue', () => {
 
       // Open it first
       await wrapper.find('button').trigger('click');
-      expect(wrapper.vm.showPopover).toBe(true);
-      expect(wrapper.vm.focusOpen).toBe(true);
+      expect(asPopoverCard(wrapper).showPopover).toBe(true);
+      expect(asPopoverCard(wrapper).focusOpen).toBe(true);
 
       // Trigger escape
       const root = wrapper.find('.popover-card-base');
 
       await root.trigger('keydown.escape');
 
-      expect(wrapper.vm.showPopover).toBe(false);
-      expect(wrapper.vm.focusOpen).toBe(false);
+      expect(asPopoverCard(wrapper).showPopover).toBe(false);
+      expect(asPopoverCard(wrapper).focusOpen).toBe(false);
     });
   });
 
@@ -127,7 +138,7 @@ describe('component: PopoverCard.vue', () => {
       await target.trigger('mouseenter');
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.vm.focusOpen).toBe(false);
+      expect(asPopoverCard(wrapper).focusOpen).toBe(false);
       expect(mockFocusTrap).not.toHaveBeenCalled();
     });
 
@@ -138,7 +149,7 @@ describe('component: PopoverCard.vue', () => {
       await button.trigger('click');
       await wrapper.vm.$nextTick(); // Let watcher for `card` run
 
-      expect(wrapper.vm.focusOpen).toBe(true);
+      expect(asPopoverCard(wrapper).focusOpen).toBe(true);
       expect(mockFocusTrap).toHaveBeenCalledTimes(1);
 
       // Check arguments passed to the composable
@@ -178,15 +189,15 @@ describe('component: PopoverCard.vue', () => {
 
       // Open popover
       await wrapper.find('button').trigger('click');
-      expect(wrapper.vm.showPopover).toBe(true);
-      expect(wrapper.vm.focusOpen).toBe(true);
+      expect(asPopoverCard(wrapper).showPopover).toBe(true);
+      expect(asPopoverCard(wrapper).focusOpen).toBe(true);
 
       // Click the button that uses the `close` slot prop
       await wrapper.find('.close-button').trigger('click');
 
       // Due to the bug, this should be true, not false
-      expect(wrapper.vm.showPopover).toBe(false);
-      expect(wrapper.vm.focusOpen).toBe(false);
+      expect(asPopoverCard(wrapper).showPopover).toBe(false);
+      expect(asPopoverCard(wrapper).focusOpen).toBe(false);
     });
 
     it('should allow overriding the entire card via the card slot', async() => {

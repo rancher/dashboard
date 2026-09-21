@@ -1,13 +1,12 @@
 <script>
 import { _EDIT } from '@shell/config/query-params';
 import { useStore } from 'vuex';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import { useFormRules } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
 
 export default {
-  components: { LabeledInput, FileSelector },
+  components: { FileSelectorTextArea },
 
   props: {
     value: {
@@ -62,9 +61,6 @@ export default {
   },
 
   methods: {
-    onKeySelected: createOnSelected('key'),
-    onCrtSelected: createOnSelected('crt'),
-
     update() {
       let keyToSave;
 
@@ -84,41 +80,24 @@ export default {
 
 <template>
   <div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model:value="key"
-          name="tls.key"
-          required
-          type="multiline"
-          :label="t('secret.certificate.privateKey')"
-          :mode="mode"
-          :rules="getRules('tls.key')"
-          :placeholder="t('secret.certificate.privateKeyPlaceholder')"
-        />
-        <FileSelector
-          class="btn btn-sm bg-primary mt-10"
-          :label="t('generic.readFromFile')"
-          @selected="onKeySelected"
-        />
-      </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model:value="crt"
-          name="tls.crt"
-          required
-          type="multiline"
-          :label="t('secret.certificate.certificate')"
-          :mode="mode"
-          :rules="getRules('tls.crt')"
-          :placeholder="t('secret.certificate.certificatePlaceholder')"
-        />
-        <FileSelector
-          class="btn btn-sm bg-primary mt-10"
-          :label="t('generic.readFromFile')"
-          @selected="onCrtSelected"
-        />
-      </div>
-    </div>
+    <FileSelectorTextArea
+      v-model:value="key"
+      class="mb-20"
+      name="tls.key"
+      required
+      :label="t('secret.certificate.privateKey')"
+      :mode="mode"
+      :rules="getRules('tls.key')"
+      :placeholder="t('secret.certificate.privateKeyPlaceholder')"
+    />
+    <FileSelectorTextArea
+      v-model:value="crt"
+      name="tls.crt"
+      required
+      :label="t('secret.certificate.certificate')"
+      :mode="mode"
+      :rules="getRules('tls.crt')"
+      :placeholder="t('secret.certificate.certificatePlaceholder')"
+    />
   </div>
 </template>

@@ -346,6 +346,46 @@ describe('component: Header', () => {
         expect(toggle).not.toHaveBeenCalled();
       });
     });
+
+    // The shortcut fires from anywhere on the page, so the toggle usually lands with focus somewhere
+    // else and the control's own `aria-pressed` is never spoken. The live region covers that case —
+    // and stays quiet when the control DOES have focus, or the change would be announced twice.
+    describe('announcing the toggle', () => {
+      const ctx = (focused = false) => {
+        const el = document.createElement('button');
+
+        if (focused) {
+          document.body.appendChild(el);
+          el.focus();
+        }
+
+        return {
+          pinAnnouncement: '',
+          $refs:           { clusterPin: { $el: el } },
+          t:               (key: string, args: any) => `${ key }:${ JSON.stringify(args) }`,
+          $nextTick:       (fn: () => void) => fn(),
+        };
+      };
+
+      it.each([
+        ['pinned', true, 'nav.switcher.aria.pinnedCluster'],
+        ['unpinned', false, 'nav.switcher.aria.unpinnedCluster'],
+      ])('should announce a cluster being %s when the pin does not hold focus', (_l, pinned, key) => {
+        const c = ctx();
+
+        (Header as any).methods.announcePin.call(c, { label: 'prod' }, pinned);
+
+        expect(c.pinAnnouncement).toStrictEqual(`${ key }:{"cluster":"prod"}`);
+      });
+
+      it('should stay silent when the pin itself has focus', () => {
+        const c = ctx(true);
+
+        (Header as any).methods.announcePin.call(c, { label: 'prod' }, true);
+
+        expect(c.pinAnnouncement).toStrictEqual('');
+      });
+    });
   });
 
   describe('navHeaderRight', () => {

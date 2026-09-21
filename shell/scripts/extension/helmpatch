@@ -67,7 +67,7 @@ if (isGitHubBuild) {
   const imagePrefix = process.env.IMAGE_PREFIX || '';
   const baseExt = process.env.BASE_EXT;
 
-  values.plugin.endpoint = `http://${ imagePrefix }${ baseExt }-svc.cattle-ui-plugin-system:8080/plugin/${ pkgFullName }`;
+  values.plugin.endpoint = `http://${ imagePrefix }${ baseExt }-svc.cattle-ui-plugin-system.svc:8080/plugin/${ pkgFullName }`;
 }
 
 // Always set compressedEndpoint as endpoint + .tgz

@@ -20,8 +20,8 @@ export class HarvesterClusterPagePo extends PagePo {
     super(HarvesterClusterPagePo.createPath(clusterId));
   }
 
-  static navTo() {
-    BurgerMenuPo.burgerMenuNavToMenubyLabel('Virtualization Management');
+  static navTo(productLabel = 'Virtualization Management') {
+    BurgerMenuPo.burgerMenuNavToMenubyLabel(productLabel);
   }
 
   masthead() {

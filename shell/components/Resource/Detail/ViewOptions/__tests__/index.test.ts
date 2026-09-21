@@ -3,6 +3,12 @@ import ViewOptions from '@shell/components/Resource/Detail/ViewOptions/index.vue
 import ButtonGroup from '@shell/components/ButtonGroup.vue';
 import { _CONFIG, _GRAPH } from '@shell/config/query-params';
 
+/**
+ * `ButtonGroup` declares `options` as a bare array, so `props('options')` comes back
+ * as `unknown`. `ViewOptions` always populates it with labelled values.
+ */
+const asOptions = (options: unknown): { value: string, label?: string }[] => options as { value: string, label?: string }[];
+
 const mockPush = jest.fn();
 const mockQuery = { view: _CONFIG };
 
@@ -30,7 +36,7 @@ describe('component: ViewOptions/index', () => {
   it('should provide two view options: detail and graph', () => {
     const wrapper = createWrapper();
     const buttonGroup = wrapper.findComponent(ButtonGroup);
-    const options = buttonGroup.props('options');
+    const options = asOptions(buttonGroup.props('options'));
 
     expect(options).toHaveLength(2);
     expect(options[0].value).toStrictEqual(_CONFIG);

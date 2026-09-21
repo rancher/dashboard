@@ -9,8 +9,6 @@ import {
   NAMESPACE_FILTER_ALL as ALL,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
   NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
-  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
-  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
   createNamespaceFilterKey,
   NAMESPACE_FILTER_KINDS,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
@@ -197,16 +195,6 @@ export default {
             kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
             label: t('nav.ns.system'),
           },
-          {
-            id:    NAMESPACED_YES,
-            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
-            label: t('nav.ns.namespaced'),
-          },
-          {
-            id:    NAMESPACED_NO,
-            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
-            label: t('nav.ns.clusterLevel'),
-          },
         ];
 
         divider(out);
@@ -340,17 +328,14 @@ export default {
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
         const values = prefs && prefs[this.key] ? prefs[this.key] : this.defaultOption();
         const options = this.options;
+        const toOptions = (ids) => ids.map((id) => findBy(options, 'id', id)).filter((x) => !!x);
 
         // Remove values that are not valid options
-        const filters = values
-          .map((value) => {
-            return findBy(options, 'id', value);
-          })
-          .filter((x) => !!x);
+        const filters = toOptions(values);
 
         if (filters.length !== values.length) {
           // filter has changed, ensure we persist these to store
-          this.value = filters;
+          this.value = filters.length ? filters : toOptions(this.defaultOption());
         }
 
         return filters;

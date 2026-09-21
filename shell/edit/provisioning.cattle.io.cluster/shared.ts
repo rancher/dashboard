@@ -19,12 +19,15 @@ export const INGRESS_OPTIONS = [
     doc:       { url: 'https://docs.rke2.io/networking/networking_services?_highlight=ingress#ingress-controller' }
   },
   {
-    id:        INGRESS_NGINX,
-    image:     { src: requireAsset('@shell/assets/images/providers/kubernetes.svg'), alt: 'NGINX' },
-    header:    { title: { key: 'cluster.ingress.nginx.header' } },
-    subHeader: { label: { key: 'cluster.ingress.legacy' } },
-    content:   { key: 'cluster.ingress.nginx.content' },
-    doc:       { url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' }
+    id:         INGRESS_NGINX,
+    image:      { src: requireAsset('@shell/assets/images/providers/kubernetes.svg'), alt: 'NGINX' },
+    header:     { title: { key: 'cluster.ingress.nginx.header' } },
+    subHeader:  { label: { key: 'cluster.ingress.legacy' } },
+    newContent: { key: 'cluster.ingress.nginx.contentCommunity' },
+    oldContent: { key: 'cluster.ingress.nginx.content' },
+    newDoc:     { url: 'https://www.suse.com/c/trade-the-ingress-nginx-retirement-for-up-to-2-years-of-rke2-support-stability/' },
+    oldDoc:     { url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' },
+    prime:      true
   },
   {
     id:        INGRESS_DUAL,

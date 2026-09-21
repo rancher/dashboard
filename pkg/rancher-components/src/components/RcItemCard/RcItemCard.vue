@@ -8,6 +8,7 @@ import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import RcItemCardAction from './RcItemCardAction';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 import { RcIconType } from '@components/RcIcon/types';
+import RcHeading from '@components/RcHeading/RcHeading.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -266,14 +267,15 @@ const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
               </slot>
             </template>
             <slot name="item-card-header-title">
-              <h3
+              <RcHeading
                 v-if="header.title"
                 v-clean-tooltip="headerTitle"
+                :size="3"
                 :class="['item-card-header-title', variant]"
                 data-testid="item-card-header-title"
               >
                 {{ headerTitle }}
-              </h3>
+              </RcHeading>
             </slot>
           </div>
           <div class="item-card-header-right">

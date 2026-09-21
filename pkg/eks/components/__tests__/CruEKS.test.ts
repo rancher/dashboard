@@ -57,6 +57,14 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   };
 };
 
+const nodeGroupTabErrors = (wrapper: VueWrapper<any>) => {
+  const tabbed = wrapper.findComponent({ name: 'Tabbed' });
+
+  const [nodeGroupTabs] = tabbed.vm.$slots.default();
+
+  return nodeGroupTabs.children.map((tab: any) => tab.props.error);
+};
+
 const setCredential = async(wrapper: VueWrapper<any>, config = {} as EKSConfig) => {
   wrapper.setData({ config });
   wrapper.vm.updateCredential('foo');
@@ -211,6 +219,28 @@ describe('eKS provisioning form', () => {
 
     expect(wrapper.vm.fvFormIsValid).toBe(false);
     expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual(['eks.errors.nodeGroupsRequired']);
+  });
+
+  it('should show a form-level error and mark the offending tabs when two node groups share a name', async() => {
+    const wrapper = mount(CruEKS, {
+      props:   { value: {}, mode: 'create' },
+      ...requiredSetup(),
+      shallow: true,
+    });
+
+    await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG } as unknown as EKSConfig);
+    wrapper.setData({ nodeGroups: [{ nodegroupName: 'abc' }, { nodegroupName: 'abc' }, { nodegroupName: 'def' }] });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.fvUnreportedValidationErrors).toContain('eks.errors.nodeGroups.nameUnique');
+    expect(wrapper.vm.fvFormIsValid).toBe(false);
+    expect(nodeGroupTabErrors(wrapper)).toStrictEqual([true, true, false]);
+
+    wrapper.vm.nodeGroups[1].nodegroupName = 'ghi';
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.fvUnreportedValidationErrors).not.toContain('eks.errors.nodeGroups.nameUnique');
+    expect(nodeGroupTabErrors(wrapper)).toStrictEqual([false, false, false]);
   });
 
   it('should NOT show an error nor prevent saving if no node groups are defined in an IMPORTED cluster', async() => {

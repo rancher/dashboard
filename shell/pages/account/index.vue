@@ -12,12 +12,13 @@ import ResourceTable from '@shell/components/ResourceTable';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import TabTitle from '@shell/components/TabTitle';
 import { RcSeparator } from '@components/RcSeparator';
+import { RcHeading } from '@components/RcHeading';
 
 const API_ENDPOINT = '/v3';
 
 export default {
   components: {
-    CopyToClipboardText, BackLink, Banner, Loading, ResourceTable, Principal, TabTitle, RcSeparator
+    CopyToClipboardText, BackLink, Banner, Loading, ResourceTable, Principal, TabTitle, RcSeparator, RcHeading
   },
   mixins: [BackRoute],
   async fetch() {
@@ -166,7 +167,10 @@ export default {
       </TabTitle>
     </h1>
 
-    <h2 v-t="'accountAndKeys.account.title'" />
+    <RcHeading
+      v-t="'accountAndKeys.account.title'"
+      :size="2"
+    />
     <div class="account">
       <Principal
         :value="principal.id"
@@ -191,7 +195,10 @@ export default {
     <RcSeparator />
     <div class="keys-header">
       <div>
-        <h2 v-t="'accountAndKeys.apiKeys.title'" />
+        <RcHeading
+          v-t="'accountAndKeys.apiKeys.title'"
+          :size="2"
+        />
         <div class="api-url">
           <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
           <CopyToClipboardText

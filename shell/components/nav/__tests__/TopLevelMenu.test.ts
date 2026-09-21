@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { load } from 'js-yaml';
 import TopLevelMenu from '@shell/components/nav/TopLevelMenu.vue';
 import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
-import { mount, Wrapper } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
 import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
 import { PINNED_CLUSTERS, RECENT_CLUSTERS } from '@shell/store/prefs';
 import { SETTING } from '@shell/config/settings';
@@ -95,7 +95,7 @@ describe('topLevelMenu', () => {
       id:   'an-id1',
       mgmt: { id: 'an-id1' },
     }];
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -112,7 +112,7 @@ describe('topLevelMenu', () => {
   });
 
   it('should show local cluster always on top of the list of clusters (unpinned and ready clusters)', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -197,7 +197,7 @@ describe('topLevelMenu', () => {
       },
     ];
 
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -217,7 +217,7 @@ describe('topLevelMenu', () => {
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and ready clusters)', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -274,7 +274,7 @@ describe('topLevelMenu', () => {
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and mix ready/unready clusters)', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       data: () => {
         return { hasProvCluster: true, showPinClusters: true };
       },
@@ -339,7 +339,7 @@ describe('topLevelMenu', () => {
   // the flyout. providerDisplay resolves from the prov cluster's provisionerDisplay here; the four row
   // types (pinned/unpinned × ready/not-ready) are all still represented.
   it('should show meta (provider/k8s version) resolved from the prov cluster', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -414,7 +414,7 @@ describe('topLevelMenu', () => {
   // As above, but the provider falls back to the MGMT cluster's `provider` field (no prov provisionerDisplay)
   // — the RKE1/ember world. Verifies the provider resolution order still surfaces the meta.
   it('should show meta (provider/k8s version) resolved from the mgmt cluster (relevant for RKE1/ember world)', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+    const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       global: {
         mocks: {
           $route: {},
@@ -489,7 +489,7 @@ describe('topLevelMenu', () => {
   describe('searching a term', () => {
     describe('should displays a no results message if have clusters but', () => {
       it('given no matching clusters', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: {},
@@ -518,7 +518,7 @@ describe('topLevelMenu', () => {
       });
 
       it('given no matched pinned clusters', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: {},
@@ -551,7 +551,7 @@ describe('topLevelMenu', () => {
     describe('should not displays a no results message', () => {
       it('given matching clusters', async() => {
         const search = 'you found me';
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           data: () => ({ clusterFilter: search }),
 
           global: {
@@ -580,7 +580,7 @@ describe('topLevelMenu', () => {
 
       it('given clusters with status pinned', async() => {
         const search = 'you found me';
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: {},
@@ -738,6 +738,78 @@ describe('topLevelMenu', () => {
     });
   });
 
+  // Unpinning destroys the row that holds focus. Left alone the browser drops focus to `<body>`, and the
+  // nav says nothing — so the shelf has to hand focus on and announce what happened.
+  describe('unpinning a row from the shelf', () => {
+    type Row = { id: string, label: string };
+    const methods = (TopLevelMenu as any).methods;
+
+    // The handler is given the shelf it was fired from, so the context only has to carry what it reads
+    // off the component.
+    const ctx = (el: HTMLElement) => ({
+      t:         (key: string, args: unknown) => `${ key }:${ JSON.stringify(args) }`,
+      announce:  jest.fn(),
+      $nextTick: (fn: () => void) => fn(),
+      $el:       el,
+    });
+
+    const shelfDom = (ids: string[]): HTMLElement => {
+      const el = document.createElement('div');
+
+      el.innerHTML = `${ ids.map((id) => `<div class="shelf-row" data-row-id="${ id }"><button class="pin"></button></div>`).join('')
+      }<button data-testid="cluster-switcher-trigger"></button>`;
+
+      return el;
+    };
+
+    const spyFocus = (el: HTMLElement, selector: string) => jest.spyOn(el.querySelector(selector) as HTMLElement, 'focus');
+
+    it('should move focus to the row that took its place, and announce the change', () => {
+      const rows: Row[] = [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }];
+      // `b` is unpinned, so the DOM the handler sees no longer has it.
+      const el = shelfDom(['a', 'c']);
+      const context = ctx(el);
+      const focus = spyFocus(el, '[data-row-id="c"] .pin');
+
+      methods.onShelfUnpinned.call(context, rows[1], 1, rows);
+
+      expect(focus).toHaveBeenCalledWith();
+      expect(context.announce).toHaveBeenCalledWith('nav.switcher.aria.unpinnedCluster:{"cluster":"B"}');
+    });
+
+    it('should fall back to the previous row when the last one goes', () => {
+      const rows: Row[] = [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }];
+      const el = shelfDom(['a']);
+      const focus = spyFocus(el, '[data-row-id="a"] .pin');
+
+      methods.onShelfUnpinned.call(ctx(el), rows[1], 1, rows);
+
+      expect(focus).toHaveBeenCalledWith();
+    });
+
+    it('should fall back to the switcher when the shelf empties', () => {
+      const rows: Row[] = [{ id: 'a', label: 'A' }];
+      const el = shelfDom([]);
+      const focus = spyFocus(el, '[data-testid="cluster-switcher-trigger"]');
+
+      methods.onShelfUnpinned.call(ctx(el), rows[0], 0, rows);
+
+      expect(focus).toHaveBeenCalledWith();
+    });
+
+    // A live region ignores an unchanged value, so unpinning two rows with the same name in a row would
+    // announce only the first without the clear-then-set.
+    it('should re-announce an identical message', () => {
+      const context = { navAnnouncement: 'x', $nextTick: (fn: () => void) => fn() };
+
+      methods.announce.call(context, 'same');
+      expect(context.navAnnouncement).toStrictEqual('same');
+
+      methods.announce.call(context, 'same');
+      expect(context.navAnnouncement).toStrictEqual('same');
+    });
+  });
+
   describe('the cluster-switcher trigger', () => {
     const twoClusters = [
       {
@@ -890,12 +962,16 @@ describe('topLevelMenu', () => {
       },
     });
 
+    // A click on the row's own control has already navigated through the control's handler; one on the
+    // strip of row beside the pin has not, and the row is what carries it.
+    const clickOn = (selector?: string) => ({ target: { closest: (sel: string) => (selector === sel ? {} : null) } });
+
     it('leaves the nav open when the cluster is not ready', async() => {
       const wrapper = mountNav();
       const vm = wrapper.vm as any;
 
       await wrapper.setData({ shown: true });
-      await vm.onShelfRowClick({ id: 'an-id1', ready: false });
+      await vm.onShelfRowClick(clickOn('.cluster.selector'), { id: 'an-id1', ready: false });
 
       expect(vm.shown).toBe(true);
     });
@@ -905,8 +981,36 @@ describe('topLevelMenu', () => {
       const vm = wrapper.vm as any;
 
       await wrapper.setData({ shown: true });
-      await vm.onShelfRowClick({ id: 'an-id1', ready: true });
+      await vm.onShelfRowClick(clickOn('.cluster.selector'), { id: 'an-id1', ready: true });
 
+      expect(vm.shown).toBe(false);
+    });
+
+    it('does not navigate again when the click landed on the row\'s own control', async() => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+      const clusterMenuClick = jest.spyOn(vm, 'clusterMenuClick');
+
+      await wrapper.setData({ shown: true });
+      await vm.onShelfRowClick(clickOn('.cluster.selector'), { id: 'an-id1', ready: true });
+
+      expect(clusterMenuClick).not.toHaveBeenCalled();
+    });
+
+    // The control stops short of the pin, so the row keeps a strip of its own. Before this the whole row
+    // was the control and a click there explored the cluster — clicking it must still do that, not just
+    // close the nav.
+    it('explores the cluster when the click landed on the row beside the pin', async() => {
+      const wrapper = mountNav();
+      const vm = wrapper.vm as any;
+      const clusterMenuClick = jest.spyOn(vm, 'clusterMenuClick').mockImplementation(() => undefined);
+      const cluster = { id: 'an-id1', ready: true };
+      const event = clickOn();
+
+      await wrapper.setData({ shown: true });
+      await vm.onShelfRowClick(event, cluster);
+
+      expect(clusterMenuClick).toHaveBeenCalledWith(event, cluster);
       expect(vm.shown).toBe(false);
     });
   });
@@ -1188,7 +1292,7 @@ describe('topLevelMenu', () => {
     const press = async() => {
       const toggle = jest.fn();
       // Stand in for the flyout so the assertion is "was it asked to open", not the flyout's own behaviour.
-      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
         global: {
           mocks: {
             $route: {},
@@ -1226,7 +1330,7 @@ describe('topLevelMenu', () => {
     // The binding is `.anywhere` on purpose: the flyout puts the caret in its own search box, so the
     // directive's avoid list would otherwise let the shortcut open the flyout but never close it.
     it('binds Cmd/Ctrl+J on the trigger, live even from a text field', async() => {
-      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
         global: {
           mocks: {
             $route: {},
@@ -1363,7 +1467,7 @@ describe('topLevelMenu', () => {
         updateCount:    () => {}
       } as any);
 
-      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
         global: {
           mocks: {
             $route: {},
@@ -1411,7 +1515,7 @@ describe('topLevelMenu', () => {
         updateCount:    () => {}
       } as any);
 
-      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
         global: {
           mocks: {
             $route: {},
@@ -1461,7 +1565,7 @@ describe('topLevelMenu', () => {
         updateCount:    () => {}
       } as any);
 
-      const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
         global: {
           mocks: {
             $route: {},
@@ -1686,7 +1790,7 @@ describe('topLevelMenu', () => {
   describe('computed properties', () => {
     describe('routeComboActive', () => {
       it('should be true when routeCombo is true and there are multiple ready clusters', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
@@ -1718,7 +1822,7 @@ describe('topLevelMenu', () => {
       });
 
       it('should be false when routeCombo is false', async() => {
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: {},
@@ -1761,7 +1865,7 @@ describe('topLevelMenu', () => {
 
         store.getters.clusterId = 'an-id1' as any;
 
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: {},
@@ -1793,7 +1897,7 @@ describe('topLevelMenu', () => {
 
         store.getters.clusterId = 'an-id1' as any;
 
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: { name: 'c-cluster-explorer', params: { cluster: 'an-id1', product: 'explorer' } },
@@ -1821,7 +1925,7 @@ describe('topLevelMenu', () => {
 
         store.getters.clusterId = 'some-other-cluster-id' as any;
 
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
@@ -1852,7 +1956,7 @@ describe('topLevelMenu', () => {
             mocks: { $route: route, $store: store },
             stubs: ['BrandImage', 'router-link'],
           }
-        }) as Wrapper<InstanceType<typeof TopLevelMenu>>;
+        }) as VueWrapper<InstanceType<typeof TopLevelMenu>>;
       };
 
       it('names the route\'s cluster even while the store still holds the one we came from', async() => {
@@ -1892,7 +1996,7 @@ describe('topLevelMenu', () => {
           },
           stubs: ['BrandImage', 'router-link'],
         }
-      }) as Wrapper<InstanceType<typeof TopLevelMenu>>;
+      }) as VueWrapper<InstanceType<typeof TopLevelMenu>>;
 
       it('mirrors the holdkey event detail onto routeCombo, absolutely (never toggles)', async() => {
         const wrapper = mountMenu();
@@ -2002,7 +2106,7 @@ describe('topLevelMenu', () => {
           }
         ];
 
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route:  { name: 'c-cluster-fleet', params: { cluster: 'local', product: 'fleet' } },
@@ -2038,7 +2142,7 @@ describe('topLevelMenu', () => {
           }
         ];
 
-        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
               $route:  { name: 'fleet-management', params: {} },

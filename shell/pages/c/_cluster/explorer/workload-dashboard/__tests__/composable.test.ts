@@ -43,7 +43,6 @@ const defaultGetters: Record<string, any> = {
   clusterId:           'local',
   isAllNamespaces:     true,
   namespaceFilters:    [],
-  namespaceMode:       'both',
   'prefs/get':         () => ({}),
   'cluster/all':       () => [],
   'cluster/schemaFor': () => null,
@@ -118,7 +117,7 @@ describe('composable: useWorkloadDashboard', () => {
 
   describe('namespaceSubtitle', () => {
     it('should return allNamespaces subtitle with workloadCount suffix when isAllNamespaces is true', async() => {
-      const { wrapper, result } = mountComposable({ isAllNamespaces: true, namespaceMode: 'both' });
+      const { wrapper, result } = mountComposable({ isAllNamespaces: true });
 
       await flushPromises();
 
@@ -129,7 +128,6 @@ describe('composable: useWorkloadDashboard', () => {
     it('should return userNamespaces subtitle with workloadCount suffix for ALL_USER filter', async() => {
       const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
-        namespaceMode:    'both',
         namespaceFilters: ['all://user'],
       });
 
@@ -142,7 +140,6 @@ describe('composable: useWorkloadDashboard', () => {
     it('should return systemNamespaces subtitle with workloadCount suffix for ALL_SYSTEM filter', async() => {
       const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
-        namespaceMode:    'both',
         namespaceFilters: ['all://system'],
       });
 
@@ -157,7 +154,6 @@ describe('composable: useWorkloadDashboard', () => {
 
       const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
-        namespaceMode:    'both',
         namespaceFilters: [`project://${ projectId }`],
         'management/all': () => [{
           id: `local/${ projectId }`, nameDisplay: 'My Project', metadata: { name: projectId }
@@ -173,7 +169,6 @@ describe('composable: useWorkloadDashboard', () => {
     it('should return namespace subtitle with workloadCount suffix for namespace filter', async() => {
       const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
-        namespaceMode:    'both',
         namespaceFilters: ['ns://cattle-system'],
       });
 
@@ -186,7 +181,6 @@ describe('composable: useWorkloadDashboard', () => {
     it('should return multipleSelected subtitle with workloadCount suffix for multiple filters', async() => {
       const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
-        namespaceMode:    'both',
         namespaceFilters: ['ns://default', 'ns://kube-system'],
       });
 

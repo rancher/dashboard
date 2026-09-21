@@ -168,7 +168,7 @@
 @mixin extension-dialog {
   padding: 8px 16px 16px 16px;
 
-  h4 {
+  [data-modal-title] {
     font-weight: bold;
   }
 

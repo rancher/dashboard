@@ -9,16 +9,17 @@ import type { TopLevelMenuCluster } from '@shell/components/nav/TopLevelMenu.hel
 /**
  * A single cluster row in the cluster-switcher flyout.
  *
- * Clicking the row (or Enter while active) explores the cluster; the pin toggle is the only pin/unpin
- * affordance and mutates the pref via the reused `Pinned` control.
+ * Two controls side by side, never nested: the row itself explores the cluster, the pin toggles it. Both
+ * are real buttons, so both are reachable with Tab and carry their own name and state.
  */
 interface Props {
   cluster: TopLevelMenuCluster;
   id?: string;
+  /** The row the list's cursor is on: it holds the highlight. */
   active?: boolean;
-  /** Reached by KEYBOARD, so it carries a focus ring too — an `aria-activedescendant` option never holds
-   * DOM focus, so nothing draws one for us. */
-  keyboardActive?: boolean;
+  /** The one row Tab can reach — the cursor's row, or the first row while the cursor is still outside
+   * the list, so Tab from the search box always lands somewhere. */
+  tabbable?: boolean;
   /** The cluster being explored. Drives `aria-current` only — the panel does not mark it, so the one
    * highlight in here stays the cursor's. */
   current?: boolean;
@@ -35,7 +36,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   id:              undefined,
   active:          false,
-  keyboardActive:  false,
+  tabbable:        false,
   current:         false,
   announceCurrent: true,
   subtitle:        '',
@@ -43,7 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
   routeCombo:      false,
 });
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['select', 'focus-row', 'unpinned']);
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -59,17 +60,13 @@ const meta = computed(() => {
   ].filter((p) => !!p).join(' · ');
 });
 
-// Single screen-reader label — the badge is decorative and the pin is `aria-hidden`, so this label is
-// the ONLY thing assistive tech perceives about the option: it has to carry the pinned state too, or
-// the pin shortcut (the only keyboard route to the pin) is a toggle with no perceivable result.
+// The pin is its own button with its own name and `aria-pressed`, so this label carries only what the
+// row's own control is for — the state lives on the control that owns it.
 const ariaLabel = computed(() => {
   const parts = [props.cluster.label];
 
   if (meta.value) {
     parts.push(meta.value);
-  }
-  if (props.pinnable && props.cluster.pinned) {
-    parts.push(t('nav.switcher.aria.pinned'));
   }
   if (!props.cluster.ready) {
     parts.push(t('nav.switcher.aria.notReady'));
@@ -87,51 +84,47 @@ function select() {
 </script>
 
 <template>
-  <div
+  <li
     :id="id"
     class="cluster-switcher-row"
-    :class="{ active, disabled: !cluster.ready, 'keyboard-active': active && keyboardActive }"
-    role="option"
-    :aria-label="ariaLabel"
-    :aria-selected="active ? 'true' : 'false'"
-    :aria-current="current && announceCurrent ? 'true' : undefined"
-    :aria-disabled="!cluster.ready ? 'true' : undefined"
-    @click="select"
+    :class="{ active, disabled: !cluster.ready }"
   >
-    <ClusterIconMenu
-      :cluster="cluster"
-      class="row-badge"
-      :show-pin="false"
-      :route-combo="routeCombo && cluster.ready"
-      aria-hidden="true"
-    />
-    <div class="row-body">
-      <div class="row-name">
-        {{ cluster.label }}
-      </div>
-      <div
-        v-if="meta"
-        class="row-meta"
-      >
-        {{ meta }}
-      </div>
-    </div>
-    <!-- No `tab-order` on purpose: a focusable control inside `role="option"` is invalid ARIA, so the
-         pin stays out of the tab order and the combobox drives it from the keyboard instead
-         (Cmd+Shift+P / Alt+P). `aria-hidden` makes that explicit — an option's children are presentational, so the pin's own
-         name/state is unreliable across screen readers and the pin shortcut is the supported path.
-         `@mousedown.prevent` for the same reason the search's clear-X has it: with no `tabindex` here the
-         browser focuses the nearest focusable ancestor, which is floating-vue's popper ROOT — and the
-         flyout's `keydown` handler sits on a DESCENDANT of that root, so every key would go dead after a
-         pin click. Suppressing the default keeps focus in the search input. -->
+    <button
+      type="button"
+      class="row-main"
+      :tabindex="tabbable ? 0 : -1"
+      :aria-label="ariaLabel"
+      :aria-current="current && announceCurrent ? 'true' : undefined"
+      :aria-disabled="!cluster.ready ? 'true' : undefined"
+      @click="select"
+      @focus="emit('focus-row')"
+    >
+      <ClusterIconMenu
+        :cluster="cluster"
+        class="row-badge"
+        :show-pin="false"
+        :route-combo="routeCombo && cluster.ready"
+        aria-hidden="true"
+      />
+      <span class="row-body">
+        <span class="row-name">{{ cluster.label }}</span>
+        <span
+          v-if="meta"
+          class="row-meta"
+        >{{ meta }}</span>
+      </span>
+    </button>
+    <!-- A sibling, not a child: a button may not contain another interactive element. Tabbable with the
+         row, so the pin is reachable without knowing the shortcut. -->
     <Pinned
       v-if="pinnable"
       :cluster="cluster"
+      :tab-order="tabbable ? 0 : -1"
       class="row-pin"
-      aria-hidden="true"
-      @mousedown.prevent
+      @focus="emit('focus-row')"
+      @unpinned="emit('unpinned', cluster)"
     />
-  </div>
+  </li>
 </template>
 
 <style lang="scss" scoped>
@@ -166,11 +159,12 @@ function select() {
   padding: 16px;
   border-radius: var(--border-radius);
   border-bottom: 1px solid var(--border);
-  cursor: pointer;
 
   // Dim only what "not ready" applies to: the row can't be explored, but its pin toggle still works
-  // (mouse and the pin shortcut both pin a not-ready cluster), so it must not read as dead along with it.
-  &.disabled {
+  // (mouse and keyboard both pin a not-ready cluster), so it must not read as dead along with it.
+  // `aria-disabled`, not `disabled`: the row stays focusable so ↑↓ and Tab still reach it and announce
+  // why it cannot be explored. `select()` is what actually refuses.
+  &.disabled .row-main {
     cursor: default;
 
     .row-badge,
@@ -180,11 +174,43 @@ function select() {
   }
 
   // ONE highlight, never two: `.active` is the cursor, and the pointer moves it by hovering (see the
-  // flyout's `onRowHover`) rather than painting a second highlight of its own. Two independent ones let
-  // the list show a keyboard row and a hovered row at the same time, neither of which was clearly "the"
-  // row Enter would take.
+  // flyout's `onPointerMove`) rather than painting a second highlight of its own. Two independent ones
+  // let the list show a keyboard row and a hovered row at the same time, neither of which was clearly
+  // "the" row Enter would take.
   &.active {
     background: color-mix(in srgb, var(--body-text) 6%, transparent);
+  }
+
+  // The ring belongs to the whole row, not just the control inside it — the pin is a sibling, so a ring
+  // on the control alone stops short of the row's end. The pin keeps its own, smaller ring.
+  &:has(.row-main:focus-visible) {
+    @include focus-outline;
+
+    outline-offset: -2px;
+  }
+
+  // The control fills the row so the whole line stays clickable; the pin sits beside it.
+  .row-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    // A <button> carries the app's button metrics — `min-height: 40px` and a 40px line-height — and as
+    // the row's tallest child it set the row's height, growing every row from 67px to 72px. The row's
+    // own text carries its line-height on `.row-name` / `.row-meta`.
+    min-height: 0;
+    line-height: normal;
+
+    // The row carries the ring (see below); two would be drawn otherwise.
+    &:focus-visible {
+      outline: none;
+    }
   }
 
   .row-badge {
@@ -213,30 +239,34 @@ function select() {
     .row-meta {
       font-size: 12px;
       line-height: 14px;
-      color: var(--muted);
+      // Measured over the highlighted row's tint, not just the panel: `--muted` lands at 4.30:1 and
+      // `--input-label` at 4.40:1 there, both under the 4.5:1 AA floor for 12px text. This is the design
+      // system's secondary-label token and clears it in both themes.
+      color: var(--label-secondary);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
   }
 
-  // The highlight says where the cursor is; the ring says the keyboard put it there.
-  &.keyboard-active {
-    @include focus-outline;
-
-    outline-offset: -2px;
-  }
-
-  // The pin: faint until hover/active or while pinned (its relocation is the feedback); primary when pinned.
+  // The pin: faint until the row is hovered or active, or the pin itself has focus; primary when pinned.
   .row-pin {
     @include icon-hover-square(12px);
     flex: 0 0 auto;
-    color: var(--muted) !important;
+    color: var(--label-secondary) !important;
     opacity: 0;
 
-    // No hover on a coarse pointer, and the toggle is out of the tab order — keep it visible there.
+    // No hover on a coarse pointer — keep it visible there.
     @media (hover: none) {
       opacity: 1;
+    }
+
+    &:focus-visible {
+      opacity: 1;
+
+      @include focus-outline;
+
+      outline-offset: 2px;
     }
 
     &.is-pinned {
@@ -245,6 +275,7 @@ function select() {
     }
   }
 
+  &:hover .row-pin,
   &.active .row-pin {
     opacity: 1;
   }

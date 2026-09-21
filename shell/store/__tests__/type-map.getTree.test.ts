@@ -43,7 +43,7 @@ const namesIn = (nodes: any[]): string[] => (nodes || []).flatMap((n) => [n.name
 
 const usedTree = (count: number) => getters.getTree(
   {} as any, typeMapGetters() as any, { $router: {} } as any, rootGetters(count) as any
-)('explorer', TYPE_MODES.USED, allTypes(), 'c1', 'both', null, null);
+)('explorer', TYPE_MODES.USED, allTypes(), 'c1', null, null);
 
 describe('type-map', () => {
   describe('getters', () => {

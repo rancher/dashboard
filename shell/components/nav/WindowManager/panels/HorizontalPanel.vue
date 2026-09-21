@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { PropType } from 'vue';
+import { RcButton } from '@components/RcButton';
+import { RcIcon } from '@components/RcIcon';
 import { BOTTOM } from '@shell/utils/position';
 import { Position } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
@@ -84,15 +86,21 @@ const {
         >
           {{ tab.label }}
         </span>
-        <i
+        <RcButton
           data-testid="wm-tab-close-button"
-          class="closer icon icon-x wm-closer-button"
-          :alt="t('wm.closeTab', { tabId: tab.label })"
+          variant="ghost"
+          size="small"
+          class="closer wm-closer-button"
           tabindex="0"
           :aria-label="t('wm.closeTab', { tabId: tab.id })"
           @click.stop="onTabClose(tab.id)"
           @keyup.enter.space.stop="onTabClose(tab.id)"
-        />
+        >
+          <RcIcon
+            type="close"
+            size="inherit"
+          />
+        </RcButton>
       </div>
       <div
         class="resizer resizer-y"
@@ -197,6 +205,11 @@ const {
           line-height: 12px;
           font-size: 10px;
           width: 14px;
+          min-width: 14px;
+          height: 14px;
+          min-height: 14px;
+          padding: 0;
+          color: var(--body-text);
           align-self: center;
           display: flex;
           justify-content: center;
@@ -210,6 +223,12 @@ const {
           &:focus-visible {
             @include focus-outline;
             outline-offset: 1px;
+          }
+
+          .icon,
+          .rc-icon {
+            font-size: 10px;
+            line-height: 1;
           }
         }
       }

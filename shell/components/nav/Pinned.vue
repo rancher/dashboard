@@ -17,6 +17,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const emit = defineEmits(['pinned', 'unpinned']);
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -33,11 +34,16 @@ const popping = ref(false);
 defineExpose({ toggle });
 
 async function toggle() {
+  const wasPinned = pinned.value;
   // `pin`/`unpin` return the serialized pref write; `reportPinWriteFailure` owns its failure contract
   // and the growl, so this surface and the switcher flyout cannot drift apart on it.
-  const write = pinned.value ? props.cluster.unpin() : props.cluster.pin();
+  const write = wasPinned ? props.cluster.unpin() : props.cluster.pin();
 
   reportPinWriteFailure(store, t, write);
+
+  // Unpinning takes this control off the surface with it, so the surface has to be told before that
+  // happens — it owns where focus lands next and what gets announced.
+  emit(wasPinned ? 'unpinned' : 'pinned', props.cluster);
 
   popping.value = false;
   await nextTick();
@@ -46,16 +52,14 @@ async function toggle() {
 </script>
 
 <template>
-  <i
+  <button
+    type="button"
     :tabindex="tabOrder"
     :aria-pressed="!!pinned"
     class="pin icon"
     :class="{ 'icon-pin': pinned, 'icon-pin-outlined': !pinned, 'is-pinned': pinned, 'pin-pop': popping }"
-    role="button"
     :aria-label="t('nav.ariaLabel.pinCluster', { cluster: cluster.label })"
     @click.stop.prevent="toggle"
-    @keydown.enter.prevent="toggle"
-    @keydown.space.prevent="toggle"
     @animationend="popping = false"
   />
 </template>
@@ -63,6 +67,11 @@ async function toggle() {
 <style lang="scss" scoped>
   // Every transform keeps the scaleX(-1) flip: bigger on hover, presses down on click, pops after toggle.
   .icon {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    line-height: 1;
     font-size: 14px;
     transform: scaleX(-1);
     transition: transform 0.1s ease;

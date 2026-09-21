@@ -655,4 +655,14 @@ describe('component: KeyValue', () => {
       });
     });
   });
+
+  it('titles the editor without adding to the page heading outline', () => {
+    const wrapper = mount(KeyValue, {
+      props:  { mode: 'edit', title: 'Custom Links' } as any,
+      global: { mocks: { t: (key: string) => key }, stubs: { CodeMirror: true } },
+    });
+
+    expect(wrapper.find('.size-3').text()).toContain('Custom Links');
+    expect(wrapper.find('h1, h2, h3, h4, h5, h6').exists()).toBe(false);
+  });
 });

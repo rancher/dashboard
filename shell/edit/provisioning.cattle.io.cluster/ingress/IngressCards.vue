@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { _CREATE } from '@shell/config/query-params';
 import { PropType } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
@@ -13,6 +13,7 @@ interface IngressCard {
   content: { key: string };
   doc?: {url: string};
   selected?: boolean;
+  disabled?: boolean;
 }
 
 defineProps({
@@ -20,7 +21,7 @@ defineProps({
     type:     Array as PropType<IngressCard[]>,
     required: true
   },
-  mode: { type: String, default: _CREATE },
+  mode: { type: String, default: _CREATE }
 });
 
 const emit = defineEmits(['select']);
@@ -42,9 +43,9 @@ const { t } = useI18n(store);
       :selected="card.selected"
       variant="small"
       role="link"
-      :disabled="mode === _VIEW"
+      :disabled="card.disabled"
       :class="{ 'single-card': options.length === 1 }"
-      :clickable="mode !== _VIEW"
+      :clickable="!card.disabled"
       @card-click="emit('select', card.id)"
     >
       <template

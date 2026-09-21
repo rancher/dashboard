@@ -249,4 +249,11 @@ describe('rcItemCard', () => {
     expect(emitted).toBeTruthy();
     expect(emitted[0]).toStrictEqual([payload]);
   });
+
+  it('titles the card without adding it to the page heading outline', () => {
+    const wrapper = mount(RcItemCard, { props: baseProps });
+
+    expect(wrapper.get('[data-testid="item-card-header-title"]').element.tagName).toBe('DIV');
+    expect(wrapper.find('h1, h2, h3, h4, h5, h6').exists()).toBe(false);
+  });
 });
