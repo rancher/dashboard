@@ -38,6 +38,7 @@ describe('component: Setting', () => {
           $store: {
             getters: {
               'i18n/t':                   mockT,
+              'i18n/exists':              () => true,
               'action-menu/optionsArray': () => []
             }
           }
@@ -47,6 +48,11 @@ describe('component: Setting', () => {
             name:     'ActionMenu',
             template: '<button :aria-label="buttonAriaLabel" data-testid="action-button" />',
             props:    ['resource', 'buttonAriaLabel', 'buttonVariant']
+          },
+          RcHeading: {
+            name:     'RcHeading',
+            template: '<div><slot /></div>',
+            props:    ['size']
           }
         }
       }
@@ -56,8 +62,8 @@ describe('component: Setting', () => {
   it('should render setting component with title and description', () => {
     const wrapper = createWrapper();
 
-    expect(wrapper.find('h1').text()).toContain('password-min-length');
-    expect(wrapper.find('h2').text()).toBe('Setting description');
+    expect(wrapper.find('.id').text()).toContain('password-min-length');
+    expect(wrapper.find('.description').text()).toBe('Setting description');
   });
 
   it('a11y: action menu should have contextual aria-label with setting id', () => {
