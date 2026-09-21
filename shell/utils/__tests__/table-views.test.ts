@@ -1,7 +1,7 @@
 import {
   applyQuery, applyQueryExpression, decodeView, encodeView, fieldsFor, parseQuery,
   parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, tokenAt, valuesInUse,
-  isCoreField, CORE_FIELD_IDS,
+  coreFieldIdsFor, isCoreField, CORE_FIELD_IDS,
   serverPathFor,
   summaryToValues,
   termsToServerFilters
@@ -422,5 +422,26 @@ describe('fx: replaceToken', () => {
 
   it('should still append when no caret is given', () => {
     expect(replaceToken('state:Error', null, 'name:')).toBe('state:Error name:');
+  });
+});
+
+describe('fx: coreFieldIdsFor', () => {
+  it('should hold on to state and name where they lead the table', () => {
+    expect(coreFieldIdsFor(['state', 'name', 'namespace', 'age'])).toStrictEqual(['state', 'name']);
+  });
+
+  it('should hold on to only what leads, not what appears later', () => {
+    // An events list leads with its state and carries a name much further along
+    expect(coreFieldIdsFor(['state', 'lastseen', 'type', 'name'])).toStrictEqual(['state']);
+  });
+
+  it('should hold on to the first column when nothing familiar leads', () => {
+    // The events on a detail page lead with when they were last seen
+    expect(coreFieldIdsFor(['lastseen', 'type', 'reason', 'name', 'state'])).toStrictEqual(['lastseen']);
+  });
+
+  it('should hold on to nothing when there are no columns', () => {
+    expect(coreFieldIdsFor([])).toStrictEqual([]);
+    expect(coreFieldIdsFor()).toStrictEqual([]);
   });
 });
