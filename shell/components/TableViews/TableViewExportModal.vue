@@ -125,10 +125,9 @@ export default {
     margin-bottom: 16px;
   }
 
+  // Spacing between the options is RadioGroup's own - `row` already lays them out. Only the room
+  // beneath belongs here.
   .export-formats {
-    display: flex;
-    align-items: center;
-    gap: 32px;
     margin-bottom: 24px;
   }
 
