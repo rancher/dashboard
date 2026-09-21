@@ -1,7 +1,6 @@
 <script>
 import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
 import { randomStr } from '@shell/utils/string';
-import { isCoreField } from '@shell/utils/table-views';
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal';
 import AppModal from '@shell/components/AppModal.vue';
@@ -55,6 +54,12 @@ export default {
     view: {
       type:     Object,
       required: true
+    },
+
+    /** Field ids this table will not let go of, so the menu can show them locked */
+    coreColumns: {
+      type:    Array,
+      default: () => []
     },
 
     /**
@@ -491,7 +496,7 @@ export default {
     },
 
     isCoreColumn(field) {
-      return isCoreField(field?.id);
+      return !!field?.id && this.coreColumns.includes(field.id);
     },
 
     toggleColumn(field) {
@@ -619,7 +624,7 @@ export default {
     firstMovableIndex(order) {
       let i = 0;
 
-      while (i < order.length && isCoreField(order[i])) {
+      while (i < order.length && this.coreColumns.includes(order[i])) {
         i++;
       }
 
