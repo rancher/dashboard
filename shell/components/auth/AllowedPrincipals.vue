@@ -74,7 +74,7 @@ export default {
 
 <template>
   <div>
-    <h3>{{ t('authConfig.accessMode.label', {provider: authConfig.nameDisplay}) }}</h3>
+    <h3>{{ t('authConfig.accessMode.label') }}</h3>
 
     <div :class="stacked ? 'allowed-principals__sections' : 'row'">
       <div :class="stacked ? null : 'col span-6'">

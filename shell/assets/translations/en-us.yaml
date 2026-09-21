@@ -562,7 +562,7 @@ authConfig:
       disabled: Disabled
       manageUsers: Manage local users
   access:
-    title: '{provider} access'
+    title: '{provider} - Access'
     type: Type
   add:
     title: Add an authentication provider
@@ -603,7 +603,7 @@ authConfig:
       logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
       choose: Allow the user to choose one of the above in an additional log out step
   accessMode:
-    label: 'Configure who should be able to login and use {vendor}'
+    label: 'Configure who should be able to login with this provider'
     required: Restrict access to only the authorized users & groups
     restricted: 'Allow members of clusters and projects, plus authorized users & groups'
     unrestricted: Allow any valid user
