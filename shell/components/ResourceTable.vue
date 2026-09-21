@@ -18,7 +18,7 @@ import TableViewsBar from '@shell/components/TableViews/TableViewsBar';
 import { downloadFile } from '@shell/utils/download';
 import {
   LABEL_FIELD_PREFIX,
-  applyQuery,
+  applyQueryExpression,
   decodeView,
   fieldValue,
   fieldsFor,
@@ -27,11 +27,12 @@ import {
   headerFieldId,
   isIgnoredColumn,
   parseQuery,
+  parseQueryExpression,
   rowsToCsv,
   rowsToJson,
   rowsToYaml,
   stringifyValue,
-  termsToServerFilters,
+  queryToServerFilters,
   isCoreField,
   serverPathFor,
   summaryToValues,
@@ -749,6 +750,14 @@ export default {
     },
 
     /**
+     * The query as it is actually asked - `or` between clauses, `and` between groups. What
+     * filters, both here and at the api.
+     */
+    viewQuery() {
+      return parseQueryExpression(this.view.query, this.viewFields);
+    },
+
+    /**
      * Should the toolbar filter run server-side (through the pagination `filter=` params)
      * rather than client-side? Only when the table is externally paginated and we know the
      * resource type (so we can validate fields against its schema)
@@ -791,7 +800,29 @@ export default {
         return { filters: [], unsupported: [] };
       }
 
-      return termsToServerFilters(this.viewTerms, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
+      return queryToServerFilters(this.viewQuery, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
+    },
+
+    /**
+     * The fields named in the query that this list cannot be filtered by, as the user would
+     * recognise them.
+     *
+     * These terms are dropped rather than applied, so without saying so the table answers a
+     * query it did not run. Only server side: client side filtering can answer anything.
+     */
+    unsupportedViewFields() {
+      const seen = {};
+
+      (this.serverViewFilters.unsupported || []).forEach((term) => {
+        const field = term.field ? findField(this.viewFields, term.field) : null;
+        const label = field ? (field.label || field.id) : term.value;
+
+        if (label) {
+          seen[label] = true;
+        }
+      });
+
+      return Object.keys(seen);
     },
 
     /**
@@ -870,7 +901,7 @@ export default {
         return this.filteredRows;
       }
 
-      return applyQuery(this.filteredRows, this.viewTerms, this.viewFields);
+      return applyQueryExpression(this.filteredRows, this.viewQuery, this.viewFields);
     },
 
     /**
@@ -1024,9 +1055,9 @@ export default {
       const out = {};
 
       this.countableQueries.forEach((query) => {
-        const terms = parseQuery(query, this.viewFields);
+        const parsed = parseQueryExpression(query, this.viewFields);
 
-        out[query] = terms.length ? applyQuery(this.filteredRows, terms, this.viewFields).length : this.filteredRows.length;
+        out[query] = parsed.clauses.length ? applyQueryExpression(this.filteredRows, parsed, this.viewFields).length : this.filteredRows.length;
       });
 
       return out;
@@ -1279,10 +1310,14 @@ export default {
 
     async requestViewCounts(wanted) {
       await Promise.all(wanted.map(async(query) => {
-        const terms = parseQuery(query, this.viewFields);
-        const { filters, unsupported } = termsToServerFilters(terms, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
+        const parsed = parseQueryExpression(query, this.viewFields);
+        const { filters, unsupported } = queryToServerFilters(parsed, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
 
         if (unsupported.length) {
+          // Nothing the api can be asked, so the tab shows its name alone. Recorded rather than
+          // left unset, which would have every later trigger try it again
+          this.viewCounts = { ...this.viewCounts, [query]: null };
+
           return;
         }
 
@@ -1603,6 +1638,7 @@ export default {
         :view-counts="tabCounts"
         :resource-label="resourceLabel"
         :resource-type="schema ? schema.id : ''"
+        :unsupported-fields="unsupportedViewFields"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
         @tab-queries="tabQueries = $event"
@@ -1641,6 +1677,7 @@ export default {
         :view-counts="tabCounts"
         :resource-label="resourceLabel"
         :resource-type="schema ? schema.id : ''"
+        :unsupported-fields="unsupportedViewFields"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
         @export="handleExport"
