@@ -1190,14 +1190,24 @@ export function valuesInUse(rows: any[], field: ViewField, max = 25): ValueSugge
 /**
  * Replace the token the caret is sitting in with `replacement`
  */
-export function replaceToken(query: string, token: QueryToken | null, replacement: string): string {
-  if (!token) {
-    const prefix = query && !query.endsWith(' ') ? `${ query } ` : query || '';
-
-    return `${ prefix }${ replacement }`;
+export function replaceToken(query: string, token: QueryToken | null, replacement: string, caret?: number): string {
+  if (token) {
+    return `${ query.substring(0, token.start) }${ replacement }${ query.substring(token.end) }`;
   }
 
-  return `${ query.substring(0, token.start) }${ replacement }${ query.substring(token.end) }`;
+  // Nothing under the caret means it is sitting in the space between two terms, and what is
+  // picked belongs there - not at the end of a query the user may be standing in the middle of.
+  if (typeof caret === 'number') {
+    const at = Math.max(0, Math.min(caret, query.length));
+    const before = query.substring(0, at);
+    const prefix = !before || before.endsWith(' ') ? before : `${ before } `;
+
+    return `${ prefix }${ replacement }${ query.substring(at) }`;
+  }
+
+  const prefix = query && !query.endsWith(' ') ? `${ query } ` : query || '';
+
+  return `${ prefix }${ replacement }`;
 }
 
 /**
