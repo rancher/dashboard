@@ -30,19 +30,18 @@ function createWorkload(overrides = {}) {
 }
 
 describe('component: RedeployWorkloadDialog', () => {
-  const createWrapper = (propsData = {}, mocks = {}) => {
+  const createWrapper = (props = {}, mocks = {}) => {
     return shallowMount(RedeployWorkloadDialog, {
-      propsData: {
+      props: {
         workloads: [createWorkload()],
-        ...propsData,
+        ...props,
       },
       global: {
         mocks: {
           ...defaultMocks,
           ...mocks,
         },
-        stubs:      defaultStubs,
-        directives: { 'clean-html': true },
+        stubs: defaultStubs,
       },
     });
   };
@@ -65,7 +64,7 @@ describe('component: RedeployWorkloadDialog', () => {
 
       await (wrapper.vm as any).apply(buttonDone);
 
-      const annotations = workload.spec.template.metadata.annotations;
+      const annotations = workload.spec.template.metadata.annotations as Record<string, string>;
 
       expect(annotations[TIMESTAMP]).toBeDefined();
       expect(annotations[KUBECTL_RESTARTED_AT]).toBeDefined();
@@ -80,7 +79,7 @@ describe('component: RedeployWorkloadDialog', () => {
 
       await (wrapper.vm as any).apply();
 
-      const ts = workload.spec.template.metadata.annotations[KUBECTL_RESTARTED_AT];
+      const ts = (workload.spec.template.metadata.annotations as Record<string, string>)[KUBECTL_RESTARTED_AT];
 
       expect(ts).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
     });
@@ -91,7 +90,7 @@ describe('component: RedeployWorkloadDialog', () => {
 
       await (wrapper.vm as any).apply();
 
-      const annotations = workload.spec.template.metadata.annotations;
+      const annotations = workload.spec.template.metadata.annotations as Record<string, string>;
 
       expect(annotations[TIMESTAMP]).toBeDefined();
       expect(annotations[KUBECTL_RESTARTED_AT]).toBeDefined();
@@ -104,9 +103,11 @@ describe('component: RedeployWorkloadDialog', () => {
       await (wrapper.vm as any).apply();
 
       for (const w of workloads) {
+        const annotations = w.spec.template.metadata.annotations as Record<string, string>;
+
         expect(w.save).toHaveBeenCalledWith();
-        expect(w.spec.template.metadata.annotations[TIMESTAMP]).toBeDefined();
-        expect(w.spec.template.metadata.annotations[KUBECTL_RESTARTED_AT]).toBeDefined();
+        expect(annotations[TIMESTAMP]).toBeDefined();
+        expect(annotations[KUBECTL_RESTARTED_AT]).toBeDefined();
       }
     });
 

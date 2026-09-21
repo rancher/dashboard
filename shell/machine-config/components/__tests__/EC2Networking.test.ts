@@ -3,6 +3,13 @@ import EC2Networking from '@shell/machine-config/components/EC2Networking.vue';
 
 import { vpcInfo, subnetInfo } from './utils/vpcSubnetMockData';
 
+/**
+ * A bare string selector picks the `findComponent<T extends never>` overload, which
+ * returns a `WrapperLike` with no `vm`. The runtime object is a full component
+ * wrapper, so expose just the emitter these tests drive.
+ */
+const emitterOf = (wrapper: unknown) => (wrapper as { vm: { $emit(event: string, ...args: unknown[]): void } }).vm;
+
 describe('component: EC2Networking', () => {
   const defaultGetters = { 'i18n/t': jest.fn().mockImplementation((key: string) => key) };
   const baseSetup = {
@@ -44,7 +51,7 @@ describe('component: EC2Networking', () => {
 
     const ipv6Checkbox = wrapper.findComponent('[data-testid="amazonEc2__enableIpv6"]');
 
-    ipv6Checkbox.vm.$emit('update:value', true);
+    emitterOf(ipv6Checkbox).$emit('update:value', true);
     await wrapper.vm.$nextTick();
     const expectedValues = ['vpc-12345', 'subnet-4321'];
     const networkOptionValues = wrapper.vm.networkOptions.map((o:any) => o.value);
@@ -56,7 +63,7 @@ describe('component: EC2Networking', () => {
     const wrapper = shallowMount(EC2Networking, defaultCreateSetup);
     const ipv6Checkbox = wrapper.findComponent('[data-testid="amazonEc2__enableIpv6"]');
 
-    ipv6Checkbox.vm.$emit('update:value', true);
+    emitterOf(ipv6Checkbox).$emit('update:value', true);
     await wrapper.vm.$nextTick();
 
     const ipv6AddressCountInput = wrapper.findComponent('[data-testid="amazonEc2__ipv6AddressCount"]');

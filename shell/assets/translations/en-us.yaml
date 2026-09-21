@@ -20,6 +20,7 @@ generic:
   ascending: ascending
   and: ' and '
   back: Back
+  byteLimitExceeded: '{name} exceeds the file size limit of {byteLimit} bytes'
   cancel: Cancel
   confirm: Confirm
   colorPicker: Color picker
@@ -44,6 +45,7 @@ generic:
   download: Download
   enabled: Enabled
   error: Error
+  errorReadingFile: Error reading file
   here: here
   id: ID
   ignored: Ignored
@@ -186,7 +188,7 @@ graph:
   rendering: Rendering chart...
 
 locale:
-  menu: Locale selector menu
+  menu: Language selector
   en-us: English
   zh-hans: 简体中文
   none: (None)
@@ -201,7 +203,6 @@ nav:
     popularHeading: Popular entries
     recentHeading: Recently used
   ariaLabel:
-    clusterIconKeyCombo: Cluster keyboard shortcut combination icon
     localClusterIcon: Local Cluster icon
     clusterProvIcon: Cluster {cluster} provider icon
     topLevelMenu: Main menu
@@ -209,7 +210,6 @@ nav:
     homePage: Home page navigation menu
     cluster: Cluster menu item
     harvesterCluster: '[[Harvester]] cluster menu item'
-    seeAll: See all clusters menu item
     multiClusterApps: Main menu multi cluster app menu item
     configurationApps: Main menu configuration app menu item
     support: Support page link
@@ -247,8 +247,6 @@ nav:
   rotateCertificates: Rotate Certificates
   rotateEncryptionKeys: Rotate Encryption Keys
   takeSnapshot: Take Snapshot
-  seeAllClusters: See all clusters
-  seeAllClustersCollapsed: See all
   keyComboTooltip: Switch clusters and keep location
   group:
     cluster: Cluster
@@ -283,9 +281,7 @@ nav:
     resources: Resources
   ns:
     all: All Namespaces
-    clusterLevel: Only Cluster Resources
     namespace: "{name}"
-    namespaced: Only Namespaced Resources
     orphan: Not in a Project
     project: "Project: {name}"
     system: Only System Namespaces
@@ -297,14 +293,51 @@ nav:
     legacy: Legacy Apps
     configuration: Configuration
     hci: HCI
+  pinClusterError: Could not save your pinned clusters
+  pinnedCluster:
+    explore: Explore {name} or drag it to change the order of your pinned clusters
+    blocked: You cannot explore {name} ({reason}), but you can drag it to change the order of your pinned clusters
   search:
-    placeholder: Filter clusters by...
-    noResults: No matching clusters
-    clusters: clusters
-    ariaLabel: Filter clusters on main menu
+    clusters: |-
+      {count, plural,
+        one {cluster}
+        other {clusters}
+      }
+  switcher:
+    ariaLabel: Cluster switcher
+    clusterSwitch: Cluster Switch
+    shortcutTooltip: Cluster Switch ({shortcut})
+    jumpTo: Jump to...
+    pinned: Pinned clusters
+    recent: Recently used
+    allClusters: All clusters
+    matches: Matches
+    managementCluster: Management cluster
+    noMatch: No matching clusters
+    noClusters: No clusters to show.
+    loadError: Could not load your clusters. Close and try again.
+    aria:
+      # Accessible name for the search box. It has no visible label — only the "Jump to..." placeholder —
+      # so the name has to LEAD with those words: a speech-input user says what they can see
+      # (WCAG 2.5.3 Label in Name), while the rest tells a screen-reader user what the box searches.
+      search: Jump to a cluster (searches all clusters)
+      clusterList: Cluster list
+      searching: Searching clusters
+      results: |-
+        {count, plural,
+          one {1 cluster}
+          other {# clusters}
+        }
+      noResults: No matching clusters
+      notReady: not ready
+      pinned: pinned
+      pinnedCluster: '{cluster} pinned'
+      unpinnedCluster: '{cluster} unpinned'
   header:
     setLoginPage: Set as login page
     showHideBanner: Show/Hide Banner
+    pinCluster: Pin cluster ({shortcut})
+    unpinCluster: Unpin cluster ({shortcut})
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys
@@ -313,9 +346,9 @@ nav:
     button:
       label: Open user menu
   actionMenu:
-    label: Page actions menu
+    label: Page actions
     button:
-      label: Open page actions menu
+      label: Open page actions
   notifications:
     label: Notification Center
     button:
@@ -871,6 +904,16 @@ assignTo:
 asyncButton:
   alt:
     iconAlt: Async button icon
+  # Read out to screen readers when no phase label of its own says anything useful.
+  # See AsyncButton.vue `announcementFor`.
+  announcement:
+    waiting: In progress
+    success: Succeeded
+    error: Failed
+    withLabel:
+      waiting: '{label}: in progress'
+      success: '{label}: succeeded'
+      error: '{label}: failed'
   registerApplication:
     action: Add Application
     success: Added
@@ -989,6 +1032,9 @@ asyncButton:
     successIcon: checkmark
     waiting: ''
     waitingIcon: refresh
+    waitingAnnouncement: Refreshing&hellip;
+    successAnnouncement: Refreshed
+    errorAnnouncement: Refresh failed
   manual-refresh:
     action: ''
     actionIcon: refresh
@@ -998,6 +1044,9 @@ asyncButton:
     successIcon: checkmark
     waiting: ''
     waitingIcon: refresh
+    waitingAnnouncement: Refreshing&hellip;
+    successAnnouncement: Refreshed
+    errorAnnouncement: Refresh failed
   remove:
     action: Remove
     success: Removed
@@ -2718,6 +2767,7 @@ cluster:
     enableIngress: Install Ingress controller to enable external routing
     nginx:
       header: Ingress-NGINX
+      contentCommunity: This option is only available in SUSE Rancher Prime.
       content: Choose this only if your workloads are not yet ready for Traefik.
     dual:
       header: Dual Mode
@@ -2872,6 +2922,12 @@ resource:
   errors:
     update: "Error updating {name}"
 
+copyToClipboard:
+  action: Copy
+  waiting: Copying&hellip;
+  success: Copied!
+  error: Error Copying
+
 codeMirror:
   escapeText: Press Shift+Escape to blur from editor
   keymap:
@@ -3010,6 +3066,10 @@ etcdInfoBanner:
   hasLeader: "Etcd has a leader:"
   leaderChanges: "Number of leader changes:"
   failedProposals: "Number of failed proposals:"
+
+fileSelectorTextArea:
+  dropHint: or drop the file over the text area above
+  dropToReplace: Dropping the file here will replace any existing content
 
 fleet:
   settings:

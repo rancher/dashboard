@@ -76,15 +76,13 @@ const requiredSetup = (computed = {}, dataProps = {}) => {
       ...computed
     },
     data: () => ({
-      presetVersion:         '1.2.3',
-      permissions:           {},
+      presetVersion:   '1.2.3',
+      permissions:     {},
       FLEET,
-      [FLEET.GIT_REPO]:      [],
-      [FLEET.HELM_OP]:       [],
-      [FLEET.CLUSTER]:       [],
-      [FLEET.CLUSTER_GROUP]: [],
-      fleetWorkspaces:       [],
-      viewModeOptions:       [
+      gitRepos:        [],
+      helmOps:         [],
+      fleetWorkspaces: [],
+      viewModeOptions: [
         {
           icon:     'icon-list-flat',
           value:    'flat',
@@ -135,8 +133,8 @@ describe('component: FleetDashboard', () => {
       ...requiredSetup(
         { workspaces: () => fleetWorkspaces },
         {
-          [FLEET.GIT_REPO]: gitRepos,
-          [FLEET.HELM_OP]:  helmOps,
+          gitRepos,
+          helmOps,
         }
       ),
     });
@@ -152,7 +150,7 @@ describe('component: FleetDashboard', () => {
     const wrapper = mount(Dashboard, {
       ...requiredSetup(
         { workspaces: () => fleetWorkspaces },
-        { [FLEET.GIT_REPO]: gitRepos }
+        { gitRepos }
       ),
     });
 
@@ -175,7 +173,7 @@ describe('component: FleetDashboard', () => {
       ...requiredSetup(
         { workspaces: () => fleetWorkspaces },
         {
-          [FLEET.GIT_REPO]:     gitRepos,
+          gitRepos,
           isWorkspaceCollapsed: { [workspace]: collapsed }
         }
       ),
@@ -596,8 +594,8 @@ describe('component: FleetDashboard', () => {
       ...requiredSetup(
         { workspaces: () => fleetWorkspaces },
         {
-          [FLEET.GIT_REPO]:     gitRepos,
-          [FLEET.HELM_OP]:      helmOps,
+          gitRepos,
+          helmOps,
           isWorkspaceCollapsed: {
             'fleet-local':   false,
             'fleet-default': true
@@ -635,8 +633,8 @@ describe('component: FleetDashboard', () => {
       ...requiredSetup(
         { workspaces: () => fleetWorkspaces },
         {
-          [FLEET.GIT_REPO]:     gitRepos,
-          [FLEET.HELM_OP]:      helmOps,
+          gitRepos,
+          helmOps,
           isWorkspaceCollapsed: {
             'fleet-local':   false,
             'fleet-default': true
@@ -688,7 +686,7 @@ describe('component: FleetDashboard', () => {
     const wrapper = mount(Dashboard, {
       ...requiredSetup(
         { workspaces: () => fleetWorkspaces },
-        { [FLEET.GIT_REPO]: gitRepos }
+        { gitRepos }
       ),
       stubs: ['Loading', 'NoWorkspaces', 'EmptyDashboard', 'RouterLinkStub'],
     });
@@ -705,7 +703,7 @@ describe('component: FleetDashboard', () => {
     const wrapper = mount(Dashboard, {
       ...requiredSetup(
         { workspaces: () => fleetWorkspaces },
-        { [FLEET.GIT_REPO]: gitRepos }
+        { gitRepos }
       ),
       stubs: ['Loading', 'NoWorkspaces', 'EmptyDashboard', 'RouterLinkStub'],
     });
@@ -719,5 +717,45 @@ describe('component: FleetDashboard', () => {
     // type="search" already exposes the implicit searchbox role, so no
     // explicit role should override it.
     expect(searchInput.attributes('role')).toBeUndefined();
+  });
+
+  it('should update the workspace search filter, debounced, when the search input changes', async() => {
+    jest.useFakeTimers();
+
+    try {
+      const wrapper = mount(Dashboard, {
+        ...requiredSetup(
+          { workspaces: () => fleetWorkspaces },
+          { gitRepos }
+        ),
+        stubs: ['Loading', 'NoWorkspaces', 'EmptyDashboard', 'RouterLinkStub'],
+      });
+
+      wrapper.vm.viewMode = 'cards';
+      await wrapper.vm.$nextTick();
+
+      const searchInput = wrapper.find('[data-testid="fleet-dashboard-search-input-fleet-local"]');
+
+      await searchInput.setValue('lots');
+
+      jest.advanceTimersByTime(100);
+      await searchInput.setValue('lots-a');
+
+      // 350ms after the first keystroke but only 250ms after the second. A
+      // single shared debounce has been pushed back to 400ms, so nothing has
+      // landed. One rebuilt per keystroke would have fired the first at 300ms
+      // and leaked the intermediate 'lots'.
+      jest.advanceTimersByTime(250);
+      await wrapper.vm.$nextTick();
+
+      expect((wrapper.vm.searchFilter as any)['fleet-local']).toBeUndefined();
+
+      jest.advanceTimersByTime(100);
+      await wrapper.vm.$nextTick();
+
+      expect((wrapper.vm.searchFilter as any)['fleet-local']).toBe('lots-a');
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

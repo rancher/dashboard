@@ -247,4 +247,27 @@ describe('component: SelectIconGrid', () => {
       expect(disabledItem.attributes('tabindex')).toBe('-1');
     });
   });
+
+  describe('logo image accessibility', () => {
+    it('should render LazyImage with empty alt for decorative logo', () => {
+      const wrapper = shallowMount(SelectIconGrid, { props: { rows: mockRows } });
+      const img = wrapper.find('lazy-image-stub');
+
+      expect(img.attributes('alt')).toBe('');
+    });
+
+    it('should render icon class element with aria-hidden="true" and no alt attribute', () => {
+      const iconRows = [{
+        key:       'option-d',
+        name:      'Option D',
+        iconClass: 'icon-kubernetes',
+        disabled:  false,
+      }];
+      const wrapper = shallowMount(SelectIconGrid, { props: { rows: iconRows } });
+      const icon = wrapper.find('.logo i');
+
+      expect(icon.attributes('aria-hidden')).toBe('true');
+      expect(icon.attributes('alt')).toBeUndefined();
+    });
+  });
 });

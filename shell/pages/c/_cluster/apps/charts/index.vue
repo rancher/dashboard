@@ -331,7 +331,7 @@ export default {
           statuses: chart.cardContent.statuses
         },
         subHeaderItems: chart.cardContent.subHeaderItems,
-        image:          { src: chart.latestCompatibleVersion.icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
+        image:          { src: chart.latestCompatibleVersion.icon, alt: { text: '' } },
         content:        { text: chart.chartDescription },
         footerItems:    chart.cardContent.footerItems,
         rawChart:       chart

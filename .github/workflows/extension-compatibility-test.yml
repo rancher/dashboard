@@ -72,8 +72,10 @@ jobs:
             skip_cluster_create_rke2: "true"
             # Legacy RESOURCE_DETAIL tab still works on 2.10
             skip_resource_detail_legacy: "false"
-          - rancher_version: "v2.11-head"
-            rancher_registry: "stgregistry.suse.com"
+          # 2.11 is EOL: pinned to specific commit with known Docker Hub image.
+          # The stgregistry.suse.com repo doesn't have commit-hash tagged images for 2.11.
+          - rancher_version: "v2.11-df80b1315c63a6b1b4aa7f9a4ea22dff4b1e71e2-head"
+            rancher_registry: ""
             kube_version: "v1.32.13+k3s1"
             helm_repo: "https://charts.optimus.rancher.io/server-charts/release-2.11"
             version_label: "2.11"

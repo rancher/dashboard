@@ -24,7 +24,7 @@ describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
 
       HomePagePo.goTo();
 
-      cy.wait('@mgmtClustersSideNav');
+      cy.wait('@mgmtClustersSideNavContext');
       cy.wait('@mgmtClustersLists');
       cy.wait('@provClusters');
 

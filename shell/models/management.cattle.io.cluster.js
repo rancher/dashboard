@@ -4,7 +4,7 @@ import {
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { insertAt, addObject, removeObject, uniq } from '@shell/utils/array';
+import { insertAt, removeObject, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -16,6 +16,7 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
+import { commitAndReconcile } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -809,20 +810,49 @@ export default class MgmtCluster extends SteveModel {
     return this.$rootGetters['prefs/get'](PINNED_CLUSTERS).includes(this.id);
   }
 
-  pin() {
-    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
-
-    addObject(types, this.id);
-
-    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  // A dispatch bound to the root store, as the cluster-pref writer expects.
+  get clusterPrefDispatch() {
+    return (action, payload) => this.$dispatch(action, payload, { root: true });
   }
 
+  /**
+   * Pin the cluster by adding it to PINNED_CLUSTERS. Pinning says nothing about RECENT — the two groups
+   * are independent and a pinned cluster keeps its place in the visit history. Routed through the shared
+   * serialized writer so this write can't race the store's cluster-navigation write and 409.
+   */
+  pin() {
+    return commitAndReconcile(this.clusterPrefDispatch, [{
+      key:   PINNED_CLUSTERS,
+      apply: (pinned) => {
+        const current = Array.isArray(pinned) ? pinned : [];
+
+        // At the TOP of the shelf, which renders this pref in order. A cluster is pinned to keep it to
+        // hand, so it goes where the hand is — appending buried each new pin under everything pinned
+        // before it, furthest from the pointer and first to be scrolled out of a long shelf.
+        // Re-pinning an already-pinned cluster moves it up rather than duplicating it.
+        return [this.id, ...current.filter((id) => id !== this.id)];
+      },
+    }]);
+  }
+
+  /**
+   * Unpin the cluster: drop it from PINNED_CLUSTERS, and nothing else. RECENT is a log of clusters the
+   * user actually visited, so unpinning must not write to it — the cluster keeps whatever place its own
+   * visit history earned it, and one it was never visited from does not appear there at all.
+   * Routed through the shared serialized writer so this write can't race the store's
+   * cluster-navigation write and 409.
+   */
   unpin() {
-    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
+    return commitAndReconcile(this.clusterPrefDispatch, [{
+      key:   PINNED_CLUSTERS,
+      apply: (pinned) => {
+        const next = [...(Array.isArray(pinned) ? pinned : [])];
 
-    removeObject(types, this.id);
+        removeObject(next, this.id);
 
-    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+        return next;
+      },
+    }]);
   }
 
   get canExplore() {
