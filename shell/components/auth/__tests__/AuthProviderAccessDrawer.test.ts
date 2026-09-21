@@ -2,6 +2,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessDrawer.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals.vue';
 import AuthProviderDetails from '@shell/components/auth/AuthProviderDetails.vue';
+import AuthProviderLogo from '@shell/components/auth/AuthProviderLogo.vue';
 import Loading from '@shell/components/Loading.vue';
 
 const createModel = (overrides = {}) => ({
@@ -120,6 +121,23 @@ describe('component: AuthProviderAccessDrawer', () => {
 
     expect(card.findComponent(AllowedPrincipals).exists()).toBe(true);
     expect(wrapper.findComponent(AllowedPrincipals).props('stacked')).toBe(true);
+  });
+
+  // The panel covers the whole page, so the vendor mark says which provider is
+  // being changed at a glance
+  it('should name the provider in the title, behind its logo', async() => {
+    const resource = {
+      id: 'github', nameDisplay: 'GitHub', icon: 'github.svg'
+    } as any;
+    const { wrapper } = createWrapper({ resource });
+
+    await flushPromises();
+
+    const logo = wrapper.findComponent(AuthProviderLogo);
+
+    expect(logo.props('icon')).toBe('github.svg');
+    expect(logo.props('size')).toBe('small');
+    expect(wrapper.text()).toContain('authConfig.access.title');
   });
 
   // Who may log in is decided against how the provider is set up, which is

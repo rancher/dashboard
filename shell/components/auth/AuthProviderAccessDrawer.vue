@@ -8,6 +8,7 @@ import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
 import Loading from '@shell/components/Loading.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals.vue';
 import AuthProviderDetails from '@shell/components/auth/AuthProviderDetails.vue';
+import AuthProviderLogo from '@shell/components/auth/AuthProviderLogo.vue';
 import { useFetch } from '@shell/components/Resource/Detail/FetchLoader/composables';
 import { useI18n } from '@shell/composables/useI18n';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
@@ -18,6 +19,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 export interface AuthProviderResource {
   id: string;
   nameDisplay: string;
+  icon?: string;
   canUpdate?: boolean;
 }
 
@@ -77,6 +79,11 @@ const save = async(btnCb: AsyncButtonCallback) => {
     @close="emit('close')"
   >
     <template #title>
+      <AuthProviderLogo
+        :icon="resource.icon"
+        size="small"
+        class="title-logo"
+      />
       {{ title }}
     </template>
     <template #body>
@@ -117,3 +124,9 @@ const save = async(btnCb: AsyncButtonCallback) => {
     </template>
   </Drawer>
 </template>
+
+<style lang="scss" scoped>
+.title-logo {
+  margin-right: 8px;
+}
+</style>

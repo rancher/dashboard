@@ -7,14 +7,17 @@
  */
 import { RcIcon } from '@components/RcIcon';
 
-defineProps<{
-  /** Vendor logo asset, or '' when the provider has none. */
+withDefaults(defineProps<{
   icon?: string;
-}>();
+  size?: 'default' | 'small';
+}>(), { size: 'default' });
 </script>
 
 <template>
-  <div class="auth-provider-logo">
+  <div
+    class="auth-provider-logo"
+    :class="{ 'auth-provider-logo--small': size === 'small' }"
+  >
     <img
       v-if="icon"
       :src="icon"
@@ -24,7 +27,7 @@ defineProps<{
     <RcIcon
       v-else
       type="lock"
-      size="large"
+      :size="size === 'small' ? 'medium' : 'large'"
     />
   </div>
 </template>
@@ -42,8 +45,6 @@ defineProps<{
     width: 42px;
     height: 42px;
 
-    // Vendor marks are drawn for light backgrounds, so the tile keeps the same
-    // light surface in every theme
     background-color: $gray003;
     border-radius: var(--border-radius-lg);
 
@@ -53,7 +54,17 @@ defineProps<{
       object-fit: contain;
     }
 
-    // Paired with the surface above, so it has to stay dark alongside it
+    &--small {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--border-radius);
+
+      .auth-provider-logo__mark {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
     .rc-icon {
       color: $gray006;
     }
