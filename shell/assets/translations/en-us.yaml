@@ -7171,16 +7171,15 @@ tableViews:
     none: None
     empty: (none)
   export:
-    label: Export View Contents
-    title: Export View Contents
-    intro: 'You are about to export <b>{count}</b> from the <b>{name}</b> view. The structure of the export will match the current view settings (selected grouping method and / of columns configuration).'
-    rows: "{count, plural, one {# matching row} other {# matching rows}}"
-    resources: "{count} matching {type}"
-    choose: '<b>Please choose at least 1 format</b> below to continue...'
+    label: Export All View Contents
+    title: Export All View Contents
+    intro: 'You are about to <b>export all items ({count})</b> from the <b>{name}</b> view. Depending on the format you choose, the structure of the export will match the current view settings (selected grouping method and / of columns configuration).'
+    choose: '<b>Please choose a format</b> below to continue...'
     download: Download
     format:
-      csv: CSV
+      yaml: YAML
       json: JSON
+      csv: CSV
   shortcut:
     save: CMD-S
     saveAsNew: CMD-Shift-S

@@ -765,7 +765,7 @@ export default defineComponent({
   .table-heading {
     align-items: center;
     display: flex;
-    height: 39px;
+    height: 32px;
 
     & > a {
       margin-left: 10px;

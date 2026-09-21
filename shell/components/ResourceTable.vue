@@ -28,6 +28,7 @@ import {
   parseQuery,
   rowsToCsv,
   rowsToJson,
+  rowsToYaml,
   stringifyValue,
   termsToServerFilters,
   isCoreField,
@@ -1348,22 +1349,23 @@ export default {
      * What gets exported is every row the view matches, not the page on screen - the view is
      * what the user picked, the page is just where they happen to be in it.
      */
-    async handleExport({ formats }) {
+    async handleExport({ format }) {
       const rows = await this.allMatchingRows();
 
-      if (!rows.length || !formats?.length) {
+      if (!rows.length || !format) {
         return;
       }
 
       const columns = this.exportColumns;
       const name = (this.schema?.id || 'resources').replace(/[^a-z0-9]+/gi, '-');
+      const writers = {
+        yaml: { write: rowsToYaml, type: 'application/yaml;charset=utf-8' },
+        json: { write: rowsToJson, type: 'application/json;charset=utf-8' },
+        csv:  { write: rowsToCsv, type: 'text/csv;charset=utf-8' },
+      };
+      const writer = writers[format] || writers.csv;
 
-      formats.forEach((format) => {
-        const content = format === 'json' ? rowsToJson(rows, columns) : rowsToCsv(rows, columns);
-        const contentType = format === 'json' ? 'application/json;charset=utf-8' : 'text/csv;charset=utf-8';
-
-        downloadFile(`${ name }.${ format }`, content, contentType);
-      });
+      downloadFile(`${ name }.${ format }`, writer.write(rows, columns), writer.type);
     },
   }
 };

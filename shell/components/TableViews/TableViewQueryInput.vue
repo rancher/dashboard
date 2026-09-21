@@ -588,7 +588,7 @@ export default {
 <!-- Not scoped: syncDom builds the token spans, so they carry no scope attribute. Every rule
      below is nested under .table-view-query, which keeps it to this component. -->
 <style lang="scss">
-$query-height: 40px;
+$query-height: 32px;
 
 .table-view-query {
   position: relative;

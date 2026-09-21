@@ -770,8 +770,8 @@ export default {
       }, 2000);
     },
 
-    doExport(formats) {
-      this.$emit('export', { formats });
+    doExport(format) {
+      this.$emit('export', { format });
       this.closeModal();
     },
   }
@@ -828,7 +828,12 @@ export default {
           />
         </button>
 
-        <rc-dropdown :placement="'bottom-start'">
+        <!-- 9 below the line under the tabs. The offset is measured from the trigger, which sits
+             a pixel above that line, so it is one more than the gap it produces. -->
+        <rc-dropdown
+          :placement="'bottom-start'"
+          :distance="10"
+        >
           <rc-dropdown-trigger
             variant="link"
             class="view-tab-caret"
@@ -1166,7 +1171,6 @@ export default {
   <TableViewExportModal
     v-if="modal && modal.kind === 'export'"
     :count="matchCount"
-    :resource-label="resourceLabel"
     :view-name="modal.view ? modal.view.name : t('tableViews.tabs.all')"
     @close="closeModal"
     @export="doExport"
@@ -1195,7 +1199,7 @@ export default {
   .view-tabs {
     display: flex;
     align-items: stretch;
-    gap: 2px;
+    gap: 24px;
     border-bottom: 1px solid var(--border);
   }
 
@@ -1203,6 +1207,8 @@ export default {
   .view-tab-wrap {
     display: flex;
     align-items: center;
+    gap: 8px;
+    height: 32px;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px; // sit the underline on the row's own border rather than above it
 
@@ -1219,10 +1225,14 @@ export default {
   .view-tab {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    height: 100%;
+    // The global button rule carries a 40px min-height, which `height` alone can't get under -
+    // it was making the tabs row 8px taller than the tabs in it
+    min-height: 32px;
     background: transparent;
     border: none;
-    padding: 8px 4px 8px 12px;
+    padding: 0;
     cursor: pointer;
     color: var(--body-text);
     font-size: 14px;
@@ -1242,8 +1252,10 @@ export default {
     }
 
     &.new-view-tab {
-      gap: 4px;
-      padding: 8px 12px;
+      gap: 8px;
+      height: 32px;
+      min-height: 32px;
+      padding: 0;
       color: var(--link);
 
       .icon {
@@ -1252,14 +1264,19 @@ export default {
     }
   }
 
-  .view-tab-caret {
+  // Two classes deep on purpose: the caret is an RcButton, and `.btn-medium` sets its own
+  // horizontal padding. Left alone it pads the chevron by 12 either side, which both widens the
+  // gap after the name and runs the active underline past the icon.
+  .view-tab-wrap .view-tab-caret {
     display: flex;
     align-items: center;
     background: transparent;
     border: none;
     cursor: pointer;
     color: var(--body-text);
-    padding: 8px 10px 8px 2px;
+    height: 100%;
+    min-height: 32px;
+    padding: 0;
 
     .icon {
       font-size: 12px;
@@ -1270,7 +1287,7 @@ export default {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 16px;
   }
 
   .query-grow {
@@ -1280,8 +1297,9 @@ export default {
   .view-control-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    height: 40px;
+    gap: 8px;
+    height: 32px;
+    padding: 0 12px;
     white-space: nowrap;
   }
 }
@@ -1318,6 +1336,20 @@ export default {
   max-height: 60vh;
   overflow-y: auto;
   text-align: left;
+  // A menu is 8 clear at the top and bottom. Getting there means taking back what sits above it
+  // first: the popper pads itself 10, and RcDropdown's own target adds another 3.
+  margin: -13px 0;
+  padding: 8px 0;
+
+  [dropdown-menu-item] {
+    height: 33px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  hr {
+    margin: 8px 0;
+  }
 
   .menu-title {
     padding: 6px 17px 2px 17px;
@@ -1328,12 +1360,15 @@ export default {
 
   // The "you have unsaved changes" banner at the top of a dirty view's menu. A quiet tint, not a
   // solid block - it is telling the user where they stand, not asking them to act
+  // The unsaved banner is the exception: it runs to the very top of the menu, so it cancels the
+  // 8 above it and keeps the 8 below
   .menu-notice {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 4px;
-    padding: 10px 17px;
+    height: 40px;
+    margin: -8px 0 8px;
+    padding: 0 17px;
     background: var(--accent-btn);
     color: var(--body-text);
     font-size: 13px;
@@ -1353,8 +1388,10 @@ export default {
     align-items: center;
     gap: 8px;
     width: 100%;
+    height: 33px;
+    min-height: 33px;
     justify-content: flex-start;
-    padding: 8px 17px;
+    padding: 0 17px;
     color: var(--body-text);
     text-decoration: none;
 

@@ -2191,16 +2191,25 @@ export default {
         "views  views"
         "filter filter";
       align-items: center;
-      row-gap: 12px;
+      // 16 from the page's own heading down to the tabs, 24 from the tabs to the filter, 24 from
+      // the filter to the table. One grid gap can't be two sizes, so it carries the 16 and the
+      // filter row makes up the rest.
+      row-gap: 16px;
+      padding-bottom: 24px;
 
-      .bulk { grid-area: bulk; }
+      .bulk {
+        grid-area: bulk;
+        height: 32px;
+      }
 
       // Whatever the page puts here - its own action buttons - sits at the far right of the
       // heading row, lined up with the table's right hand edge
       .middle {
         grid-area: middle;
         display: flex;
+        align-items: center;
         justify-content: flex-end;
+        height: 32px;
       }
       .table-views-row { grid-area: views; }
 
@@ -2210,6 +2219,11 @@ export default {
         grid-area: filter;
         display: flex;
         align-items: center;
+        align-self: center;
+        // Pinned to the height of what it holds. Left to size itself the cell came out 7px
+        // taller than the filter inside it, and the row gap either side inherited the slack.
+        height: 32px;
+        margin-top: 8px;
         justify-content: flex-start;
         gap: 10px;
         max-width: none;
