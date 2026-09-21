@@ -1,9 +1,9 @@
 <script>
 import AppModal from '@shell/components/AppModal.vue';
-import { Checkbox } from '@components/Form/Checkbox';
+import { RadioGroup } from '@components/Form/Radio';
 
 /** The formats a view can be written out as */
-const FORMATS = ['csv', 'json'];
+const FORMATS = ['yaml', 'json', 'csv'];
 
 /**
  * Asks what to write the current view out as.
@@ -16,19 +16,13 @@ export default {
 
   emits: ['close', 'export'],
 
-  components: { AppModal, Checkbox },
+  components: { AppModal, RadioGroup },
 
   props: {
     /** How many rows the view matches */
     count: {
       type:    Number,
       default: 0
-    },
-
-    /** Plural display name of what is being exported, eg "clusters" */
-    resourceLabel: {
-      type:    String,
-      default: ''
     },
 
     /** The view being exported, for the sentence naming it */
@@ -39,39 +33,22 @@ export default {
   },
 
   data() {
-    return { formats: { csv: false, json: true } };
+    return { format: 'csv' };
   },
 
   computed: {
-    availableFormats() {
-      return FORMATS;
-    },
-
-    chosen() {
-      return FORMATS.filter((format) => this.formats[format]);
-    },
-
-    /** "2 matching clusters", or just "2 matching rows" when the type has no name to use */
-    countLabel() {
-      if (this.resourceLabel) {
-        return this.t('tableViews.export.resources', { count: this.count, type: this.resourceLabel });
-      }
-
-      return this.t('tableViews.export.rows', { count: this.count });
+    formatOptions() {
+      return FORMATS.map((format) => ({ value: format, label: this.t(`tableViews.export.format.${ format }`) }));
     },
 
     intro() {
-      return this.t('tableViews.export.intro', { count: this.countLabel, name: this.viewName }, true);
+      return this.t('tableViews.export.intro', { count: this.count, name: this.viewName }, true);
     },
   },
 
   methods: {
     download() {
-      if (!this.chosen.length) {
-        return;
-      }
-
-      this.$emit('export', this.chosen);
+      this.$emit('export', this.format);
     },
   }
 };
@@ -98,20 +75,20 @@ export default {
         class="export-choose"
       />
 
-      <div class="export-formats">
-        <Checkbox
-          v-for="format in availableFormats"
-          :key="format"
-          v-model:value="formats[format]"
-          :label="t(`tableViews.export.format.${ format }`)"
-          :data-testid="`table-views-export-format-${ format }`"
-        />
-      </div>
+      <RadioGroup
+        v-model:value="format"
+        name="table-views-export-format"
+        class="export-formats"
+        :options="formatOptions"
+        :row="true"
+        :aria-label="t('tableViews.export.title')"
+        data-testid="table-views-export-formats"
+      />
 
       <div class="export-actions">
         <button
           type="button"
-          class="btn role-secondary"
+          class="btn role-link"
           data-testid="table-views-export-cancel"
           @click="$emit('close')"
         >
@@ -120,7 +97,6 @@ export default {
         <button
           type="button"
           class="btn role-primary"
-          :disabled="!chosen.length"
           data-testid="table-views-export-download"
           @click="download"
         >
