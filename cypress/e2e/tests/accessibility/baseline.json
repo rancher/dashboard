@@ -65,13 +65,6 @@
       "help": "Alternative text of images should not be repeated as text"
     },
     {
-      "fingerprint": "81951242bafd7018eb6183ec13678267e27d4ec876bb04d1a9676c939d5f2c86",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Describe Resource",
-      "rule": "landmark-unique",
-      "impact": "moderate",
-      "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination"
-    },
-    {
       "fingerprint": "848477f4b8f56e05aa4119096aefa1f236daf2b8ab5e98ef94bdbfed2d535454",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > Deployments page",
       "rule": "empty-table-header",
