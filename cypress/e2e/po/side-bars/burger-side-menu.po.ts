@@ -283,6 +283,14 @@ export default class BurgerMenuPo extends ComponentPo {
     return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row');
   }
 
+  /**
+   * The count chip on the switcher trigger — how many clusters the flyout's ALL CLUSTERS directory holds.
+   * @returns {Cypress.Chainable}
+   */
+  clusterSwitcherCount(): Cypress.Chainable {
+    return this.self().getId('cluster-switcher-trigger').find('.cluster-all-count');
+  }
+
   clusterPinnedList(): Cypress.Chainable {
     return this.self().find('.body .clustersPinned .cluster.selector.option');
   }

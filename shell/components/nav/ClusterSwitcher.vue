@@ -98,15 +98,15 @@ const popperClass = computed(() => [
   closing.value ? 'is-closing' : '',
 ].filter((c) => !!c).join(' '));
 
-const directory = computed<TopLevelMenuCluster[]>(() => props.all.filter((c) => !c.isLocal));
-
-// The flat list the ↑↓ cursor and Enter operate over: matches while searching, else the ALL directory.
+// The flat list the ↑↓ cursor and Enter operate over: matches while searching, else the ALL directory —
+// which is `all` exactly as handed over, `local` among its rows (the tile above is a shortcut to the same
+// place, and `hide-local-cluster` has already taken it out upstream if it applies).
 // While a search is in flight the list on screen is the skeleton, not `searchResults` (those still
 // describe the PREVIOUS query). Return nothing so the ↑↓ cursor and Enter can never target a row that
 // is not rendered.
 const rows = computed<TopLevelMenuCluster[]>(() => {
   if (!searching.value) {
-    return directory.value;
+    return props.all;
   }
 
   return props.listLoading ? [] : props.searchResults;
@@ -172,15 +172,21 @@ const placeholder = computed(() => t('nav.switcher.jumpTo'));
 // still addresses rows by id to scroll one into view, and the search box names the region it searches.
 const listboxId = 'cluster-switcher-listbox';
 const optionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-${ c.id }`;
-// RECENTLY USED repeats clusters that are also the fixed tile or rows of the estate, so its rows carry
-// their own ids — two elements answering to one id would give Vue duplicate keys.
+// The same cluster can be on screen three times — the fixed tile, a RECENTLY USED shortcut and its row in
+// the estate — so the tile and RECENTLY USED carry their own ids. Two elements answering to one id would
+// give Vue duplicate keys and leave "scroll this row into view" pointing at whichever the DOM reached last.
 const recentOptionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-recent-${ c.id }`;
+const tileOptionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-tile-${ c.id }`;
 
 const optionIdAt = (index: number): string | undefined => {
   const c = navRows.value[index];
 
   if (!c) {
     return undefined;
+  }
+
+  if (localTile.value && index === 0) {
+    return tileOptionId(c);
   }
 
   const inRecent = index >= localOffset.value && index < resultsOffset.value;
@@ -219,7 +225,7 @@ const statusMessage = computed(() => {
   if (searching.value && !rows.value.length) {
     return t('nav.switcher.aria.noResults');
   }
-  const count = searching.value ? (props.searchCount || rows.value.length) : (props.clusterCount || directory.value.length);
+  const count = searching.value ? (props.searchCount || rows.value.length) : (props.clusterCount || props.all.length);
 
   return t('nav.switcher.aria.results', { count });
 });
@@ -794,15 +800,15 @@ defineExpose({
           :aria-busy="listLoading ? 'true' : 'false'"
           @scroll="onScroll"
         >
-          <!-- local — a tile at the head of the list, at rest only: a search takes it down and `local`
-               competes in the results like any other cluster. -->
+          <!-- local — a shortcut tile at the head of the list, at rest only: a search takes it down and
+               `local` is left to compete in the results (it is a row of ALL CLUSTERS either way). -->
           <ul
             v-if="localTile"
             class="switcher-local"
             :aria-label="t('nav.switcher.managementCluster')"
           >
             <ClusterSwitcherRow
-              :id="optionId(localTile)"
+              :id="tileOptionId(localTile)"
               :cluster="localTile"
               :subtitle="t('nav.switcher.managementCluster')"
               :pinnable="false"

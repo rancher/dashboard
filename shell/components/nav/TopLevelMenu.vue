@@ -196,11 +196,13 @@ export default {
         return this.clustersFiltered;
       }
 
-      const rows = this.clustersFiltered.filter((c) => !c.isLocal);
+      // `local` belongs in ALL CLUSTERS like every other cluster — the tile above it is a shortcut, not
+      // the only way there. Only `hide-local-cluster` takes it out, and that is already applied upstream.
+      const rows = [...this.clustersFiltered];
       const seen = new Set(rows.map((c) => c.id));
 
       [...this.pinFiltered, ...this.recentClusters].forEach((c) => {
-        if (c.isLocal || seen.has(c.id)) {
+        if (seen.has(c.id)) {
           return;
         }
 
@@ -247,10 +249,10 @@ export default {
       return this.helper.counts?.others || 0;
     },
 
-    // How many clusters the ALL CLUSTERS list holds — the chip's number and the caption's. The helper counts
-    // this for the switcher alone, always without `local` (which has its own fixed tile above the list), so
-    // it is the total outright: nothing to subtract, and `hide-local-cluster` cannot move it. Deriving it
-    // from the count the home page and the Cluster Management badge share is what made it wobble by one.
+    // How many clusters the ALL CLUSTERS list holds — the chip's number and the caption's. `local` is one
+    // of them (its fixed tile above the list is a shortcut, not the only way there), so this is the same
+    // total the home page and the Cluster Management badge show, and the nav cannot disagree with the
+    // badge beside it. `hide-local-cluster` moves it by one, because it moves the list by one.
     browsableClusterCount() {
       return this.helper.counts?.browsable || 0;
     },
@@ -1264,9 +1266,8 @@ export default {
             </div>
             <!-- The cluster-switcher "door": the top of the cluster area, IDENTICAL expanded and collapsed —
                  the count chip sits in the icon lane, and the expanded nav adds the "Cluster Switch"
-                 label plus the trailing chevron (the collapsed rail clips both). Gated on the BROWSABLE
-                 count (not the raw total, which includes local), so there's no empty "0" flyout when
-                 local is the only cluster. -->
+                 label plus the trailing chevron (the collapsed rail clips both). Gated on the same total
+                 the chip shows, so the door is down only when the flyout would have nothing to list. -->
             <div
               v-if="browsableClusterCount > 0"
               class="cluster-door"

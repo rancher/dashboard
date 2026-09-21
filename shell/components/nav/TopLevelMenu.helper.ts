@@ -90,15 +90,14 @@ const COUNT_RETRY_MAX_DELAY = 60000;
 
 /**
  * Order of v1 mgmt clusters
- * 1. local cluster - https://github.com/rancher/dashboard/issues/10975
- * 2. working clusters
- * 3. name
+ * 1. working clusters
+ * 2. name
+ *
+ * `local` takes its turn in that order like any other cluster. It used to be sorted to the head of every
+ * page (`spec.internal` first), from when the nav was one list and `local` had to lead it; it now has its
+ * own tile above the list, so holding its row at the top as well just made the directory read out of order.
  */
 const DEFAULT_SORT: Array<PaginationSort> = [
-  {
-    asc:   false,
-    field: 'spec.internal',
-  },
   {
     asc:   false,
     field: 'status.connected'
@@ -128,7 +127,8 @@ export interface TopLevelMenuHelper {
    *
    * Filter by
    * 1. If harvester or not (filterOnlyKubernetesClusters)
-   * 2. If local or not (filterHiddenLocalCluster) — local is the fixed top tile
+   * 2. If local or not (filterHiddenLocalCluster) — `local` is listed here like any other cluster; only
+   *    the `hide-local-cluster` setting takes it out
    * 3.
    *    a) if search term, filter on it (name match)
    *    b) if no search term, the whole estate (no pinned-exclusion, no cap)
@@ -144,10 +144,12 @@ export interface TopLevelMenuHelper {
    * whatever place its visit history earned it, and `local` is listed like any other cluster. */
   clustersRecent: Array<TopLevelMenuCluster>;
 
-  /** The `local` cluster, fetched by its own request as the fixed top tile (every other slice filters it out). */
+  /** The `local` cluster, fetched by its own request as the fixed top tile. It is a shortcut, not the only
+   * way there: the ALL list carries `local` as well. */
   clustersLocal: Array<TopLevelMenuCluster>;
 
-  /** `others` follows the search term; `browsable` is the resting total, always without `local`. */
+  /** `others` follows the search term; `browsable` is the resting total — every cluster the ALL list can
+   * take you to, `local` included (unless the `hide-local-cluster` setting hides it). */
   counts: { others: number, browsable: number };
 
   /** Flip every cached cluster's `pinned` flag from the pinned pref (keeps the pin icon in sync). */
@@ -484,13 +486,11 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   private constructParams({
     ids,
     searchTerm,
-    excludeLocal,
     includeSearchTerm,
     includeIds,
   }: {
     ids?: string[],
     searchTerm?: string,
-    excludeLocal?: boolean,
     includeSearchTerm?: boolean,
     includeIds?: boolean,
   }): PaginationParam[] {
@@ -512,17 +512,10 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       }));
     }
 
-    if (excludeLocal) {
-      // `local` has its own request and fixed top tile, so keep it out of every other slice's results.
-      filters.push(PaginationParamFilter.createSingleField({
-        field: 'id', equals: false, value: LOCAL_CLUSTER
-      }));
-    }
-
     return filters;
   }
 
-  /** One page of the ALL list: replacing on reset, appending on load-more. `local` is excluded. */
+  /** One page of the ALL list: replacing on reset, appending on load-more. `local` is one of its rows. */
   private async fetchOthers(reset: boolean): Promise<void> {
     const args = this.args;
 
@@ -552,9 +545,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           filters: this.constructParams({
             searchTerm:        args.searchTerm,
             includeSearchTerm: !!args.searchTerm,
-            // `local` is held back from the resting ALL list because it has its own tile above it — but a
-            // search takes that tile down, so it has to be searchable like every other cluster.
-            excludeLocal:      !args.searchTerm,
           }),
           page:                 this.othersPage,
           pageSize:             SWITCHER_PAGE_SIZE,
@@ -615,12 +605,11 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }
 
   /**
-   * Both cluster totals, kept independent — deriving one from the other is what made the chip move when
-   * `hide-local-cluster` was toggled.
+   * The cluster total, counted once: the SHARED saved count the home page and the Cluster Management badge
+   * also read. `local` is one of the clusters the switcher lists, so the chip is that number outright —
+   * no second query and no arithmetic, and the nav can never disagree with the badge beside it.
    *
-   * 1. The SHARED saved count the home page and the Cluster Management badge also read: `local` included.
-   * 2. The switcher's own `counts.browsable`: the same query with `local` ALWAYS excluded, which is what
-   *    makes it the chip's number outright rather than something to subtract from.
+   * The `hide-local-cluster` setting is already part of the filters, so it moves this total by itself.
    */
   public async updateCount(count: number) {
     // The number of clusters is half the answer; what the environment COUNTS as one is the other half,
@@ -643,7 +632,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     // scheduled, and what gets recorded below has to be the filters the requests actually went out with.
     const filters = clusterFilterSignature({ getters: this.$store.getters });
 
-    const countPage = (filters: PaginationParam[], saveCountAs?: string): ActionFindPageArgs => ({
+    const countPage = (filters: PaginationParam[]): ActionFindPageArgs => ({
       pagination: {
         filters,
         page:                 1,
@@ -651,38 +640,36 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 [],
         projectsOrNamespaces: [],
       },
-      transient: true,
-      saveCountAs,
+      transient:   true,
+      // The count lands in the shared saved-count namespace, where the home page and the Cluster
+      // Management badge read it — one number, so the nav cannot disagree with them.
+      saveCountAs: SAVED_COUNTS.K8S_CLUSTERS,
     });
 
-    // No early return on an empty filter set, or a count saved while they were NOT empty outlives them.
-    // Settled, not `all`: one failing is no reason to discard the other, and the door hangs off the second.
-    const [shared, browsable] = await Promise.allSettled([
-      this.$store.dispatch('management/findPage', {
-        type: MANAGEMENT.CLUSTER,
-        opt:  countPage(paginationFilterClusters({ getters: this.$store.getters }), SAVED_COUNTS.K8S_CLUSTERS)
-      }),
-      this.$store.dispatch('management/findPage', {
-        type: MANAGEMENT.CLUSTER,
-        opt:  countPage(this.constructParams({ excludeLocal: true }))
-      }),
-    ]);
+    let total: number | undefined;
+    let failure: unknown;
 
-    // A newer refresh started while this one was in flight; it owns the counts and the retry from here.
+    try {
+      // No early return on an empty filter set, or a count saved while they were NOT empty outlives them.
+      const res = await this.$store.dispatch('management/findPage', {
+        type: MANAGEMENT.CLUSTER,
+        opt:  countPage(paginationFilterClusters({ getters: this.$store.getters }))
+      });
+
+      total = res?.pagination?.result?.count;
+    } catch (e) {
+      failure = e;
+    }
+
+    // A newer refresh started while this one was in flight; it owns the count and the retry from here.
     if (seq !== this.countSeq) {
       return;
     }
 
     // A resolved request is not the same as an answer: a response without a total leaves the count where
     // it was, and treating that as success would record the attempt and stop anything asking again.
-    const browsableCount = browsable.status === 'fulfilled' ? browsable.value?.pagination?.result?.count : undefined;
-
-    if (typeof browsableCount === 'number') {
-      // Kept off the saved-count namespace on purpose: it is the switcher's number, not a shared one.
-      this.counts.browsable = browsableCount;
-    }
-
-    if (shared.status === 'fulfilled' && typeof browsableCount === 'number') {
+    if (typeof total === 'number') {
+      this.counts.browsable = total;
       // Recorded only now that these inputs have actually been answered. Recording them up front turned a
       // single failed request into a permanent one: every later call matched the guard and returned, so
       // nothing ever asked again.
@@ -693,9 +680,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       return;
     }
 
-    const rejected = [shared, browsable].find((r) => r.status === 'rejected') as PromiseRejectedResult | undefined;
-
-    console.warn('Unable to count clusters, retrying', rejected?.reason || 'the response carried no total'); // eslint-disable-line no-console
+    console.warn('Unable to count clusters, retrying', failure || 'the response carried no total'); // eslint-disable-line no-console
 
     const delay = Math.min(COUNT_RETRY_DELAY * (2 ** this.countRetries), COUNT_RETRY_MAX_DELAY);
 
@@ -731,7 +716,6 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     // `updateClusters` upserts every in-memory cluster into the shared cache, so the derived shelf getters
     // see the full set (everything is in memory, so there's never an incomplete seed).
     const clusters = this.updateClusters();
-    const nonLocal = clusters.filter((c) => !c.isLocal);
 
     // Legacy holds the whole estate in memory, so a cached row that is gone was deleted — drop it.
     // `local` is exempt only until the estate has loaded: an empty list is "not fetched yet".
@@ -743,14 +727,14 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
       }
     });
 
-    // Keep the full ALL list; the visible slice is applied by `applyOthers` (reset/loadMore). `local` is
-    // held back from the resting list because it has its own tile above it, but a search takes that tile
-    // down — so while searching it is a candidate like any other cluster (mirrors the SSP helper).
-    this.othersFull = this.clustersFiltered(args.searchTerm ? clusters : nonLocal, args);
+    // Keep the full ALL list; the visible slice is applied by `applyOthers` (reset/loadMore). `local` is a
+    // row of it like any other cluster — its tile above is a shortcut, not the only way there (mirrors the
+    // SSP helper).
+    this.othersFull = this.clustersFiltered(clusters, args);
     this.counts.others = this.othersFull.length;
     // The switcher's chip, exactly — no request and no arithmetic, since the whole estate is already in
-    // memory here. Taken from `nonLocal` rather than `others` so a search cannot move it.
-    this.counts.browsable = nonLocal.length;
+    // memory here. Taken from the whole list rather than `others` so a search cannot move it.
+    this.counts.browsable = clusters.length;
 
     this.applyOthers();
   }
@@ -770,7 +754,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     // Rebuild from the caller's args rather than whatever the last `update()` left behind, so the search
     // term applied here can't lag a tick behind the one the user typed.
     if (args) {
-      this.othersFull = this.clustersFiltered(this.updateClusters().filter((c) => !c.isLocal), args);
+      this.othersFull = this.clustersFiltered(this.updateClusters(), args);
       this.counts.others = this.othersFull.length;
     }
 
@@ -824,7 +808,8 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     const search = (args.searchTerm || '').toLowerCase();
 
     // ALL lists the whole estate — no pinned-exclusion, no cap (groups are independent and may overlap).
-    // `local` is already excluded upstream. While searching, narrow to matches.
+    // `local` is one of them; `updateClusters` has already dropped it if the setting hides it. While
+    // searching, narrow to matches.
     const filtered = clusters.filter((c) => !search || c.label?.toLowerCase().includes(search));
 
     return sortBy(filtered, ['ready:desc', 'label']);
