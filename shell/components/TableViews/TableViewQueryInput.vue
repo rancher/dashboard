@@ -836,8 +836,15 @@ $query-height: 32px;
     margin-left: 4px;
     padding: 0 4px;
     border-radius: 4px;
-    background: var(--sortable-table-hover-bg);
-    color: var(--link);
+    // Mixed from the same token the text uses rather than taken from one of the theme's tints.
+    // Every `-banner-bg` / `-light-bg` is compiled from the scss palette, so it holds Rancher
+    // blue on a Prime install where the brand has gone green - and `--link-banner-bg` has no
+    // dark value at all. Mixing from a live token is what the app bar's drag state does too.
+    background: color-mix(in srgb, var(--active, var(--primary)) 12%, transparent);
+    // `--active` over `--link`: `--link` follows the brand in light but keeps its blue in dark,
+    // so on a Prime install the badge changed colour in one theme and not the other. In stock
+    // Rancher light the two are a single blue channel apart.
+    color: var(--active, var(--primary));
   }
 
   // Half typed, or simply not a value this field has: plain text until it is one
