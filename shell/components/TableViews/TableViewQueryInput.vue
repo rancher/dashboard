@@ -56,6 +56,12 @@ export default {
     return {
       caret:        0,
       focused:      false,
+      /**
+       * True when the list has been dismissed with Escape. Kept apart from `focused` so that
+       * dismissing it does not take the caret out of the box - the query is still being written,
+       * and the next keystroke brings the list back.
+       */
+      dismissed:    false,
       activeIndex:  0,
       /** Where to put the caret once the tokens have been re-rendered, if we own it */
       pendingCaret: null,
@@ -247,7 +253,7 @@ export default {
     },
 
     showSuggestions() {
-      return this.focused && !!this.suggestions.length;
+      return this.focused && !this.dismissed && !!this.suggestions.length;
     },
 
     menuStyle() {
@@ -309,9 +315,12 @@ export default {
 
   mounted() {
     this.syncDom();
+    // Capture, so it is seen before the browser decides what the press means
+    document.addEventListener('mousedown', this.onOutsideMouseDown, true);
   },
 
   beforeUnmount() {
+    document.removeEventListener('mousedown', this.onOutsideMouseDown, true);
     window.removeEventListener('scroll', this.updateMenuPos, true);
     window.removeEventListener('resize', this.updateMenuPos);
   },
@@ -470,6 +479,9 @@ export default {
         return;
       }
 
+      // Escape puts the list away; writing more of the query is asking for it again
+      this.dismissed = false;
+
       const text = this.$refs.input?.textContent ?? '';
 
       // Typing with the caret unreadable means it has just gone in at the end
@@ -515,6 +527,49 @@ export default {
       this.$emit('update:value', next);
     },
 
+    onFocus() {
+      this.focused = true;
+      this.dismissed = false;
+    },
+
+    /**
+     * Clicking into the box is asking for the list as much as typing is, so a dismissed one
+     * comes back
+     */
+    onClick() {
+      this.dismissed = false;
+      this.syncCaret();
+    },
+
+    /**
+     * A press anywhere but on the box puts the list away - and, where the browser would have
+     * handed us the caret anyway, is refused outright.
+     *
+     * Chrome answers a press that lands on no text of its own by looking for the nearest
+     * editable position underneath it, and inside the toolbar the only one is this box. That is
+     * why clicking the empty band above or below the row was landing in the query. Only
+     * ancestors are refused: anything else the pointer can reach is a thing in its own right and
+     * is left to do whatever it does.
+     */
+    onOutsideMouseDown(event) {
+      const root = this.$el;
+      const target = event.target;
+
+      if (!root || !target || root.contains(target) || this.$refs.menu?.contains?.(target)) {
+        return;
+      }
+
+      if (target.contains?.(root)) {
+        event.preventDefault();
+      }
+
+      this.focused = false;
+
+      if (document.activeElement === this.$refs.input) {
+        this.$refs.input.blur();
+      }
+    },
+
     onBlur() {
       // Let a click on a suggestion land before the list goes away, then only stand down if the
       // box really did lose focus - a blur it comes straight back from would otherwise close the
@@ -546,7 +601,7 @@ export default {
         event.preventDefault();
         this.pick(this.suggestions[this.activeIndex]);
       } else if (event.key === 'Escape') {
-        this.focused = false;
+        this.dismissed = true;
       }
     },
 
@@ -606,10 +661,10 @@ export default {
       @paste.prevent="onPaste"
       @compositionstart="composing = true"
       @compositionend="onCompositionEnd"
-      @click="syncCaret"
+      @click="onClick"
       @keyup="syncCaret"
       @keydown="onKeyDown"
-      @focus="focused = true"
+      @focus="onFocus"
       @blur="onBlur"
     />
     <i class="icon icon-search" />
@@ -619,6 +674,7 @@ export default {
     <Teleport to="body">
       <ul
         v-if="showSuggestions"
+        ref="menu"
         class="table-view-query-menu"
         :style="menuStyle"
         data-testid="table-views-suggestions"
