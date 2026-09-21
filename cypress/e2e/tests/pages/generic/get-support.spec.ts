@@ -11,6 +11,18 @@ describe('Support Page', () => {
     cy.login();
   });
 
+  // TEMPORARY DIAGNOSTIC - not tagged @noPrime/@prime so it runs unconditionally in every
+  // CI job regardless of the tag-filter question we're investigating. Makes a real,
+  // unmocked call (same cy.getRancherVersion() helper already used elsewhere in this
+  // file, e.g. the "can click on Docs link" test below) and deliberately fails so the
+  // actual live RancherPrime value is unambiguous in the CI log's assertion diff, instead
+  // of inferred from other tests' pass/fail behavior. Remove this test once confirmed.
+  it('DIAGNOSTIC ONLY: report live RancherPrime value', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    cy.getRancherVersion().then((version) => {
+      expect(version.RancherPrime, `live /rancherversion RancherPrime value was: ${ version.RancherPrime }`).to.eq('DIAGNOSTIC-CHECK-CI-LOG-FOR-ACTUAL-VALUE-ABOVE');
+    });
+  });
+
   it('can navigate to Support page', { tags: ['@generic', '@adminUser'] }, () => {
     HomePagePo.goToAndWaitForGet();
     SupportPagePo.navTo();
