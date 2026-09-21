@@ -659,6 +659,17 @@ export default {
       return !this.noResults && (this.rows || []).length === 0;
     },
 
+    /**
+     * Whether the top row of the table views header has anything to hold.
+     *
+     * That row is where a page puts its own table level actions, and plenty of lists have none.
+     * Empty, it still reserved its height and the gap beneath it, which read as a band of dead
+     * space between the page's heading and the view tabs.
+     */
+    tableViewsTopRowEmpty() {
+      return this.tableViewsLayout && !this.$slots['header-left'] && !this.$slots['header-middle'];
+    },
+
     showHeaderRow() {
       // All of these are used to show content in the header
       return this.search ||
@@ -1149,7 +1160,7 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': tableViewsLayout}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': tableViewsLayout, 'no-top-row': tableViewsTopRowEmpty}"
       >
         <!-- Table views puts its tabs on a row of their own between the page's own masthead and
              the filter, so the slot is a grid item here rather than a block above the header -->
@@ -2196,6 +2207,18 @@ export default {
       // filter row makes up the rest.
       row-gap: 16px;
       padding-bottom: 24px;
+
+      // Nothing to put on the top row, so it goes rather than sitting there holding its height
+      // and the gap under it open between the page's heading and the tabs
+      &.no-top-row {
+        grid-template-areas:
+          "views  views"
+          "filter filter";
+
+        .bulk {
+          display: none;
+        }
+      }
 
       .bulk {
         grid-area: bulk;
