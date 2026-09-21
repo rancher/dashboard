@@ -1,6 +1,7 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessDrawer.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals.vue';
+import AuthProviderDetails from '@shell/components/auth/AuthProviderDetails.vue';
 import Loading from '@shell/components/Loading.vue';
 
 const createModel = (overrides = {}) => ({
@@ -119,6 +120,29 @@ describe('component: AuthProviderAccessDrawer', () => {
 
     expect(card.findComponent(AllowedPrincipals).exists()).toBe(true);
     expect(wrapper.findComponent(AllowedPrincipals).props('stacked')).toBe(true);
+  });
+
+  // Who may log in is decided against how the provider is set up, which is
+  // configured elsewhere and otherwise not visible from here.
+  it('should show how the provider is configured above the form', async() => {
+    const model = createModel({ hostname: 'github.com', tls: true });
+    const { wrapper } = createWrapper({ model });
+
+    await flushPromises();
+
+    const details = wrapper.findComponent(AuthProviderDetails);
+
+    expect(details.props('config')).toStrictEqual(model);
+    expect(details.props('name')).toBe('GitHub');
+  });
+
+  it('should leave out the configuration of a provider it cannot load', async() => {
+    const dispatch = jest.fn().mockRejectedValue(new Error('gone'));
+    const { wrapper } = createWrapper({ dispatch });
+
+    await flushPromises();
+
+    expect(wrapper.findComponent(AuthProviderDetails).exists()).toBe(false);
   });
 
   // The panel is drawn above the body, so member search results put there are

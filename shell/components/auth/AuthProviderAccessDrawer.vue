@@ -7,6 +7,7 @@ import Drawer from '@shell/components/Drawer/Chrome.vue';
 import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
 import Loading from '@shell/components/Loading.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals.vue';
+import AuthProviderDetails from '@shell/components/auth/AuthProviderDetails.vue';
 import { useFetch } from '@shell/components/Resource/Detail/FetchLoader/composables';
 import { useI18n } from '@shell/composables/useI18n';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
@@ -79,6 +80,11 @@ const save = async(btnCb: AsyncButtonCallback) => {
       {{ title }}
     </template>
     <template #body>
+      <AuthProviderDetails
+        v-if="model"
+        :config="model"
+        :name="resource.nameDisplay"
+      />
       <DrawerCard>
         <Loading
           v-if="fetch.loading"
