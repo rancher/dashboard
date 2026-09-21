@@ -758,10 +758,64 @@ export default {
     },
 
     /**
+     * Every column this resource type has, not only the ones this page chose to show.
+     *
+     * A page that passes its own `headers` is saying what to show by default, not what exists:
+     * the home page and Cluster Management are both lists of the same type, and between them
+     * they name eleven columns while each shows seven or eight. Offering only the page's own set
+     * meant CPU and Memory could not be added to one, nor Age and Summary to the other.
+     *
+     * The page's headers keep their order and their place; anything the type knows about that
+     * they leave out is added after the last data column, where a new column reads as an addition
+     * rather than something that moved.
+     */
+    availableHeaders() {
+      const own = this._headers || [];
+
+      if (!this.schema || !this.headers) {
+        // Nothing was overridden, so the type's own headers are already what we have
+        return own;
+      }
+
+      const known = {};
+
+      own.forEach((header) => {
+        known[headerFieldId(header)] = true;
+      });
+
+      const extra = this.$store.getters['type-map/headersFor'](this.schema, this.externalPaginationEnabled)
+        .filter((header) => !isIgnoredColumn(header) && !known[headerFieldId(header)]);
+
+      if (!extra.length) {
+        return own;
+      }
+
+      // After the last column that holds data, so `actions` and friends stay at the end
+      let at = own.length;
+
+      for (let i = own.length - 1; i >= 0; i--) {
+        if (!isIgnoredColumn(own[i])) {
+          at = i + 1;
+          break;
+        }
+      }
+
+      return own.slice(0, at).concat(extra, own.slice(at));
+    },
+
+    /**
+     * The columns this page shows when a view has said nothing about columns - which is what the
+     * menu ticks by default, now that it offers more than the page does
+     */
+    defaultColumnIds() {
+      return (this._headers || []).filter((header) => !isIgnoredColumn(header)).map((header) => headerFieldId(header));
+    },
+
+    /**
      * Everything the user can filter on, group by, or add as a column
      */
     viewFields() {
-      return fieldsFor(this._headers, this.filteredRows, (key) => this.t(key));
+      return fieldsFor(this.availableHeaders, this.filteredRows, (key) => this.t(key));
     },
 
     /**
@@ -992,8 +1046,10 @@ export default {
       let out = headers;
 
       if (this.view.columns) {
-        // Core columns are always kept, even if a saved or shared view omits them
-        out = headers.filter((header) => isIgnoredColumn(header) || isCoreField(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
+        // Chosen from everything the type has rather than only what this page shows, so a column
+        // the page left out can be added. Core columns are always kept, even if a saved or
+        // shared view omits them.
+        out = this.availableHeaders.filter((header) => isIgnoredColumn(header) || isCoreField(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
       }
 
       if (this.view.columnOrder?.length) {
@@ -1676,6 +1732,7 @@ export default {
         :resource-label="resourceLabel"
         :resource-type="schema ? schema.id : ''"
         :unsupported-fields="unsupportedViewFields"
+        :default-columns="defaultColumnIds"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
         @tab-queries="tabQueries = $event"
@@ -1715,6 +1772,7 @@ export default {
         :resource-label="resourceLabel"
         :resource-type="schema ? schema.id : ''"
         :unsupported-fields="unsupportedViewFields"
+        :default-columns="defaultColumnIds"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
         @export="handleExport"
