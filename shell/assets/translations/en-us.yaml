@@ -6449,6 +6449,12 @@ resourceTabs:
 resourceYaml:
   errors:
     namespaceRequired: This resource is namespaced, so a namespace must be provided.
+  resourceGraph:
+    title: Resource graph
+    modified: Unsaved changes
+    create: Create related resource
+    groups:
+      machinePools: "Node Pools · Machine Templates"
   buttons:
     continue: Continue Editing
     edit: Edit YAML

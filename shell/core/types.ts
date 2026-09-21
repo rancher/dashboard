@@ -117,6 +117,138 @@ export type TableAction = {
 };
 
 /**
+ * A resource that can be edited alongside a primary resource
+ *
+ * TODO: `resource` and `primaryResource` are typed as `any` until there's a shared type for a
+ * classified Steve model
+ */
+export type EditableResource = any;
+
+/**
+ * The state of the editor showing the editable related resources
+ *
+ * This is reactive and owned by the editor, so anything read from it inside a
+ * `EditableRelatedResourceCompute` function is re-evaluated when it changes
+ */
+export type EditableRelatedResourcesEditorState = {
+  /** The YAML currently in the editor for each resource, keyed by resource id */
+  yaml: { [id: string]: string },
+
+  /** The id of the resource currently shown in the editor */
+  selected: string | null,
+};
+
+/**
+ * Everything a `EditableRelatedResourceCompute` function or `EditableRelatedResourceSaveHook` is
+ * given
+ */
+export type EditableRelatedResourceContext = {
+  /** The related resource the value is being computed for */
+  resource: EditableResource,
+
+  /**
+   * Every editable related resource of the primary resource, including `resource` itself. When
+   * given to a save hook these are in the order they will be saved
+   */
+  relatedResources: EditableRelatedResource[],
+
+  /** The resource that all of the related resources relate to */
+  primaryResource: EditableResource,
+
+  /** The reactive state of the editor */
+  editorState: EditableRelatedResourcesEditorState,
+};
+
+/**
+ * A function providing a value derived from the resources and the state of the editor
+ *
+ * The editor wraps these in its own `computed`, so the returned value is re-evaluated whenever
+ * anything the function read changes. That means the function must read its inputs from the
+ * context it is given (`ctx.editorState.yaml[id]`), rather than from values captured when the
+ * related resource was created, otherwise there's nothing reactive to track
+ *
+ * These are resolved during render, so unlike the save hooks they must be synchronous
+ */
+export type EditableRelatedResourceCompute<T = any> = (ctx: EditableRelatedResourceContext) => T;
+
+/**
+ * A hook that runs either side of saving one editable related resource
+ *
+ * It is given the same context as a `EditableRelatedResourceCompute` function, where `resource` is
+ * the related resource being saved
+ *
+ * Throwing (or rejecting) aborts the save and surfaces the error to the user
+ */
+export type EditableRelatedResourceSaveHook = (ctx: EditableRelatedResourceContext) => void | Promise<void>;
+
+/**
+ * Saves one editable related resource, in place of the resource model's own `save`
+ *
+ * It is given the same context as a `EditableRelatedResourceCompute` function, where `resource` is
+ * the related resource to save. The save hooks still run either side of it
+ *
+ * Throwing (or rejecting) aborts the save and surfaces the error to the user
+ */
+export type EditableRelatedResourceSave = (ctx: EditableRelatedResourceContext) => any | Promise<any>;
+
+/**
+ * A banner to show for an editable related resource, for example to explain why it is shown
+ * alongside the primary resource
+ *
+ * Matches the props of the `Banner` component. `label` is shown as is, use `labelKey` for a
+ * translation
+ */
+export type EditableRelatedResourceBanner = {
+  color?: string,
+  label?: string,
+  labelKey?: string,
+  icon?: string,
+};
+
+/**
+ * One editable related resource, plus the configuration that describes how it should be handled
+ *
+ * This is the entry type of the lists returned by a model's `fetchEditableRelatedResources` and by
+ * the `EditableRelatedResources` extension point.
+ */
+export type EditableRelatedResource = {
+  /** The related resource itself */
+  resource: EditableResource,
+
+  /**
+   * i18n key resolving to the group heading this resource is shown under in the resource graph
+   *
+   * Resources sharing the same key are grouped together under a single heading, in the order they
+   * first appear. Resources without a key are shown first, under no heading
+   */
+  groupKey?: string,
+
+  /** Run before `resource` is saved, for example to apply changes made to the primary resource */
+  beforeSaveHook?: EditableRelatedResourceSaveHook,
+
+  /**
+   * Saves `resource`
+   *
+   * When this is defined it is called instead of the resource model's own `save`, for example
+   * where the resource has to be saved via the primary resource or another API. The save hooks run
+   * either side of it as usual
+   */
+  save?: EditableRelatedResourceSave,
+
+  /** Run after `resource` has been saved, for example to update references to it */
+  afterSaveHook?: EditableRelatedResourceSaveHook,
+
+  /**
+   * A banner to show above this resource in the editor, or a falsy value to show none
+   *
+   * This is re-evaluated as the state of the editor changes, so it can react to what the user is
+   * doing, for example warning that an edit to this resource will be overwritten by the primary
+   * resource
+   */
+  banner?: EditableRelatedResourceCompute<EditableRelatedResourceBanner | null | undefined>,
+};
+
+/**
  * Definition of an editable related resources extension
  *
  * `fetchExtensionEditableRelatedResources` is given the resource being shown and the list of related resources
@@ -127,7 +259,10 @@ export type TableAction = {
  * may be async, for example to fetch the related resources it wants to add.
  */
 export type EditableRelatedResources = {
-  fetchExtensionEditableRelatedResources: (resource: any, relatedResources: any[]) => any[] | Promise<any[]>
+  fetchExtensionEditableRelatedResources: (
+    resource: EditableResource,
+    relatedResources: EditableRelatedResource[]
+  ) => EditableRelatedResource[] | Promise<EditableRelatedResource[]>
 };
 
 /** Definition of the shortcut object (keyboard shortcuts) */

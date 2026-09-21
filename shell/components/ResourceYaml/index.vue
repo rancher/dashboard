@@ -115,8 +115,14 @@ export default {
     /**
      * Resolve the related resources that can be edited by YAML alongside this one
      *
-     * This starts with the list from the resource's model, which extensions can then add to or
-     * remove from via `addEditableRelatedResources`
+     * This starts with the list from the resource's model and then applies the extensions, each
+     * seeing the previous result. The whole list is then transitively expanded: every related
+     * resource's own `fetchEditableRelatedResources` is called and any results not already in the
+     * tree are appended, so resources added by an extension are expanded too.
+     *
+     * Entries are `EditableRelatedResource` objects (a `resource` plus configuration for it, such
+     * as save hooks, banner and groupKey). Anything that isn't of that shape is dropped, so a
+     * badly behaved model or extension can't break the editor.
      *
      * This is resolved on initialization (vs computed property) to accomodate async operations, either in resource models or extensions
      */
@@ -152,156 +158,91 @@ export default {
         }
       }
 
+      // Transitively expand: walk each related resource's own related resources and add any that
+      // aren't already in the tree. This runs after the extensions so that resources they add are
+      // expanded too
+      resources = await this.expandRelatedResourceTree(resources);
+
       if (this.value === forResource) {
-        this.editableRelatedResources = resources;
+        this.editableRelatedResources = resources.filter((entry) => this.isEditableRelatedResource(entry));
       }
     },
 
-    onInput(yaml) {
-      this.currentYaml = yaml;
-      this.onReady(this.cm);
-    },
+    /**
+     * Walk each entry's resource and collect their related resources, breadth-first, stopping
+     * before adding a resource that is already present in the tree
+     *
+     * Deduplication uses the resource's `id` where available, falling back to object identity so
+     * that resources fetched more than once are not added twice
+     *
+     * @param {Array} entries Initial list of `EditableRelatedResource` entries
+     * @returns {Promise<Array>} The expanded list, original entries first
+     */
+    async expandRelatedResourceTree(entries) {
+      const idsSeen = new Set(entries.map((e) => e.resource?.id).filter(Boolean));
+      const refsSeen = new WeakSet(entries.map((e) => e.resource).filter(Boolean));
 
-    onReady(view) {
-      if (!this.initialReady) {
-        return;
-      }
-      this.initialReady = false;
+      const result = [...entries];
+      const queue = [...entries];
 
-      this.cm = view;
+      while (queue.length) {
+        const entry = queue.shift();
 
-      if ( this.isEdit ) {
-        foldMatchingLines(view, /^status:\s*$/);
-      }
-
-      try {
-        const parsed = jsyaml.load(this.currentYaml);
-        const annotations = Object.keys(parsed?.metadata?.annotations || {});
-        const regexes = ANNOTATIONS_TO_FOLD.map((x) => ensureRegex(x));
-
-        let foldAnnotations = false;
-
-        for ( const k of annotations ) {
-          if ( foldAnnotations ) {
-            break;
-          }
-
-          for ( const regex of regexes ) {
-            if ( k.match(regex) ) {
-              foldAnnotations = true;
-              break;
-            }
-          }
+        if (typeof entry?.resource?.fetchEditableRelatedResources !== 'function') {
+          continue;
         }
 
-        if ( foldAnnotations ) {
-          foldMatchingLines(view, /^\s+annotations:\s*$/);
-        }
-      } catch (e) {}
-
-      foldMatchingLines(view, /managedFields/);
-
-      // Allow the model to supply an array of json paths to fold other sections in the YAML for the given resource type
-      if (this.value?.yamlFolding) {
-        this.value.yamlFolding.forEach((path) => foldYamlPath(view, path));
-      }
-
-      // regardless of edit or create we should probably fold all the comments so they dont get out of hand.
-      foldAllComments(view);
-    },
-
-    updateValue(value) {
-      this.$refs.yamleditor.updateValue(value);
-    },
-
-    preview() {
-      this.updateValue(this.currentYaml);
-      this.showPreview = true;
-      this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
-    },
-
-    unpreview() {
-      this.showPreview = false;
-      this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
-    },
-
-    async save(buttonDone) {
-      const yaml = this.value.yamlForSave(this.currentYaml) || this.currentYaml;
-
-      try {
-        if ( this.applyHooks ) {
-          await this.applyHooks(BEFORE_SAVE_HOOKS);
-        }
+        let children = [];
 
         try {
-          await this.value.saveYaml(yaml, this.initialYaml);
-        } catch (err) {
-          return onError.call(this, err);
+          children = await entry.resource.fetchEditableRelatedResources() || [];
+        } catch (e) {
+          console.warn('Failed to fetch related resources for', entry.resource?.id, e); // eslint-disable-line no-console
         }
 
-        if ( this.applyHooks ) {
-          await this.applyHooks(AFTER_SAVE_HOOKS);
-        }
-
-        buttonDone(true);
-        this.done();
-      } catch (err) {
-        return onError.call(this, err);
-      }
-
-      function onError(err) {
-        if ( err && err.response && err.response.data ) {
-          const body = err.response.data;
-
-          if ( body && body.message ) {
-            this.errors = [body.message];
-          } else {
-            this.errors = [err];
+        for (const child of children) {
+          if (!child?.resource) {
+            continue;
           }
-        } else {
-          this.errors = [err];
+
+          const key = child.resource.id;
+          const alreadySeen = key ? idsSeen.has(key) : refsSeen.has(child.resource);
+
+          if (alreadySeen) {
+            continue;
+          }
+
+          if (key) {
+            idsSeen.add(key);
+          } else {
+            refsSeen.add(child.resource);
+          }
+
+          result.push(child);
+          queue.push(child);
         }
-
-        buttonDone(false);
-
-        this.$emit('error', exceptionToErrorsArray(err));
       }
+
+      return result;
     },
 
-    done() {
-      if (this.doneOverride) {
-        return typeof (this.doneOverride) === 'function' ? this.doneOverride() : this.$router.replace(this.doneOverride);
+    /**
+     * Is this a valid `EditableRelatedResource` entry?
+     *
+     * @param {any} entry
+     * @returns {boolean}
+     */
+    isEditableRelatedResource(entry) {
+      const valid = !!entry?.resource &&
+        ['beforeSaveHook', 'afterSaveHook', 'save', 'banner'].every((fn) => !entry[fn] || typeof entry[fn] === 'function');
+
+      if (!valid) {
+        console.warn('Ignoring invalid editable related resource', entry); // eslint-disable-line no-console
       }
-      if ( !this.doneRoute ) {
-        return;
-      }
-      if (typeOf(this.doneRoute) === 'object') {
-        this.$router.replace(this.doneRoute);
 
-        return;
-      }
-      this.$router.replace({
-        name:   this.doneRoute,
-        params: { resource: this.value.type }
-      });
+      return valid;
     },
-
-    onFileSelected(value) {
-      const component = this.$refs.yamleditor;
-
-      if (component) {
-        component.updateValue(value);
-      }
-    },
-
-    refresh() {
-      this.$refs.yamleditor.refresh();
-    },
-
-    closeError(index) {
-      this.errors = (this.errors || []).filter((_, i) => i !== index);
-    },
-  }
+  },
 };
 </script>
 

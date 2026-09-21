@@ -57,15 +57,30 @@ export default class SteveModel extends HybridModel {
    * models extending this class can override it with an async implementation, for example to fetch
    * the resources they want to add
    *
+   * Each entry wraps the resource alongside configuration for it. These are all given the same
+   * context: the related resource in question, all of the editable related resources, the primary
+   * resource (this one) and the reactive state of the editor
+   * - `beforeSaveHook` / `afterSaveHook`, run either side of saving the related resource
+   * - `save`, called instead of the related resource's own `save` when it is defined
+   * - `banner`, resolving a banner to show for the resource, re-evaluated whenever anything it
+   *   read from the context changes
+   *
    * ```
    * async fetchEditableRelatedResources() {
    *   const others = await this.$dispatch('findAll', { type: SOME_TYPE });
    *
-   *   return [...await super.fetchEditableRelatedResources(), ...others];
+   *   return [
+   *     ...await super.fetchEditableRelatedResources(),
+   *     ...others.map((resource) => ({
+   *       resource,
+   *       beforeSaveHook: (ctx) => ctx.resource.spec.foo = ctx.primaryResource.spec.foo,
+   *       banner:         ({ editorState }) => editorState.selected === resource.id ? { labelKey: 'some.key' } : null,
+   *     })),
+   *   ];
    * }
    * ```
    *
-   * @returns {Promise<Array>} Classified resource instances
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
    */
   async fetchEditableRelatedResources() {
     return [];
