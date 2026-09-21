@@ -23,6 +23,7 @@ import {
   fieldValue,
   fieldsFor,
   findField,
+  exportColumnsFor,
   headerFieldId,
   isIgnoredColumn,
   parseQuery,
@@ -1040,18 +1041,7 @@ export default {
      * Columns to write out when exporting
      */
     exportColumns() {
-      return this.viewHeaders
-        .filter((header) => !isIgnoredColumn(header) && (header.label || header.labelKey))
-        .map((header) => {
-          const label = header.label || this.t(header.labelKey);
-
-          return {
-            label,
-            field: {
-              id: headerFieldId(header), label, isLabel: false, header
-            }
-          };
-        });
+      return exportColumnsFor(this.viewHeaders, (key) => this.t(key));
     },
 
     _group: mapPref(GROUP_RESOURCES),
