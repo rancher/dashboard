@@ -553,6 +553,31 @@ export default {
     },
 
     /**
+     * Arrow keys walk a menu's rows. The rows that open sub menus are buttons rather than menu
+     * items, so they carry the item's marker to stand in the same list, and move focus the same
+     * way the items do - the item's own handler reads that list, so it steps onto them too.
+     */
+    moveMenuFocus(event) {
+      const row = event.currentTarget;
+      const panel = row?.closest('.menu-panel');
+
+      if (!panel) {
+        return;
+      }
+
+      const rows = [...panel.querySelectorAll('[dropdown-menu-item]')].filter((el) => el.offsetParent !== null);
+      const at = rows.indexOf(row);
+
+      if (at < 0) {
+        return;
+      }
+
+      const next = event.key === 'ArrowDown' ? at + 1 : at - 1;
+
+      rows[(next + rows.length) % rows.length]?.focus();
+    },
+
+    /**
      * The tab a menu belongs to, for the menu to line itself up against.
      */
     tabWrap(tab) {
@@ -1034,7 +1059,10 @@ export default {
               <rc-dropdown-trigger
                 variant="link"
                 class="menu-nav"
+                dropdown-menu-item
+                tabindex="-1"
                 data-testid="table-views-view-group"
+                @keydown.up.down.prevent.stop="moveMenuFocus"
               >
                 <span class="menu-nav-label">{{ t('tableViews.view.groupBy') }}</span>
                 <span class="menu-nav-value">{{ groupLabel }}</span>
@@ -1079,7 +1107,10 @@ export default {
               <rc-dropdown-trigger
                 variant="link"
                 class="menu-nav"
+                dropdown-menu-item
+                tabindex="-1"
                 data-testid="table-views-view-columns"
+                @keydown.up.down.prevent.stop="moveMenuFocus"
               >
                 <span class="menu-nav-label">{{ t('tableViews.view.columnsConfiguration') }}</span>
                 <span class="menu-nav-value">{{ columnsSummary }}</span>
@@ -1512,6 +1543,13 @@ export default {
 
     &:hover {
       background-color: var(--sortable-table-hover-bg);
+    }
+
+    // The link button rings on any focus, so clicking a row left a ring on it. Only the keyboard
+    // needs one.
+    &:focus:not(:focus-visible) {
+      outline: none;
+      color: var(--body-text);
     }
 
     .menu-nav-label { font-weight: 400; }
