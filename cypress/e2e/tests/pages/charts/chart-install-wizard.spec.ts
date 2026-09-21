@@ -142,6 +142,22 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
         installChartPage.customRegistryCheckbox().set();
 
+        // install.vue re-derives showCustomRegistryInput (the checkbox's own v-model)
+        // from the app's *current* registry setting whenever its `version` watcher's
+        // async chain (which includes awaiting existing.fetchValues() on this "edit an
+        // already-installed app" page) resolves - for a fresh install that's falsy. If
+        // that chain is still in flight when the checkbox above is clicked, it can
+        // silently uncheck itself again once it resolves, right after. The version
+        // selector being visible only means the selector's own DOM exists, not that
+        // this recompute has already settled, so give it a moment and re-click once if
+        // the input never showed up, rather than failing outright.
+        cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+        cy.get('body').then(($body) => {
+          if ($body.find('[data-testid="custom-registry-input"]').length === 0) {
+            installChartPage.customRegistryCheckbox().set();
+          }
+        });
+
         // Enter custom registry
         installChartPage.customRegistryInput().self().should('be.visible');
         installChartPage.customRegistryInput().set(customRegistry);
