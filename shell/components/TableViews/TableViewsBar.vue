@@ -1339,7 +1339,7 @@ export default {
     white-space: nowrap;
 
     .icon {
-      @include toolbar-icon(14px, 11px);
+      @include toolbar-icon(14px, 12px);
     }
   }
 }
@@ -1404,7 +1404,7 @@ export default {
   // !important, and would set the whole menu in it.
   &.has-icons [dropdown-menu-item] {
     > .icon {
-      @include toolbar-icon(16px, 12px);
+      @include toolbar-icon(16px, 14px);
     }
 
     &:not(:has(> .icon))::before {
