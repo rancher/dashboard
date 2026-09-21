@@ -45,6 +45,9 @@ const DEFAULT_GROUP = 'namespace';
  */
 const EXPORT_ROW_LIMIT = 10000;
 
+/** How long the table will wait for a view's rows before showing what it has anyway */
+const VIEW_SWITCH_TIMEOUT = 8000;
+
 export const defaultTableSortGenerationFn = (schema, $store) => {
   if ( !schema ) {
     return null;
@@ -335,6 +338,21 @@ export default {
       lastViewFiltersKey:           '[]',
       // Counting every saved view costs one (tiny) request each, so it waits for the list to
       // settle rather than running on each row that arrives
+      /**
+       * True from the moment a view's filters change until its rows have come back. The view's
+       * columns and grouping apply the instant it is picked, but its rows are a request away, so
+       * without this the table spends that time showing one view's data under another's columns.
+       *
+       * It also turns alt loading off while it lasts. Alt loading leaves the rows up while it
+       * waits, which is right for refreshing the same list and wrong here - the rows still up
+       * are the ones being navigated away from.
+       */
+      viewSwitching:                false,
+      viewSwitchTimer:              null,
+      /** The view filters the table is waiting to see applied, and the ones it is waiting to lose */
+      pendingViewFilters:           [],
+      supersededViewFilters:        [],
+      lastViewShapeKey:             null,
       debouncedFetchViewCounts:     debounce(() => this.fetchViewCounts(), 800),
       debouncedRefreshViewCounts:   debounce(() => this.fetchViewCounts(true), 400),
     };
@@ -344,6 +362,10 @@ export default {
     if (this.showTableViews) {
       this.debouncedFetchViewCounts();
     }
+  },
+
+  beforeUnmount() {
+    clearTimeout(this.viewSwitchTimer);
   },
 
   watch: {
@@ -413,8 +435,32 @@ export default {
         return;
       }
 
+      this.supersededViewFilters = this.pendingViewFilters;
+      this.pendingViewFilters = filters;
       this.lastViewFiltersKey = key;
+      this.beginViewSwitch();
       this.debouncedEmitViewFilters(filters.length ? filters : []);
+
+      // The wait exists to let someone finish typing. Picking a view is a single act with nothing
+      // more coming, so it is asked for at once rather than half a second later.
+      if (this.viewShapeKey !== this.lastViewShapeKey) {
+        this.lastViewShapeKey = this.viewShapeKey;
+        this.debouncedEmitViewFilters.flush();
+      }
+    },
+
+    /**
+     * A response has landed. It only ends the wait if it is the one this view asked for - a
+     * request already in flight answers first, and letting that through put the rows of the view
+     * being left under the columns of the one arrived at, which is the whole thing being avoided.
+     *
+     * This rather than `rows`: that prop's array is filled in place, so its identity never turns
+     * over and a watcher on it never fires.
+     */
+    externalPaginationResult() {
+      if (this.viewFiltersApplied) {
+        this.endViewSwitch();
+      }
     },
 
   },
@@ -685,6 +731,31 @@ export default {
      */
     serverSideTableViews() {
       return this.showTableViews && this.externalPaginationEnabled && !!this.schema;
+    },
+
+    /**
+     * Everything about the applied view except what is being typed into it. A tab being picked
+     * changes this; typing in the filter does not.
+     */
+    viewShapeKey() {
+      const {
+        columns, columnOrder, labelColumns, groupBy
+      } = this.view;
+
+      return JSON.stringify([columns, columnOrder, labelColumns, groupBy]);
+    },
+
+    /**
+     * Whether the request behind the current rows is the one this view asked for: every filter it
+     * wanted is being applied, and none of the ones it replaced still are.
+     */
+    viewFiltersApplied() {
+      const applied = (this.externalPaginationArgs?.filters || []).map((filter) => JSON.stringify(filter));
+      const wanted = (this.pendingViewFilters || []).map((filter) => JSON.stringify(filter));
+      const superseded = (this.supersededViewFilters || []).map((filter) => JSON.stringify(filter));
+
+      return wanted.every((filter) => applied.includes(filter)) &&
+        !superseded.some((filter) => !wanted.includes(filter) && applied.includes(filter));
     },
 
     /**
@@ -1349,6 +1420,24 @@ export default {
      * What gets exported is every row the view matches, not the page on screen - the view is
      * what the user picked, the page is just where they happen to be in it.
      */
+    beginViewSwitch() {
+      this.viewSwitching = true;
+      clearTimeout(this.viewSwitchTimer);
+      // A request that never lands must not leave the table waiting on it for good
+      this.viewSwitchTimer = setTimeout(() => {
+        this.viewSwitching = false;
+      }, VIEW_SWITCH_TIMEOUT);
+    },
+
+    endViewSwitch() {
+      if (!this.viewSwitching) {
+        return;
+      }
+
+      clearTimeout(this.viewSwitchTimer);
+      this.viewSwitching = false;
+    },
+
     async handleExport({ format }) {
       const rows = await this.allMatchingRows();
 
@@ -1384,8 +1473,8 @@ export default {
     v-bind="$attrs"
     :headers="viewHeaders"
     :rows="viewRows"
-    :loading="loading"
-    :alt-loading="altLoading"
+    :loading="loading || viewSwitching"
+    :alt-loading="altLoading && !viewSwitching"
     :group-by="computedGroupBy"
     :group-sort="viewGroupSort"
     :group="group"
