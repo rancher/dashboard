@@ -1,7 +1,7 @@
 <script>
 import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
 import { randomStr } from '@shell/utils/string';
-import { encodeView, isCoreField } from '@shell/utils/table-views';
+import { isCoreField } from '@shell/utils/table-views';
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal';
 import AppModal from '@shell/components/AppModal.vue';
@@ -162,7 +162,6 @@ export default {
       /** id of the view being renamed in place, and the name being typed for it */
       renamingId:     null,
       renameDraft:    '',
-      copied:         false,
       /**
        * Column picker drag. `dragId` is the row being held; `dragOrder` is the ids in the order
        * the list is showing them mid-drag, which is what lets the rows shuffle under the cursor
@@ -337,12 +336,6 @@ export default {
 
     isModified() {
       return !!this.view.query || !!this.view.groupBy || !!this.view.columns || !!this.view.labelColumns?.length || !!this.view.columnOrder;
-    },
-
-    shareUrl() {
-      const query = { ...this.$route.query, view: encodeView(this.view) };
-
-      return `${ window.location.origin }${ this.$router.resolve({ path: this.$route.path, query }).href }`;
     },
   },
 
@@ -935,18 +928,6 @@ export default {
       this[match.method]();
     },
 
-    async copyShareUrl() {
-      // Loaded on demand - the clipboard polyfill is esm only and pulling it in up front
-      // drags it into every consumer of ResourceTable
-      const { copyTextToClipboard } = await import('@shell/utils/clipboard');
-
-      await copyTextToClipboard(this.shareUrl);
-      this.copied = true;
-      setTimeout(() => {
-        this.copied = false;
-      }, 2000);
-    },
-
     doExport(format) {
       this.$emit('export', { format });
       this.closeModal();
@@ -1120,16 +1101,6 @@ export default {
                   >
                     <i class="icon icon-checkmark" />
                   </template>
-                </rc-dropdown-item>
-
-                <rc-dropdown-item
-                  :data-testid="tab.isDefaultTab ? 'table-views-copy-link-all' : `table-views-copy-link-${ tab.id }`"
-                  @click="copyShareUrl"
-                >
-                  <template #before>
-                    <i class="icon" />
-                  </template>
-                  {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
                 </rc-dropdown-item>
 
                 <template v-if="!tab.isDefaultTab">
