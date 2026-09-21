@@ -666,9 +666,9 @@ describe('fx: isLastWayIn', () => {
   });
 
   it.each([
-    ['no configs at all', [], undefined],
-    ['nothing passed', undefined, undefined],
-  ])('should treat %s as the last way in', (_desc, configs) => {
+    ['no configs at all', []],
+    ['nothing passed', undefined],
+  ] as [string, any[] | undefined][])('should treat %s as the last way in', (_desc, configs) => {
     expect(isLastWayIn(configs as any, 'github', true)).toBe(true);
   });
 });

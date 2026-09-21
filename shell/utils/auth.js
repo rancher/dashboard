@@ -207,11 +207,12 @@ export async function restoreLocalLogin(getters) {
  * everyone out with only CLI recovery, so that case gets a dialog that offers
  * the way out instead of one that asks the user to accept the consequences.
  *
- * @param {Function} dispatch a root-level dispatch taking namespaced action names
- * @param {Object} getters the root store getters
- * @param {String} id the provider about to be disabled
- * @param {String} name the provider's display name
- * @param {Function} disableCb runs the disable once the dialog is happy
+ * @param {Object} opt
+ * @param {Function} opt.dispatch a root-level dispatch taking namespaced action names
+ * @param {Object} opt.getters the root store getters
+ * @param {String} opt.id the provider about to be disabled
+ * @param {String} opt.name the provider's display name
+ * @param {Function} opt.disableCb runs the disable once the dialog is happy
  */
 export async function promptDisableAuthProvider({
   dispatch, getters, id, name, disableCb
