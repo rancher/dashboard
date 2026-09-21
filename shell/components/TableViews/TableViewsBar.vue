@@ -334,8 +334,22 @@ export default {
       return !this.activeViewId && this.isModified;
     },
 
+    /** What a saved view keeps of the state in front of the user */
+    viewToSave() {
+      return {
+        query:          this.view.query || '',
+        columns:        this.view.columns || null,
+        columnOrder:    this.view.columnOrder || null,
+        labelColumns:   this.view.labelColumns || [],
+        groupBy:        this.view.groupBy || null,
+        sort:           this.view.sort || null,
+        sortDescending: !!this.view.sortDescending,
+      };
+    },
+
     isModified() {
-      return !!this.view.query || !!this.view.groupBy || !!this.view.columns || !!this.view.labelColumns?.length || !!this.view.columnOrder;
+      return !!this.view.query || !!this.view.groupBy || !!this.view.columns || !!this.view.labelColumns?.length ||
+        !!this.view.columnOrder || !!this.view.sort;
     },
   },
 
@@ -361,6 +375,8 @@ export default {
     isSameConfig(a, b) {
       return (a.query || '') === (b.query || '') &&
         (a.groupBy || null) === (b.groupBy || null) &&
+        (a.sort || null) === (b.sort || null) &&
+        !!a.sortDescending === !!b.sortDescending &&
         JSON.stringify(a.columns || null) === JSON.stringify(b.columns || null) &&
         JSON.stringify(a.columnOrder || null) === JSON.stringify(b.columnOrder || null) &&
         JSON.stringify(a.labelColumns || []) === JSON.stringify(b.labelColumns || []);
@@ -618,7 +634,7 @@ export default {
      */
     resetView() {
       this.update({
-        query: '', columns: null, labelColumns: [], columnOrder: null, groupBy: null
+        query: '', columns: null, labelColumns: [], columnOrder: null, groupBy: null, sort: null, sortDescending: false
       });
     },
 
@@ -626,11 +642,13 @@ export default {
       this.pickedViewId = saved?.id || null;
 
       this.$emit('update:view', {
-        query:        saved?.query || '',
-        columns:      saved?.columns || null,
-        columnOrder:  saved?.columnOrder || null,
-        labelColumns: saved?.labelColumns || [],
-        groupBy:      saved?.groupBy || null,
+        query:          saved?.query || '',
+        columns:        saved?.columns || null,
+        columnOrder:    saved?.columnOrder || null,
+        labelColumns:   saved?.labelColumns || [],
+        groupBy:        saved?.groupBy || null,
+        sort:           saved?.sort || null,
+        sortDescending: saved?.sortDescending || false,
       });
     },
 
@@ -863,13 +881,9 @@ export default {
       }
 
       const view = {
-        id:           randomStr(8),
+        id: randomStr(8),
         name,
-        query:        this.view.query || '',
-        columns:      this.view.columns || null,
-        columnOrder:  this.view.columnOrder || null,
-        labelColumns: this.view.labelColumns || [],
-        groupBy:      this.view.groupBy || null,
+        ...this.viewToSave,
       };
 
       this.persist(this.savedViews.filter((v) => v.name !== name).concat([view]));
@@ -877,14 +891,7 @@ export default {
     },
 
     updateView(saved) {
-      this.persist(this.savedViews.map((v) => (v.id === saved.id ? {
-        ...v,
-        query:        this.view.query || '',
-        columns:      this.view.columns || null,
-        columnOrder:  this.view.columnOrder || null,
-        labelColumns: this.view.labelColumns || [],
-        groupBy:      this.view.groupBy || null,
-      } : v)));
+      this.persist(this.savedViews.map((v) => (v.id === saved.id ? { ...v, ...this.viewToSave } : v)));
     },
 
     deleteView(saved) {

@@ -316,12 +316,16 @@ export default {
       /** True while a round of counts is out, so triggers don't stack up on top of each other */
       countingInFlight: false,
       view:             {
-        query:        shared?.query || '',
-        columns:      shared?.columns || null,
-        columnOrder:  shared?.columnOrder || null,
-        labelColumns: shared?.labelColumns || [],
-        groupBy:      shared?.groupBy || null,
+        query:          shared?.query || '',
+        columns:        shared?.columns || null,
+        columnOrder:    shared?.columnOrder || null,
+        labelColumns:   shared?.labelColumns || [],
+        groupBy:        shared?.groupBy || null,
+        sort:           shared?.sort || null,
+        sortDescending: shared?.sortDescending || false,
       },
+      /** The sort the table falls back to, learned from it the first time it reports one */
+      defaultSort:                  null,
       /**
        * Override the sortGenerationFn given changes in the rows we pass through to sortable table
        *
@@ -447,6 +451,23 @@ export default {
         this.lastViewShapeKey = this.viewShapeKey;
         this.debouncedEmitViewFilters.flush();
       }
+    },
+
+    /** A view naming a sort, or losing the column it named, puts the table on the right one */
+    'view.sort'() {
+      this.$nextTick(() => this.applyViewSort());
+    },
+
+    'view.sortDescending'() {
+      this.$nextTick(() => this.applyViewSort());
+    },
+
+    /**
+     * The columns on show decide whether the view's sort is still reachable - hide the column it
+     * names and the table goes back to sorting the way it does by default.
+     */
+    viewHeaders() {
+      this.$nextTick(() => this.applyViewSort());
     },
 
     /**
@@ -1374,6 +1395,60 @@ export default {
       }
 
       this.hasSearchFilter = !!arg?.filtering?.searchQuery;
+      this.recordSort(arg?.sorting);
+    },
+
+    /**
+     * Keep the view in step with the column the table is sorted by.
+     *
+     * The table reports its sort on mount too, and that first report is its own default - held on
+     * to so a sort matching it is stored as "no sort of its own" rather than marking every list
+     * changed the moment it loads.
+     */
+    recordSort(sorting) {
+      if (!this.showTableViews || !sorting?.sortBy) {
+        return;
+      }
+
+      const { sortBy, descending } = sorting;
+
+      if (!this.defaultSort) {
+        this.defaultSort = { sortBy, descending: !!descending };
+      }
+
+      const isDefault = sortBy === this.defaultSort.sortBy && !!descending === this.defaultSort.descending;
+      const sort = isDefault ? null : sortBy;
+
+      if ((this.view.sort || null) === sort && !!this.view.sortDescending === !!descending) {
+        return;
+      }
+
+      this.view = {
+        ...this.view, sort, sortDescending: !!descending
+      };
+    },
+
+    /**
+     * Put the table on the sort its view asks for. A view that names no sort, or names a column
+     * that is no longer shown, goes back to the table's own.
+     */
+    applyViewSort() {
+      const table = this.$refs.table;
+
+      if (!table || !this.defaultSort) {
+        return;
+      }
+
+      const wanted = this.view.sort;
+      const shown = wanted && this.viewHeaders.some((header) => header.name === wanted);
+      const sortBy = shown ? wanted : this.defaultSort.sortBy;
+      const descending = shown ? !!this.view.sortDescending : this.defaultSort.descending;
+
+      if (table.sortBy === sortBy && !!table.descending === descending) {
+        return;
+      }
+
+      table.changeSort(sortBy, descending);
     },
 
     /**
