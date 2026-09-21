@@ -1389,6 +1389,12 @@ export default {
     height: 33px;
     padding-top: 0;
     padding-bottom: 0;
+
+    // The row under the cursor takes the tint a row of the table takes, rather than the heavier
+    // one dropdowns use elsewhere: these menus read as a list of rows like the table below them.
+    &:hover {
+      background-color: var(--sortable-table-hover-bg);
+    }
   }
 
   // The icons in this menu get a column to themselves, so every label starts in the same place
@@ -1457,7 +1463,15 @@ export default {
     white-space: nowrap;
   }
 
-  // A row that opens a sub menu: label (left) + current value + chevron (right)
+  // A row that opens a sub menu stands in its own popper wrapper, so that is what carries the
+  // inset the menu items get from their margin
+  :deep(.v-popper) {
+    margin: 0 9px;
+  }
+
+  // The row itself: label (left) + current value + chevron (right). It is a button rather than a
+  // menu item, so it is tinted to match the rows around it instead of taking the link button's
+  // own blue.
   .menu-nav {
     display: flex;
     align-items: center;
@@ -1466,9 +1480,16 @@ export default {
     height: 33px;
     min-height: 33px;
     justify-content: flex-start;
-    padding: 0 17px;
+    // The button's own size class sets its padding from this, and wins a plain `padding` on
+    // specificity, so the hook is what the row is inset by
+    --rc-button-padding: 0 8px;
+    border-radius: 4px;
     color: var(--body-text);
     text-decoration: none;
+
+    &:hover {
+      background-color: var(--sortable-table-hover-bg);
+    }
 
     .menu-nav-label { font-weight: 400; }
     .menu-nav-value {
