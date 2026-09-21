@@ -655,11 +655,10 @@ $query-height: 32px;
     color: var(--input-text);
   }
 
-  // The spelled out logic is chrome rather than something the user wrote, so it recedes
-  // The words joining the terms are part of the query, not commentary on it, so they carry the
-  // same blue the values do
+  // The words joining the terms are the plain text of the query - the blue is kept for the values
+  // the query is matching on, so that colour means one thing in here
   .segment-connective {
-    color: var(--link);
+    color: var(--input-text);
     font-style: italic;
   }
 
