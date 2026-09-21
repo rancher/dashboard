@@ -43,9 +43,25 @@ withDefaults(
      */
     // eslint-disable-next-line vue/require-default-prop
     referenceNode?: ReferenceNode;
+    /**
+     * Off keeps the menu where its placement puts it rather than sliding it back into view. For a
+     * sub menu that has to stay lined up with the row that opened it, being in line matters more
+     * than the tail of a long list being on screen - the menu scrolls for that.
+     */
+    shift?: boolean;
+    /**
+     * Off holds the menu to its placement rather than turning it over when it runs out of room.
+     * Flipping re-anchors a sub menu by its other end, which takes it out of line with the row
+     * that opened it.
+     */
+    flip?: boolean;
     placement?: Placement;
   }>(),
-  { placement: 'bottom-end' }
+  // `shift` carries floating-vue's own default: a boolean prop left alone would come through as
+  // false and stop every menu in the product being nudged back into view
+  {
+    placement: 'bottom-end', shift: true, flip: true
+  }
 );
 
 const emit = defineEmits(['update:open']);
@@ -87,6 +103,8 @@ const applyShow = () => {
     :distance="distance"
     :skidding="skidding"
     :reference-node="referenceNode"
+    :shift="shift"
+    :flip="flip"
     @apply-show="applyShow"
   >
     <slot name="default">
