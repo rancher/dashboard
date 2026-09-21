@@ -444,4 +444,18 @@ describe('fx: coreFieldIdsFor', () => {
     expect(coreFieldIdsFor([])).toStrictEqual([]);
     expect(coreFieldIdsFor()).toStrictEqual([]);
   });
+
+  it('should hold on to the column the table is ordered by', () => {
+    // An events list leads with its state and is ordered by when each was last seen
+    expect(coreFieldIdsFor(['state', 'lastseen', 'type'], 'lastseen')).toStrictEqual(['state', 'lastseen']);
+  });
+
+  it('should not repeat a sorted column that is already held', () => {
+    expect(coreFieldIdsFor(['state', 'name', 'age'], 'name')).toStrictEqual(['state', 'name']);
+    expect(coreFieldIdsFor(['lastseen', 'type'], 'lastseen')).toStrictEqual(['lastseen']);
+  });
+
+  it('should ignore a sorted column the table does not show', () => {
+    expect(coreFieldIdsFor(['state', 'name'], 'cpu')).toStrictEqual(['state', 'name']);
+  });
 });
