@@ -1754,10 +1754,13 @@ export default {
 
   // TransitionGroup's own FLIP move. Re-timed only while a drag is actually in progress, so the
   // rows travel with the held one rather than teleporting into their new slots.
-  .column-row-move {
-    transition: transform 0.25s $drag-drop-curve;
-  }
-
+  // Only while a row is actually being carried.
+  //
+  // TransitionGroup's move is FLIP: it compares where a row was with where it is and animates the
+  // difference. The popper is positioned after its contents have mounted, so on opening every row
+  // had "moved" by the width of the panel and slid in from the right - an animation of the menu
+  // arriving, which is not what the reordering is for. Nothing is being reordered then, so there
+  // is nothing to animate.
   .is-reordering .column-row-move {
     transition: transform 0.2s $drag-displace-curve;
   }
@@ -1774,9 +1777,17 @@ export default {
     }
   }
 
+  // A row's transform is worth easing only while one is actually being carried. TransitionGroup's
+  // FLIP writes a transform whenever the rows look to have moved, and the popper being positioned
+  // after its contents mount looks exactly like that - so easing it here slid every row in from the
+  // right each time the menu opened. Held rows keep their own timing, set below.
+  .is-reordering .column-row {
+    transition: background-color 0.1s ease-in-out, transform 0.33s $drag-drop-curve, box-shadow 0.33s $drag-drop-curve;
+  }
+
   // Column rows carry a drag handle (or a lock) and tick only what is shown
   .column-row {
-    transition: background-color 0.1s ease-in-out, transform 0.33s $drag-drop-curve, box-shadow 0.33s $drag-drop-curve;
+    transition: background-color 0.1s ease-in-out;
     user-select: none;
     .column-handle {
       color: var(--muted);
