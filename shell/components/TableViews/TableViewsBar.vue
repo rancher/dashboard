@@ -58,6 +58,17 @@ export default {
     },
 
     /**
+     * Field ids the table shows when a view has said nothing about columns.
+     *
+     * The menu offers every column the type has, which is more than a page showing its own
+     * chosen set displays - so "shown" cannot mean "all of them" any more.
+     */
+    defaultColumns: {
+      type:    Array,
+      default: () => []
+    },
+
+    /**
      * Names of fields the query mentions that this list cannot be filtered by, so the toolbar
      * can say the query did not entirely run
      */
@@ -469,7 +480,14 @@ export default {
     },
 
     isColumnVisible(field) {
-      return !this.view.columns || this.view.columns.includes(field.id);
+      if (this.view.columns) {
+        return this.view.columns.includes(field.id);
+      }
+
+      // Nothing chosen yet, so what the table shows is the page's own set. Without a set to
+      // compare against every offered column would read as shown, including the ones the page
+      // leaves out.
+      return !this.defaultColumns.length || this.defaultColumns.includes(field.id);
     },
 
     isCoreColumn(field) {
@@ -482,7 +500,9 @@ export default {
         return;
       }
 
-      const current = this.view.columns || this.columnFields.map((f) => f.id);
+      // From what is on screen rather than from every column offered - seeding with all of them
+      // turned on the ones the page leaves out the moment anything was toggled
+      const current = this.view.columns || this.columnFields.filter((f) => this.isColumnVisible(f)).map((f) => f.id);
       const next = current.includes(field.id) ? current.filter((id) => id !== field.id) : current.concat([field.id]);
 
       this.update({ columns: next });
