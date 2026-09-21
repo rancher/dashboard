@@ -1,6 +1,6 @@
 import { MANAGEMENT } from '@shell/config/types';
-import { AUTOSCALER_ENABLED } from '@shell/config/table-headers';
-import { STEVE_AUTOSCALER_ENABLED } from '@shell/config/pagination-table-headers';
+import { AUTOSCALER_ENABLED, MGMT_CLUSTER_CPU, MGMT_CLUSTER_MEMORY, MGMT_CLUSTER_PODS } from '@shell/config/table-headers';
+import { STEVE_AUTOSCALER_ENABLED, STEVE_MGMT_CLUSTER_CPU, STEVE_MGMT_CLUSTER_MEMORY, STEVE_MGMT_CLUSTER_PODS } from '@shell/config/pagination-table-headers';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 
 /**
@@ -30,7 +30,18 @@ interface OptionalHeader {
 }
 
 const OPTIONAL_HEADERS: Record<string, OptionalHeader[]> = {
+  // Listed in the order the home page shows them, so a list adding them all ends up with the
+  // same column order it has there
   [MANAGEMENT.CLUSTER]: [
+    {
+      header: MGMT_CLUSTER_CPU, paginationHeader: STEVE_MGMT_CLUSTER_CPU, before: 'summary'
+    },
+    {
+      header: MGMT_CLUSTER_MEMORY, paginationHeader: STEVE_MGMT_CLUSTER_MEMORY, before: 'summary'
+    },
+    {
+      header: MGMT_CLUSTER_PODS, paginationHeader: STEVE_MGMT_CLUSTER_PODS, before: 'summary'
+    },
     {
       header:           AUTOSCALER_ENABLED,
       paginationHeader: STEVE_AUTOSCALER_ENABLED,
