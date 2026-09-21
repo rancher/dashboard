@@ -1,7 +1,7 @@
 <script>
 import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
 import { randomStr } from '@shell/utils/string';
-import { LABEL_FIELD_PREFIX, encodeView, isCoreField } from '@shell/utils/table-views';
+import { encodeView, isCoreField } from '@shell/utils/table-views';
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal';
 import AppModal from '@shell/components/AppModal.vue';
@@ -237,12 +237,15 @@ export default {
       return this.t('tableViews.view.columnsCount', { shown: this.visibleColumnCount, total: this.columnFields.length + (this.view.labelColumns?.length || 0) });
     },
 
+    /**
+     * Labels are left out: a cluster carries as many of them as it likes, so offering every key
+     * buries the handful of fields worth grouping on under a list of them.
+     */
     groupOptions() {
       return [{ id: null, label: this.t('tableViews.group.none') }].concat(
-        (this.groupFields || this.fields).map((f) => ({
-          id:    f.id,
-          label: f.isLabel ? `${ LABEL_FIELD_PREFIX }${ f.label }` : f.label
-        }))
+        (this.groupFields || this.fields)
+          .filter((f) => !f.isLabel)
+          .map((f) => ({ id: f.id, label: f.label }))
       );
     },
 
@@ -856,7 +859,7 @@ export default {
             <i class="icon icon-chevron-down" />
           </rc-dropdown-trigger>
           <template #dropdownCollection>
-            <div class="menu-panel icon-column">
+            <div class="menu-panel has-icons">
               <!-- Unsaved changes, and the three ways out of them -->
               <template v-if="isTabDirty(tab)">
                 <div class="menu-notice">
@@ -1010,6 +1013,8 @@ export default {
               :placement="'left-start'"
               :distance="-1"
               :skidding="-9"
+              :shift="false"
+              :flip="false"
             >
               <rc-dropdown-trigger
                 variant="link"
@@ -1053,6 +1058,8 @@ export default {
               :placement="'left-start'"
               :distance="-1"
               :skidding="-9"
+              :shift="false"
+              :flip="false"
             >
               <rc-dropdown-trigger
                 variant="link"
@@ -1193,14 +1200,18 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-// The icons beside a toolbar label are drawn at 11 but keep the 14 square the icon font lays out
-// on, so a label sits in the same place whichever icon it is next to
-@mixin toolbar-icon {
-  width: 14px;
-  height: 14px;
-  font-size: 11px;
-  line-height: 14px;
-  text-align: center;
+// An icon beside a label is drawn smaller than the square it occupies, so the labels sit in the
+// same place whichever icon they are next to. The glyph is centred in that square both ways
+// rather than left to the line box, whose metrics are the icon font's own.
+@mixin toolbar-icon($box, $glyph) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: $box;
+  height: $box;
+  font-size: $glyph;
+  line-height: 1;
 }
 
 .table-views {
@@ -1284,7 +1295,7 @@ export default {
       color: var(--primary);
 
       .icon {
-        @include toolbar-icon;
+        @include toolbar-icon(14px, 11px);
       }
     }
   }
@@ -1328,7 +1339,7 @@ export default {
     white-space: nowrap;
 
     .icon {
-      @include toolbar-icon;
+      @include toolbar-icon(14px, 11px);
     }
   }
 }
@@ -1383,13 +1394,11 @@ export default {
   // The icons in this menu get a column to themselves, so every label starts in the same place
   // whether or not its row has one to show. The columns panel is left out: its handles already
   // hold that column, and not every row there has one to put in it.
-  &.icon-column [dropdown-menu-item] {
+  // The class cannot be called `icon-column`: the icon font claims `[class*=" icon-"]` with an
+  // !important, and would set the whole menu in it.
+  &.has-icons [dropdown-menu-item] {
     > .icon {
-      width: 16px;
-      height: 16px;
-      font-size: 12px;
-      line-height: 16px;
-      text-align: center;
+      @include toolbar-icon(16px, 12px);
     }
 
     &:not(:has(> .icon))::before {
