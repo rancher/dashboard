@@ -1304,15 +1304,16 @@ export default {
       outline: none;
     }
 
+    // Standing in the tab row, it reads as a link the way the tabs beside it do
     &.new-view-tab {
       gap: 8px;
       height: 32px;
       min-height: 32px;
       padding: 0;
-      color: var(--primary);
+      color: var(--link);
 
       .icon {
-        @include toolbar-icon(14px, 11px);
+        @include toolbar-icon(14px, 14px);
       }
     }
   }
@@ -1514,12 +1515,14 @@ export default {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .icon-chevron-right { color: var(--muted); }
+    // Left to take the row's own colour. Muted, it washed out against the tint the row picks up
+    // under the cursor, and read as a different grey to the one on the row above it.
+    .icon-chevron-right { color: inherit; }
   }
 
   // Blue marks what is currently in force, the same way the shown columns are marked
   [dropdown-menu-item].selected {
-    color: var(--primary);
+    color: var(--info);
   }
 
 
@@ -1572,7 +1575,7 @@ export default {
     }
 
     &.shown {
-      color: var(--primary);
+      color: var(--info);
     }
 
     &.locked {
