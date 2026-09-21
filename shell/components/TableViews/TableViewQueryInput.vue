@@ -790,7 +790,10 @@ $query-height: 32px;
   padding: 0 12px;
 
   &.focused {
-    border-color: var(--primary);
+    // Not `--primary`, which is one value for both themes: 1px of it on the dark input background
+    // measured 2.93:1, under the 3:1 a control's boundary needs. This is the same blue the
+    // product's focus ring uses, which is the one that is tuned per theme.
+    border-color: var(--primary-keyboard-focus);
   }
 
   .query-input {
