@@ -326,6 +326,8 @@ export default {
       },
       /** The sort the table falls back to, learned from it the first time it reports one */
       defaultSort:                  null,
+      /** What each tab is filtering by, the edits held for tabs not in front of the user included */
+      tabQueries:                   [],
       /**
        * Override the sortGenerationFn given changes in the rows we pass through to sortable table
        *
@@ -980,7 +982,12 @@ export default {
      * same way share one count and one request.
      */
     countableQueries() {
-      const out = [''].concat(this.savedViews.map((view) => view.query || '')).concat([this.view.query || '']);
+      const out = ['']
+        .concat(this.savedViews.map((view) => view.query || ''))
+        .concat([this.view.query || ''])
+        // A tab left with unsaved edits still shows a count, so what it is showing has to be
+        // counted too - its saved query is not what it is filtering by any more
+        .concat(this.tabQueries);
 
       return Array.from(new Set(out));
     },
@@ -1412,6 +1419,15 @@ export default {
 
       const { sortBy, descending } = sorting;
 
+      // A view asking to be sorted by a column it does not show keeps asking. The table falls back
+      // to its own sort, but that fallback is the view's own doing, not an edit to it - recording
+      // it would leave such a view reading as changed the moment it was opened, forever.
+      const wanted = this.view.sort;
+
+      if (wanted && !this.viewHeaders.some((header) => header.name === wanted)) {
+        return;
+      }
+
       if (!this.defaultSort) {
         this.defaultSort = { sortBy, descending: !!descending };
       }
@@ -1599,6 +1615,7 @@ export default {
         :resource-type="schema ? schema.id : ''"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
+        @tab-queries="tabQueries = $event"
         @export="handleExport"
       />
     </template>
