@@ -1359,8 +1359,8 @@ export default {
       // Asking for YAML is asking for the resources themselves, which is what the Download YAML
       // action already gives - the manifests as the cluster holds them, not the table's columns
       // written out in YAML. So it is that action rather than a second thing wearing its name.
-      if (format === 'yaml' && typeof rows[0]?.download === 'function') {
-        return rows.length === 1 ? rows[0].download() : rows[0].downloadBulk(rows);
+      if (format === 'yaml' && typeof rows[0]?.downloadYaml === 'function') {
+        return rows.length === 1 ? rows[0].downloadYaml() : rows[0].downloadYamlBulk(rows);
       }
 
       const columns = this.exportColumns;
