@@ -1365,13 +1365,23 @@ export default {
     </div>
   </app-modal>
 
-  <TableViewExportModal
+  <!-- The same modal a resource's own Export As... action opens, which is why it no longer brings
+       its own frame: there it is put up by the modal manager. -->
+  <app-modal
     v-if="modal && modal.kind === 'export'"
-    :count="matchCount"
-    :view-name="modal.view ? modal.view.name : t('tableViews.tabs.all')"
+    name="tableViewsExportModal"
+    :width="640"
+    height="auto"
+    :trigger-focus-trap="true"
     @close="closeModal"
-    @export="doExport"
-  />
+  >
+    <TableViewExportModal
+      :count="matchCount"
+      :view-name="modal.view ? modal.view.name : t('tableViews.tabs.all')"
+      @close="closeModal"
+      @export="doExport"
+    />
+  </app-modal>
 </template>
 
 <style lang="scss" scoped>
