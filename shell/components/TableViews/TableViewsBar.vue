@@ -149,6 +149,12 @@ export default {
        * picked", or a saved view holding the same config as it is matched instead.
        */
       pickedViewId:   undefined,
+      /**
+       * Unsaved edits, per tab, for as long as the page is open. Leaving a tab with changes on it
+       * holds on to them so coming back finds them where they were, and the tab keeps its mark
+       * while you are elsewhere. A reload is where they end - nothing here is written down.
+       */
+      drafts:         {},
       /** Which modal is open, if any: { kind: 'new' | 'export', view } */
       modal:          null,
       /**
@@ -408,7 +414,11 @@ export default {
     },
 
     isTabDirty(tab) {
-      return this.isDirty && tab.id === this.selectedViewId;
+      if (tab.id === this.selectedViewId) {
+        return this.isDirty;
+      }
+
+      return !!this.drafts[this.draftKey(tab.id)];
     },
 
     update(changes) {
@@ -638,8 +648,63 @@ export default {
       });
     },
 
-    applyView(saved) {
-      this.pickedViewId = saved?.id || null;
+    /** The default tab has no id of its own, so it needs a key of its own */
+    draftKey(id) {
+      return id || '__default';
+    },
+
+    /**
+     * Hold on to the tab being left, if it has changes worth keeping. A tab left in the state it
+     * was saved in has nothing to hold, so anything held for it is let go.
+     */
+    rememberDraft(id) {
+      const key = this.draftKey(id);
+
+      if (this.isDirty) {
+        this.drafts = { ...this.drafts, [key]: { ...this.view } };
+
+        return;
+      }
+
+      this.forgetDraft(id);
+    },
+
+    forgetDraft(id) {
+      const key = this.draftKey(id);
+
+      if (!this.drafts[key]) {
+        return;
+      }
+
+      const rest = { ...this.drafts };
+
+      delete rest[key];
+      this.drafts = rest;
+    },
+
+    /**
+     * @param saved the view to show, or null for the default tab
+     * @param useDraft whether unsaved edits left on that tab should come back with it. Off for
+     *        the paths whose whole purpose is to put a tab back the way it was saved.
+     */
+    applyView(saved, useDraft = true) {
+      const from = this.selectedViewId;
+      const to = saved?.id || null;
+      const moving = from !== to;
+
+      if (moving) {
+        this.rememberDraft(from);
+      }
+
+      this.pickedViewId = to;
+
+      const draft = useDraft && moving ? this.drafts[this.draftKey(to)] : null;
+
+      if (draft) {
+        this.$emit('update:view', { ...draft });
+
+        return;
+      }
 
       this.$emit('update:view', {
         query:          saved?.query || '',
@@ -656,7 +721,8 @@ export default {
      * Put the view back the way it was - either the saved view being edited, or nothing at all
      */
     discardChanges() {
-      this.applyView(this.editingView);
+      this.forgetDraft(this.selectedViewId);
+      this.applyView(this.editingView, false);
     },
 
     saveChanges() {
@@ -898,6 +964,7 @@ export default {
       const wasSelected = this.selectedViewId === saved.id;
 
       this.persist(this.savedViews.filter((v) => v.id !== saved.id));
+      this.forgetDraft(saved.id);
 
       if (wasSelected) {
         this.applyView(null);
