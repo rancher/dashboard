@@ -718,17 +718,22 @@ export default {
       const to = saved?.id || null;
       const moving = from !== to;
 
-      this.pickedViewId = to;
-
       // Clicking the tab already in front of you is not a request to throw away what is on it.
       // Discarding says so outright, and comes through here with `useDraft` off.
       if (!moving && useDraft) {
+        this.pickedViewId = to;
+
         return;
       }
 
+      // Before the pick moves: what counts as unsaved is measured against the tab being left, and
+      // moving the pick first measures it against the one being arrived at, which marks every tab
+      // left behind as changed whether anything was typed into it or not.
       if (moving) {
         this.rememberDraft(from);
       }
+
+      this.pickedViewId = to;
 
       const draft = useDraft ? this.drafts[this.draftKey(to)] : null;
 
