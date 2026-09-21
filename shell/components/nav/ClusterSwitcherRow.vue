@@ -154,9 +154,14 @@ function select() {
   display: flex;
   align-items: center;
   gap: 12px;
+  // Anchor for the control's hit area below.
+  position: relative;
+  // The row's inset lives on the CONTROL, not here: the highlight is drawn on this element, so padding
+  // held here is highlighted space that no longer clicks anything — the click moved onto `.row-main`
+  // when the row stopped being one big clickable div. The geometry is unchanged; the hit area is not.
+  padding: 0;
   // The radius is the resource finder's: an `outline` follows its element's corners, so this is what
   // rounds the keyboard ring.
-  padding: 16px;
   border-radius: var(--border-radius);
   border-bottom: 1px solid var(--border);
 
@@ -189,14 +194,24 @@ function select() {
     outline-offset: -2px;
   }
 
-  // The control fills the row so the whole line stays clickable; the pin sits beside it.
+  // The control fills the row so the whole line stays clickable; the pin sits beside it. It carries the
+  // row's inset itself, so every highlighted pixel left of the pin is part of the button.
   .row-main {
     display: flex;
     align-items: center;
     gap: 12px;
     flex: 1 1 auto;
     min-width: 0;
-    padding: 0;
+    padding: 16px;
+
+    // ...and the strip the pin sits in belongs to the row too. The pin is a SIBLING, so the gap before
+    // it and the margin after it are the control's neighbours, not its box: highlighted, and dead to a
+    // click. This stretches the control's hit area over the whole row; the pin lifts itself back on top.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
     border: none;
     background: none;
     text-align: left;
@@ -253,6 +268,11 @@ function select() {
   .row-pin {
     @include icon-hover-square(12px);
     flex: 0 0 auto;
+    // The row itself no longer pads, so the pin keeps its own distance from the row's edge.
+    margin-right: 16px;
+    // Above the control's stretched hit area, or the row would swallow the pin's own click.
+    position: relative;
+    z-index: 1;
     color: var(--label-secondary) !important;
     opacity: 0;
 
