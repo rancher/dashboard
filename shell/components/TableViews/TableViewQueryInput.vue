@@ -15,6 +15,9 @@ import {
  * slides out from under the caret. Editing the rendered tokens directly means the spacing
  * around a badge is ordinary layout and the caret is wherever the browser puts it.
  */
+/** Tells one box's listbox from another's when a page carries more than one */
+let uid = 0;
+
 export default {
   name: 'TableViewQueryInput',
 
@@ -82,7 +85,40 @@ export default {
     };
   },
 
+  created() {
+    this.uid = `${ uid++ }`;
+  },
+
   computed: {
+    /**
+     * The list's own id, so the box can point at it.
+     *
+     * Per instance: more than one of these can be on a page, and two listboxes sharing an id
+     * would have the box pointing at whichever the browser found first.
+     */
+    menuId() {
+      return `table-view-query-menu-${ this.uid }`;
+    },
+
+    /** The option the keyboard is on, which is what the box reports as its active descendant */
+    activeDescendantId() {
+      return this.showSuggestions ? this.optionId(this.activeIndex) : undefined;
+    },
+
+    /**
+     * What a screen reader is told when the list opens or moves.
+     *
+     * A combobox announces its active option on its own, but not that a list appeared or how
+     * long it is - which is the part that tells someone there is anything to arrow through.
+     */
+    suggestionsAnnouncement() {
+      if (!this.showSuggestions) {
+        return '';
+      }
+
+      return this.t('tableViews.query.suggestionsAvailable', { count: this.suggestions.length }, true);
+    },
+
     /**
      * The coloured runs that make up the box's contents. Their text concatenated is the query.
      */
@@ -252,6 +288,11 @@ export default {
         })));
     },
 
+    /** Changes exactly when the list's contents do, and not when it is merely rebuilt */
+    suggestionsKey() {
+      return this.suggestions.map((suggestion) => suggestion.key).join('\u0000');
+    },
+
     showSuggestions() {
       return this.focused && !this.dismissed && !!this.suggestions.length;
     },
@@ -285,7 +326,15 @@ export default {
       immediate: true,
     },
 
-    suggestions() {
+    /**
+     * Back to the top when the list itself changes.
+     *
+     * Keyed on what is in the list rather than on the array: `suggestions` is a computed, so it
+     * hands back a new array whenever anything it reads changes - the caret included. Watching
+     * the array meant the first arrow key moved the caret, rebuilt an identical list, and reset
+     * the cursor it had just moved.
+     */
+    suggestionsKey() {
       this.activeIndex = 0;
     },
 
@@ -627,6 +676,10 @@ export default {
       this.focus();
     },
 
+    optionId(index) {
+      return `${ this.menuId }-option-${ index }`;
+    },
+
     focus() {
       this.$refs.input?.focus();
     },
@@ -651,8 +704,12 @@ export default {
       class="query-input"
       :class="{ 'is-empty': !value }"
       contenteditable="true"
-      role="textbox"
+      role="combobox"
       aria-multiline="false"
+      aria-autocomplete="list"
+      :aria-expanded="showSuggestions ? 'true' : 'false'"
+      :aria-controls="menuId"
+      :aria-activedescendant="activeDescendantId"
       spellcheck="false"
       data-testid="table-views-query"
       :data-placeholder="t('tableViews.query.placeholder')"
@@ -668,20 +725,34 @@ export default {
       @blur="onBlur"
     />
     <i class="icon icon-search" />
+    <!-- A combobox announces the option the keyboard is on, but nothing says a list appeared or
+         how long it is. Outside the Teleport so it is never torn down with the list itself -
+         a live region has to be on the page before the text changes for the change to be read. -->
+    <span
+      class="sr-only"
+      aria-live="polite"
+      aria-atomic="true"
+    >{{ suggestionsAnnouncement }}</span>
     <!-- Hung off <body> rather than left inside the toolbar. The table masthead is its own
          stacking context (`fixedTableHeader`), so a menu nested in it can only ever layer against
          its siblings - the table's own state badges were coming out on top of the list. -->
     <Teleport to="body">
       <ul
         v-if="showSuggestions"
+        :id="menuId"
         ref="menu"
         class="table-view-query-menu"
+        role="listbox"
+        :aria-label="t('tableViews.query.suggestions')"
         :style="menuStyle"
         data-testid="table-views-suggestions"
       >
         <li
           v-for="(suggestion, i) in suggestions"
+          :id="optionId(i)"
           :key="suggestion.key"
+          role="option"
+          :aria-selected="i === activeIndex ? 'true' : 'false'"
           :class="{ active: i === activeIndex }"
           @mousedown.prevent="pick(suggestion)"
           @mouseenter="activeIndex = i"
