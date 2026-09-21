@@ -836,9 +836,16 @@ export default {
       return (this._headers || []).filter((header) => !isIgnoredColumn(header)).map((header) => headerFieldId(header));
     },
 
+    /** The column the table sorts by unless told otherwise, as the headers declare it */
+    defaultSortColumnId() {
+      const header = (this._headers || []).find((h) => h.defaultSort);
+
+      return header ? headerFieldId(header) : null;
+    },
+
     /** The columns this table will not let go of - see coreFieldIdsFor */
     coreColumnIds() {
-      return coreFieldIdsFor(this.defaultColumnIds);
+      return coreFieldIdsFor(this.defaultColumnIds, this.defaultSortColumnId);
     },
 
     /**
