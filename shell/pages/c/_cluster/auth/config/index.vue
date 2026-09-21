@@ -10,7 +10,7 @@ import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptySt
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
 import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
 import { MODE, _EDIT } from '@shell/config/query-params';
-import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS } from '@shell/utils/auth';
+import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS, canWriteLocalAuthFeature, localAuthFeature } from '@shell/utils/auth';
 import { sortBy } from '@shell/utils/sort';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
@@ -52,14 +52,11 @@ export default {
     },
 
     localAuthFeature() {
-      return this.$store.getters['management/byId'](MANAGEMENT.FEATURE, HIDE_LOCAL_AUTH_PROVIDER);
+      return localAuthFeature(this.$store.getters);
     },
 
     canToggleLocalAuth() {
-      const schema = this.$store.getters['management/schemaFor'](MANAGEMENT.FEATURE);
-      const canUpdate = (schema?.resourceMethods || []).includes('PUT');
-
-      return canUpdate && !!this.localAuthFeature && this.localAuthFeature.status?.lockedValue === null;
+      return canWriteLocalAuthFeature(this.$store.getters);
     },
 
     providerTypes() {
@@ -127,7 +124,6 @@ export default {
           onClose:             () => this.$store.commit('slideInPanel/close'),
           width:               'wide',
           height:              'full',
-          triggerFocusTrap:    true,
           returnFocusSelector: `[data-testid="auth-config-row-${ row.id }"] .auth-provider-row__title`,
         },
       });

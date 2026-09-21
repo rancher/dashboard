@@ -7,7 +7,13 @@ jest.mock('@shell/utils/require-asset', () => {
 });
 
 // Stands in for i18n, echoing the key back so tests can assert on which key was looked up.
-const rootGetters = { 'i18n/withFallback': (key: string) => key, 'i18n/t': (key: string) => key };
+const rootGetters = {
+  'i18n/withFallback':    (key: string) => key,
+  'i18n/t':               (key: string) => key,
+  'features/get':         () => false,
+  'management/schemaFor': () => ({ resourceMethods: ['PUT'] }),
+  'management/byId':      () => ({ spec: { value: true }, status: { lockedValue: null } }),
+};
 
 const makeConfig = (data: Object) => new AuthConfig(data, { rootGetters } as any);
 
@@ -104,10 +110,14 @@ describe('class AuthConfig', () => {
   // The action menu resolves an action to a method of the same name on the model.
   // Without one, picking Disable silently does nothing.
   describe('disable', () => {
-    const makeDisableable = (norman: any, clone?: any) => {
+    const makeDisableable = (norman: any, clone?: any, getters: any = {}) => {
       const dispatch = jest.fn((action: string) => {
         if (action === 'rancher/find') {
           return Promise.resolve(norman);
+        }
+
+        if (action === 'management/findAll') {
+          return Promise.resolve(getters.configs || []);
         }
 
         return action === 'rancher/clone' ? Promise.resolve(clone) : Promise.resolve();
@@ -115,11 +125,15 @@ describe('class AuthConfig', () => {
 
       const config = new AuthConfig(
         { id: 'github', _type: 'githubConfig' },
-        { rootGetters, dispatch } as any
+        { rootGetters: { ...rootGetters, ...getters }, dispatch } as any
       );
 
       return { config, dispatch };
     };
+
+    // `promptDisable` has to read the other providers before it can pick a dialog,
+    // so the modal is no longer the first thing dispatched.
+    const modalCall = (dispatch: jest.Mock) => (dispatch.mock.calls as any[]).find(([action]) => action === 'management/promptModal');
 
     it('should be a method the action menu can actually call', () => {
       expect(typeof makeConfig({ id: 'github' }).disable).toBe('function');
@@ -127,31 +141,97 @@ describe('class AuthConfig', () => {
 
     // Disabling deletes everything stored for the provider, so the action menu
     // must confirm rather than firing it straight off a single click.
-    it('should confirm before disabling', () => {
+    it('should confirm before disabling', async() => {
       const { config, dispatch } = makeDisableable({});
 
-      config.promptDisable();
+      await config.promptDisable();
 
-      const call = (dispatch.mock.calls as any[])[0];
+      const call = modalCall(dispatch);
 
-      expect(call[0]).toBe('promptModal');
       expect(call[1].component).toBe('DisableAuthProviderDialog');
       expect(call[1].componentProps.name).toBe(config.nameDisplay);
+    });
+
+    // AppModal drops a width carrying no unit and falls back to its own default,
+    // so the dialog would quietly render narrower than it was asked to be.
+    it('should ask for a width the modal can use', async() => {
+      const { config, dispatch } = makeDisableable({});
+
+      await config.promptDisable();
+
+      expect(modalCall(dispatch)[1].modalWidth).toMatch(/(px|%)$/);
     });
 
     it('should disable only once the dialog calls back', async() => {
       const norman = { hasAction: () => true, doAction: jest.fn() };
       const { config, dispatch } = makeDisableable(norman);
 
-      config.promptDisable();
+      await config.promptDisable();
 
-      const { disableCb } = (dispatch.mock.calls as any[])[0][1].componentProps;
+      const { disableCb } = modalCall(dispatch)[1].componentProps;
 
       expect(norman.doAction).not.toHaveBeenCalled();
 
       await disableCb();
 
       expect(norman.doAction).toHaveBeenCalledWith('disable');
+    });
+
+    // Disabling the only external provider while local login is off leaves nobody
+    // with a way in, so the menu has to offer the way out rather than the
+    // acknowledge-and-proceed dialog.
+    describe('when it would be the last way in', () => {
+      const lockedOut = {
+        'features/get': () => true,
+        configs:        [
+          { id: 'local', enabled: true },
+          { id: 'github', enabled: true },
+          { id: 'okta', enabled: false },
+        ],
+      };
+
+      it('should offer to turn local login back on instead of disabling', async() => {
+        const { config, dispatch } = makeDisableable({}, undefined, lockedOut);
+
+        await config.promptDisable();
+
+        expect(modalCall(dispatch)[1].component).toBe('DisableLastAuthProviderDialog');
+      });
+
+      it('should not hand the dialog a way to disable the provider', async() => {
+        const { config, dispatch } = makeDisableable({}, undefined, lockedOut);
+
+        await config.promptDisable();
+
+        expect(modalCall(dispatch)[1].componentProps.disableCb).toBeUndefined();
+      });
+
+      it('should name the provider that cannot be disabled', async() => {
+        const { config, dispatch } = makeDisableable({}, undefined, lockedOut);
+
+        await config.promptDisable();
+
+        expect(modalCall(dispatch)[1].componentProps.name).toBe(config.nameDisplay);
+      });
+
+      it('should keep the ordinary dialog while another provider is still enabled', async() => {
+        const { config, dispatch } = makeDisableable({}, undefined, {
+          ...lockedOut,
+          configs: [...lockedOut.configs, { id: 'okta', enabled: true }],
+        });
+
+        await config.promptDisable();
+
+        expect(modalCall(dispatch)[1].component).toBe('DisableAuthProviderDialog');
+      });
+
+      it('should keep the ordinary dialog while local login is still on', async() => {
+        const { config, dispatch } = makeDisableable({}, undefined, { ...lockedOut, 'features/get': () => false });
+
+        await config.promptDisable();
+
+        expect(modalCall(dispatch)[1].component).toBe('DisableAuthProviderDialog');
+      });
     });
 
     it('should run the norman action for the matching config', async() => {

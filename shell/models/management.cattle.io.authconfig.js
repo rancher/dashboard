@@ -2,6 +2,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { requireAsset } from '@shell/utils/require-asset';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { EDIT_CONFIG } from '@shell/config/query-params';
+import { promptDisableAuthProvider } from '@shell/utils/auth';
 
 /**
  * Normalises a provider identifier to a stable key.
@@ -91,16 +92,12 @@ export default class AuthConfig extends SteveModel {
   }
 
   promptDisable() {
-    this.$dispatch('promptModal', {
-      component:      'DisableAuthProviderDialog',
-      customClass:    'remove-modal',
-      modalWidth:     '640',
-      height:         'auto',
-      styles:         'max-height: 100vh;',
-      componentProps: {
-        name:      this.nameDisplay,
-        disableCb: () => this.disable(),
-      },
+    return promptDisableAuthProvider({
+      dispatch:  (action, payload) => this.$dispatch(action, payload, { root: true }),
+      getters:   this.$rootGetters,
+      id:        this.id,
+      name:      this.nameDisplay,
+      disableCb: () => this.disable(),
     });
   }
 

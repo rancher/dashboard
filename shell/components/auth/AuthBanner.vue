@@ -1,8 +1,8 @@
-
 <script>
 import { Banner } from '@components/Banner';
 import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
 import { RcButton } from '@components/RcButton';
+import { promptDisableAuthProvider } from '@shell/utils/auth';
 
 export default {
   components: { Banner, RcButton },
@@ -26,6 +26,10 @@ export default {
       type:     Function,
       required: true,
       default:  () => { },
+    },
+    providerId: {
+      type:    String,
+      default: '',
     }
   },
 
@@ -37,17 +41,13 @@ export default {
 
   methods: {
     showDisableModal() {
-      this.$store.dispatch('management/promptModal', {
-        component:      'DisableAuthProviderDialog',
-        customClass:    'remove-modal',
-        modalWidth:     '640',
-        height:         'auto',
-        styles:         'max-height: 100vh;',
-        componentProps: {
-          name:      this.tArgs?.provider,
-          disableCb: () => {
-            this.disable();
-          }
+      return promptDisableAuthProvider({
+        dispatch:  (action, payload) => this.$store.dispatch(action, payload),
+        getters:   this.$store.getters,
+        id:        this.providerId,
+        name:      this.tArgs?.provider,
+        disableCb: () => {
+          this.disable();
         }
       });
     }

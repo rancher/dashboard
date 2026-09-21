@@ -7,6 +7,7 @@ import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
 import { onExtensionsReady } from '@shell/utils/uiplugins';
+import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
 
 export const AUTH_BROADCAST_CHANNEL_NAME = 'rancher-auth-test-callback';
 
@@ -141,6 +142,116 @@ export function parseAuthProvidersInfo(rows) {
     enabledLocation,
     enabled
   };
+}
+
+/**
+ * Determine if disabling a provider would leave nobody with a way to sign in
+ *
+ * @param {Array} configs every authconfig, enabled or not
+ * @param {String} id the provider about to be disabled
+ * @param {Boolean} localLoginDisabled the value of the hide-local-auth feature flag
+ */
+export function isLastWayIn(configs = [], id, localLoginDisabled) {
+  if (!localLoginDisabled) {
+    return false;
+  }
+
+  return !configs.some((c) => c.enabled && c.id !== LOCAL_AUTH_ID && c.id !== id);
+}
+
+/**
+ * The feature resource behind the hide-local-auth flag. The `features/get` getter
+ * reads the value, but turning it back off means writing to the resource itself.
+ */
+export function localAuthFeature(getters) {
+  return getters['management/byId'](MANAGEMENT.FEATURE, HIDE_LOCAL_AUTH_PROVIDER);
+}
+
+/**
+ * Whether local login can be switched back on from the UI. A locked value is set
+ * on the Rancher install and cannot be overridden through the API.
+ */
+export function canWriteLocalAuthFeature(getters) {
+  const schema = getters['management/schemaFor'](MANAGEMENT.FEATURE);
+  const canUpdate = (schema?.resourceMethods || []).includes('PUT');
+  const feature = localAuthFeature(getters);
+
+  return canUpdate && !!feature && feature.status?.lockedValue === null;
+}
+
+/**
+ * Switch local login back on, rolling the resource back and rethrowing so the
+ * caller can show the failure rather than leaving the toggle looking saved.
+ */
+export async function restoreLocalLogin(getters) {
+  const feature = localAuthFeature(getters);
+
+  if (!feature) {
+    return;
+  }
+
+  feature.spec.value = false;
+
+  try {
+    await feature.save();
+  } catch (e) {
+    feature.spec.value = true;
+    throw e;
+  }
+}
+
+/**
+ * Confirm disabling an auth provider
+ *
+ * Disabling the last external provider while local login is off locks
+ * everyone out with only CLI recovery, so that case gets a dialog that offers
+ * the way out instead of one that asks the user to accept the consequences.
+ *
+ * @param {Function} dispatch a root-level dispatch taking namespaced action names
+ * @param {Object} getters the root store getters
+ * @param {String} id the provider about to be disabled
+ * @param {String} name the provider's display name
+ * @param {Function} disableCb runs the disable once the dialog is happy
+ */
+export async function promptDisableAuthProvider({
+  dispatch, getters, id, name, disableCb
+}) {
+  let configs = [];
+  let readFailed = false;
+
+  try {
+    configs = await dispatch('management/findAll', { type: MANAGEMENT.AUTH_CONFIG }) || [];
+  } catch (e) {
+    // Without the list there is no way to tell whether this is the last provider,
+    // so assume it is. Wrongly blocking costs a step; wrongly allowing locks
+    // everyone out with only command-line recovery.
+    readFailed = true;
+  }
+
+  const localLoginDisabled = getters['features/get'](HIDE_LOCAL_AUTH_PROVIDER);
+
+  if (localLoginDisabled && (readFailed || isLastWayIn(configs, id, localLoginDisabled))) {
+    return dispatch('management/promptModal', {
+      component:      'DisableLastAuthProviderDialog',
+      modalWidth:     '640px',
+      height:         'auto',
+      styles:         'max-height: 100vh;',
+      componentProps: {
+        name,
+        canRestore: canWriteLocalAuthFeature(getters),
+        restoreCb:  () => restoreLocalLogin(getters),
+      },
+    });
+  }
+
+  return dispatch('management/promptModal', {
+    component:      'DisableAuthProviderDialog',
+    customClass:    'remove-modal',
+    modalWidth:     '640px', // AppModal ignores a width with no unit and falls back to 600px
+    height:         'auto',
+    styles:         'max-height: 100vh;',
+    componentProps: { name, disableCb },
+  });
 }
 
 export const checkSchemasForFindAllHash = (types, store) => {

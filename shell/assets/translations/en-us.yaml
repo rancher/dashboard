@@ -580,6 +580,14 @@ authConfig:
     irreversible: This cannot be undone. Disabling deletes all resources stored for this provider.
     acknowledge: I understand these users and permissions will be deleted
     confirm: Disable and delete
+  disableLast:
+    title: 'Disable {name}?'
+    titleGeneric: Disable this authentication provider?
+    soleProvider: Local login is switched off and {name} is your only external provider. Disabling it now would leave no way to log in to Rancher.
+    remedy: Switch local login back on, then disable the provider. You can switch it off again once a new one is configured and working.
+    refusal: Rancher will not disable the last external provider while local login is off.
+    locked: Local login is locked off on this installation, so it cannot be switched back on from here. Restoring access requires command-line access to the cluster.
+    confirm: Turn local login back on
   disableLocal:
     title: Disable login with local users?
     effect: From now on users sign in through external providers only. Local accounts are not deleted and keep their permissions, but they cannot be used to sign in.
