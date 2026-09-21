@@ -92,10 +92,50 @@ watch(() => props.open, (open) => {
   }
 });
 
-const popperContainer = ref(null);
-const dropdownTarget = ref(null);
+const popperContainer = ref<HTMLElement | null>(null);
+const dropdownTarget = ref<HTMLElement | null>(null);
 
 useClickOutside(dropdownTarget, () => showMenu(false));
+
+/**
+ * Whether this menu is the one a key press belongs to.
+ *
+ * A menu opened from a row of this one is mounted inside this one, so its key presses bubble up
+ * to these handlers as well as its own. Only the innermost menu holding the event answers it,
+ * or the arrows walk the rows of every menu the pointer happens to be inside at once.
+ */
+const ownsEvent = (e: Event) => {
+  const target = e.target as HTMLElement | null;
+
+  return !!dropdownTarget.value && target?.closest?.('[dropdown-menu-collection]') === dropdownTarget.value;
+};
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (ownsEvent(e)) {
+    handleKeydown();
+  }
+};
+
+const onArrow = (e: KeyboardEvent, direction: 'down' | 'up') => {
+  if (!ownsEvent(e)) {
+    return;
+  }
+
+  e.preventDefault();
+  setFocus(direction);
+};
+
+const onTab = (e: KeyboardEvent) => {
+  if (ownsEvent(e)) {
+    showMenu(false);
+  }
+};
+
+const onEscape = (e: KeyboardEvent) => {
+  if (ownsEvent(e)) {
+    returnFocus();
+  }
+};
 
 const applyShow = () => {
   setDropdownDimensions(dropdownTarget.value);
@@ -133,9 +173,9 @@ const applyShow = () => {
         aria-orientation="vertical"
         dropdown-menu-collection
         :aria-label="ariaLabel || 'Dropdown Menu'"
-        @keydown="handleKeydown"
-        @keydown.down.prevent="setFocus('down')"
-        @keydown.up.prevent="setFocus('up')"
+        @keydown="onKeydown"
+        @keydown.down="onArrow($event, 'down')"
+        @keydown.up="onArrow($event, 'up')"
       >
         <slot name="dropdownCollection">
           <!--Empty slot content-->
@@ -146,8 +186,8 @@ const applyShow = () => {
   <div
     ref="popperContainer"
     class="popperContainer"
-    @keydown.tab="showMenu(false)"
-    @keydown.escape="returnFocus"
+    @keydown.tab="onTab"
+    @keydown.escape="onEscape"
   >
     <!--Empty container for mounting popper content-->
   </div>
