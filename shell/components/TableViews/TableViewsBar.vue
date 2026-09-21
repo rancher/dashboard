@@ -856,7 +856,7 @@ export default {
             <i class="icon icon-chevron-down" />
           </rc-dropdown-trigger>
           <template #dropdownCollection>
-            <div class="menu-panel">
+            <div class="menu-panel icon-column">
               <!-- Unsaved changes, and the three ways out of them -->
               <template v-if="isTabDirty(tab)">
                 <div class="menu-notice">
@@ -1363,6 +1363,10 @@ export default {
   flex-direction: column;
   min-width: 240px;
   max-height: 60vh;
+  // Only ever downwards. Naming one axis leaves the other computing to `auto`, and a panel whose
+  // width lands on a fraction is enough to raise a scrollbar along the bottom with nothing to
+  // scroll to.
+  overflow-x: hidden;
   overflow-y: auto;
   text-align: left;
   // A menu is 8 clear at the top and bottom. Getting there means taking back what sits above it
@@ -1374,6 +1378,24 @@ export default {
     height: 33px;
     padding-top: 0;
     padding-bottom: 0;
+  }
+
+  // The icons in this menu get a column to themselves, so every label starts in the same place
+  // whether or not its row has one to show. The columns panel is left out: its handles already
+  // hold that column, and not every row there has one to put in it.
+  &.icon-column [dropdown-menu-item] {
+    > .icon {
+      width: 16px;
+      height: 16px;
+      font-size: 12px;
+      line-height: 16px;
+      text-align: center;
+    }
+
+    &:not(:has(> .icon))::before {
+      content: '';
+      flex: 0 0 16px;
+    }
   }
 
   hr {
@@ -1401,12 +1423,20 @@ export default {
     background: var(--accent-btn);
     color: var(--body-text);
     font-size: 13px;
+
+    // The dot stands in the icons' column, so the notice reads off the same left edge as the
+    // rows below it. A transparent border widens the box without growing the dot itself.
+    .unsaved-dot {
+      box-sizing: content-box;
+      border: 5px solid transparent;
+      background-clip: content-box;
+    }
   }
 
   .menu-shortcut {
     margin-left: auto;
     padding-left: 24px;
-    color: var(--muted);
+    color: var(--dropdown-secondary-text);
     font-size: 12px;
     white-space: nowrap;
   }
