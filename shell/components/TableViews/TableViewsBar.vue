@@ -1196,6 +1196,7 @@ export default {
             <rc-dropdown-item
               :close-on-click="false"
               data-testid="table-views-view-group"
+              @mouseenter="subMenu = 'group'"
               @click="subMenu = 'group'"
             >
               {{ t('tableViews.view.groupBy') }}
@@ -1246,6 +1247,7 @@ export default {
             <rc-dropdown-item
               :close-on-click="false"
               data-testid="table-views-view-columns"
+              @mouseenter="subMenu = 'columns'"
               @click="subMenu = 'columns'"
             >
               {{ t('tableViews.view.columnsConfiguration') }}
@@ -1334,6 +1336,7 @@ export default {
             <rc-dropdown-item
               class="menu-reset"
               data-testid="table-views-reset"
+              @mouseenter="subMenu = null"
               @click="resetView"
             >
               {{ t('tableViews.view.reset') }}
