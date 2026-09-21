@@ -116,25 +116,41 @@ helm search repo $RANCHER_HELM_REPO_NAME --devel
 
 echo "Installing Rancher.........."
 kubectl create ns $RANCHER_NAMESPACE
-helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
-  --namespace $RANCHER_NAMESPACE \
-  --devel \
-  --set hostname=$DASHBOARD_URL \
-  --set replicas="1" \
-  --set systemDefaultRegistry=$RANCHER_IMG_REGISTRY \
-  --set image.repository="$RANCHER_IMG_REPO" \
-  --set image.tag="$RANCHER_IMG_TAG" \
-  --set image.pullPolicy="Always" \
-  --set auditLog.enabled=true \
-  --set auditLog.level=$RANCHER_AUDIT_LOG_LEVEL \
-  --set extraEnv\[0\].name="CATTLE_AGENT_IMAGE" \
-  --set-string extraEnv\[0\].value="$RANCHER_AGENT_IMG" \
-  --set extraEnv\[1\].name="CATTLE_UI_OFFLINE_PREFERRED" \
-  --set-string extraEnv\[1\].value="true" \
-  --set extraEnv\[2\].name="CATTLE_BOOTSTRAP_PASSWORD" \
-  --set-string extraEnv\[2\].value="${CATTLE_BOOTSTRAP_PASSWORD:-password}" \
-  --set extraEnv\[3\].name="CATTLE_PASSWORD_MIN_LENGTH" \
+
+# Common flags shared by both registry branches.
+# Always set both old-style keys (rancherImage/rancherImageTag, used by 2.11 chart)
+# and new-style keys (image.repository/image.tag, used by 2.12+ chart).
+HELM_COMMON_FLAGS=(
+  --namespace "$RANCHER_NAMESPACE"
+  --devel
+  --set hostname="$DASHBOARD_URL"
+  --set replicas="1"
+  --set rancherImageTag="$RANCHER_IMG_TAG"
+  --set image.repository="$RANCHER_IMG_REPO"
+  --set image.tag="$RANCHER_IMG_TAG"
+  --set image.pullPolicy="Always"
+  --set auditLog.enabled=true
+  --set auditLog.level="$RANCHER_AUDIT_LOG_LEVEL"
+  --set extraEnv\[0\].name="CATTLE_AGENT_IMAGE"
+  --set-string extraEnv\[0\].value="$RANCHER_AGENT_IMG"
+  --set extraEnv\[1\].name="CATTLE_UI_OFFLINE_PREFERRED"
+  --set-string extraEnv\[1\].value="true"
+  --set extraEnv\[2\].name="CATTLE_BOOTSTRAP_PASSWORD"
+  --set-string extraEnv\[2\].value="${CATTLE_BOOTSTRAP_PASSWORD:-password}"
+  --set extraEnv\[3\].name="CATTLE_PASSWORD_MIN_LENGTH"
   --set-string extraEnv\[3\].value="3"
+)
+
+if [ -n "$RANCHER_IMG_REGISTRY" ]; then
+  helm install rancher "$RANCHER_HELM_REPO_NAME/rancher" \
+    "${HELM_COMMON_FLAGS[@]}" \
+    --set systemDefaultRegistry="$RANCHER_IMG_REGISTRY" \
+    --set rancherImage="$RANCHER_IMG_REGISTRY/$RANCHER_IMG_REPO"
+else
+  helm install rancher "$RANCHER_HELM_REPO_NAME/rancher" \
+    "${HELM_COMMON_FLAGS[@]}" \
+    --set rancherImage="$RANCHER_IMG_REPO"
+fi
 
 # ----------------------------------------------------
 # ----------------------- Wait for Rancher to be ready
