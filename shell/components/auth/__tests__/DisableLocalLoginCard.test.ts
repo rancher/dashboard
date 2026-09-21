@@ -84,9 +84,36 @@ describe('component: DisableLocalLoginCard', () => {
   });
 
   // The flag can be locked by the server, or out of reach for this user.
-  it('should lock the switch when the flag cannot be written', () => {
-    const wrapper = createWrapper({ disabled: true });
+  describe('when the flag cannot be written', () => {
+    it('should lock the switch', () => {
+      const wrapper = createWrapper({ disabled: true });
 
-    expect(wrapper.findComponent(ToggleSwitch).props('disabled')).toBe(true);
+      expect(wrapper.findComponent(ToggleSwitch).props('disabled')).toBe(true);
+    });
+
+    // Forwarding the prop is not enough on its own - the switch has to take the
+    // input out of the tab order, or a keyboard user reaches a control a mouse
+    // user cannot.
+    it('should take the switch out of the tab order', () => {
+      const wrapper = createWrapper({ disabled: true });
+
+      expect((wrapper.find('input[role="switch"]').element as HTMLInputElement).disabled).toBe(true);
+    });
+
+    it('should not raise a change when the switch is driven anyway', async() => {
+      const wrapper = createWrapper({ disabled: true });
+
+      await flipSwitch(wrapper);
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
+
+    it('should leave the switch showing the flag', async() => {
+      const wrapper = createWrapper({ disabled: true });
+
+      await flipSwitch(wrapper);
+
+      expect(isChecked(wrapper)).toBe(false);
+    });
   });
 });

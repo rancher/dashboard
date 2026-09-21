@@ -13,6 +13,10 @@ const emit = defineEmits<{(e: 'update:value', value: boolean): void }>();
 const switchKey = ref(0);
 
 const onToggle = async(next: boolean) => {
+  if (props.disabled) {
+    return;
+  }
+
   emit('update:value', next);
 
   await nextTick();
