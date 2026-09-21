@@ -16,6 +16,7 @@ import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
 import TableViewsBar from '@shell/components/TableViews/TableViewsBar';
 import { downloadFile } from '@shell/utils/download';
+import { optionalHeadersFor } from '@shell/config/optional-table-headers';
 import {
   LABEL_FIELD_PREFIX,
   applyQueryExpression,
@@ -772,8 +773,7 @@ export default {
     availableHeaders() {
       const own = this._headers || [];
 
-      if (!this.schema || !this.headers) {
-        // Nothing was overridden, so the type's own headers are already what we have
+      if (!this.schema) {
         return own;
       }
 
@@ -783,8 +783,23 @@ export default {
         known[headerFieldId(header)] = true;
       });
 
-      const extra = this.$store.getters['type-map/headersFor'](this.schema, this.externalPaginationEnabled)
-        .filter((header) => !isIgnoredColumn(header) && !known[headerFieldId(header)]);
+      // What the type registers as its default, for a page that showed its own set instead,
+      // plus the columns the type has that no page shows by default
+      const fromType = this.headers ? this.$store.getters['type-map/headersFor'](this.schema, this.externalPaginationEnabled) : [];
+      const extra = fromType
+        .concat(optionalHeadersFor(this.schema.id, this.$store, this.externalPaginationEnabled))
+        .filter((header) => {
+          const id = headerFieldId(header);
+
+          if (isIgnoredColumn(header) || known[id]) {
+            return false;
+          }
+
+          // Guards against the same column arriving from both sources
+          known[id] = true;
+
+          return true;
+        });
 
       if (!extra.length) {
         return own;
@@ -800,7 +815,17 @@ export default {
         }
       }
 
-      return own.slice(0, at).concat(extra, own.slice(at));
+      const out = own.slice(0, at).concat(extra.filter((header) => !header.insertBefore), own.slice(at));
+
+      // A column that named where it belongs goes there, so it sits where the list that shows it
+      // by default puts it rather than on the end
+      extra.filter((header) => header.insertBefore).forEach((header) => {
+        const index = out.findIndex((existing) => existing.name === header.insertBefore);
+
+        out.splice(index >= 0 ? index : at, 0, header);
+      });
+
+      return out;
     },
 
     /**
