@@ -205,10 +205,11 @@ export default {
       return allowed
         .filter((word) => word.includes(needle))
         .map((word) => ({
-          key:    `connective:${ word }`,
-          label:  word,
-          detail: this.t(`tableViews.query.connective.${ word }`),
-          insert: `${ word } `,
+          key:        `connective:${ word }`,
+          label:      word,
+          detail:     this.t(`tableViews.query.connective.${ word }`),
+          insert:     `${ word } `,
+          connective: true,
         }));
     },
 
@@ -629,7 +630,10 @@ export default {
           @mousedown.prevent="pick(suggestion)"
           @mouseenter="activeIndex = i"
         >
-          <span class="suggestion-label">{{ suggestion.label }}</span>
+          <span
+            class="suggestion-label"
+            :class="{ connective: suggestion.connective }"
+          >{{ suggestion.label }}</span>
           <span class="suggestion-detail">{{ suggestion.detail }}</span>
         </li>
       </ul>
@@ -752,6 +756,12 @@ $query-height: 32px;
       background: var(--dropdown-hover-bg);
       color: var(--dropdown-hover-text);
     }
+  }
+
+  // The joining words are set the way the query itself sets them, which tells them apart from
+  // the fields they are listed beside
+  .suggestion-label.connective {
+    font-style: italic;
   }
 
   .suggestion-detail {
