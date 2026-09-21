@@ -1345,7 +1345,6 @@ export default {
               :placement="'left-start'"
               :distance="-1"
               :skidding="-1"
-              :shift="false"
               :flip="false"
               :reference-node="() => $refs.viewMenu"
               @update:open="(open) => closeSubMenu('group', open)"
@@ -1396,7 +1395,6 @@ export default {
               :placement="'left-start'"
               :distance="-1"
               :skidding="-1"
-              :shift="false"
               :flip="false"
               :reference-node="() => $refs.viewMenu"
               @update:open="(open) => closeSubMenu('columns', open)"
@@ -1797,16 +1795,22 @@ export default {
     min-width: 300px;
   }
 
-  max-height: 60vh;
+  // As tall as the window allows rather than a fraction of it. The popper slides a panel that
+  // would hang off the bottom back up, so a cap well short of the viewport only made a panel
+  // scroll while there was still room above it to move into. The 48 leaves room for the popper's
+  // own padding either side of this.
+  max-height: 100%;
   // Only ever downwards. Naming one axis leaves the other computing to `auto`, and a panel whose
   // width lands on a fraction is enough to raise a scrollbar along the bottom with nothing to
   // scroll to.
   overflow-x: hidden;
   overflow-y: auto;
   text-align: left;
-  // Takes back the padding the popper keeps, so the panel's own 8 is what shows
-  margin: -10px 0;
-  padding: 8px 0;
+  // The popper's own padding is the spacing. This used to cancel it with a negative margin and
+  // supply its own, which made the panel render taller than the box the popper had measured - so
+  // a panel pinned to the bottom of the screen bled its last 20px straight off it.
+  margin: 0;
+  padding: 0;
 
   [dropdown-menu-item] {
     height: 33px;
