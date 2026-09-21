@@ -59,7 +59,7 @@ describe('component: ResourceYaml', () => {
       const fromModel = { type: 'service' };
       const fromExtension = { type: 'secret' };
 
-      mockedEnhancements.mockReturnValue([{ editableRelatedResources: (_resource: any, res: any[]) => Promise.resolve([...res, fromExtension]) }]);
+      mockedEnhancements.mockReturnValue([{ fetchExtensionEditableRelatedResources: (_resource: any, res: any[]) => Promise.resolve([...res, fromExtension]) }]);
 
       const wrapper = mountComponent({
         type:                          'pod',
@@ -73,8 +73,8 @@ describe('component: ResourceYaml', () => {
 
     it('should apply extensions in order, each seeing the previous result', async() => {
       mockedEnhancements.mockReturnValue([
-        { editableRelatedResources: (_resource: any, res: any[]) => [...res, 'a'] },
-        { editableRelatedResources: async(_resource: any, res: any[]) => [...res, 'b'] },
+        { fetchExtensionEditableRelatedResources: (_resource: any, res: any[]) => [...res, 'a'] },
+        { fetchExtensionEditableRelatedResources: async(_resource: any, res: any[]) => [...res, 'b'] },
       ]);
 
       const wrapper = mountComponent({ type: 'pod' });
@@ -85,9 +85,9 @@ describe('component: ResourceYaml', () => {
     });
 
     it.each([
-      ['a non-function', { editableRelatedResources: 'nope' }],
-      ['a non-array result', { editableRelatedResources: () => 'nope' }],
-      ['an async non-array result', { editableRelatedResources: () => Promise.resolve(undefined) }],
+      ['a non-function', { fetchExtensionEditableRelatedResources: 'nope' }],
+      ['a non-array result', { fetchExtensionEditableRelatedResources: () => 'nope' }],
+      ['an async non-array result', { fetchExtensionEditableRelatedResources: () => Promise.resolve(undefined) }],
     ])('should ignore an extension providing %s', async(_label, extension) => {
       const fromModel = { type: 'service' };
 
@@ -104,7 +104,7 @@ describe('component: ResourceYaml', () => {
     });
 
     it('should not apply extensions when the older dashboard has no extension config support', async() => {
-      mockedEnhancements.mockReturnValue([{ editableRelatedResources: (_resource: any, res: any[]) => [...res, 'a'] }]);
+      mockedEnhancements.mockReturnValue([{ fetchExtensionEditableRelatedResources: (_resource: any, res: any[]) => [...res, 'a'] }]);
 
       const wrapper = mountComponent({ type: 'pod' }, { withExtensionSupport: false });
 

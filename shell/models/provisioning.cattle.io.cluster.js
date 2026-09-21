@@ -465,6 +465,33 @@ export default class ProvCluster extends SteveModel {
     return this.spec.rkeConfig?.machinePoolDefaults;
   }
 
+  /**
+   * Resources that should be shown, and can be edited, alongside this cluster
+   *
+   * For an RKE2/K3s cluster these are the machine configs referenced by each of the machine pools
+   */
+  async fetchEditableRelatedResources() {
+    const refs = (this.spec?.rkeConfig?.machinePools || [])
+      .map((pool) => pool.machineConfigRef)
+      .filter((ref) => ref?.kind && ref?.name);
+
+    if (!refs.length) {
+      return [];
+    }
+
+    const configs = await Promise.all(refs.map((ref) => this.$dispatch('management/find', {
+      // The ref's apiVersion can contain a version (`group/version`), which the type doesn't want
+      type: `${ ref.apiVersion?.split('/')[0] || CAPI.MACHINE_CONFIG_GROUP }.${ ref.kind.toLowerCase() }`,
+      id:   `${ this.metadata.namespace }/${ ref.name }`,
+    }, { root: true }).catch((e) => {
+      console.warn(`Failed to fetch machine config ${ ref.kind }/${ ref.name }`, e); // eslint-disable-line no-console
+
+      return null;
+    })));
+
+    return configs.filter((config) => !!config);
+  }
+
   set defaultHostnameLengthLimit(value) {
     this.spec.rkeConfig = this.spec.rkeConfig || {};
     this.spec.rkeConfig.machinePoolDefaults = this.spec.rkeConfig.machinePoolDefaults || {};

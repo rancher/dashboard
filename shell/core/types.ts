@@ -119,7 +119,7 @@ export type TableAction = {
 /**
  * Definition of an editable related resources extension
  *
- * `editableRelatedResources` is given the resource being shown and the list of related resources
+ * `fetchExtensionEditableRelatedResources` is given the resource being shown and the list of related resources
  * gathered so far (from the resource's `fetchEditableRelatedResources` and any previously applied
  * extensions). It should return the new list, so entries can be added, removed or re-ordered.
  *
@@ -127,7 +127,7 @@ export type TableAction = {
  * may be async, for example to fetch the related resources it wants to add.
  */
 export type EditableRelatedResources = {
-  editableRelatedResources: (resource: any, relatedResources: any[]) => any[] | Promise<any[]>
+  fetchExtensionEditableRelatedResources: (resource: any, relatedResources: any[]) => any[] | Promise<any[]>
 };
 
 /** Definition of the shortcut object (keyboard shortcuts) */

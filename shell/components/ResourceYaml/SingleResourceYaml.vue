@@ -2,7 +2,6 @@
 import jsyaml from 'js-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
-import { foldAllComments, foldMatchingLines, foldYamlPath } from '@components/RcCodeMirror';
 import Footer from '@shell/components/form/Footer';
 import { ANNOTATIONS_TO_FOLD } from '@shell/config/labels-annotations';
 import { ensureRegex } from '@shell/utils/string';
@@ -18,19 +17,14 @@ import {
 } from '@shell/config/query-params';
 import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { ExtensionPoint, EditableRelatedResourcesLocation } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
-import Loading from '@shell/components/Loading.vue';
-import SingleResourceYaml from './SingleResourceYaml.vue';
-import MultiResourceYaml from './MultiResourceYaml.vue';
 
 export default {
   emits: ['error'],
 
   components: {
-    Loading,
-    SingleResourceYaml,
-    MultiResourceYaml,
+    Footer,
+    FileSelector,
+    YamlEditor
   },
 
   props: {
@@ -91,87 +85,89 @@ export default {
   },
 
   data() {
-    return { editableRelatedResources: [] };
-  },
+    // Initial load with a preview showing no diff isn't very useful
+    this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
-  async fetch() {
-    await this.loadEditableRelatedResources();
+    return {
+      initialYaml:  this.initialYamlForDiff || this.yaml,
+      currentYaml:  this.yaml,
+      showPreview:  false,
+      errors:       null,
+      cm:           null,
+      initialReady: true,
+    };
   },
 
   computed: {
-    needsMultiEdit() {
-      return this.editableRelatedResources.length > 0;
+    schema() {
+      const inStore = this.$store.getters['currentStore'](this.value.type);
+
+      return this.$store.getters[`${ inStore }/schemaFor`]( this.value.type );
+    },
+
+    isCreate() {
+      return this.mode === _CREATE;
+    },
+
+    isView() {
+      return this.mode === _VIEW;
+    },
+
+    isEdit() {
+      return this.mode === _EDIT;
+    },
+
+    editorMode() {
+      // Include the mode in the route as a dependency
+      // of this computed property so that the editor
+      // toggles when you navigate back and forth between
+      // edit and view.
+      if ( this.$route.query.mode === _VIEW || (this.isView && (this.$route.query.mode !== _EDIT || this.$route.query.mode !== _VIEW))) {
+        return EDITOR_MODES.VIEW_CODE;
+      } else if ( this.showPreview ) {
+        return EDITOR_MODES.DIFF_CODE;
+      }
+
+      return EDITOR_MODES.EDIT_CODE;
+    },
+
+    canDiff() {
+      return this.initialYaml !== this.currentYaml;
     },
   },
 
-  // TODO nb does this watcher do anything
   watch: {
-    value() {
-      this.loadEditableRelatedResources();
+    yaml(neu) {
+      if ( this.mode === _VIEW ) {
+        this.currentYaml = neu;
+      }
     },
+
+    mode(neu, old) {
+      // if this component is changing from viewing a resource to 'creating' that resource, it must actually be cloning
+      // clean yaml accordingly
+      if (neu === _CREATE && old === _VIEW) {
+        this.currentYaml = this.value.cleanYaml(this.yaml, neu);
+      }
+    }
   },
 
   methods: {
-    /**
-     * Resolve the related resources that can be edited by YAML alongside this one
-     *
-     * This starts with the list from the resource's model, which extensions can then add to or
-     * remove from via `addEditableRelatedResources`
-     *
-     * This is resolved on initialization (vs computed property) to accomodate async operations, either in resource models or extensions
-     */
-    async loadEditableRelatedResources() {
-      // Ensure a slow load for a previous resource doesn't overwrite the result for the current one
-      const forResource = this.value;
-
-      let resources = [];
-
-      if (typeof this.value?.fetchEditableRelatedResources === 'function') {
-        resources = await this.value.fetchEditableRelatedResources() || [];
-      }
-
-      // gate it so that we prevent errors on older versions of dashboard
-      if (this.$store.$extension?.getUIConfig) {
-        const extensions = getApplicableExtensionEnhancements(
-          this,
-          ExtensionPoint.EDITABLE_RELATED_RESOURCES,
-          EditableRelatedResourcesLocation.RESOURCE_YAML,
-          this.$route
-        );
-
-        for (const { fetchExtensionEditableRelatedResources } of extensions) {
-          if (typeof fetchExtensionEditableRelatedResources !== 'function') {
-            continue;
-          }
-
-          const neu = await fetchExtensionEditableRelatedResources(this.value, resources);
-
-          if (Array.isArray(neu)) {
-            resources = neu;
-          }
-        }
-      }
-
-      if (this.value === forResource) {
-        this.editableRelatedResources = resources;
-      }
-    },
-
     onInput(yaml) {
       this.currentYaml = yaml;
       this.onReady(this.cm);
     },
 
-    onReady(view) {
+    onReady(cm) {
       if (!this.initialReady) {
         return;
       }
       this.initialReady = false;
 
-      this.cm = view;
+      this.cm = cm;
 
       if ( this.isEdit ) {
-        foldMatchingLines(view, /^status:\s*$/);
+        cm.foldLinesMatching(/^status:\s*$/);
       }
 
       try {
@@ -195,19 +191,23 @@ export default {
         }
 
         if ( foldAnnotations ) {
-          foldMatchingLines(view, /^\s+annotations:\s*$/);
+          cm.foldLinesMatching(/^\s+annotations:\s*$/);
         }
       } catch (e) {}
 
-      foldMatchingLines(view, /managedFields/);
+      cm.foldLinesMatching(/managedFields/);
 
       // Allow the model to supply an array of json paths to fold other sections in the YAML for the given resource type
       if (this.value?.yamlFolding) {
-        this.value.yamlFolding.forEach((path) => foldYamlPath(view, path));
+        this.value.yamlFolding.forEach((path) => cm.foldYaml(path));
       }
 
       // regardless of edit or create we should probably fold all the comments so they dont get out of hand.
-      foldAllComments(view);
+      const saved = cm.getMode().fold;
+
+      cm.getMode().fold = 'yamlcomments';
+      cm.execCommand('foldAll');
+      cm.getMode().fold = saved;
     },
 
     updateValue(value) {
@@ -306,25 +306,110 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <MultiResourceYaml
-    v-else-if="needsMultiEdit"
-    :value="value"
-    :related-resources="editableRelatedResources"
-  />
-  <SingleResourceYaml
-    v-else
-    v-bind="$props"
-    @error="$emit('error', $event)"
-  >
-    <template
-      v-for="(_, name) in $slots"
-      #[name]="slotProps"
+  <div class="root resource-yaml flex-content">
+    <YamlEditor
+      ref="yamleditor"
+      v-model:value="currentYaml"
+      :mode="mode"
+      :initial-yaml-values="initialYaml"
+      class="yaml-editor flex-content"
+      :editor-mode="editorMode"
+      @onReady="onReady"
+    />
+    <slot
+      name="yamlFooter"
+      :currentYaml="currentYaml"
+      :showPreview="showPreview"
+      :yamlPreview="preview"
+      :yamlSave="save"
+      :yamlUnpreview="unpreview"
+      :canDiff="canDiff"
     >
-      <slot
-        :name="name"
-        v-bind="slotProps || {}"
-      />
-    </template>
-  </SingleResourceYaml>
+      <Footer
+        v-if="showFooter"
+        class="footer"
+        :class="{ 'edit': !isView }"
+        :mode="mode"
+        :errors="showErrors ? errors : []"
+        @close-error="closeError"
+        @save="save"
+        @done="done"
+      >
+        <template
+          v-if="!isView"
+          #left
+        >
+          <FileSelector
+            variant="secondary"
+            :label="t('generic.readFromFile')"
+            @selected="onFileSelected"
+          />
+        </template>
+        <template
+          v-if="!isView"
+          #middle
+        >
+          <button
+            v-if="showPreview"
+            type="button"
+            class="btn role-secondary"
+            @click="unpreview"
+          >
+            <t k="resourceYaml.buttons.continue" />
+          </button>
+          <button
+            v-else-if="offerPreview"
+            :disabled="!canDiff"
+            type="button"
+            class="btn role-secondary"
+            @click="preview"
+          >
+            <t k="resourceYaml.buttons.diff" />
+          </button>
+        </template>
+      </Footer>
+    </slot>
+  </div>
 </template>
+
+<style lang='scss' scoped>
+  .flex-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .footer {
+    margin-top: 20px;
+    right: 0;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--header-bg);
+
+    // Overrides outlet padding
+    margin-left: -$space-m;
+    margin-right: -$space-m;
+    margin-bottom: -$space-m;
+    padding: $space-s $space-m;
+
+    &.edit {
+      border-top: var(--header-border-size) solid var(--header-border);
+    }
+  }
+</style>
+
+<style lang="scss">
+.resource-yaml {
+  .yaml-editor {
+    min-height: 200px;
+  }
+
+  footer .actions {
+    text-align: right;
+  }
+
+  .spacer-small {
+    padding: 0;
+  }
+}
+</style>
