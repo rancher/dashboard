@@ -638,7 +638,6 @@ $query-height: 32px;
 
   .segment-field {
     color: var(--input-text);
-    font-weight: 600;
   }
 
   // A value the field really has reads as a badge around that value and nothing else. The gap
