@@ -39,6 +39,37 @@ const mountSwitcher = (props = {}, attachTo?: HTMLElement) => trackWrapper(shall
   },
 }));
 
+// The rows are real buttons now, and the cursor is simply where focus is — so the keyboard tests need a
+// stub that can actually take focus, mounted in the real document.
+const RowStub = {
+  props:    ['cluster', 'active', 'tabbable', 'id', 'pinnable'],
+  emits:    ['focus-row', 'select', 'unpinned'],
+  template: `<li :id="id" class="cluster-switcher-row" :class="{ active }">
+                <button class="row-main" :tabindex="tabbable ? 0 : -1" @focus="$emit('focus-row')"></button>
+                <button v-if="pinnable !== false" class="row-pin" :tabindex="tabbable ? 0 : -1"></button>
+              </li>`,
+};
+
+const mountFocusable = (props = {}) => trackWrapper(shallowMount(ClusterSwitcher, {
+  props: {
+    all: [], searchResults: [], clusterCount: 0, currentClusterId: '', search: '', ...props
+  },
+  attachTo: document.body,
+  global:   {
+    stubs: {
+      'v-dropdown':       { template: '<div><slot /><slot name="popper" /></div>' },
+      ClusterSwitcherRow: RowStub,
+    },
+  },
+}));
+
+const activeLabel = (wrapper: any) => {
+  const rows = wrapper.findAll('.cluster-switcher-row');
+  const i = rows.findIndex((r: any) => r.element.querySelector('.row-main') === document.activeElement);
+
+  return i === -1 ? null : rows[i].attributes('id');
+};
+
 // Generic, so tracking a wrapper does not erase its type for the assertions that follow.
 function trackWrapper<T>(wrapper: T): T {
   mounted.push(wrapper);
@@ -95,7 +126,7 @@ describe('component: ClusterSwitcher', () => {
     expect(aria.search.toLowerCase()).toContain(visible);
   });
 
-  it('↑/↓ move the cursor and clamp at the ends', () => {
+  it('↓ walks the list and stops at the end; ↑ walks back out to the search box', () => {
     const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2'), cluster('r1')] });
     const vm = wrapper.vm as any;
 
@@ -106,12 +137,16 @@ describe('component: ClusterSwitcher', () => {
     vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
     vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
     expect(vm.activeIndex).toBe(2);
-    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // clamp at last
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // stops at the last row
     expect(vm.activeIndex).toBe(2);
     vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
     vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
-    vm.onKeydown({ key: 'ArrowUp', preventDefault() {} }); // clamp at first
     expect(vm.activeIndex).toBe(0);
+
+    // Up off the first row leaves the list rather than stopping dead — the field is where the panel
+    // starts, so it is where Up ends.
+    vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
+    expect(vm.activeIndex).toBe(-1);
   });
 
   // One list serves both states — the estate at rest, the matches while searching — so what an EMPTY one
@@ -288,31 +323,31 @@ describe('component: ClusterSwitcher', () => {
       expect(ids).toContain('cluster-switcher-opt-recent-local');
       expect(ids).toContain('cluster-switcher-opt-local');
 
-      // And the cursor points at the row it is actually on, not at its twin.
+      // And the cursor lands on the row it is actually on, not on its twin.
       vm.setOpen(true);
       await nextTick();
       vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // the tile
       vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // the same cluster, under RECENTLY USED
       await nextTick();
 
-      expect(wrapper.find('input.switcher-search-input').attributes('aria-activedescendant')).toBe('cluster-switcher-opt-recent-local');
+      expect(vm.navRows[vm.activeIndex].id).toBe('local');
+      expect(vm.activeIndex).toBe(1);
 
       vm.setOpen(false);
     });
 
-    // The scrolling region IS the listbox, and the sections are GROUPS inside it — a listbox may contain
-    // groups, but not other listboxes, and one composite widget is also what the combobox points at.
-    it('sits in the one listbox the combobox owns, as a group', () => {
+    // Plain list semantics, not a listbox: the rows hold focus and contain their own controls, which a
+    // listbox option may not do. Each section is its own <ul> so the sections stay distinguishable.
+    it('renders each section as its own list', () => {
       const wrapper = mountSwitcher({
         local: cluster('local'), recent, all: [cluster('p1')]
       });
 
-      expect(wrapper.find('input.switcher-search-input').attributes('aria-controls')).toBe('cluster-switcher-listbox');
-      expect(wrapper.find('.switcher-scroll').attributes('role')).toBe('listbox');
+      expect(wrapper.find('.switcher-scroll').attributes('role')).toBeUndefined();
       expect(wrapper.find('.switcher-scroll').attributes('id')).toBe('cluster-switcher-listbox');
       expect(wrapper.findAll('.switcher-scroll [role="listbox"]')).toHaveLength(0);
-      expect(wrapper.find('.switcher-local').attributes('role')).toBe('group');
-      expect(wrapper.find('.switcher-recent').attributes('role')).toBe('group');
+      expect(wrapper.find('.switcher-local').element.tagName).toBe('UL');
+      expect(wrapper.find('.switcher-recent').element.tagName).toBe('UL');
     });
   });
 
@@ -349,14 +384,16 @@ describe('component: ClusterSwitcher', () => {
       vm.setOpen(false);
     });
 
-    it('explores the highlighted row on Enter', async() => {
-      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+    it('explores the highlighted row when Enter comes from the search box', async() => {
+      const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
       const vm = wrapper.vm as any;
 
       vm.setOpen(true);
       await nextTick();
 
       press('ArrowDown');
+      await nextTick();
+      (wrapper.find('input.switcher-search-input').element as HTMLElement).focus();
       press('Enter');
 
       expect((wrapper.emitted('select')?.[0]?.[0] as any)?.id).toBe('p1');
@@ -440,29 +477,202 @@ describe('component: ClusterSwitcher', () => {
     });
   });
 
-  it('keeps the keyboard cursor on screen as it moves', async() => {
-    const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 }, document.body);
+  // The cursor IS the focus now, so moving it has to move focus and bring the row into view with it.
+  it('moves focus to the row the cursor lands on, and keeps it on screen', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 });
     const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
 
     scrollIntoView.mockClear();
     vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // into the list, at p1
+    await nextTick();
     vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // on to p2
     await nextTick();
 
+    expect(activeLabel(wrapper)).toBe('cluster-switcher-opt-p2');
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
-    expect((scrollIntoView.mock.instances.at(-1) as HTMLElement).id).toBe('cluster-switcher-opt-p2');
-
-    wrapper.unmount();
   });
 
-  it('Enter explores the active row', () => {
-    const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+  // Tab out of the search box has to land in the list, but nothing is highlighted until a key says so —
+  // so the FIRST row holds the tab stop until the cursor takes it.
+  it('gives the first row the tab stop while the cursor is still outside the list', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 });
     const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+
+    expect(vm.activeIndex).toBe(-1);
+    expect(wrapper.findAll('.row-main').map((b: any) => b.attributes('tabindex'))).toStrictEqual(['0', '-1', '-1']);
+    // ...and it is the tab stop without being highlighted, so Tab does not imply a selection.
+    expect(wrapper.findAll('.cluster-switcher-row').map((r: any) => r.classes().includes('active'))).toStrictEqual([false, false, false]);
+  });
+
+  // Tab has to reach the pin, which means the cursor's row is the ONLY row in the tab order — otherwise
+  // Tab walks the whole estate before it ever gets there.
+  it('moves the tab stop to the cursor row once the cursor enters the list', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    await nextTick();
+
+    const tabindexes = wrapper.findAll('.row-main').map((b: any) => b.attributes('tabindex'));
+
+    expect(tabindexes).toStrictEqual(['0', '-1', '-1']);
+  });
+
+  // The pointer moves the cursor WITHOUT moving focus, so the row holding focus can be the one row that
+  // is no longer the tab stop. Tab still has to step onto that row's own pin — wrapping back to the
+  // search box strands the user midway through the one journey this panel exists to make possible.
+  it('Tab reaches the focused row\'s pin after the pointer has moved the cursor off it', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // focus onto the first row
+    await nextTick();
+
+    const rows = wrapper.findAll('.cluster-switcher-row');
+    const main = rows[0].element.querySelector('.row-main') as HTMLElement;
+    const pin = rows[0].element.querySelector('.row-pin') as HTMLElement;
+
+    expect(document.activeElement).toBe(main);
+
+    // The pointer drifts onto a different row: the cursor moves, and the tab stop with it, but focus stays.
+    vm.onPointerMove({ target: rows[2].element });
+    await nextTick();
+
+    expect(main.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(main);
+
+    vm.onKeydown({ key: 'Tab', preventDefault() {} });
+
+    expect(document.activeElement).toBe(pin);
+
+    // …and Tab again has to LEAVE the row for the search box. The fallback ring is built from the row
+    // alone, so without the search box in it Tab shuttles between the row's two controls for ever.
+    vm.onKeydown({ key: 'Tab', preventDefault() {} });
+
+    expect(document.activeElement).toBe(wrapper.find('input.switcher-search-input').element);
+  });
+
+  // The `local` tile is `:pinnable="false"`, so the fallback ring built from its row alone is a SINGLE
+  // element — Tab re-focuses what is already focused and, with the keydown already prevented, visibly
+  // does nothing. The search box has to be in the ring for Tab to have anywhere to go.
+  it('Tab leaves the focused local tile for the search box, even though it has no pin', async() => {
+    const wrapper = mountFocusable({
+      local: cluster('local'), all: [cluster('p1')], clusterCount: 1
+    });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // focus onto the local tile
+    await nextTick();
+
+    const tile = wrapper.find('.switcher-local .cluster-switcher-row').element;
+    const main = tile.querySelector('.row-main') as HTMLElement;
+
+    expect(tile.querySelector('.row-pin')).toBeNull();
+    expect(document.activeElement).toBe(main);
+
+    // The pointer drifts onto the estate row: the tab stop moves, focus stays on the tile.
+    vm.onPointerMove({ target: wrapper.findAll('.switcher-group .cluster-switcher-row')[0].element });
+    await nextTick();
+
+    expect(main.getAttribute('tabindex')).toBe('-1');
+
+    vm.onKeydown({ key: 'Tab', preventDefault() {} });
+
+    expect(document.activeElement).toBe(wrapper.find('input.switcher-search-input').element);
+  });
+
+  // Unpinning a cluster that is in this list ONLY because it is pinned removes its row — but the parent's
+  // `all` lands a store round-trip later, long after the unpin handler has looked. Focus must not be left
+  // on `<body>`, outside the dialog and driving nothing.
+  it('returns focus to the search box when the unpinned row leaves on the parent update', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // onto the pinned-only row
+    await nextTick();
+
+    const pin = wrapper.findAll('.cluster-switcher-row')[1].element.querySelector('.row-pin') as HTMLElement;
+
+    pin.focus();
+    expect(document.activeElement).toBe(pin);
+
+    // The pref write comes back and the parent stops carrying the row.
+    await wrapper.setProps({ all: [cluster('p1')], clusterCount: 1 } as any);
+
+    expect(document.activeElement).toBe(wrapper.find('input.switcher-search-input').element);
+  });
+
+  // Enter from the SEARCH BOX explores whatever the cursor is on. A focused row is a real button, so
+  // Enter there is the platform's click — handling it here as well would explore the same row twice.
+  it('Enter in the search box explores the active row', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
 
     vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // into the list, at p1
     vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // active = p2
+    await nextTick();
+
+    (wrapper.find('input.switcher-search-input').element as HTMLElement).focus();
     vm.onKeydown({ key: 'Enter', preventDefault() {} });
+
     expect((wrapper.emitted('select')?.[0]?.[0] as any)?.id).toBe('p2');
+  });
+
+  // Space is the other half of the native button contract: once a row and its pin are real buttons, Space
+  // has to reach them rather than be read as the user starting to type in the search box.
+  it.each([
+    ['row', '.row-main'],
+    ['pin', '.row-pin'],
+  ])('leaves Space on a focused %s to the button, rather than routing it to the search box', async(_what, selector) => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    await nextTick();
+
+    const control = wrapper.find(selector).element as HTMLElement;
+
+    control.focus();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    await nextTick();
+
+    expect(document.activeElement).toStrictEqual(control);
+    expect(wrapper.emitted('update:search')).toBeUndefined();
+  });
+
+  it('leaves Enter on a focused row to the button itself, so it is not explored twice', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    await nextTick();
+
+    // Focus is on the row's own control, not the field.
+    vm.onKeydown({ key: 'Enter', preventDefault() {} });
+
+    expect(wrapper.emitted('select')).toBeUndefined();
   });
 
   it('does not explore a non-ready cluster', () => {
@@ -601,44 +811,49 @@ describe('component: ClusterSwitcher', () => {
     });
   });
 
-  describe('accessibility (WAI-ARIA combobox + listbox)', () => {
-    it('the search input is a combobox that controls the results listbox', async() => {
+  describe('accessibility (a search box and a list)', () => {
+    // NOT a combobox: a combobox keeps focus in its field, which forbids focusable controls in the
+    // options — and the pin has to be reachable with Tab. So the panel is a dialog holding a plain
+    // search box and a list of rows that take focus themselves.
+    it('is a labelled dialog whose search box claims no combobox role', async() => {
       const wrapper = mountSwitcher({ all: [cluster('p1')], clusterCount: 1 });
       const input = () => wrapper.find('input.switcher-search-input');
+      const panel = wrapper.find('.cluster-switcher-flyout');
 
-      expect(input().attributes('role')).toBe('combobox');
-      expect(input().attributes('aria-autocomplete')).toBe('list');
-      expect(input().attributes('aria-haspopup')).toBe('listbox');
-      expect(input().attributes('aria-controls')).toBe('cluster-switcher-listbox');
-      expect(wrapper.find('#cluster-switcher-listbox').attributes('role')).toBe('listbox');
+      expect(panel.attributes('role')).toBe('dialog');
+      expect(panel.attributes('aria-label')).toBeTruthy();
 
-      // aria-expanded is bound to `open`, not hard-coded, so it can't drift from the state it describes
-      // if the popper is ever mounted while the flyout is closed.
-      expect(input().attributes('aria-expanded')).toBe('false');
+      expect(input().attributes('role')).toBeUndefined();
+      expect(input().attributes('aria-autocomplete')).toBeUndefined();
+      expect(input().attributes('aria-haspopup')).toBeUndefined();
+      expect(input().attributes('aria-expanded')).toBeUndefined();
+      expect(input().attributes('aria-activedescendant')).toBeUndefined();
+      // `aria-controls` went with the combobox too — it has no meaning on a plain textbox.
+      expect(input().attributes('aria-controls')).toBeUndefined();
 
       (wrapper.vm as any).setOpen(true);
       await wrapper.vm.$nextTick();
 
-      expect(input().attributes('aria-expanded')).toBe('true');
+      expect(wrapper.find('.switcher-scroll').attributes('role')).toBeUndefined();
     });
 
-    it('aria-activedescendant follows the ↑↓ cursor to the active option id', async() => {
+    it('the ↑↓ cursor walks navRows', async() => {
       const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
-      const input = () => wrapper.find('input.switcher-search-input');
+      const vm = wrapper.vm as any;
 
       // Nothing is pointed at until a key moves the cursor into the list.
-      expect(input().attributes('aria-activedescendant')).toBeUndefined();
+      expect(vm.activeIndex).toBe(-1);
 
-      (wrapper.vm as any).onKeydown({ key: 'ArrowDown', preventDefault() {} });
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
       await wrapper.vm.$nextTick();
-      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-p1');
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('p1');
 
-      (wrapper.vm as any).onKeydown({ key: 'ArrowDown', preventDefault() {} });
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
       await wrapper.vm.$nextTick();
-      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-p2');
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('p2');
     });
 
-    it('gives every option row a stable id so aria-activedescendant can point at it', () => {
+    it('gives every row a stable id, so a repeated cluster never collides', () => {
       const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
       const html = wrapper.html();
 
@@ -646,26 +861,23 @@ describe('component: ClusterSwitcher', () => {
       expect(html).toContain('cluster-switcher-opt-p2');
     });
 
-    // The fixed `local` tile heads the nav model and the combobox owns its listbox, so it stays above the
-    // search door yet is keyboard-reachable — the first ↓ lands on it.
+    // The fixed `local` tile heads the nav model, so it stays above the search door yet is
+    // keyboard-reachable — the first ↓ lands on it.
     it('opens with nothing highlighted, and enters the list at the local tile', async() => {
       const wrapper = mountSwitcher({
         local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2
       });
       const vm = wrapper.vm as any;
-      const input = () => wrapper.find('input.switcher-search-input');
 
-      // local heads the navigation model, but the visible results listbox still renders only the directory.
+      // local heads the navigation model, but the visible list still renders only the directory.
       expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'p1', 'p2']);
       expect(vm.rows.map((c: any) => c.id)).toStrictEqual(['p1', 'p2']);
-      // One listbox, holding the tile and the estate as groups — that is what the combobox owns.
-      expect(input().attributes('aria-controls')).toBe('cluster-switcher-listbox');
 
       // Opening highlights nothing — a highlight nobody asked for reads as a selection, and Enter would
       // act on it — so Enter is inert until the user has driven the cursor.
       vm.setOpen(true);
       await vm.$nextTick();
-      expect(input().attributes('aria-activedescendant')).toBeUndefined();
+      expect(vm.activeIndex).toBe(-1);
 
       vm.onKeydown({ key: 'Enter', preventDefault() {} });
       expect(wrapper.emitted('select')).toBeUndefined();
@@ -673,7 +885,7 @@ describe('component: ClusterSwitcher', () => {
       // ↓ enters the list at the top, which is the local tile...
       vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
       await vm.$nextTick();
-      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-local');
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('local');
 
       // ...and Enter explores it.
       vm.onKeydown({ key: 'Enter', preventDefault() {} });
@@ -682,7 +894,7 @@ describe('component: ClusterSwitcher', () => {
       // One more ↓ reaches the first directory row.
       vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
       await vm.$nextTick();
-      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-p1');
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('p1');
     });
 
     // The other way into the list: from nothing highlighted, ↑ starts at the bottom.
@@ -696,7 +908,7 @@ describe('component: ClusterSwitcher', () => {
       vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
       await vm.$nextTick();
 
-      expect(wrapper.find('input.switcher-search-input').attributes('aria-activedescendant')).toBe('cluster-switcher-opt-p2');
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('p2');
     });
 
     // A search takes the fixed tile down: while one is running `local` is not a pinned shortcut, it is
@@ -707,7 +919,6 @@ describe('component: ClusterSwitcher', () => {
         local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2
       });
       const vm = wrapper.vm as any;
-      const input = () => wrapper.find('input.switcher-search-input');
 
       vm.setOpen(true);
       await nextTick();
@@ -718,14 +929,14 @@ describe('component: ClusterSwitcher', () => {
       await nextTick();
       expect(vm.localTile).toBeNull();
       expect(vm.localOffset).toBe(0);
-      expect(input().attributes('aria-activedescendant')).toBeUndefined();
+      expect(vm.activeIndex).toBe(-1);
 
       // Results arrive: the cursor lands on the first MATCH, so Enter opens it.
       // `cluster()` is the suite's minimal row stub, not a full TopLevelMenuCluster — the component only
       // reads the handful of fields it sets, so cast rather than pad every fixture.
       await wrapper.setProps({ listLoading: false, searchResults: [cluster('m1'), cluster('m2')] } as any);
       await nextTick();
-      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-m1');
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('m1');
 
       vm.onKeydown({ key: 'Enter', preventDefault() {} });
       expect(wrapper.emitted('select')?.[0]?.[0]).toMatchObject({ id: 'm1' });
@@ -735,13 +946,13 @@ describe('component: ClusterSwitcher', () => {
       await nextTick();
       expect(vm.localTile).toBeNull();
       expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local']);
-      expect(input().attributes('aria-activedescendant')).toBe('cluster-switcher-opt-local');
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('local');
 
       // Search over: the tile is back, and the cursor goes away with the query.
       await wrapper.setProps({ search: '', searchResults: [] } as any);
       await nextTick();
       expect(vm.localTile?.id).toBe('local');
-      expect(input().attributes('aria-activedescendant')).toBeUndefined();
+      expect(vm.activeIndex).toBe(-1);
     });
 
     // A cursor the user drove themselves is theirs — a later page of results must not take it back.
@@ -867,77 +1078,50 @@ describe('component: ClusterSwitcher', () => {
     });
 
     // The highlight is shared by the pointer and the arrows, so on its own it cannot say which is driving.
-    // An `aria-activedescendant` option never holds DOM focus either, so nothing draws a focus ring for
-    // it — the row has to, and only when the keyboard is what put the cursor there. This is the resource
-    // finder's behaviour, which is the pattern the two lists should share.
-    describe('the keyboard focus ring on the cursor', () => {
-      const rowFor = (wrapper: any, id: string) => wrapper.findAllComponents(ClusterSwitcherRow)
-        .find((row: any) => row.props('cluster').id === id);
-
+    // The ring is now the platform's `:focus-visible` on the row's own button, so what this has to check
+    // is the thing that earns it: the arrows move real focus onto the row, and the pointer does not.
+    describe('the cursor, and which input is driving it', () => {
       // A pointer event shaped the way the delegated handler reads it.
       const pointerOver = (id: string) => ({ target: { closest: () => ({ id }) } });
 
-      it('rings the row the arrows moved to, and not the one the pointer moved to', async() => {
-        const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+      it('moves focus to the row the arrows reach, and leaves focus alone for the pointer', async() => {
+        const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
         const vm = wrapper.vm as any;
 
         vm.setOpen(true);
         await nextTick();
 
-        // Nothing has moved the cursor, so nothing is ringed.
-        expect(vm.keyboardActive).toBe(false);
+        // Nothing has moved the cursor, so no row holds focus.
+        expect(activeLabel(wrapper)).toBeNull();
 
         vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
         await nextTick();
 
-        expect(vm.keyboardActive).toBe(true);
-        expect(rowFor(wrapper, 'p1').props('keyboardActive')).toBe(true);
+        expect(activeLabel(wrapper)).toBe('cluster-switcher-opt-p1');
 
+        // The pointer moves the highlight but must NOT steal focus — dragging the mouse across the list
+        // while typing would otherwise pull the caret out of the search box.
         vm.onPointerMove(pointerOver('cluster-switcher-opt-p2'));
         await nextTick();
 
-        expect(vm.keyboardActive).toBe(false);
-        expect(rowFor(wrapper, 'p2').props('keyboardActive')).toBe(false);
-
-        wrapper.unmount();
+        expect(vm.activeIndex).toBe(1);
+        expect(activeLabel(wrapper)).toBe('cluster-switcher-opt-p1');
       });
 
-      // The pointer takes over even when it lands on the row the keyboard already had: the ring claims
-      // the keyboard put the cursor there, and once the mouse is moving that has stopped being true.
-      it('drops the ring when the pointer lands on the row that already has the cursor', async() => {
-        const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+      // Typing is keyboard use, but it is not the user steering the cursor: the first match takes the
+      // cursor without focus following it, so the caret stays in the field the user is typing into.
+      it('highlights the first match of a search without moving focus to it', async() => {
+        const wrapper = mountFocusable({ all: [cluster('p1')], searchResults: [cluster('m1')] });
         const vm = wrapper.vm as any;
 
         vm.setOpen(true);
         await nextTick();
-        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
-        expect(vm.keyboardActive).toBe(true);
-
-        vm.onPointerMove(pointerOver('cluster-switcher-opt-p1'));
-        await nextTick();
-
-        expect(vm.activeIndex).toBe(0);
-        expect(vm.keyboardActive).toBe(false);
-
-        wrapper.unmount();
-      });
-
-      // Typing is keyboard use, but it is not the user steering the cursor: the first match is highlighted
-      // for them, and a ring around it would claim they had put it there.
-      it('does not ring the first match a search highlights', async() => {
-        const wrapper = mountSwitcher({ all: [cluster('p1')], searchResults: [cluster('m1')] });
-        const vm = wrapper.vm as any;
-
-        vm.setOpen(true);
-        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
-        expect(vm.keyboardActive).toBe(true);
 
         await wrapper.setProps({ search: 'm' } as any);
+        await nextTick();
 
         expect(vm.activeIndex).toBe(0);
-        expect(vm.keyboardActive).toBe(false);
-
-        wrapper.unmount();
+        expect(activeLabel(wrapper)).toBeNull();
       });
     });
 
