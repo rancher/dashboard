@@ -269,7 +269,30 @@ export default defineComponent({
      * Of type #PagTableFetchSecondaryResources
      */
     fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
-      return Promise.all(ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store }));
+      const promises = ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store });
+
+      // What the Machines column draws its bar from. A cluster's machine states come from its
+      // machine deployments, and without them the column can only show a count - which is what
+      // it did here, because only Cluster Management was asking for them.
+      this.fetchMachineStates();
+
+      return Promise.all(promises);
+    },
+
+    /**
+     * The machine deployments and node pools behind the Machines column's bar.
+     *
+     * Deliberately not awaited: the column falls back to a plain count until they land, so the
+     * clusters do not wait on them to be listed.
+     */
+    fetchMachineStates() {
+      if (this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
+        this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+      }
+
+      if (this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL)) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
     },
 
     async fetchPageSecondaryResources({
@@ -280,6 +303,8 @@ export default defineComponent({
       const promises = await ManagementClusterUtils.fetchPageSecondaryResources({
         canPaginate, force, page, pagResult
       }, { $store: this.$store });
+
+      this.fetchMachineStates();
 
       await Promise.all(promises);
     },

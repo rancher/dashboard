@@ -1,39 +1,25 @@
-<script>
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 import { RcButton } from '@components/RcButton';
+import { useI18n } from '@shell/composables/useI18n';
 
-/**
- * The Explore column: the button through to a cluster, disabled when it cannot be explored.
- *
- * Lived in the cluster list's own `cell:explorer` slot, and the column carries no value of its
- * own, so on any other list it rendered nothing at all.
- */
-export default {
-  name: 'ClusterExplore',
+interface ClusterRow {
+  id?: string;
+  canExplore?: boolean;
+}
 
-  components: { RcButton },
+const props = defineProps<{ row: ClusterRow }>();
 
-  props: {
-    row: {
-      type:     Object,
-      required: true
-    }
-  },
+const store = useStore();
+const { t } = useI18n(store);
 
-  computed: {
-    canExplore() {
-      return !!this.row?.canExplore;
-    },
-
-    to() {
-      return { name: 'c-cluster', params: { cluster: this.row?.id } };
-    }
-  }
-};
+const to = computed(() => ({ name: 'c-cluster', params: { cluster: props.row?.id } }));
 </script>
 
 <template>
   <rc-button
-    v-if="canExplore"
+    v-if="row.canExplore"
     variant="secondary"
     data-testid="cluster-manager-list-explore-management"
     :to="to"
