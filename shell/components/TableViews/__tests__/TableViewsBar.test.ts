@@ -130,9 +130,15 @@ describe('TableViewsBar', () => {
           return selectedViewId.call(this);
         },
         // Nothing here shares a config, so nothing else can match once a view is gone
-        view: { ...EMPTY, query: 'name:foo' },
+        view:      { ...EMPTY, query: 'name:foo' },
+        // Deleting a view drops any unsaved edits held for it
+        drafts:    {} as Record<string, any>,
+        forgotten: [] as (string | null)[],
         persist(views: any[]) {
           this.savedViews = views;
+        },
+        forgetDraft(id: string | null) {
+          this.forgotten.push(id);
         },
         applyView(view: any) {
           this.applied.push(view);
@@ -156,6 +162,7 @@ describe('TableViewsBar', () => {
 
       expect(ctx.savedViews).toStrictEqual([first]);
       expect(ctx.applied).toStrictEqual([]);
+      expect(ctx.forgotten).toStrictEqual(['bbb']);
     });
   });
 });
