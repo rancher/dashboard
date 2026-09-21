@@ -667,9 +667,13 @@ export default {
       }
 
       const token = this.activeToken;
-      const next = replaceToken(this.value || '', token, suggestion.insert);
+      const value = this.value || '';
+      const next = replaceToken(value, token, suggestion.insert, this.caret);
 
-      this.pendingCaret = token ? token.start + suggestion.insert.length : next.length;
+      // Where the caret belongs once it is written: over a token, just past what replaced it.
+      // Spliced at the caret instead, it moves by however much longer the query got - which
+      // counts the space replaceToken adds when the caret was not already following one.
+      this.pendingCaret = token ? token.start + suggestion.insert.length : this.caret + (next.length - value.length);
       // Written by us, so the box is the stale one and has to be redrawn
       this.domAhead = false;
       this.$emit('update:value', next);

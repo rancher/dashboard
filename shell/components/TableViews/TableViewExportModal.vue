@@ -1,6 +1,7 @@
 <script>
 import { RadioGroup } from '@components/Form/Radio';
 import { downloadFile } from '@shell/utils/download';
+import { escapeHtml } from '@shell/utils/string';
 import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views';
 
 /** The formats a selection or a view can be written out as */
@@ -96,7 +97,13 @@ export default {
     },
 
     intro() {
-      return this.isSelection ? this.t('tableViews.export.selectionIntro', { count: this.count }, true) : this.t('tableViews.export.intro', { count: this.count, name: this.viewName }, true);
+      if (this.isSelection) {
+        return this.t('tableViews.export.selectionIntro', { count: this.count }, true);
+      }
+
+      // The sentence around it is markup, so it is rendered as html - but the name is a name the
+      // user typed, not markup, and a view called `<b>live</b>` should read as its own name
+      return this.t('tableViews.export.intro', { count: this.count, name: escapeHtml(this.viewName) }, true);
     },
   },
 

@@ -1704,11 +1704,17 @@ export default {
     min-width: 0;
   }
 
+  // Coloured the way the product's warning banner is: the warning is carried by the tint and the
+  // rule beside it, and the words stay body text. `--warning` is a pale background yellow - set on
+  // 12px text over white it came out at 1.26:1, which is not readable.
   .query-unsupported {
     margin: 0;
+    padding: 4px 8px;
+    border-left: 2px solid var(--warning);
+    background: var(--warning-banner-bg);
+    color: var(--warning-banner-text, var(--body-text));
     font-size: 12px;
     line-height: 16px;
-    color: var(--warning);
   }
 
   .view-control-btn {

@@ -1,6 +1,6 @@
 import {
   applyQuery, applyQueryExpression, decodeView, encodeView, fieldsFor, parseQuery,
-  parseQueryExpression, queryToServerFilters, rowsToCsv, valuesInUse,
+  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, tokenAt, valuesInUse,
   isCoreField, CORE_FIELD_IDS,
   serverPathFor,
   summaryToValues,
@@ -389,5 +389,38 @@ describe('fx: queryToServerFilters', () => {
 
     expect(filters).toHaveLength(0);
     expect(unsupported.map((t) => t.value)).toStrictEqual(['Error', 'nginx']);
+  });
+});
+
+describe('fx: replaceToken', () => {
+  const fields = fieldsFor(HEADERS, ROWS);
+  const at = (query: string, caret: number) => tokenAt(query, caret, fields);
+
+  it('should write over the term the caret is in', () => {
+    const query = 'state:Err name:nginx';
+
+    expect(replaceToken(query, at(query, 9), 'state:Error ', 9)).toBe('state:Error  name:nginx');
+  });
+
+  it('should splice into the gap the caret is standing in, not the end of the query', () => {
+    const query = 'state:Error  name:nginx';
+    const caret = 12;
+
+    expect(at(query, caret)).toBeNull();
+    expect(replaceToken(query, null, 'and ', caret)).toBe('state:Error and  name:nginx');
+  });
+
+  it('should keep a joining word off the term in front of it', () => {
+    // The caret follows `or`, which is not a term, so nothing is under it - and pasting straight
+    // in would read as `ornot`
+    const query = 'state:Error or name:nginx';
+    // Just past the `r` of `or`
+    const caret = 14;
+
+    expect(replaceToken(query, null, 'not ', caret)).toBe('state:Error or not  name:nginx');
+  });
+
+  it('should still append when no caret is given', () => {
+    expect(replaceToken('state:Error', null, 'name:')).toBe('state:Error name:');
   });
 });
