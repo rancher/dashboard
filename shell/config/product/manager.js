@@ -170,7 +170,10 @@ export function init(store) {
     labelKey:  'tableHeaders.machines',
     sort:      false,
     search:    false,
-    formatter: 'MachineSummaryGraph',
+    // Not `MachineSummaryGraph` directly: a cluster with no machine states to draw has to fall
+    // back to a plain count, which the cluster list used to do in a slot of its own - so the
+    // column only worked on that one page
+    formatter: 'ClusterMachineSummary',
     align:     'center',
     width:     100,
   };
@@ -182,7 +185,10 @@ export function init(store) {
     align:               'right',
     width:               65,
     sort:                false,
-    search:              false
+    search:              false,
+    // The column has no value of its own, so without this it draws nothing on any list that
+    // does not supply the button itself
+    formatter:           'ClusterExplore',
   };
 
   headers(MANAGEMENT.CLUSTER, [
