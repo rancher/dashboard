@@ -1,3 +1,4 @@
+import jsyaml from 'js-yaml';
 import { get } from '@shell/utils/object';
 import {
   PaginationParamFilter,
@@ -1039,16 +1040,24 @@ export function rowsToCsv(rows: any[], columns: ExportColumn[]): string {
   return lines.join('\n');
 }
 
+/**
+ * The rows as plain records, one per row, keyed by the column headings on screen. What every
+ * export format is built from.
+ */
+function rowsToRecords(rows: any[], columns: ExportColumn[]): Record<string, string>[] {
+  return rows.map((row) => columns.reduce((acc: Record<string, string>, c) => {
+    acc[c.label] = stringifyValue(fieldValue(row, c.field));
+
+    return acc;
+  }, {}));
+}
+
+export function rowsToYaml(rows: any[], columns: ExportColumn[]): string {
+  return jsyaml.dump(rowsToRecords(rows, columns));
+}
+
 export function rowsToJson(rows: any[], columns: ExportColumn[]): string {
-  const out = rows.map((row) => {
-    return columns.reduce((acc: Record<string, string>, c) => {
-      acc[c.label] = stringifyValue(fieldValue(row, c.field));
-
-      return acc;
-    }, {});
-  });
-
-  return JSON.stringify(out, null, 2);
+  return JSON.stringify(rowsToRecords(rows, columns), null, 2);
 }
 
 /**
