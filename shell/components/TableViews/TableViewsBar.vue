@@ -962,199 +962,203 @@ export default {
     :class="{ 'part-controls': part === 'controls', 'part-tabs': part === 'tabs' }"
     data-testid="table-views-bar"
   >
+    <!-- The rule under the tabs belongs to the row rather than to the strip that scrolls, so it
+         spans the width however far along the tabs have been pushed. -->
     <div
       v-if="part !== 'controls'"
-      class="view-tabs"
+      class="view-tabs-row"
     >
-      <div
-        v-for="tab in tabs"
-        :key="tab.id || 'all'"
-        :ref="`tab-wrap-${ tab.id }`"
-        class="view-tab-wrap"
-        :class="{ active: selectedViewId === tab.id }"
-      >
-        <!-- Renaming happens on the tab itself, so the name is edited where it is read. The
-             default tab is excluded outright: it has no name of its own to change, and its id is
-             null, which is also what "nothing is being renamed" looks like. -->
-        <input
-          v-if="!tab.isDefaultTab && renamingId === tab.id"
-          :ref="`rename-${ tab.id }`"
-          v-model="renameDraft"
-          type="text"
-          class="view-tab rename-input"
-          :size="Math.max(renameDraft.length, 4)"
-          :aria-label="t('tableViews.tab.rename')"
-          :data-testid="`table-views-rename-input-${ tab.id }`"
-          @keydown.enter.prevent="commitRename"
-          @keydown.esc.prevent="cancelRename"
-          @blur="commitRename"
-          @click.stop
+      <div class="view-tabs">
+        <div
+          v-for="tab in tabs"
+          :key="tab.id || 'all'"
+          :ref="`tab-wrap-${ tab.id }`"
+          class="view-tab-wrap"
+          :class="{ active: selectedViewId === tab.id }"
         >
-        <button
-          v-else
-          type="button"
-          class="view-tab"
-          :data-testid="tab.isDefaultTab ? 'table-views-tab-all' : `table-views-tab-${ tab.id }`"
-          @click="applyView(tab.view || null)"
-        >
-          {{ tabLabel(tab) }}
-          <span
-            v-if="isTabDirty(tab)"
-            v-clean-tooltip="t('tableViews.view.unsavedShort')"
-            class="unsaved-dot"
-            data-testid="table-views-unsaved"
-          />
-        </button>
-
-        <!-- The menu belongs to the whole tab, not to the chevron that opens it, so it is
-             positioned against the tab: flush with the start of the name and 9 below the line the
-             tab draws under itself. -->
-        <rc-dropdown
-          :placement="'bottom-start'"
-          :distance="9"
-          :reference-node="() => tabWrap(tab)"
-        >
-          <rc-dropdown-trigger
-            variant="link"
-            class="view-tab-caret"
-            :aria-label="t('tableViews.tab.menu')"
-            :data-testid="tab.isDefaultTab ? 'table-views-tab-menu-all' : `table-views-tab-menu-${ tab.id }`"
+          <!-- Renaming happens on the tab itself, so the name is edited where it is read. The
+               default tab is excluded outright: it has no name of its own to change, and its id is
+               null, which is also what "nothing is being renamed" looks like. -->
+          <input
+            v-if="!tab.isDefaultTab && renamingId === tab.id"
+            :ref="`rename-${ tab.id }`"
+            v-model="renameDraft"
+            type="text"
+            class="view-tab rename-input"
+            :size="Math.max(renameDraft.length, 4)"
+            :aria-label="t('tableViews.tab.rename')"
+            :data-testid="`table-views-rename-input-${ tab.id }`"
+            @keydown.enter.prevent="commitRename"
+            @keydown.esc.prevent="cancelRename"
+            @blur="commitRename"
+            @click.stop
           >
-            <i class="icon icon-chevron-down" />
-          </rc-dropdown-trigger>
-          <template #dropdownCollection>
-            <div :class="['menu-panel', 'has-icons', { 'has-notice': isTabDirty(tab) }]">
-              <!-- Unsaved changes, and the three ways out of them -->
-              <template v-if="isTabDirty(tab)">
-                <div class="menu-notice">
-                  <span class="unsaved-dot" />
-                  {{ t('tableViews.view.unsaved') }}
-                </div>
+          <button
+            v-else
+            type="button"
+            class="view-tab"
+            :data-testid="tab.isDefaultTab ? 'table-views-tab-all' : `table-views-tab-${ tab.id }`"
+            @click="applyView(tab.view || null)"
+          >
+            {{ tabLabel(tab) }}
+            <span
+              v-if="isTabDirty(tab)"
+              v-clean-tooltip="t('tableViews.view.unsavedShort')"
+              class="unsaved-dot"
+              data-testid="table-views-unsaved"
+            />
+          </button>
+
+          <!-- The menu belongs to the whole tab, not to the chevron that opens it, so it is
+               positioned against the tab: flush with the start of the name and 9 below the line the
+               tab draws under itself. -->
+          <rc-dropdown
+            :placement="'bottom-start'"
+            :distance="9"
+            :reference-node="() => tabWrap(tab)"
+          >
+            <rc-dropdown-trigger
+              variant="link"
+              class="view-tab-caret"
+              :aria-label="t('tableViews.tab.menu')"
+              :data-testid="tab.isDefaultTab ? 'table-views-tab-menu-all' : `table-views-tab-menu-${ tab.id }`"
+            >
+              <i class="icon icon-chevron-down" />
+            </rc-dropdown-trigger>
+            <template #dropdownCollection>
+              <div :class="['menu-panel', 'has-icons', { 'has-notice': isTabDirty(tab) }]">
+                <!-- Unsaved changes, and the three ways out of them -->
+                <template v-if="isTabDirty(tab)">
+                  <div class="menu-notice">
+                    <span class="unsaved-dot" />
+                    {{ t('tableViews.view.unsaved') }}
+                  </div>
+                  <rc-dropdown-item
+                    v-if="!tab.isDefaultTab"
+                    data-testid="table-views-save-changes"
+                    @click="saveChanges()"
+                  >
+                    <template #before>
+                      <i class="icon icon-download" />
+                    </template>
+                    {{ t('tableViews.view.saveChanges') }}
+                    <template #after>
+                      <span class="menu-shortcut">{{ t('tableViews.shortcut.save') }}</span>
+                    </template>
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    data-testid="table-views-save-as-new"
+                    @click="openSaveAsNew()"
+                  >
+                    <template #before>
+                      <i class="icon" />
+                    </template>
+                    {{ t('tableViews.view.saveAsNew') }}
+                    <template #after>
+                      <span class="menu-shortcut">{{ t('tableViews.shortcut.saveAsNew') }}</span>
+                    </template>
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    data-testid="table-views-discard"
+                    @click="discardChanges()"
+                  >
+                    <template #before>
+                      <i class="icon" />
+                    </template>
+                    {{ t('tableViews.view.discard') }}
+                  </rc-dropdown-item>
+                  <rc-dropdown-separator />
+                </template>
+
+                <!-- The default tab is the table as it comes: it can't be renamed, saved over or
+                     deleted. Copying it is how you start a view from what it holds. -->
                 <rc-dropdown-item
                   v-if="!tab.isDefaultTab"
-                  data-testid="table-views-save-changes"
-                  @click="saveChanges()"
+                  :data-testid="`table-views-rename-${ tab.id }`"
+                  @click="openRename(tab.view)"
                 >
                   <template #before>
-                    <i class="icon icon-download" />
+                    <i class="icon icon-edit" />
                   </template>
-                  {{ t('tableViews.view.saveChanges') }}
-                  <template #after>
-                    <span class="menu-shortcut">{{ t('tableViews.shortcut.save') }}</span>
-                  </template>
+                  {{ t('tableViews.tab.rename') }}
                 </rc-dropdown-item>
                 <rc-dropdown-item
-                  data-testid="table-views-save-as-new"
-                  @click="openSaveAsNew()"
+                  :data-testid="tab.isDefaultTab ? 'table-views-duplicate-all' : `table-views-duplicate-${ tab.id }`"
+                  @click="duplicateTab(tab)"
+                >
+                  <template #before>
+                    <i class="icon icon-copy" />
+                  </template>
+                  {{ t('tableViews.tab.duplicate') }}
+                  <template #after>
+                    <span class="menu-shortcut">{{ t('tableViews.shortcut.duplicate') }}</span>
+                  </template>
+                </rc-dropdown-item>
+
+                <rc-dropdown-item
+                  :data-testid="tab.isDefaultTab ? 'table-views-export-all' : `table-views-export-${ tab.id }`"
+                  @click="openExport(tab.view)"
                 >
                   <template #before>
                     <i class="icon" />
                   </template>
-                  {{ t('tableViews.view.saveAsNew') }}
-                  <template #after>
-                    <span class="menu-shortcut">{{ t('tableViews.shortcut.saveAsNew') }}</span>
-                  </template>
+                  {{ t('tableViews.export.label') }}
                 </rc-dropdown-item>
+
                 <rc-dropdown-item
-                  data-testid="table-views-discard"
-                  @click="discardChanges()"
+                  :class="{ selected: isDefaultTab(tab) }"
+                  :data-testid="tab.isDefaultTab ? 'table-views-set-default-all' : `table-views-set-default-${ tab.id }`"
+                  @click="setDefaultView(tab)"
                 >
                   <template #before>
                     <i class="icon" />
                   </template>
-                  {{ t('tableViews.view.discard') }}
+                  {{ t('tableViews.tab.setDefault') }}
+                  <template
+                    v-if="isDefaultTab(tab)"
+                    #after
+                  >
+                    <i class="icon icon-checkmark" />
+                  </template>
                 </rc-dropdown-item>
-                <rc-dropdown-separator />
-              </template>
 
-              <!-- The default tab is the table as it comes: it can't be renamed, saved over or
-                   deleted. Copying it is how you start a view from what it holds. -->
-              <rc-dropdown-item
-                v-if="!tab.isDefaultTab"
-                :data-testid="`table-views-rename-${ tab.id }`"
-                @click="openRename(tab.view)"
-              >
-                <template #before>
-                  <i class="icon icon-edit" />
-                </template>
-                {{ t('tableViews.tab.rename') }}
-              </rc-dropdown-item>
-              <rc-dropdown-item
-                :data-testid="tab.isDefaultTab ? 'table-views-duplicate-all' : `table-views-duplicate-${ tab.id }`"
-                @click="duplicateTab(tab)"
-              >
-                <template #before>
-                  <i class="icon icon-copy" />
-                </template>
-                {{ t('tableViews.tab.duplicate') }}
-                <template #after>
-                  <span class="menu-shortcut">{{ t('tableViews.shortcut.duplicate') }}</span>
-                </template>
-              </rc-dropdown-item>
-
-              <rc-dropdown-item
-                :data-testid="tab.isDefaultTab ? 'table-views-export-all' : `table-views-export-${ tab.id }`"
-                @click="openExport(tab.view)"
-              >
-                <template #before>
-                  <i class="icon" />
-                </template>
-                {{ t('tableViews.export.label') }}
-              </rc-dropdown-item>
-
-              <rc-dropdown-item
-                :class="{ selected: isDefaultTab(tab) }"
-                :data-testid="tab.isDefaultTab ? 'table-views-set-default-all' : `table-views-set-default-${ tab.id }`"
-                @click="setDefaultView(tab)"
-              >
-                <template #before>
-                  <i class="icon" />
-                </template>
-                {{ t('tableViews.tab.setDefault') }}
-                <template
-                  v-if="isDefaultTab(tab)"
-                  #after
-                >
-                  <i class="icon icon-checkmark" />
-                </template>
-              </rc-dropdown-item>
-
-              <rc-dropdown-item
-                :data-testid="tab.isDefaultTab ? 'table-views-copy-link-all' : `table-views-copy-link-${ tab.id }`"
-                @click="copyShareUrl"
-              >
-                <template #before>
-                  <i class="icon" />
-                </template>
-                {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
-              </rc-dropdown-item>
-
-              <template v-if="!tab.isDefaultTab">
-                <rc-dropdown-separator />
                 <rc-dropdown-item
-                  :data-testid="`table-views-delete-${ tab.id }`"
-                  @click="deleteView(tab.view)"
+                  :data-testid="tab.isDefaultTab ? 'table-views-copy-link-all' : `table-views-copy-link-${ tab.id }`"
+                  @click="copyShareUrl"
                 >
                   <template #before>
-                    <i class="icon icon-trash" />
+                    <i class="icon" />
                   </template>
-                  {{ t('tableViews.tab.delete') }}
+                  {{ copied ? t('tableViews.save.copied') : t('tableViews.tab.copyLink') }}
                 </rc-dropdown-item>
-              </template>
-            </div>
-          </template>
-        </rc-dropdown>
+
+                <template v-if="!tab.isDefaultTab">
+                  <rc-dropdown-separator />
+                  <rc-dropdown-item
+                    :data-testid="`table-views-delete-${ tab.id }`"
+                    @click="deleteView(tab.view)"
+                  >
+                    <template #before>
+                      <i class="icon icon-trash" />
+                    </template>
+                    {{ t('tableViews.tab.delete') }}
+                  </rc-dropdown-item>
+                </template>
+              </div>
+            </template>
+          </rc-dropdown>
+        </div>
+
+        <button
+          type="button"
+          class="view-tab new-view-tab"
+          data-testid="table-views-new-tab"
+          @click="addView"
+        >
+          <i class="icon icon-plus" />
+          {{ t('tableViews.tabs.newView') }}
+        </button>
       </div>
-
-      <button
-        type="button"
-        class="view-tab new-view-tab"
-        data-testid="table-views-new-tab"
-        @click="addView"
-      >
-        <i class="icon icon-plus" />
-        {{ t('tableViews.tabs.newView') }}
-      </button>
     </div>
 
     <div
@@ -1432,11 +1436,45 @@ export default {
     width: 100%;
   }
 
+  // Holds the rule the tabs sit on, so it runs the full width whatever the strip inside is doing
+  .view-tabs-row {
+    width: 100%;
+    border-bottom: 1px solid var(--border);
+  }
+
   .view-tabs {
     display: flex;
     align-items: stretch;
     gap: 24px;
-    border-bottom: 1px solid var(--border);
+    // More tabs than fit: they scroll sideways rather than running on under whatever is beside
+    // them. Naming one axis leaves the other computing to `auto`, hence the explicit hidden.
+    overflow-x: auto;
+    overflow-y: hidden;
+    // Takes the strip down over the row's rule, so an active tab's underline covers it rather
+    // than sitting a pixel above it
+    margin-bottom: -1px;
+
+    // A tab keeps its width - the strip scrolls instead of the tabs being squeezed
+    > * {
+      flex: none;
+    }
+
+    // A thin scrollbar rather than the platform's full width one, which would otherwise take a
+    // bite out of a 33px row
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 2px;
+      background: var(--scrollbar-thumb, var(--border));
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
   }
 
   // A tab and its caret menu, sharing one active underline
@@ -1446,7 +1484,6 @@ export default {
     gap: 8px;
     height: 32px;
     border-bottom: 2px solid transparent;
-    margin-bottom: -1px; // sit the underline on the row's own border rather than above it
 
     // The same colours the tabs elsewhere in the product use: every tab reads as a link, and the
     // active one is told apart by the rule under it rather than by a colour of its own
