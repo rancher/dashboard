@@ -1911,6 +1911,14 @@ export default {
     align-items: center;
     gap: 8px;
     height: 100%;
+
+    // The unsaved mark is a superscript on the name, not a bullet beside it: it sits clear above
+    // the capitals rather than on the middle of the word. The 2 puts its underside a couple of
+    // pixels over the cap line, which measures 10.6 down from the top of a 32 tab.
+    > .unsaved-dot {
+      align-self: flex-start;
+      margin-top: 2px;
+    }
     // The global button rule carries a 40px min-height, which `height` alone can't get under -
     // it was making the tabs row 8px taller than the tabs in it
     min-height: 32px;
