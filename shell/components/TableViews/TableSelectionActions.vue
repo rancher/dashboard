@@ -1,5 +1,6 @@
 <script>
 import { RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator } from '@components/RcDropdown';
+import IconOrSvg from '@shell/components/IconOrSvg';
 
 /**
  * The bulk actions for the rows a table has selected, as one "N Selected" menu.
@@ -14,7 +15,7 @@ export default {
   emits: ['click', 'mouseover', 'mouseleave'],
 
   components: {
-    RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator
+    IconOrSvg, RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator
   },
 
   props: {
@@ -97,9 +98,13 @@ export default {
         @mouseleave="$emit('mouseleave', null)"
       >
         <template #before>
-          <i
-            v-if="act.icon"
-            :class="act.icon"
+          <!-- An action's icon is a font class or an svg the extension supplied. This is the one
+               component that draws either, which is how the row action menu draws them too. -->
+          <IconOrSvg
+            v-if="act.icon || act.svg"
+            :icon="act.icon"
+            :src="act.svg"
+            class="icon"
           />
         </template>
         <span v-clean-html="act.label" />
@@ -116,7 +121,11 @@ export default {
           @mouseleave="$emit('mouseleave', null)"
         >
           <template #before>
-            <i :class="deleteAction.icon || 'icon icon-delete'" />
+            <IconOrSvg
+              :icon="deleteAction.icon || 'icon icon-delete'"
+              :src="deleteAction.svg"
+              class="icon"
+            />
           </template>
           <span>{{ t('tableViews.bulk.deleteSelected') }}</span>
         </rc-dropdown-item>
