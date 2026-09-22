@@ -20,7 +20,17 @@ safe-outputs:
 
 A change to what the dashboard renders needs a recording of the dashboard still rendering. A passing test suite is not that evidence: it never touched the screen.
 
-**A change touches the UI** if it adds, deletes or edits any `.vue` or `.scss` file, anything under `shell/pages/`, `shell/components/`, `shell/detail/`, `shell/edit/`, `shell/list/`, `shell/dialog/`, `shell/promptRemove/`, `shell/chart/`, `shell/cloud-credential/`, `shell/machine-config/` or the `pkg/*/` equivalents, or any translation key. A change confined to `.ts`/`.js` under `shell/utils/` or `shell/config/`, or to `cypress/`, `storybook/`, `docusaurus/` or `creators/`, does not — say so in the Evidence section of the body rather than attaching nothing without explanation.
+### Does the change touch the UI?
+
+**Yes** if it adds, deletes or edits any of:
+
+- a `.vue` or `.scss` file
+- anything under `shell/pages/`, `shell/components/`, `shell/detail/`, `shell/edit/`, `shell/list/`, `shell/dialog/`, `shell/promptRemove/`, `shell/chart/`, `shell/cloud-credential/`, `shell/machine-config/`, or the `pkg/*/` equivalents
+- any translation key
+
+**No** if it is confined to `.ts`/`.js` under `shell/utils/` or `shell/config/`, or to `cypress/`, `storybook/`, `docusaurus/` or `creators/`. Say so in the Evidence section rather than attaching nothing without explanation.
+
+### Capture
 
 Capture only **after** `yarn lint` and `yarn test:ci` have passed. A recording of a broken build shows nothing worth reviewing.
 
@@ -35,9 +45,11 @@ Capture only **after** `yarn lint` and `yarn test:ci` have passed. A recording o
    timeout 900 bash -c 'until grep -q "Compiled successfully" /tmp/gh-aw/agent/dashboard-dev.log; do sleep 10; done'
    ```
 
-   A compile failure is a failed gate — quote what it printed, and open no pull request. A compile that does not finish inside the timeout is not: open the pull request without a video and say which of the two happened.
+   **A compile failure is a failed gate.** Quote what it printed and open no pull request.
 
-2. Record the walkthrough, and take at least one still. The dev server's certificate is self-signed, so the browser has to be told to accept it, and that has to be set before the session is opened:
+   **A compile that does not finish inside the timeout is not.** Open the pull request without a video and say which of the two happened.
+
+2. Record the walkthrough and take at least one still. The dev server's certificate is self-signed, so the browser has to be told to accept it — before the session is opened:
 
    ```bash
    export PLAYWRIGHT_MCP_IGNORE_HTTPS_ERRORS=true
@@ -53,20 +65,22 @@ Capture only **after** `yarn lint` and `yarn test:ci` have passed. A recording o
    ```
 
 3. Visit **every** screen the change affects, plus the screen that reaches it. Mark each with a `video-chapter` so a reviewer can find it without scrubbing
-4. Run `playwright-cli console error` on each screen. An error the change introduced is a failed change, not a caveat to note in the body — abandon it
-5. Keep the video under a minute. A recording nobody watches is worse than a screenshot somebody does — if the walkthrough will not fit, cut it to the one screen that matters
+4. Run `playwright-cli console error` on each screen. An error the change introduced is a failed change, not a caveat for the body — abandon it
+5. Keep the video under a minute. A recording nobody watches is worse than a screenshot somebody does. If the walkthrough will not fit, cut it to the one screen that matters
 
 ### Publishing and embedding
 
-Call the `upload_asset` tool with the file path. It returns a URL **immediately**, before the run ends, of the form `https://github.com/<owner>/<repo>/blob/assets/<workflow>/<sha256>.<ext>?raw=true`. Paste that URL into the bodies you write; do not try to construct it yourself, and do not wait for anything.
+Call the `upload_asset` tool with the file path. It returns a URL **immediately**, before the run ends, of the form `https://github.com/<owner>/<repo>/blob/assets/<workflow>/<sha256>.<ext>?raw=true`.
 
-The same asset can be referenced from more than one body. Upload once, and put the same URL in the issue **and** in the pull request that fixes it.
+Paste that URL into the bodies you write. Never construct it yourself, and never wait for anything.
+
+One asset can be referenced from more than one body. Upload once, and put the same URL in the issue **and** in the pull request that fixes it.
 
 How to embed each kind:
 
-- **A `.png` renders inline** in an issue or pull request body. Write it as `![<what the screen shows>](<url>)`
-- **A `.webm` does not render inline** from this kind of URL — GitHub only auto-embeds video for its own attachment host. Write it as a plain markdown link, `[Walkthrough recording (webm)](<url>)`, and put an inline `.png` still above it. A `<video src>` tag pointing at this URL renders as nothing at all, so never use one
+- **`.png` renders inline.** Write it as `![<what the screen shows>](<url>)`
+- **`.webm` does not render inline** from this kind of URL — GitHub only auto-embeds video for its own attachment host. Write it as a plain link, `[Walkthrough recording (webm)](<url>)`, with an inline `.png` still above it. A `<video src>` tag pointing at this URL renders as nothing at all, so never use one
 
-The assets are pushed to their branch by a job that runs **in parallel** with the one that creates issues and pull requests, so a URL can 404 for a few seconds after the body is posted. That is expected and self-corrects; it is not a reason to retry the upload.
+**A URL can 404 for a few seconds after the body is posted.** The assets are pushed to their branch by a job running in parallel with the one that creates issues and pull requests. Expected, self-correcting, and not a reason to retry the upload.
 
-If a recording could not be produced at all, take a `playwright-cli screenshot` of the affected screen instead, publish that, and say in the body why there is no video.
+No recording possible at all: take a `playwright-cli screenshot` of the affected screen instead, publish that, and say in the body why there is no video.

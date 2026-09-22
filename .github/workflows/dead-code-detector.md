@@ -113,26 +113,30 @@ timeout-minutes: 75
 
 Remove dead code from this repository, and report what cannot yet be removed.
 
-The sections above are the house rules — the runtime you are running in, how to capture UI evidence, how findings become issues and pull requests, and how lessons are recorded. This section is the part specific to dead code: what counts as a candidate, what may never be one, and how candidates group into the clusters that become issues.
+The sections above are the house rules: the runtime, how to capture UI evidence, how findings become issues and pull requests, how lessons are recorded. This section is the dead-code part — what counts as a candidate, what may never be one, and how candidates group into the clusters that become issues.
 
-Read them together. Wherever the shared protocol says "finding", it means a [**cluster**](#clusters), and wherever it writes `<bot-label>`, substitute `bot/dead-code-detector`.
+Read them together. Where the shared protocol says "finding", read [**cluster**](#clusters). Where it writes `<bot-label>`, substitute `bot/dead-code-detector`.
 
 - **Bot label**: `bot/dead-code-detector`
 - **Branch prefix**: `dead-code/` — a pull request on any other branch is rejected before it is opened
 - **Lessons file**: `.github/agents/lessons/dead-code.md`
-- **Budgets**: at most **three** open pull requests carrying the bot label at a time, at most **three** open issues carrying it, at most **three** issues filed per run, and at most **six** comments — shared between refutations, corrections and the rebase notices in "Keeping the open pull requests mergeable"
+- **Budgets**: **three** open pull requests carrying the bot label, **three** open issues carrying it, **three** issues filed per run, **six** comments — the comments shared between refutations, corrections and the rebase notices in "Keeping the open pull requests mergeable"
 
-The pull request budget is enforced before you start: a fourth open pull request skips the run, and you never see this prompt. The issue budget is yours to hold — see "Filing when the backlog is full".
+The pull request budget is enforced before you start: a fourth open one skips the run and you never see this prompt. The issue budget is yours to hold — see "Filing when the backlog is full".
 
-The lessons file holds the search idioms that have produced false findings here and the confidence rubric under "Provenance and confidence". It binds this run with the same force as this section, so nothing below repeats it. Read it before composing a search, not after.
+The lessons file holds the search idioms that have produced false findings here, plus the confidence rubric under "Provenance and confidence". It binds this run as hard as this section does, so nothing below repeats it. Read it before composing a search, not after.
 
 ## Filing when the backlog is full
 
-The three-open-issues cap counts issues **open at once**, not issues filed this run. Count first: `list_issues` with `labels: ["bot/dead-code-detector"], state: "OPEN"`. That count and the per-run cap of three both apply, smaller one wins — two already open leaves room for one, not three.
+The three-open-issues cap counts issues **open at once**, not issues filed this run. Count first: `list_issues` with `labels: ["bot/dead-code-detector"], state: "OPEN"`.
 
-At three or more, **file nothing new**. Detection still runs, because what it turns up decides whether the run has anything to say, but a verified finding with no slot goes in the run summary and waits for a later run. Remediation is unaffected: a full backlog is exactly when clearing it matters, and the pull requests closing those issues are what makes room.
+That count and the per-run cap of three both apply, smaller one wins. Two already open leaves room for one, not three.
 
-This cap is deliberately not harness-enforced. Gating the run on an open-issue count would stop remediation, the only thing that closes these issues, and three of them would wedge the workflow until someone closed them by hand.
+**At three or more, file nothing new.** Detection still runs, because what it turns up decides whether the run has anything to say — but a verified finding with no slot goes in the run summary and waits for a later run.
+
+Remediation is unaffected. A full backlog is exactly when clearing it matters, and the pull requests closing those issues are what makes room.
+
+This cap is deliberately not harness-enforced. Gating the run on an open-issue count would stop remediation, the only thing that closes these issues, and three of them would wedge the workflow until a person closed them by hand.
 
 ## Context
 
@@ -154,11 +158,11 @@ Start from the files changed in recent commits (`git log`, `git diff`) under `sh
 
 ## Never reported
 
-- **A test file on its own.** The runner finds tests by glob, so nothing imports one and "unreferenced" says nothing about it. A test is never a finding by itself — but it is not exempt from removal either: when the code it covers is dead, the test is part of that cluster and is verified to the same standard as the rest of it
-- **All workflow files** — anything under `.github/workflows/`
+- **A test file on its own.** The runner finds tests by glob, so nothing imports one and "unreferenced" says nothing about it. Never a finding by itself — though not exempt from removal either: where the code it covers is dead, the test is part of that cluster and is verified to the same standard
+- **Any workflow file** — anything under `.github/workflows/`
 - Generated code, vendored dependencies, and type declarations required for compilation
 
-The lessons file adds two more categories, under "Convention directories are loaded by a template-literal import" and "Entry points have no importers by design". Read both before deciding anything is unreferenced.
+The lessons file adds two more categories: "Convention directories are loaded by a template-literal import" and "Entry points have no importers by design". Read both before deciding anything is unreferenced.
 
 ## Clusters
 
@@ -166,11 +170,13 @@ A cluster is one directory plus whatever its members transitively drag in. Build
 
 1. Read the imports of each confirmed-dead file
 2. For every in-repo module it imports, re-run the reference check while treating the already-confirmed-dead files as if they had been deleted
-3. Anything whose only remaining consumers are dead joins the cluster; repeat until the set stops growing
-4. Work upwards too: if a candidate's only importer is itself unreferenced, that importer joins the cluster
-5. Add the tests. A test file joins the cluster when the code it covers does — but read its imports first and confirm every one of them is already in the cluster. A test that also exercises live code is not dead, and finding one means the cluster is smaller than it looked
+3. Anything whose only remaining consumers are dead joins the cluster. Repeat until the set stops growing
+4. Work upwards too: a candidate whose only importer is itself unreferenced pulls that importer into the cluster
+5. Add the tests. A test file joins the cluster when the code it covers does — but read its imports first and confirm every one is already in the cluster. A test that also exercises live code is not dead, and finding one means the cluster is smaller than it looked
 
-**There is no minimum size.** Report every cluster you can verify, however small: a single unused constant is still dead code. When more clusters are verified than the issue budget allows, file the largest first and leave the rest for the next run.
+**No minimum size.** Report every cluster you can verify, however small. A single unused constant is still dead code.
+
+More clusters verified than the issue budget allows: file the largest first, leave the rest for the next run.
 
 ## What the issue and the pull request must say
 
@@ -180,8 +186,8 @@ On top of the shared templates, the evidence sections here carry:
 - **Dynamic resolution ruled out** — which `require.context` globs were re-grepped and which convention directories were checked
 - **What the dead files drag in** — the extra files the cluster walk added by following their imports, or "none — everything they import is still used elsewhere"
 - **Tests removed** — each test file in the cluster and the code it covers, or "none"
-- **Provenance shape** — which of the three in the lessons file this is, with the git output establishing it. State the shape; do not restate the rubric
+- **Provenance shape** — which of the three in the lessons file this is, with the git output establishing it. State the shape, never restate the rubric
 
-A removal touches the UI, and therefore needs evidence, whenever it deletes or edits a `.vue`, `.scss` or translation file — see "Capturing UI evidence" for the full boundary and the capture steps.
+A removal touches the UI, and so needs evidence, whenever it deletes or edits a `.vue`, `.scss` or translation file. See "Capturing UI evidence" for the full boundary and the capture steps.
 
-**Objective**: reduce the codebase and the backlog together. A run succeeds when it files what it found and removes what it can — deleting verified-dead code, disproving a wrong report, or recording a lesson that stops the next run repeating a mistake. Not when it produces the most output.
+**Objective: reduce the codebase and the backlog together.** A run succeeds by filing what it found and removing what it can — deleting verified-dead code, disproving a wrong report, or recording a lesson that stops the next run repeating a mistake. Not by producing the most output.

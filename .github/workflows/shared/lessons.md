@@ -1,10 +1,12 @@
 ## Lessons protocol
 
-Every run that gets surprised should leave the next run better equipped. This workflow keeps a lessons file under `.github/agents/lessons/`; the workflow-specific section below names it.
+A run that gets surprised leaves the next run better equipped. This workflow keeps a lessons file under `.github/agents/lessons/` — the workflow-specific section below names it.
 
 ### Read it first
 
-**Before anything else**, read the lessons file. If it does not exist, note that and continue. Everything in it binds this run with the same force as the checks in this prompt — the entries exist precisely because following the prompt alone still produced a wrong answer.
+**Read the lessons file before anything else.** It does not exist: note that and continue.
+
+Everything in it binds this run as hard as the checks in this prompt. The entries exist precisely because following the prompt alone still produced a wrong answer.
 
 ### What qualifies as a lesson
 
@@ -16,20 +18,20 @@ Every run that gets surprised should leave the next run better equipped. This wo
 
 ### What does not qualify
 
-- A restatement of a rule already in this prompt. An entry earns its place only if following this prompt as written would still have produced the wrong answer
-- A one-off observation about a specific file with no general rule behind it
-- Anything you did not actually run into on this run. Do not speculate about failure modes
-- A problem with the workflow itself — a missing dependency, a wrong runtime version, a gate that will not start. Report that in the run summary and move on
+- A restatement of a rule already in this prompt. An entry earns its place only where following this prompt as written would still have produced the wrong answer
+- A one-off observation about one file, with no general rule behind it
+- Anything you did not run into on this run. Never speculate about failure modes
+- A problem with the workflow itself — a missing dependency, a wrong runtime version, a gate that will not start. That goes in the run summary
 
-**Write the entry repository-agnostically.** Describe the pattern, not where it was filed — never name a repository or a fork, and do not cite issue numbers. The file travels with the workflow, so a number that resolves somewhere else is worse than no reference at all.
+**Write the entry repository-agnostically.** Describe the pattern, not where it was filed: never name a repository or a fork, never cite issue numbers. The file travels with the workflow, and a number resolving somewhere else is worse than no reference at all.
 
-**Resembling an existing entry is not the same as being covered by it.** Before dismissing something as already recorded, read the entry you have in mind and check that its **Rule** would actually have caught this case. Two failures can share a symptom and still need different checks — if the existing rule would have let this one through, write a new entry and say in it how the two differ.
+**Resembling an existing entry is not the same as being covered by it.** Before dismissing something as already recorded, read the entry you have in mind and check its **Rule** would have caught this case. Two failures can share a symptom and still need different checks. The existing rule would have let this one through: write a new entry, saying in it how the two differ.
 
 ### How to record it
 
-1. Append to the end of the `## Lessons` section of the file, using the exact entry format the file specifies under "Format for lessons": a dated `###` heading, then **Trigger**, **Rule** and **Command**
-2. The **Rule** must be an instruction for a future run, not a description of what happened
-3. The **Command** must be one you actually ran, with its real output — including, where it makes the point, the broken form alongside the working form
+1. Append to the end of the file's `## Lessons` section, in the exact format the file specifies under "Format for lessons": a dated `###` heading, then **Trigger**, **Rule** and **Command**
+2. **Rule** is an instruction for a future run, never a description of what happened
+3. **Command** is one you actually ran, with its real output — including the broken form alongside the working form where that makes the point
 4. Below the entry cap, append and change nothing else. Never edit or delete an existing entry
 
 ### Keeping the file small
