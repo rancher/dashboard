@@ -1056,6 +1056,9 @@ export default {
      *
      * A row that cannot be explored says why, so "nothing happens when I click it" has an answer in the
      * same place as the invitation to drag it.
+     *
+     * Dragging is how the shelf is REORDERED, so with one row pinned there is no order to change and the
+     * invitation is simply wrong — the copy drops it and says only what the row does.
      */
     getPinnedTooltip(cluster, showWhenClosed = false) {
       const rightState = showWhenClosed ? !this.shown : this.shown;
@@ -1071,7 +1074,9 @@ export default {
       }
 
       const { label: name, ready, stateDisplay: reason } = cluster;
-      const content = ready ? this.t('nav.pinnedCluster.explore', { name }) : this.t('nav.pinnedCluster.blocked', { name, reason });
+      const reorderable = this.pinnedRows.length > 1;
+      const key = ready ? 'nav.pinnedCluster.explore' : 'nav.pinnedCluster.blocked';
+      const content = this.t(reorderable ? key : `${ key }OnlyPinned`, { name, reason });
 
       return {
         content,

@@ -1186,6 +1186,56 @@ describe('topLevelMenu', () => {
       expect(blockedCopy).toContain('drag');
     });
 
+    // Dragging is how the shelf is REORDERED, so with a single row pinned there is no order to change —
+    // and the tooltip on the one row that IS draggable is where a user would read otherwise.
+    const mountWithPinned = async(count: number) => {
+      // The nav helper is a singleton that outlives a mount, so a second mount in the SAME test would
+      // still see the first one's clusters cached. `beforeEach` does this between tests; do it here too.
+      await sideNavService.reset();
+      sideNavService.initialized = false;
+
+      const clusters = ['a', 'b'].slice(0, count).map((id) => ({
+        id: `c-${ id }`, mgmt: { id: `c-${ id }` }, nameDisplay: `cluster-${ id }`, canExplore: true, pinned: true
+      }));
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: { $route: {}, $store: { ...generateStore(clusters) } },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      return wrapper.vm as any;
+    };
+
+    it('invites the drag only while there is an order to change', async() => {
+      const two = await mountWithPinned(2);
+
+      // Exact, not `toContain`: every single-pin key has its multi-pin key as a prefix.
+      expect(two.pinnedRows).toHaveLength(2);
+      expect(two.getPinnedTooltip(ready, true).content).toStrictEqual('%nav.pinnedCluster.explore%');
+      expect(two.getPinnedTooltip(blocked, true).content).toStrictEqual('%nav.pinnedCluster.blocked%');
+
+      const one = await mountWithPinned(1);
+
+      expect(one.pinnedRows).toHaveLength(1);
+      expect(one.getPinnedTooltip(ready, true).content).toStrictEqual('%nav.pinnedCluster.exploreOnlyPinned%');
+      expect(one.getPinnedTooltip(blocked, true).content).toStrictEqual('%nav.pinnedCluster.blockedOnlyPinned%');
+    });
+
+    // ...and the copy of those two variants says the same thing minus the invitation.
+    it('says everything but the drag in the single-pin copy', () => {
+      const en = load(readFileSync(resolve(__dirname, '../../../assets/translations/en-us.yaml'), 'utf8')) as any;
+      const { exploreOnlyPinned, blockedOnlyPinned } = en.nav.pinnedCluster;
+
+      expect(exploreOnlyPinned).toContain('{name}');
+      expect(exploreOnlyPinned).not.toContain('drag');
+      expect(blockedOnlyPinned).toContain('{name}');
+      expect(blockedOnlyPinned).toContain('{reason}');
+      expect(blockedOnlyPinned).not.toContain('drag');
+    });
+
     // Each row hangs the tooltip off two elements, one per nav state. Both answering would stack two
     // tooltips on one hover; neither would leave the expanded row with nothing saying it can be dragged.
     it.each([
