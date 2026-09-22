@@ -75,6 +75,15 @@ export default {
         top: 0, left: 0, width: 0
       },
       /**
+       * What the menu has to outrank to be seen. The stylesheet holds the floor, so 0 here
+       * means nothing the box sits in claims a layer worth clearing.
+       *
+       * The menu hangs off <body>, so it layers against whatever else is there - and a slide-in
+       * panel puts itself at 102, above the whole of the product's z-index scale. Read at the
+       * moment the menu opens rather than assumed, so it stays above whatever it is opened over.
+       */
+      menuZ:    0,
+      /**
        * True when the box holds a keystroke the query has not caught up to yet.
        *
        * The query round trips through the parent, so between a keystroke and the re-render there
@@ -301,8 +310,9 @@ export default {
       // Width is left to the stylesheet: the menu is as wide as its entries need, not as wide as
       // the box it hangs under. Only where it sits comes from the box.
       return {
-        top:  `${ this.menuPos.top }px`,
-        left: `${ this.menuPos.left }px`,
+        top:                  `${ this.menuPos.top }px`,
+        left:                 `${ this.menuPos.left }px`,
+        '--query-menu-stack': this.menuZ,
       };
     },
   },
@@ -513,6 +523,32 @@ export default {
           top: rect.bottom + 2, left: rect.left, width: rect.width
         };
       }
+
+      this.menuZ = this.stackAbove();
+    },
+
+    /**
+     * The z-index the menu needs to be seen from where the box is.
+     *
+     * Everything the box sits inside that layers itself, taken together: the highest of them is
+     * what the menu has to beat, because the menu is a sibling of the lot of them down on <body>.
+     * Zero when nothing along the way claims a layer, which leaves the stylesheet to say.
+     */
+    stackAbove() {
+      let el = this.$el?.parentElement;
+      let highest = 0;
+
+      while (el && el !== document.documentElement) {
+        const z = parseInt(getComputedStyle(el).zIndex, 10);
+
+        if (!isNaN(z) && z > highest) {
+          highest = z;
+        }
+
+        el = el.parentElement;
+      }
+
+      return highest ? highest + 1 : 0;
     },
 
     syncCaret() {
@@ -872,10 +908,13 @@ $query-height: 32px;
 }
 
 // Teleported to <body>, so positioned against the viewport and layered on the shared dropdown
-// level rather than against whatever stacking context the table happens to build
+// level rather than against whatever stacking context the table happens to build.
+//
+// The shared level is the floor, not the answer: a slide-in panel puts itself above the whole of
+// that scale, so a box opened inside one hands down what it has to clear and the higher wins.
 .table-view-query-menu {
   position: fixed;
-  z-index: z-index('dropdownContent');
+  z-index: max(#{z-index('dropdownContent')}, var(--query-menu-stack, 0));
   min-width: 260px;
   max-width: 380px;
   margin: 0;
