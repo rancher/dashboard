@@ -2004,9 +2004,6 @@ export default {
   // Under the box, the way the product writes a field's validation message under its field:
   // words in the colour that says how to take them, and no box of its own - a tint and a rule
   // would make one line about what was typed read like a notice about the page.
-  //
-  // Not `--warning`, which is the yellow a warning is drawn *on*: 12px of it over the toolbar
-  // came out at 1.26:1. `--warning-message-text` is warning as something to read.
   .query-notice {
     display: flex;
     align-items: center;
@@ -2017,7 +2014,7 @@ export default {
     line-height: 16px;
 
     &.error {
-      color: var(--warning-message-text);
+      color: var(--warning);
     }
 
     .icon {
