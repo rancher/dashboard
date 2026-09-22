@@ -7256,6 +7256,7 @@ tableViews:
   matches: "{count} matching"
   tabs:
     all: Explorer
+    label: Saved views
     newView: Add View
     count: "{name} ({count})"
   view:
