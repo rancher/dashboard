@@ -12,13 +12,6 @@ describe('component: Masthead/index', () => {
     cards: []
   };
 
-  const mockMetadataProps = {
-    resource:               mockResource,
-    identifyingInformation: [],
-    labels:                 [],
-    annotations:            []
-  };
-
   const defaultProps = {
     titleBarProps: {
       resource:          mockResource,
