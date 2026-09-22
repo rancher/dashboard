@@ -51,7 +51,7 @@ export default {
 </script>
 
 <template>
-  <div class="ai-templating-settings">
+  <div class="configurable-views-settings">
     <h1 class="mb-10">
       AI Templating
     </h1>

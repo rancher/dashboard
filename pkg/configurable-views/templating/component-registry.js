@@ -1012,7 +1012,7 @@ function buildExtra() {
     } catch (e) {
       // Never let one widget failing to load stop the others, or the whole registry, from building.
       // eslint-disable-next-line no-console
-      console.warn(`[ai-templating] custom-view component "${ name }" could not be registered`, e);
+      console.warn(`[configurable-views] custom-view component "${ name }" could not be registered`, e);
     }
   });
 

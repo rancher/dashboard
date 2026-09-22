@@ -1,6 +1,6 @@
 {
-  "name": "ai-templating",
-  "description": "ai-templating plugin",
+  "name": "configurable-views",
+  "description": "configurable-views plugin",
   "version": "0.1.0",
   "private": false,
   "rancher": {

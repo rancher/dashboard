@@ -15,6 +15,8 @@ export const TEMPLATE_NAMESPACE = 'default';
 
 // One marker label selects every templating ConfigMap (so we load only these, not the whole cluster);
 // a type label distinguishes them.
+// Keeps the old name on purpose. This label is ON the stored ConfigMaps — every saved panel, every
+// template, the kill switch — so renaming it orphans all of them.
 export const LABEL_MARKER = 'templates.rancher.io/ai-templating';
 export const LABEL_TYPE = 'templates.rancher.io/type';
 export const TYPE_HOME = 'home-template';
@@ -33,10 +35,10 @@ export const HOME_CONFIG_NAME = 'templating-home';
 export const HOME_CONFIG_ID = `${ TEMPLATE_NAMESPACE }/${ HOME_CONFIG_NAME }`;
 
 // This extension's product + route names (kept here so product.ts and routing/index.ts agree).
-export const PRODUCT_NAME = 'ai-templating';
-export const ROUTE_SETTINGS = 'ai-templating-settings';
-export const ROUTE_TEMPLATES = 'ai-templating-templates';
-export const ROUTE_LAYOUTS = 'ai-templating-layouts';
+export const PRODUCT_NAME = 'configurable-views';
+export const ROUTE_SETTINGS = 'configurable-views-settings';
+export const ROUTE_TEMPLATES = 'configurable-views-templates';
+export const ROUTE_LAYOUTS = 'configurable-views-layouts';
 
 // ---- ConfigMap helpers ----
 function safeParse(str, fallback) {

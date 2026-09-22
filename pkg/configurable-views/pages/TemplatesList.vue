@@ -87,7 +87,7 @@ async function onToggle(value: boolean) {
         :value="enabled"
         :disabled="toggling"
         label="Custom Home templating enabled"
-        data-testid="ai-templating-enabled-toggle"
+        data-testid="configurable-views-enabled-toggle"
         @update:value="onToggle"
       />
       <p class="text-muted mt-5 mb-0">
@@ -103,7 +103,7 @@ async function onToggle(value: boolean) {
       :headers="headers"
       :loading="loading"
       :namespaced="true"
-      data-testid="ai-templating-templates-table"
+      data-testid="configurable-views-templates-table"
     />
     <div
       v-else
