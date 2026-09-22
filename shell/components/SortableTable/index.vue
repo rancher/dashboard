@@ -2281,11 +2281,14 @@ export default {
       .search {
         grid-area: filter;
         display: flex;
-        align-items: center;
-        align-self: center;
+        align-items: flex-start;
+        align-self: start;
         // Pinned to the height of what it holds. Left to size itself the cell came out 7px
         // taller than the filter inside it, and the row gap either side inherited the slack.
-        height: 32px;
+        // A minimum rather than a fixed height, and held to the top of the cell: the filter can
+        // grow a line under it to say what is wrong with what was typed, and centring a taller
+        // row in a fixed cell took the filter itself up the page as the line appeared.
+        min-height: 32px;
         margin-top: 8px;
         justify-content: flex-start;
         gap: 10px;
