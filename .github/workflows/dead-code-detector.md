@@ -80,6 +80,12 @@ safe-outputs:
     target: "*"
     max: 6
 tools:
+  # Unrestricted, and it has to be: remediation shells out to yarn, git, node
+  # and docker, and a candidate's provenance is established with `git log -S`
+  # over the full history. An allowlist here fails a run halfway through on the
+  # first command nobody thought of. The compiler requires this to be spelled
+  # out whenever `min-integrity` is `none`, so that shell access is deliberate.
+  bash: [":*"]
   github:
     min-integrity: none
 env:

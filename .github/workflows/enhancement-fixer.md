@@ -90,6 +90,12 @@ safe-outputs:
     target: "*"
     max: 4
 tools:
+  # Unrestricted, and it has to be: resolving an issue shells out to yarn, git,
+  # node and docker, and there is no way to predict which of them a given
+  # enhancement needs. An allowlist here fails a run halfway through on the
+  # first command nobody thought of. The compiler requires this to be spelled
+  # out whenever `min-integrity` is `none`, so that shell access is deliberate.
+  bash: [":*"]
   github:
     min-integrity: none
 env:
