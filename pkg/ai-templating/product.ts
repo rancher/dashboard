@@ -1,0 +1,58 @@
+import { IPlugin } from '@shell/core/types';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { PRODUCT_NAME, ROUTE_SETTINGS, ROUTE_TEMPLATES, ROUTE_LAYOUTS } from './templating/template-engine';
+
+// The "AI Templating" product — a TOP-LEVEL global product (like Continuous Delivery / Cluster
+// Management): inStore 'management', no cluster switcher. It is focused solely on the configurable
+// Home: Settings (the kill switch), Home Templates (the panel building blocks) and Home Layouts (the
+// assembled dashboards). Everything is stored as labeled ConfigMaps (not a CRD).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function init($extension: IPlugin, store: any): void {
+  const { product, virtualType, basicType } = $extension.DSL(store, PRODUCT_NAME);
+
+  product({
+    icon:                'compass',
+    inStore:             'management',
+    removable:           false,
+    showClusterSwitcher: false,
+    weight:              -1,
+    to:                  { name: ROUTE_SETTINGS, params: { cluster: BLANK_CLUSTER } },
+  });
+
+  // Settings (kill-switch toggle) — always reachable. `exact` so it only highlights on its own
+  // route: its path `/c/_/ai-templating` is a prefix of every product route, and without exact the
+  // <router-link> active match would light Settings up on every sub-page.
+  virtualType({
+    labelKey:   'aiTemplating.settings.label',
+    name:       'ai-templating-settings',
+    namespaced: false,
+    icon:       'gear',
+    weight:     103,
+    exact:      true,
+    route:      { name: ROUTE_SETTINGS, params: { cluster: BLANK_CLUSTER } },
+  });
+
+  // Home Templates — the panel building blocks (home-template ConfigMaps).
+  virtualType({
+    labelKey:   'aiTemplating.templates.label',
+    name:       'ai-templating-templates',
+    namespaced: false,
+    icon:       'list-flat',
+    weight:     105,
+    exact:      true,
+    route:      { name: ROUTE_TEMPLATES, params: { cluster: BLANK_CLUSTER } },
+  });
+
+  // Home Layouts — the assembled Home VIEWS (panels + the widgets on them).
+  virtualType({
+    labelKey:   'aiTemplating.layouts.label',
+    name:       'ai-templating-layouts',
+    namespaced: false,
+    icon:       'list-grouped',
+    weight:     106,
+    exact:      true,
+    route:      { name: ROUTE_LAYOUTS, params: { cluster: BLANK_CLUSTER } },
+  });
+
+  basicType(['ai-templating-layouts', 'ai-templating-templates', 'ai-templating-settings']);
+}
