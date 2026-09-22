@@ -35,10 +35,20 @@ function goToHomePageAndSettle() {
   homeClusterList.resourceTable().sortableTable().rowElements().should((el) => expect(el).to.contain.text('There are no rows which match your search query.'));
 }
 
-// Min items: Community 1, Prime 2. Count can be higher (dynamic new-release applies to Community and Prime).
+// Min items: 1 normally (release notes), 2 when a Prime support notice is shown too.
+// Count can be higher (dynamic new-release applies to Community and Prime).
+//
+// That second, Prime-only notification is admin-only: processSupportNotices is gated
+// behind `!config.prime || context.isAdmin` (shell/utils/dynamic-content/index.ts), so a
+// non-admin on a Prime backend only ever sees the release-notes notification. Expecting 2
+// for *any* user on Prime makes this fail for @standardUser runs against a Prime backend,
+// so require both conditions. Anything other than the admin user is treated as non-admin,
+// which only ever relaxes the assertion - it can't turn a real regression into a pass,
+// since the release-notes notification this test is actually about is always expected.
 function assertHomeNotificationCount(nc: NotificationsCenterPo) {
   cy.getRancherVersion().then((version) => {
-    const minCount = version.RancherPrime === 'true' ? 2 : 1;
+    const isAdmin = Cypress.env('username') === 'admin';
+    const minCount = version.RancherPrime === 'true' && isAdmin ? 2 : 1;
 
     nc.checkCountAtLeast(minCount);
   });
