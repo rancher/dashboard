@@ -3,7 +3,8 @@ import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { isProductSinglePage } from '@shell/core/plugin-products-type-guards';
-import { AdvancedProductConfigOptions, ProductChild, ProductMetadata, ProductMetadataSinglePage } from '@shell/core/plugin-products-external';
+import { ProductChild, ProductMetadata, ProductMetadataSinglePage } from '@shell/core/plugin-products-external';
+import { AdvancedProductConfigOptions, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 
 /**
  * Represents a new top-level product being added by an extension
@@ -41,7 +42,7 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     // and allows extensions to use either string literal or enum value for product name
     this.name = prodName;
     this.product = product;
-    this.startRouteWithProduct = product.startRouteWithProduct ?? true;
+    this.startRouteWithProduct = (product as ProductMetadataInternal).startRouteWithProduct ?? true;
 
     // register the product as a top-level product in the plugin object (will be needed for routes correction when on list views for top-level products)
     plugin._registerTopLevelProduct(this.name);

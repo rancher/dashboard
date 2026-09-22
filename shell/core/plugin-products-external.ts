@@ -1,5 +1,6 @@
 import { ProductFunction } from '@shell/core/plugin';
 import { HeaderOptions } from '@shell/core/types';
+import { AdvancedProductConfigOptions } from '@shell/core/plugin-products-internal';
 import { NAME as EXPLORER_PROD_NAME } from '@shell/config/product/explorer.js';
 import { NAME as CLUSTER_MAN_PROD_NAME } from '@shell/config/product/manager.js';
 import { NAME as SETTINGS_PROD_NAME } from '@shell/config/product/settings.js';
@@ -311,27 +312,9 @@ type _ProductMetadata = LabelOrLabelKey & {
    */
   extendable?: boolean;
 
-  /**
-   * @internal
-   * Whether the route should start with the product name or not (e.g. "my-product/c/:cluster/:resource" vs "c/:cluster/my-product/:resource")
-   * only to be used in very special usecases (internal use only - check FLEET product config for an example)
-   */
-  startRouteWithProduct?: boolean;
 }
 
 export type ProductMetadata = _ProductMetadata
-
-/**
- * @internal
- * Advanced configuration options for product registration
- */
-export type AdvancedProductConfigOptions = {
-  /**
-   * @internal
-   * If console debugging is enabled
-   */
-  debuggerEnabled?: boolean;
-}
 
 /**
  * Represents a single page product, which is a product that only has one page and

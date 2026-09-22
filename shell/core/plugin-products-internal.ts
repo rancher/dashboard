@@ -198,6 +198,13 @@ export type ProductMetadataInternal = ProductMetadata & {
    */
   removable?: boolean;
 
+  /**
+   * @internal
+   * Whether the route should start with the product name or not (e.g. "my-product/c/:cluster/:resource" vs "c/:cluster/my-product/:resource")
+   * only to be used in very special usecases (internal use only - check FLEET product config for an example)
+   */
+  startRouteWithProduct?: boolean;
+
     /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
@@ -205,3 +212,15 @@ export type ProductMetadataInternal = ProductMetadata & {
   // supportRoute: string;
   // typeStoreMap: string;
 };
+
+/**
+ * @internal
+ * Advanced configuration options for product registration
+ */
+export type AdvancedProductConfigOptions = {
+  /**
+   * @internal
+   * If console debugging is enabled
+   */
+  debuggerEnabled?: boolean;
+}

@@ -28,10 +28,11 @@ import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 import { ExtensionManagerTypes } from '@shell/types/extension-manager';
 import { PluginProduct } from './plugin-products';
 import {
-  AdvancedProductConfigOptions, ProductMetadata, ProductMetadataSinglePage,
+  ProductMetadata, ProductMetadataSinglePage,
   StandardProductName,
   ProductChild
 } from '@shell/core/plugin-products-external';
+import { AdvancedProductConfigOptions } from '@shell/core/plugin-products-internal';
 
 /** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
