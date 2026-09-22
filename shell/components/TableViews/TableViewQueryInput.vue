@@ -21,7 +21,7 @@ let uid = 0;
 export default {
   name: 'TableViewQueryInput',
 
-  emits: ['update:value', 'request-values'],
+  emits: ['update:value', 'request-values', 'update:focused'],
 
   props: {
     value: {
@@ -579,6 +579,7 @@ export default {
     onFocus() {
       this.focused = true;
       this.dismissed = false;
+      this.$emit('update:focused', true);
     },
 
     /**
@@ -613,6 +614,7 @@ export default {
       }
 
       this.focused = false;
+      this.$emit('update:focused', false);
 
       if (document.activeElement === this.$refs.input) {
         this.$refs.input.blur();
@@ -626,6 +628,7 @@ export default {
       setTimeout(() => {
         if (document.activeElement !== this.$refs.input) {
           this.focused = false;
+          this.$emit('update:focused', false);
         }
       }, 150);
     },

@@ -1,6 +1,6 @@
 import {
   applyQuery, applyQueryExpression, decodeView, encodeView, fieldsFor, parseQuery,
-  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, tokenAt, valuesInUse,
+  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, tokenAt, validateQuery, valuesInUse,
   coreFieldIdsFor, isCoreField, CORE_FIELD_IDS,
   serverPathFor,
   summaryToValues,
@@ -457,5 +457,75 @@ describe('fx: coreFieldIdsFor', () => {
 
   it('should ignore a sorted column the table does not show', () => {
     expect(coreFieldIdsFor(['state', 'name'], 'cpu')).toStrictEqual(['state', 'name']);
+  });
+});
+
+describe('fx: validateQuery', () => {
+  const fields = fieldsFor(HEADERS, ROWS);
+  const kinds = (query: string) => validateQuery(query, fields).map((p) => p.kind);
+
+  it('should find nothing wrong with a query that reads', () => {
+    expect(kinds('state:Error name:nginx')).toStrictEqual([]);
+    expect(kinds('state:Error and not name:nginx')).toStrictEqual([]);
+    expect(kinds('not state:Error or name:nginx')).toStrictEqual([]);
+    expect(kinds('')).toStrictEqual([]);
+    expect(kinds('nginx')).toStrictEqual([]);
+  });
+
+  it('should report a field with nothing to match', () => {
+    expect(kinds('state:')).toStrictEqual(['emptyValue']);
+    expect(kinds('state:""')).toStrictEqual(['emptyValue']);
+    expect(kinds('-state:')).toStrictEqual(['emptyValue']);
+    expect(validateQuery('state:', fields)[0].label).toBe('State');
+  });
+
+  it('should report an operator with nothing after it', () => {
+    expect(kinds('state:Error and')).toStrictEqual(['trailingOperator']);
+    expect(kinds('state:Error or')).toStrictEqual(['trailingOperator']);
+    expect(kinds('state:Error not')).toStrictEqual(['trailingOperator']);
+  });
+
+  it('should report a joining word with nothing before it', () => {
+    expect(kinds('and state:Error')).toStrictEqual(['leadingJoiner']);
+    expect(kinds('or state:Error')).toStrictEqual(['leadingJoiner']);
+  });
+
+  it('should let a query open with not, which joins nothing', () => {
+    expect(kinds('not state:Error')).toStrictEqual([]);
+  });
+
+  it('should report a joining word straight after another operator', () => {
+    expect(kinds('state:Error and or name:nginx')).toStrictEqual(['consecutiveOperators']);
+    expect(kinds('state:Error or and name:nginx')).toStrictEqual(['consecutiveOperators']);
+    expect(kinds('not and state:Error')).toStrictEqual(['consecutiveOperators']);
+    expect(kinds('not or state:Error')).toStrictEqual(['consecutiveOperators']);
+  });
+
+  it('should accept an operator followed by not, which reads', () => {
+    expect(kinds('state:Error and not name:nginx')).toStrictEqual([]);
+    expect(kinds('state:Error or not name:nginx')).toStrictEqual([]);
+  });
+
+  it('should report a negation with nothing to negate', () => {
+    expect(kinds('state:Error -')).toStrictEqual(['danglingNegation']);
+    expect(kinds('! state:Error')).toStrictEqual(['danglingNegation']);
+  });
+
+  it('should report a quote that never closes', () => {
+    expect(kinds('name:"unclosed')).toStrictEqual(['unbalancedQuote']);
+    expect(kinds(`name:'unclosed`)).toStrictEqual(['unbalancedQuote']);
+    expect(kinds('name:"closed"')).toStrictEqual([]);
+  });
+
+  it('should say only that there is nothing to filter by when there are no terms', () => {
+    expect(kinds('and')).toStrictEqual(['noTerms']);
+    expect(kinds('not')).toStrictEqual(['noTerms']);
+    expect(kinds('and or')).toStrictEqual(['noTerms']);
+  });
+
+  it('should point at where the problem is', () => {
+    const [problem] = validateQuery('state:Error and', fields);
+
+    expect('state:Error and'.substring(problem.start, problem.end)).toBe('and');
   });
 });
