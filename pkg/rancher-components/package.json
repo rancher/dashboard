@@ -55,7 +55,7 @@
     "vue-eslint-parser": "10.4.1"
   },
   "peerDependencies": {
-    "core-js": "3.40.0",
+    "core-js": "3.50.0",
     "vue": "^3.2.13"
   }
 }
