@@ -19,7 +19,13 @@ const oktaConfig = {
 };
 
 const disabledConfig = {
-  id: 'github', _type: 'githubConfig', enabled: false, nameDisplay: 'github', sideLabel: 'OAuth'
+  id:           'github',
+  _type:        'githubConfig',
+  enabled:      false,
+  nameDisplay:  'github',
+  provider:     'GitHub',
+  sideLabel:    'OAuth',
+  stateDisplay: 'Inactive',
 };
 
 // The catalogue the add-provider picker is drawn from, as the server reports it
@@ -91,14 +97,20 @@ describe('page: AuthConfigList', () => {
     expect(wrapper.findAllComponents(AuthProviderRow)[0].props('description')).toBeUndefined();
   });
 
-  // Rancher pre-creates a disabled authconfig per supported type; those are the
-  // create catalogue, not configured providers.
-  it('should keep unconfigured provider types out of the list', () => {
+  // Nothing is pre-created any more, so a config that exists is one somebody
+  // added - hiding it while it is switched off would strand it.
+  it('should list a provider that has been added but switched off', () => {
     const wrapper = createWrapper({ configs: [localConfig, oktaConfig, disabledConfig] });
 
-    const titles = wrapper.findAllComponents(AuthProviderRow).map((row) => row.props('title'));
+    const github = wrapper.findAllComponents(AuthProviderRow)[1];
 
-    expect(titles).not.toContain('github');
+    expect(github.props('title')).toBe('GitHub');
+    expect(github.props('status')).toBe('none');
+    expect(github.props('statusLabel')).toBe('Inactive');
+  });
+
+  it('should mark a provider that is switched on', () => {
+    expect(createWrapper().findAllComponents(AuthProviderRow)[0].props('status')).toBe('success');
   });
 
   it('should link a configured provider to its edit page', () => {
@@ -193,6 +205,13 @@ describe('page: AuthConfigList', () => {
     // Turning local login off with nothing to replace it locks everyone out.
     it('should not offer to disable local login', () => {
       const wrapper = createWrapper({ configs: [localConfig] });
+
+      expect(wrapper.findComponent(DisableLocalLoginCard).exists()).toBe(false);
+    });
+
+    // A provider that has been added but switched off cannot let anybody in either
+    it('should not offer to disable local login for a provider that is switched off', () => {
+      const wrapper = createWrapper({ configs: [localConfig, disabledConfig] });
 
       expect(wrapper.findComponent(DisableLocalLoginCard).exists()).toBe(false);
     });
@@ -310,6 +329,29 @@ describe('page: AuthConfigList', () => {
 
       expect(dispatch).toHaveBeenCalledWith('growl/fromError', { title: '%generic.notification.title.error%', err });
       expect(dispatch).not.toHaveBeenCalledWith('management/promptModal', expect.anything());
+    });
+  });
+
+  // Rancher only clears out configs nobody set up, so one made before the
+  // dashboard dropped its form for that provider can still be there.
+  describe('a provider the dashboard has no form for', () => {
+    it('should be left off the list', () => {
+      const oidc = {
+        id: 'oidc', _type: 'oidcConfig', enabled: false, nameDisplay: 'oidc'
+      };
+      const rows = createWrapper({ configs: [localConfig, oktaConfig, oidc] }).findAllComponents(AuthProviderRow);
+
+      // One for Okta, one for the local provider section
+      expect(rows).toHaveLength(2);
+    });
+
+    it('should still count as a way in', () => {
+      const oidc = {
+        id: 'oidc', _type: 'oidcConfig', enabled: true, nameDisplay: 'oidc'
+      };
+      const wrapper = createWrapper({ configs: [localConfig, oidc] });
+
+      expect(wrapper.findComponent(DisableLocalLoginCard).exists()).toBe(true);
     });
   });
 });
