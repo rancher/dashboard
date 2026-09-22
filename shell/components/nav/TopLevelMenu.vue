@@ -78,6 +78,7 @@ export default {
       switcherOpen:      false,
       displayVersion,
       fullVersion,
+      versionClipped:    false,
       clusterFilter:     '',
       hasProvCluster,
       loadingMoreOthers: false,
@@ -375,6 +376,16 @@ export default {
     aboutText() {
       // If a version number (starts with 'v') then use that
       if (this.displayVersion.startsWith('v')) {
+        if (this.shown) {
+          return this.displayVersion;
+        }
+
+        const [releaseNumber] = this.displayVersion.match(/^v\d+\.\d+\.\d+/) || [];
+
+        if (releaseNumber && releaseNumber !== this.displayVersion) {
+          return releaseNumber;
+        }
+
         // Don't show the '.0' for a minor release (e.g. 2.8.0, 2.9.0 etc)
         return !this.displayVersion.endsWith('.0') ? this.displayVersion : this.displayVersion.substr(0, this.displayVersion.length - 2);
       }
@@ -383,8 +394,26 @@ export default {
       return this.t('about.title');
     },
 
-    largeAboutText() {
-      return this.aboutText.length > 6;
+    versionTooltip() {
+      const labelSaysItAll = this.aboutText === this.fullVersion && !this.versionClipped;
+
+      return {
+        content:     labelSaysItAll ? undefined : this.fullVersion,
+        placement:   'right',
+        popperClass: 'nav-tooltip',
+      };
+    },
+
+    // Longer labels are set smaller so each one still reads as roughly centred in the rail, without
+    // changing the padding it sits in.
+    versionSizeClass() {
+      const { length } = this.aboutText;
+
+      if (length <= 6) {
+        return null;
+      }
+
+      return length === 7 ? 'version-small' : 'version-smaller';
     },
 
     appBar() {
@@ -454,6 +483,9 @@ export default {
     $route() {
       this.hide();
     },
+
+    aboutText: 'measureVersionClipping',
+    shown:     'measureVersionClipping',
 
     // Before SSP world all of these changes were kicked off given Vue change detection to properties in a computed method.
     // Changes could come from two scenarios
@@ -544,6 +576,7 @@ export default {
   },
 
   mounted() {
+    this.measureVersionClipping();
     document.addEventListener('keyup', this.handler);
     // Capture on `window` — one hop ahead of the `document` capture listeners the shortkey directive uses
     // — so the guard can swallow an app shortcut before any of them sees it.
@@ -563,6 +596,14 @@ export default {
   },
 
   methods: {
+    measureVersionClipping() {
+      this.$nextTick(() => {
+        const el = this.$refs.versionLink?.$el;
+
+        this.versionClipped = !!el && el.scrollWidth > el.clientWidth;
+      });
+    },
+
     checkActiveRoute(obj, isClusterRoute) {
       // for Cluster links in main nav: check if route is a cluster explorer one + check if route cluster matches cluster obj id + check if curr product matches route product
       if (isClusterRoute) {
@@ -1584,10 +1625,12 @@ export default {
         >
           <div
             class="version"
-            :class="{'version-small': largeAboutText}"
+            :class="versionSizeClass"
             @click="hide()"
           >
             <router-link
+              ref="versionLink"
+              v-clean-tooltip="versionTooltip"
               :to="{ name: 'about' }"
               role="link"
               :aria-label="t('nav.ariaLabel.about')"
@@ -2498,21 +2541,25 @@ export default {
       }
 
       .footer {
-        margin: 20px 10px;
+        margin: $nav-space-5 4px $nav-space-5 $nav-space-4;
         width: 50px;
 
         .version{
-          text-align: center;
-
+          // Each size holds its label to about the width of the shortest one, so the padding stays
+          // put and the label stays roughly centred.
           &.version-small {
-            font-size: $font-size-sm;
+            font-size: 11.5px;
+          }
+
+          &.version-smaller {
+            font-size: 10px;
           }
         }
       }
     }
 
     .footer {
-      margin: $nav-space-5;
+      margin: $nav-space-5 $nav-space-4;
       width: 240px;
       display: flex;
       flex: 0;
@@ -2525,6 +2572,15 @@ export default {
 
       .version {
         cursor: pointer;
+        min-width: 0;
+        line-height: $nav-space-4;
+
+        a {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
 
         a:focus-visible {
           @include focus-outline;
