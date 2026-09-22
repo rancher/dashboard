@@ -1173,14 +1173,6 @@ export default {
         class="fixed-header-actions"
         :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': tableViewsLayout, 'no-top-row': tableViewsTopRowEmpty, 'no-views-row': tableViewsTabsEmpty}"
       >
-        <!-- Table views puts its tabs on a row of their own between the page's own masthead and
-             the filter, so the slot is a grid item here rather than a block above the header -->
-        <div
-          v-if="tableViewsLayout && !tableViewsTabsEmpty"
-          class="table-views-row"
-        >
-          <slot name="table-views" />
-        </div>
         <div
           :class="bulkActionsClass"
           class="bulk"
@@ -1235,6 +1227,17 @@ export default {
           class="middle"
         >
           <slot name="header-middle" />
+        </div>
+        <!-- Table views puts its tabs on a row of their own between the page's own masthead and
+             the filter, so the slot is a grid item here rather than a block above the header.
+             It comes after the top row in source order as well as on screen: the grid decides
+             where these land, but the keyboard follows the document, and tabbing used to reach
+             the tabs before the buttons drawn above them. -->
+        <div
+          v-if="tableViewsLayout && !tableViewsTabsEmpty"
+          class="table-views-row"
+        >
+          <slot name="table-views" />
         </div>
 
         <div
