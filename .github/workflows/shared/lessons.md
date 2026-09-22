@@ -30,11 +30,36 @@ Every run that gets surprised should leave the next run better equipped. This wo
 1. Append to the end of the `## Lessons` section of the file, using the exact entry format the file specifies under "Format for lessons": a dated `###` heading, then **Trigger**, **Rule** and **Command**
 2. The **Rule** must be an instruction for a future run, not a description of what happened
 3. The **Command** must be one you actually ran, with its real output — including, where it makes the point, the broken form alongside the working form
-4. Never edit or delete existing entries. The file only grows
+4. Below the entry cap, append and change nothing else. Never edit or delete an existing entry
 
-**Where the entry ships**, given the pull request budget:
+### Keeping the file small
+
+The file is read in full at the start of every run, so its length costs every run. Two limits.
+
+**Per entry.** **Trigger** is one sentence. **Rule** at most two. **Command** at most fifteen lines: the broken form, the working form, and only the output lines that make the point. Never paste a whole run.
+
+**Per file.** At most **twenty-five** entries under `## Lessons`. Count before appending.
+
+At the cap, the run that wants to add an entry makes room first, in the same pull request:
+
+1. Find two entries one rule would have caught — the same mechanism showing up as two symptoms. Entries about genuinely different mechanisms never qualify, however similar they read
+2. Replace both with one entry, dated the later of the two, whose **Rule** covers both cases and whose **Command** keeps the more convincing of the two pairs
+3. Consolidate exactly as many pairs as needed to get back under the cap. Never more
+4. Name every consolidation in the pull request body's Lessons section: the headings folded together, the heading replacing them, one line on why one rule catches both
+
+No two entries qualify: say so in the run summary, append anyway, leave the file one over the cap. Losing a lesson costs more than a long file. Consolidation is never the point of a run — only the price of adding an entry, reviewed like any other change in the pull request carrying it.
+
+### Where the entry ships
+
+A lessons change is not filed or committed separately. It is an ordinary edit in the working tree, picked up by the same `create-pull-request` safe output as everything else in the run — which is why the workflow's `allowed-files` lists the lessons file beside the product directories. There is no second mechanism.
+
+Which pull request carries it, given the pull request budget:
 
 - **This run is opening one or more pull requests** — include the lessons change in the **first** one and describe it in that body's Lessons section. A lessons entry never gets a pull request of its own while another is available to carry it, and it must not be duplicated across several
 - **This run is opening no pull request** — write the entry into the file and open the pull request for it alone, keeping only the Lessons section of the body template
+
+That Lessons section names each heading added, and each consolidation made under "Keeping the file small". A pull request that touches the lessons file and says nothing about it in the body is incomplete.
+
+**Two open pull requests that both append to the lessons file will conflict**, because both add lines at the same end of the same section. Expected, and not yours to pre-empt: never rewrite your entry to dodge it, never push to a branch you did not open. The conflict surfaces as `dirty` in "Keeping the open pull requests mergeable" and resolves like any other conflict there — by comment, keeping both entries. Reordering or dropping one to ease the merge loses a lesson.
 
 **The lessons file is the only file under `.github/` you may touch.** Never modify anything else there, and never a workflow or its lock file. Proposals to change this prompt go in the lessons file, which is read at the start of every run and therefore takes effect immediately without a workflow edit.
