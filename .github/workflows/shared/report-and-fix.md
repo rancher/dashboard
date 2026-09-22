@@ -43,7 +43,7 @@ Each comment costs one `add-comment` slot out of the run's budget, so cap this a
 
 ### Selecting from the backlog
 
-1. List open issues: `list_issues` with `labels: ["<bot-label>"], state: "open"`, then `issue_read` each one for its body
+1. List open issues: `list_issues` with `labels: ["<bot-label>"], state: "OPEN"`, then `issue_read` each one for its body. `list_issues` capitalises `state`, `list_pull_requests` does not — see "Reading GitHub state"
 2. Discard any already covered by an open pull request. **Checking for a `Closes`/`Fixes` link is not enough** — get the changed files of every open pull request carrying the label with `pull_request_read` / `method: "get_files"`, and discard any issue whose files overlap that set at all. A partial overlap counts: two pull requests touching some of the same files will conflict on merge
 3. Discard anything a lessons entry has already ruled out
 4. Discard the duplicates. A finding is routinely filed several times over, in different words. Pick the **oldest** issue describing it, and keep the numbers of its restatements — the fix resolves them all and the pull request has to close them all

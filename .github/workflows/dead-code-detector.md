@@ -5,6 +5,20 @@ on:
   schedule: daily
   # Manual dispatch is kept enabled while the remediation path is being proven out.
   workflow_dispatch:
+  # Deterministic budget gate, evaluated before the agent starts. The shared
+  # reporting protocol asks the agent to count its own open pull requests and
+  # stand down at three; this enforces the number without trusting it to.
+  # Three unreviewed bot pull requests is the reviewer load this workflow may
+  # impose, and the count drops only when a person merges or closes one.
+  #
+  # Scoped to pull requests, not issues, on purpose. Every run starts by
+  # remediating the open issues this workflow filed, so skipping on an
+  # open-issue count would stop the only thing that closes them: three issues
+  # would wedge the workflow until someone closed them by hand. Issue cap is
+  # `create-issue.max` below, plus "Filing when the backlog is full".
+  skip-if-match:
+    query: "is:pr is:open label:bot/dead-code-detector"
+    max: 3
 
 if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_DEAD_CODE_DETECTOR != 'true'
 
@@ -106,9 +120,19 @@ Read them together. Wherever the shared protocol says "finding", it means a [**c
 - **Bot label**: `bot/dead-code-detector`
 - **Branch prefix**: `dead-code/` — a pull request on any other branch is rejected before it is opened
 - **Lessons file**: `.github/agents/lessons/dead-code.md`
-- **Budgets**: at most **three** open pull requests carrying the bot label at a time, at most **three** issues filed per run, and at most **six** comments — shared between refutations, corrections and the rebase notices in "Keeping the open pull requests mergeable"
+- **Budgets**: at most **three** open pull requests carrying the bot label at a time, at most **three** open issues carrying it, at most **three** issues filed per run, and at most **six** comments — shared between refutations, corrections and the rebase notices in "Keeping the open pull requests mergeable"
+
+The pull request budget is enforced before you start: a fourth open pull request skips the run, and you never see this prompt. The issue budget is yours to hold — see "Filing when the backlog is full".
 
 The lessons file holds the search idioms that have produced false findings here and the confidence rubric under "Provenance and confidence". It binds this run with the same force as this section, so nothing below repeats it. Read it before composing a search, not after.
+
+## Filing when the backlog is full
+
+The three-open-issues cap counts issues **open at once**, not issues filed this run. Count first: `list_issues` with `labels: ["bot/dead-code-detector"], state: "OPEN"`. That count and the per-run cap of three both apply, smaller one wins — two already open leaves room for one, not three.
+
+At three or more, **file nothing new**. Detection still runs, because what it turns up decides whether the run has anything to say, but a verified finding with no slot goes in the run summary and waits for a later run. Remediation is unaffected: a full backlog is exactly when clearing it matters, and the pull requests closing those issues are what makes room.
+
+This cap is deliberately not harness-enforced. Gating the run on an open-issue count would stop remediation, the only thing that closes these issues, and three of them would wedge the workflow until someone closed them by hand.
 
 ## Context
 
