@@ -359,7 +359,6 @@ export default {
       :modelValue="value != null ? value : ''"
       :dropdownShouldOpen="handleDropdownOpen"
       :tabindex="-1"
-      role="listitem"
       :uid="generatedUid"
       :aria-label="'-'"
       @update:modelValue="$emit('update:value', $event)"
