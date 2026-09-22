@@ -20,11 +20,11 @@ export function init($extension: IPlugin, store: any): void {
   });
 
   // Settings (kill-switch toggle) — always reachable. `exact` so it only highlights on its own
-  // route: its path `/c/_/ai-templating` is a prefix of every product route, and without exact the
+  // route: its path `/c/_/configurable-views` is a prefix of every product route, and without exact the
   // <router-link> active match would light Settings up on every sub-page.
   virtualType({
     labelKey:   'aiTemplating.settings.label',
-    name:       'ai-templating-settings',
+    name:       'configurable-views-settings',
     namespaced: false,
     icon:       'gear',
     weight:     103,
@@ -35,7 +35,7 @@ export function init($extension: IPlugin, store: any): void {
   // Home Templates — the panel building blocks (home-template ConfigMaps).
   virtualType({
     labelKey:   'aiTemplating.templates.label',
-    name:       'ai-templating-templates',
+    name:       'configurable-views-templates',
     namespaced: false,
     icon:       'list-flat',
     weight:     105,
@@ -46,7 +46,7 @@ export function init($extension: IPlugin, store: any): void {
   // Home Layouts — the assembled Home VIEWS (panels + the widgets on them).
   virtualType({
     labelKey:   'aiTemplating.layouts.label',
-    name:       'ai-templating-layouts',
+    name:       'configurable-views-layouts',
     namespaced: false,
     icon:       'list-grouped',
     weight:     106,
@@ -54,5 +54,5 @@ export function init($extension: IPlugin, store: any): void {
     route:      { name: ROUTE_LAYOUTS, params: { cluster: BLANK_CLUSTER } },
   });
 
-  basicType(['ai-templating-layouts', 'ai-templating-templates', 'ai-templating-settings']);
+  basicType(['configurable-views-layouts', 'configurable-views-templates', 'configurable-views-settings']);
 }

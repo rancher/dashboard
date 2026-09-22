@@ -61,7 +61,7 @@ export default {
         // STACK — which module actually blew up — and a failure inside the component registry's own
         // import graph shows up here as a confusing downstream symptom with no hint of the cause.
         // eslint-disable-next-line no-console
-        console.error('[ai-templating] custom view failed to compile', e);
+        console.error('[configurable-views] custom view failed to compile', e);
         this.error = e?.message || String(e);
         this.compiled = null;
       } finally {

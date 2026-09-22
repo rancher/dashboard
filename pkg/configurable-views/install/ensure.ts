@@ -55,6 +55,6 @@ export async function ensureInstalled(store: any): Promise<void> {
     }
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.warn('[ai-templating] ensureInstalled failed', e);
+    console.warn('[configurable-views] ensureInstalled failed', e);
   }
 }
