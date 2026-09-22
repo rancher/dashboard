@@ -4,11 +4,12 @@ import debounce from 'lodash/debounce';
 import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
-import { isAlternate } from '@shell/utils/platform';
+import { isAlternate, isMac, shortcutLabel } from '@shell/utils/platform';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct, getVendor } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import ClusterBadge from '@shell/components/ClusterBadge';
+import Pinned from '@shell/components/nav/Pinned.vue';
 import AppModal from '@shell/components/AppModal';
 import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
@@ -41,6 +42,7 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
+    Pinned,
     IconOrSvg,
     AppModal,
     NotificationCenter,
@@ -68,6 +70,9 @@ export default {
 
     return {
       authInfo:                {},
+      // The pin shortcut fires from anywhere on the page, so the toggle usually happens with focus
+      // elsewhere and its `aria-pressed` change is never spoken. This says what happened.
+      pinAnnouncement:         '',
       show:                    false,
       showTooltip:             false,
       isUserMenuOpen:          false,
@@ -234,6 +239,54 @@ export default {
       return this.rootProduct?.inStore !== 'harvester';
     },
 
+    // The name as rendered, so the clip check below and the template can never disagree about what is
+    // on screen.
+    clusterDisplayName() {
+      return this.currentCluster?.spec?.displayName || '';
+    },
+
+    // The current cluster as the pin control wants it (`TopLevelMenuCluster`-shaped), or null when there is
+    // nothing to pin. `local` is excluded: it holds a fixed slot in the nav and is filtered out of PINNED,
+    // so a pin here would be an affordance with no effect.
+    pinnableCluster() {
+      const cluster = this.currentCluster;
+
+      if (!cluster || cluster.isLocal) {
+        return null;
+      }
+
+      return {
+        pinned: cluster.pinned,
+        label:  cluster.nameDisplay,
+        pin:    () => cluster.pin(),
+        unpin:  () => cluster.unpin(),
+      };
+    },
+
+    // Cmd+Shift+P on a Mac, Alt+P elsewhere.
+    pinShortcutKeys() {
+      return { windows: ['alt', 'p'], mac: ['meta', 'shift', 'p'] };
+    },
+
+    pinShortcutLabel() {
+      return shortcutLabel(isMac ? ['⌘', 'Shift', 'P'] : ['Alt', 'P']);
+    },
+
+    // The same shortcut in the form `aria-keyshortcuts` is defined to take.
+    pinAriaShortcut() {
+      return isMac ? 'Meta+Shift+P' : 'Alt+P';
+    },
+
+    pinTooltip() {
+      if (!this.pinnableCluster) {
+        return null;
+      }
+
+      const key = this.pinnableCluster.pinned ? 'nav.header.unpinCluster' : 'nav.header.pinCluster';
+
+      return this.t(key, { shortcut: this.pinShortcutLabel });
+    },
+
     nameTooltip() {
       return !this.showTooltip ? {} : {
         content: this.currentCluster?.nameDisplay,
@@ -279,14 +332,24 @@ export default {
     // This is to enforce the logo display on certain routes like home, about, prefs, account, etc
     isLogoRoute() {
       return !this.$route.name.includes('c-cluster');
-    }
+    },
+
+    extensionHeaderActionsAriaExpanded() {
+      return this.extensionHeaderActions.map((action) => {
+        const expanded = typeof action.ariaExpanded === 'function' ? action.ariaExpanded() : action.ariaExpanded;
+
+        return typeof expanded === 'boolean' ? expanded : undefined;
+      });
+    },
   },
 
   watch: {
-    currentCluster(neu, old) {
-      if (neu && old && neu.id !== old.id) {
-        this.checkClusterName();
-      }
+    // Whether the name is clipped — and so whether the tooltip that reveals the rest of it is offered —
+    // depends on the name itself, so re-measure whenever the rendered one changes. Watching the cluster
+    // id missed both ends of that: the header outlives the route, so the first cluster arrives with no
+    // previous one to compare against, and a rename never changes the id at all.
+    clusterDisplayName() {
+      this.checkClusterName();
     },
     // since the Header is a "persistent component" we need to update it at every route change...
     $route: {
@@ -307,7 +370,13 @@ export default {
 
   mounted() {
     this.checkClusterName();
-    this.debouncedLayoutHeader = debounce(this.layoutHeader, 400);
+    // Re-measure on resize as well as on mount: the name is clipped by the space the header has, so a
+    // window that narrows can start clipping a name that fitted before — and the tooltip is the only way
+    // to read the part that has been cut off.
+    this.debouncedLayoutHeader = debounce(() => {
+      this.layoutHeader();
+      this.checkClusterName();
+    }, 400);
     window.addEventListener('resize', this.debouncedLayoutHeader);
 
     this.$nextTick(() => this.layoutHeader(null, true));
@@ -353,6 +422,40 @@ export default {
         product.style.width = `${ w }px`;
       }
     },
+    /**
+     * Pin or unpin the cluster being explored — the shortcut the switcher flyout binds to the row under
+     * its cursor, here bound to the one the page is already showing.
+     *
+     * Toggling THROUGH the control rather than writing the pref keeps the write, the growl and the pop
+     * animation on one path, so the shortcut and a click are the same action.
+     *
+     * `.anywhere`, so it works from a text field as well — a filter box holding the caret is no reason not
+     * to pin the cluster you are looking at.
+     *
+     * Nothing here has to know about the flyout: it is registered as a shortcut-silencing container, and
+     * it takes this combo at the window besides, so while it is open the key never reaches this binding.
+     */
+    onPinShortcut() {
+      this.$refs.clusterPin?.toggle();
+    },
+
+    /**
+     * Only when the pin does NOT have focus: a focused toggle reports itself through `aria-pressed`, and
+     * announcing as well would say it twice. Clearing first lets the same message repeat.
+     */
+    announcePin(cluster, pinned) {
+      if (this.$refs.clusterPin?.$el === document.activeElement) {
+        return;
+      }
+
+      const message = this.t(pinned ? 'nav.switcher.aria.pinnedCluster' : 'nav.switcher.aria.unpinnedCluster', { cluster: cluster.label });
+
+      this.pinAnnouncement = '';
+      this.$nextTick(() => {
+        this.pinAnnouncement = message;
+      });
+    },
+
     showMenu(show) {
       this.isUserMenuOpen = show;
     },
@@ -517,7 +620,29 @@ export default {
             ref="clusterName"
             class="cluster-name"
           >
-            {{ currentCluster.spec.displayName }}
+            {{ clusterDisplayName }}
+          </div>
+          <!-- Pin/unpin the cluster being explored, without going back to the nav for it. The control is
+               the nav's own, so the write, the failure growl and the pop animation are shared. -->
+          <Pinned
+            v-if="pinnableCluster"
+            ref="clusterPin"
+            v-clean-tooltip="pinTooltip"
+            v-shortkey.anywhere="pinShortcutKeys"
+            :cluster="pinnableCluster"
+            :tab-order="0"
+            class="cluster-pin"
+            :aria-keyshortcuts="pinAriaShortcut"
+            @shortkey="onPinShortcut"
+            @pinned="announcePin($event, true)"
+            @unpinned="announcePin($event, false)"
+          />
+          <div
+            class="sr-only"
+            role="status"
+            aria-live="polite"
+          >
+            {{ pinAnnouncement }}
           </div>
           <ClusterBadge
             v-if="currentCluster"
@@ -581,7 +706,7 @@ export default {
           class="side-menu-logo-img"
           data-testid="header__brand-img"
           file-name="rancher-logo.svg"
-          :alt="t('branding.logos.label')"
+          :alt="t('branding.logos.logoLabel')"
         />
       </div>
     </div>
@@ -693,6 +818,7 @@ export default {
           role="button"
           tabindex="0"
           :aria-label="action.labelKey ? t(action.labelKey) : action.label"
+          :aria-expanded="extensionHeaderActionsAriaExpanded[i]"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
@@ -784,6 +910,11 @@ export default {
   HEADER {
     display: flex;
     z-index: z-index('mainHeader');
+    // The header is a grid item, and a grid/flex item's `min-width: auto` floor is its content — so a long
+    // cluster name grew the header past its track and took the page into horizontal overflow instead of
+    // being clipped. Zero that floor here and at every step down to the name: an item can only shrink
+    // below its content once ALL of its ancestors are allowed to.
+    min-width: 0;
 
     > .spacer {
       flex: 1;
@@ -850,11 +981,24 @@ export default {
       align-items: center;
       display: flex;
       height: 32px;
+      min-width: 0;
       white-space: nowrap;
       .cluster-name {
         font-size: 16px;
+        min-width: 0;
         text-overflow: ellipsis;
         overflow: hidden;
+      }
+
+      // The pin keeps its size while the name gives way, so a long name is what gets clipped.
+      .cluster-pin {
+        flex: 0 0 auto;
+        margin-left: 12px;
+        color: var(--muted);
+
+        &.is-pinned {
+          color: var(--primary);
+        }
       }
       &.cluster-clipped {
         overflow: hidden;
@@ -865,6 +1009,7 @@ export default {
       align-items: center;
       position: relative;
       display: flex;
+      min-width: 0;
 
       .logo {
         height: 30px;

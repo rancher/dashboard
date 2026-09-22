@@ -28,8 +28,6 @@ The side navigation bar is built by a function called `getTree` which is in `sto
 - `all` matches all types.
 - `favorite` matches starred types.
 
-You can specify if you want resources to be filtered by namespace or if all resources in the cluster should be shown.
-
 ## Counting Resources by Type
 
 Steve keeps a count of every type in memory at `v1/counts`. This endpoint gives us a count of each type broken down by namespace and state, which allows the side nav to show a preview of how many resources of each type there are in the currently active namespace(s). Currently we don't use the count of resources broken down by state.

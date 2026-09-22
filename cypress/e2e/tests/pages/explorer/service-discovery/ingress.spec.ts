@@ -11,6 +11,8 @@ let servicesNamesList: string[] = [];
 const secretsCount = 4;
 const servicesCount = 4;
 let namespace: string;
+// Matches the debounce RulePath.vue wraps its rule updates in, plus a small margin
+const RULE_UPDATE_DEBOUNCE = 750;
 
 describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
@@ -292,8 +294,19 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.setTargetServiceValueByLabel(0, headlessServiceName);
       ingressCreatePagePo.setPortValueByLabel(0, '8080');
 
+      // RulePath.vue emits its rule updates behind a 500ms debounce (`debounce(this.update, 500)`), so
+      // saving straight after the last rule input races it and posts a rule whose path object is still
+      // untouched. Nothing in the dom marks the flush - the inputs render their own local state, so the
+      // page looks identical before and after, and further interaction only restarts the (trailing)
+      // debounce - so wait it out before saving.
+      cy.wait(RULE_UPDATE_DEBOUNCE); // eslint-disable-line cypress/no-unnecessary-waiting
+
       ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/networking.k8s.io.ingresses')
-        .then(({ response }) => {
+        .then(({ request, response }) => {
+          // Assert the payload too: if the debounce is ever raced again, this fails at the save with a
+          // rule that has no backend, instead of further down on the fetched object.
+          expect(request?.body?.spec?.rules?.[0], 'saved rule').to.have.property('http');
+
           expect(response?.statusCode).to.eq(201);
           expect(response?.body.metadata).to.have.property('name', ingressHeadlessName);
 

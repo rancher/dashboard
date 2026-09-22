@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, PropType, inject } from 'vue';
 import typeHelper from '@shell/utils/type-helpers';
+import { announce } from '@shell/utils/aria-announce';
 
 export const ASYNC_BUTTON_STATES = {
   ACTION:  'action',
@@ -119,6 +120,17 @@ export default defineComponent({
       default: false,
     },
 
+    /**
+     * Announce phase changes to screen readers (WCAG 2.2 SC 4.1.3). The visual feedback -
+     * spinner, tick, label swap - is otherwise silent, because changing the accessible name of
+     * the element that currently has focus is not reliably read out. Turn this off where the
+     * surrounding page already announces the outcome, so it isn't said twice.
+     */
+    announceStatus: {
+      type:    Boolean,
+      default: true,
+    },
+
   },
 
   setup() {
@@ -136,6 +148,17 @@ export default defineComponent({
   watch: {
     currentPhase(neu) {
       this.phase = neu;
+    },
+
+    phase(neu: string) {
+      // Falling back to `action` when the success/error timer lapses is not a status change.
+      if ( !this.announceStatus || neu === ASYNC_BUTTON_STATES.ACTION ) {
+        return;
+      }
+
+      // Polite throughout, including errors: those also surface in a `role="alert"` banner or
+      // growl, and an assertive announcement here would interrupt to say the same thing twice.
+      announce(this.announcementFor(neu));
     }
   },
 
@@ -204,21 +227,26 @@ export default defineComponent({
     },
 
     displayLabel(): string {
-      const override = typeHelper.memberOfComponent(this, `${ this.phase }Label`);
-      const exists = this.$store.getters['i18n/exists'];
-      const t = this.$store.getters['i18n/t'];
-      const key = `asyncButton.${ this.mode }.${ this.phase }`;
-      const defaultKey = `asyncButton.default.${ this.phase }`;
+      return this.labelFor(this.phase);
+    },
 
-      if ( override ) {
-        return override;
-      } else if ( exists(key) ) {
-        return t(key);
-      } else if ( exists(defaultKey) ) {
-        return t(defaultKey);
-      } else {
-        return '';
-      }
+    /**
+     * A stable accessible name for the button, anchored to the action-phase label.
+     *
+     * VoiceOver (and JAWS/NVDA) track the accessible name of the focused element in real
+     * time. Without this, every phase transition mutates the button's accessible name and
+     * the screen reader re-reads it — most visibly when the 5-second timer resets the button
+     * from "Applied" back to "Apply" while focus is still there.
+     *
+     * Binding this as `aria-label` keeps the accessible name constant across all phases so
+     * focus tracking stays quiet. The live region in `announce()` handles the phase
+     * announcements instead. Falls back to `undefined` (no attribute) when there is no
+     * action label (icon-only refresh buttons, for example), maintaining current behaviour.
+     * A parent that explicitly passes `aria-label` as a prop/attr will override this via
+     * Vue 3's fallthrough attribute precedence.
+     */
+    stableAriaLabel(): string {
+      return this.labelFor(ASYNC_BUTTON_STATES.ACTION);
     },
 
     isSpinning(): boolean {
@@ -248,6 +276,56 @@ export default defineComponent({
   },
 
   methods: {
+    labelFor(phase: string): string {
+      const override = typeHelper.memberOfComponent(this, `${ phase }Label`);
+      const exists = this.$store.getters['i18n/exists'];
+      const t = this.$store.getters['i18n/t'];
+      const key = `asyncButton.${ this.mode }.${ phase }`;
+      const defaultKey = `asyncButton.default.${ phase }`;
+
+      if ( override ) {
+        return override;
+      } else if ( exists(key) ) {
+        return t(key);
+      } else if ( exists(defaultKey) ) {
+        return t(defaultKey);
+      } else {
+        return '';
+      }
+    },
+
+    /**
+     * Text to read out for a phase. The visible label is not always usable on its own: the
+     * `refresh` modes render no text at all, and some callers pass the same label to every
+     * phase so the button doesn't resize part way through the action.
+     */
+    announcementFor(phase: string): string {
+      const exists = this.$store.getters['i18n/exists'];
+      const t = this.$store.getters['i18n/t'];
+
+      // 1. Wording written for this mode.
+      const modeKey = `asyncButton.${ this.mode }.${ phase }Announcement`;
+
+      if ( exists(modeKey) ) {
+        return t(modeKey);
+      }
+
+      // 2. The label the button now shows, where it actually says something new.
+      const phaseLabel = this.labelFor(phase);
+      const actionLabel = this.labelFor(ASYNC_BUTTON_STATES.ACTION);
+
+      if ( phaseLabel && phaseLabel !== actionLabel ) {
+        return phaseLabel;
+      }
+
+      // 3. A generic status, named after the action where there is one. Guarded by `exists`
+      // so a newer @rancher/shell inside an older Rancher, which won't have these keys, stays
+      // silent rather than announcing a raw translation key.
+      const genericKey = `asyncButton.announcement.${ actionLabel ? 'withLabel.' : '' }${ phase }`;
+
+      return exists(genericKey) ? t(genericKey, { label: actionLabel }) : '';
+    },
+
     clicked() {
       if ( this.appearsDisabled ) {
         return;
@@ -304,6 +382,7 @@ export default defineComponent({
     :aria-disabled="appearsDisabled"
     :tabindex="tabIndex"
     :data-testid="componentTestid + '-async-button'"
+    :aria-label="stableAriaLabel || undefined"
     @click="clicked"
   >
     <span

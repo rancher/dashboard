@@ -1,0 +1,1387 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { load } from 'js-yaml';
+import { nextTick } from 'vue';
+import { shallowMount } from '@vue/test-utils';
+import ClusterSwitcher from '@shell/components/nav/ClusterSwitcher.vue';
+import ClusterSwitcherSkeleton from '@shell/components/nav/ClusterSwitcherSkeleton.vue';
+import ClusterSwitcherRow from '@shell/components/nav/ClusterSwitcherRow.vue';
+
+// The component pulls `t` from the useI18n composable (not the old `this.t` global), so mock it here.
+jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string, args?: any) => (args ? `${ key }:${ JSON.stringify(args) }` : key) }) }));
+
+// jsdom has no layout and no `scrollIntoView`, so the listbox never really scrolls. What these tests
+// can check is which option the keyboard cursor asked to bring into view.
+const scrollIntoView = jest.fn();
+
+Element.prototype.scrollIntoView = scrollIntoView;
+
+const cluster = (id: string, ready = true) => ({
+  id, label: id, ready, pinned: false, isLocal: id === 'local', pin: jest.fn(), unpin: jest.fn()
+});
+
+// `attachTo` puts the options in the real document, which the cursor-reveal look-up needs (the flyout is
+// teleported to <body> in the app, so it resolves its options by id off `document`).
+// Every wrapper this suite mounts, so each test starts with no other flyout listening. An open flyout
+// takes the keys it owns at the WINDOW and consumes them, so one left mounted swallows the next test's.
+const mounted: any[] = [];
+
+const mountSwitcher = (props = {}, attachTo?: HTMLElement) => trackWrapper(shallowMount(ClusterSwitcher, {
+  props: {
+    all: [], searchResults: [], clusterCount: 0, currentClusterId: '', search: '', ...props
+  },
+  attachTo,
+  global: {
+    stubs: {
+      'v-dropdown':       { template: '<div><slot /><slot name="popper" /></div>' },
+      ClusterSwitcherRow: true,
+    },
+  },
+}));
+
+// The rows are real buttons now, and the cursor is simply where focus is — so the keyboard tests need a
+// stub that can actually take focus, mounted in the real document.
+const RowStub = {
+  props:    ['cluster', 'active', 'tabbable', 'id', 'pinnable'],
+  emits:    ['focus-row', 'select', 'unpinned'],
+  template: `<li :id="id" class="cluster-switcher-row" :class="{ active }">
+                <button class="row-main" :tabindex="tabbable ? 0 : -1" @focus="$emit('focus-row')"></button>
+                <button v-if="pinnable !== false" class="row-pin" :tabindex="tabbable ? 0 : -1"></button>
+              </li>`,
+};
+
+const mountFocusable = (props = {}) => trackWrapper(shallowMount(ClusterSwitcher, {
+  props: {
+    all: [], searchResults: [], clusterCount: 0, currentClusterId: '', search: '', ...props
+  },
+  attachTo: document.body,
+  global:   {
+    stubs: {
+      'v-dropdown':       { template: '<div><slot /><slot name="popper" /></div>' },
+      ClusterSwitcherRow: RowStub,
+    },
+  },
+}));
+
+const activeLabel = (wrapper: any) => {
+  const rows = wrapper.findAll('.cluster-switcher-row');
+  const i = rows.findIndex((r: any) => r.element.querySelector('.row-main') === document.activeElement);
+
+  return i === -1 ? null : rows[i].attributes('id');
+};
+
+// Generic, so tracking a wrapper does not erase its type for the assertions that follow.
+function trackWrapper<T>(wrapper: T): T {
+  mounted.push(wrapper);
+
+  return wrapper;
+}
+
+afterEach(() => {
+  mounted.splice(0).forEach((wrapper) => wrapper.unmount());
+});
+
+describe('component: ClusterSwitcher', () => {
+  it('rows = the ALL CLUSTERS directory when not searching', () => {
+    const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2'), cluster('r1')] });
+
+    expect((wrapper.vm as any).searching).toBe(false);
+    expect((wrapper.vm as any).rows.map((c: any) => c.id)).toStrictEqual(['p1', 'p2', 'r1']);
+  });
+
+  it('search collapses the directory into the flat match list', () => {
+    const wrapper = mountSwitcher({
+      all: [cluster('p1'), cluster('r1')], searchResults: [cluster('m1'), cluster('m2')], search: 'm'
+    });
+
+    expect((wrapper.vm as any).searching).toBe(true);
+    expect((wrapper.vm as any).rows.map((c: any) => c.id)).toStrictEqual(['m1', 'm2']);
+  });
+
+  // The flyout is now the ONLY search in the nav and it always searches the whole
+  // estate, so the placeholder is one fixed string — it no longer varies with the count.
+  it.each([19, 0])('uses the one "jump to" placeholder (count: %s)', (clusterCount) => {
+    const wrapper = mountSwitcher({ clusterCount });
+
+    expect((wrapper.vm as any).placeholder).toBe('nav.switcher.jumpTo');
+  });
+
+  // WCAG 2.5.3 (Label in Name). The box has no visible label — the placeholder is the only text a sighted
+  // user sees — so the accessible name has to CONTAIN those words, or a speech-input user saying "jump to"
+  // matches nothing. Asserted against the real translations, since the two strings are what the rule is
+  // about: wiring the keys up proves nothing on its own.
+  it('names the search box with text that contains its visible placeholder', () => {
+    const input = mountSwitcher().find('input.switcher-search-input');
+
+    // The suite renders keys rather than copy (the global i18n stub wraps them in `%…%`), so match on the
+    // key each attribute resolves to; the strings themselves are checked against the translations below.
+    expect(input.attributes('aria-label')).toContain('nav.switcher.aria.search');
+    expect(input.attributes('placeholder')).toContain('nav.switcher.jumpTo');
+
+    const en = load(readFileSync(resolve(__dirname, '../../../assets/translations/en-us.yaml'), 'utf8')) as any;
+    const { jumpTo, aria } = en.nav.switcher;
+    // Trim the placeholder's trailing ellipsis: it is a typographic hint, not part of the spoken label.
+    const visible = jumpTo.replace(/\.+$/, '').toLowerCase();
+
+    expect(aria.search.toLowerCase()).toContain(visible);
+  });
+
+  it('↓ walks the list and stops at the end; ↑ walks back out to the search box', () => {
+    const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2'), cluster('r1')] });
+    const vm = wrapper.vm as any;
+
+    // Nothing is highlighted until a key says so.
+    expect(vm.activeIndex).toBe(-1);
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    expect(vm.activeIndex).toBe(0);
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    expect(vm.activeIndex).toBe(2);
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // stops at the last row
+    expect(vm.activeIndex).toBe(2);
+    vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
+    vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
+    expect(vm.activeIndex).toBe(0);
+
+    // Up off the first row leaves the list rather than stopping dead — the field is where the panel
+    // starts, so it is where Up ends.
+    vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
+    expect(vm.activeIndex).toBe(-1);
+  });
+
+  // One list serves both states — the estate at rest, the matches while searching — so what an EMPTY one
+  // means depends on which it is: no answer to the query, or page 1 not landed yet.
+  describe('the estate list when it has no rows', () => {
+    it('says no matches while searching', async() => {
+      const wrapper = mountSwitcher({
+        search: 'zzz', searchResults: [], clusterCount: 7
+      });
+
+      await nextTick();
+
+      expect(wrapper.find('.switcher-empty').text()).toContain('nav.switcher.noMatch');
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
+    });
+
+    // The skeleton is for a request that is IN FLIGHT and nothing else. An estate that is not loading and
+    // did not fail has its answer — an empty one — and shimmering at it says "still coming" about a list
+    // that has already arrived, which is exactly how a failed page 1 used to hide.
+    it('shows the empty state for an estate that came back empty', () => {
+      const wrapper = mountSwitcher({ all: [], clusterCount: 7 });
+
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
+      // Not the search copy: nothing was searched for, so "matching your criteria" names criteria the
+      // user never entered.
+      expect(wrapper.find('.switcher-empty').text()).toContain('nav.switcher.noClusters');
+    });
+  });
+
+  // RECENTLY USED sits between the fixed tile and the estate: a shortcut to where the user just was.
+  describe('recently used', () => {
+    const recent = [cluster('r1'), cluster('r2')];
+
+    it('renders between the local tile and ALL CLUSTERS, and the cursor walks all three in order', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent, all: [cluster('p1')], clusterCount: 1
+      });
+      const vm = wrapper.vm as any;
+
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'r1', 'r2', 'p1']);
+      // The estate's rows are offset by the whole head, not just the tile.
+      expect(vm.resultsOffset).toBe(3);
+
+      const order = [];
+
+      vm.setOpen(true);
+      await nextTick();
+
+      for (let i = 0; i < 4; i++) {
+        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+        order.push(vm.navRows[vm.activeIndex].id);
+      }
+
+      expect(order).toStrictEqual(['local', 'r1', 'r2', 'p1']);
+
+      vm.setOpen(false);
+    });
+
+    // It is fetched on open rather than kept live, so it shimmers like the estate below instead of popping
+    // in beside it.
+    // The section is sized from the visit log before the fetch answers, so the panel opens at roughly the
+    // height it is about to be instead of being shoved taller when the rows land.
+    it('draws one placeholder per remembered cluster', async() => {
+      const wrapper = mountSwitcher({
+        recent: [], recentCount: 4, recentLoading: true
+      });
+
+      expect((wrapper.vm as any).recentSkeletonRows).toBe(4);
+
+      wrapper.unmount();
+    });
+
+    // Standing in for rows that are never coming puts up a heading and placeholders and then takes them
+    // away — the very reflow the skeleton exists to prevent.
+    it('shows nothing at all when the visit log is empty', async() => {
+      const wrapper = mountSwitcher({
+        recent: [], recentCount: 0, recentLoading: true
+      });
+
+      expect((wrapper.vm as any).showRecent).toBe(false);
+
+      wrapper.unmount();
+    });
+
+    // The panel's height follows its content, so every search used to move it twice: down to the matches,
+    // but through the height of the WHOLE ESTATE on the way, because that is what the skeleton was sized
+    // from. Narrowing three matches to one sent it 3 -> 20 -> 1. A search refines what is already there,
+    // so the skeleton now stands in at that size and the panel moves once, when the answer really differs.
+    describe('the skeleton standing in for a search', () => {
+      const estate = Array.from({ length: 20 }, (_, i) => cluster(`c${ i }`));
+
+      it('should stand in at the size of the list it replaces, not the estate', async() => {
+        const wrapper = mountSwitcher({
+          all: estate, clusterCount: 20, search: 'he', searchResults: [cluster('c1'), cluster('c2'), cluster('c3')]
+        });
+        const vm = wrapper.vm as any;
+
+        // Three matches on screen; refine the search and the request goes out.
+        expect(vm.skeletonRows).toBe(3);
+
+        await wrapper.setProps({ listLoading: true, search: 'her' } as any);
+
+        expect(vm.skeletonRows).toBe(3);
+      });
+
+      it('should still stand in at the estate size for the resting list', async() => {
+        const wrapper = mountSwitcher({
+          all: estate, clusterCount: 20, search: ''
+        });
+
+        await wrapper.setProps({ listLoading: true } as any);
+
+        expect((wrapper.vm as any).skeletonRows).toBe(20);
+      });
+
+      it('should never ask for nothing', async() => {
+        const wrapper = mountSwitcher({
+          all: [], clusterCount: 0, search: 'nothing-matches', searchResults: []
+        });
+
+        await wrapper.setProps({ listLoading: true } as any);
+
+        expect((wrapper.vm as any).skeletonRows).toBeGreaterThan(0);
+      });
+    });
+
+    it('shows the skeleton while it is being fetched', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent, all: [cluster('p1')], recentCount: recent.length
+      });
+      const vm = wrapper.vm as any;
+
+      await wrapper.setProps({ recentLoading: true } as any);
+
+      expect(vm.showRecent).toBe(true);
+      // Rows are stubbed here, so count them by their option ids.
+      expect(wrapper.findAll('[id^="cluster-switcher-opt-recent-"]')).toHaveLength(0);
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton).length).toBeGreaterThan(0);
+      // Nothing to point the cursor at while it is a skeleton.
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'p1']);
+
+      await wrapper.setProps({ recentLoading: false } as any);
+      expect(wrapper.findAll('[id^="cluster-switcher-opt-recent-"]')).toHaveLength(2);
+    });
+
+    // Same rule as the tile: the results ARE the answer to the query, and a shortcut list beside them is
+    // just noise to scroll past.
+    it('goes down while searching, and comes back when the box is cleared', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent, all: [cluster('p1')]
+      });
+      const vm = wrapper.vm as any;
+
+      expect(vm.recentRows).toHaveLength(2);
+
+      await wrapper.setProps({ search: 'm', searchResults: [cluster('m1')] } as any);
+      expect(vm.recentRows).toHaveLength(0);
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['m1']);
+
+      await wrapper.setProps({ search: '', searchResults: [] } as any);
+      expect(vm.recentRows).toHaveLength(2);
+    });
+
+    // A recent cluster may also BE the fixed tile or a row of the estate. Two elements answering to one id
+    // would make `aria-activedescendant` ambiguous and hand Vue duplicate keys.
+    it('gives its options ids of their own, so a repeated cluster cannot collide', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent: [cluster('local'), cluster('p1')], all: [cluster('p1')], clusterCount: 1
+      });
+      const vm = wrapper.vm as any;
+      const ids = wrapper.findAll('[id^="cluster-switcher-opt"]').map((el: any) => el.attributes('id'));
+
+      expect(ids).toStrictEqual([...new Set(ids)]);
+      expect(ids).toContain('cluster-switcher-opt-recent-local');
+      expect(ids).toContain('cluster-switcher-opt-local');
+
+      // And the cursor lands on the row it is actually on, not on its twin.
+      vm.setOpen(true);
+      await nextTick();
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // the tile
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // the same cluster, under RECENTLY USED
+      await nextTick();
+
+      expect(vm.navRows[vm.activeIndex].id).toBe('local');
+      expect(vm.activeIndex).toBe(1);
+
+      vm.setOpen(false);
+    });
+
+    // Plain list semantics, not a listbox: the rows hold focus and contain their own controls, which a
+    // listbox option may not do. Each section is its own <ul> so the sections stay distinguishable.
+    it('renders each section as its own list', () => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent, all: [cluster('p1')]
+      });
+
+      expect(wrapper.find('.switcher-scroll').attributes('role')).toBeUndefined();
+      expect(wrapper.find('.switcher-scroll').attributes('id')).toBe('cluster-switcher-listbox');
+      expect(wrapper.findAll('.switcher-scroll [role="listbox"]')).toHaveLength(0);
+      expect(wrapper.find('.switcher-local').element.tagName).toBe('UL');
+      expect(wrapper.find('.switcher-recent').element.tagName).toBe('UL');
+    });
+  });
+
+  // Clicking the panel's own chrome parks focus on floating-vue's popper ROOT, which is an ANCESTOR of
+  // the flyout element — so a `keydown` bound there never sees the key. The panel takes its keys at the
+  // window instead, and answers them wherever focus has drifted to.
+  describe('keys reach the panel wherever focus sits', () => {
+    const press = (key: string, over: any = {}) => {
+      const e = new KeyboardEvent('keydown', {
+        key, code: key, cancelable: true, bubbles: true, ...over
+      });
+
+      window.dispatchEvent(e);
+
+      return e;
+    };
+
+    it('moves the cursor on ↑/↓ with focus outside the flyout', async() => {
+      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+
+      press('ArrowDown');
+      expect(vm.navRows[vm.activeIndex].id).toBe('p1');
+
+      press('ArrowDown');
+      expect(vm.navRows[vm.activeIndex].id).toBe('p2');
+
+      press('ArrowUp');
+      expect(vm.navRows[vm.activeIndex].id).toBe('p1');
+
+      vm.setOpen(false);
+    });
+
+    it('explores the highlighted row when Enter comes from the search box', async() => {
+      const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+
+      press('ArrowDown');
+      await nextTick();
+      (wrapper.find('input.switcher-search-input').element as HTMLElement).focus();
+      press('Enter');
+
+      expect((wrapper.emitted('select')?.[0]?.[0] as any)?.id).toBe('p1');
+
+      vm.setOpen(false);
+    });
+
+    // A character typed at the panel belongs in the search box, wherever focus drifted to.
+    it('sends a typed character back to the search box', async() => {
+      const wrapper = mountSwitcher({ all: [cluster('p1')] }, document.body);
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+
+      const input = wrapper.find('input.switcher-search-input').element as HTMLInputElement;
+
+      (document.body as HTMLElement).focus();
+      expect(document.activeElement).not.toBe(input);
+
+      press('a');
+      expect(document.activeElement).toBe(input);
+
+      vm.setOpen(false);
+      wrapper.unmount();
+    });
+
+    it('gives the keys up once it closes', async() => {
+      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+      vm.setOpen(false);
+      await nextTick();
+
+      press('ArrowDown');
+
+      expect(vm.activeIndex).toBe(-1);
+    });
+  });
+
+  // One highlight, whoever moved last. The pointer drives the same cursor ↑/↓ do, rather than painting a
+  // second highlight of its own, so the list never shows two rows and Enter is never ambiguous.
+  describe('the pointer and the keyboard share one cursor', () => {
+    // `mousemove` delegated at the panel, so the fixture is a move whose target sits inside a row.
+    const moveOver = (id: string) => ({ target: { closest: (sel: string) => (sel === '.cluster-switcher-row' ? { id: `cluster-switcher-opt-${ id }` } : null) } });
+
+    it('moves the cursor to the row under the pointer', () => {
+      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2'), cluster('r1')] });
+      const vm = wrapper.vm as any;
+
+      expect(vm.activeIndex).toBe(-1);
+
+      vm.onPointerMove(moveOver('p2'));
+      expect(vm.activeIndex).toBe(1);
+
+      vm.onPointerMove(moveOver('r1'));
+      expect(vm.activeIndex).toBe(2);
+    });
+
+    // The whole point of the shared cursor: ↑/↓ pick up from where the pointer left it.
+    it('continues from the pointer when the keyboard takes over', () => {
+      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2'), cluster('r1')] });
+      const vm = wrapper.vm as any;
+
+      vm.onPointerMove(moveOver('p2'));
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+
+      expect(vm.navRows[vm.activeIndex].id).toBe('r1');
+    });
+
+    it('ignores a move that is not over a row', () => {
+      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+      const vm = wrapper.vm as any;
+
+      vm.onPointerMove(moveOver('p2'));
+      vm.onPointerMove({ target: { closest: () => null } });
+
+      expect(vm.activeIndex).toBe(1);
+    });
+  });
+
+  // The cursor IS the focus now, so moving it has to move focus and bring the row into view with it.
+  it('moves focus to the row the cursor lands on, and keeps it on screen', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+
+    scrollIntoView.mockClear();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // into the list, at p1
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // on to p2
+    await nextTick();
+
+    expect(activeLabel(wrapper)).toBe('cluster-switcher-opt-p2');
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+  });
+
+  // Tab out of the search box has to land in the list, but nothing is highlighted until a key says so —
+  // so the FIRST row holds the tab stop until the cursor takes it.
+  it('gives the first row the tab stop while the cursor is still outside the list', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+
+    expect(vm.activeIndex).toBe(-1);
+    expect(wrapper.findAll('.row-main').map((b: any) => b.attributes('tabindex'))).toStrictEqual(['0', '-1', '-1']);
+    // ...and it is the tab stop without being highlighted, so Tab does not imply a selection.
+    expect(wrapper.findAll('.cluster-switcher-row').map((r: any) => r.classes().includes('active'))).toStrictEqual([false, false, false]);
+  });
+
+  // Tab has to reach the pin, which means the cursor's row is the ONLY row in the tab order — otherwise
+  // Tab walks the whole estate before it ever gets there.
+  it('moves the tab stop to the cursor row once the cursor enters the list', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    await nextTick();
+
+    const tabindexes = wrapper.findAll('.row-main').map((b: any) => b.attributes('tabindex'));
+
+    expect(tabindexes).toStrictEqual(['0', '-1', '-1']);
+  });
+
+  // The pointer moves the cursor WITHOUT moving focus, so the row holding focus can be the one row that
+  // is no longer the tab stop. Tab still has to step onto that row's own pin — wrapping back to the
+  // search box strands the user midway through the one journey this panel exists to make possible.
+  it('Tab reaches the focused row\'s pin after the pointer has moved the cursor off it', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2'), cluster('r1')], clusterCount: 3 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // focus onto the first row
+    await nextTick();
+
+    const rows = wrapper.findAll('.cluster-switcher-row');
+    const main = rows[0].element.querySelector('.row-main') as HTMLElement;
+    const pin = rows[0].element.querySelector('.row-pin') as HTMLElement;
+
+    expect(document.activeElement).toBe(main);
+
+    // The pointer drifts onto a different row: the cursor moves, and the tab stop with it, but focus stays.
+    vm.onPointerMove({ target: rows[2].element });
+    await nextTick();
+
+    expect(main.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(main);
+
+    vm.onKeydown({ key: 'Tab', preventDefault() {} });
+
+    expect(document.activeElement).toBe(pin);
+
+    // …and Tab again has to LEAVE the row for the search box. The fallback ring is built from the row
+    // alone, so without the search box in it Tab shuttles between the row's two controls for ever.
+    vm.onKeydown({ key: 'Tab', preventDefault() {} });
+
+    expect(document.activeElement).toBe(wrapper.find('input.switcher-search-input').element);
+  });
+
+  // The `local` tile is `:pinnable="false"`, so the fallback ring built from its row alone is a SINGLE
+  // element — Tab re-focuses what is already focused and, with the keydown already prevented, visibly
+  // does nothing. The search box has to be in the ring for Tab to have anywhere to go.
+  it('Tab leaves the focused local tile for the search box, even though it has no pin', async() => {
+    const wrapper = mountFocusable({
+      local: cluster('local'), all: [cluster('p1')], clusterCount: 1
+    });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // focus onto the local tile
+    await nextTick();
+
+    const tile = wrapper.find('.switcher-local .cluster-switcher-row').element;
+    const main = tile.querySelector('.row-main') as HTMLElement;
+
+    expect(tile.querySelector('.row-pin')).toBeNull();
+    expect(document.activeElement).toBe(main);
+
+    // The pointer drifts onto the estate row: the tab stop moves, focus stays on the tile.
+    vm.onPointerMove({ target: wrapper.findAll('.switcher-group .cluster-switcher-row')[0].element });
+    await nextTick();
+
+    expect(main.getAttribute('tabindex')).toBe('-1');
+
+    vm.onKeydown({ key: 'Tab', preventDefault() {} });
+
+    expect(document.activeElement).toBe(wrapper.find('input.switcher-search-input').element);
+  });
+
+  // Unpinning a cluster that is in this list ONLY because it is pinned removes its row — but the parent's
+  // `all` lands a store round-trip later, long after the unpin handler has looked. Focus must not be left
+  // on `<body>`, outside the dialog and driving nothing.
+  it('returns focus to the search box when the unpinned row leaves on the parent update', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // onto the pinned-only row
+    await nextTick();
+
+    const pin = wrapper.findAll('.cluster-switcher-row')[1].element.querySelector('.row-pin') as HTMLElement;
+
+    pin.focus();
+    expect(document.activeElement).toBe(pin);
+
+    // The pref write comes back and the parent stops carrying the row.
+    await wrapper.setProps({ all: [cluster('p1')], clusterCount: 1 } as any);
+
+    expect(document.activeElement).toBe(wrapper.find('input.switcher-search-input').element);
+  });
+
+  // Enter from the SEARCH BOX explores whatever the cursor is on. A focused row is a real button, so
+  // Enter there is the platform's click — handling it here as well would explore the same row twice.
+  it('Enter in the search box explores the active row', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // into the list, at p1
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // active = p2
+    await nextTick();
+
+    (wrapper.find('input.switcher-search-input').element as HTMLElement).focus();
+    vm.onKeydown({ key: 'Enter', preventDefault() {} });
+
+    expect((wrapper.emitted('select')?.[0]?.[0] as any)?.id).toBe('p2');
+  });
+
+  // Space is the other half of the native button contract: once a row and its pin are real buttons, Space
+  // has to reach them rather than be read as the user starting to type in the search box.
+  it.each([
+    ['row', '.row-main'],
+    ['pin', '.row-pin'],
+  ])('leaves Space on a focused %s to the button, rather than routing it to the search box', async(_what, selector) => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    await nextTick();
+
+    const control = wrapper.find(selector).element as HTMLElement;
+
+    control.focus();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    await nextTick();
+
+    expect(document.activeElement).toStrictEqual(control);
+    expect(wrapper.emitted('update:search')).toBeUndefined();
+  });
+
+  it('leaves Enter on a focused row to the button itself, so it is not explored twice', async() => {
+    const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    await nextTick();
+    vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+    await nextTick();
+
+    // Focus is on the row's own control, not the field.
+    vm.onKeydown({ key: 'Enter', preventDefault() {} });
+
+    expect(wrapper.emitted('select')).toBeUndefined();
+  });
+
+  it('does not explore a non-ready cluster', () => {
+    const wrapper = mountSwitcher({ all: [cluster('p1', false)] });
+
+    (wrapper.vm as any).explore(cluster('p1', false));
+    expect(wrapper.emitted('select')).toBeUndefined();
+  });
+
+  it('emits update:search as the user types', () => {
+    const wrapper = mountSwitcher();
+
+    (wrapper.vm as any).onInput({ target: { value: 'prod' } });
+    expect(wrapper.emitted('update:search')?.[0]?.[0]).toBe('prod');
+  });
+
+  it('opening focuses search and emits update:open', () => {
+    const wrapper = mountSwitcher();
+
+    (wrapper.vm as any).setOpen(true);
+    expect(wrapper.emitted('update:open')?.[0]?.[0]).toBe(true);
+  });
+
+  it('closing hands focus back to whatever opened the flyout', () => {
+    const trigger = document.createElement('button');
+
+    document.body.appendChild(trigger);
+    trigger.focus();
+
+    const wrapper = mountSwitcher();
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    // The flyout owns focus while open (the real one focuses its search input on the popper's apply-show).
+    document.body.focus();
+
+    vm.setOpen(false);
+    expect(document.activeElement).toBe(trigger);
+
+    trigger.remove();
+  });
+
+  it('closing does not steal focus from an outside click', () => {
+    const trigger = document.createElement('button');
+    const elsewhere = document.createElement('button');
+
+    document.body.append(trigger, elsewhere);
+    trigger.focus();
+
+    const wrapper = mountSwitcher();
+    const vm = wrapper.vm as any;
+
+    vm.setOpen(true);
+    // Clicking another control auto-hides the flyout, but focus is already where the user put it.
+    elsewhere.focus();
+
+    vm.setOpen(false);
+    expect(document.activeElement).toBe(elsewhere);
+
+    trigger.remove();
+    elsewhere.remove();
+  });
+
+  // Escape peels one layer: it clears a query first and only closes the panel once the box is empty.
+  // One press is two events, so the keyup is swallowed on the strength of what the keydown did — a flag
+  // that outlives the close it was set before, and would then eat the NEXT press's keyup.
+  it('does not swallow the next press after a close between keydown and keyup', async() => {
+    const wrapper = mountSwitcher({ search: 'foo' });
+    const vm = wrapper.vm as any;
+    const esc = (type: string) => {
+      const e = new KeyboardEvent(type, {
+        key: 'Escape', cancelable: true, bubbles: true
+      });
+
+      window.dispatchEvent(e);
+
+      return e;
+    };
+
+    vm.setOpen(true);
+    await nextTick();
+    // The query is cleared and the press consumed, so floating-vue never sees it and the panel stays open.
+    expect(esc('keydown').defaultPrevented).toBe(true);
+
+    // The flyout closes before the keyup for that press lands (auto-repeat, or focus leaving the window).
+    vm.setOpen(false);
+    await wrapper.setProps({ search: '' });
+    await nextTick();
+    esc('keyup');
+
+    // Next time it opens there is no query, so nothing should be consumed — the panel has to close.
+    vm.setOpen(true);
+    await nextTick();
+    esc('keydown');
+    expect(esc('keyup').defaultPrevented).toBe(false);
+  });
+
+  // The ALL CLUSTERS / MATCHES caption sits ABOVE the search box, not inside the
+  // scrolling list, and the flyout forwards the Option/Alt cue to every row.
+  describe('layout', () => {
+    // Search box, then everything else inside the ONE scrolling region: the tile, RECENTLY USED and the
+    // estate all travel together rather than a strip scrolling under fixed headings.
+    it('orders the panel search, then local, recent and the list inside the scroller', () => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), recent: [cluster('r1')], all: [cluster('p1')], clusterCount: 7
+      });
+      const html = wrapper.html();
+      // On the class attribute, not the bare name: the listbox IDS contain the same words.
+      const at = (cls: string) => html.indexOf(`class="${ cls }"`);
+
+      expect(wrapper.find('.switcher-scroll .switcher-group-label').exists()).toBe(true);
+      expect(at('switcher-search')).toBeLessThan(at('switcher-scroll'));
+      expect(at('switcher-scroll')).toBeLessThan(at('switcher-local'));
+      expect(at('switcher-local')).toBeLessThan(at('switcher-recent'));
+      expect(at('switcher-recent')).toBeLessThan(at('switcher-group'));
+      // The scroller holds them all, so one scrollbar moves the whole panel body.
+      expect(wrapper.findAll('.switcher-scroll .switcher-local, .switcher-scroll .switcher-recent, .switcher-scroll .switcher-group')).toHaveLength(3);
+    });
+
+    it('swaps the caption for MATCHES + the match total while searching', () => {
+      const wrapper = mountSwitcher({
+        searchResults: [cluster('m1')], searchCount: 3, search: 'm'
+      });
+
+      expect(wrapper.find('.switcher-group-label').text()).toBe('%nav.switcher.matches% 3');
+    });
+
+    it('forwards the route-combo cue to every row', () => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2, routeCombo: true
+      });
+      const rows = wrapper.findAllComponents({ name: 'ClusterSwitcherRow' });
+
+      expect(rows).toHaveLength(3);
+      rows.forEach((row) => expect(row.props('routeCombo')).toBe(true));
+    });
+  });
+
+  describe('accessibility (a search box and a list)', () => {
+    // NOT a combobox: a combobox keeps focus in its field, which forbids focusable controls in the
+    // options — and the pin has to be reachable with Tab. So the panel is a dialog holding a plain
+    // search box and a list of rows that take focus themselves.
+    it('is a labelled dialog whose search box claims no combobox role', async() => {
+      const wrapper = mountSwitcher({ all: [cluster('p1')], clusterCount: 1 });
+      const input = () => wrapper.find('input.switcher-search-input');
+      const panel = wrapper.find('.cluster-switcher-flyout');
+
+      expect(panel.attributes('role')).toBe('dialog');
+      expect(panel.attributes('aria-label')).toBeTruthy();
+
+      expect(input().attributes('role')).toBeUndefined();
+      expect(input().attributes('aria-autocomplete')).toBeUndefined();
+      expect(input().attributes('aria-haspopup')).toBeUndefined();
+      expect(input().attributes('aria-expanded')).toBeUndefined();
+      expect(input().attributes('aria-activedescendant')).toBeUndefined();
+      // `aria-controls` went with the combobox too — it has no meaning on a plain textbox.
+      expect(input().attributes('aria-controls')).toBeUndefined();
+
+      (wrapper.vm as any).setOpen(true);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('.switcher-scroll').attributes('role')).toBeUndefined();
+    });
+
+    it('the ↑↓ cursor walks navRows', async() => {
+      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
+      const vm = wrapper.vm as any;
+
+      // Nothing is pointed at until a key moves the cursor into the list.
+      expect(vm.activeIndex).toBe(-1);
+
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+      await wrapper.vm.$nextTick();
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('p1');
+
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+      await wrapper.vm.$nextTick();
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('p2');
+    });
+
+    it('gives every row a stable id, so a repeated cluster never collides', () => {
+      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
+      const html = wrapper.html();
+
+      expect(html).toContain('cluster-switcher-opt-p1');
+      expect(html).toContain('cluster-switcher-opt-p2');
+    });
+
+    // The fixed `local` tile heads the nav model, so it stays above the search door yet is
+    // keyboard-reachable — the first ↓ lands on it.
+    it('opens with nothing highlighted, and enters the list at the local tile', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2
+      });
+      const vm = wrapper.vm as any;
+
+      // local heads the navigation model, but the visible list still renders only the directory.
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local', 'p1', 'p2']);
+      expect(vm.rows.map((c: any) => c.id)).toStrictEqual(['p1', 'p2']);
+
+      // Opening highlights nothing — a highlight nobody asked for reads as a selection, and Enter would
+      // act on it — so Enter is inert until the user has driven the cursor.
+      vm.setOpen(true);
+      await vm.$nextTick();
+      expect(vm.activeIndex).toBe(-1);
+
+      vm.onKeydown({ key: 'Enter', preventDefault() {} });
+      expect(wrapper.emitted('select')).toBeUndefined();
+
+      // ↓ enters the list at the top, which is the local tile...
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+      await vm.$nextTick();
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('local');
+
+      // ...and Enter explores it.
+      vm.onKeydown({ key: 'Enter', preventDefault() {} });
+      expect(wrapper.emitted('select')?.[0]?.[0]).toMatchObject({ id: 'local' });
+
+      // One more ↓ reaches the first directory row.
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+      await vm.$nextTick();
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('p1');
+    });
+
+    // The other way into the list: from nothing highlighted, ↑ starts at the bottom.
+    it('enters the list at the last row on ArrowUp', async() => {
+      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')] });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await vm.$nextTick();
+
+      vm.onKeydown({ key: 'ArrowUp', preventDefault() {} });
+      await vm.$nextTick();
+
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('p2');
+    });
+
+    // A search takes the fixed tile down: while one is running `local` is not a pinned shortcut, it is
+    // a cluster like any other and has to earn a place in the results. So the cursor follows the matches,
+    // and `local` only appears when it actually matches.
+    it('takes the local tile down while searching and lets local match like any other cluster', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), all: [cluster('p1'), cluster('p2')], clusterCount: 2
+      });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+      expect(vm.localTile?.id).toBe('local');
+
+      // Typing: the skeleton is on screen, so nothing is highlighted and the search box keeps the user.
+      await wrapper.setProps({ search: 'm', listLoading: true });
+      await nextTick();
+      expect(vm.localTile).toBeNull();
+      expect(vm.localOffset).toBe(0);
+      expect(vm.activeIndex).toBe(-1);
+
+      // Results arrive: the cursor lands on the first MATCH, so Enter opens it.
+      // `cluster()` is the suite's minimal row stub, not a full TopLevelMenuCluster — the component only
+      // reads the handful of fields it sets, so cast rather than pad every fixture.
+      await wrapper.setProps({ listLoading: false, searchResults: [cluster('m1'), cluster('m2')] } as any);
+      await nextTick();
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('m1');
+
+      vm.onKeydown({ key: 'Enter', preventDefault() {} });
+      expect(wrapper.emitted('select')?.[0]?.[0]).toMatchObject({ id: 'm1' });
+
+      // Searching for it finds `local` in the results, with no fixed tile duplicating it above.
+      await wrapper.setProps({ search: 'local', searchResults: [cluster('local')] } as any);
+      await nextTick();
+      expect(vm.localTile).toBeNull();
+      expect(vm.navRows.map((c: any) => c.id)).toStrictEqual(['local']);
+      expect(vm.navRows[vm.activeIndex]?.id).toBe('local');
+
+      // Search over: the tile is back, and the cursor goes away with the query.
+      await wrapper.setProps({ search: '', searchResults: [] } as any);
+      await nextTick();
+      expect(vm.localTile?.id).toBe('local');
+      expect(vm.activeIndex).toBe(-1);
+    });
+
+    // A cursor the user drove themselves is theirs — a later page of results must not take it back.
+    it('leaves a user-moved cursor where it is when more results arrive', async() => {
+      const wrapper = mountSwitcher({
+        local: cluster('local'), searchResults: [cluster('m1'), cluster('m2')], search: 'm'
+      });
+      const vm = wrapper.vm as any;
+
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // into the list, at m1
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // cursor -> m2, deliberately
+      await nextTick();
+
+      await wrapper.setProps({ searchResults: [cluster('m1'), cluster('m2'), cluster('m3')] } as any);
+      await nextTick();
+
+      expect(vm.activeIndex).toBe(1);
+      expect(vm.navRows[vm.activeIndex].id).toBe('m2');
+    });
+
+    // Opening the flyout, and clearing the search box, both refetch the whole directory. The rows already
+    // on screen are about to be replaced wholesale, so they give way to the skeleton rather than sitting
+    // there looking current until the swap.
+    it('shows the skeleton while the resting list is being refetched', async() => {
+      const wrapper = mountSwitcher({ all: [cluster('p1'), cluster('p2')], clusterCount: 2 });
+
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
+      expect(wrapper.find('.switcher-scroll').attributes('aria-busy')).toBe('false');
+
+      await wrapper.setProps({ listLoading: true } as any);
+
+      expect(wrapper.findAll('.switcher-group')).toHaveLength(0);
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton).length).toBeGreaterThan(0);
+      expect(wrapper.find('.switcher-scroll').attributes('aria-busy')).toBe('true');
+    });
+
+    // Page 1 arrives in `props` a tick before it is on screen: the skeleton is still up, and it is shorter
+    // than any real page, so a top-up that measured it would read "not filled" and fetch page 2 for a list
+    // that had only just been replaced — two requests for one open. It has to wait for the real rows.
+    it('does not top up the list while the skeleton is standing in for it', async() => {
+      const wrapper = mountSwitcher({
+        all: [], clusterCount: 20, hasMore: true, listLoading: true
+      });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+      await nextTick();
+
+      expect(wrapper.emitted('load-more')).toBeUndefined();
+
+      // Page 1 lands in `props` while the skeleton is still up — still nothing to measure, still no fetch.
+      await wrapper.setProps({ all: [cluster('p1'), cluster('p2')] } as any);
+      await nextTick();
+
+      expect(wrapper.emitted('load-more')).toBeUndefined();
+
+      // Skeleton clears, the rows are on screen: now the top-up may judge whether they fill the scroller.
+      // jsdom reports every height as 0, so an unfilled scroller is exactly what it sees.
+      await wrapper.setProps({ listLoading: false } as any);
+      await nextTick();
+      await nextTick();
+
+      expect(wrapper.emitted('load-more')).toHaveLength(1);
+    });
+
+    // `aria-current` marks ONE thing. The same cluster can be on screen up to three times — the fixed
+    // tile, a RECENTLY USED shortcut and its row in the estate — and announcing each of them tells a
+    // screen-reader user there are three current clusters, none of which reads as "the" one.
+    it('announces aria-current once when the current cluster is on screen more than once', () => {
+      const local = cluster('local');
+      const wrapper = mountSwitcher({
+        local, recent: [local, cluster('r1')], all: [cluster('p1')], currentClusterId: 'local'
+      });
+
+      const rows = wrapper.findAllComponents(ClusterSwitcherRow);
+      const announced = rows.filter((row) => row.props('current') && row.props('announceCurrent'));
+      const markedCurrent = rows.filter((row) => row.props('current'));
+
+      // Twice on screen, announced once. Neither is marked in the panel — no fill, no "current" in the
+      // row's text — so `aria-current` is the only thing saying it, and it may only say it once.
+      expect(markedCurrent).toHaveLength(2);
+      expect(announced).toHaveLength(1);
+    });
+
+    // A page 1 that fails leaves the list empty — exactly like a page 1 that has not landed yet. Shown as
+    // the skeleton, that reads as "nearly there" about a request that is never coming back, and the panel
+    // shimmers for as long as it is open.
+    it('reports a failed page 1 instead of shimmering forever', async() => {
+      const wrapper = mountSwitcher({
+        all: [], clusterCount: 20, listLoading: true
+      });
+
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton).length).toBeGreaterThan(0);
+
+      await wrapper.setProps({ listLoading: false, listFailed: true } as any);
+
+      expect(wrapper.findAllComponents(ClusterSwitcherSkeleton)).toHaveLength(0);
+      // The suite renders keys rather than copy, and the template's `t` wraps them in `%…%`.
+      expect(wrapper.find('.switcher-empty').text()).toContain('nav.switcher.loadError');
+      expect(wrapper.find('.switcher-scroll').attributes('aria-busy')).toBe('false');
+      // Announced through the live region, not as an alert among the rows: the listbox may only contain
+      // options and groups, so a status element inside it is invalid for the very readers it is for.
+      expect(wrapper.find('[role="status"]').text()).toContain('nav.switcher.loadError');
+    });
+
+    // Nothing to top up: page 1 never arrived, so asking for page 2 would page a list that has no page 1.
+    it('does not top up the list after a failed page 1', async() => {
+      const wrapper = mountSwitcher({
+        all: [], clusterCount: 20, hasMore: true, listLoading: true
+      });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+      await wrapper.setProps({ listLoading: false, listFailed: true } as any);
+      await nextTick();
+      await nextTick();
+
+      expect(wrapper.emitted('load-more')).toBeUndefined();
+
+      wrapper.unmount();
+    });
+
+    // The highlight is shared by the pointer and the arrows, so on its own it cannot say which is driving.
+    // The ring is now the platform's `:focus-visible` on the row's own button, so what this has to check
+    // is the thing that earns it: the arrows move real focus onto the row, and the pointer does not.
+    describe('the cursor, and which input is driving it', () => {
+      // A pointer event shaped the way the delegated handler reads it.
+      const pointerOver = (id: string) => ({ target: { closest: () => ({ id }) } });
+
+      it('moves focus to the row the arrows reach, and leaves focus alone for the pointer', async() => {
+        const wrapper = mountFocusable({ all: [cluster('p1'), cluster('p2')] });
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(true);
+        await nextTick();
+
+        // Nothing has moved the cursor, so no row holds focus.
+        expect(activeLabel(wrapper)).toBeNull();
+
+        vm.onKeydown({ key: 'ArrowDown', preventDefault() {} });
+        await nextTick();
+
+        expect(activeLabel(wrapper)).toBe('cluster-switcher-opt-p1');
+
+        // The pointer moves the highlight but must NOT steal focus — dragging the mouse across the list
+        // while typing would otherwise pull the caret out of the search box.
+        vm.onPointerMove(pointerOver('cluster-switcher-opt-p2'));
+        await nextTick();
+
+        expect(vm.activeIndex).toBe(1);
+        expect(activeLabel(wrapper)).toBe('cluster-switcher-opt-p1');
+      });
+
+      // Typing is keyboard use, but it is not the user steering the cursor: the first match takes the
+      // cursor without focus following it, so the caret stays in the field the user is typing into.
+      it('highlights the first match of a search without moving focus to it', async() => {
+        const wrapper = mountFocusable({ all: [cluster('p1')], searchResults: [cluster('m1')] });
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(true);
+        await nextTick();
+
+        await wrapper.setProps({ search: 'm' } as any);
+        await nextTick();
+
+        expect(vm.activeIndex).toBe(0);
+        expect(activeLabel(wrapper)).toBeNull();
+      });
+    });
+
+    // The closing wipe hangs off `is-closing`, and losing that class mid-close does not merely stop the
+    // animation: the panel's hide overrides go with it, and swapping the animation name back restarts the
+    // OPENING wipe on a panel that is on its way out.
+    describe('the closing flag', () => {
+      it('survives a close arriving twice', async() => {
+        const wrapper = mountSwitcher();
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(true);
+        await nextTick();
+        expect(vm.popperClass).not.toContain('is-closing');
+
+        vm.setOpen(false);
+        await nextTick();
+        expect(vm.popperClass).toContain('is-closing');
+
+        // Some paths close twice over — our own toggle, then floating-vue's `apply-hide` behind it.
+        vm.setOpen(false);
+        await nextTick();
+        expect(vm.popperClass).toContain('is-closing');
+
+        wrapper.unmount();
+      });
+
+      it('is cleared by the next open', async() => {
+        const wrapper = mountSwitcher();
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(true);
+        vm.setOpen(false);
+        await nextTick();
+        expect(vm.popperClass).toContain('is-closing');
+
+        vm.setOpen(true);
+        await nextTick();
+
+        expect(vm.popperClass).not.toContain('is-closing');
+
+        wrapper.unmount();
+      });
+
+      // Nothing was open, so nothing is closing — otherwise the panel would be born wearing the class that
+      // drives its own exit.
+      it('stays off when a closed panel is closed again', async() => {
+        const wrapper = mountSwitcher();
+        const vm = wrapper.vm as any;
+
+        vm.setOpen(false);
+        await nextTick();
+
+        expect(vm.popperClass).not.toContain('is-closing');
+
+        wrapper.unmount();
+      });
+    });
+
+    // A cold open (nothing pinned, no visit history) has an empty directory, and page 1 lands a moment
+    // later. That arrival must not conjure a highlight the user never asked for — a cold open and a warm
+    // one both start with nothing selected.
+    it('stays unhighlighted when the directory lands after a cold open', async() => {
+      const wrapper = mountSwitcher({ local: cluster('local'), all: [] });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+      expect(vm.activeIndex).toBe(-1);
+
+      await wrapper.setProps({ all: [cluster('a'), cluster('b')] } as any);
+      await nextTick();
+
+      expect(vm.activeIndex).toBe(-1);
+    });
+
+    // The pin stays out of the tab order (a focusable control inside `role="option"` is invalid ARIA),
+    // so the combobox has to own the keyboard path — otherwise the flyout, the only surface where a
+    // cluster outside PINNED/RECENT can be pinned, is mouse-only. WCAG 2.2 2.1.1 (Level A).
+    // Taken at the WINDOW while the flyout is open, so nothing else — the header's binding for the same
+    // combo included — can act on it. Both combos are accepted on either platform, the way the header's
+    // `v-shortkey` binding registers both of its platform variants.
+    it.each([
+      ['Cmd+Shift+P', { metaKey: true, shiftKey: true }],
+      ['Alt+P', { altKey: true }],
+    ])('%s pins and unpins the row under the keyboard cursor', async(_label, mods) => {
+      const p1 = cluster('p1');
+      const p2 = cluster('p2');
+      const wrapper = mountSwitcher({ all: [p1, p2] });
+      const vm = wrapper.vm as any;
+      const pinKey = () => window.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'p', code: 'KeyP', ...mods, cancelable: true, bubbles: true
+      }));
+
+      vm.setOpen(true);
+      await nextTick();
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // cursor -> p1
+
+      pinKey();
+      expect(p1.pin).toHaveBeenCalledTimes(1);
+
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // cursor -> p2
+      p2.pinned = true;
+      pinKey();
+      expect(p2.unpin).toHaveBeenCalledTimes(1);
+      expect(p2.pin).not.toHaveBeenCalled();
+
+      vm.setOpen(false);
+    });
+
+    // The flyout silences the app's shortcuts while it is open — the binding that opened it included — so
+    // it has to close itself.
+    it('closes on the shortcut that opened it, taken at the window', async() => {
+      const wrapper = mountSwitcher({ all: [cluster('p1')] });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+
+      window.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'j', code: 'KeyJ', metaKey: true, cancelable: true, bubbles: true
+      }));
+      await nextTick();
+
+      expect(vm.open).toBe(false);
+    });
+
+    // Closed, the flyout has no claim on the key: it belongs to the header's binding for the cluster on
+    // screen, and this listener must be gone.
+    it('gives the shortcut up when it closes', async() => {
+      const p1 = cluster('p1');
+      const wrapper = mountSwitcher({ all: [p1] });
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+      vm.setOpen(false);
+      await nextTick();
+
+      window.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'p', code: 'KeyP', metaKey: true, shiftKey: true, cancelable: true, bubbles: true
+      }));
+
+      expect(p1.pin).not.toHaveBeenCalled();
+    });
+
+    // The shortcut is advertised to screen readers via aria-keyshortcuts, but the pin control itself is
+    // aria-hidden inside the option — so without an announcement the toggle has no perceivable result.
+    it('announces the pin toggle through the live region', async() => {
+      const p1 = cluster('p1');
+      const wrapper = mountSwitcher({ all: [p1], clusterCount: 1 });
+      const vm = wrapper.vm as any;
+      const status = () => wrapper.find('[role=\'status\']').text();
+      const pinKey = () => window.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'p', code: 'KeyP', altKey: true, cancelable: true, bubbles: true
+      }));
+
+      vm.setOpen(true);
+      await nextTick();
+      vm.onKeydown({ key: 'ArrowDown', preventDefault() {} }); // cursor -> p1
+
+      expect(status()).toContain('nav.switcher.aria.results');
+
+      pinKey();
+      await nextTick();
+      expect(status()).toContain('nav.switcher.aria.pinnedCluster');
+
+      p1.pinned = true;
+      pinKey();
+      await nextTick();
+      expect(status()).toContain('nav.switcher.aria.unpinnedCluster');
+
+      // Typing again is a new result set — the count has to take the region back over.
+      await wrapper.setProps({ search: 'p' });
+      await nextTick();
+      expect(status()).toContain('nav.switcher.aria');
+      expect(status()).not.toContain('pinnedCluster');
+    });
+
+    // A bare `p` is a search character, and `local` is never pinnable.
+    it('the pin shortcut is inert without its modifiers, and on the local row', () => {
+      const local = cluster('local');
+      const p1 = cluster('p1');
+      const wrapper = mountSwitcher({ local, all: [p1] });
+      const vm = wrapper.vm as any;
+
+      vm.onKeydown({
+        key: 'p', code: 'KeyP', altKey: false, preventDefault() {}
+      });
+      expect(p1.pin).not.toHaveBeenCalled();
+
+      vm.onKeydown({ key: 'ArrowUp', preventDefault() {} }); // cursor -> local
+      vm.onKeydown({
+        key: 'p', code: 'KeyP', altKey: true, preventDefault() {}
+      });
+      expect(local.pin).not.toHaveBeenCalled();
+    });
+
+    // The flyout puts up a full-page scrim, so Tab must not walk focus out onto content that scrim
+    // covers and click-blocks.
+    it('contains Tab and Shift+Tab inside the popover', async() => {
+      const wrapper = mountSwitcher({
+        all: [cluster('p1')], search: 'p', clusterCount: 1
+      }, document.body);
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+
+      const input = wrapper.find('input.switcher-search-input').element as HTMLElement;
+      const tab = (shiftKey = false) => {
+        const preventDefault = jest.fn();
+
+        vm.onKeydown({
+          key: 'Tab', shiftKey, preventDefault
+        });
+
+        return preventDefault;
+      };
+
+      // The search box is the only tabbable control in the popover, so Tab has to wrap straight back to
+      // it rather than letting focus escape the scrim — in both directions.
+      input.focus();
+      expect(tab()).toHaveBeenCalledWith();
+      expect(document.activeElement).toBe(input);
+
+      tab(true);
+      expect(document.activeElement).toBe(input);
+
+      wrapper.unmount();
+    });
+
+    // Focus is what keeps the keyboard alive: `@keydown` sits on the flyout div, but a mousedown on the
+    // popover's non-interactive chrome would move focus to floating-vue's popper ROOT — an ancestor —
+    // and every later ↑/↓, Enter and pin shortcut would miss the handler entirely.
+    it('keeps the caret in the search box when the popover chrome is clicked', async() => {
+      const wrapper = mountSwitcher({
+        all: [cluster('p1')], search: 'p', clusterCount: 1
+      }, document.body);
+      const vm = wrapper.vm as any;
+
+      vm.setOpen(true);
+      await nextTick();
+
+      const mousedown = (target: HTMLElement) => {
+        const e = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+
+        target.dispatchEvent(e);
+
+        return e.defaultPrevented;
+      };
+
+      // Chrome (the flyout itself, captions, padding): focus must not move off the search box.
+      expect(mousedown(wrapper.find('.cluster-switcher-flyout').element as HTMLElement)).toBe(true);
+
+      // A real control still takes focus the way the user aimed it. (The clear X is not checked here: it
+      // carries its own `@mousedown.prevent`, for the same reason.)
+      expect(mousedown(wrapper.find('input.switcher-search-input').element as HTMLElement)).toBe(false);
+
+      wrapper.unmount();
+    });
+  });
+});

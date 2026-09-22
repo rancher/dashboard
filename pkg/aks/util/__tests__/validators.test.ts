@@ -142,6 +142,41 @@ describe('fx: nodePoolNames', () => {
   });
 });
 
+describe('fx: nodePoolNamesUnique', () => {
+  it('returns an error and flags only the pools sharing a name', () => {
+    const ctx = {
+      ...mockCtx,
+      nodePools: [{ name: 'abc', _validation: {} }, { name: 'abc', _validation: {} }, { name: 'def', _validation: {} }] as unknown as AKSNodePool[]
+    };
+
+    expect(validators.nodePoolNamesUnique(ctx)()).toStrictEqual(MOCK_TRANSLATION);
+    expect(ctx.nodePools.map((pool) => pool?._validation?._validUnique)).toStrictEqual([false, false, true]);
+  });
+
+  it('does not treat pools that have no name as duplicates of each other', () => {
+    const ctx = {
+      ...mockCtx,
+      nodePools: [{ name: '', _validation: {} }, { name: '', _validation: {} }, { name: 'abc', _validation: {} }] as unknown as AKSNodePool[]
+    };
+
+    expect(validators.nodePoolNamesUnique(ctx)()).toBeUndefined();
+    expect(ctx.nodePools.map((pool) => pool?._validation?._validUnique)).toStrictEqual([true, true, true]);
+  });
+
+  it('clears the flag once a duplicate name is corrected', () => {
+    const ctx = {
+      ...mockCtx,
+      nodePools: [{ name: 'abc', _validation: {} }, { name: 'abc', _validation: {} }] as unknown as AKSNodePool[]
+    };
+
+    validators.nodePoolNamesUnique(ctx)();
+    ctx.nodePools[1].name = 'def';
+
+    expect(validators.nodePoolNamesUnique(ctx)()).toBeUndefined();
+    expect(ctx.nodePools.map((pool) => pool?._validation?._validUnique)).toStrictEqual([true, true]);
+  });
+});
+
 describe('fx: nodePoolCount', () => {
   // AksNodePool unit tests check that the second arg is passed in as expected
   it('validates that count is at least 1 and at most 1000 when second arg is false', () => {

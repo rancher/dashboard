@@ -102,7 +102,7 @@ export default defineComponent({
       'banner-disabled': disabled
     }"
     :role="role || undefined"
-    tabindex="0"
+    :tabindex="role === 'alert' ? -1 : 0"
   >
     <div
       v-if="icon"

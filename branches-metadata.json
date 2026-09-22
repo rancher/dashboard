@@ -9,16 +9,16 @@
         "rancher-image": {
           "namespace": "rancher",
           "name": "rancher",
-          "tag": "v2.16-4cd8c7dc70df3224ce27171ab1efe8194207f6aa-head"
+          "tag": "head"
         },
         "rancher-agent": {
           "namespace": "rancher",
           "name": "rancher-agent",
-          "tag": "v2.16-4cd8c7dc70df3224ce27171ab1efe8194207f6aa-head"
+          "tag": "head"
         },
         "runtime-rancher-version": "2.15.0",
         "helm": {
-          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.15"
+          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.16"
         },
         "kube": {
           "version": "v1.35.2+k3s1"
@@ -33,7 +33,7 @@
     "release-2.15": {
       "milestone": {
         "version": "v2.15.2",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -62,7 +62,7 @@
     "release-2.14": {
       "milestone": {
         "version": "v2.14.6",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -81,7 +81,7 @@
     "release-2.13": {
       "milestone": {
         "version": "v2.13.10",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -100,7 +100,7 @@
     "release-2.12": {
       "milestone": {
         "version": "v2.12.14",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -119,7 +119,7 @@
     "release-2.11": {
       "milestone": {
         "version": "v2.11.18",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {

@@ -17,11 +17,14 @@ describe('component: TabTitle', () => {
       withFallback:        null,
       vendor:              'Vendor',
       child:               'Child',
-      updatePageTitleArgs: null
+      // Populated by the `updatePageTitle` spy below; `null` alone infers as `null`
+      updatePageTitleArgs: null as unknown[] | null
     };
 
-    privateLabel.getVendor = () => mocks.vendor;
-    title.updatePageTitle = (...args: any[]) => (mocks.updatePageTitleArgs = args);
+    jest.spyOn(privateLabel, 'getVendor').mockReturnValue(mocks.vendor);
+    jest.spyOn(title, 'updatePageTitle').mockImplementation((...args) => {
+      mocks.updatePageTitleArgs = args;
+    });
 
     return mocks;
   }
@@ -92,17 +95,16 @@ describe('component: TabTitle', () => {
     const mocks = createMocks();
     const store = mockStore(mocks);
 
-    global.console = {
-      warn:  jest.fn(),
-      error: jest.fn()
-    };
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     shallowMount(TabTitle, {
       slots:  { default: jest.fn() },
       global: { mocks: { $store: store } }
     });
 
-    expect(console.error).toHaveBeenCalledWith('The <TabTitle> component only supports text as the child.'); // eslint-disable-line no-console
+    expect(consoleErrorSpy).toHaveBeenCalledWith('The <TabTitle> component only supports text as the child.');
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('should only show child', () => {

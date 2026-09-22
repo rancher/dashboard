@@ -1,5 +1,9 @@
-import { abbreviateClusterName, _addonConfigPreserveFilter, addonConfigPreserve } from '@shell/utils/cluster';
+import {
+  abbreviateClusterName, _addonConfigPreserveFilter, addonConfigPreserve, clusterFilterSignature, isLocalClusterHidden
+} from '@shell/utils/cluster';
 import { diff } from '@shell/utils/object';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 describe('fx: abbreviateClusterName', () => {
   it.each([
@@ -431,5 +435,65 @@ describe('fx: addonConfigPreserve', () => {
     expect(context.addonConfigDiffs[ADDON_NAME]).toStrictEqual({ replicas: 2 });
     expect(context.addonConfigDiffs[ADDON2_NAME]).toStrictEqual({});
     expect(context.addonConfigDiffs[ADDON3_NAME]).toBeUndefined();
+  });
+});
+
+// A store carrying just what the cluster filters read: the `hide-local-cluster` setting and the Harvester
+// feature flag. `hideLocal: undefined` stands for the setting not being there at all.
+const filterStore = ({ hideLocal, harvesterContainer = false }: { hideLocal?: string, harvesterContainer?: boolean } = {}) => ({
+  getters: {
+    'management/byId': (type: string, id: string) => (
+      type === MANAGEMENT.SETTING && id === SETTING.HIDE_LOCAL_CLUSTER && hideLocal !== undefined ? { value: hideLocal } : undefined
+    ),
+    'features/get': () => harvesterContainer,
+  }
+});
+
+describe('fx: isLocalClusterHidden', () => {
+  it.each([
+    ['the setting is missing', undefined, false],
+    ['the setting is off', 'false', false],
+    ['the setting is on', 'true', true],
+  ])('should report hidden as %p', (_label, hideLocal, expected) => {
+    expect(isLocalClusterHidden(filterStore({ hideLocal }))).toStrictEqual(expected);
+  });
+
+  it('should fall back to the setting default when it has no value', () => {
+    const store = { getters: { 'management/byId': () => ({ default: 'true' }) } };
+
+    expect(isLocalClusterHidden(store)).toStrictEqual(true);
+  });
+});
+
+// The signature is compared for EQUALITY across renders to decide whether a cached cluster count has gone
+// stale, so what matters is that it is stable while nothing moves and different once something does.
+describe('fx: clusterFilterSignature', () => {
+  it('should be stable across calls while the environment is unchanged', () => {
+    const store = filterStore({ hideLocal: 'false' });
+
+    expect(clusterFilterSignature(store)).toStrictEqual(clusterFilterSignature(store));
+  });
+
+  it('should change when hide-local-cluster is toggled', () => {
+    const shown = clusterFilterSignature(filterStore({ hideLocal: 'false' }));
+    const hidden = clusterFilterSignature(filterStore({ hideLocal: 'true' }));
+
+    expect(hidden).not.toStrictEqual(shown);
+  });
+
+  it('should change when the Harvester feature flag is flipped', () => {
+    const off = clusterFilterSignature(filterStore({ hideLocal: 'false', harvesterContainer: false }));
+    const on = clusterFilterSignature(filterStore({ hideLocal: 'false', harvesterContainer: true }));
+
+    expect(on).not.toStrictEqual(off);
+  });
+
+  // The flag picks which field the hidden-local filter targets, so it has to reach the signature too —
+  // otherwise a mgmt-cluster query and a prov-cluster one would share one cached count.
+  it('should change with filterMgmtCluster while local is hidden', () => {
+    const mgmt = clusterFilterSignature(filterStore({ hideLocal: 'true' }), true);
+    const prov = clusterFilterSignature(filterStore({ hideLocal: 'true' }), false);
+
+    expect(prov).not.toStrictEqual(mgmt);
   });
 });

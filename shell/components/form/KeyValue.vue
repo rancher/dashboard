@@ -15,6 +15,7 @@ import isEqual from 'lodash/isEqual';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { RcButton } from '@components/RcButton';
 import { RcIconTooltip } from '@components/RcIconTooltip';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   name: 'KeyValue',
@@ -28,7 +29,8 @@ export default {
     FileSelector,
     LabeledTooltip,
     RcButton,
-    RcIconTooltip
+    RcIconTooltip,
+    RcHeading,
   },
   props: {
     value: {
@@ -608,14 +610,14 @@ export default {
       class="clearfix"
     >
       <slot name="title">
-        <h3>
+        <RcHeading :size="3">
           {{ title }}
           <i
             v-if="titleProtip"
             v-clean-tooltip="titleProtip"
             class="icon icon-info"
           />
-        </h3>
+        </RcHeading>
       </slot>
     </div>
     <div
@@ -848,7 +850,8 @@ export default {
                   >
                   <FileSelector
                     v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
-                    class="btn btn-sm role-secondary file-selector"
+                    variant="secondary"
+                    size="small"
                     :label="t('generic.upload')"
                     :include-file-name="true"
                     :accept="readAccept"
@@ -951,7 +954,7 @@ export default {
           v-if="readAllowed"
           :aria-label="t('generic.ariaLabel.readKeyValue')"
           :disabled="isView"
-          class="role-tertiary"
+          variant="tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
           :accept="readAccept"
@@ -966,10 +969,6 @@ export default {
 <style lang="scss">
 .key-value {
   width: 100%;
-  .file-selector.role-link {
-    text-transform: initial;
-    padding: 0;
-  }
   .kv-container {
     display: grid;
     align-items: center;

@@ -62,7 +62,7 @@ export class NetworkPolicyCreateEditPagePo extends BaseDetailPagePo {
   }
 
   ingressRuleItem(index: number) {
-    return new ArrayListPo('section #rule-ingress0', this.self()).arrayListItem(index);
+    return new ArrayListPo('[data-testid="tab-panel-rule-ingress0"]', this.self()).arrayListItem(index);
   }
 
   ingressRuleItemPortInput(index: number) {

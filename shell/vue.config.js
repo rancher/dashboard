@@ -298,12 +298,12 @@ const getDevServerConfig = (proxy) => {
 
       const app = devServer.app;
 
-      // Close down quickly in response to CTRL + C
-      process.once('SIGINT', () => {
-        devServer.close();
-        console.log('\n'); // eslint-disable-line no-console
-        process.exit(1);
-      });
+      // CTRL + C is handled by webpack-dev-server itself: its `setupExitSignals`
+      // option (on by default) listens for SIGINT/SIGTERM, shuts the server and
+      // compiler down gracefully, and force-exits on a second CTRL + C. We used
+      // to install our own SIGINT handler here calling `devServer.close()`, but
+      // v5 removed `close()` (and `listen()`) in favour of `stop()`/
+      // `stopCallback()`, so that handler threw a TypeError on exit.
 
       app.use(serverMiddlewares);
 
