@@ -255,6 +255,28 @@ export default {
       }, true);
     },
 
+    /**
+     * Everything the box has to say about what is in it, for the status icon at its right.
+     *
+     * A query that cannot be read as written comes first and on its own - saying a field is
+     * unfilterable while the query also ends in `and` answers a question nobody asked yet.
+     */
+    queryStatusMessage() {
+      if (this.shownProblems.length) {
+        return this.shownProblems.map((problem) => this.problemNotice(problem)).join('<br>');
+      }
+
+      return this.unsupportedFields.length ? this.unsupportedNotice : '';
+    },
+
+    /**
+     * A query that cannot be read is an error - nothing is being filtered by it. A field the
+     * server cannot filter on is not: the rest of the query still ran.
+     */
+    queryStatus() {
+      return this.shownProblems.length ? 'error' : 'info';
+    },
+
     savedViews() {
       return this.allSavedViews?.[this.resourceType]?.views || this.allSavedViews?.[this.resourceType] || [];
     },
@@ -1495,26 +1517,24 @@ export default {
           @update:focused="queryFocused = $event"
           @request-values="$emit('request-values', $event)"
         />
-        <!-- What the box has to say about itself, in one place under it. `alert` rather than a
-             `Banner`: it belongs to the box, not to the page.
+        <!-- What the box has to say about what is in it, under the box the way the product puts
+             a field's validation message under its field. `alert` rather than a `Banner`: it
+             belongs to the box, not to the page.
 
-             A query that cannot be read as written comes first - saying a field is unfilterable
-             while the query also ends in `and` answers a question nobody asked yet. -->
+             A query that cannot be read as written comes first and on its own - saying a field is
+             unfilterable while the query also ends in `and` answers a question nobody asked yet. -->
         <p
-          v-for="problem in shownProblems"
-          :key="problem.kind + problem.start"
-          v-clean-html="problemNotice(problem)"
-          class="query-unsupported"
+          v-if="queryStatusMessage"
+          :class="['query-notice', queryStatus]"
           role="alert"
-          data-testid="table-views-query-problem"
-        />
-        <p
-          v-if="!shownProblems.length && unsupportedFields.length"
-          v-clean-html="unsupportedNotice"
-          class="query-unsupported"
-          role="alert"
-          data-testid="table-views-unsupported"
-        />
+          :data-testid="queryStatus === 'error' ? 'table-views-query-problem' : 'table-views-unsupported'"
+        >
+          <i
+            class="icon"
+            :class="queryStatus === 'error' ? 'icon-warning' : 'icon-info'"
+          />
+          <span v-clean-html="queryStatusMessage" />
+        </p>
       </div>
 
       <!-- Single "View" popup - Group by and Columns each open their own nested dropdown
@@ -1961,7 +1981,10 @@ export default {
   .view-controls {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    // To the top, not the middle. The filter box can grow a line under it, and centring had the
+    // View button drift down with it - the button belongs on the box's own line, which is the
+    // top of this row whether the box has anything to say or not.
+    align-items: flex-start;
     gap: 16px;
   }
 
@@ -1978,17 +2001,29 @@ export default {
     min-width: 0;
   }
 
-  // Coloured the way the product's warning banner is: the warning is carried by the tint and the
-  // rule beside it, and the words stay body text. `--warning` is a pale background yellow - set on
-  // 12px text over white it came out at 1.26:1, which is not readable.
-  .query-unsupported {
+  // Under the box, the way the product writes a field's validation message under its field:
+  // words in the colour that says how to take them, and no box of its own - a tint and a rule
+  // would make one line about what was typed read like a notice about the page.
+  //
+  // Not `--warning`, which is the yellow a warning is drawn *on*: 12px of it over the toolbar
+  // came out at 1.26:1. `--warning-message-text` is warning as something to read.
+  .query-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
-    padding: 4px 8px;
-    border-left: 2px solid var(--warning);
-    background: var(--warning-banner-bg);
-    color: var(--warning-banner-text, var(--body-text));
+    color: var(--body-text);
     font-size: 12px;
     line-height: 16px;
+
+    &.error {
+      color: var(--warning-message-text);
+    }
+
+    .icon {
+      flex: none;
+      font-size: 14px;
+    }
   }
 
   .view-control-btn {
