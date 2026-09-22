@@ -10,10 +10,10 @@ import {
   isProductConfigInternal,
 } from '@shell/core/plugin-products-type-guards';
 import {
-  AdvancedProductConfigOptions, ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage
+  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage
 } from '@shell/core/plugin-products-external';
 import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell/types/store/type-map';
-import { ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
+import { AdvancedProductConfigOptions, ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 import { RouteRecordRaw } from 'vue-router';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
