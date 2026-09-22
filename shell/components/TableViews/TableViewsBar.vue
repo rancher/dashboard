@@ -874,7 +874,7 @@ export default {
 
       this.persist(this.savedViews.concat([view]));
       this.applyView(view);
-      this.focusTab(view.id);
+      this.focusTab(view.id, true);
     },
 
     /** The first is just the name; the ones after it are numbered from one */
@@ -971,17 +971,39 @@ export default {
     },
 
     /**
-     * Put the keyboard on a view's tab once it exists. A tab added at the end of a full strip is
-     * off the right of it, so focusing scrolls it into sight - which is the point as much as the
-     * focus is: a view you just made or just copied should be the one in front of you.
+     * Put the keyboard on a view's tab once it exists, and bring the tab into sight with it: a
+     * view you just made or just copied should be the one in front of you.
+     *
+     * `toEnd` is for those two. A new view goes on the end of the strip, so rather than working
+     * out where its tab has landed - which the strip has not finished laying out at the moment it
+     * is asked - the strip is simply run to its far end, where the tab must be.
      */
-    focusTab(id) {
+    focusTab(id, toEnd = false) {
       this.$nextTick(() => {
         const tab = (this.tabs || []).find((t) => t.id === id);
         const btn = tab && this.tabButton(tab);
 
-        btn?.focus();
-        btn?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        if (!btn) {
+          return;
+        }
+
+        // Focus scrolls the strip by itself, which would fight the run to the end below
+        btn.focus({ preventScroll: !!toEnd });
+
+        if (!toEnd) {
+          btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+
+          return;
+        }
+
+        // A frame later, so the tab that has just been added is in the strip's width
+        requestAnimationFrame(() => {
+          const strip = this.$refs.tabStrip;
+
+          if (strip) {
+            strip.scrollLeft = strip.scrollWidth;
+          }
+        });
       });
     },
 
@@ -1120,7 +1142,7 @@ export default {
 
       this.persist(this.savedViews.concat([copy]));
       this.applyView(copy);
-      this.focusTab(copy.id);
+      this.focusTab(copy.id, true);
     },
 
     duplicateCurrent() {
@@ -1251,7 +1273,10 @@ export default {
       v-if="part !== 'controls'"
       class="view-tabs-row"
     >
-      <div class="view-tabs">
+      <div
+        ref="tabStrip"
+        class="view-tabs"
+      >
         <!-- One tab stop for the whole strip, the way the product's own tabs work: the arrows walk
              it, Tab leaves it for Add View. -->
         <div
@@ -1840,6 +1865,13 @@ export default {
       border-radius: var(--border-radius);
     }
 
+    // The wrap draws the ring for the pair, so neither half draws one of its own. Only the halves
+    // inside a wrap: Add View wears the same class and has no wrap, so it keeps its own ring.
+    .view-tab:focus-visible,
+    .view-tab-caret:focus-visible {
+      outline: none;
+    }
+
     // The same colours the tabs elsewhere in the product use: every tab reads as a link, and the
     // active one is told apart by the rule under it rather than by a colour of its own
     &.active {
@@ -1857,8 +1889,6 @@ export default {
     align-items: center;
     gap: 8px;
     height: 100%;
-    // The wrap draws the ring for the pair, so neither half draws one of its own
-    &:focus-visible { outline: none; }
     // The global button rule carries a 40px min-height, which `height` alone can't get under -
     // it was making the tabs row 8px taller than the tabs in it
     min-height: 32px;
@@ -1895,6 +1925,14 @@ export default {
       padding: 0;
       color: var(--link);
 
+      // No wrap to draw one for it, so it wears the same ring the tabs beside it wear rather
+      // than the one the browser would draw by itself
+      &:focus-visible {
+        @include focus-outline;
+        outline-offset: 1px;
+        border-radius: var(--border-radius);
+      }
+
       .icon {
         @include toolbar-icon(14px, 14px);
       }
@@ -1907,7 +1945,6 @@ export default {
   .view-tab-wrap .view-tab-caret {
     display: flex;
     align-items: center;
-    &:focus-visible { outline: none; }
     background: transparent;
     border: none;
     cursor: pointer;
