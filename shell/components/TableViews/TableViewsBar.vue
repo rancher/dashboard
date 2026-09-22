@@ -2006,6 +2006,12 @@ export default {
   // Under the box, the way the product writes a field's validation message under its field:
   // words in the colour that says how to take them, and no box of its own - a tint and a rule
   // would make one line about what was typed read like a notice about the page.
+  //
+  // `--error` and not one of the warning colours. The warm ones the product already holds are
+  // each built for a background rather than for words: `--warning` is the yellow a warning is
+  // drawn on (1.26:1 over the toolbar) and `--rc-warning` is the brown written on that yellow,
+  // which is the same brown in the dark theme and comes out at 1.3:1 there. This is the colour
+  // the product's own validation message under a field is written in.
   .query-notice {
     display: flex;
     align-items: center;
@@ -2016,7 +2022,7 @@ export default {
     line-height: 16px;
 
     &.error {
-      color: var(--rc-warning);
+      color: var(--error);
     }
 
     .icon {
