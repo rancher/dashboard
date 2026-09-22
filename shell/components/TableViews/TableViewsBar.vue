@@ -1907,6 +1907,7 @@ export default {
   }
 
   .view-tab {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1915,9 +1916,15 @@ export default {
     // The unsaved mark is a superscript on the name, not a bullet beside it: it sits clear above
     // the capitals rather than on the middle of the word. The 2 puts its underside a couple of
     // pixels over the cap line, which measures 10.6 down from the top of a 32 tab.
+    //
+    // Out of the flow, so a view with changes in it is the same width as one without - carried
+    // as a flex item it took its own width plus a gap either side, and pushed the chevron 14
+    // along the moment anything was typed. It sits in the gap the chevron already stands off by.
     > .unsaved-dot {
-      align-self: flex-start;
-      margin-top: 2px;
+      position: absolute;
+      top: 2px;
+      left: 100%;
+      margin-left: 1px;
     }
     // The global button rule carries a 40px min-height, which `height` alone can't get under -
     // it was making the tabs row 8px taller than the tabs in it
