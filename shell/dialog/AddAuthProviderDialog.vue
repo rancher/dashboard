@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import {
+  computed, onBeforeUnmount, ref, useId, watch
+} from 'vue';
 import { useStore } from 'vuex';
 import debounce from 'lodash/debounce';
 import { Card } from '@components/Card';
@@ -25,6 +27,8 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'close'): void }>();
 
 const { t } = useI18n(useStore());
+
+const filterLabelId = useId();
 
 const ANNOUNCE_DELAY = 500;
 
@@ -97,13 +101,21 @@ const select = (id: string) => {
           data-testid="add-auth-provider-search"
         >
 
-        <div class="add-auth-provider__filters">
-          <span class="add-auth-provider__filter-label">{{ t('authConfig.add.filterLabel') }}</span>
+        <div
+          class="add-auth-provider__filters"
+          role="group"
+          :aria-labelledby="filterLabelId"
+        >
+          <span
+            :id="filterLabelId"
+            class="add-auth-provider__filter-label"
+          >{{ t('authConfig.add.filterLabel') }}</span>
           <RcTag
             :type="protocol === '' ? 'active' : 'inactive'"
             class="add-auth-provider__filter"
             role="button"
             tabindex="0"
+            :aria-pressed="protocol === ''"
             data-testid="add-auth-provider-filter-all"
             @click="protocol = ''"
             @keydown.enter="protocol = ''"
@@ -118,6 +130,7 @@ const select = (id: string) => {
             class="add-auth-provider__filter"
             role="button"
             tabindex="0"
+            :aria-pressed="protocol === option.value"
             :data-testid="`add-auth-provider-filter-${ option.value }`"
             @click="protocol = option.value"
             @keydown.enter="protocol = option.value"

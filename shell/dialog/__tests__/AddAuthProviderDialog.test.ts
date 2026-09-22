@@ -102,6 +102,37 @@ describe('component: AddAuthProviderDialog', () => {
     expect(wrapper.find('[data-testid="add-auth-provider-filter-oauth"]').exists()).toBe(false);
   });
 
+  describe('marking the filter in effect', () => {
+    const filter = (wrapper: any, name: string) => wrapper.find(`[data-testid="add-auth-provider-filter-${ name }"]`);
+
+    it('should start with All in effect', () => {
+      const wrapper = createWrapper();
+
+      expect(filter(wrapper, 'all').attributes('aria-pressed')).toBe('true');
+      expect(filter(wrapper, 'saml').attributes('aria-pressed')).toBe('false');
+    });
+
+    it('should move the pressed state to the chosen protocol', async() => {
+      const wrapper = createWrapper();
+
+      await filter(wrapper, 'saml').trigger('click');
+
+      expect(filter(wrapper, 'saml').attributes('aria-pressed')).toBe('true');
+      expect(filter(wrapper, 'all').attributes('aria-pressed')).toBe('false');
+      expect(filter(wrapper, 'oauth').attributes('aria-pressed')).toBe('false');
+    });
+
+    // The pills only mean something under the 'Protocol' label beside them
+    it('should group the filters under their label', () => {
+      const wrapper = createWrapper();
+      const group = wrapper.find('[role="group"]');
+      const label = wrapper.find('.add-auth-provider__filter-label');
+
+      expect(group.attributes('aria-labelledby')).toBe(label.attributes('id'));
+      expect(label.attributes('id')).toBeTruthy();
+    });
+  });
+
   it.each([
     ['saml', 'SAML'],
     ['oauth', 'OAuth'],
