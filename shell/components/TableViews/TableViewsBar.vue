@@ -1529,9 +1529,11 @@ export default {
           role="alert"
           :data-testid="queryStatus === 'error' ? 'table-views-query-problem' : 'table-views-unsupported'"
         >
+          <!-- The circle, not the triangle: the design draws the message with the same round
+               mark the notification centre gives a warning. -->
           <i
             class="icon"
-            :class="queryStatus === 'error' ? 'icon-warning' : 'icon-info'"
+            :class="queryStatus === 'error' ? 'icon-notify-warning' : 'icon-info'"
           />
           <span v-clean-html="queryStatusMessage" />
         </p>
