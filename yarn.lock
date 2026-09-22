@@ -3028,10 +3028,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.2.tgz#78d476333d85d5b1c792e257bca74ba080da49a4"
   integrity sha512-b1UQwcEZ4yCnMCD8DAL1VlbvBJE9/IX4FTIp7BG1xYpf29SLazLSrqUkj4w7Y5y7cCVP6E5tcqqcI0xemPkHug==
 
-"@rancher/icons@2.0.63", "@rancher/icons@^2.0.63":
-  version "2.0.63"
-  resolved "https://registry.yarnpkg.com/@rancher/icons/-/icons-2.0.63.tgz#cecdd2ebcf2c7c73fa6b34f49be34a8158bd240b"
-  integrity sha512-aIWrLgw4wmuQkSxYaHNgZQAw3LBjLPS6jnVzcSGLImWyLrdo5SZJUApCasVRn1nxmId+CPjpimIdxYqczn1ELw==
+"@rancher/icons@2.0.64", "@rancher/icons@^2.0.64":
+  version "2.0.64"
+  resolved "https://registry.yarnpkg.com/@rancher/icons/-/icons-2.0.64.tgz#b082664a2b376996c92ffec6a22eb3c07a081621"
+  integrity sha512-J7cTumyV2S59fNGy6AMhb877Y+g6sUJ9SQ0lFMMAd8j8wEvjA8XzD2GBcCqPHMb+oozdNoo9JxAoRNrF+XATIg==
 
 "@rtsao/scc@^1.1.0":
   version "1.1.0"
@@ -8338,6 +8338,7 @@ eslint-plugin-jest@29.15.2:
 
 "eslint-plugin-local-rules@link:./eslint-plugin-local-rules":
   version "0.0.0"
+  uid ""
 
 "eslint-plugin-local-rules@link:eslint-plugin-local-rules":
   version "0.0.0"
