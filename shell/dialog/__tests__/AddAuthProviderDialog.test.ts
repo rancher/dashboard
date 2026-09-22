@@ -15,6 +15,9 @@ const rows = [
   },
 ];
 
+// How long the dialog lets a search settle before it announces the result
+const ANNOUNCE_DELAY = 500;
+
 const createWrapper = (props = {}) => mount(AddAuthProviderDialog, {
   props: {
     rows, selectCb: jest.fn(), ...props
@@ -116,6 +119,72 @@ describe('component: AddAuthProviderDialog', () => {
 
     expect(tileNames(wrapper)).toStrictEqual([]);
     expect(wrapper.find('[data-testid="add-auth-provider-no-results"]').exists()).toBe(true);
+  });
+
+  describe('announcing results', () => {
+    const announcement = (wrapper: any) => wrapper.find('[data-testid="add-auth-provider-announcement"]');
+
+    const searchFor = async(wrapper: any, term: string) => {
+      await wrapper.find('[data-testid="add-auth-provider-search"]').setValue(term);
+      jest.advanceTimersByTime(ANNOUNCE_DELAY);
+      await wrapper.vm.$nextTick();
+    };
+
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    it('should keep a live region for the result of a search', () => {
+      expect(announcement(createWrapper()).attributes('aria-live')).toBe('polite');
+    });
+
+    // Opening the dialog is not a search, so there is no result to report yet.
+    it('should stay silent until something is searched for', () => {
+      expect(announcement(createWrapper()).text()).toBe('');
+    });
+
+    it('should announce how many providers a search found', async() => {
+      const wrapper = createWrapper();
+
+      await searchFor(wrapper, 'git');
+
+      expect(announcement(wrapper).text()).toBe('authConfig.add.resultCount-{"count":1}');
+    });
+
+    it('should announce when a search found nothing', async() => {
+      const wrapper = createWrapper();
+
+      await searchFor(wrapper, 'nothing');
+
+      expect(announcement(wrapper).text()).toBe('authConfig.add.noResults');
+    });
+
+    it('should announce a narrowed protocol', async() => {
+      const wrapper = createWrapper();
+
+      await wrapper.find('[data-testid="add-auth-provider-filter-saml"]').trigger('click');
+      jest.advanceTimersByTime(ANNOUNCE_DELAY);
+      await wrapper.vm.$nextTick();
+
+      expect(announcement(wrapper).text()).toBe('authConfig.add.resultCount-{"count":1}');
+    });
+
+    // Every letter of a typed word narrows the grid, and a live region reads
+    // each change it sees - so it should only see where the typing settled.
+    it('should announce only the result the typing settled on', async() => {
+      const wrapper = createWrapper();
+      const search = wrapper.find('[data-testid="add-auth-provider-search"]');
+
+      await search.setValue('g');
+      await search.setValue('gi');
+      jest.advanceTimersByTime(ANNOUNCE_DELAY - 1);
+      await wrapper.vm.$nextTick();
+
+      expect(announcement(wrapper).text()).toBe('');
+
+      await searchFor(wrapper, 'git');
+
+      expect(announcement(wrapper).text()).toBe('authConfig.add.resultCount-{"count":1}');
+    });
   });
 
   it('should report the chosen type and close', async() => {

@@ -571,6 +571,11 @@ authConfig:
     filterLabel: Protocol
     filterAll: All
     noResults: No providers match your search.
+    resultCount: |-
+        {count , plural,
+          =1 { {count} provider matches your search. }
+          other { {count} providers match your search. }
+        }
   disable:
     action: Disable
     title: 'Disable {name}?'

@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useStore } from 'vuex';
+import debounce from 'lodash/debounce';
 import { Card } from '@components/Card';
 import { RcButton } from '@components/RcButton';
 import { RcTag } from '@components/Pill';
 import { RcItemCard } from '@components/RcItemCard';
+import { useI18n } from '@shell/composables/useI18n';
 import AuthProviderLogo from '@shell/components/auth/AuthProviderLogo.vue';
 
 interface ProviderType {
@@ -20,6 +23,10 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'close'): void }>();
+
+const { t } = useI18n(useStore());
+
+const ANNOUNCE_DELAY = 500;
 
 const search = ref('');
 const protocol = ref('');
@@ -45,6 +52,18 @@ const filtered = computed(() => {
     return matchesProtocol && matchesTerm;
   });
 });
+
+const announcement = ref('');
+
+const announce = debounce((message: string) => {
+  announcement.value = message;
+}, ANNOUNCE_DELAY);
+
+watch(() => filtered.value.length, (count) => {
+  announce(count ? t('authConfig.add.resultCount', { count }) : t('authConfig.add.noResults'));
+});
+
+onBeforeUnmount(() => announce.cancel());
 
 const select = (id: string) => {
   props.selectCb(id);
@@ -106,6 +125,15 @@ const select = (id: string) => {
           >
             {{ option.label }}
           </RcTag>
+        </div>
+
+        <div
+          class="visually-hidden"
+          role="status"
+          aria-live="polite"
+          data-testid="add-auth-provider-announcement"
+        >
+          {{ announcement }}
         </div>
 
         <ul
