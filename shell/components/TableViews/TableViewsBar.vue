@@ -874,6 +874,7 @@ export default {
 
       this.persist(this.savedViews.concat([view]));
       this.applyView(view);
+      this.focusTab(view.id);
     },
 
     /** The first is just the name; the ones after it are numbered from one */
@@ -941,7 +942,10 @@ export default {
         return;
       }
 
-      const at = tabs.findIndex((t) => t.id === this.focusableTabId);
+      // From wherever the focus actually is. It is normally on the tab in force, but a view just
+      // deleted leaves it on the one before, which is not the one showing.
+      const focused = tabs.findIndex((t) => this.tabButton(t) === document.activeElement);
+      const at = focused >= 0 ? focused : tabs.findIndex((t) => t.id === this.focusableTabId);
       const next = tabs[((at < 0 ? 0 : at) + delta + tabs.length) % tabs.length];
 
       this.goToTab(next);
@@ -963,7 +967,22 @@ export default {
      */
     goToTab(tab) {
       this.applyView(tab.view || null);
-      this.$nextTick(() => this.tabButton(tab)?.focus());
+      this.focusTab(tab.id);
+    },
+
+    /**
+     * Put the keyboard on a view's tab once it exists. A tab added at the end of a full strip is
+     * off the right of it, so focusing scrolls it into sight - which is the point as much as the
+     * focus is: a view you just made or just copied should be the one in front of you.
+     */
+    focusTab(id) {
+      this.$nextTick(() => {
+        const tab = (this.tabs || []).find((t) => t.id === id);
+        const btn = tab && this.tabButton(tab);
+
+        btn?.focus();
+        btn?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      });
     },
 
     /**
@@ -1101,6 +1120,7 @@ export default {
 
       this.persist(this.savedViews.concat([copy]));
       this.applyView(copy);
+      this.focusTab(copy.id);
     },
 
     duplicateCurrent() {
@@ -1161,12 +1181,21 @@ export default {
 
     deleteView(saved) {
       const wasSelected = this.selectedViewId === saved.id;
+      // The tab the keyboard falls back to. Taken before the view goes, because afterwards there
+      // is nothing left to measure from - and it is the one in front of the gap, not the one
+      // that slides into it, that the user was last looking at.
+      const tabs = this.tabs || [];
+      const before = tabs[Math.max(tabs.findIndex((t) => t.id === saved.id) - 1, 0)];
 
       this.persist(this.savedViews.filter((v) => v.id !== saved.id));
       this.forgetDraft(saved.id);
 
       if (wasSelected) {
         this.applyView(null);
+      }
+
+      if (before) {
+        this.focusTab(before.id);
       }
     },
 
@@ -1752,9 +1781,12 @@ export default {
     // them. Naming one axis leaves the other computing to `auto`, hence the explicit hidden.
     overflow-x: auto;
     overflow-y: hidden;
-    // Takes the strip down over the row's rule, so an active tab's underline covers it rather
-    // than sitting a pixel above it
-    margin-bottom: -1px;
+    // A scroll box clips whatever a tab draws outside itself, and a focus ring is drawn outside.
+    // Three of room on every side, taken straight back off the outside, so the ring comes out
+    // whole and the tabs sit where they always did - the bottom takes the extra 3 as well as the
+    // 1 that puts an active tab's underline over the row's rule rather than a pixel above it.
+    padding: 3px;
+    margin: -3px -3px -4px;
 
     // A tab keeps its width - the strip scrolls instead of the tabs being squeezed
     > * {
@@ -1799,6 +1831,15 @@ export default {
     height: 32px;
     border-bottom: 2px solid transparent;
 
+    // The tab is the name and the chevron together - one thing to the eye, and one thing to the
+    // keyboard now that the strip is a single tab stop. So the ring goes round the pair rather
+    // than round whichever of them happens to hold the focus.
+    &:has(:focus-visible) {
+      @include focus-outline;
+      outline-offset: 1px;
+      border-radius: var(--border-radius);
+    }
+
     // The same colours the tabs elsewhere in the product use: every tab reads as a link, and the
     // active one is told apart by the rule under it rather than by a colour of its own
     &.active {
@@ -1816,6 +1857,8 @@ export default {
     align-items: center;
     gap: 8px;
     height: 100%;
+    // The wrap draws the ring for the pair, so neither half draws one of its own
+    &:focus-visible { outline: none; }
     // The global button rule carries a 40px min-height, which `height` alone can't get under -
     // it was making the tabs row 8px taller than the tabs in it
     min-height: 32px;
@@ -1864,6 +1907,7 @@ export default {
   .view-tab-wrap .view-tab-caret {
     display: flex;
     align-items: center;
+    &:focus-visible { outline: none; }
     background: transparent;
     border: none;
     cursor: pointer;
@@ -1984,8 +2028,13 @@ export default {
   // The popper's own padding is the spacing. This used to cancel it with a negative margin and
   // supply its own, which made the panel render taller than the box the popper had measured - so
   // a panel pinned to the bottom of the screen bled its last 20px straight off it.
-  margin: 0;
-  padding: 0;
+  //
+  // The 3 up and down is the one exception: the panel scrolls, and a scroll box clips what a row
+  // draws outside itself, which is where a focus ring goes - the top row's came out with its top
+  // stroke shaved off. The margin gives the 3 straight back, so the rows stay exactly where the
+  // popper's padding put them.
+  margin: -3px 0;
+  padding: 3px 0;
 
   // Nothing here restyles a menu row. Their height, padding, spacing and hover all come from
   // RcDropdownItem, so these menus are the same as the row action menu and each other - only the
@@ -2014,7 +2063,8 @@ export default {
   // so the banner can't be dragged up out of it - it is the whole panel that moves instead, which
   // costs the padding above without disturbing the padding below or anything inside.
   &.has-notice {
-    margin-top: -10px;
+    // The 10 the popper pads by, plus the 3 this panel now holds for the focus rings
+    margin-top: -13px;
   }
 
   .menu-notice {
