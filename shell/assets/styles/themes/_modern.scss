@@ -757,6 +757,11 @@ BODY, .theme-light {
 
   --error-banner-text: #{$grey-100};
   --warning-banner-text: #{$grey-100};
+
+  // Warning as something to read, rather than something to draw a banner in. `--warning` is a
+  // background yellow - as words on the page background it measures 1.26:1 - so a message that
+  // wants to read as a warning has nothing to take its colour from without this.
+  --warning-message-text: #CC6600;
 }
 
 BODY, .theme-dark {
@@ -1118,5 +1123,7 @@ BODY, .theme-dark {
 
   --warning-banner-text : #{$grey-0};
   --error-banner-text   : #{$grey-0};
+
+  --warning-message-text: #E8913C;
 }
 
