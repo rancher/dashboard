@@ -24,8 +24,17 @@ const emit = defineEmits<{(e: 'close'): void }>();
 const search = ref('');
 const protocol = ref('');
 
+// A filter and the cards it filters name the same protocol, so they take that
+// name from the same place rather than each spelling it their own way.
 const protocols = computed(() => {
-  return Array.from(new Set(props.rows.map((row) => row.configType).filter(Boolean))).sort();
+  const byType = new Map<string, string>();
+
+  props.rows
+    .filter((row) => row.configType)
+    .forEach((row) => byType.set(row.configType, row.sideLabel || row.configType));
+
+  return Array.from(byType, ([value, label]) => ({ value, label }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 });
 
 const filtered = computed(() => {
@@ -87,17 +96,17 @@ const select = (id: string) => {
           </RcTag>
           <RcTag
             v-for="option in protocols"
-            :key="option"
-            :type="protocol === option ? 'active' : 'inactive'"
+            :key="option.value"
+            :type="protocol === option.value ? 'active' : 'inactive'"
             class="add-auth-provider__filter"
             role="button"
             tabindex="0"
-            :data-testid="`add-auth-provider-filter-${ option }`"
-            @click="protocol = option"
-            @keydown.enter="protocol = option"
-            @keydown.space.prevent="protocol = option"
+            :data-testid="`add-auth-provider-filter-${ option.value }`"
+            @click="protocol = option.value"
+            @keydown.enter="protocol = option.value"
+            @keydown.space.prevent="protocol = option.value"
           >
-            {{ option.toUpperCase() }}
+            {{ option.label }}
           </RcTag>
         </div>
 

@@ -99,6 +99,16 @@ describe('component: AddAuthProviderDialog', () => {
     expect(wrapper.find('[data-testid="add-auth-provider-filter-oauth"]').exists()).toBe(false);
   });
 
+  it.each([
+    ['saml', 'SAML'],
+    ['oauth', 'OAuth'],
+    ['ldap', 'LDAP'],
+  ])('should name the %s filter as the cards name it', (configType, sideLabel) => {
+    const filter = createWrapper().find(`[data-testid="add-auth-provider-filter-${ configType }"]`);
+
+    expect(filter.text()).toBe(sideLabel);
+  });
+
   it('should say so when nothing matches', async() => {
     const wrapper = createWrapper();
 
