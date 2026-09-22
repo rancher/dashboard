@@ -6,7 +6,7 @@ import { ucFirst } from '@shell/utils/string';
 import WidgetCard from './WidgetCard.vue';
 import { useWidgetRows } from '../../composables/useWidgetRows';
 import { groupRows } from '../../templating/widget-data';
-import type { WidgetSpec } from '../../templating/types';
+import type { ResourceRow, WidgetSpec } from '../../templating/types';
 
 /**
  * Numbers with labels, each one Rancher's own ResourceSummary fed `spoofedCounts` so it reports
@@ -29,7 +29,7 @@ const totalLabel = computed(() => {
   return label.endsWith('s') ? label : `${ label }s`;
 });
 
-const health = computed(() => rows.value.reduce((acc, row) => {
+const health = computed(() => rows.value.reduce((acc: { warningCount: number; errorCount: number }, row: ResourceRow) => {
   const color = colorForState(row.stateDisplay || row.state || '');
 
   if (color === 'text-error') {
