@@ -1,0 +1,85 @@
+# Remuda: a dev environment per pull request, as a GitHub Actions workflow.
+#
+# Copy to .github/workflows/remuda.yml on the repository's DEFAULT branch.
+# issue_comment only runs workflows from there, and pull_request_target runs the
+# workflow on the pull request's base branch, which for most pull requests is
+# the same branch.
+#
+# Label a pull request `remuda` to build one; closing it or removing the label
+# deletes it. Owners, members and collaborators can also comment `/remuda up`,
+# `/remuda rebuild` or `/remuda down`.
+#
+# Needs:
+#   - a `remuda` label
+#   - a REMUDA_TOKEN repository secret: a Rancher API token that can manage
+#     Environments in rancher-remuda on the host cluster
+#   - RANCHER_URL below, and the commit of rak-phillip/remuda to run
+name: Remuda
+
+on:
+  pull_request_target:
+    types: [labeled, unlabeled, synchronize, reopened, closed]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  remuda:
+    # Filtered here so an unrelated label, push or comment never starts a runner
+    # -- or cancels a run that is still waiting for an environment to answer.
+    #
+    # The bot's own comments cannot trigger this: GitHub does not start workflows
+    # for events made with a workflow's GITHUB_TOKEN.
+    if: >-
+      (github.event_name == 'pull_request_target' && (
+        github.event.label.name == 'remuda' ||
+        (github.event.action != 'labeled' && github.event.action != 'unlabeled' &&
+          contains(github.event.pull_request.labels.*.name, 'remuda'))
+      )) ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
+        contains(github.event.comment.body, '/remuda'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # One run per pull request. A later event supersedes an earlier one, so it
+    # cancels it -- in practice, a run still waiting to post an environment's URL.
+    concurrency:
+      group: remuda-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: true
+    steps:
+      # The bot, pinned to a commit. Never the pull request: pull_request_target
+      # runs with this repository's secrets, and that is only safe because the
+      # only code this job executes is the pinned bot.
+      - name: Check out the bot
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: rak-phillip/remuda
+          ref: fbc5367ec5e8a726dfc82b0905919af00c600ab5 # feat/github-bot: examples/github-bot/action.mjs
+          path: remuda
+          persist-credentials: false
+
+      - name: Drive Remuda
+        run: node remuda/examples/github-bot/action.mjs
+        env:
+          RANCHER_URL: https://prak-2a115bc2.ui.rancher.space
+          REMUDA_TOKEN: ${{ secrets.REMUDA_TOKEN }}
+          # Environments are named <prefix>-pr-<number>. Worth setting when more
+          # than one repository with the same name drives the same Remuda.
+          NAME_PREFIX: ${{ github.event.repository.name }}
+          # Set the repository variable to 1 to validate against the API server
+          # without creating anything.
+          REMUDA_DRY_RUN: ${{ vars.REMUDA_DRY_RUN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          POST_COMMENTS: '1'
+          # The demo targets a downstream cluster, so the four fields Fleet
+          # cannot read back have to be pinned. They describe prak-test1, not
+          # the host: its ingress class, its default StorageClass, and a nested
+          # CIDR pair that misses the 10.42/10.43 its own RKE2 occupies.
+          TARGET_CLUSTER: c-m-m74kfxf9
+          PIN_INGRESS_CLASS: traefik
+          PIN_STORAGE_CLASS: local-path
+          PIN_NESTED_POD_CIDR: 10.44.0.0/16
+          PIN_NESTED_SERVICE_CIDR: 10.45.0.0/16
