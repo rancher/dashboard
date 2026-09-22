@@ -6,8 +6,8 @@ import { RcButton } from '@components/RcButton';
 import { RcSeparator } from '@components/RcSeparator';
 import AuthProviderLogo from '@shell/components/auth/AuthProviderLogo.vue';
 import { MANAGEMENT } from '@shell/config/types';
-import { providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
-import { nextAuthConfigName } from '@shell/utils/auth-providers';
+import { nextAuthConfigName, toProviderTypes } from '@shell/utils/auth-providers';
+import { allHash } from '@shell/utils/promise';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
 
@@ -34,26 +34,32 @@ export default {
   },
 
   async fetch() {
-    const allConfigs = await this.$store.dispatch('management/findAll', { type: resource });
-    const template = allConfigs.find((config) => providerKey(config._type) === this.provider);
+    const hash = await allHash({
+      configs: this.$store.dispatch('management/findAll', { type: resource }),
+      types:   this.$store.dispatch('auth/getAuthProviderTypes'),
+    });
 
-    if (!template) {
+    const providerTypes = toProviderTypes(hash.types, { withFallback: this.$store.getters['i18n/withFallback'] });
+    const type = providerTypes.find((candidate) => candidate.id === this.provider);
+
+    if (!type) {
       return;
     }
 
-    this.template = template;
-    this.authConfigCreate.normanType = template._type;
-    this.authConfigCreate.takenIds = allConfigs.map((config) => config.id);
+    this.type = type;
+    this.authConfigCreate.normanType = type.configTypeName;
+    // Existing configs are here only to keep the new one from colliding with them
+    this.authConfigCreate.takenIds = hash.configs.map((config) => config.id);
     this.authConfigCreate.name = nextAuthConfigName(this.authConfigCreate.takenIds, this.provider);
 
     // The form is filled in against an empty config of the chosen provider's type
-    this.value = await this.$store.dispatch('management/create', { type: resource, _type: template._type });
+    this.value = await this.$store.dispatch('management/create', { type: resource, _type: type.configTypeName });
     this.editComponent = this.$store.getters['type-map/importEdit'](resource, this.provider);
   },
 
   data() {
     return {
-      template:      null,
+      type:          null,
       value:         null,
       editComponent: null,
     };
@@ -65,11 +71,11 @@ export default {
     },
 
     icon() {
-      return providerIcon(this.template?._type);
+      return this.type?.icon || '';
     },
 
     displayName() {
-      return this.$store.getters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
+      return this.type?.name || this.provider;
     },
 
     listLocation() {
@@ -85,7 +91,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <Banner
-    v-else-if="!template"
+    v-else-if="!type"
     color="error"
     :label="t('authConfig.create.unknownProvider', { provider })"
   />

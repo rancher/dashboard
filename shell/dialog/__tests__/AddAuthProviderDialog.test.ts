@@ -5,13 +5,13 @@ import { RcTag } from '@components/Pill';
 
 const rows = [
   {
-    id: 'okta', provider: 'Okta', sideLabel: 'SAML', configType: 'saml', icon: 'okta.svg'
+    id: 'okta', configTypeName: 'oktaConfig', name: 'Okta', categoryLabel: 'SAML', category: 'saml', icon: 'okta.svg'
   },
   {
-    id: 'github', provider: 'GitHub', sideLabel: 'OAuth', configType: 'oauth', icon: 'github.svg'
+    id: 'github', configTypeName: 'githubConfig', name: 'GitHub', categoryLabel: 'OAuth', category: 'oauth', icon: 'github.svg'
   },
   {
-    id: 'openldap', provider: 'OpenLDAP', sideLabel: 'LDAP', configType: 'ldap', icon: ''
+    id: 'openldap', configTypeName: 'openLdapConfig', name: 'OpenLDAP', categoryLabel: 'LDAP', category: 'ldap', icon: ''
   },
 ];
 
@@ -47,8 +47,8 @@ describe('component: AddAuthProviderDialog', () => {
     ['okta', 'SAML'],
     ['github', 'OAuth'],
     ['openldap', 'LDAP'],
-  ])('should tag the %s card with its protocol', (id, sideLabel) => {
-    expect(protocolTag(createWrapper(), id).text()).toBe(sideLabel);
+  ])('should tag the %s card with its protocol', (id, categoryLabel) => {
+    expect(protocolTag(createWrapper(), id).text()).toBe(categoryLabel);
   });
 
   it('should render the protocol tag as inactive', () => {

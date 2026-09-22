@@ -1,4 +1,4 @@
-import AuthConfig, { configTypeForProvider, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
+import AuthConfig, { configTypeForProvider, configTypeName, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import { requireAsset } from '@shell/utils/require-asset';
 
@@ -37,6 +37,26 @@ describe('fx: providerKey', () => {
 
   it.each(cases)('should normalise %p to %p', (input, expected) => {
     expect(providerKey(input)).toBe(expected);
+  });
+});
+
+describe('fx: configTypeName', () => {
+  // The server's casing cannot be derived from the key, so it is carried over
+  // from the provider identifier the catalogue was built from.
+  const cases: [string | null | undefined, string][] = [
+    ['githubProvider', 'githubConfig'],
+    ['azureADProvider', 'azureADConfig'],
+    ['keyCloakOIDCProvider', 'keyCloakOIDCConfig'],
+    ['activeDirectoryProvider', 'activeDirectoryConfig'],
+    // Already a config type, so there is nothing to swap
+    ['githubConfig', 'githubConfig'],
+    ['', ''],
+    [undefined, ''],
+    [null, ''],
+  ];
+
+  it.each(cases)('should turn %p into %p', (input, expected) => {
+    expect(configTypeName(input)).toBe(expected);
   });
 });
 

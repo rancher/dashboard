@@ -1,7 +1,13 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import SelectIconGridPo from '@/cypress/e2e/po/components/select-icon-grid.po';
 
+/**
+ * Provider keys rather than display names - the picker offers one tile per
+ * provider type the server supports, keyed by the provider rather than by any
+ * config, since a multi-IDP install can hold several configs of one provider.
+ */
 export enum AuthProvider {
   AMAZON_COGNITO = 'cognito', // eslint-disable-line no-unused-vars
   AZURE = 'azuread', // eslint-disable-line no-unused-vars
@@ -31,10 +37,17 @@ export class AuthProviderPo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Auth Provider');
   }
 
+  selectionGrid() {
+    return new SelectIconGridPo(this.selector);
+  }
+
   createButton() {
     return cy.getId('auth-config-create');
   }
 
+  /**
+   * The provider picker is a modal raised from the page header or the empty state.
+   */
   clickCreate() {
     return this.createButton().click();
   }
@@ -52,13 +65,16 @@ export class AuthProviderPo extends PagePo {
   }
 
   goToAzureADCreation(clusterId = '_'): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`/c/${ clusterId }/auth/config/azuread?mode=edit`);
+    return PagePo.goTo(`/c/${ clusterId }/auth/config/create/azuread?mode=edit`);
   }
 
   goToAmazonCongitoCreation(clusterId = '_'): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`/c/${ clusterId }/auth/config/cognito?mode=edit`);
+    return PagePo.goTo(`/c/${ clusterId }/auth/config/create/cognito?mode=edit`);
   }
 
+  /**
+   * Opens the picker and chooses a provider type by its provider key, e.g. `azuread`.
+   */
   selectProvider(id: string) {
     this.clickCreate();
 

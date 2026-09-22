@@ -14,6 +14,15 @@ import { promptDisableAuthProvider } from '@shell/utils/auth';
 export const providerKey = (type) => `${ type || '' }`.toLowerCase().replace(/(config|provider)$/, '');
 
 /**
+ * The type an authconfig of a provider carries, e.g. `githubProvider` -> `githubConfig`.
+ *
+ * `providerKey()` cannot be reversed - the casing is the server's, and it is not
+ * a casing anything could derive (`azureADConfig`, `keyCloakOIDCConfig`) - so the
+ * type is built from the provider identifier it came from rather than from the key.
+ */
+export const configTypeName = (type) => `${ type || '' }`.replace(/Provider$/, 'Config');
+
+/**
  * Auth provider categories, keyed by `providerKey()` so that either naming works.
  */
 export const configType = {

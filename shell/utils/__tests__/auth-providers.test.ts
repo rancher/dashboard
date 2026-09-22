@@ -2,9 +2,12 @@ import {
   REMEMBERED_PROVIDER_KEY,
   clearRememberedProviderId,
   getRememberedProviderId,
+  isValidAuthConfigName,
+  nextAuthConfigName,
   resolveInitialProvider,
   setRememberedProviderId,
   toProviderOptions,
+  toProviderTypes,
 } from '@shell/utils/auth-providers';
 import type { AuthProviderDriver, AuthProviderOption } from '@shell/utils/auth-providers';
 
@@ -220,5 +223,116 @@ describe('remembered provider storage', () => {
 
       expect(() => clearRememberedProviderId()).not.toThrow();
     });
+  });
+});
+
+
+describe('fx: toProviderTypes', () => {
+  const types = {
+    githubProvider:          { Description: 'GitHub authentication OAuth provider', Type: 'oauth' },
+    oktaProvider:            { Description: 'Okta authentication provider', Type: 'saml' },
+    activeDirectoryProvider: { Description: 'Active Directory authentication provider', Type: 'ldap' },
+    localProvider:           { Description: 'Local authentication provider', Type: 'local' },
+    oidcProvider:            { Description: 'OpenID Connect authentication provider', Type: 'oidc' },
+  };
+
+  it('should offer a tile per provider type the server supports', () => {
+    expect(toProviderTypes(types, i18n).map((t) => t.id)).toStrictEqual(['activedirectory', 'github', 'okta']);
+  });
+
+  it('should carry the type an authconfig of the provider will be created with', () => {
+    const [ad] = toProviderTypes({ activeDirectoryProvider: { Type: 'ldap' } }, i18n);
+
+    expect(ad.configTypeName).toBe('activeDirectoryConfig');
+  });
+
+  it('should label the provider and its protocol', () => {
+    const [github] = toProviderTypes({ githubProvider: { Type: 'oauth' } }, i18n);
+
+    expect(github.name).toBe('GitHub');
+    expect(github.category).toBe('oauth');
+    expect(github.categoryLabel).toBe('OAuth');
+    expect(github.icon).toBe('~shell/assets/images/vendor/github.svg');
+  });
+
+  // The server calls Entra ID OIDC; the form and save path the UI configures it
+  // through are the OAuth ones, and the tile has to agree with them.
+  it('should prefer the UI categorisation of a provider it knows', () => {
+    const [azure] = toProviderTypes({ azureADProvider: { Type: 'oidc' } }, i18n);
+
+    expect(azure.category).toBe('oauth');
+  });
+
+  it('should take the server categorisation of a provider it has never heard of', () => {
+    const [mystery] = toProviderTypes({ mysteryProvider: { Type: 'saml' } }, i18n);
+
+    expect(mystery.name).toBe('mystery');
+    expect(mystery.category).toBe('saml');
+    expect(mystery.categoryLabel).toBe('SAML');
+  });
+
+  it.each([
+    ['local', 'local'],
+    ['unsupported', 'oidc'],
+  ])('should leave out the %s provider', (_label, id) => {
+    expect(toProviderTypes(types, i18n).map((t) => t.id)).not.toContain(id);
+  });
+
+  it('should sort by protocol then provider', () => {
+    const sorted = toProviderTypes({
+      oktaProvider:   { Type: 'saml' },
+      githubProvider: { Type: 'oauth' },
+      adfsProvider:   { Type: 'saml' },
+    }, i18n);
+
+    expect(sorted.map((t) => t.name)).toStrictEqual(['GitHub', 'adfs', 'Okta']);
+  });
+
+  it('should return nothing when the server supports nothing', () => {
+    expect(toProviderTypes({}, i18n)).toStrictEqual([]);
+  });
+});
+
+describe('fx: nextAuthConfigName', () => {
+  it('should take the provider key when nothing has claimed it', () => {
+    expect(nextAuthConfigName(['okta'], 'github')).toBe('github');
+  });
+
+  // Rancher pre-creates a config named after the provider, so in practice the
+  // key is always taken by the time a second one is added.
+  it('should suffix a key that is already in use', () => {
+    expect(nextAuthConfigName(['github'], 'github')).toBe('github-2');
+  });
+
+  it('should skip over suffixes that are also in use', () => {
+    expect(nextAuthConfigName(['github', 'github-2', 'github-3'], 'github')).toBe('github-4');
+  });
+
+  it('should not be confused by another provider using the same suffix', () => {
+    expect(nextAuthConfigName(['github', 'okta-2'], 'github')).toBe('github-2');
+  });
+});
+
+describe('fx: isValidAuthConfigName', () => {
+  it.each([
+    ['a bare provider key', 'github'],
+    ['a suffixed name', 'github-2'],
+    ['digits only', '123'],
+    ['the longest name allowed', 'a'.repeat(63)],
+  ])('should accept %s', (_label, name) => {
+    expect(isValidAuthConfigName(name)).toBe(true);
+  });
+
+  it.each([
+    ['an empty name', ''],
+    ['upper case', 'GitHub'],
+    ['a leading dash', '-github'],
+    ['a trailing dash', 'github-'],
+    ['a space', 'git hub'],
+    ['an underscore', 'git_hub'],
+    ['a dot', 'github.com'],
+    ['a name over 63 characters', 'a'.repeat(64)],
+  ])('should reject %s', (_label, name) => {
+    expect(isValidAuthConfigName(name)).toBe(false);
   });
 });

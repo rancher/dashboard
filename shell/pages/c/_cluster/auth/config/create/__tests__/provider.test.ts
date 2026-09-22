@@ -1,12 +1,14 @@
 import { shallowMount } from '@vue/test-utils';
 import AuthConfigCreateProvider from '@shell/pages/c/_cluster/auth/config/create/_provider.vue';
 
-const template = { id: 'github', _type: 'githubConfig' };
+const type = {
+  id: 'github', configTypeName: 'githubConfig', name: 'GitHub', category: 'oauth', categoryLabel: 'OAuth', icon: 'github.svg'
+};
 
 const createWrapper = (provider = 'github') => shallowMount(AuthConfigCreateProvider, {
-  // The page loads its configs in fetch(), which shallowMount does not run
+  // The page resolves the provider type in fetch(), which shallowMount does not run
   data: () => ({
-    template, value: {}, editComponent: {}
+    type, value: {}, editComponent: {}
   } as any),
   global: {
     mocks: {
@@ -36,7 +38,7 @@ describe('page: AuthConfigCreateProvider', () => {
 
   it('should report a provider this Rancher does not have', () => {
     const wrapper = shallowMount(AuthConfigCreateProvider, {
-      data:   () => ({ template: null } as any),
+      data:   () => ({ type: null } as any),
       global: {
         mocks: {
           $route:      { params: { cluster: 'local', provider: 'nonsense' } },

@@ -190,6 +190,17 @@ export const actions = {
     return providers;
   },
 
+  /**
+   * The provider types this Rancher supports, keyed by provider identifier:
+   * `{ githubProvider: { Description, Type } }`.
+   *
+   * Rancher no longer pre-creates an authconfig per supported type, so the only
+   * account of what can be configured is the one the server gives.
+   */
+  getAuthProviderTypes({ dispatch }) {
+    return dispatch('rancher/request', { url: '/v1-public/authprovider-types' }, { root: true });
+  },
+
   getAuthConfigs({ dispatch }) {
     return dispatch('rancher/findAll', {
       type: 'authConfig',

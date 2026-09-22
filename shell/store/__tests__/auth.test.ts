@@ -253,6 +253,20 @@ describe('action: login', () => {
   });
 });
 
+describe('action: getAuthProviderTypes', () => {
+  // Nothing is pre-created any more, so the catalogue of what can be added has
+  // to come from the server rather than from the configs that already exist.
+  it('should ask the server what it can be configured with', async() => {
+    const types = { githubProvider: { Description: 'GitHub authentication OAuth provider', Type: 'oauth' } };
+    const dispatch = jest.fn().mockResolvedValue(types);
+
+    const result = await actions.getAuthProviderTypes({ dispatch } as any);
+
+    expect(dispatch).toHaveBeenCalledWith('rancher/request', { url: '/v1-public/authprovider-types' }, { root: true });
+    expect(result).toStrictEqual(types);
+  });
+});
+
 describe('action: getLocalProviderEnabled', () => {
   it('should return true if local auth provider exists', async() => {
     const dispatch = jest.fn().mockResolvedValue({ id: 'local' });

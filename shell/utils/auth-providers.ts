@@ -1,5 +1,5 @@
-import { configTypeForProvider, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
-import { LOCAL_AUTH_ID } from '@shell/utils/auth';
+import { configTypeForProvider, configTypeName, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
+import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS } from '@shell/utils/auth';
 import { sortBy } from '@shell/utils/sort';
 
 export const LOCAL_PROVIDER = 'localProvider';
@@ -86,6 +86,60 @@ export const toProviderOptions = (drivers: AuthProviderDriver[], i18n: I18n): Au
   ];
 };
 
+/** What the server says about a provider type it supports. */
+export interface AuthProviderTypeMeta {
+  Description?: string;
+  Type?: string;
+}
+
+export interface AuthProviderType {
+  /** The provider, e.g. `github`. Names the form, the route and the tile. */
+  id: string;
+  /** The type an authconfig of this provider carries, e.g. `githubConfig`. */
+  configTypeName: string;
+  name: string;
+  category: string;
+  categoryLabel: string;
+  icon: string;
+}
+
+/**
+ * The catalogue of provider types that can be configured, one entry per type.
+ *
+ * Built from `/v1-public/authprovider-types`. Rancher used to pre-create an empty
+ * authconfig per supported type and the catalogue was read off those; nothing is
+ * pre-created any more, so the server is asked what it supports.
+ */
+export const toProviderTypes = (types: Record<string, AuthProviderTypeMeta>, i18n: Pick<I18n, 'withFallback'>): AuthProviderType[] => {
+  const { withFallback } = i18n;
+
+  const out = Object.keys(types || {}).reduce((acc: AuthProviderType[], type) => {
+    const id = providerKey(type);
+
+    if (!id || id === LOCAL_AUTH_ID || UNSUPPORTED_AUTH_IDS.includes(id)) {
+      return acc;
+    }
+
+    // The UI's own categorisation wins where it has one: the server calls Entra ID
+    // OIDC, but the form that configures it and the save path it takes are the
+    // OAuth ones. A provider the UI has never heard of is taken on trust.
+    const category = configTypeForProvider(type) ?? (types[type]?.Type || '');
+
+    acc.push({
+      id,
+      configTypeName: configTypeName(type),
+      name:           withFallback(`model.authConfig.provider."${ id }"`, null, id),
+      category,
+      categoryLabel:  category ? withFallback(`model.authConfig.description."${ category }"`, null, category.toUpperCase()) : '',
+      icon:           providerIcon(type),
+    });
+
+    return acc;
+  }, []);
+
+  return sortBy(out, ['categoryLabel', 'name']);
+};
+
 export const getRememberedProviderId = (): string | null => {
   try {
     return window.localStorage.getItem(REMEMBERED_PROVIDER_KEY);
@@ -118,3 +172,29 @@ export const resolveInitialProvider = (
 
   return remembered || options[0];
 };
+
+/**
+ * A free authconfig name for a new instance of a provider type.
+ *
+ * The name is the config's `metadata.name`, which the API will not let you change
+ * after creation, so it has to be settled before the config is written. The first
+ * config of a provider takes the provider's own key; the rest are suffixed.
+ */
+export const nextAuthConfigName = (takenIds: string[], key: string): string => {
+  const taken = new Set(takenIds);
+
+  if (!taken.has(key)) {
+    return key;
+  }
+
+  let suffix = 2;
+
+  while (taken.has(`${ key }-${ suffix }`)) {
+    suffix++;
+  }
+
+  return `${ key }-${ suffix }`;
+};
+
+/** `metadata.name` is a DNS label, and Rancher rejects anything else. */
+export const isValidAuthConfigName = (name: string): boolean => /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(name) && name.length <= 63;
