@@ -22,12 +22,10 @@ interface OverviewWidget {
   resources?: (string | { resource: string })[];
 }
 
-const props = defineProps<{ widget: OverviewWidget }>();
+defineProps<{ widget: OverviewWidget }>();
 
 const store = useStore();
 const { t } = useI18n(store);
-
-const types = (props.widget.resources || []).map((r) => (typeof r === 'string' ? r : r.resource));
 
 const {
   loading,
@@ -38,7 +36,10 @@ const {
   resourceRoute,
   navigateToNamespace,
   filterByNamespace,
-} = useWorkloadDashboard(types, { redirectOnInvalid: false });
+// Takes no arguments: it reports the cluster's own workload types. `widget.resources` has never
+// reached it — the two arguments this used to pass were silently dropped, which only compiled
+// because the extension build turns the type checker off.
+} = useWorkloadDashboard();
 </script>
 
 <template>
