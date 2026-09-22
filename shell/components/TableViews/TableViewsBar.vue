@@ -1179,7 +1179,7 @@ export default {
               <i class="icon icon-chevron-down" />
             </rc-dropdown-trigger>
             <template #dropdownCollection>
-              <div :class="['menu-panel', 'has-icons', { 'has-notice': isTabDirty(tab) }]">
+              <div :class="['menu-panel', { 'has-notice': isTabDirty(tab) }]">
                 <!-- Unsaved changes, and the three ways out of them -->
                 <template v-if="isTabDirty(tab)">
                   <div class="menu-notice">
@@ -1204,7 +1204,7 @@ export default {
                     @click="openSaveAsNew()"
                   >
                     <template #before>
-                      <i class="icon" />
+                      <i class="menu-gutter" />
                     </template>
                     {{ t('tableViews.view.saveAsNew') }}
                     <template #after>
@@ -1216,7 +1216,7 @@ export default {
                     @click="discardChanges()"
                   >
                     <template #before>
-                      <i class="icon" />
+                      <i class="menu-gutter" />
                     </template>
                     {{ t('tableViews.view.discard') }}
                   </rc-dropdown-item>
@@ -1253,7 +1253,7 @@ export default {
                   @click="openExport(tab.view)"
                 >
                   <template #before>
-                    <i class="icon" />
+                    <i class="menu-gutter" />
                   </template>
                   {{ t('tableViews.export.label') }}
                 </rc-dropdown-item>
@@ -1264,7 +1264,7 @@ export default {
                   @click="setDefaultView(tab)"
                 >
                   <template #before>
-                    <i class="icon" />
+                    <i class="menu-gutter" />
                   </template>
                   {{ t('tableViews.tab.setDefault') }}
                   <template
@@ -1378,7 +1378,7 @@ export default {
               :open="subMenu === 'group'"
               :placement="'left-start'"
               :distance="-1"
-              :skidding="-1"
+              :skidding="-11"
               :flip="false"
               :reference-node="() => $refs.viewMenu"
               @update:open="(open) => closeSubMenu('group', open)"
@@ -1428,7 +1428,7 @@ export default {
               :open="subMenu === 'columns'"
               :placement="'left-start'"
               :distance="-1"
-              :skidding="-1"
+              :skidding="-11"
               :flip="false"
               :reference-node="() => $refs.viewMenu"
               @update:open="(open) => closeSubMenu('columns', open)"
@@ -1485,6 +1485,9 @@ export default {
                     data-testid="table-views-columns-select-all"
                     @click="selectAllColumns"
                   >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
                     {{ t('tableViews.columns.selectAll') }}
                   </rc-dropdown-item>
                   <rc-dropdown-item
@@ -1493,6 +1496,9 @@ export default {
                     data-testid="table-views-columns-reset"
                     @click="resetColumns"
                   >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
                     {{ t('tableViews.columns.reset') }}
                   </rc-dropdown-item>
                 </div>
@@ -1846,33 +1852,17 @@ export default {
   margin: 0;
   padding: 0;
 
-  [dropdown-menu-item] {
-    height: 33px;
-    padding-top: 0;
-    padding-bottom: 0;
+  // Nothing here restyles a menu row. Their height, padding, spacing and hover all come from
+  // RcDropdownItem, so these menus are the same as the row action menu and each other - only the
+  // width below is ours, so the labels have room beside the values they sit against.
 
-    // The row under the cursor takes the tint a row of the table takes, rather than the heavier
-    // one dropdowns use elsewhere: these menus read as a list of rows like the table below them.
-    &:hover {
-      background-color: var(--sortable-table-hover-bg);
-    }
-  }
-
-  // The icons in this menu get a column to themselves, so every label starts in the same place.
-  // A row with nothing to show there carries a blank `.icon` to hold it rather than the rule
-  // picking those rows out, so the column does not depend on `:has`. The columns panel is left
-  // out: its handles already hold that column.
-  // The class cannot be called `icon-column`: the icon font claims `[class*=" icon-"]` with an
-  // !important, and would set the whole menu in it.
-  &.has-icons [dropdown-menu-item] {
-    > .icon {
-      @include toolbar-icon(16px, 14px);
-    }
-
-  }
-
-  hr {
-    margin: 8px 0;
+  // A row with no icon still holds the space one would take, so every label in a menu starts in
+  // the same place. Not called anything with `icon-` in it: the icon font claims
+  // `[class*=" icon-"]` with an !important and would set the whole row in it.
+  .menu-gutter {
+    display: inline-block;
+    flex: none;
+    width: 14px;
   }
 
   .menu-title {
@@ -1900,7 +1890,9 @@ export default {
     // Sitting in the menu's top corners, it takes their rounding with them
     border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     padding: 0 17px;
-    background: var(--accent-btn);
+    // Mixed from the live token rather than `--accent-btn`: that is compiled from the scss
+    // palette, so it stayed Rancher blue on a Prime install where everything around it is green.
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
     color: var(--body-text);
     font-size: 13px;
 
@@ -1930,16 +1922,15 @@ export default {
 
   // What a row that opens a sub menu carries at its end: where that sub menu stands, and the
   // arrow into it. The row itself is an ordinary menu item and is left to the component.
-  .dropdown-item-after {
-    gap: 8px;
-
-    .menu-nav-value {
-      color: var(--muted);
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+  // The value a sub menu row shows at its end. Styled on itself rather than on the slot holding
+  // it, so nothing the dropdown owns is redefined here.
+  .menu-nav-value {
+    color: var(--muted);
+    max-width: 150px;
+    margin-right: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   // What is currently in force, marked the way the selected tab is. `--active` rather than
@@ -1993,9 +1984,14 @@ export default {
     transition: background-color 0.1s ease-in-out;
     user-select: none;
     .column-handle {
-      color: var(--muted);
       font-size: 14px;
       cursor: grab;
+    }
+
+    // The grip is furniture, so it stays neutral. The lock is not - it belongs to the column it
+    // is locking, and takes that row's colour.
+    .grip {
+      color: var(--muted);
     }
 
     // Two short bars - the handle that says a row can be dragged. Drawn rather than taken from
@@ -2003,15 +1999,17 @@ export default {
     .grip {
       position: relative;
       display: inline-block;
-      width: 12px;
+      // The width the lock icon beside it takes, so a draggable row and a locked one start their
+      // label in the same place. The bars keep their own width inside it.
+      width: 14px;
       height: 12px;
 
       &::before,
       &::after {
         content: '';
         position: absolute;
-        left: 0;
-        right: 0;
+        left: 1px;
+        right: 1px;
         height: 1.5px;
         border-radius: 1px;
         background: currentColor;
