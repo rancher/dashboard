@@ -1,6 +1,7 @@
 <script>
 import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
 import { randomStr } from '@shell/utils/string';
+import { validateQuery } from '@shell/utils/table-views';
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal';
 import AppModal from '@shell/components/AppModal.vue';
@@ -173,6 +174,8 @@ export default {
        * tab, or the id of a saved view. The default tab has to be distinguishable from "nothing
        * picked", or a saved view holding the same config as it is matched instead.
        */
+      /** True while the caret is in the query box, so it is not corrected mid-word */
+      queryFocused:   false,
       pickedViewId:   undefined,
       /**
        * Unsaved edits, per tab, for as long as the page is open. Leaving a tab with changes on it
@@ -232,6 +235,17 @@ export default {
 
   computed: {
     allSavedViews: mapPref(TABLE_VIEWS),
+
+    /**
+     * What is wrong with the query, once the user has stopped writing it.
+     *
+     * Held back while the box has the caret: `state:` is a field with no value, and it is also
+     * the halfway point of typing `state:active` - with the values for it on screen at that very
+     * moment. Correcting someone mid-word is noise, so this waits until they look away.
+     */
+    shownProblems() {
+      return this.queryFocused ? [] : validateQuery(this.view.query, this.fields);
+    },
 
     /** What the toolbar says about the part of the query that could not be run */
     unsupportedNotice() {
@@ -482,6 +496,10 @@ export default {
 
     update(changes) {
       this.$emit('update:view', { ...this.view, ...changes });
+    },
+
+    problemNotice(problem) {
+      return this.t(`tableViews.query.problem.${ problem.kind }`, { text: problem.text, label: problem.label || '' }, true);
     },
 
     isColumnVisible(field) {
@@ -1297,13 +1315,24 @@ export default {
           :rows="rows"
           :field-values="fieldValues"
           @update:value="update({ query: $event })"
+          @update:focused="queryFocused = $event"
           @request-values="$emit('request-values', $event)"
         />
-        <!-- A query that names something this list cannot be filtered by is answered without
-             that part of it. Saying so beats a table that quietly disagrees with what is in the
-             box. `alert` rather than a `Banner`: it belongs to the box, under it, not to the page. -->
+        <!-- What the box has to say about itself, in one place under it. `alert` rather than a
+             `Banner`: it belongs to the box, not to the page.
+
+             A query that cannot be read as written comes first - saying a field is unfilterable
+             while the query also ends in `and` answers a question nobody asked yet. -->
         <p
-          v-if="unsupportedFields.length"
+          v-for="problem in shownProblems"
+          :key="problem.kind + problem.start"
+          v-clean-html="problemNotice(problem)"
+          class="query-unsupported"
+          role="alert"
+          data-testid="table-views-query-problem"
+        />
+        <p
+          v-if="!shownProblems.length && unsupportedFields.length"
           v-clean-html="unsupportedNotice"
           class="query-unsupported"
           role="alert"

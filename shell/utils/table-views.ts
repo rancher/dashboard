@@ -654,6 +654,114 @@ export function parseQuery(query: string, fields: ViewField[]): ViewTerm[] {
     }));
 }
 
+/** Something in the query that stops it meaning what it says */
+export type QueryProblemKind =
+  'emptyValue' | 'trailingOperator' | 'leadingJoiner' | 'consecutiveOperators' |
+  'danglingNegation' | 'unbalancedQuote' | 'noTerms';
+
+export interface QueryProblem {
+  kind: QueryProblemKind;
+  /** Where the offending text sits, so the box can mark it as well as describe it */
+  start: number;
+  end: number;
+  text: string;
+  /** The field's name as the user knows it, for the ones that are about a field */
+  label?: string;
+}
+
+/** `and` and `or` join two things. `not` does not, which is why it is allowed to lead. */
+function isJoiner(text: string): boolean {
+  return CONNECTIVES.includes((text || '').toLowerCase());
+}
+
+/** Does this run of text open a quote it never closes? Both marks, as the tokenizer reads both. */
+function hasUnbalancedQuote(text: string): boolean {
+  let quote: string | null = null;
+
+  for (const char of text || '') {
+    if (quote) {
+      if (char === quote) {
+        quote = null;
+      }
+    } else if (char === '"' || char === `'`) {
+      quote = char;
+    }
+  }
+
+  return !!quote;
+}
+
+/**
+ * What is wrong with a query, if anything.
+ *
+ * Only things that are wrong however the query is read. A value nothing currently matches is not
+ * one of them - terms match on containing the text, so half a value is a perfectly good term, and
+ * "no rows" already says what there is to say. Nor is an unknown word before a colon: `nginx:1.21`
+ * and a mistyped field are the same thing to a parser, and one of them is a reasonable search.
+ *
+ * Nothing here stops a query running. The table filters by as much of it as it can and this says
+ * what it could not use.
+ */
+export function validateQuery(query: string, fields: ViewField[]): QueryProblem[] {
+  const tokens = scanQuery(query || '', fields);
+  const problems: QueryProblem[] = [];
+
+  if (!tokens.length) {
+    return problems;
+  }
+
+  const add = (kind: QueryProblemKind, token: QueryToken, label?: string) => {
+    problems.push({
+      kind, start: token.start, end: token.end, text: token.text, label
+    });
+  };
+
+  const hasTerms = tokens.some((token) => token.kind === 'term' && !!token.value);
+  const firstConnective = tokens.find((token) => token.kind === 'connective');
+
+  // Operators and nothing to apply them to. Said once - every other rule would fire here too.
+  if (!hasTerms && firstConnective) {
+    add('noTerms', firstConnective);
+
+    return problems;
+  }
+
+  tokens.forEach((token, i) => {
+    if (token.kind === 'connective') {
+      if (i === 0 && isJoiner(token.text)) {
+        add('leadingJoiner', token);
+      }
+
+      if (i === tokens.length - 1) {
+        add('trailingOperator', token);
+      }
+
+      // `and not` and `or not` read fine; it is a joining word after an operator that does not
+      if (isJoiner(token.text) && tokens[i - 1]?.kind === 'connective') {
+        add('consecutiveOperators', token);
+      }
+
+      return;
+    }
+
+    if (hasUnbalancedQuote(token.text)) {
+      add('unbalancedQuote', token);
+
+      return;
+    }
+
+    if (!token.value) {
+      if (token.field) {
+        add('emptyValue', token, token.field.label || token.field.id);
+      } else if (token.negate) {
+        add('danglingNegation', token);
+      }
+    }
+  });
+
+  return problems;
+}
+
 /**
  * Read a query as what it actually asks for: clauses joined by `or`, each a set of groups
  * joined by `and`.
