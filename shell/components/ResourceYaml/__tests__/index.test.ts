@@ -8,6 +8,20 @@ jest.mock('@shell/core/plugin-helpers', () => ({ getApplicableExtensionEnhanceme
 
 const mockedEnhancements = getApplicableExtensionEnhancements as jest.Mock;
 
+/**
+ * The entry as it appears once flattened at the top of the tree, gathered for the primary resource
+ *
+ * `nodeId` defaults to the resource's id, pass it for a resource that has none
+ */
+const atTop = (entry: any, nodeId: string = entry.resource?.id) => ({
+  ...entry, depth: 1, nodeId
+});
+
+/** The entry as it appears once flattened below the entry with `parentId` */
+const below = (entry: any, parentId: string, depth: number, nodeId: string = entry.resource?.id) => ({
+  ...entry, depth, parentId, nodeId
+});
+
 describe('component: ResourceYaml', () => {
   const mountComponent = (value: any, { withExtensionSupport = true } = {}) => shallowMount(ResourceYaml, {
     props: {
@@ -53,7 +67,7 @@ describe('component: ResourceYaml', () => {
 
       await wrapper.vm.loadEditableRelatedResources();
 
-      expect(wrapper.vm.editableRelatedResources).toStrictEqual([related]);
+      expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(related, 'related-0')]);
       expect(wrapper.vm.needsMultiEdit).toBe(true);
     });
 
@@ -92,7 +106,7 @@ describe('component: ResourceYaml', () => {
 
       await wrapper.vm.loadEditableRelatedResources();
 
-      expect(wrapper.vm.editableRelatedResources).toStrictEqual([fromModel, fromExtension]);
+      expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(fromModel, 'related-0'), atTop(fromExtension, 'related-1')]);
     });
 
     it('should apply extensions in order, each seeing the previous result', async() => {
@@ -108,7 +122,7 @@ describe('component: ResourceYaml', () => {
 
       await wrapper.vm.loadEditableRelatedResources();
 
-      expect(wrapper.vm.editableRelatedResources).toStrictEqual([a, b]);
+      expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(a, 'related-0'), atTop(b, 'related-1')]);
     });
 
     it.each([
@@ -127,7 +141,7 @@ describe('component: ResourceYaml', () => {
 
       await wrapper.vm.loadEditableRelatedResources();
 
-      expect(wrapper.vm.editableRelatedResources).toStrictEqual([fromModel]);
+      expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(fromModel, 'related-0')]);
     });
 
     it.each([
@@ -150,7 +164,7 @@ describe('component: ResourceYaml', () => {
 
       await wrapper.vm.loadEditableRelatedResources();
 
-      expect(wrapper.vm.editableRelatedResources).toStrictEqual([valid]);
+      expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(valid, 'related-1')]);
     });
 
     describe('tree expansion', () => {
@@ -171,7 +185,7 @@ describe('component: ResourceYaml', () => {
 
         await wrapper.vm.loadEditableRelatedResources();
 
-        expect(wrapper.vm.editableRelatedResources).toStrictEqual([child, grandchild]);
+        expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(child), below(grandchild, 'ns/child', 2)]);
       });
 
       it('should not add the same resource (by id) more than once', async() => {
@@ -198,7 +212,8 @@ describe('component: ResourceYaml', () => {
 
         await wrapper.vm.loadEditableRelatedResources();
 
-        expect(wrapper.vm.editableRelatedResources).toStrictEqual([childA, childB, shared]);
+        // `shared` is reached from both children, and is kept under the first one to reach it
+        expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(childA), atTop(childB), below(shared, 'ns/a', 2)]);
       });
 
       it('should not loop on a circular reference', async() => {
@@ -245,6 +260,118 @@ describe('component: ResourceYaml', () => {
         await wrapper.vm.loadEditableRelatedResources();
 
         expect(wrapper.vm.editableRelatedResources[1].groupKey).toBe('some.group.key');
+      });
+
+      it('should record the depth and parent of each resource in the tree', async() => {
+        const greatGrandchild: EditableRelatedResource = { resource: { id: 'ns/ggc', type: 'configmap' } };
+        const grandchild: EditableRelatedResource = {
+          resource: {
+            id:                            'ns/gc',
+            type:                          'secret',
+            fetchEditableRelatedResources: () => Promise.resolve([greatGrandchild]),
+          }
+        };
+        const child: EditableRelatedResource = {
+          resource: {
+            id:                            'ns/child',
+            type:                          'service',
+            fetchEditableRelatedResources: () => Promise.resolve([grandchild]),
+          }
+        };
+
+        const wrapper = mountComponent({
+          id:                            'ns/primary',
+          type:                          'pod',
+          fetchEditableRelatedResources: () => Promise.resolve([child])
+        });
+
+        await wrapper.vm.loadEditableRelatedResources();
+
+        expect(wrapper.vm.editableRelatedResources.map(({ resource, depth, parentId }: any) => ({ id: resource.id, depth, parentId }))).toStrictEqual([
+          { id: 'ns/child', depth: 1, parentId: undefined },
+          { id: 'ns/gc', depth: 2, parentId: 'ns/child' },
+          { id: 'ns/ggc', depth: 3, parentId: 'ns/gc' },
+        ]);
+      });
+
+      it('should not set a parentId on the resources gathered for the primary resource', async() => {
+        const child: EditableRelatedResource = { resource: { id: 'ns/child', type: 'service' } };
+
+        const wrapper = mountComponent({
+          id:                            'ns/primary',
+          type:                          'pod',
+          fetchEditableRelatedResources: () => Promise.resolve([child])
+        });
+
+        await wrapper.vm.loadEditableRelatedResources();
+
+        expect(wrapper.vm.editableRelatedResources[0]).not.toHaveProperty('parentId');
+      });
+
+      it('should still point a resource at its parent when that parent has no id of its own', async() => {
+        const grandchild: EditableRelatedResource = { resource: { id: 'ns/gc', type: 'secret' } };
+        const child: EditableRelatedResource = {
+          // No id, so the parent is identified by the nodeId generated for it
+          resource: {
+            type:                          'service',
+            fetchEditableRelatedResources: () => Promise.resolve([grandchild]),
+          }
+        };
+
+        const wrapper = mountComponent({
+          type:                          'pod',
+          fetchEditableRelatedResources: () => Promise.resolve([child])
+        });
+
+        await wrapper.vm.loadEditableRelatedResources();
+
+        const [resolvedChild, resolvedGrandchild] = wrapper.vm.editableRelatedResources;
+
+        expect(resolvedGrandchild.depth).toBe(2);
+        expect(resolvedGrandchild.parentId).toBe(resolvedChild.nodeId);
+      });
+
+      it('should replace a depth and parentId supplied by a model rather than trust them', async() => {
+        const child: EditableRelatedResource = {
+          resource: { id: 'ns/child', type: 'service' },
+          depth:    99,
+          parentId: 'ns/nonsense',
+        };
+
+        const wrapper = mountComponent({
+          id:                            'ns/primary',
+          type:                          'pod',
+          fetchEditableRelatedResources: () => Promise.resolve([child])
+        });
+
+        await wrapper.vm.loadEditableRelatedResources();
+
+        expect(wrapper.vm.editableRelatedResources[0].depth).toBe(1);
+      });
+
+      it('should not mutate the entries handed over by the model', async() => {
+        const grandchild: EditableRelatedResource = { resource: { id: 'ns/gc', type: 'secret' } };
+        const child: EditableRelatedResource = {
+          resource: {
+            id:                            'ns/child',
+            type:                          'service',
+            fetchEditableRelatedResources: () => Promise.resolve([grandchild]),
+          }
+        };
+
+        const wrapper = mountComponent({
+          id:                            'ns/primary',
+          type:                          'pod',
+          fetchEditableRelatedResources: () => Promise.resolve([child])
+        });
+
+        await wrapper.vm.loadEditableRelatedResources();
+
+        expect(child).not.toHaveProperty('depth');
+        expect(child).not.toHaveProperty('nodeId');
+        expect(grandchild).not.toHaveProperty('depth');
+        expect(grandchild).not.toHaveProperty('parentId');
+        expect(grandchild).not.toHaveProperty('nodeId');
       });
     });
 

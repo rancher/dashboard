@@ -80,8 +80,19 @@ const resourceLabel = (resource: EditableResource): string => resource?.nameDisp
   '';
 
 /**
+ * Identifies a related resource in the graph and in `editorState.selected`
+ *
+ * This is the `nodeId` the tree was flattened with, falling back to the resource's id and then to
+ * the position in the list, so that a list handed straight to this component still works
+ */
+const nodeIdFor = (entry: EditableRelatedResource, i: number): string => entry.nodeId || entry.resource?.id || String(i);
+
+/**
  * The nodes passed to `ResourceGraph`, starting with the primary resource (no group) followed by
  * each related resource under its translated `groupKey` heading
+ *
+ * A related resource contributed by another one carries that resource's id as its `parentId`, so
+ * the graph shows it in a group nested below it rather than alongside it
  */
 const graphNodes = computed<ResourceGraphNode[]>(() => {
   const primary: ResourceGraphNode = {
@@ -90,9 +101,10 @@ const graphNodes = computed<ResourceGraphNode[]>(() => {
   };
 
   const related: ResourceGraphNode[] = props.relatedResources.map((entry, i) => ({
-    id:    entry.resource?.id || String(i),
-    label: resourceLabel(entry.resource),
-    group: entry.groupKey ? i18n.t(entry.groupKey) : undefined,
+    id:       nodeIdFor(entry, i),
+    parentId: entry.parentId,
+    label:    resourceLabel(entry.resource),
+    group:    entry.groupKey ? i18n.t(entry.groupKey) : undefined,
   }));
 
   return [primary, ...related];
@@ -104,7 +116,7 @@ const graphNodes = computed<ResourceGraphNode[]>(() => {
  * Used to look up the banner for the resource currently shown in the editor
  */
 const selectedRelatedIndex = computed(() => props.relatedResources.findIndex(
-  (entry, i) => (entry.resource?.id || String(i)) === editorState.selected
+  (entry, i) => nodeIdFor(entry, i) === editorState.selected
 ));
 
 /** The banner for the currently selected resource, if it is a related resource with one */
@@ -121,12 +133,11 @@ defineExpose({ editorState });
 <template>
   <div class="multi-resource-yaml">
     <ResourceGraph
-      class="multi-resource-yaml__graph"
       :nodes="graphNodes"
       :selected="editorState.selected"
       @select="editorState.selected = $event"
     />
-    <div class="multi-resource-yaml__editor">
+    <div>
       <Banner
         v-if="selectedBanner"
         :color="selectedBanner.color || 'info'"
@@ -139,21 +150,3 @@ defineExpose({ editorState });
   </div>
 </template>
 
-<style lang="scss" scoped>
-.multi-resource-yaml {
-  display: flex;
-  height: 100%;
-
-  &__graph {
-    flex: 0 0 250px;
-  }
-
-  &__editor {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-}
-</style>

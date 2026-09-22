@@ -175,6 +175,16 @@ export default {
      * Deduplication uses the resource's `id` where available, falling back to object identity so
      * that resources fetched more than once are not added twice
      *
+     * The result is a flat list, so each entry records where it sat in the tree it was discovered
+     * in: `nodeId` (identifies the entry), `depth` (1 for the resources contributed for the
+     * primary resource, one more for each level below that) and `parentId` (the `nodeId` of the
+     * entry that contributed it, absent at depth 1). Entries are copied rather than mutated so
+     * that a model or extension handing out the same object twice doesn't end up with the two
+     * positions fighting over it.
+     *
+     * A resource reachable from more than one parent is added once, under the first parent that
+     * reaches it, as that's the one that de-duplication keeps.
+     *
      * @param {Array} entries Initial list of `EditableRelatedResource` entries
      * @returns {Promise<Array>} The expanded list, original entries first
      */
@@ -182,8 +192,22 @@ export default {
       const idsSeen = new Set(entries.map((e) => e.resource?.id).filter(Boolean));
       const refsSeen = new WeakSet(entries.map((e) => e.resource).filter(Boolean));
 
-      const result = [...entries];
-      const queue = [...entries];
+      // Every entry needs an identity of its own, so that a child can still point at its parent
+      // when that parent's resource has no id
+      let generatedIds = 0;
+      const nodeIdFor = (resource) => resource?.id || `related-${ generatedIds++ }`;
+
+      // Everything gathered for the primary resource sits at the top of the tree, with no parent
+      const result = entries.map((entry) => {
+        const top = {
+          ...entry, depth: 1, nodeId: nodeIdFor(entry.resource)
+        };
+
+        delete top.parentId;
+
+        return top;
+      });
+      const queue = [...result];
 
       while (queue.length) {
         const entry = queue.shift();
@@ -218,8 +242,13 @@ export default {
             refsSeen.add(child.resource);
           }
 
-          result.push(child);
-          queue.push(child);
+          // Anything the model or extension set for the position of the entry is discarded
+          const expanded = {
+            ...child, depth: entry.depth + 1, nodeId: nodeIdFor(child.resource), parentId: entry.nodeId
+          };
+
+          result.push(expanded);
+          queue.push(expanded);
         }
       }
 

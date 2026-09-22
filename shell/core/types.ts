@@ -218,8 +218,10 @@ export type EditableRelatedResource = {
   /**
    * i18n key resolving to the group heading this resource is shown under in the resource graph
    *
-   * Resources sharing the same key are grouped together under a single heading, in the order they
-   * first appear. Resources without a key are shown first, under no heading
+   * Resources sharing the same key, below the same resource, are grouped together under a single
+   * heading, in the order they first appear. Resources without a key are shown first, under no
+   * heading. A resource contributed by another related resource is grouped below that resource
+   * rather than alongside it, so the same key can be used at every level of the tree
    */
   groupKey?: string,
 
@@ -246,6 +248,34 @@ export type EditableRelatedResource = {
    * resource
    */
   banner?: EditableRelatedResourceCompute<EditableRelatedResourceBanner | null | undefined>,
+
+  /**
+   * Identifies this entry within the flattened tree
+   *
+   * The resource's own id where it has one, otherwise a generated one, so that every entry can be
+   * pointed at by a `parentId`. Populated by the consuming component as it flattens the tree, so a
+   * model or extension doesn't set this - anything it does set is replaced
+   */
+  nodeId?: string,
+
+  /**
+   * How far below the primary resource this resource was found
+   *
+   * `1` for the resources gathered for the primary resource itself, one more for each level below
+   * that. Populated by the consuming component as it flattens the tree, so a model or extension
+   * doesn't set this - anything it does set is replaced
+   */
+  depth?: number,
+
+  /**
+   * The `nodeId` of the related resource that contributed this one
+   *
+   * Absent for resources at the top of the tree, which were contributed for the primary resource
+   * rather than by another related resource. Resources below another related resource are shown
+   * nested below it in the resource graph. Populated by the consuming component as it flattens the
+   * tree, so a model or extension doesn't set this - anything it does set is replaced
+   */
+  parentId?: string,
 };
 
 /**
