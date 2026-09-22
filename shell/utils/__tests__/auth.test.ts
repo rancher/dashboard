@@ -1,10 +1,8 @@
 import {
   checkPermissions,
-  parseAuthProvidersInfo,
   returnTo,
   checkSchemasForFindAllHash,
   canViewResource,
-  authProvidersInfo,
   findMe,
   noAuth,
   notLoggedIn,
@@ -20,130 +18,6 @@ import { onExtensionsReady } from '@shell/utils/uiplugins';
 jest.mock('@shell/utils/uiplugins', () => ({ onExtensionsReady: jest.fn().mockResolvedValue(undefined) }));
 
 const mockOnExtensionsReady = onExtensionsReady as jest.Mock;
-
-describe('parseAuthProvidersInfo', () => {
-  it.each([
-    {
-      desc:     'empty rows',
-      rows:     [],
-      expected: {
-        nonLocal:        [],
-        enabled:         [],
-        enabledLocation: null,
-      },
-    },
-    {
-      desc: 'only local provider',
-      rows: [{
-        name: 'local', id: 'local', enabled: true
-      }],
-      expected: {
-        nonLocal:        [],
-        enabled:         [],
-        enabledLocation: null,
-      },
-    },
-    {
-      desc: 'one disabled non-local provider',
-      rows: [{
-        name: 'github', id: 'github', enabled: false
-      }],
-      expected: {
-        nonLocal: [{
-          name: 'github', id: 'github', enabled: false
-        }],
-        enabled:         [],
-        enabledLocation: null,
-      },
-    },
-    {
-      desc: 'one enabled non-local provider',
-      rows: [{
-        name: 'github', id: 'github', enabled: true
-      }],
-      expected: {
-        nonLocal: [{
-          name: 'github', id: 'github', enabled: true
-        }],
-        enabled: [{
-          name: 'github', id: 'github', enabled: true
-        }],
-        enabledLocation: {
-          name:   'c-cluster-auth-config-id',
-          params: { id: 'github' },
-          query:  { mode: 'edit' },
-        },
-      },
-    },
-    {
-      desc: 'oidc provider excluded from nonLocal but included in enabled',
-      rows: [{
-        name: 'oidc', id: 'oidc', enabled: true
-      }],
-      expected: {
-        nonLocal: [],
-        enabled:  [{
-          name: 'oidc', id: 'oidc', enabled: true
-        }],
-        enabledLocation: {
-          name:   'c-cluster-auth-config-id',
-          params: { id: 'oidc' },
-          query:  { mode: 'edit' },
-        },
-      },
-    },
-    {
-      desc: 'two enabled non-local providers gives null enabledLocation',
-      rows: [
-        {
-          name: 'github', id: 'github', enabled: true
-        },
-        {
-          name: 'activedirectory', id: 'activedirectory', enabled: true
-        },
-      ],
-      expected: {
-        nonLocal: [
-          {
-            name: 'github', id: 'github', enabled: true
-          },
-          {
-            name: 'activedirectory', id: 'activedirectory', enabled: true
-          },
-        ],
-        enabled: [
-          {
-            name: 'github', id: 'github', enabled: true
-          },
-          {
-            name: 'activedirectory', id: 'activedirectory', enabled: true
-          },
-        ],
-        enabledLocation: null,
-      },
-    },
-    {
-      desc: 'local provider excluded while non-local disabled provider is retained',
-      rows: [
-        {
-          name: 'local', id: 'local', enabled: true
-        },
-        {
-          name: 'github', id: 'github', enabled: false
-        },
-      ],
-      expected: {
-        nonLocal: [{
-          name: 'github', id: 'github', enabled: false
-        }],
-        enabled:         [],
-        enabledLocation: null,
-      },
-    },
-  ])('returns provider info for $desc', ({ rows, expected }) => {
-    expect(parseAuthProvidersInfo(rows)).toStrictEqual(expected);
-  });
-});
 
 describe('checkPermissions', () => {
   it('returns empty object for empty types', async() => {
@@ -457,40 +331,6 @@ describe('canViewResource', () => {
     };
 
     expect(canViewResource(store, 'unknown-type')).toStrictEqual(false);
-  });
-});
-
-describe('authProvidersInfo', () => {
-  it('returns parsed provider info on dispatch success', async() => {
-    const rows = [{
-      name: 'github', id: 'github', enabled: true
-    }];
-    const store = { dispatch: jest.fn().mockResolvedValue(rows) };
-
-    const result = await authProvidersInfo(store);
-
-    expect(store.dispatch).toHaveBeenCalledWith('management/findAll', { type: 'management.cattle.io.authconfig' });
-    expect(result).toStrictEqual({
-      nonLocal: [{
-        name: 'github', id: 'github', enabled: true
-      }],
-      enabled: [{
-        name: 'github', id: 'github', enabled: true
-      }],
-      enabledLocation: {
-        name:   'c-cluster-auth-config-id',
-        params: { id: 'github' },
-        query:  { mode: 'edit' },
-      },
-    });
-  });
-
-  it('returns empty object when dispatch throws', async() => {
-    const store = { dispatch: jest.fn().mockRejectedValue(new Error('server error')) };
-
-    const result = await authProvidersInfo(store);
-
-    expect(result).toStrictEqual({});
   });
 });
 

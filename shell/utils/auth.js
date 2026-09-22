@@ -1,7 +1,7 @@
 import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import {
-  BACK_TO, SPA, _EDIT, _FLAGGED, TIMED_OUT, IS_SLO, LOGGED_OUT
+  BACK_TO, SPA, _FLAGGED, TIMED_OUT, IS_SLO, LOGGED_OUT
 } from '@shell/config/query-params';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
@@ -108,41 +108,6 @@ export const LOCAL_AUTH_ID = 'local';
  * provider catalogue
  */
 export const UNSUPPORTED_AUTH_IDS = ['oidc'];
-
-/**
- * Determines common auth provider info as those that are available (non-local) and the location of the enabled provider
- */
-export const authProvidersInfo = async(store) => {
-  try {
-    const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
-
-    return parseAuthProvidersInfo(rows);
-  } catch (error) {
-    return {};
-  }
-};
-
-/**
- * Parses auth provider's info to return if there's an auth provider enabled
- */
-export function parseAuthProvidersInfo(rows) {
-  const nonLocal = rows.filter((x) => x.name !== LOCAL_AUTH_ID);
-  const enabled = nonLocal.filter((x) => x.enabled === true );
-
-  const supportedNonLocal = nonLocal.filter((x) => !UNSUPPORTED_AUTH_IDS.includes(x.id));
-
-  const enabledLocation = enabled.length === 1 ? {
-    name:   'c-cluster-auth-config-id',
-    params: { id: enabled[0].id },
-    query:  { mode: _EDIT }
-  } : null;
-
-  return {
-    nonLocal: supportedNonLocal,
-    enabledLocation,
-    enabled
-  };
-}
 
 /**
  * Determine if disabling a provider would leave nobody with a way to sign in

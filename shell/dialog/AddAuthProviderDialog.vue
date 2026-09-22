@@ -24,8 +24,6 @@ const emit = defineEmits<{(e: 'close'): void }>();
 const search = ref('');
 const protocol = ref('');
 
-// A filter and the cards it filters name the same protocol, so they take that
-// name from the same place rather than each spelling it their own way.
 const protocols = computed(() => {
   const byType = new Map<string, string>();
 
