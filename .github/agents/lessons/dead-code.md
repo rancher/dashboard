@@ -5,8 +5,8 @@ Written and maintained by the Dead Code Detector workflow
 
 ## Provenance and confidence
 
-Git history is what separates a guess from a judgement. For every candidate, establish how it
-came to have no consumers, and let that set the confidence — not how empty the search looked.
+Git history is what separates a guess from a judgement. For every candidate, establish how it came
+to have no consumers, and let that set the confidence. **How empty the search looked sets nothing.**
 
 Three shapes recur, in descending order of certainty:
 
@@ -21,18 +21,19 @@ Three shapes recur, in descending order of certainty:
   a decision: string-keyed and dynamic references are exactly what leaves no import to find, so
   this shape needs runtime confirmation. **Medium confidence (70–85%) at best**
 
-Anything that fits none of the three — unclear provenance, recent changes, or a dynamic resolution
+Anything fitting none of the three — unclear provenance, recent changes, a dynamic resolution
 pattern that could not be ruled out — is **Low (<70%)** and is not reported at all.
 
-Establish the shape with a history search for the name across config and package directories, and
-a search for the commit where the last usage disappeared. Quote the commands and their real output
-in the issue — a confidence level with no commands behind it is an assertion, and the reviewer has
-no way to check it without redoing the work.
+Establish the shape two ways: a history search for the name across config and package directories,
+and a search for the commit where the last usage disappeared.
+
+**Quote the commands and their real output in the issue.** A confidence level with no commands
+behind it is an assertion, and the reviewer cannot check it without redoing the work.
 
 ### Worked examples
 
-Three formatter components, one per shape. All three are currently unreferenced by any config
-file, so the search of current code cannot tell them apart — only the history can.
+Three formatter components, one per shape. All three are currently unreferenced by any config file,
+so a search of current code cannot tell them apart. Only the history can.
 
 **Explicitly replaced** — `shell/components/formatter/DelayedValue.vue`:
 
@@ -79,20 +80,21 @@ Append them at the end, newest last, using exactly this shape:
 - **Command**: a command that demonstrates the rule, with its real output
 ```
 
-Do not add an entry that merely restates a rule already in the detector prompt. An entry earns
-its place only if following the prompt as written would still have produced the wrong answer.
+**Never add an entry restating a rule already in the detector prompt.** An entry earns its place
+only where following the prompt as written would still have produced the wrong answer.
 
-A near-miss with an existing entry is still a new entry. Two failures that share a symptom but
-need different checks belong in different entries — say in the **Rule** how the new one differs.
+A near-miss with an existing entry is still a new entry. Two failures sharing a symptom but needing
+different checks belong in different entries — say in the **Rule** how the new one differs.
 
-Say each thing once and point at it from anywhere else. If an entry refers to another one, name
-it by its title and re-read that entry first to confirm it still says what you are claiming; a
-pointer that has gone stale reads as verified and is not.
+Say each thing once, and point at it from anywhere else. An entry referring to another names it by
+title, and you re-read that entry first to confirm it still says what you are claiming. A pointer
+that has gone stale reads as verified and is not.
 
-This file is about identifying dead code, and nothing else. Problems with the workflow itself —
-a missing dependency, a wrong runtime version, a gate that will not start — do not belong here.
-Describe the pattern, not where it was filed: never name a repository or a fork in an entry, and
-do not cite issue numbers.
+This file is about identifying dead code, nothing else. Problems with the workflow itself — a
+missing dependency, a wrong runtime version, a gate that will not start — do not belong here.
+
+Describe the pattern, not where it was filed. Never name a repository or a fork in an entry, and
+never cite issue numbers.
 
 ## Lessons
 
