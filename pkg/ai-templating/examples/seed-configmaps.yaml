@@ -1,0 +1,340 @@
+# Seed ConfigMaps the extension auto-installs (see install/ensure.ts) so a fresh install has a
+# working custom Home out of the box. templating-config = the global on/off (data.enabled);
+# templating-home = the applied Home VIEW (data.home). Kept apart so the home-builder agent can
+# write the Home with no risk of touching the kill switch.
+#
+# data.home holds a VIEW: { global: { panels: [ { id, name, gap, widgets } ] }, users: {} }
+#   PANEL   one named view (panels render as TABS), with the gap between its widgets.
+#   WIDGET  one block on the grid, sized by colSpan (1..12). A "template" widget renders one
+#           home-template ConfigMap; a "widget" widget is a building block from the catalog.
+# `widgets` is a FLAT, ordered list — widgets WRAP onto lines when a line runs out of columns.
+# There are no rows to declare: spans adding up to 12 share a line, and 12 takes one on its own.
+# Every widget has margin + padding (four sides; a number is px, or any CSS length like '5%').
+#
+# All three panels open with a full-bleed home-banner. 'Home (JSON)' then puts the cluster list and
+# the links side by side at colSpan 9 / 3 — the stock Home's proportions from shell/pages/home.vue.
+#
+#   kubectl apply -f seed-configmaps.yaml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: templating-config
+  namespace: default
+  labels:
+    templates.rancher.io/ai-templating: 'true'
+    templates.rancher.io/type: config
+data:
+  enabled: 'true'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: templating-home
+  namespace: default
+  labels:
+    templates.rancher.io/ai-templating: 'true'
+    templates.rancher.io/type: config
+data:
+  home: '{"global": {"panels": [{"id": "panel-home", "name": "Home", "gap": 20, "widgets": [{"id": "tpl-banner-home", "type": "template", "template": "home-banner", "colSpan": 12, "height": "auto", "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0}, "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0}}, {"id": "tpl-home", "type": "template", "template": "home", "colSpan": 12, "height": "auto", "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0}, "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0}}]}, {"id": "panel-home-json", "name": "Home (JSON)", "gap": 20, "widgets": [{"id": "tpl-banner", "type": "template", "template": "home-banner", "colSpan": 12, "height": "auto", "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0}, "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0}}, {"id": "tpl-clusters", "type": "template", "template": "home-clusters", "colSpan": 9, "height": "auto", "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0}, "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0}}, {"id": "tpl-links", "type": "template", "template": "home-links", "colSpan": 3, "height": "auto", "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0}, "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0}}]}, {"id": "panel-overview", "name": "Cluster Overview", "gap": 20, "widgets": [{"id": "tpl-banner-overview", "type": "template", "template": "home-banner", "colSpan": 12, "height": "auto", "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0}, "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0}}, {"id": "tpl-home-cluster-overview", "type": "template", "template": "home-cluster-overview", "colSpan": 12, "height": "auto", "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0}, "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0}}]}]}, "users": {}}'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home
+  namespace: default
+  labels:
+    templates.rancher.io/ai-templating: 'true'
+    templates.rancher.io/type: home-template
+data:
+  displayName: HOME
+  view.vue: "<script>\n\nimport IndentedPanel from '@shell/components/IndentedPanel.vue';\nimport ResourceTable from '@shell/components/ResourceTable';\nimport CommunityLinks from '@shell/components/CommunityLinks.vue';\n\nimport DynamicContentPanel from '@shell/components/DynamicContent/DynamicContentPanel.vue';\nimport { RcButton } from '@components/RcButton';\nimport { createMemoryFormat, formatSi, parseSi } from '@shell/utils/units';\n\n// Inlined (custom views can't import @shell/config / @shell/store).\nconst MGMT_CLUSTER = 'management.cattle.io.cluster';\nconst PROV_CLUSTER = 'provisioning.cattle.io.cluster';\nconst MANAGER = 'manager';\nconst BLANK_CLUSTER = '_';\n\nexport default {\n  components: {\n    IndentedPanel, ResourceTable, CommunityLinks,\n    DynamicContentPanel, RcButton,\n  },\n\n  async fetch() {\n    this.rows = await this.$store.dispatch('management/findAll', { type: MGMT_CLUSTER }).catch(() => []);\n  },\n\n  data() {\n    return {\n      rows:   [],\n      // Private-label vendor name (the 'ui-pl' setting), falling back to 'Rancher'.\n      vendor: (this.$store.getters['management/byId']('management.cattle.io.setting', 'ui-pl') || {}).value || 'Rancher',\n      headers: [\n        {\n          name: 'state', labelKey: 'tableHeaders.state', value: 'stateDisplay',\n          sort: ['stateSort', 'nameSort'], width: 100, default: 'unknown', formatter: 'BadgeStateFormatter',\n        },\n        {\n          name: 'name', labelKey: 'tableHeaders.name', value: 'nameDisplay', sort: ['nameSort'], canBeVariable: true,\n        },\n        {\n          name: 'provider', labelKey: 'tableHeaders.provider', subLabel: 'Distro',\n          value: 'statusInfo.machineProvider',\n          sort: ['status.info.machineProvider', 'status.provider', 'status.driver'], formatter: 'ClusterProvider',\n        },\n        {\n          name: 'kubernetesVersion', labelKey: 'tableHeaders.version', subLabel: 'Architecture',\n          sort: 'statusInfo.kubernetesVersion', formatter: 'ClusterKubeVersion',\n        },\n        { name: 'cpu', labelKey: 'tableHeaders.cpu', value: '', sort: ['status.allocatable.cpuRaw'] },\n        { name: 'memory', labelKey: 'tableHeaders.memory', value: '', sort: ['status.allocatable.memoryRaw'] },\n        {\n          name: 'pods', labelKey: 'tableHeaders.pods', value: '', sort: ['status.allocatable.pods'],\n          formatter: 'PodsUsage', delayLoading: true,\n        },\n      ],\n      manageLocation: {\n        name: 'c-cluster-product-resource',\n        params: { product: MANAGER, cluster: BLANK_CLUSTER, resource: PROV_CLUSTER },\n      },\n      createLocation: {\n        name: 'c-cluster-product-resource-create',\n        params: { product: MANAGER, cluster: BLANK_CLUSTER, resource: PROV_CLUSTER },\n      },\n      importLocation: {\n        name: 'c-cluster-product-resource-create',\n        params: { product: MANAGER, cluster: BLANK_CLUSTER, resource: PROV_CLUSTER },\n        query: { mode: 'import' },\n      },\n    };\n  },\n\n  computed: {\n    schema() {\n      return this.$store.getters['management/schemaFor'](MGMT_CLUSTER);\n    },\n    provSchema() {\n      return this.$store.getters['management/schemaFor'](PROV_CLUSTER);\n    },\n    canCreateCluster() {\n      return !!this.provSchema;\n    },\n  },\n\n  methods: {\n    cpuAllocatable(c) {\n      const v = parseSi(c.status && c.status.allocatable && c.status.allocatable.cpu);\n\n      return v ? `${ v } ${ v === 1 ? 'core' : 'cores' }` : '';\n    },\n    memoryAllocatable(c) {\n      const parsed = (parseSi(c.status && c.status.allocatable && c.status.allocatable.memory) || 0).toString();\n\n      return formatSi(parsed, createMemoryFormat(parsed));\n    },\n  },\n};\n</script>\n\n<template>\n  <div class=\"home-page\">\n    \n\n    <IndentedPanel class=\"mt-20 mb-20\">\n      <div class=\"row home-panels\">\n        <div class=\"col main-panel\">\n          <ResourceTable\n            v-if=\"schema\"\n            :schema=\"schema\"\n            :rows=\"rows\"\n            :headers=\"headers\"\n            :table-actions=\"\
+    false\"\n            :row-actions=\"false\"\n            key-field=\"id\"\n            :namespaced=\"false\"\n            :groupable=\"false\"\n          >\n            <template #header-left>\n              <div class=\"row table-heading\">\n                <h1 class=\"mb-0\">Clusters</h1>\n              </div>\n            </template>\n            <template #header-middle>\n              <div class=\"table-heading\">\n                <RcButton variant=\"secondary\" :to=\"manageLocation\">Manage</RcButton>\n                <RcButton v-if=\"canCreateCluster\" :to=\"importLocation\">Import Existing</RcButton>\n                <RcButton v-if=\"canCreateCluster\" :to=\"createLocation\">Create</RcButton>\n              </div>\n            </template>\n            <template #col:name=\"{ row }\">\n              <td class=\"col-name\">\n                <router-link\n                  v-if=\"row.canExplore\"\n                  :to=\"{ name: 'c-cluster-explorer', params: { cluster: row.id } }\"\n                >\n                  {{ row.nameDisplay }}\n                </router-link>\n                <span v-else>{{ row.nameDisplay }}</span>\n              </td>\n            </template>\n            <template #col:cpu=\"{ row }\">\n              <td v-if=\"cpuAllocatable(row)\">{{ cpuAllocatable(row) }}</td>\n              <td v-else>&mdash;</td>\n            </template>\n            <template #col:memory=\"{ row }\">\n              <td v-if=\"memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 /)\">{{ memoryAllocatable(row) }}</td>\n              <td v-else>&mdash;</td>\n            </template>\n          </ResourceTable>\n        </div>\n\n        <div class=\"col span-3 side-panel\">\n          <CommunityLinks />\n          <DynamicContentPanel location=\"rhs\" />\n        </div>\n      </div>\n    </IndentedPanel>\n  </div>\n</template>\n\n<style scoped>\n.home-panels {\n  display: flex;\n  align-items: stretch;\n}\n.home-panels .col { margin: 0; }\n.home-panels .main-panel { flex: auto; }\n.home-panels .side-panel { margin-left: 1.75%; }\n.table-heading {\n  align-items: center;\n  display: flex;\n  height: 39px;\n}\n.table-heading > * { margin-left: 10px; }\n.col-name { max-width: 280px; }\n@media screen and (max-width: 996px) {\n  .side-panel { display: none; }\n}\n</style>\n"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-cluster-overview
+  namespace: default
+  labels:
+    templates.rancher.io/ai-templating: 'true'
+    templates.rancher.io/type: home-template
+data:
+  displayName: Cluster Overview
+  view.vue: |
+    <script>
+    import IndentedPanel from '@shell/components/IndentedPanel.vue';
+    import ResourceTable from '@shell/components/ResourceTable';
+    import CommunityLinks from '@shell/components/CommunityLinks.vue';
+    import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContentPanel.vue';
+    import { RcButton } from '@components/RcButton';
+    import { createMemoryFormat, formatSi, parseSi } from '@shell/utils/units';
+    import TemplateOverview from '@shell/pages/c/_cluster/_template/TemplateOverview.vue';
+    import { Banner } from '@components/Banner';
+
+    const MGMT_CLUSTER = 'management.cattle.io.cluster';
+    const PROV_CLUSTER = 'provisioning.cattle.io.cluster';
+    const MANAGER = 'manager';
+    const BLANK_CLUSTER = '_';
+
+    export default {
+      components: {
+        IndentedPanel, ResourceTable, CommunityLinks,
+        DynamicContentPanel, RcButton, TemplateOverview,
+        Banner
+      },
+
+      async fetch() {
+        const rows = await this.$store.dispatch('management/findAll', { type: MGMT_CLUSTER }).catch(() => []);
+
+        // Primary sort key so active clusters sort first (see the state header sort below).
+        rows.forEach((r) => {
+          try { r._activeSort = this.isActive(r) ? 0 : 1; } catch (e) { /* read-only model */ }
+        });
+        this.rows = rows;
+      },
+
+      data() {
+        return {
+          rows:           [],
+          selectedId:     null,
+          loadingCluster: false,
+          loadError:      '',
+          vendor:         (this.$store.getters['management/byId']('management.cattle.io.setting', 'ui-pl') || {}).value || 'Rancher',
+          widget:         {
+            title:     'Workloads',
+            resources: ['pod', 'apps.deployment', 'apps.statefulset', 'apps.daemonset', 'batch.job', 'batch.cronjob'],
+          },
+          headers: [
+            {
+              name: 'state', labelKey: 'tableHeaders.state', value: 'stateDisplay',
+              sort: ['_activeSort', 'stateSort', 'nameSort'], width: 100, default: 'unknown', formatter: 'BadgeStateFormatter',
+            },
+            {
+              name: 'name', labelKey: 'tableHeaders.name', value: 'nameDisplay', sort: ['_activeSort', 'nameSort'], canBeVariable: true,
+            },
+            {
+              name: 'provider', labelKey: 'tableHeaders.provider', subLabel: 'Distro',
+              value: 'statusInfo.machineProvider',
+              sort: ['_activeSort', 'status.info.machineProvider', 'status.provider'], formatter: 'ClusterProvider',
+            },
+            {
+              name: 'kubernetesVersion', labelKey: 'tableHeaders.version', subLabel: 'Architecture',
+              sort: ['_activeSort', 'statusInfo.kubernetesVersion'], formatter: 'ClusterKubeVersion',
+            },
+            { name: 'cpu', labelKey: 'tableHeaders.cpu', value: '', sort: ['_activeSort', 'status.allocatable.cpuRaw'] },
+            { name: 'memory', labelKey: 'tableHeaders.memory', value: '', sort: ['_activeSort', 'status.allocatable.memoryRaw'] },
+            {
+              name: 'pods', labelKey: 'tableHeaders.pods', value: '', sort: ['_activeSort', 'status.allocatable.pods'],
+              formatter: 'PodsUsage', delayLoading: true,
+            },
+          ],
+          manageLocation: {
+            name: 'c-cluster-product-resource',
+            params: { product: MANAGER, cluster: BLANK_CLUSTER, resource: PROV_CLUSTER },
+          },
+          createLocation: {
+            name: 'c-cluster-product-resource-create',
+            params: { product: MANAGER, cluster: BLANK_CLUSTER, resource: PROV_CLUSTER },
+          },
+          importLocation: {
+            name: 'c-cluster-product-resource-create',
+            params: { product: MANAGER, cluster: BLANK_CLUSTER, resource: PROV_CLUSTER },
+            query: { mode: 'import' },
+          },
+        };
+      },
+
+      computed: {
+        schema() {
+          return this.$store.getters['management/schemaFor'](MGMT_CLUSTER);
+        },
+        provSchema() {
+          return this.$store.getters['management/schemaFor'](PROV_CLUSTER);
+        },
+        canCreateCluster() {
+          return !!this.provSchema;
+        },
+        selectedCluster() {
+          return this.rows.find((c) => c.id === this.selectedId);
+        },
+      },
+
+      methods: {
+        isActive(c) {
+          if (typeof c.canExplore === 'boolean') {
+            return c.canExplore;
+          }
+          const s = (c.stateDisplay || (c.metadata && c.metadata.state && c.metadata.state.name) || '').toLowerCase();
+
+          return s === 'active' || s === 'running' || s === 'ready';
+        },
+        clusterName(c) {
+          return c ? (c.nameDisplay || (c.metadata && c.metadata.name) || c.id) : '';
+        },
+        cpuAllocatable(c) {
+          const v = parseSi(c.status && c.status.allocatable && c.status.allocatable.cpu);
+
+          return v ? `${ v } ${ v === 1 ? 'core' : 'cores' }` : '';
+        },
+        memoryAllocatable(c) {
+          const parsed = (parseSi(c.status && c.status.allocatable && c.status.allocatable.memory) || 0).toString();
+
+          return formatSi(parsed, createMemoryFormat(parsed));
+        },
+        async openCluster(c) {
+          this.selectedId = c.id;
+          this.loadError = '';
+          this.loadingCluster = true;
+          try {
+            await this.$store.dispatch('loadCluster', { id: c.id });
+          } catch (e) {
+            this.loadError = e && e.message ? e.message : String(e);
+          } finally {
+            this.loadingCluster = false;
+          }
+        },
+        back() {
+          this.selectedId = null;
+        },
+      },
+    };
+    </script>
+
+    <template>
+      <div class="home-page">
+        <Banner color="info" label="Welcome to Rancher!" class="mb-20" />
+        <!-- LIST: faithful Home, sorted active-first, with a per-cluster Overview button -->
+        <template v-if="!selectedId">
+          <IndentedPanel class="mt-20 mb-20">
+            <div class="row home-panels">
+              <div class="col main-panel">
+                <ResourceTable
+                  v-if="schema"
+                  :schema="schema"
+                  :rows="rows"
+                  :headers="headers"
+                  :table-actions="false"
+                  :row-actions="false"
+                  key-field="id"
+                  :namespaced="false"
+                  :groupable="false"
+                  default-sort-by="state"
+                >
+                  <template #header-left>
+                    <div class="row table-heading">
+                      <h1 class="mb-0">Clusters</h1>
+                    </div>
+                  </template>
+                  <template #header-middle>
+                    <div class="table-heading">
+                      <RcButton variant="secondary" :to="manageLocation">Manage</RcButton>
+                      <RcButton v-if="canCreateCluster" :to="importLocation">Import Existing</RcButton>
+                      <RcButton v-if="canCreateCluster" :to="createLocation">Create</RcButton>
+                    </div>
+                  </template>
+                  <template #col:name="{ row }">
+                    <td class="col-name">
+                      <span class="name-cell">
+                        <router-link
+                          v-if="row.canExplore"
+                          :to="{ name: 'c-cluster-explorer', params: { cluster: row.id } }"
+                        >
+                          {{ row.nameDisplay }}
+                        </router-link>
+                        <span v-else>{{ row.nameDisplay }}</span>
+                        <button
+                          v-if="isActive(row)"
+                          class="btn btn-sm role-secondary ml-5"
+                          @click.prevent="openCluster(row)"
+                        >
+                          Overview
+                        </button>
+                      </span>
+                    </td>
+                  </template>
+                  <template #col:cpu="{ row }">
+                    <td v-if="cpuAllocatable(row)">{{ cpuAllocatable(row) }}</td>
+                    <td v-else>&mdash;</td>
+                  </template>
+                  <template #col:memory="{ row }">
+                    <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 /)">{{ memoryAllocatable(row) }}</td>
+                    <td v-else>&mdash;</td>
+                  </template>
+                </ResourceTable>
+              </div>
+
+              <div class="col span-3 side-panel">
+                <CommunityLinks />
+                <DynamicContentPanel location="rhs" />
+              </div>
+            </div>
+          </IndentedPanel>
+        </template>
+
+        <!-- DETAIL: the workloads overview for the loaded cluster -->
+        <template v-else>
+          <IndentedPanel class="mt-20 mb-20">
+            <div class="head">
+              <button class="btn btn-sm role-secondary" @click="back">← Back to clusters</button>
+              <h1 class="mt-10 mb-0">{{ clusterName(selectedCluster) }}</h1>
+            </div>
+            <div v-if="loadingCluster" class="text-muted mt-20">Loading cluster…</div>
+            <div v-else-if="loadError" class="text-error mt-20">Could not load cluster: {{ loadError }}</div>
+            <TemplateOverview v-else :widget="widget" />
+          </IndentedPanel>
+        </template>
+      </div>
+    </template>
+
+    <style scoped>
+    .home-panels { display: flex; align-items: stretch; }
+    .home-panels .col { margin: 0; }
+    .home-panels .main-panel { flex: auto; }
+    .home-panels .side-panel { margin-left: 1.75%; }
+    .table-heading { align-items: center; display: flex; height: 39px; }
+    .table-heading > * { margin-left: 10px; }
+    .col-name { max-width: 320px; }
+    .name-cell { display: inline-flex; align-items: center; gap: 8px; }
+    .head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; align-items: flex-start; }
+    @media screen and (max-width: 996px) { .side-panel { display: none; } }
+    </style>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-banner
+  namespace: default
+  labels:
+    templates.rancher.io/ai-templating: 'true'
+    templates.rancher.io/type: home-template
+data:
+  displayName: Welcome Banner (JSON)
+  kind: template
+  template: '{"pages": [{"id": "home-banner", "name": "Welcome Banner (JSON)", "widgets": [{"type": "banner", "title": "Welcome to Rancher Prime", "subtitle": "", "image": ""}]}]}'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-clusters
+  namespace: default
+  labels:
+    templates.rancher.io/ai-templating: 'true'
+    templates.rancher.io/type: home-template
+data:
+  displayName: Cluster List (JSON)
+  kind: template
+  template: '{"pages": [{"id": "home-clusters", "name": "Cluster List (JSON)", "widgets": [{"type": "clusterList", "title": "Clusters"}]}]}'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-links
+  namespace: default
+  labels:
+    templates.rancher.io/ai-templating: 'true'
+    templates.rancher.io/type: home-template
+data:
+  displayName: Links (JSON)
+  kind: template
+  template: '{"pages": [{"id": "home-links", "name": "Links (JSON)", "widgets": [{"type": "links"}]}]}'

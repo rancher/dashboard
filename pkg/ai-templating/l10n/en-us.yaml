@@ -1,0 +1,10 @@
+product:
+  ai-templating: AI Templating
+
+aiTemplating:
+  settings:
+    label: Settings
+  templates:
+    label: Home Templates
+  layouts:
+    label: Home Layouts
