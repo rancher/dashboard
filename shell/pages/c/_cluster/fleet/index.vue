@@ -756,7 +756,11 @@ export default {
             v-if="viewMode === VIEW_MODE.TABLE"
             class="table-panel"
           >
+            <!-- No saved view tabs on the dashboard. The table is one workspace's bundles
+                 beside the counts and the drawer, not the bundle list, and the page already
+                 decides what is in it with the checkboxes above. -->
             <FleetApplications
+              :table-view-tabs="false"
               :workspace="workspace.id"
               :rows="tableResources[workspace.id]"
               :schema="{
