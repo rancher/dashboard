@@ -2016,7 +2016,7 @@ export default {
     line-height: 16px;
 
     &.error {
-      color: var(--warning);
+      color: var(--rc-warning);
     }
 
     .icon {
