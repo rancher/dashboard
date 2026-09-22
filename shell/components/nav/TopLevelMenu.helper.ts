@@ -631,9 +631,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     // scheduled, and what gets recorded below has to be the filters the requests actually went out with.
     const filters = clusterFilterSignature({ getters: this.$store.getters });
 
-    const countPage = (filters: PaginationParam[]): ActionFindPageArgs => ({
+    const countPage = (countFilters: PaginationParam[]): ActionFindPageArgs => ({
       pagination: {
-        filters,
+        filters:              countFilters,
         page:                 1,
         pageSize:             1,
         sort:                 [],

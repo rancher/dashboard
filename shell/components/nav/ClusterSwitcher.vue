@@ -173,8 +173,8 @@ const placeholder = computed(() => t('nav.switcher.jumpTo'));
 const listboxId = 'cluster-switcher-listbox';
 const optionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-${ c.id }`;
 // The same cluster can be on screen three times — the fixed tile, a RECENTLY USED shortcut and its row in
-// the estate — so the tile and RECENTLY USED carry their own ids. Two elements answering to one id would
-// give Vue duplicate keys and leave "scroll this row into view" pointing at whichever the DOM reached last.
+// the estate — so the tile and RECENTLY USED carry their own ids. Three elements answering to one DOM id
+// would leave "scroll this row into view" pointing at whichever the document reached last.
 const recentOptionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-recent-${ c.id }`;
 const tileOptionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-tile-${ c.id }`;
 

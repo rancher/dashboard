@@ -1206,22 +1206,27 @@ describe('topLevelMenu', () => {
 
       await waitForIt();
 
-      return wrapper.vm as any;
+      return wrapper;
     };
 
     it('invites the drag only while there is an order to change', async() => {
-      const two = await mountWithPinned(2);
+      const twoWrapper = await mountWithPinned(2);
+      const two = twoWrapper.vm as any;
 
       // Exact, not `toContain`: every single-pin key has its multi-pin key as a prefix.
       expect(two.pinnedRows).toHaveLength(2);
       expect(two.getPinnedTooltip(ready, true).content).toStrictEqual('%nav.pinnedCluster.explore%');
       expect(two.getPinnedTooltip(blocked, true).content).toStrictEqual('%nav.pinnedCluster.blocked%');
 
-      const one = await mountWithPinned(1);
+      const oneWrapper = await mountWithPinned(1);
+      const one = oneWrapper.vm as any;
 
       expect(one.pinnedRows).toHaveLength(1);
       expect(one.getPinnedTooltip(ready, true).content).toStrictEqual('%nav.pinnedCluster.exploreOnlyPinned%');
       expect(one.getPinnedTooltip(blocked, true).content).toStrictEqual('%nav.pinnedCluster.blockedOnlyPinned%');
+
+      twoWrapper.unmount();
+      oneWrapper.unmount();
     });
 
     // ...and the copy of those two variants says the same thing minus the invitation.

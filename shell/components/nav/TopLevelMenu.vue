@@ -529,9 +529,9 @@ export default {
       this.updateClusters(this.pinnedIds, 'slow');
     },
 
-    // The saved count and the switcher's own are both fetched WITH these filters, so changing them makes
-    // both answers wrong for the home page, the Cluster Management badge and the chip — while the number
-    // of clusters sits still and nothing else asks again.
+    // The count is fetched WITH these filters, so changing them makes the answer wrong for the home page,
+    // the Cluster Management badge and the chip alike — while the number of clusters sits still and
+    // nothing else asks again.
     clusterFilters() {
       this.helper.updateCount(this.clusterCountsFromCounts);
     },
@@ -1075,6 +1075,9 @@ export default {
 
       const { label: name, ready, stateDisplay: reason } = cluster;
       const reorderable = this.pinnedRows.length > 1;
+      // Every variant is picked at runtime, so no key appears literally after `t(` for `check-i18n` to
+      // find — declare the node it chooses from, or an unused-string sweep deletes copy that is in use.
+      // i18n-uses nav.pinnedCluster.*
       const key = ready ? 'nav.pinnedCluster.explore' : 'nav.pinnedCluster.blocked';
       const content = this.t(reorderable ? key : `${ key }OnlyPinned`, { name, reason });
 
