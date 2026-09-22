@@ -2027,19 +2027,13 @@ export default {
     // A locked column is shown and cannot be turned off, so it reads as the same colour the other
     // shown ones do, only fainter. Grey said "off", when the column is very much on - it is the
     // switch that is unavailable, not the column. Mixed from the same token so it follows the
-    // brand with the rest of them.
+    // brand with the rest of them, at the half strength the design draws the whole row in - lock,
+    // name and tick together, all off one inherited colour.
     &.locked {
-      color: color-mix(in srgb, var(--active, var(--primary)) 85%, transparent);
+      color: color-mix(in srgb, var(--active, var(--primary)) 50%, transparent);
       cursor: default;
 
       .column-handle { cursor: default; }
-
-      // The lock is drawn at half strength: it is a state the row is in, not a thing to read, and
-      // the design draws it that much fainter than the name beside it. The name keeps the 85 -
-      // half strength puts body text at about 1.9:1 against the menu, which is not readable.
-      .icon-lock {
-        color: color-mix(in srgb, var(--active, var(--primary)) 50%, transparent);
-      }
     }
 
     // The row being carried, lifted off the list the way a dragged shelf row is
