@@ -146,7 +146,7 @@ const emit = defineEmits<{
   :deep(.rc-button-split-trigger.variant-primary),
   :deep(.rc-button-split-trigger.variant-secondary),
   :deep(.rc-button-split-trigger.variant-tertiary),
-  :deep(.rc-button-split-trigger.variant-error) {
+  :deep(.rc-button-split-trigger.variant-destructive) {
     border-left: 1px solid rgba(255, 255, 255, 0.3);
   }
 
