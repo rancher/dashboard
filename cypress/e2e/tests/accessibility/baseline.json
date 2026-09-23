@@ -16,13 +16,6 @@
       "help": "ARIA dialog and alertdialog nodes should have an accessible name"
     },
     {
-      "fingerprint": "3cd41cfc54499ee42440d00a23390b375e677f2208b6bac7dcdfa51a0d5723c8",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Home Links page",
-      "rule": "empty-table-header",
-      "impact": "minor",
-      "help": "Table header text should not be empty"
-    },
-    {
       "fingerprint": "594af1b6c579afe73385423c49298b724c87e5dfcb6f168c87204304ebf05e10",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Events > Cluster events page",
       "rule": "empty-table-header",
@@ -56,13 +49,6 @@
       "rule": "aria-dialog-name",
       "impact": "serious",
       "help": "ARIA dialog and alertdialog nodes should have an accessible name"
-    },
-    {
-      "fingerprint": "7fb217d91e57c2d45380ca1be1f5e9619399c473c6b26d5c8cf5c76951062ade",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
-      "rule": "image-redundant-alt",
-      "impact": "minor",
-      "help": "Alternative text of images should not be repeated as text"
     },
     {
       "fingerprint": "848477f4b8f56e05aa4119096aefa1f236daf2b8ab5e98ef94bdbfed2d535454",
@@ -144,13 +130,6 @@
     {
       "fingerprint": "f55046a0ca68902676d6a71a172f6663a8fb584f73c8cf5b73ce2b4e4b924003",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Users > Users page",
-      "rule": "empty-table-header",
-      "impact": "minor",
-      "help": "Table header text should not be empty"
-    },
-    {
-      "fingerprint": "f5fad900884448291d17ce6613520b2524dfa4ba0daa32ea23ac54d3d0fb10ac",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
       "rule": "empty-table-header",
       "impact": "minor",
       "help": "Table header text should not be empty"
