@@ -137,6 +137,13 @@ describe('rcButton.vue', () => {
 
       expect(button.classes()).toContain('variant-ghost');
     });
+
+    it('applies variant-error class when variant="error"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'error' } });
+      const button = wrapper.find('button');
+
+      expect(button.classes()).toContain('variant-error');
+    });
   });
 
   describe('space key navigation', () => {
