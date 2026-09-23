@@ -26,7 +26,11 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    }
+    },
+    rules: {
+      type:    Object,
+      default: () => ({})
+    },
   },
 
   computed: {
@@ -81,6 +85,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value="value.name"
+            :rules="rules.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -98,6 +103,7 @@ export default {
         <div class="col span-6">
           <LabeledSelect
             v-model:value="value.csi.driver"
+            :rules="rules['csi.driver']"
             data-testid="workload-storage-driver"
             :mode="mode"
             :label="t('workload.storage.driver')"

@@ -30,6 +30,12 @@ export default {
         return {};
       }
     },
+
+    // validators for each mount path
+    mountPathRules: {
+      type:    Array,
+      default: () => []
+    },
   },
 
   data() {
@@ -110,6 +116,7 @@ export default {
             :name="props.row.value.metadata.name"
             :mode="mode"
             :container="value.template.spec.containers[0]"
+            :rules="mountPathRules"
           />
         </template>
         <template #add>

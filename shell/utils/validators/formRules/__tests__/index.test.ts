@@ -420,6 +420,27 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  it.each([
+    ['without volume mounts', { name: 'testName' }],
+    ['with no volume mounts', { name: 'testName', volumeMounts: [] }],
+    ['whose volume mounts all have a mount path', { name: 'testName', volumeMounts: [{ name: 'vol', mountPath: '/data' }] }],
+  ])('"volumeMountPath" : returns undefined for a container %s', (_desc, testValue) => {
+    const formRuleResult = formRules.volumeMountPath(testValue);
+
+    expect(formRuleResult).toBeUndefined();
+  });
+
+  it('"volumeMountPath" : returns correct message when a volume mount has no mount path', () => {
+    const testValue = { name: 'testName', volumeMounts: [{ name: 'vol', mountPath: '/data' }, { name: 'vol', mountPath: '' }] };
+    const formRuleResult = formRules.volumeMountPath(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'workload.validation.volumeMountPath',
+      name:    testValue.name
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
   it('"containerImages" : returns undefined when valid jobTemplate value is supplied', () => {
     const testValue = { jobTemplate: { spec: { template: { spec: { containers: [{ image: 'imageName', name: 'name' }] } } } } };
     const formRuleResult = formRules.containerImages(testValue);

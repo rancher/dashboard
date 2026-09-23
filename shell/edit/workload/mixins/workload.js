@@ -65,6 +65,26 @@ const TAB_WEIGHT_MAP = {
   volumeClaimTemplates: 89,
 };
 
+const REQUIRED_VOLUME_FIELDS = {
+  name:                              'workload.storage.volumeName',
+  'awsElasticBlockStore.volumeID':   'workload.storage.csi.volumeID',
+  'azureDisk.diskName':              'workload.storage.csi.diskName',
+  'azureDisk.diskURI':               'workload.storage.csi.diskURI',
+  'azureFile.shareName':             'workload.storage.csi.shareName',
+  'azureFile.secretName':            'workload.storage.csi.secretName',
+  'configMap.name':                  'workload.storage.subtypes.configMap',
+  'csi.driver':                      'workload.storage.driver',
+  'gcePersistentDisk.pdName':        'workload.storage.csi.pdName',
+  'hostPath.path':                   'workload.storage.nodePath',
+  'nfs.path':                        'workload.storage.path',
+  'nfs.server':                      'workload.storage.server',
+  'persistentVolumeClaim.claimName': 'workload.storage.subtypes.persistentVolumeClaim',
+  'secret.secretName':               'workload.storage.subtypes.secret',
+  'vsphereVolume.volumePath':        'workload.storage.csi.volumePath',
+};
+
+const volumeFieldPath = (field) => `podTemplateSpec.volumes.${ field }`;
+
 const GPU_KEY = 'nvidia.com/gpu';
 const ID_KEY = Symbol('container-id');
 
@@ -285,6 +305,18 @@ export default {
         rules:          [''],
         rootObject:     this,
         translationKey: 'workload.container.security.localhostProfile.label'
+      },
+      ...Object.entries(REQUIRED_VOLUME_FIELDS).map(([field, translationKey]) => ({
+        path:       volumeFieldPath(field),
+        rules:      ['required'],
+        rootObject: this,
+        translationKey
+      })),
+      {
+        path:           'spec.volumeClaimTemplates.metadata.name',
+        rules:          ['required'],
+        rootObject:     this,
+        translationKey: 'persistentVolumeClaim.name'
       }],
       fvReportedValidationPaths: ['spec'],
       isNamespaceNew:            false,
@@ -325,8 +357,33 @@ export default {
       return [required];
     },
 
+    volumeMountPathRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.storage.mountPoint') });
+
+      return [required];
+    },
+
+    volumeRules() {
+      return Object.keys(REQUIRED_VOLUME_FIELDS).reduce((rules, field) => ({
+        ...rules,
+        [field]: this.fvGetAndReportPathRules(volumeFieldPath(field))
+      }), {});
+    },
+
+    volumeClaimTemplateNames() {
+      return (this.spec?.volumeClaimTemplates || []).map((template) => template.metadata?.name || '');
+    },
+
     tabErrors() {
-      const tabErrors = { podSecurityContext: this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0 };
+      const { volumeMountPath } = formRulesGenerator(this.$store.getters['i18n/t'], {});
+      const tabErrors = {
+        podSecurityContext:   this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0,
+        podStorage:           this.fvGetPathErrors(Object.keys(REQUIRED_VOLUME_FIELDS).map(volumeFieldPath))?.length > 0,
+        volumeClaimTemplates: this.fvGetPathErrors(['spec.volumeClaimTemplates.metadata.name'])?.length > 0 || this.allContainers.some((container) => !!volumeMountPath({
+          name:         container.name,
+          volumeMounts: this.volumeMountsOf(container, true)
+        }))
+      };
 
       return tabErrors;
     },
@@ -508,10 +565,15 @@ export default {
         const imageError = rules.containerImage(container);
         const nameError = rules.containerName(container);
         const localhostProfileError = rules.localhostProfile(container);
+        const volumeMountPathError = rules.volumeMountPath({
+          name:         container.name,
+          volumeMounts: this.volumeMountsOf(container, false)
+        });
 
         container.error = {
           general:          nameError || imageError,
-          localhostProfile: localhostProfileError
+          localhostProfile: localhostProfileError,
+          storage:          volumeMountPathError
         };
 
         return container;
@@ -721,6 +783,10 @@ export default {
   },
 
   methods: {
+    volumeMountsOf(container, fromClaimTemplates) {
+      return (container.volumeMounts || []).filter((mount) => this.volumeClaimTemplateNames.includes(mount?.name) === fromClaimTemplates);
+    },
+
     secondaryResourceDataConfig() {
       return {
         namespace: this.value?.metadata?.namespace || null,

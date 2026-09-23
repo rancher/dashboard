@@ -115,4 +115,21 @@ describe('component: PVC', () => {
       expect(wrapper.vm.spec.storageClassName).toBe('custom-sc');
     });
   });
+
+  it('should require the claim name', () => {
+    const t = (key: string, args?: { key: string }) => (args ? `${ key }:${ args.key }` : key);
+    const wrapper = shallowMount(PVC, {
+      props: {
+        savePvcHookName: '',
+        value:           { metadata: {}, spec: { resources: { requests: {} } } },
+      },
+      global: { mocks: { $store: { dispatch: jest.fn(() => Promise.resolve([])), getters: { 'i18n/t': t } } } },
+    });
+
+    const nameInput = wrapper.findAllComponents({ name: 'LabeledInput' }).find((input) => input.props('label') === 'persistentVolumeClaim.name');
+    const [required] = nameInput?.props('rules');
+
+    expect(required('')).toStrictEqual('validation.required:persistentVolumeClaim.name');
+    expect(required('claim')).toBeUndefined();
+  });
 });

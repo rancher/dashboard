@@ -274,6 +274,8 @@ export default function(
 
   const localhostProfile: Validator = (val: any) => (val?.securityContext?.seccompProfile?.type === 'Localhost' && !val?.securityContext.seccompProfile?.localhostProfile && !val?.securityContext?.privileged) ? t('workload.validation.localhostProfile', { name: val.name }) : undefined;
 
+  const volumeMountPath: Validator = (val: any) => val?.volumeMounts?.some((mount: any) => !mount?.mountPath) ? t('workload.validation.volumeMountPath', { name: val.name }) : undefined;
+
   const containerImages: Validator = (val: any | [any]) => {
     const containers = val.jobTemplate ? val?.jobTemplate?.spec?.template?.spec?.containers : val?.template?.spec?.containers;
 
@@ -608,6 +610,7 @@ export default function(
     containerImages,
     containerName,
     localhostProfile,
+    volumeMountPath,
     cronSchedule,
     dnsLabel,
     dnsLabelIanaServiceName,

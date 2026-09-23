@@ -41,7 +41,7 @@ describe('component: Workload', () => {
       registerBeforeHook:          jest.fn(),
       pvcs:                        jest.fn(),
     },
-    computed: { allContainers: jest.fn(() => []) }
+    computed: { allContainers: jest.fn(() => []), tabErrors: jest.fn(() => ({})) }
   };
 
   describe('component: Workload', () => {
