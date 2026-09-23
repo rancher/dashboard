@@ -3248,6 +3248,13 @@ fleet:
       unknown: 'Unknown'
       notReady: Not Ready
       waitApplied: Wait Applied
+      notready: Not Ready
+      waitapplied: Wait Applied
+      errapplied: Err Applied
+      modified: Modified
+      outofsync: Out of Sync
+      pending: Pending
+      waitingfordependency: Waiting for Dependency
   clusterTargets:
     advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
     targetMode:
@@ -3687,6 +3694,7 @@ fleet:
     state: State
     cluster: Cluster
     error: Error
+    message: Message
     ready: Ready
     errors: Errors
   workspaces:
