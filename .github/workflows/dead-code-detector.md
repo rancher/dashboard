@@ -8,16 +8,17 @@ on:
 
 if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_DEAD_CODE_DETECTOR != 'true'
 
-# Runtime environment, UI evidence capture, the issue/pull-request protocol and
-# the lessons protocol are shared with the other agentic workflows in this repo.
-# Editing the prose in these files takes effect on the next run without a
-# recompile; editing their frontmatter does not.
+# Runtime environment, UI evidence capture, the issue/pull-request protocol, the
+# lessons protocol and the house writing rules are shared with the other agentic
+# workflows in this repo. Editing the prose in these files takes effect on the
+# next run without a recompile; editing their frontmatter does not.
 imports:
   - shared/rancher-server.md
   - shared/evidence.md
   - shared/fix-from-backlog.md
   - shared/report-findings.md
   - shared/lessons.md
+  - shared/writing.md
 
 permissions:
   contents: read
@@ -119,10 +120,10 @@ Neither phase is a fallback for the other. Full backlog does not excuse skipping
 
 - **Bot label**: `bot/dead-code-detector`
 - **Branch prefix**: `dead-code/` — pull request on any other branch is rejected before it opens
-- **Lessons file**: `.github/agents/lessons/dead-code.md`
+- **Lessons file**: `.github/agents/lessons/dead-code.md` — yours to append to. The other files beside it belong to other workflows: read those too, write to neither
 - **Budgets**: at most **three** open pull requests carrying the bot label at a time, **three** issues filed per run, **six** comments — shared between refutations, corrections and the rebase notices in "Keeping open pull requests mergeable"
 
-The lessons file holds the search idioms that produced false findings here, plus the confidence rubric under "Provenance and confidence". It binds this run as hard as this section, so nothing below repeats it. Read it before composing a search, not after.
+Your lessons file holds the search idioms that produced false findings here, plus the confidence rubric under "Provenance and confidence". It binds this run as hard as this section, so nothing below repeats it. Read it, and the others in that directory, before composing a search — not after.
 
 ## Context
 

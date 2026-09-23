@@ -88,7 +88,7 @@ Fill every section, add the three marked **added**. They carry the evidence this
 - **Screenshot/Video** — the assets, or one line saying why there are none
 - **Checklist** — tick only what this run genuinely satisfies, leave the rest unticked. Unticked box is a working signal that something needs a human; ticking one you did not satisfy hides that work. Several cannot be satisfied from inside a run at all — milestone, assigned reviewer, self review — and stay unticked
 
-Bodies are read by people: plain English, not the compression this prompt uses.
+Bodies are read by people: plain English, not the compression this prompt uses. Every rule in "How to write what people read" applies to this body in full.
 
 ````markdown
 ### Summary

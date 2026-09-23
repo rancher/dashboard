@@ -1,10 +1,12 @@
 ## Lessons protocol
 
-Run that gets surprised leaves next run better equipped. Lessons file lives under `.github/agents/lessons/`; workflow-specific section names it.
+Run that gets surprised leaves next run better equipped. Every workflow here keeps **its own** lessons file, and all of them live together in `.github/agents/lessons/`. Workflow-specific section names yours: the one you append to, and the only one you may write.
 
-### Read it first
+### Read them all first
 
-**Before anything else**, read lessons file. Missing: say so, continue. Entries bind this run as hard as this prompt — they exist because prompt alone still produced wrong answer.
+**Before anything else**, read **every** file in `.github/agents/lessons/`, not only your own. Same repository, same conventions, same traps — an entry another workflow recorded still applies to you. Directory missing or empty: say so, continue.
+
+Entries bind this run as hard as this prompt — they exist because the prompt alone still produced a wrong answer. Entry from another workflow's file binds the same. One plainly tied to that workflow's own job: skip it, no need to say which.
 
 ### Qualifies
 
@@ -38,4 +40,4 @@ Run that gets surprised leaves next run better equipped. Lessons file lives unde
 - **Run opens pull requests** — lessons change goes in **first** one, described in that body's Lessons section. Never its own pull request while another can carry it, never duplicated across two
 - **Run opens none** — write entry, open pull request for it alone, keeping only Lessons section of body template
 
-**Lessons file is the only file under `.github/` you may touch.** Never anything else there, never workflow or lock file. Proposals to change this prompt go in lessons file, read at start of every run, so they take effect without workflow edit.
+**Your own lessons file is the only file under `.github/` you may touch.** Never another workflow's — read them all, append to yours alone. Never anything else there, never workflow or lock file. Proposals to change this prompt go in your lessons file, read at start of every run, so they take effect without workflow edit.
