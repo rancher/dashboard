@@ -59,7 +59,7 @@ export default {
       </rc-button>
       <div class="spacer" />
       <rc-button
-        variant="error"
+        variant="destructive"
         size="large"
         class="ml-10"
         :data-testid="componentTestid + '-confirm-button'"
