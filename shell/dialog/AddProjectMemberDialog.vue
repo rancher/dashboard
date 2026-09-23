@@ -5,6 +5,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Banner from '@components/Banner/Banner.vue';
 import { NORMAN } from '@shell/config/types';
 import { RcHeading } from '@components/RcHeading';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -15,6 +16,7 @@ export default {
     AsyncButton,
     Banner,
     RcHeading,
+    RcButton
   },
 
   props: {
@@ -141,12 +143,13 @@ export default {
 
     <template #actions>
       <div class="buttons">
-        <button
-          class="btn role-secondary mr-10"
+        <rc-button
+          variant="secondary"
+          class="mr-10"
           @click="close"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
 
         <AsyncButton
           v-if="saveInModal"
@@ -154,13 +157,13 @@ export default {
           @click="cb=>saveBindings(cb)"
         />
 
-        <button
+        <rc-button
           v-else
-          class="btn role-primary"
+          variant="primary"
           @click="apply"
         >
           {{ t('generic.add') }}
-        </button>
+        </rc-button>
       </div>
     </template>
   </Card>

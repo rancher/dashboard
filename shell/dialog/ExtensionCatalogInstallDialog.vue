@@ -15,6 +15,7 @@ import Loading from '@shell/components/Loading.vue';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RcHeading } from '@components/RcHeading';
+import { RcButton } from '@components/RcButton';
 
 const DEFAULT_DEPLOYMENT = {
   type:     WORKLOAD_TYPES.DEPLOYMENT,
@@ -101,7 +102,7 @@ export default {
   emits: ['close'],
 
   components: {
-    AsyncButton, Banner, LabeledInput, Loading, LabeledSelect, RcHeading
+    AsyncButton, Banner, LabeledInput, Loading, LabeledSelect, RcHeading, RcButton
   },
 
   mixins: [ResourceManager],
@@ -514,13 +515,13 @@ export default {
     <div class="custom mt-10">
       <div class="fields">
         <div class="dialog-buttons mt-20">
-          <button
-            class="btn role-secondary"
+          <rc-button
+            variant="secondary"
             data-testid="image-load-ext-modal-cancel-btn"
             @click="closeDialog()"
           >
             {{ t('generic.cancel') }}
-          </button>
+          </rc-button>
           <AsyncButton
             mode="load"
             data-testid="image-load-ext-modal-install-btn"

@@ -1,6 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -8,6 +9,7 @@ export default {
   components: {
     Card,
     AsyncButton,
+    RcButton
   },
   props: {
     warnings: {
@@ -105,13 +107,14 @@ export default {
 
           class="buttons"
         >
-          <button
+          <rc-button
             data-testid="ipv6-dialog-cancel"
-            class="btn role-secondary mr-10"
+            variant="secondary"
+            class="mr-10"
             @click="close"
           >
             {{ t('generic.cancel') }}
-          </button>
+          </rc-button>
 
           <AsyncButton
             data-testid="ipv6-dialog-continue"
