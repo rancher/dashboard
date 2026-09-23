@@ -1,3 +1,4 @@
+import { reactive } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import Namespace from '@shell/components/form/ResourceQuota/Namespace.vue';
 
@@ -302,6 +303,42 @@ describe('namespace', () => {
 
       expect((value.resourceQuota.limit as any).extended).toBeUndefined();
       expect((value.resourceQuota.limit as any).limitsCpu).toBe('500m');
+    });
+  });
+
+  describe('invalid annotation banner', () => {
+    const bannerSelector = '[data-testid="resource-quota-invalid-annotation"]';
+
+    it('shows an error banner when the namespace resource quota annotation is invalid', () => {
+      const wrapper = createWrapper({ value: { resourceQuota: { limit: {} }, hasInvalidResourceQuota: true } });
+
+      const banner = wrapper.find(bannerSelector);
+
+      expect(banner.exists()).toBe(true);
+      expect(banner.attributes('color')).toBe('error');
+      expect(banner.attributes('label')).toBe('%resourceQuota.invalidAnnotation%');
+    });
+
+    it('uses the read-only message in view mode', () => {
+      const wrapper = createWrapper({ mode: 'view', value: { resourceQuota: { limit: {} }, hasInvalidResourceQuota: true } });
+
+      expect(wrapper.find(bannerSelector).attributes('label')).toBe('%resourceQuota.invalidAnnotationDetail%');
+    });
+
+    it('does not show the banner when the namespace resource quota annotation is valid', () => {
+      const wrapper = createWrapper({ value: { resourceQuota: { limit: {} }, hasInvalidResourceQuota: false } });
+
+      expect(wrapper.find(bannerSelector).exists()).toBe(false);
+    });
+
+    it('keeps the banner after the namespace annotation is repaired by the rows', async() => {
+      const value = reactive({ resourceQuota: { limit: {} }, hasInvalidResourceQuota: true });
+      const wrapper = createWrapper({ value });
+
+      value.hasInvalidResourceQuota = false;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find(bannerSelector).exists()).toBe(true);
     });
   });
 });

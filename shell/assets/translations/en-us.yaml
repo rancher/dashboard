@@ -9333,6 +9333,8 @@ resourceQuota:
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
   helpTextHarvester: VMs need to reserve additional memory overhead.
+  invalidAnnotation: The {annotation} annotation on this namespace is malformed, so its resource quota could not be read. Saving will replace it with the limits below.
+  invalidAnnotationDetail: The {annotation} annotation on this namespace is malformed, so its resource quota could not be read. The limits below are the defaults from the project, not the current value.
   custom: Custom
   resourceIdentifier:
     placeholder: e.g. configmaps
