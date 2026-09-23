@@ -44,11 +44,13 @@ export default {
     // `no-invalid-position-at-import-rule` is intentionally omitted: SCSS allows
     // `@import` after other statements, so it only produces false positives here.
   },
+  // `ignoreFiles` can only subtract from the `lint:style` glob, so it lists only
+  // directories that can appear *inside* it. `dist` is the one that matters:
+  // `pkg/rancher-components` builds into `pkg/rancher-components/dist`, whose
+  // generated CSS would otherwise be linted. `node_modules` is stylelint's own
+  // default ignore, kept here for explicitness.
   ignoreFiles: [
     '**/node_modules/**',
     '**/dist/**',
-    '**/dist-pkg/**',
-    '**/coverage/**',
-    '**/.nuxt/**',
   ],
 };
