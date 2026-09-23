@@ -11,9 +11,11 @@ import { SECRET_TYPES } from '@shell/config/secret';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { set } from '@shell/utils/object';
 
-// GitRepo and HelmOp credentials are basic-auth or SSH secrets; the other secrets a workspace
-// holds (helm releases, service account tokens) can never be referenced by a policy
-const CREDENTIAL_SECRET_TYPES = [SECRET_TYPES.BASIC, SECRET_TYPES.SSH];
+// A policy can only usefully name a credential a GitRepo or HelmOp is able to pick, so each list
+// mirrors what the matching form offers: basic-auth and SSH for both, and for GitRepo also a
+// GitHub App secret, which is stored as Opaque and told apart by its data keys
+const GIT_CREDENTIAL_SECRET_TYPES = [SECRET_TYPES.BASIC, SECRET_TYPES.SSH, SECRET_TYPES.OPAQUE];
+const HELM_CREDENTIAL_SECRET_TYPES = [SECRET_TYPES.BASIC, SECRET_TYPES.SSH];
 
 export default {
   name: 'CruFleetPolicy',
@@ -90,8 +92,12 @@ export default {
       return this.namesInNamespace(this.serviceAccounts);
     },
 
-    secretOptions() {
-      return this.namesInNamespace(this.secrets.filter((secret) => CREDENTIAL_SECRET_TYPES.includes(secret._type || secret.type)));
+    gitRepoSecretOptions() {
+      return this.credentialOptions(GIT_CREDENTIAL_SECRET_TYPES, true);
+    },
+
+    helmOpSecretOptions() {
+      return this.credentialOptions(HELM_CREDENTIAL_SECRET_TYPES, false);
     },
 
     // Restricting to a set of names only means anything once at least one name is picked;
@@ -114,6 +120,34 @@ export default {
         .map((resource) => resource.metadata?.name)
         .filter((name) => !!name)
         .sort();
+    },
+
+    /**
+     * The credentials of the given types held in the policy's namespace, as options keeping the
+     * secret name as their value: a policy stores names, while the label carries the type and
+     * user the GitRepo and HelmOp forms show, so the same secret reads the same in all three.
+     */
+    credentialOptions(types, allowGithubApp) {
+      return (this.secrets || [])
+        .filter((secret) => secret.metadata?.namespace === this.namespace && !!secret.metadata?.name)
+        .filter((secret) => types.includes(secret._type || secret.type))
+        // GitHub App credentials are Opaque secrets, so keep only the Opaque ones holding their keys
+        .filter((secret) => (secret._type || secret.type) !== SECRET_TYPES.OPAQUE || (allowGithubApp && secret.isGithubApp))
+        .map((secret) => ({ label: this.credentialLabel(secret), value: secret.metadata.name }))
+        .sort((a, b) => a.value.localeCompare(b.value));
+    },
+
+    credentialLabel(secret) {
+      const name = secret.metadata?.name;
+      const { subTypeDisplay } = secret;
+      // The preview reads the secret's data, which a user may be allowed to list but not to read
+      const dataPreview = secret.data ? secret.dataPreview : null;
+
+      if (!subTypeDisplay) {
+        return name;
+      }
+
+      return dataPreview ? `${ name } (${ subTypeDisplay }: ${ dataPreview })` : `${ name } (${ subTypeDisplay })`;
     },
   },
 };
@@ -155,7 +189,7 @@ export default {
         variant="gitRepo"
         :mode="mode"
         :service-account-options="serviceAccountOptions"
-        :secret-options="secretOptions"
+        :secret-options="gitRepoSecretOptions"
       />
       <FleetPolicySourceSection
         v-model:restricted="restrictHelmOpSecrets"
@@ -163,7 +197,7 @@ export default {
         variant="helmOp"
         :mode="mode"
         :service-account-options="serviceAccountOptions"
-        :secret-options="secretOptions"
+        :secret-options="helmOpSecretOptions"
       />
     </div>
   </CruResource>
