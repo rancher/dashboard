@@ -23,10 +23,24 @@ const repoList = repoListPage.list();
 // const NORMAL_HUMAN = 'Normal human';
 
 const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
+const LANGUAGE_TEST = 'Can select a language';
 
 describe('User can update their preferences', () => {
   beforeEach(() => {
+    // Unrelated to preferences: logging out resets the store while the Prime registration extension
+    // is still resolving, and its rejection is unhandled. Remove once rancher/dashboard#19172 is fixed.
+    cy.on('uncaught:exception', (err) => (err.message.includes(`Schemas aren't loaded yet`) ? false : undefined));
+
     cy.login();
+  });
+
+  // The language test deliberately leaves the UI in Chinese and nothing resets it. Restore English so
+  // a failure there doesn't cascade into the label based assertions of the tests that follow, and so
+  // a Cypress retry starts from the same locale as the first attempt.
+  afterEach(() => {
+    if (Cypress.currentTest?.title === LANGUAGE_TEST) {
+      cy.setUserPreference({ locale: 'en-us' });
+    }
   });
 
   it('Can navigate to Preferences Page', { tags: ['@userMenu', '@adminUser', '@standardUser', '@flaky'] }, () => {
@@ -43,7 +57,7 @@ describe('User can update their preferences', () => {
     prefPage.title();
   });
 
-  it('Can select a language', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  it(LANGUAGE_TEST, { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select language
     */
@@ -54,6 +68,24 @@ describe('User can update their preferences', () => {
 
     prefPage.goTo();
     prefPage.languageDropdownMenu().checkVisible();
+
+    // The locale is applied to the dom before its preference is saved, and the saved value is what the
+    // app re-reads on every route change and reload. Only the zh-hans selection is an actual change
+    // (the loop selects the current locale first), so alias just that PUT and wait for it below.
+    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
+      let body = req.body;
+
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch (e) { }
+      }
+
+      if (body?.data?.locale === 'zh-hans') {
+        req.alias = 'localeUpdate';
+      }
+    });
+
     for (const [key, value] of Object.entries(languages)) {
       prefPage.languageDropdownMenu().toggle();
       prefPage.languageDropdownMenu().isOpened();
@@ -63,8 +95,17 @@ describe('User can update their preferences', () => {
       prefPage.checkLangDomElement(key);
     }
 
+    cy.wait('@localeUpdate').its('response.statusCode').should('eq', 200);
+
     // testing https://github.com/rancher/dashboard/issues/10153
+    const clusterDashboard = new ClusterDashboardPagePo('local');
+
+    // The product side nav is only populated once the cluster loads, so entering it before the
+    // downstream proxy serves leaves the nav empty and the label lookup below times out
+    clusterDashboard.readyForClusterPage();
     ClusterDashboardPagePo.navTo();
+    clusterDashboard.waitForPage();
+
     const nav = new ProductNavPo();
 
     nav.navToSideMenuEntryByLabel('事件'); // events list
@@ -445,6 +486,26 @@ describe('User can update their preferences', () => {
 
   // You want this to be last, there's some issues with logging in and logging out without sessions
 
+  /**
+   * The landing page preference is only honoured once the release notes for the running version
+   * have been seen. Clear that record and let the app re-make it from the home page, so these tests
+   * start from a known state, and wait for it to be saved before the logout below.
+   */
+  function seeReleaseNotes() {
+    cy.setUserPreference({ 'seen-whatsnew': '' }, true);
+
+    HomePagePo.goToAndWaitForGet();
+
+    cy.getRancherResource('v1', 'userpreferences').then((prefs: Cypress.Response<any>) => {
+      cy.waitForRancherResource(
+        'v1',
+        'userpreferences',
+        prefs.body.data[0].id,
+        (resp: any) => !!resp?.body?.data?.['seen-whatsnew']
+      ).should('eq', true);
+    });
+  }
+
   function testLandingPageOption(key: { index: string, value: string, page: string}) {
     /*
     Select each radio button and verify its highlighted
@@ -452,6 +513,8 @@ describe('User can update their preferences', () => {
     Verify user is landing on correct page after login
     Verify selection is preserved after logout/login
     */
+
+    seeReleaseNotes();
 
     prefPage.goTo();
     prefPage.landingPageRadioBtn().checkVisible();

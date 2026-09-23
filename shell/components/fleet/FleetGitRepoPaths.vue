@@ -319,6 +319,7 @@ export default {
     :initial-empty-row="false"
     :a11y-label="t('fleet.gitRepo.paths.ariaLabel')"
     :add-label="t('fleet.gitRepo.paths.addLabel')"
+    :add-btn-aria-label="t('fleet.gitRepo.paths.addBtnAriaLabel')"
     :add-icon="'icon-plus'"
     :add-class="'btn-sm role-secondary'"
     :protip="t('fleet.gitRepo.paths.tooltip', {}, true)"
@@ -337,6 +338,7 @@ export default {
               v-if="!isView"
               size="small"
               variant="link"
+              :aria-label="t('fleet.gitRepo.paths.removeBtn', { index: i + 1 }, true)"
               @click="removePaths(i)"
             >
               <i class="icon icon-x" />
@@ -351,6 +353,7 @@ export default {
             data-testid="main-path"
             class="mt-5"
             :value="row.value"
+            :aria-label="t('fleet.gitRepo.paths.inputAriaLabel', { index: i + 1 }, true)"
             :placeholder="t('fleet.gitRepo.paths.placeholder')"
             :disabled="isView"
             @input="updatePath(i, $event)"

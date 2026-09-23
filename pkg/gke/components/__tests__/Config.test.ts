@@ -89,6 +89,34 @@ describe('gke Config', () => {
   });
 
   it.each([
+    ['test1-ranchername', 'test1', 'REGULAR', 7],
+    ['test2-ranchername', 'test2', 'RAPID', 4]
+  ])('should filter the list of available versions by the cluster\'s release channel', async(clusterName: string, gkeClusterName: string, expectedReleaseChannel: string, numVersionsAvailable: number) => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      props: {
+        mode:              'edit',
+        zone:              'test-zone',
+        region:            'test-region',
+        cloudCredentialId: 'abc',
+        projectId:         'test-project',
+        clusterName,
+        gkeClusterName
+      },
+      ...setup
+    });
+
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+
+    const versionDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="gke-version-select"]');
+
+    expect((wrapper.vm as any).releaseChannel).toBe(expectedReleaseChannel);
+    expect(versionDropdown.props().options).toHaveLength(numVersionsAvailable);
+  });
+
+  it.each([
     [{ zone: 'us-east1-c', region: '' }, false],
     [{ zone: '', region: 'us-east1' }, true]
   ])('should detect whether a zone or region is configured and flip the  location  mode radio button accordingly', async({ zone, region }, isUsingRegion) => {
@@ -248,5 +276,72 @@ describe('gke Config', () => {
 
     await flushPromises();
     expect(wrapper.emitted('update:locations')?.[0]?.[0]).toStrictEqual(['us-east4-b']);
+  });
+
+  it.each([
+    ['creating a zonal cluster', {
+      mode: 'create', zone: 'us-east1-b', region: '', isNewOrUnprovisioned: true
+    }, false],
+    ['creating a regional cluster', {
+      mode: 'create', zone: '', region: 'us-east1', isNewOrUnprovisioned: true
+    }, false],
+    ['editing a zonal cluster', {
+      mode: 'edit', zone: 'us-east1-b', region: '', isNewOrUnprovisioned: false
+    }, false],
+    ['editing a regional cluster', {
+      mode: 'edit', zone: '', region: 'us-east1', isNewOrUnprovisioned: false
+    }, true],
+  ])('should only allow the extra zones checkboxes to be edited for zonal clusters - %s', async(_description, props, expectedDisabled) => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      props: {
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        ...props
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ cloudCredentialId: 'abc' });
+    await flushPromises();
+
+    const extraZoneCheckboxes = wrapper.findAllComponents(Checkbox);
+
+    expect(extraZoneCheckboxes.length).toBeGreaterThan(0);
+    extraZoneCheckboxes.forEach((checkbox) => {
+      expect(checkbox.props().disabled).toBe(expectedDisabled);
+    });
+  });
+
+  it.each([
+    ['creating a regional cluster', {
+      mode: 'create', zone: '', region: 'us-east1', isNewOrUnprovisioned: true
+    }, null],
+    ['editing a zonal cluster', {
+      mode: 'edit', zone: 'us-east1-b', region: '', isNewOrUnprovisioned: false
+    }, null],
+    ['viewing a regional cluster', {
+      mode: 'view', zone: '', region: 'us-east1', isNewOrUnprovisioned: false
+    }, null],
+    ['editing a regional cluster', {
+      mode: 'edit', zone: '', region: 'us-east1', isNewOrUnprovisioned: false
+    }, 'gke.location.extraZonesDisabledTooltip'],
+  ])('should only show the extra zones disabled tooltip when editing a regional cluster - %s', async(_description, props, expectedTooltip) => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      props: {
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        ...props
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ cloudCredentialId: 'abc' });
+    await flushPromises();
+
+    expect((wrapper.vm as any).extraZonesDisabledTooltip).toBe(expectedTooltip);
   });
 });

@@ -173,7 +173,19 @@ export const getters = {
       const substituted = hasGlobal ? substituteGlobals(msg, rootState?.$extension) : msg;
 
       if ( substituted?.includes('{')) {
-        formatter = new IntlMessageFormat(substituted, locale);
+        // intl-messageformat v10+ is stricter than v7 in two ways that break us:
+        //  1. It resolves the locale via `Intl.Locale`, which THROWS unless it is given a concrete,
+        //     valid BCP-47 locale STRING. v7 tolerated anything: an empty string (early render before
+        //     the store's locale is set), the `none` debug pseudo-locale, or even a non-string —
+        //     callers reach the getter's 3rd arg as the locale and some pass a boolean (e.g. a `raw`
+        //     flag), which v11 turns into `new Intl.Locale(undefined)` and throws. So accept only a
+        //     non-empty, non-`none` string and fall back to `DEFAULT_LOCALE` for everything else.
+        //  2. It parses `<tag>…</tag>` as ICU rich-text markup and throws at format() time on the many
+        //     translations that embed literal HTML (e.g. `<span>Cluster:</span> {name}`). We render
+        //     such markup ourselves, so `ignoreTag` keeps angle brackets as plain text (pre-v10).
+        const safeLocale = ( typeof locale === 'string' && locale && locale !== NONE ) ? locale : DEFAULT_LOCALE;
+
+        formatter = new IntlMessageFormat(substituted, safeLocale, undefined, { ignoreTag: true });
       } else {
         formatter = substituted;
       }

@@ -1,5 +1,8 @@
 import { shallowMount } from '@vue/test-utils';
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
+import {
+  _VIEW, _EDIT, _DETAIL, _CONFIG, _YAML
+} from '@shell/config/query-params';
 
 jest.mock('@shell/mixins/create-edit-view/impl', () => ({
   __esModule: true,
@@ -20,16 +23,20 @@ jest.mock('@shell/composables/resourceDetail', () => ({ useResourceDetailPagePro
 type StoreOpts = {
   schema?: any;
   findError?: any;
+  findResult?: any;
+  optionsFor?: any;
 };
 
-const createStore = ({ schema, findError }: StoreOpts) => {
+const createStore = ({
+  schema, findError, findResult, optionsFor
+}: StoreOpts) => {
   const dispatch = jest.fn((action: string) => {
     if (action.endsWith('/find')) {
       if (findError) {
         return Promise.reject(findError);
       }
 
-      return Promise.resolve({});
+      return Promise.resolve(findResult ?? {});
     }
     if (action.endsWith('/clone') || action.endsWith('/cleanForDetail')) {
       return Promise.resolve({});
@@ -48,7 +55,7 @@ const createStore = ({ schema, findError }: StoreOpts) => {
       'type-map/hasCustomEdit':   () => false,
       'type-map/importDetail':    () => null,
       'type-map/importEdit':      () => null,
-      'type-map/optionsFor':      () => ({}),
+      'type-map/optionsFor':      () => (optionsFor ?? {}),
     },
     dispatch,
   };
@@ -141,5 +148,101 @@ describe('component: ResourceDetail', () => {
 
     expect((wrapper.vm as any).resourceNotFoundError).toBeNull();
     expect(store.dispatch).not.toHaveBeenCalledWith('loadingError', expect.anything());
+  });
+
+  describe('canViewYaml', () => {
+    it('is false when the live resource has no view link, even though the type-map default allows yaml', async() => {
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: true },
+        findResult: { canYaml: false },
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).canViewYaml).toBe(false);
+    });
+
+    it('stays true when the live resource does have a view link and the type-map default allows yaml', async() => {
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: true },
+        findResult: { canYaml: true },
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).canViewYaml).toBe(true);
+    });
+
+    it('stays false when the type-map default already disallows yaml, regardless of the live resource', async() => {
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: false },
+        findResult: { canYaml: true },
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).canViewYaml).toBe(false);
+    });
+
+    it('defaults to hiding the yaml toggle, without failing the page load, when the resource canYaml getter throws', async() => {
+      const throwingCanYaml = {};
+
+      Object.defineProperty(throwingCanYaml, 'canYaml', {
+        get() {
+          throw new Error('boom, badly-behaved plugin model class');
+        }
+      });
+
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: true },
+        findResult: throwingCanYaml,
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).resourceNotFoundError).toBeNull();
+      expect((wrapper.vm as any).canViewYaml).toBe(false);
+    });
+  });
+
+  // fullDetailPageOverride should only apply to the detail view, so the config/YAML
+  // views keep the padded ".outlet" wrapper.
+  describe.each([
+    {
+      desc: 'detail view of a full-page override resource', mode: _VIEW, as: _DETAIL, fullDetailPageOverride: true, expected: true
+    },
+    {
+      desc: 'config view of a full-page override resource', mode: _VIEW, as: _CONFIG, fullDetailPageOverride: true, expected: false
+    },
+    {
+      desc: 'yaml view of a full-page override resource', mode: _VIEW, as: _YAML, fullDetailPageOverride: true, expected: false
+    },
+    {
+      desc: 'detail view of a non-override resource', mode: _VIEW, as: _DETAIL, fullDetailPageOverride: false, expected: false
+    },
+    {
+      desc: 'edit mode of a full-page override resource', mode: _EDIT, as: _CONFIG, fullDetailPageOverride: true, expected: false
+    },
+  ])('isFullPageOverride: $desc', ({
+    mode, as, fullDetailPageOverride, expected
+  }) => {
+    it(`is ${ expected }`, async() => {
+      const store = createStore({ schema: { id: 'bogus-resource-type' } });
+      const { wrapper } = createWrapper(store);
+
+      await wrapper.setData({
+        mode, as, value: { fullDetailPageOverride }
+      });
+
+      expect((wrapper.vm as any).isFullPageOverride).toBe(expected);
+    });
   });
 });

@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "description": "Accepted a11y violations (ratchet baseline). CI fails on any violation not listed here. Regenerate with `yarn a11y:baseline` after running the a11y suite.",
+  "stats": {
+    "totalTests": 50,
+    "totalPassed": 50,
+    "totalFailed": 0,
+    "totalSuites": 18
+  },
+  "violations": [
+    {
+      "fingerprint": "369701d3305beb3059f2d21821bceb5be66d7f4b579e5dff93351ee30c7959e4",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Import Extension Catalog Modal",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "3cd41cfc54499ee42440d00a23390b375e677f2208b6bac7dcdfa51a0d5723c8",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Home Links page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "594af1b6c579afe73385423c49298b724c87e5dfcb6f168c87204304ebf05e10",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Events > Cluster events page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "5b9fb5a2441817d866e7b9bded61ab14a51d4720f7bf98739332fbaeb31ccc69",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > Change Password dialog",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "6979c0a44c3479ff66544fb94667d0969e74a63b2d7d14c3546be5676ccf431e",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster drivers page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "6c611b0ca4e191e4f95e508089e93542d9b31797fe20e811ab29d6606f2bd3e9",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Fleet GitRepo - Add Repository page",
+      "rule": "list",
+      "impact": "serious",
+      "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements"
+    },
+    {
+      "fingerprint": "734bf6f75c7177ce9a0cda790f457d7abcb184b85fe349369142b2d6b9617182",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Add Rancher Repositories Modal",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "7fb217d91e57c2d45380ca1be1f5e9619399c473c6b26d5c8cf5c76951062ade",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
+      "rule": "image-redundant-alt",
+      "impact": "minor",
+      "help": "Alternative text of images should not be repeated as text"
+    },
+    {
+      "fingerprint": "848477f4b8f56e05aa4119096aefa1f236daf2b8ab5e98ef94bdbfed2d535454",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > Deployments page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "8a4f17cc3488acd54ba007f00e25f5c33cbddf1a67314045b3146766b980b7ef",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Delete",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "8b7dac544134c42002817a46a5e10844110253974037a89d3dadd6e3d736dcfc",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Burger Menu",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "93d65181ec200400a1e5d3c23eb04a2fe4030beee85ba2af6da28c16b8277bb2",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Add Project Member",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "965746bd5dfad665eec904bc51041c9ec004e52a6947b14848d17ca1231c04bc",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Move dialog",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "9b6654bc172d4301c94ada825be750cb2ee4f6d92dc0e634f2928e15754422d3",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces Page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "aae6b1ac09ac211cf0167c8c30322ff61cd0787a05710faddc278c35a2701490",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Describe Resource",
+      "rule": "region",
+      "impact": "moderate",
+      "help": "All page content should be contained by landmarks"
+    },
+    {
+      "fingerprint": "b3f7befa88bc4944baba1512570bb3d9bd0fce7d928a1a63da3196ab4e92df58",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Fleet GitRepo - Add Repository page",
+      "rule": "aria-valid-attr-value",
+      "impact": "critical",
+      "help": "ARIA attributes must conform to valid values"
+    },
+    {
+      "fingerprint": "d76482d5cbc36b44f93ddeb706ec5aa43a826c115d3d906b0b3adf30c1568f7b",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Delete",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "de1aa1173cd257e091fb224233be2ae05227b31fe8670d6fecc98d1e6a4ccc25",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Kubectl Shell",
+      "rule": "aria-valid-attr-value",
+      "impact": "critical",
+      "help": "ARIA attributes must conform to valid values"
+    },
+    {
+      "fingerprint": "dfcb29b8bfd5d9a1eb2a592f4ee24e366a7b2bc3edab16855663c6abb249b73c",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Kubectl Shell",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "f55046a0ca68902676d6a71a172f6663a8fb584f73c8cf5b73ce2b4e4b924003",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Users > Users page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "f5fad900884448291d17ce6613520b2524dfa4ba0daa32ea23ac54d3d0fb10ac",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "f7f97ead31f6c0e2eb957ee247df5123c6b79ca4ab1f28168bba0f44c10f1364",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > Account and API Keys Page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    }
+  ]
+}

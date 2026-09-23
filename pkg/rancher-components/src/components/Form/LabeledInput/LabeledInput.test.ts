@@ -213,6 +213,33 @@ describe('component: LabeledInput', () => {
     });
   });
 
+  // The native input used to carry role="textbox" for every type but "number".
+  // On "search" and "password" that role is disallowed outright, and on
+  // "search" it also hid the implicit searchbox role from assistive
+  // technology; on the other types listed below it only repeated the implicit
+  // role. Either way the browser already exposes the right one, so the
+  // component writes none. "number" is listed because it must keep its
+  // implicit spinbutton role, and the "multiline" types are absent because
+  // they render a textarea rather than an input.
+  describe('a11y: leaving the implicit role alone', () => {
+    it.each([
+      ['text'],
+      ['search'],
+      ['password'],
+      ['email'],
+      ['number'],
+      ['integer'],
+      ['cron'],
+    ])('for type %p should not write an explicit role onto the input', (type) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '', type },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.find('input').attributes('role')).toBeUndefined();
+    });
+  });
+
   it('a11y: rendering a "label" should not render an "aria-label" prop', () => {
     const label = 'some-label';
 
@@ -225,6 +252,100 @@ describe('component: LabeledInput', () => {
 
     expect(mainInput.attributes('aria-label')).toBeUndefined();
     expect(wrapper.find('label').text()).toBe(label);
+  });
+
+  describe('a11y: "overrideAriaLabel" prop', () => {
+    const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
+    const label = 'Inactivity period';
+    const ariaLabel = 'Inactivity period - Disable user accounts';
+
+    it.each([
+      ['text', 'input'],
+      ['multiline', 'textarea'],
+    ])('for type %p should render the "aria-label" alongside a visible label when enabled', (type, fieldTag) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type, label, ariaLabel, overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+
+      const field = wrapper.find(fieldTag);
+
+      // the visible label is still rendered, the aria-label just takes over the accessible name
+      expect(wrapper.find('label').text()).toBe(label);
+      expect(field.attributes('aria-label')).toBe(ariaLabel);
+    });
+
+    it('should not render the "aria-label" alongside a visible label when disabled', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel, overrideAriaLabel: false
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should default to disabled, keeping the visible label as the accessible name', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should not render an empty "aria-label" when enabled without an "ariaLabel" value', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel: '', overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should still render the "aria-label" when there is no visible label and it is disabled', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', ariaLabel, overrideAriaLabel: false
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('label').exists()).toBe(false);
+      expect(wrapper.find('input').attributes('aria-label')).toBe(ariaLabel);
+    });
+
+    it('should give two inputs sharing the same visible label unique accessible names', () => {
+      const disableAriaLabel = 'Inactivity period - Disable user accounts';
+      const deleteAriaLabel = 'Inactivity period - Delete user accounts';
+
+      const disableWrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel: disableAriaLabel, overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+      const deleteWrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel: deleteAriaLabel, overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+
+      const disableName = disableWrapper.find('input').attributes('aria-label');
+      const deleteName = deleteWrapper.find('input').attributes('aria-label');
+
+      expect(disableName).toBe(disableAriaLabel);
+      expect(deleteName).toBe(deleteAriaLabel);
+      expect(disableName).not.toBe(deleteName);
+    });
   });
 
   describe('clear button functionality', () => {

@@ -6,17 +6,36 @@ describe('class FleetBundle', () => {
   });
 
   describe('targetClusters', () => {
-    function createFleetBundle(targets: any[], clusters: any[], workspaceId = 'fleet-default', groups: any[] = []) {
+    function createFleetBundle(targets: any[], clusters: any[], workspaceId = 'fleet-default', groups: any[] = [], bundleNamespaceMappings: any[] = [], allWorkspaces: any[] = [], bundleLabels: Record<string, string> = {}) {
       const workspace = {
         id:            workspaceId,
+        metadata:      { name: workspaceId },
         clusters,
         clusterGroups: groups,
       };
 
-      jest.spyOn(FleetBundle.prototype, '$getters', 'get').mockReturnValue({ byId: () => workspace });
+      jest.spyOn(FleetBundle.prototype, '$getters', 'get').mockReturnValue({
+        byId: (_type: string, id: string) => {
+          if (id === workspaceId) {
+            return workspace;
+          }
+
+          return allWorkspaces.find((ws: any) => ws.metadata?.name === id);
+        },
+        all: (type: string) => {
+          if (type === 'fleet.cattle.io.bundlenamespacemapping') {
+            return bundleNamespaceMappings;
+          }
+          if (type === 'management.cattle.io.fleetworkspace') {
+            return allWorkspaces;
+          }
+
+          return [];
+        },
+      });
 
       return new FleetBundle({
-        metadata: { namespace: workspaceId },
+        metadata: { namespace: workspaceId, labels: bundleLabels },
         spec:     { targets },
       });
     }
@@ -135,6 +154,76 @@ describe('class FleetBundle', () => {
       ];
 
       const bundle = createFleetBundle([{ clusterName: 'some-other-name' }], clusters);
+
+      expect(bundle.targetClusters).toStrictEqual([]);
+    });
+
+    it('should include clusters from namespaces mapped via BundleNamespaceMapping', () => {
+      const mappedClusters = [
+        {
+          id:          'fleet-default/c-m-mapped1',
+          metadata:    { name: 'c-m-mapped1' },
+          nameDisplay: 'mapped-cluster',
+        }
+      ];
+
+      const bundleNamespaceMappings = [{
+        metadata:          { namespace: 'fleet-new' },
+        bundleSelector:    { matchLabels: { team: 'one' } },
+        namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'fleet-default' } },
+      }];
+
+      const mappedWorkspace = {
+        id:            'fleet-default',
+        metadata:      { name: 'fleet-default', labels: {} },
+        clusters:      mappedClusters,
+        clusterGroups: [],
+      };
+
+      const bundle = createFleetBundle(
+        [{ clusterSelector: {} }],
+        [],
+        'fleet-new',
+        [],
+        bundleNamespaceMappings,
+        [mappedWorkspace],
+        { team: 'one' },
+      );
+
+      expect(bundle.targetClusters).toStrictEqual(mappedClusters);
+    });
+
+    it('should not include clusters when bundle does not match BundleNamespaceMapping selector', () => {
+      const mappedClusters = [
+        {
+          id:          'fleet-default/c-m-mapped1',
+          metadata:    { name: 'c-m-mapped1' },
+          nameDisplay: 'mapped-cluster',
+        }
+      ];
+
+      const bundleNamespaceMappings = [{
+        metadata:          { namespace: 'fleet-new' },
+        bundleSelector:    { matchLabels: { team: 'two' } },
+        namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'fleet-default' } },
+      }];
+
+      const mappedWorkspace = {
+        id:            'fleet-default',
+        metadata:      { name: 'fleet-default', labels: {} },
+        clusters:      mappedClusters,
+        clusterGroups: [],
+      };
+
+      const bundle = createFleetBundle(
+        [{ clusterSelector: {} }],
+        [],
+        'fleet-new',
+        [],
+        bundleNamespaceMappings,
+        [mappedWorkspace],
+        { team: 'one' },
+      );
 
       expect(bundle.targetClusters).toStrictEqual([]);
     });

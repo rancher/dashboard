@@ -126,10 +126,17 @@ export default {
         this.$router.replace({ name: this.doneRoute });
         buttonDone(true);
       } catch (err) {
-        if (err?.message?.includes('errors due to escalation')) {
-          this.errors = [this.t('rbac.errors.escalation')];
+        const roleError = err?.message?.includes('errors due to escalation') ? [this.t('rbac.errors.escalation')] : exceptionToErrorsArray(err);
+
+        if (this.isCreate && err?.userCleanupFailed) {
+          // Roles failed AND the partially-created user could not be removed, so a role-less
+          // account is left behind. Surface why the assignment failed as well as the orphan
+          // notice, so the admin can fix the permissions before reviewing or deleting it.
+          // raw (no HTML-escape) so the username's quotes/apostrophes render correctly: the error
+          // Banner escapes the label itself (nlToBr), and escaping here too would double-encode them.
+          this.errors = [...roleError, this.t('user.edit.roleUpdateFailed.orphaned', { username: this.form.username }, true)];
         } else {
-          this.errors = exceptionToErrorsArray(err);
+          this.errors = roleError;
         }
         buttonDone(false);
       }
@@ -226,6 +233,8 @@ export default {
           } catch (cleanupErr) {
             // Log cleanup error but prioritize original error for user feedback
             console.error('Failed to clean up user after GRB creation failure:', cleanupErr); // eslint-disable-line no-console
+            // Cleanup failed, so a role-less account remains and the admin must be told
+            err.userCleanupFailed = true;
           }
         }
         throw err;

@@ -43,6 +43,7 @@ describe('Rancher as an OIDC Provider', { tags: ['@globalSettings', '@adminUser'
 
   qase(9761, it('should be able to create an OIDC client application', () => {
     cy.intercept('POST', `/v1/management.cattle.io.oidcclients`).as('createRequest');
+    cy.intercept('GET', '/v1/management.cattle.io.oidcclients?*').as('oidcListGet');
 
     // Retry-independence: this test creates an OIDC client with a fixed name, so a failed attempt
     // leaves it behind and the retry's create then returns 409 (already exists), never getting a
@@ -57,6 +58,8 @@ describe('Rancher as an OIDC Provider', { tags: ['@globalSettings', '@adminUser'
     // check title and list view
     oidcClientsPage.list().title().should('contain', 'OIDC Apps');
     oidcClientsPage.list().resourceTable().sortableTable().checkVisible();
+    // Wait for the list fetch to resolve so the loading indicator clears within the check's 10s window.
+    cy.wait('@oidcListGet');
     oidcClientsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     // should be able to copy OIDC urls on list view
@@ -145,24 +148,40 @@ describe('Rancher as an OIDC Provider', { tags: ['@globalSettings', '@adminUser'
     oidcClientsPage.waitForUrlPathWithoutContext();
     oidcClientsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     oidcClientsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
-    oidcClientsPage.list().resourceTable().goToDetailsPage(OIDC_CREATE_DATA.APP_NAME);
-    oidcClientDetailPage.waitForUrlPathWithoutContext();
-    oidcClientDetailPage.addNewSecretBtnClick();
 
-    // check data from network request
-    cy.wait('@addNewSecret', MEDIUM_TIMEOUT_OPT).then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-create']).to.equal('true');
+    // Retry-independence: only the secret added while the detail page is open renders its full value,
+    // and a failed attempt leaves the secret it added behind. So the new card's index is however many
+    // secrets already exist (1 on a clean run), not always 1.
+    cy.getRancherResource('v1', 'management.cattle.io.oidcclients', OIDC_CREATE_DATA.APP_NAME).then((resp: any) => {
+      const existingSecrets = Object.keys(resp.body?.status?.clientSecrets || {}).length;
+
+      oidcClientsPage.list().resourceTable().goToDetailsPage(OIDC_CREATE_DATA.APP_NAME);
+      oidcClientDetailPage.waitForUrlPathWithoutContext();
+      oidcClientDetailPage.addNewSecretBtnClick();
+
+      // check data from network request
+      cy.wait('@addNewSecret', MEDIUM_TIMEOUT_OPT).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-create']).to.equal('true');
+      });
+
+      // The PUT only requests the secret: a backend controller generates it and pushes it into the
+      // client's status over a websocket (same async behaviour as the client ID on create), so wait
+      // for it to actually land before asserting the new card.
+      cy.waitForRancherResource(
+        'v1',
+        'management.cattle.io.oidcclients',
+        OIDC_CREATE_DATA.APP_NAME,
+        (r: any) => Object.keys(r.body?.status?.clientSecrets || {}).length > existingSecrets
+      );
+
+      // Wait for the secret element to appear before trying to interact with it. Longer timeout: the
+      // websocket update reaching the page can lag the status change above.
+      oidcClientDetailPage.clientFullSecretCopy(existingSecrets).checkVisible(LONG_TIMEOUT_OPT, { scrollIntoView: false });
+
+      oidcClientDetailPage.clientFullSecretCopy(existingSecrets).exists();
+      oidcClientDetailPage.clientFullSecretCopy(existingSecrets).copyToClipboard();
     });
-
-    // Wait for the page to refresh and show the new secret with proper timeout
-    oidcClientDetailPage.waitForUrlPathWithoutContext();
-
-    // Wait for the secret element to appear before trying to interact with it
-    oidcClientDetailPage.clientFullSecretCopy(1).checkVisible();
-
-    oidcClientDetailPage.clientFullSecretCopy(1).exists();
-    oidcClientDetailPage.clientFullSecretCopy(1).copyToClipboard();
   }));
 
   qase(9764, it('should be able to regenerate a secret for an OIDC provider', () => {

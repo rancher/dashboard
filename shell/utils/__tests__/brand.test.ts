@@ -77,7 +77,7 @@ describe('fx: getBrandMeta', () => {
     },
     {
       desc:  'empty meta object',
-      brand: 'csp',
+      brand: 'rgs',
       meta:  {},
     },
   ])('returns correct meta for $desc', ({ brand, meta }) => {

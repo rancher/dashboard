@@ -131,7 +131,14 @@ export default {
           label: this.$store.getters['i18n/withFallback'](`persistentVolume.csi.drivers.${ driver.metadata.name.replaceAll('.', '-') }`, null, fallback)
         });
       });
-      const out = dropdownOptions.sort((a, b) => a.label.toLowerCase() > b.label.toLowerCase() ? 1 : -1);
+      // Sort non-deprecated provisioners above deprecated ones, then alphabetically within each group
+      const out = dropdownOptions.sort((a, b) => {
+        if (!!a.deprecated !== !!b.deprecated) {
+          return a.deprecated ? 1 : -1;
+        }
+
+        return a.label.toLowerCase() > b.label.toLowerCase() ? 1 : -1;
+      });
 
       return out;
     },

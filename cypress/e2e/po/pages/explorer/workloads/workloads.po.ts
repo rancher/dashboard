@@ -321,7 +321,7 @@ export class WorkloadsCreatePageBasePo extends BaseDetailPagePo {
    * @returns po for vertical tabs used to configure nth container
    */
   nthContainerTabs(containerIndex: number) {
-    this.horizontalTabs().clickTabWithSelector(`>ul>li:nth-child(${ containerIndex + 3 })`);
+    this.horizontalTabs().clickTabWithSelector(`> .tabs > .tab-list > li:nth-child(${ containerIndex + 3 })`);
 
     return new TabbedPo(`[data-testid="workload-container-tabs-${ containerIndex }"]`);
   }

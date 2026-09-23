@@ -13,7 +13,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { MANAGEMENT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
-import ProjectMembershipEditor, { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor';
+import ProjectMembershipEditor, { canViewProjectMembershipList } from '@shell/components/form/Members/ProjectMembershipEditor';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
@@ -55,8 +55,10 @@ export default {
   computed: {
     ...mapGetters(['currentCluster', 'isStandaloneHarvester']),
 
+    // Show the Members tab to anyone who can view the list; add/remove are separately gated on
+    // full manage rights, so a view-only user gets a read-only members view instead of no tab.
     canViewMembers() {
-      return canViewProjectMembershipEditor(this.$store);
+      return canViewProjectMembershipList(this.$store);
     },
 
     canEditProject() {

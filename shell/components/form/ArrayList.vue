@@ -65,6 +65,10 @@ export default {
       type:    String,
       default: '',
     },
+    addBtnAriaLabel: {
+      type:    String,
+      default: '',
+    },
     addAllowed: {
       type:    Boolean,
       default: true,
@@ -481,7 +485,7 @@ export default {
             :class="[addClass]"
             :disabled="loading || disableAdd"
             :data-testid="`${componentTestid}-button`"
-            :aria-label="_addLabel"
+            :aria-label="addBtnAriaLabel || _addLabel"
             role="button"
             @click="add()"
           >

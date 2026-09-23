@@ -8,6 +8,12 @@ const MAX_RETRIES = 10;
 const RETRY_WAIT = 2500; // 2.5 seconds
 const ACTIVE_STATUS_TIMEOUT = 200000; // 20 seconds
 
+// Backoff schedule (ms) for retrying a chart install/upgrade action that failed because a
+// follower Rancher replica's in-memory catalog index cache hadn't caught up yet (see #17543)
+const ACTION_RETRY_DELAYS = [1000, 2000, 4000, 8000];
+
+export const INSTALL_ACTION_MAX_RETRIES = ACTION_RETRY_DELAYS.length;
+
 type Action = 'install' | 'upgrade';
 export type HelmRepository = any;
 export type HelmChart = any;
@@ -161,6 +167,60 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
   const res = await repo.doAction(action, installRequest);
 
   return res;
+}
+
+/**
+ * Whether a chart install/upgrade action error is a transient failure caused by a Rancher
+ * replica whose in-memory catalog index cache hasn't caught up with a just-created/updated
+ * repo yet, and is therefore safe to retry (as opposed to e.g. a validation or permission error).
+ */
+export function isTransientChartActionError(error: any): boolean {
+  const status = error?._status ?? error?.status;
+
+  if (status !== 500) {
+    return false;
+  }
+
+  const message = error?.message || error?.data?.message || '';
+
+  // Matches the Rancher catalog controller's own wording, e.g. "failed to find chartName
+  // harvester version v1.8.1 Not found 404", to avoid retrying (and masking) other 500s
+  return /failed to find chart.*version.*not\s*found/i.test(message);
+}
+
+/**
+ * Install/upgrade a Helm Chart, retrying with exponential backoff when the failure looks like a
+ * transient catalog index cache miss (see isTransientChartActionError). Other errors are thrown
+ * immediately without retrying.
+ *
+ * @param onRetry Called before each retry with the attempt number and the max number of retries
+ */
+export async function installHelmChartWithRetry(
+  repo: any,
+  chart: any,
+  values: any = {},
+  namespace = 'default',
+  action: Action = 'install',
+  onRetry?: (attempt: number, maxAttempts: number) => void,
+) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await installHelmChart(repo, chart, values, namespace, action);
+    } catch (error) {
+      if (attempt >= ACTION_RETRY_DELAYS.length || !isTransientChartActionError(error)) {
+        throw error;
+      }
+
+      const delay = ACTION_RETRY_DELAYS[attempt];
+      const nextAttempt = attempt + 1;
+
+      console.log(`Installing harvester helm chart failed, attempt ${ nextAttempt }, wait ${ delay / 1000 } second(s) and retry... `); // eslint-disable-line no-console
+
+      onRetry?.(nextAttempt, ACTION_RETRY_DELAYS.length);
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
 }
 
 /**

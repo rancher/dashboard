@@ -82,6 +82,33 @@ const mockedGKEVersionsResponse = {
         '1.27.13-gke.1000000',
         '1.26.15-gke.1300000',
         '1.26.15-gke.1191000']
+    },
+    {
+      channel:        'REGULAR',
+      defaultVersion: '1.28.7-gke.1026000',
+      validVersions:  [
+        '1.29.3-gke.1282000',
+        '1.29.1-gke.1589020',
+        '1.29.1-gke.1589018',
+        '1.28.8-gke.1095000',
+        '1.28.7-gke.1026001',
+        '1.28.7-gke.1026000',
+        '1.27.12-gke.1115000',
+        '1.27.11-gke.1062003',
+        '1.27.11-gke.1062001',
+        '1.27.11-gke.1062000',
+        '1.27.8-gke.1067004',
+        '1.26.15-gke.1090000',
+        '1.26.14-gke.1044001'
+      ]
+    },
+    {
+      channel:        'STABLE',
+      defaultVersion: '1.26.8-gke.200',
+      validVersions:  [
+        '1.26.14-gke.1044000',
+        '1.26.8-gke.200'
+      ]
     }
   ],
   defaultClusterVersion: '1.28.7-gke.1026000',
@@ -94,32 +121,8 @@ const mockedGKEVersionsResponse = {
     'WINDOWS_LTSC_CONTAINERD',
     'WINDOWS_SAC',
     'WINDOWS_SAC_CONTAINERD'],
-  validMasterVersions: [
-    '1.29.4-gke.1447000',
-    '1.29.4-gke.1043000',
-    '1.29.3-gke.1282001',
-    '1.29.3-gke.1282000',
-    '1.29.1-gke.1589020',
-    '1.29.1-gke.1589018',
-    '1.28.9-gke.1209000',
-    '1.28.9-gke.1000000',
-    '1.28.8-gke.1095000',
-    '1.28.7-gke.1026001',
-    '1.28.7-gke.1026000',
-    '1.27.13-gke.1166000',
-    '1.27.13-gke.1000000',
-    '1.27.12-gke.1115000',
-    '1.27.11-gke.1062003',
-    '1.27.11-gke.1062001',
-    '1.27.11-gke.1062000',
-    '1.27.8-gke.1067004',
-    '1.26.15-gke.1300000',
-    '1.26.15-gke.1191000',
-    '1.26.15-gke.1090000',
-    '1.26.14-gke.1044001',
-    '1.26.14-gke.1044000',
-    '1.26.8-gke.200'],
-  validNodeVersions: ['1.29.4-gke.1447000',
+  validMasterVersions: [],
+  validNodeVersions:   ['1.29.4-gke.1447000',
     '1.29.4-gke.1043000',
     '1.29.3-gke.1282001',
     '1.29.3-gke.1282000',
@@ -407,8 +410,12 @@ const mockedGKESharedSubnetworksResponse = {
 
 const mockedGKEClustersResponse = {
   clusters: [
-    { name: 'test1', status: 'RUNNING' },
-    { name: 'test2', status: 'ERROR' },
+    {
+      name: 'test1', status: 'RUNNING', releaseChannel: { channel: 'REGULAR' }
+    },
+    {
+      name: 'test2', status: 'ERROR', releaseChannel: { channel: 'RAPID' }
+    },
     { name: 'test3', status: 'PROVISIONING' }
   ]
 };

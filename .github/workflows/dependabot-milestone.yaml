@@ -43,7 +43,7 @@ jobs:
       id-token: write
     steps:
       - name: Read secrets
-        uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
+        uses: rancher-eio/read-vault-secrets@dfae8acd43a9e170fca5f90168da22f814fe4e9a # v3
         with:
           secrets: |
             secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APPID;
@@ -76,7 +76,7 @@ jobs:
       id-token: write
     steps:
       - name: Read secrets
-        uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
+        uses: rancher-eio/read-vault-secrets@dfae8acd43a9e170fca5f90168da22f814fe4e9a # v3
         with:
           secrets: |
             secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APPID;

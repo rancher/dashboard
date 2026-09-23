@@ -143,7 +143,11 @@ export default {
         />
       </Tab>
       <template #tab-row-extras>
-        <div class="tab-row-footer">
+        <!-- This slot renders inside the tablist <ul>, so it has to be an <li> and must not claim a role -->
+        <li
+          class="tab-row-footer"
+          role="presentation"
+        >
           <div
             class="resources-dropdown"
             :class="{disabled: !prometheusServiceEndpointEnabled}"
@@ -203,7 +207,7 @@ export default {
             :href="value.status.dashboardValues.alertmanagerURL"
             target="_blank"
           > {{ t('monitoring.overview.linkedList.alertManager.label') }} <i class="icon icon-external-link" /></a>
-        </div>
+        </li>
       </template>
     </Tabbed>
     <div v-else>

@@ -121,10 +121,11 @@ export function init($extension, store) {
     MACHINE_POOLS,
     AGE,
     {
-      name:  'harvester',
-      label: ' ',
-      align: 'right',
-      width: 65,
+      name:                'harvester',
+      labelKey:            'harvesterManager.manage',
+      labelVisuallyHidden: true,
+      align:               'right',
+      width:               65,
     },
   ]);
   basicType([HCI.CLUSTER]);

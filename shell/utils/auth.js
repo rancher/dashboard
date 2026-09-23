@@ -97,6 +97,12 @@ export function returnTo(opt, vm) {
 }
 
 /**
+ * The local authconfig, which is always present and is managed separately from the
+ * external providers.
+ */
+export const LOCAL_AUTH_ID = 'local';
+
+/**
  * Determines common auth provider info as those that are available (non-local) and the location of the enabled provider
  */
 export const authProvidersInfo = async(store) => {
@@ -113,7 +119,7 @@ export const authProvidersInfo = async(store) => {
  * Parses auth provider's info to return if there's an auth provider enabled
  */
 export function parseAuthProvidersInfo(rows) {
-  const nonLocal = rows.filter((x) => x.name !== 'local');
+  const nonLocal = rows.filter((x) => x.name !== LOCAL_AUTH_ID);
   const enabled = nonLocal.filter((x) => x.enabled === true );
 
   const supportedNonLocal = nonLocal.filter((x) => x.id !== 'oidc');

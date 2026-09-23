@@ -494,7 +494,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // verify that setting stack preference to 'IPv6' clears the warning
-    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('#networking');
+    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-networking"]');
     createRKE2ClusterPage.networkTab().stackPreference().toggle();
     createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('IPv6');
     createRKE2ClusterPage.create();
@@ -611,7 +611,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // verify that setting stack pref to dual does not remove the stack preference warning
-    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('#networking');
+    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-networking"]');
     createRKE2ClusterPage.networkTab().stackPreference().toggle();
     createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('Dual');
     createRKE2ClusterPage.create();

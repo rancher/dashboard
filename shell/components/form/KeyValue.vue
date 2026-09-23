@@ -14,6 +14,8 @@ import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { RcButton } from '@components/RcButton';
+import { RcIconTooltip } from '@components/RcIconTooltip';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   name: 'KeyValue',
@@ -26,7 +28,9 @@ export default {
     TextAreaAutoGrow,
     FileSelector,
     LabeledTooltip,
-    RcButton
+    RcButton,
+    RcIconTooltip,
+    RcHeading,
   },
   props: {
     value: {
@@ -284,6 +288,9 @@ export default {
     },
     _addLabel() {
       return this.addLabel || this.t('generic.add');
+    },
+    _addBtnAriaLabel() {
+      return this.addLabel ? this.t('generic.ariaLabel.addBtnAriaLabel', { label: this.addLabel }) : this.t('generic.ariaLabel.addKeyValue');
     },
 
     isView() {
@@ -603,14 +610,14 @@ export default {
       class="clearfix"
     >
       <slot name="title">
-        <h3>
+        <RcHeading :size="3">
           {{ title }}
           <i
             v-if="titleProtip"
             v-clean-tooltip="titleProtip"
             class="icon icon-info"
           />
-        </h3>
+        </RcHeading>
       </slot>
     </div>
     <div
@@ -636,13 +643,10 @@ export default {
               aria-colindex="1"
             >
               {{ _keyLabel }}
-              <i
+              <rc-icon-tooltip
                 v-if="_protip && !isView && addAllowed"
-                v-clean-tooltip="{content: _protip, triggers: ['hover', 'touch', 'focus'] }"
-                v-stripped-aria-label="_protip"
-                class="icon icon-info"
-                tabindex="0"
-                role="tooltip"
+                :content="_protip"
+                :label="t('generic.hintFor', {label: _keyLabel})"
               />
             </div>
             <div
@@ -651,13 +655,10 @@ export default {
               aria-colindex="2"
             >
               {{ _valueLabel }}
-              <i
+              <rc-icon-tooltip
                 v-if="protipValue && !isView && addAllowed"
-                v-clean-tooltip="{content: protipValue, triggers: ['hover', 'touch', 'focus'] }"
-                v-stripped-aria-label="protipValue"
-                class="icon icon-info"
-                tabindex="0"
-                role="tooltip"
+                :content="protipValue"
+                :label="t('generic.hintFor', {label: _valueLabel})"
               />
             </div>
             <div
@@ -849,7 +850,8 @@ export default {
                   >
                   <FileSelector
                     v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
-                    class="btn btn-sm role-secondary file-selector"
+                    variant="secondary"
+                    size="small"
                     :label="t('generic.upload')"
                     :include-file-name="true"
                     :accept="readAccept"
@@ -893,7 +895,7 @@ export default {
                   type="button"
                   role="button"
                   :disabled="isView || disabled"
-                  :aria-label="t('generic.ariaLabel.remove', {index: i+1})"
+                  :aria-label="t('generic.ariaLabel.keyValueRemove', {index: i+1})"
                   class="btn role-link"
                   @click="remove(i)"
                 >
@@ -924,7 +926,7 @@ export default {
           :class="[addClass]"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
-          :aria-label="t('generic.ariaLabel.addKeyValue')"
+          :aria-label="_addBtnAriaLabel"
           @click="add()"
         >
           <i
@@ -940,7 +942,7 @@ export default {
           :class="[addClass]"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
-          :aria-label="t('generic.ariaLabel.addKeyValue')"
+          :aria-label="_addBtnAriaLabel"
           @click="add()"
         >
           <i
@@ -952,7 +954,7 @@ export default {
           v-if="readAllowed"
           :aria-label="t('generic.ariaLabel.readKeyValue')"
           :disabled="isView"
-          class="role-tertiary"
+          variant="tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
           :accept="readAccept"
@@ -967,10 +969,6 @@ export default {
 <style lang="scss">
 .key-value {
   width: 100%;
-  .file-selector.role-link {
-    text-transform: initial;
-    padding: 0;
-  }
   .kv-container {
     display: grid;
     align-items: center;

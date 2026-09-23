@@ -93,7 +93,7 @@ export default {
           return this.uiLogoLight;
         }
 
-        // csp, rgs, and federal map to SUSE, but have their own custom logos
+        // rgs and federal map to SUSE, but have their own custom logos
         if (this.brandBase !== this.brand) {
           try {
             return requireAsset(`~shell/assets/brand/${ this.brandBase }/${ this.isDark ? 'dark/' : '' }${ this.fileName }`);

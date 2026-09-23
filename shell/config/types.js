@@ -267,7 +267,6 @@ export const MANAGEMENT = {
 
 export const BRAND = {
   SUSE:    'suse',
-  CSP:     'csp',
   FEDERAL: 'federal',
   RGS:     'rgs',
 };
@@ -308,7 +307,8 @@ export const FLEET = {
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
-  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction'
+  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction',
+  POLICY:                   'fleet.cattle.io.policy'
 };
 
 export const GATEKEEPER = {

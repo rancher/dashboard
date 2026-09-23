@@ -1,5 +1,6 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { RcButton } from '@components/RcButton';
 import AsyncButton from '@shell/components/AsyncButton';
 import Login from '@shell/mixins/login';
 import loadPlugins from '@shell/plugins/plugin';
@@ -7,8 +8,10 @@ import loadPlugins from '@shell/plugins/plugin';
 export default {
   emits: ['error', 'showInputs'],
 
-  components: { LabeledInput, AsyncButton },
-  mixins:     [Login],
+  components: {
+    LabeledInput, RcButton, AsyncButton
+  },
+  mixins: [Login],
 
   props: {
     open: {
@@ -56,51 +59,46 @@ export default {
 <template>
   <form @submit.prevent>
     <template v-if="open">
-      <div class="span-6 offset-3">
-        <div class="mb-20">
-          <LabeledInput
-            v-model:value="username"
-            :label="t('login.username')"
-            autocomplete="username"
-          />
-        </div>
-        <div class="mb-20">
-          <LabeledInput
-            v-model:value="password"
-            type="password"
-            :label="t('login.password')"
-            autocomplete="current-password"
-          />
-        </div>
+      <div class="mb-20">
+        <LabeledInput
+          v-model:value="username"
+          :label="t('login.username')"
+          autocomplete="username"
+        />
       </div>
-      <div class="row">
-        <div class="col span-12 text-center">
-          <AsyncButton
-            ref="btn"
-            type="submit"
-            :action-label="t('login.loginWithProvider', {provider: displayName})"
-            :waiting-label="t('login.loggingIn')"
-            :success-label="t('login.loggedIn')"
-            :error-label="t('asyncButton.default.error')"
-            class="btn bg-primary"
-            style="font-size: 18px;"
-            @click="login"
-          />
-        </div>
+      <div class="mb-20">
+        <LabeledInput
+          v-model:value="password"
+          type="password"
+          :label="t('login.password')"
+          autocomplete="current-password"
+        />
       </div>
+      <AsyncButton
+        ref="btn"
+        type="submit"
+        data-testid="login-provider-submit"
+        :action-label="t('login.loginWithProvider', {provider: displayName})"
+        :waiting-label="t('login.loggingIn')"
+        :success-label="t('login.loggedIn')"
+        :error-label="t('asyncButton.default.error')"
+        @click="login"
+      />
     </template>
     <div
       v-else
       class="text-center"
     >
-      <button
-        style="font-size: 18px;"
+      <RcButton
+        ref="btn"
         type="button"
-        class="btn bg-primary"
+        variant="primary"
+        size="large"
+        data-testid="login-provider-submit"
         @click="$emit('showInputs')"
       >
         {{ t('login.loginWithProvider', {provider: displayName}) }}
-      </button>
+      </RcButton>
     </div>
   </form>
 </template>

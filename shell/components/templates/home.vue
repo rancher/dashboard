@@ -6,7 +6,6 @@ import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
-import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapState, mapGetters } from 'vuex';
@@ -22,7 +21,6 @@ export default {
     GrowlManager,
     ModalManager,
     SlideInPanelManager,
-    AwsComplianceBanner,
     Inactivity,
     PromptModal,
     RcButton
@@ -73,7 +71,6 @@ export default {
     </rc-button>
     <FixedBanner :header="true" />
     <Inactivity />
-    <AwsComplianceBanner />
     <PromptModal />
     <ModalManager />
     <div

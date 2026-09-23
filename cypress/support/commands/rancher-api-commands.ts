@@ -9,6 +9,7 @@ import { base64Encode } from '@/cypress/support/utils/shell';
 // It includes the `login` command to store the `token` to use
 
 let token: any;
+let rancherVersion: Cypress.RancherVersion | undefined;
 
 /**
  * Login local authentication, including first login and bootstrap if not cached
@@ -35,10 +36,16 @@ Cypress.Commands.add('login', (
     // LoginPagePo.ensureFormReady - [CREATE ISSUE TO INVESTIGATE]). No-op on the happy path.
     loginPage.ensureFormReady();
 
-    loginPage.checkIsCurrentPage(!skipNavigation);
+    // Match on the path, not the whole URL: the login page can carry query params such as
+    // timed-out or logged-out, and an exact match would reject those.
+    loginPage.checkIsCurrentPage(false);
 
     if (!skipNavigation) {
-      loginPage.isWelcomeMessage();
+      cy.getRancherVersion().then((version) => {
+        const expectedMessage = version.RancherPrime === 'true' ? 'Login' : 'Welcome to Rancher';
+
+        loginPage.isWelcomeMessage('Rancher', expectedMessage);
+      });
     }
 
     if (!!acceptConfirmation) {
@@ -48,8 +55,8 @@ Cypress.Commands.add('login', (
 
     loginPage.switchToLocal();
 
-    loginPage.canSubmit()
-      .should('eq', true);
+    // Wait for the button to become enabled, so a form that is a moment from ready isn't failed.
+    loginPage.submitButton().expectToBeEnabled();
 
     loginPage.username()
       .set(username);
@@ -57,8 +64,7 @@ Cypress.Commands.add('login', (
     loginPage.password()
       .set(password);
 
-    loginPage.canSubmit()
-      .should('eq', true);
+    loginPage.submitButton().expectToBeEnabled();
     loginPage.submit();
 
     cy.wait(`@${ loginReqAlias }`).its('request.body')
@@ -492,20 +498,26 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
 
 /**
  * Get Rancher version info from /rancherversion (includes RancherPrime for product type).
+ * @param forceRefresh Bypass the cached response, for example after mocking /rancherversion.
  */
-Cypress.Commands.add('getRancherVersion', () => {
+Cypress.Commands.add('getRancherVersion', (forceRefresh = false): Cypress.Chainable<Cypress.RancherVersion> => {
+  if (rancherVersion && !forceRefresh) {
+    return cy.wrap<Cypress.RancherVersion>(rancherVersion);
+  }
+
   return cy.request({
-    method:  'GET',
-    url:     `${ Cypress.env('api') }/rancherversion`,
-    headers: {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
+    method:           'GET',
+    url:              `${ Cypress.env('api') }/rancherversion`,
+    headers:          { Accept: 'application/json' },
     failOnStatusCode: false
-  }).then((resp) => {
+  }).then<Cypress.RancherVersion>((resp) => {
     expect(resp.status).to.eq(200);
 
-    return JSON.parse(resp.body);
+    const version: Cypress.RancherVersion = JSON.parse(resp.body);
+
+    rancherVersion = version;
+
+    return version;
   });
 });
 

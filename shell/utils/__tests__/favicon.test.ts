@@ -85,11 +85,6 @@ describe('shell/utils/favicon', () => {
           expectedPath: '~shell/assets/brand/suse/favicon.png',
         },
         {
-          desc:         'csp brand',
-          brand:        'csp',
-          expectedPath: '~shell/assets/brand/csp/favicon.png',
-        },
-        {
           desc:         'harvester brand',
           brand:        'harvester',
           expectedPath: '~shell/assets/brand/harvester/favicon.png',

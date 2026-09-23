@@ -66,11 +66,12 @@ export interface WorkloadDashboardByNamespaceCard {
 export type WorkloadDashboardNamespaceNavigateFn = (type: string, namespace: string, stateNames?: string[]) => void;
 export type WorkloadDashboardFilterByNamespaceFn = (namespace: string) => void;
 
-export const WORKLOAD_RESOURCE_TYPES: string[] = [
+export const WORKLOAD_DASHBOARD_RESOURCE_TYPES: string[] = [
   WORKLOAD_TYPES.CRON_JOB,
   WORKLOAD_TYPES.DAEMON_SET,
   WORKLOAD_TYPES.DEPLOYMENT,
   WORKLOAD_TYPES.JOB,
+  WORKLOAD_TYPES.REPLICA_SET,
   WORKLOAD_TYPES.STATEFUL_SET,
   POD,
 ];

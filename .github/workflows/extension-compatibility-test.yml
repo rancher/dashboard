@@ -12,7 +12,7 @@ on:
         description: "Test extension git repo URL"
         required: false
         type: string
-        default: "https://github.com/aalves08/elemental-ui.git"
+        default: "https://github.com/rancher/elemental-ui.git"
       extension_branch:
         description: "Test extension git branch or tag"
         required: false
@@ -72,8 +72,10 @@ jobs:
             skip_cluster_create_rke2: "true"
             # Legacy RESOURCE_DETAIL tab still works on 2.10
             skip_resource_detail_legacy: "false"
-          - rancher_version: "v2.11-head"
-            rancher_registry: "stgregistry.suse.com"
+          # 2.11 is EOL: pinned to specific commit with known Docker Hub image.
+          # The stgregistry.suse.com repo doesn't have commit-hash tagged images for 2.11.
+          - rancher_version: "v2.11-df80b1315c63a6b1b4aa7f9a4ea22dff4b1e71e2-head"
+            rancher_registry: ""
             kube_version: "v1.32.13+k3s1"
             helm_repo: "https://charts.optimus.rancher.io/server-charts/release-2.11"
             version_label: "2.11"
@@ -235,7 +237,7 @@ jobs:
           VERDACCIO_NPM_REGISTRY="http://localhost:4873"
           yarn config set registry ${DEFAULT_NPM_REGISTRY}
           git clone --depth 1 --branch ${{ github.event.inputs.extension_branch || 'compatibility-tests-version' }} \
-            ${{ github.event.inputs.extension_repo || 'https://github.com/aalves08/elemental-ui.git' }} /tmp/elemental-ui
+            ${{ github.event.inputs.extension_repo || 'https://github.com/rancher/elemental-ui.git' }} /tmp/elemental-ui
           cd /tmp/elemental-ui
           # Switch to the Node version required by the extension (from its .nvmrc)
           export NVM_DIR="$HOME/.nvm"

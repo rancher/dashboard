@@ -3,7 +3,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { convertSelectorObj, matching } from '@shell/utils/selector';
+import { convertSelectorObj, matches, matching } from '@shell/utils/selector';
 
 export default class FleetBundle extends SteveModel {
   get lastUpdateTime() {
@@ -31,8 +31,8 @@ export default class FleetBundle extends SteveModel {
       FLEET.WORKSPACE,
       this.metadata.namespace
     );
-    const clusters = workspace?.clusters || [];
-    const groups = workspace?.clusterGroups || [];
+    const clusters = [...(workspace?.clusters || [])];
+    const groups = [...(workspace?.clusterGroups || [])];
     const out = [];
 
     if (workspace.id === 'fleet-local') {
@@ -43,6 +43,44 @@ export default class FleetBundle extends SteveModel {
       }
 
       return [];
+    }
+
+    const allMappings = this.$getters['all'](FLEET.BUNDLE_NAMESPACE_MAPPING) || [];
+    const bundleNs = this.metadata.namespace;
+
+    for (const mapping of allMappings) {
+      if (mapping.metadata?.namespace !== bundleNs) {
+        continue;
+      }
+
+      if (mapping.bundleSelector) {
+        const bundleExpressions = convertSelectorObj(mapping.bundleSelector);
+
+        if (!matches(this, bundleExpressions)) {
+          continue;
+        }
+      }
+
+      if (mapping.namespaceSelector) {
+        const allWorkspaces = this.$getters['all'](FLEET.WORKSPACE) || [];
+        const nsExpressions = convertSelectorObj(mapping.namespaceSelector);
+
+        for (const ws of allWorkspaces) {
+          if (ws.metadata?.name === bundleNs) {
+            continue;
+          }
+
+          const nsLabels = {
+            ...(ws.metadata?.labels || {}),
+            'kubernetes.io/metadata.name': ws.metadata?.name,
+          };
+
+          if (matches({ metadata: { labels: nsLabels } }, nsExpressions)) {
+            addObjects(clusters, ws.clusters || []);
+            addObjects(groups, ws.clusterGroups || []);
+          }
+        }
+      }
     }
 
     for (const tgt of this.spec.targets) {

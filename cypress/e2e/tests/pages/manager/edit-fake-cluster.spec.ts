@@ -24,7 +24,7 @@ describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
 
       HomePagePo.goTo();
 
-      cy.wait('@mgmtClustersSideNav');
+      cy.wait('@mgmtClustersSideNavContext');
       cy.wait('@mgmtClustersLists');
       cy.wait('@provClusters');
 
@@ -40,7 +40,7 @@ describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
     });
 
     it('Clearing a registry auth item on the UI (Cluster Edit Config) should retain its authentication ID', () => {
-      editCluster.clickTab('#registry');
+      editCluster.clickTab('[data-testid="btn-registry"]');
       editCluster.registryAuthenticationItems().closeArrayListItem(0);
 
       // registries is populated in fake-cluster -> "generateProvClusterObj" -> "spec.rkeConfig.registries"

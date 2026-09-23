@@ -1,3 +1,4 @@
+import { reactive, isReactive } from 'vue';
 import { DEVELOPER_LOAD_NAME_SUFFIX, createExtensionManager } from '@shell/core/extension-manager-impl';
 
 // Mock external dependencies
@@ -132,6 +133,30 @@ describe('extension Manager', () => {
       const retrieved = manager.getDynamic('component', 'my-component');
 
       expect(retrieved).toBe(mockFn);
+    });
+
+    it('marks retrieved dynamic components as raw so they are never made reactive', () => {
+      const component = { name: 'MyComponent', render: () => null };
+
+      manager.register('component', 'my-component', component);
+
+      const retrieved = manager.getDynamic('component', 'my-component');
+
+      // Same definition is returned, but flagged raw so wrapping it in reactive
+      // state leaves it un-proxied (avoids the Vue reactive-component warning).
+      expect(retrieved).toBe(component);
+      expect(isReactive(reactive({ retrieved }).retrieved)).toBe(false);
+    });
+
+    it('does not markRaw non-component dynamic types', () => {
+      const model = { some: 'value' };
+
+      manager.register('models', 'my-model', model);
+
+      const retrieved = manager.getDynamic('models', 'my-model');
+
+      expect(retrieved).toBe(model);
+      expect(isReactive(reactive({ retrieved }).retrieved)).toBe(true);
     });
 
     it('unregisters a dynamic component', () => {

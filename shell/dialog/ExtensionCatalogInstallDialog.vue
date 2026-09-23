@@ -14,6 +14,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading.vue';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { RcHeading } from '@components/RcHeading';
 
 const DEFAULT_DEPLOYMENT = {
   type:     WORKLOAD_TYPES.DEPLOYMENT,
@@ -100,7 +101,7 @@ export default {
   emits: ['close'],
 
   components: {
-    AsyncButton, Banner, LabeledInput, Loading, LabeledSelect
+    AsyncButton, Banner, LabeledInput, Loading, LabeledSelect, RcHeading
   },
 
   mixins: [ResourceManager],
@@ -461,9 +462,12 @@ export default {
     class="plugin-install-dialog"
   >
     <div>
-      <h4>
+      <RcHeading
+        :size="4"
+        data-modal-title
+      >
         {{ t('plugins.manageCatalog.imageLoad.load') }}
-      </h4>
+      </RcHeading>
       <p>
         {{ t('plugins.manageCatalog.imageLoad.prompt') }}
       </p>
@@ -532,7 +536,7 @@ export default {
   .plugin-install-dialog {
     padding: 10px;
 
-    h4 {
+    [data-modal-title] {
       font-weight: bold;
     }
 

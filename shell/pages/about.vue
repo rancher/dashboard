@@ -11,10 +11,11 @@ import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { getVersionInfo } from '@shell/utils/version';
 import { RcButton } from '@components/RcButton';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   components: {
-    BackLink, ExtensionPanel, Loading, TabTitle, RcButton
+    BackLink, ExtensionPanel, Loading, TabTitle, RcButton, RcHeading
   },
   mixins: [BackRoute],
   async fetch() {
@@ -101,7 +102,9 @@ export default {
       :type="extensionType"
       :location="extensionLocation"
     />
-    <h3>{{ t('about.versions.title') }}</h3>
+    <RcHeading :size="3">
+      {{ t('about.versions.title') }}
+    </RcHeading>
     <table>
       <thead>
         <tr>
@@ -192,9 +195,12 @@ export default {
       </a>
     </p>
     <template v-if="downloadCli.length">
-      <h3 class="pt-40">
+      <RcHeading
+        :size="3"
+        class="pt-40"
+      >
         {{ t('about.downloadCLI.title') }}
-      </h3>
+      </RcHeading>
       <table>
         <tr
           v-for="(d, i) in downloadCli"
@@ -211,7 +217,7 @@ export default {
               v-if="d.cliLink"
               :href="d.cliLink"
               role="link"
-              :aria-label="t('about.versions.downloadCli', { os: t(d.label) })"
+              :aria-label="t('about.versions.downloadCli', { os: t(d.label), file: d.cliFile })"
             >{{ d.cliFile }}</a>
           </td>
         </tr>

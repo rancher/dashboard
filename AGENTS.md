@@ -126,7 +126,7 @@ Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://ex
 - ✅ **Always:**
   - Act as a QA Software Developer
   - Use `toStrictEqual` instead of `toEqual`
-  - Use `toHaveBeenCalledWith` instead of `toHaveBeenCalled`
+  - Use `toHaveBeenCalledWith` instead of `toHaveBeenCalled`, even for a call with no arguments (assert `toHaveBeenCalledWith()` explicitly rather than falling back to `toHaveBeenCalled()`)
 - 🚫 **Never:**
   - Overwrite existing test files
 

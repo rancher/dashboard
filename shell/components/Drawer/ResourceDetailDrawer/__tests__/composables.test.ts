@@ -18,13 +18,46 @@ describe('composables: ResourceDetailDrawer', () => {
   const yaml = 'YAML';
 
   describe('useDefaultYamlTabProps', () => {
-    it('should return the appropriate values based on input', async() => {
-      const getYamlSpy = jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.resolve(yaml));
-      const props = await useDefaultYamlTabProps(resource);
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
 
-      expect(getYamlSpy).toHaveBeenCalledWith(resource);
-      expect(props.yaml).toStrictEqual(yaml);
-      expect(props.resource).toStrictEqual(resource);
+    it('should return the appropriate values based on input when the resource instance allows yaml', async() => {
+      const getYamlSpy = jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.resolve(yaml));
+      const props = await useDefaultYamlTabProps({ ...resource, canYaml: true });
+
+      expect(getYamlSpy).toHaveBeenCalledWith({ ...resource, canYaml: true });
+      expect(props?.yaml).toStrictEqual(yaml);
+      expect(props?.resource).toStrictEqual({ ...resource, canYaml: true });
+    });
+
+    it('should return undefined without fetching yaml when the resource instance has canYaml: false', async() => {
+      const getYamlSpy = jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.resolve(yaml));
+      const props = await useDefaultYamlTabProps({ ...resource, canYaml: false });
+
+      expect(getYamlSpy).not.toHaveBeenCalled();
+      expect(props).toBeUndefined();
+    });
+
+    it('should return undefined instead of throwing when the resource canYaml getter throws', async() => {
+      const throwingResource = {};
+
+      Object.defineProperty(throwingResource, 'canYaml', {
+        get() {
+          throw new Error('boom, badly-behaved plugin model class');
+        }
+      });
+
+      const props = await useDefaultYamlTabProps(throwingResource);
+
+      expect(props).toBeUndefined();
+    });
+
+    it('should return undefined instead of throwing when getYaml itself rejects', async() => {
+      jest.spyOn(helpers, 'getYaml').mockImplementation(() => Promise.reject(new Error('boom')));
+      const props = await useDefaultYamlTabProps({ ...resource, canYaml: true });
+
+      expect(props).toBeUndefined();
     });
   });
 

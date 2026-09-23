@@ -29,7 +29,7 @@ function modeFor(route) {
   }
 }
 
-async function getYaml(store, model) {
+async function getYaml(store, model, editing = false) {
   let yaml;
   const opt = { headers: { accept: 'application/yaml' } };
 
@@ -37,7 +37,7 @@ async function getYaml(store, model) {
     yaml = (await model.followLink('view', opt)).data;
   }
 
-  return model.cleanForDownload(yaml);
+  return model.cleanForDownload(yaml, { editing });
 }
 
 export default {
@@ -131,7 +131,7 @@ export default {
     const options = store.getters[`type-map/optionsFor`](resourceType);
 
     this.showMasthead = [_CREATE, _EDIT].includes(mode) ? options.resourceEditMasthead : true;
-    const canViewYaml = options.canYaml;
+    let canViewYaml = options.canYaml;
 
     if ( options.resource ) {
       resourceType = options.resource;
@@ -205,6 +205,23 @@ export default {
         notFound = fqid;
       }
 
+      // options.canYaml is a static per-type default and can't know whether the API family
+      // backing this resource can actually produce YAML (e.g. Norman resources never expose
+      // a `view` link, unlike Steve). Fall back to the live resource's own instance-level
+      // canYaml (hasLink('view')) so a type that forgets to opt out via configureType still
+      // doesn't offer a YAML toggle that can only ever render blank. Only narrows an already
+      // allowed default to false - never overrides an explicit opt-out or offers something
+      // new. Not applied during create/import: a brand new, unsaved resource never has any
+      // links yet regardless of API family, so this check would incorrectly disable YAML
+      // for every type while creating.
+      try {
+        if ( canViewYaml && liveModel?.canYaml === false ) {
+          canViewYaml = false;
+        }
+      } catch (e) {
+        canViewYaml = false;
+      }
+
       try {
         if (realMode === _VIEW) {
           model = liveModel;
@@ -214,7 +231,7 @@ export default {
         initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
 
         if ( as === _YAML ) {
-          yaml = await getYaml(this.$store, liveModel);
+          yaml = await getYaml(this.$store, liveModel, realMode !== _VIEW);
         }
       } catch (e) {
         console.warn(`Could not set 'model' for '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
@@ -222,7 +239,7 @@ export default {
       }
       if ( as === _YAML ) {
         try {
-          yaml = await getYaml(this.$store, liveModel);
+          yaml = await getYaml(this.$store, liveModel, realMode !== _VIEW);
         } catch (e) {
           this.errors.push(e);
         }
@@ -334,7 +351,7 @@ export default {
       }), {});
     },
     isFullPageOverride() {
-      return this.isView && this.value?.fullDetailPageOverride && !this.isYaml;
+      return this.isView && this.isDetail && this.value?.fullDetailPageOverride;
     }
   },
 

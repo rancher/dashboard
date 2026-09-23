@@ -6,7 +6,7 @@ describe('component: ClusterLink', () => {
   const CONDITION_HAS_ERROR_ICON_SELECTOR = '[data-testid="conditions-has-error-icon"]';
 
   describe('unavailable machines alert icon', () => {
-    const testCases = [
+    const testCases: [number | undefined, boolean][] = [
       [undefined, false],
       [0, false],
       [1, true],

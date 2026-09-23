@@ -2,7 +2,7 @@ import { BundleDeployment, BundleDeploymentStatus } from '@shell/types/resources
 import { Target } from '@shell/types/fleet';
 import FleetUtils from '@shell/utils/fleet';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-class';
 
 describe('fx: util.getTargetMode', () => {
   const util = FleetUtils.Application;
@@ -494,5 +494,124 @@ describe('fleet: getDashboardState', () => {
     const state = FleetUtils.getDashboardState({ stateColor: '' }) as { id: string };
 
     expect(state.id).toBe('warning');
+  });
+});
+
+describe('fleet: bundleDeploymentState (conditionIsTrue with no conditions)', () => {
+  it('returns errapplied when conditions is undefined', () => {
+    const bd: BundleDeployment = {
+      spec:   { deploymentId: 'dep-1', stagedDeploymentId: 'dep-1' },
+      status: {
+        appliedDeploymentId: 'dep-0',
+        ready:               true,
+        nonModified:         true,
+        conditions:          undefined as any,
+      },
+    };
+
+    // conditionIsTrue returns false when conditions is undefined → errapplied path
+    expect(FleetUtils.bundleDeploymentState(bd)).toBe(STATES_ENUM.ERR_APPLIED);
+  });
+});
+
+describe('fleet: detailLocation', () => {
+  it('returns undefined when state is missing', () => {
+    const r = {
+      kind: 'Pod', apiVersion: 'v1', namespace: 'ns', name: 'pod-1', state: STATES_ENUM.MISSING
+    };
+
+    expect(FleetUtils.detailLocation(r, 'local')).toBeUndefined();
+  });
+
+  it('returns namespaced route location when resource has namespace and state is not missing', () => {
+    const r = {
+      kind: 'Pod', apiVersion: 'v1', namespace: 'default', name: 'pod-1', state: STATES_ENUM.READY
+    };
+    const location = FleetUtils.detailLocation(r, 'local');
+
+    expect(location).toBeDefined();
+    expect(location.name).toBe('c-cluster-product-resource-namespace-id');
+    expect(location.params.cluster).toBe('local');
+    expect(location.params.namespace).toBe('default');
+    expect(location.params.id).toBe('pod-1');
+  });
+
+  it('returns non-namespaced route location when resource has no namespace', () => {
+    const r = {
+      kind: 'Node', apiVersion: 'v1', namespace: '', name: 'node-1', state: STATES_ENUM.READY
+    };
+    const location = FleetUtils.detailLocation(r, 'local');
+
+    expect(location).toBeDefined();
+    expect(location.name).toBe('c-cluster-product-resource-id');
+    expect(location.params.namespace).toBeUndefined();
+    expect(location.params.id).toBe('node-1');
+  });
+});
+
+describe('fleet: getResourcesDefaultState', () => {
+  const labelGetter = (key: string, _args: any, fallback: any) => fallback;
+
+  it('returns an object keyed by the expected resource states', () => {
+    const result = FleetUtils.getResourcesDefaultState(labelGetter, 'fleet.resources');
+    const expectedStates = [
+      STATES_ENUM.READY,
+      STATES_ENUM.NOT_READY,
+      STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.MODIFIED,
+      STATES_ENUM.MISSING,
+      STATES_ENUM.ORPHANED,
+      STATES_ENUM.UNKNOWN,
+    ];
+
+    expect(Object.keys(result)).toStrictEqual(expectedStates);
+  });
+
+  it('initializes each state entry with count 0 and correct color', () => {
+    const result = FleetUtils.getResourcesDefaultState(labelGetter, 'fleet.resources');
+
+    expect(result[STATES_ENUM.READY].count).toBe(0);
+    expect(result[STATES_ENUM.READY].color).toBe(STATES[STATES_ENUM.READY].color);
+    expect(result[STATES_ENUM.READY].status).toBe(STATES_ENUM.READY);
+  });
+
+  it('uses the labelGetter fallback as the label', () => {
+    const result = FleetUtils.getResourcesDefaultState(labelGetter, 'fleet.resources');
+
+    expect(result[STATES_ENUM.READY].label).toBe(STATES[STATES_ENUM.READY].label);
+  });
+});
+
+describe('fleet: getBundlesDefaultState', () => {
+  const labelGetter = (key: string, _args: any, fallback: any) => fallback;
+
+  it('returns an object keyed by the expected bundle states', () => {
+    const result = FleetUtils.getBundlesDefaultState(labelGetter, 'fleet.bundles');
+    const expectedStates = [
+      STATES_ENUM.READY,
+      STATES_ENUM.INFO,
+      STATES_ENUM.WARNING,
+      STATES_ENUM.NOT_READY,
+      STATES_ENUM.ERROR,
+      STATES_ENUM.ERR_APPLIED,
+      STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.UNKNOWN,
+    ];
+
+    expect(Object.keys(result)).toStrictEqual(expectedStates);
+  });
+
+  it('initializes each state entry with count 0 and correct color', () => {
+    const result = FleetUtils.getBundlesDefaultState(labelGetter, 'fleet.bundles');
+
+    expect(result[STATES_ENUM.NOT_READY].count).toBe(0);
+    expect(result[STATES_ENUM.NOT_READY].color).toBe(STATES[STATES_ENUM.NOT_READY].color);
+    expect(result[STATES_ENUM.NOT_READY].status).toBe(STATES_ENUM.NOT_READY);
+  });
+
+  it('uses the labelGetter fallback as the label', () => {
+    const result = FleetUtils.getBundlesDefaultState(labelGetter, 'fleet.bundles');
+
+    expect(result[STATES_ENUM.ERROR].label).toBe(STATES[STATES_ENUM.ERROR].label);
   });
 });

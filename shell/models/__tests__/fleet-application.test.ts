@@ -21,7 +21,10 @@ describe('class FleetApplication', () => {
         clusterGroups: groups,
       };
 
-      jest.spyOn(FleetApplication.prototype, '$getters', 'get').mockReturnValue({ byId: () => workspace });
+      jest.spyOn(FleetApplication.prototype, '$getters', 'get').mockReturnValue({
+        byId: () => workspace,
+        all:  () => [],
+      });
 
       return new FleetApplication({
         metadata: { namespace: workspaceId },

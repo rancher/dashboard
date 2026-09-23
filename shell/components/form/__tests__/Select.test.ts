@@ -5,6 +5,17 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 const SelectComponent = Select as ReturnType<typeof defineComponent>;
 
+/**
+ * `Select.vue` is a plain-JS SFC, so `vue-tsc` cannot infer its `methods` block and
+ * `focusSearch` is missing from the public instance type. This returns the very same
+ * object as `wrapper.vm`, so spying through it still patches the component instance.
+ */
+interface SelectInstance {
+  focusSearch(): void;
+}
+
+const asSelect = (wrapper: { vm: unknown }): SelectInstance => wrapper.vm as SelectInstance;
+
 describe('select.vue', () => {
   let consoleWarn: any;
 
@@ -66,6 +77,19 @@ describe('select.vue', () => {
     expect(vSelectInput.attributes('aria-label')).toBe('-');
   });
 
+  it('a11y: should not set role listitem on the v-select root', () => {
+    const wrapper = mount(SelectComponent, {
+      props: {
+        value:   'foo',
+        options: [{ label: 'Foo', value: 'foo' }],
+      }
+    });
+
+    const vSelect = wrapper.find('.v-select');
+
+    expect(vSelect.attributes('role')).toBeUndefined();
+  });
+
   it('pressing space key while focused on search should not prevent event propagation', async() => {
     const value = 'value-1';
     const options = [
@@ -84,7 +108,7 @@ describe('select.vue', () => {
     });
 
     const mockEvent = { preventDefault: jest.fn() };
-    const spyFocus = jest.spyOn(wrapper.vm, 'focusSearch');
+    const spyFocus = jest.spyOn(asSelect(wrapper), 'focusSearch');
     const spyPreventDefault = jest.spyOn(mockEvent, 'preventDefault');
 
     const input = wrapper.find('.unlabeled-select');

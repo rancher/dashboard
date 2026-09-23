@@ -21,18 +21,18 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@rancher/icons": "2.0.63",
+    "@rancher/icons": "2.0.64",
     "lodash.debounce": "4.0.8"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@typescript-eslint/eslint-plugin": "8.62.0",
-    "@typescript-eslint/parser": "8.62.0",
+    "@typescript-eslint/parser": "8.70.0",
     "@vue/cli-plugin-babel": "5.0.9",
     "@vue/cli-plugin-typescript": "5.0.9",
     "@vue/cli-service": "5.0.9",
     "@vue/test-utils": "2.4.6",
-    "core-js": "3.48.0",
+    "core-js": "3.50.0",
     "cron-validator": "1.4.0",
     "cronstrue": "3.9.0",
     "eslint": "10.8.1",
@@ -55,7 +55,7 @@
     "vue-eslint-parser": "10.4.1"
   },
   "peerDependencies": {
-    "core-js": "3.48.0",
+    "core-js": "3.50.0",
     "vue": "^3.2.13"
   }
 }

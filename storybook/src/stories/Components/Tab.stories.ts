@@ -193,11 +193,11 @@ export const Slots: Story = {
           <div name="Pod">Pod tab content.</div>
         </Tab>
         <template #tab-row-extras>
-          <li class="tablist-controls">
+          <div class="tablist-controls">
             <button type="button" class="btn-sm mt-5" >
               Create
             </button>
-          </li>
+          </div>
         </template>
       </Tabbed>
     `,

@@ -4,7 +4,6 @@ const { findAll, findMatching } = _actions;
 
 describe('dashboard-store: actions', () => {
   describe('findAll', () => {
-    // Note - there are TS errors alll over this describe and should not have merged with them in.
     const setupContext = () => {
       const commit = jest.fn();
       const dispatch = jest.fn((...args) => {
@@ -19,7 +18,7 @@ describe('dashboard-store: actions', () => {
         typeRegistered:   jest.fn(() => false),
         haveAll:          jest.fn(() => false),
         haveAllNamespace: jest.fn(() => false),
-        all:              jest.fn(() => 'getters.all'),
+        all:              jest.fn((type: string) => 'getters.all'),
         urlFor:           jest.fn(() => 'getters.urlFor'), // we're not testing the urlFor getter so we don't need to do anything with opt here
       };
       const rootGetters = {
@@ -37,7 +36,19 @@ describe('dashboard-store: actions', () => {
       };
     };
 
-    const standardAssertions = {
+    interface FindAllResult extends Pick<ReturnType<typeof setupContext>, 'getters' | 'dispatch' | 'commit'> {
+      findAllPromise: Promise<unknown>;
+      findAllReturnValue: unknown;
+    }
+
+    interface FindAllAssertion {
+      assertionLabel: string;
+      valueGetter: (result: FindAllResult) => unknown;
+      valueExpected: unknown;
+      assertionMethod?: 'toBe' | 'toMatchObject' | 'toHaveLength';
+    }
+
+    const standardAssertions: Record<string, FindAllAssertion> = {
       returnsPromise: {
         assertionLabel: 'returns a promise',
         valueGetter:    ({ findAllPromise }) => typeof findAllPromise.then,
@@ -131,7 +142,7 @@ describe('dashboard-store: actions', () => {
         {
           dispatch, commit, getters, rootGetters, state
         },
-        { type: 'type' }
+        { type: 'type', opt: {} }
       );
 
       const assertionChain = [
@@ -154,10 +165,11 @@ describe('dashboard-store: actions', () => {
         '$assertionLabel',
         async({ valueGetter, valueExpected, assertionMethod = 'toBe' }) => {
           const findAllReturnValue = await findAllPromise;
-
-          expect(valueGetter({
+          const value = valueGetter({
             findAllPromise, findAllReturnValue, getters, dispatch, commit
-          }))[assertionMethod](valueExpected);
+          });
+
+          expect(value)[assertionMethod as 'toBe'](valueExpected);
         }
       );
     });
