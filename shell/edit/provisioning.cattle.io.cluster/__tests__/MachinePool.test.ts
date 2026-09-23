@@ -1,7 +1,10 @@
 import { shallowMount } from '@vue/test-utils';
 import MachinePool from '@shell/edit/provisioning.cattle.io.cluster/tabs/MachinePool.vue';
+import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const TRANSLATION_KEY = '%cluster.machinePool.name.unique%';
+const PAUSED_MIN = CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_PAUSED_MIN_SIZE;
+const PAUSED_MAX = CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_PAUSED_MAX_SIZE;
 
 function createPool(name: string, { remove = false } = {}) {
   return {
@@ -99,6 +102,71 @@ describe('component: MachinePool', () => {
       const wrapper = mountMachinePool(pool1, [pool1, pool2]);
 
       expect(wrapper.vm.fvExtraRules.uniquePoolName(nameA)).toStrictEqual(TRANSLATION_KEY);
+    });
+  });
+
+  describe('isAutoscalerEnabled', () => {
+    const mountWithPool = (pool: any) => {
+      const value = { ...createPool('pool1'), pool };
+
+      return mountMachinePool(value, [value]);
+    };
+
+    it.each([
+      ['both bounds are set', { autoscalingMinSize: 1, autoscalingMaxSize: 4 }, true],
+      ['only the min bound is set', { autoscalingMinSize: 1 }, true],
+      ['only the max bound is set', { autoscalingMaxSize: 4 }, true],
+      ['a bound has been cleared while editing the range', { autoscalingMinSize: 1, autoscalingMaxSize: null }, true],
+      ['the pool is paused', { machineDeploymentAnnotations: { [PAUSED_MIN]: '1', [PAUSED_MAX]: '4' } }, false],
+    ])('should reflect that %s', (_label, pool, expected) => {
+      expect(mountWithPool(pool).vm.isAutoscalerEnabled).toStrictEqual(expected);
+    });
+
+    it('should seed a default range when enabled on a pool that was never autoscaling', () => {
+      const pool: any = { quantity: 2 };
+      const wrapper = mountWithPool(pool);
+
+      wrapper.vm.isAutoscalerEnabled = true;
+
+      expect(pool).toStrictEqual({
+        quantity: 2, autoscalingMinSize: 1, autoscalingMaxSize: 2
+      });
+    });
+
+    it('should resume the stashed range when enabled on a paused pool', () => {
+      const pool: any = { quantity: 3, machineDeploymentAnnotations: { [PAUSED_MIN]: '2', [PAUSED_MAX]: '5' } };
+      const wrapper = mountWithPool(pool);
+
+      wrapper.vm.isAutoscalerEnabled = true;
+
+      expect(pool).toStrictEqual({
+        quantity: 3, autoscalingMinSize: 2, autoscalingMaxSize: 5
+      });
+    });
+
+    it('should drop the stash when disabled on a paused pool', () => {
+      const pool: any = { quantity: 3, machineDeploymentAnnotations: { [PAUSED_MIN]: '2', [PAUSED_MAX]: '5' } };
+      const wrapper = mountWithPool(pool);
+
+      wrapper.vm.isAutoscalerEnabled = false;
+
+      expect(pool).toStrictEqual({ quantity: 3 });
+    });
+
+    it('should drop the stash when disabled on an autoscaling pool that still carries one', () => {
+      const pool: any = {
+        quantity:                     3,
+        autoscalingMinSize:           1,
+        autoscalingMaxSize:           4,
+        machineDeploymentAnnotations: {
+          foo: 'bar', [PAUSED_MIN]: '2', [PAUSED_MAX]: '5'
+        },
+      };
+      const wrapper = mountWithPool(pool);
+
+      wrapper.vm.isAutoscalerEnabled = false;
+
+      expect(pool).toStrictEqual({ quantity: 3, machineDeploymentAnnotations: { foo: 'bar' } });
     });
   });
 });

@@ -1,5 +1,5 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
-import { EXT } from '@shell/config/types';
+import { CAPI, EXT } from '@shell/config/types';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { downloadFile } from '@shell/utils/download';
@@ -374,6 +374,29 @@ describe('class MgmtCluster', () => {
 
       expect(mutations.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS]);
       expect(mutations[0].apply(['local', 'c-b'])).toStrictEqual(['c-b']);
+    });
+  });
+
+  describe('isAutoscalerEnabled', () => {
+    const makeCluster = (machinePools: any[] | undefined) => {
+      const provCluster = machinePools === undefined ? undefined : { spec: { rkeConfig: { machinePools } } };
+
+      return new MgmtCluster({ id: 'c-a', metadata: { name: 'c-a' } }, {
+        rootGetters: { 'management/byId': (type: string) => (type === CAPI.RANCHER_CLUSTER ? provCluster : undefined) },
+        getters:     {},
+      });
+    };
+
+    it.each([
+      ['a pool with both bounds', [{ autoscalingMinSize: 1, autoscalingMaxSize: 4 }], true],
+      ['a pool with only a min bound', [{ autoscalingMinSize: 1 }], false],
+      ['a pool with only a max bound', [{ autoscalingMaxSize: 4 }], false],
+      ['one autoscaling pool among several', [{ quantity: 1 }, { autoscalingMinSize: 1, autoscalingMaxSize: 4 }], true],
+      ['no autoscaling pools', [{ quantity: 1 }], false],
+      ['no pools', [], false],
+      ['no provisioning cluster', undefined, false],
+    ])('should report %s', (_label, machinePools, expected) => {
+      expect(makeCluster(machinePools).isAutoscalerEnabled).toStrictEqual(expected);
     });
   });
 });

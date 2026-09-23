@@ -35,6 +35,9 @@ import { isAlternate } from '@shell/utils/platform';
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
 import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
+import AutoscalerCard from '@shell/components/AutoscalerCard.vue';
+import PopoverCard from '@shell/components/PopoverCard.vue';
+import RcButton from '@components/RcButton/RcButton.vue';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resource/Detail/Metadata/composables';
@@ -69,6 +72,9 @@ export default {
 
   components: {
     AutoscalerTab,
+    AutoscalerCard,
+    PopoverCard,
+    RcButton,
     Banner,
     ResourceTable,
     ResourceTabs,
@@ -731,8 +737,12 @@ export default {
       return this.extDetailTabs?.conditions;
     },
 
+    isAutoscalerFeatureEnabled() {
+      return isAutoscalerFeatureFlagEnabled(this.$store);
+    },
+
     showAutoScalerTab() {
-      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
+      return this.isAutoscalerFeatureEnabled && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
     }
   },
 
@@ -753,6 +763,10 @@ export default {
         // User held alt key, so don't prompt
         resources.scalePool(-1);
       }
+    },
+
+    showAutoscalerIndicator(pool) {
+      return this.isAutoscalerFeatureEnabled && !!pool.autoscalerStatusKey;
     },
 
     async takeSnapshot(btnCb) {
@@ -967,14 +981,45 @@ export default {
                     v-trim-whitespace
                     class="group-tab"
                   >
-                    <div
-                      v-if="group && group.ref"
-                      v-clean-html="group.ref.groupByPoolShortLabel"
-                    />
-                    <div
-                      v-else
-                      v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
-                    />
+                    <div>
+                      <span
+                        v-if="group && group.ref"
+                        v-clean-html="group.ref.groupByPoolShortLabel"
+                      />
+                      <span
+                        v-else
+                        v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
+                      />
+                      <span
+                        v-if="group.ref && showAutoscalerIndicator(group.ref)"
+                        class="autoscaler-indicator"
+                        data-testid="autoscaler-indicator"
+                      >
+                        <PopoverCard
+                          :card-title="t('autoscaler.card.title')"
+                          :show-popover-aria-label="t('cluster.machinePool.autoscaler.pause.indicator', { name: group.ref.nameDisplay })"
+                          fallback-focus=".autoscaler-indicator .action"
+                        >
+                          <i :class="`icon icon-sm ${ group.ref.isAutoscalerPaused || group.ref.isClusterAutoscalerPaused ? 'icon-pause' : 'icon-checkmark' }`" />
+                          <template #heading-action="{close}">
+                            <RcButton
+                              v-if="group.ref.canPauseResumeAutoscaler"
+                              variant="secondary"
+                              size="small"
+                              class="action"
+                              :data-testid="group.ref.isAutoscalerPaused ? 'resume-autoscaler-button' : 'pause-autoscaler-button'"
+                              @click="() => { group.ref.toggleAutoscalerPause(); close(); }"
+                            >
+                              <i :class="`icon icon-sm ${ group.ref.isAutoscalerPaused ? 'icon-play' : 'icon-pause' }`" />
+                              {{ group.ref.isAutoscalerPaused ? t('autoscaler.card.resume') : t('autoscaler.card.pause') }}
+                            </RcButton>
+                          </template>
+                          <template #card-body>
+                            <AutoscalerCard :value="group.ref" />
+                          </template>
+                        </PopoverCard>
+                      </span>
+                    </div>
                     <div
                       v-if="group.ref && group.ref.providerSummary"
                       class="description text-muted text-small"
@@ -983,7 +1028,7 @@ export default {
                     </div>
                   </div>
                   <div
-                    v-if="group.ref && !group.ref.isAutoscalerEnabled"
+                    v-if="group.ref"
                     class="right group-header-buttons mr-20"
                   >
                     <MachineSummaryGraph
@@ -992,10 +1037,11 @@ export default {
                       :horizontal="true"
                       class="mr-20"
                     />
-                    <template v-if="value.hasLink('update') && group.ref.showScalePool">
+                    <template v-if="value.hasLink('update') && !group.ref.isAutoscalerEnabled && group.ref.showScalePool">
                       <button
-                        v-clean-tooltip="t('node.list.scaleDown')"
+                        v-clean-tooltip="{ content: t('node.list.scaleDown'), triggers: ['hover', 'focus'] }"
                         :disabled="!group.ref.canScaleDownPool()"
+                        :aria-label="t('node.list.scaleDownAriaLabel', { name: group.ref.nameDisplay })"
                         type="button"
                         class="btn btn-sm role-secondary"
                         data-testid="scale-down-button"
@@ -1004,8 +1050,9 @@ export default {
                         <i class="icon icon-sm icon-minus" />
                       </button>
                       <button
-                        v-clean-tooltip="t('node.list.scaleUp')"
+                        v-clean-tooltip="{ content: t('node.list.scaleUp'), triggers: ['hover', 'focus'] }"
                         :disabled="!group.ref.canScaleUpPool()"
+                        :aria-label="t('node.list.scaleUpAriaLabel', { name: group.ref.nameDisplay })"
                         type="button"
                         class="btn btn-sm role-secondary ml-10"
                         data-testid="scale-up-button"
@@ -1014,6 +1061,16 @@ export default {
                         <i class="icon icon-sm icon-plus" />
                       </button>
                     </template>
+                    <button
+                      type="button"
+                      class="project-action btn btn-sm role-multi-action actions ml-10"
+                      :class="{invisible: !showPoolActionButton(group.ref)}"
+                      :aria-label="t('node.list.poolActionsAriaLabel', { name: group.ref.nameDisplay })"
+                      data-testid="pool-actions-button"
+                      @click="showPoolAction($event, group.ref)"
+                    >
+                      <i class="icon icon-actions" />
+                    </button>
                   </div>
                 </div>
               </template>
@@ -1286,6 +1343,52 @@ export default {
   .group-header-buttons {
     align-items: center;
     display: flex;
+
+    .btn-disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+      }
+    }
+  }
+
+  .autoscaler-indicator {
+    display: inline-flex;
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
+
+    &:deep() {
+      .heading {
+        height: 24px;
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          line-height: 24px;
+        }
+      }
+
+      button.btn.action {
+        line-height: 15px;
+        font-size: 12px;
+        height: 24px;
+        min-height: initial;
+        padding: 0 8px;
+
+        i {
+          margin-right: 8px;
+        }
+      }
+
+      // the popover mounts inside the pool row, which would otherwise lend the card its 40px line height
+      .autoscaler-card {
+        line-height: 20px;
+
+        .detail:not(:last-of-type) {
+          margin-bottom: 4px;
+        }
+      }
+    }
   }
 }
 

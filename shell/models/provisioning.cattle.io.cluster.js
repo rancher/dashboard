@@ -27,7 +27,7 @@ const RKE1_ALLOWED_ACTIONS = [
   'viewInApi'
 ];
 
-const AUTOSCALER_STATUS = {
+export const AUTOSCALER_STATUS = {
   PROVISIONING: 'provisioning',
   UNAVAILABLE:  'unavailable'
 };
