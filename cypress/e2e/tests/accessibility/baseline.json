@@ -93,13 +93,6 @@
       "help": "Table header text should not be empty"
     },
     {
-      "fingerprint": "aae6b1ac09ac211cf0167c8c30322ff61cd0787a05710faddc278c35a2701490",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Describe Resource",
-      "rule": "region",
-      "impact": "moderate",
-      "help": "All page content should be contained by landmarks"
-    },
-    {
       "fingerprint": "b3f7befa88bc4944baba1512570bb3d9bd0fce7d928a1a63da3196ab4e92df58",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Fleet GitRepo - Add Repository page",
       "rule": "aria-valid-attr-value",
