@@ -955,7 +955,7 @@ defineExpose({
 .cluster-switcher-flyout {
   display: flex;
   flex-direction: column;
-  width: 380px;
+  width: $cluster-switcher-flyout-width;
   // Height is capped in the unscoped popper block below, where the matching `top` offset lives — the two
   // have to move together for the bottom gutter to hold.
   background: var(--topmenu-bg);
@@ -1098,6 +1098,11 @@ defineExpose({
 $flyout-top: 85px;
 $flyout-gutter: 12px;
 $flyout-reach: calc(100vh - #{$flyout-top} - #{$flyout-gutter});
+// How far the wipe travels. It moves ONE distance across both axes, so it has to out-reach the longer of
+// the two — and on a short window that is the width, not the height. Left at the vertical reach alone, a
+// window under ~477px tall made that reach shorter than the panel is wide and the resting clip cut into
+// the right edge, so the flyout narrowed as the window got shorter.
+$flyout-unroll: max(#{$cluster-switcher-flyout-width}, #{$flyout-reach});
 // The close is the quicker of the two: opening is an arrival worth watching, closing is an acknowledgement.
 // `dispose-timeout` on the dropdown has to out-last it, or floating-vue unmounts the panel mid-roll — its
 // 150ms default is exactly what used to cut this short.
@@ -1148,7 +1153,7 @@ $flyout-close-duration: 0.2s;
   }
 
   .cluster-switcher-flyout {
-    --unroll: #{$flyout-reach};
+    --unroll: #{$flyout-unroll};
     clip-path: inset(0 calc(100% - var(--unroll)) calc(100% - var(--unroll)) 0);
     animation: cluster-switcher-unroll $flyout-open-duration linear backwards;
     max-height: $flyout-reach;
@@ -1191,7 +1196,7 @@ $flyout-close-duration: 0.2s;
 // restarted — reusing the opening name left the finished animation sitting there and nothing happened.
 @keyframes cluster-switcher-reroll {
   from {
-    --unroll: #{$flyout-reach};
+    --unroll: #{$flyout-unroll};
   }
   to {
     --unroll: 0px;
@@ -1203,7 +1208,7 @@ $flyout-close-duration: 0.2s;
     --unroll: 0px;
   }
   to {
-    --unroll: #{$flyout-reach};
+    --unroll: #{$flyout-unroll};
   }
 }
 
