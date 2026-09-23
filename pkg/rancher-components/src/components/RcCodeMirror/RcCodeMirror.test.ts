@@ -183,6 +183,60 @@ describe('component: RcCodeMirror', () => {
     });
   });
 
+  describe('variant prop', () => {
+    it('should be an editor by default', () => {
+      mountEditor();
+
+      expect(wrapper.classes()).toContain('rc-code-mirror--editor');
+    });
+
+    it('should apply the input variant class', () => {
+      mountEditor({ variant: 'input' });
+
+      expect(wrapper.classes()).toContain('rc-code-mirror--input');
+    });
+
+    it('should hide line numbers for the input variant', () => {
+      mountEditor({ variant: 'input' });
+
+      expect(wrapper.find('.cm-lineNumbers').exists()).toBe(false);
+    });
+
+    it('should hide line numbers for the input variant even when lineNumbers is true', () => {
+      mountEditor({ variant: 'input', lineNumbers: true });
+
+      expect(wrapper.find('.cm-lineNumbers').exists()).toBe(false);
+    });
+
+    it('should hide the fold gutter for the input variant', () => {
+      mountEditor({ variant: 'input' });
+
+      expect(wrapper.find('.cm-foldGutter').exists()).toBe(false);
+    });
+
+    it('should wrap lines for the input variant even when lineWrapping is false', () => {
+      mountEditor({ variant: 'input', lineWrapping: false });
+
+      expect(getView(wrapper).contentDOM.classList).toContain('cm-lineWrapping');
+    });
+
+    it('should hide line numbers when the variant changes to input', async() => {
+      mountEditor();
+
+      await wrapper.setProps({ variant: 'input' });
+
+      expect(wrapper.find('.cm-lineNumbers').exists()).toBe(false);
+    });
+
+    it('should show line numbers when the variant changes to editor', async() => {
+      mountEditor({ variant: 'input' });
+
+      await wrapper.setProps({ variant: 'editor' });
+
+      expect(wrapper.find('.cm-lineNumbers').exists()).toBe(true);
+    });
+  });
+
   describe('lineWrapping prop', () => {
     it('should not wrap lines by default', () => {
       mountEditor();

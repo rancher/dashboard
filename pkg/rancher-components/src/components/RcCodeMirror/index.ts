@@ -4,6 +4,7 @@ export type {
   RcCodeMirrorLanguage,
   RcCodeMirrorKeymap,
   RcCodeMirrorTheme,
+  RcCodeMirrorVariant,
 } from './types';
 export type { FoldOptions, FoldServiceFn } from './extensions/fold';
 export {

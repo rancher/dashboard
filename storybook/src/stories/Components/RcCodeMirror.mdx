@@ -19,6 +19,12 @@ A code editor built on CodeMirror 6 for YAML and JSON documents. Bind the docume
 
 <Canvas of={RcCodeMirrorStories.ReadOnly} />
 
+## Input
+
+The `input` variant is a multi-line form input rather than a code editor. It has no gutters, uses the body font and is styled like the other form inputs. Line breaks are marked with ↵ so values that contain them are distinguishable.
+
+<Canvas of={RcCodeMirrorStories.Input} />
+
 ## Custom folding
 
 `foldOptions.strategy` picks how fold ranges are found: `language` (the default) uses the language's syntax tree, `indent` folds by indentation and `bracket` folds matching brackets.

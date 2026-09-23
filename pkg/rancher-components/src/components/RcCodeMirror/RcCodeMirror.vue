@@ -8,6 +8,8 @@
  *
  * <RcCodeMirror v-model="yaml" language="yaml" />
  *
+ * <RcCodeMirror v-model="value" variant="input" />
+ *
  * <RcCodeMirror
  *   v-model="yaml"
  *   language="yaml"
@@ -58,6 +60,7 @@ const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
   language:     undefined,
   keymap:       undefined,
   theme:        'none',
+  variant:      'editor',
   readOnly:     false,
   lineNumbers:  true,
   foldGutter:   true,
@@ -97,6 +100,16 @@ function getLineNumbersExtension(show: boolean): Extension {
   return show ? cmLineNumbers() : [];
 }
 
+// The input variant has no gutters
+function showLineNumbers(): boolean {
+  return props.variant !== 'input' && (props.lineNumbers ?? true);
+}
+
+// The input variant always wraps, like a textarea
+function wrapLines(): boolean {
+  return props.variant === 'input' || (props.lineWrapping ?? false);
+}
+
 // editable only stops the content being contenteditable, readOnly stops commands (e.g. Enter
 // from a keymap) changing the document, so both are needed
 function getReadOnlyExtension(readOnly: boolean): Extension {
@@ -128,7 +141,7 @@ onMounted(() => {
     }
   });
 
-  const foldExt = props.foldGutter ? buildFoldExtension(props.foldOptions) : [];
+  const foldExt = props.foldGutter && props.variant !== 'input' ? buildFoldExtension(props.foldOptions) : [];
 
   const state = EditorState.create({
     doc:        props.modelValue ?? '',
@@ -151,8 +164,8 @@ onMounted(() => {
       languageCompartment.of(getLanguageExtension(props.language)),
       keymapCompartment.of(getKeymapExtension(props.keymap)),
       themeCompartment.of(getThemeExtension(props.theme)),
-      lineNumbersCompartment.of(getLineNumbersExtension(props.lineNumbers ?? true)),
-      lineWrappingCompartment.of(getLineWrappingExtension(props.lineWrapping ?? false)),
+      lineNumbersCompartment.of(getLineNumbersExtension(showLineNumbers())),
+      lineWrappingCompartment.of(getLineWrappingExtension(wrapLines())),
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
       updateListener,
       ...(props.extensions ?? [])
@@ -231,17 +244,17 @@ watch(
 
 // Hot-swap lineNumbers
 watch(
-  () => props.lineNumbers,
+  () => showLineNumbers(),
   (show) => {
-    view.value?.dispatch({ effects: lineNumbersCompartment.reconfigure(getLineNumbersExtension(show ?? true)) });
+    view.value?.dispatch({ effects: lineNumbersCompartment.reconfigure(getLineNumbersExtension(show)) });
   }
 );
 
 // Hot-swap lineWrapping
 watch(
-  () => props.lineWrapping,
+  () => wrapLines(),
   (wrap) => {
-    view.value?.dispatch({ effects: lineWrappingCompartment.reconfigure(getLineWrappingExtension(wrap ?? false)) });
+    view.value?.dispatch({ effects: lineWrappingCompartment.reconfigure(getLineWrappingExtension(wrap)) });
   }
 );
 
@@ -252,6 +265,7 @@ defineExpose({ view });
   <div
     ref="container"
     class="rc-code-mirror"
+    :class="`rc-code-mirror--${ variant }`"
   />
 </template>
 
@@ -265,6 +279,44 @@ defineExpose({ view });
 
   :deep(.cm-editor.cm-focused) {
     outline: none;
+  }
+
+  &.rc-code-mirror--input :deep(.cm-editor) {
+    min-height: 40px;
+    box-sizing: border-box;
+    padding: 10px;
+    background-color: var(--input-bg);
+    border-radius: var(--border-radius);
+    border: solid var(--border-width) var(--input-border);
+    color: var(--input-text);
+
+    &:hover {
+      border-color: var(--input-hover-border);
+    }
+
+    &.cm-focused {
+      border-color: var(--primary-border);
+    }
+
+    .cm-scroller {
+      font-family: $body-font;
+    }
+
+    .cm-content, .cm-line {
+      padding: 0;
+    }
+
+    // Mark line breaks so multi-line values are distinguishable
+    .cm-line:not(:last-child)::after {
+      content: '↵';
+      margin-left: 2px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .cm-selectionBackground, &.cm-focused .cm-selectionBackground {
+      background-color: var(--primary);
+    }
   }
 }
 </style>
