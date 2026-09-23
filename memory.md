@@ -6,8 +6,9 @@
 - **Unit tests (single file)**: `node_modules/.bin/jest --no-coverage <path>`
 - **Lint single file**: `node_modules/.bin/eslint --max-warnings 0 <file>`
 - **Coverage**: add `--collectCoverage --coverageDirectory /tmp/coverage --collectCoverageFrom <file>` to jest invocation
+- **Type-check (diff vs baseline)**: `node scripts/type-check-diff.mjs` — fails CI only on *new* type errors vs `scripts/type-check-baseline.txt` (baseline ~301-693 pre-existing errors, ratchets down over time; use this instead of `yarn type-check:ci` which fails on engine check)
 - **Test framework**: Jest + TypeScript (ts-jest)
-- **IMPORTANT**: `yarn test:ci` fails with engine check; use `node_modules/.bin/jest` directly
+- **IMPORTANT**: `yarn test:ci` and `yarn type-check:ci` fail with engine check (Node 22 vs required >=24); use `node_modules/.bin/jest` and `node scripts/type-check-diff.mjs` directly
 
 ## ESLint Rules to Watch
 
@@ -44,6 +45,8 @@
 - favicon.js: `favIconSet` and `defaultFavIcon` are module-level; use `jest.resetModules()` + dynamic `require()` in beforeEach; mock `@shell/utils/require-asset`; use `link.getAttribute('href')` (not `link.href`) to avoid jsdom URL resolution
 - useLabeledFormElement.ts: no lifecycle hooks, no store — use ref/computed directly; `raised` is initialized once (not reactive to prop changes); `rule.name` detection requires named `function` declarations not arrow functions; `rule(value)` at line 115 is NOT null-guarded (code inconsistency); emit is jest.Mock for 'update:validation'
 - grafana.js: mock `@shell/utils/monitoring` with `jest.mock()`; `dashboardExists` URL must contain proxy path for `split(delimiter)` to work; unused imports cause no-unused-vars lint failures
+- grafana.js: `dashboardExists`'s `projectId = null` default param needs an explicit JSDoc `@param {string | null} [projectId]` — otherwise TS narrows the inferred type to `null` and any test/call passing a string projectId is a new type-check error (caught PR #18972 CI failure this way; fixed via JSDoc, not test change)
+- project-permissions.ts: `fetchProjectMembershipPermissions` is a plain async function taking `(store, projectId?)`; mock `store.getters['management/schemaFor']` and `store.dispatch`; response shape varies — array response (`res.data`) for all-projects listing vs single object (`res.id`) for one-project lookup; fails closed (returns `{}`) on missing collection link or dispatch rejection — spy/mock `console.warn` in beforeEach/afterEach to avoid noisy test output
 
 ## Testing Notes (composables)
 
@@ -69,9 +72,13 @@
 3. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
 4. `shell/composables/drawer.ts` — thin store wrapper (low value)
 5. `shell/utils/grafana.js` — `allDashboardsExist` (skipped; thin wrapper over dashboardExists)
+6. `shell/utils/v-sphere.ts` — VSphereUtils class (289 lines): `handleVsphereCpiSecret`/`handleVsphereCsiSecret`/`findSecret`/`findOrCreateSecret` — real logic (secret sync for vsphere CPI/CSI charts), needs $store.dispatch + secret.setData/save mocking (next candidate)
+7. `shell/utils/custom-validators.js` — thin lookup object mapping validator names to imported functions (low value; check if individual validators under `shell/utils/validators/` already have coverage before skipping)
 
 ## Completed Work (Summary — recent only)
 
+- 2026-09-23: Fixed CI on PR #18972 — JSDoc type fix for `dashboardExists` (grafana.js) resolving a `type-check:ci` TS2345 failure introduced by the PR's own tests; pushed via push_to_pull_request_branch.
+- 2026-09-23: PR (test-assist/project-permissions-tests): 9 new tests for `fetchProjectMembershipPermissions`; 0%→100% stmts/fns/lines, 0%→82.6% branches.
 - 2026-09-01: PR (test-assist/array-extra-tests): 30 new tests for array.ts findStringIndex, hasDuplicatedStrings, sameArrayObjects, concatStrings; 75.51%→100% stmts, 78.94%→100% fns.
 - 2026-08-27: PR (test-assist/grafana-utils-tests): 17 new tests for grafana.js; 28%→94% stmts, 100% branches, 30%→90% fns.
 - 2026-08-21: PR (test-assist/uiplugins-extra-tests): 14 new tests for uiplugins.ts; 34%→55% stmts.
@@ -82,6 +89,7 @@
 
 ## Task Round-Robin History (recent)
 
+- 2026-09-23: Task 3 (new PR + PR fix/maintenance) + Task 7
 - 2026-09-01: Task 3 + Task 7
 - 2026-08-27: Task 3 + Task 7
 - 2026-08-21: Task 3 + Task 7
@@ -95,7 +103,8 @@
 
 - June 2026 issue: #17976 (closed)
 - July 2026 issue: #18236 (closed - new month)
-- August 2026 issue: #18800 (open)
+- August 2026 issue: #18800 (closed - new month)
+- September 2026 issue: created this run (closed August's, opened new)
 
 ## Maintainer Priorities
 
