@@ -267,14 +267,8 @@ about:
     machine: Machine
     rancher: Rancher
     releaseNotes: '查看发行说明'
-  os:
-    mac: macOS
-    windows: Windows
-    linux: Linux
   downloadImageList:
     title: 镜像列表
-  downloadCLI:
-    title: CLI 下载
   diagnostic:
     title: 诊断
     checkboxTooltip: 用前 10 个资源的响应时间补充诊断数据，可能需要一些的时间才能完成。
