@@ -1,6 +1,6 @@
 import type { Extension, EditorState } from '@codemirror/state';
 import {
-  foldGutter as cmFoldGutter, foldService, foldEffect, foldable, syntaxTree, ensureSyntaxTree
+  codeFolding, foldService, foldEffect, foldable, syntaxTree, ensureSyntaxTree
 } from '@codemirror/language';
 import type { EditorView } from '@codemirror/view';
 import type { SyntaxNode } from '@lezer/common';
@@ -110,8 +110,12 @@ export const bracketFoldService: Extension = foldService.of(
   }
 );
 
+/**
+ * Enables folding with the given strategy. The fold gutter is separate, so folding still
+ * works (programmatically or from the keyboard) when the gutter is hidden.
+ */
 export function buildFoldExtension(opts?: FoldOptions): Extension {
-  const extensions: Extension[] = [cmFoldGutter()];
+  const extensions: Extension[] = [codeFolding()];
   const strategy = opts?.strategy ?? 'language';
 
   if (strategy === 'indent') {

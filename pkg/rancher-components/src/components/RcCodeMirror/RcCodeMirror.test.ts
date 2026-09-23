@@ -1,7 +1,7 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EditorView } from '@codemirror/view';
 import { foldable, foldedRanges, foldEffect } from '@codemirror/language';
-import { foldByLineMatch } from './extensions/fold';
+import { foldByLineMatch, foldMatchingLines } from './extensions/fold';
 import RcCodeMirror from './RcCodeMirror.vue';
 
 type Wrapper = VueWrapper<InstanceType<typeof RcCodeMirror>>;
@@ -230,6 +230,22 @@ describe('component: RcCodeMirror', () => {
       expect(wrapper.find('.cm-lineNumbers').exists()).toBe(false);
     });
 
+    it('should hide the fold gutter when the variant changes to input', async() => {
+      mountEditor();
+
+      await wrapper.setProps({ variant: 'input' });
+
+      expect(wrapper.find('.cm-foldGutter').exists()).toBe(false);
+    });
+
+    it('should show the fold gutter when the variant changes to editor', async() => {
+      mountEditor({ variant: 'input' });
+
+      await wrapper.setProps({ variant: 'editor' });
+
+      expect(wrapper.find('.cm-foldGutter').exists()).toBe(true);
+    });
+
     it('should show line numbers when the variant changes to editor', async() => {
       mountEditor({ variant: 'input' });
 
@@ -272,6 +288,25 @@ describe('component: RcCodeMirror', () => {
       mountEditor({ foldGutter: false });
 
       expect(wrapper.find('.cm-foldGutter').exists()).toBe(false);
+    });
+
+    it('should hide the fold gutter when foldGutter changes to false', async() => {
+      mountEditor();
+
+      await wrapper.setProps({ foldGutter: false });
+
+      expect(wrapper.find('.cm-foldGutter').exists()).toBe(false);
+    });
+
+    it('should still fold programmatically when foldGutter is false', () => {
+      mountEditor({
+        modelValue: 'spec:\n  a: 1', foldGutter: false, foldOptions: { strategy: 'indent' }
+      });
+      const view = getView(wrapper);
+
+      foldMatchingLines(view, /^spec:/);
+
+      expect(foldedRanges(view.state).size).toStrictEqual(1);
     });
   });
 

@@ -169,10 +169,18 @@ describe('fold extensions', () => {
       expect(foldableAt(state, 1)).toStrictEqual({ from: 2, to: 6 });
     });
 
-    it('should include the fold gutter', () => {
+    it('should enable folding', () => {
+      const view = new EditorView({ state: createState('a:\n  b', [buildFoldExtension({ strategy: 'indent' })]) });
+
+      foldMatchingLines(view, /^a:/);
+
+      expect(folded(view)).toStrictEqual([{ from: 2, to: 6 }]);
+    });
+
+    it('should not include the fold gutter', () => {
       const view = new EditorView({ state: createState('a', [buildFoldExtension()]) });
 
-      expect(view.dom.querySelector('.cm-foldGutter')).not.toBeNull();
+      expect(view.dom.querySelector('.cm-foldGutter')).toBeNull();
     });
   });
 

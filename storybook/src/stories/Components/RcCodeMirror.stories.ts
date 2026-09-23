@@ -73,7 +73,7 @@ const meta: Meta<typeof RcCodeMirror> = {
     },
     readOnly:     { control: 'boolean', description: 'Prevents the document from being edited.' },
     lineNumbers:  { control: 'boolean', description: 'Shows the line number gutter.' },
-    foldGutter:   { control: 'boolean', description: 'Shows the fold gutter. Only read on mount.' },
+    foldGutter:   { control: 'boolean', description: 'Shows the fold gutter. Folding still works from the keyboard and the fold helpers when it is hidden.' },
     lineWrapping: { control: 'boolean', description: 'Wraps long lines instead of scrolling horizontally.' },
     foldOptions:  {
       control:     'object',
