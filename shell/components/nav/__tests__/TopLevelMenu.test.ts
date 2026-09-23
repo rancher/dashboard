@@ -2539,4 +2539,128 @@ describe('topLevelMenu', () => {
       wrapper.unmount();
     });
   });
+  describe('the version in the footer', () => {
+    const mountNav = (version: string) => {
+      const store = generateStore([]);
+
+      return mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: {
+              ...store,
+              getters: {
+                ...store.getters,
+                'management/byId': (type: string, id: string) => (id === 'server-version' ? { value: version } : undefined),
+                'i18n/t':          (key: string) => key,
+              },
+            },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+    };
+
+    it.each([
+      ['a head build', 'v2.16.0-f548dfa-head', 'v2.16.0'],
+      ['a pre-release', 'v2.16.0-rc3', 'v2.16.0'],
+      ['a double-digit patch', 'v2.16.10-head', 'v2.16.10'],
+      ['a patch release', 'v2.15.1', 'v2.15.1'],
+      ['a minor release', 'v2.15.0', 'v2.15'],
+      ['a version it cannot read', '', 'about.title'],
+    ])('labels %s as %s while collapsed', (_case, version, expected) => {
+      const wrapper = mountNav(version);
+
+      // The harness renders translation keys as `%key%`, so the fallback is matched, not compared.
+      expect((wrapper.vm as any).aboutText).toContain(expected);
+
+      wrapper.unmount();
+    });
+
+    // The padding stays put, so the type size is what keeps each label roughly centred.
+    it.each([
+      ['v2.16', 'v2.16', null],
+      ['v2.16.0', 'v2.16.0-f548dfa-head', 'version-small'],
+      ['v2.16.10', 'v2.16.10-head', 'version-smaller'],
+    ])('sizes %s to fit the collapsed rail', (_label, version, expected) => {
+      const wrapper = mountNav(version);
+
+      expect((wrapper.vm as any).versionSizeClass).toBe(expected);
+
+      wrapper.unmount();
+    });
+
+    it('shows the whole version once the nav is open', async() => {
+      const wrapper = mountNav('v2.16.0-f548dfa-head');
+      const vm = wrapper.vm as any;
+
+      expect(vm.aboutText).toBe('v2.16.0');
+
+      vm.shown = true;
+      await wrapper.vm.$nextTick();
+
+      expect(vm.aboutText).toBe('v2.16.0-f548dfa-head');
+
+      wrapper.unmount();
+    });
+
+    describe('the tooltip', () => {
+      it('carries the whole version while the label is collapsed to the release number', () => {
+        const wrapper = mountNav('v2.16.0-f548dfa-head');
+
+        expect((wrapper.vm as any).versionTooltip.content).toBe('v2.16.0-f548dfa-head');
+
+        wrapper.unmount();
+      });
+
+      it('is dropped once the open nav shows the version in full', async() => {
+        const wrapper = mountNav('v2.16.0-f548dfa-head');
+        const vm = wrapper.vm as any;
+
+        vm.shown = true;
+        await wrapper.vm.$nextTick();
+
+        expect(vm.versionTooltip.content).toBeUndefined();
+
+        wrapper.unmount();
+      });
+
+      it('comes back when the ellipsis takes part of the version away', async() => {
+        const wrapper = mountNav('v2.16.0-f548dfa-head');
+        const vm = wrapper.vm as any;
+        const link = vm.$refs.versionLink.$el;
+
+        // jsdom lays nothing out, so the overflow the component measures is described here.
+        Object.defineProperty(link, 'scrollWidth', { value: 400, configurable: true });
+        Object.defineProperty(link, 'clientWidth', { value: 240, configurable: true });
+
+        vm.shown = true;
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+
+        expect(vm.versionClipped).toBe(true);
+        expect(vm.versionTooltip.content).toBe('v2.16.0-f548dfa-head');
+
+        wrapper.unmount();
+      });
+
+      it('says nothing on a release the label already spells out', () => {
+        const wrapper = mountNav('v2.15.1');
+
+        expect((wrapper.vm as any).versionTooltip.content).toBeUndefined();
+
+        wrapper.unmount();
+      });
+
+      it('opens to the right, in the nav\'s own tooltip style', () => {
+        const wrapper = mountNav('v2.16.0-f548dfa-head');
+        const { placement, popperClass } = (wrapper.vm as any).versionTooltip;
+
+        expect(placement).toBe('right');
+        expect(popperClass).toBe('nav-tooltip');
+
+        wrapper.unmount();
+      });
+    });
+  });
 });
