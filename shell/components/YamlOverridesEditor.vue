@@ -65,9 +65,6 @@ const emit = defineEmits<{(e: 'update:value', value: string): void }>();
 const defaultsEditor = ref<any>(null);
 const overridesEditor = ref<any>(null);
 
-// Which pane currently has focus, so a debounced sync never overwrites the pane
-// the user is actively typing in.
-const focusedPane = ref<'defaults' | 'overrides' | null>(null);
 // True while we push content into an editor programmatically, so the resulting
 // update:value echo doesn't loop back through the input handlers.
 const isSyncing = ref(false);
@@ -118,10 +115,7 @@ function applyOverridesDecorations() {
 function syncFromOverrides() {
   defaultsContent.value = mergeOverridesRawText(props.defaults || {}, overridesContent.value);
 
-  if (focusedPane.value !== 'defaults') {
-    withoutEcho(() => defaultsEditor.value?.updateValue(defaultsContent.value));
-  }
-
+  withoutEcho(() => defaultsEditor.value?.updateValue(defaultsContent.value));
   applyDefaultsDecorations();
   applyOverridesDecorations();
 }
@@ -141,10 +135,7 @@ function onOverridesInput(value: string) {
 // --- Editing the LEFT (chart defaults) pane ---------------------------------
 
 function syncFromDefaults() {
-  if (focusedPane.value !== 'overrides') {
-    withoutEcho(() => overridesEditor.value?.updateValue(overridesContent.value));
-  }
-
+  withoutEcho(() => overridesEditor.value?.updateValue(overridesContent.value));
   applyOverridesDecorations();
   applyDefaultsDecorations();
 }
@@ -182,6 +173,20 @@ function onDefaultsInput(value: string) {
   overridesContent.value = overrides;
   emit('update:value', overrides);
   queueSyncFromDefaults();
+}
+
+// --- Switching panes --------------------------------------------------------
+
+// A sync is only ever pending for the pane the user was last typing in. Run it
+// right away when focus moves to the other pane, so that pane is up to date before
+// the user types in it. Otherwise their next keystroke would be based on stale
+// text and overwrite the edit that was still waiting to sync.
+function onDefaultsFocus() {
+  queueSyncFromOverrides.flush();
+}
+
+function onOverridesFocus() {
+  queueSyncFromDefaults.flush();
 }
 
 // --- External prop changes --------------------------------------------------
@@ -256,7 +261,7 @@ defineExpose({ updateOverrides });
     <div
       class="values-pane"
       :data-testid="defaultsPaneTestid()"
-      @focusin="focusedPane = 'defaults'"
+      @focusin="onDefaultsFocus"
     >
       <div class="values-pane__header">
         <h4 class="values-pane__title">
@@ -281,7 +286,7 @@ defineExpose({ updateOverrides });
     <div
       class="values-pane"
       :data-testid="overridesPaneTestid()"
-      @focusin="focusedPane = 'overrides'"
+      @focusin="onOverridesFocus"
     >
       <div class="values-pane__header">
         <h4 class="values-pane__title">

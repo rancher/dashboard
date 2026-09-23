@@ -152,6 +152,45 @@ describe('component: YamlOverridesEditor', () => {
     });
   });
 
+  describe('switching panes before the sync runs', () => {
+    it('updates the overrides editor as soon as it gets focus after a chart-defaults edit', () => {
+      const wrapper = mountEditor({ value: '' });
+      const { left, right } = editors(wrapper);
+      const rightUpdate = jest.spyOn(right, 'updateValue');
+
+      left.$emit('update:value', 'replicas: 5\nsachet:\n  enabled: true\n');
+      // Focus moves to the overrides pane before the debounce fires
+      wrapper.find('[data-testid="values-overrides-pane"]').trigger('focusin');
+
+      expect(rightUpdate).toHaveBeenCalledWith('replicas: 5\n');
+    });
+
+    it('updates the chart-defaults editor as soon as it gets focus after an overrides edit', () => {
+      const wrapper = mountEditor();
+      const { left, right } = editors(wrapper);
+      const leftUpdate = jest.spyOn(left, 'updateValue');
+
+      right.$emit('update:value', 'replicas: 9\n');
+      // Focus moves to the chart-defaults pane before the debounce fires
+      wrapper.find('[data-testid="values-defaults-pane"]').trigger('focusin');
+
+      expect(leftUpdate).toHaveBeenCalledWith(mergeOverridesRawText(defaults, 'replicas: 9\n'));
+    });
+
+    it('does not push into either editor when focus moves with no pending edit', () => {
+      const wrapper = mountEditor();
+      const { left, right } = editors(wrapper);
+      const leftUpdate = jest.spyOn(left, 'updateValue');
+      const rightUpdate = jest.spyOn(right, 'updateValue');
+
+      wrapper.find('[data-testid="values-defaults-pane"]').trigger('focusin');
+      wrapper.find('[data-testid="values-overrides-pane"]').trigger('focusin');
+
+      expect(leftUpdate).not.toHaveBeenCalled();
+      expect(rightUpdate).not.toHaveBeenCalled();
+    });
+  });
+
   describe('line decorations', () => {
     it('tints a changed default line, without a label', () => {
       const wrapper = mountEditor({ value: 'replicas: 5\n' });
