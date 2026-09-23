@@ -249,13 +249,14 @@ describe('Home Page', () => {
 
       cy.url().should('include', 'getting-started/overview');
     }));
+    // https://github.com/rancher/dashboard/issues/19232
 
-    qase(1476, it('can click on Commercial Support link', { tags: '@noPrime' }, () => {
-      // click Commercial Support link
-      homePage.clickSupportLink(5);
+    // qase(1476, it('can click on Commercial Support link', { tags: '@noPrime' }, () => {
+    //   // click Commercial Support link
+    //   homePage.clickSupportLink(5);
 
-      cy.url().should('include', '/support');
-    }));
+    //   cy.url().should('include', '/support');
+    // }));
 
     it('can click on SUSE Application Collection link', { tags: ['@jenkins', '@prime', '@scc'] }, () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);

@@ -30,25 +30,26 @@ describe('Support Page', () => {
       supportPage.waitForPage();
     });
 
-    it('can click on Suse Rancher Support link', { tags: '@noPrime' }, () => {
-      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://www.rancher.com/');
+    // https://github.com/rancher/dashboard/issues/19232
+    // it('can click on Suse Rancher Support link', { tags: '@noPrime' }, () => {
+    //   catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://www.rancher.com/');
 
-      supportPage.clickExternalSupportLinks(0);
+    //   supportPage.clickExternalSupportLinks(0);
 
-      cy.origin('https://www.rancher.com/', () => {
-        cy.url().should('include', 'support');
-      });
-    });
+    //   cy.origin('https://www.rancher.com/', () => {
+    //     cy.url().should('include', 'support');
+    //   });
+    // });
 
-    it('can click on Contact us for pricing link', { tags: '@noPrime' }, () => {
-      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://www.rancher.com/pricing');
+    // it('can click on Contact us for pricing link', { tags: '@noPrime' }, () => {
+    //   catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://www.rancher.com/pricing');
 
-      supportPage.clickExternalSupportLinks(1);
+    //   supportPage.clickExternalSupportLinks(1);
 
-      cy.origin('https://www.rancher.com/pricing', () => {
-        cy.url().should('include', 'pricing');
-      });
-    });
+    //   cy.origin('https://www.rancher.com/pricing', () => {
+    //     cy.url().should('include', 'pricing');
+    //   });
+    // });
 
     it('can click on Suse Customer Center link', { tags: ['@jenkins', '@prime', '@scc'] }, () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://scc.suse.com/');

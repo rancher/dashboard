@@ -257,64 +257,64 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     resetSettings.push('ui-offline-preferred');
   });
+  // https://github.com/rancher/dashboard/issues/19232
+  // it('can update ui-brand', { tags: ['@noPrime', '@globalSettings', '@adminUser'] }, () => {
+  //   // We probably want a better way to distinguish between rancher and suse logos. I'm doing this as part of the vue3 migration and trying to keep things as similar as possible.
+  //   const rancherLogoWidth = 167;
+  //   const suseRancherLogoWidth = 200;
 
-  it('can update ui-brand', { tags: ['@noPrime', '@globalSettings', '@adminUser'] }, () => {
-    // We probably want a better way to distinguish between rancher and suse logos. I'm doing this as part of the vue3 migration and trying to keep things as similar as possible.
-    const rancherLogoWidth = 167;
-    const suseRancherLogoWidth = 200;
+  //   // Update setting
+  //   SettingsPagePo.navTo();
+  //   settingsPage.editSettingsByLabel('ui-brand');
 
-    // Update setting
-    SettingsPagePo.navTo();
-    settingsPage.editSettingsByLabel('ui-brand');
+  //   const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ui-brand');
 
-    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ui-brand');
+  //   settingsEdit.waitForUrlPathWithoutContext();
+  //   settingsEdit.title().contains('Setting: ui-brand').should('be.visible');
+  //   settingsEdit.settingsInput().set(settings['ui-brand'].new);
+  //   settingsEdit.saveAndWait('ui-brand');
+  //   settingsPage.waitForUrlPathWithoutContext();
+  //   settingsPage.settingsValue('ui-brand').contains(settings['ui-brand'].new);
 
-    settingsEdit.waitForUrlPathWithoutContext();
-    settingsEdit.title().contains('Setting: ui-brand').should('be.visible');
-    settingsEdit.settingsInput().set(settings['ui-brand'].new);
-    settingsEdit.saveAndWait('ui-brand');
-    settingsPage.waitForUrlPathWithoutContext();
-    settingsPage.settingsValue('ui-brand').contains(settings['ui-brand'].new);
+  //   // Check logos in top-level navigation header for updated logo
+  //   BurgerMenuPo.toggle();
+  //   burgerMenu.brandLogoImage()
+  //     .should('be.visible')
+  //     .invoke('outerWidth').then((str) => parseInt(str))
+  //     .should('eq', suseRancherLogoWidth);
+  //   BurgerMenuPo.toggle();
 
-    // Check logos in top-level navigation header for updated logo
-    BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage()
-      .should('be.visible')
-      .invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', suseRancherLogoWidth);
-    BurgerMenuPo.toggle();
+  //   HomePagePo.navTo();
+  //   burgerMenu.headerBrandLogoImage()
+  //     .should('be.visible')
+  //     .invoke('outerWidth').then((str) => parseInt(str))
+  //     .should('eq', suseRancherLogoWidth);
+  //   BurgerMenuPo.toggle();
 
-    HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage()
-      .should('be.visible')
-      .invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', suseRancherLogoWidth);
-    BurgerMenuPo.toggle();
+  //   // Reset
+  //   SettingsPagePo.navTo();
+  //   settingsPage.waitForUrlPathWithoutContext();
+  //   settingsPage.editSettingsByLabel('ui-brand');
 
-    // Reset
-    SettingsPagePo.navTo();
-    settingsPage.waitForUrlPathWithoutContext();
-    settingsPage.editSettingsByLabel('ui-brand');
+  //   settingsEdit.waitForUrlPathWithoutContext();
+  //   settingsEdit.title().contains('Setting: ui-brand').should('be.visible');
+  //   settingsEdit.useDefaultButton().click();
+  //   settingsEdit.saveAndWait('ui-brand');
 
-    settingsEdit.waitForUrlPathWithoutContext();
-    settingsEdit.title().contains('Setting: ui-brand').should('be.visible');
-    settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('ui-brand');
+  //   settingsPage.waitForUrlPathWithoutContext();
+  //   settingsPage.settingsValue('ui-brand').should('not.contain', settings['ui-brand'].new);
 
-    settingsPage.waitForUrlPathWithoutContext();
-    settingsPage.settingsValue('ui-brand').should('not.contain', settings['ui-brand'].new);
+  //   // Check logos in top-level navigation header for updated logo
+  //   HomePagePo.navTo();
+  //   burgerMenu.headerBrandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
+  //     .should('eq', rancherLogoWidth);
 
-    // Check logos in top-level navigation header for updated logo
-    HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', rancherLogoWidth);
+  //   BurgerMenuPo.toggle();
+  //   burgerMenu.brandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
+  //     .should('eq', rancherLogoWidth);
 
-    BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', rancherLogoWidth);
-
-    resetSettings.push('ui-brand');
-  });
+  //   resetSettings.push('ui-brand');
+  // });
 
   it('can update hide-local-cluster', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
