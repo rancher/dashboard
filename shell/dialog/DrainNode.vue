@@ -7,6 +7,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -16,7 +17,8 @@ export default {
     Banner,
     Card,
     RadioGroup,
-    UnitInput
+    UnitInput,
+    RcButton
   },
 
   props: {
@@ -217,12 +219,13 @@ export default {
 
     <template #actions>
       <div class="buttons">
-        <button
-          class="btn role-secondary mr-10"
+        <rc-button
+          variant="secondary"
+          class="mr-10"
           @click="close"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
 
         <AsyncButton
           mode="drain"

@@ -6,6 +6,7 @@ import { UI_PLUGIN } from '@shell/config/types';
 import { UI_PLUGIN_CHART_ANNOTATIONS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { DEVELOPER_LOAD_NAME_SUFFIX } from '@shell/core/extension-manager-impl';
 import { RcHeading } from '@components/RcHeading';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -15,6 +16,7 @@ export default {
     Checkbox,
     LabeledInput,
     RcHeading,
+    RcButton
   },
 
   props: {
@@ -210,13 +212,13 @@ export default {
         />
       </div>
       <div class="dialog-buttons mt-20">
-        <button
-          class="btn role-secondary"
+        <rc-button
+          variant="secondary"
           data-testid="dev-install-ext-modal-cancel-btn"
           @click="closeDialog()"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
         <AsyncButton
           mode="load"
           data-testid="dev-install-ext-modal-install-btn"

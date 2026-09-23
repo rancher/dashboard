@@ -3,11 +3,14 @@ import { Card } from '@components/Card';
 import { alternateLabel } from '@shell/utils/platform';
 import { Checkbox } from '@components/Form/Checkbox';
 import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
 
-  components: { Card, Checkbox },
+  components: {
+    Card, Checkbox, RcButton
+  },
 
   props: {
     resources: {
@@ -97,12 +100,13 @@ export default {
       </div>
     </template>
     <template #actions>
-      <button
-        class="btn role-secondary mr-10"
+      <rc-button
+        variant="secondary"
+        class="mr-10"
         @click="close"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
       <div class="spacer" />
       <button
         class="btn bg-error ml-10 btn role-primary"
