@@ -150,6 +150,7 @@ export default {
       <div class="actions-container">
         <rc-button
           variant="secondary"
+          size="large"
           @click="close"
         >
           {{ t('generic.cancel') }}

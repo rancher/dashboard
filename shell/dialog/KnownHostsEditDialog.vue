@@ -106,6 +106,7 @@ export default {
         <div class="action-pannel form-actions">
           <rc-button
             variant="secondary"
+            size="large"
             data-testid="ssh-known-hosts-dialog_cancel-btn"
             @click="closeDialog(false)"
           >
@@ -113,6 +114,7 @@ export default {
           </rc-button>
           <rc-button
             variant="primary"
+            size="large"
             data-testid="ssh-known-hosts-dialog_save-btn"
             @click="closeDialog(true)"
           >

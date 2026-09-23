@@ -162,6 +162,7 @@ export default {
     <div class="dialog-buttons mt-20">
       <rc-button
         variant="secondary"
+        size="large"
         @click="$emit('close')"
       >
         {{ t('generic.cancel') }}

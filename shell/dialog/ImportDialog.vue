@@ -205,6 +205,7 @@ export default {
           :aria-label="t('generic.close')"
           type="button"
           variant="primary"
+          size="large"
           data-testid="import-yaml-close"
           @click="close"
         >
@@ -220,6 +221,7 @@ export default {
           :aria-label="t('generic.cancel')"
           type="button"
           variant="secondary"
+          size="large"
           class="mr-10"
           data-testid="import-yaml-cancel"
           @click="close"

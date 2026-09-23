@@ -61,6 +61,7 @@ export default {
       <div class="buttons">
         <rc-button
           variant="secondary"
+          size="large"
           class="mr-10"
           @click="close"
         >
@@ -69,6 +70,7 @@ export default {
 
         <rc-button
           variant="primary"
+          size="large"
           @click="apply"
         >
           {{ t('generic.add') }}

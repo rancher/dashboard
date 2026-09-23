@@ -363,6 +363,7 @@ export default {
         <rc-button
           :disabled="busy"
           variant="secondary"
+          size="large"
           data-testid="install-ext-modal-cancel-btn"
           @click="closeDialog(false)"
         >
