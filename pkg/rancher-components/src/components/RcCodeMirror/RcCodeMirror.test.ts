@@ -1,6 +1,6 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EditorView } from '@codemirror/view';
-import { foldable } from '@codemirror/language';
+import { foldable, foldedRanges, foldEffect } from '@codemirror/language';
 import { foldByLineMatch } from './extensions/fold';
 import RcCodeMirror from './RcCodeMirror.vue';
 
@@ -314,6 +314,48 @@ describe('component: RcCodeMirror', () => {
       await wrapper.setProps({ 'aria-label': 'JSON' } as Record<string, unknown>);
 
       expect(getView(wrapper).contentDOM.getAttribute('aria-label')).toStrictEqual('JSON');
+    });
+  });
+
+  describe('fold key bindings', () => {
+    const doc = 'spec:\n  a: 1';
+
+    function pressFoldKey(view: EditorView, key: '[' | ']') {
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key:        key === '[' ? '{' : '}',
+        keyCode:    key === '[' ? 219 : 221,
+        ctrlKey:    true,
+        shiftKey:   true,
+        bubbles:    true,
+        cancelable: true
+      }));
+    }
+
+    function foldCount(view: EditorView): number {
+      return foldedRanges(view.state).size;
+    }
+
+    it.each(['default', 'emacs', 'vim'])('should fold the line at the cursor with the %s keymap', (keymap) => {
+      mountEditor({
+        modelValue: doc, keymap, foldOptions: { strategy: 'indent' }
+      });
+      const view = getView(wrapper);
+
+      pressFoldKey(view, '[');
+
+      expect(foldCount(view)).toStrictEqual(1);
+    });
+
+    it.each(['default', 'emacs', 'vim'])('should unfold the line at the cursor with the %s keymap', (keymap) => {
+      mountEditor({
+        modelValue: doc, keymap, foldOptions: { strategy: 'indent' }
+      });
+      const view = getView(wrapper);
+
+      view.dispatch({ effects: foldEffect.of({ from: 5, to: 12 }) });
+      pressFoldKey(view, ']');
+
+      expect(foldCount(view)).toStrictEqual(0);
     });
   });
 
