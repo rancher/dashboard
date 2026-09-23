@@ -66,6 +66,11 @@ const meta: Meta<typeof RcCodeMirror> = {
       control:     { type: 'select' },
       description: 'Editor color theme. `none` inherits the surrounding styles.'
     },
+    variant: {
+      options:     ['editor', 'input'],
+      control:     { type: 'select' },
+      description: '`editor` is a code editor with gutters. `input` is a multi-line form input that preserves whitespace, without gutters, always wrapping and with line breaks marked.'
+    },
     readOnly:     { control: 'boolean', description: 'Prevents the document from being edited.' },
     lineNumbers:  { control: 'boolean', description: 'Shows the line number gutter.' },
     foldGutter:   { control: 'boolean', description: 'Shows the fold gutter. Only read on mount.' },
@@ -83,6 +88,7 @@ const meta: Meta<typeof RcCodeMirror> = {
     language:     'yaml',
     keymap:       'default',
     theme:        'none',
+    variant:      'editor',
     readOnly:     false,
     lineNumbers:  true,
     foldGutter:   true,
@@ -162,4 +168,24 @@ export const VModel: Story = {
       </div>
     `,
   }),
+};
+
+export const Input: Story = {
+  render: (args: any) => ({
+    components: { RcCodeMirror },
+    setup() {
+      const value = ref('-----BEGIN CERTIFICATE-----\nMIIBeTCCAR+gAwIBAgIBADAKBggqhkjOPQQDAjAkMSIwIAYDVQQDDBlya2UyLXNl\n-----END CERTIFICATE-----');
+
+      return { args, value };
+    },
+    template: `
+      <div style="width: 400px;">
+        <RcCodeMirror v-bind="args" v-model="value" />
+      </div>
+    `,
+  }),
+  args: {
+    variant:  'input',
+    language: undefined,
+  },
 };
