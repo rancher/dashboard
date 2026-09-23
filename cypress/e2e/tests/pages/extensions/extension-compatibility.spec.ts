@@ -11,6 +11,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { createPodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { qase } from '@/cypress/support/qase';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 
 // Cypress coerces numeric-looking CYPRESS_* values (e.g. "2.13") to numbers, so stringify it.
 const RANCHER_VERSION = String(Cypress.env('rancher_version') ?? '');
@@ -616,11 +617,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       navToElementalEntry('Inventory of Machines');
       cy.contains('Create from YAML', MEDIUM_TIMEOUT_OPT).click();
 
-      cy.get('.CodeMirror', LONG_TIMEOUT_OPT).then(($cm) => {
-        const cm = ($cm[0] as any).CodeMirror;
+      const codeMirror = CodeMirrorPo.first(LONG_TIMEOUT_OPT);
 
-        cm.setValue(cm.getValue().replace('#string', 'demo-mach-inv-1'));
-      });
+      codeMirror.value().then((value: string) => codeMirror.set(value.replace('#string', 'demo-mach-inv-1')));
 
       cy.contains('button', 'Create').click();
       cy.contains('demo-mach-inv-1', LONG_TIMEOUT_OPT).should('be.visible');
