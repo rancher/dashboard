@@ -158,10 +158,10 @@ describe('topLevelMenu', () => {
     await waitForIt();
 
     // `local` is no longer forced to the top of the combined cluster list — it has its
-    // own fixed tile (`menu-cluster-local`) above the groups. The rest of the estate goes to the flyout's
-    // ALL CLUSTERS directory, alphabetically.
+    // own fixed tile (`menu-cluster-local`) above the groups. It is still one of the flyout's ALL CLUSTERS
+    // rows, which are alphabetical.
     expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
-    expect(switcherProp(wrapper, 'all').map((c: any) => c.label)).toStrictEqual(['a-cluster', 'b-cluster', 'c-cluster']);
+    expect(switcherProp(wrapper, 'all').map((c: any) => c.label)).toStrictEqual(['a-cluster', 'b-cluster', 'c-cluster', 'local']);
   });
 
   it('should show local cluster always on top of the list of clusters (unpinned and mix ready/unready clusters)', async() => {
@@ -209,11 +209,11 @@ describe('topLevelMenu', () => {
 
     await waitForIt();
 
-    // `local` sits in its own fixed tile above the groups. The ALL CLUSTERS directory is
-    // sorted active (ready) first, then alphabetical — so the unready `a-cluster` sorts below the ready
-    // `b-cluster` / `c-cluster` (matching legacy behavior).
+    // `local` sits in its own fixed tile above the groups, and is listed in ALL CLUSTERS as well. The
+    // directory is sorted active (ready) first, then alphabetical — so the unready `a-cluster` sorts below
+    // the ready `b-cluster` / `c-cluster` / `local` (matching legacy behavior).
     expect(wrapper.find('[data-testid="menu-cluster-local"] .cluster-name p').text()).toStrictEqual('local');
-    expect(switcherProp(wrapper, 'all').map((c: any) => c.label)).toStrictEqual(['b-cluster', 'c-cluster', 'a-cluster']);
+    expect(switcherProp(wrapper, 'all').map((c: any) => c.label)).toStrictEqual(['b-cluster', 'c-cluster', 'local', 'a-cluster']);
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and ready clusters)', async() => {
@@ -816,7 +816,9 @@ describe('topLevelMenu', () => {
         id: 'an-id1', mgmt: { id: 'an-id1' }, nameDisplay: 'a-cluster', canExplore: true
       },
       {
-        id: 'local', mgmt: { id: 'local' }, nameDisplay: 'local', canExplore: true, isLocal: true
+        // `isLocal` on the mgmt half as well: these fixtures double as prov clusters, and the
+        // hide-local-cluster filter reads `c.mgmt` when there is one.
+        id: 'local', mgmt: { id: 'local', isLocal: true }, nameDisplay: 'local', canExplore: true, isLocal: true
       },
     ];
 
@@ -843,7 +845,8 @@ describe('topLevelMenu', () => {
       const trigger = wrapper.find('[data-testid="cluster-switcher-trigger"]');
 
       expect(trigger.exists()).toBe(true);
-      expect(trigger.find('.cluster-all-count').text()).toStrictEqual('1');
+      // Both clusters, `local` among them — the chip counts what the flyout lists.
+      expect(trigger.find('.cluster-all-count').text()).toStrictEqual('2');
       expect(trigger.find('.cluster-all-unit').exists()).toBe(true);
       expect(trigger.find('.cluster-all-name').exists()).toBe(true);
       // The chevron trails the label — it is NOT inside the count chip any more.
@@ -851,12 +854,13 @@ describe('topLevelMenu', () => {
       expect(trigger.find('.cluster-all-chevron').exists()).toBe(true);
     });
 
-    it('still reads the setting, and renders a chip, with hide-local-cluster on', async() => {
+    it('drops local from the chip with hide-local-cluster on', async() => {
       const wrapper = mountWithClusters(true);
 
       await waitForIt();
 
       expect((wrapper.vm as any).hideLocalCluster).toBe(true);
+      // The setting is the one thing that takes `local` out of the list, so it takes it off the chip too.
       expect(wrapper.find('[data-testid="cluster-switcher-trigger"] .cluster-all-count').text()).toStrictEqual('1');
     });
 
@@ -901,6 +905,33 @@ describe('topLevelMenu', () => {
 
   // An empty estate has nothing to switch to, so the whole switcher affordance stays out of the nav —
   // no count chip (which would otherwise read "0 clusters"), and no empty shelf headings.
+  // A local-only Rancher used to have no switcher at all: `local` was counted out of the estate, so the
+  // door's gate saw zero and stayed down. It is one of the clusters the list holds now, so the door opens
+  // on a flyout with something in it.
+  describe('with only the local cluster', () => {
+    const localOnly = [{
+      id: 'local', mgmt: { id: 'local' }, nameDisplay: 'local', canExplore: true, isLocal: true
+    }];
+
+    it('counts local and opens the switcher on it', async() => {
+      const wrapper: VueWrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+        global: {
+          mocks: { $route: {}, $store: { ...generateStore(localOnly) } },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      expect((wrapper.vm as any).browsableClusterCount).toStrictEqual(1);
+      expect(wrapper.find('[data-testid="cluster-switcher-trigger"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="cluster-switcher-trigger"] .cluster-all-count').text()).toStrictEqual('1');
+      // ...and the flyout it opens is not empty: `local` is its one row, as well as the fixed tile.
+      expect(switcherProp(wrapper, 'all').map((c: any) => c.label)).toStrictEqual(['local']);
+      expect(switcherProp(wrapper, 'local').label).toStrictEqual('local');
+    });
+  });
+
   describe('with no clusters at all', () => {
     it('renders no trigger, no shelf and no pins', async() => {
       const wrapper = mount(TopLevelMenu, {
@@ -1153,6 +1184,61 @@ describe('topLevelMenu', () => {
       expect(blockedCopy).toContain('{name}');
       expect(blockedCopy).toContain('{reason}');
       expect(blockedCopy).toContain('drag');
+    });
+
+    // Dragging is how the shelf is REORDERED, so with a single row pinned there is no order to change —
+    // and the tooltip on the one row that IS draggable is where a user would read otherwise.
+    const mountWithPinned = async(count: number) => {
+      // The nav helper is a singleton that outlives a mount, so a second mount in the SAME test would
+      // still see the first one's clusters cached. `beforeEach` does this between tests; do it here too.
+      await sideNavService.reset();
+      sideNavService.initialized = false;
+
+      const clusters = ['a', 'b'].slice(0, count).map((id) => ({
+        id: `c-${ id }`, mgmt: { id: `c-${ id }` }, nameDisplay: `cluster-${ id }`, canExplore: true, pinned: true
+      }));
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: { $route: {}, $store: { ...generateStore(clusters) } },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      await waitForIt();
+
+      return wrapper;
+    };
+
+    it('invites the drag only while there is an order to change', async() => {
+      const twoWrapper = await mountWithPinned(2);
+      const two = twoWrapper.vm as any;
+
+      // Exact, not `toContain`: every single-pin key has its multi-pin key as a prefix.
+      expect(two.pinnedRows).toHaveLength(2);
+      expect(two.getPinnedTooltip(ready, true).content).toStrictEqual('%nav.pinnedCluster.explore%');
+      expect(two.getPinnedTooltip(blocked, true).content).toStrictEqual('%nav.pinnedCluster.blocked%');
+
+      const oneWrapper = await mountWithPinned(1);
+      const one = oneWrapper.vm as any;
+
+      expect(one.pinnedRows).toHaveLength(1);
+      expect(one.getPinnedTooltip(ready, true).content).toStrictEqual('%nav.pinnedCluster.exploreOnlyPinned%');
+      expect(one.getPinnedTooltip(blocked, true).content).toStrictEqual('%nav.pinnedCluster.blockedOnlyPinned%');
+
+      twoWrapper.unmount();
+      oneWrapper.unmount();
+    });
+
+    // ...and the copy of those two variants says the same thing minus the invitation.
+    it('says everything but the drag in the single-pin copy', () => {
+      const en = load(readFileSync(resolve(__dirname, '../../../assets/translations/en-us.yaml'), 'utf8')) as any;
+      const { exploreOnlyPinned, blockedOnlyPinned } = en.nav.pinnedCluster;
+
+      expect(exploreOnlyPinned).toContain('{name}');
+      expect(exploreOnlyPinned).not.toContain('drag');
+      expect(blockedOnlyPinned).toContain('{name}');
+      expect(blockedOnlyPinned).toContain('{reason}');
+      expect(blockedOnlyPinned).not.toContain('drag');
     });
 
     // Each row hangs the tooltip off two elements, one per nav state. Both answering would stack two
@@ -1770,7 +1856,21 @@ describe('topLevelMenu', () => {
         recentClusters:   [c('a'), c('r1'), c('local', true)],
       });
 
-      expect(rows.map((r: any) => r.id)).toStrictEqual(['a', 'b', 'p1', 'r1']);
+      // `local` is a row of the list like any other — and, being on the loaded page already, only once.
+      expect(rows.map((r: any) => r.id)).toStrictEqual(['a', 'b', 'local', 'p1', 'r1']);
+    });
+
+    // `local` reached only by the visit history — its page of the estate has not arrived yet — is still
+    // appended like any other recent cluster rather than held back.
+    it('appends local when the loaded page has not reached it', () => {
+      const rows = railAll({
+        searchActive:     false,
+        clustersFiltered: [c('a')],
+        pinFiltered:      [],
+        recentClusters:   [c('local', true)],
+      });
+
+      expect(rows.map((r: any) => r.id)).toStrictEqual(['a', 'local']);
     });
 
     // A search takes the fixed `local` tile down, so `local` is a candidate like any other and the

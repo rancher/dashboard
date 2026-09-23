@@ -296,7 +296,9 @@ nav:
   pinClusterError: Could not save your pinned clusters
   pinnedCluster:
     explore: Explore {name} or drag it to change the order of your pinned clusters
+    exploreOnlyPinned: Explore {name}
     blocked: You cannot explore {name} ({reason}), but you can drag it to change the order of your pinned clusters
+    blockedOnlyPinned: You cannot explore {name} ({reason})
   search:
     clusters: |-
       {count, plural,

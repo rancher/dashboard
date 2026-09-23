@@ -197,11 +197,13 @@ export default {
         return this.clustersFiltered;
       }
 
-      const rows = this.clustersFiltered.filter((c) => !c.isLocal);
+      // `local` belongs in ALL CLUSTERS like every other cluster — the tile above it is a shortcut, not
+      // the only way there. Only `hide-local-cluster` takes it out, and that is already applied upstream.
+      const rows = [...this.clustersFiltered];
       const seen = new Set(rows.map((c) => c.id));
 
       [...this.pinFiltered, ...this.recentClusters].forEach((c) => {
-        if (c.isLocal || seen.has(c.id)) {
+        if (seen.has(c.id)) {
           return;
         }
 
@@ -248,10 +250,10 @@ export default {
       return this.helper.counts?.others || 0;
     },
 
-    // How many clusters the ALL CLUSTERS list holds — the chip's number and the caption's. The helper counts
-    // this for the switcher alone, always without `local` (which has its own fixed tile above the list), so
-    // it is the total outright: nothing to subtract, and `hide-local-cluster` cannot move it. Deriving it
-    // from the count the home page and the Cluster Management badge share is what made it wobble by one.
+    // How many clusters the ALL CLUSTERS list holds — the chip's number and the caption's. `local` is one
+    // of them (its fixed tile above the list is a shortcut, not the only way there), so this is the same
+    // total the home page and the Cluster Management badge show, and the nav cannot disagree with the
+    // badge beside it. `hide-local-cluster` moves it by one, because it moves the list by one.
     browsableClusterCount() {
       return this.helper.counts?.browsable || 0;
     },
@@ -559,9 +561,9 @@ export default {
       this.updateClusters(this.pinnedIds, 'slow');
     },
 
-    // The saved count and the switcher's own are both fetched WITH these filters, so changing them makes
-    // both answers wrong for the home page, the Cluster Management badge and the chip — while the number
-    // of clusters sits still and nothing else asks again.
+    // The count is fetched WITH these filters, so changing them makes the answer wrong for the home page,
+    // the Cluster Management badge and the chip alike — while the number of clusters sits still and
+    // nothing else asks again.
     clusterFilters() {
       this.helper.updateCount(this.clusterCountsFromCounts);
     },
@@ -1095,6 +1097,9 @@ export default {
      *
      * A row that cannot be explored says why, so "nothing happens when I click it" has an answer in the
      * same place as the invitation to drag it.
+     *
+     * Dragging is how the shelf is REORDERED, so with one row pinned there is no order to change and the
+     * invitation is simply wrong — the copy drops it and says only what the row does.
      */
     getPinnedTooltip(cluster, showWhenClosed = false) {
       const rightState = showWhenClosed ? !this.shown : this.shown;
@@ -1110,7 +1115,12 @@ export default {
       }
 
       const { label: name, ready, stateDisplay: reason } = cluster;
-      const content = ready ? this.t('nav.pinnedCluster.explore', { name }) : this.t('nav.pinnedCluster.blocked', { name, reason });
+      const reorderable = this.pinnedRows.length > 1;
+      // Every variant is picked at runtime, so no key appears literally after `t(` for `check-i18n` to
+      // find — declare the node it chooses from, or an unused-string sweep deletes copy that is in use.
+      // i18n-uses nav.pinnedCluster.*
+      const key = ready ? 'nav.pinnedCluster.explore' : 'nav.pinnedCluster.blocked';
+      const content = this.t(reorderable ? key : `${ key }OnlyPinned`, { name, reason });
 
       return {
         content,
@@ -1305,9 +1315,8 @@ export default {
             </div>
             <!-- The cluster-switcher "door": the top of the cluster area, IDENTICAL expanded and collapsed —
                  the count chip sits in the icon lane, and the expanded nav adds the "Cluster Switch"
-                 label plus the trailing chevron (the collapsed rail clips both). Gated on the BROWSABLE
-                 count (not the raw total, which includes local), so there's no empty "0" flyout when
-                 local is the only cluster. -->
+                 label plus the trailing chevron (the collapsed rail clips both). Gated on the same total
+                 the chip shows, so the door is down only when the flyout would have nothing to list. -->
             <div
               v-if="browsableClusterCount > 0"
               class="cluster-door"
