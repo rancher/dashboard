@@ -210,7 +210,7 @@ export default {
 
       // Determine the field and value based on type
       const field = this.isNamespace ? 'metadata.namespace' : 'involvedObject.uid';
-      const value = this.isNamespace ? this.value.metadata.name : this.value.metadata.uid;
+      const value = this.isNamespace ? this.value?.metadata?.name : this.value?.metadata?.uid;
 
       // Check if a filter for this field already exists
       const existing = pagination.filters.find((f) => f.fields.some((ff) => ff.field === field));

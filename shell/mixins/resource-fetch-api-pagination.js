@@ -228,8 +228,14 @@ export default {
      * @returns {{filters: PaginationParamFilter[], projectsOrNamespaces: any[]}}
      */
     paginationScope() {
-      // A copy, because `apiFilter` appends to the array it is handed
+      // A copy, because `apiFilter` appends to the array it is handed.
+      //
+      // Shaped like a whole request rather than just the two fields the scope is about: the
+      // `apiFilter` this is handed to is a page's own, written against a real one, and a filter
+      // that rewrites a sort field should find an empty list rather than trip over a missing one.
       const scope = {
+        page:                 1,
+        sort:                 [],
         filters:              [...this.requestFilters.filters],
         projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
       };
