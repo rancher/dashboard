@@ -59,8 +59,7 @@ export default {
   watch: {
     options(curr) {
       if (curr.length === 0) {
-        // Same contract as restoreWorkspace: correct the selection in use, never the stored preference.
-        this.$store.commit('updateWorkspace', { value: '', getters: this.$store.getters });
+        this.$store.dispatch('restoreWorkspace', { value: '' });
       }
 
       const currentExists = curr.find((item) => item.value === this.value);
@@ -89,16 +88,13 @@ export default {
   },
 
   methods: {
-    // The store validates against the workspaces it knows about, but when the user cannot list them
-    // the options come from the workspace-annotated namespaces instead, which the store cannot see.
-    // Correct against the options that are actually rendered in that case.
+    // The store corrects the value against the workspaces it knows about, but when the user cannot
+    // list them the options come from the workspace-annotated namespaces instead, which the store
+    // cannot see. Correct against the options that are actually rendered in that case.
     restoreSelection(value) {
-      if (this.allWorkspaces.length) {
-        this.$store.dispatch('restoreWorkspace', { value });
-      } else {
-        // Same contract as restoreWorkspace: correct the selection in use, never the stored preference.
-        this.$store.commit('updateWorkspace', { value: this.options[0]?.value, getters: this.$store.getters });
-      }
+      const correction = this.allWorkspaces.length ? value : this.options[0]?.value;
+
+      this.$store.dispatch('restoreWorkspace', { value: correction });
     },
 
     focus() {
