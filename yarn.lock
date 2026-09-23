@@ -6616,19 +6616,6 @@ co@^4.6.0:
   resolved "https://registry.npmjs.org/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
   integrity sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==
 
-codemirror-editor-vue3@2.8.0:
-  version "2.8.0"
-  resolved "https://registry.npmjs.org/codemirror-editor-vue3/-/codemirror-editor-vue3-2.8.0.tgz#5d7e3c8bc1fac88e64f349fa03f8aac2e6b7a845"
-  integrity sha512-ebYGNhBpLmQNLguXzNyMMkn6K8v3lcS5/Ncvdn6YS4bLGEHE67MfsJIS/WV0L7I6WavUuFlY/Rs/AJKChIwSwg==
-  dependencies:
-    codemirror "^5"
-    diff-match-patch "^1.0.5"
-
-codemirror@5.65.21, codemirror@^5:
-  version "5.65.21"
-  resolved "https://registry.npmjs.org/codemirror/-/codemirror-5.65.21.tgz#cacf320606c5450ad3b3da34bb9c666afec21068"
-  integrity sha512-6teYk0bA0nR3QP0ihGMoxuKzpl5W80FpnHpBJpgy66NK3cZv5b/d/HY8PnRvfSsCG1MTfr92u2WUl+wT0E40mQ==
-
 collect-v8-coverage@^1.0.0:
   version "1.0.3"
   resolved "https://registry.npmjs.org/collect-v8-coverage/-/collect-v8-coverage-1.0.3.tgz#cc1f01eb8d02298cbc9a437c74c70ab4e5210b80"
@@ -7838,11 +7825,6 @@ detect-node@^2.0.4:
   version "2.1.0"
   resolved "https://registry.npmjs.org/detect-node/-/detect-node-2.1.0.tgz#c9c70775a49c3d03bc2c06d9a73be550f978f8b1"
   integrity sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==
-
-diff-match-patch@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.npmjs.org/diff-match-patch/-/diff-match-patch-1.0.5.tgz#abb584d5f10cd1196dfc55aa03701592ae3f7b37"
-  integrity sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==
 
 diff-sequences@^29.6.3:
   version "29.6.3"
