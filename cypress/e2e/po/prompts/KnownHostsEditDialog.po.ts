@@ -6,7 +6,7 @@ export default class KnownHostsEditDialogPo extends ComponentPo {
   }
 
   set(value: string): Cypress.Chainable {
-    return this.self().get('[data-testid="ssh-known-hosts-dialog_code-mirror"]').type(value);
+    return this.self().get('[data-testid="ssh-known-hosts-dialog_code-mirror"] .cm-content').type(value);
   }
 
   save() {
