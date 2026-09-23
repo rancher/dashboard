@@ -1,6 +1,6 @@
 import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+// import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
@@ -14,7 +14,7 @@ const settingsPage = new SettingsPagePo(settingsClusterId);
 const homePage = new HomePagePo();
 const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
-const burgerMenu = new BurgerMenuPo();
+// const burgerMenu = new BurgerMenuPo();
 const settingsOriginal = {};
 let removeServerUrl = false;
 const resetSettings = [];

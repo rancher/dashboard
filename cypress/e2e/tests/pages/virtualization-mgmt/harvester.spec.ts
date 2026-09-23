@@ -1,18 +1,18 @@
-import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
-import { HarvesterClusterDetailsPo, HarvesterClusterPagePo } from '@/cypress/e2e/po/pages/virtualization-mgmt/harvester-clusters.po';
-import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+// import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
+// import { HarvesterClusterDetailsPo, HarvesterClusterPagePo } from '@/cypress/e2e/po/pages/virtualization-mgmt/harvester-clusters.po';
+// import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
+// import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+// import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
-const extensionsPo = new ExtensionsPagePo();
-const harvesterPo = new HarvesterClusterPagePo();
-const appRepoList = new RepositoriesPagePo(undefined, 'manager');
+// const extensionsPo = new ExtensionsPagePo();
+// const harvesterPo = new HarvesterClusterPagePo();
+// const appRepoList = new RepositoriesPagePo(undefined, 'manager');
 
-let harvesterClusterName = '';
+// let harvesterClusterName = '';
 const harvesterGitRepoName = 'harvester';
-const harvesterTitle = 'Harvester';
-const branchName = 'gh-pages';
-const harvesterGitRepoUrl = 'https://github.com/harvester/harvester-ui-extension.git';
+// const harvesterTitle = 'Harvester';
+// const branchName = 'gh-pages';
+// const harvesterGitRepoUrl = 'https://github.com/harvester/harvester-ui-extension.git';
 
 /**
  * Conditional retry for Harvester extension installation based on UI warning message
@@ -20,27 +20,27 @@ const harvesterGitRepoUrl = 'https://github.com/harvester/harvester-ui-extension
  * and reloads the page to retry if detected
  * Need conditional retry until this is resolved https://github.com/rancher/dashboard/issues/13093
  */
-function conditionalRetryHarvesterInstallation() {
-  // Check if the installation failed warning is displayed
-  harvesterPo.extensionWarning().then(($warning) => {
-    if ($warning.text().includes('Warning, Harvester UI extension automatic installation failed')) {
-      cy.log('Detected Harvester installation failed warning, reloading page and retrying...');
-      cy.reload();
-      harvesterPo.waitForPage();
-      // Second attempt at installation after reload...
-      harvesterPo.updateOrInstallButton().click();
-    } else {
-      cy.log('No installation failed warning detected, proceeding normally');
-    }
-  });
-}
+// function conditionalRetryHarvesterInstallation() {
+//   // Check if the installation failed warning is displayed
+//   harvesterPo.extensionWarning().then(($warning) => {
+//     if ($warning.text().includes('Warning, Harvester UI extension automatic installation failed')) {
+//       cy.log('Detected Harvester installation failed warning, reloading page and retrying...');
+//       cy.reload();
+//       harvesterPo.waitForPage();
+//       // Second attempt at installation after reload...
+//       harvesterPo.updateOrInstallButton().click();
+//     } else {
+//       cy.log('No installation failed warning detected, proceeding normally');
+//     }
+//   });
+// }
 
 describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
-    cy.createE2EResourceName('harvesterclustername').then((name) => {
-      harvesterClusterName = name;
-    });
+    // cy.createE2EResourceName('harvesterclustername').then((name) => {
+    //   harvesterClusterName = name;
+    // });
   });
 
   /**
@@ -50,7 +50,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
    *
    * (pattern needs fixing)
    */
-  
+
   // it('can auto install harvester and begin process of importing a harvester cluster', () => {
   //   cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createHarvesterChart');
   //   cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }`).as('updateHarvesterChart');
