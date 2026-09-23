@@ -5,6 +5,7 @@ import { mapGetters } from 'vuex';
 
 import { labelForAddon } from '@shell/utils/cluster';
 import { resourceNames } from '@shell/utils/string';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -12,6 +13,7 @@ export default {
   components: {
     Card,
     AsyncButton,
+    RcButton
   },
   props: {
     resources: {
@@ -110,13 +112,14 @@ export default {
     <template #actions>
       <div class="bottom">
         <div class="buttons">
-          <button
+          <rc-button
             type="button"
-            class="btn role-secondary mr-10"
+            variant="secondary"
+            class="mr-10"
             @click="close"
           >
             {{ t('generic.cancel') }}
-          </button>
+          </rc-button>
           <AsyncButton
             mode="continue"
             @click="apply"
