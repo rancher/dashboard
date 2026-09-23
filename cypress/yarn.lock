@@ -219,19 +219,20 @@
   resolved "https://registry.yarnpkg.com/@cypress/vue/-/vue-5.0.5.tgz#dabd4c8a4c2ade95d1be8a3289fdcd11793abee5"
   integrity sha512-gjE0LKixK6XT4lPDFaEc8G6qNzm8YELgmbOiMVDxbVMuTtjYjorWQcIgzQ62uBX90/s7JrldXJ0W23gskoH4Ng==
 
-"@cypress/webpack-dev-server@3.4.1":
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/@cypress/webpack-dev-server/-/webpack-dev-server-3.4.1.tgz#d706437624a386022d75fd9c326b9f010fd3a854"
-  integrity sha512-S6IUklDXIkcajtkjtLZz8nzVMuG/kjEKnRVkAiIyJL3EZ+EHcXgrUQegfRb15poFlk4SZ/AMLRMqLSB6KCCxkg==
+"@cypress/webpack-dev-server@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@cypress/webpack-dev-server/-/webpack-dev-server-4.0.0.tgz#ec39ec3f1fbb37543c82d7bbf41f0b49ce6eaa28"
+  integrity sha512-c4Uf0zPm5vNPhIsRSmYhhfgUejDN4RNEPwjD88bKDFNHFdsNXJPzNCJVck7ttY1M/W+YVfl30B1fWv+wf9FQzw==
   dependencies:
     find-up "6.3.0"
     fs-extra "9.1.0"
     html-webpack-plugin-4 "npm:html-webpack-plugin@^4"
     html-webpack-plugin-5 "npm:html-webpack-plugin@^5"
     local-pkg "0.4.1"
+    semver "^7.5.3"
     speed-measure-webpack-plugin "1.4.2"
     tslib "^2.3.1"
-    webpack-dev-server "^4.7.4"
+    webpack-dev-server "^5.1.0"
     webpack-merge "^5.4.0"
 
 "@cypress/webpack-preprocessor@^6.0.0":
@@ -1716,6 +1717,16 @@ axios@^1.16.0:
     https-proxy-agent "^5.0.1"
     proxy-from-env "^2.1.0"
 
+axios@^1.18.1:
+  version "1.19.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.19.0.tgz#ddf864d4c8233c0e6873746ab59361537d05ad39"
+  integrity sha512-ht/iuYZXEjFxLH/Hkezgd7m6JKlHHXEUSneaDz8uZe1Gj5QZtCnpyDsckvAiEnT89OEbCLmnte4R4sn7P0EKFw==
+  dependencies:
+    follow-redirects "^1.16.0"
+    form-data "^4.0.6"
+    https-proxy-agent "^5.0.1"
+    proxy-from-env "^2.1.0"
+
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
@@ -2349,12 +2360,12 @@ cypress-multi-reporters@1.6.4:
     debug "^4.3.4"
     lodash "^4.17.21"
 
-cypress-qase-reporter@3.6.3:
-  version "3.6.3"
-  resolved "https://registry.yarnpkg.com/cypress-qase-reporter/-/cypress-qase-reporter-3.6.3.tgz#89711133d33190eab15b378ef0e65869f6055142"
-  integrity sha512-Im9yCwRbFTiSepdB+iikle69PNQRegzKFgmP2ZsVD0EhZj0ns3Gw4jABaOXZVWW6W4jeLm5folKJQWWpzI3YFw==
+cypress-qase-reporter@3.7.0:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/cypress-qase-reporter/-/cypress-qase-reporter-3.7.0.tgz#ae069089dfd64cfc28f0fcf355d3aa95bfb9d6a4"
+  integrity sha512-T/3m9otdB3Wp5+AlTDf39Goz4csDWU3fQzj9lbgrBe0X+bLmmTjk82D8m30xSfN3JTi6T1EcQJeKXOw7N6gPWg==
   dependencies:
-    qase-javascript-commons "~2.7.2"
+    qase-javascript-commons "~2.9.0"
     uuid "11.1.1"
 
 cypress-real-events@1.15.0:
@@ -2362,10 +2373,10 @@ cypress-real-events@1.15.0:
   resolved "https://registry.yarnpkg.com/cypress-real-events/-/cypress-real-events-1.15.0.tgz#b84ed97455238139ac3d0c8f803991b30f22fc8a"
   integrity sha512-in98xxTnnM9Z7lZBvvVozm99PBT2eEOjXRG5LKWyYvQnj9mGWXMiPNpfw7e7WiraBFh7XlXIxnE9Cu5o+52kQQ==
 
-cypress-terminal-report@^7.2.0:
-  version "7.3.3"
-  resolved "https://registry.yarnpkg.com/cypress-terminal-report/-/cypress-terminal-report-7.3.3.tgz#7ebc23559a7c2da0ca937402b1e0d88b6544a213"
-  integrity sha512-fj543YnOrA3B7gTQEOLvcnvxzmYDNpdO2IOgoY518o+x8Z3foknE4nnZLTa4kOHWD6aOMdOvGSls8moAUglMOA==
+cypress-terminal-report@7.2.0:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/cypress-terminal-report/-/cypress-terminal-report-7.2.0.tgz#25ac50f50f962c93eed4956ac6076a1f00e42af8"
+  integrity sha512-5LeRy3kEY9S/qPpQRVvbaPELdjx4DVk1WCo7rKK0+O+cNZNzbNyWYlaNVHhTiHDGH1lEQFra/1L49ngtM/6whg==
   dependencies:
     chalk "^4.0.0"
     compare-versions "^6.1.1"
@@ -2669,19 +2680,19 @@ dot-case@^3.0.4:
     no-case "^3.0.4"
     tslib "^2.0.3"
 
+dotenv-expand@5.1.0:
+  version "5.1.0"
+  resolved "https://registry.npmjs.org/dotenv-expand/-/dotenv-expand-5.1.0.tgz#3fbaf020bfd794884072ea26b1e9791d45a629f0"
+  integrity sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==
+
 dotenv-expand@^10.0.0:
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/dotenv-expand/-/dotenv-expand-10.0.0.tgz#12605d00fb0af6d0a592e6558585784032e4ef37"
   integrity sha512-GopVGCpVS1UKH75VKHGuQFqS1Gusej0z4FyQkPdwjil2gNIv+LNsqBlboOzpJFZKVT95GkCyWJbBSdFEFUWI2A==
 
-dotenv-expand@^5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/dotenv-expand/-/dotenv-expand-5.1.0.tgz#3fbaf020bfd794884072ea26b1e9791d45a629f0"
-  integrity sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==
-
-dotenv@^10.0.0:
+dotenv@10.0.0:
   version "10.0.0"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-10.0.0.tgz#3d4227b8fb95f81096cdd2b66653fb2c7085ba81"
+  resolved "https://registry.npmjs.org/dotenv/-/dotenv-10.0.0.tgz#3d4227b8fb95f81096cdd2b66653fb2c7085ba81"
   integrity sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==
 
 dotenv@^16.0.0, dotenv@^16.3.1:
@@ -3204,7 +3215,7 @@ forever-agent@~0.6.1:
   resolved "https://registry.yarnpkg.com/forever-agent/-/forever-agent-0.6.1.tgz#fbc71f0c41adeb37f96c577ad1ed42d8fdacca91"
   integrity sha512-j0KLYPhm6zeac4lz3oJ3o65qvgQCcPubiyotZrXqEaG4hNagNYO8qdlUrX5vwqv9ohqeT/Z3j6+yW067yWWdUw==
 
-form-data@^4.0.5, form-data@~4.0.4:
+form-data@^4.0.5, form-data@^4.0.6, form-data@~4.0.4:
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.6.tgz#28e864e1b786dbebb68db1f452f9635278665827"
   integrity sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==
@@ -4307,14 +4318,14 @@ jsprim@^2.0.2:
     json-schema "0.4.0"
     verror "1.10.0"
 
-junit-report-merger@9.0.3:
-  version "9.0.3"
-  resolved "https://registry.yarnpkg.com/junit-report-merger/-/junit-report-merger-9.0.3.tgz#eea017d7fb2433e8b6b44fdb71dd8d7078124f4c"
-  integrity sha512-Z7r4qCVp2w/SwmcJPWseA4jgzlcAw6xgbd665tWlMHQGu5RGAo+fr/4tT93/VFgD+elP8gkFqidBcDwk2SQZcg==
+junit-report-merger@9.0.4:
+  version "9.0.4"
+  resolved "https://registry.yarnpkg.com/junit-report-merger/-/junit-report-merger-9.0.4.tgz#f913cc26b7aac268da186a6edf1e8252de38f803"
+  integrity sha512-xaUr0LND4X0/Q9hEcU55bKLznmgHqCDuLl6YWmniOVwRBxE4UzXr6e/1YOjwa4TsCN/Gw1YKTdPVVq72vQ4u7A==
   dependencies:
     commander "~14.0.0"
     tinyglobby "^0.2.15"
-    xmlbuilder2 "4.0.1"
+    xmlbuilder2 "4.0.3"
 
 keyv@^4.0.0:
   version "4.5.4"
@@ -4427,11 +4438,6 @@ lodash.foreach@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.foreach/-/lodash.foreach-4.5.0.tgz#1a6a35eace401280c7f06dddec35165ab27e3e53"
   integrity sha512-aEXTF4d+m05rVOAUG3z4vZZ4xVexLKZGF0lIxuHZ1Hplpk/3B6Z1+/ICICYRLm7c41Z2xiejbkCkJoTlypoXhQ==
-
-lodash.get@^4.4.2:
-  version "4.4.2"
-  resolved "https://registry.yarnpkg.com/lodash.get/-/lodash.get-4.4.2.tgz#2d177f652fa31e939b4438d5341499dfa3825e99"
-  integrity sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==
 
 lodash.has@^4.5.2:
   version "4.5.2"
@@ -5504,30 +5510,29 @@ qase-api-client@~1.1.9:
     axios "^1.16.0"
     axios-retry "^4.5.0"
 
-qase-api-v2-client@~1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/qase-api-v2-client/-/qase-api-v2-client-1.0.9.tgz#491cacad2207efde1fac93e8a5109c0920329270"
-  integrity sha512-Xw+jivNicP5t5Uq3HOCMRss0P3t27NGJl7VQHfWcS/YiiFKdRqHmedx8aDfCYed4lObMVYGXOn/c1XImLRKLNQ==
+qase-api-v2-client@~1.0.10:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/qase-api-v2-client/-/qase-api-v2-client-1.0.11.tgz#5ee6b03a96aac4f729ae25f54f3f0bd4eb4df4da"
+  integrity sha512-f5OoNSwpwl8aac91O/S6442pOTDeKvsXMSOhH5mbBjQrFEQyMfIMqcl44uOE5Nk4tZKTxwqDUpy8Iw6pF0jtGQ==
   dependencies:
-    axios "^1.16.0"
+    axios "^1.18.1"
     axios-retry "^4.5.0"
 
-qase-javascript-commons@~2.7.2:
-  version "2.7.5"
-  resolved "https://registry.yarnpkg.com/qase-javascript-commons/-/qase-javascript-commons-2.7.5.tgz#3d8884dd55fd1cd6473e2cb8d30feca341cefe65"
-  integrity sha512-ERVfpMXPKAU+QyQn9DRZ0Yw6FEEPnFDmVurGrCXenkGee6wuU0Rw2IAUO0SJUbxS9AL1Gzc7uHvOOtsqlOxn8A==
+qase-javascript-commons@~2.9.0:
+  version "2.9.2"
+  resolved "https://registry.yarnpkg.com/qase-javascript-commons/-/qase-javascript-commons-2.9.2.tgz#f16e8cb3667969c93f02a319f4a6328045f4f5e1"
+  integrity sha512-N7RgYEuW/c6ebrI4gBRwY9lgGceIsFbCQb5U0f9AEpIADbkR6rrQELbHMhEMaoeVsazqFRVA3QqWkw24FCAeqw==
   dependencies:
     ajv "^8.18.0"
     async-mutex "~0.5.0"
     chalk "^4.1.2"
     env-schema "^5.2.1"
-    form-data "^4.0.5"
-    lodash.get "^4.4.2"
+    form-data "^4.0.6"
     lodash.merge "^4.6.2"
     lodash.mergewith "^4.6.2"
     mime-types "^2.1.35"
     qase-api-client "~1.1.9"
-    qase-api-v2-client "~1.0.9"
+    qase-api-v2-client "~1.0.10"
     strip-ansi "^6.0.1"
     uuid "11.1.1"
 
@@ -5967,9 +5972,9 @@ setprototypeof@1.2.0, setprototypeof@~1.2.0:
   resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.2.0.tgz#66c9a24a73f9fc28cbe66b09fed3d33dcaf1b424"
   integrity sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==
 
-sha.js@^2.4.12:
+sha.js@2.4.12:
   version "2.4.12"
-  resolved "https://registry.yarnpkg.com/sha.js/-/sha.js-2.4.12.tgz#eb8b568bf383dfd1867a32c3f2b74eb52bdbf23f"
+  resolved "https://registry.npmjs.org/sha.js/-/sha.js-2.4.12.tgz#eb8b568bf383dfd1867a32c3f2b74eb52bdbf23f"
   integrity sha512-8LzC5+bvI45BjpfXU8V5fdU2mfeKiQe1D1gIMn7XUlF3OTUrpdJpPPH4EMAnF0DsHHdSZqCdSss5qCmJKuiO3w==
   dependencies:
     inherits "^2.0.4"
@@ -6681,7 +6686,7 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@^5.9.3:
+typescript@5.9.3:
   version "5.9.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.3.tgz#5b4f59e15310ab17a216f5d6cf53ee476ede670f"
   integrity sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==
@@ -6795,7 +6800,7 @@ webpack-dev-middleware@^7.4.2:
     range-parser "^1.2.1"
     schema-utils "^4.0.0"
 
-webpack-dev-server@5.2.6, webpack-dev-server@^4.7.4:
+webpack-dev-server@5.2.6, webpack-dev-server@^5.1.0:
   version "5.2.6"
   resolved "https://registry.yarnpkg.com/webpack-dev-server/-/webpack-dev-server-5.2.6.tgz#3a5d41233cbb7504f814d19e59a59173fb8ae23d"
   integrity sha512-HNLRmamRvVavZQ+avceZifmv8hmdUjg43t6MI4SqJDwFdW7RPQwH5vzGhDRZSX59SgfbeHhLnq3g+uooWo7pVw==
@@ -6993,10 +6998,10 @@ xml@^1.0.1:
   resolved "https://registry.yarnpkg.com/xml/-/xml-1.0.1.tgz#78ba72020029c5bc87b8a81a3cfcd74b4a2fc1e5"
   integrity sha512-huCv9IH9Tcf95zuYCsQraZtWnJvBtLVE0QHMOs8bWyZAFZNDcYjsPq1nEx8jKA9y+Beo9v+7OBPRisQTjinQMw==
 
-xmlbuilder2@4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/xmlbuilder2/-/xmlbuilder2-4.0.1.tgz#424d6b53e2e763d7f90c54684773d9f85c36bb9b"
-  integrity sha512-vXeky0YRVjhx5pseJDQLk0F6u7gyA8++ceVOS88r4dWu4lWdY/ZjbL45QrN+g0GzZLg1D5AkzThpikZa98SC/g==
+xmlbuilder2@4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/xmlbuilder2/-/xmlbuilder2-4.0.3.tgz#91660fa6d30f19d716f8b1194c567686d4402c63"
+  integrity sha512-bx8Q1STctnNaaDymWnkfQLKofs0mGNN7rLLapJlGuV3VlvegD7Ls4ggMjE3aUSWItCCzU0PEv45lI87iSigiCA==
   dependencies:
     "@oozcitak/dom" "^2.0.2"
     "@oozcitak/infra" "^2.0.2"
