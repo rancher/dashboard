@@ -434,7 +434,6 @@ about:
   title: About
   versions:
     downloadImages: "Download {listName} images list"
-    downloadCli: "Download CLI for {os}: {file}"
     githubRepo: "Open GitHub repository for the {name} component"
     title: Versions
     component: Component
@@ -444,14 +443,12 @@ about:
     machine: Machine
     rancher: Rancher
     releaseNotes: 'View release notes'
-  os:
-    mac: macOS
-    windows: Windows
-    linux: Linux
   downloadImageList:
     title: Image Lists
-  downloadCLI:
-    title: CLI Downloads
+  cli:
+    title: "{vendor} CLI"
+    description: The {vendor} CLI lets you manage clusters, projects and resources from the command line. Builds are available for a range of operating systems and architectures, and the documentation covers how to download and install them.
+    docsLink: View {vendor} CLI documentation
   diagnostic:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
