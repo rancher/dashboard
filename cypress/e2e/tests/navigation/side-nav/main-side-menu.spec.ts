@@ -176,6 +176,24 @@ describe('Side Menu: main', () => {
       burgerMenuPo.clusterSearchResults().should('have.length', 1).and('contain.text', fakeProvClusterId);
     });
 
+    // The roll-out wipe clips the flyout with one distance across both axes, so a short window used to
+    // leave it cutting the panel's width as well as its height.
+    it('Keeps the cluster switcher at full width on a short window', { tags: ['@navigation', '@adminUser'] }, () => {
+      const burgerMenuPo = new BurgerMenuPo();
+
+      burgerMenuPo.openClusterSwitcher();
+      cy.viewport(1280, 360);
+
+      BurgerMenuPo.clusterSwitcherFlyout().should(($flyout) => {
+        const flyout = $flyout[0];
+        const rect = flyout.getBoundingClientRect();
+        // clip-path clips hit-testing too, so the right edge only answers here while it is still painted.
+        const atRightEdge = flyout.ownerDocument.elementFromPoint(rect.right - 2, rect.top + 20);
+
+        expect(flyout.contains(atRightEdge), 'flyout right edge is clipped').to.equal(true);
+      });
+    });
+
     it('Can display at least one menu category label', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
