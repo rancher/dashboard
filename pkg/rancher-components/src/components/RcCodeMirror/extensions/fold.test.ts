@@ -1,7 +1,7 @@
 import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import {
-  codeFolding, foldable, foldedRanges, foldService, ensureSyntaxTree
+  codeFolding, foldable, foldedRanges, foldService, ensureSyntaxTree, syntaxTreeAvailable
 } from '@codemirror/language';
 import { yaml } from '@codemirror/lang-yaml';
 import {
@@ -248,14 +248,16 @@ describe('fold extensions', () => {
     });
 
     it('should fold a language fold range beyond the initially parsed content', () => {
-      const filler = Array.from({ length: 5000 }, (_, i) => `key${ i }: value`).join('\n');
+      const filler = Array.from({ length: 500 }, (_, i) => `key${ i }: value`).join('\n');
       const doc = `${ filler }\nstatus:\n  phase: Running\n`;
       const view = new EditorView({ state: EditorState.create({ doc, extensions: [codeFolding(), yaml()] }) });
-      const status = view.state.doc.line(5001);
+      const status = view.state.doc.line(501);
+
+      expect(syntaxTreeAvailable(view.state, status.to)).toBe(false);
 
       foldMatchingLines(view, /^status:\s*$/);
 
-      expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(5002).to }]);
+      expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(502).to }]);
     });
   });
 
