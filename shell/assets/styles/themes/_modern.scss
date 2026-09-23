@@ -366,6 +366,7 @@ BODY, .theme-light {
 
   --error                    : #{$error};
   --error-text               : #{contrast-color($error)};
+  --on-error                 : #{contrast-color($error)};
   --error-hover-bg           : #{darken($error, 10%)};
   --error-hover-text         : #{saturate($lightest, 20%)};
   --error-active-bg          : #{darken($error, 25%)};
@@ -1100,6 +1101,7 @@ BODY, .theme-dark {
   --rc-image-color: #{$darkest};
 
   --error-text    : #FFAC99;
+  --on-error      : #{contrast-color($error)};
   --warning-text  : #{contrast-color($warning)};
 
   --success-badge     : #{rgba($success, 10%)};

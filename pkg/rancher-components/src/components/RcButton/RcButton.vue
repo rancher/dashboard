@@ -14,18 +14,20 @@ import {
   ButtonVariantNewProps,
   ButtonSizeNewProps,
   ButtonSize,
+  ButtonVariant,
   IconProps,
   NavigationProps,
 } from './types';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
-const buttonVariants: { variant: keyof ButtonVariantProps, className: string }[] = [
+const buttonVariants: { variant: ButtonVariant, className: string }[] = [
   { variant: 'primary', className: 'variant-primary' },
   { variant: 'secondary', className: 'variant-secondary' },
   { variant: 'tertiary', className: 'variant-tertiary' },
   { variant: 'link', className: 'variant-link' },
   { variant: 'multiAction', className: 'variant-multi-action' },
   { variant: 'ghost', className: 'variant-ghost' },
+  { variant: 'error', className: 'variant-error' },
 ];
 
 const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
@@ -92,7 +94,7 @@ const activeVariantClassName = computed(() => {
     console.warn('[RcButton] The "multiAction" variant is deprecated and will be removed in a future version.'); // eslint-disable-line no-console
   }
 
-  const activeVariant = buttonVariants.find(({ variant }) => props[variant]);
+  const activeVariant = buttonVariants.find(({ variant }) => (props as Record<string, unknown>)[variant]);
 
   if (activeVariant) {
     console.warn( // eslint-disable-line no-console
@@ -347,6 +349,40 @@ defineExpose({ focus });
     &:focus-visible {
       @include focus-outline;
       outline-offset: 0;
+    }
+  }
+
+  &.variant-error {
+    background: var(--error);
+    color: var(--on-error, var(--error-text));
+
+    &:hover, &._hover {
+      background-color: var(--error-hover-bg);
+      color: var(--error-hover-text);
+    }
+
+    &:focus, &.focused {
+      background-color: var(--error-hover-bg);
+      color: var(--error-hover-text);
+    }
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
+
+    &:active {
+      background-color: var(--error-active-bg);
+      color: var(--error-active-text);
+    }
+
+    &:disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
     }
   }
 

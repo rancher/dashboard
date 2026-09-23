@@ -57,13 +57,14 @@ export default {
         {{ t('generic.cancel') }}
       </rc-button>
       <div class="spacer" />
-      <button
-        class="btn role-primary bg-error ml-10"
+      <rc-button
+        variant="error"
+        class="ml-10"
         :data-testid="componentTestid + '-confirm-button'"
         @click="disable"
       >
         {{ t('generic.disable') }}
-      </button>
+      </rc-button>
     </template>
   </Card>
 </template>

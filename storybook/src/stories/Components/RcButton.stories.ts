@@ -7,9 +7,9 @@ const meta: Meta<typeof RcButton> = {
   component: RcButton,
   argTypes:  {
     variant: {
-      options:     ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'] as ButtonVariant[],
+      options:     ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost', 'error'] as ButtonVariant[],
       control:     { type: 'select' },
-      description: 'Determines the visual style and purpose of the button. Primary for main actions, secondary for supporting actions, tertiary for less prominent actions, link for navigation, multiAction for dropdown buttons, and ghost for transparent buttons.'
+      description: 'Determines the visual style and purpose of the button. Primary for main actions, secondary for supporting actions, tertiary for less prominent actions, link for navigation, multiAction for dropdown buttons, ghost for transparent buttons, and error for destructive actions.'
     },
     size: {
       options:     ['small', 'medium', 'large'] as ButtonSize[],
@@ -59,7 +59,7 @@ export const AllVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
+      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost', 'error'];
 
       return { variants };
     },
@@ -90,7 +90,7 @@ export const DisabledVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
+      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost', 'error'];
 
       return { variants };
     },
