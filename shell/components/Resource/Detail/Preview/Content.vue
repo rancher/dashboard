@@ -56,7 +56,7 @@ const bodyHtml = computed(() => {
 
 <style lang="scss" scoped>
 :deep() {
-    .CodeMirror-gutters {
+    .cm-gutters {
         display: none;
     }
 }

@@ -6,7 +6,6 @@ import 'vue3-resize/dist/vue3-resize.css';
 
 // import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
-import '@shell/plugins/js-yaml';
 
 import i18n from '@shell/plugins/i18n';
 import globalFormatters from '@shell/plugins/global-formatters';
@@ -14,8 +13,6 @@ import globalFormatters from '@shell/plugins/global-formatters';
 import axios from '@shell/utils/axios';
 import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
-import codeMirror from '@shell/plugins/codemirror-loader';
-import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
 import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
@@ -47,7 +44,6 @@ export async function installPlugins(vueApp) {
       // A surface that owns the screen silences the app's shortcuts while it is up.
       preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR]
     });
-  vueApp.use(InstallCodeMirror);
 }
 
 export async function installInjectedPlugins(app, vueApp) {
@@ -58,7 +54,6 @@ export async function installInjectedPlugins(app, vueApp) {
     pluginsLoader,
     axiosShell,
     intNumber,
-    codeMirror,
     dashboardClientInit,
     replaceAll,
     plugin,

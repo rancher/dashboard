@@ -316,9 +316,9 @@ export default {
   position: relative;
 
   :deep() .code-mirror {
-    .CodeMirror {
+    .cm-editor {
       background-color: var(--yaml-editor-bg);
-      & .CodeMirror-gutters {
+      & .cm-gutters {
         background-color: var(--yaml-editor-bg);
       }
     }

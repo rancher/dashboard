@@ -1,5 +1,12 @@
+import { EditorView } from '@codemirror/view';
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
+
+/**
+ * Editors are CodeMirror 6 (`.cm-editor`). CodeMirror 5 (`.CodeMirror`) is still supported for
+ * tests that run against older Rancher versions, such as the extension compatibility tests
+ */
+const EDITOR_SELECTOR = '.cm-editor, .CodeMirror';
 
 export default class CodeMirrorPo extends ComponentPo {
   static byLabel(self: CypressChainable, label: string): CodeMirrorPo {
@@ -9,8 +16,15 @@ export default class CodeMirrorPo extends ComponentPo {
   static bySelector(self: CypressChainable, selector: string): CodeMirrorPo {
     return new CodeMirrorPo(
       self
-        .find(`${ selector } .CodeMirror`, { includeShadowDom: true })
+        .find(EDITOR_SELECTOR.split(', ').map((editor) => `${ selector } ${ editor }`).join(', '), { includeShadowDom: true })
     );
+  }
+
+  /**
+   * Find the first editor on the page
+   */
+  static first(options?: Partial<Cypress.Timeoutable>): CodeMirrorPo {
+    return new CodeMirrorPo(cy.get(EDITOR_SELECTOR, options).first());
   }
 
   /**
@@ -23,22 +37,38 @@ export default class CodeMirrorPo extends ComponentPo {
 
     return this.input()
       .then(($codeMirror) => {
-        const codeMirrorInstance = $codeMirror[0].CodeMirror;
+        const legacyInstance = $codeMirror[0].CodeMirror;
 
-        codeMirrorInstance.setValue(value);
+        if (legacyInstance) {
+          legacyInstance.setValue(value);
+
+          return;
+        }
+
+        const view = EditorView.findFromDOM($codeMirror[0]);
+
+        view?.dispatch({
+          changes: {
+            from: 0, to: view.state.doc.length, insert: value
+          }
+        });
       });
   }
 
   clear() {
-    return this.input().clear();
+    return this.set('');
   }
 
   value(): Cypress.Chainable {
     return this.input()
       .then(($codeMirror) => {
-        const codeMirrorInstance = $codeMirror[0].CodeMirror;
+        const legacyInstance = $codeMirror[0].CodeMirror;
 
-        return codeMirrorInstance.getValue();
+        if (legacyInstance) {
+          return legacyInstance.getValue();
+        }
+
+        return EditorView.findFromDOM($codeMirror[0])?.state.doc.toString();
       });
   }
 

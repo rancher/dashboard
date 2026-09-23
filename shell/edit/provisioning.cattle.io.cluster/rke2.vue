@@ -278,7 +278,7 @@ export default {
       infrastructureClusterValid:               true,
       provisioningClusterValid:                 true,
       machinePoolErrors:                        {},
-      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
+      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether the code editor's yaml lint passed)
       stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasOnlyIpv6Pools
       allNamespaces:                            [],
       extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),

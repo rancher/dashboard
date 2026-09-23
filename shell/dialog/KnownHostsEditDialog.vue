@@ -34,15 +34,9 @@ export default {
 
   data() {
     const codeMirrorOptions = {
-      readOnly:        this.isView,
-      gutters:         ['CodeMirror-foldgutter'],
-      mode:            'text/x-properties',
-      lint:            false,
-      lineNumbers:     !this.isView,
-      styleActiveLine: false,
-      tabSize:         2,
-      indentWithTabs:  false,
-      cursorBlinkRate: 530,
+      readOnly:    this.isView,
+      mode:        null,
+      lineNumbers: !this.isView,
     };
 
     return {
@@ -151,19 +145,14 @@ export default {
           border: 1px solid var(--border);
         }
 
-        .CodeMirror,
-        .CodeMirror-gutters {
+        .cm-editor {
           min-height: 400px;
           max-height: 400px;
           background-color: var(--yaml-editor-bg);
         }
 
-        .CodeMirror-gutters {
-          width: 25px;
-        }
-
-        .CodeMirror-linenumber {
-          padding-left: 0;
+        .cm-gutters {
+          background-color: var(--yaml-editor-bg);
         }
       }
     }
