@@ -42,8 +42,13 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     headerPo.selectWorkspace(workspace);
     cy.wait('@workspacePreference');
 
+    // The switcher renders from the workspace list, and waiting for the page is not waiting for
+    // that request: assert too early and the selection still reads as the default with the options
+    // empty. Wait for the list the switcher is filled from.
+    cy.intercept('GET', '/v1/management.cattle.io.fleetworkspaces*').as('workspaceList');
     cy.reload();
     appBundlesPage.waitForPage();
+    cy.wait('@workspaceList');
     headerPo.checkCurrentWorkspace(workspace);
 
     // Leave the stored preference on the default, so the next test does not start out pointing at the
