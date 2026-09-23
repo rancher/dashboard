@@ -24,9 +24,12 @@
  *
  * The underlying EditorView is emitted with `ready` and exposed as `view` on
  * the component ref for anything the props do not cover.
+ *
+ * ARIA attributes (e.g. `aria-label`, `aria-labelledby`) are forwarded to the
+ * editor's textbox, so give every instance an accessible name with one of them.
  */
 import {
-  ref, shallowRef, onMounted, onBeforeUnmount, watch
+  ref, shallowRef, computed, onMounted, onBeforeUnmount, watch, useAttrs
 } from 'vue';
 import type { Extension } from '@codemirror/state';
 import { EditorState, Compartment } from '@codemirror/state';
@@ -55,6 +58,8 @@ import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
 import type { RcCodeMirrorProps, RcCodeMirrorTheme } from './types';
 
+defineOptions({ inheritAttrs: false });
+
 const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
   modelValue:   '',
   language:     undefined,
@@ -77,8 +82,27 @@ const emit = defineEmits<{
   'ready': [view: EditorView];
 }>();
 
+const attrs = useAttrs();
 const container = ref<HTMLDivElement>();
 const view = shallowRef<EditorView>();
+
+function isAriaAttribute(name: string): boolean {
+  return name.startsWith('aria-');
+}
+
+// CodeMirror renders the focusable textbox inside the container, so ARIA attributes go on
+// that rather than the container. Everything else still falls through to the container
+const containerAttrs = computed(() => Object.fromEntries(
+  Object.entries(attrs).filter(([name]) => !isAriaAttribute(name))
+));
+
+function ariaAttributes(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(attrs)
+      .filter(([name, value]) => isAriaAttribute(name) && value !== undefined && value !== null)
+      .map(([name, value]) => [name, String(value)])
+  );
+}
 
 // Compartments for hot-swappable extensions
 const languageCompartment = new Compartment();
@@ -87,6 +111,7 @@ const themeCompartment = new Compartment();
 const readOnlyCompartment = new Compartment();
 const lineNumbersCompartment = new Compartment();
 const lineWrappingCompartment = new Compartment();
+const contentAttributesCompartment = new Compartment();
 
 function getThemeExtension(theme?: RcCodeMirrorTheme): Extension {
   if (theme === 'one-dark') {
@@ -118,6 +143,10 @@ function getReadOnlyExtension(readOnly: boolean): Extension {
 
 function getLineWrappingExtension(wrap: boolean): Extension {
   return wrap ? EditorView.lineWrapping : [];
+}
+
+function getContentAttributesExtension(attributes: Record<string, string>): Extension {
+  return EditorView.contentAttributes.of(attributes);
 }
 
 onMounted(() => {
@@ -167,6 +196,7 @@ onMounted(() => {
       lineNumbersCompartment.of(getLineNumbersExtension(showLineNumbers())),
       lineWrappingCompartment.of(getLineWrappingExtension(wrapLines())),
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
+      contentAttributesCompartment.of(getContentAttributesExtension(ariaAttributes())),
       updateListener,
       ...(props.extensions ?? [])
     ]
@@ -258,11 +288,20 @@ watch(
   }
 );
 
+// Hot-swap ARIA attributes
+watch(
+  ariaAttributes,
+  (attributes) => {
+    view.value?.dispatch({ effects: contentAttributesCompartment.reconfigure(getContentAttributesExtension(attributes)) });
+  }
+);
+
 defineExpose({ view });
 </script>
 
 <template>
   <div
+    v-bind="containerAttrs"
     ref="container"
     class="rc-code-mirror"
     :class="`rc-code-mirror--${ variant }`"

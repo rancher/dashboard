@@ -109,7 +109,7 @@ export const Default: Story = {
     },
     template: `
       <div style="height: 400px;">
-        <RcCodeMirror v-bind="args" v-model="value" />
+        <RcCodeMirror v-bind="args" v-model="value" aria-label="Deployment" />
       </div>
     `,
   }),
@@ -146,7 +146,7 @@ export const CustomFolding: Story = {
     },
     template: `
       <div style="height: 400px;">
-        <RcCodeMirror v-bind="args" v-model="value" :extensions="extensions" @ready="onReady" />
+        <RcCodeMirror v-bind="args" v-model="value" aria-label="Deployment" :extensions="extensions" @ready="onReady" />
       </div>
     `,
   }),
@@ -163,7 +163,7 @@ export const VModel: Story = {
     },
     template: `
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: 400px;">
-        <RcCodeMirror v-bind="args" v-model="value" />
+        <RcCodeMirror v-bind="args" v-model="value" aria-label="Deployment" />
         <pre style="margin: 0; overflow: auto;">{{ value }}</pre>
       </div>
     `,
@@ -180,7 +180,8 @@ export const Input: Story = {
     },
     template: `
       <div style="width: 400px;">
-        <RcCodeMirror v-bind="args" v-model="value" />
+        <label id="certificate-label">Certificate</label>
+        <RcCodeMirror v-bind="args" v-model="value" aria-labelledby="certificate-label" />
       </div>
     `,
   }),

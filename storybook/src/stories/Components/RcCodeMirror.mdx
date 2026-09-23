@@ -11,6 +11,10 @@ A code editor built on CodeMirror 6 for YAML and JSON documents. Bind the docume
 
 <Controls of={RcCodeMirrorStories.Default} />
 
+## Accessibility
+
+CodeMirror renders its own textbox, so ARIA attributes such as `aria-label`, `aria-labelledby` and `aria-describedby` are forwarded to it rather than the component's root element. Every instance needs an accessible name from one of them. A `<label for>` does not work, because the textbox is not a form control; give the label an `id` and reference it with `aria-labelledby`, as the input example below does.
+
 ## JSON
 
 <Canvas of={RcCodeMirrorStories.Json} />
