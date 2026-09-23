@@ -35,7 +35,7 @@ const yamlComponent: any = useTemplateRef('yaml');
     border-radius: var(--border-radius-md);
     padding: 16px;
 
-    .CodeMirror, .CodeMirror-gutter {
+    .cm-editor, .cm-gutters {
       background-color: var(--body-bg);
     }
   }

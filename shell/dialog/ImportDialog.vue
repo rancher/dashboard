@@ -248,13 +248,7 @@ export default {
     max-height: $max;
 
     :deep() .code-mirror {
-      .CodeMirror {
-        position: initial;
-      }
-
-      .CodeMirror,
-      .CodeMirror-scroll,
-      .CodeMirror-gutters {
+      .cm-editor {
         min-height: $min;
         max-height: $max;
       }
