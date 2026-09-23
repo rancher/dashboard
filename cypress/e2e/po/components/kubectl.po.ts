@@ -23,8 +23,8 @@ export default class Kubectl extends ComponentPo {
     return this.self().get(`[aria-label="${ name }"] [data-testid="wm-tab-close-button"]`).click();
   }
 
-  waitForTerminalToBeVisible() {
-    this.self().get('[data-testid="wm-tab-close-button"]').should('be.visible');
+  waitForTerminalToBeVisible(options?: GetOptions) {
+    this.self(options).get('[data-testid="wm-tab-close-button"]', options).should('be.visible');
   }
 
   waitForTerminalStatus(status: 'Connected' | 'Disconnected', options?: GetOptions) {
