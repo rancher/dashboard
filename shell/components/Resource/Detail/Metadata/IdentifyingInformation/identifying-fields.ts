@@ -14,6 +14,9 @@ import { useRoute } from 'vue-router';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { KUBERNETES } from '@shell/config/labels-annotations';
 
+// Defined once so the component identity is stable; creating it inside a computed remounts the popover on every resource update
+const ResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));
+
 export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   const store = useStore();
   const i18n = useI18n(store);
@@ -35,7 +38,7 @@ export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
     const value = resourceValue.namespace;
     const valueDataTestid = 'masthead-subheader-namespace';
     const valueOverride = canList && hasReachableLocation ? {
-      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
+      component: ResourcePopover,
       props:     {
         type:           NAMESPACE,
         id:             resourceValue.namespace,
@@ -120,7 +123,7 @@ export const useProject = (resource: any): ComputedRef<Row> | undefined => {
       value:           resourceValue.project?.nameDisplay,
       valueDataTestid: 'masthead-subheader-project',
       valueOverride:   {
-        component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
+        component: ResourcePopover,
         props:     {
           type:         MANAGEMENT.PROJECT,
           id:           resourceValue.project?.id,

@@ -67,18 +67,31 @@ export default class PagePo extends ComponentPo {
     return cy.url().should('include', `${ Cypress.config().baseUrl + (!!path ? path : this.path) }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
-  isCurrentPage(isExact = true): Cypress.Chainable<boolean> {
-    return cy.url().then((url) => {
-      if (isExact) {
-        return url === Cypress.config().baseUrl + this.path;
-      } else {
-        return url.indexOf(Cypress.config().baseUrl + this.path) === 0;
-      }
-    });
+  /**
+   * The URL this page is expected to be on.
+   */
+  expectedUrl(): string {
+    return `${ Cypress.config().baseUrl }${ this.path }`;
   }
 
+  isCurrentPage(isExact = true): Cypress.Chainable<boolean> {
+    return cy.url().then((url) => (isExact ? url === this.expectedUrl() : url.startsWith(this.expectedUrl())));
+  }
+
+  /**
+   * Assert that we've landed on this page.
+   *
+   * Waits for the URL to match, so a page still mid-navigation gets a chance to settle. On failure
+   * the message shows the URL we got and the one we wanted.
+   */
   checkIsCurrentPage(exact = true) {
-    return this.isCurrentPage(exact).should('eq', true);
+    const expected = this.expectedUrl();
+
+    return cy.url().should((url) => {
+      const matches = exact ? url === expected : url.startsWith(expected);
+
+      expect(matches, `expected URL "${ url }" to ${ exact ? 'equal' : 'start with' } "${ expected }"`).to.eq(true);
+    });
   }
 
   mastheadTitle() {

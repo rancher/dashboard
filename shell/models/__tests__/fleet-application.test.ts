@@ -175,4 +175,48 @@ describe('class FleetApplication', () => {
       expect(app.targetClusters).toStrictEqual([]);
     });
   });
+
+  describe('state', () => {
+    // Fleet sets `status.display.error` for every state that is not Ready, and Steve passes it through
+    // as `metadata.state.error`, so it cannot decide the colour on its own.
+    function createFleetApplication(stateName: string) {
+      return new FleetApplication({
+        kind:     'HelmOp',
+        metadata: { namespace: 'fleet-local', state: { name: stateName, error: true } },
+        spec:     {},
+      });
+    }
+
+    it.each([
+      ['waitingfordependency', 'Waiting for Dependency', 'text-info'],
+      ['waitapplied', 'Wait Applied', 'text-info'],
+      ['modified', 'Modified', 'text-warning'],
+    ])('should colour %s from the state, not from the error flag', (stateName, display, color) => {
+      const app = createFleetApplication(stateName);
+
+      expect(app.stateDisplay).toBe(display);
+      expect(app.stateColor).toBe(color);
+    });
+
+    it('should still colour a state the UI classifies as an error as an error', () => {
+      const app = createFleetApplication('errapplied');
+
+      expect(app.stateColor).toBe('text-error');
+    });
+
+    it('should still describe a state whose error flag was dropped', () => {
+      const app = new FleetApplication({
+        kind:     'HelmOp',
+        metadata: {
+          namespace: 'fleet-local',
+          state:     {
+            name: 'waitingfordependency', error: true, message: 'waiting for dependent bundle(s)'
+          }
+        },
+        spec: {},
+      });
+
+      expect(app.stateDescription).toBe('Waiting for dependent bundle(s)');
+    });
+  });
 });

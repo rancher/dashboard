@@ -1,0 +1,77 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import { useI18n } from '@shell/composables/useI18n';
+import { authProviderDetails } from '@shell/utils/auth-provider-details';
+
+const props = withDefaults(defineProps<{
+  config: Record<string, any> | null;
+  name?: string;
+}>(), { name: '' });
+
+const store = useStore();
+const i18n = useI18n(store);
+
+const details = computed(() => authProviderDetails(props.config, i18n.t, props.name));
+</script>
+
+<template>
+  <DrawerCard
+    v-if="details.length"
+    class="auth-provider-details-card"
+  >
+    <dl
+      class="auth-provider-details"
+      data-testid="auth-provider-details"
+    >
+      <div
+        v-for="detail in details"
+        :key="detail.label"
+        class="auth-provider-details__item"
+      >
+        <dt class="auth-provider-details__label">
+          {{ detail.label }}
+        </dt>
+        <dd class="auth-provider-details__value">
+          {{ detail.value }}
+        </dd>
+      </div>
+    </dl>
+  </DrawerCard>
+</template>
+
+<style lang="scss" scoped>
+.auth-provider-details-card {
+  margin-bottom: 16px;
+}
+
+.auth-provider-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 48px;
+  margin: 0;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  &__label {
+    color: var(--label-secondary);
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  &__value {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 21px;
+    overflow-wrap: anywhere;
+  }
+}
+</style>

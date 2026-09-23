@@ -296,7 +296,9 @@ nav:
   pinClusterError: Could not save your pinned clusters
   pinnedCluster:
     explore: Explore {name} or drag it to change the order of your pinned clusters
+    exploreOnlyPinned: Explore {name}
     blocked: You cannot explore {name} ({reason}), but you can drag it to change the order of your pinned clusters
+    blockedOnlyPinned: You cannot explore {name} ({reason})
   search:
     clusters: |-
       {count, plural,
@@ -533,6 +535,72 @@ addProjectMemberDialog:
   title: Add Project Member
 
 authConfig:
+  list:
+    title: Authentication Providers
+    description: Configure the identity providers people can use to log in to Rancher.
+    create: Add provider
+    external: External Providers
+    local: Local Authentication
+    customiseLogin: Customise the login screen
+    docsUrl: '{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config'
+    empty:
+      title: No external providers configured
+      description: Everyone logs in with a local Rancher account. Connect an identity provider so people can use their existing company credentials.
+      create: Add a provider
+      learnMore: How external authentication works
+    disableLocal:
+      label: Disable login with local users
+      description: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
+      risk: Local login is off. If every external provider becomes unreachable, no one will be able to sign in and recovery requires command-line access to the cluster.
+    localRow:
+      title: Local authentication
+      chip: Built-in
+      description: Accounts for administrators. Use only when a provider is unavailable.
+      descriptionDisabled: Accounts still exist and keep their permissions, but cannot be used to log in.
+      meta: Rancher-managed accounts
+      active: Active
+      disabled: Disabled
+      manageUsers: Manage local users
+  access:
+    title: '{provider} - Access'
+    type: Type
+  add:
+    title: Add an authentication provider
+    subtitle: Select the provider to connect. Rancher supports one external provider, so this is the one users will log in with. To use a different one later you delete this and configure the new one.
+    searchPlaceholder: Search providers
+    filterLabel: Protocol
+    filterAll: All
+    noResults: No providers match your search.
+    resultCount: |-
+        {count , plural,
+          =1 { {count} provider matches your search. }
+          other { {count} providers match your search. }
+        }
+  disable:
+    action: Disable
+    title: 'Disable {name}?'
+    titleGeneric: Disable this authentication provider?
+    loggedOut: Any user currently signed in with this provider will be logged out and redirected to the login screen.
+    learnMore: Restoring access after disabling a provider
+    docsUrl: '{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config'
+    irreversible: This cannot be undone. Disabling deletes all resources stored for this provider.
+    acknowledge: I understand these users and permissions will be deleted
+    confirm: Disable and delete
+  disableLast:
+    title: 'Disable {name}?'
+    titleGeneric: Disable this authentication provider?
+    soleProvider: Local login is switched off and {name} is your only external provider. Disabling it now would leave no way to log in to Rancher.
+    remedy: Switch local login back on, then disable the provider. You can switch it off again once a new one is configured and working.
+    refusal: Rancher will not disable the last external provider while local login is off.
+    locked: Local login is locked off on this installation, so it cannot be switched back on from here. Restoring access requires command-line access to the cluster.
+    confirm: Turn local login back on
+  disableLocal:
+    title: Disable login with local users?
+    effect: From now on users sign in through external providers only. Local accounts are not deleted and keep their permissions, but they cannot be used to sign in.
+    recovery: You can switch this back off at any time from the provider list — but only while you can still sign in. If every external provider becomes unreachable while this is on, recovery requires command-line access to the cluster.
+    soleRoute: External providers become the only way to sign in, for every user including administrators.
+    acknowledge: I understand local accounts will no longer be able to sign in
+    confirm: Disable local login
   slo:
     sloTitle: Log Out behavior
     sloOptions:
@@ -540,7 +608,7 @@ authConfig:
       logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
       choose: Allow the user to choose one of the above in an additional log out step
   accessMode:
-    label: 'Configure who should be able to login and use {vendor}'
+    label: 'Configure who should be able to login with this provider'
     required: Restrict access to only the authorized users & groups
     restricted: 'Allow members of clusters and projects, plus authorized users & groups'
     unrestricted: Allow any valid user
@@ -877,9 +945,6 @@ authConfig:
     disabled: 'The {provider} authentication provider is currently disabled.'
     enabled: 'The {provider} authentication provider is currently enabled.'
   testAndEnable: Test and Enable Authentication
-  noneEnabled: Local Authentication is always enabled, but you may select another additional authentication provider from those shown below.
-  localEnabled: '{vendor} is configured to allow access to accounts in its local database.'
-  manageLocal: Manage Accounts
 
 authGroups:
   actions:
@@ -1533,6 +1598,20 @@ catalog:
       enableLabel: Enable Refresh Interval
     downloaded:
       label: Downloaded
+    detail:
+      overview: Overview
+      source: Source
+      type: Type
+      status: Status
+      authentication: Authentication
+      caBundle: CA Cert Bundle
+      exponentialBackOff: Exponential Back Off (min / max / retries)
+      charts:
+        label: Contents
+        view: View Charts
+        none: No contents available
+      extensions:
+        view: View Extensions
     error:
       refresh: Error refreshing repository
   tools:
@@ -3252,6 +3331,13 @@ fleet:
       unknown: 'Unknown'
       notReady: Not Ready
       waitApplied: Wait Applied
+      notready: Not Ready
+      waitapplied: Wait Applied
+      errapplied: Err Applied
+      modified: Modified
+      outofsync: Out of Sync
+      pending: Pending
+      waitingfordependency: Waiting for Dependency
   clusterTargets:
     advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
     targetMode:
@@ -3691,6 +3777,7 @@ fleet:
     state: State
     cluster: Cluster
     error: Error
+    message: Message
     ready: Ready
     errors: Errors
   workspaces:
