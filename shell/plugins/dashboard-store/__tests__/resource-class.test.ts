@@ -708,6 +708,58 @@ describe('class: Resource', () => {
       expect(showConfig.enabled).toBe(false);
       expect(viewYaml.enabled).toBe(true);
     });
+
+    it('should hide "View Config" when "Show Configuration" is enabled and resource cannot be updated', () => {
+      const resource = createResource(
+        { view: '/api/v1/test' },
+        { rootGetters: { 'type-map/hasCustomEdit': () => true } },
+      );
+
+      const actions = resource._availableActions;
+      const viewConfig = findAction(actions, 'goToViewConfig');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(viewConfig.enabled).toBe(false);
+    });
+
+    it('should show "Edit Config" even when "Show Configuration" is enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test', update: '/api/v1/test' },
+        {
+          rootGetters: {
+            'type-map/hasCustomEdit': () => true,
+            'type-map/optionsFor':    () => ({
+              isEditable: true, isRemovable: true, isCreatable: false
+            }),
+          },
+        },
+      );
+
+      const actions = resource._availableActions;
+      const editConfig = findAction(actions, 'goToEdit');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(editConfig.enabled).toBe(true);
+    });
+
+    it('should show "View Config" when "Show Configuration" is not enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test' },
+        {
+          disableResourceDetailDrawer: true,
+          rootGetters:                 { 'type-map/hasCustomEdit': () => true },
+        },
+      );
+
+      const actions = resource._availableActions;
+      const viewConfig = findAction(actions, 'goToViewConfig');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(false);
+      expect(viewConfig.enabled).toBe(true);
+    });
   });
 
   describe('method: dryRunCreate', () => {

@@ -982,7 +982,7 @@ export default class Resource {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
         label:   this.t(this.canUpdate ? 'action.edit' : 'action.view'),
         icon:    'icon icon-edit',
-        enabled: this.canCustomEdit,
+        enabled: this.canCustomEdit && (this.canUpdate || !showConfigEnabled), // Hide "View Config" when "Show Configuration" is available since it already includes config viewing
       },
       {
         action:  this.canEditYaml ? 'goToEditYaml' : 'goToViewYaml',
