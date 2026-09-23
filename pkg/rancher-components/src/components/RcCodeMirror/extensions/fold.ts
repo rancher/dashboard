@@ -1,6 +1,6 @@
 import type { Extension, EditorState } from '@codemirror/state';
 import {
-  foldGutter as cmFoldGutter, foldService, foldEffect, foldable, syntaxTree
+  foldGutter as cmFoldGutter, foldService, foldEffect, foldable, syntaxTree, ensureSyntaxTree
 } from '@codemirror/language';
 import type { EditorView } from '@codemirror/view';
 import type { SyntaxNode } from '@lezer/common';
@@ -340,10 +340,26 @@ export function foldAllComments(view: EditorView): void {
 }
 
 /**
+ * The syntax tree is parsed lazily, so content beyond the viewport may not be
+ * parsed when the editor is ready. Parse the whole document so language fold
+ * ranges are available everywhere, then apply an empty transaction so the
+ * state picks up the new tree.
+ */
+function parseDocument(view: EditorView): void {
+  const tree = ensureSyntaxTree(view.state, view.state.doc.length, 500);
+
+  if (tree && tree !== syntaxTree(view.state)) {
+    view.dispatch({});
+  }
+}
+
+/**
  * Imperative: folds all lines matching `pattern`. Call in a `ready` handler.
  * Delegates range detection to registered fold services via `foldable()`.
  */
 export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
+  parseDocument(view);
+
   const { state } = view;
   const ranges: { from: number; to: number }[] = [];
 
@@ -368,6 +384,8 @@ export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
  * Imperative: folds the line at the given YAML dot-notation path. Call in a `ready` handler.
  */
 export function foldYamlPath(view: EditorView, path: string): void {
+  parseDocument(view);
+
   const { state } = view;
   const segments = path.split('.');
   const lastSegment = segments[segments.length - 1];
