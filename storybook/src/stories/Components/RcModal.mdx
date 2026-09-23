@@ -133,7 +133,9 @@ dialog is asking.
 
 While it is scrolling, the body is a tab stop, so the content is reachable with
 the arrow keys and not by mouse alone. It leaves the tab order again as soon as
-the content fits, so a short modal gains no empty stop.
+the content fits, so a short modal gains no empty stop. Opening focus is
+unaffected: it goes to the first control, and only to the body when the modal
+holds nothing else to focus.
 
 <Canvas of={RcModalStories.TallContent} />
 
@@ -161,7 +163,10 @@ still what names the dialog for assistive technology, via `aria-labelledby`.
   the close stays the consumer's call, made in the `close` handler where the
   same refusal already covers the cancel button.
 - A scrolling body is a tab stop, so content that only a mouse could reach is
-  reachable by keyboard.
+  reachable by keyboard. It is announced as a region named by the modal's
+  heading, rather than by reading its whole content out as a label, and it does
+  not take the focus the modal opens with unless there is nothing else to take
+  it.
 
 ## Owning the show prop
 
