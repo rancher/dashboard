@@ -135,6 +135,15 @@ describe('component: YamlOverridesEditor', () => {
       expect(rightUpdate).toHaveBeenCalledWith(expected);
     });
 
+    it('does not save a deleted default key as null', () => {
+      const wrapper = mountEditor({ value: '' });
+
+      // The user deletes the whole `sachet` block and changes replicas
+      editors(wrapper).left.$emit('update:value', 'replicas: 5\n');
+
+      expect(wrapper.emitted('update:value')).toStrictEqual([['replicas: 5\n']]);
+    });
+
     it('does not emit while the edited YAML is mid-edit/invalid', () => {
       const wrapper = mountEditor({ value: '' });
 

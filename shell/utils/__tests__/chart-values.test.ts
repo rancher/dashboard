@@ -1,6 +1,6 @@
 import jsyaml from 'js-yaml';
 import {
-  mergeOverrides, mergeOverridesRawText, overridesFromValues, sameYamlOverrides, overridesAreMergeable, changedLineNumbers
+  mergeOverrides, mergeOverridesRawText, overridesFromValues, overridesFromEditedValues, sameYamlOverrides, overridesAreMergeable, changedLineNumbers
 } from '@shell/utils/chart-values';
 
 describe('fx: chart-values', () => {
@@ -28,6 +28,50 @@ describe('fx: chart-values', () => {
     it('treats null/undefined arguments as empty objects', () => {
       expect(overridesFromValues(null as any, null as any)).toStrictEqual('');
       expect(overridesFromValues(undefined as any, undefined as any)).toStrictEqual('');
+    });
+  });
+
+  describe('overridesFromEditedValues', () => {
+    it('returns only the values that differ from the defaults', () => {
+      const values = { ...defaults, image: { ...defaults.image, tag: '2.0.0' } };
+
+      expect(jsyaml.load(overridesFromEditedValues(defaults, values))).toStrictEqual({ image: { tag: '2.0.0' } });
+    });
+
+    it('keeps the default for a deleted top-level key instead of sending null', () => {
+      const { persistence, ...values } = defaults;
+
+      expect(overridesFromEditedValues(defaults, values)).toStrictEqual('');
+    });
+
+    it('keeps the default for a deleted nested key instead of sending null', () => {
+      const values = { ...defaults, image: { repository: 'my/repo', pullPolicy: 'IfNotPresent' } };
+
+      expect(overridesFromEditedValues(defaults, values)).toStrictEqual('');
+    });
+
+    it('keeps only the real change when other keys were deleted', () => {
+      // The case from the bug report: the user deletes everything except the value they care about
+      const values = { image: { pullSecrets: ['application-collection'] } };
+
+      expect(jsyaml.load(overridesFromEditedValues(defaults, values))).toStrictEqual({ image: { pullSecrets: ['application-collection'] } });
+    });
+
+    it('still removes a default when the user sets it to null explicitly', () => {
+      const values = { ...defaults, persistence: null };
+
+      expect(jsyaml.load(overridesFromEditedValues(defaults, values))).toStrictEqual({ persistence: null });
+    });
+
+    it('replaces an array rather than merging it with the default array', () => {
+      const withArray = { list: ['a', 'b'] };
+
+      expect(jsyaml.load(overridesFromEditedValues(withArray, { list: ['c'] }))).toStrictEqual({ list: ['c'] });
+    });
+
+    it('treats null/undefined arguments as empty objects', () => {
+      expect(overridesFromEditedValues(null as any, null as any)).toStrictEqual('');
+      expect(overridesFromEditedValues(undefined as any, undefined as any)).toStrictEqual('');
     });
   });
 

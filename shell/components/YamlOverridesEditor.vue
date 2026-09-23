@@ -4,7 +4,7 @@ import jsyaml from 'js-yaml';
 import debounce from 'lodash/debounce';
 import isPlainObject from 'lodash/isPlainObject';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
-import { overridesFromValues, mergeOverridesRawText, changedLineNumbers, sameYamlOverrides } from '@shell/utils/chart-values';
+import { overridesFromEditedValues, mergeOverridesRawText, changedLineNumbers, sameYamlOverrides } from '@shell/utils/chart-values';
 
 /**
  * Two editable YAML panes for chart values:
@@ -168,7 +168,8 @@ function onDefaultsInput(value: string) {
     return;
   }
 
-  const overrides = overridesFromValues(props.defaults || {}, (parsed as object) || {});
+  // A key the user deleted here keeps its default rather than being saved as null.
+  const overrides = overridesFromEditedValues(props.defaults || {}, (parsed as object) || {});
 
   overridesContent.value = overrides;
   emit('update:value', overrides);

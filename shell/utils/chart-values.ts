@@ -27,6 +27,18 @@ export function overridesFromValues(defaults: object, values: object): string {
 }
 
 /**
+ * Like `overridesFromValues`, but for a full values document the user edited by
+ * hand. A key missing from `values` keeps its default, the same as in a Helm
+ * values file, instead of becoming `null` (which tells Helm to delete it). Only an
+ * explicit `key: null` removes a default.
+ */
+export function overridesFromEditedValues(defaults: object, values: object): string {
+  const withDefaults = mergeWithReplace(merge({}, defaults || {}), values || {});
+
+  return overridesFromValues(defaults, withDefaults);
+}
+
+/**
  * Merge the edited overrides YAML onto the defaults to produce the "final
  * values" document - what the values actually resolve to. Invalid (mid-edit)
  * overrides YAML falls back to the defaults rather than throwing.
