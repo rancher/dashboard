@@ -320,6 +320,11 @@ defineExpose({ view });
     outline: none;
   }
 
+  &.rc-code-mirror--editor :deep(.cm-editor.cm-focused) {
+    @include focus-outline;
+    outline-offset: -2px;
+  }
+
   &.rc-code-mirror--input :deep(.cm-editor) {
     min-height: 40px;
     box-sizing: border-box;
