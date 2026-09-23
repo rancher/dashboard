@@ -1,4 +1,5 @@
 import {
+  AdvancedProductConfigOptions,
   ProductMetadata,
   ProductChildResourcePage,
   ProductChildCustomPage,
@@ -216,11 +217,25 @@ export type ProductMetadataInternal = ProductMetadata & {
 /**
  * @internal
  * Advanced configuration options for product registration
+ *
+ * Rancher Dashboard internal use only. Note the public `AdvancedProductConfigOptions` is empty,
+ * so TypeScript performs no excess property checking on an inline object literal passed to
+ * `addProduct`/`extendProduct` — a typo would silently no-op. Declare the config against this
+ * type instead, so typos and wrong value types are caught:
+ *
+ * ```ts
+ * import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
+ *
+ * const advancedProdConfig: AdvancedProductConfigOptionsInternal = { debuggerEnabled: true };
+ *
+ * plugin.addProduct('fleet', advancedProdConfig);
+ * ```
  */
-export type AdvancedProductConfigOptions = {
+export type AdvancedProductConfigOptionsInternal = AdvancedProductConfigOptions & {
   /**
    * @internal
-   * If console debugging is enabled
+   * If console debugging is enabled. Logs the product's type-map registrations and its
+   * generated routes to the console.
    */
   debuggerEnabled?: boolean;
 }

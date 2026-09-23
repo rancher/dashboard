@@ -32,7 +32,7 @@ import {
   StandardProductName,
   ProductChild
 } from '@shell/core/plugin-products-external';
-import { AdvancedProductConfigOptions } from '@shell/core/plugin-products-internal';
+import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
 
 /** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
@@ -166,12 +166,12 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, config?: ProductChild[] | AdvancedProductConfigOptions, advancedProdConfig?: AdvancedProductConfigOptions): void {
+  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, config?: ProductChild[] | AdvancedProductConfigOptionsInternal, advancedProdConfig?: AdvancedProductConfigOptionsInternal): void {
     let pluginProduct: PluginProduct;
 
-    // Disambiguate: for string/SinglePage overloads, the 2nd arg is AdvancedProductConfigOptions, not pages
+    // Disambiguate: for string/SinglePage overloads, the 2nd arg is the advanced config, not pages
     const resolvedConfig = Array.isArray(config) ? config : undefined;
-    const resolvedAdvConfig = Array.isArray(config) ? advancedProdConfig : config as AdvancedProductConfigOptions | undefined;
+    const resolvedAdvConfig = Array.isArray(config) ? advancedProdConfig : config as AdvancedProductConfigOptionsInternal | undefined;
 
     if (typeof product === 'string') {
       pluginProduct = PluginProduct.fromName(this, product, resolvedAdvConfig);
@@ -196,7 +196,7 @@ export class Plugin implements IPlugin {
     this.productConfigs.push(pluginProduct);
   }
 
-  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild, advancedProdConfig?: AdvancedProductConfigOptions): void {
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild, advancedProdConfig?: AdvancedProductConfigOptionsInternal): void {
     const arrayConfig = Array.isArray(config) ? config : [config];
 
     this.productConfigs.push(new PluginProduct(this, product, arrayConfig, advancedProdConfig));

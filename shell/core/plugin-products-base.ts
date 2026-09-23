@@ -13,7 +13,7 @@ import {
   ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage
 } from '@shell/core/plugin-products-external';
 import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell/types/store/type-map';
-import { AdvancedProductConfigOptions, ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
+import { AdvancedProductConfigOptionsInternal, ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 import { RouteRecordRaw } from 'vue-router';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
@@ -70,7 +70,7 @@ export abstract class BasePluginProduct {
 
   protected config: ProductChild[];
 
-  constructor(config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions) {
+  constructor(config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptionsInternal) {
     this.config = config;
 
     if (advancedProdConfig?.debuggerEnabled) {

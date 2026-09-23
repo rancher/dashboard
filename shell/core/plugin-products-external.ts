@@ -1,6 +1,5 @@
 import { ProductFunction } from '@shell/core/plugin';
 import { HeaderOptions } from '@shell/core/types';
-import { AdvancedProductConfigOptions } from '@shell/core/plugin-products-internal';
 import { NAME as EXPLORER_PROD_NAME } from '@shell/config/product/explorer.js';
 import { NAME as CLUSTER_MAN_PROD_NAME } from '@shell/config/product/manager.js';
 import { NAME as SETTINGS_PROD_NAME } from '@shell/config/product/settings.js';
@@ -311,10 +310,19 @@ type _ProductMetadata = LabelOrLabelKey & {
    * Indicates whether UI Extensions can add pages to this product
    */
   extendable?: boolean;
-
 }
 
 export type ProductMetadata = _ProductMetadata
+
+/**
+ * Advanced configuration options for product registration
+ *
+ * No options are available to UI Extensions at this time. Options internal to Rancher
+ * Dashboard live on `AdvancedProductConfigOptionsInternal` in
+ * `@shell/core/plugin-products-internal`.
+ */
+export type AdvancedProductConfigOptions = {
+}
 
 /**
  * Represents a single page product, which is a product that only has one page and

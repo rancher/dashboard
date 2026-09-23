@@ -4,7 +4,7 @@ import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { isProductSinglePage } from '@shell/core/plugin-products-type-guards';
 import { ProductChild, ProductMetadata, ProductMetadataSinglePage } from '@shell/core/plugin-products-external';
-import { AdvancedProductConfigOptions, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
+import { AdvancedProductConfigOptionsInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 
 /**
  * Represents a new top-level product being added by an extension
@@ -17,7 +17,7 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     return true;
   }
 
-  constructor(plugin: IExtension, product: ProductMetadata | ProductMetadataSinglePage | string, pages: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions) {
+  constructor(plugin: IExtension, product: ProductMetadata | ProductMetadataSinglePage | string, pages: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptionsInternal) {
     super(pages, advancedProdConfig);
 
     // Convenience/bridge method: create a basic product from just a name string

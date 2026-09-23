@@ -2,7 +2,7 @@ import { IExtension } from '@shell/core/types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { ProductChild, StandardProductName } from '@shell/core/plugin-products-external';
-import { AdvancedProductConfigOptions } from '@shell/core/plugin-products-internal';
+import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
 
 /**
  * Represents extending an existing standard product
@@ -13,7 +13,7 @@ export class ExtendingPluginProduct extends BasePluginProduct {
     return false;
   }
 
-  constructor(plugin: IExtension, productName: StandardProductName | string, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions) {
+  constructor(plugin: IExtension, productName: StandardProductName | string, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptionsInternal) {
     super(config, advancedProdConfig);
 
     // existing standard product - no need to add routes
