@@ -78,7 +78,7 @@ describe('component: WorkspaceSwitcher', () => {
     state.allWorkspaces = [];
     await nextTick();
 
-    expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: '' });
+    expect(dispatch).toHaveBeenCalledWith('setWorkspace', { value: '' });
     expect(dispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything());
     expect(commit).not.toHaveBeenCalled();
   });
@@ -89,7 +89,8 @@ describe('component: WorkspaceSwitcher', () => {
     }];
     const { commit, dispatch } = mountSwitcher('removed-workspace', [], '', namespaces);
 
-    expect(dispatch).toHaveBeenCalledWith('restoreWorkspace', { value: 'ws-a' });
+    expect(dispatch).toHaveBeenCalledWith('setWorkspace', { value: 'ws-a' });
+    expect(dispatch).not.toHaveBeenCalledWith('restoreWorkspace', expect.anything());
     expect(dispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything());
     expect(commit).not.toHaveBeenCalled();
   });
