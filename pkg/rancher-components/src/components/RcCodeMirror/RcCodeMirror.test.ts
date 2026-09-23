@@ -122,6 +122,43 @@ describe('component: RcCodeMirror', () => {
 
       expect(getView(wrapper).contentDOM.getAttribute('contenteditable')).toBe('false');
     });
+
+    it('should make the state read only when readOnly is true', () => {
+      mountEditor({ readOnly: true });
+
+      expect(getView(wrapper).state.readOnly).toStrictEqual(true);
+    });
+
+    it('should not insert a line break on Enter when readOnly is true', () => {
+      mountEditor({ modelValue: 'foo: bar', readOnly: true });
+      const view = getView(wrapper);
+
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Enter', keyCode: 13, bubbles: true, cancelable: true
+      }));
+
+      expect(view.state.doc.toString()).toStrictEqual('foo: bar');
+    });
+
+    it('should insert a line break on Enter when editable', () => {
+      mountEditor({ modelValue: 'foo: bar' });
+      const view = getView(wrapper);
+
+      view.dispatch({ selection: { anchor: view.state.doc.length } });
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Enter', keyCode: 13, bubbles: true, cancelable: true
+      }));
+
+      expect(view.state.doc.toString()).toStrictEqual('foo: bar\n');
+    });
+
+    it('should make the state read only when readOnly changes', async() => {
+      mountEditor();
+
+      await wrapper.setProps({ readOnly: true });
+
+      expect(getView(wrapper).state.readOnly).toStrictEqual(true);
+    });
   });
 
   describe('lineNumbers prop', () => {
