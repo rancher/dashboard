@@ -9,6 +9,7 @@ import { removeObject, addObject } from '@shell/utils/array';
 import { STORAGE_CLASS, PV } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
+import formRulesGenerator from '@shell/utils/validators/formRules';
 
 export default {
   emits: ['createUniqueId', 'removePvcForm', 'update:value'],
@@ -103,6 +104,12 @@ export default {
       return this.availablePVs.map((pv) => pv.metadata.name);
     },
 
+    nameRules() {
+      const { required } = formRulesGenerator(this.t, { key: this.t('persistentVolumeClaim.name') });
+
+      return [required];
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 
@@ -168,6 +175,7 @@ export default {
           v-model:value="value.metadata.name"
           :mode="mode"
           :label="t('persistentVolumeClaim.name')"
+          :rules="nameRules"
           :required="true"
           @update:value="$emit('update:value', value)"
         />
