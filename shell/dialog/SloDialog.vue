@@ -68,6 +68,7 @@ export default {
       <div class="btn-block">
         <rc-button
           variant="secondary"
+          size="large"
           @click="cancel()"
         >
           {{ t('generic.cancel') }}
@@ -75,6 +76,7 @@ export default {
         <div class="spacer" />
         <rc-button
           variant="secondary"
+          size="large"
           @click="doLogout()"
         >
           {{ t('promptSlo.rancher.active') }}

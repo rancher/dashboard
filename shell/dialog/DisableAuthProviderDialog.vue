@@ -52,6 +52,7 @@ export default {
     <template #actions>
       <rc-button
         variant="secondary"
+        size="large"
         @click="close"
       >
         {{ t('generic.cancel') }}
@@ -59,6 +60,7 @@ export default {
       <div class="spacer" />
       <rc-button
         variant="error"
+        size="large"
         class="ml-10"
         :data-testid="componentTestid + '-confirm-button'"
         @click="disable"
