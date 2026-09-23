@@ -48,10 +48,6 @@ const dialog = () => document.querySelector('#modals .rc-modal') as HTMLElement;
 
 const modalBody = () => document.querySelector('[data-testid="rc-modal-body"]') as HTMLElement;
 
-/**
- * jsdom lays nothing out, so every element measures zero. Say what the body's
- * scroll box measures and re-run the observer the component registered.
- */
 const setBodyOverflow = (scrollHeight: number, clientHeight: number) => {
   const el = modalBody();
 
@@ -615,6 +611,85 @@ describe('component: RcModal', () => {
       await nextTick();
 
       expect(modalBody().getAttribute('tabindex')).toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should open focus on the first control rather than on the scrolling body', async() => {
+      const wrapper = mountModal({
+        slots: {
+          default:          '<input class="in-body">',
+          'primary-action': '<button class="confirm">Delete</button>',
+        },
+      });
+
+      setBodyOverflow(900, 300);
+      await nextTick();
+
+      const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
+
+      expect(modalBody().getAttribute('tabindex')).toStrictEqual('0');
+      expect(opts.initialFocus()).toStrictEqual(document.querySelector('.in-body'));
+
+      wrapper.unmount();
+    });
+
+    it('should open focus on the footer when the body holds nothing to focus', async() => {
+      const wrapper = mountModal({ slots: { 'primary-action': '<button class="confirm">Delete</button>' } });
+
+      setBodyOverflow(900, 300);
+      await nextTick();
+
+      const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
+
+      expect(opts.initialFocus()).toStrictEqual(document.querySelector('[data-testid="rc-modal-cancel"]'));
+
+      wrapper.unmount();
+    });
+
+    it('should fall back to the scrolling body when the modal holds nothing else to focus', async() => {
+      const wrapper = mountModal({ slots: { default: '<p>Nothing to focus in here.</p>' } });
+
+      setBodyOverflow(900, 300);
+      await nextTick();
+
+      const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
+
+      expect(opts.initialFocus()).toStrictEqual(modalBody());
+
+      wrapper.unmount();
+    });
+
+    it('should name the scrolling body with the modal title, so it is not announced by its whole content', async() => {
+      const wrapper = mountModal();
+
+      setBodyOverflow(900, 300);
+      await nextTick();
+
+      expect(modalBody().getAttribute('role')).toStrictEqual('region');
+      expect(document.getElementById(modalBody().getAttribute('aria-labelledby') as string)?.textContent?.trim())
+        .toStrictEqual('Are you sure?');
+
+      wrapper.unmount();
+    });
+
+    it('should leave a body that fits without a region role', () => {
+      const wrapper = mountModal();
+
+      expect(modalBody().getAttribute('role')).toBeNull();
+      expect(modalBody().getAttribute('aria-labelledby')).toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should not claim to be a region when the modal has no title to name it with', async() => {
+      const wrapper = mount(RcModal, { attachTo: document.body, props: { show: true } });
+
+      setBodyOverflow(900, 300);
+      await nextTick();
+
+      expect(modalBody().getAttribute('tabindex')).toStrictEqual('0');
+      expect(modalBody().getAttribute('role')).toBeNull();
 
       wrapper.unmount();
     });

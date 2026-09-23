@@ -37,12 +37,6 @@ export interface RcModalProps {
 
 /**
  * The width of each size, in pixels, as the design system specs them.
- *
- * Not `rem`: the shell pins the root font size (`HTML, BODY { font-size: 14px }`
- * in `shell/assets/styles/base/_typography.scss`), so a rem in dashboard is a
- * fixed 14px and tracks nothing the user has set. It would buy no scaling here,
- * and it would put these three off the spec, at 34.29rem, 45.71rem and 68.57rem.
- * Browser zoom, which is what actually scales a modal, scales px as it is.
  */
 export const RC_MODAL_WIDTHS: Record<RcModalSize, number> = {
   small:  480,
