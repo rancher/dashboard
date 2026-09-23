@@ -1592,6 +1592,7 @@ export default {
                     v-for="option in groupOptions"
                     :key="option.id || 'none'"
                     :class="{ selected: option.id === view.groupBy }"
+                    :close-on-click="false"
                     :data-testid="`table-views-group-${ option.id || 'none' }`"
                     @click="setGroupBy(option.id)"
                   >
@@ -1606,6 +1607,7 @@ export default {
                   <rc-dropdown-separator />
                   <rc-dropdown-item
                     class="menu-reset"
+                    :close-on-click="false"
                     data-testid="table-views-group-reset"
                     @click="setGroupBy(null)"
                   >
