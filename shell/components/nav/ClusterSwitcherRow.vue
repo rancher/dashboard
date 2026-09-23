@@ -155,12 +155,12 @@ function select() {
   align-items: center;
   gap: 12px;
   // Anchor for the control's hit area below: `.row-main::after` stretches over this box, padding and
-  // all, so the inset can stay here and no highlighted pixel is dead.
+  // all, so the inset can stay here and no highlighted pixel is dead. It also anchors the ring.
+  //
+  // No radius here: the row runs edge to edge, so its highlight has to meet the flyout's straight side
+  // borders rather than curve away from them. The ring keeps the rounded corners, on its own box.
   position: relative;
   padding: 16px;
-  // The radius is the resource finder's: an `outline` follows its element's corners, so this is what
-  // rounds the keyboard ring.
-  border-radius: var(--border-radius);
   border-bottom: 1px solid var(--border);
 
   // Dim only what "not ready" applies to: the row can't be explored, but its pin toggle still works
@@ -186,10 +186,18 @@ function select() {
 
   // The ring belongs to the whole row, not just the control inside it — the pin is a sibling, so a ring
   // on the control alone stops short of the row's end. The pin keeps its own, smaller ring.
-  &:has(.row-main:focus-visible) {
-    @include focus-outline;
-
-    outline-offset: -2px;
+  //
+  // Its own box rather than an `outline`: an outline follows its ELEMENT's corners, so the only way to
+  // round it was to round the row, and that rounded the row's edge-to-edge highlight with it — the curve
+  // then cut into the flyout's straight side borders. Drawn inset instead, the ring stays round and the
+  // borders stay unbroken. It sits after `.row-main` in paint order, so it lands over that hit area.
+  &:has(.row-main:focus-visible)::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border: 2px solid var(--primary-keyboard-focus);
+    border-radius: var(--border-radius);
+    pointer-events: none;
   }
 
   // The control fills the row so the whole line stays clickable; the pin sits beside it.
