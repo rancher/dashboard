@@ -8,6 +8,7 @@ export enum AuthProvider {
   AZURE = 'Microsoft Entra ID', // eslint-disable-line no-unused-vars
   GITHUB_APP = 'GitHub App', // eslint-disable-line no-unused-vars
   GENERIC_SAML = 'Generic SAML', // eslint-disable-line no-unused-vars
+  OPEN_LDAP = 'OpenLDAP', // eslint-disable-line no-unused-vars
 }
 
 export class AuthProviderPo extends PagePo {
