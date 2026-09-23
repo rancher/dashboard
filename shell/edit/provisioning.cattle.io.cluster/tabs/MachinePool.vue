@@ -10,7 +10,12 @@ import UnitInput from '@shell/components/form/UnitInput.vue';
 import { randomStr } from '@shell/utils/string';
 import FormValidation from '@shell/mixins/form-validation';
 import { MACHINE_POOL_VALIDATION } from '@shell/utils/validators/machine-pool';
-import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
+import {
+  clearMachinePoolAutoscalerPause,
+  isAutoscalerFeatureFlagEnabled,
+  isMachinePoolAutoscalerPaused,
+  resumeMachinePoolAutoscaler
+} from '@shell/utils/autoscaler-utils';
 import { RcSeparator } from '@components/RcSeparator';
 
 export default {
@@ -151,16 +156,34 @@ export default {
 
     isAutoscalerEnabled: {
       get() {
-        return typeof this.value?.pool?.autoscalingMinSize !== 'undefined' || typeof this.value?.pool?.autoscalingMinSize !== 'undefined';
+        const pool = this.value?.pool;
+
+        if (!pool) {
+          return false;
+        }
+
+        return 'autoscalingMinSize' in pool || 'autoscalingMaxSize' in pool;
       },
       set(val) {
+        const pool = this.value.pool;
+
         if (!val) {
-          delete this.value.pool.autoscalingMinSize;
-          delete this.value.pool.autoscalingMaxSize;
-        } else {
-          this.value.pool.autoscalingMinSize = 1;
-          this.value.pool.autoscalingMaxSize = 2;
+          delete pool.autoscalingMinSize;
+          delete pool.autoscalingMaxSize;
+          clearMachinePoolAutoscalerPause(pool);
+
+          return;
         }
+
+        if (isMachinePoolAutoscalerPaused(pool)) {
+          resumeMachinePoolAutoscaler(pool);
+
+          return;
+        }
+
+        clearMachinePoolAutoscalerPause(pool);
+        pool.autoscalingMinSize = 1;
+        pool.autoscalingMaxSize = 2;
       }
     }
   },
