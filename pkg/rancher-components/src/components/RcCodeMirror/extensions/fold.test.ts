@@ -246,6 +246,17 @@ describe('fold extensions', () => {
 
       expect(dispatch).not.toHaveBeenCalled();
     });
+
+    it('should fold a language fold range beyond the initially parsed content', () => {
+      const filler = Array.from({ length: 5000 }, (_, i) => `key${ i }: value`).join('\n');
+      const doc = `${ filler }\nstatus:\n  phase: Running\n`;
+      const view = new EditorView({ state: EditorState.create({ doc, extensions: [codeFolding(), yaml()] }) });
+      const status = view.state.doc.line(5001);
+
+      foldMatchingLines(view, /^status:\s*$/);
+
+      expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(5002).to }]);
+    });
   });
 
   describe('foldYamlPath', () => {
