@@ -14,6 +14,7 @@ import { useRoute } from 'vue-router';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { KUBERNETES } from '@shell/config/labels-annotations';
 
+// Defined once so the component identity is stable; creating it inside a computed remounts the popover on every resource update
 const ResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));
 
 export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
