@@ -54,7 +54,7 @@ module.exports = {
     '^.+\\.mjs$':  '<rootDir>/node_modules/babel-jest', // process mjs (e.g. vee-validate ESM) with `babel-jest`
     '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue3-jest', // process `*.vue` files with `vue-jest`
     '^.+\\.vue$':  './vue3JestRegisterTs.js', // point to a  different transformer than vue-jest and call registerTs before exporting vue-jest
-    '^.+\\.tsx?$': 'ts-jest', // process `*.ts` files with `ts-jest`
+    '^.+\\.tsx?$': 'ts-jest', // process `*.ts` files with `ts-jest` (options come from tsconfig.json)
     '^.+\\.svg$':  '<rootDir>/svgTransform.js' // to mock `*.svg` files
   },
   snapshotSerializers: ['<rootDir>/node_modules/jest-serializer-vue'],
@@ -81,7 +81,4 @@ module.exports = {
     }
     ]
   ],
-
-  // Globals
-  globals: { 'ts-jest': { isolatedModules: true } },
 };
