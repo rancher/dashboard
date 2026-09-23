@@ -561,6 +561,19 @@ authConfig:
   access:
     title: '{provider} - Access'
     type: Type
+  create:
+    back: Authentication Providers
+    unknownProvider: '{provider} is not a provider this Rancher supports.'
+    provider:
+      title: 'Add {provider}'
+    name:
+      label: Name
+      required: A name is required.
+      invalid: Use lowercase letters, numbers and dashes, starting and ending with a letter or number.
+      taken: '{name} is already in use by another provider.'
+    descriptionField:
+      label: Description
+      placeholder: e.g. Engineering and support.
   add:
     title: Add an authentication provider
     subtitle: Select the provider to connect. Rancher supports one external provider, so this is the one users will log in with. To use a different one later you delete this and configure the new one.
