@@ -2519,6 +2519,15 @@ cluster:
       validation:
         isAutoscalerMaxGreaterThanMin: The max machines count must be equal or exceed the min machine count.
       etcdControlPlaneWarning: We don't recommend using Autoscaler with machine pools that have the etcd or Control Plane roles. You can modify the yaml if you want to override the current value.
+      pause:
+        pausedBanner: Autoscaling is paused for this pool. It keeps these values and applies them again when you resume it from the machine pool actions.
+        pauseAction: Pause Autoscaler
+        resumeAction: Resume Autoscaler
+        rangeTooltip: 'Min {min}, Max {max}'
+        unconfiguredTooltip: Autoscaling is not configured for this pool. Set a machine count range in the pool configuration.
+        clusterPausedTooltip: Autoscaling is paused for the whole cluster.
+        lastPoolTooltip: This is the only pool left autoscaling. Pausing it would uninstall the autoscaler.
+        error: Error updating autoscaling for machine pool
     name:
       label: Pool Name
       notNamed: (Not Named)
@@ -5401,6 +5410,9 @@ node:
     nodeTaint: Taints
     scaleDown: Scale Pool Down
     scaleUp: Scale Pool Up
+    scaleDownAriaLabel: Scale down machine pool {name}
+    scaleUpAriaLabel: Scale up machine pool {name}
+    poolActionsAriaLabel: Actions for machine pool {name}
     poolDescription:
       noSize: No Size
       noLocation: No Location

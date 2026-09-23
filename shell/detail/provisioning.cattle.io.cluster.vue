@@ -733,8 +733,12 @@ export default {
       return this.extDetailTabs?.conditions;
     },
 
+    isAutoscalerFeatureEnabled() {
+      return isAutoscalerFeatureFlagEnabled(this.$store);
+    },
+
     showAutoScalerTab() {
-      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
+      return this.isAutoscalerFeatureEnabled && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
     }
   },
 
@@ -755,6 +759,33 @@ export default {
         // User held alt key, so don't prompt
         resources.scalePool(-1);
       }
+    },
+
+    autoscalerToggle(pool) {
+      if (!this.isAutoscalerFeatureEnabled || !this.value.hasLink('update')) {
+        return null;
+      }
+
+      const t = (key, args) => this.t(`cluster.machinePool.autoscaler.pause.${ key }`, args);
+      const scaling = pool.isAutoscalerEnabled && !pool.isClusterAutoscalerPaused;
+      const range = pool.autoscalerRange;
+      const reason = pool.isClusterAutoscalerPaused ? 'clusterPausedTooltip' : (pool.isLastAutoscalingPool ? 'lastPoolTooltip' : 'unconfiguredTooltip');
+
+      if (scaling) {
+        return {
+          icon:      'icon-pause',
+          disabled:  !pool.canPauseResumeAutoscaler,
+          ariaLabel: t('pauseAction'),
+          tooltip:   `${ pool.canPauseResumeAutoscaler ? t('pauseAction') : t(reason) }<br>${ t('rangeTooltip', range) }`
+        };
+      }
+
+      return {
+        icon:      'icon-play',
+        disabled:  !pool.canPauseResumeAutoscaler,
+        ariaLabel: t('resumeAction'),
+        tooltip:   pool.canPauseResumeAutoscaler ? `${ t('resumeAction') }<br>${ t('rangeTooltip', range) }` : t(reason)
+      };
     },
 
     async takeSnapshot(btnCb) {
@@ -988,7 +1019,7 @@ export default {
                     </div>
                   </div>
                   <div
-                    v-if="group.ref && !group.ref.isAutoscalerEnabled"
+                    v-if="group.ref"
                     class="right group-header-buttons mr-20"
                   >
                     <MachineSummaryGraph
@@ -997,28 +1028,57 @@ export default {
                       :horizontal="true"
                       class="mr-20"
                     />
-                    <template v-if="value.hasLink('update') && group.ref.showScalePool">
+                    <div class="pool-scale-controls">
+                      <template v-if="value.hasLink('update') && group.ref.showScalePool">
+                        <button
+                          v-clean-tooltip="{ content: t('node.list.scaleDown'), triggers: ['hover', 'focus'] }"
+                          :disabled="group.ref.isAutoscalerEnabled || !group.ref.canScaleDownPool()"
+                          :aria-label="t('node.list.scaleDownAriaLabel', { name: group.ref.nameDisplay })"
+                          type="button"
+                          class="btn btn-sm role-secondary"
+                          data-testid="scale-down-button"
+                          @click="toggleScaleDownModal($event, group.ref)"
+                        >
+                          <i class="icon icon-sm icon-minus" />
+                        </button>
+                        <button
+                          v-clean-tooltip="{ content: t('node.list.scaleUp'), triggers: ['hover', 'focus'] }"
+                          :disabled="group.ref.isAutoscalerEnabled || !group.ref.canScaleUpPool()"
+                          :aria-label="t('node.list.scaleUpAriaLabel', { name: group.ref.nameDisplay })"
+                          type="button"
+                          class="btn btn-sm role-secondary"
+                          data-testid="scale-up-button"
+                          @click="group.ref.scalePool(1)"
+                        >
+                          <i class="icon icon-sm icon-plus" />
+                        </button>
+                      </template>
                       <button
-                        v-clean-tooltip="t('node.list.scaleDown')"
-                        :disabled="!group.ref.canScaleDownPool()"
+                        v-if="autoscalerToggle(group.ref)"
+                        v-clean-tooltip="{ content: autoscalerToggle(group.ref).tooltip, triggers: ['hover', 'focus'] }"
+                        :disabled="autoscalerToggle(group.ref).disabled"
+                        :aria-label="autoscalerToggle(group.ref).ariaLabel"
                         type="button"
                         class="btn btn-sm role-secondary"
-                        data-testid="scale-down-button"
-                        @click="toggleScaleDownModal($event, group.ref)"
+                        data-testid="autoscaler-toggle-button"
+                        @click="group.ref.toggleAutoscalerPause()"
                       >
-                        <i class="icon icon-sm icon-minus" />
+                        <i
+                          class="icon icon-sm"
+                          :class="autoscalerToggle(group.ref).icon"
+                        />
                       </button>
-                      <button
-                        v-clean-tooltip="t('node.list.scaleUp')"
-                        :disabled="!group.ref.canScaleUpPool()"
-                        type="button"
-                        class="btn btn-sm role-secondary ml-10"
-                        data-testid="scale-up-button"
-                        @click="group.ref.scalePool(1)"
-                      >
-                        <i class="icon icon-sm icon-plus" />
-                      </button>
-                    </template>
+                    </div>
+                    <button
+                      type="button"
+                      class="project-action btn btn-sm role-multi-action actions ml-10"
+                      :class="{invisible: !showPoolActionButton(group.ref)}"
+                      :aria-label="t('node.list.poolActionsAriaLabel', { name: group.ref.nameDisplay })"
+                      data-testid="pool-actions-button"
+                      @click="showPoolAction($event, group.ref)"
+                    >
+                      <i class="icon icon-actions" />
+                    </button>
                   </div>
                 </div>
               </template>
@@ -1264,6 +1324,10 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+// the scale buttons and the autoscaler toggle read as one control, so they sit closer to each
+// other than to the pool action button beside them
+$pool-control-gap: 4px;
+
 .main-row .no-entries {
   text-align: center;
 }
@@ -1291,6 +1355,13 @@ export default {
   .group-header-buttons {
     align-items: center;
     display: flex;
+
+    .pool-scale-controls {
+      align-items: center;
+      display: flex;
+      gap: $pool-control-gap;
+      justify-content: flex-end;
+    }
   }
 }
 

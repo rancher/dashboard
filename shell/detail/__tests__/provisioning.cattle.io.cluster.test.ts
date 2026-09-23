@@ -1,3 +1,4 @@
+import { h } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ProvisioningCattleIoCluster from '@shell/detail/provisioning.cattle.io.cluster.vue';
 import * as TitleBarComposables from '@shell/components/Resource/Detail/TitleBar/composables';
@@ -295,6 +296,151 @@ describe('view: provisioning.cattle.io.cluster', () => {
       });
 
       expect(wrapper.vm.showLog).toBeFalsy();
+    });
+  });
+
+  describe('machine pool actions', () => {
+    const autoscalingPool = (overrides = {}) => ({
+      nameDisplay:               'pool1',
+      autoscalerRange:           { min: 1, max: 4 },
+      isAutoscalerEnabled:       true,
+      isAutoscalerManaged:       true,
+      isAutoscalerPaused:        false,
+      isClusterAutoscalerPaused: false,
+      isLastAutoscalingPool:     false,
+      canPauseResumeAutoscaler:  true,
+      showScalePool:             false,
+      toggleAutoscalerPause:     jest.fn().mockResolvedValue(true),
+      ...overrides,
+    });
+
+    const AUTOSCALING_ENTRY = { autoscalingMinSize: 1, autoscalingMaxSize: 4 };
+
+    const mountWithPool = async(pool: any, featureEnabled = true, machinePools: any[] = [AUTOSCALING_ENTRY]) => {
+      const slotStub = {
+        render() {
+          return h('div', (this as any).$slots.default?.());
+        }
+      };
+      const resourceTableStub = {
+        render() {
+          return h('div', (this as any).$slots['group-by']?.({ group: { ref: pool } }));
+        }
+      };
+
+      const commit = jest.fn();
+      const tableMocks = {
+        ...mocks,
+        $store: {
+          ...mockStore,
+          commit,
+          getters: {
+            ...mockStore.getters,
+            'features/get': () => featureEnabled,
+            'i18n/exists':  () => true,
+          },
+        },
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props: {
+          value: {
+            isRke2:   true,
+            name:     'c1',
+            spec:     { rkeConfig: { machinePools } },
+            machines: [],
+            pools:    [],
+            hasLink:  () => true,
+          }
+        },
+        global: {
+          mocks: tableMocks,
+          stubs: {
+            DetailPage: {
+              render() {
+                return h('div', (this as any).$slots['bottom-area']?.());
+              }
+            },
+            ResourceTabs:  slotStub,
+            Tab:           slotStub,
+            ResourceTable: resourceTableStub,
+          },
+        },
+      });
+
+      await wrapper.setData({ haveMachines: true, machineTemplates: [] });
+
+      return { wrapper, commit };
+    };
+
+    it.each([
+      ['a pause toggle for a pool the autoscaler is scaling', { isAutoscalerEnabled: true }, {
+        icon: 'icon-pause', disabled: false, scaleDisabled: true
+      }],
+      ['a resume toggle for a paused pool', { isAutoscalerEnabled: false, isAutoscalerPaused: true }, {
+        icon: 'icon-play', disabled: false, scaleDisabled: false
+      }],
+      ['a disabled resume toggle for a pool with no autoscaler', {
+        isAutoscalerEnabled: false, isAutoscalerManaged: false, canPauseResumeAutoscaler: false
+      }, {
+        icon: 'icon-play', disabled: true, scaleDisabled: false
+      }],
+      ['a disabled pause toggle while the whole cluster is paused', {
+        isAutoscalerEnabled: true, isClusterAutoscalerPaused: true, canPauseResumeAutoscaler: false
+      }, {
+        icon: 'icon-play', disabled: true, scaleDisabled: true
+      }],
+    ])('should show %s', async(_label, overrides, expected) => {
+      const { wrapper } = await mountWithPool(autoscalingPool({
+        ...overrides, showScalePool: true, canScaleUpPool: () => true, canScaleDownPool: () => true
+      }));
+      const toggle = wrapper.find('[data-testid="autoscaler-toggle-button"]');
+
+      expect(toggle.find('i').classes()).toContain(expected.icon);
+      expect(toggle.attributes('disabled')).toStrictEqual(expected.disabled ? '' : undefined);
+      expect(wrapper.find('[data-testid="scale-up-button"]').attributes('disabled')).toStrictEqual(expected.scaleDisabled ? '' : undefined);
+    });
+
+    it('should toggle the autoscaler from the row', async() => {
+      const pool = autoscalingPool({ isAutoscalerEnabled: true });
+      const { wrapper } = await mountWithPool(pool);
+
+      await wrapper.find('[data-testid="autoscaler-toggle-button"]').trigger('click');
+
+      expect(pool.toggleAutoscalerPause).toHaveBeenCalledWith();
+    });
+
+    it('should keep the scale controls beside the toggle', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({
+        isAutoscalerEnabled: true, showScalePool: true, canScaleUpPool: () => true, canScaleDownPool: () => true
+      }));
+      const order = wrapper.findAll('.pool-scale-controls > *').map((el) => el.attributes('data-testid'));
+
+      expect(order).toStrictEqual(['scale-down-button', 'scale-up-button', 'autoscaler-toggle-button']);
+    });
+
+    it('should not show the toggle while the autoscaler feature flag is off', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool(), false);
+
+      expect(wrapper.find('[data-testid="autoscaler-toggle-button"]').exists()).toBe(false);
+    });
+
+    it('should open the pool action menu for a pool that has actions', async() => {
+      const pool = autoscalingPool({ availableActions: [{ action: 'toggleAutoscalerPause' }] });
+      const { wrapper, commit } = await mountWithPool(pool);
+      const button = wrapper.find('[data-testid="pool-actions-button"]');
+
+      expect(button.classes()).not.toContain('invisible');
+
+      await button.trigger('click');
+
+      expect(commit).toHaveBeenCalledWith('action-menu/show', expect.objectContaining({ resources: [pool] }));
+    });
+
+    it('should hide the action button for a pool with no actions', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({ availableActions: [] }));
+
+      expect(wrapper.find('[data-testid="pool-actions-button"]').classes()).toContain('invisible');
     });
   });
 
