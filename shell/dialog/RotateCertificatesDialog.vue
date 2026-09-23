@@ -8,6 +8,7 @@ import Select from '@shell/components/form/Select';
 
 import { get, set } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -17,7 +18,8 @@ export default {
     RadioGroup,
     Card,
     AsyncButton,
-    Banner
+    Banner,
+    RcButton
   },
 
   props: {
@@ -166,12 +168,13 @@ export default {
     </template>
     <template #actions>
       <div class="buttons">
-        <button
-          class="btn role-secondary mr-20"
+        <rc-button
+          variant="secondary"
+          class="mr-20"
           @click="close"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
         <AsyncButton
           mode="rotate"
           :disabled="!rotateAllServices && !selectedService"

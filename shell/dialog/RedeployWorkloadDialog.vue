@@ -6,6 +6,7 @@ import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { resourceNames } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
+import { RcButton } from '@components/RcButton';
 
 interface Workload {
   nameDisplay: string;
@@ -30,6 +31,7 @@ export default {
     Card,
     AsyncButton,
     Banner,
+    RcButton
   },
 
   props: {
@@ -131,14 +133,13 @@ export default {
     </template>
 
     <template #actions>
-      <button
-        role="button"
-        class="btn role-secondary"
+      <rc-button
+        variant="secondary"
         :aria-label="t('generic.cancel')"
         @click="close"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
       <div class="spacer" />
       <AsyncButton
         role="button"

@@ -11,6 +11,7 @@ import { sortBy } from '@shell/utils/sort';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close', 'onReadyYamlEditor'],
@@ -22,7 +23,8 @@ export default {
     YamlEditor,
     FileSelector,
     LabeledSelect,
-    SortableTable
+    SortableTable,
+    RcButton
   },
 
   props: {
@@ -199,32 +201,31 @@ export default {
         class="text-center"
         style="width: 100%"
       >
-        <button
+        <rc-button
           :aria-label="t('generic.close')"
-          role="button"
           type="button"
-          class="btn role-primary"
+          variant="primary"
           data-testid="import-yaml-close"
           @click="close"
         >
           {{ t('generic.close') }}
-        </button>
+        </rc-button>
       </div>
       <div
         v-else
         class="text-center"
         style="width: 100%"
       >
-        <button
+        <rc-button
           :aria-label="t('generic.cancel')"
-          role="button"
           type="button"
-          class="btn role-secondary mr-10"
+          variant="secondary"
+          class="mr-10"
           data-testid="import-yaml-cancel"
           @click="close"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
         <AsyncButton
           v-if="!done"
           mode="import"
