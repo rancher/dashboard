@@ -353,17 +353,17 @@ defineExpose({ focus });
   }
 
   &.variant-destructive {
-    background: var(--error);
-    color: var(--on-error, var(--error-text));
+    background: var(--buttons-destructive);
+    color: var(--buttons-on-destructive);
 
     &:hover, &._hover {
-      background-color: var(--error-hover-bg);
-      color: var(--error-hover-text);
+      background-color: var(--buttons-destructive-hover);
+      color: var(--buttons-on-destructive);
     }
 
     &:focus, &.focused {
-      background-color: var(--error-hover-bg);
-      color: var(--error-hover-text);
+      background-color: var(--buttons-destructive-hover);
+      color: var(--buttons-on-destructive);
     }
 
     &:focus-visible {
