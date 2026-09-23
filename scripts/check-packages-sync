@@ -27,7 +27,6 @@ const files = [
 const dependencySections = [
   'dependencies',
   'devDependencies',
-  'peerDependencies',
   'optionalDependencies',
   'resolutions',
 ];
