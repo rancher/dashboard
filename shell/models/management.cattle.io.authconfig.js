@@ -159,16 +159,6 @@ export default class AuthConfig extends SteveModel {
     }
   }
 
-  get detailLocation() {
-    return {
-      name:   'c-cluster-auth-config-id',
-      params: {
-        cluster: this.$rootGetters['clusterId'],
-        id:      this.id,
-      },
-    };
-  }
-
   /**
    * Auth configs are edited through their own route rather than the generic
    * resource detail page, so the inherited action menu (`goToEdit`, `goToViewConfig`)

@@ -1,8 +1,70 @@
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount, shallowMount } from '@vue/test-utils';
 import authConfigMixin from '@shell/mixins/auth-config';
 import childHook from '@shell/mixins/child-hook';
 //
 describe('mixin: authConfigMixin', () => {
+  describe('method: cancel', () => {
+    const FakeComponent = {
+      render() {},
+      mixins: [authConfigMixin, childHook],
+    };
+
+    const createInstance = (id: string, enabled: boolean, openedOnConfig: boolean) => {
+      const originalModel = {
+        id, enabled, accessMode: 'required'
+      };
+      const router = { push: jest.fn(), go: jest.fn() };
+      const instance = shallowMount(FakeComponent, {
+        data:   () => ({ model: { ...originalModel, accessMode: 'unrestricted' }, originalModel }),
+        global: {
+          mocks: {
+            $store:  { dispatch: jest.fn().mockResolvedValue(originalModel) },
+            $router: router,
+            $route:  {
+              params: { cluster: 'local', id },
+              query:  { mode: 'edit', editConfig: openedOnConfig ? 'true' : undefined },
+            },
+          },
+        },
+      }).vm as any;
+
+      return {
+        instance, router, originalModel
+      };
+    };
+
+    it.each(['github', 'github-2'])('should return to the provider list after cancelling Edit for %s', (id) => {
+      const { instance, router } = createInstance(id, true, true);
+
+      instance.cancel();
+
+      expect(router.push).toHaveBeenCalledWith({
+        name:   'c-cluster-auth-config',
+        params: { cluster: 'local' },
+      });
+    });
+
+    it('should restore the access view when editing started within the provider page', async() => {
+      const { instance, router, originalModel } = createInstance('github-2', true, false);
+
+      instance.goToEdit();
+      instance.cancel();
+      await flushPromises();
+
+      expect(instance.editConfig).toBe(false);
+      expect(instance.model).toStrictEqual(originalModel);
+      expect(router.push).not.toHaveBeenCalledWith(expect.anything());
+    });
+
+    it('should go back when cancelling a provider that is not enabled', () => {
+      const { instance, router } = createInstance('github-2', false, true);
+
+      instance.cancel();
+
+      expect(router.go).toHaveBeenCalledWith(-1);
+    });
+  });
+
   describe('method: save', () => {
     const componentMock = (model: any) => ({
       data: () => ({
@@ -77,7 +139,7 @@ describe('mixin: authConfigMixin', () => {
       methods: { applyHooks: jest.fn() },
     };
 
-    const createMock = (model: any, overrides: Record<string, any> = {}) => ({
+    const createMock = (model: any, overrides: Record<string, any> = {}, routeQuery: Record<string, string> = { mode: 'edit' }) => ({
       data: () => ({
         value: { configType: 'oidc' },
         model,
@@ -89,7 +151,7 @@ describe('mixin: authConfigMixin', () => {
           $store: { dispatch: () => model },
           $route: {
             params: { id: model.id || '123' },
-            query:  { mode: 'edit' },
+            query:  routeQuery,
           },
         }
       }
@@ -159,6 +221,15 @@ describe('mixin: authConfigMixin', () => {
       await instance.save(jest.fn());
 
       expect(instance.model.accessMode).toStrictEqual('unrestricted');
+    });
+
+    it('should open the provider config editor when routed from the Edit action', () => {
+      const model = {
+        id: 'github-2', type: 'githubConfig', enabled: true
+      };
+      const instance = mount(FakeComponent, createMock(model, {}, { mode: 'edit', editConfig: 'true' })).vm as any;
+
+      expect(instance.editConfig).toBe(true);
     });
   });
 

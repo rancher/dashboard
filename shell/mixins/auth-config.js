@@ -1,4 +1,4 @@
-import { MODE, _EDIT } from '@shell/config/query-params';
+import { EDIT_CONFIG, MODE, _EDIT } from '@shell/config/query-params';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { providerKey } from '@shell/models/management.cattle.io.authconfig';
@@ -48,6 +48,10 @@ export default {
 
   created() {
     this.registerAfterHook(this.updateAuthProviders, 'force-update-auth-providers');
+
+    if (this.openedOnConfig) {
+      this.editConfig = true;
+    }
   },
 
   async fetch() {
@@ -205,6 +209,10 @@ export default {
 
     showCancel() {
       return this.editConfig || !this.model.enabled;
+    },
+
+    openedOnConfig() {
+      return this.$route.query?.[EDIT_CONFIG] === 'true';
     }
   },
 
@@ -530,6 +538,11 @@ export default {
       // go back to provider selection screen
       if (!this.model.enabled) {
         this.$router.go(-1);
+      } else if (this.openedOnConfig) {
+        this.$router.push({
+          name:   'c-cluster-auth-config',
+          params: { cluster: this.$route.params.cluster },
+        });
       } else {
         // must be cancelling edit of an enabled config; reset any changes and return to add users/groups view for that config
         this.$store.dispatch(`rancher/clone`, { resource: this.originalModel }).then((cloned) => {
