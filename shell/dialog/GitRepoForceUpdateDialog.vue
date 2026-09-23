@@ -107,6 +107,7 @@ export default {
     <template #actions>
       <rc-button
         variant="secondary"
+        size="large"
         @click="close"
       >
         {{ t('generic.cancel') }}

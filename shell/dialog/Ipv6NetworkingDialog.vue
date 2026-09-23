@@ -110,6 +110,7 @@ export default {
           <rc-button
             data-testid="ipv6-dialog-cancel"
             variant="secondary"
+            size="large"
             class="mr-10"
             @click="close"
           >

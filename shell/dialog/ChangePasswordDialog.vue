@@ -67,6 +67,7 @@ export default {
       <!-- type reset is required by lastpass -->
       <rc-button
         variant="secondary"
+        size="large"
         :aria-label="t('changePassword.cancel')"
         type="reset"
         @click="closeModal"

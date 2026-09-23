@@ -214,6 +214,7 @@ export default {
       <div class="dialog-buttons mt-20">
         <rc-button
           variant="secondary"
+          size="large"
           data-testid="dev-install-ext-modal-cancel-btn"
           @click="closeDialog()"
         >
