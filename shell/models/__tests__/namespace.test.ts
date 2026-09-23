@@ -1,5 +1,5 @@
 import Namespace from '@shell/models/namespace';
-import { SYSTEM_NAMESPACE } from '@shell/config/labels-annotations';
+import { RESOURCE_QUOTA, SYSTEM_NAMESPACE } from '@shell/config/labels-annotations';
 import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
 import { LOCAL_CLUSTER } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
@@ -273,7 +273,30 @@ describe('class Namespace', () => {
       expect(loc.params.product).toBe(EXPLORER);
     });
   });
-  it.todo('should return the resourceQuota');
+  describe('resourceQuota', () => {
+    const annotations = (value?: string) => ({ metadata: { annotations: value === undefined ? {} : { [RESOURCE_QUOTA]: value } } });
+
+    it('should return the parsed resourceQuota annotation', () => {
+      const namespace = new Namespace(annotations('{"limit":{"limitsCpu":"500m"}}'));
+
+      expect(namespace.resourceQuota).toStrictEqual({ limit: { limitsCpu: '500m' } });
+      expect(namespace.hasInvalidResourceQuota).toBe(false);
+    });
+
+    it('should return empty limits when the annotation is missing', () => {
+      const namespace = new Namespace(annotations());
+
+      expect(namespace.resourceQuota).toStrictEqual({ limit: {} });
+      expect(namespace.hasInvalidResourceQuota).toBe(false);
+    });
+
+    it('should return empty limits instead of throwing when the annotation is malformed JSON', () => {
+      const namespace = new Namespace(annotations(`{"limit":{"requestsCpu":"250m","limitsMemory":"500Mi"'`));
+
+      expect(namespace.resourceQuota).toStrictEqual({ limit: {} });
+      expect(namespace.hasInvalidResourceQuota).toBe(true);
+    });
+  });
   it.todo('should set the resourceQuota as reactive Vue property');
   it.todo('should reset project with cleanForNew');
 
