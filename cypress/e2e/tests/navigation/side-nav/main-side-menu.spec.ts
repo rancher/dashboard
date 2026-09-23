@@ -122,9 +122,9 @@ describe('Side Menu: main', () => {
 
   describe('With a browsable cluster estate', () => {
     beforeEach(() => {
-      // Inject a fake downstream cluster so there IS something browsable — the redesigned nav hides the
-      // search "door" / flyout entirely when the estate is local-only (browsableClusterCount === 0), and
-      // this CI Rancher has only `local`.
+      // Inject a fake downstream cluster so these specs have a downstream row to act on — this CI Rancher
+      // has only `local`, and the nav hides the search "door" / flyout entirely when there is nothing at
+      // all to list (browsableClusterCount === 0).
       generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
 
       HomePagePo.goTo();
@@ -148,6 +148,23 @@ describe('Side Menu: main', () => {
       burgerMenuPo.clusterSwitcherRows().should('exist');
     });
 
+    // `local` is a cluster like any other in the flyout: a row of ALL CLUSTERS (as well as the fixed tile
+    // above it), and one of the clusters the trigger's chip counts. The chip used to read one less than
+    // the directory it sits over, because `local` was counted out of a list it was also missing from.
+    //
+    // The chip is compared against the rows on screen rather than a literal, so the estate's real size
+    // does not matter — only that it fits in one page (this CI Rancher has `local` plus the injected fake).
+    it('Counts and lists the local cluster in the cluster directory', { tags: ['@navigation', '@adminUser'] }, () => {
+      const burgerMenuPo = new BurgerMenuPo();
+
+      burgerMenuPo.openClusterSwitcher();
+      burgerMenuPo.clusterListRowByLabel('local').should('exist');
+
+      burgerMenuPo.clusterListRows().its('length').then((rows) => {
+        burgerMenuPo.clusterSwitcherCount().should('have.text', `${ rows }`);
+      });
+    });
+
     // The flyout owns the ONLY cluster search in the nav, and it is the one behaviour the unit tests
     // cannot reach — it runs through the debounced `resetOthers` round trip. The fake cluster is the only
     // browsable one here, so a matching query must leave exactly its row on screen.
@@ -157,6 +174,24 @@ describe('Side Menu: main', () => {
       burgerMenuPo.openClusterSwitcher();
       burgerMenuPo.searchClusters(fakeProvClusterId);
       burgerMenuPo.clusterSearchResults().should('have.length', 1).and('contain.text', fakeProvClusterId);
+    });
+
+    // The roll-out wipe clips the flyout with one distance across both axes, so a short window used to
+    // leave it cutting the panel's width as well as its height.
+    it('Keeps the cluster switcher at full width on a short window', { tags: ['@navigation', '@adminUser'] }, () => {
+      const burgerMenuPo = new BurgerMenuPo();
+
+      burgerMenuPo.openClusterSwitcher();
+      cy.viewport(1280, 360);
+
+      BurgerMenuPo.clusterSwitcherFlyout().should(($flyout) => {
+        const flyout = $flyout[0];
+        const rect = flyout.getBoundingClientRect();
+        // clip-path clips hit-testing too, so the right edge only answers here while it is still painted.
+        const atRightEdge = flyout.ownerDocument.elementFromPoint(rect.right - 2, rect.top + 20);
+
+        expect(flyout.contains(atRightEdge), 'flyout right edge is clipped').to.equal(true);
+      });
     });
 
     it('Can display at least one menu category label', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {

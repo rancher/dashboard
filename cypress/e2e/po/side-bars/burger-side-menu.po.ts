@@ -219,10 +219,17 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * Every row of the estate list — ALL CLUSTERS at rest, the matches while searching.
+   */
+  clusterListRows(): Cypress.Chainable {
+    return this.clusterList().find('.cluster-switcher-row');
+  }
+
+  /**
    * The rows currently matching the flyout's search term.
    */
   clusterSearchResults(): Cypress.Chainable {
-    return this.clusterList().find('.cluster-switcher-row');
+    return this.clusterListRows();
   }
 
   /**
@@ -281,6 +288,14 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   clusterSwitcherRows(): Cypress.Chainable {
     return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row');
+  }
+
+  /**
+   * The count chip on the switcher trigger — how many clusters the flyout's ALL CLUSTERS directory holds.
+   * @returns {Cypress.Chainable}
+   */
+  clusterSwitcherCount(): Cypress.Chainable {
+    return this.self().getId('cluster-switcher-trigger').find('.cluster-all-count');
   }
 
   clusterPinnedList(): Cypress.Chainable {

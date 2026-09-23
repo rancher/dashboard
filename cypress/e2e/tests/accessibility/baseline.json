@@ -9,25 +9,11 @@
   },
   "violations": [
     {
-      "fingerprint": "0b950a339cb91b3069a95122e775d8ec3c7ea2212344a5c42275387bb8fe7c83",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
-      "rule": "landmark-main-is-top-level",
-      "impact": "moderate",
-      "help": "Main landmark should not be contained in another landmark"
-    },
-    {
       "fingerprint": "369701d3305beb3059f2d21821bceb5be66d7f4b579e5dff93351ee30c7959e4",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Import Extension Catalog Modal",
       "rule": "aria-dialog-name",
       "impact": "serious",
       "help": "ARIA dialog and alertdialog nodes should have an accessible name"
-    },
-    {
-      "fingerprint": "3cd41cfc54499ee42440d00a23390b375e677f2208b6bac7dcdfa51a0d5723c8",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Home Links page",
-      "rule": "empty-table-header",
-      "impact": "minor",
-      "help": "Table header text should not be empty"
     },
     {
       "fingerprint": "594af1b6c579afe73385423c49298b724c87e5dfcb6f168c87204304ebf05e10",
@@ -42,13 +28,6 @@
       "rule": "aria-dialog-name",
       "impact": "serious",
       "help": "ARIA dialog and alertdialog nodes should have an accessible name"
-    },
-    {
-      "fingerprint": "5fe6faf2621449a54eed0a3b440aa2d7798eeb9dd3dac0b529f8141e38ea1464",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
-      "rule": "landmark-unique",
-      "impact": "moderate",
-      "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination"
     },
     {
       "fingerprint": "6979c0a44c3479ff66544fb94667d0969e74a63b2d7d14c3546be5676ccf431e",
@@ -70,20 +49,6 @@
       "rule": "aria-dialog-name",
       "impact": "serious",
       "help": "ARIA dialog and alertdialog nodes should have an accessible name"
-    },
-    {
-      "fingerprint": "7fb217d91e57c2d45380ca1be1f5e9619399c473c6b26d5c8cf5c76951062ade",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
-      "rule": "image-redundant-alt",
-      "impact": "minor",
-      "help": "Alternative text of images should not be repeated as text"
-    },
-    {
-      "fingerprint": "81951242bafd7018eb6183ec13678267e27d4ec876bb04d1a9676c939d5f2c86",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Describe Resource",
-      "rule": "landmark-unique",
-      "impact": "moderate",
-      "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination"
     },
     {
       "fingerprint": "848477f4b8f56e05aa4119096aefa1f236daf2b8ab5e98ef94bdbfed2d535454",
@@ -170,25 +135,11 @@
       "help": "Table header text should not be empty"
     },
     {
-      "fingerprint": "f5fad900884448291d17ce6613520b2524dfa4ba0daa32ea23ac54d3d0fb10ac",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
-      "rule": "empty-table-header",
-      "impact": "minor",
-      "help": "Table header text should not be empty"
-    },
-    {
       "fingerprint": "f7f97ead31f6c0e2eb957ee247df5123c6b79ca4ab1f28168bba0f44c10f1364",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > Account and API Keys Page",
       "rule": "empty-table-header",
       "impact": "minor",
       "help": "Table header text should not be empty"
-    },
-    {
-      "fingerprint": "fba081df1bc390c34f350363403f29ae9849704463ec191a942b142b506136b1",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
-      "rule": "landmark-no-duplicate-main",
-      "impact": "moderate",
-      "help": "Document should not have more than one main landmark"
     }
   ]
 }

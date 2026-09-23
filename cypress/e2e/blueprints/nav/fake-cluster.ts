@@ -2608,11 +2608,11 @@ export function generateFakeClusterDataAndIntercepts({
   }).as('mgmtClustersLists');
 
   // The shared cluster count — a pageSize:1 findPage (saveCountAs) read by the home page, the Cluster
-  // Management nav badge AND the switcher, so it counts everything the user can see, `local` included
-  // (the switcher's own chip takes local off it). The real backend can't see the injected fake cluster,
-  // so add it to whatever the environment really has; otherwise browsableClusterCount is 0 and the
-  // empty-state gate hides the search "door" / flyout that these specs rely on. `count` is read from the
-  // response body by saveCountAs.
+  // Management nav badge AND the switcher's chip, so it counts everything the user can see, `local`
+  // included. The real backend can't see the injected fake cluster, so add it to whatever the
+  // environment really has; otherwise browsableClusterCount is 0 and the empty-state gate hides the
+  // search "door" / flyout that these specs rely on. `count` is read from the response body by
+  // saveCountAs.
   cy.intercept({
     method:   'GET',
     pathname: '/v1/management.cattle.io.clusters',

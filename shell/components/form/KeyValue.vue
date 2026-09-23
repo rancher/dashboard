@@ -677,7 +677,7 @@ export default {
               :aria-colindex="extraColumns.length+3"
             >
               <slot name="remove">
-                <span />
+                <span class="sr-only">{{ t('generic.remove') }}</span>
               </slot>
             </div>
           </div>

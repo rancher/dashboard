@@ -57,13 +57,33 @@ describe('App Bar Version Number', { testIsolation: false, tags: ['@generic', '@
     nav.version().checkNormalText();
   });
 
-  it('app bar uses smaller text for longer version', () => {
+  it('app bar uses smaller text for a longer version', () => {
+    interceptAndChangeVersion('v2.10.1');
+    HomePagePo.goTo();
+
+    nav.version().checkExists();
+    nav.version().checkVisible();
+    nav.version().checkVersion('v2.10.1');
+    nav.version().checkSmallText();
+  });
+
+  it('app bar uses the smallest text for the longest version', () => {
     interceptAndChangeVersion('v2.10.11');
     HomePagePo.goTo();
 
     nav.version().checkExists();
     nav.version().checkVisible();
     nav.version().checkVersion('v2.10.11');
+    nav.version().checkSmallerText();
+  });
+
+  it('app bar shows the release number of a head build', () => {
+    interceptAndChangeVersion('v2.10.1-abcd123-head');
+    HomePagePo.goTo();
+
+    nav.version().checkExists();
+    nav.version().checkVisible();
+    nav.version().checkVersion('v2.10.1');
     nav.version().checkSmallText();
   });
 });

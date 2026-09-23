@@ -36,7 +36,9 @@ Cypress.Commands.add('login', (
     // LoginPagePo.ensureFormReady - [CREATE ISSUE TO INVESTIGATE]). No-op on the happy path.
     loginPage.ensureFormReady();
 
-    loginPage.checkIsCurrentPage(!skipNavigation);
+    // Match on the path, not the whole URL: the login page can carry query params such as
+    // timed-out or logged-out, and an exact match would reject those.
+    loginPage.checkIsCurrentPage(false);
 
     if (!skipNavigation) {
       cy.getRancherVersion().then((version) => {
@@ -53,8 +55,8 @@ Cypress.Commands.add('login', (
 
     loginPage.switchToLocal();
 
-    loginPage.canSubmit()
-      .should('eq', true);
+    // Wait for the button to become enabled, so a form that is a moment from ready isn't failed.
+    loginPage.submitButton().expectToBeEnabled();
 
     loginPage.username()
       .set(username);
@@ -62,8 +64,7 @@ Cypress.Commands.add('login', (
     loginPage.password()
       .set(password);
 
-    loginPage.canSubmit()
-      .should('eq', true);
+    loginPage.submitButton().expectToBeEnabled();
     loginPage.submit();
 
     cy.wait(`@${ loginReqAlias }`).its('request.body')

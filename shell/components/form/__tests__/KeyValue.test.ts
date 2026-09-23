@@ -643,6 +643,24 @@ describe('component: KeyValue', () => {
       });
     });
 
+    describe('remove column header', () => {
+      it('names the remove column for assistive technology', () => {
+        const wrapper = mountKV({ value: { k1: 'v1' }, asMap: true });
+        const header = wrapper.find('[role="columnheader"][aria-colindex="3"]');
+
+        expect(header.find('.sr-only').text()).toStrictEqual('%generic.remove%');
+      });
+
+      it('keeps the remove column named when removeLabel is blank for an icon-only button', () => {
+        const wrapper = mountKV({
+          value: { k1: 'v1' }, asMap: true, removeLabel: ' '
+        });
+        const header = wrapper.find('[role="columnheader"][aria-colindex="3"]');
+
+        expect(header.find('.sr-only').text()).toStrictEqual('%generic.remove%');
+      });
+    });
+
     describe('no-data placeholder in view mode', () => {
       it('placeholder cells have aria-rowindex="1" and sequential aria-colindex', () => {
         const wrapper = mountKV({ value: {}, mode: 'view' });
