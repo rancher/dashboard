@@ -61,7 +61,7 @@ const createStore = ({
   };
 };
 
-const createWrapper = (store: any) => {
+const createWrapper = (store: any, props = {}, query = {}) => {
   // Start with pending: true so the initial render is the Loading stub (the
   // real component doesn't guard `value.name` because the Nuxt `fetch()`
   // hook is what populates `value` — under the test harness we drive that
@@ -69,10 +69,11 @@ const createWrapper = (store: any) => {
   const fetchState = { pending: true };
 
   const wrapper = shallowMount(ResourceDetail as any, {
+    props,
     global: {
       mocks: {
         $store:      store,
-        $route:      { params: { resource: 'bogus-resource-type', id: 'bogus-id' }, query: {} },
+        $route:      { params: { resource: 'bogus-resource-type', id: 'bogus-id' }, query },
         $fetchState: fetchState,
         t:           (key: string, args: any) => `${ key }-${ JSON.stringify(args ?? {}) }`,
       },
@@ -104,6 +105,46 @@ const runFetch = async(wrapper: any, fetchState: any) => {
 };
 
 describe('component: ResourceDetail', () => {
+  describe('subtype override', () => {
+    const createSubtypeStore = () => {
+      const store = createStore({ schema: { id: 'bogus-resource-type' } });
+
+      store.getters['type-map/hasCustomEdit'] = jest.fn((_type?: string, subtype?: string) => subtype === 'github');
+      store.getters['type-map/hasCustomDetail'] = jest.fn(() => false);
+      store.getters['type-map/importEdit'] = jest.fn(() => null);
+      store.getters['type-map/importDetail'] = jest.fn(() => null);
+
+      return store;
+    };
+
+    it.each([
+      [{ mode: _EDIT }, _CONFIG],
+      [{ mode: _EDIT, as: _CONFIG }, _CONFIG],
+      [{ mode: _EDIT, as: _YAML }, _YAML],
+    ])('selects the provider form unless YAML is explicitly requested: %j', async(query, expected) => {
+      const store = createSubtypeStore();
+      const { wrapper, fetchState } = createWrapper(store, { subTypeOverride: 'github' }, query);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).as).toBe(expected);
+    });
+
+    it('resolves components using the subtype while fetching the original instance id', async() => {
+      const store = createSubtypeStore();
+      const { wrapper, fetchState } = createWrapper(store, { subTypeOverride: 'github' }, { mode: _EDIT });
+
+      await runFetch(wrapper, fetchState);
+
+      expect(store.getters['type-map/hasCustomDetail']).toHaveBeenCalledWith('bogus-resource-type', 'github');
+      expect(store.getters['type-map/importDetail']).toHaveBeenCalledWith('bogus-resource-type', 'github');
+      expect(store.getters['type-map/importEdit']).toHaveBeenCalledWith('bogus-resource-type', 'github');
+      expect(store.dispatch).toHaveBeenCalledWith('cluster/find', {
+        type: 'bogus-resource-type', id: 'bogus-id', opt: { watch: true }
+      });
+    });
+  });
+
   it('renders the in-context FailWhale (not the details) when the resource type has no schema', async() => {
     const store = createStore({ schema: undefined });
     const { wrapper, fetchState } = createWrapper(store);
