@@ -90,7 +90,7 @@ function bytesToString(bytes: any): string {
   return new TextDecoder().decode(bytes);
 }
 
-function stringToBytes(str: string): Uint8Array {
+function stringToBytes(str: string) {
   return new TextEncoder().encode(str);
 }
 
@@ -98,6 +98,6 @@ function bytesToBase64(arr: Uint8Array) {
   return btoa(Array.from(arr, (b: number) => String.fromCharCode(b)).join(''));
 }
 
-function base64ToBytes(base64: string): Uint8Array {
+function base64ToBytes(base64: string) {
   return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 }
