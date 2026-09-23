@@ -16,6 +16,10 @@ timeout-minutes: 30
 description: "AI-assisted daily grooming of new and in-triage issues"
 
 tools:
+  # Explicit since gh-aw requires shell access to be declared when
+  # `github.min-integrity` is `none`. `true` preserves the unrestricted
+  # shell these workflows have always run with.
+  bash: true
   github:
     toolsets:
       - default
