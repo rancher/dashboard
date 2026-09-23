@@ -1,5 +1,6 @@
 import { nextTick } from 'vue';
 import { shallowMount, VueWrapper } from '@vue/test-utils';
+import type { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { RcCodeMirror } from '@components/RcCodeMirror';
 import CodeMirror from '@shell/components/CodeMirror.vue';
@@ -151,11 +152,20 @@ describe('component: CodeMirror.vue', () => {
       expect(rc.props('readOnly')).toStrictEqual(readOnly);
     });
 
-    it('should hide line numbers and fold gutter when displayed as a text area', () => {
-      const rc = createWrapper({ asTextArea: true }).findComponent(RcCodeMirror);
+    it.each([
+      [true, 'input'],
+      [false, 'editor'],
+    ])('should map asTextArea %p to variant %p', (asTextArea, variant) => {
+      const rc = createWrapper({ asTextArea }).findComponent(RcCodeMirror);
 
-      expect(rc.props('lineNumbers')).toStrictEqual(false);
-      expect(rc.props('foldGutter')).toStrictEqual(false);
+      expect(rc.props('variant')).toStrictEqual(variant);
+    });
+
+    it('should not bind Tab to indent when displayed as a text area', () => {
+      const extensions = createWrapper({ asTextArea: true }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const editor = createWrapper({ asTextArea: false }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+
+      expect(extensions).toHaveLength(editor.length - 1);
     });
 
     it('should show line numbers and fold gutter by default', () => {
