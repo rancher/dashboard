@@ -95,6 +95,13 @@ describe('component: WorkspaceSwitcher', () => {
     expect(commit).not.toHaveBeenCalled();
   });
 
+  it('should not write the stored preference while the workspace is not known yet', () => {
+    const { dispatch, commit } = mountSwitcher('', [], '');
+
+    expect(dispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything());
+    expect(commit).not.toHaveBeenCalled();
+  });
+
   it('should offer every known workspace as an option', () => {
     const { wrapper } = mountSwitcher('fleet-default');
 

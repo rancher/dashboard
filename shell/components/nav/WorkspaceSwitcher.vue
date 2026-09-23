@@ -77,7 +77,12 @@ export default {
     const value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
 
     if (!this.options.length || this.options.some((item) => item.value === value)) {
-      this.value = value;
+      // Mounting is not the user picking a workspace, so this must not go through the setter: on a
+      // slow load it runs before the stored workspace is known, and writing then replaces the
+      // user's choice with whatever the switcher happens to be showing.
+      if (value !== this.value) {
+        this.$store.dispatch('setWorkspace', { value });
+      }
     } else {
       this.restoreSelection(value);
     }
