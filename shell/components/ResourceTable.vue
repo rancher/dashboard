@@ -44,10 +44,22 @@ import {
 const DEFAULT_GROUP = 'namespace';
 
 /**
- * Most rows an "all matching" export will fetch. A filter can match an entire cluster's worth of
- * resources, and neither the browser nor the api wants that in one go
+ * Most rows an "all matching" export will fetch.
+ *
+ * A filter can match an entire cluster's worth of resources. A list that is not paginated already
+ * fetches every one of them, so the ceiling here is about what the browser will hold and write,
+ * not about sparing the api.
  */
-const EXPORT_ROW_LIMIT = 10000;
+const EXPORT_ROW_LIMIT = 50000;
+
+/**
+ * The same, for YAML.
+ *
+ * YAML is the resources themselves, which is a request each rather than a page of a thousand - so
+ * the wait grows with the rows in a way the other formats' does not, and there is no way to call
+ * one off once it has started.
+ */
+const EXPORT_ROW_LIMIT_YAML = 10000;
 
 /**
  * How many rows an "all matching" export asks for at a time.
@@ -1657,8 +1669,9 @@ export default {
      * drop or repeat a row between two pages.
      *
      * @param onProgress called with (done, total) after each page arrives
+     * @param limit most rows to fetch - see the two export ceilings
      */
-    async allMatchingRows(onProgress) {
+    async allMatchingRows(onProgress, limit = EXPORT_ROW_LIMIT) {
       if (!this.externalPaginationEnabled || !this.externalPaginationArgs || !this.schema) {
         return this.viewRows;
       }
@@ -1668,7 +1681,7 @@ export default {
       let revision;
 
       try {
-        for (let page = 1; rows.length < EXPORT_ROW_LIMIT; page++) {
+        for (let page = 1; rows.length < limit; page++) {
           const res = await this.$store.dispatch(`${ this.inStore }/findPage`, {
             type: this.schema.id,
             opt:  {
@@ -1688,7 +1701,7 @@ export default {
           rows.push(...data);
 
           if (total === null) {
-            total = Math.min(res?.pagination?.result?.count ?? data.length, EXPORT_ROW_LIMIT);
+            total = Math.min(res?.pagination?.result?.count ?? data.length, limit);
             revision = res?.pagination?.result?.revision;
           }
 
@@ -1761,7 +1774,8 @@ export default {
       };
 
       try {
-        const rows = await this.allMatchingRows((done, total) => report(done, total, 0, fetchShare));
+        const limit = format === 'yaml' ? EXPORT_ROW_LIMIT_YAML : EXPORT_ROW_LIMIT;
+        const rows = await this.allMatchingRows((done, total) => report(done, total, 0, fetchShare), limit);
 
         if (!rows.length || !format) {
           // Nothing was written, so there is nothing to tell the user about afterwards either
