@@ -10,7 +10,13 @@ import UnitInput from '@shell/components/form/UnitInput.vue';
 import { randomStr } from '@shell/utils/string';
 import FormValidation from '@shell/mixins/form-validation';
 import { MACHINE_POOL_VALIDATION } from '@shell/utils/validators/machine-pool';
-import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
+import {
+  clearMachinePoolAutoscalerPause,
+  machinePoolAutoscalerRange,
+  isAutoscalerFeatureFlagEnabled,
+  isMachinePoolAutoscalerPaused,
+  resumeMachinePoolAutoscaler
+} from '@shell/utils/autoscaler-utils';
 import { RcSeparator } from '@components/RcSeparator';
 
 export default {
@@ -149,18 +155,44 @@ export default {
       return isAutoscalerFeatureFlagEnabled(this.$store);
     },
 
+    isAutoscalerPaused() {
+      return isMachinePoolAutoscalerPaused(this.value?.pool);
+    },
+
+    pausedAutoscalerRange() {
+      return machinePoolAutoscalerRange(this.value?.pool);
+    },
+
     isAutoscalerEnabled: {
       get() {
-        return typeof this.value?.pool?.autoscalingMinSize !== 'undefined' || typeof this.value?.pool?.autoscalingMinSize !== 'undefined';
+        const pool = this.value?.pool;
+
+        if (!pool) {
+          return false;
+        }
+
+        return 'autoscalingMinSize' in pool || 'autoscalingMaxSize' in pool;
       },
       set(val) {
+        const pool = this.value.pool;
+
         if (!val) {
-          delete this.value.pool.autoscalingMinSize;
-          delete this.value.pool.autoscalingMaxSize;
-        } else {
-          this.value.pool.autoscalingMinSize = 1;
-          this.value.pool.autoscalingMaxSize = 2;
+          delete pool.autoscalingMinSize;
+          delete pool.autoscalingMaxSize;
+          clearMachinePoolAutoscalerPause(pool);
+
+          return;
         }
+
+        if (isMachinePoolAutoscalerPaused(pool)) {
+          resumeMachinePoolAutoscaler(pool);
+
+          return;
+        }
+
+        clearMachinePoolAutoscalerPause(pool);
+        pool.autoscalingMinSize = 1;
+        pool.autoscalingMaxSize = 2;
       }
     }
   },
@@ -467,6 +499,45 @@ export default {
               :mode="mode"
               :label="t('cluster.machinePool.autoscaler.enable', undefined, true)"
               :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
+            />
+          </div>
+        </div>
+        <div
+          v-if="isAutoscalerPaused"
+          class="row"
+        >
+          <div class="col span-8">
+            <Banner
+              color="info"
+              :label="t('cluster.machinePool.autoscaler.pause.pausedBanner')"
+              data-testid="autoscaler-paused-banner"
+            />
+          </div>
+        </div>
+        <div
+          v-if="isAutoscalerPaused"
+          class="row"
+        >
+          <div class="col span-4">
+            <UnitInput
+              :value="pausedAutoscalerRange.min"
+              :label="t('cluster.machinePool.autoscaler.min')"
+              :hide-arrows="true"
+              :mode="mode"
+              :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
+              :disabled="true"
+              data-testid="autoscaler-paused-min"
+            />
+          </div>
+          <div class="col span-4">
+            <UnitInput
+              :value="pausedAutoscalerRange.max"
+              :label="t('cluster.machinePool.autoscaler.max')"
+              :hide-arrows="true"
+              :mode="mode"
+              :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
+              :disabled="true"
+              data-testid="autoscaler-paused-max"
             />
           </div>
         </div>

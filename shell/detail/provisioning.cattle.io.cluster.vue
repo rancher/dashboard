@@ -36,6 +36,7 @@ import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
 import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
 import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
+import { BadgeState } from '@components/BadgeState';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resource/Detail/Metadata/composables';
@@ -70,6 +71,7 @@ export default {
 
   components: {
     AutoscalerTab,
+    BadgeState,
     Banner,
     ResourceTable,
     ResourceTabs,
@@ -733,8 +735,12 @@ export default {
       return this.extDetailTabs?.conditions;
     },
 
+    isAutoscalerFeatureEnabled() {
+      return isAutoscalerFeatureFlagEnabled(this.$store);
+    },
+
     showAutoScalerTab() {
-      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
+      return this.isAutoscalerFeatureEnabled && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
     }
   },
 
@@ -755,6 +761,22 @@ export default {
         // User held alt key, so don't prompt
         resources.scalePool(-1);
       }
+    },
+
+    autoscalerBadge(pool) {
+      if (!this.isAutoscalerFeatureEnabled || !pool.isAutoscalerManaged) {
+        return null;
+      }
+
+      const paused = pool.isAutoscalerPaused || pool.isClusterAutoscalerPaused;
+
+      return {
+        paused,
+        color:   paused ? 'bg-darker' : 'bg-info',
+        icon:    paused ? 'icon-pause' : null,
+        label:   this.t('cluster.machinePool.autoscaler.pause.badge'),
+        tooltip: this.t(paused ? 'cluster.machinePool.autoscaler.pause.badgePausedTooltip' : 'cluster.machinePool.autoscaler.pause.badgeTooltip')
+      };
     },
 
     async takeSnapshot(btnCb) {
@@ -988,7 +1010,7 @@ export default {
                     </div>
                   </div>
                   <div
-                    v-if="group.ref && !group.ref.isAutoscalerEnabled"
+                    v-if="group.ref"
                     class="right group-header-buttons mr-20"
                   >
                     <MachineSummaryGraph
@@ -997,10 +1019,20 @@ export default {
                       :horizontal="true"
                       class="mr-20"
                     />
-                    <template v-if="value.hasLink('update') && group.ref.showScalePool">
+                    <BadgeState
+                      v-if="autoscalerBadge(group.ref)"
+                      v-clean-tooltip="{ content: autoscalerBadge(group.ref).tooltip, triggers: ['hover', 'focus'] }"
+                      :color="autoscalerBadge(group.ref).color"
+                      :icon="autoscalerBadge(group.ref).icon"
+                      :label="autoscalerBadge(group.ref).label"
+                      :class="{ 'autoscaler-badge-sized': !autoscalerBadge(group.ref).paused }"
+                      data-testid="autoscaler-badge"
+                    />
+                    <template v-if="value.hasLink('update') && !group.ref.isAutoscalerEnabled && group.ref.showScalePool">
                       <button
-                        v-clean-tooltip="t('node.list.scaleDown')"
+                        v-clean-tooltip="{ content: t('node.list.scaleDown'), triggers: ['hover', 'focus'] }"
                         :disabled="!group.ref.canScaleDownPool()"
+                        :aria-label="t('node.list.scaleDownAriaLabel', { name: group.ref.nameDisplay })"
                         type="button"
                         class="btn btn-sm role-secondary"
                         data-testid="scale-down-button"
@@ -1009,8 +1041,9 @@ export default {
                         <i class="icon icon-sm icon-minus" />
                       </button>
                       <button
-                        v-clean-tooltip="t('node.list.scaleUp')"
+                        v-clean-tooltip="{ content: t('node.list.scaleUp'), triggers: ['hover', 'focus'] }"
                         :disabled="!group.ref.canScaleUpPool()"
+                        :aria-label="t('node.list.scaleUpAriaLabel', { name: group.ref.nameDisplay })"
                         type="button"
                         class="btn btn-sm role-secondary ml-10"
                         data-testid="scale-up-button"
@@ -1019,6 +1052,16 @@ export default {
                         <i class="icon icon-sm icon-plus" />
                       </button>
                     </template>
+                    <button
+                      type="button"
+                      class="project-action btn btn-sm role-multi-action actions ml-10"
+                      :class="{invisible: !showPoolActionButton(group.ref)}"
+                      :aria-label="t('node.list.poolActionsAriaLabel', { name: group.ref.nameDisplay })"
+                      data-testid="pool-actions-button"
+                      @click="showPoolAction($event, group.ref)"
+                    >
+                      <i class="icon icon-actions" />
+                    </button>
                   </div>
                 </div>
               </template>
@@ -1264,6 +1307,9 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+// the scale down and scale up buttons, plus the gap between them
+$pool-scale-controls-width: 64px;
+
 .main-row .no-entries {
   text-align: center;
 }
@@ -1291,6 +1337,26 @@ export default {
   .group-header-buttons {
     align-items: center;
     display: flex;
+
+    :deep(.badge-state) {
+      // the table clamps badges in a cell to 110px, which would truncate this one
+      max-width: initial;
+      overflow: visible;
+    }
+
+    // the badge stands in for the two scale buttons, so it takes the width they would have
+    :deep(.badge-state.autoscaler-badge-sized) {
+      width: $pool-scale-controls-width;
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .btn-disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+      }
+    }
   }
 }
 
