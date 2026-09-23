@@ -1,26 +1,27 @@
-import jsyaml from 'js-yaml';
 import { shallowMount } from '@vue/test-utils';
 import YamlOverridesEditor from '@shell/components/YamlOverridesEditor.vue';
+import { mergeOverridesRawText, overridesFromValues } from '@shell/utils/chart-values';
 
 describe('component: YamlOverridesEditor', () => {
-  // Stub YamlEditor with the ref methods the component drives (YamlEditor does
-  // not react to its `value` prop, so the component pushes changes via the ref).
-  const updateValue = jest.fn();
-  const refresh = jest.fn();
-  const highlightLines = jest.fn();
+  // Stub YamlEditor with the ref methods the component drives (YamlEditor does not
+  // react to its `value` prop, so cross-pane updates are pushed in via the ref).
   const YamlEditorStub = {
     name:     'YamlEditor',
     template: '<div class="yaml-editor-stub" />',
-    props:    ['value', 'preview', 'componentTestid'],
+    props:    ['value', 'componentTestid', 'editorMode'],
     methods:  {
-      updateValue, refresh, highlightLines
+      updateValue() {},
+      setLineDecorations() {},
+      refresh() {},
     },
   };
 
+  const defaults = { replicas: 2, sachet: { enabled: true } };
+
   const mountEditor = (props: Record<string, any> = {}) => shallowMount(YamlOverridesEditor, {
     props: {
-      value:   'foo: bar\n',
-      preview: 'foo: bar\nbaz: qux\n',
+      value: 'replicas: 5\n',
+      defaults,
       ...props,
     },
     global: {
@@ -29,12 +30,14 @@ describe('component: YamlOverridesEditor', () => {
     },
   });
 
+  const editors = (wrapper: any) => ({
+    left:  wrapper.findComponent({ ref: 'defaultsEditor' }).vm,
+    right: wrapper.findComponent({ ref: 'overridesEditor' }).vm,
+  });
+
   beforeEach(() => {
-    // The preview push is debounced, so drive it with fake timers.
+    // The cross-pane sync is debounced, so drive it with fake timers.
     jest.useFakeTimers();
-    updateValue.mockClear();
-    refresh.mockClear();
-    highlightLines.mockClear();
   });
 
   afterEach(() => {
@@ -42,202 +45,191 @@ describe('component: YamlOverridesEditor', () => {
     jest.useRealTimers();
   });
 
-  it('renders an editable overrides pane and a read-only final values pane', () => {
+  it('renders a chart-defaults pane and an overrides pane', () => {
     const wrapper = mountEditor({ testidPrefix: 'chart-values' });
 
+    expect(wrapper.find('[data-testid="chart-values-defaults-pane"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="chart-values-overrides-pane"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="chart-values-final-pane"]').exists()).toBe(true);
-  });
-
-  it('derives the pane and editor testids from the testidPrefix', () => {
-    const wrapper = mountEditor({ testidPrefix: 'my-prefix' });
-
-    expect((wrapper.vm as any).overridesPaneTestid).toBe('my-prefix-overrides-pane');
-    expect((wrapper.vm as any).finalPaneTestid).toBe('my-prefix-final-pane');
-    expect((wrapper.vm as any).overridesTestid).toBe('my-prefix-overrides');
-    expect((wrapper.vm as any).finalTestid).toBe('my-prefix-final');
   });
 
   it('shows the supplied labels and hints', () => {
     const wrapper = mountEditor({
-      overridesLabel: 'Your overrides',
-      overridesHint:  'Only the values that differ',
-      finalLabel:     'Final values',
-      finalHint:      'Defaults merged with overrides',
+      chartDefaultsLabel: 'Chart defaults',
+      chartDefaultsHint:  'Every setting the chart ships with',
+      overridesLabel:     'Your overrides',
+      overridesHint:      'Only the values that differ',
     });
 
+    expect(wrapper.text()).toContain('Chart defaults');
+    expect(wrapper.text()).toContain('Every setting the chart ships with');
     expect(wrapper.text()).toContain('Your overrides');
     expect(wrapper.text()).toContain('Only the values that differ');
-    expect(wrapper.text()).toContain('Final values');
-    expect(wrapper.text()).toContain('Defaults merged with overrides');
   });
 
-  it('emits update:value when the editable pane changes', () => {
-    const wrapper = mountEditor();
+  describe('editing the overrides (right) pane', () => {
+    it('emits update:value with the edited overrides', () => {
+      const wrapper = mountEditor();
 
-    wrapper.findComponent({ ref: 'overridesEditor' }).vm.$emit('update:value', 'foo: changed\n');
+      editors(wrapper).right.$emit('update:value', 'replicas: 9\n');
 
-    expect(wrapper.emitted('update:value')).toStrictEqual([['foo: changed\n']]);
-  });
-
-  it('pushes the preview into the read-only editor via its ref when preview changes', async() => {
-    const wrapper = mountEditor();
-
-    await wrapper.setProps({ preview: 'foo: bar\nnew: value\n' });
-    jest.runAllTimers();
-    await wrapper.vm.$nextTick();
-
-    expect(updateValue).toHaveBeenCalledWith('foo: bar\nnew: value\n');
-    expect(refresh).toHaveBeenCalledWith();
-  });
-
-  it('debounces preview updates so rapid changes push only once', async() => {
-    const wrapper = mountEditor();
-
-    await wrapper.setProps({ preview: 'a: 1\n' });
-    await wrapper.setProps({ preview: 'a: 2\n' });
-    await wrapper.setProps({ preview: 'a: 3\n' });
-
-    // nothing is pushed while the changes are still arriving
-    expect(updateValue).not.toHaveBeenCalled();
-
-    jest.runAllTimers();
-    await wrapper.vm.$nextTick();
-
-    // only the final value is pushed, once
-    expect(updateValue).toHaveBeenCalledTimes(1);
-    expect(updateValue).toHaveBeenCalledWith('a: 3\n');
-  });
-
-  it('updateOverrides pushes a new value into the editable editor via its ref', () => {
-    const wrapper = mountEditor();
-
-    (wrapper.vm as any).updateOverrides('foo: seeded\n');
-
-    expect(updateValue).toHaveBeenCalledWith('foo: seeded\n');
-  });
-
-  it('highlights the lines that changed in the preview', async() => {
-    const wrapper = mountEditor({ preview: 'a: 1\nb: 2\nc: 3\n' });
-
-    // insert a line between b and c - only the new line (index 2) should flash
-    await wrapper.setProps({ preview: 'a: 1\nb: 2\nnew: 4\nc: 3\n' });
-    jest.runAllTimers();
-    await wrapper.vm.$nextTick();
-
-    expect(highlightLines).toHaveBeenCalledWith([2]);
-  });
-
-  it('still highlights the changed line in a huge preview', async() => {
-    const lines = Array.from({ length: 600 }, (_, i) => `k${ i }: ${ i }`);
-    const wrapper = mountEditor({ preview: `${ lines.join('\n') }\n` });
-
-    // change only the first line - it must still flash despite the doc's size
-    const changedLines = [...lines];
-
-    changedLines[0] = 'k0: changed';
-
-    await wrapper.setProps({ preview: `${ changedLines.join('\n') }\n` });
-    jest.runAllTimers();
-    await wrapper.vm.$nextTick();
-
-    expect(highlightLines).toHaveBeenCalledWith([0]);
-  });
-
-  describe('smart mode (defaults provided)', () => {
-    const defaults = {
-      service: {
-        port: 80, targetPort: 8086, type: 'ClusterIP'
-      },
-      image: { repository: 'my/repo' },
-    };
-
-    const merged9090 = {
-      service: {
-        port: 9090, targetPort: 8086, type: 'ClusterIP'
-      },
-      image: { repository: 'my/repo' },
-    };
-
-    it('computes the preview by merging the overrides onto the defaults', () => {
-      const wrapper = mountEditor({ defaults, value: 'service:\n  port: 9090\n' });
-
-      expect(jsyaml.load((wrapper.vm as any).resolvedPreview)).toStrictEqual(merged9090);
+      expect(wrapper.emitted('update:value')).toStrictEqual([['replicas: 9\n']]);
     });
 
-    it('falls back to the bare defaults when the overrides are invalid from the start', () => {
-      const wrapper = mountEditor({ defaults, value: ':\n  not valid: :yaml' });
+    it('pushes the merged final document into the chart-defaults editor', async() => {
+      const wrapper = mountEditor();
+      const { left } = editors(wrapper);
+      const leftUpdate = jest.spyOn(left, 'updateValue');
+      const overrides = 'replicas: 9\nsachet:\n  enabled: false\n';
 
-      expect(jsyaml.load((wrapper.vm as any).resolvedPreview)).toStrictEqual(defaults);
-    });
-
-    it('keeps the last valid preview while the overrides are mid-edit/invalid', async() => {
-      const wrapper = mountEditor({ defaults, value: 'service:\n  port: 9090\n' });
-
-      // a valid override shows in the preview ...
-      expect(jsyaml.load((wrapper.vm as any).resolvedPreview)).toStrictEqual(merged9090);
-
-      // ... and starting an incomplete/invalid new line must not revert it
-      await wrapper.setProps({ value: 'service:\n  port: 9090\nimagePullSecre' });
+      editors(wrapper).right.$emit('update:value', overrides);
+      jest.runAllTimers();
       await wrapper.vm.$nextTick();
 
-      expect(jsyaml.load((wrapper.vm as any).resolvedPreview)).toStrictEqual(merged9090);
+      expect(leftUpdate).toHaveBeenCalledWith(mergeOverridesRawText(defaults, overrides));
     });
 
-    it('ignores the preview prop when defaults are supplied', () => {
-      const wrapper = mountEditor({
-        defaults, value: 'service:\n  port: 9090\n', preview: 'ignored: true\n'
-      });
+    it('debounces the sync so rapid edits push only once', async() => {
+      const wrapper = mountEditor();
+      const { left, right } = editors(wrapper);
+      const leftUpdate = jest.spyOn(left, 'updateValue');
 
-      expect((wrapper.vm as any).resolvedPreview).not.toContain('ignored');
+      right.$emit('update:value', 'replicas: 6\n');
+      right.$emit('update:value', 'replicas: 7\n');
+      right.$emit('update:value', 'replicas: 8\n');
+
+      expect(leftUpdate).not.toHaveBeenCalled();
+
+      jest.runAllTimers();
+      await wrapper.vm.$nextTick();
+
+      expect(leftUpdate).toHaveBeenCalledTimes(1);
+      expect(leftUpdate).toHaveBeenCalledWith(mergeOverridesRawText(defaults, 'replicas: 8\n'));
     });
   });
 
-  it('uses the preview prop directly in controlled mode (no defaults)', () => {
-    const wrapper = mountEditor({ value: 'a: 1\n', preview: 'a: 1\nb: 2\n' });
+  describe('editing the chart-defaults (left) pane', () => {
+    it('derives the overrides from the edited full document and emits them', () => {
+      const wrapper = mountEditor({ value: '' });
+      // The user changes a shipped default (replicas 2 -> 5) in the full document.
+      const edited = 'replicas: 5\nsachet:\n  enabled: true\n';
 
-    expect((wrapper.vm as any).resolvedPreview).toBe('a: 1\nb: 2\n');
+      editors(wrapper).left.$emit('update:value', edited);
+
+      const expected = overridesFromValues(defaults, { replicas: 5, sachet: { enabled: true } });
+
+      expect(wrapper.emitted('update:value')).toStrictEqual([[expected]]);
+    });
+
+    it('pushes the derived overrides into the overrides editor', async() => {
+      const wrapper = mountEditor({ value: '' });
+      const { right } = editors(wrapper);
+      const rightUpdate = jest.spyOn(right, 'updateValue');
+      const edited = 'replicas: 5\nsachet:\n  enabled: true\n';
+
+      editors(wrapper).left.$emit('update:value', edited);
+      jest.runAllTimers();
+      await wrapper.vm.$nextTick();
+
+      const expected = overridesFromValues(defaults, { replicas: 5, sachet: { enabled: true } });
+
+      expect(rightUpdate).toHaveBeenCalledWith(expected);
+    });
+
+    it('does not emit while the edited YAML is mid-edit/invalid', () => {
+      const wrapper = mountEditor({ value: '' });
+
+      editors(wrapper).left.$emit('update:value', 'replicas: 5\n  bad: :indent');
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
+
+    it('does not derive overrides from a bare scalar', () => {
+      const wrapper = mountEditor({ value: '' });
+
+      editors(wrapper).left.$emit('update:value', 'just a string');
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
   });
 
-  describe('changedLineNumbers', () => {
-    it('returns the 0-based line numbers added or changed in the new content', () => {
-      const wrapper = mountEditor();
-      const changed = (wrapper.vm as any).changedLineNumbers('a: 1\nb: 2\n', 'a: 1\nb: 99\n');
+  describe('line decorations', () => {
+    it('tints a changed default line, without a label', () => {
+      const wrapper = mountEditor({ value: 'replicas: 5\n' });
+      const { left } = editors(wrapper);
+      const leftDeco = jest.spyOn(left, 'setLineDecorations');
 
-      expect(changed).toStrictEqual([1]);
+      left.$emit('onReady');
+
+      expect(leftDeco).toHaveBeenCalledWith([
+        { line: 0, className: 'line-override-highlight' },
+      ]);
     });
 
-    it('does not shift line numbers when lines are removed', () => {
-      const wrapper = mountEditor();
-      const changed = (wrapper.vm as any).changedLineNumbers('a: 1\nb: 2\nc: 3\n', 'a: 1\nc: 3\nd: 4\n');
+    it('tints a key that is not in the defaults', () => {
+      const wrapper = mountEditor({ defaults: {}, value: 'foo: bar\n' });
+      const { left } = editors(wrapper);
+      const leftDeco = jest.spyOn(left, 'setLineDecorations');
 
-      // 'c: 3' moved up to index 1 (unchanged content), 'd: 4' is new at index 2
-      expect(changed).toStrictEqual([2]);
+      left.$emit('onReady');
+
+      expect(leftDeco).toHaveBeenCalledWith([
+        { line: 0, className: 'line-override-highlight' },
+      ]);
     });
 
-    it('skips the initial population so the whole preview does not flash', () => {
-      const wrapper = mountEditor();
+    it('highlights every non-blank line in the overrides pane', () => {
+      const wrapper = mountEditor({ value: 'replicas: 5\nsachet:\n  enabled: false\n' });
+      const { right } = editors(wrapper);
+      const rightDeco = jest.spyOn(right, 'setLineDecorations');
 
-      expect((wrapper.vm as any).changedLineNumbers('', 'a: 1\nb: 2\n')).toStrictEqual([]);
-      expect((wrapper.vm as any).changedLineNumbers(undefined, 'a: 1\n')).toStrictEqual([]);
+      right.$emit('onReady');
+
+      expect(rightDeco).toHaveBeenCalledWith([
+        { line: 0, className: 'line-override-highlight' },
+        { line: 1, className: 'line-override-highlight' },
+        { line: 2, className: 'line-override-highlight' },
+      ]);
+    });
+  });
+
+  describe('external prop changes', () => {
+    it('reseeds both panes when the value prop changes from outside', async() => {
+      const wrapper = mountEditor({ value: 'replicas: 5\n' });
+      const { left, right } = editors(wrapper);
+      const leftUpdate = jest.spyOn(left, 'updateValue');
+      const rightUpdate = jest.spyOn(right, 'updateValue');
+
+      await wrapper.setProps({ value: 'replicas: 7\n' });
+
+      expect(rightUpdate).toHaveBeenCalledWith('replicas: 7\n');
+      expect(leftUpdate).toHaveBeenCalledWith(mergeOverridesRawText(defaults, 'replicas: 7\n'));
     });
 
-    it('returns no changed lines when nothing changed', () => {
-      const wrapper = mountEditor();
+    it('ignores a value prop change that matches the current overrides', async() => {
+      const wrapper = mountEditor({ value: 'replicas: 5\n' });
+      const { right } = editors(wrapper);
+      const rightUpdate = jest.spyOn(right, 'updateValue');
 
-      expect((wrapper.vm as any).changedLineNumbers('a: 1\n', 'a: 1\n')).toStrictEqual([]);
+      // Same content, only a trailing-whitespace difference - our own echo.
+      await wrapper.setProps({ value: 'replicas: 5' });
+
+      expect(rightUpdate).not.toHaveBeenCalled();
     });
+  });
 
-    it('pinpoints a single changed line deep in a large document', () => {
-      const wrapper = mountEditor();
-      const oldLines = Array.from({ length: 1000 }, (_, i) => `k${ i }: ${ i }`);
-      const neuLines = [...oldLines];
+  describe('updateOverrides', () => {
+    it('seeds both editors and emits the new overrides', async() => {
+      const wrapper = mountEditor({ value: '' });
+      const { left, right } = editors(wrapper);
+      const leftUpdate = jest.spyOn(left, 'updateValue');
+      const rightUpdate = jest.spyOn(right, 'updateValue');
 
-      neuLines[500] = 'k500: changed';
+      (wrapper.vm as any).updateOverrides('replicas: 3\n');
+      await wrapper.vm.$nextTick();
 
-      const changed = (wrapper.vm as any).changedLineNumbers(`${ oldLines.join('\n') }\n`, `${ neuLines.join('\n') }\n`);
-
-      expect(changed).toStrictEqual([500]);
+      expect(rightUpdate).toHaveBeenCalledWith('replicas: 3\n');
+      expect(leftUpdate).toHaveBeenCalledWith(mergeOverridesRawText(defaults, 'replicas: 3\n'));
+      expect(wrapper.emitted('update:value')).toStrictEqual([['replicas: 3\n']]);
     });
   });
 });

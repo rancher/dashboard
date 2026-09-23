@@ -1,6 +1,6 @@
 import jsyaml from 'js-yaml';
 import {
-  mergeOverrides, mergeOverridesIfMergeable, mergeOverridesRawText, overridesFromValues, sameYamlOverrides, overridesAreMergeable
+  mergeOverrides, mergeOverridesIfMergeable, mergeOverridesRawText, overridesFromValues, sameYamlOverrides, overridesAreMergeable, changedLineNumbers
 } from '@shell/utils/chart-values';
 
 describe('fx: chart-values', () => {
@@ -204,6 +204,48 @@ describe('fx: chart-values', () => {
       ['changed value', 'foo: bar\n', 'foo: baz\n'],
     ])('treats %s as a change', (_label, a, b) => {
       expect(sameYamlOverrides(a, b)).toBe(false);
+    });
+  });
+
+  describe('changedLineNumbers', () => {
+    it('flags the line of a changed default', () => {
+      const merged = mergeOverrides(defaults, 'service:\n  port: 9090\n');
+      const lines = merged.split('\n');
+
+      expect(changedLineNumbers(defaults, merged)).toStrictEqual([lines.indexOf('  port: 9090')]);
+    });
+
+    it('flags the line of a key not present in the defaults', () => {
+      const merged = mergeOverrides(defaults, 'newTop: hello\n');
+      const lines = merged.split('\n');
+
+      expect(changedLineNumbers(defaults, merged)).toStrictEqual([lines.indexOf('newTop: hello')]);
+    });
+
+    it('returns nothing when the merged document matches the defaults', () => {
+      const merged = mergeOverrides(defaults, '');
+
+      expect(changedLineNumbers(defaults, merged)).toStrictEqual([]);
+    });
+
+    it('does not flag a mapping (non-leaf) header line', () => {
+      const merged = mergeOverrides(defaults, 'service:\n  port: 9090\n');
+      const lines = merged.split('\n');
+      const serviceHeaderLine = lines.indexOf('service:');
+
+      expect(changedLineNumbers(defaults, merged)).not.toContain(serviceHeaderLine);
+    });
+
+    it('flags a changed boolean leaf', () => {
+      const bools = { feature: { enabled: true } };
+      const merged = mergeOverrides(bools, 'feature:\n  enabled: false\n');
+      const lines = merged.split('\n');
+
+      expect(changedLineNumbers(bools, merged)).toStrictEqual([lines.indexOf('  enabled: false')]);
+    });
+
+    it('returns nothing for an unparseable merged document', () => {
+      expect(changedLineNumbers(defaults, ':\n  bad: :indent')).toStrictEqual([]);
     });
   });
 });

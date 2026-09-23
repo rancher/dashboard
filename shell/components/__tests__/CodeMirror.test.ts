@@ -94,7 +94,7 @@ describe('component: CodeMirror.vue', () => {
   describe('keyboard tab navigation', () => {
     const mountWithMode = (mode: string) => shallowMount(CodeMirror, {
       ...mountOptions,
-      propsData: { ...mountOptions.propsData, mode },
+      props: { ...mountOptions.props, mode },
     });
 
     it('takes a read-only editor out of the tab order once ready', async() => {
@@ -141,154 +141,104 @@ describe('component: CodeMirror.vue', () => {
     });
   });
 
-  describe('highlight timing', () => {
-    it('sums the fade-in, hold and fade-out phases into the removal duration', () => {
-      const timedWrapper = shallowMount(CodeMirror, {
-        ...mountOptions,
-        propsData: {
-          ...mountOptions.propsData,
-          highlightTiming: {
-            fadeIn: 200, hold: 500, fadeOut: 300
-          },
-        },
-      });
+  describe('setLineDecorations', () => {
+    // The decoration methods only touch `this.$refs` and the tracking arrays, so
+    // drive them with a controlled `this` rather than fighting Vue's template refs.
+    const methods = (CodeMirror as any).methods;
 
-      expect(timedWrapper.vm.highlightDuration).toBe(1000);
-    });
-
-    it('exposes each phase as a CSS custom property, delaying fade-out until fade-in and hold have elapsed', () => {
-      const timedWrapper = shallowMount(CodeMirror, {
-        ...mountOptions,
-        propsData: {
-          ...mountOptions.propsData,
-          highlightTiming: {
-            fadeIn: 200, hold: 500, fadeOut: 300
-          },
-        },
-      });
-
-      expect(timedWrapper.vm.highlightStyle).toStrictEqual({
-        '--highlight-fade-in':        '200ms',
-        '--highlight-fade-out':       '300ms',
-        '--highlight-fade-out-delay': '700ms',
-      });
-    });
-
-    it('defaults missing phases to zero so a partial timing object is safe', () => {
-      const timedWrapper = shallowMount(CodeMirror, {
-        ...mountOptions,
-        propsData: { ...mountOptions.propsData, highlightTiming: { hold: 500 } },
-      });
-
-      expect(timedWrapper.vm.highlightDuration).toBe(500);
-      expect(timedWrapper.vm.highlightStyle).toStrictEqual({
-        '--highlight-fade-in':        '0ms',
-        '--highlight-fade-out':       '0ms',
-        '--highlight-fade-out-delay': '500ms',
-      });
-    });
-  });
-
-  describe('highlightLines', () => {
-    // `highlightLines` only touches `this.$refs.codeMirrorRef.cminstance` and
-    // `this.highlightTimer`, so drive it with a controlled `this` rather than
-    // fighting Vue's managed template refs.
-    const { highlightLines } = (CodeMirror as any).methods;
-
-    const mockInstance = (lineCount = 3) => ({
+    const mockInstance = (lineCount = 5) => ({
       lineCount:       () => lineCount,
       addLineClass:    jest.fn(),
       removeLineClass: jest.fn(),
     });
 
-    const context = (cminstance: any) => ({
-      $refs:             { codeMirrorRef: cminstance ? { cminstance } : null },
-      highlightTimer:    null,
-      highlightDuration: 1500,
-      highlightEnabled:  true,
+    const makeCtx = (cminstance: any) => {
+      const ctx: any = {
+        $refs:              { codeMirrorRef: cminstance ? { cminstance } : null },
+        appliedLineClasses: [],
+      };
+
+      ['setLineDecorations', 'clearLineDecorations'].forEach((m) => {
+        ctx[m] = methods[m];
+      });
+
+      return ctx;
+    };
+
+    it('tints the code area and the gutter of each in-range line and tracks both', () => {
+      const cminstance = mockInstance();
+      const ctx = makeCtx(cminstance);
+
+      ctx.setLineDecorations([{ line: 0 }, { line: 2 }]);
+
+      // Two lines x two wheres ('background' + 'gutter').
+      expect(cminstance.addLineClass).toHaveBeenCalledTimes(4);
+      expect(cminstance.addLineClass).toHaveBeenCalledWith(0, 'background', 'line-override-highlight');
+      expect(cminstance.addLineClass).toHaveBeenCalledWith(0, 'gutter', 'line-override-highlight');
+      expect(cminstance.addLineClass).toHaveBeenCalledWith(2, 'background', 'line-override-highlight');
+      expect(cminstance.addLineClass).toHaveBeenCalledWith(2, 'gutter', 'line-override-highlight');
+      expect(ctx.appliedLineClasses).toHaveLength(4);
     });
 
-    beforeEach(() => jest.useFakeTimers());
-    afterEach(() => jest.useRealTimers());
-
-    it('adds the highlight class to each given line', () => {
+    it('honours a custom className', () => {
       const cminstance = mockInstance();
+      const ctx = makeCtx(cminstance);
 
-      highlightLines.call(context(cminstance), [0, 2]);
+      ctx.setLineDecorations([{ line: 1, className: 'my-class' }]);
 
-      expect(cminstance.addLineClass).toHaveBeenCalledTimes(2);
-      expect(cminstance.addLineClass).toHaveBeenCalledWith(0, 'background', 'line-changed-highlight');
-      expect(cminstance.addLineClass).toHaveBeenCalledWith(2, 'background', 'line-changed-highlight');
+      expect(cminstance.addLineClass).toHaveBeenCalledWith(1, 'background', 'my-class');
+      expect(cminstance.addLineClass).toHaveBeenCalledWith(1, 'gutter', 'my-class');
     });
 
     it('ignores line numbers outside the document bounds', () => {
       const cminstance = mockInstance(3);
+      const ctx = makeCtx(cminstance);
 
-      highlightLines.call(context(cminstance), [-1, 1, 3, 99]);
+      ctx.setLineDecorations([{ line: -1 }, { line: 1 }, { line: 3 }, { line: 99 }]);
 
-      expect(cminstance.addLineClass).toHaveBeenCalledTimes(1);
-      expect(cminstance.addLineClass).toHaveBeenCalledWith(1, 'background', 'line-changed-highlight');
+      // Only line 1 is in range: 'background' + 'gutter'.
+      expect(cminstance.addLineClass).toHaveBeenCalledTimes(2);
+      expect(cminstance.addLineClass).toHaveBeenCalledWith(1, 'background', 'line-override-highlight');
+      expect(cminstance.addLineClass).toHaveBeenCalledWith(1, 'gutter', 'line-override-highlight');
+      expect(ctx.appliedLineClasses).toHaveLength(2);
     });
 
-    it('removes the highlight class once the duration has elapsed', () => {
+    it('clears the previous decorations before applying new ones', () => {
       const cminstance = mockInstance();
+      const ctx = makeCtx(cminstance);
 
-      highlightLines.call(context(cminstance), [1]);
-      expect(cminstance.removeLineClass).not.toHaveBeenCalled();
+      ctx.setLineDecorations([{ line: 0 }]);
+      ctx.setLineDecorations([{ line: 2 }]);
 
-      jest.advanceTimersByTime(1500);
-
-      expect(cminstance.removeLineClass).toHaveBeenCalledWith(1, 'background', 'line-changed-highlight');
+      expect(cminstance.removeLineClass).toHaveBeenCalledWith(0, 'background', 'line-override-highlight');
+      expect(cminstance.removeLineClass).toHaveBeenCalledWith(0, 'gutter', 'line-override-highlight');
+      expect(ctx.appliedLineClasses).toStrictEqual([
+        {
+          line: 2, where: 'background', className: 'line-override-highlight'
+        },
+        {
+          line: 2, where: 'gutter', className: 'line-override-highlight'
+        },
+      ]);
     });
 
-    it('waits for the configured highlightDuration before removing the class', () => {
+    it('clearLineDecorations removes the classes previously applied', () => {
       const cminstance = mockInstance();
+      const ctx = makeCtx(cminstance);
 
-      highlightLines.call({ ...context(cminstance), highlightDuration: 4000 }, [1]);
+      ctx.setLineDecorations([{ line: 1 }]);
+      ctx.clearLineDecorations();
 
-      jest.advanceTimersByTime(1500);
-      expect(cminstance.removeLineClass).not.toHaveBeenCalled();
-
-      jest.advanceTimersByTime(2500);
-      expect(cminstance.removeLineClass).toHaveBeenCalledWith(1, 'background', 'line-changed-highlight');
-    });
-
-    it('cancels a pending removal when highlighting again so the earlier lines are not cleared', () => {
-      const cminstance = mockInstance();
-      const ctx = context(cminstance);
-
-      highlightLines.call(ctx, [0]);
-      highlightLines.call(ctx, [2]);
-
-      jest.advanceTimersByTime(1500);
-
-      // only the most recent highlight's removal timer should fire
-      expect(cminstance.removeLineClass).toHaveBeenCalledTimes(1);
-      expect(cminstance.removeLineClass).toHaveBeenCalledWith(2, 'background', 'line-changed-highlight');
-    });
-
-    it('does not schedule a removal when no lines are in range', () => {
-      const cminstance = mockInstance(2);
-
-      highlightLines.call(context(cminstance), [5, 6]);
-      jest.advanceTimersByTime(1500);
-
-      expect(cminstance.addLineClass).not.toHaveBeenCalled();
-      expect(cminstance.removeLineClass).not.toHaveBeenCalled();
+      expect(cminstance.removeLineClass).toHaveBeenCalledWith(1, 'background', 'line-override-highlight');
+      expect(cminstance.removeLineClass).toHaveBeenCalledWith(1, 'gutter', 'line-override-highlight');
+      expect(ctx.appliedLineClasses).toStrictEqual([]);
     });
 
     it('is a no-op when the editor instance is not ready', () => {
-      expect(() => highlightLines.call(context(null), [0])).not.toThrow();
-    });
+      const ctx = makeCtx(null);
 
-    it('is a no-op when highlighting is not enabled', () => {
-      const cminstance = mockInstance();
-
-      highlightLines.call({ ...context(cminstance), highlightEnabled: false }, [0, 1]);
-      jest.advanceTimersByTime(1500);
-
-      expect(cminstance.addLineClass).not.toHaveBeenCalled();
-      expect(cminstance.removeLineClass).not.toHaveBeenCalled();
+      expect(() => ctx.setLineDecorations([{ line: 0 }])).not.toThrow();
+      expect(ctx.appliedLineClasses).toStrictEqual([]);
     });
   });
 });

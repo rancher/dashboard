@@ -69,16 +69,16 @@ export class InstallChartPage extends PagePo {
     return this.self().get('[data-testid="chart-values-overrides-pane"]');
   }
 
-  finalValuesPane() {
-    return this.self().get('[data-testid="chart-values-final-pane"]');
+  defaultsPane() {
+    return this.self().get('[data-testid="chart-values-defaults-pane"]');
   }
 
   overridesEditor(): CodeMirrorPo {
     return CodeMirrorPo.bySelector(this.self(), '[data-testid="chart-values-overrides-code-mirror"]');
   }
 
-  finalValuesEditor(): CodeMirrorPo {
-    return CodeMirrorPo.bySelector(this.self(), '[data-testid="chart-values-final-code-mirror"]');
+  defaultsEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="chart-values-defaults-code-mirror"]');
   }
 
   footerControls() {

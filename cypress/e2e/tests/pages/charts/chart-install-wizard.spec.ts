@@ -86,11 +86,11 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     });
   });
 
-  describe('YAML values editor - overrides and final values panes', () => {
+  describe('YAML values editor - chart defaults and overrides panes', () => {
     const installChartPage = new InstallChartPage();
     const chartPage = new ChartPage();
 
-    it('shows an editable overrides pane and a read-only final values pane that stays in sync', () => {
+    it('shows editable chart-defaults and overrides panes that stay in sync', () => {
       ChartPage.navTo(undefined, 'rancher-demo');
       chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
@@ -99,23 +99,23 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
       installChartPage.nextPage().editYaml();
 
       // Both panes render with their distinct titles
+      installChartPage.defaultsPane().should('be.visible').and('contain.text', 'Chart defaults');
       installChartPage.overridesPane().should('be.visible').and('contain.text', 'Your overrides');
-      installChartPage.finalValuesPane().should('be.visible').and('contain.text', 'Final values');
 
-      // An override typed into the editable pane appears in the read-only final
-      // values pane (the defaults + overrides merge kept in sync via the watcher).
-      // Read the live CodeMirror instance in a retrying assertion so we wait for
-      // the async ($nextTick) sync rather than reading its value once.
+      // An override typed into the overrides pane appears in the chart-defaults
+      // pane (the defaults + overrides merge kept in sync via the watcher). Read
+      // the live CodeMirror instance in a retrying assertion so we wait for the
+      // async ($nextTick) sync rather than reading its value once.
       installChartPage.overridesEditor().set('e2eTestOverride: hello-e2e\n');
 
-      installChartPage.finalValuesEditor().self().should(($cm) => {
-        const finalValues = ($cm[0] as any).CodeMirror.getValue();
+      installChartPage.defaultsEditor().self().should(($cm) => {
+        const mergedValues = ($cm[0] as any).CodeMirror.getValue();
 
-        expect(finalValues).to.contain('e2eTestOverride');
-        expect(finalValues).to.contain('hello-e2e');
+        expect(mergedValues).to.contain('e2eTestOverride');
+        expect(mergedValues).to.contain('hello-e2e');
       });
 
-      // The editable pane holds only the overrides, not the full merged document
+      // The overrides pane holds only the overrides, not the full merged document
       installChartPage.overridesEditor().value().should('contain', 'e2eTestOverride');
     });
 
@@ -133,7 +133,7 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
       // The two-pane layout must not leak into diff mode - only the single diff
       // editor is shown, comparing the full baseline against the merged values
       installChartPage.overridesPane().should('not.exist');
-      installChartPage.finalValuesPane().should('not.exist');
+      installChartPage.defaultsPane().should('not.exist');
     });
 
     after('clean up', () => {

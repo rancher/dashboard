@@ -2095,7 +2095,7 @@ export default {
                 :allow-empty-diff-base="true"
               />
             </template>
-            <!-- Values (as YAML): editable overrides + read-only final values -->
+            <!-- Values (as YAML): editable chart defaults (left) + editable overrides (right) -->
             <template v-else>
               <YamlOverridesEditor
                 ref="valuesEditor"
@@ -2103,11 +2103,10 @@ export default {
                 class="step__values__content"
                 :defaults="versionInfo?.values || {}"
                 :editor-mode="editorMode"
-                :initial-yaml-values="originalYamlValues"
+                :chart-defaults-label="t('catalog.install.section.chartDefaults.label')"
+                :chart-defaults-hint="t('catalog.install.section.chartDefaults.hint')"
                 :overrides-label="t('catalog.install.section.overrides.label')"
                 :overrides-hint="t('catalog.install.section.overrides.hint')"
-                :final-label="t('catalog.install.section.finalValues.label')"
-                :final-hint="t('catalog.install.section.finalValues.hint')"
                 testid-prefix="chart-values"
               />
             </template>
