@@ -196,6 +196,20 @@ describe('fold extensions', () => {
 
       expect(foldableAt(state, 1)).toBeNull();
     });
+
+    it('should fold a matching line every time it is checked with a global pattern', () => {
+      const state = createState(yamlDoc, [foldByLineMatch(/^spec:/g)]);
+
+      foldableAt(state, 5);
+
+      expect(foldableAt(state, 5)).toStrictEqual({ from: 46, to: 67 });
+    });
+
+    it('should fold a line matching a sticky pattern after the start of the line', () => {
+      const state = createState(yamlDoc, [foldByLineMatch(/labels:/y)]);
+
+      expect(foldableAt(state, 3)).toStrictEqual({ from: 29, to: 40 });
+    });
   });
 
   describe('foldByYamlPath', () => {
@@ -242,6 +256,17 @@ describe('fold extensions', () => {
       const view = createView(yamlDoc, [indentFoldService]);
 
       foldMatchingLines(view, /labels:/);
+
+      expect(folded(view)).toStrictEqual([{ from: 29, to: 40 }, { from: 56, to: 67 }]);
+    });
+
+    it.each([
+      ['global', /labels:/g],
+      ['sticky', /labels:/y],
+    ])('should fold every matching line with a %s pattern', (_, pattern) => {
+      const view = createView(yamlDoc, [indentFoldService]);
+
+      foldMatchingLines(view, pattern);
 
       expect(folded(view)).toStrictEqual([{ from: 29, to: 40 }, { from: 56, to: 67 }]);
     });
