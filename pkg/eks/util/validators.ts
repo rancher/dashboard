@@ -131,7 +131,7 @@ const subnets = (ctx: CruEKSContext) => {
   return (val: string[]): null | string => {
     const subnets = val || ctx.config.subnets;
 
-    return subnets && subnets.length === 1 ? ctx.t('eks.errors.minimumSubnets') : undefined;
+    return subnets && subnets.length === 1 ? ctx.t('eks.errors.minimumSubnets') : null;
   };
 };
 
@@ -139,7 +139,7 @@ const publicPrivateAccess = (ctx: CruEKSContext) => {
   return (): string | null => {
     const { publicAccess, privateAccess } = ctx.config;
 
-    return publicAccess || privateAccess ? undefined : ctx.t('eks.errors.publicOrPrivate');
+    return publicAccess || privateAccess ? null : ctx.t('eks.errors.publicOrPrivate');
   };
 };
 
