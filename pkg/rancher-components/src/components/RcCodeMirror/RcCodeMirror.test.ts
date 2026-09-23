@@ -21,8 +21,10 @@ function replaceDoc(view: EditorView, insert: string) {
 describe('component: RcCodeMirror', () => {
   let wrapper: Wrapper;
 
-  function mountEditor(props: Record<string, unknown> = {}): Wrapper {
-    wrapper = shallowMount(RcCodeMirror, { props, attachTo: document.body }) as Wrapper;
+  function mountEditor(props: Record<string, unknown> = {}, attrs: Record<string, unknown> = {}): Wrapper {
+    wrapper = shallowMount(RcCodeMirror, {
+      props, attrs, attachTo: document.body
+    }) as Wrapper;
 
     return wrapper;
   }
@@ -280,6 +282,38 @@ describe('component: RcCodeMirror', () => {
       const line = state.doc.line(1);
 
       expect(foldable(state, line.from, line.to)).toStrictEqual({ from: 5, to: 12 });
+    });
+  });
+
+  describe('aria attributes', () => {
+    it.each([
+      ['aria-label', 'YAML'],
+      ['aria-labelledby', 'label-id'],
+      ['aria-describedby', 'description-id'],
+    ])('should forward %s to the textbox', (name, value) => {
+      mountEditor({}, { [name]: value });
+
+      expect(getView(wrapper).contentDOM.getAttribute(name)).toStrictEqual(value);
+    });
+
+    it('should not put aria-label on the container', () => {
+      mountEditor({}, { 'aria-label': 'YAML' });
+
+      expect(wrapper.attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should keep other attributes on the container', () => {
+      mountEditor({}, { 'data-testid': 'editor' });
+
+      expect(wrapper.attributes('data-testid')).toStrictEqual('editor');
+    });
+
+    it('should update the textbox when aria-label changes', async() => {
+      mountEditor({}, { 'aria-label': 'YAML' });
+
+      await wrapper.setProps({ 'aria-label': 'JSON' } as Record<string, unknown>);
+
+      expect(getView(wrapper).contentDOM.getAttribute('aria-label')).toStrictEqual('JSON');
     });
   });
 
