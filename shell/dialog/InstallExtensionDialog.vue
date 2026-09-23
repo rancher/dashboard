@@ -8,6 +8,7 @@ import Banner from '@components/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
 import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
 import { RcHeading } from '@components/RcHeading';
+import { RcButton } from '@components/RcButton';
 
 // Note: This dialog handles installation, upgrade and downgrade of a plugin
 
@@ -19,6 +20,7 @@ export default {
     Banner,
     LabeledSelect,
     RcHeading,
+    RcButton
   },
 
   props: {
@@ -358,14 +360,14 @@ export default {
         </div>
       </div>
       <div class="dialog-buttons">
-        <button
+        <rc-button
           :disabled="busy"
-          class="btn role-secondary"
+          variant="secondary"
           data-testid="install-ext-modal-cancel-btn"
           @click="closeDialog(false)"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
         <AsyncButton
           :mode="buttonMode"
           :icon="buttonIcon"
