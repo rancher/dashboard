@@ -6455,6 +6455,8 @@ resourceYaml:
     create: Create related resource
     groups:
       machinePools: "Node Pools · Machine Templates"
+    banners:
+      singleNodePool: This cluster has only one node pool.
   buttons:
     continue: Continue Editing
     edit: Edit YAML

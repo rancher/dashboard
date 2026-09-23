@@ -23,6 +23,7 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Loading from '@shell/components/Loading.vue';
 import SingleResourceYaml from './SingleResourceYaml.vue';
 import MultiResourceYaml from './MultiResourceYaml.vue';
+import { keyForResource } from '@shell/utils/resource-key';
 
 export default {
   emits: ['error'],
@@ -172,8 +173,10 @@ export default {
      * Walk each entry's resource and collect their related resources, breadth-first, stopping
      * before adding a resource that is already present in the tree
      *
-     * Deduplication uses the resource's `id` where available, falling back to object identity so
-     * that resources fetched more than once are not added twice
+     * Deduplication uses the resource's type and `id` together where available, falling back to
+     * object identity so that resources fetched more than once are not added twice. The type is
+     * part of the key because an `id` alone is only `namespace/name`, which two resources of
+     * different types can share
      *
      * The result is a flat list, so each entry records where it sat in the tree it was discovered
      * in: `nodeId` (identifies the entry), `depth` (1 for the resources contributed for the
@@ -189,13 +192,13 @@ export default {
      * @returns {Promise<Array>} The expanded list, original entries first
      */
     async expandRelatedResourceTree(entries) {
-      const idsSeen = new Set(entries.map((e) => e.resource?.id).filter(Boolean));
+      const idsSeen = new Set(entries.map((e) => keyForResource(e.resource)).filter(Boolean));
       const refsSeen = new WeakSet(entries.map((e) => e.resource).filter(Boolean));
 
       // Every entry needs an identity of its own, so that a child can still point at its parent
       // when that parent's resource has no id
       let generatedIds = 0;
-      const nodeIdFor = (resource) => resource?.id || `related-${ generatedIds++ }`;
+      const nodeIdFor = (resource) => keyForResource(resource) || `related-${ generatedIds++ }`;
 
       // Everything gathered for the primary resource sits at the top of the tree, with no parent
       const result = entries.map((entry) => {
@@ -229,7 +232,7 @@ export default {
             continue;
           }
 
-          const key = child.resource.id;
+          const key = keyForResource(child.resource);
           const alreadySeen = key ? idsSeen.has(key) : refsSeen.has(child.resource);
 
           if (alreadySeen) {

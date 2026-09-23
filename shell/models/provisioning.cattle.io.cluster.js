@@ -466,13 +466,13 @@ export default class ProvCluster extends SteveModel {
   }
 
   /**
-   * Resources that should be shown, and can be edited, alongside this cluster
+   * Resources this cluster contributes, on top of the ones it owns
    *
    * For an RKE2/K3s cluster these are the machine configs referenced by each of the machine pools
    *
    * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
    */
-  async fetchEditableRelatedResources() {
+  async fetchOwnEditableRelatedResources() {
     const refs = (this.spec?.rkeConfig?.machinePools || [])
       .map((pool) => pool.machineConfigRef)
       .filter((ref) => ref?.kind && ref?.name);
@@ -496,6 +496,11 @@ export default class ProvCluster extends SteveModel {
       .map((resource) => ({
         resource,
         groupKey: 'resourceYaml.resourceGraph.groups.machinePools',
+        banner:   ({ relatedResources }) => {
+          const poolCount = relatedResources.filter((r) => r.groupKey === 'resourceYaml.resourceGraph.groups.machinePools').length;
+
+          return poolCount === 1 ? { color: 'info', labelKey: 'resourceYaml.resourceGraph.banners.singleNodePool' } : null;
+        },
       }));
   }
 

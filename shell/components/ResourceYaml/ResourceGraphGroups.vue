@@ -28,57 +28,84 @@ const i18n = useI18n(store);
 </script>
 
 <template>
-  <div class="resource-graph__groups">
+  <div class="resource-graph-groups">
     <div
       v-for="group in props.groups"
       :key="group.label"
-      class="resource-graph__group"
+      class="resource-graph-group"
     >
-      <h4
+      <h6
         v-if="group.label"
-        class="resource-graph__group-label"
+        class="resource-graph-group-label"
       >
         {{ group.label }}
-      </h4>
-      <ul class="resource-graph__nodes">
-        <li
+      </h6>
+      <div class="resource-graph-nodes">
+        <div
           v-for="node in group.nodes"
           :key="node.id"
         >
           <button
             type="button"
-            class="resource-graph__node"
+            class="btn role-link resource-graph-node"
             :class="{
-              'resource-graph__node--selected': node.id === props.selected,
-              'resource-graph__node--read-only': node.readOnly,
+              'resource-graph-node--selected': node.id === props.selected,
+              'resource-graph-node--read-only': node.readOnly,
             }"
             :aria-current="node.id === props.selected ? 'true' : undefined"
-            :data-testid="`resource-graph-node-${ node.id }`"
+            :data-testid="`resource-graph-node-${node.id}`"
             @click="emit('select', node.id)"
           >
-            <span class="resource-graph__node-label">{{ node.label }}</span>
+            <span class="resource-graph-node-label">{{ node.label }}</span>
             <span
               v-if="node.modified"
-              class="resource-graph__node-modified"
+              class="resource-graph-node-modified"
               :aria-label="i18n.t('resourceYaml.resourceGraph.modified')"
-              :data-testid="`resource-graph-modified-${ node.id }`"
+              :data-testid="`resource-graph-modified-${node.id}`"
             />
           </button>
 
           <!-- The resources found below this one, shown as groups nested within its own group -->
           <ResourceGraphGroups
             v-if="node.groups.length"
-            class="resource-graph__groups--nested"
+            class="resource-graph-groups--nested"
             :groups="node.groups"
             :selected="props.selected"
             @select="emit('select', $event)"
           />
-        </li>
-      </ul>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+//TODO nb less custom
+.resource-graph-group-label {
+  color: #B0B2BC;
+  font-family: Lato;
+  font-size: 9.5px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.6px;
+}
+
+.resource-graph-groups {
+  padding: 8px;
+}
+
+
+.resource-graph-group {
+  margin-left: 12px;
+}
+
+.resource-graph-node {
+  padding: 0px;
+}
+// TODO nb margins/padding need fixing so this is all the way left
+.resource-graph-node--selected {
+  border-left: 5px solid var(--link);
+}
 
 </style>

@@ -131,10 +131,15 @@ export type EditableResource = any;
  * `EditableRelatedResourceCompute` function is re-evaluated when it changes
  */
 export type EditableRelatedResourcesEditorState = {
-  /** The YAML currently in the editor for each resource, keyed by resource id */
-  yaml: { [id: string]: string },
+  /**
+   * The YAML currently in the editor for each resource, keyed by that resource's `nodeId`
+   *
+   * A `nodeId` is the resource's type and `id` together, not its `id` alone: an `id` is only
+   * `namespace/name`, which two resources of different types can share
+   */
+  yaml: { [nodeId: string]: string },
 
-  /** The id of the resource currently shown in the editor */
+  /** The `nodeId` of the resource currently shown in the editor */
   selected: string | null,
 };
 
@@ -225,6 +230,14 @@ export type EditableRelatedResource = {
    */
   groupKey?: string,
 
+  /**
+   * The group heading this resource is shown under, already in the user's language
+   *
+   * Takes precedence over `groupKey`. For a heading that is itself resolved from the resource,
+   * such as a type name from `typeDisplay`, which there is no i18n key for
+   */
+  group?: string,
+
   /** Run before `resource` is saved, for example to apply changes made to the primary resource */
   beforeSaveHook?: EditableRelatedResourceSaveHook,
 
@@ -252,9 +265,11 @@ export type EditableRelatedResource = {
   /**
    * Identifies this entry within the flattened tree
    *
-   * The resource's own id where it has one, otherwise a generated one, so that every entry can be
-   * pointed at by a `parentId`. Populated by the consuming component as it flattens the tree, so a
-   * model or extension doesn't set this - anything it does set is replaced
+   * The resource's type and id together where it has an id, otherwise a generated one, so that
+   * every entry can be pointed at by a `parentId`. The type is part of it because an id alone is
+   * only `namespace/name`, which two resources of different types can share. Populated by the
+   * consuming component as it flattens the tree, so a model or extension doesn't set this -
+   * anything it does set is replaced
    */
   nodeId?: string,
 

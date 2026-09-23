@@ -3,6 +3,7 @@ import HybridModel from './hybrid-class';
 import { NEVER_ADD } from '@shell/utils/create-yaml';
 import { deleteProperty } from '@shell/utils/object';
 import { EXT_IDS } from '@shell/core/plugin';
+import { keyForResource } from '@shell/utils/resource-key';
 
 // Some fields that are removed for YAML (NEVER_ADD) are required via API
 const STEVE_ADD = [
@@ -65,25 +66,121 @@ export default class SteveModel extends HybridModel {
    * - `banner`, resolving a banner to show for the resource, re-evaluated whenever anything it
    *   read from the context changes
    *
+   * Override `fetchOwnEditableRelatedResources`, not this. This merges the resources this one owns
+   * with the ones the model contributes itself, so a model that overrides this instead silently
+   * drops the owned resources.
+   *
    * ```
-   * async fetchEditableRelatedResources() {
+   * async fetchOwnEditableRelatedResources() {
    *   const others = await this.$dispatch('findAll', { type: SOME_TYPE });
    *
-   *   return [
-   *     ...await super.fetchEditableRelatedResources(),
-   *     ...others.map((resource) => ({
-   *       resource,
-   *       beforeSaveHook: (ctx) => ctx.resource.spec.foo = ctx.primaryResource.spec.foo,
-   *       banner:         ({ editorState }) => editorState.selected === resource.id ? { labelKey: 'some.key' } : null,
-   *     })),
-   *   ];
+   *   return others.map((resource) => ({
+   *     resource,
+   *     beforeSaveHook: (ctx) => ctx.resource.spec.foo = ctx.primaryResource.spec.foo,
+   *     // `editorState.selected` is a `nodeId`, so compare with `keyForResource`, not `id`
+   *     banner:         ({ editorState }) => editorState.selected === keyForResource(resource) ? { labelKey: 'some.key' } : null,
+   *   }));
    * }
    * ```
+   *
+   * An entry from `fetchOwnEditableRelatedResources` wins over an owned entry for the same
+   * resource, since it carries the model's own groupKey, hooks and banner.
    *
    * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
    */
   async fetchEditableRelatedResources() {
+    const [own, owned] = await Promise.all([
+      this.fetchOwnEditableRelatedResources(),
+      this.includeOwnedEditableRelatedResources ? this.fetchOwnedEditableRelatedResources() : [],
+    ]);
+
+    const ownKeys = new Set((own || []).map((entry) => keyForResource(entry?.resource)).filter(Boolean));
+
+    return [
+      ...own || [],
+      ...(owned || []).filter((entry) => !ownKeys.has(keyForResource(entry?.resource))),
+    ];
+  }
+
+  /**
+   * The editable related resources this model contributes, on top of the ones it owns
+   *
+   * This is the method for a model or an extension to override. See
+   * `fetchEditableRelatedResources` for the shape of an entry.
+   *
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnEditableRelatedResources() {
     return [];
+  }
+
+  /**
+   * Gather the resources this one owns as editable related resources?
+   *
+   * Override to false for a type whose owned resources are not worth editing alongside it. That is
+   * the deliberate way to suppress them; overriding `fetchEditableRelatedResources` also works but
+   * drops the merge with `fetchOwnEditableRelatedResources` too.
+   *
+   * @returns {boolean}
+   */
+  get includeOwnedEditableRelatedResources() {
+    return true;
+  }
+
+  /**
+   * The resources this one owns, as editable related resources
+   *
+   * Steve records one entry in `metadata.relationships` per owned resource, with `rel: 'owner'`
+   * and the `toType` / `toId` of the resource owned.
+   *
+   * Only resources in the core kubernetes api group are gathered. Anything in a named group is
+   * dropped on its type, before fetching, so it costs no requests.
+   *
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnedEditableRelatedResources() {
+    const { ids } = this._relationshipsFor('owner', 'to');
+    const wanted = ids.filter(({ type }) => this.isCoreApiGroupType(type));
+
+    const resources = await Promise.all(wanted.map(({ type, id }) => {
+      const cached = this.$getters['byId'](type, id);
+
+      if (cached) {
+        return cached;
+      }
+
+      return this.$dispatch('find', { type, id }).catch((e) => {
+        console.warn(`Failed to fetch owned resource ${ type }/${ id }`, e); // eslint-disable-line no-console
+
+        return null;
+      });
+    }));
+
+    return resources
+      .filter((resource) => !!resource)
+      .map((resource) => ({
+        resource,
+        // grouped by type, so owned resources of the same type share a heading
+        group: resource.typeDisplay,
+      }));
+  }
+
+  /**
+   * Is this type in the core kubernetes api group?
+   *
+   * The core group is the empty group, so a core schema carries no `attributes.group`: the field
+   * is `''` where it is sent at all. Everything else, `apps`, `rbac.authorization.k8s.io`,
+   * `management.cattle.io`, names its group.
+   *
+   * A type with no schema is not core, and could not be fetched anyway.
+   *
+   * @param {string} type
+   * @returns {boolean}
+   */
+  isCoreApiGroupType(type) {
+    const schema = type ? this.$getters['schemaFor'](type) : null;
+
+    return !!schema && !schema.attributes?.group;
   }
 
   cleanForSave(data, forNew) {

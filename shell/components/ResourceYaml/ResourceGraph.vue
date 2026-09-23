@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import ResourceGraphGroups from '@shell/components/ResourceYaml/ResourceGraphGroups.vue';
+import { RcCounterBadge } from '@components/Pill';
 import { ResourceGraphGroup, ResourceGraphNode, ResourceGraphTreeNode } from '@shell/components/ResourceYaml/types';
 
 const props = withDefaults(defineProps<{
@@ -118,14 +119,15 @@ const groups = computed<ResourceGraphGroup[]>(() => groupsBelow(undefined));
     class="resource-graph"
     :aria-label="i18n.t('resourceYaml.resourceGraph.title')"
   >
-    <div class="resource-graph__header">
-      <h3 class="resource-graph__title">
+    <div class="resource-graph-header">
+      <h3 class="resource-graph-title mb-0">
         {{ i18n.t('resourceYaml.resourceGraph.title') }}
       </h3>
-      <span
-        class="resource-graph__count"
+      <RcCounterBadge
+        :count="props.nodes.length"
+        type="inactive"
         data-testid="resource-graph-count"
-      >{{ props.nodes.length }}</span>
+      />
     </div>
 
     <ResourceGraphGroups
@@ -136,7 +138,7 @@ const groups = computed<ResourceGraphGroup[]>(() => groupsBelow(undefined));
 
     <div
       v-if="props.canCreate"
-      class="resource-graph__footer"
+      class="resource-graph-footer"
     >
       <button
         type="button"
@@ -151,5 +153,28 @@ const groups = computed<ResourceGraphGroup[]>(() => groupsBelow(undefined));
 </template>
 
 <style lang="scss" scoped>
+.resource-graph {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
 
+.resource-graph-header {
+  flex-shrink: 0;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  align-items: center;
+  background-color: var(--tabbed-sidebar-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+// groups fill remaining height and scroll; header and footer stay fixed
+:deep(.resource-graph-groups) {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+}
 </style>
