@@ -1,6 +1,7 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import CruCatalogRepo from '@shell/edit/catalog.cattle.io.clusterrepo.vue';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { getVersionData } from '@shell/config/version';
 
 const createEditViewMock = {
   props: {
@@ -43,7 +44,7 @@ const createEditViewMock = {
   }
 };
 
-jest.mock('@shell/config/version', () => ({ getVersionData: () => ({ RancherPrime: 'false' }) }));
+jest.mock('@shell/config/version', () => ({ getVersionData: jest.fn(() => ({ RancherPrime: 'false' })) }));
 jest.mock('@shell/utils/require-asset', () => ({ requireAsset: (path: string) => path }));
 
 const defaultGlobalMocks = {
@@ -244,5 +245,24 @@ describe('CruCatalogRepo - refresh interval', () => {
 
       expect(rule(5)).toStrictEqual(undefined);
     });
+  });
+});
+
+describe('CruCatalogRepo - target cards', () => {
+  const imageAlts = (wrapper: VueWrapper<any>) => wrapper.vm.clusterRepoTargets
+    .filter((card: any) => card.image.src)
+    .map((card: any) => card.image.alt);
+
+  it('gives the OCI card image an empty alt, since the card title already names it', () => {
+    const wrapper = createWrapper({}, _CREATE);
+
+    expect(imageAlts(wrapper)).toStrictEqual([{ text: '' }]);
+  });
+
+  it('gives the SUSE App Collection card image an empty alt on Rancher Prime', () => {
+    (getVersionData as jest.Mock).mockReturnValueOnce({ RancherPrime: 'true' });
+    const wrapper = createWrapper({}, _CREATE);
+
+    expect(imageAlts(wrapper)).toStrictEqual([{ text: '' }, { text: '' }]);
   });
 });
