@@ -64,6 +64,14 @@ function sync(userId: string, operation: string, param?: any) {
   });
 }
 
+/**
+ * The fields of a notification that are kept in the encrypted entry rather than in the index.
+ *
+ * A change to any of these has to be written out again - the index alone can not bring the
+ * notification back as it now is.
+ */
+const ENCRYPTED_FIELDS = ['title', 'message', 'level', 'primaryAction', 'secondaryAction', 'preference', 'handlerName', 'data'];
+
 async function saveEncryptedNotification(getters: any, notification: Notification) {
   const toEncrypt: EncryptedNotification = {
     title:           notification.title,
@@ -315,7 +323,19 @@ export const actions = {
     return notification.id;
   },
 
-  update({ commit, getters }: any, notification: Notification) {
+  async update({ commit, getters }: any, notification: Partial<Notification>) {
+    // Progress lives in the index, so a task ticking along needs nothing else written. Anything
+    // else that changes - a task that finishes turning into a success - is in the encrypted entry,
+    // which is only written when a notification is added. Write it again, or a reload would show
+    // the notification as it first arrived rather than as it ended up.
+    if (notification.id && ENCRYPTED_FIELDS.some((field) => field in notification)) {
+      const existing = getters.item(notification.id);
+
+      if (existing) {
+        await saveEncryptedNotification(getters, { ...existing, ...notification });
+      }
+    }
+
     commit('update', notification);
     sync(getters['userId'], 'update', notification);
   },
