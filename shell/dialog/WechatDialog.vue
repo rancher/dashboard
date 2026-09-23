@@ -26,6 +26,7 @@ export default {
     <div>
       <rc-button
         variant="primary"
+        size="large"
         tabindex="0"
         :aria-label="t('generic.close')"
         @click="close"

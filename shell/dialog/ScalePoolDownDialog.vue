@@ -102,6 +102,7 @@ export default {
     <template #actions>
       <rc-button
         variant="secondary"
+        size="large"
         class="mr-10"
         @click="close"
       >
@@ -110,6 +111,7 @@ export default {
       <div class="spacer" />
       <rc-button
         variant="error"
+        size="large"
         class="ml-10"
         @click="remove"
       >
