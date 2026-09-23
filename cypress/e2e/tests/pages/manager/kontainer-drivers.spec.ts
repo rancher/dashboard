@@ -350,10 +350,16 @@ describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-    cy.intercept('DELETE', '/v3/kontainerDrivers/*', {
-      statusCode: 200,
-      body:       { }
-    }).as('deleteDriver');
+    // NOTE: do NOT stub the response body. The dashboard's Norman store only removes
+    // the row from the local list when either:
+    //   a) the DELETE response body carries the resource (so the `load` mutation can find
+    //      it by keyField and replace/remove it), or
+    //   b) a websocket `resource.remove` event arrives from Rancher after the real delete.
+    // Stubbing with `{ statusCode: 200, body: {} }` produced neither, so the row lived
+    // forever in the store and this assertion timed out on every run.
+    // Just intercept for wait/assertion purposes and let the real DELETE go through
+    // (the driver was really created earlier in this suite).
+    cy.intercept('DELETE', '/v3/kontainerDrivers/*').as('deleteDriver');
 
     driversPage.list().actionMenu(exampleDriver).getMenuItem('Delete').click();
 
@@ -361,15 +367,13 @@ describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@admin
 
     promptRemove.remove();
 
-    cy.wait('@deleteDriver').then(({ response }) => {
-      expect(response?.statusCode).to.eq(200);
-    });
+    cy.wait('@deleteDriver').its('response.statusCode').should('eq', 200);
 
     driversPage.waitForPage();
-    driversPage.list().resourceTable().sortableTable().rowElementWithName(exampleDriver, MEDIUM_TIMEOUT_OPT)
+    driversPage.list().resourceTable().sortableTable().rowElementWithName(exampleDriver, LONG_TIMEOUT_OPT)
       .should('not.exist');
 
-    // only mark removeDriver false once tests assert the driver is actually gone
+    // The real DELETE succeeded, so the after() hook no longer needs to clean it up
     removeDriver = false;
   });
 
