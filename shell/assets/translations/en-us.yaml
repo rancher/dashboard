@@ -1472,7 +1472,7 @@ catalog:
       diff: Compare Changes
       chartDefaults:
         label: Chart defaults
-        hint: Every setting the chart ships with. Edit any value here — the change appears on the right.
+        hint: Every setting the chart ships with. Edit any value here and the change appears on the right. Deleting a line keeps the chart default. To remove a setting, set its value to null.
       overrides:
         label: Your overrides
         hint: Only these values override the chart defaults and are saved.
