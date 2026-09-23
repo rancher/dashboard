@@ -170,6 +170,7 @@ export default {
       <div class="buttons">
         <rc-button
           variant="secondary"
+          size="large"
           class="mr-20"
           @click="close"
         >
