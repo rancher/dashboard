@@ -59,7 +59,7 @@ export default {
   watch: {
     options(curr) {
       if (curr.length === 0) {
-        this.$store.dispatch('restoreWorkspace', { value: '' });
+        this.$store.dispatch('setWorkspace', { value: '' });
       }
 
       const currentExists = curr.find((item) => item.value === this.value);
@@ -88,13 +88,15 @@ export default {
   },
 
   methods: {
-    // The store corrects the value against the workspaces it knows about, but when the user cannot
-    // list them the options come from the workspace-annotated namespaces instead, which the store
-    // cannot see. Correct against the options that are actually rendered in that case.
     restoreSelection(value) {
-      const correction = this.allWorkspaces.length ? value : this.options[0]?.value;
-
-      this.$store.dispatch('restoreWorkspace', { value: correction });
+      if (this.allWorkspaces.length) {
+        // The store knows the workspaces - let it correct the value against them.
+        this.$store.dispatch('restoreWorkspace', { value });
+      } else {
+        // The user cannot list workspaces, so the options come from the workspace-annotated
+        // namespaces instead, which the store cannot see. Correct against what is rendered.
+        this.$store.dispatch('setWorkspace', { value: this.options[0]?.value });
+      }
     },
 
     focus() {
