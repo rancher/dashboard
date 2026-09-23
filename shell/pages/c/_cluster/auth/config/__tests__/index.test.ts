@@ -1,5 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import AuthConfigList from '@shell/pages/c/_cluster/auth/config/index.vue';
+import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessDrawer.vue';
 import AuthProviderRow from '@shell/components/auth/AuthProviderRow.vue';
 import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptyState.vue';
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
@@ -57,6 +58,7 @@ const createWrapper = ({
       $route:      { params: { cluster: 'local' } },
       $fetchState: { pending: false, error: null },
       $store:      {
+        commit:   jest.fn(),
         dispatch: jest.fn(),
         getters:  {
           'features/get':         () => feature.spec.value,
@@ -113,14 +115,19 @@ describe('page: AuthConfigList', () => {
     expect(createWrapper().findAllComponents(AuthProviderRow)[0].props('status')).toBe('success');
   });
 
-  it('should link a configured provider to its edit page', () => {
+  it('should open the access panel when a provider row is selected', () => {
     const wrapper = createWrapper();
+    const row = wrapper.findAllComponents(AuthProviderRow)[0];
 
-    expect(wrapper.findAllComponents(AuthProviderRow)[0].props('to')).toStrictEqual({
-      name:   'c-cluster-auth-config-id',
-      params: { cluster: 'local', id: 'okta-corp' },
-      query:  { mode: 'edit' },
-    });
+    expect(row.props('selectable')).toBe(true);
+    expect(row.props('to')).toBeUndefined();
+
+    row.vm.$emit('select');
+
+    expect(((wrapper.vm as any).$store.commit as jest.Mock)).toHaveBeenCalledWith('slideInPanel/open', expect.objectContaining({
+      component:      AuthProviderAccessDrawer,
+      componentProps: expect.objectContaining({ resource: oktaConfig }),
+    }));
   });
 
   it('should size the add provider header action like resource list actions', () => {
@@ -246,17 +253,25 @@ describe('page: AuthConfigList', () => {
       const wrapper = createWrapper();
       const rows = wrapper.findAllComponents(AuthProviderRow);
 
-      expect(rows[0].props('divided')).toBe(true);
+      expect(rows[0].props('divided')).toBe(false);
       expect(localRow(wrapper).props('divided')).toBe(false);
     });
   });
 
   describe('disabling local login', () => {
+    const confirmDisable = async(wrapper: any) => {
+      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
+
+      const modal = ((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls.find(([action]) => action === 'management/promptModal');
+
+      await modal[1].componentProps.disableCb();
+    };
+
     it('should write the value straight to the feature flag', async() => {
       const feature = createFeature(false);
       const wrapper = createWrapper({ feature });
 
-      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
+      await confirmDisable(wrapper);
 
       expect(feature.spec.value).toBe(true);
       expect(feature.save).toHaveBeenCalledWith();
@@ -269,7 +284,7 @@ describe('page: AuthConfigList', () => {
 
       const wrapper = createWrapper({ feature });
 
-      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
+      await confirmDisable(wrapper);
 
       expect(feature.spec.value).toBe(false);
       expect((wrapper.vm as any).toggleError).toBe('nope');

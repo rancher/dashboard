@@ -2,6 +2,7 @@
 import { MANAGEMENT } from '@shell/config/types';
 import { providerKey } from '@shell/models/management.cattle.io.authconfig';
 import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
 import Loading from '@shell/components/Loading';
 import { RcCounterBadge } from '@components/Pill';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
@@ -25,6 +26,7 @@ export default {
     Banner,
     DisableLocalLoginCard,
     Loading,
+    RcButton,
     RcCounterBadge,
   },
 
@@ -234,6 +236,15 @@ export default {
           {{ t('authConfig.list.description') }}
         </p>
       </div>
+      <RcButton
+        v-if="rows.length"
+        variant="primary"
+        size="large"
+        data-testid="auth-config-create"
+        @click="promptAddProvider"
+      >
+        {{ t('generic.create') }}
+      </RcButton>
     </header>
 
     <Banner
