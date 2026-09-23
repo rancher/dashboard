@@ -97,6 +97,12 @@ function getLineNumbersExtension(show: boolean): Extension {
   return show ? cmLineNumbers() : [];
 }
 
+// editable only stops the content being contenteditable, readOnly stops commands (e.g. Enter
+// from a keymap) changing the document, so both are needed
+function getReadOnlyExtension(readOnly: boolean): Extension {
+  return [EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)];
+}
+
 function getLineWrappingExtension(wrap: boolean): Extension {
   return wrap ? EditorView.lineWrapping : [];
 }
@@ -147,7 +153,7 @@ onMounted(() => {
       themeCompartment.of(getThemeExtension(props.theme)),
       lineNumbersCompartment.of(getLineNumbersExtension(props.lineNumbers ?? true)),
       lineWrappingCompartment.of(getLineWrappingExtension(props.lineWrapping ?? false)),
-      readOnlyCompartment.of(EditorView.editable.of(!(props.readOnly ?? false))),
+      readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
       updateListener,
       ...(props.extensions ?? [])
     ]
@@ -219,7 +225,7 @@ watch(
 watch(
   () => props.readOnly,
   (ro) => {
-    view.value?.dispatch({ effects: readOnlyCompartment.reconfigure(EditorView.editable.of(!ro)) });
+    view.value?.dispatch({ effects: readOnlyCompartment.reconfigure(getReadOnlyExtension(ro ?? false)) });
   }
 );
 
