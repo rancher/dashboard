@@ -27,7 +27,7 @@ const buttonVariants: { variant: ButtonVariant, className: string }[] = [
   { variant: 'link', className: 'variant-link' },
   { variant: 'multiAction', className: 'variant-multi-action' },
   { variant: 'ghost', className: 'variant-ghost' },
-  { variant: 'error', className: 'variant-error' },
+  { variant: 'destructive', className: 'variant-destructive' },
 ];
 
 const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
@@ -352,7 +352,7 @@ defineExpose({ focus });
     }
   }
 
-  &.variant-error {
+  &.variant-destructive {
     background: var(--error);
     color: var(--on-error, var(--error-text));
 
@@ -369,11 +369,6 @@ defineExpose({ focus });
     &:focus-visible {
       @include focus-outline;
       outline-offset: 2px;
-    }
-
-    &:active {
-      background-color: var(--error-active-bg);
-      color: var(--error-active-text);
     }
 
     &:disabled {
