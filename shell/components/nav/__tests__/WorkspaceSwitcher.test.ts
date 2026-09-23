@@ -78,9 +78,8 @@ describe('component: WorkspaceSwitcher', () => {
     state.allWorkspaces = [];
     await nextTick();
 
-    expect(dispatch).toHaveBeenCalledWith('setWorkspace', { value: '' });
+    expect(commit).toHaveBeenCalledWith('updateWorkspace', expect.objectContaining({ value: '' }));
     expect(dispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything());
-    expect(commit).not.toHaveBeenCalled();
   });
 
   it('should fall back to a rendered option when the workspaces cannot be listed', () => {
@@ -89,10 +88,9 @@ describe('component: WorkspaceSwitcher', () => {
     }];
     const { commit, dispatch } = mountSwitcher('removed-workspace', [], '', namespaces);
 
-    expect(dispatch).toHaveBeenCalledWith('setWorkspace', { value: 'ws-a' });
+    expect(commit).toHaveBeenCalledWith('updateWorkspace', expect.objectContaining({ value: 'ws-a' }));
     expect(dispatch).not.toHaveBeenCalledWith('restoreWorkspace', expect.anything());
     expect(dispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything());
-    expect(commit).not.toHaveBeenCalled();
   });
 
   it('should offer every known workspace as an option', () => {

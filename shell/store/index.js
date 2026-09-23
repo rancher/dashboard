@@ -1315,12 +1315,5 @@ export const actions = {
     });
   },
 
-  // Sets the selection without correcting it against anything. For callers that already know which
-  // value they want and whose options the store cannot see - the workspace-annotated namespaces the
-  // switcher falls back to when the user has no permission to list workspaces.
-  setWorkspace({ commit, getters }, { value }) {
-    commit('updateWorkspace', { value, getters });
-  },
-
   ...gcActions
 };

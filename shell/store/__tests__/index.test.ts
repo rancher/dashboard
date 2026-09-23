@@ -190,15 +190,6 @@ describe('actions', () => {
       expect(ctx.state.workspace).toBe('my-workspace');
     });
 
-    it('should not correct the value when the caller sets it directly', () => {
-      const ctx = context();
-
-      actions.setWorkspace(ctx, { value: 'removed-workspace' });
-
-      expect(ctx.state.workspace).toBe('removed-workspace');
-      expect(ctx.state.allWorkspaces).toStrictEqual(workspaces);
-    });
-
     it('should validate against a list given to it', () => {
       const ctx = context([]);
 
