@@ -65,6 +65,11 @@ export class InstallChartPage extends PagePo {
     return this;
   }
 
+  /** The rendered Compare Changes diff (diff2html output) */
+  diffView() {
+    return this.self().get('#diffElement');
+  }
+
   overridesPane() {
     return this.self().get('[data-testid="chart-values-overrides-pane"]');
   }

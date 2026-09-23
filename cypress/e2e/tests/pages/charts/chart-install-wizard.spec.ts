@@ -134,6 +134,14 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
       // editor is shown, comparing the full baseline against the merged values
       installChartPage.overridesPane().should('not.exist');
       installChartPage.defaultsPane().should('not.exist');
+
+      // The override shows as an added line
+      installChartPage.diffView().find('.d2h-ins').should('contain.text', 'e2eTestOverride: hello-e2e');
+      // Unchanged context lines come from the chart defaults, so this is a diff of the
+      // full document and not just of the raw overrides (which would have no context)
+      installChartPage.diffView().find('.d2h-cntx').should('exist');
+      // Adding a new key removes nothing
+      installChartPage.diffView().find('.d2h-del').should('not.exist');
     });
 
     after('clean up', () => {
