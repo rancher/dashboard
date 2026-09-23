@@ -4,6 +4,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -12,6 +13,7 @@ export default {
     Card,
     AsyncButton,
     Banner,
+    RcButton
   },
 
   props: {
@@ -103,12 +105,14 @@ export default {
           :label="err"
         />
         <div class="buttons">
-          <button
-            class="btn role-secondary mr-10"
+          <rc-button
+            variant="secondary"
+            size="large"
+            class="mr-10"
             @click="close"
           >
             {{ t('generic.cancel') }}
-          </button>
+          </rc-button>
 
           <AsyncButton
             :mode="applyMode"

@@ -4,11 +4,12 @@ import ChangePassword from '@shell/components/form/ChangePassword';
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 import { RcHeading } from '@components/RcHeading';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits:      ['close'],
   components: {
-    Card, AsyncButton, ChangePassword, RcHeading
+    Card, AsyncButton, ChangePassword, RcHeading, RcButton
   },
   props: {
     user: {
@@ -64,15 +65,15 @@ export default {
 
     <template #actions>
       <!-- type reset is required by lastpass -->
-      <button
-        class="btn role-secondary"
-        role="button"
+      <rc-button
+        variant="secondary"
+        size="large"
         :aria-label="t('changePassword.cancel')"
         type="reset"
         @click="closeModal"
       >
         {{ t("changePassword.cancel") }}
-      </button>
+      </rc-button>
       <AsyncButton
         type="submit"
         mode="apply"

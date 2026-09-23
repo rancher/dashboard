@@ -2,6 +2,7 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import CodeMirror from '@shell/components/CodeMirror';
 import FileSelector from '@shell/components/form/FileSelector.vue';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -9,6 +10,7 @@ export default {
   components: {
     FileSelector,
     CodeMirror,
+    RcButton
   },
 
   props: {
@@ -108,20 +110,22 @@ export default {
           />
         </div>
         <div class="action-pannel form-actions">
-          <button
-            class="btn role-secondary"
+          <rc-button
+            variant="secondary"
+            size="large"
             data-testid="ssh-known-hosts-dialog_cancel-btn"
             @click="closeDialog(false)"
           >
             {{ t('generic.cancel') }}
-          </button>
-          <button
-            class="btn role-primary"
+          </rc-button>
+          <rc-button
+            variant="primary"
+            size="large"
             data-testid="ssh-known-hosts-dialog_save-btn"
             @click="closeDialog(true)"
           >
             {{ t('generic.save') }}
-          </button>
+          </rc-button>
         </div>
       </div>
     </div>

@@ -1,13 +1,15 @@
 <script>
 import { Card } from '@components/Card';
 import ClusterPermissionsEditor from '@shell/components/form/Members/ClusterPermissionsEditor';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
 
   components: {
     Card,
-    ClusterPermissionsEditor
+    ClusterPermissionsEditor,
+    RcButton
   },
 
   props: {
@@ -57,19 +59,22 @@ export default {
 
     <template #actions>
       <div class="buttons">
-        <button
-          class="btn role-secondary mr-10"
+        <rc-button
+          variant="secondary"
+          size="large"
+          class="mr-10"
           @click="close"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
 
-        <button
-          class="btn role-primary"
+        <rc-button
+          variant="primary"
+          size="large"
           @click="apply"
         >
           {{ t('generic.add') }}
-        </button>
+        </rc-button>
       </div>
     </template>
   </Card>

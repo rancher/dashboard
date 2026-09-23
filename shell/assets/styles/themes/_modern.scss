@@ -371,6 +371,9 @@ BODY, .theme-light {
   --error-active-bg          : #{darken($error, 25%)};
   --error-active-text        : #{contrast-color(darken($error, 25%))};
   --error-border             : #{$error};
+  --buttons-destructive      : #D42B3A;
+  --buttons-destructive-hover: #B62532;
+  --buttons-on-destructive   : #{$lightest};
   --error-banner-bg          : #{rgba($error, 0.15)};
   --error-light-bg           : #{rgba($error, 0.05)};
 

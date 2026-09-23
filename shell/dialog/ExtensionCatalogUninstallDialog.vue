@@ -6,11 +6,12 @@ import { UI_PLUGIN_LABELS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { allHash } from '@shell/utils/promise';
 
 import AsyncButton from '@shell/components/AsyncButton';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
 
-  components: { AsyncButton },
+  components: { AsyncButton, RcButton },
 
   props: {
     /**
@@ -168,14 +169,15 @@ export default {
         </p>
       </div>
       <div class="dialog-buttons">
-        <button
+        <rc-button
           :disabled="busy"
-          class="btn role-secondary"
+          variant="secondary"
+          size="large"
           data-testid="uninstall-ext-modal-cancel-btn"
           @click="closeDialog(false)"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
         <AsyncButton
           mode="uninstall"
           data-testid="uninstall-ext-modal-uninstall-btn"

@@ -5,6 +5,7 @@ import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { resourceNames } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -13,6 +14,7 @@ export default {
     Card,
     AsyncButton,
     Banner,
+    RcButton
   },
 
   props: {
@@ -97,12 +99,13 @@ export default {
     </template>
 
     <template #actions>
-      <button
-        class="btn role-secondary"
+      <rc-button
+        variant="secondary"
+        size="large"
         @click="close"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
       <div class="spacer" />
       <AsyncButton
         mode="deactivate"

@@ -3,6 +3,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { RcHeading } from '@components/RcHeading';
+import { RcButton } from '@components/RcButton';
 
 /**
  * Dialog shown when user tries to install an extension that is already installed from a different source.
@@ -11,7 +12,9 @@ import { RcHeading } from '@components/RcHeading';
 export default {
   emits: ['close'],
 
-  components: { AsyncButton, RcHeading },
+  components: {
+    AsyncButton, RcHeading, RcButton
+  },
 
   props: {
     /**
@@ -118,14 +121,15 @@ export default {
         </p>
       </div>
       <div class="dialog-buttons">
-        <button
+        <rc-button
           :disabled="busy"
-          class="btn role-secondary"
+          variant="secondary"
+          size="large"
           data-testid="uninstall-existing-ext-modal-cancel-btn"
           @click="closeDialog(false)"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
         <AsyncButton
           mode="uninstall"
           :action-label="t('plugins.install.uninstallExisting')"

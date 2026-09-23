@@ -1,9 +1,12 @@
 <script>
+import { RcButton } from '@components/RcButton';
 // i18n-ignore footer.wechat.modalText, footer.wechat.modalText2
 export default {
   emits: ['close'],
 
   name: 'WechatModal',
+
+  components: { RcButton },
 
   methods: {
     close() {
@@ -21,16 +24,16 @@ export default {
     <h1>{{ t('footer.wechat.modalText2') }}</h1>
     <div class="qr-img" />
     <div>
-      <button
-        class="btn role-primary"
+      <rc-button
+        variant="primary"
+        size="large"
         tabindex="0"
         :aria-label="t('generic.close')"
-        role="button"
         @click="close"
         @keydown.enter.stop
       >
         {{ t('generic.close') }}
-      </button>
+      </rc-button>
     </div>
   </div>
 </template>

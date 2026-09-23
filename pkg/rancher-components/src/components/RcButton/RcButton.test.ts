@@ -137,6 +137,13 @@ describe('rcButton.vue', () => {
 
       expect(button.classes()).toContain('variant-ghost');
     });
+
+    it('applies variant-destructive class when variant="destructive"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'destructive' } });
+      const button = wrapper.find('button');
+
+      expect(button.classes()).toContain('variant-destructive');
+    });
   });
 
   describe('space key navigation', () => {

@@ -5,12 +5,13 @@ import { CATALOG } from '@shell/config/types';
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import { isRancherPrime } from '@shell/config/version';
 import { RcHeading } from '@components/RcHeading';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
 
   components: {
-    AsyncButton, Checkbox, RcHeading
+    AsyncButton, Checkbox, RcHeading, RcButton
   },
 
   props: {
@@ -159,12 +160,13 @@ export default {
       </div>
     </div>
     <div class="dialog-buttons mt-20">
-      <button
-        class="btn role-secondary"
+      <rc-button
+        variant="secondary"
+        size="large"
         @click="$emit('close')"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
       <AsyncButton
         mode="add"
         class="ml-10"

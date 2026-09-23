@@ -6,6 +6,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -14,7 +15,8 @@ export default {
     AsyncButton,
     Banner,
     Card,
-    CopyToClipboardText
+    CopyToClipboardText,
+    RcButton
   },
 
   props: {
@@ -111,12 +113,14 @@ export default {
       </div>
     </template>
     <template #actions>
-      <button
-        class="btn role-secondary mr-10"
+      <rc-button
+        variant="secondary"
+        size="large"
+        class="mr-10"
         @click="close"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
       <AsyncButton
         mode="delete"
         class="btn bg-error ml-10"

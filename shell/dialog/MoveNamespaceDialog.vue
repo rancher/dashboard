@@ -6,6 +6,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
 import { RcHeading } from '@components/RcHeading';
+import { RcButton } from '@components/RcButton';
 
 const NONE_VALUE = ' ';
 
@@ -13,7 +14,7 @@ export default {
   emits: ['close'],
 
   components: {
-    AsyncButton, Card, LabeledSelect, RcHeading
+    AsyncButton, Card, LabeledSelect, RcHeading, RcButton
   },
 
   props: {
@@ -139,12 +140,13 @@ export default {
       />
     </template>
     <template #actions>
-      <button
-        class="btn role-secondary"
+      <rc-button
+        variant="secondary"
+        size="large"
         @click="close"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
       <AsyncButton
         :action-label="t('moveModal.moveButtonLabel')"
         class="btn bg-primary ml-10"

@@ -2,11 +2,14 @@
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 import { IS_SSO, LOGGED_OUT } from '@shell/config/query-params';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
 
-  components: { Card, AsyncButton },
+  components: {
+    Card, AsyncButton, RcButton
+  },
 
   props: {
     authProvider: {
@@ -63,19 +66,21 @@ export default {
     </template>
     <template #actions>
       <div class="btn-block">
-        <button
-          class="btn role-secondary"
+        <rc-button
+          variant="secondary"
+          size="large"
           @click="cancel()"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
         <div class="spacer" />
-        <button
-          class="btn role-secondary"
+        <rc-button
+          variant="secondary"
+          size="large"
           @click="doLogout()"
         >
           {{ t('promptSlo.rancher.active') }}
-        </button>
+        </rc-button>
         <AsyncButton
           class="ml-10"
           :action-label="t('promptSlo.all.active', { name })"

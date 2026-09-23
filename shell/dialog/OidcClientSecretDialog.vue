@@ -1,13 +1,14 @@
 <script>
 import { Card } from '@components/Card';
 import { OIDC_CLIENT_SECRET_ACTION } from '@shell/detail/management.cattle.io.oidcclient.vue';
+import { RcButton } from '@components/RcButton';
 
 export default {
   name: 'PromptRemove',
 
   emits: ['disable', 'close'],
 
-  components: { Card },
+  components: { Card, RcButton },
   props:      {
     /**
      * Inherited global identifier prefix for tests
@@ -65,20 +66,23 @@ export default {
       </div>
     </template>
     <template #actions>
-      <button
-        class="btn role-secondary"
+      <rc-button
+        variant="secondary"
+        size="large"
         @click="close"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
       <div class="spacer" />
-      <button
-        class="btn role-primary bg-error ml-10"
+      <rc-button
+        variant="destructive"
+        size="large"
+        class="ml-10"
         :data-testid="componentTestid + '-confirm-button'"
         @click="action"
       >
         {{ t(`oidcclient.${ translationKey }.action`) }}
-      </button>
+      </rc-button>
     </template>
   </Card>
 </template>

@@ -11,6 +11,7 @@ import { escapeHtml } from '@shell/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
 import { createOperationCR } from '@shell/utils/operation-cr';
+import { RcButton } from '@components/RcButton';
 export default {
   emits: ['close'],
 
@@ -18,6 +19,7 @@ export default {
     Card,
     AsyncButton,
     Banner,
+    RcButton
   },
 
   props: {
@@ -160,12 +162,14 @@ export default {
 
     <template #actions>
       <div class="buttons">
-        <button
-          class="btn role-secondary mr-10"
+        <rc-button
+          variant="secondary"
+          size="large"
+          class="mr-10"
           @click="close"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
 
         <AsyncButton
           mode="rotate"

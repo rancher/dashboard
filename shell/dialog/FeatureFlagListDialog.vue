@@ -10,6 +10,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { getVendor } from '@shell/config/private-label';
+import { RcButton } from '@components/RcButton';
 
 export default {
   name: 'FeatureFlagListDialog',
@@ -17,7 +18,7 @@ export default {
   emits: ['close'],
 
   components: {
-    Card, Banner, LabeledInput, AsyncButton
+    Card, Banner, LabeledInput, AsyncButton, RcButton
   },
 
   props: {
@@ -211,12 +212,13 @@ export default {
       </div>
     </template>
     <template #actions>
-      <button
-        class="btn role-secondary"
+      <rc-button
+        variant="secondary"
+        size="large"
         @click="close"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
       <AsyncButton
         :disabled="promptForUrl && !serverUrlSetting.value"
         :mode="updateMode"
@@ -244,12 +246,13 @@ export default {
       </div>
     </template>
     <template #actions>
-      <button
-        class="btn role-secondary"
+      <rc-button
+        variant="secondary"
+        size="large"
         @click="close"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
     </template>
   </Card>
 </template>

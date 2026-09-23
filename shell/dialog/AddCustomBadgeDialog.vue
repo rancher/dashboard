@@ -15,6 +15,7 @@ import { NORMAN } from '@shell/config/types';
 import { abbreviateClusterName } from '@shell/utils/cluster';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import ClusterIconMenu from '@shell/components/ClusterIconMenu';
+import { RcButton } from '@components/RcButton';
 
 export default {
   name:  'AddCustomBadgeDialog',
@@ -30,6 +31,7 @@ export default {
     ClusterBadge,
     ClusterIconMenu,
     ClusterProviderIcon,
+    RcButton
   },
   props: {
     isCreate:        { type: Boolean, default: false },
@@ -311,14 +313,15 @@ export default {
           :label="err"
         />
         <div class="buttons">
-          <button
-            role="button"
-            class="btn role-secondary mr-10"
+          <rc-button
+            variant="secondary"
+            size="large"
+            class="mr-10"
             :aria-label="t('generic.cancel')"
             @click="close"
           >
             {{ t('generic.cancel') }}
-          </button>
+          </rc-button>
           <AsyncButton
             :action-label="t('clusterBadge.modal.buttonAction')"
             :disabled="!canSubmit"

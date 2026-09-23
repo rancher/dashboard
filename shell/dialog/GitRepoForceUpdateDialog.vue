@@ -5,6 +5,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
+import { RcButton } from '@components/RcButton';
 
 export default {
   name: 'GitRepoForceUpdateDialog',
@@ -15,6 +16,7 @@ export default {
     AsyncButton,
     Banner,
     Card,
+    RcButton
   },
 
   props: {
@@ -103,12 +105,13 @@ export default {
     </template>
 
     <template #actions>
-      <button
-        class="btn role-secondary"
+      <rc-button
+        variant="secondary"
+        size="large"
         @click="close"
       >
         {{ t('generic.cancel') }}
-      </button>
+      </rc-button>
       <div class="spacer" />
       <AsyncButton
         mode="update"

@@ -8,6 +8,7 @@ import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { set } from '@shell/utils/object';
+import { RcButton } from '@components/RcButton';
 
 export default {
   emits: ['close'],
@@ -17,7 +18,8 @@ export default {
     LabeledSelect,
     KeyValue,
     AsyncButton,
-    Banner
+    Banner,
+    RcButton
   },
 
   props: {
@@ -146,12 +148,13 @@ export default {
 
     <template #actions>
       <div class="actions-container">
-        <button
-          class="btn role-secondary"
+        <rc-button
+          variant="secondary"
+          size="large"
           @click="close"
         >
           {{ t('generic.cancel') }}
-        </button>
+        </rc-button>
 
         <AsyncButton
           class="apply-btn"

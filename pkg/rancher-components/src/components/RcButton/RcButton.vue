@@ -14,18 +14,20 @@ import {
   ButtonVariantNewProps,
   ButtonSizeNewProps,
   ButtonSize,
+  ButtonVariant,
   IconProps,
   NavigationProps,
 } from './types';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
-const buttonVariants: { variant: keyof ButtonVariantProps, className: string }[] = [
+const buttonVariants: { variant: ButtonVariant, className: string }[] = [
   { variant: 'primary', className: 'variant-primary' },
   { variant: 'secondary', className: 'variant-secondary' },
   { variant: 'tertiary', className: 'variant-tertiary' },
   { variant: 'link', className: 'variant-link' },
   { variant: 'multiAction', className: 'variant-multi-action' },
   { variant: 'ghost', className: 'variant-ghost' },
+  { variant: 'destructive', className: 'variant-destructive' },
 ];
 
 const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
@@ -92,7 +94,7 @@ const activeVariantClassName = computed(() => {
     console.warn('[RcButton] The "multiAction" variant is deprecated and will be removed in a future version.'); // eslint-disable-line no-console
   }
 
-  const activeVariant = buttonVariants.find(({ variant }) => props[variant]);
+  const activeVariant = buttonVariants.find(({ variant }) => (props as Record<string, unknown>)[variant]);
 
   if (activeVariant) {
     console.warn( // eslint-disable-line no-console
@@ -347,6 +349,35 @@ defineExpose({ focus });
     &:focus-visible {
       @include focus-outline;
       outline-offset: 0;
+    }
+  }
+
+  &.variant-destructive {
+    background: var(--buttons-destructive);
+    color: var(--buttons-on-destructive);
+
+    &:hover, &._hover {
+      background-color: var(--buttons-destructive-hover);
+      color: var(--buttons-on-destructive);
+    }
+
+    &:focus, &.focused {
+      background-color: var(--buttons-destructive-hover);
+      color: var(--buttons-on-destructive);
+    }
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
     }
   }
 

@@ -12,6 +12,7 @@ import { mapGetters } from 'vuex';
 import { ACTIVELY_REMOVE, NEVER_ADD } from '@shell/utils/create-yaml';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
+import { RcButton } from '@components/RcButton';
 
 const HIDE = [
   'metadata.labels.pod-template-hash',
@@ -37,6 +38,7 @@ export default {
     LabeledSelect,
     Banner,
     YamlEditor,
+    RcButton
   },
   props: {
     workload: {
@@ -242,21 +244,25 @@ export default {
     <template #actions>
       <div class="buttons ">
         <div class="left">
-          <button
+          <rc-button
             :disabled="!selectedRevision"
-            class="btn role-secondary diff"
+            variant="secondary"
+            size="large"
+            class="diff"
             @click="showDiff = !showDiff; sizeDialog()"
           >
             {{ showDiff ? t('resourceYaml.buttons.hideDiff') : t('resourceYaml.buttons.diff') }}
-          </button>
+          </rc-button>
         </div>
         <div class="right">
-          <button
-            class="btn role-secondary mr-10"
+          <rc-button
+            variant="secondary"
+            size="large"
+            class="mr-10"
             @click="close"
           >
             {{ t('generic.cancel') }}
-          </button>
+          </rc-button>
           <AsyncButton
             :action-label="t('asyncButton.rollback.action')"
             :disabled="!selectedRevision"
