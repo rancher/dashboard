@@ -1662,9 +1662,15 @@ export default class Resource {
     downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
   }
 
-  async downloadYamlBulk(items) {
+  /**
+   * @param items the resources to write into the zip
+   * @param onProgress called with (done, total) as each resource comes back, for a caller that is
+   *        showing how far along this is - it is a request per resource, so it can take a while
+   */
+  async downloadYamlBulk(items, onProgress) {
     const files = {};
     const names = [];
+    let done = 0;
 
     for ( const item of items ) {
       let name = `${ item.nameDisplay }.yaml`;
@@ -1683,6 +1689,7 @@ export default class Resource {
         const cleanedYaml = await this.cleanForDownload(yaml);
 
         files[`resources/${ names[idx] }`] = cleanedYaml;
+        onProgress?.(++done, items.length);
       });
     });
 

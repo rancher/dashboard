@@ -16,6 +16,7 @@ import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
 import TableViewsBar from '@shell/components/TableViews/TableViewsBar';
 import { downloadFile } from '@shell/utils/download';
+import { NotificationLevel } from '@shell/types/notifications';
 import { optionalHeadersFor } from '@shell/config/optional-table-headers';
 import {
   LABEL_FIELD_PREFIX,
@@ -47,6 +48,14 @@ const DEFAULT_GROUP = 'namespace';
  * resources, and neither the browser nor the api wants that in one go
  */
 const EXPORT_ROW_LIMIT = 10000;
+
+/**
+ * How many rows an "all matching" export asks for at a time.
+ *
+ * The rows could be fetched in one request, but then there would be nothing to report while it
+ * ran - and this is the part of an export that keeps the user waiting.
+ */
+const EXPORT_PAGE_SIZE = 1000;
 
 /** How long the table will wait for a view's rows before showing what it has anyway */
 const VIEW_SWITCH_TIMEOUT = 8000;
@@ -1639,41 +1648,66 @@ export default {
     },
 
     /**
-     * Export the rows for the requested scope in the requested format.
-     *
-     * Selection and page come from the table itself, everything else is what the view's
-     * query has left us with.
-     */
-    /**
      * Every row the current filter matches, not just the page on screen.
      *
-     * Re-runs the list's own request with a big page size and `transient`, which fetches without
-     * writing to the store, so the table the user is looking at is left alone.
+     * Re-runs the list's own request with `transient`, which fetches without writing to the store,
+     * so the table the user is looking at is left alone. It is fetched a page at a time rather
+     * than in one go so there is something to report against, and every page after the first is
+     * pinned to the revision the first came back at, so a list that changes underneath can not
+     * drop or repeat a row between two pages.
+     *
+     * @param onProgress called with (done, total) after each page arrives
      */
-    async allMatchingRows() {
+    async allMatchingRows(onProgress) {
       if (!this.externalPaginationEnabled || !this.externalPaginationArgs || !this.schema) {
         return this.viewRows;
       }
 
-      try {
-        const res = await this.$store.dispatch(`${ this.inStore }/findPage`, {
-          type: this.schema.id,
-          opt:  {
-            transient:  true,
-            watch:      false,
-            pagination: {
-              ...this.externalPaginationArgs,
-              page:     1,
-              pageSize: EXPORT_ROW_LIMIT,
-            },
-          }
-        });
+      const rows = [];
+      let total = null;
+      let revision;
 
-        return res?.data || this.viewRows;
+      try {
+        for (let page = 1; rows.length < EXPORT_ROW_LIMIT; page++) {
+          const res = await this.$store.dispatch(`${ this.inStore }/findPage`, {
+            type: this.schema.id,
+            opt:  {
+              transient:  true,
+              watch:      false,
+              revision,
+              pagination: {
+                ...this.externalPaginationArgs,
+                page,
+                pageSize: EXPORT_PAGE_SIZE,
+              },
+            }
+          });
+
+          const data = res?.data || [];
+
+          rows.push(...data);
+
+          if (total === null) {
+            total = Math.min(res?.pagination?.result?.count ?? data.length, EXPORT_ROW_LIMIT);
+            revision = res?.pagination?.result?.revision;
+          }
+
+          onProgress?.(Math.min(rows.length, total), total);
+
+          // A page that came back short or empty is the end of the list, whatever the count said
+          if (data.length < EXPORT_PAGE_SIZE || rows.length >= total) {
+            break;
+          }
+        }
       } catch (e) {
-        // Fall back to what is on screen rather than exporting nothing
-        return this.viewRows;
+        // Whatever arrived before the failure is still worth writing out. Only an export that
+        // got nowhere falls back to what is on screen.
+        if (!rows.length) {
+          return this.viewRows;
+        }
       }
+
+      return rows;
     },
 
     /**
@@ -1700,18 +1734,79 @@ export default {
       this.viewSwitching = false;
     },
 
-    async handleExport({ format }) {
-      const rows = await this.allMatchingRows();
+    /**
+     * Export the view, every row it matches rather than the page on screen - the view is what the
+     * user picked, the page is just where they happen to be in it.
+     *
+     * That can be a lot of rows and a lot of waiting, so the export is watched in the notification
+     * centre instead of holding anything up: a task with a progress bar while it runs, and that
+     * same entry turned into a success once the file lands. The store is dispatched to directly
+     * rather than going through the shell notification api, which can move a task's progress along
+     * but can not turn it into anything else.
+     */
+    async handleExport({ format, name }) {
+      const viewName = name || this.t('tableViews.tabs.all');
+      const id = await this.$store.dispatch('notifications/add', {
+        level:    NotificationLevel.Task,
+        title:    this.t('tableViews.export.notification.title'),
+        message:  this.t('tableViews.export.notification.message', { name: viewName, format: (format || '').toUpperCase() }),
+        progress: 0,
+      });
 
-      if (!rows.length || !format) {
-        return;
+      // Fetching the rows is the whole of a CSV or JSON export. A YAML one has only started: that
+      // asks the api for each resource in turn, which is the greater part of the wait.
+      const fetchShare = format === 'yaml' ? 20 : 90;
+      const report = (done, total, from, to) => {
+        this.$store.dispatch('notifications/update', { id, progress: Math.round(from + (((to - from) * done) / (total || 1))) });
+      };
+
+      try {
+        const rows = await this.allMatchingRows((done, total) => report(done, total, 0, fetchShare));
+
+        if (!rows.length || !format) {
+          // Nothing was written, so there is nothing to tell the user about afterwards either
+          return this.$store.dispatch('notifications/remove', id);
+        }
+
+        const file = await this.writeExport(rows, format, (done, total) => report(done, total, fetchShare, 100));
+
+        return this.$store.dispatch('notifications/update', {
+          id,
+          level:    NotificationLevel.Success,
+          title:    this.t('tableViews.export.notification.doneTitle'),
+          message:  this.t('tableViews.export.notification.doneMessage', { name: viewName, file }),
+          progress: 100,
+        });
+      } catch (e) {
+        console.error('Unable to export the view', e); // eslint-disable-line no-console
+
+        return this.$store.dispatch('notifications/update', {
+          id,
+          level:   NotificationLevel.Error,
+          title:   this.t('tableViews.export.notification.failedTitle'),
+          message: this.t('tableViews.export.notification.failedMessage', { name: viewName }),
+        });
       }
+    },
 
-      // Asking for YAML is asking for the resources themselves, which is what the Download YAML
-      // action already gives - the manifests as the cluster holds them, not the table's columns
-      // written out in YAML. So it is that action rather than a second thing wearing its name.
+    /**
+     * Turn the rows into a file and hand it to the browser, answering what it was called.
+     *
+     * Asking for YAML is asking for the resources themselves, which is what the Download YAML
+     * action already gives - the manifests as the cluster holds them, not the table's columns
+     * written out in YAML. So it is that action rather than a second thing wearing its name.
+     */
+    async writeExport(rows, format, onProgress) {
       if (format === 'yaml' && typeof rows[0]?.downloadYaml === 'function') {
-        return rows.length === 1 ? rows[0].downloadYaml() : rows[0].downloadYamlBulk(rows);
+        if (rows.length === 1) {
+          await rows[0].downloadYaml();
+
+          return `${ rows[0].nameDisplay }.yaml`;
+        }
+
+        await rows[0].downloadYamlBulk(rows, onProgress);
+
+        return 'resources.zip';
       }
 
       const columns = this.exportColumns;
@@ -1722,8 +1817,11 @@ export default {
         csv:  { write: rowsToCsv, type: 'text/csv;charset=utf-8' },
       };
       const writer = writers[format] || writers.csv;
+      const file = `${ name }.${ format }`;
 
-      downloadFile(`${ name }.${ format }`, writer.write(rows, columns), writer.type);
+      await downloadFile(file, writer.write(rows, columns), writer.type);
+
+      return file;
     },
   }
 };

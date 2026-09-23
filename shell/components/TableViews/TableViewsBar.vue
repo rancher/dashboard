@@ -1275,7 +1275,11 @@ export default {
     },
 
     doExport(format) {
-      this.$emit('export', { format });
+      // The name goes with it: the export is watched in the notification centre, and by the time
+      // it finishes the modal that knew which view was picked is long gone
+      const name = this.modal?.view?.name || this.t('tableViews.tabs.all');
+
+      this.$emit('export', { format, name });
       this.closeModal();
     },
   }

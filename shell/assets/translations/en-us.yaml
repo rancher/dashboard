@@ -7213,6 +7213,15 @@ tableViews:
       yaml: YAML
       json: JSON
       csv: CSV
+    # What the notification centre shows while the export runs, and what that entry becomes once
+    # it is done. The file can take a while, so the export is watched there rather than blocking.
+    notification:
+      title: Export in progress
+      message: Exporting all items from the {name} view as {format}...
+      doneTitle: Export completed
+      doneMessage: The {name} view has been exported to {file}.
+      failedTitle: Export failed
+      failedMessage: The {name} view could not be exported.
   shortcut:
     save: CMD-S
     saveAsNew: CMD-Shift-S
