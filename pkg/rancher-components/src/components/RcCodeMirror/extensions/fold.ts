@@ -132,14 +132,24 @@ export function buildFoldExtension(opts?: FoldOptions): Extension {
 }
 
 /**
+ * A copy of `pattern` without the global and sticky flags. With either flag, test() resumes
+ * from the previous match's lastIndex, so testing line after line would skip matches.
+ */
+function statelessPattern(pattern: RegExp): RegExp {
+  return new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, ''));
+}
+
+/**
  * Declarative fold service: marks lines matching `pattern` as foldable.
  * The fold range covers the indented block below the matching line.
  */
 export function foldByLineMatch(pattern: RegExp): Extension {
+  const matcher = statelessPattern(pattern);
+
   return foldService.of((state, lineStart) => {
     const line = state.doc.lineAt(lineStart);
 
-    if (!pattern.test(line.text)) {
+    if (!matcher.test(line.text)) {
       return null;
     }
 
@@ -362,6 +372,8 @@ function parseDocument(view: EditorView): void {
  * Delegates range detection to registered fold services via `foldable()`.
  */
 export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
+  const matcher = statelessPattern(pattern);
+
   parseDocument(view);
 
   const { state } = view;
@@ -370,7 +382,7 @@ export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
   for (let i = 1; i <= state.doc.lines; i++) {
     const line = state.doc.line(i);
 
-    if (!pattern.test(line.text)) {
+    if (!matcher.test(line.text)) {
       continue;
     }
     const range = foldable(state, line.from, line.to);
