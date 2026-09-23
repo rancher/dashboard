@@ -48,7 +48,8 @@ import {
   indentOnInput,
   syntaxHighlighting,
   defaultHighlightStyle,
-  bracketMatching
+  bracketMatching,
+  foldGutter as cmFoldGutter
 } from '@codemirror/language';
 import { closeBrackets, autocompletion } from '@codemirror/autocomplete';
 import { search } from '@codemirror/search';
@@ -111,6 +112,7 @@ const themeCompartment = new Compartment();
 const readOnlyCompartment = new Compartment();
 const lineNumbersCompartment = new Compartment();
 const lineWrappingCompartment = new Compartment();
+const foldGutterCompartment = new Compartment();
 const contentAttributesCompartment = new Compartment();
 
 function getThemeExtension(theme?: RcCodeMirrorTheme): Extension {
@@ -128,6 +130,16 @@ function getLineNumbersExtension(show: boolean): Extension {
 // The input variant has no gutters
 function showLineNumbers(): boolean {
   return props.variant !== 'input' && (props.lineNumbers ?? true);
+}
+
+function getFoldGutterExtension(show: boolean): Extension {
+  return show ? cmFoldGutter() : [];
+}
+
+// The input variant has no gutters. Folding itself stays enabled without the gutter, so folds
+// can still be made programmatically (e.g. foldYamlPath) and from the keyboard
+function showFoldGutter(): boolean {
+  return props.variant !== 'input' && (props.foldGutter ?? true);
 }
 
 // The input variant always wraps, like a textarea
@@ -170,8 +182,6 @@ onMounted(() => {
     }
   });
 
-  const foldExt = props.foldGutter && props.variant !== 'input' ? buildFoldExtension(props.foldOptions) : [];
-
   const state = EditorState.create({
     doc:        props.modelValue ?? '',
     extensions: [
@@ -189,7 +199,8 @@ onMounted(() => {
       highlightSpecialChars(),
       autocompletion(),
       search(),
-      foldExt,
+      buildFoldExtension(props.foldOptions),
+      foldGutterCompartment.of(getFoldGutterExtension(showFoldGutter())),
       languageCompartment.of(getLanguageExtension(props.language)),
       keymapCompartment.of(getKeymapExtension(props.keymap)),
       themeCompartment.of(getThemeExtension(props.theme)),
@@ -277,6 +288,14 @@ watch(
   () => showLineNumbers(),
   (show) => {
     view.value?.dispatch({ effects: lineNumbersCompartment.reconfigure(getLineNumbersExtension(show)) });
+  }
+);
+
+// Hot-swap foldGutter
+watch(
+  () => showFoldGutter(),
+  (show) => {
+    view.value?.dispatch({ effects: foldGutterCompartment.reconfigure(getFoldGutterExtension(show)) });
   }
 );
 
