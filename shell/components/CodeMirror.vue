@@ -5,7 +5,7 @@ import type { Extension } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { indentWithTab } from '@codemirror/commands';
 import { RcCodeMirror } from '@components/RcCodeMirror';
-import type { RcCodeMirrorKeymap, RcCodeMirrorLanguage, RcCodeMirrorTheme } from '@components/RcCodeMirror';
+import type { RcCodeMirrorKeymap, RcCodeMirrorLanguage, RcCodeMirrorTheme, RcCodeMirrorVariant } from '@components/RcCodeMirror';
 import { KEYMAP } from '@shell/store/prefs';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -78,6 +78,9 @@ export default defineComponent({
       type:    Array as PropType<Extension[]>,
       default: () => []
     },
+    /**
+     * Display as a multi-line form input rather than a code editor, see RcCodeMirror's `input` variant
+     */
     asTextArea: {
       type:    Boolean,
       default: false
@@ -116,12 +119,16 @@ export default defineComponent({
       return !!this.options?.lint && this.language === 'yaml';
     },
 
+    variant(): RcCodeMirrorVariant {
+      return this.asTextArea ? 'input' : 'editor';
+    },
+
     lineNumbers(): boolean {
-      return !this.asTextArea && (this.options?.lineNumbers ?? true);
+      return this.options?.lineNumbers ?? true;
     },
 
     foldGutter(): boolean {
-      return !this.asTextArea && (this.options?.foldGutter ?? true);
+      return this.options?.foldGutter ?? true;
     },
 
     lineWrapping(): boolean {
@@ -319,7 +326,7 @@ export default defineComponent({
     ref="codeMirrorContainer"
     :tabindex="codeMirrorContainerTabIndex"
     class="code-mirror code-mirror-container"
-    :class="{['as-text-area']: asTextArea, ['read-only']: isReadOnly}"
+    :class="{['read-only']: isReadOnly}"
     @focusin="focusChanged"
     @blur="focusChanged($event, true)"
   >
@@ -345,6 +352,7 @@ export default defineComponent({
         :language="language"
         :keymap="keymap"
         :theme="theme"
+        :variant="variant"
         :read-only="isReadOnly"
         :line-numbers="lineNumbers"
         :fold-gutter="foldGutter"
@@ -387,8 +395,8 @@ export default defineComponent({
       z-index: 0;
       font-size: inherit !important;
 
-      // Use the dashboard's colours rather than the CodeMirror theme's
-      .cm-editor {
+      // Use the dashboard's colours rather than the CodeMirror theme's. The input variant is styled by RcCodeMirror
+      .rc-code-mirror--editor .cm-editor {
         background: none;
         color: var(--body-text);
 
@@ -407,52 +415,6 @@ export default defineComponent({
 
     &.read-only .cm-cursor {
       display: none !important;
-    }
-
-    &.as-text-area .codemirror-container {
-      min-height: 40px;
-      position: relative;
-      display: block;
-      box-sizing: border-box;
-      width: 100%;
-      padding: 10px;
-      background-color: var(--input-bg);
-      border-radius: var(--border-radius);
-      border: solid var(--border-width) var(--input-border);
-      color: var(--input-text);
-
-      &:hover {
-        border-color: var(--input-hover-border);
-      }
-
-      &:focus-within {
-        outline: none;
-        border-color: var(--primary-border);
-      }
-
-      .cm-editor {
-        color: var(--input-text);
-
-        .cm-scroller {
-          font-family: $body-font;
-        }
-
-        .cm-content, .cm-line {
-          padding: 0;
-        }
-
-        // Mark line breaks so multi-line values are distinguishable
-        .cm-line:not(:last-child)::after {
-          content: '↵';
-          margin-left: 2px;
-          color: var(--muted);
-          pointer-events: none;
-        }
-
-        .cm-selectionBackground, &.cm-focused .cm-selectionBackground {
-          background-color: var(--primary);
-        }
-      }
     }
 
     .keymap.overlay {
