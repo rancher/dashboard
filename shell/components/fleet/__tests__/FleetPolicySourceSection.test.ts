@@ -60,10 +60,20 @@ describe('component: FleetPolicySourceSection', () => {
   });
 
   it('should offer the secret options to both the default and the allow-list', () => {
-    const secretOptions = ['tenant-1-git-credentials', 'tenant-2-git-credentials'];
+    const secretOptions = [
+      { label: 'tenant-1-git-credentials (HTTP Basic Auth: tenant-1)', value: 'tenant-1-git-credentials' },
+      { label: 'tenant-2-git-credentials (SSH)', value: 'tenant-2-git-credentials' },
+    ];
     const wrapper = mountSection({ secretOptions, restricted: true });
 
     expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual(secretOptions);
     expect(wrapper.findComponent(FleetPolicyAllowList).props('options')).toStrictEqual(secretOptions);
+  });
+
+  it('should keep a typed name shaped like the labelled options, so the policy still stores a name', () => {
+    const wrapper = mountSection({ restricted: true });
+    const createOption = selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').vm.$attrs['create-option'] as (name: string) => unknown;
+
+    expect(createOption('not-created-yet')).toStrictEqual({ label: 'not-created-yet', value: 'not-created-yet' });
   });
 });

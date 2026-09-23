@@ -6,7 +6,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import FleetPolicyAllowList from '@shell/components/fleet/FleetPolicyAllowList.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import type { FleetPolicySource } from '@shell/types/fleet';
+import type { FleetPolicyNameOption, FleetPolicySource } from '@shell/types/fleet';
 
 type Variant = 'gitRepo' | 'helmOp';
 
@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<{
   variant: Variant;
   mode: string;
   serviceAccountOptions?: string[];
-  secretOptions?: string[];
+  secretOptions?: FleetPolicyNameOption[];
 }>(), {
   serviceAccountOptions: () => [],
   secretOptions:         () => [],
@@ -71,6 +71,10 @@ watch(restricted, (val) => {
 });
 
 const updateAllowed = (val: string[]) => setField(secretFields.value.allowed, val);
+
+// Secrets are offered as options carrying a label, so a name typed in has to be shaped the same
+// way, or the select hands back the option object instead of the name the policy stores
+const createOption = (name: string) => ({ label: name, value: name });
 </script>
 
 <template>
@@ -92,6 +96,7 @@ const updateAllowed = (val: string[]) => setField(secretFields.value.allowed, va
           :taggable="true"
           :searchable="true"
           :clearable="true"
+          :create-option="createOption"
           :data-testid="`${ testid }-default-service-account`"
         />
         <p class="sub-description">
@@ -110,6 +115,7 @@ const updateAllowed = (val: string[]) => setField(secretFields.value.allowed, va
           :taggable="true"
           :searchable="true"
           :clearable="true"
+          :create-option="createOption"
           :data-testid="`${ testid }-default-secret`"
         />
         <p class="sub-description">

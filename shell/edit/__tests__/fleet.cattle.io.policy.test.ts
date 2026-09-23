@@ -90,7 +90,33 @@ describe('edit: fleet.cattle.io.policy', () => {
     await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.serviceAccountOptions).toStrictEqual(['tenant-1-deployer']);
-    expect(wrapper.vm.secretOptions).toStrictEqual(['tenant-1-git-credentials']);
+    expect(wrapper.vm.gitRepoSecretOptions).toStrictEqual([{ label: 'tenant-1-git-credentials', value: 'tenant-1-git-credentials' }]);
+  });
+
+  it('should label a secret the way the GitRepo and HelmOp forms label it', async() => {
+    const wrapper = mountPolicy(policy(), {
+      secrets: [
+        {
+          _type:          'kubernetes.io/basic-auth',
+          metadata:       { name: 'tenant-1-git-credentials', namespace: 'fleet-default' },
+          data:           { username: 'dGVuYW50LTE=' },
+          subTypeDisplay: 'HTTP Basic Auth',
+          dataPreview:    'tenant-1',
+        },
+        {
+          _type:          'kubernetes.io/ssh-auth',
+          metadata:       { name: 'tenant-1-ssh', namespace: 'fleet-default' },
+          subTypeDisplay: 'SSH',
+        },
+      ],
+    });
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.gitRepoSecretOptions).toStrictEqual([
+      { label: 'tenant-1-git-credentials (HTTP Basic Auth: tenant-1)', value: 'tenant-1-git-credentials' },
+      { label: 'tenant-1-ssh (SSH)', value: 'tenant-1-ssh' },
+    ]);
   });
 
   it('should surface an error when the name lists cannot be fetched', async() => {
@@ -120,7 +146,31 @@ describe('edit: fleet.cattle.io.policy', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.vm.secretOptions).toStrictEqual(['tenant-1-git-credentials', 'tenant-1-ssh']);
+    expect(wrapper.vm.gitRepoSecretOptions.map((option: any) => option.value)).toStrictEqual(['tenant-1-git-credentials', 'tenant-1-ssh']);
+  });
+
+  it('should offer a GitHub App secret to GitRepo, which can use it, and not to HelmOps, which cannot', async() => {
+    const wrapper = mountPolicy(policy(), {
+      secrets: [
+        { _type: 'kubernetes.io/basic-auth', metadata: { name: 'tenant-1-git-credentials', namespace: 'fleet-default' } },
+        {
+          _type:       'Opaque',
+          metadata:    { name: 'tenant-1-github-app', namespace: 'fleet-default' },
+          isGithubApp: true,
+        },
+        // An Opaque secret holding something else is not a credential either form can pick
+        {
+          _type: 'Opaque', metadata: { name: 'tenant-1-notes', namespace: 'fleet-default' }, isGithubApp: false
+        },
+      ],
+    });
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.gitRepoSecretOptions.map((option: any) => option.value))
+      .toStrictEqual(['tenant-1-git-credentials', 'tenant-1-github-app']);
+    expect(wrapper.vm.helmOpSecretOptions.map((option: any) => option.value))
+      .toStrictEqual(['tenant-1-git-credentials']);
   });
 
   describe('validation', () => {
