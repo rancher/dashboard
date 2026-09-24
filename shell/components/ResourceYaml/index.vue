@@ -146,6 +146,7 @@ export default {
           this.$route
         );
 
+        // TODO nb track when multiple extensions are in play
         for (const { fetchExtensionEditableRelatedResources } of extensions) {
           if (typeof fetchExtensionEditableRelatedResources !== 'function') {
             continue;

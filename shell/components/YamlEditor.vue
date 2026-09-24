@@ -49,6 +49,19 @@ export default {
       default: true,
     },
 
+    // passed to FileDiff as `context`: unchanged lines shown around each change in diff mode
+    diffContext: {
+      type:    Number,
+      default: undefined,
+    },
+
+    // passed to FileDiff as `autoResize`
+    // false lets the diff grow to its content, for a parent that provides its own scroll
+    diffAutoResize: {
+      type:    Boolean,
+      default: true,
+    },
+
     value: {
       type:    [String, Object],
       default: '',
@@ -227,6 +240,7 @@ export default {
       :side-by-side="diffMode === 'split'"
       :orig="original"
       :neu="curValue"
+      :context="diffContext"
       :footer-space="80"
     />
   </div>

@@ -2,6 +2,7 @@
 import { PropType } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import { RcIcon } from '@components/RcIcon';
 import { ResourceGraphGroup } from '@shell/components/ResourceYaml/types';
 
 const props = defineProps({
@@ -16,6 +17,12 @@ const props = defineProps({
     type:    String as PropType<string | null>,
     default: null,
   },
+
+  /** How many levels these groups are nested below the top level */
+  depth: {
+    type:    Number,
+    default: 0,
+  },
 });
 
 const emit = defineEmits<{
@@ -28,7 +35,10 @@ const i18n = useI18n(store);
 </script>
 
 <template>
-  <div class="resource-graph-groups">
+  <div
+    class="resource-graph-groups"
+    :style="{ '--depth': props.depth }"
+  >
     <div
       v-for="group in props.groups"
       :key="group.label"
@@ -57,9 +67,13 @@ const i18n = useI18n(store);
             @click="emit('select', node.id)"
           >
             <span class="resource-graph-node-label">{{ node.label }}</span>
-            <span
+            <RcIcon
               v-if="node.modified"
+              type="dot"
+              size="inherit"
               class="resource-graph-node-modified"
+              role="img"
+              :aria-hidden="false"
               :aria-label="i18n.t('resourceYaml.resourceGraph.modified')"
               :data-testid="`resource-graph-modified-${node.id}`"
             />
@@ -71,6 +85,7 @@ const i18n = useI18n(store);
             class="resource-graph-groups--nested"
             :groups="node.groups"
             :selected="props.selected"
+            :depth="props.depth + 1"
             @select="emit('select', $event)"
           />
         </div>
@@ -89,23 +104,66 @@ const i18n = useI18n(store);
   font-weight: 700;
   line-height: normal;
   letter-spacing: 0.6px;
+  margin-top: 12px;
+  margin-bottom: 0px;
 }
 
+// containers stay full width so the selected marker reaches the left edge of the graph
+// indentation is applied as padding on the label and node instead
 .resource-graph-groups {
-  padding: 8px;
+  --indent: calc(20px + var(--depth) * 12px);
+
+  padding: 8px 0;
+
+  &--nested {
+    padding-bottom: 0;
+  }
 }
 
-
-.resource-graph-group {
-  margin-left: 12px;
+.resource-graph-group-label {
+  padding-left: var(--indent);
 }
 
 .resource-graph-node {
-  padding: 0px;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  padding: 0 12px 0 var(--indent);
+  display: flex;
+  justify-content: space-between;
+  transition: background-color 0.5s;
+
+  // pseudo-element instead of border or box-shadow:
+  // a border would shift the label when selected
+  // .role-link:focus in _button.scss sets box-shadow: none
+  // present on every node so opacity can transition when selected
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 2px;
+    background: var(--primary);
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  // fixed color so .role-link:hover in _button.scss does not recolor the icon
+  // RcIcon has no size below 14px, so size="inherit" and set it here
+  .resource-graph-node-modified {
+    color: var(--link);
+    font-size: 8px;
+  }
 }
-// TODO nb margins/padding need fixing so this is all the way left
-.resource-graph-node--selected {
-  border-left: 5px solid var(--link);
+
+// 2 selectors for more specificity than role-link styles
+.resource-graph-node.resource-graph-node--selected {
+  background: var(--category-active);
+
+  &::before {
+    opacity: 1;
+  }
 }
 
 </style>
