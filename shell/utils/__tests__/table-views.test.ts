@@ -169,6 +169,54 @@ describe('core columns', () => {
   });
 });
 
+describe('decodeView', () => {
+  // It reads a url query param, so everything it can be handed is someone else's input
+  it('round-trips a view through encodeView', () => {
+    const view = {
+      name: 'Mine', query: 'state:active', columns: ['a', 'b'], columnOrder: ['b', 'a'], labelColumns: ['app'], groupBy: 'state'
+    };
+
+    expect(decodeView(encodeView(view))).toStrictEqual(view);
+  });
+
+  it('fills in the parts a shared view left out', () => {
+    expect(decodeView(encodeView({ query: 'state:active' }))).toStrictEqual({
+      name: '', query: 'state:active', columns: null, columnOrder: null, labelColumns: [], groupBy: null
+    });
+  });
+
+  it('is null for nothing at all', () => {
+    expect(decodeView('')).toBeNull();
+    expect(decodeView(undefined as any)).toBeNull();
+    expect(decodeView(null as any)).toBeNull();
+  });
+
+  it('is null for input that is not base64', () => {
+    expect(decodeView('not base64 !!')).toBeNull();
+    expect(decodeView('@@@@')).toBeNull();
+  });
+
+  it('is null for base64 that is not JSON', () => {
+    expect(decodeView(window.btoa('just some text'))).toBeNull();
+    expect(decodeView(window.btoa('{ unclosed'))).toBeNull();
+  });
+
+  it('does not take a name that is not a string', () => {
+    // A view is applied to the toolbar, so a shared link must not be able to put an object where
+    // a name goes
+    const hostile = window.btoa(encodeURIComponent(JSON.stringify({ n: { toString: 'nope' }, q: ['not', 'a', 'string'] })));
+    const out = decodeView(hostile);
+
+    expect(typeof out?.name === 'string' || out?.name === undefined).toBe(true);
+  });
+
+  it('is null for JSON that is not an object', () => {
+    expect(decodeView(window.btoa(encodeURIComponent('42')))).toBeNull();
+    expect(decodeView(window.btoa(encodeURIComponent('null')))).toBeNull();
+    expect(decodeView(window.btoa(encodeURIComponent('["a"]')))).toBeNull();
+  });
+});
+
 describe('moveInOrder', () => {
   it('lifts an entry out and puts it back where it was dropped', () => {
     expect(moveInOrder(['a', 'b', 'c', 'd'], 0, 2)).toStrictEqual(['b', 'c', 'a', 'd']);

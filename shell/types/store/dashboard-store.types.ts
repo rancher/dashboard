@@ -139,6 +139,13 @@ export interface ActionFindPageArgs extends ActionCoreFindOptions {
 
   /**
    * @internal
+   * Who is asking. Page requests supersede earlier ones for the same type, and this keeps that to
+   * the list that made them - two lists of the same type on one page do not discard each other's.
+   */
+  requesterId?: string,
+
+  /**
+   * @internal
    * Specifies the name to use if we should save the count returned in the paginated request
    */
   saveCountAs?: string,

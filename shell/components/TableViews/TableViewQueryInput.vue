@@ -20,7 +20,7 @@ const MENU_MIN_WIDTH = 260;
 const MENU_TEXT_INSET = 13;
 
 /**
- * GitHub style filter input.
+ * Filter input for the table views toolbar.
  *
  * Accepts a query of `field:value` terms plus free text and, as the user types, offers the
  * fields available on this table and then the values actually in use in the data.

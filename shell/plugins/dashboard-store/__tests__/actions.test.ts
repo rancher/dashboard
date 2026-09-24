@@ -285,7 +285,7 @@ describe('dashboard-store: findPage', () => {
     };
 
     return {
-      state: { config: { namespace: 'unitTest' } }, getters, commit, dispatch, rootGetters: {}
+      state: { config: { namespace: 'unitTest' }, latestPageRequests: {} }, getters, commit, dispatch, rootGetters: {}
     };
   };
 
