@@ -733,21 +733,34 @@ export default {
       const text = (event.clipboardData || window.clipboardData)?.getData('text') || '';
       const flat = text.replace(/\s+/g, ' ').trim();
       const root = this.$refs.input;
-      const selection = window.getSelection();
 
-      if (!root || !selection?.rangeCount) {
+      if (!root) {
         return;
       }
 
-      const range = selection.getRangeAt(0);
-      const before = range.cloneRange();
-
-      before.selectNodeContents(root);
-      before.setEnd(range.startContainer, range.startOffset);
-
-      const start = before.toString().length;
-      const end = start + range.toString().length;
       const current = this.value || '';
+      const selection = window.getSelection();
+      const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+
+      // Where the paste lands. The selection is only worth measuring when it is actually in this
+      // box: a selection left elsewhere on the page - which is exactly what copying something
+      // else leaves behind - measured against this box gives an offset that means nothing here.
+      // The browser's own paste is already prevented by then, so nothing arrived at all and the
+      // box looked like it would not take a paste. Falling back to the caret this box tracks is
+      // what it does the rest of the time anyway.
+      let start = Math.min(this.caret ?? current.length, current.length);
+      let end = start;
+
+      if (range && root.contains(range.startContainer) && root.contains(range.endContainer)) {
+        const before = range.cloneRange();
+
+        before.selectNodeContents(root);
+        before.setEnd(range.startContainer, range.startOffset);
+
+        start = before.toString().length;
+        end = start + range.toString().length;
+      }
+
       const next = `${ current.substring(0, start) }${ flat }${ current.substring(end) }`;
 
       this.pendingCaret = start + flat.length;
