@@ -69,20 +69,60 @@ describe('component: FleetPolicySourceSection', () => {
     { label: 'tenant-2-git-credentials (SSH)', value: 'tenant-2-git-credentials' },
   ];
 
+  const none = { label: 'generic.none', value: null };
+
   it('should offer every secret as the default while they are all allowed', () => {
     const wrapper = mountSection({ secretOptions });
 
-    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual(secretOptions);
+    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual([none, ...secretOptions]);
   });
 
-  it('should offer every secret as the default even once they are restricted, so the field keeps the names and labels the GitRepo form shows', () => {
+  it('should let a default that has been set be unset again', () => {
+    const value: Record<string, any> = { defaultClientSecretName: 'tenant-1-git-credentials' };
+    const wrapper = mountSection({ value, secretOptions });
+    const select = selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret');
+
+    expect(select.props('options')).toStrictEqual([none, ...secretOptions]);
+
+    select.vm.$emit('update:value', null);
+
+    expect(value.defaultClientSecretName).toBe('');
+  });
+
+  it('should let the default service account be unset again', () => {
+    const value: Record<string, any> = { defaultServiceAccount: 'tenant-1-deployer' };
+    const wrapper = mountSection({ value });
+    const select = selectWithTestid(wrapper, 'fleet-policy-git-repo-default-service-account');
+
+    expect(select.props('options')).toStrictEqual([none]);
+
+    select.vm.$emit('update:value', null);
+
+    expect(value.defaultServiceAccount).toBe('');
+  });
+
+  it('should offer only the allowed secrets as the default once they are restricted', () => {
     const value = { allowedClientSecretNames: ['tenant-2-git-credentials'] };
     const wrapper = mountSection({
       value, secretOptions, restricted: true
     });
 
-    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual(secretOptions);
+    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual([none, secretOptions[1]]);
+    // the allow-list itself still chooses from every secret in the namespace
     expect(wrapper.findComponent(FleetPolicyAllowList).props('options')).toStrictEqual(secretOptions);
+  });
+
+  it('should offer an allowed name that has no secret of its own yet', () => {
+    const value = { allowedClientSecretNames: ['tenant-2-git-credentials', 'not-created-yet'] };
+    const wrapper = mountSection({
+      value, secretOptions, restricted: true
+    });
+
+    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual([
+      none,
+      secretOptions[1],
+      { label: 'not-created-yet', value: 'not-created-yet' },
+    ]);
   });
 
   it('should warn when the default secret is not one of the allowed secrets', () => {
