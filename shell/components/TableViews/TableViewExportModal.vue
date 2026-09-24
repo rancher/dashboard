@@ -18,7 +18,7 @@ import { useStore } from 'vuex';
 import { RadioGroup } from '@components/Form/Radio';
 import { downloadFile } from '@shell/utils/download';
 import { escapeHtml } from '@shell/utils/string';
-import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views';
+import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views/export';
 import { useI18n } from '@shell/composables/useI18n';
 
 /** The formats a selection or a view can be written out as */

@@ -18,27 +18,14 @@ import TableViewsBar from '@shell/components/TableViews/TableViewsBar';
 import { downloadFile } from '@shell/utils/download';
 import { NotificationLevel } from '@shell/types/notifications';
 import { optionalHeadersFor } from '@shell/config/optional-table-headers';
+import { exportColumnsFor, rowsToCsv, rowsToJson, rowsToYaml } from '@shell/utils/table-views/export';
 import {
-  LABEL_FIELD_PREFIX,
-  applyQueryExpression,
-  coreFieldIdsFor,
-  decodeView,
-  fieldValue,
-  fieldsFor,
-  findField,
-  exportColumnsFor,
-  headerFieldId,
-  isIgnoredColumn,
-  parseQuery,
-  parseQueryExpression,
-  rowsToCsv,
-  rowsToJson,
-  rowsToYaml,
-  stringifyValue,
-  queryToServerFilters,
-  serverPathFor,
-  summaryToValues,
-} from '@shell/utils/table-views';
+  LABEL_FIELD_PREFIX, coreFieldIdsFor, fieldValue, fieldsFor, findField, headerFieldId, isIgnoredColumn, serverPathFor, stringifyValue, summaryToValues
+} from '@shell/utils/table-views/fields';
+import { applyQueryExpression } from '@shell/utils/table-views/filter-rows';
+import { parseQuery, parseQueryExpression } from '@shell/utils/table-views/query';
+import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
+import { decodeView } from '@shell/utils/table-views/views';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';

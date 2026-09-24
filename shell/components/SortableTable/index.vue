@@ -169,11 +169,18 @@ export default {
     /**
      * Lay the masthead out for the table views toolbar: the page's own title and buttons keep
      * the top row, the view tabs take a second, and the filter shares a third with the selection
-     * actions. Off by default, so every other table keeps its single row masthead exactly as-is.
+     * actions.
+     *
+     * On by default. A list page should get the toolbar without having to ask for it - otherwise
+     * every extension with a list page of its own has to know the prop exists to opt in, and the
+     * feature only ever reaches the tables we remembered to flip. The rows the layout adds
+     * collapse when nothing fills them, so a table with neither its own buttons nor saved view
+     * tabs still renders a single row masthead. Pass `false` for a table that must keep the
+     * original masthead - the inline bulk action buttons rather than the "N selected" menu.
      */
     tableViewsLayout: {
       type:    Boolean,
-      default: false
+      default: true
     },
 
     rowActions: {
