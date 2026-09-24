@@ -1,6 +1,7 @@
 <script>
 import { KEYMAP } from '@shell/store/prefs';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { createYamlSearchOverlay, YAML_SEARCH_OVERLAY } from '@shell/utils/yaml-search';
 
 export default {
   name: 'CodeMirror',
@@ -42,7 +43,12 @@ export default {
       hasLintErrors:          false,
       currFocusedElem:        undefined,
       isCodeMirrorFocused:    false,
-      codeMirrorContainerRef: undefined
+      codeMirrorContainerRef: undefined,
+      // Line-background classes currently applied, so they can be removed before
+      // the next `setLineDecorations` (line numbers shift as the doc is edited).
+      appliedLineClasses:     [],
+      // The query highlighted by `setSearchHighlight`, empty when there is none.
+      searchHighlightQuery:   '',
     };
   },
 
@@ -112,6 +118,10 @@ export default {
     },
 
     codeMirrorContainerTabIndex() {
+      if (this.isDisabled) {
+        return 0;
+      }
+
       return this.isCodeMirrorFocused ? 0 : -1;
     }
   },
@@ -137,6 +147,8 @@ export default {
     const el = this.$refs.codeMirrorContainer;
 
     el.removeEventListener('keydown', this.handleKeyPress);
+
+    this.clearLineDecorations();
   },
 
   watch: {
@@ -149,7 +161,10 @@ export default {
         const codeMirrorEl = this.codeMirrorRef?.getInputField();
 
         if (codeMirrorEl) {
-          codeMirrorEl.tabIndex = neu ? -1 : 0;
+          // A read-only editor is a preview, not an input - keep it out of the
+          // tab order so keyboard navigation skips over it instead of getting
+          // trapped inside (it has nothing to edit and swallows Tab).
+          codeMirrorEl.tabIndex = this.isDisabled || neu ? -1 : 0;
         }
       },
       immediate: true
@@ -214,6 +229,17 @@ export default {
       this.$nextTick(() => {
         codeMirrorRef.refresh();
         this.codeMirrorRef = codeMirrorRef;
+
+        // The tabIndex watcher runs before the editor is ready, so read-only
+        // editors need to be taken out of the tab order once we have a handle
+        // on the input field (see the watcher for rationale).
+        if (this.isDisabled) {
+          const codeMirrorEl = codeMirrorRef?.getInputField?.();
+
+          if (codeMirrorEl) {
+            codeMirrorEl.tabIndex = -1;
+          }
+        }
       });
       this.$emit('onReady', codeMirrorRef);
     },
@@ -242,6 +268,68 @@ export default {
       }
     },
 
+    /**
+     * Persistently tint lines with a background class. Replaces any previous
+     * decorations, so callers pass the full set each time. `decorations` is
+     * `[{ line, className? }]` with 0-based line numbers.
+     */
+    setLineDecorations(decorations = []) {
+      const cm = this.$refs.codeMirrorRef?.cminstance;
+
+      if (!cm) {
+        return;
+      }
+
+      this.clearLineDecorations();
+
+      const lineCount = cm.lineCount();
+
+      decorations.filter((d) => d.line >= 0 && d.line < lineCount).forEach((d) => {
+        const className = d.className || 'line-override-highlight';
+
+        // 'background' tints the code area; 'gutter' extends the tint to the line
+        // number so the whole line reads as changed.
+        ['background', 'gutter'].forEach((where) => {
+          cm.addLineClass(d.line, where, className);
+          this.appliedLineClasses.push({
+            line: d.line, where, className
+          });
+        });
+      });
+    },
+
+    /** Remove all line classes previously applied. */
+    clearLineDecorations() {
+      const cm = this.$refs.codeMirrorRef?.cminstance;
+
+      if (cm) {
+        this.appliedLineClasses.forEach(({ line, where, className }) => cm.removeLineClass(line, where, className));
+      }
+
+      this.appliedLineClasses = [];
+    },
+
+    /**
+     * Highlight the lines that contain `query` (case-insensitive): their key and
+     * value are styled and every other line is dimmed. Pass an empty query to
+     * clear it. The editor stays editable, and edited lines are re-highlighted.
+     */
+    setSearchHighlight(query = '') {
+      const cm = this.$refs.codeMirrorRef?.cminstance;
+
+      if (!cm || query === this.searchHighlightQuery) {
+        return;
+      }
+
+      cm.removeOverlay(YAML_SEARCH_OVERLAY);
+
+      if (query) {
+        cm.addOverlay(createYamlSearchOverlay(query));
+      }
+
+      this.searchHighlightQuery = query;
+    },
+
     closeKeyMapInfo() {
       this.removeKeyMapBox = true;
     },
@@ -254,7 +342,7 @@ export default {
     ref="codeMirrorContainer"
     :tabindex="codeMirrorContainerTabIndex"
     class="code-mirror code-mirror-container"
-    :class="{['as-text-area']: asTextArea}"
+    :class="{['as-text-area']: asTextArea, ['search-highlighted']: !!searchHighlightQuery}"
     @focusin="focusChanged"
     @blur="focusChanged($event, true)"
   >
@@ -303,6 +391,8 @@ export default {
 
 <style lang="scss">
   $code-mirror-animation-time: 0.1s;
+  // Opacity of the text and the tint of lines without a search match.
+  $search-dim-opacity: 0.4;
 
   .code-mirror {
     &.code-mirror-container:focus-visible {
@@ -483,6 +573,44 @@ export default {
           }
         }
       }
+    }
+
+    // Persistently tint lines that differ from the chart defaults, and every line
+    // in the overrides pane. Set via `setLineDecorations`. Both the code area
+    // ('background') and the line-number gutter ('gutter') are tinted.
+    .CodeMirror-linebackground.line-override-highlight,
+    .CodeMirror-gutter-background.line-override-highlight {
+      background-color: var(--info-banner-bg);
+    }
+
+    // Search results, set via `setSearchHighlight`. The extra `.CodeMirror` keeps
+    // these ahead of the base16 theme colours (`.cm-s-base16-* span.cm-atom`).
+    &.search-highlighted .codemirror-container {
+      &, .CodeMirror .CodeMirror-gutters {
+        background-color: var(--body-bg);
+      }
+    }
+
+    .CodeMirror span.cm-yaml-search-key {
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    .CodeMirror span.cm-yaml-search-value {
+      color: var(--error-hover-bg);
+      font-weight: bold;
+    }
+
+    .CodeMirror span.cm-yaml-search-dim {
+      opacity: $search-dim-opacity;
+    }
+
+    // Dim the tint of a changed line without a match too. The overlay marks the
+    // line background of those lines, and the gutter tint sits next to it in the
+    // same line wrapper.
+    .CodeMirror-linebackground.line-override-highlight.yaml-search-dim-line,
+    div:has(> .CodeMirror-linebackground.yaml-search-dim-line) > .CodeMirror-gutter-background.line-override-highlight {
+      opacity: $search-dim-opacity;
     }
   }
 

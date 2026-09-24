@@ -29,6 +29,22 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
   before(() => {
     cy.login();
     cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
+
+    // Create the shared test-charts repo once for all the describe blocks that
+    // need rancher-demo. Creating the clusterrepo returns before the git repo
+    // has finished cloning, so wait for its charts to be downloaded - otherwise
+    // the catalog shows "No charts to show" and rancher-demo is missing. Deleting
+    // and recreating the repo per-block races the wait against the old resource's
+    // stale Downloaded condition, so it is created here exactly once.
+    cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+      type:     'catalog.cattle.io.clusterrepo',
+      metadata: { name: testChartsRepoName },
+      spec:     {
+        clientSecret: null, gitRepo: testChartsGitRepoUrl, gitBranch: testChartsBranchName
+      }
+    });
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
+
     HomePagePo.goTo();
   });
 
@@ -38,14 +54,6 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
     before(() => {
-      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
-        type:     'catalog.cattle.io.clusterrepo',
-        metadata: { name: testChartsRepoName },
-        spec:     {
-          clientSecret: null, gitRepo: testChartsGitRepoUrl, gitBranch: testChartsBranchName
-        }
-      });
-
       cy.createRancherResource('v1', 'configmaps', configMapPayload);
     });
 
@@ -73,8 +81,70 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
       cy.deleteRancherResource('v1', 'configmaps', `${ configMapPayload.metadata.namespace }/${ configMapPayload.metadata.name }` );
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    });
+  });
+
+  describe('YAML values editor - chart defaults and overrides panes', () => {
+    const installChartPage = new InstallChartPage();
+    const chartPage = new ChartPage();
+
+    it('shows editable chart-defaults and overrides panes that stay in sync', () => {
+      ChartPage.navTo(undefined, 'rancher-demo');
+      chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
+      chartPage.goToInstall();
+
+      installChartPage.chartName().type('rancher-demo-yaml');
+      installChartPage.nextPage().editYaml();
+
+      // Both panes render with their distinct titles
+      installChartPage.defaultsPane().should('be.visible').and('contain.text', 'Chart defaults');
+      installChartPage.overridesPane().should('be.visible').and('contain.text', 'Your overrides');
+
+      // An override typed into the overrides pane appears in the chart-defaults
+      // pane (the defaults + overrides merge kept in sync via the watcher). Read
+      // the live CodeMirror instance in a retrying assertion so we wait for the
+      // async ($nextTick) sync rather than reading its value once.
+      installChartPage.overridesEditor().set('e2eTestOverride: hello-e2e\n');
+
+      installChartPage.defaultsEditor().self().should(($cm) => {
+        const mergedValues = ($cm[0] as any).CodeMirror.getValue();
+
+        expect(mergedValues).to.contain('e2eTestOverride');
+        expect(mergedValues).to.contain('hello-e2e');
+      });
+
+      // The overrides pane holds only the overrides, not the full merged document
+      installChartPage.overridesEditor().value().should('contain', 'e2eTestOverride');
+    });
+
+    it('keeps a single full-document diff in the Compare Changes view', () => {
+      ChartPage.navTo(undefined, 'rancher-demo');
+      chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
+      chartPage.goToInstall();
+
+      installChartPage.chartName().type('rancher-demo-diff');
+      installChartPage.nextPage().editYaml();
+
+      installChartPage.overridesEditor().set('e2eTestOverride: hello-e2e\n');
+      installChartPage.compareChanges();
+
+      // The two-pane layout must not leak into diff mode - only the single diff
+      // editor is shown, comparing the full baseline against the merged values
+      installChartPage.overridesPane().should('not.exist');
+      installChartPage.defaultsPane().should('not.exist');
+
+      // The override shows as an added line
+      installChartPage.diffView().find('.d2h-ins').should('contain.text', 'e2eTestOverride: hello-e2e');
+      // Unchanged context lines come from the chart defaults, so this is a diff of the
+      // full document and not just of the raw overrides (which would have no context)
+      installChartPage.diffView().find('.d2h-cntx').should('exist');
+      // Adding a new key removes nothing
+      installChartPage.diffView().find('.d2h-del').should('not.exist');
+    });
+
+    after('clean up', () => {
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });
   });
@@ -154,6 +224,7 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
   });
 
   after(() => {
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', testChartsRepoName);
     cy.setUserPreference({ 'show-pre-release': false });
   });
 });

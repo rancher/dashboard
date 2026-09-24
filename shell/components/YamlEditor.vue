@@ -13,6 +13,8 @@ export const EDITOR_MODES = {
 };
 
 export default {
+  name: 'YamlEditor',
+
   emits: ['update:value', 'newObject', 'onInput', 'onReady', 'onChanges', 'validationChanged'],
 
   components: {
@@ -65,6 +67,17 @@ export default {
     componentTestid: {
       type:    String,
       default: 'yaml-editor'
+    },
+
+    /**
+     * By default an empty `initialYamlValues` baseline falls back to the current
+     * value, so the diff shows "no changes" when no baseline is supplied. Set
+     * this when an empty string is a meaningful baseline (e.g. an overrides diff
+     * where the saved overrides are genuinely empty) so additions still show.
+     */
+    allowEmptyDiffBase: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -85,7 +98,7 @@ export default {
       original = initialYamlValues;
     }
 
-    if ( isEmpty(original) ) {
+    if ( isEmpty(original) && !this.allowEmptyDiffBase ) {
       original = value;
     }
 
@@ -204,6 +217,14 @@ export default {
     updateValue(value) {
       this.curValue = value;
       this.$refs.cm?.updateValue(value);
+    },
+
+    setLineDecorations(decorations) {
+      this.$refs.cm?.setLineDecorations(decorations);
+    },
+
+    setSearchHighlight(query) {
+      this.$refs.cm?.setSearchHighlight(query);
     }
   }
 };
@@ -272,9 +293,10 @@ export default {
 
   .codemirror-container  {
     position: relative;
+    background-color: var(--yaml-editor-bg);
 
     .CodeMirror {
-      background-color: var(--yaml-editor-bg);
+      background: none;
       & .CodeMirror-gutters {
         background-color: var(--yaml-editor-bg);
       }
