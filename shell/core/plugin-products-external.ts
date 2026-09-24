@@ -1,5 +1,6 @@
 import { ProductFunction } from '@shell/core/plugin';
 import { HeaderOptions } from '@shell/core/types';
+import { AdvancedProductConfigOptions } from '@shell/core/plugin-products-internal';
 import { NAME as EXPLORER_PROD_NAME } from '@shell/config/product/explorer.js';
 import { NAME as CLUSTER_MAN_PROD_NAME } from '@shell/config/product/manager.js';
 import { NAME as SETTINGS_PROD_NAME } from '@shell/config/product/settings.js';
@@ -310,6 +311,7 @@ type _ProductMetadata = LabelOrLabelKey & {
    * Indicates whether UI Extensions can add pages to this product
    */
   extendable?: boolean;
+
 }
 
 export type ProductMetadata = _ProductMetadata
@@ -327,31 +329,31 @@ export type ProductMetadataSinglePage = ProductMetadata & {
 
 export interface IExtensionProducts {
   /**
-   * Register a top-level product as a flag on the plugin
+   * Register a product as a top-level product on the plugin (keyed by product name).
    * @internal - DO NOT USE - Internal API only
    */
-  _registerTopLevelProduct(): void;
+  _registerTopLevelProduct(productName: string): void;
 
   /**
-   *
+   * Record whether a product's routes start with the product name (keyed by product name).
    * @internal - DO NOT USE - Internal API only
    */
-  _setStartRouteWithProduct(value: boolean): void;
+  _setStartRouteWithProduct(productName: string, value: boolean): void;
 
   /**
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages
    * @param product
    * @param sideMenu Pages associated with the product. These will appear in the side menu
    */
-  addProduct(product: ProductMetadata, sideMenu: ProductChildPage[]): void;
-  addProduct(product: ProductMetadata, sideMenu: ProductChildGroup[]): void;
-  addProduct(product: ProductMetadata, sideMenu: ProductChild[]): void;
+  addProduct(product: ProductMetadata, sideMenu: ProductChildPage[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  addProduct(product: ProductMetadata, sideMenu: ProductChildGroup[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  addProduct(product: ProductMetadata, sideMenu: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions): void;
 
   /**
    * Add a product to the sidebar, without children (no side menu, single page only)
    * @param product
    */
-  addProduct(product: ProductMetadataSinglePage): void;
+  addProduct(product: ProductMetadataSinglePage, advancedProdConfig?: AdvancedProductConfigOptions): void;
 
   /**
    * Add a product with just a name (convenience/bridge method for quick setup).
@@ -359,7 +361,7 @@ export interface IExtensionProducts {
    * This is useful for getting started quickly - expand to the full API once you're ready to add custom pages.
    * @param productName Simple product name - will be used as both the name and label
    */
-  addProduct(productName: string): void;
+  addProduct(productName: string, advancedProdConfig?: AdvancedProductConfigOptions): void;
 
   /**
    * Add a product to the sidebar (deprecated, use other signatures of addProduct instead)
@@ -375,7 +377,7 @@ export interface IExtensionProducts {
    * @param productName Name of the product to be extended
    * @param sideMenu Pages that will be added to the product. These will appear in the side menu
    */
-  extendProduct(productName: StandardProductName | string, sideMenu: ProductChildPage[]): void;
-  extendProduct(productName: StandardProductName | string, sideMenu: ProductChildGroup[]): void;
-  extendProduct(productName: StandardProductName | string, sideMenu: ProductChild[]): void;
+  extendProduct(productName: StandardProductName | string, sideMenu: ProductChildPage[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  extendProduct(productName: StandardProductName | string, sideMenu: ProductChildGroup[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  extendProduct(productName: StandardProductName | string, sideMenu: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions): void;
 }
