@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { qase } from '@/cypress/support/qase';
 
 const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
 const gitRepoUrl = 'https://github.com/rancher/charts';
@@ -13,7 +14,7 @@ describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUse
   before(() => {
     cy.login();
   });
-  it('validating repositories page with percy', () => {
+  qase(8565, it('validating repositories page with percy', () => {
     const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
 
     ChartRepositoriesPagePo.navTo();
@@ -30,7 +31,7 @@ describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUse
     cy.hideElementBySelector("[data-testid='type-count']");
     // takes percy snapshot.
     cy.percySnapshot('repositories Page');
-  });
+  }));
 });
 
 describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
@@ -45,7 +46,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.createE2EResourceName('repo').as('repoName');
   });
 
-  it('can create a repository', function() {
+  qase(2215, it('can create a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
@@ -64,9 +65,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
-  });
+  }));
 
-  it('can edit a repository', function() {
+  qase(2211, it('can edit a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
@@ -78,9 +79,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check details page
     repositoriesPage.list().details(this.repoName, 2).click();
     cy.contains(`${ this.repoName }-desc-edit`).should('be.visible');
-  });
+  }));
 
-  it('can clone a repository', function() {
+  qase(2213, it('can clone a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Clone').click();
@@ -92,9 +93,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }-clone`, 2).should('be.visible');
-  });
+  }));
 
-  it('can download YAML', function() {
+  qase(2216, it('can download YAML', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
@@ -109,9 +110,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
       expect(obj.metadata.name).to.equal(this.repoName);
       expect(obj.kind).to.equal('ClusterRepo');
     });
-  });
+  }));
 
-  it('can refresh a repository', function() {
+  qase(2214, it('can refresh a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`).as('refreshRepo');
@@ -121,9 +122,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
-  });
+  }));
 
-  it('can delete a repository', function() {
+  qase(2217, it('can delete a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
@@ -147,9 +148,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     cy.contains(`${ this.repoName }-clone`).should('not.exist');
-  });
+  }));
 
-  it('can create a repository with basic auth', function() {
+  qase(2518, it('can create a repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.create();
@@ -166,9 +167,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
     repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
-  });
+  }));
 
-  it('can create a repository with SSH key', function() {
+  qase(2519, it('can create a repository with SSH key', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.create();
@@ -185,9 +186,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
     repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active').should('be.visible');
-  });
+  }));
 
-  it('can delete repositories via bulk actions', function() {
+  qase(3237, it('can delete repositories via bulk actions', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
@@ -225,9 +226,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.contains(this.repoName).should('not.exist');
     cy.contains(`${ this.repoName }basic`).should('not.exist');
     cy.contains(`${ this.repoName }ssh`).should('not.exist');
-  });
+  }));
 
-  it('can create an oci repository with basic auth', function() {
+  qase(3540, it('can create an oci repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
@@ -271,7 +272,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // delete repo
     cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
-  });
+  }));
 });
 
 describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
@@ -299,7 +300,7 @@ describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager',
     });
   });
 
-  it('can disable a repository', () => {
+  qase(16279, it('can disable a repository', () => {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
@@ -315,9 +316,9 @@ describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager',
         repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
       });
     });
-  });
+  }));
 
-  it('refresh menu item is not displayed for disabled repository', () => {
+  qase(16280, it('refresh menu item is not displayed for disabled repository', () => {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
@@ -326,9 +327,9 @@ describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager',
     repositoriesPage.list().actionMenu(repoName).getMenuItem('Refresh').should('not.exist');
     // close action menu
     repositoriesPage.list().actionMenuClose(repoName);
-  });
+  }));
 
-  it('can enable a repository', () => {
+  qase(16281, it('can enable a repository', () => {
     // Ensure repository exists before enabling
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
@@ -345,7 +346,7 @@ describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager',
         repositoriesPage.list().details(repoName, 1).contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
       });
     });
-  });
+  }));
 
   after(() => {
     if (repoName) {
