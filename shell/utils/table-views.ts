@@ -7,7 +7,7 @@ import {
 } from '@shell/types/store/pagination.types';
 
 /**
- * Table Views - the query/column/group/export engine behind the GitHub Projects style
+ * Table Views - the query/column/group/export engine behind the
  * toolbar shown above resource tables (see @shell/components/TableViews/TableViewsBar).
  *
  * A "view" is a saved combination of a filter query, the visible columns and a group by
@@ -183,7 +183,10 @@ export function fieldValue(row: any, field: ViewField): any {
   // breakers (commonly metadata.name), which would give the column a nonsense value
   let path = null;
 
-  if (typeof header.value === 'string') {
+  // A non-empty one. A column drawn entirely by a formatter carries `value: ''` - the cluster
+  // list's CPU, Memory and Pods do - and taking that as the path stopped the fall through to the
+  // sort path below, which is a real field the row does have.
+  if (typeof header.value === 'string' && header.value) {
     path = header.value;
   } else if (typeof header.sort === 'string') {
     path = header.sort.split(':')[0];
@@ -877,7 +880,7 @@ function matchesTerm(row: any, term: ViewTerm, fields: ViewField[]): boolean {
  * Does a row satisfy one group of terms?
  *
  * Terms for different fields are ANDed, repeated terms for the same field are ORed
- * (`state:error state:crash` = either), which is what GitHub does.
+ * (`state:error state:crash` = either).
  */
 function matchesGroup(row: any, terms: ViewGroup, fields: ViewField[]): boolean {
   const positive: Record<string, ViewTerm[]> = {};
@@ -1314,7 +1317,7 @@ export interface ValueSuggestion {
 /**
  * The values currently in use for a field, most common first.
  *
- * This is what powers the GitHub style "start typing a field and see the values that
+ * This is what powers the "start typing a field and see the values that
  * exist in the data" autocomplete.
  */
 /**
@@ -1484,13 +1487,24 @@ export function decodeView(encoded: string): Partial<SavedView> | null {
   try {
     const payload = JSON.parse(decodeURIComponent(window.atob(encoded)));
 
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      return null;
+    }
+
+    // Every field is checked rather than taken. This arrives in a url that someone else wrote, and
+    // what comes out of it is applied to the toolbar and can be saved as the user's own view - so
+    // anything that is not the shape it claims to be is dropped rather than carried inwards.
+    const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+    const strOrNull = (v: unknown): string | null => (typeof v === 'string' && v ? v : null);
+    const strList = (v: unknown): string[] | null => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : null);
+
     return {
-      name:         payload.n || '',
-      query:        payload.q || '',
-      columns:      payload.c || null,
-      columnOrder:  payload.o || null,
-      labelColumns: payload.l || [],
-      groupBy:      payload.g || null,
+      name:         str(payload.n),
+      query:        str(payload.q),
+      columns:      strList(payload.c),
+      columnOrder:  strList(payload.o),
+      labelColumns: strList(payload.l) || [],
+      groupBy:      strOrNull(payload.g),
     };
   } catch (e) {
     return null;

@@ -1,6 +1,7 @@
 import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
 import {
+  ENCRYPTED_FIELDS,
   EncryptedNotification,
   Notification,
   NotificationLevel,
@@ -63,14 +64,6 @@ function sync(userId: string, operation: string, param?: any) {
     param
   });
 }
-
-/**
- * The fields of a notification that are kept in the encrypted entry rather than in the index.
- *
- * A change to any of these has to be written out again - the index alone can not bring the
- * notification back as it now is.
- */
-const ENCRYPTED_FIELDS = ['title', 'message', 'level', 'primaryAction', 'secondaryAction', 'preference', 'handlerName', 'data'];
 
 async function saveEncryptedNotification(getters: any, notification: Notification) {
   const toEncrypt: EncryptedNotification = {

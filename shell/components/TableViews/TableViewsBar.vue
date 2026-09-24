@@ -1,4 +1,11 @@
 <script>
+/**
+ * The toolbar above a resource table - filter query, column picker, group by, export and
+ * saved views.
+ *
+ * All of the state lives in the `view` prop so the owning table can apply it; this
+ * component only owns the saved view list (stored as a user preference).
+ */
 import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
 import { randomStr } from '@shell/utils/string';
 import { moveInOrder, validateQuery } from '@shell/utils/table-views';
@@ -27,13 +34,6 @@ const SHORTCUTS = [
   },
 ];
 
-/**
- * The toolbar above a resource table - filter query, column picker, group by, export and
- * saved views. Modelled on the GitHub Projects table toolbar.
- *
- * All of the state lives in the `view` prop so the owning table can apply it; this
- * component only owns the saved view list (stored as a user preference).
- */
 /**
  * How long the pointer is given to cross one row of the View menu on its way to the sub menu
  * another row opened, before that row is taken to be the one you meant.
@@ -2017,7 +2017,7 @@ export default {
       </div>
 
       <!-- Single "View" popup - Group by and Columns each open their own nested dropdown
-           beside the row, GitHub style.
+           beside the row.
 
            `shift` off, here and on both sub menus. Left on, the menus slide sideways to stay
            inside the window, so narrowing it walked them out from under the button that opened

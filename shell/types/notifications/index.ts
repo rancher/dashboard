@@ -124,6 +124,17 @@ export type EncryptedNotification = {
 };
 
 /**
+ * The fields of a notification that are held encrypted, rather than in the plaintext index.
+ *
+ * Typed against the shape above so the two cannot drift: add a field to `EncryptedNotification`
+ * and forget it here and this no longer compiles. A change to any of these has to be written out
+ * again - the index alone cannot bring the notification back as it now is.
+ */
+export const ENCRYPTED_FIELDS: (keyof EncryptedNotification)[] = [
+  'title', 'message', 'level', 'primaryAction', 'secondaryAction', 'preference', 'handlerName', 'data'
+];
+
+/**
  * Type for Notification that is sent
  */
 export type Notification = {
