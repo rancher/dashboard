@@ -9,7 +9,12 @@ describe('component: FleetPolicySourceSection', () => {
     props: {
       value: {}, variant: 'gitRepo', mode: _CREATE, ...props
     },
-    global: { stubs: { RcSection: { template: '<div><slot /></div>' } } },
+    global: {
+      stubs: {
+        RcSection:      { template: '<div><slot /></div>' },
+        RcContentGroup: { template: '<div><slot /></div>' },
+      }
+    },
   });
 
   const selectWithTestid = (wrapper: VueWrapper<any>, testid: string) => {
@@ -59,15 +64,33 @@ describe('component: FleetPolicySourceSection', () => {
     expect(value.allowedClientSecretNames).toStrictEqual([]);
   });
 
-  it('should offer the secret options to both the default and the allow-list', () => {
-    const secretOptions = [
-      { label: 'tenant-1-git-credentials (HTTP Basic Auth: tenant-1)', value: 'tenant-1-git-credentials' },
-      { label: 'tenant-2-git-credentials (SSH)', value: 'tenant-2-git-credentials' },
-    ];
-    const wrapper = mountSection({ secretOptions, restricted: true });
+  const secretOptions = [
+    { label: 'tenant-1-git-credentials (HTTP Basic Auth: tenant-1)', value: 'tenant-1-git-credentials' },
+    { label: 'tenant-2-git-credentials (SSH)', value: 'tenant-2-git-credentials' },
+  ];
+
+  it('should offer every secret as the default while they are all allowed', () => {
+    const wrapper = mountSection({ secretOptions });
 
     expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual(secretOptions);
+  });
+
+  it('should offer only the allowed secrets as the default once they are restricted', () => {
+    const value = { allowedClientSecretNames: ['tenant-2-git-credentials'] };
+    const wrapper = mountSection({
+      value, secretOptions, restricted: true
+    });
+
+    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual([secretOptions[1]]);
+    // the allow-list itself still chooses from every secret in the namespace
     expect(wrapper.findComponent(FleetPolicyAllowList).props('options')).toStrictEqual(secretOptions);
+  });
+
+  it('should warn when the default secret is not one of the allowed secrets', () => {
+    const notAllowed = '[data-testid="fleet-policy-git-repo-default-secret-not-allowed"]';
+
+    expect(mountSection({ restricted: true }).find(notAllowed).exists()).toBe(false);
+    expect(mountSection({ restricted: true, defaultSecretAllowed: false }).find(notAllowed).exists()).toBe(true);
   });
 
   it('should keep a typed name shaped like the labelled options, so the policy still stores a name', () => {

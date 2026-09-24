@@ -174,6 +174,42 @@ describe('edit: fleet.cattle.io.policy', () => {
   });
 
   describe('validation', () => {
+    it('should fail while a default secret is not one of the allowed secrets', async() => {
+      const value = policy({
+        name:    'tenant-1-policy',
+        gitRepo: { defaultClientSecretName: 'build-bot-credentials', allowedClientSecretNames: ['tenant-1-git-credentials'] },
+      });
+      const wrapper = mountPolicy(value);
+
+      await wrapper.setData({ restrictGitRepoSecrets: true });
+
+      expect(wrapper.vm.gitRepoDefaultSecretAllowed).toBe(false);
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('should pass once the default secret is one of the allowed secrets', async() => {
+      const value = policy({
+        name:    'tenant-1-policy',
+        gitRepo: { defaultClientSecretName: 'tenant-1-git-credentials', allowedClientSecretNames: ['tenant-1-git-credentials'] },
+      });
+      const wrapper = mountPolicy(value);
+
+      await wrapper.setData({ restrictGitRepoSecrets: true });
+
+      expect(wrapper.vm.gitRepoDefaultSecretAllowed).toBe(true);
+      expect(wrapper.vm.validationPassed).toBe(true);
+    });
+
+    it('should ignore a default secret while the secrets are not restricted', () => {
+      const value = policy({
+        name:    'tenant-1-policy',
+        gitRepo: { defaultClientSecretName: 'build-bot-credentials' },
+      });
+      const wrapper = mountPolicy(value);
+
+      expect(wrapper.vm.gitRepoDefaultSecretAllowed).toBe(true);
+    });
+
     it('should fail while the policy has no name', () => {
       const wrapper = mountPolicy();
 

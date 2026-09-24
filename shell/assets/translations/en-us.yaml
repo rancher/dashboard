@@ -3692,6 +3692,7 @@ fleet:
         label: Require service account
         description: Enforces that a ServiceAccount is specified on targeted resources.
       allowNamespaceCreation:
+        title: Namespace creation
         label: Allow namespace creation
         description: While a service account is required, Fleet does not create namespaces on downstream clusters, so target namespaces have to exist already. Allow it only where namespace creation is controlled by other means.
         link: Namespace creation in the Fleet documentation
@@ -3732,6 +3733,7 @@ fleet:
       allowed:
         title: Select allowed Helm secrets
         label: Allowed Helm secrets
+    defaultSecretNotAllowed: The selected default secret must be allowed in the policy.
     placeholder:
       serviceAccount: Select or enter a service account name
       secret: Select or enter a secret name

@@ -12,7 +12,12 @@ describe('component: FleetPolicyServiceAccountsSection', () => {
     props: {
       value: {}, mode: _CREATE, ...props
     },
-    global: { stubs: { RcSection: { template: '<div><slot /></div>' } } },
+    global: {
+      stubs: {
+        RcSection:      { template: '<div><slot /></div>' },
+        RcContentGroup: { template: '<div><slot /></div>' },
+      }
+    },
   });
 
   const testid = (id: string) => `[data-testid="${ id }"]`;

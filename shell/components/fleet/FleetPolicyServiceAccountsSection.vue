@@ -5,6 +5,7 @@ import { RcSection } from '@components/RcSection';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import { RcIcon } from '@components/RcIcon';
+import { RcContentGroup } from '@components/Layout';
 import FleetPolicyAllowList from '@shell/components/fleet/FleetPolicyAllowList.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { getPolicyNamespaceCreationDocsUrl } from '@shell/utils/fleet-docs';
@@ -74,71 +75,74 @@ const updateAllowed = (val: string[]) => {
     expandable
     data-testid="fleet-policy-service-accounts"
   >
-    <Checkbox
-      v-model:value="requireServiceAccount"
-      :mode="props.mode"
-      :label="t('fleet.policy.serviceAccounts.require.label')"
-      :description="t('fleet.policy.serviceAccounts.require.description')"
-      data-testid="fleet-policy-require-service-account"
-    />
-    <div
-      v-if="requireServiceAccount"
-      class="namespace-creation"
-    >
+    <RcContentGroup>
       <Checkbox
-        v-model:value="allowNamespaceCreation"
+        v-model:value="requireServiceAccount"
         :mode="props.mode"
-        :label="t('fleet.policy.serviceAccounts.allowNamespaceCreation.label')"
-        :description="t('fleet.policy.serviceAccounts.allowNamespaceCreation.description')"
-        data-testid="fleet-policy-allow-namespace-creation"
+        :label="t('fleet.policy.serviceAccounts.require.label')"
+        :description="t('fleet.policy.serviceAccounts.require.description')"
+        data-testid="fleet-policy-require-service-account"
       />
-      <a
-        :href="namespaceCreationDocsUrl"
-        target="_blank"
-        rel="noopener noreferrer nofollow"
-        data-testid="fleet-policy-namespace-creation-docs-link"
+      <RcSection
+        v-if="requireServiceAccount"
+        :title="t('fleet.policy.serviceAccounts.allowNamespaceCreation.title')"
+        mode="with-header"
+        type="secondary"
+        expandable
+        data-testid="fleet-policy-namespace-creation"
       >
-        {{ t('fleet.policy.serviceAccounts.allowNamespaceCreation.link') }}
-        <RcIcon
-          type="external-link"
-          size="small"
-          :aria-hidden="true"
-        /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
-      </a>
-    </div>
-    <RadioGroup
-      v-model:value="restricted"
-      name="fleet-policy-restrict-service-accounts"
-      :options="restrictOptions"
-      :mode="props.mode"
-      :aria-label="t('fleet.policy.serviceAccounts.title')"
-      data-testid="fleet-policy-restrict-service-accounts"
-    />
-    <FleetPolicyAllowList
-      v-if="restricted"
-      :value="allowedServiceAccounts"
-      :title="t('fleet.policy.serviceAccounts.allowed.title')"
-      :label="t('fleet.policy.serviceAccounts.allowed.label')"
-      :options="props.serviceAccountOptions"
-      :mode="props.mode"
-      data-testid="fleet-policy-allowed-service-accounts"
-      @update:value="updateAllowed"
-    />
+        <div class="namespace-creation-note">
+          <p>{{ t('fleet.policy.serviceAccounts.allowNamespaceCreation.description') }}</p>
+          <a
+            :href="namespaceCreationDocsUrl"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            data-testid="fleet-policy-namespace-creation-docs-link"
+          >
+            {{ t('fleet.policy.serviceAccounts.allowNamespaceCreation.link') }}
+            <RcIcon
+              type="external-link"
+              size="small"
+              :aria-hidden="true"
+            /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+          </a>
+        </div>
+        <Checkbox
+          v-model:value="allowNamespaceCreation"
+          :mode="props.mode"
+          :label="t('fleet.policy.serviceAccounts.allowNamespaceCreation.label')"
+          data-testid="fleet-policy-allow-namespace-creation"
+        />
+      </RcSection>
+    </RcContentGroup>
+    <RcContentGroup>
+      <RadioGroup
+        v-model:value="restricted"
+        name="fleet-policy-restrict-service-accounts"
+        :options="restrictOptions"
+        :mode="props.mode"
+        :aria-label="t('fleet.policy.serviceAccounts.title')"
+        data-testid="fleet-policy-restrict-service-accounts"
+      />
+      <FleetPolicyAllowList
+        v-if="restricted"
+        :value="allowedServiceAccounts"
+        :title="t('fleet.policy.serviceAccounts.allowed.title')"
+        :label="t('fleet.policy.serviceAccounts.allowed.label')"
+        :options="props.serviceAccountOptions"
+        :mode="props.mode"
+        data-testid="fleet-policy-allowed-service-accounts"
+        @update:value="updateAllowed"
+      />
+    </RcContentGroup>
   </RcSection>
 </template>
 
 <style lang="scss" scoped>
-.namespace-creation {
+.namespace-creation-note {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
-  // The design keeps explanatory text to half the section width rather than the full page
-  max-width: 50%;
-
-  a {
-    font-size: 12px;
-    // Line the link up with the checkbox description rather than the checkbox itself
-    padding-left: 19px;
-  }
 }
 </style>
