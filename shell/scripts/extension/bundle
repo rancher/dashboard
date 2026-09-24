@@ -83,7 +83,8 @@ package() {
     echo -e "${CYAN}Pushing container image ...${RESET}"
 
     # Ensure that you do not overwrite production images
-    if [[ "${REGISTRY_ORG}" == "rancher" ]]; then
+    # but allow overwriting 'head' images
+    if [[ "${REGISTRY_ORG}" == "rancher" ]] && [[ "${PKG_VERSION}" != "head" ]]; then
       IMAGE=${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
       if ${RUNTIME} manifest inspect ${IMAGE} 2>&1 1>/dev/null; then
         echo -e "${RED}${BOLD}Cannot overwrite production image ${IMAGE_PREFIX}${PKG} since it already exists${RESET}"
