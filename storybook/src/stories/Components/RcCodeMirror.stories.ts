@@ -173,11 +173,14 @@ export const VModel: Story = {
   }),
 };
 
+const inputYaml = 'enabled: true\nowner: "platform"\n# a comment';
+const certificate = '-----BEGIN CERTIFICATE-----\nMIIBeTCCAR+gAwIBAgIBADAKBggqhkjOPQQDAjAkMSIwIAYDVQQDDBlya2UyLXNl\n-----END CERTIFICATE-----';
+
 export const Input: Story = {
   render: (args: any) => ({
     components: { RcCodeMirror },
     setup() {
-      const value = ref('-----BEGIN CERTIFICATE-----\nMIIBeTCCAR+gAwIBAgIBADAKBggqhkjOPQQDAjAkMSIwIAYDVQQDDBlya2UyLXNl\n-----END CERTIFICATE-----');
+      const value = ref(args.language === 'yaml' ? inputYaml : certificate);
 
       return { args, value };
     },
@@ -190,5 +193,13 @@ export const Input: Story = {
   args: {
     variant:  'input',
     language: undefined,
+  },
+};
+
+export const InputYaml: Story = {
+  ...Input,
+  args: {
+    variant:  'input',
+    language: 'yaml',
   },
 };
