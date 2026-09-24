@@ -1,7 +1,23 @@
 <script>
+import RcSeparator from '@components/RcSeparator/RcSeparator.vue';
 import {
   CONNECTIVES, LABEL_FIELD_PREFIX, NEGATORS, highlightQuery, isNegator, quoteIfNeeded, replaceToken, scanQuery, tokenAt, valuesInUse
 } from '@shell/utils/table-views';
+
+/** How close to the window's edge the list may come when the caret it follows is near one */
+const MENU_VIEWPORT_MARGIN = 20;
+
+/** The stylesheet's `min-width` for the list, to measure by before it is on the page */
+const MENU_MIN_WIDTH = 260;
+
+/**
+ * How far an entry's text sits inside the list - its own border plus an option's left padding,
+ * both a few rules down in the stylesheet.
+ *
+ * What follows the caret is the text, not the box around it. Hanging the box's edge off the
+ * caret put every entry a word-width to the right of the term it was being offered for.
+ */
+const MENU_TEXT_INSET = 13;
 
 /**
  * GitHub style filter input.
@@ -21,6 +37,8 @@ let uid = 0;
 export default {
   name: 'TableViewQueryInput',
 
+  components: { RcSeparator },
+
   emits: ['update:value', 'request-values', 'update:focused'],
 
   props: {
@@ -30,11 +48,25 @@ export default {
     },
 
     /**
-     * ViewField[] - everything that can be filtered on
+     * ViewField[] - everything the query can name. Used to read what has been typed, which has to
+     * cover fields this list cannot actually filter by: the toolbar says so afterwards, and it
+     * can only do that if the term was recognised as naming a field in the first place.
      */
     fields: {
       type:    Array,
       default: () => []
+    },
+
+    /**
+     * ViewField[] - the subset worth offering, when it is narrower than `fields`.
+     *
+     * Server side the api filters only on the fields it indexes and drops terms naming the rest.
+     * Suggesting one of those would be handing someone a term the list then has to report it
+     * ignored. Defaults to `fields`.
+     */
+    filterFields: {
+      type:    Array,
+      default: null
     },
 
     /**
@@ -65,6 +97,8 @@ export default {
        * and the next keystroke brings the list back.
        */
       dismissed:    false,
+      /** Whether the pointer is over the box, which is when the clear is offered */
+      hovered:      false,
       activeIndex:  0,
       /** Where to put the caret once the tokens have been re-rendered, if we own it */
       pendingCaret: null,
@@ -264,11 +298,35 @@ export default {
         }));
     },
 
+    /**
+     * Whether to offer the clear in place of the lens.
+     *
+     * Only under the pointer: the mark is there to be reached for, and standing in the box for
+     * the whole time a query is being written it was one more thing to read past. The keyboard
+     * is not left without a way out - Escape empties the box, which is why this can be a
+     * pointer-only affordance rather than something that has to stay reachable by Tab.
+     */
+    showClear() {
+      return !!this.value && this.hovered;
+    },
+
+    /** The fields offered by name, which can be narrower than the ones a query may mention */
+    suggestableFields() {
+      return this.filterFields || this.fields;
+    },
+
     suggestions() {
       const { negate, field, typed } = this.parsedToken;
       const needle = typed.toLowerCase();
 
       if (field) {
+        // A field this list cannot be filtered by gets nothing offered for it either. The api
+        // has no values to give for one, so the fallback is a scan of the page in front of us -
+        // which would be offering real-looking values for a term that is then thrown away.
+        if (!this.suggestableFields.some((f) => f.id === field.id)) {
+          return [];
+        }
+
         const fetched = this.fieldValues[field.id];
         // Values from the api cover every row; the page scan is only a fallback while they load
         const available = fetched?.length ? fetched : valuesInUse(this.rows, field);
@@ -284,7 +342,7 @@ export default {
           }));
       }
 
-      return this.connectiveSuggestions.concat(this.fields
+      return this.connectiveSuggestions.concat(this.suggestableFields
         .filter((f) => f.id.toLowerCase().includes(needle) || f.label.toLowerCase().includes(needle))
         .slice(0, 20)
         .map((f) => ({
@@ -295,6 +353,40 @@ export default {
           insert: `${ negate }${ f.id }:`,
           field:  f,
         })));
+    },
+
+    /**
+     * The same suggestions, split into the runs the list draws a rule between: the words that
+     * join terms, the table's own columns, and the labels its rows carry.
+     *
+     * Split where the kind changes rather than sorted into buckets, so the list is shown in the
+     * order `suggestions` built it and a rule only ever appears where one run really ends.
+     * Each entry keeps its position in the flat list, which is what the keyboard moves through.
+     */
+    suggestionGroups() {
+      const kindOf = (suggestion) => {
+        if (suggestion.connective) {
+          return 'joiner';
+        }
+
+        return suggestion.field?.isLabel ? 'label' : 'field';
+      };
+
+      const groups = [];
+      let current = null;
+
+      this.suggestions.forEach((suggestion, index) => {
+        const kind = kindOf(suggestion);
+
+        if (!current || current.kind !== kind) {
+          current = { kind, entries: [] };
+          groups.push(current);
+        }
+
+        current.entries.push({ ...suggestion, index });
+      });
+
+      return groups;
     },
 
     /** Changes exactly when the list's contents do, and not when it is merely rebuilt */
@@ -346,6 +438,14 @@ export default {
      */
     suggestionsKey() {
       this.activeIndex = 0;
+      // A different list is a different width, and the width is what decides how far right it
+      // is allowed to sit
+      this.repositionMenu();
+    },
+
+    /** The list follows the caret, so it moves for an arrow key as much as for a keystroke */
+    caret() {
+      this.repositionMenu();
     },
 
     /**
@@ -515,12 +615,56 @@ export default {
       return !!this.knownValues[fieldId]?.has(`${ value }`.toLowerCase());
     },
 
+    /**
+     * Where the caret is on screen, for the list to hang under.
+     *
+     * A collapsed range does not always have a rect of its own - sitting at the very start of a
+     * text node, or in an element with no text in it yet, browsers hand back nothing at all - so
+     * the box's own left edge stands in, which is where the caret is in exactly those cases.
+     */
+    caretLeft() {
+      const root = this.$refs.input;
+
+      if (!root) {
+        return null;
+      }
+
+      const selection = window.getSelection();
+
+      if (selection?.rangeCount) {
+        const range = selection.getRangeAt(0);
+
+        if (root.contains(range.startContainer)) {
+          const rect = range.getBoundingClientRect();
+
+          // An empty rect is the browser declining to place the range, not a caret at the
+          // window's corner
+          if (rect && (rect.left || rect.top)) {
+            return rect.left;
+          }
+        }
+      }
+
+      return root.getBoundingClientRect().left;
+    },
+
     updateMenuPos() {
       const rect = this.$el?.getBoundingClientRect?.();
 
       if (rect) {
+        // The list is as wide as its entries, which is only known once it has been rendered -
+        // until then the narrowest it is allowed to be is the closest guess there is
+        const width = this.$refs.menu?.getBoundingClientRect().width || MENU_MIN_WIDTH;
+        // Following the caret walks the list towards the right-hand edge, so it stops short of
+        // it rather than hanging off the page
+        const rightmost = Math.max(MENU_VIEWPORT_MARGIN, window.innerWidth - width - MENU_VIEWPORT_MARGIN);
+
+        const at = (this.caretLeft() ?? rect.left) - MENU_TEXT_INSET;
+
         this.menuPos = {
-          top: rect.bottom + 2, left: rect.left, width: rect.width
+          top:   rect.bottom + 2,
+          left:  Math.min(Math.max(at, MENU_VIEWPORT_MARGIN), rightmost),
+          width: rect.width
         };
       }
 
@@ -676,6 +820,12 @@ export default {
       }
 
       if (!this.showSuggestions) {
+        // With no list open, Escape has the box itself to act on
+        if (event.key === 'Escape' && this.value) {
+          event.preventDefault();
+          this.clear();
+        }
+
         return;
       }
 
@@ -719,6 +869,29 @@ export default {
       this.focus();
     },
 
+    /**
+     * Empty the box, for the clear button and for Escape.
+     *
+     * `dismissed` is deliberately left as it is. Escape has already put the list away by the time
+     * it gets here, and reopening it on the same key the user pressed to close things would be
+     * arguing with them - while clearing by the button was never a dismissal, so the list comes
+     * back the way it does for any other empty box.
+     */
+    clear() {
+      this.pendingCaret = 0;
+      // Written by us, so the box is the stale one and has to be redrawn
+      this.domAhead = false;
+      this.$emit('update:value', '');
+      this.focus();
+    },
+
+    /** Put the list back under the caret, once whatever moved it has been rendered */
+    repositionMenu() {
+      if (this.showSuggestions) {
+        this.$nextTick(() => this.updateMenuPos());
+      }
+    },
+
     optionId(index) {
       return `${ this.menuId }-option-${ index }`;
     },
@@ -734,6 +907,8 @@ export default {
   <div
     class="table-view-query"
     :class="{ focused }"
+    @mouseenter="hovered = true"
+    @mouseleave="hovered = false"
   >
     <!-- The tokens are the editable content, so a badge's margin is ordinary layout rather than
          something that has to be kept in step with a separate input.
@@ -767,7 +942,34 @@ export default {
       @focus="onFocus"
       @blur="onBlur"
     />
-    <i class="icon icon-search" />
+    <!-- One slot at the end of the box, holding at most one mark: the lens while the box is
+         empty, the clear under the pointer once there is a query, and nothing at all in between
+         - a query being written has no need of either.
+
+         The slot is always here even when it holds nothing, because the box beside it is what
+         takes up the remaining width: letting it come and go would move the query sideways by
+         the width of a mark every time the pointer crossed the box.
+
+         `mousedown` rather than `click`, and prevented: the button taking focus blurs the box,
+         which puts the list away and leaves the caret nowhere - so clearing would cost a click
+         back in before anything could be typed. `.left` because mousedown fires for every
+         button, and a right-click belongs to the context menu rather than to this. -->
+    <span class="query-affordance">
+      <button
+        v-if="showClear"
+        type="button"
+        class="query-clear"
+        :aria-label="t('tableViews.query.clear')"
+        data-testid="table-views-query-clear"
+        @mousedown.left.prevent="clear"
+      >
+        <i class="icon icon-close" />
+      </button>
+      <i
+        v-else-if="!value"
+        class="icon icon-search"
+      />
+    </span>
     <!-- A combobox announces the option the keyboard is on, but nothing says a list appeared or
          how long it is. Outside the Teleport so it is never torn down with the list itself -
          a live region has to be on the page before the text changes for the change to be read. -->
@@ -790,22 +992,36 @@ export default {
         :style="menuStyle"
         data-testid="table-views-suggestions"
       >
-        <li
-          v-for="(suggestion, i) in suggestions"
-          :id="optionId(i)"
-          :key="suggestion.key"
-          role="option"
-          :aria-selected="i === activeIndex ? 'true' : 'false'"
-          :class="{ active: i === activeIndex }"
-          @mousedown.prevent="pick(suggestion)"
-          @mouseenter="activeIndex = i"
+        <template
+          v-for="(group, g) in suggestionGroups"
+          :key="group.kind"
         >
-          <span
-            class="suggestion-label"
-            :class="{ connective: suggestion.connective }"
-          >{{ suggestion.label }}</span>
-          <span class="suggestion-detail">{{ suggestion.detail }}</span>
-        </li>
+          <!-- Decorative, not a `separator` role: a listbox's children are its options, and a
+               rule announced between them is one more thing to step past on the way down. -->
+          <li
+            v-if="g"
+            class="suggestion-rule"
+            role="presentation"
+          >
+            <rc-separator />
+          </li>
+          <li
+            v-for="entry in group.entries"
+            :id="optionId(entry.index)"
+            :key="entry.key"
+            role="option"
+            :aria-selected="entry.index === activeIndex ? 'true' : 'false'"
+            :class="{ active: entry.index === activeIndex }"
+            @mousedown.prevent="pick(entry)"
+            @mouseenter="activeIndex = entry.index"
+          >
+            <span
+              class="suggestion-label"
+              :class="{ connective: entry.connective }"
+            >{{ entry.label }}</span>
+            <span class="suggestion-detail">{{ entry.detail }}</span>
+          </li>
+        </template>
       </ul>
     </Teleport>
   </div>
@@ -836,6 +1052,7 @@ $query-height: 32px;
   }
 
   .query-input {
+    position: relative;
     flex: 1;
     min-width: 0;
     height: 100%;
@@ -858,9 +1075,28 @@ $query-height: 32px;
       box-shadow: none;
     }
 
+    // Taken out of the flow, so the box's own `min-width` is what decides how narrow it may be.
+    // In the flow the placeholder is a line that cannot wrap, so it became the box's smallest
+    // possible width - and the toolbar's, which then held the page open at nearly twice the
+    // width it needs. What the box says while empty should not set what it costs.
+    //
+    // Pinned to all four sides of the box it belongs to, which is why that box is positioned:
+    // left alone it hung off the nearest positioned ancestor instead, and on a narrow window it
+    // ran out over the lens and the View button beside it. Here it is trimmed instead.
     &.is-empty::before {
       content: attr(data-placeholder);
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      overflow: hidden;
+      // The box's own line-height does the centring. `display: flex` would have done it too, but
+      // a flex container has no text of its own to trim, so the tail was cut without the ellipsis
+      // that says it had been.
       color: var(--input-placeholder);
+      text-overflow: ellipsis;
+      white-space: nowrap;
       pointer-events: none;
     }
   }
@@ -898,11 +1134,55 @@ $query-height: 32px;
     font-style: italic;
   }
 
-  > .icon-search {
+  // The one slot, kept at the lens's width whatever is in it - see the template
+  > .query-affordance {
     flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    width: 16px;
     margin-left: 8px;
+  }
+
+  .icon-search {
     color: var(--muted);
     font-size: 16px;
+  }
+
+  // Filling the slot, and no taller than the row around it.
+  //
+  // That last part has to be said out loud: the product gives every bare `button` a 40px line
+  // and a 40px floor under its height, both taller than the 32px row this one sits in, and the
+  // whole toolbar grew by 10px the moment the mark first appeared. Both have to be undone - the
+  // floor outlives the line-height on its own. Stretched to the row rather than left at the size
+  // of the mark, so the target is the height of the box.
+  .query-clear {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    width: 100%;
+    min-height: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--muted);
+    line-height: 1;
+    cursor: pointer;
+
+    .icon {
+      font-size: 14px;
+    }
+
+    &:hover {
+      color: var(--input-text);
+    }
+
+    &:focus-visible {
+      @include focus-outline;
+    }
   }
 
 }
@@ -938,6 +1218,18 @@ $query-height: 32px;
     &.active {
       background: var(--dropdown-hover-bg);
       color: var(--dropdown-hover-text);
+    }
+  }
+
+  // The rule between runs, drawn the way the product's own menus draw one: edge to edge, and
+  // carrying its own breathing room rather than the padding an option gets
+  li.suggestion-rule {
+    display: block;
+    padding: 0;
+    cursor: default;
+
+    hr {
+      margin: 7px 0;
     }
   }
 
