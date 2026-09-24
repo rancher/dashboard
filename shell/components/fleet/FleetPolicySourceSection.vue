@@ -62,13 +62,15 @@ const defaultSecret = computed({
 });
 
 // A name the policy would reject is not worth offering, so once the secrets are restricted the
-// default is chosen from the allowed ones
+// default is chosen from the allowed ones - including any allowed name that has no secret yet
 const defaultSecretOptions = computed(() => {
   if (!restricted.value) {
     return props.secretOptions;
   }
 
-  return props.secretOptions.filter((option) => allowedSecrets.value.includes(optionName(option)));
+  return allowedSecrets.value.map((name) => {
+    return props.secretOptions.find((option) => optionName(option) === name) || { label: name, value: name };
+  });
 });
 
 const restrictOptions = computed(() => [

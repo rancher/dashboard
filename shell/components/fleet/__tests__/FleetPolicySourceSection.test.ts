@@ -86,6 +86,18 @@ describe('component: FleetPolicySourceSection', () => {
     expect(wrapper.findComponent(FleetPolicyAllowList).props('options')).toStrictEqual(secretOptions);
   });
 
+  it('should offer an allowed name that has no secret of its own yet', () => {
+    const value = { allowedClientSecretNames: ['tenant-2-git-credentials', 'not-created-yet'] };
+    const wrapper = mountSection({
+      value, secretOptions, restricted: true
+    });
+
+    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual([
+      secretOptions[1],
+      { label: 'not-created-yet', value: 'not-created-yet' },
+    ]);
+  });
+
   it('should warn when the default secret is not one of the allowed secrets', () => {
     const notAllowed = '[data-testid="fleet-policy-git-repo-default-secret-not-allowed"]';
 
