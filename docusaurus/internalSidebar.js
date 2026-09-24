@@ -19,6 +19,7 @@ const sidebars = {
         'guide/package-management',
         'guide/auth-providers',
         'guide/custom-dev-build'
+        'guide/feature-design-doc'
       ],
     },
     {
