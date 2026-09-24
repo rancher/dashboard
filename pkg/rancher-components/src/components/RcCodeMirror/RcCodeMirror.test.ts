@@ -233,15 +233,26 @@ describe('component: RcCodeMirror', () => {
   });
 
   describe('variant prop', () => {
-    it('should keep the form input styling when the Rancher editor theme is the default', () => {
+    it('should highlight YAML keys and comments in the input variant', () => {
       mountEditor({
-        variant: 'input', language: 'yaml', modelValue: 'name: "nginx"'
+        variant: 'input', language: 'yaml', modelValue: 'name: "nginx"\n# a comment'
       });
 
-      expect(wrapper.find('.cm-rancher-key').exists()).toStrictEqual(false);
+      expect(wrapper.find('.cm-rancher-key').text()).toStrictEqual('name');
+      expect(wrapper.find('.cm-rancher-comment').text()).toStrictEqual('# a comment');
     });
 
-    it('should apply the Rancher editor theme when the variant changes to editor', async() => {
+    it('should render a wider cursor in the input variant', () => {
+      mountEditor({ variant: 'input' });
+      const cursor = document.createElement('span');
+
+      cursor.className = 'cm-cursor';
+      getView(wrapper).dom.append(cursor);
+
+      expect(getComputedStyle(cursor).borderLeftWidth).toStrictEqual('2px');
+    });
+
+    it('should keep Rancher highlighting when the variant changes to editor', async() => {
       mountEditor({
         variant: 'input', language: 'yaml', modelValue: 'name: "nginx"'
       });
@@ -249,6 +260,14 @@ describe('component: RcCodeMirror', () => {
       await wrapper.setProps({ variant: 'editor' });
 
       expect(wrapper.find('.cm-rancher-key').text()).toStrictEqual('name');
+    });
+
+    it('should leave input syntax unthemed when theme is none', () => {
+      mountEditor({
+        variant: 'input', language: 'yaml', theme: 'none', modelValue: 'name: "nginx"'
+      });
+
+      expect(wrapper.find('.cm-rancher-key').exists()).toStrictEqual(false);
     });
 
     it('should be an editor by default', () => {

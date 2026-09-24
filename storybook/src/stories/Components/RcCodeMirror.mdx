@@ -38,7 +38,13 @@ Folds can be toggled from the keyboard with every keymap:
 
 The `input` variant is a multi-line form input rather than a code editor. It has no gutters, uses the body font and is styled like the other form inputs. Line breaks are marked with ↵ so values that contain them are distinguishable.
 
+With the `rancher` theme, syntax colors and the caret match the editor palette while the input keeps its form background, border, spacing and selection.
+
 <Canvas of={RcCodeMirrorStories.Input} />
+
+The YAML example shows the shared syntax colors in a form field.
+
+<Canvas of={RcCodeMirrorStories.InputYaml} />
 
 ## Custom folding
 

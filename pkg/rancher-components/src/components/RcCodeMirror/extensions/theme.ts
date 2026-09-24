@@ -46,21 +46,10 @@ const yamlBooleanHighlight = ViewPlugin.fromClass(class {
   }
 }, { decorations: (plugin) => plugin.decorations });
 
-const rancherEditorTheme = EditorView.theme({
-  '&': {
-    color:           'var(--rc-cm-text)',
-    backgroundColor: 'var(--rc-cm-bg)'
-  },
-  '.cm-content':                                                                                                                { caretColor: 'var(--rc-cm-key)' },
-  '.cm-cursor, .cm-dropCursor':                                                                                                 { borderLeftColor: 'var(--rc-cm-key)' },
-  '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': { backgroundColor: 'var(--rc-cm-selection)' },
-  '.cm-gutters':                                                                                                                {
-    color:           'var(--rc-cm-gutter)',
-    backgroundColor: 'var(--rc-cm-bg)',
-    borderRight:     'none'
-  },
-  '.cm-activeLineGutter': { backgroundColor: 'transparent' },
-  '.cm-rancher-key':      {
+const rancherSharedTheme = EditorView.theme({
+  '.cm-content':                { caretColor: 'var(--rc-cm-key)' },
+  '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--rc-cm-key)' },
+  '.cm-rancher-key':            {
     color:      'var(--rc-cm-key)',
     fontWeight: '600'
   },
@@ -69,8 +58,22 @@ const rancherEditorTheme = EditorView.theme({
   '.cm-rancher-comment': {
     color:     'var(--rc-cm-comment)',
     fontStyle: 'italic'
+  }
+});
+
+const rancherEditorTheme = EditorView.theme({
+  '&': {
+    color:           'var(--rc-cm-text)',
+    backgroundColor: 'var(--rc-cm-bg)'
   },
-  '.cm-foldPlaceholder': {
+  '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': { backgroundColor: 'var(--rc-cm-selection)' },
+  '.cm-gutters':                                                                                                                {
+    color:           'var(--rc-cm-gutter)',
+    backgroundColor: 'var(--rc-cm-bg)',
+    borderRight:     'none'
+  },
+  '.cm-activeLineGutter': { backgroundColor: 'transparent' },
+  '.cm-foldPlaceholder':  {
     backgroundColor: 'transparent',
     border:          'none',
     borderRadius:    '0',
@@ -82,8 +85,17 @@ const rancherEditorTheme = EditorView.theme({
   }
 });
 
+const rancherInputCursorTheme = EditorView.theme({ '.cm-cursor, .cm-dropCursor': { borderLeftWidth: '2px' } });
+
+const rancherHighlighting = syntaxHighlighting(rancherHighlight);
+const rancherSyntax: Extension = [rancherSharedTheme, rancherHighlighting, yamlBooleanHighlight];
+
 export const rancherTheme: Extension = [
   rancherEditorTheme,
-  syntaxHighlighting(rancherHighlight),
-  yamlBooleanHighlight
+  rancherSyntax
+];
+
+export const rancherInputTheme: Extension = [
+  rancherInputCursorTheme,
+  rancherSyntax
 ];
