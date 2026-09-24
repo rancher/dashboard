@@ -96,7 +96,9 @@ defineExpose({
 </template>
 
 <style lang="scss" scoped>
-  .cluster-pin {
+  // Matched on the control's own `.icon` class as well, which outweighs its `color: inherit` — on one
+  // class each the two rules tie and a stylesheet re-order would quietly hand the pin back to inherit.
+  .cluster-pin.icon {
     flex: 0 0 auto;
     margin-left: 12px;
     color: var(--muted);
