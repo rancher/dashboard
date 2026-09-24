@@ -55,7 +55,7 @@ import { search } from '@codemirror/search';
 import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
-import { rancherTheme } from './extensions/theme';
+import { rancherInputTheme, rancherTheme } from './extensions/theme';
 import type { RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
 
 defineOptions({ inheritAttrs: false });
@@ -115,8 +115,8 @@ const foldGutterCompartment = new Compartment();
 const contentAttributesCompartment = new Compartment();
 
 function getThemeExtension(theme?: RcCodeMirrorTheme, variant?: RcCodeMirrorVariant): Extension {
-  if (theme === 'rancher' && variant !== 'input') {
-    return rancherTheme;
+  if (theme === 'rancher') {
+    return variant === 'input' ? rancherInputTheme : rancherTheme;
   }
 
   return [];
