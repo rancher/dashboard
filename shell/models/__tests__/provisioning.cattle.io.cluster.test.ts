@@ -723,6 +723,17 @@ describe('class ProvCluster', () => {
       expect(pinAction(local, 'unpinCluster').enabled).toBe(false);
     });
 
+    // The bulk bar sorts by weight and otherwise keeps the order the actions were first met across the
+    // rows, which would split the pair: the unpin is enabled only on a pinned cluster.
+    it('leads the bulk actions, pin before unpin', () => {
+      const bulk = actionsOf(provCluster({ pinned: false, isLocal: false }))
+        .filter((a: any) => a.bulkable)
+        .sort((a: any, b: any) => (b.weight || 0) - (a.weight || 0))
+        .map((a: any) => a.action);
+
+      expect(bulk.slice(0, 2)).toStrictEqual(['pinCluster', 'unpinCluster']);
+    });
+
     // Pinning is a preference, not a cluster operation, so the RKE1 clamp on cluster actions leaves it be.
     it('keeps the pin on an RKE1 cluster, which cannot take most other actions', () => {
       const cluster = provCluster({ pinned: false, isLocal: false });
