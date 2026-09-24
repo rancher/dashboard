@@ -8,11 +8,11 @@ export default class HomeClusterListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(0);
   }
 
-  badge(clusterName: string) {
+  name(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(1);
   }
 
-  name(clusterName: string) {
+  badge(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(2);
   }
 

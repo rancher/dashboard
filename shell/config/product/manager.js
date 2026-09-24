@@ -187,7 +187,6 @@ export function init(store) {
 
   headers(MANAGEMENT.CLUSTER, [
     STATE,
-    CLUSTER_BADGE,
     {
       name:          'name',
       labelKey:      'tableHeaders.name',
@@ -196,6 +195,7 @@ export function init(store) {
       formatter:     'ClusterLink',
       canBeVariable: true,
     },
+    CLUSTER_BADGE,
     MGMT_CLUSTER_PROVIDER,
     MGMT_CLUSTER_KUBE_VERSION,
     {
@@ -206,7 +206,6 @@ export function init(store) {
     EXPLORER,
   ], [
     STEVE_MGMT_STATE_COL,
-    CLUSTER_BADGE,
     {
       name:          'name',
       labelKey:      'tableHeaders.name',
@@ -216,6 +215,7 @@ export function init(store) {
       formatter:     'ClusterLink',
       canBeVariable: true,
     },
+    CLUSTER_BADGE,
     STEVE_MGMT_CLUSTER_PROVIDER,
     STEVE_MGMT_CLUSTER_KUBE_VERSION,
     {

@@ -121,7 +121,7 @@ describe('Home Page List', { testIsolation: false }, () => {
     homePage.goTo();
     homePage.waitForPage();
 
-    homeClusterList.resourceTable().sortableTable().rowWithName('local').column(2)
+    homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
       .find('.cluster-description')
       .should('contain', longClusterDescription);
   }));
@@ -131,7 +131,7 @@ describe('Home Page List', { testIsolation: false }, () => {
     homePage.waitForPage();
 
     // check table headers
-    const expectedHeaders = ['State', 'Badge', 'Name', 'Provider Distro', 'Kubernetes Version Architecture', 'CPU', 'Memory', 'Pods'];
+    const expectedHeaders = ['State', 'Name', 'Badge', 'Provider Distro', 'Kubernetes Version Architecture', 'CPU', 'Memory', 'Pods'];
 
     homePage.list().resourceTable().sortableTable().tableHeaderRow()
       .get('.table-header-container .content')

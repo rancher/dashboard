@@ -136,7 +136,6 @@ export default defineComponent({
 
       headers: [
         STATE,
-        CLUSTER_BADGE,
         {
           name:          'name',
           labelKey:      'tableHeaders.name',
@@ -144,6 +143,7 @@ export default defineComponent({
           sort:          ['nameSort'],
           canBeVariable: true,
         },
+        CLUSTER_BADGE,
         {
           ...MGMT_CLUSTER_PROVIDER,
           labelKey: 'landing.clusters.provider',
@@ -165,7 +165,6 @@ export default defineComponent({
 
       paginationHeaders: [
         STEVE_MGMT_STATE_COL,
-        CLUSTER_BADGE,
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
@@ -173,6 +172,7 @@ export default defineComponent({
           sort:          [`spec.displayName`],
           search:        `spec.displayName`,
         },
+        CLUSTER_BADGE,
         {
           ...STEVE_MGMT_CLUSTER_PROVIDER,
           labelKey: 'landing.clusters.provider',
