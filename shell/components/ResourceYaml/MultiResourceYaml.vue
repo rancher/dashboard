@@ -19,6 +19,9 @@ import {
   EditableResource,
 } from '@shell/core/types';
 
+// parent layout classes (e.g. cru-resource's .resource-container) would override the root grid
+defineOptions({ inheritAttrs: false });
+
 const props = defineProps<{
   value: EditableResource,
 
