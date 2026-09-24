@@ -7,12 +7,12 @@ import FormValidation from '@shell/mixins/form-validation';
 import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/useKubernetesVersions';
 import { usePodSecurityAdmissionTemplates } from '@shell/composables/usePodSecurityAdmissionTemplates';
 import { useMachinePools, syncMachineConfigWithLatest } from '@shell/composables/useMachinePools';
+import { useRegistryConfig } from '@shell/composables/useRegistryConfig';
 import { normalizeName } from '@shell/utils/kube';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
 
 import {
   CAPI,
-  MANAGEMENT,
   NAMESPACE,
   NORMAN,
   SCHEMA,
@@ -28,7 +28,7 @@ import {
   clone, diff, set, get, isEmpty, mergeWithReplace
 } from '@shell/utils/object';
 import { labelForAddon, initSchedulingCustomization, addonConfigPreserve } from '@shell/utils/cluster';
-import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
+import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -136,6 +136,7 @@ export default {
       ...useKubernetesVersions(props),
       ...usePodSecurityAdmissionTemplates(),
       ...useMachinePools(),
+      ...useRegistryConfig(props),
     };
   },
 
@@ -226,12 +227,12 @@ export default {
     const isGoogle = this.provider === GOOGLE;
 
     return {
-      loadedOnce:                      false,
-      lastIdx:                         0,
-      credentialId:                    '',
-      credential:                      null,
-      initialMachinePoolsValues:       {},
-      s3Backup:                        false,
+      loadedOnce:                false,
+      lastIdx:                   0,
+      credentialId:              '',
+      credential:                null,
+      initialMachinePoolsValues: {},
+      s3Backup:                  false,
       /**
        * All info related to a specific version of the chart
        *
@@ -239,17 +240,12 @@ export default {
        *
        * { [chartName:string]: { chart: json, readme: string, values: json } }
        */
-      versionInfo:                     {},
-      membershipUpdate:                {},
-      systemRegistry:                  null,
-      registryHost:                    null,
-      showCustomRegistryInput:         false,
-      showCustomRegistryAdvancedInput: false,
-      registrySecret:                  null,
-      userChartValues:                 {},
-      userChartValuesTemp:             {},
-      addonsRev:                       0,
-      fvFormRuleSets:                  [{
+      versionInfo:               {},
+      membershipUpdate:          {},
+      userChartValues:           {},
+      userChartValuesTemp:       {},
+      addonsRev:                 0,
+      fvFormRuleSets:            [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange:                    {},
@@ -1789,115 +1785,6 @@ export default {
       this['membershipUpdate'] = update;
     },
 
-    async initRegistry() {
-      // Check for an existing cluster scoped registry
-      const clusterRegistry = this.agentConfig?.['system-default-registry'] || '';
-
-      // Check for the global registry
-      this.systemRegistry = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.SYSTEM_DEFAULT_REGISTRY })).value || '';
-
-      // The order of precedence is to use the cluster scoped registry
-      // if it exists, then use the global scoped registry as a fallback
-      if (clusterRegistry) {
-        this.registryHost = clusterRegistry;
-      } else {
-        this.registryHost = this.systemRegistry;
-      }
-
-      let registrySecret = null;
-      let regs = this.rkeConfig.registries;
-
-      if (!regs) {
-        regs = {};
-        this.rkeConfig.registries = regs;
-      }
-
-      if (!regs.configs) {
-        regs.configs = {};
-      }
-
-      if (!regs.mirrors) {
-        regs.mirrors = {};
-      }
-
-      const config = regs.configs[this.registryHost];
-
-      if (config) {
-        registrySecret = config.authConfigSecretName;
-      }
-
-      this.registrySecret = registrySecret;
-
-      const hasMirrorsOrAuthConfig = Object.keys(regs.configs).length > 0 || Object.keys(regs.mirrors).length > 0;
-
-      if (this.registryHost || registrySecret) {
-        this.showCustomRegistryInput = true;
-      }
-
-      if (hasMirrorsOrAuthConfig) {
-        this.showCustomRegistryAdvancedInput = true;
-      }
-    },
-
-    setRegistryConfig() {
-      const hostname = (this.registryHost || '').trim();
-
-      if (this.systemRegistry) {
-        // Empty string overrides the system default to nothing
-        this.agentConfig['system-default-registry'] = '';
-      } else {
-        // No need to set anything
-        this.agentConfig['system-default-registry'] = undefined;
-      }
-      if (!hostname || hostname === this.systemRegistry) {
-        // Undefined removes the key which uses the global setting without hardcoding it into the config
-        this.agentConfig['system-default-registry'] = undefined;
-      } else {
-        this.agentConfig['system-default-registry'] = hostname;
-      }
-
-      if (hostname && this.registrySecret) {
-        // For a registry with basic auth, but no mirrors,
-        // add a single registry config with the basic auth secret.
-        const basicAuthConfig = {
-          [hostname]: {
-            authConfigSecretName: this.registrySecret,
-            caBundle:             null,
-            insecureSkipVerify:   false,
-            tlsSecretName:        null,
-          }
-        };
-
-        const rkeConfig = this.value.spec.rkeConfig;
-
-        if (!rkeConfig) {
-          this.value.spec.rkeConfig = { registries: { configs: basicAuthConfig } };
-        } else if (rkeConfig.registries.configs && Object.keys(rkeConfig.registries.configs).length > 0) {
-          // If some existing authentication secrets are already configured
-          // for registry mirrors, the basic auth is added to the existing ones.
-          const existingConfigs = rkeConfig.registries.configs;
-
-          this.value.spec.rkeConfig.registries.configs = { ...basicAuthConfig, ...existingConfigs };
-        } else {
-          const existingMirrorAndAuthConfig = this.value.spec.rkeConfig.registries;
-
-          this.value.spec.rkeConfig.registries = {
-            ...existingMirrorAndAuthConfig,
-            configs: basicAuthConfig
-          };
-        }
-      }
-    },
-
-    updateConfigs(configs) {
-      // Update authentication configuration
-      // for each mirror
-      if (!this.value.spec?.rkeConfig) {
-        this.value.spec.rkeConfig = { registries: {} };
-      }
-      this.value.spec.rkeConfig.registries.configs = configs;
-    },
-
     generateYaml() {
       const resource = this.value;
       const inStore = this.$store.getters['currentStore'](resource);
@@ -1958,15 +1845,6 @@ export default {
         }
       }
       this.setHarvesterDefaultCloudProvider();
-    },
-    toggleCustomRegistry(neu) {
-      this.showCustomRegistryInput = neu;
-      if (this.registryHost) {
-        this.registryHost = null;
-        this.registrySecret = null;
-      } else {
-        this.initRegistry();
-      }
     },
 
     /**
@@ -2093,13 +1971,6 @@ export default {
     handleConfigEtcdExposeMetricsChanged(neu) {
       this.serverConfig['etcd-expose-metrics'] = neu;
     },
-    handleRegistryHostChanged(neu) {
-      this.registryHost = neu;
-    },
-    handleRegistrySecretChanged(neu) {
-      this.registrySecret = neu;
-    },
-
     handleFlannelMasqChanged(neu) {
       if (neu || neu === false) {
         this.serverConfig['flannel-ipv6-masq'] = neu;
