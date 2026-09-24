@@ -46,6 +46,7 @@ describe('Apps', () => {
             appRepoCreate.nameNsDescription().name().self().scrollIntoView()
               .should('be.visible');
             appRepoCreate.nameNsDescription().name().set(this.helmRepoDupeName);
+            appRepoCreate.enterHelmIndexURL('https://charts.rancher.io');
             appRepoCreate.create().self().scrollIntoView();
             appRepoCreate.create().click();
 
