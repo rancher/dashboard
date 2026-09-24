@@ -15,9 +15,9 @@ const CODEMIRROR_PACKAGES = [
   '@codemirror/language',
   '@codemirror/search',
   '@codemirror/state',
-  '@codemirror/theme-one-dark',
   '@codemirror/view',
   '@lezer/common',
+  '@lezer/highlight',
   '@replit/codemirror-vim',
 ];
 

@@ -5,7 +5,7 @@ import type { Extension } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { indentWithTab } from '@codemirror/commands';
 import { RcCodeMirror } from '@components/RcCodeMirror';
-import type { RcCodeMirrorKeymap, RcCodeMirrorLanguage, RcCodeMirrorTheme, RcCodeMirrorVariant } from '@components/RcCodeMirror';
+import type { RcCodeMirrorKeymap, RcCodeMirrorLanguage, RcCodeMirrorVariant } from '@components/RcCodeMirror';
 import { KEYMAP } from '@shell/store/prefs';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -141,10 +141,6 @@ export default defineComponent({
 
     keymap(): RcCodeMirrorKeymap {
       return KEYMAP_PREFS[this.keymapPref] || 'default';
-    },
-
-    theme(): RcCodeMirrorTheme {
-      return this.$store.getters['prefs/theme'] === 'dark' ? 'one-dark' : 'none';
     },
 
     combinedExtensions(): Extension[] {
@@ -351,7 +347,7 @@ export default defineComponent({
         :model-value="value"
         :language="language"
         :keymap="keymap"
-        :theme="theme"
+        theme="rancher"
         :variant="variant"
         :read-only="isReadOnly"
         :line-numbers="lineNumbers"
@@ -395,17 +391,7 @@ export default defineComponent({
       z-index: 0;
       font-size: inherit !important;
 
-      // Use the dashboard's colours rather than the CodeMirror theme's. The input variant is styled by RcCodeMirror
       .rc-code-mirror--editor .cm-editor {
-        background: none;
-        color: var(--body-text);
-
-        .cm-gutters {
-          background: inherit;
-          border-right-color: var(--border);
-          color: var(--muted);
-        }
-
         .cm-scroller {
           font-family: $mono-font;
           line-height: inherit;
