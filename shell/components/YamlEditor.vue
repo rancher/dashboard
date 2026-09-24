@@ -221,6 +221,10 @@ export default {
 
     setLineDecorations(decorations) {
       this.$refs.cm?.setLineDecorations(decorations);
+    },
+
+    setSearchHighlight(query) {
+      this.$refs.cm?.setSearchHighlight(query);
     }
   }
 };

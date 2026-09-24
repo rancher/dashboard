@@ -5,6 +5,7 @@ import debounce from 'lodash/debounce';
 import isPlainObject from 'lodash/isPlainObject';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { overridesFromEditedValues, mergeOverridesRawText, changedLineNumbers, sameYamlOverrides } from '@shell/utils/chart-values';
+import { countMatches, MIN_SEARCH_LENGTH } from '@shell/utils/yaml-search';
 
 /**
  * Two editable YAML panes for chart values:
@@ -28,6 +29,9 @@ const SYNC_DEBOUNCE_MS = 400;
 
 // Shared line-background class (same light tint for changed/new/override lines).
 const OVERRIDE_LINE_CLASS = 'line-override-highlight';
+
+// Delay before the chart-defaults search runs after the last keystroke.
+const SEARCH_DEBOUNCE_MS = 250;
 
 interface Props {
   /** Editable overrides YAML - the saved value (use with v-model:value). */
@@ -77,6 +81,13 @@ const defaultsPaneTestid = () => `${ props.testidPrefix }-defaults-pane`;
 const overridesPaneTestid = () => `${ props.testidPrefix }-overrides-pane`;
 const defaultsTestid = () => `${ props.testidPrefix }-defaults`;
 const overridesTestid = () => `${ props.testidPrefix }-overrides`;
+const searchTestid = () => `${ props.testidPrefix }-defaults-search`;
+
+// The chart-defaults search: what the user typed, the query it ran with (empty
+// until it has MIN_SEARCH_LENGTH characters) and how many matches it found.
+const searchQuery = ref('');
+const activeSearchQuery = ref('');
+const matchCount = ref(0);
 
 /** Run `fn` (a programmatic editor update) without its update:value echo looping back. */
 function withoutEcho(fn: () => void) {
@@ -190,6 +201,42 @@ function onOverridesFocus() {
   queueSyncFromDefaults.flush();
 }
 
+// --- Searching the LEFT (chart defaults) pane -------------------------------
+
+// Count the matches and highlight them in the editor. The editor stays editable,
+// and CodeMirror re-highlights the lines the user edits by itself.
+function runSearch() {
+  const query = searchQuery.value.trim();
+
+  activeSearchQuery.value = query.length >= MIN_SEARCH_LENGTH ? query : '';
+  matchCount.value = countMatches(defaultsContent.value, activeSearchQuery.value);
+  defaultsEditor.value?.setSearchHighlight(matchCount.value ? activeSearchQuery.value : '');
+}
+
+const queueSearch = debounce(runSearch, SEARCH_DEBOUNCE_MS);
+
+// Wait for the user to stop typing before searching, but clear a search right away
+// once the query gets too short, since that costs nothing.
+watch(searchQuery, (query) => {
+  if (query.trim().length < MIN_SEARCH_LENGTH) {
+    queueSearch.cancel();
+    runSearch();
+  } else {
+    queueSearch();
+  }
+});
+
+// Keep the match count right while the chart-defaults document changes.
+watch(defaultsContent, () => {
+  if (activeSearchQuery.value) {
+    queueSearch();
+  }
+});
+
+function clearSearch() {
+  searchQuery.value = '';
+}
+
 // --- External prop changes --------------------------------------------------
 
 // React to `value` changing from outside (e.g. the parent seeding the pane). Our
@@ -232,6 +279,7 @@ function onOverridesReady() {
 onBeforeUnmount(() => {
   queueSyncFromOverrides.cancel();
   queueSyncFromDefaults.cancel();
+  queueSearch.cancel();
 });
 
 /**
@@ -271,6 +319,39 @@ defineExpose({ updateOverrides });
         <p class="values-pane__description">
           {{ chartDefaultsHint }}
         </p>
+      </div>
+      <div
+        class="values-search"
+        :class="{ 'values-search--active': !!activeSearchQuery }"
+      >
+        <i class="icon icon-search values-search__icon" />
+        <input
+          v-model="searchQuery"
+          type="search"
+          class="input-sm values-search__input"
+          :placeholder="t('yamlOverridesEditor.search.placeholder')"
+          :aria-label="t('yamlOverridesEditor.search.ariaLabel')"
+          :data-testid="searchTestid()"
+          @keydown.esc.prevent="clearSearch"
+        >
+        <div class="values-search__addons">
+          <!-- Always rendered so screen readers announce the count when it changes -->
+          <span
+            class="values-search__count"
+            aria-live="polite"
+            :data-testid="`${ searchTestid() }-count`"
+          >{{ activeSearchQuery ? t('yamlOverridesEditor.search.matches', { count: matchCount }) : '' }}</span>
+          <button
+            v-if="matchCount"
+            type="button"
+            class="btn role-link values-search__clear"
+            :aria-label="t('yamlOverridesEditor.search.clear')"
+            :data-testid="`${ searchTestid() }-clear`"
+            @click="clearSearch"
+          >
+            <i class="icon icon-close" />
+          </button>
+        </div>
       </div>
       <YamlEditor
         ref="defaultsEditor"
@@ -338,6 +419,67 @@ defineExpose({ updateOverrides });
 
       &__description {
         color: var(--input-label);
+      }
+    }
+  }
+
+  .values-search {
+    position: relative;
+    margin-bottom: 8px;
+
+    &__icon {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      color: var(--input-placeholder);
+      pointer-events: none;
+    }
+
+    &__input {
+      width: 100%;
+      padding-left: 36px;
+
+      // We show our own clear button, only when there are matches.
+      &::-webkit-search-cancel-button {
+        -webkit-appearance: none;
+      }
+    }
+
+    // Make room so the typed text doesn't run under the count and the clear button.
+    &--active &__input {
+      padding-right: 150px;
+    }
+
+    &__addons {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding-right: 8px;
+      // Let clicks on the empty space reach the input underneath.
+      pointer-events: none;
+    }
+
+    &__count {
+      color: var(--input-label);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    &__clear {
+      color: var(--muted);
+      pointer-events: auto;
+      min-height: 0;
+      line-height: 1;
+      padding: 4px;
+
+      // `.role-link` turns white on hover, which disappears on the input.
+      &:hover, &:focus-visible {
+        color: var(--body-text);
       }
     }
   }

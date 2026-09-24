@@ -241,4 +241,72 @@ describe('component: CodeMirror.vue', () => {
       expect(ctx.appliedLineClasses).toStrictEqual([]);
     });
   });
+
+  describe('setSearchHighlight', () => {
+    // Same approach as the decorations: a controlled `this` with a mock instance.
+    const methods = (CodeMirror as any).methods;
+
+    const mockInstance = () => ({
+      addOverlay:    jest.fn(),
+      removeOverlay: jest.fn(),
+    });
+
+    const makeCtx = (cminstance: any) => ({
+      $refs:                { codeMirrorRef: cminstance ? { cminstance } : null },
+      searchHighlightQuery: '',
+      setSearchHighlight:   methods.setSearchHighlight,
+    });
+
+    it('adds the search overlay and remembers the query', () => {
+      const cminstance = mockInstance();
+      const ctx = makeCtx(cminstance);
+
+      ctx.setSearchHighlight('bar');
+
+      expect(cminstance.addOverlay).toHaveBeenCalledWith(expect.objectContaining({ name: 'yaml-search' }));
+      expect(ctx.searchHighlightQuery).toStrictEqual('bar');
+    });
+
+    it('replaces the overlay when the query changes', () => {
+      const cminstance = mockInstance();
+      const ctx = makeCtx(cminstance);
+
+      ctx.setSearchHighlight('bar');
+      ctx.setSearchHighlight('baz');
+
+      expect(cminstance.removeOverlay).toHaveBeenLastCalledWith('yaml-search');
+      expect(cminstance.addOverlay).toHaveBeenCalledTimes(2);
+      expect(ctx.searchHighlightQuery).toStrictEqual('baz');
+    });
+
+    it('does nothing when the query has not changed', () => {
+      const cminstance = mockInstance();
+      const ctx = makeCtx(cminstance);
+
+      ctx.setSearchHighlight('bar');
+      ctx.setSearchHighlight('bar');
+
+      expect(cminstance.addOverlay).toHaveBeenCalledTimes(1);
+      expect(cminstance.removeOverlay).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes the overlay without adding a new one for an empty query', () => {
+      const cminstance = mockInstance();
+      const ctx = makeCtx(cminstance);
+
+      ctx.setSearchHighlight('bar');
+      ctx.setSearchHighlight('');
+
+      expect(cminstance.removeOverlay).toHaveBeenLastCalledWith('yaml-search');
+      expect(cminstance.addOverlay).toHaveBeenCalledTimes(1);
+      expect(ctx.searchHighlightQuery).toStrictEqual('');
+    });
+
+    it('is a no-op when the editor instance is not ready', () => {
+      const ctx = makeCtx(null);
+
+      expect(() => ctx.setSearchHighlight('bar')).not.toThrow();
+      expect(ctx.searchHighlightQuery).toStrictEqual('');
+    });
+  });
 });

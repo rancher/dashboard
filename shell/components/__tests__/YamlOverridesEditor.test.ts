@@ -12,6 +12,7 @@ describe('component: YamlOverridesEditor', () => {
     methods:  {
       updateValue() {},
       setLineDecorations() {},
+      setSearchHighlight() {},
       refresh() {},
     },
   };
@@ -25,7 +26,7 @@ describe('component: YamlOverridesEditor', () => {
       ...props,
     },
     global: {
-      mocks: { t: (key: string) => key },
+      mocks: { t: (key: string, args?: object) => (args ? `${ key } ${ JSON.stringify(args) }` : key) },
       stubs: { YamlEditor: YamlEditorStub },
     },
   });
@@ -262,6 +263,138 @@ describe('component: YamlOverridesEditor', () => {
       await wrapper.setProps({ value: 'replicas: 5' });
 
       expect(rightUpdate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('searching the chart defaults', () => {
+    // With the default props the chart-defaults pane holds
+    // "replicas: 5\nsachet:\n  enabled: true\n".
+    const searchInput = (wrapper: any) => wrapper.find('[data-testid="values-defaults-search"]');
+    const countLabel = (wrapper: any) => wrapper.find('[data-testid="values-defaults-search-count"]');
+    const clearButton = (wrapper: any) => wrapper.find('[data-testid="values-defaults-search-clear"]');
+
+    const search = async(wrapper: any, query: string) => {
+      await searchInput(wrapper).setValue(query);
+      jest.runAllTimers();
+      await wrapper.vm.$nextTick();
+    };
+
+    it('does not search before the third character', async() => {
+      const wrapper = mountEditor();
+      const leftSearch = jest.spyOn(editors(wrapper).left, 'setSearchHighlight');
+
+      await search(wrapper, 'en');
+
+      expect(leftSearch).not.toHaveBeenCalledWith('en');
+      expect(countLabel(wrapper).text()).toStrictEqual('');
+    });
+
+    it('waits for the user to stop typing before searching', async() => {
+      const wrapper = mountEditor();
+      const leftSearch = jest.spyOn(editors(wrapper).left, 'setSearchHighlight');
+
+      await searchInput(wrapper).setValue('ena');
+      await searchInput(wrapper).setValue('enab');
+
+      expect(leftSearch).not.toHaveBeenCalledWith('ena');
+      expect(leftSearch).not.toHaveBeenCalledWith('enab');
+
+      jest.runAllTimers();
+
+      expect(leftSearch).toHaveBeenCalledTimes(1);
+      expect(leftSearch).toHaveBeenCalledWith('enab');
+    });
+
+    it('highlights the query in the chart-defaults editor and shows the match count', async() => {
+      const wrapper = mountEditor();
+      const leftSearch = jest.spyOn(editors(wrapper).left, 'setSearchHighlight');
+
+      await search(wrapper, 'ENAbled');
+
+      expect(leftSearch).toHaveBeenCalledWith('ENAbled');
+      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.matches {"count":1}');
+    });
+
+    it('counts every match', async() => {
+      const wrapper = mountEditor({ value: 'replicas: 5\nreplicasExtra: 1\n' });
+
+      await search(wrapper, 'replicas');
+
+      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.matches {"count":2}');
+    });
+
+    it('ignores spaces around the query', async() => {
+      const wrapper = mountEditor();
+      const leftSearch = jest.spyOn(editors(wrapper).left, 'setSearchHighlight');
+
+      await search(wrapper, '  sachet  ');
+
+      expect(leftSearch).toHaveBeenCalledWith('sachet');
+    });
+
+    it('shows a clear button only when there are matches', async() => {
+      const wrapper = mountEditor();
+
+      await search(wrapper, 'sachet');
+
+      expect(clearButton(wrapper).exists()).toBe(true);
+    });
+
+    it('shows no matches, no highlight and no clear button when nothing matches', async() => {
+      const wrapper = mountEditor();
+      const leftSearch = jest.spyOn(editors(wrapper).left, 'setSearchHighlight');
+
+      await search(wrapper, 'nothing-here');
+
+      expect(leftSearch).toHaveBeenLastCalledWith('');
+      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.matches {"count":0}');
+      expect(clearButton(wrapper).exists()).toBe(false);
+    });
+
+    it('clears the search when the clear button is clicked', async() => {
+      const wrapper = mountEditor();
+      const leftSearch = jest.spyOn(editors(wrapper).left, 'setSearchHighlight');
+
+      await search(wrapper, 'sachet');
+      await clearButton(wrapper).trigger('click');
+
+      expect((searchInput(wrapper).element as HTMLInputElement).value).toStrictEqual('');
+      expect(leftSearch).toHaveBeenLastCalledWith('');
+      expect(countLabel(wrapper).text()).toStrictEqual('');
+    });
+
+    it('clears the search when Escape is pressed', async() => {
+      const wrapper = mountEditor();
+      const leftSearch = jest.spyOn(editors(wrapper).left, 'setSearchHighlight');
+
+      await search(wrapper, 'sachet');
+      await searchInput(wrapper).trigger('keydown', { key: 'Escape' });
+
+      expect((searchInput(wrapper).element as HTMLInputElement).value).toStrictEqual('');
+      expect(leftSearch).toHaveBeenLastCalledWith('');
+    });
+
+    it('clears the highlight right away when the query gets too short', async() => {
+      const wrapper = mountEditor();
+      const leftSearch = jest.spyOn(editors(wrapper).left, 'setSearchHighlight');
+
+      await search(wrapper, 'sachet');
+      await searchInput(wrapper).setValue('sa');
+
+      expect(leftSearch).toHaveBeenLastCalledWith('');
+    });
+
+    it('recounts the matches when the chart-defaults document changes', async() => {
+      const wrapper = mountEditor();
+
+      await search(wrapper, 'sachet');
+      editors(wrapper).right.$emit('update:value', 'replicas: 5\nsachetExtra: 1\n');
+      jest.runAllTimers();
+      await wrapper.vm.$nextTick();
+      jest.runAllTimers();
+      await wrapper.vm.$nextTick();
+
+      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.matches {"count":2}');
     });
   });
 

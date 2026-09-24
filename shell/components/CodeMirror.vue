@@ -1,6 +1,7 @@
 <script>
 import { KEYMAP } from '@shell/store/prefs';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { createYamlSearchOverlay, YAML_SEARCH_OVERLAY } from '@shell/utils/yaml-search';
 
 export default {
   name: 'CodeMirror',
@@ -46,6 +47,8 @@ export default {
       // Line-background classes currently applied, so they can be removed before
       // the next `setLineDecorations` (line numbers shift as the doc is edited).
       appliedLineClasses:     [],
+      // The query highlighted by `setSearchHighlight`, empty when there is none.
+      searchHighlightQuery:   '',
     };
   },
 
@@ -288,7 +291,9 @@ export default {
         // number so the whole line reads as changed.
         ['background', 'gutter'].forEach((where) => {
           cm.addLineClass(d.line, where, className);
-          this.appliedLineClasses.push({ line: d.line, where, className });
+          this.appliedLineClasses.push({
+            line: d.line, where, className
+          });
         });
       });
     },
@@ -304,6 +309,27 @@ export default {
       this.appliedLineClasses = [];
     },
 
+    /**
+     * Highlight the lines that contain `query` (case-insensitive): their key and
+     * value are styled and every other line is dimmed. Pass an empty query to
+     * clear it. The editor stays editable, and edited lines are re-highlighted.
+     */
+    setSearchHighlight(query = '') {
+      const cm = this.$refs.codeMirrorRef?.cminstance;
+
+      if (!cm || query === this.searchHighlightQuery) {
+        return;
+      }
+
+      cm.removeOverlay(YAML_SEARCH_OVERLAY);
+
+      if (query) {
+        cm.addOverlay(createYamlSearchOverlay(query));
+      }
+
+      this.searchHighlightQuery = query;
+    },
+
     closeKeyMapInfo() {
       this.removeKeyMapBox = true;
     },
@@ -316,7 +342,7 @@ export default {
     ref="codeMirrorContainer"
     :tabindex="codeMirrorContainerTabIndex"
     class="code-mirror code-mirror-container"
-    :class="{['as-text-area']: asTextArea}"
+    :class="{['as-text-area']: asTextArea, ['search-highlighted']: !!searchHighlightQuery}"
     @focusin="focusChanged"
     @blur="focusChanged($event, true)"
   >
@@ -365,6 +391,8 @@ export default {
 
 <style lang="scss">
   $code-mirror-animation-time: 0.1s;
+  // Opacity of the text and the tint of lines without a search match.
+  $search-dim-opacity: 0.4;
 
   .code-mirror {
     &.code-mirror-container:focus-visible {
@@ -553,6 +581,36 @@ export default {
     .CodeMirror-linebackground.line-override-highlight,
     .CodeMirror-gutter-background.line-override-highlight {
       background-color: var(--info-banner-bg);
+    }
+
+    // Search results, set via `setSearchHighlight`. The extra `.CodeMirror` keeps
+    // these ahead of the base16 theme colours (`.cm-s-base16-* span.cm-atom`).
+    &.search-highlighted .codemirror-container {
+      &, .CodeMirror .CodeMirror-gutters {
+        background-color: var(--body-bg);
+      }
+    }
+
+    .CodeMirror span.cm-yaml-search-key {
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    .CodeMirror span.cm-yaml-search-value {
+      color: var(--error-hover-bg);
+      font-weight: bold;
+    }
+
+    .CodeMirror span.cm-yaml-search-dim {
+      opacity: $search-dim-opacity;
+    }
+
+    // Dim the tint of a changed line without a match too. The overlay marks the
+    // line background of those lines, and the gutter tint sits next to it in the
+    // same line wrapper.
+    .CodeMirror-linebackground.line-override-highlight.yaml-search-dim-line,
+    div:has(> .CodeMirror-linebackground.yaml-search-dim-line) > .CodeMirror-gutter-background.line-override-highlight {
+      opacity: $search-dim-opacity;
     }
   }
 

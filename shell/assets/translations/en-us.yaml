@@ -3019,6 +3019,18 @@ codeMirror:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
 
+yamlOverridesEditor:
+  search:
+    placeholder: Filter values…
+    ariaLabel: Search the chart defaults
+    matches: |-
+      {count, plural,
+        =0 {No matches}
+        =1 {1 match}
+        other {{count, number} matches}
+      }
+    clear: Clear search
+
 cruResource:
   backToForm: Back to Form
   backBody: You will lose any changes made to the YAML.
