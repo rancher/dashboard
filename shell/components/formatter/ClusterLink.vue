@@ -97,7 +97,7 @@ export default {
   }
   .conditions-alert-icon {
     color: var(--error);
-    margin-left: 4px;
+    margin-left: 8px;
   }
   :deep() {
     .labeled-tooltip, .status-icon {
@@ -114,7 +114,7 @@ export default {
   }
   .rke1-unsupported-icon {
     color: var(--warning);
-    margin-left: 4px;
+    margin-left: 8px;
     font-size: 14px;
   }
 </style>
