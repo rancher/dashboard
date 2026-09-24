@@ -390,7 +390,6 @@ export default {
   .buttons {
     display: grid;
     grid-template-areas:  "left right";
-    grid-template-columns: "min-content auto";
 
     .right {
       grid-area: right;

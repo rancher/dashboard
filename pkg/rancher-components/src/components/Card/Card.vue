@@ -114,7 +114,6 @@ export default defineComponent({
   padding: 10px;
   box-shadow: 0 0 20px var(--shadow);
   &:not(.top) {
-    align-items: top;
     flex-direction: row;
     justify-content: start;
   }

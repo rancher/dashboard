@@ -396,7 +396,6 @@ export default {
   .namespace-pod-rule {
     display: table;
     width: 100px;
-    padding: 0, 10px, 0, 0;
     text-align: center;
 
     .label {
