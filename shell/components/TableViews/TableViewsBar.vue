@@ -2,6 +2,7 @@
 import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
 import { randomStr } from '@shell/utils/string';
 import { validateQuery } from '@shell/utils/table-views';
+import { isMac, shortcutLabel } from '@shell/utils/platform';
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal';
 import AppModal from '@shell/components/AppModal.vue';
@@ -221,7 +222,7 @@ export default {
        * while you are elsewhere. A reload is where they end - nothing here is written down.
        */
       drafts:            {},
-      /** Which modal is open, if any: { kind: 'new' | 'export', view } */
+      /** Which modal is open, if any: { kind: 'export', view } */
       modal:             null,
       /**
        * Which sub menu of the View menu is open - 'group', 'columns', or null. A menu item has
@@ -235,8 +236,6 @@ export default {
        * passed over on the way there.
        */
       subMenuHovered:    false,
-      /** Name being typed in the new view modal */
-      modalName:         '',
       /** id of the view being renamed in place, and the name being typed for it */
       renamingId:        null,
       renameDraft:       '',
@@ -315,6 +314,23 @@ export default {
       return this.queryFocused ? [] : validateQuery(this.view.query, this.fields);
     },
 
+    /**
+     * The shortcuts as this keyboard writes them.
+     *
+     * The handler already answers to either modifier, so only the label was wrong: it read
+     * "CMD-S" on every machine, which is neither what a Mac draws nor what Windows calls the key.
+     * `shortcutLabel` is what the rest of the product spells its own shortcuts with.
+     */
+    shortcuts() {
+      const modifier = isMac ? '⌘' : 'Ctrl';
+
+      return {
+        save:      shortcutLabel([modifier, 'S']),
+        saveAsNew: shortcutLabel([modifier, 'Shift', 'S']),
+        duplicate: shortcutLabel([modifier, 'D']),
+      };
+    },
+
     /** What the toolbar says about the part of the query that could not be run */
     unsupportedNotice() {
       return this.t('tableViews.query.unsupported', {
@@ -356,6 +372,19 @@ export default {
       return this.allSavedViews?.[this.resourceType]?.defaultViewId || null;
     },
 
+    /**
+     * Where the table's own tab sits among the saved ones.
+     *
+     * It is not a saved view, so it has no place in that list to hold - but it can be dragged
+     * about like any other tab, so its place has to be kept somewhere. Missing means the front,
+     * which is where it was before it could be moved.
+     */
+    allTabIndex() {
+      const at = this.allSavedViews?.[this.resourceType]?.allIndex;
+
+      return Math.min(Math.max(Number.isInteger(at) ? at : 0, 0), this.savedViews.length);
+    },
+
     /** The default tab plus every saved view, in the order they are shown */
     /**
      * The strip: the table as it comes, then the saved views.
@@ -371,16 +400,21 @@ export default {
       const all = {
         id: null, name: this.t('tableViews.tabs.all'), isDefaultTab: true
       };
-      const saved = this.savedViews.map((view) => ({
+      const tabs = this.savedViews.map((view) => ({
         id: view.id, name: view.name, view
       }));
-      const lead = this.defaultViewId ? saved.findIndex((tab) => tab.view.id === this.defaultViewId) : -1;
 
-      if (lead === -1) {
-        return [all].concat(saved);
+      tabs.splice(this.allTabIndex, 0, all);
+
+      // The one the list opens on leads, wherever it had been put. With nothing set that is the
+      // table's own tab, which is what an empty default means.
+      const lead = tabs.findIndex((tab) => (this.defaultViewId ? tab.view?.id === this.defaultViewId : tab.isDefaultTab));
+
+      if (lead <= 0) {
+        return tabs;
       }
 
-      return [saved[lead], all].concat(saved.filter((_, i) => i !== lead));
+      return [tabs[lead]].concat(tabs.filter((_, i) => i !== lead));
     },
 
     /** Mid-drag the strip follows the pointer rather than the saved order */
@@ -399,14 +433,13 @@ export default {
     },
 
     /**
-     * How many tabs at the head of the strip are held there.
-     *
-     * The view the list opens on leads, because it is the one you arrive at, and the table's own
-     * tab follows it - and with no default set that tab leads on its own. Neither can be dragged
-     * away from the front, and nothing can be dropped in front of them.
+     * How many tabs at the head of the strip are held there: the one the list opens on, and only
+     * that one. It leads because it is the tab you arrive at, so it cannot be dragged out of the
+     * front and nothing can be dropped in front of it. Everything else moves freely, the table's
+     * own tab included - it is only pinned to the front while it is itself the default.
      */
     lockedTabCount() {
-      return this.defaultViewId && this.baseTabs.some((tab) => tab.view?.id === this.defaultViewId) ? 2 : 1;
+      return 1;
     },
 
     columnFields() {
@@ -577,13 +610,19 @@ export default {
     ownsTarget(target) {
       // `$el` is no use here - the component has a modal beside its bar, so its root is a
       // fragment whose first node may not be an element at all
-      const masthead = this.$refs.root?.closest?.('.fixed-header-actions');
+      const root = this.$refs.root;
 
-      if (!masthead || !target?.closest) {
+      if (!root?.closest || !target?.closest) {
         return false;
       }
 
-      return target.closest('.fixed-header-actions') === masthead;
+      // The toolbar and the table under it together: they are one list as far as the user is
+      // concerned, and a shortcut pressed while reading the rows belongs to the list being read.
+      // The masthead is the fallback for a table that is not in table views layout.
+      const listOf = (el) => el.closest('.has-table-views') || el.closest('.fixed-header-actions');
+      const mine = listOf(root);
+
+      return !!mine && listOf(target) === mine;
     },
 
     isSameConfig(a, b) {
@@ -1071,7 +1110,8 @@ export default {
           byId[view.id] = view;
         });
 
-        this.persist(order.map((key) => byId[key]).filter(Boolean));
+        // The table's own tab is not one of the saved views, so its place is kept beside them
+        this.persistAll(order.map((key) => byId[key]).filter(Boolean), this.defaultViewId, order.indexOf('all'));
       }
 
       this.tabDragOrder = null;
@@ -1207,15 +1247,22 @@ export default {
     },
 
     /**
-     * Naming a view is a form rather than a choice, so it belongs in a modal
+     * Keep the changes on the tab as a view of their own.
+     *
+     * The same act as copying a tab, and it lands the same way - the new tab in front of you with
+     * its name open for typing. The only difference is what is copied: the tab as it stands with
+     * the unsaved changes on it, rather than the view as it was last saved.
+     *
+     * It used to ask for the name in a modal first. A modal to take one word put the thing being
+     * named behind the thing naming it, and it was the one place in the toolbar where naming a
+     * view did not happen on the tab itself.
      */
     openSaveAsNew() {
       if (!this.isDirty && this.pickedViewId === undefined) {
         return;
       }
 
-      this.modal = { kind: 'new', view: null };
-      this.modalName = '';
+      this.duplicateView({ ...this.viewToSave, name: this.editingView?.name || this.t('tableViews.tabs.all') });
     },
 
     /**
@@ -1537,11 +1584,6 @@ export default {
     /**
      * The modal's name field either creates a view or renames one
      */
-    confirmName() {
-      this.saveView();
-      this.closeModal();
-    },
-
     /**
      * Export needs a format, which is more than belongs in a menu - ask in a modal.
      * `view` is only used to label it, the rows exported are whatever the view matches.
@@ -1552,7 +1594,6 @@ export default {
 
     closeModal() {
       this.modal = null;
-      this.modalName = '';
     },
 
     /**
@@ -1639,31 +1680,18 @@ export default {
       this.persistAll(views, this.defaultViewId);
     },
 
-    persistAll(views, defaultViewId) {
+    persistAll(views, defaultViewId, allIndex = this.allTabIndex) {
       // A view that no longer exists can't be the default one
       const validDefault = views.find((v) => v.id === defaultViewId) ? defaultViewId : null;
 
       this.allSavedViews = {
         ...(this.allSavedViews || {}),
-        [this.resourceType]: { views, defaultViewId: validDefault }
+        [this.resourceType]: {
+          views,
+          defaultViewId: validDefault,
+          allIndex:      Math.min(Math.max(allIndex, 0), views.length)
+        }
       };
-    },
-
-    saveView() {
-      const name = (this.modalName || '').trim();
-
-      if (!name) {
-        return;
-      }
-
-      const view = {
-        id: randomStr(8),
-        name,
-        ...this.viewToSave,
-      };
-
-      this.persist(this.savedViews.filter((v) => v.name !== name).concat([view]));
-      this.pickedViewId = view.id;
     },
 
     updateView(saved) {
@@ -1699,16 +1727,12 @@ export default {
         return;
       }
 
-      // Anywhere in this table's toolbar counts, the filter box included - saving the view is
-      // what ⌘S means while you are working on one, whether you are typing its query or not.
-      // Somewhere else on the page that takes text does not: ⌘S there belongs to whatever the
-      // user is writing in.
+      // Only for the list the keyboard is actually in - its toolbar, its filter box or its rows.
+      // A page can carry two of these, each with its own views, and a shortcut has to name one of
+      // them; the focus is what names it. It also keeps ⌘S out of whatever else on the page the
+      // user might be writing in, which is what the old check was for.
       if (!this.ownsTarget(event.target)) {
-        const tag = (event.target?.tagName || '').toLowerCase();
-
-        if (tag === 'input' || tag === 'textarea' || event.target?.isContentEditable) {
-          return;
-        }
+        return;
       }
 
       const match = SHORTCUTS.find((s) => s.key === event.key.toLowerCase() && s.shift === event.shiftKey);
@@ -1857,7 +1881,7 @@ export default {
                       </template>
                       {{ t('tableViews.view.saveChanges') }}
                       <template #after>
-                        <span class="menu-shortcut">{{ t('tableViews.shortcut.save') }}</span>
+                        <span class="menu-shortcut">{{ shortcuts.save }}</span>
                       </template>
                     </rc-dropdown-item>
                     <rc-dropdown-item
@@ -1869,7 +1893,7 @@ export default {
                       </template>
                       {{ t('tableViews.view.saveAsNew') }}
                       <template #after>
-                        <span class="menu-shortcut">{{ t('tableViews.shortcut.saveAsNew') }}</span>
+                        <span class="menu-shortcut">{{ shortcuts.saveAsNew }}</span>
                       </template>
                     </rc-dropdown-item>
                     <rc-dropdown-item
@@ -1905,7 +1929,7 @@ export default {
                     </template>
                     {{ t('tableViews.tab.duplicate') }}
                     <template #after>
-                      <span class="menu-shortcut">{{ t('tableViews.shortcut.duplicate') }}</span>
+                      <span class="menu-shortcut">{{ shortcuts.duplicate }}</span>
                     </template>
                   </rc-dropdown-item>
 
@@ -2207,49 +2231,6 @@ export default {
       </rc-dropdown>
     </div>
   </div>
-
-  <!-- Naming a view asks for more than belongs in a menu, so it opens here instead -->
-  <app-modal
-    v-if="modal && modal.kind === 'new'"
-    name="tableViewsModal"
-    :width="420"
-    height="auto"
-    :trigger-focus-trap="true"
-    data-testid="table-views-modal"
-    @close="closeModal"
-  >
-    <div class="view-modal">
-      <h4>
-        {{ t('tableViews.save.newView') }}
-      </h4>
-      <input
-        v-model="modalName"
-        type="text"
-        class="input-sm"
-        :placeholder="t('tableViews.save.namePlaceholder')"
-        data-testid="table-views-modal-name"
-        @keydown.enter="confirmName"
-      >
-      <div class="view-modal-actions">
-        <button
-          type="button"
-          class="btn role-secondary"
-          @click="closeModal"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-        <button
-          type="button"
-          class="btn role-primary"
-          :disabled="!modalName.trim()"
-          data-testid="table-views-modal-save"
-          @click="confirmName"
-        >
-          {{ t('generic.save') }}
-        </button>
-      </div>
-    </div>
-  </app-modal>
 
   <!-- The same modal a resource's own Export As... action opens, which is why it no longer brings
        its own frame: there it is put up by the modal manager. -->
@@ -2716,21 +2697,6 @@ $toolbar-min-width: 544px;
   flex: none;
   border-radius: 50%;
   background: var(--error);
-}
-
-.view-modal {
-  padding: 16px;
-
-  h4 { margin-bottom: 12px; }
-
-  input { width: 100%; }
-
-  .view-modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 16px;
-  }
 }
 
 // A menu is 8 clear at the top and bottom, and that 8 is the panel's own. RcDropdown's target
