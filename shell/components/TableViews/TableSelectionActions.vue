@@ -12,7 +12,7 @@ import { useStore } from 'vuex';
 import { RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator } from '@components/RcDropdown';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { useI18n } from '@shell/composables/useI18n';
-import type { TableAction } from '@shell/utils/table-views';
+import type { TableAction } from '@shell/types/table-views';
 
 const props = withDefaults(defineProps<{
   /** The table's availableActions */
