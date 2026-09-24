@@ -6,6 +6,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { qase } from '@/cypress/support/qase';
 
 describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
@@ -27,15 +28,15 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.login();
   });
 
-  it('should show the cluster drivers list page', () => {
+  qase(2997, it('should show the cluster drivers list page', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.title().should('be.visible');
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-  });
+  }));
 
-  it('can attempt to refresh kubernetes metadata', () => {
+  qase(18579, it('can attempt to refresh kubernetes metadata', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
@@ -49,9 +50,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
         cy.get('.growl-text').contains('Error refreshing cluster drivers').should('be.visible');
       }
     });
-  });
+  }));
 
-  it('can create new driver', () => {
+  qase(2996, it('can create new driver', () => {
     // Clean up any existing driver with the same URL to avoid 409 conflicts
     cy.getRancherResource('v3', 'kontainerdrivers').then((resp: Cypress.Response<any>) => {
       const existingDriver = resp.body.data?.find((driver: any) => driver.url === downloadUrl);
@@ -96,9 +97,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     });
     createCluster.waitForPage('type=example');
     createCluster.mastheadTitle().should('contain', 'example');
-  });
+  }));
 
-  it('can activate drivers in bulk', () => {
+  qase(3566, it('can activate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
 
@@ -159,9 +160,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.waitForPage();
     createCluster.gridElementExistenceByName(openTelekomDriver, 'exist');
     createCluster.gridElementExistenceByName(oracleDriver, 'exist');
-  });
+  }));
 
-  it('will show error if could not deactivate driver', () => {
+  qase(8549, it('will show error if could not deactivate driver', () => {
     cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate', {
       statusCode: 500,
       body:       { message: `Could not deactivate driver` }
@@ -183,9 +184,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       deactivateDialog.errorBannerContent('Could not deactivate driver').should('exist').and('be.visible');
     });
     deactivateDialog.cancel();
-  });
+  }));
 
-  it('can deactivate driver', () => {
+  qase(2998, it('can deactivate driver', () => {
     const requestData = { };
 
     KontainerDriversPagePo.navTo();
@@ -212,9 +213,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     clusterList.createCluster();
     createCluster.waitForPage();
     createCluster.gridElementExistenceByName('example', 'not.exist');
-  });
+  }));
 
-  it('can activate driver', () => {
+  qase(2999, it('can activate driver', () => {
     const requestData = { };
 
     KontainerDriversPagePo.navTo();
@@ -238,9 +239,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     clusterList.createCluster();
     createCluster.waitForPage();
     createCluster.gridElementExistenceByName('example', 'exist');
-  });
+  }));
 
-  it('will show error if could not activate driver', () => {
+  qase(8550, it('will show error if could not activate driver', () => {
     cy.intercept('POST', '/v3/kontainerDrivers/linodekubernetesengine?action=activate', {
       statusCode: 500,
       body:       { message: `Could not activate driver` }
@@ -258,9 +259,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.wait('@activationError').then(() => {
       cy.get('.growl-text').contains('Could not activate driver').should('be.visible');
     });
-  });
+  }));
 
-  it('can edit a cluster driver', () => {
+  qase(3568, it('can edit a cluster driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     // Ensure table is loaded and no modal overlays
@@ -279,9 +280,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     clusterList.createCluster();
     createCluster.waitForPage();
     createCluster.gridElementExistenceByName('example', 'exist');
-  });
+  }));
 
-  it('can deactivate drivers in bulk', () => {
+  qase(3567, it('can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     // Ensure table is loaded and no modal overlays
@@ -315,9 +316,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.waitForPage();
     createCluster.gridElementExistenceByName(openTelekomDriver, 'not.exist');
     createCluster.gridElementExistenceByName(oracleDriver, 'not.exist');
-  });
+  }));
 
-  it('can delete a driver', () => {
+  qase(16625, it('can delete a driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
 
@@ -355,7 +356,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
             .should('not.contain', exampleDriver);
         });
       });
-  });
+  }));
 
   after(() => {
     if (removeDriver) {
@@ -370,7 +371,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.applyDefaultTestTheme();
   });
 
-  it('should display kontainer drivers list page', () => {
+  qase(18401, it('should display kontainer drivers list page', () => {
     const driversPage = new KontainerDriversPagePo();
 
     KontainerDriversPagePo.goTo('_');
@@ -384,7 +385,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
     // takes percy snapshot.
     cy.percySnapshot('kontainer drivers list page');
-  });
+  }));
 
   after(() => {
     cy.restoreProductDefaultTestTheme();
