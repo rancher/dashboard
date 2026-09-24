@@ -40,7 +40,7 @@ export default {
     isFormValid() {
       const hasContainerErrors = this.allContainers.some(this.hasContainerError);
 
-      return this.fvFormIsValid && !hasContainerErrors && !this.tabErrors.volumeClaimTemplates;
+      return this.fvFormIsValid && !hasContainerErrors && !this.tabErrors.podStorage && !this.tabErrors.volumeClaimTemplates;
     },
 
     serviceOptions() {

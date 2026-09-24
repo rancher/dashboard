@@ -276,6 +276,16 @@ export default function(
 
   const volumeMountPath: Validator = (val: any) => val?.volumeMounts?.some((mount: any) => !mount?.mountPath) ? t('workload.validation.volumeMountPath', { name: val.name }) : undefined;
 
+  const persistentVolumeClaimSpec: Validator = (val: any) => {
+    if (!val?.spec?.resources?.requests?.storage) {
+      return t('validation.required', { key: t('persistentVolumeClaim.capacity') });
+    }
+
+    if (!val?.spec?.accessModes?.length) {
+      return t('validation.required', { key: t('persistentVolumeClaim.accessModes') });
+    }
+  };
+
   const containerImages: Validator = (val: any | [any]) => {
     const containers = val.jobTemplate ? val?.jobTemplate?.spec?.template?.spec?.containers : val?.template?.spec?.containers;
 
@@ -611,6 +621,7 @@ export default function(
     containerName,
     localhostProfile,
     volumeMountPath,
+    persistentVolumeClaimSpec,
     cronSchedule,
     dnsLabel,
     dnsLabelIanaServiceName,

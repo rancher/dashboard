@@ -4,6 +4,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import workloadMixin from '@shell/edit/workload/mixins/workload.js';
 
 describe('workload mixin: storage validation', () => {
+  const validClaimSpec = { resources: { requests: { storage: '10Gi' } }, accessModes: ['ReadWriteOnce'] };
   const mockT = (key: string, args?: { key?: string, name?: string }) => (args ? `${ key }:${ args.key ?? args.name }` : key);
 
   const Host = {
@@ -131,12 +132,49 @@ describe('workload mixin: storage validation', () => {
 
   it('should accept a named claim template whose mount has a mount point', () => {
     const vm = mountWith({
-      volumeClaimTemplates: [{ metadata: { name: 'data' } }],
+      volumeClaimTemplates: [{ metadata: { name: 'data' }, spec: validClaimSpec }],
       volumeMounts:         [{ name: 'data', mountPath: '/data' }],
     });
 
     expect(vm.fvFormIsValid).toStrictEqual(true);
     expect(vm.tabErrors.volumeClaimTemplates).toStrictEqual(false);
+  });
+
+  it.each([
+    ['without a capacity', { resources: { requests: {} }, accessModes: ['ReadWriteOnce'] }, true],
+    ['without an access mode', { resources: { requests: { storage: '10Gi' } }, accessModes: [] }, true],
+    ['with a capacity and an access mode', validClaimSpec, false],
+  ])('should flag the pod storage tab for a new persistent volume claim %s', (_desc, spec, flagged) => {
+    const vm = mountWith({
+      volumes: [{
+        name: 'vol', _type: 'createPVC', persistentVolumeClaim: { claimName: 'claim' }, __newPvc: { metadata: { name: 'claim' }, spec }
+      }]
+    });
+
+    expect(vm.tabErrors.podStorage).toStrictEqual(flagged);
+  });
+
+  it('should not check the new claim form of a volume that uses an existing claim', () => {
+    const vm = mountWith({
+      volumes: [{
+        name: 'vol', _type: 'persistentVolumeClaim', persistentVolumeClaim: { claimName: 'claim' }, __newPvc: { metadata: {}, spec: { resources: { requests: {} }, accessModes: [] } }
+      }]
+    });
+
+    expect(vm.tabErrors.podStorage).toStrictEqual(false);
+  });
+
+  it.each([
+    ['without a capacity', { resources: { requests: {} }, accessModes: ['ReadWriteOnce'] }, true],
+    ['without an access mode', { resources: { requests: { storage: '10Gi' } }, accessModes: [] }, true],
+    ['with a capacity and an access mode', validClaimSpec, false],
+  ])('should flag the volume claim templates tab for a claim template %s', (_desc, spec, flagged) => {
+    const vm = mountWith({
+      volumeClaimTemplates: [{ metadata: { name: 'data' }, spec }],
+      volumeMounts:         [{ name: 'data', mountPath: '/data' }],
+    });
+
+    expect(vm.tabErrors.volumeClaimTemplates).toStrictEqual(flagged);
   });
 
   it('should render container and tab errors without recursive updates', async() => {
@@ -158,7 +196,7 @@ describe('workload mixin: storage validation', () => {
   it('should flag the container storage tab, not the volume claim templates tab, for an empty volume mount point', () => {
     const vm = mountWith({
       volumes:              [{ name: 'vol', emptyDir: {} }],
-      volumeClaimTemplates: [{ metadata: { name: 'data' } }],
+      volumeClaimTemplates: [{ metadata: { name: 'data' }, spec: validClaimSpec }],
       volumeMounts:         [{ name: 'data', mountPath: '/data' }, { name: 'vol' }],
     });
 

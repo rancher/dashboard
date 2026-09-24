@@ -46,7 +46,6 @@ export default {
           v-model:value="value.vsphereVolume.storagePolicyID"
           :mode="mode"
           :label="t('workload.storage.csi.storagePolicyID')"
-          :required="true"
         />
       </div>
       <div class="col span-6">
