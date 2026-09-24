@@ -375,14 +375,17 @@ export default {
     },
 
     tabErrors() {
-      const { volumeMountPath } = formRulesGenerator(this.$store.getters['i18n/t'], {});
+      const { volumeMountPath, persistentVolumeClaimSpec } = formRulesGenerator(this.$store.getters['i18n/t'], {});
+      const newVolumeClaims = (this.podTemplateSpec?.volumes || []).filter((volume) => volume._type === 'createPVC' && volume.__newPvc).map((volume) => volume.__newPvc);
       const tabErrors = {
         podSecurityContext:   this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0,
-        podStorage:           this.fvGetPathErrors(Object.keys(REQUIRED_VOLUME_FIELDS).map(volumeFieldPath))?.length > 0,
-        volumeClaimTemplates: this.fvGetPathErrors(['spec.volumeClaimTemplates.metadata.name'])?.length > 0 || this.allContainers.some((container) => !!volumeMountPath({
-          name:         container.name,
-          volumeMounts: this.volumeMountsOf(container, true)
-        }))
+        podStorage:           this.fvGetPathErrors(Object.keys(REQUIRED_VOLUME_FIELDS).map(volumeFieldPath))?.length > 0 || newVolumeClaims.some((claim) => !!persistentVolumeClaimSpec(claim)),
+        volumeClaimTemplates: this.fvGetPathErrors(['spec.volumeClaimTemplates.metadata.name'])?.length > 0 ||
+          (this.spec?.volumeClaimTemplates || []).some((claim) => !!persistentVolumeClaimSpec(claim)) ||
+          this.allContainers.some((container) => !!volumeMountPath({
+            name:         container.name,
+            volumeMounts: this.volumeMountsOf(container, true)
+          }))
       };
 
       return tabErrors;

@@ -441,6 +441,27 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  it('"persistentVolumeClaimSpec" : returns undefined for a claim with a capacity and an access mode', () => {
+    const testValue = { spec: { resources: { requests: { storage: '10Gi' } }, accessModes: ['ReadWriteOnce'] } };
+    const formRuleResult = formRules.persistentVolumeClaimSpec(testValue);
+
+    expect(formRuleResult).toBeUndefined();
+  });
+
+  it.each([
+    ['without a capacity', { spec: { resources: { requests: {} }, accessModes: ['ReadWriteOnce'] } }, 'persistentVolumeClaim.capacity'],
+    ['with a null capacity', { spec: { resources: { requests: { storage: null } }, accessModes: ['ReadWriteOnce'] } }, 'persistentVolumeClaim.capacity'],
+    ['without an access mode', { spec: { resources: { requests: { storage: '10Gi' } }, accessModes: [] } }, 'persistentVolumeClaim.accessModes'],
+  ])('"persistentVolumeClaimSpec" : returns correct message for a claim %s', (_desc, testValue, labelKey) => {
+    const formRuleResult = formRules.persistentVolumeClaimSpec(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'validation.required',
+      key:     JSON.stringify({ message: labelKey })
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
   it('"containerImages" : returns undefined when valid jobTemplate value is supplied', () => {
     const testValue = { jobTemplate: { spec: { template: { spec: { containers: [{ image: 'imageName', name: 'name' }] } } } } };
     const formRuleResult = formRules.containerImages(testValue);

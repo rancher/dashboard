@@ -132,4 +132,20 @@ describe('component: PVC', () => {
     expect(required('')).toStrictEqual('validation.required:persistentVolumeClaim.name');
     expect(required('claim')).toBeUndefined();
   });
+
+  it('should require the capacity of a new persistent volume', () => {
+    const t = (key: string, args?: { key: string }) => (args ? `${ key }:${ args.key }` : key);
+    const wrapper = shallowMount(PVC, {
+      props: {
+        savePvcHookName: '',
+        value:           { metadata: {}, spec: { resources: { requests: {} } } },
+      },
+      global: { mocks: { $store: { dispatch: jest.fn(() => Promise.resolve([])), getters: { 'i18n/t': t } } } },
+    });
+
+    const [required] = wrapper.findComponent({ name: 'UnitInput' }).vm.$attrs.rules as any[];
+
+    expect(required('')).toStrictEqual('validation.required:persistentVolumeClaim.capacity');
+    expect(required('10')).toBeUndefined();
+  });
 });
