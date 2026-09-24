@@ -148,11 +148,6 @@ export default {
         .cm-editor {
           min-height: 400px;
           max-height: 400px;
-          background-color: var(--yaml-editor-bg);
-        }
-
-        .cm-gutters {
-          background-color: var(--yaml-editor-bg);
         }
       }
     }
