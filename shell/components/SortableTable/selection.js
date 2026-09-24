@@ -518,7 +518,7 @@ export default {
           let tr = input.closest('tr');
           let first = true;
 
-          while ( tr && (first || tr.classList.contains('sub-row') || tr.classList.contains('additional-sub-row')) ) {
+          while ( tr && (first) ) {
             if (on) {
               tr.classList.add('row-selected');
             } else {
