@@ -47,8 +47,6 @@ const setField = (field: keyof FleetPolicySource, value: string | string[]) => {
 const allowedSecrets = computed(() => (props.value[secretFields.value.allowed] as string[]) || []);
 const restricted = defineModel<boolean>('restricted', { default: false });
 
-const optionName = (option: FleetPolicyNameOption) => (typeof option === 'string' ? option : option.value);
-
 const defaultServiceAccount = computed({
   get: () => props.value.defaultServiceAccount || '',
   set: (val: string) => {
@@ -59,18 +57,6 @@ const defaultServiceAccount = computed({
 const defaultSecret = computed({
   get: () => (props.value[secretFields.value.default] as string) || '',
   set: (val: string) => setField(secretFields.value.default, val || ''),
-});
-
-// A name the policy would reject is not worth offering, so once the secrets are restricted the
-// default is chosen from the allowed ones - including any allowed name that has no secret yet
-const defaultSecretOptions = computed(() => {
-  if (!restricted.value) {
-    return props.secretOptions;
-  }
-
-  return allowedSecrets.value.map((name) => {
-    return props.secretOptions.find((option) => optionName(option) === name) || { label: name, value: name };
-  });
 });
 
 const restrictOptions = computed(() => [
@@ -147,7 +133,7 @@ const createOption = (name: string) => ({ label: name, value: name });
         <div class="col span-6 policy-field">
           <LabeledSelect
             v-model:value="defaultSecret"
-            :options="defaultSecretOptions"
+            :options="props.secretOptions"
             :label="t(`${ prefix }.defaultSecret.label`)"
             :placeholder="t('fleet.policy.placeholder.secret')"
             :mode="props.mode"
