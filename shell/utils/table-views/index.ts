@@ -6,7 +6,9 @@
  * Everything here is pure so it can be unit tested and reused by the toolbar, the export menu
  * and the share-by-url handling. The shapes it passes around are in @shell/types/table-views.
  *
- * This is the whole surface; a caller that only wants one part can import that file directly.
+ * The whole surface, so that `@shell/utils/table-views` keeps meaning what it did before the
+ * split - an extension importing it does not have to know how the file was broken up. Inside
+ * the repo, import the part you actually use.
  */
 export * from '@shell/utils/table-views/fields';
 export * from '@shell/utils/table-views/query';
