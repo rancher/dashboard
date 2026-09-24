@@ -145,20 +145,14 @@ export default {
 </script>
 
 <template>
-  <PaginatedResourceTable
-    v-if="!!schema"
-    :schema="schema"
-    :headers="eventHeaders"
-    :pagination-headers="paginationHeaders"
-
-    key-field="id"
-    :search="false"
-    :table-actions="false"
-    :row-actions="false"
-    :groupable="false"
-    :rows-per-page="rowsPerPage"
-  >
-    <template v-slot:header-right>
+  <div>
+    <!-- Above the table rather than beside the filter, which is where the Certificates tab puts
+         its own link. Both tabs are a list of one cluster's things with a way out to the full
+         list, and they should read the same way. -->
+    <div
+      v-if="!!schema"
+      class="events-table-link-row"
+    >
       <router-link
         data-testid="events-link"
         :to="allEventsLink"
@@ -188,8 +182,21 @@ export default {
           </rc-dropdown-item>
         </template>
       </rc-dropdown>
-    </template>
-  </PaginatedResourceTable>
+    </div>
+    <PaginatedResourceTable
+      v-if="!!schema"
+      :schema="schema"
+      :headers="eventHeaders"
+      :pagination-headers="paginationHeaders"
+
+      key-field="id"
+      :search="false"
+      :table-actions="false"
+      :row-actions="false"
+      :groupable="false"
+      :rows-per-page="rowsPerPage"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -197,6 +204,15 @@ export default {
   color: var(--primary);
   padding: 0 8px;
 }
+// The same shape the Certificates tab gives its own link - pushed to the right, clear of the
+// table below it
+.events-table-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
 .events-link {
   align-self: center;
   margin-right: 10px;

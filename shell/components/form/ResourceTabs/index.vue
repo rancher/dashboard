@@ -32,6 +32,19 @@ export default {
 
   mixins: [CreateEditView],
 
+  /**
+   * Every table under these tabs is one resource's own list - this deployment's pods, this
+   * cluster's events - rather than the type's list. Saved views are keyed by type and kept per
+   * user, so there is nothing for a view of "all events" to mean in here, and saving one would
+   * put it on the real list. The tables take the filter and the View menu and leave the tabs.
+   *
+   * Told to them rather than worked out by each: a table has no way of knowing what it has been
+   * embedded in, and the route only says so when the page happens to name a resource in it.
+   */
+  provide() {
+    return { insideDetailTabs: true };
+  },
+
   props: {
     // resource instance
     value: {
