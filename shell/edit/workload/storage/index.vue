@@ -314,15 +314,6 @@ export default {
   padding: 20px;
   margin: 20px 0px 20px 0px;
   position: relative;
-
-  :deep() .code-mirror {
-    .cm-editor {
-      background-color: var(--yaml-editor-bg);
-      & .cm-gutters {
-        background-color: var(--yaml-editor-bg);
-      }
-    }
-  }
 }
 
 .remove-vol {

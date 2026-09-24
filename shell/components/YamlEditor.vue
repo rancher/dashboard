@@ -243,13 +243,6 @@ export default {
 
   .codemirror-container  {
     position: relative;
-
-    .cm-editor {
-      background-color: var(--yaml-editor-bg);
-      & .cm-gutters {
-        background-color: var(--yaml-editor-bg);
-      }
-    }
   }
 
   .diff-mode {

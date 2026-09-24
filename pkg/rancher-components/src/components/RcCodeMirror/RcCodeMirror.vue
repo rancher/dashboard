@@ -14,7 +14,6 @@
  *   v-model="yaml"
  *   language="yaml"
  *   keymap="vim"
- *   theme="one-dark"
  *   :read-only="false"
  *   :line-wrapping="true"
  *   :fold-options="{ strategy: 'indent' }"
@@ -49,17 +48,17 @@ import {
 } from '@codemirror/language';
 import { closeBrackets, autocompletion } from '@codemirror/autocomplete';
 import { search } from '@codemirror/search';
-import { oneDark } from '@codemirror/theme-one-dark';
 import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
-import type { RcCodeMirrorProps, RcCodeMirrorTheme } from './types';
+import { rancherTheme } from './extensions/theme';
+import type { RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
 
 const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
   modelValue:   '',
   language:     undefined,
   keymap:       undefined,
-  theme:        'none',
+  theme:        'rancher',
   variant:      'editor',
   readOnly:     false,
   lineNumbers:  true,
@@ -88,9 +87,9 @@ const readOnlyCompartment = new Compartment();
 const lineNumbersCompartment = new Compartment();
 const lineWrappingCompartment = new Compartment();
 
-function getThemeExtension(theme?: RcCodeMirrorTheme): Extension {
-  if (theme === 'one-dark') {
-    return oneDark;
+function getThemeExtension(theme?: RcCodeMirrorTheme, variant?: RcCodeMirrorVariant): Extension {
+  if (theme === 'rancher' && variant !== 'input') {
+    return rancherTheme;
   }
 
   return [];
@@ -163,7 +162,7 @@ onMounted(() => {
       foldExt,
       languageCompartment.of(getLanguageExtension(props.language)),
       keymapCompartment.of(getKeymapExtension(props.keymap)),
-      themeCompartment.of(getThemeExtension(props.theme)),
+      themeCompartment.of(getThemeExtension(props.theme, props.variant)),
       lineNumbersCompartment.of(getLineNumbersExtension(showLineNumbers())),
       lineWrappingCompartment.of(getLineWrappingExtension(wrapLines())),
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
@@ -228,9 +227,9 @@ watch(
 
 // Hot-swap theme
 watch(
-  () => props.theme,
-  (theme) => {
-    view.value?.dispatch({ effects: themeCompartment.reconfigure(getThemeExtension(theme)) });
+  () => [props.theme, props.variant] as const,
+  ([theme, variant]) => {
+    view.value?.dispatch({ effects: themeCompartment.reconfigure(getThemeExtension(theme, variant)) });
   }
 );
 
@@ -271,14 +270,32 @@ defineExpose({ view });
 
 <style lang="scss" scoped>
 .rc-code-mirror {
+  --rc-cm-bg: #FFFFFF;
+  --rc-cm-selection: #E0E0E0;
+  --rc-cm-key: #1A4FA8;
+  --rc-cm-string: #8A4B10;
+  --rc-cm-keyword: #9A2B94;
+  --rc-cm-comment: #5B616D;
+  --rc-cm-text: #16181D;
+  --rc-cm-gutter: #5B626C;
+
   display: contents;
 
   :deep(.cm-editor) {
     height: 100%;
   }
 
-  :deep(.cm-editor.cm-focused) {
+  &.rc-code-mirror--editor :deep(.cm-editor.cm-focused) {
     outline: none;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 2px solid var(--primary-keyboard-focus);
+      pointer-events: none;
+      z-index: 1;
+    }
   }
 
   &.rc-code-mirror--input :deep(.cm-editor) {
@@ -295,6 +312,7 @@ defineExpose({ view });
     }
 
     &.cm-focused {
+      outline: none;
       border-color: var(--primary-border);
     }
 
@@ -318,5 +336,16 @@ defineExpose({ view });
       background-color: var(--primary);
     }
   }
+}
+
+.rc-code-mirror:is(.theme-dark *) {
+  --rc-cm-bg: #171C22;
+  --rc-cm-selection: #303030;
+  --rc-cm-key: #79B8FF;
+  --rc-cm-string: #E0A458;
+  --rc-cm-keyword: #E48AD8;
+  --rc-cm-comment: #9AA1AC;
+  --rc-cm-text: #E6E9EF;
+  --rc-cm-gutter: #9AA1AC;
 }
 </style>

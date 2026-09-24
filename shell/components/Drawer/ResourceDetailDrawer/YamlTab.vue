@@ -34,10 +34,6 @@ const yamlComponent: any = useTemplateRef('yaml');
     background-color: var(--body-bg);
     border-radius: var(--border-radius-md);
     padding: 16px;
-
-    .cm-editor, .cm-gutters {
-      background-color: var(--body-bg);
-    }
   }
 }
 </style>
