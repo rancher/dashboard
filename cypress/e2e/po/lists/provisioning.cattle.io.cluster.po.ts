@@ -24,12 +24,16 @@ export default class ProvClusterListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(1);
   }
 
-  name(clusterName: string) {
+  badge(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(2);
   }
 
+  name(clusterName: string) {
+    return this.resourceTable().sortableTable().rowWithName(clusterName).column(3);
+  }
+
   version(clusterName: string) {
-    return this.resourceTable().sortableTable().rowWithName(clusterName).column(4);
+    return this.resourceTable().sortableTable().rowWithName(clusterName).column(5);
   }
 
   provider(clusterName: string) {
@@ -52,6 +56,12 @@ export default class ProvClusterListPo extends BaseResourceList {
   explore(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName)
       .get('[data-testid="cluster-manager-list-explore-management"]');
+  }
+
+  pin(clusterName: string) {
+    return this.resourceTable().sortableTable().rowWithName(clusterName)
+      .self()
+      .find('[data-testid="cluster-row-pin"]');
   }
 
   actionMenu(clusterName: string) {

@@ -15,6 +15,17 @@ export const STATE = {
   formatter: 'BadgeStateFormatter',
 };
 
+export const CLUSTER_BADGE = {
+  name:      'badge',
+  labelKey:  'tableHeaders.badge',
+  value:     'nameDisplay',
+  formatter: 'ClusterBadgeIcon',
+  align:     'center',
+  width:     60,
+  sort:      false,
+  search:    false,
+};
+
 export const USER_STATE = {
   name:      'user-state',
   labelKey:  'tableHeaders.userState',
