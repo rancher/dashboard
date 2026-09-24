@@ -1,6 +1,6 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EditorView } from '@codemirror/view';
-import { foldable } from '@codemirror/language';
+import { foldable, foldEffect, foldedRanges } from '@codemirror/language';
 import { foldByLineMatch } from './extensions/fold';
 import RcCodeMirror from './RcCodeMirror.vue';
 
@@ -325,6 +325,21 @@ describe('component: RcCodeMirror', () => {
   });
 
   describe('foldGutter prop', () => {
+    it('should show the design marker on folded content and unfold when clicked', () => {
+      mountEditor({ language: 'yaml', modelValue: 'metadata:\n  name: test\nkind: Pod' });
+      const view = getView(wrapper);
+      const range = foldable(view.state, 0, view.state.doc.line(1).to);
+
+      expect(range).not.toBeNull();
+      view.dispatch({ effects: foldEffect.of(range!) });
+      const marker = wrapper.get('.cm-foldPlaceholder');
+
+      expect(marker.text()).toStrictEqual('↔️');
+      expect(marker.attributes('aria-label')).toStrictEqual('folded code');
+      marker.element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(foldedRanges(view.state).size).toStrictEqual(0);
+    });
+
     it('should show the fold gutter by default', () => {
       mountEditor();
 

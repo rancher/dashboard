@@ -1,6 +1,6 @@
 import type { Extension, EditorState } from '@codemirror/state';
 import {
-  foldGutter as cmFoldGutter, foldService, foldEffect, foldable, syntaxTree, ensureSyntaxTree
+  codeFolding, foldGutter as cmFoldGutter, foldService, foldEffect, foldable, syntaxTree, ensureSyntaxTree
 } from '@codemirror/language';
 import type { EditorView } from '@codemirror/view';
 import type { SyntaxNode } from '@lezer/common';
@@ -111,7 +111,8 @@ export const bracketFoldService: Extension = foldService.of(
 );
 
 export function buildFoldExtension(opts?: FoldOptions): Extension {
-  const extensions: Extension[] = [cmFoldGutter()];
+  // The gutter enables folding; this configuration replaces its default ellipsis.
+  const extensions: Extension[] = [cmFoldGutter(), codeFolding({ placeholderText: '↔️' })];
   const strategy = opts?.strategy ?? 'language';
 
   if (strategy === 'indent') {
