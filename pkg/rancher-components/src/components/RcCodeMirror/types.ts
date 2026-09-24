@@ -5,7 +5,7 @@ export type RcCodeMirrorLanguage = 'yaml' | 'json';
 
 export type RcCodeMirrorKeymap = 'default' | 'vim' | 'emacs';
 
-export type RcCodeMirrorTheme = 'one-dark' | 'none';
+export type RcCodeMirrorTheme = 'rancher' | 'none';
 
 /**
  * - `editor`: a code editor, with line numbers and a fold gutter
