@@ -3,7 +3,7 @@ import { createStore } from 'vuex';
 
 import TableViewsBar from '@shell/components/TableViews/TableViewsBar.vue';
 import { TABLE_VIEWS } from '@shell/store/prefs';
-import { isViewDirty, selectedViewIdFor } from '@shell/utils/table-views';
+import { isViewDirty, selectedViewIdFor } from '@shell/utils/table-views/views';
 
 const EMPTY = {
   query: '', columns: null, labelColumns: [], groupBy: null

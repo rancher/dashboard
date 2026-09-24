@@ -18,10 +18,11 @@ import { useStore } from 'vuex';
 
 import RcSeparator from '@components/RcSeparator/RcSeparator.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import { LABEL_FIELD_PREFIX, valuesInUse } from '@shell/utils/table-views/fields';
 import {
-  CONNECTIVES, LABEL_FIELD_PREFIX, NEGATORS, highlightQuery, isNegator, quoteIfNeeded, replaceToken, scanQuery, tokenAt, valuesInUse
-} from '@shell/utils/table-views';
-import type { ViewField } from '@shell/utils/table-views';
+  CONNECTIVES, NEGATORS, highlightQuery, isNegator, quoteIfNeeded, replaceToken, scanQuery, tokenAt
+} from '@shell/utils/table-views/query';
+import type { ViewField } from '@shell/types/table-views';
 
 /** How close to the window's edge the list may come when the caret it follows is near one */
 const MENU_VIEWPORT_MARGIN = 20;

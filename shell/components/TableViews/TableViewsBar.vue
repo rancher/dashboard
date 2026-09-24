@@ -18,8 +18,9 @@ import { useI18n } from '@shell/composables/useI18n';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { isMac, shortcutLabel } from '@shell/utils/platform';
 import { randomStr } from '@shell/utils/string';
-import { isViewDirty, moveInOrder, selectedViewIdFor, validateQuery } from '@shell/utils/table-views';
-import type { SavedView, ViewField, ViewState } from '@shell/utils/table-views';
+import { validateQuery } from '@shell/utils/table-views/query';
+import { isViewDirty, moveInOrder, selectedViewIdFor } from '@shell/utils/table-views/views';
+import type { SavedView, ViewField, ViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 
 /** How far the pointer travels with a row held before it counts as a drag rather than a click */
