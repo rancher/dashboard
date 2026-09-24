@@ -15,6 +15,7 @@ import {
   ButtonSizeNewProps,
   ButtonSize,
   ButtonVariant,
+  ButtonSeverityProps,
   IconProps,
   NavigationProps,
 } from './types';
@@ -27,7 +28,6 @@ const buttonVariants: { variant: ButtonVariant, className: string }[] = [
   { variant: 'link', className: 'variant-link' },
   { variant: 'multiAction', className: 'variant-multi-action' },
   { variant: 'ghost', className: 'variant-ghost' },
-  { variant: 'destructive', className: 'variant-destructive' },
 ];
 
 const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
@@ -46,13 +46,15 @@ const props = withDefaults(
         ButtonSizeProps &
         ButtonVariantNewProps &
         ButtonSizeNewProps &
+        ButtonSeverityProps &
         IconProps &
         NavigationProps
     >(),
   {
-    size: 'medium',
-    to:   undefined,
-    href: undefined,
+    size:     'medium',
+    severity: undefined,
+    to:       undefined,
+    href:     undefined,
   }
 );
 
@@ -131,10 +133,11 @@ const activeSizeClassName = computed(() => {
 
 const buttonClass = computed(() => {
   return {
-    'rc-button':                    true,
-    btn:                            true,
-    [activeVariantClassName.value]: true,
-    [activeSizeClassName.value]:    !!activeSizeClassName.value,
+    'rc-button':                      true,
+    btn:                              true,
+    [activeVariantClassName.value]:   true,
+    [activeSizeClassName.value]:      !!activeSizeClassName.value,
+    [`severity-${ props.severity }`]: !!props.severity,
   };
 });
 
@@ -352,7 +355,7 @@ defineExpose({ focus });
     }
   }
 
-  &.variant-destructive {
+  &.variant-primary.severity-destructive {
     background: var(--buttons-destructive);
     color: var(--buttons-on-destructive);
 
