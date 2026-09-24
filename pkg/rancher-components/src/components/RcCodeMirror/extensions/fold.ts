@@ -115,7 +115,7 @@ export const bracketFoldService: Extension = foldService.of(
  * works (programmatically or from the keyboard) when the gutter is hidden.
  */
 export function buildFoldExtension(opts?: FoldOptions): Extension {
-  const extensions: Extension[] = [codeFolding()];
+  const extensions: Extension[] = [codeFolding({ placeholderText: '↔️' })];
   const strategy = opts?.strategy ?? 'language';
 
   if (strategy === 'indent') {
