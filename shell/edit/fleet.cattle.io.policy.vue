@@ -100,6 +100,14 @@ export default {
       return this.credentialOptions(HELM_CREDENTIAL_SECRET_TYPES, false);
     },
 
+    gitRepoDefaultSecretAllowed() {
+      return this.defaultAllowed(this.restrictGitRepoSecrets, this.value.gitRepo?.defaultClientSecretName, this.value.gitRepo?.allowedClientSecretNames);
+    },
+
+    helmOpDefaultSecretAllowed() {
+      return this.defaultAllowed(this.restrictHelmOpSecrets, this.value.helmOp?.defaultHelmSecretName, this.value.helmOp?.allowedHelmSecretNames);
+    },
+
     // Restricting to a set of names only means anything once at least one name is picked;
     // an empty allow-list would silently allow everything instead
     validationPassed() {
@@ -109,11 +117,22 @@ export default {
         [this.restrictHelmOpSecrets, this.value.helmOp?.allowedHelmSecretNames],
       ];
 
-      return !!this.value.name && restrictions.every(([restricted, allowed]) => !restricted || !!allowed?.length);
+      return !!this.value.name &&
+        this.gitRepoDefaultSecretAllowed &&
+        this.helmOpDefaultSecretAllowed &&
+        restrictions.every(([restricted, allowed]) => !restricted || !!allowed?.length);
     },
   },
 
   methods: {
+    /**
+     * Fleet applies a default before validating it, so a default outside the allow-list rejects
+     * every resource that falls back to it.
+     */
+    defaultAllowed(restricted, defaultName, allowed) {
+      return !restricted || !defaultName || (allowed || []).includes(defaultName);
+    },
+
     namesInNamespace(resources) {
       return (resources || [])
         .filter((resource) => resource.metadata?.namespace === this.namespace)
@@ -190,6 +209,7 @@ export default {
         :mode="mode"
         :service-account-options="serviceAccountOptions"
         :secret-options="gitRepoSecretOptions"
+        :default-secret-allowed="gitRepoDefaultSecretAllowed"
       />
       <FleetPolicySourceSection
         v-model:restricted="restrictHelmOpSecrets"
@@ -198,6 +218,7 @@ export default {
         :mode="mode"
         :service-account-options="serviceAccountOptions"
         :secret-options="helmOpSecretOptions"
+        :default-secret-allowed="helmOpDefaultSecretAllowed"
       />
     </div>
   </CruResource>
