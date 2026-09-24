@@ -1940,6 +1940,11 @@ cluster:
           minimumAllocatable: It's highly recommended to select a vGPU with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates.
         errors:
           notAllocatable: '[{vGpu}] vGPU device is not allocatable; required: {allocated}, allocatable: {allocatable}'
+      hostDevices:
+        warnings:
+          minimumAllocatable: It's highly recommended to select PCI devices with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates. Devices that share an IOMMU group must all be selected together.
+        errors:
+          notAllocatable: '[{hostDevice}] PCI device is not allocatable; required: {allocated}, allocatable: {allocatable}'
       volume:
         title: Volumes
         volume: Volume
