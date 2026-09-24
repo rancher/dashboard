@@ -221,7 +221,7 @@ export function fieldValue(row: any, field: ViewField): any {
  * the pagination API could never match, so anything offered as a value - and the values we count
  * - comes from the filterable path whenever the field has one.
  */
-export function rawFieldValue(row: any, field: ViewField): any {
+function rawFieldValue(row: any, field: ViewField): any {
   if (!row || !field || field.isLabel) {
     return fieldValue(row, field);
   }
@@ -339,6 +339,24 @@ export function fieldsFor(headers: any[], rows: any[], t?: (key: string) => stri
   return out;
 }
 
+/**
+ * `order` with the entry at `from` lifted out and put back at `to`.
+ *
+ * Both reorder drags splice their own copy of this - the column picker's rows and the view tabs -
+ * and getting it subtly different in one of them is how a list ends up dropping an entry.
+ */
+export function moveInOrder<T>(order: T[], from: number, to: number): T[] {
+  const next = [...order];
+
+  if (from < 0 || to < 0 || from >= next.length || from === to) {
+    return next;
+  }
+
+  next.splice(to, 0, ...next.splice(from, 1));
+
+  return next;
+}
+
 export function findField(fields: ViewField[], id: string): ViewField | undefined {
   if (!id) {
     return undefined;
@@ -369,7 +387,7 @@ export const CONNECTIVES = ['and', 'or'];
 /** Spelled out negation, the word form of the `-` and `!` prefixes */
 export const NEGATORS = ['not'];
 
-export function isConnective(text: string): boolean {
+function isConnective(text: string): boolean {
   return CONNECTIVES.includes((text || '').toLowerCase());
 }
 

@@ -2,6 +2,7 @@ import {
   applyQuery, applyQueryExpression, decodeView, encodeView, fieldsFor, parseQuery,
   parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, tokenAt, validateQuery, valuesInUse,
   coreFieldIdsFor, isCoreField, CORE_FIELD_IDS,
+  moveInOrder,
   serverPathFor,
   summaryToValues,
   termsToServerFilters
@@ -165,6 +166,27 @@ describe('core columns', () => {
     [undefined, false],
   ])('isCoreField(%s) is %s', (id, expected) => {
     expect(isCoreField(id as string)).toStrictEqual(expected);
+  });
+});
+
+describe('moveInOrder', () => {
+  it('lifts an entry out and puts it back where it was dropped', () => {
+    expect(moveInOrder(['a', 'b', 'c', 'd'], 0, 2)).toStrictEqual(['b', 'c', 'a', 'd']);
+    expect(moveInOrder(['a', 'b', 'c', 'd'], 3, 1)).toStrictEqual(['a', 'd', 'b', 'c']);
+  });
+
+  it('keeps every entry, and leaves the original alone', () => {
+    const order = ['a', 'b', 'c'];
+
+    expect(moveInOrder(order, 2, 0)).toHaveLength(3);
+    expect(order).toStrictEqual(['a', 'b', 'c']);
+  });
+
+  it('does nothing when there is nowhere to move to', () => {
+    expect(moveInOrder(['a', 'b'], 1, 1)).toStrictEqual(['a', 'b']);
+    expect(moveInOrder(['a', 'b'], -1, 0)).toStrictEqual(['a', 'b']);
+    expect(moveInOrder(['a', 'b'], 0, -1)).toStrictEqual(['a', 'b']);
+    expect(moveInOrder(['a', 'b'], 5, 0)).toStrictEqual(['a', 'b']);
   });
 });
 

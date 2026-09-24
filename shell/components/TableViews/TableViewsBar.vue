@@ -1,7 +1,7 @@
 <script>
 import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
 import { randomStr } from '@shell/utils/string';
-import { validateQuery } from '@shell/utils/table-views';
+import { moveInOrder, validateQuery } from '@shell/utils/table-views';
 import { isMac, shortcutLabel } from '@shell/utils/platform';
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal';
@@ -722,6 +722,22 @@ export default {
     },
 
     /**
+     * Eat the click that a mouseup at the end of a drag is about to produce.
+     *
+     * It would land on whatever the pointer finished over - the row it was dropped on, or the tab
+     * it was dropped beside - and toggle or apply it. A drag is not a click.
+     */
+    swallowNextClick() {
+      const swallow = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+      };
+
+      window.addEventListener('click', swallow, { capture: true, once: true });
+      setTimeout(() => window.removeEventListener('click', swallow, true), 0);
+    },
+
+    /**
      * Press on a column's grip: arm a possible drag. Nothing is picked up here - a press on a row
      * is far more often the start of a click that toggles the column - so the row is only taken
      * once the pointer has travelled `DRAG_THRESHOLD` with it held.
@@ -837,22 +853,14 @@ export default {
 
     /** Put the held row where the pointer is, so the rest shuffle around it as it travels */
     placeDraggedColumn() {
-      const order = [...this.dragOrder];
-      const from = order.indexOf(this.dragId);
+      const from = this.dragOrder.indexOf(this.dragId);
       const at = this.columnIndexAt(this.dragPointerY);
 
       if (from === -1 || at === -1) {
         return;
       }
 
-      const to = Math.max(at, this.firstMovableIndex(order));
-
-      if (from === to) {
-        return;
-      }
-
-      order.splice(to, 0, ...order.splice(from, 1));
-      this.dragOrder = order;
+      this.dragOrder = moveInOrder(this.dragOrder, from, Math.max(at, this.firstMovableIndex(this.dragOrder)));
     },
 
     /** Escape abandons the drag: the list snaps back to the view, and nothing is written */
@@ -876,15 +884,7 @@ export default {
       const moved = !!order && order.some((id, i) => id !== started[i]);
 
       if (this.dragMoved) {
-        // The click that follows this mouseup would land on whichever row the pointer ended over,
-        // toggling it. A drag is not a click, so it is swallowed.
-        const swallow = (event) => {
-          event.stopPropagation();
-          event.preventDefault();
-        };
-
-        window.addEventListener('click', swallow, { capture: true, once: true });
-        setTimeout(() => window.removeEventListener('click', swallow, true), 0);
+        this.swallowNextClick();
       }
 
       document.body.style.cursor = '';
@@ -1018,16 +1018,10 @@ export default {
         return;
       }
 
-      const order = [...this.tabDragOrder];
-      const from = order.indexOf(this.tabDragId);
+      const from = this.tabDragOrder.indexOf(this.tabDragId);
       const to = Math.max(this.tabIndexAt(this.tabContentX()), this.lockedTabCount);
 
-      if (from === -1 || from === to) {
-        return;
-      }
-
-      order.splice(to, 0, ...order.splice(from, 1));
-      this.tabDragOrder = order;
+      this.tabDragOrder = moveInOrder(this.tabDragOrder, from, to);
     },
 
     /**
@@ -1084,15 +1078,7 @@ export default {
       const moved = !!order && order.some((key, i) => key !== started[i]);
 
       if (this.tabDragMoved) {
-        // The click that follows this mouseup would land on whichever tab the pointer ended over,
-        // applying it. A drag is not a click, so it is swallowed.
-        const swallow = (event) => {
-          event.stopPropagation();
-          event.preventDefault();
-        };
-
-        window.addEventListener('click', swallow, { capture: true, once: true });
-        setTimeout(() => window.removeEventListener('click', swallow, true), 0);
+        this.swallowNextClick();
       }
 
       document.body.style.cursor = '';
@@ -1285,17 +1271,26 @@ export default {
       this.focusTab(view.id, true);
     },
 
-    /** The first is just the name; the ones after it are numbered from one */
-    nextNewViewName() {
-      const base = this.t('tableViews.tab.newViewName');
+    /**
+     * `base`, or the first number after it that no view is called yet.
+     *
+     * `from` is where the counting starts: a new view is just "Untitled" until there is one, so
+     * the second is "Untitled 1"; a copy is "X (copy)" and the next is "X (copy) 2", which reads
+     * as the second copy rather than as a second thing called copy.
+     */
+    unusedViewName(base, from) {
       let name = base;
-      let n = 1;
+      let n = from;
 
       while (this.savedViews.find((v) => v.name === name)) {
         name = `${ base } ${ n++ }`;
       }
 
       return name;
+    },
+
+    nextNewViewName() {
+      return this.unusedViewName(this.t('tableViews.tab.newViewName'), 1);
     },
 
     /**
@@ -1615,14 +1610,7 @@ export default {
      * Copy a saved view, so a variation can be built without losing the original
      */
     duplicateView(saved) {
-      const base = `${ saved.name } ${ this.t('tableViews.tab.copySuffix') }`;
-      let name = base;
-      let n = 2;
-
-      while (this.savedViews.find((v) => v.name === name)) {
-        name = `${ base } ${ n++ }`;
-      }
-
+      const name = this.unusedViewName(`${ saved.name } ${ this.t('tableViews.tab.copySuffix') }`, 2);
       const copy = {
         ...saved, id: randomStr(8), name
       };
@@ -2762,13 +2750,6 @@ $toolbar-min-width: 544px;
     display: inline-block;
     flex: none;
     width: 14px;
-  }
-
-  .menu-title {
-    padding: 6px 17px 2px 17px;
-    font-size: 11px;
-    text-transform: uppercase;
-    opacity: 0.6;
   }
 
   // The "you have unsaved changes" banner at the top of a dirty view's menu. A quiet tint, not a
