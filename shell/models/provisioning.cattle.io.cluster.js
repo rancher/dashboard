@@ -165,7 +165,8 @@ export default class ProvCluster extends SteveModel {
     const actions = [
       // The bulk bar sorts by weight, and its fallback — the order the actions are first MET across the
       // rows — would scatter this pair: `unpinCluster` is enabled only on a pinned cluster, so it is
-      // not met until the first pinned row, however far down the list that is.
+      // not met until the first pinned row, however far down the list that is. Weighted below the
+      // unweighted actions so a reversible preference does not push the KubeConfig pair off the bar.
       {
         action:     'pinCluster',
         bulkAction: 'pinClusterBulk',
@@ -173,7 +174,7 @@ export default class ProvCluster extends SteveModel {
         icon:       'icon icon-pin',
         bulkable:   true,
         enabled:    pinnable && !this.mgmt.pinned,
-        weight:     2,
+        weight:     -1,
       }, {
         action:     'unpinCluster',
         bulkAction: 'unpinClusterBulk',
@@ -181,7 +182,7 @@ export default class ProvCluster extends SteveModel {
         icon:       'icon icon-pin-outlined',
         bulkable:   true,
         enabled:    pinnable && this.mgmt.pinned,
-        weight:     1,
+        weight:     -2,
       },
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.

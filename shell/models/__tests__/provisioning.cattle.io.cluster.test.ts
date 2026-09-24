@@ -753,14 +753,16 @@ describe('class ProvCluster', () => {
     });
 
     // The bulk bar sorts by weight and otherwise keeps the order the actions were first met across the
-    // rows, which would split the pair: the unpin is enabled only on a pinned cluster.
-    it('leads the bulk actions, pin before unpin', () => {
+    // rows, which would split the pair: the unpin is enabled only on a pinned cluster. The pair is
+    // weighted below the unweighted actions, so it stays together without taking their place on the bar.
+    it('keeps the bulk pin and unpin together, behind the actions that were already there', () => {
       const bulk = actionsOf(provCluster({ pinned: false, isLocal: false }))
         .filter((a: any) => a.bulkable)
         .sort((a: any, b: any) => (b.weight || 0) - (a.weight || 0))
         .map((a: any) => a.action);
 
-      expect(bulk.slice(0, 2)).toStrictEqual(['pinCluster', 'unpinCluster']);
+      expect(bulk.slice(-2)).toStrictEqual(['pinCluster', 'unpinCluster']);
+      expect(bulk.indexOf('copyKubeConfig')).toBeLessThan(bulk.indexOf('pinCluster'));
     });
 
     // Pinning is a preference, not a cluster operation, so the RKE1 clamp on cluster actions leaves it be.
