@@ -69,6 +69,16 @@ const rancherEditorTheme = EditorView.theme({
   '.cm-rancher-comment': {
     color:     'var(--rc-cm-comment)',
     fontStyle: 'italic'
+  },
+  '.cm-foldPlaceholder': {
+    backgroundColor: 'transparent',
+    border:          'none',
+    borderRadius:    '0',
+    color:           'inherit',
+    fontSize:        '12px',
+    fontStyle:       'normal',
+    margin:          '0 1px',
+    padding:         '0'
   }
 });
 
