@@ -763,6 +763,156 @@ describe('pluginProduct', () => {
     });
   });
 
+  /* eslint-disable no-console */
+  describe('warnIfIgnoredType', () => {
+    const createMockDSL = () => ({
+      product:             jest.fn(),
+      basicType:           jest.fn(),
+      labelGroup:          jest.fn(),
+      setGroupDefaultType: jest.fn(),
+      weightGroup:         jest.fn(),
+      virtualType:         jest.fn(),
+      configureType:       jest.fn(),
+      weightType:          jest.fn(),
+      mapType:             jest.fn(),
+      ignoreType:          jest.fn(),
+      hideBulkActions:     jest.fn(),
+      headers:             jest.fn(),
+    });
+
+    const createStoreWithTypeMapState = (
+      typeIgnore: string[] = [],
+      groupIgnore: (string | { type: string; cb: Function })[] = [],
+      schemaMap: Record<string, { attributes?: { group?: string } }> = {}
+    ): any => ({
+      state:   { 'type-map': { typeIgnore, groupIgnore } },
+      getters: {
+        'type-map/productByName': () => undefined,
+        'management/schemaFor':   (type: string) => schemaMap[type],
+      },
+    });
+
+    beforeEach(() => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      (console.warn as jest.Mock).mockRestore();
+    });
+
+    it('should warn when resource page type matches a global typeIgnore rule', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const ignoredTypeRegexSource = '^management\\.cattle\\.io\\.user$';
+      const mockStore = createStoreWithTypeMapState([ignoredTypeRegexSource]);
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'management.cattle.io.user', label: 'Users' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"management.cattle.io.user" is globally ignored via ignoreType()')
+      );
+    });
+
+    it('should warn when resource page type belongs to a hard-ignored group', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const ignoredGroupRegexSource = '^harvesterhci\\.io$';
+      const mockStore = createStoreWithTypeMapState(
+        [],
+        [ignoredGroupRegexSource],
+        { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'harvesterhci.io.host', label: 'Hosts' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"harvesterhci.io.host" belongs to API group "harvesterhci.io" which is globally ignored')
+      );
+    });
+
+    it('should warn when resource page type belongs to a conditionally ignored group', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const conditionalGroupRule = { type: '^harvesterhci\\.io$', cb: jest.fn() };
+      const mockStore = createStoreWithTypeMapState(
+        [],
+        [conditionalGroupRule],
+        { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'harvesterhci.io.host', label: 'Hosts' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"harvesterhci.io.host" belongs to API group "harvesterhci.io" which is conditionally ignored at runtime')
+      );
+    });
+
+    it('should not warn when hideFromNav is true even if the type is globally ignored', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const ignoredTypeRegexSource = '^management\\.cattle\\.io\\.user$';
+      const mockStore = createStoreWithTypeMapState([ignoredTypeRegexSource]);
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        {
+          type:     'management.cattle.io.user',
+          label:    'Users',
+          sideMenu: { hideFromNav: true },
+        },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it('should not warn for a normal type that is not in any ignore list', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const mockStore = createStoreWithTypeMapState(
+        ['^management\\.cattle\\.io\\.user$'],
+        [],
+        { 'apps.deployment': { attributes: { group: 'apps' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'apps.deployment', label: 'Deployments' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+  });
+  /* eslint-enable no-console */
+
   describe('state verification', () => {
     it('should set newProduct flag for new products', () => {
       const mockPlugin = createMockPlugin();

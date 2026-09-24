@@ -68,6 +68,8 @@ export abstract class BasePluginProduct {
 
   protected DSLMethods: any;
 
+  protected store: any;
+
   protected config: ProductChild[];
 
   constructor(config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptionsInternal) {
@@ -122,6 +124,7 @@ export abstract class BasePluginProduct {
    * This is where we register the product and its children via the DSL
    */
   apply(plugin: IExtension, store: any): void {
+    this.store = store;
     // store the DSL methods for easier access
     this.DSLMethods = plugin.DSL(store, this.name);
 
@@ -535,6 +538,54 @@ export abstract class BasePluginProduct {
 
       if (itemRP.sideMenu?.weight !== undefined) {
         weightType(typeValue, itemRP.sideMenu?.weight, true);
+      }
+
+      if (!itemRP.sideMenu?.hideFromNav) {
+        this.warnIfIgnoredType(typeValue);
+      }
+    }
+  }
+
+  /**
+   * Emits a console.warn if a resource page type is globally ignored by type-map rules,
+   * surfacing a silent misconfiguration that would cause the nav entry to never appear.
+   */
+  private warnIfIgnoredType(type: string): void {
+    const typeMapState = this.store?.state?.['type-map'];
+
+    if (!typeMapState) {
+      return;
+    }
+
+    const typeIgnoreRules: string[] = typeMapState.typeIgnore ?? [];
+    const groupIgnoreRules: (string | { type: string; cb: Function })[] = typeMapState.groupIgnore ?? [];
+
+    for (const rule of typeIgnoreRules) {
+      if (new RegExp(rule).test(type)) {
+        console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" is globally ignored via ignoreType() and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.`); // eslint-disable-line no-console
+
+        return;
+      }
+    }
+
+    const schema = this.store?.getters?.['management/schemaFor']?.(type);
+    const group = schema?.attributes?.group;
+
+    if (!group) {
+      return;
+    }
+
+    for (const rule of groupIgnoreRules) {
+      if (typeof rule === 'string' && new RegExp(rule).test(group)) {
+        console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" belongs to API group "${ group }" which is globally ignored and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.`); // eslint-disable-line no-console
+
+        return;
+      }
+
+      if (typeof rule === 'object' && rule !== null && rule.type && new RegExp(rule.type).test(group)) {
+        console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" belongs to API group "${ group }" which is conditionally ignored at runtime. The nav entry may not appear depending on the current cluster context.`); // eslint-disable-line no-console
+
+        return;
       }
     }
   }
