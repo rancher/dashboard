@@ -729,6 +729,16 @@ Each custom page and group must have a unique `name` within the same product con
 
 Each resource page `type` must appear only once in a product configuration. Registering the same Kubernetes resource type twice will throw an error at registration time.
 
+### Globally ignored types will not appear in navigation
+
+Rancher Dashboard maintains an internal list of types that are always excluded from navigation (e.g. `management.cattle.io.user`, `management.cattle.io.setting`). If you register a `ProductChildResourcePage` whose `type` appears on this list, the nav entry will silently not render — no error is thrown and routing still works, but the item will never be visible in the side-menu.
+
+Additionally, some API groups (e.g. `harvesterhci.io`, `kubevirt.io`) are conditionally excluded depending on the current cluster type — nav entries for those types may appear or disappear at runtime.
+
+If your resource page is unexpectedly missing from the side-menu, open the browser console: a `[Extensions]` warning will be emitted at registration time if the type or its API group is on one of these lists.
+
+The recommended workaround is to register a `ProductChildCustomPage` with a custom component instead and use `virtualType` to point at your own view.
+
 ### Ordering and default routes
 
 - The first item in the config array (after ordering by `weight`) becomes the product's default landing route
