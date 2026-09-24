@@ -1,5 +1,6 @@
 import { ProjectsNamespacesListPagePo, NamespaceCreateEditPagePo, ProjectCreateEditPagePo } from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
 import { spoofThirdPartyPrincipal } from '@/cypress/e2e/blueprints/explorer/rbac/third-party-principals-get';
+import { qase } from '@/cypress/support/qase';
 
 describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
   const projectsNamespacesPage = new ProjectsNamespacesListPagePo();
@@ -12,20 +13,20 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
     projectsNamespacesPage.goTo();
   });
 
-  it('flat list view should have create Namespace button', () => {
+  qase(1524, it('flat list view should have create Namespace button', () => {
     projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(0)
       .click();
     projectsNamespacesPage.createNamespaceButton().should('exist');
     projectsNamespacesPage.baseResourceList().masthead().actions().contains('Create Project')
       .should('exist');
-  });
+  }));
 
-  it('create namespace screen should have a projects dropdown', () => {
+  qase(1523, it('create namespace screen should have a projects dropdown', () => {
     projectsNamespacesPage.createNamespaceButton().click();
     createNamespacePage.resourceDetail().createEditView().nameNsDescription()
       .project()
       .checkExists();
-  });
+  }));
 
   describe('Project creation', () => {
     beforeEach(() => {
@@ -33,7 +34,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       cy.intercept('POST', '/v3/projects').as('createProjectRequest');
     });
 
-    it('sets the creator principal id annotation when creating a project and using third-party auth', () => {
+    qase(5525, it('sets the creator principal id annotation when creating a project and using third-party auth', () => {
       cy.get('@projectName').then((projectName) => {
         // intercept the request to /v3/principals and return a principal authenticated by github instead of local
         spoofThirdPartyPrincipal();
@@ -49,9 +50,9 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
           expect(request.body.annotations['field.cattle.io/creator-principal-name']).to.equal('github://1234567890');
         });
       });
-    });
+    }));
 
-    it('does not set a creator principal id annotation when creating a project if using local auth', () => {
+    qase(5526, it('does not set a creator principal id annotation when creating a project if using local auth', () => {
       cy.get('@projectName').then((projectName) => {
         projectsNamespacesPage.baseResourceList().masthead().create();
         createProjectPage.resourceDetail().createEditView().nameNsDescription()
@@ -65,7 +66,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
           expect(response.body.annotations).to.not.have.property('field.cattle.io/creator-principal-name');
         });
       });
-    });
+    }));
 
     afterEach(() => {
       cy.get<string>('@projectName').then((projectName) => {
@@ -80,7 +81,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
     });
 
     // Issue 5975: create button should be disabled unless name is filled in
-    it('Create button becomes available if the name is filled in', () => {
+    qase(5527, it('Create button becomes available if the name is filled in', () => {
       projectsNamespacesPage.baseResourceList().masthead().create();
       createProjectPage.resourceDetail().createEditView()
         .createButton()
@@ -91,9 +92,9 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       createProjectPage.resourceDetail().createEditView()
         .createButton()
         .expectToBeEnabled();
-    });
+    }));
 
-    it('displays an error message when submitting a form with errors', () => {
+    qase(5528, it('displays an error message when submitting a form with errors', () => {
       projectsNamespacesPage.baseResourceList().masthead().create();
 
       createProjectPage.resourceDetail().createEditView().nameNsDescription()
@@ -108,9 +109,9 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
 
       createProjectPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
       createProjectPage.bannerError(0).should('have.length', 1);
-    });
+    }));
 
-    it('displays a single error message on repeat submissions of a form with errors', () => {
+    qase(5529, it('displays a single error message on repeat submissions of a form with errors', () => {
       projectsNamespacesPage.baseResourceList().masthead().create();
 
       createProjectPage.resourceDetail().createEditView().nameNsDescription()
@@ -132,10 +133,10 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       createProjectPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
       createProjectPage.bannerError(0).should('have.length', 1);
       createProjectPage.bannerError(1).should('have.length', 0);
-    });
+    }));
 
     // testing https://github.com/rancher/dashboard/issues/11881
-    it('displays the most recent error after resolving a single error in a form with multiple errors', () => {
+    qase(5530, it('displays the most recent error after resolving a single error in a form with multiple errors', () => {
       projectsNamespacesPage.baseResourceList().masthead().create();
 
       // Create the first error
@@ -173,7 +174,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       createProjectPage.bannerError(0).should('be.visible').contains('admission webhook "rancher.cattle.io.projects.management.cattle.io" denied the request');
       createProjectPage.bannerError(0).should('have.length', 1);
       createProjectPage.bannerError(1).should('have.length', 0);
-    });
+    }));
   });
 
   // Test for issue https://github.com/rancher/dashboard/issues/15336
@@ -226,7 +227,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       cy.wait('@getProjects', { timeout: 20000 });
     });
 
-    it('should show all projects with same name when filtering in Group by Project view', () => {
+    qase(18580, it('should show all projects with same name when filtering in Group by Project view', () => {
       // Switch to Group by Project view
       projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(1)
         .click();
@@ -247,9 +248,9 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       projectsNamespacesPage.list().resourceTable().sortableTable()
         .rowElementWithName(namespaceNames[1])
         .should('exist');
-    });
+    }));
 
-    it('should show projects without namespaces when filtering in Group by Project view', () => {
+    qase(18581, it('should show projects without namespaces when filtering in Group by Project view', () => {
       // Switch to Group by Project view
       projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(1)
         .click();
@@ -262,9 +263,9 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       projectsNamespacesPage.list().resourceTable().sortableTable()
         .groupElementsWithName(projectName)
         .should('have.length', 3);
-    });
+    }));
 
-    it('should show projects with namespaces when filtering in flat list view', () => {
+    qase(18582, it('should show projects with namespaces when filtering in flat list view', () => {
       // Switch to flat list view
       projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(0)
         .click();
@@ -280,7 +281,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       projectsNamespacesPage.list().resourceTable().sortableTable()
         .rowElementWithName(namespaceNames[1])
         .should('exist');
-    });
+    }));
 
     after(() => {
       // Clean up: delete namespaces first, then projects
