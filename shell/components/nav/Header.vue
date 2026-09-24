@@ -32,6 +32,7 @@ import {
 } from '@components/RcDropdown';
 import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { CLUSTER_SHELL } from '@shell/store/features';
+import { pinnableCluster } from '@shell/utils/cluster';
 
 export default {
 
@@ -249,18 +250,7 @@ export default {
     // nothing to pin. `local` is excluded: it holds a fixed slot in the nav and is filtered out of PINNED,
     // so a pin here would be an affordance with no effect.
     pinnableCluster() {
-      const cluster = this.currentCluster;
-
-      if (!cluster || cluster.isLocal) {
-        return null;
-      }
-
-      return {
-        pinned: cluster.pinned,
-        label:  cluster.nameDisplay,
-        pin:    () => cluster.pin(),
-        unpin:  () => cluster.unpin(),
-      };
+      return pinnableCluster(this.currentCluster);
     },
 
     // Cmd+Shift+P on a Mac, Alt+P elsewhere.
@@ -622,8 +612,15 @@ export default {
           >
             {{ clusterDisplayName }}
           </div>
+          <ClusterBadge
+            v-if="currentCluster"
+            :cluster="currentCluster"
+            class="ml-10"
+            :alt="t('branding.logos.label')"
+          />
           <!-- Pin/unpin the cluster being explored, without going back to the nav for it. The control is
-               the nav's own, so the write, the failure growl and the pop animation are shared. -->
+               the nav's own, so the write, the failure growl and the pop animation are shared. It follows
+               the badge: the title reads as the cluster's name and comment, then what can be done to it. -->
           <Pinned
             v-if="pinnableCluster"
             ref="clusterPin"
@@ -644,12 +641,6 @@ export default {
           >
             {{ pinAnnouncement }}
           </div>
-          <ClusterBadge
-            v-if="currentCluster"
-            :cluster="currentCluster"
-            class="ml-10"
-            :alt="t('branding.logos.label')"
-          />
           <div
             v-if="!currentCluster && !$route.path.startsWith('/c/')"
             class="simple-title"

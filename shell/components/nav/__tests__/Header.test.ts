@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import { isReactive, markRaw } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
+import ClusterBadge from '@shell/components/ClusterBadge.vue';
 import { isMac } from '@shell/utils/platform';
 
 describe('component: Header', () => {
@@ -302,6 +303,22 @@ describe('component: Header', () => {
       ['no cluster', null],
     ])('offers no pin for %s', (_label, currentCluster) => {
       expect((withCluster(currentCluster).vm as any).pinnableCluster).toBeNull();
+    });
+
+    // The title reads as the cluster's name and the comment on it, then what can be done to it — so the
+    // control comes after everything that describes the cluster.
+    it('places the pin after the cluster badge', () => {
+      const wrapper = withCluster(cluster({
+        badge: {
+          text: 'live', color: '#fff', textColor: '#000'
+        }
+      }));
+      const children = Array.from(wrapper.find('.cluster').element.children);
+      const badge = children.indexOf(wrapper.findComponent(ClusterBadge).element);
+      const pin = children.indexOf(wrapper.find('.cluster-pin').element);
+
+      expect(badge).toBeGreaterThan(-1);
+      expect(pin).toBeGreaterThan(badge);
     });
 
     it('names the action for the state the pin is in', () => {
