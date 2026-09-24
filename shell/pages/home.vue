@@ -7,12 +7,15 @@ import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
+import ClusterRowPin from '@shell/components/ClusterRowPin.vue';
 import DynamicContentBanner from '@shell/components/DynamicContent/DynamicContentBanner.vue';
 import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContentPanel.vue';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI, COUNT, SAVED_COUNTS } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, STATE } from '@shell/config/table-headers';
+import {
+  AGE, CLUSTER_BADGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, STATE
+} from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
 import { markSeenReleaseNotes } from '@shell/utils/version';
@@ -51,7 +54,8 @@ export default defineComponent({
     ResourceTable,
     DynamicContentBanner,
     DynamicContentPanel,
-    RcButton
+    RcButton,
+    ClusterRowPin
   },
 
   mixins: [PageHeaderActions, Preset],
@@ -132,6 +136,7 @@ export default defineComponent({
 
       headers: [
         STATE,
+        CLUSTER_BADGE,
         {
           name:          'name',
           labelKey:      'tableHeaders.name',
@@ -160,6 +165,7 @@ export default defineComponent({
 
       paginationHeaders: [
         STEVE_MGMT_STATE_COL,
+        CLUSTER_BADGE,
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
@@ -559,6 +565,7 @@ export default defineComponent({
                           v-clean-tooltip="t('cluster.rke1Unsupported')"
                           class="rke1-unsupported-icon icon-warning icon"
                         />
+                        <ClusterRowPin :cluster="row" />
                       </p>
                       <p
                         v-if="row.description"
@@ -700,6 +707,7 @@ export default defineComponent({
                           v-clean-tooltip="row.unavailableMachines"
                           class="conditions-alert-icon icon-alert icon"
                         />
+                        <ClusterRowPin :cluster="row" />
                       </p>
                       <p
                         v-if="row.description"

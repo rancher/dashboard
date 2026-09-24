@@ -7205,6 +7205,7 @@ tableHeaders:
   accessModes: Access Modes
   address: Address
   age: Age
+  badge: Badge
   apiGroup: API Groups
   apikey: API Key
   available: Available

@@ -1,5 +1,5 @@
 import {
-  AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
+  AGE, CLUSTER_BADGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
 } from '@shell/config/table-headers';
 import {
   CAPI,
@@ -187,6 +187,7 @@ export function init(store) {
 
   headers(MANAGEMENT.CLUSTER, [
     STATE,
+    CLUSTER_BADGE,
     {
       name:          'name',
       labelKey:      'tableHeaders.name',
@@ -205,6 +206,7 @@ export function init(store) {
     EXPLORER,
   ], [
     STEVE_MGMT_STATE_COL,
+    CLUSTER_BADGE,
     {
       name:          'name',
       labelKey:      'tableHeaders.name',

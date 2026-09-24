@@ -1,8 +1,11 @@
 <script>
 import { get } from '@shell/utils/object';
 import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
+import ClusterRowPin from '@shell/components/ClusterRowPin.vue';
 
 export default {
+  components: { ClusterRowPin },
+
   props: {
     value: {
       type:    String,
@@ -83,6 +86,7 @@ export default {
       class="conditions-alert-icon icon-error icon-lg"
       data-testid="conditions-has-error-icon"
     />
+    <ClusterRowPin :cluster="row" />
   </span>
 </template>
 
