@@ -13,7 +13,11 @@ import {
   WORKLOAD_DASHBOARD,
   CRD,
   GATEWAY_API,
+  SAVED_COUNTS,
 } from '@shell/config/types';
+import { markRaw } from 'vue';
+import { STORE } from '@shell/store/store-types';
+import { isProjectScopedSecretInCluster } from '@shell/utils/project-scoped-secrets';
 
 import {
   STATE, USER_STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
@@ -204,7 +208,29 @@ export function init(store) {
   configureType(SECRET, { showListMasthead: false });
   weightType(SECRET, 1, false);
 
-  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false, resource: SECRET });
+  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, {
+    showListMasthead: false,
+    resource:         SECRET,
+    custom:           {
+      // Project scoped secrets are `management` store secrets carrying a label, so they have no real
+      // type with an entry in the COUNT resource. Surface the count saved by the proactive nav fetch
+      // (see `loadCluster`), falling back to counting any already loaded project scoped secrets for
+      // this cluster when the paginated count isn't available.
+      countGetter: markRaw((getters) => {
+        const savedCount = getters[`${ STORE.MANAGEMENT }/getSavedCount`](SAVED_COUNTS.PROJECT_SCOPED_SECRETS);
+
+        if (savedCount !== undefined) {
+          return savedCount;
+        }
+
+        const clusterId = getters['currentCluster']?.id;
+        const loadedCount = (getters[`${ STORE.MANAGEMENT }/all`](SECRET) || [])
+          .filter((secret) => isProjectScopedSecretInCluster(secret, clusterId)).length;
+
+        return loadedCount || undefined;
+      })
+    }
+  });
   weightType(VIRTUAL_TYPES.PROJECT_SECRETS, 2, false);
 
   configureType(EVENT, { limit: 500 });

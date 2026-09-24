@@ -4,12 +4,13 @@ import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { SECRET, VIRTUAL_TYPES } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
-import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PaginationArgs } from '@shell/types/store/pagination.types';
+import { isProjectScopedSecretInCluster, projectScopedSecretsFilters } from '@shell/utils/project-scoped-secrets';
 import Secret from '@shell/models/secret';
 import { TableColumn } from '@shell/types/store/type-map';
 import { mapGetters } from 'vuex';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
-import { UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import { UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
 import {
   AGE, SECRET_DATA, STATE, SUB_TYPE, NAME as NAME_COL,
 } from '@shell/config/table-headers';
@@ -128,97 +129,44 @@ export default {
   methods: {
     /**
      * Locally filter out secrets that are...
-     * - not project-scoped
-     * - not in current cluster (mgmt secrets are global)
+     * - not project-scoped (also excludes their copies)
+     * - not in the current cluster (mgmt secrets are global)
+     *
+     * Project scoped secrets are a cluster / project level management resource, so the ns/project
+     * header selection is intentionally not applied here (see side nav count).
      */
     filterRowsLocal(rows: Secret[]) {
-      return rows.filter((r: Secret) => {
-        // Filter in pss but not the copies
-        if (!r.isProjectScoped) {
-          return;
-        }
-
-        // Filter in if this cluster
-        if (r.projectScopedClusterId === this.currentCluster.id) {
-          return true;
-        }
-
-        return false;
-      });
+      return rows.filter((r: Secret) => isProjectScopedSecretInCluster(r, this.currentCluster.id));
     },
 
     /**
-     * Remotely filter out secrets that are..
-     * - not project-scoped
-     * - not in current cluster (mgmt secrets are global)
+     * Map the local sort field onto the one vai understands, strip the ns/project header injection,
+     * and filter in this cluster's project scoped secrets (excluding their copies).
+     *
+     * The ns/project header selection is intentionally not applied: project scoped secrets are a
+     * cluster / project level management resource, so the list always shows all of them.
      */
     filterRowsApi(pagination: PaginationArgs): PaginationArgs {
-      const sort = pagination.sort.find((s) => s.field === this.sortFields.local);
+      const sort = pagination.sort?.find((s) => s.field === this.sortFields.local);
 
       if (sort) {
         sort.field = this.sortFields.vai;
       }
 
-      if (!pagination.filters) {
-        pagination.filters = [];
-      }
+      // The ns/project header selection injects `projectsornamespaces` and `metadata.namespace`
+      // filters. Project scoped secrets are management store secrets that don't live in the selected
+      // cluster's namespaces, so those filters would hide them all. Strip them out here...
+      pagination.projectsOrNamespaces = [];
+      pagination.filters = (pagination.filters || []).filter(
+        (filter) => !filter.fields?.some((f) => f.field === 'metadata.namespace')
+      );
 
-      // Filter in pss (and annoyingly their copies)
-      const labelFilter = PaginationParamFilter.createSingleField({
-        field:  `metadata.labels[${ UI_PROJECT_SECRET }]`,
-        exists: true,
-      });
+      // ...then filter in the current cluster's project scoped secrets (labelFilter) while filtering
+      // out their copies (annotationFilter). Shared with the side nav count fetch so both match the
+      // same set.
+      const { labelFilter, annotationFilter, clusterFilter } = projectScopedSecretsFilters(this.currentCluster.id);
 
-      // Filter out their copies
-      const annotationFilter = PaginationParamFilter.createSingleField({
-        field:  `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`,
-        value:  `true`,
-        equals: false,
-        exact:  true,
-      });
-
-      // Filter in the current clusters pss
-      const nsFields: PaginationFilterField[] = [{
-        field:  'spec.clusterName',
-        value:  this.currentCluster.id,
-        equals: true,
-        exact:  true,
-      }];
-
-      const namespaceFilter = PaginationParamFilter.createSingleField(nsFields[0]);
-
-      let foundLabelFilter = false;
-      let foundAnnotationFilter = false;
-      let foundNsFilter = false;
-
-      for (let i = 0; i < pagination.filters.length; i++) {
-        const filter = pagination.filters[i];
-
-        if (filter.param === namespaceFilter.fields[0].field) {
-          // 1. strip out all ns filters, this includes the one that hides resources in system namespaces...... which we need
-          // 2. use the ns filter to find upstream project scoped secrets that are in this cluster
-          pagination.filters[i] = namespaceFilter;
-          foundNsFilter = true;
-        } else {
-          if (!!filter.fields.find((f) => f.field === annotationFilter.fields[0].field)) {
-            foundAnnotationFilter = true;
-          } else if (!!filter.fields.find((f) => f.field === labelFilter.fields[0].field)) {
-            foundLabelFilter = true;
-          }
-        }
-      }
-
-      if (!foundLabelFilter) {
-        pagination.filters.push(labelFilter);
-      }
-
-      if (!foundAnnotationFilter) {
-        pagination.filters.push(annotationFilter);
-      }
-
-      if (!foundNsFilter) {
-        pagination.filters.push(namespaceFilter);
-      }
+      pagination.filters.push(clusterFilter, annotationFilter, labelFilter);
 
       return pagination;
     },
