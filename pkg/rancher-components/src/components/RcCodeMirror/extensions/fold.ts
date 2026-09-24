@@ -3,7 +3,9 @@ import {
   codeFolding, foldService, foldEffect, foldable, syntaxTree, ensureSyntaxTree
 } from '@codemirror/language';
 import type { EditorView } from '@codemirror/view';
-import type { SyntaxNode } from '@lezer/common';
+
+// Match the Lezer copy used by CodeMirror's parser when dependencies resolve separately.
+type SyntaxNode = ReturnType<ReturnType<typeof syntaxTree>['resolve']>;
 
 /** The raw callback signature accepted by foldService.of() */
 export type FoldServiceFn = (
