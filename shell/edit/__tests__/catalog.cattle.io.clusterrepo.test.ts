@@ -1,6 +1,8 @@
-import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, shallowMount, VueWrapper } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import CruCatalogRepo from '@shell/edit/catalog.cattle.io.clusterrepo.vue';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { AUTH_TYPE, CLUSTER_REPO_TYPES } from '@shell/config/types';
 import { getVersionData } from '@shell/config/version';
 
 const createEditViewMock = {
@@ -264,5 +266,99 @@ describe('CruCatalogRepo - target cards', () => {
     const wrapper = createWrapper({}, _CREATE);
 
     expect(imageAlts(wrapper)).toStrictEqual([{ text: '' }, { text: '' }]);
+  });
+});
+
+describe('CruCatalogRepo - form validation', () => {
+  const createValidationWrapper = (spec = {}, mode = _CREATE): VueWrapper<any> => {
+    const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
+
+    return mount(CruCatalogRepo, {
+      props: {
+        value: {
+          spec,
+          isOciType:                 false,
+          isSuseAppCollectionFromUI: false,
+          metadata:                  { name: 'test-repo', annotations: {} },
+        },
+        mode,
+        realMode: mode,
+      },
+      mixins: [createEditViewMock],
+      global: {
+        plugins: [store],
+        mocks:   defaultGlobalMocks,
+        stubs:   {
+          AsyncButton:       true,
+          NameNsDescription: true,
+          Labels:            true,
+          LabeledSelect:     true,
+          Banner:            true,
+          RcItemCard:        true,
+          UnitInput:         true,
+          Checkbox:          true,
+        },
+      },
+    });
+  };
+
+  const addRepositoryDisabled = (wrapper: VueWrapper<any>) => wrapper.findComponent({ name: 'AsyncButton' }).attributes('disabled');
+
+  it.each([
+    ['disables', '', 'true'],
+    ['enables', 'https://charts.example.com', 'false'],
+  ])('%s Add Repository when the Helm index URL is %p', async(_, url, disabled) => {
+    const wrapper = createValidationWrapper({ url });
+
+    await flushPromises();
+
+    expect(addRepositoryDisabled(wrapper)).toStrictEqual(disabled);
+  });
+
+  it.each([
+    ['disables', '', 'true'],
+    ['enables', 'https://github.com/rancher/charts', 'false'],
+  ])('%s Add Repository when the Git repo URL is %p', async(_, gitRepo, disabled) => {
+    const wrapper = createValidationWrapper();
+
+    wrapper.vm.onTargetChange(CLUSTER_REPO_TYPES.GIT_REPO);
+    wrapper.vm.value.spec.gitRepo = gitRepo;
+    await flushPromises();
+
+    expect(addRepositoryDisabled(wrapper)).toStrictEqual(disabled);
+  });
+
+  it('disables Add Repository when the OCI URL is empty', async() => {
+    const wrapper = createValidationWrapper();
+
+    wrapper.vm.onTargetChange(CLUSTER_REPO_TYPES.OCI_URL);
+    await flushPromises();
+
+    expect(addRepositoryDisabled(wrapper)).toStrictEqual('true');
+  });
+
+  it('disables Save when editing a repository whose URL has been cleared', async() => {
+    const wrapper = createValidationWrapper({ url: 'https://charts.example.com' }, _EDIT);
+
+    wrapper.vm.value.spec.url = '';
+    await flushPromises();
+
+    expect(wrapper.findComponent({ name: 'Footer' }).props('disableSave')).toStrictEqual(true);
+  });
+
+  it.each([
+    ['disables', AUTH_TYPE._BASIC, '', '', 'true'],
+    ['enables', AUTH_TYPE._BASIC, 'user', 'pass', 'false'],
+    ['disables', AUTH_TYPE._SSH, '', '', 'true'],
+    ['enables', AUTH_TYPE._SSH, 'public', 'private', 'false'],
+  ])('%s Add Repository when creating a %p secret with public %p and private %p', async(_, selected, publicKey, privateKey, disabled) => {
+    const wrapper = createValidationWrapper({ url: 'https://charts.example.com' });
+
+    await wrapper.findComponent({ name: 'SelectOrCreateAuthSecret' }).setData({
+      selected, publicKey, privateKey
+    });
+    await flushPromises();
+
+    expect(addRepositoryDisabled(wrapper)).toStrictEqual(disabled);
   });
 });
