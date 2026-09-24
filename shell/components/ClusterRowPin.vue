@@ -26,17 +26,17 @@ const pinnable = computed(() => pinnableCluster(props.cluster));
   // Pinned is the state, so it stays on screen; the empty pin is an offer, so it waits for the cell
   // the way the switcher's rows do — and for the keyboard, which has no hover to make it with.
   // Same two colours the app bar and the cluster title give the pin, so one control reads as one
-  // control wherever it is: primary once pinned, muted while it is only on offer. `!important`
-  // because the control sets `color: inherit` and a name cell inherits the row's link colour.
-  .cluster-row-pin {
+  // control wherever it is: primary once pinned, muted while it is only on offer. Matched on the
+  // control's own `.icon` class as well, which outweighs its `color: inherit` without `!important`.
+  .cluster-row-pin.icon {
     margin-left: 6px;
     opacity: 0;
-    color: var(--muted) !important;
+    color: var(--muted);
     transition: opacity 0.1s ease;
 
     &.is-pinned {
       opacity: 1;
-      color: var(--primary) !important;
+      color: var(--primary);
     }
 
     &:focus-visible {
