@@ -2,7 +2,7 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { NAMESPACE as NAMESPACE_COL, HTTP_ROUTE_ENDPOINTS } from '@shell/config/table-headers';
 import {
-  POD, WORKLOAD_TYPES, SERVICE, INGRESS, NAMESPACE, WORKLOAD_TYPE_TO_KIND_MAPPING, METRICS_SUPPORTED_KINDS, GATEWAY_API
+  POD, WORKLOAD_TYPES, SERVICE, INGRESS, NAMESPACE, WORKLOAD_TYPE_TO_KIND_MAPPING, METRICS_SUPPORTED_KINDS, GATEWAY_API, PVC
 } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -66,6 +66,11 @@ export default {
       this[k] = res[k];
     }
 
+    // Fetched after pods resolve so PVCs generated from volumeClaimTemplates (e.g. StatefulSets) are included
+    if (this.pvcSchema) {
+      this.persistentVolumeClaims = await this.value.fetchPersistentVolumeClaims();
+    }
+
     const isMetricsSupportedKind = METRICS_SUPPORTED_KINDS.includes(this.value.type);
 
     this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
@@ -97,6 +102,7 @@ export default {
       POD_PROJECT_METRICS_SUMMARY_URL: '',
       showMetrics:                     false,
       showProjectMetrics:              false,
+      persistentVolumeClaims:          [],
     };
   },
 
@@ -129,6 +135,10 @@ export default {
 
     serviceSchema() {
       return this.$store.getters['cluster/schemaFor'](SERVICE);
+    },
+
+    pvcSchema() {
+      return this.$store.getters['cluster/schemaFor'](PVC);
     },
 
     httpRouteSchema() {
@@ -197,6 +207,10 @@ export default {
 
     serviceHeaders() {
       return this.$store.getters['type-map/headersFor'](this.serviceSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
+    },
+
+    pvcHeaders() {
+      return this.$store.getters['type-map/headersFor'](this.pvcSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
     },
 
     totalRuns() {
@@ -404,6 +418,30 @@ export default {
           :headers="ingressHeaders"
           key-field="id"
           :schema="ingressSchema"
+          :namespaced="false"
+          :groupable="false"
+          :search="false"
+          :table-actions="false"
+        />
+      </Tab>
+      <Tab
+        v-if="pvcSchema"
+        name="storage"
+        :label="t('workload.detail.storage')"
+        :weight="1"
+      >
+        <p
+          v-if="persistentVolumeClaims.length === 0"
+          class="caption"
+        >
+          {{ t('workload.detail.cannotFindStorage') }}
+        </p>
+        <ResourceTable
+          v-if="persistentVolumeClaims.length > 0"
+          :rows="persistentVolumeClaims"
+          :headers="pvcHeaders"
+          key-field="id"
+          :schema="pvcSchema"
           :namespaced="false"
           :groupable="false"
           :search="false"

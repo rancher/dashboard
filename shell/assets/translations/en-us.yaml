@@ -5382,6 +5382,14 @@ notificationCenter:
   ariaLabel: 'Notification {title}: Press enter to interact'
 
 persistentVolume:
+  detail:
+    source: Source
+    reclaimPolicy: Reclaim Policy
+    storageClass: Storage Class
+    claim:
+      label: Claims
+      caption: "This volume is bound to the following PersistentVolumeClaim:"
+      none: This volume is not bound to a PersistentVolumeClaim.
   pluginConfiguration:
     label: Plugin configuration
   plugin:
@@ -5700,6 +5708,11 @@ persistentVolume:
 
 persistentVolumeClaim:
   name: Persistent Volume Claim Name
+  detail:
+    pods:
+      label: Pods
+      caption: "The following Pods mount this PersistentVolumeClaim:"
+      none: Could not find any Pods that mount this PersistentVolumeClaim.
   accessModes: Access Modes
   accessModesOptions:
     singleNodeRW: Single-Node Read/Write
@@ -8016,6 +8029,8 @@ workload:
     cannotFindHttpRoutes: Could not find any HTTPRoutes that forward traffic to Services that select Pods in this workload.
     httpRouteListCaption: "The following HTTPRoutes forward traffic to Services that select Pods from this workload:"
     cannotViewHttpRoutesBecauseCannotViewServices: Could not find relevant HTTPRoutes due to lack of permission to view Services.
+    storage: Storage
+    cannotFindStorage: Could not find any PersistentVolumeClaims mounted by this workload.
     pods:
       title: Pods
   detailTop:
