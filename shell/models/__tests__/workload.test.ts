@@ -166,6 +166,66 @@ describe('class: Workload', () => {
     });
   });
 
+  describe('getter: deployedTimestamp', () => {
+    const ctx = {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootGetters: { 'i18n/t': jest.fn() },
+    };
+    const creationTimestamp = '2020-01-01T00:00:00Z';
+
+    it('should fall back to the creation timestamp when the workload has never been redeployed', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: {
+          name: 'test', namespace: 'default', creationTimestamp
+        },
+        spec: { template: { metadata: { annotations: {} } } }
+      }, ctx);
+
+      expect(workload.deployedTimestamp).toBe(creationTimestamp);
+    });
+
+    it('should use the kubectl rollout restart annotation when present', () => {
+      const restartedAt = '2021-06-15T12:00:00Z';
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: {
+          name: 'test', namespace: 'default', creationTimestamp
+        },
+        spec: { template: { metadata: { annotations: { 'kubectl.kubernetes.io/restartedAt': restartedAt } } } }
+      }, ctx);
+
+      expect(workload.deployedTimestamp).toBe(restartedAt);
+    });
+
+    it('should use the Rancher redeploy timestamp annotation when the restart annotation is absent', () => {
+      const timestamp = '2021-07-20T08:30:00Z';
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: {
+          name: 'test', namespace: 'default', creationTimestamp
+        },
+        spec: { template: { metadata: { annotations: { 'cattle.io/timestamp': timestamp } } } }
+      }, ctx);
+
+      expect(workload.deployedTimestamp).toBe(timestamp);
+    });
+
+    it('should read the pod template from the job template for cron jobs', () => {
+      const restartedAt = '2022-02-02T02:02:02Z';
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.CRON_JOB,
+        metadata: {
+          name: 'test', namespace: 'default', creationTimestamp
+        },
+        spec: { jobTemplate: { spec: { template: { metadata: { annotations: { 'kubectl.kubernetes.io/restartedAt': restartedAt } } } } } }
+      }, ctx);
+
+      expect(workload.deployedTimestamp).toBe(restartedAt);
+    });
+  });
+
   describe('getter: relatedServices', () => {
     it('should return services that match workload pod template labels', () => {
       const mockService = {
