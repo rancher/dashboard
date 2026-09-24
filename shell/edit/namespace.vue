@@ -18,6 +18,7 @@ import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
 import CruResource from '@shell/components/CruResource';
 import { PROJECT_ID, _VIEW, FLAT_VIEW, _CREATE } from '@shell/config/query-params';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
+import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import Labels from '@shell/components/form/Labels';
@@ -27,6 +28,7 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 export default {
   emits:      ['input'],
   components: {
+    Banner,
     ContainerResourceLimit,
     CruResource,
     LabeledSelect,
@@ -250,6 +252,12 @@ export default {
             </p>
           </div>
         </div>
+        <Banner
+          v-if="liveValue?.hasInvalidResourceQuota"
+          color="warning"
+          :label="t('resourceQuota.invalidAnnotation')"
+          data-testid="namespace-invalid-resource-quota-banner"
+        />
         <ResourceQuota
           :value="value"
           :mode="mode"

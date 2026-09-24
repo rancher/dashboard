@@ -200,6 +200,15 @@ describe('namespaceRow', () => {
       expect(emitted).toBeTruthy();
       expect(emitted![0][0]).toBe('extended.requests.nvidia.com/gpu');
     });
+
+    it.each([
+      ['with a current limit', { limit: { limitsCpu: '1000m' } }],
+      ['without a current limit', { limit: {} }],
+    ])('does not emit update:value on mount in view mode %s', (_, value) => {
+      const wrapper: any = createWrapper({ mode: 'view', value });
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
   });
 
   describe('computed: totalContribution', () => {

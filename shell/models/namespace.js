@@ -230,7 +230,23 @@ export default class Namespace extends SteveModel {
   }
 
   get resourceQuota() {
-    return JSON.parse(this.metadata.annotations[RESOURCE_QUOTA] || `{"limit":{}}`);
+    // The annotation can be hand-edited into invalid JSON. Every namespace in a project reads its siblings' quotas,
+    // so throwing here would break the Resource Quotas view for all of them, not just this one.
+    try {
+      return JSON.parse(this.metadata.annotations?.[RESOURCE_QUOTA] || `{"limit":{}}`);
+    } catch (e) {
+      return { limit: {} };
+    }
+  }
+
+  get hasInvalidResourceQuota() {
+    try {
+      JSON.parse(this.metadata.annotations?.[RESOURCE_QUOTA] || '{}');
+
+      return false;
+    } catch (e) {
+      return true;
+    }
   }
 
   set resourceQuota(value) {

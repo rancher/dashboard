@@ -9410,6 +9410,7 @@ resourceQuota:
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
   helpTextHarvester: VMs need to reserve additional memory overhead.
+  invalidAnnotation: The field.cattle.io/resourceQuota annotation on this namespace is not a valid JSON, so its current limits cannot be shown. Setting the limits below and saving will replace it.
   custom: Custom
   resourceIdentifier:
     placeholder: e.g. configmaps
