@@ -242,17 +242,8 @@ export default {
       :label="t('workload.detail.storage')"
       :weight="2.7"
     >
-      <p
-        v-if="persistentVolumeClaims.length === 0"
-        class="caption"
-      >
+      <p v-if="persistentVolumeClaims.length === 0">
         {{ t('workload.detail.cannotFindStorage') }}
-      </p>
-      <p
-        v-else
-        class="caption"
-      >
-        {{ t('workload.detail.storageListCaption') }}
       </p>
       <ResourceTable
         v-if="persistentVolumeClaims.length > 0"
@@ -301,8 +292,3 @@ export default {
   </ResourceTabs>
 </template>
 
-<style lang="scss" scoped>
-.caption {
-  margin-bottom: 16px;
-}
-</style>

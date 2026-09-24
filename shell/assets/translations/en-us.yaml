@@ -7917,7 +7917,6 @@ workload:
     cannotViewHttpRoutesBecauseCannotViewServices: Could not find relevant HTTPRoutes due to lack of permission to view Services.
     storage: Storage
     cannotFindStorage: Could not find any PersistentVolumeClaims mounted by this workload.
-    storageListCaption: "The following PersistentVolumeClaims are mounted by this workload:"
     pods:
       title: Pods
   detailTop:

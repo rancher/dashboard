@@ -436,12 +436,6 @@ export default {
         >
           {{ t('workload.detail.cannotFindStorage') }}
         </p>
-        <p
-          v-else
-          class="caption"
-        >
-          {{ t('workload.detail.storageListCaption') }}
-        </p>
         <ResourceTable
           v-if="persistentVolumeClaims.length > 0"
           :rows="persistentVolumeClaims"
