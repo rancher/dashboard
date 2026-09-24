@@ -71,7 +71,7 @@ export default {
       {
         id:      CLUSTER_REPO_TYPES.OCI_URL,
         header:  { title: { key: 'catalog.repo.target.oci.title' } },
-        image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { key: 'catalog.repo.target.oci.title' } },
+        image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { text: '' } },
         content: { key: 'catalog.repo.target.oci.description' },
       },
     ];
@@ -81,7 +81,7 @@ export default {
       clusterRepoTargets.push({
         id:      CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION,
         header:  { title: { key: 'catalog.repo.target.suseAppCollection.title' } },
-        image:   { src: requireAsset('@shell/assets/images/content/suse.svg'), alt: { key: 'catalog.repo.target.suseAppCollection.title' } },
+        image:   { src: requireAsset('@shell/assets/images/content/suse.svg'), alt: { text: '' } },
         content: { key: 'catalog.repo.target.suseAppCollection.description' },
       });
     }

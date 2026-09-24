@@ -38,7 +38,7 @@ export default class BurgerMenuPo extends ComponentPo {
 
       menu.openClusterSwitcher();
 
-      return menu.clusterListRowByLabel(label).click({ force: true });
+      return menu.clusterListRowControlByLabel(label).click({ force: true });
     }
 
     return this.sideMenu().should('exist').find('.option .cluster-name').contains(label)
@@ -219,10 +219,17 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * Every row of the estate list — ALL CLUSTERS at rest, the matches while searching.
+   */
+  clusterListRows(): Cypress.Chainable {
+    return this.clusterList().find('.cluster-switcher-row');
+  }
+
+  /**
    * The rows currently matching the flyout's search term.
    */
   clusterSearchResults(): Cypress.Chainable {
-    return this.clusterList().find('.cluster-switcher-row');
+    return this.clusterListRows();
   }
 
   /**
@@ -236,6 +243,14 @@ export default class BurgerMenuPo extends ComponentPo {
 
     return this.clusterList().find('.cluster-switcher-row .row-name').contains(exact)
       .closest('.cluster-switcher-row');
+  }
+
+  /**
+   * The control that explores a flyout row. The row is a list item holding two sibling buttons — this
+   * one and the pin — so a click has to land on the control, not on the item that contains it.
+   */
+  clusterListRowControlByLabel(label: string): Cypress.Chainable {
+    return this.clusterListRowByLabel(label).find('.row-main');
   }
 
   /**
@@ -258,7 +273,7 @@ export default class BurgerMenuPo extends ComponentPo {
     if (clusterId !== 'local') {
       this.openClusterSwitcher();
 
-      return this.clusterListRowByLabel(clusterId).click({ force: true });
+      return this.clusterListRowControlByLabel(clusterId).click({ force: true });
     }
 
     this.self().find('.cluster-name').contains(clusterId).should('exist');
@@ -273,6 +288,14 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   clusterSwitcherRows(): Cypress.Chainable {
     return BurgerMenuPo.clusterSwitcherFlyout().find('.cluster-switcher-row');
+  }
+
+  /**
+   * The count chip on the switcher trigger — how many clusters the flyout's ALL CLUSTERS directory holds.
+   * @returns {Cypress.Chainable}
+   */
+  clusterSwitcherCount(): Cypress.Chainable {
+    return this.self().getId('cluster-switcher-trigger').find('.cluster-all-count');
   }
 
   clusterPinnedList(): Cypress.Chainable {

@@ -57,13 +57,13 @@ export default {
       :aria-disabled="disabled || !canMinus"
       type="button"
       role="button"
-      :aria-label="t('workload.plus')"
+      :aria-label="t('workload.minus')"
       class="btn btn-sm role-secondary"
       @click="$emit('minus')"
     >
       <i
         class="icon icon-sm icon-minus"
-        :alt="t('workload.plus')"
+        :alt="t('workload.minus')"
       />
     </button>
     <div class="value">
@@ -75,13 +75,13 @@ export default {
       :aria-disabled="disabled || !canPlus"
       type="button"
       role="button"
-      :aria-label="t('workload.minus')"
+      :aria-label="t('workload.plus')"
       class="btn btn-sm role-secondary"
       @click="$emit('plus')"
     >
       <i
         class="icon icon-sm icon-plus"
-        :alt="t('workload.minus')"
+        :alt="t('workload.plus')"
       />
     </button>
   </div>

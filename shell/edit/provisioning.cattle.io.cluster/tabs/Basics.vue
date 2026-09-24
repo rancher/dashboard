@@ -8,7 +8,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import semver from 'semver';
-import Ingress from '@shell/edit/provisioning.cattle.io.cluster/tabs/Ingress';
+import Ingress from '@shell/edit/provisioning.cattle.io.cluster/ingress/index';
 import {
   HARVESTER, RKE2_INGRESS_NGINX, RKE2_TRAEFIK, INGRESS_CONTROLLER, INGRESS_NGINX, INGRESS_NONE
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
@@ -642,6 +642,7 @@ export default {
       :user-chart-values="userChartValues"
       :version-info="versionInfo"
       :original-ingress-controller="originalIngressController"
+      :kubernetes-version="value.spec.kubernetesVersion"
       @update-values="(name, val) => $emit('update-values', name, val)"
       @error="$emit('error', $event)"
       @yaml-validation-changed="e => $emit('yaml-validation-changed', e)"

@@ -442,6 +442,8 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
           slideIn.checkVisible();
           slideIn.waitforContent();
 
+          header.hideKubectlExplainTooltip();
+
           cy.injectAxe();
 
           cy.checkPageAccessibility();

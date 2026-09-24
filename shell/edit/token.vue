@@ -21,6 +21,7 @@ import {
 import { SETTING } from '@shell/config/settings';
 import { STORE } from '@shell/store/store-types';
 import { LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
+import { RcHeading } from '@components/RcHeading';
 
 // Sentinel value for the "no scope" option. vue-select treats an empty string as
 // "nothing selected" (see its `selectedValue` computed), so an option whose value is ''
@@ -37,6 +38,7 @@ export default {
     ResourceLabeledSelect,
     RadioGroup,
     Select,
+    RcHeading,
   },
 
   mixins: [CreateEditView],
@@ -273,9 +275,12 @@ export default {
         :paginated-resource-settings="scopePaginatedSettings"
       />
 
-      <h5 class="pt-20">
+      <RcHeading
+        :size="5"
+        class="pt-20"
+      >
         {{ t('accountAndKeys.apiKeys.add.expiry.label') }}
-      </h5>
+      </RcHeading>
 
       <div class="ml-10">
         <RadioGroup
@@ -385,7 +390,6 @@ export default {
   .buttons {
     display: grid;
     grid-template-areas:  "left right";
-    grid-template-columns: "min-content auto";
 
     .right {
       grid-area: right;

@@ -78,6 +78,7 @@ export default {
       switcherOpen:      false,
       displayVersion,
       fullVersion,
+      versionClipped:    false,
       clusterFilter:     '',
       hasProvCluster,
       loadingMoreOthers: false,
@@ -94,6 +95,8 @@ export default {
       othersRequestId:   0,
       recentLoading:     false,
       routeCombo:        false,
+      // Pin/unpin changes the shelf under the user; nothing else in the nav says so out loud.
+      navAnnouncement:   '',
 
       canPagination,
       helper,
@@ -194,11 +197,13 @@ export default {
         return this.clustersFiltered;
       }
 
-      const rows = this.clustersFiltered.filter((c) => !c.isLocal);
+      // `local` belongs in ALL CLUSTERS like every other cluster — the tile above it is a shortcut, not
+      // the only way there. Only `hide-local-cluster` takes it out, and that is already applied upstream.
+      const rows = [...this.clustersFiltered];
       const seen = new Set(rows.map((c) => c.id));
 
       [...this.pinFiltered, ...this.recentClusters].forEach((c) => {
-        if (c.isLocal || seen.has(c.id)) {
+        if (seen.has(c.id)) {
           return;
         }
 
@@ -245,10 +250,10 @@ export default {
       return this.helper.counts?.others || 0;
     },
 
-    // How many clusters the ALL CLUSTERS list holds — the chip's number and the caption's. The helper counts
-    // this for the switcher alone, always without `local` (which has its own fixed tile above the list), so
-    // it is the total outright: nothing to subtract, and `hide-local-cluster` cannot move it. Deriving it
-    // from the count the home page and the Cluster Management badge share is what made it wobble by one.
+    // How many clusters the ALL CLUSTERS list holds — the chip's number and the caption's. `local` is one
+    // of them (its fixed tile above the list is a shortcut, not the only way there), so this is the same
+    // total the home page and the Cluster Management badge show, and the nav cannot disagree with the
+    // badge beside it. `hide-local-cluster` moves it by one, because it moves the list by one.
     browsableClusterCount() {
       return this.helper.counts?.browsable || 0;
     },
@@ -373,6 +378,16 @@ export default {
     aboutText() {
       // If a version number (starts with 'v') then use that
       if (this.displayVersion.startsWith('v')) {
+        if (this.shown) {
+          return this.displayVersion;
+        }
+
+        const [releaseNumber] = this.displayVersion.match(/^v\d+\.\d+\.\d+/) || [];
+
+        if (releaseNumber && releaseNumber !== this.displayVersion) {
+          return releaseNumber;
+        }
+
         // Don't show the '.0' for a minor release (e.g. 2.8.0, 2.9.0 etc)
         return !this.displayVersion.endsWith('.0') ? this.displayVersion : this.displayVersion.substr(0, this.displayVersion.length - 2);
       }
@@ -381,8 +396,26 @@ export default {
       return this.t('about.title');
     },
 
-    largeAboutText() {
-      return this.aboutText.length > 6;
+    versionTooltip() {
+      const labelSaysItAll = this.aboutText === this.fullVersion && !this.versionClipped;
+
+      return {
+        content:     labelSaysItAll ? undefined : this.fullVersion,
+        placement:   'right',
+        popperClass: 'nav-tooltip',
+      };
+    },
+
+    // Longer labels are set smaller so each one still reads as roughly centred in the rail, without
+    // changing the padding it sits in.
+    versionSizeClass() {
+      const { length } = this.aboutText;
+
+      if (length <= 6) {
+        return null;
+      }
+
+      return length === 7 ? 'version-small' : 'version-smaller';
     },
 
     appBar() {
@@ -452,6 +485,9 @@ export default {
     $route() {
       this.hide();
     },
+
+    aboutText: 'measureVersionClipping',
+    shown:     'measureVersionClipping',
 
     // Before SSP world all of these changes were kicked off given Vue change detection to properties in a computed method.
     // Changes could come from two scenarios
@@ -525,9 +561,9 @@ export default {
       this.updateClusters(this.pinnedIds, 'slow');
     },
 
-    // The saved count and the switcher's own are both fetched WITH these filters, so changing them makes
-    // both answers wrong for the home page, the Cluster Management badge and the chip — while the number
-    // of clusters sits still and nothing else asks again.
+    // The count is fetched WITH these filters, so changing them makes the answer wrong for the home page,
+    // the Cluster Management badge and the chip alike — while the number of clusters sits still and
+    // nothing else asks again.
     clusterFilters() {
       this.helper.updateCount(this.clusterCountsFromCounts);
     },
@@ -542,6 +578,7 @@ export default {
   },
 
   mounted() {
+    this.measureVersionClipping();
     document.addEventListener('keyup', this.handler);
     // Capture on `window` — one hop ahead of the `document` capture listeners the shortkey directive uses
     // — so the guard can swallow an app shortcut before any of them sees it.
@@ -561,6 +598,14 @@ export default {
   },
 
   methods: {
+    measureVersionClipping() {
+      this.$nextTick(() => {
+        const el = this.$refs.versionLink?.$el;
+
+        this.versionClipped = !!el && el.scrollWidth > el.clientWidth;
+      });
+    },
+
     checkActiveRoute(obj, isClusterRoute) {
       // for Cluster links in main nav: check if route is a cluster explorer one + check if route cluster matches cluster obj id + check if curr product matches route product
       if (isClusterRoute) {
@@ -663,10 +708,24 @@ export default {
       this.shown = false;
     },
 
-    onShelfRowClick(cluster) {
-      if (cluster.ready) {
-        this.hide();
+    /**
+     * Click on a shelf row. The whole row explores the cluster, as it did when the row's control spanned
+     * it: the control now stops short of the pin, so the strip of row beside the pin belongs to the row
+     * itself, and a click landing there is forwarded to the control rather than only closing the nav.
+     *
+     * The pin stops its own clicks, so nothing that reaches here is the pin's; a click that landed ON the
+     * control has already navigated through the control's own handler, and must not be pushed twice.
+     */
+    onShelfRowClick(event, cluster) {
+      if (!cluster.ready) {
+        return;
       }
+
+      if (!event.target?.closest?.('.cluster.selector')) {
+        this.clusterMenuClick(event, cluster);
+      }
+
+      this.hide();
     },
 
     /**
@@ -888,6 +947,38 @@ export default {
     },
 
     /**
+     * Unpinning removes the row that holds focus, which drops focus to `<body>` and says nothing. Take
+     * the next pin in the shelf (or the previous, when the last row goes), and announce the change —
+     * the row leaving is the only other feedback, and that is invisible to a screen reader.
+     */
+    onShelfUnpinned(cluster, index, rows) {
+      this.announce(this.t('nav.switcher.aria.unpinnedCluster', { cluster: cluster.label }));
+
+      // Pick the target by id, not by position in the DOM: the TransitionGroup keeps the unpinned row
+      // mounted for the length of its leave animation, so a query right now still returns it — and
+      // focusing a row that is on its way out drops focus to `<body>` a moment later.
+      // `rows` is the shelf the row was unpinned FROM — `index` indexes that shelf, not `pinnedRows`,
+      // and the two only coincide while `shelves` has the single pinned entry.
+      const remaining = rows.filter((row) => row.id !== cluster.id);
+      const next = remaining[Math.min(index, remaining.length - 1)];
+
+      this.$nextTick(() => {
+        const pin = next && this.$el.querySelector(`.shelf-row[data-row-id="${ next.id }"] button.pin`);
+
+        // Nothing left on the shelf — the switcher is the nearest thing that still does something.
+        (pin || this.$el.querySelector('[data-testid="cluster-switcher-trigger"]'))?.focus();
+      });
+    },
+
+    /** Re-announce an identical message by clearing first — a live region ignores an unchanged value. */
+    announce(message) {
+      this.navAnnouncement = '';
+      this.$nextTick(() => {
+        this.navAnnouncement = message;
+      });
+    },
+
+    /**
      * A shelf row was dropped in a new position. Optimistic, like pin/unpin, so the shelf never waits on
      * the round trip, and reported the same way when the write fails.
      */
@@ -1006,6 +1097,9 @@ export default {
      *
      * A row that cannot be explored says why, so "nothing happens when I click it" has an answer in the
      * same place as the invitation to drag it.
+     *
+     * Dragging is how the shelf is REORDERED, so with one row pinned there is no order to change and the
+     * invitation is simply wrong — the copy drops it and says only what the row does.
      */
     getPinnedTooltip(cluster, showWhenClosed = false) {
       const rightState = showWhenClosed ? !this.shown : this.shown;
@@ -1021,7 +1115,12 @@ export default {
       }
 
       const { label: name, ready, stateDisplay: reason } = cluster;
-      const content = ready ? this.t('nav.pinnedCluster.explore', { name }) : this.t('nav.pinnedCluster.blocked', { name, reason });
+      const reorderable = this.pinnedRows.length > 1;
+      // Every variant is picked at runtime, so no key appears literally after `t(` for `check-i18n` to
+      // find — declare the node it chooses from, or an unused-string sweep deletes copy that is in use.
+      // i18n-uses nav.pinnedCluster.*
+      const key = ready ? 'nav.pinnedCluster.explore' : 'nav.pinnedCluster.blocked';
+      const content = this.t(reorderable ? key : `${ key }OnlyPinned`, { name, reason });
 
       return {
         content,
@@ -1133,6 +1232,14 @@ export default {
         role="navigation"
         :aria-label="t('nav.ariaLabel.topLevelMenu')"
       >
+        <!-- Pinning changes the shelf silently otherwise: the row simply leaves. -->
+        <div
+          class="sr-only"
+          role="status"
+          aria-live="polite"
+        >
+          {{ navAnnouncement }}
+        </div>
         <!-- Logo and name -->
         <div class="title">
           <div
@@ -1208,9 +1315,8 @@ export default {
             </div>
             <!-- The cluster-switcher "door": the top of the cluster area, IDENTICAL expanded and collapsed —
                  the count chip sits in the icon lane, and the expanded nav adds the "Cluster Switch"
-                 label plus the trailing chevron (the collapsed rail clips both). Gated on the BROWSABLE
-                 count (not the raw total, which includes local), so there's no empty "0" flyout when
-                 local is the only cluster. -->
+                 label plus the trailing chevron (the collapsed rail clips both). Gated on the same total
+                 the chip shows, so the door is down only when the flyout would have nothing to list. -->
             <div
               v-if="browsableClusterCount > 0"
               class="cluster-door"
@@ -1252,7 +1358,7 @@ export default {
                       :aria-label="t('nav.switcher.ariaLabel')"
                       :aria-keyshortcuts="switcherKeyShortcut"
                       :aria-expanded="switcherIsOpen"
-                      aria-haspopup="listbox"
+                      aria-haspopup="dialog"
                       @click.prevent="toggleSwitcher"
                       @shortkey="onSwitcherHotkey"
                     >
@@ -1383,13 +1489,18 @@ export default {
                   class="shelf-rows"
                   :class="{ 'is-reordering': !!dragId }"
                 >
+                  <!-- The pin is a SIBLING of the row's control, never inside it: a `<button>` may not
+                       contain another interactive element, and nesting them hides the inner one from
+                       assistive tech. The wrapper is the flex row, so the two sit side by side. -->
                   <div
                     v-for="(c, index) in shelf.rows"
                     :key="c.id"
                     :data-testid="`${ shelf.key }-ready-cluster-${ index }`"
-                    :class="{ 'shelf-row-held': dragId === c.id }"
+                    :data-row-id="c.id"
+                    class="shelf-row"
+                    :class="{ 'shelf-row-held': dragId === c.id, 'is-active': c.isMenuActive, 'is-disabled': !c.ready }"
                     @mousedown="onRowDragStart($event, c)"
-                    @click="onShelfRowClick(c)"
+                    @click="onShelfRowClick($event, c)"
                   >
                     <button
                       v-if="c.ready"
@@ -1415,11 +1526,6 @@ export default {
                       >
                         <p>{{ c.label }}</p>
                       </div>
-                      <Pinned
-                        v-if="!c.isLocal"
-                        :cluster="c"
-                        :tab-order="shown ? 0 : -1"
-                      />
                     </button>
                     <span
                       v-else
@@ -1438,12 +1544,13 @@ export default {
                       >
                         <p>{{ c.label }}</p>
                       </div>
-                      <Pinned
-                        v-if="!c.isLocal"
-                        :cluster="c"
-                        :tab-order="shown ? 0 : -1"
-                      />
                     </span>
+                    <Pinned
+                      v-if="!c.isLocal"
+                      :cluster="c"
+                      :tab-order="shown ? 0 : -1"
+                      @unpinned="onShelfUnpinned(c, index, shelf.rows)"
+                    />
                   </div>
                 </TransitionGroup>
               </div>
@@ -1527,10 +1634,12 @@ export default {
         >
           <div
             class="version"
-            :class="{'version-small': largeAboutText}"
+            :class="versionSizeClass"
             @click="hide()"
           >
             <router-link
+              ref="versionLink"
+              v-clean-tooltip="versionTooltip"
               :to="{ name: 'about' }"
               role="link"
               :aria-label="t('nav.ariaLabel.about')"
@@ -1670,12 +1779,123 @@ export default {
     position: relative;
   }
 
+  // The row is the flex line; the control and the pin are its two children. The pin used to sit INSIDE
+  // the control, which made it an interactive element nested in a `<button>` — invalid, and hidden from
+  // assistive tech. Hover is scoped to the row rather than the control so reaching for the pin does not
+  // make it fade away.
+  // COLLAPSED. The nav rings the BADGE on the rail, but the ring sits on the icon wrapper while the
+  // rounded tile is its child — so without this the ring boxes a rounded tile in square corners. Same
+  // radius as the cluster-count chip beside it, which is the look every rail badge shares: `local` and
+  // the pinned rows alike, so scoped to the rail rather than to one shelf.
+  // `.body .option.cluster.selector` only to outrank the nav's own active-row rule, which insets the
+  // ring by -4px — on the rail that draws it INSIDE the badge, so the active tile rings differently
+  // from every other one.
+  .side-menu.menu-close .body .option.cluster.selector:focus-visible .rancher-provider-icon {
+    border-radius:  $chip-radius;
+    outline-offset: 0;
+  }
+
+  // EXPANDED only. The ring belongs to the whole row here — the control no longer spans it, so a ring on
+  // the control alone stops short of the pin. Collapsed, the rail is a column of badges and the ring goes
+  // round the badge (the nav's own rule, same as the cluster-count chip); a row-wide ring there draws a
+  // bar across the rail.
+  .side-menu.menu-open .shelf-rows > .shelf-row {
+    &:has(.cluster.selector:focus-visible) {
+      @include focus-outline;
+
+      outline-offset: -4px;
+    }
+
+    .cluster.selector:focus-visible {
+      outline: none;
+    }
+  }
+
+  .shelf-rows > .shelf-row {
+    display: flex;
+    align-items: center;
+    // The control used to span the row and carry this itself. With the pin pulled out to a sibling the
+    // row is what reserves the pin's gutter, so the pin lands exactly where it always did.
+    padding-right: 14px;
+    // The whole row explores the cluster, the strip beside the pin included, so the row carries the hand
+    // the control used to carry across all of it. A row that cannot be explored keeps the control's
+    // `not-allowed` rather than promising a target.
+    cursor: pointer;
+
+    &.is-disabled {
+      cursor: not-allowed;
+    }
+
+    .cluster.selector {
+      flex:       1 1 auto;
+      min-width:  0;
+      background: transparent !important;
+    }
+
+    // Hover fill, on the row because the control no longer spans it. NOT on a row that cannot be explored
+    // — a disabled row stays flat, which is how the nav says it is not a target.
+    &:hover:not(.is-disabled) {
+      background: var(--nav-hover-top-level, var(--primary-hover-bg));
+    }
+
+    &.is-active {
+      background: var(--active-nav, var(--primary-hover-bg));
+
+      &:hover {
+        background: var(--active-hover, var(--primary-hover-bg));
+      }
+    }
+
+    .pin {
+      @include icon-hover-square;
+      flex: 0 0 auto;
+      font-size: 12px;
+      margin: 0;
+      transition: opacity 0.1s ease-in-out, background-color 0.1s ease-in-out;
+
+      &:focus-visible {
+        @include focus-outline;
+
+        outline-offset: 2px;
+      }
+
+      // PINNED: always shown, primary. NOT-PINNED: hidden until the row is hovered or the pin is focused.
+      &.is-pinned {
+        opacity: 1;
+        color: var(--primary) !important;
+      }
+
+      &:not(.is-pinned) {
+        opacity: 0;
+        color: var(--muted) !important;
+      }
+    }
+
+    &:hover .pin:not(.is-pinned),
+    .pin:focus-visible {
+      opacity: 1;
+    }
+
+    // Current row: the control paints itself, so the sibling pin has to be told to match.
+    &.is-active .pin.is-pinned {
+      color: var(--on-active, var(--primary-hover-text)) !important;
+    }
+
+    &.is-active .pin:not(.is-pinned) {
+      color: color-mix(in srgb, var(--on-active, var(--primary-hover-text)) 65%, transparent) !important;
+    }
+  }
+
   .shelf-row-enter-active,
   .shelf-row-leave-active {
     transition: opacity 0.16s ease-out, transform 0.16s ease-out;
   }
 
-  .shelf-row-enter-active {
+  // Not on an ACTIVE row: the wash drives the row's own `background`, and an animation outranks a normal
+  // declaration for its whole duration — the active fill would be replaced by the wash and the row would
+  // arrive looking unhighlighted. On master the control's opaque fill covered the wash, so an active row
+  // never showed one; skipping it here is that same result.
+  .shelf-row-enter-active:not(.is-active) {
     animation: cluster-wash 0.6s ease-out;
   }
 
@@ -1696,8 +1916,11 @@ export default {
   }
 
   .shelf-row-leave-active {
-    animation: cluster-unwash 0.3s ease-out;
     transition-delay: 0.14s;
+  }
+
+  .shelf-row-leave-active:not(.is-active) {
+    animation: cluster-unwash 0.3s ease-out;
   }
 
   @keyframes cluster-unwash {
@@ -1717,27 +1940,32 @@ export default {
   $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
 
-  .shelf-rows .cluster.selector {
+  .shelf-rows > .shelf-row {
     transition: background-color 0.1s ease-in-out, transform 0.33s $drag-drop-curve, box-shadow 0.33s $drag-drop-curve;
+
+    // The TransitionGroup's own enter/leave has to outrank the drop transition above: both now land on
+    // the ROW, where on master the drop transition sat on the control and the two never met. Without
+    // this a pin/unpin animates on the drag curve, over twice the duration, and never fades.
+    &.shelf-row-enter-active,
+    &.shelf-row-leave-active {
+      transition: opacity 0.16s ease-out, transform 0.16s ease-out;
+    }
   }
 
   // Scoped through `.shelf-rows` so it outranks the resting row's own background, which is set further
   // up the nav's cascade than the lift below can reach.
-  .shelf-rows .shelf-row-held .cluster.selector {
+  .shelf-rows .shelf-row-held {
     background: color-mix(in srgb, var(--primary) 14%, transparent);
   }
 
   .shelf-row-held {
     position: relative;
     z-index: 1;
-
-    .cluster.selector {
-      transform: scale(1.02);
-      transition: transform 0.2s $drag-displace-curve, box-shadow 0.2s $drag-displace-curve, background-color 0.2s $drag-displace-curve;
-    }
+    transform: scale(1.02);
+    transition: transform 0.2s $drag-displace-curve, box-shadow 0.2s $drag-displace-curve, background-color 0.2s $drag-displace-curve;
   }
 
-  .side-menu .shelf-rows .shelf-row-held .cluster.selector {
+  .side-menu .shelf-rows .shelf-row-held {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
   }
 
@@ -1754,7 +1982,7 @@ export default {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .shelf-rows .cluster.selector,
+    .shelf-rows > .shelf-row,
     .shelf-rows.is-reordering .shelf-row-move,
     .shelf-row-enter-active,
     .shelf-row-leave-active {
@@ -1771,7 +1999,7 @@ export default {
       transform: none;
     }
 
-    .shelf-row-held .cluster.selector {
+    .shelf-row-held {
       transform: none;
     }
   }
@@ -1976,7 +2204,7 @@ export default {
       & .category {
         & a.router-link-active {
           &:hover {
-            color: var(--on-active, var(--default));
+            color: var(--on-active-nav, var(--default));
           }
         }
       }
@@ -2111,37 +2339,37 @@ export default {
           }
 
           background: var(--active-nav, var(--primary-hover-bg));
-          color: var(--on-active, var(--primary-hover-text));
+          color: var(--on-active-nav, var(--primary-hover-text));
 
           svg {
-            fill: var(--on-active, var(--primary-hover-text));
+            fill: var(--on-active-nav, var(--primary-hover-text));
           }
 
           i {
-            color: var(--on-active, var(--primary-hover-text));
+            color: var(--on-active-nav, var(--primary-hover-text));
           }
 
           // Current row (selected): white name + pinned pin; light meta + light-grey not-pinned pin.
           // !important overrides the base black/muted name+pin invariants.
           .cluster-name > p {
-            color: var(--on-active, var(--primary-hover-text)) !important;
+            color: var(--on-active-nav, var(--primary-hover-text)) !important;
           }
           .pin.is-pinned {
-            color: var(--on-active, var(--primary-hover-text)) !important;
+            color: var(--on-active-nav, var(--primary-hover-text)) !important;
           }
           .pin:not(.is-pinned) {
-            color: color-mix(in srgb, var(--on-active, var(--primary-hover-text)) 65%, transparent) !important;
+            color: color-mix(in srgb, var(--on-active-nav, var(--primary-hover-text)) 65%, transparent) !important;
           }
 
           &:hover {
-            background: var(--active-hover, var(--primary-hover-bg));
+            background: var(--nav-active-hover, var(--primary-hover-bg));
 
             div {
-              color: var(--on-active, var(--default));
+              color: var(--on-active-nav, var(--default));
             }
 
             svg {
-              fill: var(--on-active, var(--primary-hover-text));
+              fill: var(--on-active-nav, var(--primary-hover-text));
             }
           }
         }
@@ -2322,21 +2550,25 @@ export default {
       }
 
       .footer {
-        margin: 20px 10px;
+        margin: $nav-space-5 4px $nav-space-5 $nav-space-4;
         width: 50px;
 
         .version{
-          text-align: center;
-
+          // Each size holds its label to about the width of the shortest one, so the padding stays
+          // put and the label stays roughly centred.
           &.version-small {
-            font-size: $font-size-sm;
+            font-size: 11.5px;
+          }
+
+          &.version-smaller {
+            font-size: 10px;
           }
         }
       }
     }
 
     .footer {
-      margin: $nav-space-5;
+      margin: $nav-space-5 $nav-space-4;
       width: 240px;
       display: flex;
       flex: 0;
@@ -2349,6 +2581,15 @@ export default {
 
       .version {
         cursor: pointer;
+        min-width: 0;
+        line-height: $nav-space-4;
+
+        a {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
 
         a:focus-visible {
           @include focus-outline;

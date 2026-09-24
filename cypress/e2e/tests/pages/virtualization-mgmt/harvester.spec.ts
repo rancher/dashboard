@@ -13,19 +13,23 @@ const appRepoList = new RepositoriesPagePo(undefined, 'manager');
 let harvesterClusterName = '';
 // Incremented per test attempt so the imported-cluster name is unique across Cypress retries.
 let harvesterClusterAttempt = 0;
-const harvesterTitle = 'Harvester';
 
-// Cluster chart repository that supplies the Harvester UI extension (repo id, Git URL, branch)—differs for Community vs Prime.
+// Cluster chart repository that supplies the Harvester UI extension (repo id, Git URL, branch) plus the
+// product's display names—all differ for Community vs Prime, where Harvester is branded SUSE Virtualization.
 const HARVESTER_EXTENSION_CATALOG = {
   community: {
-    repo:      'harvester',
-    gitRepo:   'https://github.com/harvester/harvester-ui-extension.git',
-    gitBranch: 'gh-pages',
+    title:        'Harvester',
+    productLabel: 'Virtualization Management',
+    repo:         'harvester',
+    gitRepo:      'https://github.com/harvester/harvester-ui-extension.git',
+    gitBranch:    'gh-pages',
   },
   prime: {
-    repo:      'rancher',
-    gitRepo:   'https://github.com/rancher/ui-plugin-charts',
-    gitBranch: 'main',
+    title:        'SUSE Virtualization',
+    productLabel: 'SUSE Virtualization',
+    repo:         'rancher',
+    gitRepo:      'https://github.com/rancher/ui-plugin-charts',
+    gitBranch:    'main',
   },
 };
 
@@ -80,8 +84,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
   qase(7020, it('can auto install harvester and begin process of importing a harvester cluster', () => {
     cy.get<Cypress.RancherVersion>('@rancherVersion').then((version) => {
-      const catalog = harvesterExtensionCatalog(version);
-      const chartRepo = catalog.repo;
+      const { repo: chartRepo, title: harvesterTitle, productLabel } = harvesterExtensionCatalog(version);
 
       cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createChart');
       cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }`).as('updateChart');
@@ -92,7 +95,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       harvesterPo.goTo();
       harvesterPo.waitForPage();
       harvesterPo.updateOrInstallButton().checkVisible(undefined, { scrollIntoView: false });
-      harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not installed');
+      harvesterPo.extensionWarning().should('have.text', `The ${ harvesterTitle } UI Extension is not installed`);
 
       // install harvester extension
       harvesterPo.updateOrInstallButton().click();
@@ -122,7 +125,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.wait('@updateChart', LONG_TIMEOUT_OPT);
       harvesterPo.importHarvesterClusterButton().click();
       harvesterPo.createHarvesterClusterForm().waitForPage(undefined, 'memberRoles');
-      harvesterPo.createHarvesterClusterForm().title().should('contain', 'Harvester Cluster:');
+      harvesterPo.createHarvesterClusterForm().title().should('contain', `${ harvesterTitle } Cluster:`);
       harvesterPo.createHarvesterClusterForm().nameNsDescription().name().set(harvesterClusterName);
       harvesterPo.createHarvesterClusterForm().nameNsDescription().description().set(`${ harvesterClusterName }-desc`);
       harvesterPo.createHarvesterClusterForm().resourceDetail().createEditView().create();
@@ -136,7 +139,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         harvesterDetails.title().should('contain', harvesterClusterName);
 
         // navigate to harvester list page and verify the logo and tagline do not display after cluster created
-        HarvesterClusterPagePo.navTo();
+        HarvesterClusterPagePo.navTo(productLabel);
         harvesterPo.waitForPage();
         // Wait for the just-created cluster to render in the list before acting on it. `rowWithName()`
         // wraps an already-resolved chainable (`.should('exist').contains(...)`), so `checkVisible()`
@@ -162,7 +165,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
     cy.get<Cypress.RancherVersion>('@rancherVersion').then((version) => {
       const catalog = harvesterExtensionCatalog(version);
-      const chartRepo = catalog.repo;
+      const { repo: chartRepo, title: harvesterTitle } = catalog;
 
       cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }?action=install`).as('installHarvesterExtension');
       cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }`).as('updateHarvesterChart');
@@ -228,7 +231,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       harvesterPo.goTo();
       harvesterPo.waitForPage();
       // verify missing repo message displays
-      harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension repository is missing');
+      harvesterPo.extensionWarning().should('have.text', `The ${ harvesterTitle } UI Extension repository is missing`);
 
       // uninstall harvester
       cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {});
@@ -244,19 +247,19 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.loading().should('not.exist');
 
       // verify install button and message displays
-      HarvesterClusterPagePo.navTo();
+      harvesterPo.goTo();
       harvesterPo.waitForPage();
       // The masthead button is always in view and this page re-renders as the extension warning
       // resolves, so assert visibility without scrolling (checkVisible() scrolls first).
       harvesterPo.updateOrInstallButton().checkVisible(undefined, { scrollIntoView: false });
-      harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not installed');
+      harvesterPo.extensionWarning().should('have.text', `The ${ harvesterTitle } UI Extension is not installed`);
     });
   }));
 
   qase(7022, it('able to update harvester extension version', () => {
     cy.get<Cypress.RancherVersion>('@rancherVersion').then((version) => {
       const catalog = harvesterExtensionCatalog(version);
-      const chartRepo = catalog.repo;
+      const { repo: chartRepo, title: harvesterTitle } = catalog;
 
       cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }?action=install`).as('installHarvesterExtension');
       cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }?action=upgrade`).as('upgradeHarvesterExtension');
@@ -325,7 +328,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
 
         // check for update harvester message
-        harvesterPo.extensionWarning().invoke('text').should('match', /^Your current Harvester UI Extension \((v[\d.]+)\) is not the latest\.$/);
+        harvesterPo.extensionWarning().invoke('text').should('match', new RegExp(`^Your current ${ harvesterTitle } UI Extension \\((v[\\d.]+)\\) is not the latest\\.$`));
         harvesterPo.updateOrInstallButton().click();
 
         // wait for update version update

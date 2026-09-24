@@ -81,6 +81,10 @@ export default defineComponent({
 
   methods: {
     toggle(neu: StateType | null) {
+      if (this.disabled) {
+        return;
+      }
+
       this.state = neu === null ? !this.state : neu;
       this.$emit('update:value', this.state ? this.onValue : this.offValue);
     }
@@ -104,6 +108,7 @@ export default defineComponent({
         type="checkbox"
         role="switch"
         :checked="state"
+        :disabled="disabled"
         :aria-label="onLabel"
         @input="toggle(null)"
         @keydown.enter="toggle(null)"
@@ -152,6 +157,7 @@ $toggle-height: 16px;
   position: relative;
   display: inline-block;
   width: 48px;
+  min-width: 48px;
   height: $toggle-height + 8px;
 }
 

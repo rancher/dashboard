@@ -6,10 +6,16 @@ export default class VersionNumberPo extends ComponentPo {
   }
 
   checkNormalText() {
-    return this.self().should('not.have.class', 'version-small');
+    return this.self()
+      .should('not.have.class', 'version-small')
+      .and('not.have.class', 'version-smaller');
   }
 
   checkSmallText() {
     return this.self().should('have.class', 'version-small');
+  }
+
+  checkSmallerText() {
+    return this.self().should('have.class', 'version-smaller');
   }
 }

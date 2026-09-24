@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Search-first cluster switcher: a combobox over the fixed `local` tile, RECENTLY USED and the estate.
+ * Search-first cluster switcher: a search box over the fixed `local` tile, RECENTLY USED and the estate.
  * Data comes from the parent; this owns the panel, the cursor and the keyboard.
  */
 import {
@@ -71,14 +71,12 @@ const PIN_ANNOUNCEMENT_TIMEOUT_MS = 2000;
 const store = useStore();
 const { t } = useI18n(store);
 
-// No row under the keyboard cursor: `aria-activedescendant` is dropped and nothing is highlighted, so
-// the search box alone holds the user's attention. Where the cursor starts, and where it returns to
-// whenever the flyout opens.
+// No row under the keyboard cursor: nothing is highlighted and focus is in the search box. Where the
+// cursor starts, and where it returns to whenever the flyout opens.
 const NO_ACTIVE_INDEX = -1;
 
 const open = ref<boolean>(false);
 const activeIndex = ref<number>(NO_ACTIVE_INDEX);
-const keyboardActive = ref<boolean>(false);
 const searchInput = ref<HTMLElement | null>(null);
 const scroller = ref<HTMLElement | null>(null);
 const flyout = ref<HTMLElement | null>(null);
@@ -100,15 +98,15 @@ const popperClass = computed(() => [
   closing.value ? 'is-closing' : '',
 ].filter((c) => !!c).join(' '));
 
-const directory = computed<TopLevelMenuCluster[]>(() => props.all.filter((c) => !c.isLocal));
-
-// The flat list the ↑↓ cursor and Enter operate over: matches while searching, else the ALL directory.
+// The flat list the ↑↓ cursor and Enter operate over: matches while searching, else the ALL directory —
+// which is `all` exactly as handed over, `local` among its rows (the tile above is a shortcut to the same
+// place, and `hide-local-cluster` has already taken it out upstream if it applies).
 // While a search is in flight the list on screen is the skeleton, not `searchResults` (those still
-// describe the PREVIOUS query). Return nothing so the ↑↓ cursor, Enter and `aria-activedescendant`
-// can never target a row that is not rendered.
+// describe the PREVIOUS query). Return nothing so the ↑↓ cursor and Enter can never target a row that
+// is not rendered.
 const rows = computed<TopLevelMenuCluster[]>(() => {
   if (!searching.value) {
-    return directory.value;
+    return props.all;
   }
 
   return props.listLoading ? [] : props.searchResults;
@@ -147,9 +145,9 @@ const recentRows = computed<TopLevelMenuCluster[]>(() => (searching.value || pro
 const showRecent = computed<boolean>(() => !searching.value &&
   ((props.recentLoading && recentSkeletonRows.value > 0) || !!recentRows.value.length));
 
-// The combobox owns all three sections for the keyboard: nav runs the fixed tile, then RECENTLY USED,
-// then the list, while each section renders only its own rows — `resultsOffset` keeps the listbox's
-// indices in lock-step with the flat model.
+// The panel owns all three sections for the keyboard: nav runs the fixed tile, then RECENTLY USED, then
+// the list, while each section renders only its own rows — `resultsOffset` keeps the rendered order and
+// the flat model in lock-step, which is what lets focus be addressed by index.
 // Where the current cluster FIRST appears in the flat list. It can be on screen up to three times — the
 // fixed tile, a RECENTLY USED shortcut and its row in the estate — and `aria-current` marks one thing, so
 // announcing all three tells a screen-reader user there are three current clusters. The first occurrence
@@ -170,21 +168,25 @@ const pinShortcut = isMac ? 'Meta+Shift+P' : 'Alt+P';
 
 const placeholder = computed(() => t('nav.switcher.jumpTo'));
 
-// Accessibility: the search input is a combobox owning the results listbox; each row is an `option` the
-// input points at via aria-activedescendant, so a screen reader announces the highlighted cluster without
-// moving DOM focus off the input.
+// Row ids. Not an ARIA wiring any more — the rows are buttons that take focus themselves — but the list
+// still addresses rows by id to scroll one into view, and the search box names the region it searches.
 const listboxId = 'cluster-switcher-listbox';
 const optionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-${ c.id }`;
-// RECENTLY USED repeats clusters that are also the fixed tile or rows of the estate, so its options carry
-// their own ids — two elements answering to one id would make `aria-activedescendant` ambiguous and give
-// Vue duplicate keys.
+// The same cluster can be on screen three times — the fixed tile, a RECENTLY USED shortcut and its row in
+// the estate — so the tile and RECENTLY USED carry their own ids. Three elements answering to one DOM id
+// would leave "scroll this row into view" pointing at whichever the document reached last.
 const recentOptionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-recent-${ c.id }`;
+const tileOptionId = (c: TopLevelMenuCluster) => `cluster-switcher-opt-tile-${ c.id }`;
 
 const optionIdAt = (index: number): string | undefined => {
   const c = navRows.value[index];
 
   if (!c) {
     return undefined;
+  }
+
+  if (index < localOffset.value) {
+    return tileOptionId(c);
   }
 
   const inRecent = index >= localOffset.value && index < resultsOffset.value;
@@ -202,10 +204,9 @@ const indexByOptionId = computed<Record<string, number>>(() => navRows.value.red
   return acc;
 }, {} as Record<string, number>));
 
-const activeDescendant = computed(() => optionIdAt(activeIndex.value));
-// A pin toggle has nothing else to announce it — the pin control is `aria-hidden` inside the option and
-// the pin shortcut is the only keyboard route to it — so route a one-line confirmation through this live
-// region. Cleared whenever the result set is re-announced (search change / reopen).
+// The pin shortcut toggles the row under the cursor without focus ever being on the pin, so its own
+// `aria-pressed` is never spoken — route a one-line confirmation through this live region instead.
+// Cleared whenever the result set is re-announced (search change / reopen).
 const pinAnnouncement = ref<string>('');
 
 const statusMessage = computed(() => {
@@ -224,7 +225,7 @@ const statusMessage = computed(() => {
   if (searching.value && !rows.value.length) {
     return t('nav.switcher.aria.noResults');
   }
-  const count = searching.value ? (props.searchCount || rows.value.length) : (props.clusterCount || directory.value.length);
+  const count = searching.value ? (props.searchCount || rows.value.length) : (props.clusterCount || props.all.length);
 
   return t('nav.switcher.aria.results', { count });
 });
@@ -242,8 +243,6 @@ const onPointerMove = (e: MouseEvent) => {
     return;
   }
 
-  keyboardActive.value = false;
-
   if (index !== activeIndex.value) {
     activeIndex.value = index;
     cursorMoved.value = true;
@@ -254,7 +253,6 @@ const cursorMoved = ref<boolean>(false);
 
 watch(() => props.search, () => {
   activeIndex.value = restingIndex();
-  keyboardActive.value = false;
   cursorMoved.value = false;
   pinAnnouncement.value = '';
 });
@@ -266,8 +264,8 @@ watch(() => rows.value.length, (len) => {
 });
 
 // The list can shrink without the search term changing (unpinning a row that only appeared via the
-// parent's pinned/recent tail), which would strand the cursor past the end — no aria-activedescendant and
-// a dead Enter. Clamp only when it is actually out of range, so a normal pin/load-more never moves it.
+// parent's pinned/recent tail), which would strand the cursor past the end and leave Enter dead. Clamp
+// only when it is actually out of range, so a normal pin/load-more never moves it.
 watch(() => navRows.value.length, (len) => {
   if (activeIndex.value > len - 1) {
     activeIndex.value = Math.max(0, len - 1);
@@ -295,7 +293,6 @@ const setOpen = (value: boolean) => {
   if (value) {
     focusOrigin.value = document.activeElement as HTMLElement | null;
     activeIndex.value = restingIndex();
-    keyboardActive.value = false;
     cursorMoved.value = false;
     pinAnnouncement.value = '';
     // Focus happens on the dropdown's `apply-show` (focusSearchInput) — here is too early, the teleported
@@ -359,9 +356,9 @@ const focusSearchInput = () => {
   };
 
   nextTick(() => {
-    // floating-vue stamps `role="tooltip"` on the teleported popper root, which then wraps this
-    // combobox and its listbox — a tooltip may not own interactive content. Neutralise the wrapper;
-    // the combobox/listbox inside carry the real semantics.
+    // floating-vue stamps `role="tooltip"` on the teleported popper root, which then wraps this panel —
+    // a tooltip may not own interactive content. Neutralise the wrapper; the dialog inside carries the
+    // real semantics.
     document.querySelector('.cluster-switcher-popper')?.setAttribute('role', 'presentation');
 
     tryFocus(FOCUS_RETRY_ATTEMPTS);
@@ -432,7 +429,11 @@ const onKeyCapture = (e: Event) => {
     return;
   }
 
+  // Typing anywhere in the panel comes back to the search box — but a space on one of the panel's own
+  // buttons is not typing, it is how that button is activated. `key.length === 1` cannot tell the two
+  // apart, so the control holding focus decides.
   if (e.type === 'keydown' && key.key.length === 1 && !key.metaKey && !key.ctrlKey && !key.altKey &&
+    !(key.key === ' ' && rowControlHasFocus()) &&
     document.activeElement !== searchInput.value) {
     searchInput.value?.focus();
   }
@@ -514,25 +515,83 @@ const explore = (cluster?: TopLevelMenuCluster | null) => {
   setOpen(false);
 };
 
-/**
- * Keep the keyboard cursor visible: the listbox scrolls (and pages in) independently, so moving the
- * cursor has to bring its option back into view or the user loses track of it entirely. `nearest`
- * scrolls as little as it can, so it does nothing while the option is already on screen.
- */
-const revealActive = () => {
-  nextTick(() => {
-    const id = optionIdAt(activeIndex.value);
+/** The rows' own controls, in the order they are rendered — the same order `navRows` is in. */
+const rowControls = (): HTMLElement[] => Array.from(
+  scroller.value?.querySelectorAll<HTMLElement>('.cluster-switcher-row .row-main') || []
+);
 
-    if (id) {
-      document.getElementById(id)?.scrollIntoView({ block: 'nearest' });
-    }
+/**
+ * Focus is on a row's own control — the row button or its pin. Both are real `<button>`s, so the platform
+ * already turns the activation keys (Enter AND Space) into a click on them: the panel has to keep its
+ * hands off both while one of them holds focus, or it acts on the key the button is about to act on.
+ */
+const rowControlHasFocus = (): boolean => !!(document.activeElement as HTMLElement)?.closest?.('.row-main, .row-pin');
+
+/**
+ * Move the cursor AND the focus. The rows are real buttons now, so the cursor is simply where focus is;
+ * `nearest` scrolls as little as it can, so it does nothing while the row is already on screen.
+ */
+const focusRow = (index: number) => {
+  activeIndex.value = index;
+
+  nextTick(() => {
+    const el = rowControls()[index];
+
+    el?.focus();
+    el?.scrollIntoView({ block: 'nearest' });
   });
 };
 
-// What Tab can land on inside the popover. The rows are `option`s the combobox drives via
-// aria-activedescendant, so in practice this is the search box alone — which is the point: Tab has
-// nowhere to go, so it cannot walk out from behind the scrim.
-const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+/**
+ * The one row Tab can reach. While the cursor is still outside the list nothing is highlighted, but Tab
+ * has to land somewhere — so the FIRST row holds the tab stop until the cursor takes it.
+ */
+const isTabbable = (index: number): boolean => (activeIndex.value === NO_ACTIVE_INDEX ? index === 0 : activeIndex.value === index);
+
+/** A row took focus on its own — by Tab, or by a click. Keep the cursor with it rather than fighting it. */
+const onRowFocused = (index: number) => {
+  activeIndex.value = index;
+};
+
+/**
+ * Keep focus on the pin the user just pressed. Unlike the nav shelf — which lists ONLY pinned clusters, so
+ * unpinning destroys the row and focus has to be handed on — this list holds every cluster whatever its
+ * pinned state, so the row and its pin are still there. Moving focus here would take it off the control
+ * the user is operating, and make unpin behave differently from pin.
+ */
+const onRowUnpinned = (index: number) => {
+  nextTick(() => {
+    // The row survived: the pin keeps focus and its own `aria-pressed` reports the change.
+    if (rowControls()[index]) {
+      return;
+    }
+
+    searchInput.value?.focus();
+  });
+};
+
+// The row can also leave LATER: a cluster that is in this list only because it is pinned goes with the
+// pref, and the parent's `all` lands a store round-trip after the toggle — long after the check above has
+// had its look, by which time focus has already fallen to `<body>`. So watch the list rather than the
+// click, and watch it `post` so the row is really gone by the time we ask.
+watch(() => navRows.value.length, () => {
+  if (open.value && document.activeElement === document.body) {
+    searchInput.value?.focus();
+  }
+}, { flush: 'post' });
+
+// What Tab can land on inside the popover: the search box, and the cursor row's two controls — the row
+// itself and its pin. Everything else is `tabindex="-1"`, so Tab walks the row a user is actually on and
+// cannot wander the whole estate, while the pin stays reachable without knowing its shortcut.
+// Every clause excludes `tabindex="-1"`: a `<button>` still matches `button:not([disabled])` after it has
+// been taken out of the tab order, so without this Tab walked every row in the estate instead of the two
+// controls on the row the cursor is actually on.
+const TABBABLE = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  '[tabindex]',
+].map((sel) => `${ sel }:not([tabindex="-1"])`).join(', ');
 
 const trapFocus = (e: KeyboardEvent) => {
   const items = Array.from(flyout.value?.querySelectorAll<HTMLElement>(TABBABLE) || []);
@@ -543,11 +602,25 @@ const trapFocus = (e: KeyboardEvent) => {
 
   e.preventDefault();
 
-  const last = items.length - 1;
-  const current = items.indexOf(document.activeElement as HTMLElement);
+  // The pointer moves the cursor without moving focus, so the row HOLDING focus can be the one row that
+  // is no longer the tab stop — `tabindex="-1"` keeps it out of `items` altogether. Walking `items` from
+  // -1 would throw the user back to the search box instead of onto that row's pin, which is the one
+  // journey this panel exists to make possible, so fall back to that row's own controls — plus the
+  // panel's non-row tab stops, so Tab still has somewhere to go once it runs off the end of the row.
+  // Drop them and Tab shuttles between the row's two controls for ever; on the unpinnable `local` tile
+  // the ring is a single element, so Tab re-focuses what already has focus and visibly does nothing.
+  const focused = document.activeElement as HTMLElement;
+  const ownRow = items.includes(focused) ? null : focused?.closest?.('.cluster-switcher-row');
+  const ring = ownRow ? [
+    ...items.filter((el) => !el.closest('.cluster-switcher-row')),
+    ...Array.from(ownRow.querySelectorAll<HTMLElement>('.row-main, .row-pin')),
+  ] : items;
+
+  const last = ring.length - 1;
+  const current = ring.indexOf(focused);
   const next = e.shiftKey ? (current <= 0 ? last : current - 1) : (current === -1 || current === last ? 0 : current + 1);
 
-  items[next].focus();
+  ring[next].focus();
 };
 
 /**
@@ -564,10 +637,8 @@ const keepSearchFocus = (e: MouseEvent) => {
 };
 
 /**
- * Pin/unpin the row under the keyboard cursor. The pin itself has to stay OUT of the tab order (a
- * focusable control inside `role="option"` is invalid ARIA), so the combobox owns the keyboard path
- * (Cmd+Shift+P / Alt+P) — without it the flyout, the only surface where a cluster outside PINNED/RECENT
- * can be pinned, is mouse-only. `local` is never pinnable.
+ * Pin/unpin the row under the keyboard cursor. The pin is reachable with Tab now, so this shortcut is a
+ * second route rather than the only one — it pins without leaving the row. `local` is never pinnable.
  */
 const togglePin = (cluster?: TopLevelMenuCluster | null) => {
   if (!cluster || cluster.isLocal) {
@@ -594,20 +665,33 @@ const onKeydown = (e: KeyboardEvent) => {
   case 'ArrowDown':
     e.preventDefault();
     cursorMoved.value = true;
-    keyboardActive.value = true;
-    activeIndex.value = Math.min(activeIndex.value + 1, navRows.value.length - 1);
-    revealActive();
+    focusRow(Math.min(activeIndex.value + 1, navRows.value.length - 1));
     break;
   case 'ArrowUp':
     e.preventDefault();
     cursorMoved.value = true;
-    keyboardActive.value = true;
-    activeIndex.value = activeIndex.value === NO_ACTIVE_INDEX ? navRows.value.length - 1 : Math.max(activeIndex.value - 1, 0);
-    revealActive();
+
+    if (activeIndex.value === NO_ACTIVE_INDEX) {
+      // The other way in: from nothing highlighted, Up enters the list at the bottom.
+      focusRow(navRows.value.length - 1);
+    } else if (activeIndex.value === 0) {
+      // Up off the FIRST row goes back to the search box rather than stopping dead — the field is where
+      // the panel starts, so it is where Up should end.
+      activeIndex.value = NO_ACTIVE_INDEX;
+      searchInput.value?.focus();
+    } else {
+      focusRow(activeIndex.value - 1);
+    }
     break;
   case 'Enter': {
-    e.preventDefault();
-    explore(navRows.value[activeIndex.value]);
+    // A focused row is a real button, so the platform already turns Enter into a click on it — handling
+    // it here as well would explore the same cluster twice. Anywhere else in the panel, Enter belongs to
+    // the cursor.
+    if (!rowControlHasFocus()) {
+      e.preventDefault();
+      // Inert while nothing is highlighted: a row the user never moved to is not a choice they made.
+      explore(navRows.value[activeIndex.value]);
+    }
     break;
   }
   case 'Tab':
@@ -642,6 +726,10 @@ defineExpose({
   onInput,
   onKeydown,
   onPointerMove,
+  onRowFocused,
+  onRowUnpinned,
+  isTabbable,
+  focusRow,
   explore,
 });
 </script>
@@ -670,7 +758,9 @@ defineExpose({
       <div
         ref="flyout"
         class="cluster-switcher-flyout"
-        role="none"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="t('nav.switcher.ariaLabel')"
         @mousemove="onPointerMove"
         @mousedown="keepSearchFocus"
       >
@@ -684,22 +774,18 @@ defineExpose({
           {{ statusMessage }}
         </div>
 
-        <!-- Search — a combobox that owns the results listbox below, and the first thing in the panel. -->
+        <!-- A plain search box, not a combobox: the rows below are real buttons that take focus, which a
+             combobox forbids (its focus has to stay in the field). Typing anywhere in the panel comes
+             back here, so the field is still where a search starts from wherever you are. -->
         <div class="switcher-search">
           <input
             ref="searchInput"
             :value="search"
             type="text"
-            role="combobox"
             class="switcher-search-input"
             :placeholder="placeholder"
             :aria-label="t('nav.switcher.aria.search')"
-            :aria-expanded="open ? 'true' : 'false'"
-            aria-haspopup="listbox"
-            aria-autocomplete="list"
             :aria-keyshortcuts="pinShortcut"
-            :aria-controls="listboxId"
-            :aria-activedescendant="activeDescendant"
             @input="onInput"
           >
         </div>
@@ -711,37 +797,34 @@ defineExpose({
           :id="listboxId"
           ref="scroller"
           class="switcher-scroll"
-          role="listbox"
           :aria-busy="listLoading ? 'true' : 'false'"
-          :aria-label="t('nav.switcher.aria.clusterList')"
           @scroll="onScroll"
         >
-          <!-- local — a tile at the head of the list, at rest only: a search takes it down and `local`
-               competes in the results like any other cluster. Its own single-option listbox so the option
-               is never orphaned outside a listbox. -->
-          <div
+          <!-- local — a shortcut tile at the head of the list, at rest only: a search takes it down and
+               `local` is left to compete in the results (it is a row of ALL CLUSTERS either way). -->
+          <ul
             v-if="localTile"
             class="switcher-local"
-            role="group"
             :aria-label="t('nav.switcher.managementCluster')"
           >
             <ClusterSwitcherRow
-              :id="optionId(localTile)"
+              :id="tileOptionId(localTile)"
               :cluster="localTile"
               :subtitle="t('nav.switcher.managementCluster')"
               :pinnable="false"
               :route-combo="routeCombo"
               :active="activeIndex === 0"
-              :keyboard-active="keyboardActive"
+              :tabbable="isTabbable(0)"
               :current="localTile.id === currentClusterId"
               :announce-current="currentAnnouncedAt === 0"
               @select="explore"
+              @focus-row="onRowFocused(0)"
+              @unpinned="onRowUnpinned(0)"
             />
-          </div>
+          </ul>
 
-          <!-- RECENTLY USED — the last few clusters visited, at rest only. Its own listbox so its options
-               are never orphaned outside one, and its own ids because the same cluster may also be the
-               fixed tile above or a row of the estate below. -->
+          <!-- RECENTLY USED — the last few clusters visited, at rest only. Its own ids because the same
+               cluster may also be the fixed tile above or a row of the estate below. -->
           <template v-if="showRecent">
             <div
               class="switcher-group-label"
@@ -753,10 +836,9 @@ defineExpose({
               v-if="recentLoading"
               :rows="recentSkeletonRows"
             />
-            <div
+            <ul
               v-else
               class="switcher-recent"
-              role="group"
               :aria-label="t('nav.switcher.recent')"
             >
               <ClusterSwitcherRow
@@ -765,14 +847,16 @@ defineExpose({
                 :key="c.id"
                 :cluster="c"
                 :active="activeIndex === i + localOffset"
-                :keyboard-active="keyboardActive"
+                :tabbable="isTabbable(i + localOffset)"
                 :current="c.id === currentClusterId"
                 :announce-current="currentAnnouncedAt === i + localOffset"
                 :route-combo="routeCombo"
                 :pinnable="!c.isLocal"
                 @select="explore"
+                @focus-row="onRowFocused(i + localOffset)"
+                @unpinned="onRowUnpinned(i + localOffset)"
               />
-            </div>
+            </ul>
           </template>
 
           <!-- Group caption — ALL CLUSTERS at rest, MATCHES while searching. It heads the list it counts,
@@ -813,10 +897,9 @@ defineExpose({
           </div>
           <!-- One list, whichever it is: the estate at rest, the matches while searching. `rows` is
                  already whichever of the two applies, so there is nothing to branch on here. -->
-          <div
+          <ul
             v-else-if="rows.length"
             class="switcher-group"
-            role="group"
             :aria-label="t(searching ? 'nav.switcher.matches' : 'nav.switcher.allClusters')"
           >
             <ClusterSwitcherRow
@@ -825,14 +908,16 @@ defineExpose({
               :key="c.id"
               :cluster="c"
               :active="activeIndex === i + resultsOffset"
-              :keyboard-active="keyboardActive"
+              :tabbable="isTabbable(i + resultsOffset)"
               :current="c.id === currentClusterId"
               :announce-current="currentAnnouncedAt === i + resultsOffset"
               :route-combo="routeCombo"
               :pinnable="!c.isLocal"
               @select="explore"
+              @focus-row="onRowFocused(i + resultsOffset)"
+              @unpinned="onRowUnpinned(i + resultsOffset)"
             />
-          </div>
+          </ul>
           <!-- Empty for one of two reasons now that the skeleton means IN FLIGHT and nothing else: a
                  search that matched nothing, or an estate that genuinely came back with no clusters. They
                  are not the same sentence. -->
@@ -870,7 +955,7 @@ defineExpose({
 .cluster-switcher-flyout {
   display: flex;
   flex-direction: column;
-  width: 380px;
+  width: $cluster-switcher-flyout-width;
   // Height is capped in the unscoped popper block below, where the matching `top` offset lives — the two
   // have to move together for the bottom gutter to hold.
   background: var(--topmenu-bg);
@@ -906,6 +991,15 @@ defineExpose({
         outline-offset: -1px;
       }
     }
+  }
+
+  // These are real `<ul>`s now, so the browser's own list indent and bullets have to go.
+  .switcher-local,
+  .switcher-recent,
+  .switcher-group {
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .switcher-recent {
@@ -1004,6 +1098,11 @@ defineExpose({
 $flyout-top: 85px;
 $flyout-gutter: 12px;
 $flyout-reach: calc(100vh - #{$flyout-top} - #{$flyout-gutter});
+// How far the wipe travels. It moves ONE distance across both axes, so it has to out-reach the longer of
+// the two — and on a short window that is the width, not the height. Left at the vertical reach alone, a
+// window under ~477px tall made that reach shorter than the panel is wide and the resting clip cut into
+// the right edge, so the flyout narrowed as the window got shorter.
+$flyout-unroll: max(#{$cluster-switcher-flyout-width}, #{$flyout-reach});
 // The close is the quicker of the two: opening is an arrival worth watching, closing is an acknowledgement.
 // `dispose-timeout` on the dropdown has to out-last it, or floating-vue unmounts the panel mid-roll — its
 // 150ms default is exactly what used to cut this short.
@@ -1054,7 +1153,7 @@ $flyout-close-duration: 0.2s;
   }
 
   .cluster-switcher-flyout {
-    --unroll: #{$flyout-reach};
+    --unroll: #{$flyout-unroll};
     clip-path: inset(0 calc(100% - var(--unroll)) calc(100% - var(--unroll)) 0);
     animation: cluster-switcher-unroll $flyout-open-duration linear backwards;
     max-height: $flyout-reach;
@@ -1097,7 +1196,7 @@ $flyout-close-duration: 0.2s;
 // restarted — reusing the opening name left the finished animation sitting there and nothing happened.
 @keyframes cluster-switcher-reroll {
   from {
-    --unroll: #{$flyout-reach};
+    --unroll: #{$flyout-unroll};
   }
   to {
     --unroll: 0px;
@@ -1109,7 +1208,7 @@ $flyout-close-duration: 0.2s;
     --unroll: 0px;
   }
   to {
-    --unroll: #{$flyout-reach};
+    --unroll: #{$flyout-unroll};
   }
 }
 

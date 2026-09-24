@@ -150,12 +150,12 @@ export default {
         <i
           v-if="r.iconClass"
           :class="r.iconClass"
-          :alt="t('catalog.charts.iconAlt', { app: get(r, nameField) })"
+          aria-hidden="true"
         />
         <LazyImage
           v-else
           :src="get(r, iconField)"
-          :alt="t('catalog.charts.iconAlt', { app: get(r, nameField) })"
+          alt=""
         />
       </div>
       <h4 class="name">
@@ -253,7 +253,6 @@ export default {
           line-height: 12px;
           text-align: center;
           display: block;
-          white-space: no-wrap;
           text-overflow: ellipsis;
           // Override default form label properties
           color: var(--card-badge-text);

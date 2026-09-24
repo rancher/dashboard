@@ -22,13 +22,13 @@ describe('component: PodsCard', () => {
   });
 
   it('should show Scaler when showScaling is true', async() => {
-    const wrapper = mount(PodsCard, { props: { showScaling: true }, global: { provide: { store } } });
+    const wrapper = mount(PodsCard, { props: { title: 'Test', showScaling: true }, global: { provide: { store } } });
 
     expect(wrapper.find('.scaler').exists()).toBeTruthy();
   });
 
   it('should hide scaler when showScaling is false', async() => {
-    const wrapper = mount(PodsCard, { props: { showScaling: false }, global: { provide: { store } } });
+    const wrapper = mount(PodsCard, { props: { title: 'Test', showScaling: false }, global: { provide: { store } } });
 
     expect(wrapper.find('.scaler').exists()).toBeFalsy();
   });

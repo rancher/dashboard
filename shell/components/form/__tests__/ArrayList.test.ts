@@ -1,8 +1,6 @@
 import { mount } from '@vue/test-utils';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { ExtendedVue, Vue } from 'vue/types/vue';
-import { DefaultProps } from 'vue/types/options';
 
 jest.mock('lodash/debounce', () => jest.fn((fn) => fn));
 
@@ -116,10 +114,7 @@ describe('the ArrayList', () => {
     it('should emit value with updated row text', () => {
       const text = 'test';
       const expectation = [text];
-      const wrapper = mount(
-        ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
-        { props: { value: [''] } }
-      );
+      const wrapper = mount(ArrayList, { props: { value: [''] } });
       const event = { preventDefault: jest.fn(), clipboardData: { getData: jest.fn().mockReturnValue(text) } } as any;
 
       wrapper.vm.onPaste(0, event);
@@ -128,7 +123,7 @@ describe('the ArrayList', () => {
     });
 
     it('should emit value with multiple rows', () => {
-      const wrapper = mount(ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { value: [''] } });
+      const wrapper = mount(ArrayList, { props: { value: [''] } });
       const text = `multiline
       rows`;
       const expectation = ['multiline', 'rows'];
@@ -140,7 +135,7 @@ describe('the ArrayList', () => {
     });
 
     it('should allow emit multiline pasted values if enabled', () => {
-      const wrapper = mount(ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
+      const wrapper = mount(ArrayList, {
         props: {
           value:          [''],
           valueMultiline: true,
