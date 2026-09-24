@@ -657,6 +657,8 @@ describe('class ProvCluster', () => {
 
   describe('pin / unpin', () => {
     // The pin is kept against the management cluster on every surface, so a provisioning row delegates.
+    const dispatch = jest.fn();
+
     const provCluster = (mgmt: any) => {
       // The other actions read the management cluster too, so give every stand-in the shape they expect.
       mgmt = {
@@ -666,12 +668,15 @@ describe('class ProvCluster', () => {
       const cluster = new ProvCluster({}, {
         getters:     { schemaFor: jest.fn(() => ({})) },
         rootGetters: { 'i18n/t': (key: string) => key },
+        dispatch,
       });
 
       jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmt);
 
       return cluster;
     };
+
+    beforeEach(() => dispatch.mockClear());
 
     const actionsOf = (cluster: any) => {
       jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(cluster)), '_availableActions', 'get').mockReturnValue([]);
@@ -721,6 +726,30 @@ describe('class ProvCluster', () => {
 
       expect(pinAction(local, 'pinCluster').enabled).toBe(false);
       expect(pinAction(local, 'unpinCluster').enabled).toBe(false);
+    });
+
+    // A failed preference write resolves with `{ type, status }` rather than throwing, and the pin is
+    // already on screen by then — so a rejected write from the menu or the bulk bar has to be said out
+    // loud, exactly as the row's own pin control says it.
+    it.each([
+      ['pinCluster', 'pin'],
+      ['unpinCluster', 'unpin'],
+      ['pinClusterBulk', 'pinBulk'],
+      ['unpinClusterBulk', 'unpinBulk'],
+    ])('%s growls when the preference write is rejected', async(action, method) => {
+      const mgmt = { [method]: jest.fn(() => Promise.resolve({ type: 'error', status: 500 })) };
+
+      await (provCluster(mgmt) as any)[action]([]);
+
+      expect(dispatch).toHaveBeenCalledWith('growl/fromError', expect.objectContaining({ title: 'nav.pinClusterError' }), { root: true });
+    });
+
+    it('stays quiet when the preference write lands', async() => {
+      const mgmt = { pin: jest.fn(() => Promise.resolve({})) };
+
+      await (provCluster(mgmt) as any).pinCluster();
+
+      expect(dispatch).not.toHaveBeenCalled();
     });
 
     // The bulk bar sorts by weight and otherwise keeps the order the actions were first met across the
