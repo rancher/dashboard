@@ -101,7 +101,7 @@ export default {
 
   name: 'ResourceTable',
 
-  emits: ['clickedActionButton', 'view-filters-changed'],
+  emits: ['clickedActionButton'],
 
   components: {
     ButtonGroup, SortableTable, TableViewsBar, ToggleSwitch
@@ -377,10 +377,20 @@ export default {
       listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
       hasSearchFilter:              false,
       // Debounced emit of the server-side view filters (see serverViewFilters watcher)
-      debouncedEmitViewFilters:     debounce((filters) => this.$emit('view-filters-changed', filters), 500),
+      /**
+       * The filters handed down to the table, and the debounce that settles them.
+       *
+       * Half a second, because this changes on every keystroke in the filter box and each change
+       * is a request. Picking a saved view is a single act with nothing following it, so that
+       * flushes instead of waiting - see the watcher.
+       */
+      appliedViewFilters:           [],
+      debouncedApplyViewFilters:    debounce(function(filters) {
+        this.appliedViewFilters = filters;
+      }, 500),
       // Serialized form of the last emitted filters, to skip redundant emits. Starts as
       // the empty state so an initial empty query doesn't fire (matches the fallback path)
-      lastViewFiltersKey:           '[]',
+      lastViewFiltersKey:         '[]',
       // Counting every saved view costs one (tiny) request each, so it waits for the list to
       // settle rather than running on each row that arrives
       /**
@@ -392,14 +402,14 @@ export default {
        * waits, which is right for refreshing the same list and wrong here - the rows still up
        * are the ones being navigated away from.
        */
-      viewSwitching:                false,
-      viewSwitchTimer:              null,
+      viewSwitching:              false,
+      viewSwitchTimer:            null,
       /** The view filters the table is waiting to see applied, and the ones it is waiting to lose */
-      pendingViewFilters:           [],
-      supersededViewFilters:        [],
-      lastViewShapeKey:             null,
-      debouncedFetchViewCounts:     debounce(() => this.fetchViewCounts(), 800),
-      debouncedRefreshViewCounts:   debounce(() => this.fetchViewCounts(true), 400),
+      pendingViewFilters:         [],
+      supersededViewFilters:      [],
+      lastViewShapeKey:           null,
+      debouncedFetchViewCounts:   debounce(() => this.fetchViewCounts(), 800),
+      debouncedRefreshViewCounts: debounce(() => this.fetchViewCounts(true), 400),
     };
   },
 
@@ -484,13 +494,13 @@ export default {
       this.pendingViewFilters = filters;
       this.lastViewFiltersKey = key;
       this.beginViewSwitch();
-      this.debouncedEmitViewFilters(filters.length ? filters : []);
+      this.debouncedApplyViewFilters(filters.length ? filters : []);
 
       // The wait exists to let someone finish typing. Picking a view is a single act with nothing
       // more coming, so it is asked for at once rather than half a second later.
       if (this.viewShapeKey !== this.lastViewShapeKey) {
         this.lastViewShapeKey = this.viewShapeKey;
-        this.debouncedEmitViewFilters.flush();
+        this.debouncedApplyViewFilters.flush();
       }
     },
 
@@ -1963,6 +1973,7 @@ export default {
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     :external-pagination-enabled="externalPaginationEnabled"
     :external-pagination-result="externalPaginationResult"
+    :view-filters="appliedViewFilters"
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"

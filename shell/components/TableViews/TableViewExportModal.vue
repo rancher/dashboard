@@ -1,12 +1,4 @@
-<script>
-import { RadioGroup } from '@components/Form/Radio';
-import { downloadFile } from '@shell/utils/download';
-import { escapeHtml } from '@shell/utils/string';
-import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views';
-
-/** The formats a selection or a view can be written out as */
-const FORMATS = ['yaml', 'json', 'csv'];
-
+<script setup lang="ts">
 /**
  * Asks what to write the chosen resources out as.
  *
@@ -20,137 +12,131 @@ const FORMATS = ['yaml', 'json', 'csv'];
  * YAML means the same thing whichever way it was opened: the resources as the cluster holds them,
  * which is what the action formerly called Download YAML has always given.
  */
-export default {
-  name: 'TableViewExportModal',
+import { computed, ref } from 'vue';
+import { useStore } from 'vuex';
 
-  emits: ['close', 'export'],
+import { RadioGroup } from '@components/Form/Radio';
+import { downloadFile } from '@shell/utils/download';
+import { escapeHtml } from '@shell/utils/string';
+import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views';
+import { useI18n } from '@shell/composables/useI18n';
 
-  components: { RadioGroup },
+/** The formats a selection or a view can be written out as */
+const FORMATS = ['yaml', 'json', 'csv'] as const;
 
-  props: {
-    /** How many rows are being exported */
-    count: {
-      type:    Number,
-      default: 0
-    },
+type Format = typeof FORMATS[number];
 
-    /** The view being exported, for the sentence naming it */
-    viewName: {
-      type:    String,
-      default: ''
-    },
+const props = withDefaults(defineProps<{
+  /** How many rows are being exported */
+  count?: number,
+  /** The view being exported, for the sentence naming it */
+  viewName?: string,
+  /**
+   * Whether this was opened for a selection rather than for a whole view, which is the only
+   * thing that changes what the modal says
+   */
+  isSelection?: boolean,
+  /**
+   * The resources to export. Handed over by the modal manager when a resource action opened
+   * this; empty when the table is driving, because then the table has them.
+   */
+  resources?: any[],
+}>(), {
+  count:       0,
+  viewName:    '',
+  isSelection: false,
+  resources:   () => [],
+});
 
-    /**
-     * Whether this was opened for a selection rather than for a whole view, which is the only
-     * thing that changes what the modal says
-     */
-    isSelection: {
-      type:    Boolean,
-      default: false
-    },
+const emit = defineEmits<{
+  close: [],
+  export: [format: Format],
+}>();
 
-    /**
-     * The resources to export. Handed over by the modal manager when a resource action opened
-     * this; empty when the table is driving, because then the table has them.
-     */
-    resources: {
-      type:    Array,
-      default: () => []
-    },
-  },
+const store = useStore();
+const { t } = useI18n(store);
 
-  data() {
-    /**
-     * Whichever format the way in was already for.
-     *
-     * Export As... is the action that used to be Download YAML, reached from a row or from a
-     * selection of them, and what is wanted there is the resources as the cluster holds them.
-     * Exporting a whole view is the other way round: that is the table as it is being read, so
-     * it comes out as a spreadsheet.
-     */
-    return { format: this.isSelection ? 'yaml' : 'csv' };
-  },
+/**
+ * Whichever format the way in was already for.
+ *
+ * Export As... is the action that used to be Download YAML, reached from a row or from a
+ * selection of them, and what is wanted there is the resources as the cluster holds them.
+ * Exporting a whole view is the other way round: that is the table as it is being read, so it
+ * comes out as a spreadsheet.
+ */
+const format = ref<Format>(props.isSelection ? 'yaml' : 'csv');
 
-  computed: {
-    formatOptions() {
-      return FORMATS.map((format) => ({ value: format, label: this.t(`tableViews.export.format.${ format }`) }));
-    },
+const formatOptions = computed(() => FORMATS.map((f) => ({ value: f, label: t(`tableViews.export.format.${ f }`) })));
 
-    /**
-     * The columns to write for a selection: the ones this resource's table shows.
-     *
-     * Taken from the type rather than from the table on screen - the action is dispatched by the
-     * resource and never learns which table it was picked in. A view that has hidden or added
-     * columns is therefore not reflected here, only the type's own set.
-     */
-    selectionColumns() {
-      const first = this.resources[0];
-      const schema = first?.schema;
+/**
+ * The columns to write for a selection: the ones this resource's table shows.
+ *
+ * Taken from the type rather than from the table on screen - the action is dispatched by the
+ * resource and never learns which table it was picked in. A view that has hidden or added
+ * columns is therefore not reflected here, only the type's own set.
+ */
+const selectionColumns = computed(() => {
+  const first = props.resources[0];
+  const schema = first?.schema;
 
-      if (!schema) {
-        return [];
-      }
-
-      // Server side pagination gives a type its own set of columns, and the table on screen is
-      // showing whichever set applies - asking for the other one puts a column in the file that
-      // is not in the table, or leaves one out
-      const paginated = !!first.$ctx?.getters?.paginationEnabled?.({ id: first.type });
-      const headers = this.$store.getters['type-map/headersFor'](schema, paginated);
-
-      return exportColumnsFor(headers, (key) => this.t(key));
-    },
-
-    title() {
-      return this.isSelection ? this.t('tableViews.export.selectionTitle') : this.t('tableViews.export.title');
-    },
-
-    intro() {
-      if (this.isSelection) {
-        return this.t('tableViews.export.selectionIntro', { count: this.count }, true);
-      }
-
-      // The sentence around it is markup, so it is rendered as html - but the name is a name the
-      // user typed, not markup, and a view called `<b>live</b>` should read as its own name
-      return this.t('tableViews.export.intro', { count: this.count, name: escapeHtml(this.viewName) }, true);
-    },
-  },
-
-  methods: {
-    async download() {
-      if (this.resources.length) {
-        await this.exportResources();
-      } else {
-        this.$emit('export', this.format);
-      }
-
-      this.$emit('close');
-    },
-
-    /**
-     * The export for resources that arrived without a table behind them.
-     *
-     * YAML is the resources themselves. The other two are the columns the resource's own table
-     * shows, written by the same code the toolbar's export uses - a selection exported from an
-     * action and a view exported from the toolbar should not disagree about what a row is.
-     */
-    async exportResources() {
-      const items = this.resources;
-      const first = items[0];
-
-      if (this.format === 'yaml') {
-        return items.length === 1 ? first.downloadYaml() : first.downloadYamlBulk(items);
-      }
-
-      const columns = this.selectionColumns;
-      const name = (first?.type || 'resources').replace(/[^a-z0-9]+/gi, '-');
-
-      if (this.format === 'json') {
-        return downloadFile(`${ name }.json`, rowsToJson(items, columns), 'application/json;charset=utf-8');
-      }
-
-      return downloadFile(`${ name }.csv`, rowsToCsv(items, columns), 'text/csv;charset=utf-8');
-    },
+  if (!schema) {
+    return [];
   }
+
+  // Server side pagination gives a type its own set of columns, and the table on screen is
+  // showing whichever set applies - asking for the other one puts a column in the file that is
+  // not in the table, or leaves one out
+  const paginated = !!first.$ctx?.getters?.paginationEnabled?.({ id: first.type });
+  const headers = store.getters['type-map/headersFor'](schema, paginated);
+
+  return exportColumnsFor(headers, (key: string) => t(key));
+});
+
+const title = computed(() => (props.isSelection ? t('tableViews.export.selectionTitle') : t('tableViews.export.title')));
+
+const intro = computed(() => {
+  if (props.isSelection) {
+    return t('tableViews.export.selectionIntro', { count: props.count }, true);
+  }
+
+  // The sentence around it is markup, so it is rendered as html - but the name is a name the user
+  // typed, not markup, and a view called `<b>live</b>` should read as its own name
+  return t('tableViews.export.intro', { count: props.count, name: escapeHtml(props.viewName) }, true);
+});
+
+/**
+ * The export for resources that arrived without a table behind them.
+ *
+ * YAML is the resources themselves. The other two are the columns the resource's own table shows,
+ * written by the same code the toolbar's export uses - a selection exported from an action and a
+ * view exported from the toolbar should not disagree about what a row is.
+ */
+const exportResources = async() => {
+  const items = props.resources;
+  const first = items[0];
+
+  if (format.value === 'yaml') {
+    return items.length === 1 ? first.downloadYaml() : first.downloadYamlBulk(items);
+  }
+
+  const columns = selectionColumns.value;
+  const name = (first?.type || 'resources').replace(/[^a-z0-9]+/gi, '-');
+
+  if (format.value === 'json') {
+    return downloadFile(`${ name }.json`, rowsToJson(items, columns), 'application/json;charset=utf-8');
+  }
+
+  return downloadFile(`${ name }.csv`, rowsToCsv(items, columns), 'text/csv;charset=utf-8');
+};
+
+const download = async() => {
+  if (props.resources.length) {
+    await exportResources();
+  } else {
+    emit('export', format.value);
+  }
+
+  emit('close');
 };
 </script>
 
@@ -189,7 +175,7 @@ export default {
         type="button"
         class="btn role-link"
         data-testid="table-views-export-cancel"
-        @click="$emit('close')"
+        @click="emit('close')"
       >
         {{ t('generic.cancel') }}
       </button>
