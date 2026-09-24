@@ -190,7 +190,7 @@ const createOption = (name: string) => ({ label: name, value: name });
   gap: 8px;
 
   .sub-description {
-    color: var(--input-label);
+    color: var(--deemphasized);
     font-size: 12px;
   }
 }

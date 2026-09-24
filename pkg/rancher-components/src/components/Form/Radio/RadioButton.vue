@@ -316,7 +316,7 @@ $fontColor: var(--input-label);
   }
 
   .radio-button-outer-container-description {
-    color: $fontColor;
+    color: var(--deemphasized);
     font-size: 12px;
     margin-top: 4px;
   }
