@@ -1,6 +1,8 @@
 import { reactive } from 'vue';
-import { shallowMount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import Namespace from '@shell/components/form/ResourceQuota/Namespace.vue';
+import NamespaceModel from '@shell/models/namespace';
+import { RESOURCE_QUOTA } from '@shell/config/labels-annotations';
 
 describe('namespace', () => {
   const makeProject = (overrides: Record<string, unknown> = {}) => ({
@@ -339,6 +341,33 @@ describe('namespace', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.find(bannerSelector).exists()).toBe(true);
+    });
+
+    it('leaves the invalid annotation on the live namespace untouched in view mode', () => {
+      const malformed = '{"limit":{"limitsCpu":"500m"\'';
+      const liveNamespace: any = new NamespaceModel({ metadata: { name: 'test-limit-1', annotations: { [RESOURCE_QUOTA]: malformed } } });
+
+      mount(Namespace, {
+        props: {
+          mode:    'view',
+          types:   [],
+          value:   liveNamespace,
+          project: makeProject({
+            spec: {
+              resourceQuota:                 { limit: { limitsCpu: '2000m' } },
+              namespaceDefaultResourceQuota: { limit: { limitsCpu: '500m' } }
+            }
+          })
+        },
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': (key: string) => key } } },
+          stubs: {
+            Banner: true, Select: true, UnitInput: true, PercentageBar: true
+          }
+        }
+      });
+
+      expect(liveNamespace.metadata.annotations[RESOURCE_QUOTA]).toBe(malformed);
     });
   });
 });
