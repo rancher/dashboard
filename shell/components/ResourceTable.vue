@@ -112,10 +112,11 @@ export default {
   ],
 
   /**
-   * Set by the pages that put tables under tabs of their own - ResourceTabs, and the cluster
-   * dashboard, which builds its tabs from Tabbed directly. See showTableViewTabs.
+   * The default for the saved view tabs, supplied by a page that puts tables under tabs of its own
+   * - ResourceTabs, and the cluster dashboard, which builds its tabs from Tabbed directly. The
+   * `tableViewTabs` prop still wins over it. See showTableViewTabs.
    */
-  inject: { insideDetailTabs: { default: false } },
+  inject: { providedShowTableViewTabs: { from: 'showTableViewTabs', default: null } },
 
   props: {
     schema: {
@@ -790,11 +791,11 @@ export default {
         return false;
       }
 
-      // Inside a page's own tabs, which say so themselves. The route cannot always be asked: the
-      // cluster dashboard is routed by the cluster rather than by a resource in it, so the tables
-      // under its Events and Certificates tabs looked like list pages.
-      if (this.insideDetailTabs) {
-        return false;
+      // A page that puts tables under tabs of its own supplies the default. The route cannot
+      // always be asked: the cluster dashboard is routed by the cluster rather than by a resource
+      // in it, so the tables under its Events and Certificates tabs looked like list pages.
+      if (this.providedShowTableViewTabs !== null) {
+        return this.providedShowTableViewTabs;
       }
 
       // A route naming one resource is a detail page, and every table on it is a sub list of
@@ -904,19 +905,6 @@ export default {
     },
 
     /**
-     * Fields offered in the group by menu: the columns the table lets you sort by.
-     *
-     * Grouping is a sort, so the two should name the same columns - and `header.sort` is the very
-     * thing the table header reads to decide whether to draw a sort control, so the menu and the
-     * headers cannot drift apart. It used to ask the pagination api instead, which was stricter
-     * than the headers in one direction and looser in another: the cluster list would let you
-     * sort by Provider and Machines while refusing to group by either.
-     *
-     * Minus the columns with nothing to gather rows under. A column drawn entirely by a formatter
-     * working the value out from the row carries `value: ''` - the home page's CPU, Memory and
-     * Pods do, and they are sortable - and grouping by one put every row into a single "(none)".
-     */
-    /**
      * The caller's templates that go straight to SortableTable.
      *
      * `header-right` is left out: this component renders its own into that slot and puts the
@@ -928,6 +916,21 @@ export default {
       return (this.showGrouping || this.showTableViews) ? rest : this.$slots;
     },
 
+    /**
+     * Fields offered in the group by menu: the columns the table lets you sort by.
+     *
+     * Grouping is a sort, so the two should name the same columns - and `header.sort` is the very
+     * thing the table header reads to decide whether to draw a sort control, so the menu and the
+     * headers cannot drift apart. It used to ask the pagination api instead, which was stricter
+     * than the headers in one direction and looser in another: the cluster list would let you
+     * sort by Provider and Machines while refusing to group by either.
+     *
+     * Minus the columns with nothing to gather rows under - one that declares no sort has no value
+     * the rows can be ordered or gathered by either.
+     *
+     * A column drawn entirely by a formatter still counts. It carries `value: ''`, but the path it
+     * sorts by is a real field on the row, and that is what its rows are gathered under.
+     */
     viewGroupFields() {
       return this.viewFields.filter((field) => {
         // A label is read straight off the row, so there is always a value behind it
@@ -935,13 +938,14 @@ export default {
           return true;
         }
 
-        const header = field.header;
+        const { header } = field;
 
         if (!header?.sort) {
           return false;
         }
 
-        return typeof header.value === 'function' || !!header.value || typeof header.sort === 'string';
+        return typeof header.value === 'function' || !!header.value ||
+          typeof header.sort === 'string' || (Array.isArray(header.sort) && typeof header.sort[0] === 'string');
       });
     },
 

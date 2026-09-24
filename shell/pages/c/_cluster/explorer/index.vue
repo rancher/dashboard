@@ -136,7 +136,7 @@ export default {
    * would otherwise have to go on.
    */
   provide() {
-    return { insideDetailTabs: true };
+    return { showTableViewTabs: false };
   },
 
   data() {

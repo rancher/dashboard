@@ -103,26 +103,45 @@ const createFindWatchArg = ({
 };
 
 /**
- * The most recent page request per store + type.
+ * The most recent page request per type, and per requester within it.
  *
  * Page requests for the same type can overlap - a list's first, unfiltered fetch is slow because it
  * returns every row, while the filtered fetch that follows it returns few rows and comes back first.
  * Without this the slow, superseded response lands last and overwrites the filtered one, leaving the
  * user looking at rows their filter should have removed.
+ *
+ * `requesterId` keeps that to the list that asked. Two lists of the same type on one page each
+ * supersede their own requests and not each other's; without it the second list to ask would
+ * silently discard the first list's answer.
+ *
+ * The map lives in the store's own state rather than at module scope, so it is cleared with
+ * everything else when the user logs out.
  */
-const latestPageRequest = {};
+function pageRequestKey(type, opt) {
+  return `${ type }/${ opt?.requesterId || 'default' }`;
+}
 
-function markPageRequest(ctx, type) {
-  const key = `${ ctx.state?.config?.namespace }/${ type }`;
-  const id = (latestPageRequest[key] || 0) + 1;
+function pageRequests(ctx) {
+  // A store registered before this state existed would otherwise take findPage down with it
+  if (!ctx.state.latestPageRequests) {
+    ctx.state.latestPageRequests = {};
+  }
 
-  latestPageRequest[key] = id;
+  return ctx.state.latestPageRequests;
+}
+
+function markPageRequest(ctx, type, opt) {
+  const key = pageRequestKey(type, opt);
+  const latest = pageRequests(ctx);
+  const id = (latest[key] || 0) + 1;
+
+  latest[key] = id;
 
   return { key, id };
 }
 
-function isCurrentPageRequest({ key, id }) {
-  return latestPageRequest[key] === id;
+function isCurrentPageRequest(ctx, { key, id }) {
+  return pageRequests(ctx)[key] === id;
 }
 
 export default {
@@ -505,7 +524,7 @@ export default {
     // Only a request that will write to the store may claim it. A transient one - the export
     // re-running the list to get every matching row - writes nothing, so having it supersede
     // anything meant exporting mid-load threw away the page the user was actually waiting for.
-    const pageRequest = opt.transient ? null : markPageRequest(ctx, type);
+    const pageRequest = opt.transient ? null : markPageRequest(ctx, type, opt);
 
     try {
       if (opt.hasManualRefresh) {
@@ -523,7 +542,7 @@ export default {
 
     // A newer page request was made while this one was in flight, so its result - not this one - is
     // what the user is waiting for. Transient requests never reach the store, so they are unaffected
-    const superseded = !!pageRequest && !isCurrentPageRequest(pageRequest);
+    const superseded = !!pageRequest && !isCurrentPageRequest(ctx, pageRequest);
 
     // Of type @StorePaginationResult
     const pagination = opt.pagination ? {
