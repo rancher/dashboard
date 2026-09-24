@@ -375,5 +375,33 @@ describe('class MgmtCluster', () => {
       expect(mutations.map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS]);
       expect(mutations[0].apply(['local', 'c-b'])).toStrictEqual(['c-b']);
     });
+
+    // A bulk action over a selection must not queue a round-trip per row: the shared Preference is one
+    // read-modify-write, so N of them is N chances to race.
+    it('pinBulk pins a whole selection in one write, in the order selected', async() => {
+      const { cluster, calls } = makeCluster('c-a');
+
+      await cluster.pinBulk([{ id: 'c-a' }, { id: 'prov-b', mgmt: { id: 'c-b' } }]);
+
+      expect(calls.map((c) => c.action)).toStrictEqual(['prefs/applyPrefsOptimistic', 'prefs/reconcilePrefs']);
+
+      const mutations = calls[0].payload;
+
+      expect(mutations).toHaveLength(1);
+      expect(mutations[0].key).toBe(PINNED_CLUSTERS);
+      expect(mutations[0].apply(['c-z'])).toStrictEqual(['c-a', 'c-b', 'c-z']);
+      expect(mutations[0].apply(['c-b'])).toStrictEqual(['c-a', 'c-b']);
+    });
+
+    it('unpinBulk unpins a whole selection in one write, leaving the rest pinned', async() => {
+      const { cluster, calls } = makeCluster('c-a');
+
+      await cluster.unpinBulk([{ id: 'c-a' }, { id: 'prov-b', mgmt: { id: 'c-b' } }]);
+
+      const mutations = calls[0].payload;
+
+      expect(mutations).toHaveLength(1);
+      expect(mutations[0].apply(['c-a', 'c-z', 'c-b'])).toStrictEqual(['c-z']);
+    });
   });
 });

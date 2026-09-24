@@ -655,6 +655,84 @@ describe('class ProvCluster', () => {
     });
   });
 
+  describe('pin / unpin', () => {
+    // The pin is kept against the management cluster on every surface, so a provisioning row delegates.
+    const provCluster = (mgmt: any) => {
+      // The other actions read the management cluster too, so give every stand-in the shape they expect.
+      mgmt = {
+        links: {}, hasAction: () => false, ...mgmt
+      };
+
+      const cluster = new ProvCluster({}, {
+        getters:     { schemaFor: jest.fn(() => ({})) },
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmt);
+
+      return cluster;
+    };
+
+    const actionsOf = (cluster: any) => {
+      jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(cluster)), '_availableActions', 'get').mockReturnValue([]);
+      jest.spyOn(cluster, 'customProvisionerHelper', 'get').mockReturnValue(undefined);
+
+      return cluster._availableActions;
+    };
+
+    const pinAction = (cluster: any, action: string) => actionsOf(cluster).find((a: any) => a.action === action);
+
+    it.each([
+      ['pinCluster', 'pin'],
+      ['unpinCluster', 'unpin'],
+    ])('%s delegates to the management cluster', (action, method) => {
+      const mgmt = { [method]: jest.fn() };
+
+      (provCluster(mgmt) as any)[action]();
+
+      expect(mgmt[method]).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['pinClusterBulk', 'pinBulk'],
+      ['unpinClusterBulk', 'unpinBulk'],
+    ])('%s hands the whole selection to the management cluster, for one write', (action, method) => {
+      const mgmt = { [method]: jest.fn() };
+      const items = [{ id: 'cluster-1' }, { id: 'cluster-2' }];
+
+      (provCluster(mgmt) as any)[action](items);
+
+      expect(mgmt[method]).toHaveBeenCalledWith(items);
+    });
+
+    it('offers the pin only while the cluster is unpinned, and the unpin only while it is pinned', () => {
+      const unpinned = provCluster({ pinned: false, isLocal: false });
+      const pinned = provCluster({ pinned: true, isLocal: false });
+
+      expect(pinAction(unpinned, 'pinCluster').enabled).toBe(true);
+      expect(pinAction(unpinned, 'unpinCluster').enabled).toBe(false);
+      expect(pinAction(pinned, 'pinCluster').enabled).toBe(false);
+      expect(pinAction(pinned, 'unpinCluster').enabled).toBe(true);
+    });
+
+    // `local` holds a fixed slot on the shelf, so it is never pinned from anywhere.
+    it('offers neither for local', () => {
+      const local = provCluster({ pinned: false, isLocal: true });
+
+      expect(pinAction(local, 'pinCluster').enabled).toBe(false);
+      expect(pinAction(local, 'unpinCluster').enabled).toBe(false);
+    });
+
+    // Pinning is a preference, not a cluster operation, so the RKE1 clamp on cluster actions leaves it be.
+    it('keeps the pin on an RKE1 cluster, which cannot take most other actions', () => {
+      const cluster = provCluster({ pinned: false, isLocal: false });
+
+      jest.spyOn(cluster, 'isRke1', 'get').mockReturnValue(true);
+
+      expect(pinAction(cluster, 'pinCluster').enabled).toBe(true);
+    });
+  });
+
   describe('copyKubeConfigBulk', () => {
     it('should delegate to mgmt cluster copyKubeConfigBulk method', async() => {
       const mockCopyKubeConfigBulk = jest.fn().mockResolvedValue(undefined);

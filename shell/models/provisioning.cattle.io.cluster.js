@@ -21,6 +21,8 @@ import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
   'openShell',
+  'pinCluster',
+  'unpinCluster',
   'downloadKubeConfig',
   'copyKubeConfig',
   'download',
@@ -157,7 +159,24 @@ export default class ProvCluster extends SteveModel {
     const canDayTwoOps = ready && this.isDayTwoOpsEnabled && this.canUpdate;
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
+    const pinnable = !!this.mgmt && !isLocal;
+
     const actions = [
+      {
+        action:     'pinCluster',
+        bulkAction: 'pinClusterBulk',
+        label:      this.t('cluster.pinAction'),
+        icon:       'icon icon-pin',
+        bulkable:   true,
+        enabled:    pinnable && !this.mgmt.pinned,
+      }, {
+        action:     'unpinCluster',
+        bulkAction: 'unpinClusterBulk',
+        label:      this.t('cluster.unpinAction'),
+        icon:       'icon icon-pin-outlined',
+        bulkable:   true,
+        enabled:    pinnable && this.mgmt.pinned,
+      },
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
       {
@@ -583,6 +602,22 @@ export default class ProvCluster extends SteveModel {
 
   copyKubeConfigBulk(items) {
     return this.mgmt?.copyKubeConfigBulk(items);
+  }
+
+  pinCluster() {
+    return this.mgmt?.pin();
+  }
+
+  unpinCluster() {
+    return this.mgmt?.unpin();
+  }
+
+  pinClusterBulk(items) {
+    return this.mgmt?.pinBulk(items);
+  }
+
+  unpinClusterBulk(items) {
+    return this.mgmt?.unpinBulk(items);
   }
 
   async snapshotAction() {
