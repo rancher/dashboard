@@ -60,7 +60,15 @@ export default {
   },
 
   data() {
-    return { format: 'csv' };
+    /**
+     * Whichever format the way in was already for.
+     *
+     * Export As... is the action that used to be Download YAML, reached from a row or from a
+     * selection of them, and what is wanted there is the resources as the cluster holds them.
+     * Exporting a whole view is the other way round: that is the table as it is being read, so
+     * it comes out as a spreadsheet.
+     */
+    return { format: this.isSelection ? 'yaml' : 'csv' };
   },
 
   computed: {
