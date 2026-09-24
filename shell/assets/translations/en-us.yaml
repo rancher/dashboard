@@ -7121,7 +7121,6 @@ storageClass:
       tooltip: By default the default storage class on the host [[Harvester]] cluster is used.
 
 tableViews:
-  matches: "{count} matching"
   tabs:
     all: Explorer
     label: Saved views
@@ -7223,12 +7222,6 @@ tableViews:
       doneMessage: The {name} view has been exported to {file}.
       failedTitle: Export failed
       failedMessage: The {name} view could not be exported.
-  save:
-    label: Save
-    save: Save
-    updateExisting: Update saved view
-    delete: Delete view
-    share: Share
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler

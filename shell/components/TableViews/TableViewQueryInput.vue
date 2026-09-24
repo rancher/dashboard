@@ -237,15 +237,6 @@ export default {
     },
 
     /**
-     * Watched instead of the field itself: `fields` is rebuilt whenever the rows change, so the
-     * field object's identity turns over constantly while its id does not. Asking the owning
-     * table for the same values on every row update is a request loop waiting to happen.
-     */
-    activeFieldId() {
-      return this.parsedToken.field?.id || null;
-    },
-
-    /**
      * The token the caret is following, which is what decides whether a joining word can go here.
      * The one the caret is inside does not count - that is the word being typed.
      */
