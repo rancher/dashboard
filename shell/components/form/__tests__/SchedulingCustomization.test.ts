@@ -237,4 +237,25 @@ describe('component: SchedulingCustomization - Agent Type Support', () => {
       // Banner should not show because not in edit mode
     });
   });
+
+  describe('rcSection styling', () => {
+    it('should render the RcSection with the default type and background', () => {
+      wrapper = createWrapper();
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.exists()).toBe(true);
+      expect(section.props('type')).toBe('primary');
+      expect(section.props('background')).toBe('secondary');
+    });
+
+    it('should use caller-provided sectionType and sectionBackground over the defaults', () => {
+      wrapper = createWrapper({ sectionType: 'secondary', sectionBackground: 'primary' });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.props('type')).toBe('secondary');
+      expect(section.props('background')).toBe('primary');
+    });
+  });
 });

@@ -24,6 +24,7 @@ import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
 import { initSchedulingCustomization } from '@shell/utils/cluster';
 import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
+import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration.vue';
 
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
@@ -33,10 +34,11 @@ import { privateRegistryRequired } from '@shell/utils/validators/private-registr
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT, DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared.ts';
-import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
+const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
+const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 const defaultCluster = {
   agentEnvVars:   [],
   labels:         {},
@@ -48,7 +50,7 @@ export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
+    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, AgentConfiguration, PrivateRegistry
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -106,6 +108,9 @@ export default defineComponent({
       this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
       this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
       this.errors = this.errors.concat(sc.errors);
+      if (!this.isRKE1) {
+        this.ensureAgentConfiguration();
+      }
       await this.initDayTwoOps();
     }
   },
@@ -130,7 +135,6 @@ export default defineComponent({
       fleetAgentDefaultPDB:                     null,
       // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
       needsReplace:                             false,
-      clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
       privateRegistryEnabled:                   false,
       s3Backup:                                 false,
       dayTwoOpsGlobalSetting:                   false,
@@ -290,14 +294,11 @@ export default defineComponent({
         }
       } : null;
     },
-    clusterAgentDeploymentCustomization() {
-      return this.normanCluster.clusterAgentDeploymentCustomization || {};
-    },
-    fleetAgentDeploymentCustomization() {
-      return this.normanCluster.fleetAgentDeploymentCustomization || {};
-    },
-    schedulingCustomizationVisible() {
-      return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled);
+    // Cluster/fleet agent deployment customization (resource requests/limits, tolerations,
+    // affinity and scheduling customization) isn't supported for the local cluster (its agent
+    // is embedded in the Rancher pods) or RKE1 clusters.
+    showAgentConfiguration() {
+      return !this.isLocal && !this.isRKE1;
     },
   },
 
@@ -311,6 +312,8 @@ export default defineComponent({
       }
     },
     async actuallySave() {
+      this.agentConfigurationCleanup();
+
       if (this.isEdit) {
         return await this.normanCluster.save({ replace: this.needsReplace });
       } else {
@@ -459,6 +462,61 @@ export default defineComponent({
         }
       }
     },
+
+    /**
+     * Ensure we have empty models for the two agent configurations, so the Cluster/Fleet Agent
+     * Configuration accordions always have an object to bind to.
+     */
+    ensureAgentConfiguration() {
+      if (!this.normanCluster[CLUSTER_AGENT_CUSTOMIZATION]) {
+        this.normanCluster[CLUSTER_AGENT_CUSTOMIZATION] = {};
+      }
+
+      if (!this.normanCluster[FLEET_AGENT_CUSTOMIZATION]) {
+        this.normanCluster[FLEET_AGENT_CUSTOMIZATION] = {};
+      }
+    },
+
+    /**
+     * Recursively clean an agent configuration object, so we only send values when the user has
+     * configured something.
+     */
+    cleanAgentConfiguration(model, key) {
+      if (!model || !model[key]) {
+        return;
+      }
+
+      const v = model[key];
+
+      if (Array.isArray(v) && v.length === 0) {
+        delete model[key];
+      } else if (v && typeof v === 'object') {
+        Object.keys(v).forEach((k) => {
+          // delete these auxiliary props used in podAffinity and nodeAffinity that shouldn't be sent to the server
+          if (k === '_namespaceOption' || k === '_namespaces' || k === '_anti' || k === '_id') {
+            delete v[k];
+          }
+
+          // prevent cleanup of "namespaceSelector" when an empty object because it represents all namespaces in pod/node affinity
+          // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podaffinityterm-v1-core
+          if (k !== 'namespaceSelector') {
+            this.cleanAgentConfiguration(v, k);
+          }
+        });
+
+        if (Object.keys(v).length === 0) {
+          delete model[key];
+        }
+      }
+    },
+
+    /**
+     * Clean up both agent configuration objects before save
+     */
+    agentConfigurationCleanup() {
+      this.cleanAgentConfiguration(this.normanCluster, CLUSTER_AGENT_CUSTOMIZATION);
+      this.cleanAgentConfiguration(this.normanCluster, FLEET_AGENT_CUSTOMIZATION);
+    },
   }
 });
 </script>
@@ -563,46 +621,40 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="schedulingCustomizationVisible"
+        v-if="showAgentConfiguration"
         class="mb-20 accordion"
-        title-key="cluster.agentConfig.tabs.agentsScheduling"
+        title-key="cluster.agentConfig.tabs.cluster"
+        data-testid="cluster-agent-config-accordion"
         :open-initially="false"
       >
-        {{ t('cluster.agentConfig.groups.agentsScheduling.text') }}
-
-        <!-- Hardcoding the HASH because it is the first of the parameters inline -->
-        <router-link
-          :to="{ name: 'c-cluster-settings', hash: `#${clusterAgentDefaultPriorityClassHash}` }"
-          target="_blank"
-          rel="noopener"
-        >
-          {{ t('cluster.agentConfig.groups.agentsScheduling.textLink') }}
-          <i
-            class="icon icon-external-link"
-            :alt="t('kubectl-explain.externalLink')"
-          />
-        </router-link>
-        .
-        <div class="spacer-small" />
-        <h3>{{ t('cluster.agentConfig.groups.agentsScheduling.label') }}</h3>
-        <SchedulingCustomization
-          :value="clusterAgentDeploymentCustomization.schedulingCustomization"
-          :mode="mode"
+        <AgentConfiguration
+          v-model:value="normanCluster.clusterAgentDeploymentCustomization"
+          data-testid="imported-cluster-agent-config"
           :type="AGENT_CONFIGURATION_TYPES.CLUSTER"
-          :feature="schedulingCustomizationFeatureEnabled"
+          :mode="mode"
+          :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
+          :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
           :default-p-c="clusterAgentDefaultPC"
           :default-p-d-b="clusterAgentDefaultPDB"
-          :checkbox-with-only-agent-name="true"
           @scheduling-customization-changed="setSchedulingCustomization"
         />
-        <SchedulingCustomization
-          :value="fleetAgentDeploymentCustomization.schedulingCustomization"
-          :mode="mode"
+      </Accordion>
+      <Accordion
+        v-if="showAgentConfiguration"
+        class="mb-20 accordion"
+        title-key="cluster.agentConfig.tabs.fleet"
+        data-testid="fleet-agent-config-accordion"
+        :open-initially="false"
+      >
+        <AgentConfiguration
+          v-model:value="normanCluster.fleetAgentDeploymentCustomization"
+          data-testid="imported-fleet-agent-config"
           :type="AGENT_CONFIGURATION_TYPES.FLEET"
-          :feature="schedulingCustomizationFeatureEnabled"
+          :mode="mode"
+          :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
+          :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
           :default-p-c="fleetAgentDefaultPC"
           :default-p-d-b="fleetAgentDefaultPDB"
-          :checkbox-with-only-agent-name="true"
           @scheduling-customization-changed="setSchedulingCustomization"
         />
       </Accordion>

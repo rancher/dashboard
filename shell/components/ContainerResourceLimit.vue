@@ -1,6 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import UnitInput from '@shell/components/form/UnitInput';
+import { RcSection, SECTION_TYPE, SECTION_BACKGROUND } from '@components/RcSection';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT } from '@shell/config/labels-annotations';
 import { cleanUp } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
@@ -8,7 +9,7 @@ import { _VIEW } from '@shell/config/query-params';
 export default {
   emits: ['update:value'],
 
-  components: { UnitInput },
+  components: { UnitInput, RcSection },
 
   props: {
     mode: {
@@ -41,6 +42,28 @@ export default {
     showTip: {
       type:    Boolean,
       default: true
+    },
+    rcCompatible: {
+      type:    Boolean,
+      default: false
+    },
+
+    // Heading shown when rcCompatible renders the fields inside an RcSection.
+    title: {
+      type:    String,
+      default: ''
+    },
+
+    // RcSection `type` used when rcCompatible is true.
+    sectionType: {
+      type:    String,
+      default: SECTION_TYPE.PRIMARY
+    },
+
+    // RcSection `background` used when rcCompatible is true.
+    sectionBackground: {
+      type:    String,
+      default: SECTION_BACKGROUND.SECONDARY
     }
   },
 
@@ -76,6 +99,10 @@ export default {
           name:  'created'
         },
       ];
+    },
+
+    sectionTitle() {
+      return this.title || this.t('containerResourceLimit.label');
     },
   },
 
@@ -158,22 +185,127 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div class="row">
-      <div
+  <RcSection
+    v-if="rcCompatible"
+    :title="sectionTitle"
+    mode="with-header"
+    :type="sectionType"
+    :background="sectionBackground"
+    :expandable="true"
+  >
+    <slot name="banner">
+      <p
         v-if="showTip"
-        class="col span-12"
+        class="helper-text"
       >
-        <p class="helper-text mb-10">
-          <t
-            v-if="mode === viewMode"
-            k="containerResourceLimit.helpTextDetail"
-          />
-          <t
-            v-else
-            k="containerResourceLimit.helpText"
-          />
-        </p>
+        <t
+          v-if="mode === viewMode"
+          k="containerResourceLimit.helpTextDetail"
+        />
+        <t
+          v-else
+          k="containerResourceLimit.helpText"
+        />
+      </p>
+    </slot>
+
+    <div class="row">
+      <span class="col span-6">
+        <UnitInput
+          v-model:value="requestsCpu"
+          :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+          :label="t('containerResourceLimit.requestsCpu')"
+          :mode="mode"
+          :input-exponent="-1"
+          :output-modifier="true"
+          :base-unit="t('suffix.cpus')"
+          data-testid="cpu-reservation"
+          @update:value="updateLimits"
+        />
+      </span>
+      <span class="col span-6">
+        <UnitInput
+          v-model:value="requestsMemory"
+          :placeholder="t('containerResourceLimit.memPlaceholder')"
+          :label="t('containerResourceLimit.requestsMemory')"
+          :mode="mode"
+          :input-exponent="2"
+          :increment="1024"
+          :output-modifier="true"
+          data-testid="memory-reservation"
+          @update:value="updateLimits"
+        />
+      </span>
+    </div>
+
+    <div class="row">
+      <span class="col span-6">
+        <UnitInput
+          v-model:value="limitsCpu"
+          :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+          :label="t('containerResourceLimit.limitsCpu')"
+          :mode="mode"
+          :input-exponent="-1"
+          :output-modifier="true"
+          :base-unit="t('suffix.cpus')"
+          data-testid="cpu-limit"
+          @update:value="updateLimits"
+        />
+      </span>
+      <span class="col span-6">
+        <UnitInput
+          v-model:value="limitsMemory"
+          :placeholder="t('containerResourceLimit.memPlaceholder')"
+          :label="t('containerResourceLimit.limitsMemory')"
+          :mode="mode"
+          :input-exponent="2"
+          :increment="1024"
+          :output-modifier="true"
+          data-testid="memory-limit"
+          @update:value="updateLimits"
+        />
+      </span>
+    </div>
+
+    <div
+      v-if="handleGpuLimit"
+      class="row"
+    >
+      <span class="col span-6">
+        <UnitInput
+          v-model:value="limitsGpu"
+          :placeholder="t('containerResourceLimit.gpuPlaceholder')"
+          :label="t('containerResourceLimit.limitsGpu')"
+          :mode="mode"
+          :base-unit="t('suffix.gpus')"
+          data-testid="gpu-limit"
+          @update:value="updateLimits"
+        />
+      </span>
+    </div>
+  </RcSection>
+
+  <div v-else>
+    <div
+      v-if="showTip || $slots.banner"
+      class="row"
+    >
+      <div class="col span-12">
+        <slot name="banner">
+          <p
+            v-if="showTip"
+            class="helper-text mb-10"
+          >
+            <t
+              v-if="mode === viewMode"
+              k="containerResourceLimit.helpTextDetail"
+            />
+            <t
+              v-else
+              k="containerResourceLimit.helpText"
+            />
+          </p>
+        </slot>
       </div>
     </div>
 
