@@ -17,6 +17,24 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
 
   let workspace = '';
 
+  // A preference write is a queued get-before-set against a document shared by every preference, so
+  // seeing a PUT go by is not proof that ours landed - the next step can race our own write.
+  // `should('eq', true)` is load bearing: the helper resolves false when it gives up, so without it a
+  // wait that never matches would pass silently and take the race back.
+  const expectStoredWorkspace = (value: string) => cy.waitForRancherResource(
+    'v1', 'userpreferences', '',
+    (resp: Cypress.Response<any>) => resp?.status === 200 && resp?.body?.data?.[0]?.data?.workspace === value,
+    20, { failOnStatusCode: false }
+  ).should('eq', true);
+
+  // The switcher is filled from the fleetworkspaces collection, whose cache lags behind the single
+  // resource: "it exists" is not yet "it can be picked", nor, after a delete, "it is gone".
+  const expectWorkspaceListed = (value: string, listed: boolean) => cy.waitForRancherResource(
+    'v1', 'management.cattle.io.fleetworkspaces', '',
+    (resp: Cypress.Response<any>) => resp?.status === 200 && resp?.body?.data?.some((ws: any) => ws.id === value) === listed,
+    20, { failOnStatusCode: false }
+  ).should('eq', true);
+
   const navToAppBundles = () => {
     FleetDashboardListPagePo.navTo();
     fleetDashboardPage.waitForPage();
@@ -30,7 +48,7 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     cy.createFleetWorkspace('fleet-workspace-selection', undefined, true, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
       workspace = resp.body.id;
 
-      cy.waitForRancherResource('v1', 'management.cattle.io.fleetworkspaces', workspace, (resp: Cypress.Response<any>) => resp?.status === 200 && resp?.body?.id === workspace, 20, { failOnStatusCode: false });
+      expectWorkspaceListed(workspace, true);
     });
   });
 
@@ -42,9 +60,7 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     headerPo.selectWorkspace(workspace);
     cy.wait('@workspacePreference');
 
-    // A preference write is a queued get-before-set against a document shared by every preference,
-    // so a PUT landing is not proof that ours did. Wait until the server really holds the selection.
-    cy.waitForRancherResource('v1', 'userpreferences', '', (resp: Cypress.Response<any>) => resp?.status === 200 && resp?.body?.data?.[0]?.data?.workspace === workspace, 20, { failOnStatusCode: false });
+    expectStoredWorkspace(workspace);
 
     // The switcher renders from the workspace list, and waiting for the page is not waiting for
     // that request: assert too early and the selection still reads as the default with the options
@@ -56,8 +72,9 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     headerPo.checkCurrentWorkspace(workspace);
 
     // Leave the stored preference on the default, so the next test does not start out pointing at the
-    // workspace afterEach is about to delete.
+    // workspace afterEach is about to delete - and wait for it, or the reset is not one.
     headerPo.selectWorkspace(defaultWorkspace);
+    expectStoredWorkspace(defaultWorkspace);
   });
 
   it('should select the default workspace when the selected one is removed while the user is elsewhere', () => {
@@ -67,11 +84,13 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     cy.intercept('PUT', '/v1/userpreferences/*').as('workspacePreference');
     headerPo.selectWorkspace(workspace);
     cy.wait('@workspacePreference');
+    expectStoredWorkspace(workspace);
 
     HomePagePo.goTo();
     homePage.waitForPage();
 
     cy.deleteRancherResource('v3', 'fleetworkspaces', workspace);
+    expectWorkspaceListed(workspace, false);
 
     navToAppBundles();
 
@@ -88,6 +107,7 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     cy.intercept('PUT', '/v1/userpreferences/*').as('workspacePreference');
     headerPo.selectWorkspace(workspace);
     cy.wait('@workspacePreference');
+    expectStoredWorkspace(workspace);
 
     FleetWorkspaceListPagePo.navTo();
     fleetWorkspacesListPage.waitForPage();
@@ -102,6 +122,7 @@ describe('Fleet workspace selection', { tags: ['@fleet', '@adminUser'] }, () => 
     promptRemove.confirmField().set(workspace);
     promptRemove.remove();
     cy.wait('@deleteWorkspace');
+    expectWorkspaceListed(workspace, false);
 
     navToAppBundles();
 
