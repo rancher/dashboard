@@ -111,6 +111,12 @@ export default {
     ResourceTableWatch
   ],
 
+  /**
+   * Set by the pages that put tables under tabs of their own - ResourceTabs, and the cluster
+   * dashboard, which builds its tabs from Tabbed directly. See showTableViewTabs.
+   */
+  inject: { insideDetailTabs: { default: false } },
+
   props: {
     schema: {
       type:    Object,
@@ -487,6 +493,20 @@ export default {
       }
     },
 
+    /**
+     * Changing the grouping re-sorts the whole set at the api, so the table waits for those rows
+     * rather than regrouping the ones it already has and then being corrected a moment later.
+     * Picking a grouping showed two arrangements in a row, neither of them asked for.
+     *
+     * Ended by the same watcher that ends a filter switch - the filters have not moved, so the
+     * next response to land is the one this asked for.
+     */
+    viewGroupSort(neu, old) {
+      if (this.serverSideTableViews && neu !== old) {
+        this.beginViewSwitch();
+      }
+    },
+
     /** A view naming a sort, or losing the column it named, puts the table on the right one */
     'view.sort'() {
       this.$nextTick(() => this.applyViewSort());
@@ -770,6 +790,13 @@ export default {
         return false;
       }
 
+      // Inside a page's own tabs, which say so themselves. The route cannot always be asked: the
+      // cluster dashboard is routed by the cluster rather than by a resource in it, so the tables
+      // under its Events and Certificates tabs looked like list pages.
+      if (this.insideDetailTabs) {
+        return false;
+      }
+
       // A route naming one resource is a detail page, and every table on it is a sub list of
       // that resource - one deployment's pods, its own events - rather than the type's own list.
       //
@@ -877,20 +904,65 @@ export default {
     },
 
     /**
-     * Fields offered in the group by menu.
+     * Fields offered in the group by menu: the columns the table lets you sort by.
      *
-     * Grouping is really a sort, so server side it only works for fields the pagination api can
-     * sort on. Offering the rest would silently group just the rows on the current page.
+     * Grouping is a sort, so the two should name the same columns - and `header.sort` is the very
+     * thing the table header reads to decide whether to draw a sort control, so the menu and the
+     * headers cannot drift apart. It used to ask the pagination api instead, which was stricter
+     * than the headers in one direction and looser in another: the cluster list would let you
+     * sort by Provider and Machines while refusing to group by either.
+     *
+     * Minus the columns with nothing to gather rows under. A column drawn entirely by a formatter
+     * working the value out from the row carries `value: ''` - the home page's CPU, Memory and
+     * Pods do, and they are sortable - and grouping by one put every row into a single "(none)".
      */
+    /**
+     * The caller's templates that go straight to SortableTable.
+     *
+     * `header-right` is left out: this component renders its own into that slot and puts the
+     * caller's inside it, and a duplicate here would win and drop the toolbar.
+     */
+    passthroughSlots() {
+      const { 'header-right': headerRight, ...rest } = this.$slots;
+
+      return (this.showGrouping || this.showTableViews) ? rest : this.$slots;
+    },
+
     viewGroupFields() {
+      return this.viewFields.filter((field) => {
+        // A label is read straight off the row, so there is always a value behind it
+        if (field.isLabel) {
+          return true;
+        }
+
+        const header = field.header;
+
+        if (!header?.sort) {
+          return false;
+        }
+
+        return typeof header.value === 'function' || !!header.value || typeof header.sort === 'string';
+      });
+    },
+
+    /**
+     * Fields offered as filter suggestions.
+     *
+     * Server side the api only filters on the fields it indexes, and a term naming one of the
+     * rest is dropped rather than applied. Offering those would be suggesting a term the toolbar
+     * then has to report it ignored, so they are left out of the menu - a query that names one
+     * by hand is still read, and still answered for.
+     */
+    viewFilterFields() {
       if (!this.serverSideTableViews) {
         return this.viewFields;
       }
 
       return this.viewFields.filter((field) => {
-        const path = serverPathFor(field);
+        const raw = serverPathFor(field);
+        const paths = Array.isArray(raw) ? raw : [raw];
 
-        return typeof path === 'string' && stevePaginationUtils.isValidPaginationField(this.schema, path);
+        return paths.some((path) => typeof path === 'string' && stevePaginationUtils.isValidPaginationField(this.schema, path));
       });
     },
 
@@ -1086,6 +1158,18 @@ export default {
         return this.groupSort;
       }
 
+      // The column's own sort path first, which is the one the table uses when its header is
+      // clicked - so grouping orders the rows exactly as sorting by that column would. `sort` is
+      // often a list whose later entries are only tie breakers, and can carry a `:desc` suffix.
+      const sort = this.viewGroupField.header?.sort;
+      const first = Array.isArray(sort) ? sort[0] : sort;
+
+      if (typeof first === 'string' && first) {
+        return first.split(':')[0];
+      }
+
+      // Labels have no header of their own, and neither does a column that says nothing about
+      // how it sorts
       const path = serverPathFor(this.viewGroupField);
 
       return typeof path === 'string' ? path : this.groupSort;
@@ -1890,6 +1974,7 @@ export default {
         :view="view"
         :fields="viewFields"
         :group-fields="viewGroupFields"
+        :filter-fields="viewFilterFields"
         :field-values="fieldValues"
         :rows="filteredRows"
         :match-count="viewMatchCount"
@@ -1931,6 +2016,7 @@ export default {
         :view="view"
         :fields="viewFields"
         :group-fields="viewGroupFields"
+        :filter-fields="viewFilterFields"
         :field-values="fieldValues"
         :rows="filteredRows"
         :match-count="viewMatchCount"
@@ -1976,9 +2062,15 @@ export default {
       </div>
     </template>
 
-    <!-- Pass down templates provided by the caller -->
+    <!-- Pass down templates provided by the caller.
+
+         Minus the ones this component fills in itself and renders the caller's inside, which is
+         `header-right`. Vue keeps the last template given for a slot name, so passing it straight
+         through here replaced the filter and the View button with the caller's own content - the
+         cluster dashboard's events table puts a link and a page-size menu there, and had no
+         filter at all as a result. -->
     <template
-      v-for="(_, slot) of $slots"
+      v-for="(_, slot) of passthroughSlots"
       :key="slot"
       v-slot:[slot]="scope"
     >
