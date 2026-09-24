@@ -132,6 +132,72 @@ export interface SavedView {
   sortDescending?: boolean;
 }
 
+/** The state a table's toolbar edits and the table applies - a saved view without its identity */
+export type ViewState = Omit<SavedView, 'id' | 'name'>;
+
+/**
+ * Do these two hold the same view? By what they hold rather than by who they are, so a saved
+ * view can be recognised in whatever is currently applied.
+ */
+export function isSameViewConfig(a: Partial<ViewState>, b: Partial<ViewState>): boolean {
+  return (a.query || '') === (b.query || '') &&
+    (a.groupBy || null) === (b.groupBy || null) &&
+    (a.sort || null) === (b.sort || null) &&
+    !!a.sortDescending === !!b.sortDescending &&
+    JSON.stringify(a.columns || null) === JSON.stringify(b.columns || null) &&
+    JSON.stringify(a.columnOrder || null) === JSON.stringify(b.columnOrder || null) &&
+    JSON.stringify(a.labelColumns || []) === JSON.stringify(b.labelColumns || []);
+}
+
+/** Has anything at all been asked of the table, or is this the list as it comes? */
+export function isViewModified(view: Partial<ViewState>): boolean {
+  return !!view.query || !!view.groupBy || !!view.columns || !!view.labelColumns?.length ||
+    !!view.columnOrder || !!view.sort;
+}
+
+/** Which saved view (if any) the state in front of the user matches */
+export function matchingViewId(savedViews: SavedView[], view: Partial<ViewState>): string | null {
+  return savedViews.find((saved) => isSameViewConfig(saved, view))?.id || null;
+}
+
+/**
+ * Which saved view a tab bar shows as selected.
+ *
+ * `pickedViewId` is the tab the user picked: `undefined` if nothing has been picked yet, `null`
+ * for the table's own tab, or the id of a saved view.
+ *
+ * The view the user picked wins. Two saved views can hold the same config, and matching on
+ * config alone would always light up the first of them - so picking the second looked like
+ * nothing happened. Fall back to the config when nothing has been picked, so a view arriving in
+ * the URL still shows as selected.
+ */
+export function selectedViewIdFor(savedViews: SavedView[], view: Partial<ViewState>, pickedViewId?: string | null): string | null {
+  if (pickedViewId !== undefined) {
+    if (pickedViewId === null) {
+      return null;
+    }
+
+    return savedViews.find((v) => v.id === pickedViewId)?.id || matchingViewId(savedViews, view);
+  }
+
+  return isViewModified(view) ? matchingViewId(savedViews, view) : null;
+}
+
+/** Unsaved changes: either edits on top of a saved view, or an unsaved view of one's own */
+export function isViewDirty(savedViews: SavedView[], view: Partial<ViewState>, pickedViewId?: string | null): boolean {
+  const editing = pickedViewId ? savedViews.find((v) => v.id === pickedViewId) : null;
+
+  if (editing) {
+    return !isSameViewConfig(editing, view);
+  }
+
+  if (pickedViewId === null) {
+    return isViewModified(view);
+  }
+
+  return !matchingViewId(savedViews, view) && isViewModified(view);
+}
+
 /** Columns that are structural rather than data, so never offered as fields */
 const IGNORED_COLUMNS = ['check', 'actions', 'spacer'];
 

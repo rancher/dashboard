@@ -1,4 +1,4 @@
-<script>
+<script setup lang="ts">
 /**
  * The toolbar above a resource table - filter query, column picker, group by, export and
  * saved views.
@@ -6,33 +6,40 @@
  * All of the state lives in the `view` prop so the owning table can apply it; this
  * component only owns the saved view list (stored as a user preference).
  */
-import { mapPref, TABLE_VIEWS } from '@shell/store/prefs';
-import { randomStr } from '@shell/utils/string';
-import { moveInOrder, validateQuery } from '@shell/utils/table-views';
-import { isMac, shortcutLabel } from '@shell/utils/platform';
-import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput';
-import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal';
-import AppModal from '@shell/components/AppModal.vue';
-import { RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator } from '@components/RcDropdown';
+import {
+  computed, nextTick, onBeforeUnmount, onMounted, ref, watch
+} from 'vue';
+import { useStore } from 'vuex';
 
-/** Where a saved view's key bindings apply, and what they do */
+import AppModal from '@shell/components/AppModal.vue';
+import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal.vue';
+import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput.vue';
+import { useI18n } from '@shell/composables/useI18n';
+import { TABLE_VIEWS } from '@shell/store/prefs';
+import { isMac, shortcutLabel } from '@shell/utils/platform';
+import { randomStr } from '@shell/utils/string';
+import { isViewDirty, moveInOrder, selectedViewIdFor, validateQuery } from '@shell/utils/table-views';
+import type { SavedView, ViewField, ViewState } from '@shell/utils/table-views';
+import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
+
 /** How far the pointer travels with a row held before it counts as a drag rather than a click */
 const DRAG_THRESHOLD = 4;
 
 /** Clears the handle's tooltip of the row's hover highlight rather than sitting over the handle */
 const TOOLTIP_DISTANCE = 12;
 
+/** Where a saved view's key bindings apply, and what they do */
 const SHORTCUTS = [
   {
-    key: 's', shift: false, method: 'saveChanges'
+    key: 's', shift: false, action: 'saveChanges'
   },
   {
-    key: 's', shift: true, method: 'openSaveAsNew'
+    key: 's', shift: true, action: 'openSaveAsNew'
   },
   {
-    key: 'd', shift: false, method: 'duplicateCurrent'
+    key: 'd', shift: false, action: 'duplicateCurrent'
   },
-];
+] as const;
 
 /**
  * How long the pointer is given to cross one row of the View menu on its way to the sub menu
@@ -57,1692 +64,1541 @@ const TAB_SCROLL_SETTLE_MAX_MS = 1200;
 /** How long the tab that moved is marked for afterwards - the wash's own length */
 const TAB_FLASH_MS = 600;
 
+interface Tab {
+  id: string | null;
+  name: string;
+  view?: SavedView;
+  isDefaultTab?: boolean;
+}
+
 /** The table's own tab has no id, and null is also what "nothing" looks like - so it is named */
-function tabKey(tab) {
+function tabKey(tab: { id?: string | null }) {
   return tab.id || 'all';
 }
 
-export default {
-  name: 'TableViewsBar',
-
-  emits: ['update:view', 'export', 'request-values', 'tab-queries'],
-
-  components: {
-    TableViewQueryInput,
-    TableViewExportModal,
-    AppModal,
-    RcDropdown,
-    RcDropdownItem,
-    RcDropdownTrigger,
-    RcDropdownSeparator
-  },
-
-  props: {
-    /**
-     * { query, columns, labelColumns, groupBy }
-     */
-    view: {
-      type:     Object,
-      required: true
-    },
-
-    /** Field ids this table will not let go of, so the menu can show them locked */
-    coreColumns: {
-      type:    Array,
-      default: () => []
-    },
-
-    /**
-     * Field ids the table shows when a view has said nothing about columns.
-     *
-     * The menu offers every column the type has, which is more than a page showing its own
-     * chosen set displays - so "shown" cannot mean "all of them" any more.
-     */
-    defaultColumns: {
-      type:    Array,
-      default: () => []
-    },
-
-    /**
-     * Names of fields the query mentions that this list cannot be filtered by, so the toolbar
-     * can say the query did not entirely run
-     */
-    unsupportedFields: {
-      type:    Array,
-      default: () => []
-    },
-
-    /**
-     * ViewField[] - everything filterable/groupable on this table
-     */
-    fields: {
-      type:    Array,
-      default: () => []
-    },
-
-    /**
-     * Fields offered in the group by menu. Grouping is a sort, so this can be narrower than
-     * `fields` - server side only indexed fields can be grouped on. Defaults to all fields.
-     */
-    groupFields: {
-      type:    Array,
-      default: null
-    },
-
-    /**
-     * Fields offered as filter suggestions. Narrower than `fields` for the same reason
-     * `groupFields` is - server side only indexed fields can be filtered on. Defaults to all
-     * fields.
-     */
-    filterFields: {
-      type:    Array,
-      default: null
-    },
-
-    /**
-     * fieldId -> values in use, fetched from the api. Falls back to scanning `rows` when a field
-     * has nothing here yet.
-     */
-    fieldValues: {
-      type:    Object,
-      default: () => ({})
-    },
-
-    /**
-     * All rows, before the view query is applied. Used for value autocomplete
-     */
-    rows: {
-      type:    Array,
-      default: () => []
-    },
-
-    /**
-     * How many rows the view query leaves
-     */
-    matchCount: {
-      type:    Number,
-      default: 0
-    },
-
-    /**
-     * query -> how many rows it matches, counted by the owning table in its own right rather
-     * than read off the rows on screen. Shown on the tabs, so someone can see what a view holds
-     * without opening it.
-     */
-    viewCounts: {
-      type:    Object,
-      default: () => ({})
-    },
-
-    /**
-     * Plural display name of what the table holds ("clusters"), for the export modal
-     */
-    resourceLabel: {
-      type:    String,
-      default: ''
-    },
-
-    /**
-     * Key the saved views are stored under, normally the resource type
-     */
-    resourceType: {
-      type:    String,
-      default: ''
-    },
-
-    /**
-     * Which part of the bar to render:
-     *  - 'all'      (default) both the view tabs and the filter/View controls
-     *  - 'tabs'     only the view tabs row
-     *  - 'controls' only the filter + single "View" popup, laid out to fill one toolbar line
-     * Two instances (tabs + controls) stay in sync because all state comes from props and the
-     * shared TABLE_VIEWS preference.
-     */
-    part: {
-      type:    String,
-      default: 'all'
-    },
-  },
-
-  data() {
-    return {
-      /**
-       * The tab the user picked, so we can offer save/discard against it and light it up.
-       *
-       * Three states: `undefined` if nothing has been picked here yet, `null` for the default
-       * tab, or the id of a saved view. The default tab has to be distinguishable from "nothing
-       * picked", or a saved view holding the same config as it is matched instead.
-       */
-      /** True while the caret is in the query box, so it is not corrected mid-word */
-      queryFocused:      false,
-      pickedViewId:      undefined,
-      /**
-       * Unsaved edits, per tab, for as long as the page is open. Leaving a tab with changes on it
-       * holds on to them so coming back finds them where they were, and the tab keeps its mark
-       * while you are elsewhere. A reload is where they end - nothing here is written down.
-       */
-      drafts:            {},
-      /** Which modal is open, if any: { kind: 'export', view } */
-      modal:             null,
-      /**
-       * Which sub menu of the View menu is open - 'group', 'columns', or null. A menu item has
-       * no trigger of its own, so the row that opens one says so here and the menu takes its
-       * open state from it.
-       */
-      subMenu:           null,
-      /**
-       * Whether the pointer is inside the open sub menu. The row that opened it takes the
-       * highlight back while it is, so the menu says where you are rather than what you last
-       * passed over on the way there.
-       */
-      subMenuHovered:    false,
-      /** id of the view being renamed in place, and the name being typed for it */
-      renamingId:        null,
-      renameDraft:       '',
-      /**
-       * Column picker drag. `dragId` is the row being held; `dragOrder` is the ids in the order
-       * the list is showing them mid-drag, which is what lets the rows shuffle under the cursor
-       * instead of waiting for the drop. `dragSlots` are the places the rows sat when the drag
-       * began - see captureColumnSlots for why they are taken once rather than read live.
-       */
-      dragId:            null,
-      dragOrder:         null,
-      dragMoved:         false,
-      dragFrom:          null,
-      dragPointerY:      0,
-      dragSlots:         null,
-      dragStartOrder:    null,
-      /**
-       * Tab drag, the same shape as the column one a few lines up but along the strip rather than
-       * down a list. `tabDragOrder` is the tab keys in the order the pointer has put them.
-       */
-      tabDragFrom:       null,
-      tabDragId:         null,
-      tabDragMoved:      false,
-      tabDragPointerX:   0,
-      tabDragBounds:     null,
-      tabDragOrder:      null,
-      tabDragStartOrder: null,
-      /** Which tab's own menu is open, so it can be closed when the strip moves under it */
-      openTabMenuId:     null,
-      /** The tab to draw attention to once the strip has finished running back to it */
-      flashTabId:        null,
-    };
-  },
-
-  watch: {
-    tabQueries: {
-      handler(queries) {
-        this.$emit('tab-queries', queries);
-      },
-      immediate: true,
-    },
-
-    /** Whatever was under the pointer belonged to the menu that has just gone */
-    subMenu() {
-      this.subMenuHovered = false;
-    },
-  },
-
-  mounted() {
-    // Only the tabs instance listens, so a bar rendered as two parts doesn't act on each key twice
-    if (this.part !== 'controls') {
-      window.addEventListener('keydown', this.onShortcut);
-    }
-  },
-
-  beforeUnmount() {
-    window.removeEventListener('keydown', this.onShortcut);
-    clearTimeout(this._subMenuTimer);
-    clearTimeout(this._flashTimer);
-    cancelAnimationFrame(this._flashFrame);
-    this.endColumnDrag(false);
-    this.endTabDrag(false);
-  },
-
-  computed: {
-    allSavedViews: mapPref(TABLE_VIEWS),
-
-    /**
-     * What is wrong with the query, once the user has stopped writing it.
-     *
-     * Held back while the box has the caret: `state:` is a field with no value, and it is also
-     * the halfway point of typing `state:active` - with the values for it on screen at that very
-     * moment. Correcting someone mid-word is noise, so this waits until they look away.
-     */
-    shownProblems() {
-      return this.queryFocused ? [] : validateQuery(this.view.query, this.fields);
-    },
-
-    /**
-     * The shortcuts as this keyboard writes them.
-     *
-     * The handler already answers to either modifier, so only the label was wrong: it read
-     * "CMD-S" on every machine, which is neither what a Mac draws nor what Windows calls the key.
-     * `shortcutLabel` is what the rest of the product spells its own shortcuts with.
-     */
-    shortcuts() {
-      const modifier = isMac ? '⌘' : 'Ctrl';
-
-      return {
-        save:      shortcutLabel([modifier, 'S']),
-        saveAsNew: shortcutLabel([modifier, 'Shift', 'S']),
-        duplicate: shortcutLabel([modifier, 'D']),
-      };
-    },
-
-    /** What the toolbar says about the part of the query that could not be run */
-    unsupportedNotice() {
-      return this.t('tableViews.query.unsupported', {
-        count:  this.unsupportedFields.length,
-        fields: this.unsupportedFields.join(', '),
-      }, true);
-    },
-
-    /**
-     * Everything the box has to say about what is in it, for the status icon at its right.
-     *
-     * A query that cannot be read as written comes first and on its own - saying a field is
-     * unfilterable while the query also ends in `and` answers a question nobody asked yet.
-     */
-    queryStatusMessage() {
-      if (this.shownProblems.length) {
-        return this.shownProblems.map((problem) => this.problemNotice(problem)).join('<br>');
-      }
-
-      return this.unsupportedFields.length ? this.unsupportedNotice : '';
-    },
-
-    /**
-     * A query that cannot be read is an error - nothing is being filtered by it. A field the
-     * server cannot filter on is not: the rest of the query still ran.
-     */
-    queryStatus() {
-      return this.shownProblems.length ? 'error' : 'info';
-    },
-
-    savedViews() {
-      return this.allSavedViews?.[this.resourceType]?.views || this.allSavedViews?.[this.resourceType] || [];
-    },
-
-    /**
-     * The view applied when the list is first opened, if the user has set one
-     */
-    defaultViewId() {
-      return this.allSavedViews?.[this.resourceType]?.defaultViewId || null;
-    },
-
-    /**
-     * Where the table's own tab sits among the saved ones.
-     *
-     * It is not a saved view, so it has no place in that list to hold - but it can be dragged
-     * about like any other tab, so its place has to be kept somewhere. Missing means the front,
-     * which is where it was before it could be moved.
-     */
-    allTabIndex() {
-      const at = this.allSavedViews?.[this.resourceType]?.allIndex;
-
-      return Math.min(Math.max(Number.isInteger(at) ? at : 0, 0), this.savedViews.length);
-    },
-
-    /** The default tab plus every saved view, in the order they are shown */
-    /**
-     * The strip: the table as it comes, then the saved views.
-     *
-     * Except that the view the list opens on leads, and the table's own tab follows it. The first
-     * tab is the one you land on, so the one that is actually applied on arrival belongs there -
-     * and having marked a view as the default, watching it stay wherever it happened to sit was
-     * the menu saying one thing and the strip another. Neither of those two can be dragged out of
-     * the first two places; see `firstMovableTabIndex`.
-     */
-    /** The strip as it is saved, before a drag in progress rearranges it - see `tabs` */
-    baseTabs() {
-      const all = {
-        id: null, name: this.t('tableViews.tabs.all'), isDefaultTab: true
-      };
-      const tabs = this.savedViews.map((view) => ({
-        id: view.id, name: view.name, view
-      }));
-
-      tabs.splice(this.allTabIndex, 0, all);
-
-      // The one the list opens on leads, wherever it had been put. With nothing set that is the
-      // table's own tab, which is what an empty default means.
-      const lead = tabs.findIndex((tab) => (this.defaultViewId ? tab.view?.id === this.defaultViewId : tab.isDefaultTab));
-
-      if (lead <= 0) {
-        return tabs;
-      }
-
-      return [tabs[lead]].concat(tabs.filter((_, i) => i !== lead));
-    },
-
-    /** Mid-drag the strip follows the pointer rather than the saved order */
-    tabs() {
-      if (!this.tabDragOrder) {
-        return this.baseTabs;
-      }
-
-      const byKey = {};
-
-      this.baseTabs.forEach((tab) => {
-        byKey[tabKey(tab)] = tab;
-      });
-
-      return this.tabDragOrder.map((key) => byKey[key]).filter(Boolean);
-    },
-
-    /**
-     * How many tabs at the head of the strip are held there: the one the list opens on, and only
-     * that one. It leads because it is the tab you arrive at, so it cannot be dragged out of the
-     * front and nothing can be dropped in front of it. Everything else moves freely, the table's
-     * own tab included - it is only pinned to the front while it is itself the default.
-     */
-    lockedTabCount() {
-      return 1;
-    },
-
-    columnFields() {
-      return this.fields.filter((f) => !f.isLabel);
-    },
-
-    /**
-     * The handle's tooltip. Empty content is how the directive is told to show nothing, so the
-     * tooltip goes the moment a row is picked up rather than riding along with it.
-     *
-     * Far enough left to clear the row's hover highlight: on the handle itself it sat over the
-     * thing being dragged, which is the one place it is in the way.
-     */
-    reorderTip() {
-      return {
-        content: this.dragId ? '' : this.t('tableViews.columns.reorder'), placement: 'left', distance: TOOLTIP_DISTANCE
-      };
-    },
-
-    lockedTip() {
-      return {
-        content: this.t('tableViews.columns.locked'), placement: 'left', distance: TOOLTIP_DISTANCE
-      };
-    },
-
-    /**
-     * Columns in the order the view puts them, so the picker reads the way the table does
-     */
-    orderedColumnFields() {
-      // Mid-drag the list follows the pointer rather than the saved order
-      const order = this.dragOrder || this.view.columnOrder;
-
-      if (!order?.length) {
-        return this.columnFields;
-      }
-
-      const byId = {};
-
-      this.columnFields.forEach((f) => {
-        byId[f.id] = f;
-      });
-
-      const out = order.map((id) => byId[id]).filter((f) => !!f);
-
-      return out.concat(this.columnFields.filter((f) => !order.includes(f.id)));
-    },
-
-    visibleColumnCount() {
-      return this.columnFields.filter((f) => this.isColumnVisible(f)).length + (this.view.labelColumns?.length || 0);
-    },
-
-    // "7 / 11", or "Default" while nothing has been changed - shown on the Columns row of the View menu
-    columnsSummary() {
-      if (!this.view.columns && !this.view.labelColumns?.length && !this.view.columnOrder) {
-        return this.t('tableViews.view.columnsDefault');
-      }
-
-      // Labels are extras rather than columns of the table, so only the ones actually added count
-      // towards the total - otherwise a pod list reads "9 / 42" because of its label keys
-      return this.t('tableViews.view.columnsCount', { shown: this.visibleColumnCount, total: this.columnFields.length + (this.view.labelColumns?.length || 0) });
-    },
-
-    /**
-     * Labels are left out: a cluster carries as many of them as it likes, so offering every key
-     * buries the handful of fields worth grouping on under a list of them.
-     */
-    groupOptions() {
-      return [{ id: null, label: this.t('tableViews.group.none') }].concat(
-        (this.groupFields || this.fields)
-          .filter((f) => !f.isLabel)
-          .map((f) => ({ id: f.id, label: f.label }))
-      );
-    },
-
-    groupLabel() {
-      return this.groupOptions.find((o) => o.id === this.view.groupBy)?.label || this.t('tableViews.group.none');
-    },
-
-    /**
-     * Which saved view (if any) the current state matches
-     */
-    activeViewId() {
-      return this.savedViews.find((saved) => this.isSameConfig(saved, this.view))?.id || null;
-    },
-
-    /**
-     * The saved view the current state was applied from, if it still exists
-     */
-    editingView() {
-      return this.savedViews.find((v) => v.id === this.pickedViewId) || null;
-    },
-
-    /**
-     * Which saved view the tab bar shows as selected.
-     *
-     * The view the user picked wins. Two saved views can hold the same config, and matching
-     * on config alone would always light up the first of them - so picking the second looked
-     * like nothing happened. Fall back to the config when nothing has been picked here yet,
-     * so a view arriving in the URL still shows as selected.
-     */
-    selectedViewId() {
-      if (this.pickedViewId !== undefined) {
-        return this.pickedViewId === null ? null : this.editingView?.id || this.activeViewId;
-      }
-
-      return this.isModified ? this.activeViewId : null;
-    },
-
-    /**
-     * The one tab in the strip that Tab can land on. A tablist is a single stop and the arrows
-     * walk it from there, so the tab holding the current view carries the tabindex and the rest
-     * are reachable only through it. If the current view is not among the tabs - a deleted one,
-     * say - the first tab takes it, or the strip would have no way in at all.
-     */
-    focusableTabId() {
-      const tabs = this.tabs || [];
-      const selected = tabs.find((t) => t.id === this.selectedViewId);
-
-      return (selected || tabs[0])?.id;
-    },
-
-    /**
-     * Unsaved changes: either edits on top of a saved view, or an unsaved view of one's own
-     */
-    isDirty() {
-      if (this.editingView) {
-        return !this.isSameConfig(this.editingView, this.view);
-      }
-
-      if (this.pickedViewId === null) {
-        return this.isModified;
-      }
-
-      return !this.activeViewId && this.isModified;
-    },
-
-    /** What a saved view keeps of the state in front of the user */
-    viewToSave() {
-      return {
-        query:          this.view.query || '',
-        columns:        this.view.columns || null,
-        columnOrder:    this.view.columnOrder || null,
-        labelColumns:   this.view.labelColumns || [],
-        groupBy:        this.view.groupBy || null,
-        sort:           this.view.sort || null,
-        sortDescending: !!this.view.sortDescending,
-      };
-    },
-
-    /** Every query on show, so the table knows which counts it has to go and get */
-    tabQueries() {
-      return Array.from(new Set(this.tabs.map((tab) => this.tabQuery(tab))));
-    },
-
-    isModified() {
-      return !!this.view.query || !!this.view.groupBy || !!this.view.columns || !!this.view.labelColumns?.length ||
-        !!this.view.columnOrder || !!this.view.sort;
-    },
-  },
-
-  methods: {
-    /**
-     * Is `target` part of this table's toolbar - its tabs, its filter, or its View menu?
-     *
-     * Both halves of the bar live in the same table masthead, so that is what is compared. A
-     * second table on the page has its own, and keeps its own shortcuts.
-     */
-    ownsTarget(target) {
-      // `$el` is no use here - the component has a modal beside its bar, so its root is a
-      // fragment whose first node may not be an element at all
-      const root = this.$refs.root;
-
-      if (!root?.closest || !target?.closest) {
-        return false;
-      }
-
-      // The toolbar and the table under it together: they are one list as far as the user is
-      // concerned, and a shortcut pressed while reading the rows belongs to the list being read.
-      // The masthead is the fallback for a table that is not in table views layout.
-      const listOf = (el) => el.closest('.has-table-views') || el.closest('.fixed-header-actions');
-      const mine = listOf(root);
-
-      return !!mine && listOf(target) === mine;
-    },
-
-    isSameConfig(a, b) {
-      return (a.query || '') === (b.query || '') &&
-        (a.groupBy || null) === (b.groupBy || null) &&
-        (a.sort || null) === (b.sort || null) &&
-        !!a.sortDescending === !!b.sortDescending &&
-        JSON.stringify(a.columns || null) === JSON.stringify(b.columns || null) &&
-        JSON.stringify(a.columnOrder || null) === JSON.stringify(b.columnOrder || null) &&
-        JSON.stringify(a.labelColumns || []) === JSON.stringify(b.labelColumns || []);
-    },
-
-    /**
-     * The count shown on a tab. The selected tab is whatever the table is showing right now;
-     * the rest are counted separately by the owning table.
-     */
-    /**
-     * What a tab counts: the query it holds, or for the tab in front of the user the query
-     * actually in the box, edits included.
-     *
-     * Counts are looked up by query and never taken from the table's own rows, so a tab keeps
-     * its number while the list goes off to fetch a page instead of falling to zero.
-     */
-    /**
-     * What a tab is actually filtering by: the box for the tab in front of the user, the edits
-     * held for a tab left with some, and the saved query for the rest.
-     */
-    tabQuery(tab) {
-      if (tab.id === this.selectedViewId) {
-        return this.view.query || '';
-      }
-
-      const draft = this.drafts[this.draftKey(tab.id)];
-
-      return (draft ? draft.query : tab.view?.query) || '';
-    },
-
-    tabCount(tab) {
-      return this.viewCounts[this.tabQuery(tab)];
-    },
-
-    tabLabel(tab) {
-      const count = this.tabCount(tab);
-
-      // undefined: not counted yet. null: asked, and the api wouldn't say. Either way the tab
-      // shows its name rather than a number that isn't true.
-      return count === undefined || count === null ? tab.name : this.t('tableViews.tabs.count', { name: tab.name, count });
-    },
-
-    isTabDirty(tab) {
-      if (tab.id === this.selectedViewId) {
-        return this.isDirty;
-      }
-
-      return !!this.drafts[this.draftKey(tab.id)];
-    },
-
-    update(changes) {
-      this.$emit('update:view', { ...this.view, ...changes });
-    },
-
-    problemNotice(problem) {
-      return this.t(`tableViews.query.problem.${ problem.kind }`, { text: problem.text, label: problem.label || '' }, true);
-    },
-
-    isColumnVisible(field) {
-      if (this.view.columns) {
-        return this.view.columns.includes(field.id);
-      }
-
-      // Nothing chosen yet, so what the table shows is the page's own set. Without a set to
-      // compare against every offered column would read as shown, including the ones the page
-      // leaves out.
-      return !this.defaultColumns.length || this.defaultColumns.includes(field.id);
-    },
-
-    isCoreColumn(field) {
-      return !!field?.id && this.coreColumns.includes(field.id);
-    },
-
-    toggleColumn(field) {
-      // Core columns (name, age) can't be hidden - the table depends on them
-      if (this.isCoreColumn(field)) {
-        return;
-      }
-
-      // From what is on screen rather than from every column offered - seeding with all of them
-      // turned on the ones the page leaves out the moment anything was toggled
-      const current = this.view.columns || this.columnFields.filter((f) => this.isColumnVisible(f)).map((f) => f.id);
-      const next = current.includes(field.id) ? current.filter((id) => id !== field.id) : current.concat([field.id]);
-
-      this.update({ columns: next });
-    },
-
-    selectAllColumns() {
-      this.update({ columns: this.columnFields.map((f) => f.id) });
-    },
-
-    /**
-     * Eat the click that a mouseup at the end of a drag is about to produce.
-     *
-     * It would land on whatever the pointer finished over - the row it was dropped on, or the tab
-     * it was dropped beside - and toggle or apply it. A drag is not a click.
-     */
-    swallowNextClick() {
-      const swallow = (event) => {
-        event.stopPropagation();
-        event.preventDefault();
-      };
-
-      window.addEventListener('click', swallow, { capture: true, once: true });
-      setTimeout(() => window.removeEventListener('click', swallow, true), 0);
-    },
-
-    /**
-     * Press on a column's grip: arm a possible drag. Nothing is picked up here - a press on a row
-     * is far more often the start of a click that toggles the column - so the row is only taken
-     * once the pointer has travelled `DRAG_THRESHOLD` with it held.
-     */
-    startColumnDrag(id, event) {
-      if (event.button !== 0) {
-        return;
-      }
-
-      // Otherwise the pointer selects the labels it crosses on the way
-      event.preventDefault();
-
-      this.dragFrom = { id, y: event.clientY };
-      this.dragMoved = false;
-
-      window.addEventListener('mousemove', this.onColumnDragMove, true);
-      window.addEventListener('mouseup', this.onColumnDragEnd, true);
-      window.addEventListener('keydown', this.onColumnDragKey, true);
-    },
-
-    onColumnDragMove(event) {
-      if (!this.dragFrom) {
-        return;
-      }
-
-      this.dragPointerY = event.clientY;
-
-      if (!this.dragMoved && Math.abs(event.clientY - this.dragFrom.y) < DRAG_THRESHOLD) {
-        return;
-      }
-
-      this.beginColumnDrag();
-      this.placeDraggedColumn();
-    },
-
-    beginColumnDrag() {
-      if (this.dragMoved || !this.dragFrom) {
-        return;
-      }
-
-      this.dragMoved = true;
-      this.dragId = this.dragFrom.id;
-      this.dragOrder = this.orderedColumnFields.map((f) => f.id);
-      this.dragStartOrder = [...this.dragOrder];
-      this.captureColumnSlots();
-      // The list's own rows are told to say `grabbing` in CSS; this is for everywhere else the
-      // pointer can go while still carrying a row.
-      document.body.style.cursor = 'grabbing';
-    },
-
-    /**
-     * The places the rows occupy, measured once as the drag begins.
-     *
-     * They cannot be read live. A row's box reflects any transform it is under, and the rows
-     * displaced by a drag are mid-FLIP for as long as that move lasts - so measuring during the
-     * drag reads the positions rows are traveling THROUGH. The pointer then lands on a row that is
-     * only passing by, which reorders, which starts another move: the row flails between places
-     * instead of settling under the cursor.
-     *
-     * Held in the panel's own coordinates rather than the viewport's, so that a panel scrolled
-     * mid-drag does not put every boundary where the rows no longer are.
-     */
-    captureColumnSlots() {
-      const scroller = this.$refs.columnsPanel;
-      const rows = scroller?.querySelectorAll('[data-col-id]') || [];
-      const origin = scroller ? scroller.getBoundingClientRect().top - scroller.scrollTop : 0;
-
-      this.dragSlots = [...rows].map((el) => {
-        const box = el.getBoundingClientRect();
-
-        return { top: box.top - origin, bottom: box.bottom - origin };
-      });
-    },
-
-    /**
-     * Which row the pointer is over. Past either end it clamps, so dragging beyond the last row
-     * parks the column at the end rather than abandoning the move.
-     */
-    columnIndexAt(clientY) {
-      const slots = this.dragSlots || [];
-      const scroller = this.$refs.columnsPanel;
-
-      if (!slots.length || !scroller) {
-        return -1;
-      }
-
-      const y = clientY - scroller.getBoundingClientRect().top + scroller.scrollTop;
-
-      if (y <= slots[0].top) {
-        return 0;
-      }
-
-      if (y >= slots[slots.length - 1].bottom) {
-        return slots.length - 1;
-      }
-
-      return slots.findIndex((slot) => y >= slot.top && y <= slot.bottom);
-    },
-
-    /**
-     * The first place a column can be dropped into. The locked columns hold the head of the list
-     * and cannot be moved themselves, so nothing may be carried above them either.
-     */
-    firstMovableIndex(order) {
-      let i = 0;
-
-      while (i < order.length && this.coreColumns.includes(order[i])) {
-        i++;
-      }
-
-      return i;
-    },
-
-    /** Put the held row where the pointer is, so the rest shuffle around it as it travels */
-    placeDraggedColumn() {
-      const from = this.dragOrder.indexOf(this.dragId);
-      const at = this.columnIndexAt(this.dragPointerY);
-
-      if (from === -1 || at === -1) {
-        return;
-      }
-
-      this.dragOrder = moveInOrder(this.dragOrder, from, Math.max(at, this.firstMovableIndex(this.dragOrder)));
-    },
-
-    /** Escape abandons the drag: the list snaps back to the view, and nothing is written */
-    onColumnDragKey(event) {
-      if (event.key === 'Escape') {
-        this.endColumnDrag(false);
-      }
-    },
-
-    onColumnDragEnd() {
-      this.endColumnDrag(this.dragMoved);
-    },
-
-    endColumnDrag(commit) {
-      window.removeEventListener('mousemove', this.onColumnDragMove, true);
-      window.removeEventListener('mouseup', this.onColumnDragEnd, true);
-      window.removeEventListener('keydown', this.onColumnDragKey, true);
-
-      const started = this.dragStartOrder || [];
-      const order = this.dragOrder;
-      const moved = !!order && order.some((id, i) => id !== started[i]);
-
-      if (this.dragMoved) {
-        this.swallowNextClick();
-      }
-
-      document.body.style.cursor = '';
-
-      this.dragFrom = null;
-      this.dragId = null;
-      this.dragMoved = false;
-      this.dragSlots = null;
-      this.dragStartOrder = null;
-      this.dragOrder = null;
-
-      if (commit && moved) {
-        this.update({ columnOrder: order });
-      }
-    },
-
-    /**
-     * Press on a tab: arm a possible drag.
-     *
-     * Nothing is picked up here. A press on a tab is far more often the start of a click that
-     * selects the view, so the tab is only taken once the pointer has travelled DRAG_THRESHOLD
-     * with it held - and the click that would follow the drop is swallowed in endTabDrag.
-     */
-    startTabDrag(tab, event) {
-      const key = tabKey(tab);
-
-      if (event.button !== 0 || this.renamingId || this.baseTabs.findIndex((t) => tabKey(t) === key) < this.lockedTabCount) {
-        return;
-      }
-
-      this.tabDragFrom = { key, x: event.clientX };
-      this.tabDragMoved = false;
-
-      window.addEventListener('mousemove', this.onTabDragMove, true);
-      window.addEventListener('mouseup', this.onTabDragEnd, true);
-      window.addEventListener('keydown', this.onTabDragKey, true);
-    },
-
-    onTabDragMove(event) {
-      if (!this.tabDragFrom) {
-        return;
-      }
-
-      this.tabDragPointerX = event.clientX;
-
-      if (!this.tabDragMoved && Math.abs(event.clientX - this.tabDragFrom.x) < DRAG_THRESHOLD) {
-        return;
-      }
-
-      this.beginTabDrag();
-      this.placeDraggedTab();
-    },
-
-    beginTabDrag() {
-      if (this.tabDragMoved || !this.tabDragFrom) {
-        return;
-      }
-
-      this.tabDragMoved = true;
-      this.closeTabMenus();
-      this.tabDragId = this.tabDragFrom.key;
-      this.tabDragOrder = this.baseTabs.map(tabKey);
-      this.tabDragStartOrder = [...this.tabDragOrder];
-      this.captureTabSlots();
-      // Otherwise the pointer selects the tab names it crosses on the way
-      window.getSelection()?.removeAllRanges();
-      document.body.style.cursor = 'grabbing';
-      this.runTabScroll();
-    },
-
-    /**
-     * The places the tabs occupy, measured once as the drag begins.
-     *
-     * Fixed, and that is the whole point. Working the places out from the order the pointer has
-     * currently put things in feeds the answer back into the question: passing the tab to your
-     * right swaps the two, which puts the boundary you just crossed back under the pointer, so
-     * it swaps again - and the pair flickers between the two arrangements while you hold still.
-     * Measuring once leaves a fixed ladder to read the pointer against.
-     *
-     * Kept relative to the list rather than to the window, so the strip scrolling under a held
-     * tab does not move the rungs.
-     */
-    captureTabSlots() {
-      const list = this.$refs.tabStrip?.querySelector('.view-tabs-list');
-
-      if (!list) {
-        return;
-      }
-
-      const base = list.getBoundingClientRect().left;
-      const boxes = this.baseTabs.map((tab) => {
-        const rect = this.tabWrap(tab)?.getBoundingClientRect();
-
-        return rect ? { left: rect.left - base, right: rect.right - base } : null;
-      }).filter(Boolean);
-
-      // The line between one tab and the next, which is the middle of the gap they sit either
-      // side of. A tab changes places when the pointer crosses one of these, the way a column row
-      // changes places when the pointer enters the row below it - not at the far tab's middle,
-      // which meant carrying a tab halfway across its neighbour before anything happened.
-      this.tabDragBounds = boxes.slice(0, -1).map((box, i) => (box.right + boxes[i + 1].left) / 2);
-    },
-
-    /** Where along the strip the pointer is, in the strip's own scrolled-out width */
-    tabContentX() {
-      const strip = this.$refs.tabStrip;
-      const list = strip?.querySelector('.view-tabs-list');
-
-      if (!strip || !list) {
-        return 0;
-      }
-
-      return this.tabDragPointerX - list.getBoundingClientRect().left;
-    },
-
-    /** How many of the lines measured at the start the pointer has crossed */
-    tabIndexAt(contentX) {
-      const bounds = this.tabDragBounds || [];
-      let i = 0;
-
-      while (i < bounds.length && contentX >= bounds[i]) {
-        i++;
-      }
-
-      return i;
-    },
-
-    /** Put the held tab where the pointer is, so the rest shuffle around it as it travels */
-    placeDraggedTab() {
-      if (!this.tabDragOrder) {
-        return;
-      }
-
-      const from = this.tabDragOrder.indexOf(this.tabDragId);
-      const to = Math.max(this.tabIndexAt(this.tabContentX()), this.lockedTabCount);
-
-      this.tabDragOrder = moveInOrder(this.tabDragOrder, from, to);
-    },
-
-    /**
-     * Carrying a tab to an end of the strip runs the strip that way, so a tab can be taken
-     * somewhere that is not on screen yet. A frame loop rather than something driven by the
-     * pointer: holding still at the edge should keep going.
-     */
-    runTabScroll() {
-      const step = () => {
-        if (!this.tabDragMoved) {
-          return;
-        }
-
-        const strip = this.$refs.tabStrip;
-
-        if (strip) {
-          const rect = strip.getBoundingClientRect();
-
-          if (this.tabDragPointerX < rect.left + TAB_SCROLL_EDGE) {
-            strip.scrollLeft -= TAB_SCROLL_STEP;
-            this.placeDraggedTab();
-          } else if (this.tabDragPointerX > rect.right - TAB_SCROLL_EDGE) {
-            strip.scrollLeft += TAB_SCROLL_STEP;
-            this.placeDraggedTab();
-          }
-        }
-
-        this._tabScrollFrame = requestAnimationFrame(step);
-      };
-
-      cancelAnimationFrame(this._tabScrollFrame);
-      this._tabScrollFrame = requestAnimationFrame(step);
-    },
-
-    /** Escape abandons the drag: the strip snaps back to the saved order, and nothing is written */
-    onTabDragKey(event) {
-      if (event.key === 'Escape') {
-        this.endTabDrag(false);
-      }
-    },
-
-    onTabDragEnd() {
-      this.endTabDrag(this.tabDragMoved);
-    },
-
-    endTabDrag(commit) {
-      window.removeEventListener('mousemove', this.onTabDragMove, true);
-      window.removeEventListener('mouseup', this.onTabDragEnd, true);
-      window.removeEventListener('keydown', this.onTabDragKey, true);
-      cancelAnimationFrame(this._tabScrollFrame);
-
-      const started = this.tabDragStartOrder || [];
-      const order = this.tabDragOrder;
-      const moved = !!order && order.some((key, i) => key !== started[i]);
-
-      if (this.tabDragMoved) {
-        this.swallowNextClick();
-      }
-
-      document.body.style.cursor = '';
-
-      this.tabDragFrom = null;
-      this.tabDragId = null;
-      this.tabDragMoved = false;
-      this.tabDragBounds = null;
-      this.tabDragStartOrder = null;
-
-      if (commit && moved) {
-        const byId = {};
-
-        this.savedViews.forEach((view) => {
-          byId[view.id] = view;
-        });
-
-        // The table's own tab is not one of the saved views, so its place is kept beside them
-        this.persistAll(order.map((key) => byId[key]).filter(Boolean), this.defaultViewId, order.indexOf('all'));
-      }
-
-      this.tabDragOrder = null;
-    },
-
-    setGroupBy(id) {
-      this.update({ groupBy: id });
-    },
-
-    /**
-     * Picking a grouping from the menu, where picking the one already applied undoes it.
-     *
-     * The rows are how the grouping is read as much as how it is set, so the obvious move on
-     * seeing the tick against the field you are grouped by is to click it again - and a menu
-     * that answers by doing nothing leaves you hunting for None or Reset to say what the row you
-     * just clicked was already saying.
-     */
-    toggleGroupBy(id) {
-      this.setGroupBy(id === this.view.groupBy ? null : id);
-    },
-
-    resetColumns() {
-      this.update({
-        columns: null, labelColumns: [], columnOrder: null
-      });
-    },
-
-    /**
-     * Put the whole view back to the table's defaults - the query included
-     */
-    resetView() {
-      this.update({
-        query: '', columns: null, labelColumns: [], columnOrder: null, groupBy: null, sort: null, sortDescending: false
-      });
-    },
-
-    /** The default tab has no id of its own, so it needs a key of its own */
-    draftKey(id) {
-      return id || '__default';
-    },
-
-    /**
-     * Hold on to the tab being left, if it has changes worth keeping. A tab left in the state it
-     * was saved in has nothing to hold, so anything held for it is let go.
-     */
-    rememberDraft(id) {
-      const key = this.draftKey(id);
-
-      if (this.isDirty) {
-        this.drafts = { ...this.drafts, [key]: { ...this.view } };
-
-        return;
-      }
-
-      this.forgetDraft(id);
-    },
-
-    forgetDraft(id) {
-      const key = this.draftKey(id);
-
-      if (!this.drafts[key]) {
-        return;
-      }
-
-      const rest = { ...this.drafts };
-
-      delete rest[key];
-      this.drafts = rest;
-    },
-
-    /**
-     * @param saved the view to show, or null for the default tab
-     * @param useDraft whether unsaved edits left on that tab should come back with it. Off for
-     *        the paths whose whole purpose is to put a tab back the way it was saved.
-     */
-    applyView(saved, useDraft = true) {
-      const from = this.selectedViewId;
-      const to = saved?.id || null;
-      const moving = from !== to;
-
-      // Clicking the tab already in front of you is not a request to throw away what is on it.
-      // Discarding says so outright, and comes through here with `useDraft` off.
-      if (!moving && useDraft) {
-        this.pickedViewId = to;
-
-        return;
-      }
-
-      // Before the pick moves: what counts as unsaved is measured against the tab being left, and
-      // moving the pick first measures it against the one being arrived at, which marks every tab
-      // left behind as changed whether anything was typed into it or not.
-      if (moving) {
-        this.rememberDraft(from);
-      }
-
-      this.pickedViewId = to;
-
-      const draft = useDraft ? this.drafts[this.draftKey(to)] : null;
-
-      if (draft) {
-        this.$emit('update:view', { ...draft });
-
-        return;
-      }
-
-      this.$emit('update:view', {
-        query:          saved?.query || '',
-        columns:        saved?.columns || null,
-        columnOrder:    saved?.columnOrder || null,
-        labelColumns:   saved?.labelColumns || [],
-        groupBy:        saved?.groupBy || null,
-        sort:           saved?.sort || null,
-        sortDescending: saved?.sortDescending || false,
-      });
-    },
-
-    /**
-     * Put the view back the way it was - either the saved view being edited, or nothing at all
-     */
-    discardChanges() {
-      this.forgetDraft(this.selectedViewId);
-      this.applyView(this.editingView, false);
-    },
-
-    saveChanges() {
-      if (this.editingView) {
-        this.updateView(this.editingView);
-      } else if (this.isDirty) {
-        // The default tab can't be saved over, and an unsaved view has nothing to save over, so
-        // either way what is being asked for is a new view - and it needs a name
-        this.openSaveAsNew();
-      }
-    },
-
-    /**
-     * Keep the changes on the tab as a view of their own.
-     *
-     * The same act as copying a tab, and it lands the same way - the new tab in front of you with
-     * its name open for typing. The only difference is what is copied: the tab as it stands with
-     * the unsaved changes on it, rather than the view as it was last saved.
-     *
-     * It used to ask for the name in a modal first. A modal to take one word put the thing being
-     * named behind the thing naming it, and it was the one place in the toolbar where naming a
-     * view did not happen on the tab itself.
-     */
-    openSaveAsNew() {
-      if (!this.isDirty && this.pickedViewId === undefined) {
-        return;
-      }
-
-      this.duplicateView({ ...this.viewToSave, name: this.editingView?.name || this.t('tableViews.tabs.all') });
-    },
-
-    /**
-     * A new tab starts life as an unsaved "New View" holding the table's defaults, so it can be
-     * built up in place and named when it is worth keeping
-     */
-    addView() {
-      const view = {
-        id:           randomStr(8),
-        name:         this.nextNewViewName(),
-        query:        '',
-        columns:      null,
-        columnOrder:  null,
-        labelColumns: [],
-        groupBy:      null,
-      };
-
-      this.persist(this.savedViews.concat([view]));
-      this.applyView(view);
-      this.focusTab(view.id, true);
-    },
-
-    /**
-     * `base`, or the first number after it that no view is called yet.
-     *
-     * `from` is where the counting starts: a new view is just "Untitled" until there is one, so
-     * the second is "Untitled 1"; a copy is "X (copy)" and the next is "X (copy) 2", which reads
-     * as the second copy rather than as a second thing called copy.
-     */
-    unusedViewName(base, from) {
-      let name = base;
-      let n = from;
-
-      while (this.savedViews.find((v) => v.name === name)) {
-        name = `${ base } ${ n++ }`;
-      }
-
-      return name;
-    },
-
-    nextNewViewName() {
-      return this.unusedViewName(this.t('tableViews.tab.newViewName'), 1);
-    },
-
-    /**
-     * A sub menu closing itself - a click outside it, Escape, picking something - is what takes
-     * the row out of the open state the click put it in.
-     *
-     * A menu normally hands focus back to the button that opened it, and this one has no button:
-     * it is opened by a row of the menu above. So the row takes focus back, leaving the keyboard
-     * where it was rather than at the top of the page.
-     */
-    /**
-     * A row of the View menu coming under the pointer.
-     *
-     * Opening one is immediate; taking an open one away from another row is not - see
-     * SUB_MENU_GRACE_MS. `key` is null for the rows that open nothing, which close what is open
-     * on the same terms.
-     */
-    hoverSubMenu(key) {
-      clearTimeout(this._subMenuTimer);
-
-      if (this.subMenu === key) {
-        return;
-      }
-
-      if (!this.subMenu) {
-        this.subMenu = key;
-
-        return;
-      }
-
-      this._subMenuTimer = setTimeout(() => {
-        this.subMenu = key;
-      }, SUB_MENU_GRACE_MS);
-    },
-
-    /** Clicking a row says which menu you want outright, with none of the waiting */
-    openSubMenu(key) {
-      clearTimeout(this._subMenuTimer);
-      this.subMenu = key;
-    },
-
-    /** The pointer has left a row without settling on it, so it never meant to choose it */
-    cancelSubMenuSwitch() {
-      clearTimeout(this._subMenuTimer);
-    },
-
-    /** The pointer has arrived in the sub menu, which is the end of any journey across the rows */
-    enterSubMenu() {
-      clearTimeout(this._subMenuTimer);
-      this.subMenuHovered = true;
-    },
-
-    closeSubMenu(key, open) {
-      if (!open && this.subMenu === key) {
-        this.subMenu = null;
-        this.$nextTick(() => this.$refs.viewMenu?.querySelector(`[data-testid="table-views-view-${ key }"]`)?.focus());
-      }
-    },
-
-    /**
-     * The tab a menu belongs to, for the menu to line itself up against.
-     */
-    tabWrap(tab) {
-      // A ref inside a v-for collects into an array, so this is a list of one
-      const held = this.$refs[`tab-wrap-${ tab.id }`];
-
-      return Array.isArray(held) ? held[0] : held;
-    },
-
-    /** The tab's own button, by the same one-element-array rule as `tabWrap` */
-    tabButton(tab) {
-      const held = this.$refs[`tab-btn-${ tab.id }`];
-
-      return Array.isArray(held) ? held[0] : held;
-    },
-
-    /** The chevron that opens the tab's menu - a component, so its element is one step down */
-    tabCaret(tab) {
-      const held = this.$refs[`tab-caret-${ tab.id }`];
-      const cmp = Array.isArray(held) ? held[0] : held;
-
-      return cmp?.$el || cmp;
-    },
-
-    /**
-     * Arrow along the strip. Moving the focus picks the view as it goes, the way the tabs
-     * elsewhere in the product behave - a tab that has focus but is not the one in force would
-     * leave the underline and the table disagreeing about which view is shown.
-     */
-    stepTab(delta) {
-      const tabs = this.tabs || [];
-
-      if (tabs.length < 2) {
-        return;
-      }
-
-      // From wherever the focus actually is. It is normally on the tab in force, but a view just
-      // deleted leaves it on the one before, which is not the one showing.
-      const focused = tabs.findIndex((t) => this.tabButton(t) === document.activeElement);
-      const at = focused >= 0 ? focused : tabs.findIndex((t) => t.id === this.focusableTabId);
-      const next = tabs[((at < 0 ? 0 : at) + delta + tabs.length) % tabs.length];
-
-      this.goToTab(next);
-    },
-
-    /** Home and End, to either end of the strip */
-    edgeTab(which) {
-      const tabs = this.tabs || [];
-      const next = which === 'first' ? tabs[0] : tabs[tabs.length - 1];
-
-      if (next) {
-        this.goToTab(next);
-      }
-    },
-
-    /**
-     * Show a tab and put the focus on it. The focus has to follow, because the strip is a roving
-     * tabindex - the tab left behind stops being reachable the moment another takes the view.
-     */
-    goToTab(tab) {
-      this.applyView(tab.view || null);
-      this.focusTab(tab.id);
-    },
-
-    /**
-     * Put the keyboard on a view's tab once it exists, and bring the tab into sight with it: a
-     * view you just made or just copied should be the one in front of you.
-     *
-     * `toEnd` is for those two. A new view goes on the end of the strip, so rather than working
-     * out where its tab has landed - which the strip has not finished laying out at the moment it
-     * is asked - the strip is simply run to its far end, where the tab must be.
-     */
-    focusTab(id, toEnd = false) {
-      this.$nextTick(() => {
-        const tab = (this.tabs || []).find((t) => t.id === id);
-        const btn = tab && this.tabButton(tab);
-
-        if (!btn) {
-          return;
-        }
-
-        // Focus scrolls the strip by itself, which would fight the run to the end below
-        btn.focus({ preventScroll: !!toEnd });
-
-        if (!toEnd) {
-          btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-
-          return;
-        }
-
-        // A frame later, so the tab that has just been added is in the strip's width
-        requestAnimationFrame(() => {
-          const strip = this.$refs.tabStrip;
-
-          if (strip) {
-            strip.scrollLeft = strip.scrollWidth;
-          }
-        });
-      });
-    },
-
-    /**
-     * Down arrow opens the focused tab's menu, the way it opens any menu button. The chevron is
-     * out of the tab sequence, so this is the keyboard's way in.
-     *
-     * The menu is told a key opened it before it is opened: that is what has it hand the focus to
-     * its first row rather than leaving it on the chevron, which is how it tells a key press from
-     * a click.
-     */
-    openTabMenu(tab) {
-      const caret = this.tabCaret(tab);
-
-      if (!caret) {
-        return;
-      }
-
-      caret.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-      caret.click();
-    },
-
-    /**
-     * Closing the menu hands the focus back to the chevron, which is not in the tab sequence and
-     * answers no arrows. Put it back on the tab it belongs to, so the strip still works - but
-     * only when the keyboard is where it was left, or a click elsewhere would be dragged back.
-     */
-    onTabMenuToggle(tab, open) {
-      this.openTabMenuId = open ? tabKey(tab) : null;
-
-      if (open) {
-        return;
-      }
-
-      this.$nextTick(() => {
-        if (document.activeElement === this.tabCaret(tab)) {
-          this.tabButton(tab)?.focus();
-        }
-      });
-    },
-
-    /**
-     * Mark a tab once the strip has actually arrived at the start.
-     *
-     * Waiting on the scroll rather than on a guess at how long it takes: a fixed delay fired
-     * while the strip was still moving, which is the one moment the mark is no use - it is there
-     * to answer "why did that just move", and it has to land after the moving has stopped. The
-     * cap is for a scroll that never finishes, so nothing is left waiting on it.
-     */
-    flashTabWhenScrolled(strip, key) {
-      clearTimeout(this._flashTimer);
-      cancelAnimationFrame(this._flashFrame);
-
-      const deadline = Date.now() + TAB_SCROLL_SETTLE_MAX_MS;
-
-      const settle = () => {
-        if (strip.scrollLeft > 1 && Date.now() < deadline) {
-          this._flashFrame = requestAnimationFrame(settle);
-
-          return;
-        }
-
-        this.flashTabId = key;
-        this._flashTimer = setTimeout(() => {
-          this.flashTabId = null;
-        }, TAB_FLASH_MS);
-      };
-
-      settle();
-    },
-
-    /**
-     * Shut whichever tab's menu is open.
-     *
-     * The menu is positioned against its tab, so anything that moves the tab out from under it -
-     * the strip scrolling, or the tab itself being picked up - leaves the menu pointing at
-     * nothing. Closing it is the honest answer.
-     */
-    closeTabMenus() {
-      this.openTabMenuId = null;
-    },
-
-    /**
-     * Rename in place. The name lives on the tab, so that is where it is edited - a modal to
-     * change one word puts the thing being renamed behind the thing renaming it.
-     */
-    openRename(saved) {
-      if (!saved?.id) {
-        return;
-      }
-
-      this.renamingId = saved.id;
-      this.renameDraft = saved.name;
-
-      this.$nextTick(() => {
-        // A ref inside a v-for collects into an array, so this is a list of one
-        const held = this.$refs[`rename-${ saved.id }`];
-        const input = Array.isArray(held) ? held[0] : held;
-
-        input?.focus();
-        input?.select();
-      });
-    },
-
-    /**
-     * Keep the typed name. Blank, or unchanged, simply closes - there is nothing to record.
-     */
-    commitRename() {
-      const id = this.renamingId;
-      const name = (this.renameDraft || '').trim();
-      const saved = this.savedViews.find((v) => v.id === id);
-
-      this.renamingId = null;
-      this.renameDraft = '';
-
-      if (!name || !saved || name === saved.name) {
-        return;
-      }
-
-      this.persist(this.savedViews.map((v) => (v.id === id ? { ...v, name } : v)));
-    },
-
-    cancelRename() {
-      this.renamingId = null;
-      this.renameDraft = '';
-    },
-
-    /**
-     * The modal's name field either creates a view or renames one
-     */
-    /**
-     * Export needs a format, which is more than belongs in a menu - ask in a modal.
-     * `view` is only used to label it, the rows exported are whatever the view matches.
-     */
-    openExport(saved) {
-      this.modal = { kind: 'export', view: saved || null };
-    },
-
-    closeModal() {
-      this.modal = null;
-    },
-
-    /**
-     * Copy any tab, the default one included - copying it is how you start a view from the table
-     * as it comes, since the default tab itself can never be saved over.
-     */
-    duplicateTab(tab) {
-      this.duplicateView(tab.view || {
-        name:         this.t('tableViews.tabs.all'),
-        query:        '',
-        columns:      null,
-        columnOrder:  null,
-        labelColumns: [],
-        groupBy:      null,
-      });
-    },
-
-    /**
-     * Copy a saved view, so a variation can be built without losing the original
-     */
-    duplicateView(saved) {
-      const name = this.unusedViewName(`${ saved.name } ${ this.t('tableViews.tab.copySuffix') }`, 2);
-      const copy = {
-        ...saved, id: randomStr(8), name
-      };
-
-      this.persist(this.savedViews.concat([copy]));
-      this.applyView(copy);
-      this.focusTab(copy.id, true);
-      // A copy is named after the thing it was copied from, which is never what you wanted it
-      // called - so the name is already open for typing by the time the tab is in front of you
-      this.$nextTick(() => this.openRename(copy));
-    },
-
-    duplicateCurrent() {
-      const tab = this.tabs.find((t) => t.id === this.selectedViewId);
-
-      if (tab) {
-        this.duplicateTab(tab);
-      }
-    },
-
-    /**
-     * The view this list opens on. No toggle: choosing the default tab is itself how you go back
-     * to opening on the table as it comes, which is what an empty default means.
-     */
-    setDefaultView(tab) {
-      this.persistAll(this.savedViews, tab.isDefaultTab ? null : tab.view?.id || null);
-
-      // The tab has just been moved to the head of the strip, which is no use if the strip is
-      // scrolled somewhere else - so the strip goes back to the start to show it happening,
-      // whether or not the tab that moved is the one being looked at.
-      //
-      // And then the tab itself is flashed, once the strip has stopped: a strip that jumps to its
-      // start on its own says nothing about why, and the mark is the one a dragged tab wears, so
-      // it reads as "this one" rather than as something new to learn.
-      const key = tabKey(tab.isDefaultTab ? { id: null } : { id: tab.view?.id });
-
-      this.$nextTick(() => {
-        const strip = this.$refs.tabStrip;
-
-        if (!strip) {
-          return;
-        }
-
-        strip.scrollTo({ left: 0, behavior: 'smooth' });
-        this.flashTabWhenScrolled(strip, key);
-      });
-    },
-
-    /** Is this the tab the list opens on? With nothing set, that is the default tab */
-    isDefaultTab(tab) {
-      return tab.isDefaultTab ? !this.defaultViewId : this.defaultViewId === tab.view?.id;
-    },
-
-    persist(views) {
-      this.persistAll(views, this.defaultViewId);
-    },
-
-    persistAll(views, defaultViewId, allIndex = this.allTabIndex) {
-      // A view that no longer exists can't be the default one
-      const validDefault = views.find((v) => v.id === defaultViewId) ? defaultViewId : null;
-
-      this.allSavedViews = {
-        ...(this.allSavedViews || {}),
-        [this.resourceType]: {
-          views,
-          defaultViewId: validDefault,
-          allIndex:      Math.min(Math.max(allIndex, 0), views.length)
-        }
-      };
-    },
-
-    updateView(saved) {
-      this.persist(this.savedViews.map((v) => (v.id === saved.id ? { ...v, ...this.viewToSave } : v)));
-    },
-
-    deleteView(saved) {
-      const wasSelected = this.selectedViewId === saved.id;
-      // The tab the keyboard falls back to. Taken before the view goes, because afterwards there
-      // is nothing left to measure from - and it is the one in front of the gap, not the one
-      // that slides into it, that the user was last looking at.
-      const tabs = this.tabs || [];
-      const before = tabs[Math.max(tabs.findIndex((t) => t.id === saved.id) - 1, 0)];
-
-      this.persist(this.savedViews.filter((v) => v.id !== saved.id));
-      this.forgetDraft(saved.id);
-
-      if (wasSelected) {
-        this.applyView(null);
-      }
-
-      if (before) {
-        this.focusTab(before.id);
-      }
-    },
-
-    /**
-     * ⌘/ctrl shortcuts for the saved view being edited. Ignored while the user is typing, so
-     * ⌘S in the filter box still means whatever the browser makes of it.
-     */
-    onShortcut(event) {
-      if (!(event.metaKey || event.ctrlKey) || event.altKey) {
-        return;
-      }
-
-      // Only for the list the keyboard is actually in - its toolbar, its filter box or its rows.
-      // A page can carry two of these, each with its own views, and a shortcut has to name one of
-      // them; the focus is what names it. It also keeps ⌘S out of whatever else on the page the
-      // user might be writing in, which is what the old check was for.
-      if (!this.ownsTarget(event.target)) {
-        return;
-      }
-
-      const match = SHORTCUTS.find((s) => s.key === event.key.toLowerCase() && s.shift === event.shiftKey);
-
-      if (!match) {
-        return;
-      }
-
-      event.preventDefault();
-      this[match.method]();
-    },
-
-    doExport(format) {
-      // The name goes with it: the export is watched in the notification centre, and by the time
-      // it finishes the modal that knew which view was picked is long gone
-      const name = this.modal?.view?.name || this.t('tableViews.tabs.all');
-
-      this.$emit('export', { format, name });
-      this.closeModal();
-    },
+const props = withDefaults(defineProps<{
+  /**
+   * { query, columns, labelColumns, groupBy }
+   */
+  view: ViewState,
+  /** Field ids this table will not let go of, so the menu can show them locked */
+  coreColumns?: string[],
+  /**
+   * Field ids the table shows when a view has said nothing about columns.
+   *
+   * The menu offers every column the type has, which is more than a page showing its own
+   * chosen set displays - so "shown" cannot mean "all of them" any more.
+   */
+  defaultColumns?: string[],
+  /**
+   * Names of fields the query mentions that this list cannot be filtered by, so the toolbar
+   * can say the query did not entirely run
+   */
+  unsupportedFields?: string[],
+  /** Everything filterable/groupable on this table */
+  fields?: ViewField[],
+  /**
+   * Fields offered in the group by menu. Grouping is a sort, so this can be narrower than
+   * `fields` - server side only indexed fields can be grouped on. Defaults to all fields.
+   */
+  groupFields?: ViewField[] | null,
+  /**
+   * Fields offered as filter suggestions. Narrower than `fields` for the same reason
+   * `groupFields` is - server side only indexed fields can be filtered on. Defaults to all
+   * fields.
+   */
+  filterFields?: ViewField[] | null,
+  /**
+   * fieldId -> values in use, fetched from the api. Falls back to scanning `rows` when a field
+   * has nothing here yet.
+   */
+  fieldValues?: Record<string, { value: string, count: number }[]>,
+  /** All rows, before the view query is applied. Used for value autocomplete */
+  rows?: any[],
+  /** How many rows the view query leaves */
+  matchCount?: number,
+  /**
+   * query -> how many rows it matches, counted by the owning table in its own right rather
+   * than read off the rows on screen. Shown on the tabs, so someone can see what a view holds
+   * without opening it.
+   */
+  viewCounts?: Record<string, number | null>,
+  /** Plural display name of what the table holds ("clusters"), for the export modal */
+  resourceLabel?: string,
+  /** Key the saved views are stored under, normally the resource type */
+  resourceType?: string,
+  /**
+   * Which part of the bar to render:
+   *  - 'all'      (default) both the view tabs and the filter/View controls
+   *  - 'tabs'     only the view tabs row
+   *  - 'controls' only the filter + single "View" popup, laid out to fill one toolbar line
+   * Two instances (tabs + controls) stay in sync because all state comes from props and the
+   * shared TABLE_VIEWS preference.
+   */
+  part?: string,
+}>(), {
+  coreColumns:       () => [],
+  defaultColumns:    () => [],
+  unsupportedFields: () => [],
+  fields:            () => [],
+  groupFields:       null,
+  filterFields:      null,
+  fieldValues:       () => ({}),
+  rows:              () => [],
+  matchCount:        0,
+  viewCounts:        () => ({}),
+  resourceLabel:     '',
+  resourceType:      '',
+  part:              'all',
+});
+
+const emit = defineEmits<{
+  'update:view': [view: ViewState],
+  export: [args: { format: string, name: string }],
+  'request-values': [fieldId: string],
+  'tab-queries': [queries: string[]],
+}>();
+
+const store = useStore();
+const { t } = useI18n(store);
+
+const root = ref<HTMLElement | null>(null);
+const tabStrip = ref<HTMLElement | null>(null);
+const viewMenu = ref<HTMLElement | null>(null);
+const columnsPanel = ref<HTMLElement | null>(null);
+
+/**
+ * The tab-level elements, by tab key. Function refs rather than named ones because there is a
+ * set of them per tab and they are looked up by whichever tab is being acted on.
+ */
+const tabWraps = new Map<string, HTMLElement>();
+const tabButtons = new Map<string, HTMLElement>();
+const tabCarets = new Map<string, any>();
+const renameInputs = new Map<string, HTMLInputElement>();
+
+const keepRef = <T, >(map: Map<string, T>, key: string, el: T | null) => {
+  if (el) {
+    map.set(key, el);
+  } else {
+    map.delete(key);
   }
 };
+
+/** True while the caret is in the query box, so it is not corrected mid-word */
+const queryFocused = ref(false);
+/**
+ * The tab the user picked, so we can offer save/discard against it and light it up.
+ *
+ * Three states: `undefined` if nothing has been picked here yet, `null` for the default
+ * tab, or the id of a saved view. The default tab has to be distinguishable from "nothing
+ * picked", or a saved view holding the same config as it is matched instead.
+ */
+const pickedViewId = ref<string | null | undefined>(undefined);
+/**
+ * Unsaved edits, per tab, for as long as the page is open. Leaving a tab with changes on it
+ * holds on to them so coming back finds them where they were, and the tab keeps its mark
+ * while you are elsewhere. A reload is where they end - nothing here is written down.
+ */
+const drafts = ref<Record<string, ViewState>>({});
+/** Which modal is open, if any: { kind: 'export', view } */
+const modal = ref<{ kind: string, view: SavedView | null } | null>(null);
+/**
+ * Which sub menu of the View menu is open - 'group', 'columns', or null. A menu item has
+ * no trigger of its own, so the row that opens one says so here and the menu takes its
+ * open state from it.
+ */
+const subMenu = ref<string | null>(null);
+/**
+ * Whether the pointer is inside the open sub menu. The row that opened it takes the
+ * highlight back while it is, so the menu says where you are rather than what you last
+ * passed over on the way there.
+ */
+const subMenuHovered = ref(false);
+/** id of the view being renamed in place, and the name being typed for it */
+const renamingId = ref<string | null>(null);
+const renameDraft = ref('');
+/**
+ * Column picker drag. `dragId` is the row being held; `dragOrder` is the ids in the order
+ * the list is showing them mid-drag, which is what lets the rows shuffle under the cursor
+ * instead of waiting for the drop. `dragSlots` are the places the rows sat when the drag
+ * began - see captureColumnSlots for why they are taken once rather than read live.
+ */
+const dragId = ref<string | null>(null);
+const dragOrder = ref<string[] | null>(null);
+const dragMoved = ref(false);
+const dragFrom = ref<{ id: string, y: number } | null>(null);
+const dragPointerY = ref(0);
+const dragSlots = ref<{ top: number, bottom: number }[] | null>(null);
+const dragStartOrder = ref<string[] | null>(null);
+/**
+ * Tab drag, the same shape as the column one a few lines up but along the strip rather than
+ * down a list. `tabDragOrder` is the tab keys in the order the pointer has put them.
+ */
+const tabDragFrom = ref<{ key: string, x: number } | null>(null);
+const tabDragId = ref<string | null>(null);
+const tabDragMoved = ref(false);
+const tabDragPointerX = ref(0);
+const tabDragBounds = ref<number[] | null>(null);
+const tabDragOrder = ref<string[] | null>(null);
+const tabDragStartOrder = ref<string[] | null>(null);
+/** Which tab's own menu is open, so it can be closed when the strip moves under it */
+const openTabMenuId = ref<string | null>(null);
+/** The tab to draw attention to once the strip has finished running back to it */
+const flashTabId = ref<string | null>(null);
+
+let subMenuTimer: any = null;
+let flashTimer: any = null;
+let flashFrame = 0;
+let tabScrollFrame = 0;
+
+const allSavedViews = computed({
+  get: () => store.getters['prefs/get'](TABLE_VIEWS),
+  set: (value) => store.dispatch('prefs/set', { key: TABLE_VIEWS, value }),
+});
+
+/**
+ * What is wrong with the query, once the user has stopped writing it.
+ *
+ * Held back while the box has the caret: `state:` is a field with no value, and it is also
+ * the halfway point of typing `state:active` - with the values for it on screen at that very
+ * moment. Correcting someone mid-word is noise, so this waits until they look away.
+ */
+const shownProblems = computed(() => (queryFocused.value ? [] : validateQuery(props.view.query, props.fields)));
+
+/**
+ * The shortcuts as this keyboard writes them.
+ *
+ * The handler already answers to either modifier, so only the label was wrong: it read
+ * "CMD-S" on every machine, which is neither what a Mac draws nor what Windows calls the key.
+ * `shortcutLabel` is what the rest of the product spells its own shortcuts with.
+ */
+const shortcuts = computed(() => {
+  const modifier = isMac ? '⌘' : 'Ctrl';
+
+  return {
+    save:      shortcutLabel([modifier, 'S']),
+    saveAsNew: shortcutLabel([modifier, 'Shift', 'S']),
+    duplicate: shortcutLabel([modifier, 'D']),
+  };
+});
+
+/** What the toolbar says about the part of the query that could not be run */
+const unsupportedNotice = computed(() => t('tableViews.query.unsupported', {
+  count:  props.unsupportedFields.length,
+  fields: props.unsupportedFields.join(', '),
+}, true));
+
+const problemNotice = (problem: any) => t(`tableViews.query.problem.${ problem.kind }`, { text: problem.text, label: problem.label || '' }, true);
+
+/**
+ * Everything the box has to say about what is in it, for the status icon at its right.
+ *
+ * A query that cannot be read as written comes first and on its own - saying a field is
+ * unfilterable while the query also ends in `and` answers a question nobody asked yet.
+ */
+const queryStatusMessage = computed(() => {
+  if (shownProblems.value.length) {
+    return shownProblems.value.map((problem: any) => problemNotice(problem)).join('<br>');
+  }
+
+  return props.unsupportedFields.length ? unsupportedNotice.value : '';
+});
+
+/**
+ * A query that cannot be read is an error - nothing is being filtered by it. A field the
+ * server cannot filter on is not: the rest of the query still ran.
+ */
+const queryStatus = computed(() => (shownProblems.value.length ? 'error' : 'info'));
+
+const savedViews = computed<SavedView[]>(() => allSavedViews.value?.[props.resourceType]?.views || allSavedViews.value?.[props.resourceType] || []);
+
+/**
+ * The view applied when the list is first opened, if the user has set one
+ */
+const defaultViewId = computed<string | null>(() => allSavedViews.value?.[props.resourceType]?.defaultViewId || null);
+
+/**
+ * Where the table's own tab sits among the saved ones.
+ *
+ * It is not a saved view, so it has no place in that list to hold - but it can be dragged
+ * about like any other tab, so its place has to be kept somewhere. Missing means the front,
+ * which is where it was before it could be moved.
+ */
+const allTabIndex = computed(() => {
+  const at = allSavedViews.value?.[props.resourceType]?.allIndex;
+
+  return Math.min(Math.max(Number.isInteger(at) ? at : 0, 0), savedViews.value.length);
+});
+
+/**
+ * The strip as it is saved, before a drag in progress rearranges it - see `tabs`.
+ *
+ * The table as it comes, then the saved views - except that the view the list opens on leads,
+ * and the table's own tab follows it. The first tab is the one you land on, so the one that is
+ * actually applied on arrival belongs there - and having marked a view as the default, watching
+ * it stay wherever it happened to sit was the menu saying one thing and the strip another.
+ * Neither of those two can be dragged out of the first two places; see `lockedTabCount`.
+ */
+const baseTabs = computed<Tab[]>(() => {
+  const all: Tab = {
+    id: null, name: t('tableViews.tabs.all'), isDefaultTab: true
+  };
+  const tabs: Tab[] = savedViews.value.map((view) => ({
+    id: view.id, name: view.name, view
+  }));
+
+  tabs.splice(allTabIndex.value, 0, all);
+
+  // The one the list opens on leads, wherever it had been put. With nothing set that is the
+  // table's own tab, which is what an empty default means.
+  const lead = tabs.findIndex((tab) => (defaultViewId.value ? tab.view?.id === defaultViewId.value : tab.isDefaultTab));
+
+  if (lead <= 0) {
+    return tabs;
+  }
+
+  return [tabs[lead]].concat(tabs.filter((_, i) => i !== lead));
+});
+
+/** Mid-drag the strip follows the pointer rather than the saved order */
+const tabs = computed<Tab[]>(() => {
+  if (!tabDragOrder.value) {
+    return baseTabs.value;
+  }
+
+  const byKey: Record<string, Tab> = {};
+
+  baseTabs.value.forEach((tab) => {
+    byKey[tabKey(tab)] = tab;
+  });
+
+  return tabDragOrder.value.map((key) => byKey[key]).filter(Boolean);
+});
+
+/**
+ * How many tabs at the head of the strip are held there: the one the list opens on, and only
+ * that one. It leads because it is the tab you arrive at, so it cannot be dragged out of the
+ * front and nothing can be dropped in front of it. Everything else moves freely, the table's
+ * own tab included - it is only pinned to the front while it is itself the default.
+ */
+const lockedTabCount = computed(() => 1);
+
+const columnFields = computed(() => props.fields.filter((f) => !f.isLabel));
+
+/**
+ * The handle's tooltip. Empty content is how the directive is told to show nothing, so the
+ * tooltip goes the moment a row is picked up rather than riding along with it.
+ *
+ * Far enough left to clear the row's hover highlight: on the handle itself it sat over the
+ * thing being dragged, which is the one place it is in the way.
+ */
+const reorderTip = computed(() => ({
+  content: dragId.value ? '' : t('tableViews.columns.reorder'), placement: 'left', distance: TOOLTIP_DISTANCE
+}));
+
+const lockedTip = computed(() => ({
+  content: t('tableViews.columns.locked'), placement: 'left', distance: TOOLTIP_DISTANCE
+}));
+
+/**
+ * Columns in the order the view puts them, so the picker reads the way the table does
+ */
+const orderedColumnFields = computed(() => {
+  // Mid-drag the list follows the pointer rather than the saved order
+  const order = dragOrder.value || props.view.columnOrder;
+
+  if (!order?.length) {
+    return columnFields.value;
+  }
+
+  const byId: Record<string, ViewField> = {};
+
+  columnFields.value.forEach((f) => {
+    byId[f.id] = f;
+  });
+
+  const out = order.map((id: string) => byId[id]).filter((f) => !!f);
+
+  return out.concat(columnFields.value.filter((f) => !order.includes(f.id)));
+});
+
+const isColumnVisible = (field: ViewField) => {
+  if (props.view.columns) {
+    return props.view.columns.includes(field.id);
+  }
+
+  // Nothing chosen yet, so what the table shows is the page's own set. Without a set to
+  // compare against every offered column would read as shown, including the ones the page
+  // leaves out.
+  return !props.defaultColumns.length || props.defaultColumns.includes(field.id);
+};
+
+const visibleColumnCount = computed(() => columnFields.value.filter((f) => isColumnVisible(f)).length + (props.view.labelColumns?.length || 0));
+
+// "7 / 11", or "Default" while nothing has been changed - shown on the Columns row of the View menu
+const columnsSummary = computed(() => {
+  if (!props.view.columns && !props.view.labelColumns?.length && !props.view.columnOrder) {
+    return t('tableViews.view.columnsDefault');
+  }
+
+  // Labels are extras rather than columns of the table, so only the ones actually added count
+  // towards the total - otherwise a pod list reads "9 / 42" because of its label keys
+  return t('tableViews.view.columnsCount', { shown: visibleColumnCount.value, total: columnFields.value.length + (props.view.labelColumns?.length || 0) });
+});
+
+/**
+ * Labels are left out: a cluster carries as many of them as it likes, so offering every key
+ * buries the handful of fields worth grouping on under a list of them.
+ */
+const groupOptions = computed(() => {
+  const none = { id: null as string | null, label: t('tableViews.group.none') };
+
+  return [none].concat((props.groupFields || props.fields)
+    .filter((f) => !f.isLabel)
+    .map((f) => ({ id: f.id as string | null, label: f.label })));
+});
+
+const groupLabel = computed(() => groupOptions.value.find((o) => o.id === props.view.groupBy)?.label || t('tableViews.group.none'));
+
+/**
+ * The saved view the current state was applied from, if it still exists
+ */
+const editingView = computed(() => savedViews.value.find((v) => v.id === pickedViewId.value) || null);
+
+/** Which saved view the tab bar shows as selected - see `selectedViewIdFor` */
+const selectedViewId = computed(() => selectedViewIdFor(savedViews.value, props.view, pickedViewId.value));
+
+/**
+ * The one tab in the strip that Tab can land on. A tablist is a single stop and the arrows
+ * walk it from there, so the tab holding the current view carries the tabindex and the rest
+ * are reachable only through it. If the current view is not among the tabs - a deleted one,
+ * say - the first tab takes it, or the strip would have no way in at all.
+ */
+const focusableTabId = computed(() => {
+  const list = tabs.value || [];
+  const selected = list.find((tab) => tab.id === selectedViewId.value);
+
+  return (selected || list[0])?.id;
+});
+
+/** Unsaved changes: either edits on top of a saved view, or an unsaved view of one's own */
+const isDirty = computed(() => isViewDirty(savedViews.value, props.view, pickedViewId.value));
+
+/** What a saved view keeps of the state in front of the user */
+const viewToSave = computed(() => ({
+  query:          props.view.query || '',
+  columns:        props.view.columns || null,
+  columnOrder:    props.view.columnOrder || null,
+  labelColumns:   props.view.labelColumns || [],
+  groupBy:        props.view.groupBy || null,
+  sort:           props.view.sort || null,
+  sortDescending: !!props.view.sortDescending,
+}));
+
+/** The default tab has no id of its own, so it needs a key of its own */
+const draftKey = (id: string | null | undefined) => id || '__default';
+
+/**
+ * What a tab is actually filtering by: the box for the tab in front of the user, the edits
+ * held for a tab left with some, and the saved query for the rest.
+ *
+ * Counts are looked up by query and never taken from the table's own rows, so a tab keeps its
+ * number while the list goes off to fetch a page instead of falling to zero.
+ */
+const tabQuery = (tab: Tab) => {
+  if (tab.id === selectedViewId.value) {
+    return props.view.query || '';
+  }
+
+  const draft = drafts.value[draftKey(tab.id)];
+
+  return (draft ? draft.query : tab.view?.query) || '';
+};
+
+/** Every query on show, so the table knows which counts it has to go and get */
+const tabQueries = computed(() => Array.from(new Set(tabs.value.map((tab) => tabQuery(tab)))));
+
+const tabCount = (tab: Tab) => props.viewCounts[tabQuery(tab)];
+
+const tabLabel = (tab: Tab) => {
+  const count = tabCount(tab);
+
+  // undefined: not counted yet. null: asked, and the api wouldn't say. Either way the tab
+  // shows its name rather than a number that isn't true.
+  return count === undefined || count === null ? tab.name : t('tableViews.tabs.count', { name: tab.name, count });
+};
+
+const isTabDirty = (tab: Tab) => {
+  if (tab.id === selectedViewId.value) {
+    return isDirty.value;
+  }
+
+  return !!drafts.value[draftKey(tab.id)];
+};
+
+const update = (changes: Partial<ViewState>) => emit('update:view', { ...props.view, ...changes });
+
+const isCoreColumn = (field: ViewField) => !!field?.id && props.coreColumns.includes(field.id);
+
+const toggleColumn = (field: ViewField) => {
+  // Core columns (name, age) can't be hidden - the table depends on them
+  if (isCoreColumn(field)) {
+    return;
+  }
+
+  // From what is on screen rather than from every column offered - seeding with all of them
+  // turned on the ones the page leaves out the moment anything was toggled
+  const current = props.view.columns || columnFields.value.filter((f) => isColumnVisible(f)).map((f) => f.id);
+  const next = current.includes(field.id) ? current.filter((id: string) => id !== field.id) : current.concat([field.id]);
+
+  update({ columns: next });
+};
+
+const selectAllColumns = () => update({ columns: columnFields.value.map((f) => f.id) });
+
+/**
+ * Is `target` part of this table's toolbar - its tabs, its filter, or its View menu?
+ *
+ * Both halves of the bar live in the same table masthead, so that is what is compared. A
+ * second table on the page has its own, and keeps its own shortcuts.
+ */
+const ownsTarget = (target: any) => {
+  // The component has a modal beside its bar, so its root is a fragment whose first node may
+  // not be an element at all - hence a ref of its own rather than the root node
+  const el = root.value;
+
+  if (!el?.closest || !target?.closest) {
+    return false;
+  }
+
+  // The toolbar and the table under it together: they are one list as far as the user is
+  // concerned, and a shortcut pressed while reading the rows belongs to the list being read.
+  // The masthead is the fallback for a table that is not in table views layout.
+  const listOf = (node: HTMLElement) => node.closest('.has-table-views') || node.closest('.fixed-header-actions');
+  const mine = listOf(el);
+
+  return !!mine && listOf(target) === mine;
+};
+
+/**
+ * Eat the click that a mouseup at the end of a drag is about to produce.
+ *
+ * It would land on whatever the pointer finished over - the row it was dropped on, or the tab
+ * it was dropped beside - and toggle or apply it. A drag is not a click.
+ */
+const swallowNextClick = () => {
+  const swallow = (event: MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  window.addEventListener('click', swallow, { capture: true, once: true });
+  setTimeout(() => window.removeEventListener('click', swallow, true), 0);
+};
+
+/**
+ * The places the rows occupy, measured once as the drag begins.
+ *
+ * They cannot be read live. A row's box reflects any transform it is under, and the rows
+ * displaced by a drag are mid-FLIP for as long as that move lasts - so measuring during the
+ * drag reads the positions rows are traveling THROUGH. The pointer then lands on a row that is
+ * only passing by, which reorders, which starts another move: the row flails between places
+ * instead of settling under the cursor.
+ *
+ * Held in the panel's own coordinates rather than the viewport's, so that a panel scrolled
+ * mid-drag does not put every boundary where the rows no longer are.
+ */
+const captureColumnSlots = () => {
+  const scroller = columnsPanel.value;
+  const rows = scroller?.querySelectorAll('[data-col-id]') || [];
+  const origin = scroller ? scroller.getBoundingClientRect().top - scroller.scrollTop : 0;
+
+  dragSlots.value = Array.from(rows).map((el) => {
+    const box = el.getBoundingClientRect();
+
+    return { top: box.top - origin, bottom: box.bottom - origin };
+  });
+};
+
+/**
+ * Which row the pointer is over. Past either end it clamps, so dragging beyond the last row
+ * parks the column at the end rather than abandoning the move.
+ */
+const columnIndexAt = (clientY: number) => {
+  const slots = dragSlots.value || [];
+  const scroller = columnsPanel.value;
+
+  if (!slots.length || !scroller) {
+    return -1;
+  }
+
+  const y = clientY - scroller.getBoundingClientRect().top + scroller.scrollTop;
+
+  if (y <= slots[0].top) {
+    return 0;
+  }
+
+  if (y >= slots[slots.length - 1].bottom) {
+    return slots.length - 1;
+  }
+
+  return slots.findIndex((slot) => y >= slot.top && y <= slot.bottom);
+};
+
+/**
+ * The first place a column can be dropped into. The locked columns hold the head of the list
+ * and cannot be moved themselves, so nothing may be carried above them either.
+ */
+const firstMovableIndex = (order: string[]) => {
+  let i = 0;
+
+  while (i < order.length && props.coreColumns.includes(order[i])) {
+    i++;
+  }
+
+  return i;
+};
+
+/** Put the held row where the pointer is, so the rest shuffle around it as it travels */
+const placeDraggedColumn = () => {
+  const order = dragOrder.value || [];
+  const from = order.indexOf(dragId.value as string);
+  const at = columnIndexAt(dragPointerY.value);
+
+  if (from === -1 || at === -1) {
+    return;
+  }
+
+  dragOrder.value = moveInOrder(order, from, Math.max(at, firstMovableIndex(order)));
+};
+
+const beginColumnDrag = () => {
+  if (dragMoved.value || !dragFrom.value) {
+    return;
+  }
+
+  dragMoved.value = true;
+  dragId.value = dragFrom.value.id;
+  dragOrder.value = orderedColumnFields.value.map((f) => f.id);
+  dragStartOrder.value = [...dragOrder.value];
+  captureColumnSlots();
+  // The list's own rows are told to say `grabbing` in CSS; this is for everywhere else the
+  // pointer can go while still carrying a row.
+  document.body.style.cursor = 'grabbing';
+};
+
+const onColumnDragMove = (event: MouseEvent) => {
+  if (!dragFrom.value) {
+    return;
+  }
+
+  dragPointerY.value = event.clientY;
+
+  if (!dragMoved.value && Math.abs(event.clientY - dragFrom.value.y) < DRAG_THRESHOLD) {
+    return;
+  }
+
+  beginColumnDrag();
+  placeDraggedColumn();
+};
+
+const endColumnDrag = (commit: boolean) => {
+  window.removeEventListener('mousemove', onColumnDragMove, true);
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  window.removeEventListener('mouseup', onColumnDragEnd, true);
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  window.removeEventListener('keydown', onColumnDragKey, true);
+
+  const started = dragStartOrder.value || [];
+  const order = dragOrder.value;
+  const moved = !!order && order.some((id, i) => id !== started[i]);
+
+  if (dragMoved.value) {
+    swallowNextClick();
+  }
+
+  document.body.style.cursor = '';
+
+  dragFrom.value = null;
+  dragId.value = null;
+  dragMoved.value = false;
+  dragSlots.value = null;
+  dragStartOrder.value = null;
+  dragOrder.value = null;
+
+  if (commit && moved) {
+    update({ columnOrder: order });
+  }
+};
+
+/** Escape abandons the drag: the list snaps back to the view, and nothing is written */
+function onColumnDragKey(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    endColumnDrag(false);
+  }
+}
+
+function onColumnDragEnd() {
+  endColumnDrag(dragMoved.value);
+}
+
+/**
+ * Press on a column's grip: arm a possible drag. Nothing is picked up here - a press on a row
+ * is far more often the start of a click that toggles the column - so the row is only taken
+ * once the pointer has travelled `DRAG_THRESHOLD` with it held.
+ */
+const startColumnDrag = (id: string, event: MouseEvent) => {
+  if (event.button !== 0) {
+    return;
+  }
+
+  // Otherwise the pointer selects the labels it crosses on the way
+  event.preventDefault();
+
+  dragFrom.value = { id, y: event.clientY };
+  dragMoved.value = false;
+
+  window.addEventListener('mousemove', onColumnDragMove, true);
+  window.addEventListener('mouseup', onColumnDragEnd, true);
+  window.addEventListener('keydown', onColumnDragKey, true);
+};
+
+/**
+ * The tab a menu belongs to, for the menu to line itself up against.
+ */
+const tabWrap = (tab: Tab) => tabWraps.get(tabKey(tab));
+
+/** The tab's own button */
+const tabButton = (tab: Tab) => tabButtons.get(tabKey(tab));
+
+/** The chevron that opens the tab's menu - a component, so its element is one step down */
+const tabCaret = (tab: Tab) => {
+  const cmp = tabCarets.get(tabKey(tab));
+
+  return cmp?.$el || cmp;
+};
+
+/**
+ * Shut whichever tab's menu is open.
+ *
+ * The menu is positioned against its tab, so anything that moves the tab out from under it -
+ * the strip scrolling, or the tab itself being picked up - leaves the menu pointing at
+ * nothing. Closing it is the honest answer.
+ */
+const closeTabMenus = () => {
+  openTabMenuId.value = null;
+};
+
+/**
+ * The places the tabs occupy, measured once as the drag begins.
+ *
+ * Fixed, and that is the whole point. Working the places out from the order the pointer has
+ * currently put things in feeds the answer back into the question: passing the tab to your
+ * right swaps the two, which puts the boundary you just crossed back under the pointer, so
+ * it swaps again - and the pair flickers between the two arrangements while you hold still.
+ * Measuring once leaves a fixed ladder to read the pointer against.
+ *
+ * Kept relative to the list rather than to the window, so the strip scrolling under a held
+ * tab does not move the rungs.
+ */
+const captureTabSlots = () => {
+  const list = tabStrip.value?.querySelector('.view-tabs-list');
+
+  if (!list) {
+    return;
+  }
+
+  const base = list.getBoundingClientRect().left;
+  const boxes = baseTabs.value.map((tab) => {
+    const rect = tabWrap(tab)?.getBoundingClientRect();
+
+    return rect ? { left: rect.left - base, right: rect.right - base } : null;
+  }).filter(Boolean) as { left: number, right: number }[];
+
+  // The line between one tab and the next, which is the middle of the gap they sit either
+  // side of. A tab changes places when the pointer crosses one of these, the way a column row
+  // changes places when the pointer enters the row below it - not at the far tab's middle,
+  // which meant carrying a tab halfway across its neighbour before anything happened.
+  tabDragBounds.value = boxes.slice(0, -1).map((box, i) => (box.right + boxes[i + 1].left) / 2);
+};
+
+/** Where along the strip the pointer is, in the strip's own scrolled-out width */
+const tabContentX = () => {
+  const strip = tabStrip.value;
+  const list = strip?.querySelector('.view-tabs-list');
+
+  if (!strip || !list) {
+    return 0;
+  }
+
+  return tabDragPointerX.value - list.getBoundingClientRect().left;
+};
+
+/** How many of the lines measured at the start the pointer has crossed */
+const tabIndexAt = (contentX: number) => {
+  const bounds = tabDragBounds.value || [];
+  let i = 0;
+
+  while (i < bounds.length && contentX >= bounds[i]) {
+    i++;
+  }
+
+  return i;
+};
+
+/** Put the held tab where the pointer is, so the rest shuffle around it as it travels */
+const placeDraggedTab = () => {
+  if (!tabDragOrder.value) {
+    return;
+  }
+
+  const from = tabDragOrder.value.indexOf(tabDragId.value as string);
+  const to = Math.max(tabIndexAt(tabContentX()), lockedTabCount.value);
+
+  tabDragOrder.value = moveInOrder(tabDragOrder.value, from, to);
+};
+
+/**
+ * Carrying a tab to an end of the strip runs the strip that way, so a tab can be taken
+ * somewhere that is not on screen yet. A frame loop rather than something driven by the
+ * pointer: holding still at the edge should keep going.
+ */
+const runTabScroll = () => {
+  const step = () => {
+    if (!tabDragMoved.value) {
+      return;
+    }
+
+    const strip = tabStrip.value;
+
+    if (strip) {
+      const rect = strip.getBoundingClientRect();
+
+      if (tabDragPointerX.value < rect.left + TAB_SCROLL_EDGE) {
+        strip.scrollLeft -= TAB_SCROLL_STEP;
+        placeDraggedTab();
+      } else if (tabDragPointerX.value > rect.right - TAB_SCROLL_EDGE) {
+        strip.scrollLeft += TAB_SCROLL_STEP;
+        placeDraggedTab();
+      }
+    }
+
+    tabScrollFrame = requestAnimationFrame(step);
+  };
+
+  cancelAnimationFrame(tabScrollFrame);
+  tabScrollFrame = requestAnimationFrame(step);
+};
+
+const beginTabDrag = () => {
+  if (tabDragMoved.value || !tabDragFrom.value) {
+    return;
+  }
+
+  tabDragMoved.value = true;
+  closeTabMenus();
+  tabDragId.value = tabDragFrom.value.key;
+  tabDragOrder.value = baseTabs.value.map(tabKey);
+  tabDragStartOrder.value = [...tabDragOrder.value];
+  captureTabSlots();
+  // Otherwise the pointer selects the tab names it crosses on the way
+  window.getSelection()?.removeAllRanges();
+  document.body.style.cursor = 'grabbing';
+  runTabScroll();
+};
+
+const onTabDragMove = (event: MouseEvent) => {
+  if (!tabDragFrom.value) {
+    return;
+  }
+
+  tabDragPointerX.value = event.clientX;
+
+  if (!tabDragMoved.value && Math.abs(event.clientX - tabDragFrom.value.x) < DRAG_THRESHOLD) {
+    return;
+  }
+
+  beginTabDrag();
+  placeDraggedTab();
+};
+
+const persistAll = (views: SavedView[], viewId: string | null, allIndex: number = allTabIndex.value) => {
+  // A view that no longer exists can't be the default one
+  const validDefault = views.find((v) => v.id === viewId) ? viewId : null;
+
+  allSavedViews.value = {
+    ...(allSavedViews.value || {}),
+    [props.resourceType]: {
+      views,
+      defaultViewId: validDefault,
+      allIndex:      Math.min(Math.max(allIndex, 0), views.length)
+    }
+  };
+};
+
+const persist = (views: SavedView[]) => persistAll(views, defaultViewId.value);
+
+const endTabDrag = (commit: boolean) => {
+  window.removeEventListener('mousemove', onTabDragMove, true);
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  window.removeEventListener('mouseup', onTabDragEnd, true);
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  window.removeEventListener('keydown', onTabDragKey, true);
+  cancelAnimationFrame(tabScrollFrame);
+
+  const started = tabDragStartOrder.value || [];
+  const order = tabDragOrder.value;
+  const moved = !!order && order.some((key, i) => key !== started[i]);
+
+  if (tabDragMoved.value) {
+    swallowNextClick();
+  }
+
+  document.body.style.cursor = '';
+
+  tabDragFrom.value = null;
+  tabDragId.value = null;
+  tabDragMoved.value = false;
+  tabDragBounds.value = null;
+  tabDragStartOrder.value = null;
+
+  if (commit && moved && order) {
+    const byId: Record<string, SavedView> = {};
+
+    savedViews.value.forEach((view) => {
+      byId[view.id] = view;
+    });
+
+    // The table's own tab is not one of the saved views, so its place is kept beside them
+    persistAll(order.map((key) => byId[key]).filter(Boolean), defaultViewId.value, order.indexOf('all'));
+  }
+
+  tabDragOrder.value = null;
+};
+
+/** Escape abandons the drag: the strip snaps back to the saved order, and nothing is written */
+function onTabDragKey(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    endTabDrag(false);
+  }
+}
+
+function onTabDragEnd() {
+  endTabDrag(tabDragMoved.value);
+}
+
+/**
+ * Press on a tab: arm a possible drag.
+ *
+ * Nothing is picked up here. A press on a tab is far more often the start of a click that
+ * selects the view, so the tab is only taken once the pointer has travelled DRAG_THRESHOLD
+ * with it held - and the click that would follow the drop is swallowed in endTabDrag.
+ */
+const startTabDrag = (tab: Tab, event: MouseEvent) => {
+  const key = tabKey(tab);
+
+  if (event.button !== 0 || renamingId.value || baseTabs.value.findIndex((t) => tabKey(t) === key) < lockedTabCount.value) {
+    return;
+  }
+
+  tabDragFrom.value = { key, x: event.clientX };
+  tabDragMoved.value = false;
+
+  window.addEventListener('mousemove', onTabDragMove, true);
+  window.addEventListener('mouseup', onTabDragEnd, true);
+  window.addEventListener('keydown', onTabDragKey, true);
+};
+
+const setGroupBy = (id: string | null) => update({ groupBy: id });
+
+/**
+ * Picking a grouping from the menu, where picking the one already applied undoes it.
+ *
+ * The rows are how the grouping is read as much as how it is set, so the obvious move on
+ * seeing the tick against the field you are grouped by is to click it again - and a menu
+ * that answers by doing nothing leaves you hunting for None or Reset to say what the row you
+ * just clicked was already saying.
+ */
+const toggleGroupBy = (id: string | null) => setGroupBy(id === props.view.groupBy ? null : id);
+
+const resetColumns = () => update({
+  columns: null, labelColumns: [], columnOrder: null
+});
+
+/**
+ * Put the whole view back to the table's defaults - the query included
+ */
+const resetView = () => update({
+  query: '', columns: null, labelColumns: [], columnOrder: null, groupBy: null, sort: null, sortDescending: false
+});
+
+const forgetDraft = (id: string | null | undefined) => {
+  const key = draftKey(id);
+
+  if (!drafts.value[key]) {
+    return;
+  }
+
+  const rest = { ...drafts.value };
+
+  delete rest[key];
+  drafts.value = rest;
+};
+
+/**
+ * Hold on to the tab being left, if it has changes worth keeping. A tab left in the state it
+ * was saved in has nothing to hold, so anything held for it is let go.
+ */
+const rememberDraft = (id: string | null | undefined) => {
+  const key = draftKey(id);
+
+  if (isDirty.value) {
+    drafts.value = { ...drafts.value, [key]: { ...props.view } };
+
+    return;
+  }
+
+  forgetDraft(id);
+};
+
+/**
+ * @param saved the view to show, or null for the default tab
+ * @param useDraft whether unsaved edits left on that tab should come back with it. Off for
+ *        the paths whose whole purpose is to put a tab back the way it was saved.
+ */
+const applyView = (saved: SavedView | null, useDraft = true) => {
+  const from = selectedViewId.value;
+  const to = saved?.id || null;
+  const moving = from !== to;
+
+  // Clicking the tab already in front of you is not a request to throw away what is on it.
+  // Discarding says so outright, and comes through here with `useDraft` off.
+  if (!moving && useDraft) {
+    pickedViewId.value = to;
+
+    return;
+  }
+
+  // Before the pick moves: what counts as unsaved is measured against the tab being left, and
+  // moving the pick first measures it against the one being arrived at, which marks every tab
+  // left behind as changed whether anything was typed into it or not.
+  if (moving) {
+    rememberDraft(from);
+  }
+
+  pickedViewId.value = to;
+
+  const draft = useDraft ? drafts.value[draftKey(to)] : null;
+
+  if (draft) {
+    emit('update:view', { ...draft });
+
+    return;
+  }
+
+  emit('update:view', {
+    query:          saved?.query || '',
+    columns:        saved?.columns || null,
+    columnOrder:    saved?.columnOrder || null,
+    labelColumns:   saved?.labelColumns || [],
+    groupBy:        saved?.groupBy || null,
+    sort:           saved?.sort || null,
+    sortDescending: saved?.sortDescending || false,
+  });
+};
+
+/**
+ * Put the view back the way it was - either the saved view being edited, or nothing at all
+ */
+const discardChanges = () => {
+  forgetDraft(selectedViewId.value);
+  applyView(editingView.value, false);
+};
+
+/**
+ * Put the keyboard on a view's tab once it exists, and bring the tab into sight with it: a
+ * view you just made or just copied should be the one in front of you.
+ *
+ * `toEnd` is for those two. A new view goes on the end of the strip, so rather than working
+ * out where its tab has landed - which the strip has not finished laying out at the moment it
+ * is asked - the strip is simply run to its far end, where the tab must be.
+ */
+const focusTab = (id: string | null, toEnd = false) => {
+  nextTick(() => {
+    const tab = (tabs.value || []).find((candidate) => candidate.id === id);
+    const btn = tab && tabButton(tab);
+
+    if (!btn) {
+      return;
+    }
+
+    // Focus scrolls the strip by itself, which would fight the run to the end below
+    btn.focus({ preventScroll: !!toEnd });
+
+    if (!toEnd) {
+      btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+
+      return;
+    }
+
+    // A frame later, so the tab that has just been added is in the strip's width
+    requestAnimationFrame(() => {
+      const strip = tabStrip.value;
+
+      if (strip) {
+        strip.scrollLeft = strip.scrollWidth;
+      }
+    });
+  });
+};
+
+/**
+ * Rename in place. The name lives on the tab, so that is where it is edited - a modal to
+ * change one word puts the thing being renamed behind the thing renaming it.
+ */
+const openRename = (saved?: { id?: string, name?: string } | null) => {
+  if (!saved?.id) {
+    return;
+  }
+
+  renamingId.value = saved.id;
+  renameDraft.value = saved.name || '';
+
+  nextTick(() => {
+    const input = renameInputs.get(saved.id as string);
+
+    input?.focus();
+    input?.select();
+  });
+};
+
+/**
+ * `base`, or the first number after it that no view is called yet.
+ *
+ * `from` is where the counting starts: a new view is just "Untitled" until there is one, so
+ * the second is "Untitled 1"; a copy is "X (copy)" and the next is "X (copy) 2", which reads
+ * as the second copy rather than as a second thing called copy.
+ */
+const unusedViewName = (base: string, from: number) => {
+  let name = base;
+  let n = from;
+
+  while (savedViews.value.find((v) => v.name === name)) {
+    name = `${ base } ${ n++ }`;
+  }
+
+  return name;
+};
+
+const nextNewViewName = () => unusedViewName(t('tableViews.tab.newViewName'), 1);
+
+/**
+ * Copy a saved view, so a variation can be built without losing the original
+ */
+const duplicateView = (saved: any) => {
+  const name = unusedViewName(`${ saved.name } ${ t('tableViews.tab.copySuffix') }`, 2);
+  const copy = {
+    ...saved, id: randomStr(8), name
+  };
+
+  persist(savedViews.value.concat([copy]));
+  applyView(copy);
+  focusTab(copy.id, true);
+  // A copy is named after the thing it was copied from, which is never what you wanted it
+  // called - so the name is already open for typing by the time the tab is in front of you
+  nextTick(() => openRename(copy));
+};
+
+const updateView = (saved: SavedView) => persist(savedViews.value.map((v) => (v.id === saved.id ? { ...v, ...viewToSave.value } : v)));
+
+/**
+ * Keep the changes on the tab as a view of their own.
+ *
+ * The same act as copying a tab, and it lands the same way - the new tab in front of you with
+ * its name open for typing. The only difference is what is copied: the tab as it stands with
+ * the unsaved changes on it, rather than the view as it was last saved.
+ *
+ * It used to ask for the name in a modal first. A modal to take one word put the thing being
+ * named behind the thing naming it, and it was the one place in the toolbar where naming a
+ * view did not happen on the tab itself.
+ */
+const openSaveAsNew = () => {
+  if (!isDirty.value && pickedViewId.value === undefined) {
+    return;
+  }
+
+  duplicateView({ ...viewToSave.value, name: editingView.value?.name || t('tableViews.tabs.all') });
+};
+
+const saveChanges = () => {
+  if (editingView.value) {
+    updateView(editingView.value);
+  } else if (isDirty.value) {
+    // The default tab can't be saved over, and an unsaved view has nothing to save over, so
+    // either way what is being asked for is a new view - and it needs a name
+    openSaveAsNew();
+  }
+};
+
+/**
+ * A new tab starts life as an unsaved "New View" holding the table's defaults, so it can be
+ * built up in place and named when it is worth keeping
+ */
+const addView = () => {
+  const view = {
+    id:           randomStr(8),
+    name:         nextNewViewName(),
+    query:        '',
+    columns:      null,
+    columnOrder:  null,
+    labelColumns: [],
+    groupBy:      null,
+  } as unknown as SavedView;
+
+  persist(savedViews.value.concat([view]));
+  applyView(view);
+  focusTab(view.id, true);
+};
+
+/**
+ * A row of the View menu coming under the pointer.
+ *
+ * Opening one is immediate; taking an open one away from another row is not - see
+ * SUB_MENU_GRACE_MS. `key` is null for the rows that open nothing, which close what is open
+ * on the same terms.
+ */
+const hoverSubMenu = (key: string | null) => {
+  clearTimeout(subMenuTimer);
+
+  if (subMenu.value === key) {
+    return;
+  }
+
+  if (!subMenu.value) {
+    subMenu.value = key;
+
+    return;
+  }
+
+  subMenuTimer = setTimeout(() => {
+    subMenu.value = key;
+  }, SUB_MENU_GRACE_MS);
+};
+
+/** Clicking a row says which menu you want outright, with none of the waiting */
+const openSubMenu = (key: string | null) => {
+  clearTimeout(subMenuTimer);
+  subMenu.value = key;
+};
+
+/** The pointer has left a row without settling on it, so it never meant to choose it */
+const cancelSubMenuSwitch = () => clearTimeout(subMenuTimer);
+
+/** The pointer has arrived in the sub menu, which is the end of any journey across the rows */
+const enterSubMenu = () => {
+  clearTimeout(subMenuTimer);
+  subMenuHovered.value = true;
+};
+
+/**
+ * A sub menu closing itself - a click outside it, Escape, picking something - is what takes
+ * the row out of the open state the click put it in.
+ *
+ * A menu normally hands focus back to the button that opened it, and this one has no button:
+ * it is opened by a row of the menu above. So the row takes focus back, leaving the keyboard
+ * where it was rather than at the top of the page.
+ */
+const closeSubMenu = (key: string, open: boolean) => {
+  if (!open && subMenu.value === key) {
+    subMenu.value = null;
+    nextTick(() => (viewMenu.value?.querySelector(`[data-testid="table-views-view-${ key }"]`) as HTMLElement)?.focus());
+  }
+};
+
+/**
+ * Show a tab and put the focus on it. The focus has to follow, because the strip is a roving
+ * tabindex - the tab left behind stops being reachable the moment another takes the view.
+ */
+const goToTab = (tab: Tab) => {
+  applyView(tab.view || null);
+  focusTab(tab.id);
+};
+
+/**
+ * Arrow along the strip. Moving the focus picks the view as it goes, the way the tabs
+ * elsewhere in the product behave - a tab that has focus but is not the one in force would
+ * leave the underline and the table disagreeing about which view is shown.
+ */
+const stepTab = (delta: number) => {
+  const list = tabs.value || [];
+
+  if (list.length < 2) {
+    return;
+  }
+
+  // From wherever the focus actually is. It is normally on the tab in force, but a view just
+  // deleted leaves it on the one before, which is not the one showing.
+  const focused = list.findIndex((tab) => tabButton(tab) === document.activeElement);
+  const at = focused >= 0 ? focused : list.findIndex((tab) => tab.id === focusableTabId.value);
+  const next = list[((at < 0 ? 0 : at) + delta + list.length) % list.length];
+
+  goToTab(next);
+};
+
+/** Home and End, to either end of the strip */
+const edgeTab = (which: string) => {
+  const list = tabs.value || [];
+  const next = which === 'first' ? list[0] : list[list.length - 1];
+
+  if (next) {
+    goToTab(next);
+  }
+};
+
+/**
+ * Down arrow opens the focused tab's menu, the way it opens any menu button. The chevron is
+ * out of the tab sequence, so this is the keyboard's way in.
+ *
+ * The menu is told a key opened it before it is opened: that is what has it hand the focus to
+ * its first row rather than leaving it on the chevron, which is how it tells a key press from
+ * a click.
+ */
+const openTabMenu = (tab: Tab) => {
+  const caret = tabCaret(tab);
+
+  if (!caret) {
+    return;
+  }
+
+  caret.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  caret.click();
+};
+
+/**
+ * Closing the menu hands the focus back to the chevron, which is not in the tab sequence and
+ * answers no arrows. Put it back on the tab it belongs to, so the strip still works - but
+ * only when the keyboard is where it was left, or a click elsewhere would be dragged back.
+ */
+const onTabMenuToggle = (tab: Tab, open: boolean) => {
+  openTabMenuId.value = open ? tabKey(tab) : null;
+
+  if (open) {
+    return;
+  }
+
+  nextTick(() => {
+    if (document.activeElement === tabCaret(tab)) {
+      tabButton(tab)?.focus();
+    }
+  });
+};
+
+/**
+ * Mark a tab once the strip has actually arrived at the start.
+ *
+ * Waiting on the scroll rather than on a guess at how long it takes: a fixed delay fired
+ * while the strip was still moving, which is the one moment the mark is no use - it is there
+ * to answer "why did that just move", and it has to land after the moving has stopped. The
+ * cap is for a scroll that never finishes, so nothing is left waiting on it.
+ */
+const flashTabWhenScrolled = (strip: HTMLElement, key: string) => {
+  clearTimeout(flashTimer);
+  cancelAnimationFrame(flashFrame);
+
+  const deadline = Date.now() + TAB_SCROLL_SETTLE_MAX_MS;
+
+  const settle = () => {
+    if (strip.scrollLeft > 1 && Date.now() < deadline) {
+      flashFrame = requestAnimationFrame(settle);
+
+      return;
+    }
+
+    flashTabId.value = key;
+    flashTimer = setTimeout(() => {
+      flashTabId.value = null;
+    }, TAB_FLASH_MS);
+  };
+
+  settle();
+};
+
+/**
+ * Keep the typed name. Blank, or unchanged, simply closes - there is nothing to record.
+ */
+const commitRename = () => {
+  const id = renamingId.value;
+  const name = (renameDraft.value || '').trim();
+  const saved = savedViews.value.find((v) => v.id === id);
+
+  renamingId.value = null;
+  renameDraft.value = '';
+
+  if (!name || !saved || name === saved.name) {
+    return;
+  }
+
+  persist(savedViews.value.map((v) => (v.id === id ? { ...v, name } : v)));
+};
+
+const cancelRename = () => {
+  renamingId.value = null;
+  renameDraft.value = '';
+};
+
+/**
+ * Export needs a format, which is more than belongs in a menu - ask in a modal.
+ * `view` is only used to label it, the rows exported are whatever the view matches.
+ */
+const openExport = (saved?: SavedView | null) => {
+  modal.value = { kind: 'export', view: saved || null };
+};
+
+const closeModal = () => {
+  modal.value = null;
+};
+
+/**
+ * Copy any tab, the default one included - copying it is how you start a view from the table
+ * as it comes, since the default tab itself can never be saved over.
+ */
+const duplicateTab = (tab: Tab) => {
+  duplicateView(tab.view || {
+    name:         t('tableViews.tabs.all'),
+    query:        '',
+    columns:      null,
+    columnOrder:  null,
+    labelColumns: [],
+    groupBy:      null,
+  });
+};
+
+const duplicateCurrent = () => {
+  const tab = tabs.value.find((candidate) => candidate.id === selectedViewId.value);
+
+  if (tab) {
+    duplicateTab(tab);
+  }
+};
+
+/**
+ * The view this list opens on. No toggle: choosing the default tab is itself how you go back
+ * to opening on the table as it comes, which is what an empty default means.
+ */
+const setDefaultView = (tab: Tab) => {
+  persistAll(savedViews.value, tab.isDefaultTab ? null : tab.view?.id || null);
+
+  // The tab has just been moved to the head of the strip, which is no use if the strip is
+  // scrolled somewhere else - so the strip goes back to the start to show it happening,
+  // whether or not the tab that moved is the one being looked at.
+  //
+  // And then the tab itself is flashed, once the strip has stopped: a strip that jumps to its
+  // start on its own says nothing about why, and the mark is the one a dragged tab wears, so
+  // it reads as "this one" rather than as something new to learn.
+  const key = tabKey(tab.isDefaultTab ? { id: null } : { id: tab.view?.id });
+
+  nextTick(() => {
+    const strip = tabStrip.value;
+
+    if (!strip) {
+      return;
+    }
+
+    strip.scrollTo({ left: 0, behavior: 'smooth' });
+    flashTabWhenScrolled(strip, key);
+  });
+};
+
+/** Is this the tab the list opens on? With nothing set, that is the default tab */
+const isDefaultTab = (tab: Tab) => (tab.isDefaultTab ? !defaultViewId.value : defaultViewId.value === tab.view?.id);
+
+const deleteView = (saved?: SavedView) => {
+  if (!saved) {
+    return;
+  }
+
+  const wasSelected = selectedViewId.value === saved.id;
+  // The tab the keyboard falls back to. Taken before the view goes, because afterwards there
+  // is nothing left to measure from - and it is the one in front of the gap, not the one
+  // that slides into it, that the user was last looking at.
+  const list = tabs.value || [];
+  const before = list[Math.max(list.findIndex((tab) => tab.id === saved.id) - 1, 0)];
+
+  persist(savedViews.value.filter((v) => v.id !== saved.id));
+  forgetDraft(saved.id);
+
+  if (wasSelected) {
+    applyView(null);
+  }
+
+  if (before) {
+    focusTab(before.id);
+  }
+};
+
+const doExport = (format: string) => {
+  // The name goes with it: the export is watched in the notification centre, and by the time
+  // it finishes the modal that knew which view was picked is long gone
+  const name = modal.value?.view?.name || t('tableViews.tabs.all');
+
+  emit('export', { format, name });
+  closeModal();
+};
+
+/** What each shortcut runs, by the name SHORTCUTS gives it */
+const SHORTCUT_ACTIONS: Record<string, () => void> = {
+  saveChanges, openSaveAsNew, duplicateCurrent
+};
+
+/**
+ * ⌘/ctrl shortcuts for the saved view being edited. Ignored while the user is typing, so
+ * ⌘S in the filter box still means whatever the browser makes of it.
+ */
+const onShortcut = (event: KeyboardEvent) => {
+  if (!(event.metaKey || event.ctrlKey) || event.altKey) {
+    return;
+  }
+
+  // Only for the list the keyboard is actually in - its toolbar, its filter box or its rows.
+  // A page can carry two of these, each with its own views, and a shortcut has to name one of
+  // them; the focus is what names it. It also keeps ⌘S out of whatever else on the page the
+  // user might be writing in, which is what the old check was for.
+  if (!ownsTarget(event.target)) {
+    return;
+  }
+
+  const match = SHORTCUTS.find((s) => s.key === event.key.toLowerCase() && s.shift === event.shiftKey);
+
+  if (!match) {
+    return;
+  }
+
+  event.preventDefault();
+  SHORTCUT_ACTIONS[match.action]();
+};
+
+watch(tabQueries, (queries) => emit('tab-queries', queries), { immediate: true });
+
+/** Whatever was under the pointer belonged to the menu that has just gone */
+watch(subMenu, () => {
+  subMenuHovered.value = false;
+});
+
+onMounted(() => {
+  // Only the tabs instance listens, so a bar rendered as two parts doesn't act on each key twice
+  if (props.part !== 'controls') {
+    window.addEventListener('keydown', onShortcut);
+  }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onShortcut);
+  clearTimeout(subMenuTimer);
+  clearTimeout(flashTimer);
+  cancelAnimationFrame(flashFrame);
+  endColumnDrag(false);
+  endTabDrag(false);
+});
 </script>
 
 <template>
@@ -1778,7 +1634,7 @@ export default {
           <div
             v-for="tab in tabs"
             :key="tab.id || 'all'"
-            :ref="`tab-wrap-${ tab.id }`"
+            :ref="(el) => keepRef(tabWraps, tab.id || 'all', el)"
             class="view-tab-wrap"
             :class="{
               active: selectedViewId === tab.id,
@@ -1792,7 +1648,7 @@ export default {
                  null, which is also what "nothing is being renamed" looks like. -->
             <input
               v-if="!tab.isDefaultTab && renamingId === tab.id"
-              :ref="`rename-${ tab.id }`"
+              :ref="(el) => keepRef(renameInputs, tab.id || '', el)"
               v-model="renameDraft"
               type="text"
               class="view-tab rename-input"
@@ -1806,7 +1662,7 @@ export default {
             >
             <button
               v-else
-              :ref="`tab-btn-${ tab.id }`"
+              :ref="(el) => keepRef(tabButtons, tab.id || 'all', el)"
               type="button"
               role="tab"
               class="view-tab"
@@ -1842,7 +1698,7 @@ export default {
               <!-- Out of the tab sequence: the strip is one stop, and the down arrow on the tab is
                    what opens this. The mouse still has the chevron to click. -->
               <rc-dropdown-trigger
-                :ref="`tab-caret-${ tab.id }`"
+                :ref="(el) => keepRef(tabCarets, tab.id || 'all', el)"
                 variant="link"
                 class="view-tab-caret"
                 tabindex="-1"
@@ -2067,7 +1923,7 @@ export default {
               :skidding="-11"
               :flip="false"
               :shift="false"
-              :reference-node="() => $refs.viewMenu"
+              :reference-node="() => viewMenu"
               @update:open="(open) => closeSubMenu('group', open)"
             >
               <template #dropdownCollection>
@@ -2126,7 +1982,7 @@ export default {
               :skidding="-11"
               :flip="false"
               :shift="false"
-              :reference-node="() => $refs.viewMenu"
+              :reference-node="() => viewMenu"
               @update:open="(open) => closeSubMenu('columns', open)"
             >
               <template #dropdownCollection>
