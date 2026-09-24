@@ -185,7 +185,72 @@ describe('component: RcCodeMirror', () => {
     });
   });
 
+  describe('theme prop', () => {
+    it.each([
+      ['keys', '.cm-rancher-key', 'enabled'],
+      ['quoted values', '.cm-rancher-string', '"platform"'],
+      ['plain booleans', '.cm-rancher-keyword', 'true'],
+      ['comments', '.cm-rancher-comment', '# a comment']
+    ])('should highlight YAML %s with the Rancher theme by default', (_token, selector, expected) => {
+      mountEditor({
+        language:   'yaml',
+        modelValue: 'enabled: true\nowner: "platform"\n# a comment'
+      });
+
+      expect(wrapper.find(selector).text()).toStrictEqual(expected);
+    });
+
+    it('should not highlight a YAML key or quoted boolean as a boolean value', () => {
+      mountEditor({ language: 'yaml', modelValue: 'true: "false"' });
+
+      expect(wrapper.find('.cm-rancher-keyword').exists()).toStrictEqual(false);
+    });
+
+    it.each([
+      ['property names', '.cm-rancher-key', '"enabled"'],
+      ['booleans', '.cm-rancher-keyword', 'true']
+    ])('should highlight JSON %s', (_token, selector, expected) => {
+      mountEditor({ language: 'json', modelValue: '{"enabled": true, "replicas": 3}' });
+
+      expect(wrapper.find(selector).text()).toStrictEqual(expected);
+    });
+
+    it('should highlight YAML booleans when the language changes to YAML', async() => {
+      mountEditor({ language: 'json', modelValue: 'enabled: true' });
+
+      await wrapper.setProps({ language: 'yaml' });
+
+      expect(wrapper.find('.cm-rancher-keyword').text()).toStrictEqual('true');
+    });
+
+    it('should remove Rancher highlighting when the theme changes to none', async() => {
+      mountEditor({ language: 'yaml', modelValue: 'name: "nginx"' });
+
+      await wrapper.setProps({ theme: 'none' });
+
+      expect(wrapper.find('.cm-rancher-key').exists()).toStrictEqual(false);
+    });
+  });
+
   describe('variant prop', () => {
+    it('should keep the form input styling when the Rancher editor theme is the default', () => {
+      mountEditor({
+        variant: 'input', language: 'yaml', modelValue: 'name: "nginx"'
+      });
+
+      expect(wrapper.find('.cm-rancher-key').exists()).toStrictEqual(false);
+    });
+
+    it('should apply the Rancher editor theme when the variant changes to editor', async() => {
+      mountEditor({
+        variant: 'input', language: 'yaml', modelValue: 'name: "nginx"'
+      });
+
+      await wrapper.setProps({ variant: 'editor' });
+
+      expect(wrapper.find('.cm-rancher-key').text()).toStrictEqual('name');
+    });
+
     it('should be an editor by default', () => {
       mountEditor();
 

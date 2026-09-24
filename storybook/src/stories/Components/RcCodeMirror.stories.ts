@@ -11,6 +11,8 @@ kind: Deployment
 metadata:
   name: nginx
   namespace: default
+  annotations:
+    owner: 'platform'
   labels:
     app: nginx
 spec:
@@ -26,6 +28,7 @@ spec:
       containers:
         - name: nginx
           image: nginx:1.21
+          stdin: true
           ports:
             - containerPort: 80
           resources:
@@ -62,9 +65,9 @@ const meta: Meta<typeof RcCodeMirror> = {
       description: 'Key bindings used by the editor.'
     },
     theme: {
-      options:     ['none', 'one-dark'],
+      options:     ['rancher', 'none'],
       control:     { type: 'select' },
-      description: 'Editor color theme. `none` inherits the surrounding styles.'
+      description: 'Editor color theme. `rancher` follows the surrounding light or dark theme; `none` inherits the surrounding styles.'
     },
     variant: {
       options:     ['editor', 'input'],
@@ -87,7 +90,7 @@ const meta: Meta<typeof RcCodeMirror> = {
   args: {
     language:     'yaml',
     keymap:       'default',
-    theme:        'none',
+    theme:        'rancher',
     variant:      'editor',
     readOnly:     false,
     lineNumbers:  true,
