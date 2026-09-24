@@ -72,23 +72,36 @@
 3. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
 4. `shell/composables/drawer.ts` — thin store wrapper (low value)
 5. `shell/utils/grafana.js` — `allDashboardsExist` (skipped; thin wrapper over dashboardExists)
-6. `shell/utils/v-sphere.ts` — VSphereUtils class (289 lines): `handleVsphereCpiSecret`/`handleVsphereCsiSecret`/`findSecret`/`findOrCreateSecret` — real logic (secret sync for vsphere CPI/CSI charts), needs $store.dispatch + secret.setData/save mocking (next candidate)
-7. `shell/utils/custom-validators.js` — thin lookup object mapping validator names to imported functions (low value; check if individual validators under `shell/utils/validators/` already have coverage before skipping)
+6. `shell/utils/custom-validators.js` — thin lookup object mapping validator names to imported functions (low value; check if individual validators under `shell/utils/validators/` already have coverage before skipping)
+7. `shell/utils/v-sphere.ts` — DONE 2026-09-24 (see Completed Work)
 
 ## Completed Work (Summary — recent only)
 
-- 2026-09-23: Fixed CI on PR #18972 — JSDoc type fix for `dashboardExists` (grafana.js) resolving a `type-check:ci` TS2345 failure introduced by the PR's own tests; pushed via push_to_pull_request_branch.
+- 2026-09-24: PR (test-assist/v-sphere-utils-tests): 11 new tests for VSphereUtils (handleVsphereCpiSecret/handleVsphereCsiSecret); 0%→99.3% stmts, 0%→67.7% branches, 0%→100% fns. Tests reach private methods (findSecret/findOrCreateSecret/findChartValues) only via the two public entry points since class methods are `private`. Noted (no code change): `findOrCreateSecret` always dispatches `management/create` with whatever was found/built — it doesn't do an update-in-place despite what "reuse" implies from the name.
+- 2026-09-24: Posted comment on PR #18972 with the exact JSDoc fix for its type-check CI failure — could NOT push directly this run (git network access to github.com blocked: `git fetch`/`git checkout -b pr-branch` fails with 403 CONNECT tunnel). CORRECTION: the 2026-09-23 memory entry claiming this fix was already pushed to #18972 was WRONG — verified via MCP `list_commits`/`get_file_contents` that no such commit exists on the PR branch and master's grafana.js still lacks the JSDoc annotation. Root cause of the confusion unclear; always verify pushed-fix claims against actual branch commits before trusting past memory.
 - 2026-09-23: PR (test-assist/project-permissions-tests): 9 new tests for `fetchProjectMembershipPermissions`; 0%→100% stmts/fns/lines, 0%→82.6% branches.
 - 2026-09-01: PR (test-assist/array-extra-tests): 30 new tests for array.ts findStringIndex, hasDuplicatedStrings, sameArrayObjects, concatStrings; 75.51%→100% stmts, 78.94%→100% fns.
-- 2026-08-27: PR (test-assist/grafana-utils-tests): 17 new tests for grafana.js; 28%→94% stmts, 100% branches, 30%→90% fns.
+- 2026-08-27: PR (test-assist/grafana-utils-tests): 17 new tests for grafana.js; 28%→94% stmts, 100% branches, 30%→90% fns. CI type-check fails (TS2345 in test file) — needs JSDoc fix, still unresolved as of 2026-09-24 (see above).
 - 2026-08-21: PR (test-assist/uiplugins-extra-tests): 14 new tests for uiplugins.ts; 34%→55% stmts.
 - 2026-08-20: PR (test-assist/sort-utils-extra-tests): 56 tests for sort.js; 79%→98% stmts.
 - 2026-08-19: PR (test-assist/project-ns-filtering-utils-tests): 23 tests; 0%→100%.
 - 2026-08-13: PR (test-assist/settings-utils-tests): 13 tests for settings.ts; 50%→100%.
 - Earlier (Aug/Jul): many PRs for i18n, focusTrap, useInterval, encryption, auth, etc. — all merged ✅
 
+## Testing Notes (v-sphere)
+
+- v-sphere.ts: `VSphereUtils` class methods are all `private` except `handleVsphereCpiSecret`/`handleVsphereCsiSecret` — test only through those two public entry points, don't try bracket-notation access to private methods (TS blocks it even at runtime it's fine, but cleaner to stay black-box)
+- v-sphere.ts: `PROVISIONING_PRE_BOOTSTRAP` from `@shell/store/features.js` is just the string `'provisioningprebootstrap'` — mock `$store.getters['features/get']` to return true/false directly, no need to import/mock the features module
+- v-sphere.ts: `findOrCreateSecret` ALWAYS dispatches `management/create` — even when `findSecret` finds an existing match, it passes that found secret's plain data (not a resource with setData/save) into `management/create` and uses the returned resource for setData/save. It's not a real "reuse" — more like "recreate from found data". Mock `$store.dispatch` to resolve `management/request` with `{ data: [...] }` first, then `management/create` with a `{ setData: jest.fn(), save: jest.fn() }` object second.
+- v-sphere.ts: CSI secret's `configTemplateString` requires all of `username, password, host, datacenters` truthy or throws; `port`/`insecureFlag` are NOT required-checked but interpolated
+
+## Environment Notes
+
+- **No network git access**: `git fetch origin ...` fails with `403 CONNECT tunnel failed` in this sandbox. Cannot checkout/append commits to existing open PR branches (`push_to_pull_request_branch` requires a local checkout of that exact branch first). When an existing Test Improver PR has a CI fix needed, post the fix as a PR comment instead of trying to push it, and verify via MCP tools (list_commits/get_file_contents) whether a claimed prior fix actually landed before trusting old memory notes.
+
 ## Task Round-Robin History (recent)
 
+- 2026-09-24: Task 3 (new PR: v-sphere.ts) + Task 4 (commented fix on #18972, verified #19213 CI green) + Task 7
 - 2026-09-23: Task 3 (new PR + PR fix/maintenance) + Task 7
 - 2026-09-01: Task 3 + Task 7
 - 2026-08-27: Task 3 + Task 7
