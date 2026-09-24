@@ -25,6 +25,12 @@ const props = defineProps<MastheadProps>();
       >
         <slot name="additional-actions" />
       </template>
+      <template
+        v-if="$slots['title-suffix']"
+        #title-suffix
+      >
+        <slot name="title-suffix" />
+      </template>
     </TitleBar>
     <Metadata
       v-if="props.metadataProps"

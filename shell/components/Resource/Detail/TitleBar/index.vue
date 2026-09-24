@@ -98,6 +98,7 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
           :color="badge.color"
           :label="badge.label"
         />
+        <slot name="title-suffix" />
       </Title>
       <div class="actions">
         <slot name="additional-actions">
