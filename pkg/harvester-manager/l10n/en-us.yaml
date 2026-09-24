@@ -62,6 +62,12 @@ harvesterManager:
     placeholder: 'Please select a VGPU'
     allocatable: allocatable
     allocatableUnknown: missing allocation info
+  hostDevices:
+    title: PCI Devices
+    label: PCI device
+    placeholder: 'Please select a PCI device'
+    allocatable: allocatable
+    allocatableUnknown: missing allocation info
   cpuModel:
     label: CPU Model
     optionLabel: "{modelName} (Ready nodes: {count})"
