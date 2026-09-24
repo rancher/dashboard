@@ -30,7 +30,7 @@
     "@codemirror/state": "6.7.6",
     "@codemirror/view": "6.43.13",
     "@lezer/common": "1.5.2",
-    "@lezer/highlight": "^1.2.0",
+    "@lezer/highlight": "1.2.4",
     "@rancher/icons": "^2.0.64",
     "@replit/codemirror-vim": "6.4.0",
     "lodash.debounce": "4.0.8"
