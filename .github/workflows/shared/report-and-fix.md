@@ -15,7 +15,7 @@ Neither phase is a fallback for the other. A full backlog does not excuse skippi
 
 Only so many pull requests carrying this workflow's bot label may be open at a time. The workflow-specific section below states the number and the label — substitute both literally wherever this protocol writes `<bot-label>`.
 
-First call of the run: `list_pull_requests` with `state: "open"`, then keep the ones carrying `<bot-label>`.
+First call of the run: `list_pull_requests` with `state: "open"` and `perPage: 100`, then keep the ones carrying `<bot-label>`. The default page size is 30 — without `perPage: 100` you will silently miss any pull request past that limit.
 
 The budget counts pull requests **open**, not pull requests opened by this run. Two already open leaves room for one more, not for three.
 
@@ -67,7 +67,7 @@ One candidate at a time, finished before the next starts: re-verify, change, gat
 **Confirmed** — fix it:
 
 1. Make the change, and everything it transitively requires
-2. Run `yarn lint` and `yarn test:ci`. Either fails: fix the fallout or abandon the change. Never open a pull request with a failing gate
+2. Run `yarn lint`, `yarn type-check` and `yarn test:ci`. Any fails: fix the fallout or abandon the change. Never open a pull request with a failing gate
 
    **A gate that could not run has not passed.** A command erroring on a missing dependency, a runtime version, or anything other than your change is a failed gate. Open no pull request, and name in the run summary which command failed and what it printed. Never reason about what the gate would have said — your reasoning is the thing it exists to check
 3. Change touches the UI: capture evidence, see "Capturing UI evidence"
@@ -207,9 +207,10 @@ The evidence in the issue was not reused. Every check below was re-run against t
 
 ### Gates (added)
 
-Both must have actually executed. "Expected to pass", "cannot run" or "no source file was modified so nothing can break" are not results, and a pull request carrying one of them should not have been opened.
+All three must have actually executed. "Expected to pass", "cannot run" or "no source file was modified so nothing can break" are not results, and a pull request carrying one of them should not have been opened.
 
 - `yarn lint` — [pass, or the failure output]
+- `yarn type-check` — [pass, or the failure output]
 - `yarn test:ci` — [pass, with the suite/test counts it printed]
 
 ### Lessons (added)
