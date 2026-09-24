@@ -1,6 +1,7 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, mount } from '@vue/test-utils';
 import VersionManagement from '@pkg/imported/components/VersionManagement.vue';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
+import { SECTION_TYPE } from '@components/RcSection';
 
 const mockedStore = () => {
   return {
@@ -21,6 +22,13 @@ const requiredSetup = () => {
         $store:      mockedStore(),
         $route:      mockedRoute,
         $fetchState: {},
+      },
+      stubs: {
+        RcSection: {
+          name:     'RcSection',
+          props:    ['title', 'mode', 'type', 'expandable'],
+          template: '<div class="rc-section"><slot name="title" /><slot></slot></div>'
+        }
       }
     }
   };
@@ -199,5 +207,42 @@ describe('version management component', () => {
     expect(banner.exists()).toBe(expected.shouldExist);
 
     expect(wrapper.vm.versionManagementInfo).toBe(expected.value);
+  });
+
+  describe('rcSection styling', () => {
+    const baseProps = {
+      oldValue: 'system-default', globalSetting: true, value: 'system-default', mode: _CREATE
+    };
+
+    it('should render the fields inside an RcSection with the default title and the secondary type', () => {
+      const wrapper = shallowMount(VersionManagement, { ...requiredSetup(), propsData: baseProps });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.exists()).toBe(true);
+      expect(section.props('title')).toBe('imported.basics.versionManagement.title');
+      expect(section.props('type')).toBe(SECTION_TYPE.SECONDARY);
+    });
+
+    it('should use a caller-provided title over the default', () => {
+      const wrapper = shallowMount(VersionManagement, {
+        ...requiredSetup(),
+        propsData: { ...baseProps, title: 'Custom Title' }
+      });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.props('title')).toBe('Custom Title');
+    });
+
+    it('should render the radio group and banner inside the RcSection', () => {
+      const wrapper = mount(VersionManagement, {
+        ...requiredSetup(),
+        propsData: baseProps
+      });
+
+      expect(wrapper.find('[data-testid="imported-version-management-radio"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="version-management-banner"]').exists()).toBe(true);
+    });
   });
 });

@@ -2,6 +2,7 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import PodAffinity from '@shell/components/form/PodAffinity.vue';
 import { _CREATE } from '@shell/config/query-params';
+import { SECTION_TYPE } from '@components/RcSection';
 
 const requiredSetup = () => {
   return {
@@ -62,5 +63,36 @@ describe('component: PodAffinity', () => {
     await nextTick();
 
     expect(wrapper.find('[data-testid="pod-affinity-weight-index0"]').exists()).toBeTruthy();
+  });
+
+  describe('rcCompatible', () => {
+    it('should not render an RcSection when rcCompatible is false', () => {
+      const wrapper = mount(PodAffinity, { props: { mode: _CREATE }, ...requiredSetup() });
+
+      expect(wrapper.findComponent({ name: 'RcSection' }).exists()).toBe(false);
+    });
+
+    it('should render the fields inside a nested RcSection with the default title and the secondary type when rcCompatible is true', () => {
+      const wrapper = mount(PodAffinity, { props: { mode: _CREATE, rcCompatible: true }, ...requiredSetup() });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.exists()).toBe(true);
+      expect(section.props('type')).toBe(SECTION_TYPE.SECONDARY);
+      expect(section.props('title')).toBe('cluster.agentConfig.subGroups.podAffinityAnti');
+    });
+
+    it('should use a caller-provided title over the default when rcCompatible is true', () => {
+      const wrapper = mount(PodAffinity, {
+        props: {
+          mode: _CREATE, rcCompatible: true, title: 'Custom Title'
+        },
+        ...requiredSetup()
+      });
+
+      const section = wrapper.findComponent({ name: 'RcSection' });
+
+      expect(section.props('title')).toBe('Custom Title');
+    });
   });
 });
