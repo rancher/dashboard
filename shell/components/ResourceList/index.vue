@@ -415,7 +415,6 @@ export default {
       :external-pagination-args="pagination"
       :external-pagination-scope="paginationScope"
       @pagination-changed="paginationChanged"
-      @view-filters-changed="setTableViewFilters"
     />
   </div>
 </template>

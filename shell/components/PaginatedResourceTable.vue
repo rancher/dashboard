@@ -171,7 +171,6 @@ export default defineComponent({
       :external-pagination-scope="paginationScope"
 
       @pagination-changed="paginationChanged"
-      @view-filters-changed="setTableViewFilters"
     >
       <!-- Pass down templates provided by the caller -->
       <template

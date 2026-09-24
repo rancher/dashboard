@@ -1,7 +1,4 @@
-<script>
-import { RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator } from '@components/RcDropdown';
-import IconOrSvg from '@shell/components/IconOrSvg';
-
+<script setup lang="ts">
 /**
  * The bulk actions for the rows a table has selected, as one "N Selected" menu.
  *
@@ -9,64 +6,51 @@ import IconOrSvg from '@shell/components/IconOrSvg';
  * toolbar's own row is where the filter lives, so the actions collapse into a single button that
  * is only there when there is a selection to act on.
  */
-export default {
-  name: 'TableSelectionActions',
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-  emits: ['click', 'mouseover', 'mouseleave'],
+import { RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator } from '@components/RcDropdown';
+import IconOrSvg from '@shell/components/IconOrSvg';
+import { useI18n } from '@shell/composables/useI18n';
+import type { TableAction } from '@shell/utils/table-views';
 
-  components: {
-    IconOrSvg, RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator
-  },
+const props = withDefaults(defineProps<{
+  /** The table's availableActions */
+  actions?: TableAction[],
+  /** How many rows are selected. None means no menu at all */
+  count?: number,
+  actionTooltip?: string | Record<string, unknown> | null,
+  testid?: string,
+}>(), {
+  actions:       () => [],
+  count:         0,
+  actionTooltip: null,
+  testid:        'sortable-table',
+});
 
-  props: {
-    /**
-     * The table's availableActions - `{ action, label, icon, enabled }`
-     */
-    actions: {
-      type:    Array,
-      default: () => []
-    },
+const emit = defineEmits<{
+  click: [act: TableAction, row: null, event: MouseEvent],
+  mouseover: [act: TableAction],
+  mouseleave: [act: null],
+}>();
 
-    count: {
-      type:    Number,
-      default: 0
-    },
+const { t } = useI18n(useStore());
 
-    actionTooltip: {
-      type:    [String, Object],
-      default: null
-    },
+/**
+ * Removing rows is the one action that can't be undone, so it sits on its own below a separator
+ * rather than in amongst the rest
+ */
+const deleteAction = computed<TableAction | null>(() => props.actions.find((act) => act.action === 'promptRemove') ||
+  props.actions.find((act) => (!!act.icon && `${ act.icon }`.includes('icon-trash')) || /delete|remove/i.test(act.action || '')) ||
+  null);
 
-    testid: {
-      type:    String,
-      default: 'sortable-table'
-    },
-  },
+const menuActions = computed<TableAction[]>(() => {
+  const del = deleteAction.value;
 
-  computed: {
-    /**
-     * Removing rows is the one action that can't be undone, so it sits on its own below a
-     * separator rather than in amongst the rest
-     */
-    deleteAction() {
-      return this.actions.find((act) => act.action === 'promptRemove') ||
-        this.actions.find((act) => (act.icon && `${ act.icon }`.includes('icon-trash')) || /delete|remove/i.test(act.action || '')) ||
-        null;
-    },
+  return props.actions.filter((act) => !del || act.action !== del.action);
+});
 
-    menuActions() {
-      const del = this.deleteAction;
-
-      return this.actions.filter((act) => !del || act.action !== del.action);
-    },
-  },
-
-  methods: {
-    apply(act, event) {
-      this.$emit('click', act, null, event);
-    },
-  }
-};
+const apply = (act: TableAction, event: MouseEvent) => emit('click', act, null, event);
 </script>
 
 <template>
@@ -94,8 +78,8 @@ export default {
         :disabled="!act.enabled"
         :data-testid="`${ testid }-selection-action-${ act.action }`"
         @click="apply(act, $event)"
-        @mouseover="$emit('mouseover', act)"
-        @mouseleave="$emit('mouseleave', null)"
+        @mouseover="emit('mouseover', act)"
+        @mouseleave="emit('mouseleave', null)"
       >
         <template #before>
           <!-- An action's icon is a font class or an svg the extension supplied. This is the one
@@ -117,8 +101,8 @@ export default {
           :disabled="!deleteAction.enabled"
           :data-testid="`${ testid }-selection-action-delete`"
           @click="apply(deleteAction, $event)"
-          @mouseover="$emit('mouseover', deleteAction)"
-          @mouseleave="$emit('mouseleave', null)"
+          @mouseover="emit('mouseover', deleteAction)"
+          @mouseleave="emit('mouseleave', null)"
         >
           <template #before>
             <IconOrSvg
